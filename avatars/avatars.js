@@ -176,39 +176,42 @@ const animationClips = {
     walk: [
       {name: 'left strafe walking.fbx', angle: Math.PI/2},
       {name: 'right strafe walking.fbx', angle: -Math.PI/2},
-  
       {name: 'walking.fbx', angle: 0},
       {name: 'walking backwards.fbx', angle: Math.PI},
     ],
     run: [
       {name: 'left strafe.fbx', angle: Math.PI/2},
       {name: 'right strafe.fbx', angle: -Math.PI/2},
-  
       {name: 'Fast Run.fbx', angle: 0},
       {name: 'running backwards.fbx', angle: Math.PI},
     ],
     crouch: [
       {name: 'Crouched Sneaking Left.fbx', angle: Math.PI/2},
       {name: 'Crouched Sneaking Right.fbx', angle: -Math.PI/2},
-      
       {name: 'Sneaking Forward.fbx', angle: 0},
       {name: 'Sneaking Forward reverse.fbx', angle: Math.PI},
     ],
   },
   greatSword:{
     walk: [
-      {name: 'left strafe walking reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
-      {name: 'right strafe walking reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
+      {name: 'great_sword_strafe_left.fbx', angle: Math.PI/2},
+      {name: 'great_sword_strafe_right.fbx', angle: -Math.PI/2},
+      {name: 'great_sword_walk.fbx', angle: 0},
+      {name: 'great_sword_walk_backward.fbx', angle: Math.PI},
     ],
     run: [
-      {name: 'left strafe reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
-      {name: 'right strafe reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
+      {name: 'great_sword_strafe_left.fbx', angle: Math.PI/2},
+      {name: 'great_sword_strafe_right.fbx', angle: -Math.PI/2},
+      {name: 'great_sword_run.fbx', angle: 0},
+      {name: 'great_sword_run_backward.fbx', angle: Math.PI},
     ],
     crouch: [
-      {name: 'Crouched Sneaking Left reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
-      {name: 'Crouched Sneaking Right reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
+      {name: 'Crouched Sneaking Left.fbx', angle: Math.PI/2},
+      {name: 'Crouched Sneaking Right.fbx', angle: -Math.PI/2},
+      {name: 'Sneaking Forward.fbx', angle: 0},
+      {name: 'Sneaking Forward reverse.fbx', angle: Math.PI},
     ],
-  }
+  },
 }
 
 let animationsAngleArrays = animationClips.normal;
@@ -265,47 +268,23 @@ let animationsIdleArrays = {
   crouch: {name: 'Crouch Idle.fbx'},
 };
 
-const animationClips = {
-  normal:{
-    walk: [
-      {name: 'left strafe walking.fbx', angle: Math.PI/2},
-      {name: 'right strafe walking.fbx', angle: -Math.PI/2},
-  
-      {name: 'walking.fbx', angle: 0},
-      {name: 'walking backwards.fbx', angle: Math.PI},
-    ],
-    run: [
-      {name: 'left strafe.fbx', angle: Math.PI/2},
-      {name: 'right strafe.fbx', angle: -Math.PI/2},
-  
-      {name: 'Fast Run.fbx', angle: 0},
-      {name: 'running backwards.fbx', angle: Math.PI},
-    ],
-    crouch: [
-      {name: 'Crouched Sneaking Left.fbx', angle: Math.PI/2},
-      {name: 'Crouched Sneaking Right.fbx', angle: -Math.PI/2},
-      
-      {name: 'Sneaking Forward.fbx', angle: 0},
-      {name: 'Sneaking Forward reverse.fbx', angle: Math.PI},
-    ],
-  },
-  greatSword:{
-    walk: [
-      {name: 'left strafe walking reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
-      {name: 'right strafe walking reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
-    ],
-    run: [
-      {name: 'left strafe reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
-      {name: 'right strafe reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
-    ],
-    crouch: [
-      {name: 'Crouched Sneaking Left reverse.fbx', matchAngle: -Math.PI/2, angle: -Math.PI/2},
-      {name: 'Crouched Sneaking Right reverse.fbx', matchAngle: Math.PI/2, angle: Math.PI/2},
-    ],
+const updateAnimations = ()=> {
+  for (const k in animationsAngleArrays) {
+    const as = animationsAngleArrays[k];
+    for (const a of as) {
+      a.animation = animations.index[a.name];
+    }
   }
-}
-
-
+  for (const k in animationsAngleArraysMirror) {
+    const as = animationsAngleArraysMirror[k];
+    for (const a of as) {
+      a.animation = animations.index[a.name];
+    }
+  }
+  for (const k in animationsIdleArrays) {
+    animationsIdleArrays[k].animation = animations.index[animationsIdleArrays[k].name];
+  }
+};
 let animations;
 let animationStepIndices;
 let animationsBaseModel;
@@ -341,20 +320,6 @@ const loadPromise = (async () => {
       for (const animation of animations) {
         animations.index[animation.name] = animation;
       }
-
-      /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
-      for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
-        const mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.02, 0.02, 0.02), new THREE.MeshBasicMaterial({color: 0xff0000}));
-        mesh.position.set(-30 + i * 0.1, 10 + animationIndices.leftFootYDeltas[i] * 10, -15);
-        mesh.updateMatrixWorld();
-        scene.add(mesh);
-      }
-      for (let i = 0; i < animationIndices.rightFootYDeltas.length; i++) {
-        const mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.02, 0.02, 0.02), new THREE.MeshBasicMaterial({color: 0x0000ff}));
-        mesh.position.set(-30 + i * 0.1, 10 + animationIndices.rightFootYDeltas[i] * 10, -15);
-        mesh.updateMatrixWorld();
-        scene.add(mesh);
-      } */
     })(),
     (async () => {
       const srcUrl = '/animations/animations-skeleton.glb';
@@ -374,21 +339,7 @@ const loadPromise = (async () => {
     })(),
   ]);
 
-  for (const k in animationsAngleArrays) {
-    const as = animationsAngleArrays[k];
-    for (const a of as) {
-      a.animation = animations.index[a.name];
-    }
-  }
-  for (const k in animationsAngleArraysMirror) {
-    const as = animationsAngleArraysMirror[k];
-    for (const a of as) {
-      a.animation = animations.index[a.name];
-    }
-  }
-  for (const k in animationsIdleArrays) {
-    animationsIdleArrays[k].animation = animations.index[animationsIdleArrays[k].name];
-  }
+  updateAnimations();
 
   const _normalizeAnimationDurations = (animations, baseAnimation, factor = 1) => {
     for (let i = 1; i < animations.length; i++) {
@@ -404,6 +355,7 @@ const loadPromise = (async () => {
       animation.duration = newDuration * factor;
     }
   };
+
   const walkingAnimations = [
     `walking.fbx`,
     `left strafe walking.fbx`,
@@ -444,18 +396,7 @@ const loadPromise = (async () => {
     decorateAnimation(animation);
   }
 
-  /* jumpAnimationSegments = {
-    chargeJump: animations.find(a => a.isChargeJump),
-    chargeJumpFall: animations.find(a => a.isChargeJumpFall),
-    isFallLoop: animations.find(a => a.isFallLoop),
-    isLanding: animations.find(a => a.isLanding)
-  }; */
-
-  // chargeJump = animations.find(a => a.isChargeJump);
-  // standCharge = animations.find(a => a.isStandCharge);
   fallLoop = animations.find(a => a.isFallLoop);
-  // swordSideSlash = animations.find(a => a.isSwordSideSlash);
-  // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   function mergeAnimations(a, b) {
     const o = {};
@@ -469,10 +410,7 @@ const loadPromise = (async () => {
   }
 
   jumpAnimation = animations.find(a => a.isJump);
-  // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
-  // rifleAnimation = animations.find(a => a.isRifle);
-  // hitAnimation = animations.find(a => a.isHit);
   aimAnimations = {
     swordSideIdle: animations.index['sword_idle_side.fbx'],
     swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
@@ -503,9 +441,6 @@ const loadPromise = (async () => {
   throwAnimations = {
     throw: animations.find(a => a.isThrow),
   };
-  /* crouchAnimations = {
-    crouch: animations.find(a => a.isCrouch),
-  }; */
   activateAnimations = {
     grab_forward: {animation:animations.index['grab_forward.fbx'], speedFactor: 1.2},
     grab_down: {animation:animations.index['grab_down.fbx'], speedFactor: 1.7},
