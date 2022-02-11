@@ -81,25 +81,23 @@ class PathFinder {
     this.destVoxel.material = materialDest;
 
     // // this.step();
-    // this.untilFound();
-    // if (this.isFound) {
-    //   this.simplifyWaypointResultXZ(this.waypointResult[0]);
-    //   this.simplifyWaypointResultXZ2(this.waypointResult[0]);
-    //   this.simplifyWaypointResultX(this.waypointResult[0]);
-    //   this.simplifyWaypointResultZ(this.waypointResult[0]);
-    //   this.waypointResult.shift();
-    // }
-    // console.log('waypointResult', this.waypointResult.length);
+    this.untilFound();
+    if (this.isFound) {
+      this.simplifyWaypointResultXZ(this.waypointResult[0]);
+      this.simplifyWaypointResultXZ2(this.waypointResult[0]);
+      this.simplifyWaypointResultX(this.waypointResult[0]);
+      this.simplifyWaypointResultZ(this.waypointResult[0]);
+      this.waypointResult.shift();
+    }
+    console.log('waypointResult', this.waypointResult.length);
 
-    // if (this.debugRender) {
-    //   this.waypointResult.forEach(result => {
-    //     const x = result.position.x;
-    //     const z = result.position.z;
-    //     this.getVoxel(x, z).material = materialPathSimplified;
-    //   });
-    // }
+    if (this.debugRender) {
+      this.waypointResult.forEach(result => {
+        this.getVoxel(result.position).material = materialPathSimplified;
+      });
+    }
 
-    // return this.isFound;
+    return this.isFound;
   }
 
   simplifyWaypointResultX(result) {
@@ -174,6 +172,18 @@ class PathFinder {
     }
   }
 
+  resetVoxel(voxel) {
+    voxel._isStart = false;
+    voxel._isDest = false;
+    voxel._isReached = false;
+    voxel._priority = 0;
+    voxel._costSoFar = 0;
+    voxel._prev = null;
+    voxel._next = null;
+    voxel._isPath = false;
+    voxel.material = materialIdle;
+  }
+
   reset() {
     this.isFound = false;
     this.frontiers.length = 0;
@@ -184,20 +194,15 @@ class PathFinder {
 
     // simple cache
     this.voxels.children.forEach(voxel => {
-      voxel._isStart = false;
-      voxel._isDest = false;
-      voxel._isReached = false;
-      voxel._priority = 0;
-      voxel._costSoFar = 0;
-      voxel._prev = null;
-      voxel._next = null;
-      voxel._isPath = false;
-      voxel.material = materialIdle;
+      this.resetVoxel(voxel);
     });
   }
 
   createVoxel(position) {
-    const voxel = new THREE.Mesh(this.geometry, materialIdle);
+    let voxel = this.getVoxel(position);
+    if (voxel) return voxel;
+
+    voxel = new THREE.Mesh(this.geometry, materialIdle);
     this.voxels.add(voxel);
     voxel.position.copy(position);
     voxel._detectState = 'initial'; // 'initial', 'colliding', 'stopped'
@@ -268,10 +273,7 @@ class PathFinder {
   generateVoxelMapLeft(currentVoxel) {
     localVector.copy(currentVoxel.position);
     localVector.x += -1;
-    let leftVoxel = this.getVoxel(localVector);
-    if (!leftVoxel) {
-      leftVoxel = this.createVoxel(localVector);
-    }
+    const leftVoxel = this.createVoxel(localVector);
     if (leftVoxel.position.y - currentVoxel.position.y < heightTolerance) {
       currentVoxel._leftVoxel = leftVoxel;
     }
@@ -280,10 +282,7 @@ class PathFinder {
   generateVoxelMapRight(currentVoxel) {
     localVector.copy(currentVoxel.position);
     localVector.x += 1;
-    let rightVoxel = this.getVoxel(localVector);
-    if (!rightVoxel) {
-      rightVoxel = this.createVoxel(localVector);
-    }
+    const rightVoxel = this.createVoxel(localVector);
     if (rightVoxel.position.y - currentVoxel.position.y < heightTolerance) {
       currentVoxel._rightVoxel = rightVoxel;
     }
@@ -292,10 +291,7 @@ class PathFinder {
   generateVoxelMapBtm(currentVoxel) {
     localVector.copy(currentVoxel.position);
     localVector.z += -1;
-    let btmVoxel = this.getVoxel(localVector);
-    if (!btmVoxel) {
-      btmVoxel = this.createVoxel(localVector);
-    }
+    const btmVoxel = this.createVoxel(localVector);
     if (btmVoxel.position.y - currentVoxel.position.y < heightTolerance) {
       currentVoxel._btmVoxel = btmVoxel;
     }
@@ -304,10 +300,7 @@ class PathFinder {
   generateVoxelMapTop(currentVoxel) {
     localVector.copy(currentVoxel.position);
     localVector.z += 1;
-    let topVoxel = this.getVoxel(localVector);
-    if (!topVoxel) {
-      topVoxel = this.createVoxel(localVector);
-    }
+    const topVoxel = this.createVoxel(localVector);
     if (topVoxel.position.y - currentVoxel.position.y < heightTolerance) {
       currentVoxel._topVoxel = topVoxel;
     }
