@@ -152,7 +152,7 @@ localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
 const npcs = [];
-const pathFinder = new PathFinder({ width: 71, height: 71, voxelHeight: 2, lowestY: 0.1, highestY: 15, highestY2: 30, debugRender: true }); // for treehouse.scn
+const pathFinder = new PathFinder({ width: 71, height: 71, voxelHeight: 2, lowestY: -100, highestY: 10, highestY2: 30, debugRender: true }); // for treehouse.scn
 // const pathFinder = new PathFinder({ width: 71, height: 71, voxelHeight: 2, lowestY: -50, debugRender: false }); // for marching-cube.scn
 window.pathFinder = pathFinder; // test
 
