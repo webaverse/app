@@ -46,7 +46,7 @@ class PathFinder {
     this.debugRender = debugRender;
     this.onlyShowPath = true; // test
     this.iterDetect = 0;
-    this.maxIterDetect = 100;
+    this.maxIterDetect = 1000;
     this.iterStep = 0;
     this.maxIterStep = 1000;
 
