@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import cameraManager from './camera-manager.js';
 import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
-import ioManager from './io-manager.js';
+// import ioManager from './io-manager.js';
 import {getVelocityDampingFactor} from './util.js';
 import {groundFriction, flyFriction, airFriction} from './constants.js';
 import {applyVelocity} from './util.js';
