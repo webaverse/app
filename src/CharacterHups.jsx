@@ -3,8 +3,9 @@ import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import dioramaManager from '../diorama.js';
 import styles from './CharacterHups.module.css';
-import metaversefile from 'metaversefile';
-const {useLocalPlayer} = metaversefile;
+// import metaversefile from 'metaversefile';
+// const {useLocalPlayer} = metaversefile;
+import {chatTextSpeed} from '../constants.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -81,7 +82,7 @@ function CharacterHup(props) {
         // XXX this text slicing should be done with a mathematical factor in the hups code
         const newText = text + fullText.charAt(text.length);
         setText(newText);
-      }, 50);
+      }, chatTextSpeed);
       return () => {
         clearTimeout(timeout);
       };
