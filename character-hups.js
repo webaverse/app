@@ -6,6 +6,8 @@ the HTML part of this code lives as part of the React app. */
 import {VoicePack, VoicePackVoicer} from './voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-endpoint-voicer.js';
 
+const deadTimeoutTime = 2000;
+
 let nextHupId = 0;
 class Hup extends EventTarget {
   constructor(type, parent) {
@@ -40,20 +42,17 @@ class Hup extends EventTarget {
   
     this.actionIds.push(action.actionId);
 
-    const _updateVoicer = () => {
+    const _updateVoicer = async () => {
       if (this.parent.voicer) {
-        this.parent.voicer.start(message);
+        await this.parent.voicer.start(message);
+      } else {
+        await Promise();
       }
+      this.dispatchEvent(new MessageEvent('voiceend'));
     };
     _updateVoicer();
 
-    const _clearDeadTimeout = () => {
-      if (this.deadTimeout) {
-        clearTimeout(this.deadTimeout);
-        this.deadTimeout = null;
-      }
-    };
-    _clearDeadTimeout();
+    this.clearDeadTimeout();
 
     this.dispatchEvent(new MessageEvent('update'));
   }
@@ -63,7 +62,7 @@ class Hup extends EventTarget {
       this.actionIds.splice(index, 1);
     }
     if (this.actionIds.length === 0) {
-      const _updateVoicer = () => {
+      /* const _updateVoicer = () => {
         if (this.parent.voicer) {
           this.parent.voicer.stop();
         }
@@ -72,8 +71,20 @@ class Hup extends EventTarget {
 
       this.deadTimeout = setTimeout(() => {
         this.dispatchEvent(new MessageEvent('deadtimeout'));
-      }, 2000);
+      }, 2000); */
     }
+  }
+  clearDeadTimeout() {
+    if (this.deadTimeout) {
+      clearTimeout(this.deadTimeout);
+      this.deadTimeout = null;
+    }
+  }
+  startDeadTimeout() {
+    this.clearDeadTimeout();
+    this.deadTimeout = setTimeout(() => {
+      this.dispatchEvent(new MessageEvent('deadtimeout'));
+    }, deadTimeoutTime);
   }
   destroy() {
     this.dispatchEvent(new MessageEvent('destroy'));
@@ -99,6 +110,9 @@ class CharacterHups extends EventTarget {
       } else if (Hup.isHupAction(action)) {
         const newHup = new Hup(action.type, this);
         newHup.mergeAction(action);
+        newHup.addEventListener('voiceend', () => {
+          newHup.startDeadTimeout();
+        });
         newHup.addEventListener('deadtimeout', () => {
           newHup.destroy();
 
