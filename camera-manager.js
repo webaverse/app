@@ -199,6 +199,9 @@ class CameraManager extends EventTarget {
 
     cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
   }
+  setShake(shakeFactor) {
+    this.shakeFactor = shakeFactor;
+  }
   update(timeDiff) {
     const localPlayer = metaversefile.useLocalPlayer();
 
