@@ -379,8 +379,6 @@ export default class Webaverse extends EventTarget {
         localPlayer.updatePhysics(timestamp, timeDiffCapped);
       }
 
-      lastTimestamp = timestamp;
-
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
       
@@ -391,12 +389,11 @@ export default class Webaverse extends EventTarget {
 
       hpManager.update(timestamp, timeDiffCapped);
 
+      cameraManager.updatePost(timeDiffCapped);
       ioManager.updatePost();
-      
+
       game.pushAppUpdates();
       game.pushPlayerUpdates();
-
-      dioramaManager.update(timestamp, timeDiffCapped);
 
       const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
@@ -404,9 +401,12 @@ export default class Webaverse extends EventTarget {
       localMatrix3.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
-        
-      this.render(timestamp, timeDiffCapped);
+      
+      lastTimestamp = timestamp;
 
+      // render scenes
+      dioramaManager.update(timestamp, timeDiffCapped);
+      this.render(timestamp, timeDiffCapped);
     }
     renderer.setAnimationLoop(animate);
 
