@@ -1,5 +1,4 @@
-/* this is the fake speech synthesis module.
-it is responsible for playing Banjo-Kazooie style character speech. */
+/* this module is responsible for mapping a remote TTS endpoint to the character. */
 
 import Avatar from './avatars/avatars.js';
 // import {loadAudio} from './util.js';
