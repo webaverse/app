@@ -18,6 +18,7 @@ class VoiceEndpointVoicer {
   }
   start(text) {
     clearTimeout(this.timeout);
+    this.timeout = null;
 
     this.player.avatar.setAudioEnabled(true);
 
