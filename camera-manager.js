@@ -118,12 +118,13 @@ function initOffsetRayParams(arrayIndex,originPoint) {
 
   rayOriginArray[arrayIndex].copy(originPoint);
   rayDirectionArray[arrayIndex].copy(rayQuaternion);
-
 }
 
 class CameraManager extends EventTarget {
   constructor() {
     super();
+
+    this.shakeFactor = 0.1;
   }
   wasActivated() {
     return wasActivated;
@@ -282,6 +283,22 @@ class CameraManager extends EventTarget {
     // Fast zoom in to the point of intersection
     if (hasIntersection) {
       cameraOffsetZ = newVal;
+    }
+
+    if (this.shakeFactor > 0) {
+      const baseTime = performance.now()/1000;
+      const timeOffset = 100;
+      const ndc = f => (-0.5 + f) * 2;
+      const randomValue = f => ndc(shakeNoise(f));
+      localVector.set(
+        randomValue(baseTime),
+        randomValue(baseTime + timeOffset),
+        randomValue(baseTime + timeOffset*2)
+      )
+        .normalize()
+        .multiplyScalar(this.shakeFactor);
+      camera.position.add(localVector);
+      camera.updateMatrixWorld();
     }
 
     const zDiff = Math.abs(cameraOffset.z - cameraOffsetZ);
