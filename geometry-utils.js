@@ -77,8 +77,14 @@ const geometryUtils = (() => {
         }
     }
 
-    scope.generateChunk = (x, y, z, chunkSize) => {
-        const outputBufferOffset = moduleInstance._generateChunk(x, y, z, chunkSize);
+    scope.generateChunk = (
+        x, y, z, chunkSize,
+        noiseScale, octaves, persistence, lacunarity, floorOffset, hardFloor, hardFloorWeight, noiseWeight
+    ) => {
+        const outputBufferOffset = moduleInstance._generateChunk(
+            x, y, z, chunkSize,
+            noiseScale, octaves, persistence, lacunarity, floorOffset, hardFloor, hardFloorWeight, noiseWeight
+        );
 
         const head = outputBufferOffset / 4;
 
