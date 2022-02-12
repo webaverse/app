@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.mjs",
+  "workspaces":[
+    "./packages/*"
+  ],
   "scripts": {
     "start": "forever start index.mjs -p",
     "stop": "killall -SIGINT webaverse || true",
@@ -15,7 +18,7 @@
     "setup:test": "cd test && npm i",
     "test": "cd test && npm run test",
     "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000",
-    "watch": "watch 'npm run restart' ./packages/totum"
+    "watch": "watch 'npm run restart' ./packages"
   },
   "dependencies": {
     "@3id/connect": "^0.2.5",

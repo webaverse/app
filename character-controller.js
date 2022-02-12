@@ -1106,10 +1106,10 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.isNpcPlayer = true;
   }
   async setAvatarAppAsync(app) {
-    await app.setSkinning(true);
+    // await app.setSkinning(true);
     
-    const {skinnedVrm} = app;
-    const avatar = new Avatar(skinnedVrm, {
+    const {skinnedVrms} = app;
+    const avatar = new Avatar(skinnedVrms['active'], {
       fingers: true,
       hair: true,
       visemes: true,

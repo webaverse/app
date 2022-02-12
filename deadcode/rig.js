@@ -166,12 +166,12 @@ function applyPlayerModesToAvatar(player, session, rig) {
   );
 }
 async function switchAvatar(oldRig, newApp) {
-  await newApp.setSkinning(true);
+  // await newApp.setSkinning(true);
   
   // unwear old rig
-  if (oldRig) {
-    await oldRig.app.setSkinning(false);
-  }
+  // if (oldRig) {
+  //   await oldRig.app.setSkinning(false);
+  // }
   if (!newApp.rig) {
     newApp.rig = makeRig(newApp);
   }

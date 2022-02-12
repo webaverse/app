@@ -13,7 +13,7 @@ const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 
-const cameraOffset = new THREE.Vector3();
+const cameraOffset = new THREE.Vector3(0, 0, -5);
 let cameraOffsetTargetZ = cameraOffset.z;
 
 let cameraOffsetZ = cameraOffset.z;
