@@ -820,8 +820,6 @@ const physxWorker = (() => {
     const meshPositionOffset = scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT;
     const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
 
-    const hitOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
-
     const outputBufferOffset = moduleInstance._overlapBoxPhysics(
       physics,
       hx,
@@ -831,7 +829,6 @@ const physxWorker = (() => {
       quaternionOffset,
       meshPositionOffset,
       meshQuaternionOffset,
-      hitOffset,
     );
 
     let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
@@ -847,7 +844,7 @@ const physxWorker = (() => {
       objectIds: outIds,
     };
   };
-  w.overlapCapsulePhysics = (physics, radius, halfHeight, p, q, maxIter) => {
+  w.overlapCapsulePhysics = (physics, radius, halfHeight, p, q) => {
     p.toArray(scratchStack.f32, 0);
     localQuaternion.copy(q)
       .premultiply(capsuleUpQuaternion)
@@ -861,9 +858,7 @@ const physxWorker = (() => {
     const meshPositionOffset = scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT;
     const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
 
-    const hitOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
-
-    moduleInstance._overlapCapsulePhysics(
+    const outputBufferOffset = moduleInstance._overlapCapsulePhysics(
       physics,
       radius,
       halfHeight,
@@ -871,10 +866,20 @@ const physxWorker = (() => {
       quaternionOffset,
       meshPositionOffset,
       meshQuaternionOffset,
-      hitOffset,
     );
 
-    return scratchStack.u32[14];
+    let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+    let tail = head + 1;
+    const numOutIds = moduleInstance.HEAPF32[head];
+    head = tail;
+    tail = head + numOutIds;
+    const outIds = moduleInstance.HEAPF32.slice(head, tail);
+
+    moduleInstance._doFree(outputBufferOffset);
+
+    return {
+      objectIds: outIds,
+    };
   };
   w.collideBoxPhysics = (physics, hx, hy, hz, p, q, maxIter) => {
     p.toArray(scratchStack.f32, 0);
