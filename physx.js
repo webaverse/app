@@ -837,7 +837,6 @@ const physxWorker = (() => {
     let head = outputBufferOffset / 4;
     let tail = head + 1;
     const numOutIds = moduleInstance.HEAPF32[head];
-    // if (numOutIds > 0) console.log('numOutIds', numOutIds)
     head = tail;
     tail = head + numOutIds;
     const outIds = moduleInstance.HEAPF32.slice(head, tail);
