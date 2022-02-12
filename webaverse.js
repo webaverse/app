@@ -344,11 +344,6 @@ export default class Webaverse extends EventTarget {
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
-    // frameEvent.data.lastTimestamp = timestamp;
-    
-    // equipment panel render
-    // equipmentRender.previewScene.add(world.lights);
-    // equipmentRender.render();
 
     getComposer().render();
     game.debugMode && rendererStats.update(renderer);
