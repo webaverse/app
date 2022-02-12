@@ -14,43 +14,63 @@ class VoiceEndpointVoicer {
     this.player = player;
 
     this.live = true;
+    this.running = false;
+    this.queue = [];
     this.cancel = null;
+    this.endPromise = null;
   }
   start(text) {
-    clearTimeout(this.timeout);
-    this.timeout = null;
+    if (!this.endPromise) {
+      this.endPromise = makePromise();
+    }
 
-    this.player.avatar.setAudioEnabled(true);
+    if (!this.running) {
+      this.running = true;
 
-    const p = makePromise();
-    (async () => {
-      const u = new URL(this.voiceEndpoint.url.toString());
-      u.searchParams.set('s', text);
-      const res = await fetch(u/*, {
-        mode: 'cors',
-      } */);
-      const arrayBuffer = await res.arrayBuffer();
+      this.player.avatar.setAudioEnabled(true);
 
-      const audioContext = Avatar.getAudioContext();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      (async () => {
+        const u = new URL(this.voiceEndpoint.url.toString());
+        u.searchParams.set('s', text);
+        const res = await fetch(u/*, {
+          mode: 'cors',
+        } */);
+        const arrayBuffer = await res.arrayBuffer();
 
-      const audioBufferSourceNode = audioContext.createBufferSource();
-      audioBufferSourceNode.buffer = audioBuffer;
-      audioBufferSourceNode.addEventListener('ended', () => {
-        this.cancel = null;
-        p.accept();
-      }, {once: true});
-      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
-      audioBufferSourceNode.start();
+        const audioContext = Avatar.getAudioContext();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-      this.cancel = () => {
-        audioBufferSourceNode.stop();
-        audioBufferSourceNode.disconnect();
+        const audioBufferSourceNode = audioContext.createBufferSource();
+        audioBufferSourceNode.buffer = audioBuffer;
+        audioBufferSourceNode.addEventListener('ended', () => {
+          this.cancel = null;
+          this.running = false;
 
-        this.cancel = null;
-      };
-    })();
-    return p;
+          if (this.live) {
+            if (this.queue.length > 0) {
+              const text = this.queue.shift();
+              this.start(text);
+            } else {
+              const {endPromise} = this;
+              this.endPromise = null;
+              endPromise.accept();
+            }
+          }
+        }, {once: true});
+        audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+        audioBufferSourceNode.start();
+
+        this.cancel = () => {
+          audioBufferSourceNode.stop();
+          audioBufferSourceNode.disconnect();
+
+          this.cancel = null;
+        };
+      })();
+    } else {
+      this.queue.push(text);
+    }
+    return this.endPromise;
   }
   stop() {
     this.live = false;
