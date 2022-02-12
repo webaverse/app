@@ -834,7 +834,7 @@ const physxWorker = (() => {
       hitOffset,
     );
 
-    let head = outputBufferOffset / 4;
+    let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     let tail = head + 1;
     const numOutIds = moduleInstance.HEAPF32[head];
     head = tail;
