@@ -79,14 +79,14 @@ const _makeParticleMaterial = name => {
       precision highp float;
       precision highp int;
 
-      // uniform float uTime;
+      uniform float uTime;
       uniform vec4 cameraBillboardQuaternion;
       attribute vec3 p;
-      attribute float t;
+      attribute vec2 t;
       // attribute vec4 q;
       // varying vec3 vPosition;
       varying vec2 vUv;
-      varying float vTime;
+      varying float vTimeDiff;
 
       /* float getBezierT(float x, float a, float b, float c, float d) {
         return float(sqrt(3.) *
@@ -126,7 +126,11 @@ const _makeParticleMaterial = name => {
         pos += p;
         gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.);
         vUv = uv;
-        vTime = t;
+
+        float startTime = t.x;
+        float endTime = t.y;
+        float timeDiff = (uTime - startTime) / (endTime - startTime);
+        vTimeDiff = timeDiff;
         // vPosition = position;
       }
     `,
@@ -142,7 +146,7 @@ const _makeParticleMaterial = name => {
       uniform float uAnimationSpeed;
       // varying vec3 vPosition;
       varying vec2 vUv;
-      varying float vTime;
+      varying float vTimeDiff;
 
       // const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
       // const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1).toArray().join(', ')});
@@ -154,7 +158,9 @@ const _makeParticleMaterial = name => {
 
         // gl_FragColor = vec4(vec3(vTime), 1.);
 
-        float f = mod(vTime, uAnimationSpeed);
+        // float timeDiff = (uTime - startTime) / ();
+        // float f = mod(vTime, uAnimationSpeed);
+        float f = vTimeDiff;
         float frame = floor(f * uNumFrames);
         float x = mod(frame, rowSize);
         float y = floor(frame / rowSize);
@@ -178,10 +184,12 @@ const _makeParticleMaterial = name => {
 };
 
 class Particle extends THREE.Object3D {
-  constructor(index, parent) {
+  constructor(index, startTime, endTime, parent) {
     super();
 
     this.index = index;
+    this.startTime = startTime;
+    this.endTime = endTime;
     this.parent = parent;
   }
   update() {
@@ -196,7 +204,7 @@ class ParticleMesh extends THREE.InstancedMesh {
     const geometry = planeGeometry.clone();
     geometry.setAttribute('p', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 3), 3));
     // geometry.setAttribute('q', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 4), 4));
-    geometry.setAttribute('t', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 1), 1));
+    geometry.setAttribute('t', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 2), 2));
     const material = _makeParticleMaterial(name);
     material.promise.then(() => {
       this.visible = true;
@@ -217,20 +225,25 @@ class ParticleMesh extends THREE.InstancedMesh {
       }
     };
   }
-  addParticle() {
+  addParticle({
+    lifetime = 1000,
+  } = {}) {
     this.needsUpdate = true;
+
+    const startTime = performance.now();
+    const endTime = startTime + lifetime;
 
     for (let i = 0; i < this.particles.length; i++) {
       let particle = this.particles[i];
       if (particle === null) {
-        particle = new Particle(i, this);
+        particle = new Particle(i, startTime, endTime, this);
         this.particles[i] = particle;
         this.updateGeometry();
         return particle;
       }
     }
 
-    const newParticle = new Particle(this.particles.length, this);
+    const newParticle = new Particle(this.particles.length, startTime, endTime, this);
     this.particles.push(newParticle);
     return newParticle;
   }
@@ -244,7 +257,7 @@ class ParticleMesh extends THREE.InstancedMesh {
       if (particle !== null) {
         this.geometry.attributes.p.setXYZ(index, particle.position.x, particle.position.y, particle.position.z);
         // this.geometry.attributes.q.setXYZW(index, particle.quaternion.x, particle.quaternion.y, particle.quaternion.z, particle.quaternion.w);
-        this.geometry.attributes.t.array[index] = particle.timeFactor;
+        this.geometry.attributes.t.setXY(index, particle.startTime, particle.endTime);
         index++;
       }
     }
@@ -252,7 +265,7 @@ class ParticleMesh extends THREE.InstancedMesh {
     this.geometry.attributes.p.needsUpdate = true;
     /* this.geometry.attributes.q.updateRange.count = index;
     this.geometry.attributes.q.needsUpdate = true; */
-    this.geometry.attributes.t.updateRange.count = index;
+    this.geometry.attributes.t.updateRange.count = index * 2;
     this.geometry.attributes.t.needsUpdate = true;
 
     this.count = index;
@@ -262,14 +275,18 @@ class ParticleMesh extends THREE.InstancedMesh {
 export const createParticleSystem = e => {
   const rootParticleMesh = new THREE.Object3D();
   const particleMeshes = [];
-  rootParticleMesh.addParticle = name => {
+  rootParticleMesh.addParticle = (name, {
+    lifetime,
+  }) => {
     let particleMesh = particleMeshes.find(m => m.name === name);
     if (!particleMesh) {
       particleMesh = new ParticleMesh(name);
       rootParticleMesh.add(particleMesh);
       particleMeshes.push(particleMesh);
     }
-    const particle = particleMesh.addParticle();
+    const particle = particleMesh.addParticle({
+      lifetime,
+    });
     return particle;
   };
 
@@ -281,7 +298,7 @@ export const createParticleSystem = e => {
   world.appManager.addEventListener('frame', e => {
     const {timestamp} = e.data;
     for (const particleMesh of particleMeshes) {
-      particleMesh.material.uniforms.uTime.value = timestamp / 1000;
+      particleMesh.material.uniforms.uTime.value = timestamp;
       particleMesh.material.uniforms.uTime.needsUpdate = true;
       particleMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
       particleMesh.material.uniforms.uNumFrames.needsUpdate = true;
