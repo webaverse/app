@@ -241,8 +241,15 @@ class PathFinder {
     }
     this.iterDetect++;
 
-    let collide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
-    collide = collide && collide.objectId !== window.npcPlayer.physicsObject.physicsId;
+    const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
+    let collide;
+    if (overlapResult.objectIds.length === 1 && overlapResult.objectIds[0] === window.npcPlayer.physicsObject.physicsId) {
+      collide = false;
+    } else if (overlapResult.objectIds.length > 0) {
+      collide = true;
+    } else {
+      collide = false;
+    }
 
     if (voxel._detectState === 'initial') {
       if (collide) {
