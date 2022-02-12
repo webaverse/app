@@ -43,12 +43,21 @@ class Hup extends EventTarget {
     this.actionIds.push(action.actionId);
 
     const _updateVoicer = async () => {
+      this.parent.dispatchEvent(new MessageEvent('voicestart', {
+        data: {
+          message,
+        },
+      }));
       if (this.parent.voicer) {
         await this.parent.voicer.start(message);
       } else {
         await Promise();
       }
-      this.dispatchEvent(new MessageEvent('voiceend'));
+      this.parent.dispatchEvent(new MessageEvent('voiceend', {
+        data: {
+          fullText: this.fullText,
+        },
+      }));
     };
     _updateVoicer();
 
