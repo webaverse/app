@@ -203,6 +203,8 @@ class CameraManager extends EventTarget {
     this.shakeFactor = shakeFactor;
   }
   update(timeDiff) {
+    // console.log('camera manager update');
+
     const localPlayer = metaversefile.useLocalPlayer();
 
     const startMode = this.getMode();
