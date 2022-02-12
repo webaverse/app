@@ -107,6 +107,10 @@ class CharacterHups extends EventTarget {
 
     this.hups = [];
 
+    this.addEventListener('voiceend', () => {
+      const hup = this.hups[0];
+      hup.startDeadTimeout();
+    });
     player.addEventListener('actionadd', e => {
       const {action} = e;
       const {type, actionId} = action;
@@ -119,9 +123,6 @@ class CharacterHups extends EventTarget {
       } else if (Hup.isHupAction(action)) {
         const newHup = new Hup(action.type, this);
         newHup.mergeAction(action);
-        newHup.addEventListener('voiceend', () => {
-          newHup.startDeadTimeout();
-        });
         newHup.addEventListener('deadtimeout', () => {
           newHup.destroy();
 
