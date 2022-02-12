@@ -224,6 +224,12 @@ class PlayerBase extends THREE.Object3D {
     const voice = new VoiceEndpoint(url);
     this.characterHups.setVoice(voice);
   }
+  getCrouchFactor() {
+    return 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
+    /* let factor = 1;
+    factor *= 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
+    return factor; */
+  }
   destroy() {
     // nothing
   }
