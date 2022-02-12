@@ -2,7 +2,8 @@
 it is responsible for playing Banjo-Kazooie style character speech. */
 
 import Avatar from './avatars/avatars.js';
-import {loadAudioBuffer} from './util.js';
+import {loadAudioBuffer, makePromise} from './util.js';
+import {chatTextSpeed} from './constants.js';
 
 function weightedRandom(weights) {
 	let totalWeight = 0;
@@ -61,7 +62,10 @@ class VoicePackVoicer {
     this.nonce = 0;
     this.player = player;
 
-    this.timeout = null;
+    this.startTime = -1;
+    this.charactersSinceStart = 0;
+    this.audioTimeout = null;
+    this.endTimeout = null;
   }
   selectVoice() {
     // the weight of each voice is proportional to the inverse of the number of times it has been used
@@ -79,11 +83,28 @@ class VoicePackVoicer {
     }
     return voiceSpec;
   }
-  start() {
+  clearTimeouts() {
     clearTimeout(this.timeout);
+    this.timeout = null;
+    clearTimeout(this.endTimeout);
+    this.endTimeout = null;
+  }
+  resetStart() {
+    this.startTime = -1;
+    this.charactersSinceStart = 0;
+  }
+  start(text) {
+    this.clearTimeouts();
+
+    const now = performance.now();
+    if (this.startTime === -1) {
+      this.startTime = now;
+    }
+    this.charactersSinceStart += text.length;
 
     this.player.avatar.setAudioEnabled(true);
 
+    const p = makePromise();
     const _recurse = async () => {
       const {offset, duration} = this.selectVoice();
 
@@ -92,35 +113,27 @@ class VoicePackVoicer {
       audioBufferSourceNode.buffer = this.audioBuffer;
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
       audioBufferSourceNode.start(0, offset, duration);
-      // console.log('got audio', audio, audio.audioBuffer);
-      // const audio = syllableSoundFiles[Math.floor(Math.random() * syllableSoundFiles.length)];
-      /* if (audio.silencingInterval) {
-        clearInterval(audio.silencingInterval);
-        audio.silencingInterval = null;
-      } */
-      /* audio.currentTime = 0;
-      audio.volume = 1;
-      audio.paused && audio.play().catch(err => {}); */
-      let audioTimeout = duration * 1000;
-      audioTimeout *= 0.9 + 0.2 * Math.random();
-      this.timeout = setTimeout(() => {
-        // await audio.pause();
-  
-        /* audio.silencingInterval = setInterval(() => {
-          audio.volume = Math.max(audio.volume - 0.1, 0);
-          if (audio.volume === 0) {
-            clearInterval(audio.silencingInterval);
-            audio.silencingInterval = null;
-          }
-        }, 10); */
-  
+      let audioTime = duration * 1000;
+      audioTime *= 0.9 + 0.2 * Math.random();
+      this.audioTimeout = setTimeout(() => {
         _recurse();
-      }, audioTimeout);
+      }, audioTime);
     };
     _recurse();
+
+    const fullTextTime = this.charactersSinceStart * chatTextSpeed;
+    const remainingTextTime = fullTextTime - (now - this.startTime);
+    this.endTimeout = setTimeout(() => {
+      this.clearTimeouts();
+      this.resetStart();
+
+      p.accept();
+    }, remainingTextTime);
+
+    return p;
   }
   stop() {
-    clearTimeout(this.timeout);
+    this.clearTimeouts();
   }
 }
 
