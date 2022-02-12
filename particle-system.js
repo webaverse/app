@@ -4,7 +4,8 @@ import {WebaverseShaderMaterial} from './materials.js';
 import {world} from './world.js';
 import loaders from './loaders.js';
 
-const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+// const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+const urlPrefix = `https://webaverse.github.io/fx-textures/`;
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -27,7 +28,7 @@ planeGeometry.index = planeGeometryNonInstanced.index;
 
 let fileSpecs = [];
 const fileSpecsLoadPromise = (async () => {
-  const res = await fetch(`/fx-textures/fx-files.json`);
+  const res = await fetch(`${urlPrefix}fx-files.json`);
   fileSpecs = await res.json();
 })();
 
@@ -42,7 +43,7 @@ const _makeParticleMaterial = name => {
 
     const texture = await new Promise((accept, reject) => {
       const {ktx2Loader} = loaders;
-      const u = `/fx-textures/${name}-spritesheet.ktx2`;
+      const u = `${urlPrefix}${name}-spritesheet.ktx2`;
       ktx2Loader.load(u, accept, function onProgress() {}, reject);
     });
     texture.anisotropy = 16;
