@@ -66,6 +66,10 @@ const _makeParticleMaterial = name => {
         value: 0,
         needsUpdate: false,
       },
+      uAnimationSpeed: {
+        value: 1,
+        needsUpdate: true,
+      },
       cameraBillboardQuaternion: {
         value: new THREE.Quaternion(),
         needsUpdate: true,
@@ -75,12 +79,14 @@ const _makeParticleMaterial = name => {
       precision highp float;
       precision highp int;
 
-      uniform float uTime;
+      // uniform float uTime;
       uniform vec4 cameraBillboardQuaternion;
       attribute vec3 p;
+      attribute float t;
       // attribute vec4 q;
       // varying vec3 vPosition;
       varying vec2 vUv;
+      varying float vTime;
 
       /* float getBezierT(float x, float a, float b, float c, float d) {
         return float(sqrt(3.) *
@@ -115,12 +121,12 @@ const _makeParticleMaterial = name => {
 
       void main() {
         vec3 pos = position;
-        // pos = rotateVecQuat(pos, q);
         pos = rotateVecQuat(pos, cameraBillboardQuaternion);
         pos = (modelMatrix * vec4(pos, 1.)).xyz;
         pos += p;
         gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.);
         vUv = uv;
+        vTime = t;
         // vPosition = position;
       }
     `,
@@ -133,8 +139,10 @@ const _makeParticleMaterial = name => {
       uniform float uTime;
       uniform sampler2D uTex;
       uniform float uNumFrames;
+      uniform float uAnimationSpeed;
       // varying vec3 vPosition;
       varying vec2 vUv;
+      varying float vTime;
 
       // const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
       // const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1).toArray().join(', ')});
@@ -142,10 +150,11 @@ const _makeParticleMaterial = name => {
       // const vec3 lineColor4 = vec3(${new THREE.Color(0xc2185b).toArray().join(', ')});
 
       void main() {
-        // const float maxNumFrames = ${maxNumFrames.toFixed(8)};
         const float rowSize = ${rowSize.toFixed(8)};
 
-        float f = mod(uTime, 1.);
+        // gl_FragColor = vec4(vec3(vTime), 1.);
+
+        float f = mod(vTime, uAnimationSpeed);
         float frame = floor(f * uNumFrames);
         float x = mod(frame, rowSize);
         float y = floor(frame / rowSize);
@@ -187,6 +196,7 @@ class ParticleMesh extends THREE.InstancedMesh {
     const geometry = planeGeometry.clone();
     geometry.setAttribute('p', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 3), 3));
     // geometry.setAttribute('q', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 4), 4));
+    geometry.setAttribute('t', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 1), 1));
     const material = _makeParticleMaterial(name);
     material.promise.then(() => {
       this.visible = true;
@@ -234,6 +244,7 @@ class ParticleMesh extends THREE.InstancedMesh {
       if (particle !== null) {
         this.geometry.attributes.p.setXYZ(index, particle.position.x, particle.position.y, particle.position.z);
         // this.geometry.attributes.q.setXYZW(index, particle.quaternion.x, particle.quaternion.y, particle.quaternion.z, particle.quaternion.w);
+        this.geometry.attributes.t.array[index] = particle.timeFactor;
         index++;
       }
     }
@@ -241,6 +252,8 @@ class ParticleMesh extends THREE.InstancedMesh {
     this.geometry.attributes.p.needsUpdate = true;
     /* this.geometry.attributes.q.updateRange.count = index;
     this.geometry.attributes.q.needsUpdate = true; */
+    this.geometry.attributes.t.updateRange.count = index;
+    this.geometry.attributes.t.needsUpdate = true;
 
     this.count = index;
   }
