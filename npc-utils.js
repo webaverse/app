@@ -46,7 +46,7 @@ class PathFinder {
     this.frontiers = [];
     this.voxels = new THREE.Group();
     this.voxels.name = 'voxels';
-    this.voxels.visible = debugRender;
+    this.voxels.visible = this.debugRender;
     rootScene.add(this.voxels);
 
     this.voxelo = {};
