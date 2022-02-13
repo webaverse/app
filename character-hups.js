@@ -3,8 +3,10 @@ it controls the animated dioramas that happen when players perform actions.
 the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
+// import metaversefile from 'metaversefile';
 import {VoicePack, VoicePackVoicer} from './voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-endpoint-voicer.js';
+import {chatManager} from './chat-manager.js';
 
 const deadTimeoutTime = 2000;
 
@@ -47,16 +49,20 @@ class Hup extends EventTarget {
     this.dispatchEvent(new MessageEvent('update'));
   }
   async updateVoicer(message) {
+    // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice start');
     this.dispatchEvent(new MessageEvent('voicestart', {
       data: {
         message,
       },
     }));
     if (this.parent.voicer) {
-      await this.parent.voicer.start(message);
+      await chatManager.waitForVoiceTurn(() => {
+        return this.parent.voicer.start(message);
+      });
     } else {
-      await Promise();
+      await Promise.resolve();
     }
+    // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice end');
     this.dispatchEvent(new MessageEvent('voiceend', {
       data: {
         fullText: this.fullText,
