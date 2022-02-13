@@ -54,7 +54,9 @@ class VoiceEndpointVoicer {
     if (!this.running) {
       this.running = true;
 
-      this.player.avatar.setAudioEnabled(true);
+      if (!this.player.avatar.isAudioEnabled()) {
+        this.player.avatar.setAudioEnabled(true);
+      }
 
       (async () => {
         const audioBuffer = await (text.isPreloadMessage ? text.waitForLoad() : this.loadAudioBuffer(text));
