@@ -74,8 +74,8 @@ class Hup extends EventTarget {
     if (index !== -1) {
       this.actionIds.splice(index, 1);
     }
-    if (this.actionIds.length === 0) {
-      /* const _updateVoicer = () => {
+    /* if (this.actionIds.length === 0) {
+      const _updateVoicer = () => {
         if (this.parent.voicer) {
           this.parent.voicer.stop();
         }
@@ -84,8 +84,8 @@ class Hup extends EventTarget {
 
       this.deadTimeout = setTimeout(() => {
         this.dispatchEvent(new MessageEvent('deadtimeout'));
-      }, 2000); */
-    }
+      }, 2000);
+    } */
   }
   clearDeadTimeout() {
     if (this.deadTimeout) {
