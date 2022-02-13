@@ -67,28 +67,21 @@ class ChatManager extends EventTarget {
     return this.addPlayerMessage(localPlayer, message, opts);
   }
   removePlayerMessage(player, m) {
-    // const index = this.messageActions.indexOf(m);
-    // if (index !== -1) {
-      // const m = this.messageActions[index];
-      m.cleanup();
-      // this.messageActions.splice(index, 1);
-      
-      const actionIndex = player.findActionIndex(action => action.chatId === m.chatId);
-      if (actionIndex !== -1) {
-        player.removeActionIndex(actionIndex);
-      } else {
-        console.warn('remove unknown message action 2', m);
-      }
-      
-      this.dispatchEvent(new MessageEvent('messageremove', {
-        data: {
-          player,
-          message: m,
-        },
-      }));
-    /* } else {
-      console.warn('remove unknown message action 1', m);
-    } */
+    m.cleanup();
+    
+    const actionIndex = player.findActionIndex(action => action.chatId === m.chatId);
+    if (actionIndex !== -1) {
+      player.removeActionIndex(actionIndex);
+    } else {
+      console.warn('remove unknown message action 2', m);
+    }
+    
+    this.dispatchEvent(new MessageEvent('messageremove', {
+      data: {
+        player,
+        message: m,
+      },
+    }));
   }
   removeMessage(m) {
     const localPlayer = metaversefileApi.useLocalPlayer();
@@ -108,9 +101,7 @@ class ChatManager extends EventTarget {
       this.voiceRunning = false;
       if (this.voiceQueue.length > 0) {
         const fn2 = this.voiceQueue.shift();
-        // Promise.resolve().then(() => {
-          this.waitForVoiceTurn(fn2);
-        // });
+        this.waitForVoiceTurn(fn2);
       }
 
       return result;
@@ -121,9 +112,7 @@ class ChatManager extends EventTarget {
         // console.log('wait 3');
         const result = await p2;
         // console.log('wait 4');
-        // Promise.resolve().then(() => {
-          p.accept(result);
-        // });
+        p.accept(result);
         return result;
       });
       const result = await p;
