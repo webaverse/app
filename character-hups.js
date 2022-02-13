@@ -50,13 +50,18 @@ class Hup extends EventTarget {
   }
   async updateVoicer(message) {
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice start');
-    this.dispatchEvent(new MessageEvent('voicestart', {
+    this.dispatchEvent(new MessageEvent('voicequeue', {
       data: {
         message,
       },
     }));
     if (this.parent.voicer) {
       await chatManager.waitForVoiceTurn(() => {
+        this.dispatchEvent(new MessageEvent('voicestart', {
+          data: {
+            message,
+          },
+        }));
         return this.parent.voicer.start(message);
       });
     } else {
@@ -125,7 +130,7 @@ class CharacterHups extends EventTarget {
         const newHup = new Hup(action.type, this);
         newHup.mergeAction(action);
         let pendingVoices = 0;
-        newHup.addEventListener('voicestart', () => {
+        newHup.addEventListener('voicequeue', () => {
           pendingVoices++;
           newHup.clearDeadTimeout();
         });
