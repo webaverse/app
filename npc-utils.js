@@ -40,6 +40,7 @@ class PathFinder {
     this.maxIterDetect = 1000;
     this.iterStep = 0;
     this.maxIterStep = 1000;
+    this.allowNearest = false;
 
     this.frontiers = [];
     this.voxels = new THREE.Group();
@@ -56,7 +57,7 @@ class PathFinder {
     this.waypointResult = [];
   }
 
-  getPath(start, dest) {
+  getPath(start, dest, allowNearest = false) {
     this.reset();
     this.start.set(
       Math.round(start.x),
@@ -68,6 +69,8 @@ class PathFinder {
       dest.y,
       Math.round(dest.z),
     );
+
+    this.allowNearest = allowNearest;
 
     this.startVoxel = this.createVoxel(this.start);
     this.startVoxel._isStart = true;
@@ -196,6 +199,7 @@ class PathFinder {
   reset() {
     this.isFound = false;
     this.frontiers.length = 0;
+    this.allowNearest = false;
 
     // // pure realtime, no any cache
     // this.voxels.children.length = 0;
@@ -335,30 +339,29 @@ class PathFinder {
       if (this.iterStep >= this.maxIterStep) {
         // console.log('maxIterDetect: untilFound');
 
-        /// ///////////////////////////////////////////////////////////////////
-        // use nearest frontier, if not found.
+        if (this.allowNearest) { // use nearest frontier, if not found.
+          // // Use nearest frontier, if not found and npc reached dest.
+          // // Check whether npc reached dest in such as npc repo, do not check here. Keep PathFinder as simple as possible.
+          // const destResult = this.waypointResult[this.waypointResult.length - 1];
+          // if (Math.abs(window.npcPlayer.position.x - destResult.position.x) < 0.5 && Math.abs(window.npcPlayer.position.z - destResult.position.z) < 0.5) {
 
-        // // use nearest frontier, if not found and npc reached dest.
-        // const destResult = this.waypointResult[this.waypointResult.length - 1];
-        // if (Math.abs(window.npcPlayer.position.x - destResult.position.x) < 0.5 && Math.abs(window.npcPlayer.position.z - destResult.position.z) < 0.5) {
+          // // Wrong codes: highestPriorityFrontiers: Select shortest distance in lowest priority frontiers, it's wrong, totally random, sometimes even will select opposite direction frontier.
+          // const highestPriorityFrontiers = this.frontiers.filter(frontier => frontier._priority === this.frontiers[0]._priority);
 
-        // // Wrong codes: highestPriorityFrontiers: Select shortest distance in lowest priority frontiers, it's wrong, totally random, sometimes even will select opposite direction frontier.
-        // const highestPriorityFrontiers = this.frontiers.filter(frontier => frontier._priority === this.frontiers[0]._priority);
-
-        let minDistanceSquared = Infinity;
-        let minDistanceSquaredFrontier;
-        // highestPriorityFrontiers.forEach(frontier => {
-        this.frontiers.forEach(frontier => {
-          const distanceSquared = frontier.position.distanceToSquared(this.dest);
-          if (distanceSquared < minDistanceSquared) {
-            minDistanceSquared = distanceSquared;
-            minDistanceSquaredFrontier = frontier;
-          }
-        });
-        this.found(minDistanceSquaredFrontier);
+          let minDistanceSquared = Infinity;
+          let minDistanceSquaredFrontier;
+          // highestPriorityFrontiers.forEach(frontier => {
+          this.frontiers.forEach(frontier => {
+            const distanceSquared = frontier.position.distanceToSquared(this.dest);
+            if (distanceSquared < minDistanceSquared) {
+              minDistanceSquared = distanceSquared;
+              minDistanceSquaredFrontier = frontier;
+            }
+          });
+          this.found(minDistanceSquaredFrontier);
 
         // }
-        /// ///////////////////////////////////////////////////////////////////
+        }
 
         return;
       }
