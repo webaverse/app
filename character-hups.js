@@ -120,6 +120,7 @@ class CharacterHups extends EventTarget {
       // console.log('got old hup', oldHup, actionId, this.hups.map(h => h.actionIds).flat());
       if (oldHup) {
         oldHup.mergeAction(action);
+        oldHup.updateVoicer(action.message);
       } else if (Hup.isHupAction(action)) {
         const newHup = new Hup(action.type, this);
         newHup.mergeAction(action);
