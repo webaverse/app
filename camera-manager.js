@@ -186,7 +186,7 @@ class CameraManager extends EventTarget {
     }
     return result;
   }
-  updatePost(timeDiff) {
+  updatePost(timestamp, timeDiff) {
     // console.log('camera manager update post');
 
     const localPlayer = metaversefile.useLocalPlayer();
@@ -351,7 +351,7 @@ class CameraManager extends EventTarget {
       this.flushShakes();
       const shakeFactor = this.getShakeFactor();
       if (shakeFactor > 0) {
-        const baseTime = performance.now()/1000 * shakeAnimationSpeed;
+        const baseTime = timestamp/1000 * shakeAnimationSpeed;
         const timeOffset = 1000;
         const ndc = f => (-0.5 + f) * 2;
         let index = 0;
