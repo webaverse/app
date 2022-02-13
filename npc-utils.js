@@ -23,7 +23,7 @@ const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb
 const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(89,13,118)'), wireframe: true});
 
 class PathFinder {
-  constructor({voxelHeight = 2, debugRender = false}) {
+  constructor({voxelHeight = 2, maxVoxelCacheLen = 10000, debugRender = false}) {
     this.isStart = false;
     this.isRising = false;
     this.isGeneratedVoxelMap = false;
@@ -41,6 +41,7 @@ class PathFinder {
     this.iterStep = 0;
     this.maxIterStep = 1000;
     this.allowNearest = false;
+    this.maxVoxelCacheLen = maxVoxelCacheLen;
 
     this.frontiers = [];
     this.voxels = new THREE.Group();
@@ -59,6 +60,8 @@ class PathFinder {
 
   getPath(start, dest, allowNearest = false) {
     this.reset();
+    if (this.voxels.children.length > this.maxVoxelCacheLen) this.disposeVoxelCache();
+
     this.start.set(
       Math.round(start.x),
       start.y,
@@ -100,7 +103,10 @@ class PathFinder {
       // const len = this.waypointResult.length - 1;
       const len = this.waypointResult.length;
       for (let i = 0; i < len; i++) {
-        this.getVoxel(this.waypointResult[i].position).material = materialPathSimplified;
+        const voxel = this.getVoxel(this.waypointResult[i].position);
+        if (voxel) { // May already disposed.
+          voxel.material = materialPathSimplified;
+        }
       }
     }
 
@@ -211,18 +217,23 @@ class PathFinder {
     });
   }
 
-  disposeOld(maxVoxelsLen) {
-    const currentLen = this.voxels.children.length;
-    if (currentLen > maxVoxelsLen) {
-      this.voxels.children = this.voxels.children.splice(currentLen - maxVoxelsLen);
-      this.voxelo = {};
-      this.voxels.children.forEach(voxel => {
-        this.setVoxelo(voxel);
-      });
-    }
-  }
+  // disposeOld(maxVoxelsLen) {
+  //   const currentLen = this.voxels.children.length;
+  //   if (currentLen > maxVoxelsLen) {
+  //     this.voxels.children = this.voxels.children.splice(currentLen - maxVoxelsLen);
+  //     this.voxelo = {};
+  //     this.voxels.children.forEach(voxel => {
+  //       this.setVoxelo(voxel);
+  //     });
+  //   }
+  // }
 
-  // disposeOldFar() {} // TODO // Is needed? Just disposeOld() enough?
+  // disposeOldFar() {} // TODO // Is needed? Just disposeOld() enough? I feel don't need, and even disposeOld() is not needed, just dispose all when reach maxVoxelsLen is ok.
+
+  disposeVoxelCache() {
+    this.voxels.children.length = 0;
+    this.voxelo = {};
+  }
 
   getVoxel(position) {
     return this.voxelo[`${position.x}_${position.y}_${position.z}`];
