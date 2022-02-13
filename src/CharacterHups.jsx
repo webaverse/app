@@ -53,7 +53,7 @@ function CharacterHup(props) {
         hupEl.removeEventListener('transitionend', transitionend);
       };
     }
-  }, [hupRef.current, localOpen]);
+  }, [hupRef.current, localOpen, hups, hups.length]);
   useEffect(() => {
     setFullText(hup.fullText);
   }, []);
