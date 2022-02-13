@@ -25,6 +25,8 @@ const rayQuaternion = new THREE.Quaternion();
 const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
 const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
 
+const shakeAnimationSpeed = 30;
+
 // const lastCameraQuaternion = new THREE.Quaternion();
 // let lastCameraZ = 0;
 // let lastCameraValidZ = 0;
@@ -82,6 +84,17 @@ function Simple1DNoise(seed = '') {
 const seed = 'lol';
 const shakeNoise = new Simple1DNoise(seed);
 
+class Shake extends THREE.Object3D {
+  constructor(intensity, startTime, radius, decay) {
+    super();
+
+    this.intensity = intensity;
+    this.startTime = startTime;
+    this.radius = radius;
+    this.decay = decay;
+  }
+}
+
 /* const seed = 'lol';
 const simplex = new Simplex(seed); */
 
@@ -124,7 +137,8 @@ class CameraManager extends EventTarget {
   constructor() {
     super();
 
-    this.shakeFactor = 0.1;
+    this.shakes = [];
+    // this.shakeFactor = 0.1;
   }
   wasActivated() {
     return wasActivated;
@@ -199,12 +213,14 @@ class CameraManager extends EventTarget {
 
     cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
   }
-  setShake(shakeFactor) {
-    this.shakeFactor = shakeFactor;
+  addShake(position, intensity, radius, decay) {
+    const startTime = performance.now();
+    const shake = new Shake(intensity, startTime, radius, decay);
+    shake.position.copy(position);
+    this.shakes.push(shake);
+    return shake;
   }
   update(timeDiff) {
-    // console.log('camera manager update');
-
     const localPlayer = metaversefile.useLocalPlayer();
 
     const startMode = this.getMode();
@@ -307,6 +323,25 @@ class CameraManager extends EventTarget {
       }));
     }
   }
+  flushShakes() {
+    if (this.shakes.length > 0) {
+      const now = performance.now();
+      this.shakes = this.shakes.filter(shake => now < shake.startTime + shake.decay);
+    }
+  }
+  getShakeFactor() {
+    let result = 0;
+    if (this.shakes.length > 0) {
+      const now = performance.now();
+      for (const shake of this.shakes) {
+        const distanceFactor = Math.min(Math.max((shake.radius - shake.position.distanceTo(camera.position))/shake.radius, 0), 1);
+        const timeFactor = Math.min(Math.max(1 - (now - shake.startTime) / shake.decay, 0), 1);
+        // console.log('get shake factor', shake.intensity * distanceFactor * timeFactor, shake.intensity, distanceFactor, timeFactor);
+        result += shake.intensity * distanceFactor * timeFactor;
+      }
+    }
+    return result;
+  }
   updatePost(timeDiff) {
     // console.log('camera manager update post');
 
@@ -368,8 +403,10 @@ class CameraManager extends EventTarget {
     _setCameraToAvatar();
 
     const _shakeCamera = () => {
-      if (this.shakeFactor > 0) {
-        const baseTime = performance.now()/1000 * 20;
+      this.flushShakes();
+      const shakeFactor = this.getShakeFactor();
+      if (shakeFactor > 0) {
+        const baseTime = performance.now()/1000 * shakeAnimationSpeed;
         const timeOffset = 1000;
         const ndc = f => (-0.5 + f) * 2;
         let index = 0;
@@ -380,7 +417,7 @@ class CameraManager extends EventTarget {
           randomValue()
         )
           .normalize()
-          .multiplyScalar(this.shakeFactor * randomValue());
+          .multiplyScalar(shakeFactor * randomValue());
         camera.position.add(localVector);
         // camera.updateMatrixWorld();
       }
