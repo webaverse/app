@@ -211,8 +211,25 @@ class PathFinder {
     });
   }
 
+  disposeOld(maxVoxelsLen) {
+    const currentLen = this.voxels.children.length;
+    if (currentLen > maxVoxelsLen) {
+      this.voxels.children = this.voxels.children.splice(currentLen - maxVoxelsLen);
+      this.voxelo = {};
+      this.voxels.children.forEach(voxel => {
+        this.setVoxelo(voxel);
+      });
+    }
+  }
+
+  // disposeOldFar() {} // TODO // Is needed? Just disposeOld() enough?
+
   getVoxel(position) {
     return this.voxelo[`${position.x}_${position.y}_${position.z}`];
+  }
+
+  setVoxelo(voxel) {
+    this.voxelo[`${voxel.position.x}_${voxel.position.y}_${voxel.position.z}`] = voxel;
   }
 
   createVoxel(position) {
@@ -232,7 +249,7 @@ class PathFinder {
 
     voxel.position.copy(localVoxel.position);
     voxel.updateMatrixWorld();
-    this.voxelo[`${voxel.position.x}_${voxel.position.y}_${voxel.position.z}`] = voxel;
+    this.setVoxelo(voxel);
 
     return voxel;
   }
