@@ -1,4 +1,4 @@
-import {makeId} from './util.js';
+import {makeId, makePromise} from './util.js';
 import metaversefileApi from 'metaversefile';
 
 const _getEmotion = text => {
@@ -27,11 +27,9 @@ class ChatManager extends EventTarget {
   constructor() {
     super();
 
-    // this.messageActions = [];
+    this.voiceRunning = false;
+    this.voiceQueue = [];
   }
-  /* getMessageActions() {
-    return this.messageActions;
-  } */
   addPlayerMessage(player, message = '', {timeout = 3000} = {}) {
     const chatId = makeId(5);
     const match = _getEmotion(message);
@@ -95,6 +93,35 @@ class ChatManager extends EventTarget {
   removeMessage(m) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     this.removePlayerMessage(localPlayer, m);
+  }
+  async waitForVoiceTurn(fn) {
+    if (!this.voiceRunning) {
+      this.voiceRunning = true;
+      const p = fn();
+      const result = await p;
+
+      this.voiceRunning = false;
+      if (this.voiceQueue.length > 0) {
+        const fn2 = this.voiceQueue.shift();
+        // Promise.resolve().then(() => {
+          this.waitForVoiceTurn(fn2);
+        // });
+      }
+
+      return result;
+    } else {
+      const p = makePromise();
+      this.voiceQueue.push(async () => {
+        const p2 = fn();
+        const result = await p2;
+        // Promise.resolve().then(() => {
+          p.accept(result);
+        // });
+        return result;
+      });
+      const result = await p;
+      return result;
+    }
   }
 }
 const chatManager = new ChatManager();
