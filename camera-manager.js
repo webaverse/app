@@ -369,22 +369,23 @@ class CameraManager extends EventTarget {
 
     const _shakeCamera = () => {
       if (this.shakeFactor > 0) {
-        const baseTime = performance.now()/1000;
-        const timeOffset = 100;
+        const baseTime = performance.now()/1000 * 20;
+        const timeOffset = 1000;
         const ndc = f => (-0.5 + f) * 2;
-        const randomValue = f => ndc(shakeNoise(f));
+        let index = 0;
+        const randomValue = () => ndc(shakeNoise(baseTime + timeOffset * index++));
         localVector.set(
-          randomValue(baseTime),
-          randomValue(baseTime + timeOffset),
-          randomValue(baseTime + timeOffset*2)
+          randomValue(),
+          randomValue(),
+          randomValue()
         )
           .normalize()
-          .multiplyScalar(this.shakeFactor);
+          .multiplyScalar(this.shakeFactor * randomValue());
         camera.position.add(localVector);
-        camera.updateMatrixWorld();
+        // camera.updateMatrixWorld();
       }
     };
-    // _shakeCamera();
+    _shakeCamera();
 
     camera.updateMatrixWorld();
   }
