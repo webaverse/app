@@ -3,6 +3,7 @@ import {getRenderer, camera} from './renderer.js';
 import * as notifications from './notifications.js';
 import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
+import {shakeAnimationSpeed} from './constants.js';
 import alea from './alea.js';
 
 const localVector = new THREE.Vector3();
@@ -24,8 +25,6 @@ const rayMatrix = new THREE.Matrix4();
 const rayQuaternion = new THREE.Quaternion();
 const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
 const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
-
-const shakeAnimationSpeed = 30;
 
 // const lastCameraQuaternion = new THREE.Quaternion();
 // let lastCameraZ = 0;
