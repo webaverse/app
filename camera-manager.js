@@ -167,109 +167,6 @@ class CameraManager extends EventTarget {
     this.shakes.push(shake);
     return shake;
   }
-  update(timeDiff) {
-    const localPlayer = metaversefile.useLocalPlayer();
-
-    const startMode = this.getMode();
-
-    let newVal = cameraOffsetTargetZ;
-    let hasIntersection = false;
-
-    // Camera - Top left 
-    initCameraRayParams(0,rayStartPos.set(-1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
-
-    // Camera - Bottom left
-    initCameraRayParams(1,rayStartPos.set(-1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
-
-    // Camera - Top right
-    initCameraRayParams(2,rayStartPos.set(1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
-
-    // Camera - Bottom right
-    initCameraRayParams(3,rayStartPos.set(1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
-
-    // Player postition - offset to left
-    rayStartPos.copy(localPlayer.position);
-    rayOffsetPoint.set(-1, 0, 0);
-    rayOffsetPoint.applyQuaternion(camera.quaternion);
-    rayOffsetPoint.normalize();
-    rayStartPos.add(rayOffsetPoint);
-    initOffsetRayParams(4,rayStartPos);
-    
-    // Player postition - offset to right
-    rayStartPos.copy(localPlayer.position);
-    rayOffsetPoint.set(1, 0, 0);
-    rayOffsetPoint.applyQuaternion(camera.quaternion);
-    rayOffsetPoint.normalize();
-    rayStartPos.add(rayOffsetPoint);
-    initOffsetRayParams(5,rayStartPos);
-
-    let collisionArray = physicsManager.raycastArray(rayOriginArray, rayDirectionArray, 6);
-
-    // Check collision from player to camera corners
-    for(let i=0;i<4;i++) {
-      if ((collisionArray.hit[i] === 1) && (collisionArray.distance[i] <= -1 * newVal)) {
-        if (newVal < (-1 * (collisionArray.distance[i]-0.15))) {
-          newVal = (-1 * (collisionArray.distance[i]-0.15));
-          hasIntersection = true;
-          //console.log(i + " " + collisionArray.distance[i]+ " " + collisionArray.hit[i]);
-        }
-      }
-    }
-
-    // Check collision from player pos and small offset to left and right - to camera center
-    let offsetCollisionCount = 0;
-    for(let i=4;i<6;i++) {
-      if ((collisionArray.hit[i] === 1) && (collisionArray.distance[i] <= (-1 * cameraOffsetTargetZ))) {
-        offsetCollisionCount++;
-      }
-    }
-
-    // Discard collision with small objects
-    if (hasIntersection && (offsetCollisionCount === 0)) {
-      hasIntersection = false;
-      newVal = cameraOffsetTargetZ;
-    }
-    
-    /* // Remove jitter when there is no movement
-    if (lastCameraQuaternion.equals(camera.quaternion) && lastCameraZ === cameraOffsetTargetZ) {
-      if (lastCameraValidZ < newVal) {
-        lastCameraValidZ = newVal;
-      }
-      if (newVal < lastCameraValidZ)
-        newVal = lastCameraValidZ;
-    } else { */
-      // lastCameraQuaternion.copy(camera.quaternion);
-      // lastCameraZ = cameraOffsetTargetZ;
-      // lastCameraValidZ = cameraOffsetTargetZ;
-    // }
-
-    // Slow zoom out if there is no intersection
-    cameraOffsetZ = lerpNum(cameraOffsetZ,newVal, 0.2);
-
-    // Fast zoom in to the point of intersection
-    if (hasIntersection) {
-      cameraOffsetZ = newVal;
-    }
-
-    const zDiff = Math.abs(cameraOffset.z - cameraOffsetZ);
-    if (zDiff === 0) {
-      // nothing
-    } else {
-      // camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      cameraOffset.z = cameraOffsetZ;
-      // camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      // camera.updateMatrixWorld();
-    }
-
-    const endMode = this.getMode();
-    if (endMode !== startMode) {
-      this.dispatchEvent(new MessageEvent('modechange', {
-        data: {
-          mode: endMode,
-        },
-      }));
-    }
-  }
   flushShakes() {
     if (this.shakes.length > 0) {
       const now = performance.now();
@@ -295,14 +192,115 @@ class CameraManager extends EventTarget {
     const localPlayer = metaversefile.useLocalPlayer();
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
+    const startMode = this.getMode();
 
-    const avatarCameraOffset = session ? zeroVector : this.getCameraOffset();
-    const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-    const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
+    const _setCameraOffset = () => {
+      let newVal = cameraOffsetTargetZ;
+      let hasIntersection = false;
+
+      // Camera - Top left 
+      initCameraRayParams(0,rayStartPos.set(-1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
+
+      // Camera - Bottom left
+      initCameraRayParams(1,rayStartPos.set(-1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
+
+      // Camera - Top right
+      initCameraRayParams(2,rayStartPos.set(1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
+
+      // Camera - Bottom right
+      initCameraRayParams(3,rayStartPos.set(1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
+
+      // Player postition - offset to left
+      rayStartPos.copy(localPlayer.position);
+      rayOffsetPoint.set(-1, 0, 0);
+      rayOffsetPoint.applyQuaternion(camera.quaternion);
+      rayOffsetPoint.normalize();
+      rayStartPos.add(rayOffsetPoint);
+      initOffsetRayParams(4,rayStartPos);
+      
+      // Player postition - offset to right
+      rayStartPos.copy(localPlayer.position);
+      rayOffsetPoint.set(1, 0, 0);
+      rayOffsetPoint.applyQuaternion(camera.quaternion);
+      rayOffsetPoint.normalize();
+      rayStartPos.add(rayOffsetPoint);
+      initOffsetRayParams(5,rayStartPos);
+
+      let collisionArray = physicsManager.raycastArray(rayOriginArray, rayDirectionArray, 6);
+
+      // Check collision from player to camera corners
+      for(let i=0;i<4;i++) {
+        if ((collisionArray.hit[i] === 1) && (collisionArray.distance[i] <= -1 * newVal)) {
+          if (newVal < (-1 * (collisionArray.distance[i]-0.15))) {
+            newVal = (-1 * (collisionArray.distance[i]-0.15));
+            hasIntersection = true;
+            //console.log(i + " " + collisionArray.distance[i]+ " " + collisionArray.hit[i]);
+          }
+        }
+      }
+
+      // Check collision from player pos and small offset to left and right - to camera center
+      let offsetCollisionCount = 0;
+      for(let i=4;i<6;i++) {
+        if ((collisionArray.hit[i] === 1) && (collisionArray.distance[i] <= (-1 * cameraOffsetTargetZ))) {
+          offsetCollisionCount++;
+        }
+      }
+
+      // Discard collision with small objects
+      if (hasIntersection && (offsetCollisionCount === 0)) {
+        hasIntersection = false;
+        newVal = cameraOffsetTargetZ;
+      }
+      
+      /* // Remove jitter when there is no movement
+      if (lastCameraQuaternion.equals(camera.quaternion) && lastCameraZ === cameraOffsetTargetZ) {
+        if (lastCameraValidZ < newVal) {
+          lastCameraValidZ = newVal;
+        }
+        if (newVal < lastCameraValidZ)
+          newVal = lastCameraValidZ;
+      } else { */
+        // lastCameraQuaternion.copy(camera.quaternion);
+        // lastCameraZ = cameraOffsetTargetZ;
+        // lastCameraValidZ = cameraOffsetTargetZ;
+      // }
+
+      // Slow zoom out if there is no intersection
+      cameraOffsetZ = lerpNum(cameraOffsetZ,newVal, 0.2);
+
+      // Fast zoom in to the point of intersection
+      if (hasIntersection) {
+        cameraOffsetZ = newVal;
+      }
+
+      const zDiff = Math.abs(cameraOffset.z - cameraOffsetZ);
+      if (zDiff === 0) {
+        // nothing
+      } else {
+        // camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+        cameraOffset.z = cameraOffsetZ;
+        // camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+        // camera.updateMatrixWorld();
+      }
+    };
+    _setCameraOffset();
+
+    const endMode = this.getMode();
+    if (endMode !== startMode) {
+      this.dispatchEvent(new MessageEvent('modechange', {
+        data: {
+          mode: endMode,
+        },
+      }));
+    }
 
     const _setCameraToAvatar = () => {
-      const cameraMode = this.getMode();
-      switch (cameraMode) {
+      const avatarCameraOffset = session ? zeroVector : this.getCameraOffset();
+      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
+      const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
+      
+      switch (endMode) {
         case 'firstperson': {
           if (localPlayer.avatar) {
             const boneNeck = localPlayer.avatar.foundModelBones['Neck'];
@@ -345,7 +343,7 @@ class CameraManager extends EventTarget {
         }
       }
 
-      camera.position.y -= crouchOffset;      
+      camera.position.y -= crouchOffset;
     };
     _setCameraToAvatar();
 
