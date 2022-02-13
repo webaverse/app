@@ -127,7 +127,9 @@ export default function CharacterHups({
     }
     function hupremove(e) {
       const oldHup = e.data.hup;
-      const newHups = hups.splice(hups.indexOf(oldHup), 1);
+      const index = hups.indexOf(oldHup);
+      const newHups = hups.slice();
+      newHups.splice(index, 1);
       setHups(newHups);
     }
     localPlayer.characterHups.addEventListener('hupadd', hupadd);
