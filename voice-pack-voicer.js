@@ -106,7 +106,9 @@ class VoicePackVoicer {
     }
     this.charactersSinceStart += text.length;
 
-    this.player.avatar.setAudioEnabled(true);
+    if (!this.player.avatar.isAudioEnabled()) {
+      this.player.avatar.setAudioEnabled(true);
+    }
 
     const p = makePromise();
     const _recurse = async () => {
