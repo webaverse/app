@@ -84,8 +84,8 @@ class VoicePackVoicer {
     return voiceSpec;
   }
   clearTimeouts() {
-    clearTimeout(this.timeout);
-    this.timeout = null;
+    clearTimeout(this.audioTimeout);
+    this.audioTimeout = null;
     clearTimeout(this.endTimeout);
     this.endTimeout = null;
   }
