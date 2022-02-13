@@ -335,23 +335,30 @@ class PathFinder {
       if (this.iterStep >= this.maxIterStep) {
         // console.log('maxIterDetect: untilFound');
 
-        // use nearest frontier, if not found and npc reached dest.
-        const destResult = this.waypointResult[this.waypointResult.length - 1];
-        if (Math.abs(window.npcPlayer.position.x - destResult.position.x) < 0.5 && Math.abs(window.npcPlayer.position.z - destResult.position.z) < 0.5) {
-          // Wrong codes: highestPriorityFrontiers: Select shortest distance in lowest priority frontiers, it's wrong, sometimes will select opposite direction frontier.
-          // const highestPriorityFrontiers = this.frontiers.filter(frontier => frontier._priority === this.frontiers[0]._priority);
-          let minDistanceSquared = Infinity;
-          let minDistanceSquaredFrontier;
-          // highestPriorityFrontiers.forEach(frontier => {
-          this.frontiers.forEach(frontier => {
-            const distanceSquared = frontier.position.distanceToSquared(this.dest);
-            if (distanceSquared < minDistanceSquared) {
-              minDistanceSquared = distanceSquared;
-              minDistanceSquaredFrontier = frontier;
-            }
-          });
-          this.found(minDistanceSquaredFrontier);
-        }
+        /// ///////////////////////////////////////////////////////////////////
+        // use nearest frontier, if not found.
+
+        // // use nearest frontier, if not found and npc reached dest.
+        // const destResult = this.waypointResult[this.waypointResult.length - 1];
+        // if (Math.abs(window.npcPlayer.position.x - destResult.position.x) < 0.5 && Math.abs(window.npcPlayer.position.z - destResult.position.z) < 0.5) {
+
+        // // Wrong codes: highestPriorityFrontiers: Select shortest distance in lowest priority frontiers, it's wrong, totally random, sometimes even will select opposite direction frontier.
+        // const highestPriorityFrontiers = this.frontiers.filter(frontier => frontier._priority === this.frontiers[0]._priority);
+
+        let minDistanceSquared = Infinity;
+        let minDistanceSquaredFrontier;
+        // highestPriorityFrontiers.forEach(frontier => {
+        this.frontiers.forEach(frontier => {
+          const distanceSquared = frontier.position.distanceToSquared(this.dest);
+          if (distanceSquared < minDistanceSquared) {
+            minDistanceSquared = distanceSquared;
+            minDistanceSquaredFrontier = frontier;
+          }
+        });
+        this.found(minDistanceSquaredFrontier);
+
+        // }
+        /// ///////////////////////////////////////////////////////////////////
 
         return;
       }
