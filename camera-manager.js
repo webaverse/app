@@ -253,7 +253,7 @@ class CameraManager extends EventTarget {
       }
     }
 
-    // Check collision from player pos and small offset to left and righ - to camera center
+    // Check collision from player pos and small offset to left and right - to camera center
     let offsetCollisionCount = 0;
     for(let i=4;i<6;i++) {
       if ((collisionArray.hit[i] === 1) && (collisionArray.distance[i] <= (-1 * cameraOffsetTargetZ))) {
