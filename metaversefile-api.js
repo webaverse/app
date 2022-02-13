@@ -152,8 +152,6 @@ localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
 const npcs = [];
-const pathFinder = new PathFinder({voxelHeight: 2, debugRender: true});
-window.pathFinder = pathFinder; // test
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -500,7 +498,7 @@ metaversefile.setApi({
      return npcs;
   },
   usePathFinder() {
-    return pathFinder;
+    return PathFinder;
   },
   useLoaders() {
     return loaders;
