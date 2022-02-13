@@ -24,6 +24,7 @@ import {
   avatarInterpolationNumFrames,
   // groundFriction,
   defaultPlayerName,
+  defaultPlayerBio,
   voiceEndpoint,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
@@ -802,6 +803,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.isLocalPlayer = true;
 
     this.name = defaultPlayerName;
+    this.bio = defaultPlayerBio;
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
