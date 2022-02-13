@@ -95,10 +95,15 @@ class ChatManager extends EventTarget {
     this.removePlayerMessage(localPlayer, m);
   }
   async waitForVoiceTurn(fn) {
+    // console.log('wait for voice queue', this.voiceRunning, this.voiceQueue.length);
+    
     if (!this.voiceRunning) {
       this.voiceRunning = true;
+      // console.log('wait 0');
       const p = fn();
+      // console.log('wait 1');
       const result = await p;
+      // console.log('wait 2');
 
       this.voiceRunning = false;
       if (this.voiceQueue.length > 0) {
@@ -113,7 +118,9 @@ class ChatManager extends EventTarget {
       const p = makePromise();
       this.voiceQueue.push(async () => {
         const p2 = fn();
+        // console.log('wait 3');
         const result = await p2;
+        // console.log('wait 4');
         // Promise.resolve().then(() => {
           p.accept(result);
         // });
