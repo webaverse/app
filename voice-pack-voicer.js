@@ -127,7 +127,7 @@ class VoicePackVoicer {
     };
     _recurse();
 
-    const fullTextTime = this.charactersSinceStart * chatTextSpeed;
+    const fullTextTime = 500 + this.charactersSinceStart * chatTextSpeed * 2;
     const remainingTextTime = fullTextTime - (now - this.startTime);
     this.endTimeout = setTimeout(() => {
       this.clearTimeouts();
