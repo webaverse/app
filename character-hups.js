@@ -124,11 +124,15 @@ class CharacterHups extends EventTarget {
       } else if (Hup.isHupAction(action)) {
         const newHup = new Hup(action.type, this);
         newHup.mergeAction(action);
+        let pendingVoices = 0;
         newHup.addEventListener('voicestart', () => {
+          pendingVoices++;
           newHup.clearDeadTimeout();
         });
         newHup.addEventListener('voiceend', () => {
-          newHup.startDeadTimeout();
+          if (--pendingVoices === 0) {
+            newHup.startDeadTimeout();
+          }
         });
         newHup.addEventListener('deadtimeout', () => {
           newHup.destroy();
