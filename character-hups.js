@@ -56,13 +56,14 @@ class Hup extends EventTarget {
       },
     }));
     if (this.parent.voicer) {
+      const preloadedMessage = this.parent.voicer.preloadMessage(message);
       await chatManager.waitForVoiceTurn(() => {
         this.dispatchEvent(new MessageEvent('voicestart', {
           data: {
             message,
           },
         }));
-        return this.parent.voicer.start(message);
+        return this.parent.voicer.start(preloadedMessage);
       });
     } else {
       await Promise.resolve();
