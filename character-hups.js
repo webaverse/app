@@ -42,28 +42,26 @@ class Hup extends EventTarget {
   
     this.actionIds.push(action.actionId);
 
-    const _updateVoicer = async () => {
-      this.parent.dispatchEvent(new MessageEvent('voicestart', {
-        data: {
-          message,
-        },
-      }));
-      if (this.parent.voicer) {
-        await this.parent.voicer.start(message);
-      } else {
-        await Promise();
-      }
-      this.parent.dispatchEvent(new MessageEvent('voiceend', {
-        data: {
-          fullText: this.fullText,
-        },
-      }));
-    };
-    _updateVoicer();
-
     this.clearDeadTimeout();
 
     this.dispatchEvent(new MessageEvent('update'));
+  }
+  async updateVoicer(message) {
+    this.dispatchEvent(new MessageEvent('voicestart', {
+      data: {
+        message,
+      },
+    }));
+    if (this.parent.voicer) {
+      await this.parent.voicer.start(message);
+    } else {
+      await Promise();
+    }
+    this.dispatchEvent(new MessageEvent('voiceend', {
+      data: {
+        fullText: this.fullText,
+      },
+    }));
   }
   unmergeAction(action) {
     const index = this.actionIds.indexOf(action.actionId);
@@ -107,10 +105,6 @@ class CharacterHups extends EventTarget {
 
     this.hups = [];
 
-    this.addEventListener('voiceend', () => {
-      const hup = this.hups[0];
-      hup.startDeadTimeout();
-    });
     player.addEventListener('actionadd', e => {
       const {action} = e;
       const {type, actionId} = action;
@@ -123,6 +117,9 @@ class CharacterHups extends EventTarget {
       } else if (Hup.isHupAction(action)) {
         const newHup = new Hup(action.type, this);
         newHup.mergeAction(action);
+        newHup.addEventListener('voiceend', () => {
+          newHup.startDeadTimeout();
+        });
         newHup.addEventListener('deadtimeout', () => {
           newHup.destroy();
 
@@ -143,6 +140,7 @@ class CharacterHups extends EventTarget {
             hup: newHup,
           },
         }));
+        newHup.updateVoicer(action.message);
       }
     });
     player.addEventListener('actionremove', e => {
