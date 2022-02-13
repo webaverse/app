@@ -25,9 +25,9 @@ const rayQuaternion = new THREE.Quaternion();
 const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
 const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
 
-const lastCameraQuaternion = new THREE.Quaternion();
-let lastCameraZ = 0;
-let lastCameraValidZ = 0;
+// const lastCameraQuaternion = new THREE.Quaternion();
+// let lastCameraZ = 0;
+// let lastCameraValidZ = 0;
 
 function Simple1DNoise(seed = '') {
     var MAX_VERTICES = 256;
@@ -262,25 +262,23 @@ class CameraManager extends EventTarget {
     }
 
     // Discard collision with small objects
-    if (hasIntersection && (offsetCollisionCount === 0))
-    {
+    if (hasIntersection && (offsetCollisionCount === 0)) {
       hasIntersection = false;
       newVal = cameraOffsetTargetZ;
     }
     
-    // Remove jitter when there is no movement
+    /* // Remove jitter when there is no movement
     if (lastCameraQuaternion.equals(camera.quaternion) && lastCameraZ === cameraOffsetTargetZ) {
       if (lastCameraValidZ < newVal) {
         lastCameraValidZ = newVal;
       }
       if (newVal < lastCameraValidZ)
         newVal = lastCameraValidZ;
-    }
-    else {
-      lastCameraQuaternion.copy(camera.quaternion);
-      lastCameraZ = cameraOffsetTargetZ;
-      lastCameraValidZ = cameraOffsetTargetZ;
-    }
+    } else { */
+      // lastCameraQuaternion.copy(camera.quaternion);
+      // lastCameraZ = cameraOffsetTargetZ;
+      // lastCameraValidZ = cameraOffsetTargetZ;
+    // }
 
     // Slow zoom out if there is no intersection
     cameraOffsetZ = lerpNum(cameraOffsetZ,newVal, 0.2);
@@ -290,30 +288,14 @@ class CameraManager extends EventTarget {
       cameraOffsetZ = newVal;
     }
 
-    if (this.shakeFactor > 0) {
-      const baseTime = performance.now()/1000;
-      const timeOffset = 100;
-      const ndc = f => (-0.5 + f) * 2;
-      const randomValue = f => ndc(shakeNoise(f));
-      localVector.set(
-        randomValue(baseTime),
-        randomValue(baseTime + timeOffset),
-        randomValue(baseTime + timeOffset*2)
-      )
-        .normalize()
-        .multiplyScalar(this.shakeFactor);
-      camera.position.add(localVector);
-      camera.updateMatrixWorld();
-    }
-
     const zDiff = Math.abs(cameraOffset.z - cameraOffsetZ);
     if (zDiff === 0) {
       // nothing
     } else {
-      camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      // camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
       cameraOffset.z = cameraOffsetZ;
-      camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-      camera.updateMatrixWorld();
+      // camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+      // camera.updateMatrixWorld();
     }
 
     const endMode = this.getMode();
@@ -336,52 +318,74 @@ class CameraManager extends EventTarget {
     const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
     const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
 
-    const cameraMode = this.getMode();
+    const _setCameraToAvatar = () => {
+      const cameraMode = this.getMode();
+      switch (cameraMode) {
+        case 'firstperson': {
+          if (localPlayer.avatar) {
+            const boneNeck = localPlayer.avatar.foundModelBones['Neck'];
+            const boneEyeL = localPlayer.avatar.foundModelBones['Eye_L'];
+            const boneEyeR = localPlayer.avatar.foundModelBones['Eye_R'];
+            const boneHead = localPlayer.avatar.foundModelBones['Head'];
 
-    switch (cameraMode) {
-      case 'firstperson': {
-        if (localPlayer.avatar) {
-          const boneNeck = localPlayer.avatar.foundModelBones['Neck'];
-          const boneEyeL = localPlayer.avatar.foundModelBones['Eye_L'];
-          const boneEyeR = localPlayer.avatar.foundModelBones['Eye_R'];
-          const boneHead = localPlayer.avatar.foundModelBones['Head'];
-
-          boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
-          boneNeck.updateMatrixWorld();
-    
-          if (boneEyeL && boneEyeR) {
-            boneEyeL.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-            boneEyeR.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
-            localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
+            boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
+            boneNeck.updateMatrixWorld();
+      
+            if (boneEyeL && boneEyeR) {
+              boneEyeL.matrixWorld.decompose(localVector, localQuaternion, localVector3);
+              boneEyeR.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
+              localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
+            } else {
+              boneHead.matrixWorld.decompose(localVector, localQuaternion, localVector3);
+              localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion));
+              localVector3.copy(localVector);
+            }
           } else {
-            boneHead.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-            localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion));
-            localVector3.copy(localVector);
+            localVector3.copy(localPlayer.position);
           }
-        } else {
-          localVector3.copy(localPlayer.position);
+
+          camera.position.copy(localVector3)
+            .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+
+          break;
         }
-
-        camera.position.copy(localVector3)
-          .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
-
-        break;
+        case 'isometric': {
+          camera.position.copy(localPlayer.position)
+            .sub(
+              localVector.copy(avatarCameraOffset)
+                .applyQuaternion(camera.quaternion)
+            );
+    
+          break;
+        }
+        default: {
+          throw new Error('invalid camera mode: ' + cameraMode);
+        }
       }
-      case 'isometric': {
-        camera.position.copy(localPlayer.position)
-          .sub(
-            localVector.copy(avatarCameraOffset)
-              .applyQuaternion(camera.quaternion)
-          );
-  
-        break;
-      }
-      default: {
-        throw new Error('invalid camera mode: ' + cameraMode);
-      }
-    }
 
-    camera.position.y -= crouchOffset;
+      camera.position.y -= crouchOffset;      
+    };
+    _setCameraToAvatar();
+
+    const _shakeCamera = () => {
+      if (this.shakeFactor > 0) {
+        const baseTime = performance.now()/1000;
+        const timeOffset = 100;
+        const ndc = f => (-0.5 + f) * 2;
+        const randomValue = f => ndc(shakeNoise(f));
+        localVector.set(
+          randomValue(baseTime),
+          randomValue(baseTime + timeOffset),
+          randomValue(baseTime + timeOffset*2)
+        )
+          .normalize()
+          .multiplyScalar(this.shakeFactor);
+        camera.position.add(localVector);
+        camera.updateMatrixWorld();
+      }
+    };
+    // _shakeCamera();
+
     camera.updateMatrixWorld();
   }
 };
