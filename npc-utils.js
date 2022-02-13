@@ -34,12 +34,13 @@ class PathFinder {
     this.voxelsY = this.lowestY;
     this.isAutoInit = false;
     this.debugRender = debugRender;
-    this.onlyShowPath = true; // test
+    this.onlyShowPath = false; // test
     this.detectStep = 0.1;
     this.iterDetect = 0;
     this.maxIterDetect = 1000;
     this.iterStep = 0;
     this.maxIterStep = 1000;
+    this.allowNearest = false;
 
     this.frontiers = [];
     this.voxels = new THREE.Group();
@@ -56,7 +57,7 @@ class PathFinder {
     this.waypointResult = [];
   }
 
-  getPath(start, dest) {
+  getPath(start, dest, allowNearest = false) {
     this.reset();
     this.start.set(
       Math.round(start.x),
@@ -68,6 +69,8 @@ class PathFinder {
       dest.y,
       Math.round(dest.z),
     );
+
+    this.allowNearest = allowNearest;
 
     this.startVoxel = this.createVoxel(this.start);
     this.startVoxel._isStart = true;
@@ -196,6 +199,7 @@ class PathFinder {
   reset() {
     this.isFound = false;
     this.frontiers.length = 0;
+    this.allowNearest = false;
 
     // // pure realtime, no any cache
     // this.voxels.children.length = 0;
@@ -241,8 +245,15 @@ class PathFinder {
     }
     this.iterDetect++;
 
-    let collide = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
-    collide = collide && collide.objectId !== window.npcPlayer.physicsObject.physicsId;
+    const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
+    let collide;
+    if (overlapResult.objectIds.length === 1 && overlapResult.objectIds[0] === window.npcPlayer.physicsObject.physicsId) {
+      collide = false;
+    } else if (overlapResult.objectIds.length > 0) {
+      collide = true;
+    } else {
+      collide = false;
+    }
 
     if (voxel._detectState === 'initial') {
       if (collide) {
@@ -327,6 +338,31 @@ class PathFinder {
     while (this.frontiers.length > 0 && !this.isFound) {
       if (this.iterStep >= this.maxIterStep) {
         // console.log('maxIterDetect: untilFound');
+
+        if (this.allowNearest) { // use nearest frontier, if not found.
+          // // Use nearest frontier, if not found and npc reached dest.
+          // // Check whether npc reached dest in such as npc repo, do not check here. Keep PathFinder as simple as possible.
+          // const destResult = this.waypointResult[this.waypointResult.length - 1];
+          // if (Math.abs(window.npcPlayer.position.x - destResult.position.x) < 0.5 && Math.abs(window.npcPlayer.position.z - destResult.position.z) < 0.5) {
+
+          // // Wrong codes: highestPriorityFrontiers: Select shortest distance in lowest priority frontiers, it's wrong, totally random, sometimes even will select opposite direction frontier.
+          // const highestPriorityFrontiers = this.frontiers.filter(frontier => frontier._priority === this.frontiers[0]._priority);
+
+          let minDistanceSquared = Infinity;
+          let minDistanceSquaredFrontier;
+          // highestPriorityFrontiers.forEach(frontier => {
+          this.frontiers.forEach(frontier => {
+            const distanceSquared = frontier.position.distanceToSquared(this.dest);
+            if (distanceSquared < minDistanceSquared) {
+              minDistanceSquared = distanceSquared;
+              minDistanceSquaredFrontier = frontier;
+            }
+          });
+          this.found(minDistanceSquaredFrontier);
+
+        // }
+        }
+
         return;
       }
       this.iterStep++;
@@ -335,7 +371,7 @@ class PathFinder {
     }
   }
 
-  recur(voxel) {
+  recurSetPrev(voxel) {
     if (voxel) {
       // debugRender
       if (this.onlyShowPath) voxel.visible = true;
@@ -346,7 +382,7 @@ class PathFinder {
       voxel._isPath = true;
       if (voxel._prev) voxel._prev._next = voxel;
 
-      this.recur(voxel._prev);
+      this.recurSetPrev(voxel._prev);
     }
   }
 
@@ -370,31 +406,39 @@ class PathFinder {
         voxel.material = materialFrontier;
       }
       voxel._prev = prevVoxel;
+      // prevVoxel._next = voxel; // Can't assign _next here, because one voxel will has multiple _next. Need use `recurSetPrev()`.
+
+      if (voxel._isDest) {
+        this.found(voxel);
+      }
     }
-    if (voxel._isDest) {
-      // if (this.debugRender) console.log('found');
-      this.isFound = true;
-      if (this.onlyShowPath) {
-        this.voxels.children.forEach(voxel => { voxel.visible = false; });
-      }
-      this.recur(voxel);
+  }
 
-      this.waypointResult.length = 0;
-      let wayPoint = this.startVoxel; // wayPoint: voxel
-      let result = new THREE.Object3D();
-      result.position.copy(wayPoint.position);
-      this.waypointResult.push(result);
-      while (wayPoint._next) {
-        wayPoint = wayPoint._next;
+  found(voxel) {
+    // if (this.debugRender) console.log('found');
+    this.isFound = true;
+    if (this.onlyShowPath) {
+      this.voxels.children.forEach(voxel => { voxel.visible = false; });
+    }
+    this.recurSetPrev(voxel);
 
-        result._next = new THREE.Object3D();
-        result._next.position.copy(wayPoint.position);
-        this.waypointResult.push(result._next);
+    this.waypointResult.length = 0;
+    let wayPoint = this.startVoxel; // wayPoint: voxel
+    let result = new THREE.Object3D();
+    result.position.copy(wayPoint.position);
+    result._priority = wayPoint._priority;
+    this.waypointResult.push(result);
+    while (wayPoint._next) {
+      wayPoint = wayPoint._next;
 
-        result._next._prev = result;
+      result._next = new THREE.Object3D();
+      result._next.position.copy(wayPoint.position);
+      result._priority = wayPoint._priority;
+      this.waypointResult.push(result._next);
 
-        result = result._next;
-      }
+      result._next._prev = result;
+
+      result = result._next;
     }
   }
 
