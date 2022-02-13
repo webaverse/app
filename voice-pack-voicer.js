@@ -93,6 +93,10 @@ class VoicePackVoicer {
     this.startTime = -1;
     this.charactersSinceStart = 0;
   }
+  preloadMessage(text) {
+    // voice pack does not need loading
+    return text;
+  }
   start(text) {
     this.clearTimeouts();
 
