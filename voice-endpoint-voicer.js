@@ -8,6 +8,18 @@ class VoiceEndpoint {
     this.url = new URL(url, import.meta.url);
   }
 }
+class PreloadMessage {
+  constructor(text, parent) {
+    this.text = text;
+    this.parent = parent;
+
+    this.isPreloadMessage = true;
+    this.loadPromise = this.parent.loadAudioBuffer(this.text);
+  }
+  waitForLoad() {
+    return this.loadPromise;
+  }
+}
 class VoiceEndpointVoicer {
   constructor(voiceEndpoint, player) {
     this.voiceEndpoint = voiceEndpoint;
@@ -18,6 +30,21 @@ class VoiceEndpointVoicer {
     this.queue = [];
     this.cancel = null;
     this.endPromise = null;
+  }
+  preloadMessage(text) {
+    return new PreloadMessage(text, this);
+  }
+  async loadAudioBuffer(text) {
+    const u = new URL(this.voiceEndpoint.url.toString());
+    u.searchParams.set('s', text);
+    const res = await fetch(u/*, {
+      mode: 'cors',
+    } */);
+    const arrayBuffer = await res.arrayBuffer();
+
+    const audioContext = Avatar.getAudioContext();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    return audioBuffer;
   }
   start(text) {
     if (!this.endPromise) {
@@ -30,16 +57,9 @@ class VoiceEndpointVoicer {
       this.player.avatar.setAudioEnabled(true);
 
       (async () => {
-        const u = new URL(this.voiceEndpoint.url.toString());
-        u.searchParams.set('s', text);
-        const res = await fetch(u/*, {
-          mode: 'cors',
-        } */);
-        const arrayBuffer = await res.arrayBuffer();
+        const audioBuffer = await (text.isPreloadMessage ? text.waitForLoad() : this.loadAudioBuffer(text));
 
         const audioContext = Avatar.getAudioContext();
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
         const audioBufferSourceNode = audioContext.createBufferSource();
         audioBufferSourceNode.buffer = audioBuffer;
         audioBufferSourceNode.addEventListener('ended', () => {
@@ -83,5 +103,6 @@ class VoiceEndpointVoicer {
 
 export {
   VoiceEndpoint,
+  PreloadMessage,
   VoiceEndpointVoicer,
 };
