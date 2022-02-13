@@ -127,6 +127,7 @@ class VoicePackVoicer {
     };
     _recurse();
 
+    // 500ms by default, plus the time it takes to render the text
     const fullTextTime = 500 + this.charactersSinceStart * chatTextSpeed * 2;
     const remainingTextTime = fullTextTime - (now - this.startTime);
     this.endTimeout = setTimeout(() => {
