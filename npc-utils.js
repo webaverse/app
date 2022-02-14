@@ -13,15 +13,13 @@ const localVoxel = new THREE.Object3D();
 const colorIdle = new THREE.Color('rgb(221,213,213)');
 const colorReached = new THREE.Color('rgb(171,163,163)');
 const colorFrontier = new THREE.Color('rgb(92,133,214)');
-// const colorStart = new THREE.Color('rgb(191,64,64)')
 const colorStart = new THREE.Color('rgb(0,255,255)');
-// const colorDest = new THREE.Color('rgb(191,64,170)')
 const colorDest = new THREE.Color('rgb(255,255,0)');
 const colorPath = new THREE.Color('rgb(149,64,191)');
 const colorPathSimplified = new THREE.Color('rgb(69,0,98)');
 
 class PathFinder {
-  constructor({voxelHeight = 1.5, heightTolerance = 0.6, detectStep = 0.1, maxIterdetect = 1000, maxIterStep = 1000, maxVoxelCacheLen = 10000, debugRender = true}) {
+  constructor({voxelHeight = 1.5, heightTolerance = 0.6, detectStep = 0.1, maxIterdetect = 1000, maxIterStep = 1000, maxVoxelCacheLen = 10000, debugRender = false}) {
     /* args:
       voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
       heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
@@ -533,14 +531,6 @@ class PathFinder {
       // if (this.isFound) return
     }
   }
-
-  // showAll() {
-  //   this.voxels.children.forEach(voxel => { voxel.visible = true; });
-  // }
-
-  // toggleNonPath() {
-  //   this.voxels.children.forEach(voxel => { if (!voxel._isPath) voxel.visible = !voxel.visible; });
-  // }
 
   toggleDebugRender() {
     this.debugRender = !this.debugRender;
