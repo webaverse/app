@@ -131,8 +131,6 @@ class PathFinder {
           this.debugMesh.setColorAt(i, colorFrontier);
         } else if (voxel._isReached) {
           this.debugMesh.setColorAt(i, colorReached);
-        } else if (voxel._isIdle) {
-          this.debugMesh.setColorAt(i, colorIdle);
         }
       });
       this.debugMesh.instanceMatrix.needsUpdate = true;
