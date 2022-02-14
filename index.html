@@ -21,25 +21,6 @@
 
   <div id=iframe-container></div>
   <div id="root"></div>
-  
-  <div id="domBtns" style="position: absolute;left: 0;top:0;width:100%;height:100%;display: flex;flex-direction: column; justify-content: center; align-items: flex-end;pointer-events: none;z-index:1;">
-    <button onclick="pathFinder.getPath(window.npcPlayer.position, window.localPlayer.position)" style="margin: 5px;pointer-events: all;">getPath</button>
-    <!-- <button onclick="pathFinder.rise()" style="margin: 5px;pointer-events: all;">rise</button>
-    <button onclick="pathFinder.rise2()" style="margin: 5px;pointer-events: all;">rise2</button> -->
-    <button onclick="pathFinder.step()" style="margin: 5px;pointer-events: all;">1 step</button>
-    <button onclick="pathFinder.tenStep()" style="margin: 5px;pointer-events: all;">10 step</button>
-    <button onclick="pathFinder.untilFound()" style="margin: 5px;pointer-events: all;">until found</button>
-    <button onclick="pathFinder.showAll()" style="margin: 5px;pointer-events: all;">showAll</button>
-    <button onclick="pathFinder.toggleNonPath()" style="margin: 5px;pointer-events: all;">toggleNonPath</button>
-    <button onclick="pathFinder.toggleVoxelsWireframe()" style="margin: 5px;pointer-events: all;">toggleVoxelsWireframe</button>
-    <button onclick="pathFinder.toggleVoxelsVisible()" style="margin: 5px;pointer-events: all;">toggleVoxelsVisible</button>
-    <!-- <button onclick="pathFinder.toggleVoxelsWireframe()" style="margin: 5px;pointer-events: all;">toggleVoxelsWireframe</button> -->
-    <!-- <button onclick="pathFinder.moveDownVoxels()" style="margin: 5px;pointer-events: all;">moveDownVoxels</button> -->
-    <!-- <button onclick="pathFinder.toggleVoxels2Visible()" style="margin: 5px;pointer-events: all;">toggleVoxels2Visible</button> -->
-    <!-- <button onclick="pathFinder.toggleVoxels2Wireframe()" style="margin: 5px;pointer-events: all;">toggleVoxels2Wireframe</button> -->
-    <!-- <button onclick="pathFinder.moveDownVoxels2()" style="margin: 5px;pointer-events: all;">moveDownVoxels2</button> -->
-  </div>
-
   <script type=module src="/pre.js"></script>
   <script type=module src="/src/main.jsx"></script>
 </body>
