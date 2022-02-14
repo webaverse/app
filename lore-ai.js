@@ -3,6 +3,8 @@
 import {loreAiEndpoint, defaultPlayerName, defaultPlayerBio, defaultSetting} from './constants.js';
 
 const numGenerateTries = 3;
+const temperature = 1;
+const top_p = 1;
 
 const characterLore = `\
 # Overview
@@ -147,8 +149,8 @@ class AIScene {
     let response = await loreAI.generate(prompt, {
       end: `\n`,
       maxTokens: 100,
-      temperature: 1,
-      top_p: 0,
+      temperature,
+      top_p,
     });
     console.log('got response', response);
     if (/[a-z]/i.test(response)) {
