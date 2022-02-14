@@ -63,6 +63,8 @@ export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th
 
 export const defaultPlayerName = 'Anon';
 export const defaultPlayerBio = 'A new player. Not much is known about them.';
+// export const defaultPlayerBio = `Nickname ANN. 13/F witch. Best friend of Scillia. She creates all of Scillia's potions. She is shy and keeps to herself but she is a powerful witch.`;
+export const defaultSetting = `Scillia's house.`;
 
 export const audioTimeoutTime = 10 * 1000;
 
