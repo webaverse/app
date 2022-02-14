@@ -120,7 +120,10 @@ class PathFinder {
 
   simplifyWaypointResultX(result) {
     if (result?._next?._next) {
-      if (result.position.x === result._next._next.position.x) {
+      if (
+        result.position.x === result._next._next.position.x && // check whether in one line
+        Math.sign(result.position.z - result._next.position.z) === Math.sign(result._next.position.z - result._next._next.position.z) // check wheter in one layer // TODO: simplifyWaypointResultXZ() should need check wheter in one layer too.
+      ) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
         result._next._prev = result;
@@ -133,7 +136,10 @@ class PathFinder {
 
   simplifyWaypointResultZ(result) {
     if (result?._next?._next) {
-      if (result.position.z === result._next._next.position.z) {
+      if (
+        result.position.z === result._next._next.position.z && // See simplifyWaypointResultX().
+        Math.sign(result.position.x - result._next.position.x) === Math.sign(result._next.position.x - result._next._next.position.x) // See simplifyWaypointResultX().
+      ) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
         result._next._prev = result;
