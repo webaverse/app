@@ -22,7 +22,7 @@ const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb
 const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(89,13,118)'), wireframe: true});
 
 class PathFinder {
-  constructor({voxelHeight = 2, maxVoxelCacheLen = 10000, debugRender = false}) {
+  constructor({voxelHeight = 1.5, maxVoxelCacheLen = 10000, maxIterdetect = 1000, maxIterStep = 1000, debugRender = false}) {
     this.isStart = false;
     this.isRising = false;
     this.isGeneratedVoxelMap = false;
@@ -36,9 +36,9 @@ class PathFinder {
     this.onlyShowPath = false; // test
     this.detectStep = 0.1;
     this.iterDetect = 0;
-    this.maxIterDetect = 1000;
+    this.maxIterDetect = maxIterdetect;
     this.iterStep = 0;
-    this.maxIterStep = 1000;
+    this.maxIterStep = maxIterStep;
     this.allowNearest = false;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
 
