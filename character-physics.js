@@ -2,8 +2,8 @@
 it sets up and ticks the physics loop for our local character */
 
 import * as THREE from 'three';
-import cameraManager from './camera-manager.js';
-import {getPlayerCrouchFactor} from './character-controller.js';
+// import cameraManager from './camera-manager.js';
+// import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
 import {getVelocityDampingFactor} from './util.js';
@@ -67,6 +67,7 @@ class CharacterPhysics {
     timeDiffS,
   ) {
     if (this.player.avatar) {
+      // console.log('apply avatar physics', this.player);
       // move character controller
       const minDist = 0;
       localVector3.copy(this.velocity)
@@ -244,64 +245,6 @@ class CharacterPhysics {
         this.applyAvatarPhysicsDetail(true, true, now, timeDiffS);
       }
     // }
-  }
-  /* offset the camera back from the avatar */
-  updateCamera(timeDiffS) {
-    const renderer = getRenderer();
-    const session = renderer.xr.getSession();
-
-    const avatarCameraOffset = session ? zeroVector : cameraManager.getCameraOffset();
-    const avatarHeight = this.player.avatar ? this.player.avatar.height : 0;
-    const crouchOffset = avatarHeight * (1 - getPlayerCrouchFactor(this.player)) * 0.5;
-
-    const cameraMode = cameraManager.getMode();
-
-    switch (cameraMode) {
-      case 'firstperson': {
-        if (this.player.avatar) {
-          const boneNeck = this.player.avatar.foundModelBones['Neck'];
-          const boneEyeL = this.player.avatar.foundModelBones['Eye_L'];
-          const boneEyeR = this.player.avatar.foundModelBones['Eye_R'];
-          const boneHead = this.player.avatar.foundModelBones['Head'];
-
-          boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
-          boneNeck.updateMatrixWorld();
-    
-          if (boneEyeL && boneEyeR) {
-            boneEyeL.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-            boneEyeR.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
-            localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
-          } else {
-            boneHead.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-            localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion));
-            localVector3.copy(localVector);
-          }
-        } else {
-          localVector3.copy(this.player.position);
-        }
-
-        camera.position.copy(localVector3)
-          .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
-
-        break;
-      }
-      case 'isometric': {
-        camera.position.copy(this.player.position)
-        // .add(localVector.set(0, avatarHeight * 0.5, 0))
-        .sub(
-          localVector.copy(avatarCameraOffset)
-            .applyQuaternion(camera.quaternion)
-        );
-  
-        break;
-      }
-      default: {
-        throw new Error('invalid camera mode: ' + cameraMode);
-      }
-    }
-
-    camera.position.y -= crouchOffset;
-    camera.updateMatrixWorld();
   }
   updateVelocity(timeDiffS) {
     const timeDiff = timeDiffS * 1000;
