@@ -25,7 +25,7 @@ class PathFinder {
       heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
       detectStep: How height every detecting step moving.
       maxIterdetect: How many steps can one voxel detecing iterate.
-      maxIterStep: How many A* path-finding step can one getPath() iterate.
+      maxIterStep: How many A* path-finding step can one getPath() iterate. One A* step can create up to 4 voxels, 0 ~ 4.
       maxVoxelCacheLen: How many detected voxels can be cached.
       debugRender: Whether show voxel boxes for debugging.
     */
