@@ -265,7 +265,8 @@ class PathFinder {
     let voxel = this.getVoxel(localVoxel.position);
     if (voxel) return voxel;
 
-    voxel = new THREE.Mesh(this.geometry, materialIdle);
+    if (this.debugRender) voxel = new THREE.Mesh(this.geometry, materialIdle);
+    else voxel = new THREE.Object3D();
     this.voxels.add(voxel);
     this.resetVoxelAStar(voxel);
 
