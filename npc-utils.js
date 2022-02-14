@@ -21,7 +21,17 @@ const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb
 const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(89,13,118)'), wireframe: true});
 
 class PathFinder {
-  constructor({voxelHeight = 1.5, heightTolerance = 0.6, maxVoxelCacheLen = 10000, maxIterdetect = 1000, maxIterStep = 1000, debugRender = false}) {
+  constructor({voxelHeight = 1.5, heightTolerance = 0.6, detectStep = 0.1, maxIterdetect = 1000, maxIterStep = 1000, maxVoxelCacheLen = 10000, debugRender = false}) {
+    /* args:
+      voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
+      heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
+      detectStep: How height every detecting step moving.
+      maxIterdetect: How many steps can one voxel detecing iterate.
+      maxIterStep: How many A* path-finding step can one getPath() iterate.
+      maxVoxelCacheLen: How many detected voxels can be cached.
+      debugRender: Whether show voxel boxes for debugging.
+    */
+
     this.voxelHeight = voxelHeight;
     this.voxelHeightHalf = this.voxelHeight / 2;
     this.heightTolerance = heightTolerance;
@@ -29,7 +39,7 @@ class PathFinder {
     this.dest = new THREE.Vector3();
     this.debugRender = debugRender;
     this.onlyShowPath = false; // test
-    this.detectStep = 0.1;
+    this.detectStep = detectStep;
     this.iterDetect = 0;
     this.maxIterDetect = maxIterdetect;
     this.iterStep = 0;
