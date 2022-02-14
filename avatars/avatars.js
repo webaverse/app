@@ -3209,7 +3209,7 @@ class Avatar {
             morphTargetInfluences[i] = 0;
           }
           
-          if (volumeValue !== -1) { // real speech
+          // if (volumeValue !== -1) { // real speech
             if (aIndex !== -1) {
               morphTargetInfluences[aIndex] = volumeValue;
             }
@@ -3225,7 +3225,7 @@ class Avatar {
             if (uIndex !== -1) {
               morphTargetInfluences[uIndex] = volumeValue * this.vowels[4];
             }
-          } else { // fake speech
+          /* } else { // fake speech
             this.fakeSpeechSmoothed = this.fakeSpeechSmoothed * 0.99 + 0.01 * this.fakeSpeechValue;
             const now2 = now / 1000 * 2;
             let aValue = (simplexes[0].noise2D(now2, now2));
@@ -3249,7 +3249,7 @@ class Avatar {
             if (uIndex !== -1) {
               morphTargetInfluences[uIndex] = this.fakeSpeechSmoothed * uValue/totalValue;
             }
-          }
+          } */
             
           // emotes
           if (this.emotes.length > 0) {
