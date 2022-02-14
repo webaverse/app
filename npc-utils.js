@@ -8,7 +8,6 @@ import physicsManager from './physics-manager.js';
 const identityQuaternion = new THREE.Quaternion();
 
 const heightTolerance = 0.6;
-const tmpVec2 = new THREE.Vector2();
 const localVector = new THREE.Vector3();
 const localVoxel = new THREE.Object3D();
 
