@@ -7,7 +7,6 @@ import physicsManager from './physics-manager.js';
 
 const identityQuaternion = new THREE.Quaternion();
 
-const heightTolerance = 0.6;
 const localVector = new THREE.Vector3();
 const localVoxel = new THREE.Object3D();
 
@@ -22,16 +21,12 @@ const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb
 const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(89,13,118)'), wireframe: true});
 
 class PathFinder {
-  constructor({voxelHeight = 1.5, maxVoxelCacheLen = 10000, maxIterdetect = 1000, maxIterStep = 1000, debugRender = false}) {
-    this.isStart = false;
-    this.isRising = false;
-    this.isGeneratedVoxelMap = false;
+  constructor({voxelHeight = 1.5, heightTolerance = 0.6, maxVoxelCacheLen = 10000, maxIterdetect = 1000, maxIterStep = 1000, debugRender = false}) {
     this.voxelHeight = voxelHeight;
     this.voxelHeightHalf = this.voxelHeight / 2;
+    this.heightTolerance = heightTolerance;
     this.start = new THREE.Vector3();
     this.dest = new THREE.Vector3();
-    this.voxelsY = this.lowestY;
-    this.isAutoInit = false;
     this.debugRender = debugRender;
     this.onlyShowPath = false; // test
     this.detectStep = 0.1;
@@ -325,7 +320,7 @@ class PathFinder {
     localVector.copy(currentVoxel.position);
     localVector.x += -1;
     const leftVoxel = this.createVoxel(localVector);
-    if (leftVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+    if (leftVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
       currentVoxel._leftVoxel = leftVoxel;
     }
   }
@@ -334,7 +329,7 @@ class PathFinder {
     localVector.copy(currentVoxel.position);
     localVector.x += 1;
     const rightVoxel = this.createVoxel(localVector);
-    if (rightVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+    if (rightVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
       currentVoxel._rightVoxel = rightVoxel;
     }
   }
@@ -343,7 +338,7 @@ class PathFinder {
     localVector.copy(currentVoxel.position);
     localVector.z += -1;
     const btmVoxel = this.createVoxel(localVector);
-    if (btmVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+    if (btmVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
       currentVoxel._btmVoxel = btmVoxel;
     }
   }
@@ -352,7 +347,7 @@ class PathFinder {
     localVector.copy(currentVoxel.position);
     localVector.z += 1;
     const topVoxel = this.createVoxel(localVector);
-    if (topVoxel.position.y - currentVoxel.position.y < heightTolerance) {
+    if (topVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
       currentVoxel._topVoxel = topVoxel;
     }
   }
