@@ -10,18 +10,18 @@ const identityQuaternion = new THREE.Quaternion();
 const localVector = new THREE.Vector3();
 const localVoxel = new THREE.Object3D();
 
-const materialIdle = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(221,213,213)'), wireframe: true});
-const materialReached = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(171,163,163)'), wireframe: true});
-const materialFrontier = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(92,133,214)'), wireframe: true});
-// const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,64)'), wireframe: true});
-const materialStart = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(0,255,255)'), wireframe: true});
-// const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(191,64,170)'), wireframe: true});
-const materialDest = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(255,255,0)'), wireframe: true});
-const materialPath = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(149,64,191)'), wireframe: true});
-const materialPathSimplified = new THREE.MeshStandardMaterial({color: new THREE.Color('rgb(89,13,118)'), wireframe: true});
+const colorIdle = new THREE.Color('rgb(221,213,213)');
+const colorReached = new THREE.Color('rgb(171,163,163)');
+const colorFrontier = new THREE.Color('rgb(92,133,214)');
+// const colorStart = new THREE.Color('rgb(191,64,64)')
+const colorStart = new THREE.Color('rgb(0,255,255)');
+// const colorDest = new THREE.Color('rgb(191,64,170)')
+const colorDest = new THREE.Color('rgb(255,255,0)');
+const colorPath = new THREE.Color('rgb(149,64,191)');
+const colorPathSimplified = new THREE.Color('rgb(69,0,98)');
 
 class PathFinder {
-  constructor({voxelHeight = 1.5, heightTolerance = 0.6, detectStep = 0.1, maxIterdetect = 1000, maxIterStep = 1000, maxVoxelCacheLen = 10000, debugRender = false}) {
+  constructor({voxelHeight = 1.5, heightTolerance = 0.6, detectStep = 0.1, maxIterdetect = 1000, maxIterStep = 1000, maxVoxelCacheLen = 10000, debugRender = true}) {
     /* args:
       voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
       heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
@@ -50,14 +50,18 @@ class PathFinder {
     this.frontiers = [];
     this.voxels = new THREE.Group();
     this.voxels.name = 'voxels';
-    this.voxels.visible = this.debugRender;
-    rootScene.add(this.voxels);
 
     this.voxelo = {};
 
     this.geometry = new THREE.BoxGeometry();
     this.geometry.scale(0.5, this.voxelHeight, 0.5);
     // this.geometry.scale(0.9, 0.1, 0.9);
+    this.material = new THREE.MeshLambertMaterial({color: 0xffffff});
+    this.maxDebugCount = this.maxVoxelCacheLen + this.maxIterStep * 4 + 1; // One step() can create up to 4 voxels. Add 1 startVoxel.
+    this.debugMesh = new THREE.InstancedMesh(this.geometry, this.material, this.maxDebugCount);
+    this.debugMesh.name = 'PathFinder debugMesh';
+    this.debugMesh.setColorAt(0, colorIdle); // init instanceColor
+    rootScene.add(this.debugMesh);
 
     this.waypointResult = [];
   }
@@ -86,12 +90,10 @@ class PathFinder {
     this.startVoxel._priority = this.start.distanceTo(this.dest);
     this.startVoxel._costSoFar = 0;
     this.frontiers.push(this.startVoxel);
-    this.startVoxel.material = materialStart;
 
     this.destVoxel = this.createVoxel(this.dest);
     if (this.startVoxel === this.destVoxel) return;
     this.destVoxel._isDest = true;
-    this.destVoxel.material = materialDest;
 
     // // this.step();
     this.untilFound();
@@ -110,9 +112,31 @@ class PathFinder {
       for (let i = 0; i < len; i++) {
         const voxel = this.getVoxel(this.waypointResult[i].position);
         if (voxel) { // May already disposed.
-          voxel.material = materialPathSimplified;
+          voxel._isPathSimplified = true;
         }
       }
+
+      this.debugMesh.count = this.voxels.children.length;
+      this.voxels.children.forEach((voxel, i) => {
+        this.debugMesh.setMatrixAt(i, voxel.matrix);
+        if (voxel._isStart) {
+          this.debugMesh.setColorAt(i, colorStart);
+        } else if (voxel._isDest) {
+          this.debugMesh.setColorAt(i, colorDest);
+        } else if (voxel._isPathSimplified) {
+          this.debugMesh.setColorAt(i, colorPathSimplified);
+        } else if (voxel._isPath) {
+          this.debugMesh.setColorAt(i, colorPath);
+        } else if (voxel._isFrontier) {
+          this.debugMesh.setColorAt(i, colorFrontier);
+        } else if (voxel._isReached) {
+          this.debugMesh.setColorAt(i, colorReached);
+        } else if (voxel._isIdle) {
+          this.debugMesh.setColorAt(i, colorIdle);
+        }
+      });
+      this.debugMesh.instanceMatrix.needsUpdate = true;
+      this.debugMesh.instanceColor.needsUpdate = true;
     }
 
     return this.isFound;
@@ -210,7 +234,8 @@ class PathFinder {
     voxel._prev = null;
     voxel._next = null;
     voxel._isPath = false;
-    voxel.material = materialIdle;
+    voxel._isPathSimplified = false;
+    voxel._isFrontier = false;
   }
 
   reset() {
@@ -223,9 +248,12 @@ class PathFinder {
     // this.voxelo = {};
 
     // simple cache
-    this.voxels.children.forEach(voxel => {
+    this.voxels.children.forEach((voxel, i) => {
       this.resetVoxelAStar(voxel);
+      this.debugMesh.setColorAt(i, colorIdle);
     });
+
+    this.debugMesh.instanceColor.needsUpdate = true;
   }
 
   // disposeOld(maxVoxelsLen) {
@@ -265,8 +293,7 @@ class PathFinder {
     let voxel = this.getVoxel(localVoxel.position);
     if (voxel) return voxel;
 
-    if (this.debugRender) voxel = new THREE.Mesh(this.geometry, materialIdle);
-    else voxel = new THREE.Object3D();
+    voxel = new THREE.Object3D();
     this.voxels.add(voxel);
     this.resetVoxelAStar(voxel);
 
@@ -413,12 +440,6 @@ class PathFinder {
 
   recurSetPrev(voxel) {
     if (voxel) {
-      // debugRender
-      if (this.onlyShowPath) voxel.visible = true;
-      if (!voxel._isStart && !voxel._isDest) { // todo: Don't run if !this.debugRender.
-        voxel.material = materialPath;
-      }
-
       voxel._isPath = true;
       if (voxel._prev) voxel._prev._next = voxel;
 
@@ -442,9 +463,7 @@ class PathFinder {
       this.frontiers.push(voxel);
       this.frontiers.sort((a, b) => a._priority - b._priority);
 
-      if (!voxel._isStart && !voxel._isDest) {
-        voxel.material = materialFrontier;
-      }
+      voxel._isFrontier = true;
       voxel._prev = prevVoxel;
       // prevVoxel._next = voxel; // Can't assign _next here, because one voxel will has multiple _next. Need use `recurSetPrev()`.
 
@@ -490,9 +509,7 @@ class PathFinder {
     if (this.isFound) return;
 
     const currentVoxel = this.frontiers.shift();
-    if (!currentVoxel._isStart) {
-      currentVoxel.material = materialReached;
-    }
+    currentVoxel._isFrontier = false;
 
     this.generateVoxelMapLeft(currentVoxel);
     if (currentVoxel._leftVoxel) {
@@ -519,26 +536,21 @@ class PathFinder {
     }
   }
 
-  showAll() {
-    this.voxels.children.forEach(voxel => { voxel.visible = true; });
+  // showAll() {
+  //   this.voxels.children.forEach(voxel => { voxel.visible = true; });
+  // }
+
+  // toggleNonPath() {
+  //   this.voxels.children.forEach(voxel => { if (!voxel._isPath) voxel.visible = !voxel.visible; });
+  // }
+
+  toggleDebugRender() {
+    this.debugRender = !this.debugRender;
+    this.debugMesh.visible = this.debugRender;
   }
 
-  toggleNonPath() {
-    this.voxels.children.forEach(voxel => { if (!voxel._isPath) voxel.visible = !voxel.visible; });
-  }
-
-  toggleVoxelsVisible() {
-    this.voxels.visible = !this.voxels.visible;
-  }
-
-  toggleVoxelsWireframe() {
-    materialIdle.wireframe = !materialIdle.wireframe;
-    materialPath.wireframe = !materialPath.wireframe;
-
-    materialPathSimplified.wireframe = !materialPathSimplified.wireframe;
-
-    materialStart.wireframe = !materialStart.wireframe;
-    materialDest.wireframe = !materialDest.wireframe;
+  toggleDebugRenderWireframe() {
+    this.material.wireframe = !this.material.wireframe;
   }
 
   moveDownVoxels() {
