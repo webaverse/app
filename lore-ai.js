@@ -103,13 +103,13 @@ class AIScene {
             // const nextCharacter = this.characters[nextCharacterIndex];
             const response = await this.generate();
             const match = response?.match(/^([^#]+)#([0-9]+):([\s\S]*?)$/);
-            console.log('response match', response, match);
+            // console.log('response match', response, match);
             if (match) {
               const characterName = match[1];
               const characterNameLowerCase = characterName.toLowerCase();
               const message = match[3].trim();
               const character = this.characters.find(c => c.name.toLowerCase() === characterNameLowerCase);
-              console.log('character name', this.characters.map(c => c.name), characterNameLowerCase, !!character);
+              // console.log('character name', this.characters.map(c => c.name), characterNameLowerCase, !!character);
               if (character) {
                 _pushResponseMessage(character, message);
               }
