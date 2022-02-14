@@ -208,6 +208,8 @@ let fallAnimation;
 let fallToLandAnimation;
 let hardLandingAnimation;
 let rollLandingAnimation;
+let softLandingMovement;
+let softLandingStand;
 let jumpForwardAnimation;
 let jumpForwardLandAnimation;
 let jumpForwardOtherAnimation;
@@ -351,7 +353,7 @@ const loadPromise = (async () => {
   jumpAnimation = animations.find(a => a.isJump);
   fallAnimation = animations.index["falling_loop.fbx"];
   fallToLandAnimation = animations.index["soft_landing3.fbx"];
-  jumpForwardLandAnimation = animations.index["soft_landing_final.fbx"];
+  jumpForwardLandAnimation = animations.index["jumpForwardLandMovement.fbx"];
   jumpForwardOtherLandAnimation = animations.index["soft_landing_final_mirror.fbx"];
   hardLandingAnimation = animations.index["hard_landing.fbx"];
   rollLandingAnimation = animations.index["falling_to_roll_inPlace.fbx"];
@@ -1439,10 +1441,6 @@ class Avatar {
         .premultiply(armature.quaternion.clone().invert())
       );
     const flipLeg = legDirection.y < 0.5;
-	  // console.log('flip', flipZ, flipY, flipLeg);
-	  /* this.flipZ = flipZ;
-	  this.flipY = flipY;
-    this.flipLeg = flipLeg; */
 
     const armatureQuaternion = armature.quaternion.clone();
     const armatureMatrixInverse = armature.matrixWorld.clone().invert();
@@ -2123,7 +2121,7 @@ class Avatar {
           console.log('target time is ' + this.targetTime);
         }
         
-        if(!this.jumpState && this.landingTime < clamp(this.targetTime, 0, 1600)) {
+        if(!this.jumpState && this.landingTime * 2 < clamp(this.targetTime, 0, 1600)) {
 
           console.log('landing anim plays');
           
@@ -2157,24 +2155,20 @@ class Avatar {
             } 
             else {
 
-              let areArmsMoving = k.includes("Arm") && this.horizontalMove;
-              let isLowerBone = k.includes("Foot");
-              let isToe = k.includes("Toe");
-              let isLeg = k.includes("Leg") ;
-              let isUpLegPos = k.includes("UpLeg");
-              let hipRot = k.includes("Hips") && !isPosition;
-              let hipPos = k.includes("Hips") && isPosition;
-              if( hipPos || hipRot || areArmsMoving || isToe || isLowerBone || isLeg) {
-                return;
-              }
               src2 = fallToLandAnimation.interpolants[k];
+              t2 = this.landingTime/1000 * 0.6;
+              if(this.horizontalMove) {
+                src2 = jumpForwardLandAnimation.interpolants[k];
+                t2 = this.landingTime / 1000 * 0.5 ;
+              }
+             
               // if(this.randomLeg > 0.5) {
               //   src2 = jumpForwardOtherLandAnimation.interpolants[k];
               // }
               // if(this.randomLeg < 0.5) {
               //   src2 = jumpForwardLandAnimation.interpolants[k];
               // }
-              t2 = this.landingTime/1000 * 0.6;
+
             }   
             
            
@@ -2218,10 +2212,6 @@ class Avatar {
               } 
               if(this.move && this.horizontalMove) {
 
-                // let isLowerBone = k.includes("Leg") || k.includes("Toe") || k.includes("Foot")
-                // if(isLowerBone) {
-                //   return;
-                // }
                 console.log('random leg', this.randomLeg);
                 if(this.randomLeg > 0.5) {
                   console.log('left kick');
