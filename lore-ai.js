@@ -18,18 +18,22 @@ ${setting}
 # Scene 1
 
 ${
-  characters.map(c => {
-    return `*${c.name.toUpperCase()}: ${c.bio}`;
+  characters.map((c, i) => {
+    return `Id: ${c.name.toUpperCase()}#${i+1}
+Name: ${c.name}
+Bio: ${c.bio}
+`;
   }).join('\n')
 }
 
 ${
   messages.map(m => {
-    return `*${m.character.name.toUpperCase()}: ${m.message}`;
+    const characterIndex = characters.indexOf(m.character);
+    return `*${m.character.name.toUpperCase()}#${characterIndex+1}: ${m.message}`;
   }).join('\n')
 }
 *${
-  dstCharacter ? `${dstCharacter.name.toUpperCase()}:` : ''
+  dstCharacter ? `${dstCharacter.name.toUpperCase()}#${characters.indexOf(dstCharacter)+1}:` : ''
 }`;
 
 class AICharacter extends EventTarget {
@@ -98,11 +102,12 @@ class AIScene {
             // const nextCharacterIndex = 1 + Math.floor(Math.random() * (this.characters.length - 1)); // skip over local character
             // const nextCharacter = this.characters[nextCharacterIndex];
             const response = await this.generate();
-            let match;
-            if (response && (match = response.match(/^([\s\S]*?):([\s\S]*?)$/))) {
+            const match = response?.match(/^([^#]+)#([0-9]+):([\s\S]*?)$/);
+            console.log('response match', response, match);
+            if (match) {
               const characterName = match[1];
               const characterNameLowerCase = characterName.toLowerCase();
-              const message = match[2].trim();
+              const message = match[3].trim();
               const character = this.characters.find(c => c.name.toLowerCase() === characterNameLowerCase);
               console.log('character name', this.characters.map(c => c.name), characterNameLowerCase, !!character);
               if (character) {
