@@ -183,6 +183,10 @@ class LoreAI {
         if (typeof top_p === 'number') {
           url.searchParams.set('tp', top_p);
         }
+        const openAiKey = localStorage.getItem('openAiKey');
+        if (openAiKey) {
+          url.searchParams.set('k', openAiKey);
+        }
         // console.log('got url', url);
       
         const es = new EventSource(url);
