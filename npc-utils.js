@@ -27,6 +27,7 @@ class PathFinder {
       maxIterdetect: How many steps can one voxel detecing iterate.
       maxIterStep: How many A* path-finding step can one getPath() iterate. One A* step can create up to 4 voxels, 0 ~ 4.
       maxVoxelCacheLen: How many detected voxels can be cached.
+      ignorePhysicsIds: physicsIds that voxel detect() ignored, usually npc CharacterController's capsule.
       debugRender: Whether show voxel boxes for debugging.
     */
 
