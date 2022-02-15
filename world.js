@@ -10,6 +10,7 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import hpManager from './hp-manager.js';
 // import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
+import {chatManager} from './chat-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
 import {scene, postSceneOrthographic, postScenePerspective, sceneHighPriority, sceneLowPriority} from './renderer.js';
@@ -54,6 +55,7 @@ const extra = {
 }; */
 
 let mediaStream = null;
+let speechRecognition = null;
 world.micEnabled = () => !!mediaStream;
 world.enableMic = async () => {
   await WSRTC.waitForReady();
@@ -64,6 +66,49 @@ world.enableMic = async () => {
   
   const localPlayer = metaversefileApi.useLocalPlayer();
   localPlayer.setMicMediaStream(mediaStream);
+
+  let final_transcript = '';
+  const localSpeechRecognition = new webkitSpeechRecognition();
+  // speechRecognition.continuous = true;
+  // speechRecognition.interimResults = true;
+  // speechRecognition.lang = document.querySelector("#select_dialect").value;
+  localSpeechRecognition.onstart = () => {
+    // document.querySelector("#status").style.display = "block";
+  };
+  localSpeechRecognition.onerror = e => {
+    // document.querySelector("#status").style.display = "none";
+    console.log('speech recognition error', e);
+  };
+  localSpeechRecognition.onend = () => {
+    // document.querySelector("#status").style.display = "none";
+    final_transcript = final_transcript
+      .replace(/celia|sylvia|sileo|cilia|tilia|zilia/gi, 'Scillia')
+    console.log('speech:', [final_transcript]);
+    if (final_transcript) {
+      chatManager.addMessage(final_transcript, {
+        timeout: 3000,
+      });
+    }
+
+    if (localSpeechRecognition === speechRecognition) {
+      final_transcript = '';
+      localSpeechRecognition.start();
+    }
+  };
+  // let isFinal = false;
+  localSpeechRecognition.onresult = event => {
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      final_transcript += event.results[i][0].transcript;
+      // isFinal = isFinal || event.results[i].isFinal;
+    }
+    /* console.log('got result', final_transcript, event);
+    if (isFinal) {
+      console.log('final_transcript', final_transcript);
+    } */
+  };
+  localSpeechRecognition.start();
+
+  speechRecognition = localSpeechRecognition;
 };
 world.disableMic = () => {
   if (mediaStream) {
@@ -76,6 +121,10 @@ world.disableMic = () => {
     
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.setMicMediaStream(null);
+  }
+  if (speechRecognition) {
+    speechRecognition.stop();
+    speechRecognition = null;
   }
 };
 world.toggleMic = () => {
