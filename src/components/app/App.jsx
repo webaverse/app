@@ -39,6 +39,29 @@ const _startApp = async ( weba, canvas ) => {
 
 };
 
+const _getCurrentSceneSrc = () => {
+
+    const q = parseQuery( window.location.search );
+    let { src } = q;
+
+    if ( src === undefined ) {
+
+        src = './scenes/' + sceneNames[0];
+
+    }
+
+    return src;
+
+};
+
+const _getCurrentRoom = () => {
+
+    const q = parseQuery( window.location.search );
+    const { room } = q;
+    return room || '';
+
+};
+
 //
 
 export const App = () => {
@@ -55,6 +78,11 @@ export const App = () => {
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState( false );
     const [ address, setAddress ] = useState( null );
     const [ username, setUserName ] = useState( 'Anonimus' );
+
+    //
+
+    const [ selectedScene, setSelectedScene ] = useState('');
+    const [ selectedRoom, setSelectedRoom ] = useState('');
 
     //
 
@@ -145,6 +173,16 @@ export const App = () => {
 
     };
 
+    const _loadUrlState = () => {
+
+        const src = _getCurrentSceneSrc();
+        setSelectedScene( src );
+        const roomName = _getCurrentRoom();
+        setSelectedRoom( roomName );
+        console.log( src );
+
+    };
+
     const handleCanvasClick = ( event ) => {
 
         ioManager['click']( event );
@@ -152,6 +190,33 @@ export const App = () => {
     };
 
     //
+
+    useEffect( () => {
+
+        _loadUrlState();
+
+        const pushstate = e => {
+
+            _loadUrlState();
+
+        };
+
+        const popstate = e => {
+
+            _loadUrlState();
+            universe.handleUrlUpdate();
+
+        };
+
+        window.addEventListener( 'pushstate', pushstate );
+        window.addEventListener( 'popstate', popstate );
+
+        return () => {
+            window.removeEventListener( 'pushstate', pushstate );
+            window.removeEventListener( 'popstate', popstate );
+        };
+
+    }, [] );
 
     useEffect( async () => {
 
@@ -248,8 +313,24 @@ export const App = () => {
             <MagicMenu open={ magicMenuOpened } setOpen={ setMagicMenuOpened } />
             <canvas className={ styles.canvas } ref={ canvasRef } onClick={ handleCanvasClick } />
             <Crosshair />
-            <PlayMode username={ username } loginInState={ loginInState } setLoginOpenPopupOpened={ setLoginOpenPopupOpened } />
-            <LoginPopup open={ loginPopupOpened } setOpen={ setLoginOpenPopupOpened } loginInState={ loginInState } setLoginInState={ setLoginInState } setAddress={ setAddress } />
+            <PlayMode
+                username={ username }
+                loginInState={ loginInState }
+                setLoginOpenPopupOpened={ setLoginOpenPopupOpened }
+            />
+            <EditorMode
+                selectedScene={ selectedScene }
+                setSelectedScene={ setSelectedScene }
+                selectedRoom={ selectedRoom }
+                setSelectedRoom={ setSelectedRoom }
+            />
+            <LoginPopup
+                open={ loginPopupOpened }
+                setOpen={ setLoginOpenPopupOpened }
+                loginInState={ loginInState }
+                setLoginInState={ setLoginInState }
+                setAddress={ setAddress }
+            />
         </div>
     );
 

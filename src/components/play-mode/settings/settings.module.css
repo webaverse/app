@@ -31,7 +31,6 @@
     color: #fff;
     opacity: 0.7;
     transition: opacity 200ms ease;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
     cursor: pointer;
 }
 
@@ -52,7 +51,6 @@
     padding-top: 100px;
     font-size: 30px;
     color: #fff;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 .tabs {
@@ -109,7 +107,6 @@
 .blockTitle {
     padding: 10px;
     border-bottom: 1px solid #aaa;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
     color: #fff;
     margin-bottom: 20px;
     text-transform: uppercase;
@@ -121,7 +118,6 @@
     text-align: right;
     padding-top: 10px;
     padding-bottom: 10px;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
     color: #fff;
 }
 

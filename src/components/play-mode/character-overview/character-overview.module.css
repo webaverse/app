@@ -27,7 +27,6 @@
     color: #fff;
     opacity: 0.7;
     transition: opacity 200ms ease;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
     cursor: pointer;
 }
 
@@ -66,7 +65,6 @@
     padding: 10px 0px;
     padding-left: 10px;
     text-align: left;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-size: 25px;
     font-weight: bold;
     color: #fff;
@@ -118,6 +116,5 @@
     float: left;
     padding-left: 15px;
     color: #fff;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
     line-height: 33px;
 }

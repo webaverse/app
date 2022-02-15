@@ -1,0 +1,16 @@
+
+.openBtn {
+    position: absolute;
+    top: 350px;
+    right: 0px;
+    padding: 10px;
+    background-color: rgba( 0, 0, 0, 0.5 );
+    color: #fff;
+    transition: background-color 200ms ease, padding 200ms ease;
+    cursor: pointer;
+}
+
+.openBtn:hover {
+    background-color: rgba( 0, 0, 0, 0.7 );
+    padding-left: 20px;
+}

@@ -1,6 +1,9 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import classNames from 'classnames';
+import { checkText } from 'smile2emoji';
+
+import { chatManager } from '../../../../chat-manager.js';
 
 import styles from './chat.module.css';
 
@@ -9,6 +12,8 @@ import styles from './chat.module.css';
 export const Chat = () => {
 
     const [ chatOpened, setChatOpened ] = useState( false );
+    const [ message, setMessage ] = useState( '' );
+
     const chatInput = useRef( null );
 
     //
@@ -16,12 +21,26 @@ export const Chat = () => {
     const handleChatBtnClick = ( event ) => {
 
         event.stopPropagation();
+        setChatOpened( ! chatOpened );
 
     };
 
     const sendMessage = () => {
 
-        // todo
+        if ( ! message ) return;
+
+        const text = checkText( message );
+        chatManager.addMessage( text, {
+            timeout: 3000,
+        });
+
+        setMessage( '' );
+
+    };
+
+    const handleChatMessageChange = ( event ) => {
+
+        setMessage( event.target.value );
 
     };
 
@@ -71,7 +90,7 @@ export const Chat = () => {
                 <div className={ styles.icon } />
                 World chat
             </div>
-            <input className={ styles.chatInput } ref={ chatInput } />
+            <input className={ styles.chatInput } onChange={ handleChatMessageChange } value={ message } ref={ chatInput } />
         </div>
     );
 

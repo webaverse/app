@@ -28,7 +28,6 @@
     width: 100%;
     padding: 10px 0px;
     border: 1px solid rgba( 0, 0, 0, 0.2 );
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
     cursor: pointer;
     transition: border 200ms ease;
     color: #000;
@@ -46,5 +45,4 @@
     color: #000;
     cursor: pointer;
     font-weight: bold;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
 }

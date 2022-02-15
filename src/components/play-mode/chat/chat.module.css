@@ -5,8 +5,8 @@
     transform: translate( -100%, 0px );
     width: 250px;
     height: 350px;
-    transition: transform 400ms ease;
     background-color: rgba( 0, 0, 0, 0.5 );
+    transition: transform 400ms ease;
 }
 
 .chat.open {
@@ -20,15 +20,19 @@
     color: #fff;
     padding: 10px 30px;
     text-align: left;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
     cursor: pointer;
     background-color: rgba( 0, 0, 0, 0.5 );
-    transition: transform 400ms ease, width 400ms ease;
+    transition: transform 400ms ease, width 400ms ease, background-color 400ms ease;
 }
 
 .chat:not(.open) .header {
     transform: translate( 250px, 0px );
     width: 150px;
+}
+
+.chat:not(.open):hover .header {
+    width: 160px !important;
+    background-color: rgba( 0, 0, 0, 0.7 );
 }
 
 .header .icon {
@@ -46,7 +50,6 @@
     left: 0px;
     bottom: 0px;
     width: 100%;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
     z-index: 1;
     font-size: 15px;
     line-height: 25px;

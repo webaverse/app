@@ -14,3 +14,7 @@
     width: 100vw;
     height: 100vh;
 }
+
+* {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
