@@ -100,7 +100,7 @@ export const voiceEndpoint = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
 // ['Sweetie Belle', 'Trixie', 'Shining Armor', 'Maud Pie', 'Rapunzel']
 
-export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
+export const loreAiEndpoint = `https://ai.webaverse.com:9000/`;
 export const chatTextSpeed = 20;
 export const shakeAnimationSpeed = 30;
 
@@ -108,4 +108,4 @@ export const hotbarSize = 60;
 export const infoboxSize = 100;
 
 export const defaultDioramaSize = 512;
-export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';
+export const defaultAvatarUrl = './avatars/ann.vrm';
