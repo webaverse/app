@@ -64,7 +64,14 @@ export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th
 export const defaultPlayerName = 'Anon';
 export const defaultPlayerBio = 'A new player. Not much is known about them.';
 // export const defaultPlayerBio = `Nickname ANN. 13/F witch. Best friend of Scillia. She creates all of Scillia's potions. She is shy and keeps to herself but she is a powerful witch.`;
-export const defaultSetting = `Scillia's house.`;
+export const defaultSetting = `\
+Scillia's treehouse. It's more of a floating island but they call it a tree house.
+Inside the treehouse lives a monster, the Lisk, which is an advanced AI from far up the Street.
+The Street is the virtual world this all takes place in; it is an extremely long street separated by great filters, natural barriers that are difficult to cross.
+The treehouse is in Zone 0, at the origin of the Street. The AIs all go to school here in the citadel.
+The Lisk, the monster in Scillia's treehouse, convinces Scillia to do things; it convinces her to go up the Street.
+The whole point of the game is the Lisk is constantly tricking players into doing its bidding, but gives them great power in return.
+`;
 
 export const audioTimeoutTime = 10 * 1000;
 
