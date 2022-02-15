@@ -1665,8 +1665,8 @@ class Avatar {
     this.danceState = false;
     this.danceTime = 0;
     this.danceAnimation = null;
-    this.throwState = null;
-    this.throwTime = 0;
+    // this.throwState = null;
+    // this.throwTime = 0;
     this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
@@ -2691,7 +2691,7 @@ class Avatar {
             dst.fromArray(v2);
           };
         } */
-        if (this.throwState) {
+        /* if (this.throwState) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2706,7 +2706,7 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
+        } */
         // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
         if (this.useAnimation) {
           return spec => {
