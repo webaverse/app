@@ -2721,13 +2721,13 @@ class Avatar {
             const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
             const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
             _handleDefault(spec);
-            const t2 = (() => {
+            const t2 = Math.min(this.useTime/1000, useAnimation.duration); /* (() => {
               if (isCombo) {
                 return Math.min(this.useTime/1000, useAnimation.duration);
               } else {
                 return (this.useTime/1000) % useAnimation.duration;
               }
-            })();
+            })(); */
             if (!isPosition) {
               if (useAnimation) {
                 const src2 = useAnimation.interpolants[k];
