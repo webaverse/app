@@ -40,11 +40,11 @@ export const SceneSelect = ({ multiplayerConnected, selectedScene, setSelectedSc
     useEffect( () => {
 
         refreshRooms();
-        window.addEventListener( 'click', handleOnFocusLost );
+        window.addEventListener( 'mousedown', handleOnFocusLost );
 
         return () => {
 
-            window.removeEventListener( 'click', handleOnFocusLost );
+            window.removeEventListener( 'mousedown', handleOnFocusLost );
 
         };
 
@@ -61,7 +61,6 @@ export const SceneSelect = ({ multiplayerConnected, selectedScene, setSelectedSc
 
     const handleSceneMenuOpen = ( value, event ) => {
 
-        event.stopPropagation();
         value = ( typeof value === 'boolean' ? value : ( ! scenesMenuOpened ) );
         setScenesMenuOpened( value );
         setRoomsMenuOpened( false );
@@ -79,7 +78,6 @@ export const SceneSelect = ({ multiplayerConnected, selectedScene, setSelectedSc
 
     const handleRoomMenuOpen = ( value, event ) => {
 
-        event.stopPropagation();
         value = ( typeof value === 'boolean' ? value : ( ! roomsMenuOpened ) );
         setScenesMenuOpened( false );
 
@@ -179,7 +177,7 @@ export const SceneSelect = ({ multiplayerConnected, selectedScene, setSelectedSc
     return (
         <div className={ styles.location }>
             <div className={ styles.row }>
-                <div className={ styles['button-wrap'] } onClick={ handleSceneMenuOpen.bind( this, null ) }>
+                <div className={ styles['button-wrap'] } onMouseUp={ handleSceneMenuOpen.bind( this, null ) }>
                     <button className={ classnames( styles.button, styles.primary, scenesMenuOpened ? null : styles.disabled ) }>
                         <img src="images/webarrow.svg" />
                     </button>
@@ -188,7 +186,7 @@ export const SceneSelect = ({ multiplayerConnected, selectedScene, setSelectedSc
                     <input type="text" className={ styles.input } value={ multiplayerConnected ? selectedRoom : selectedScene } onFocus={ handleSceneMenuOpen.bind( this, false ) } onChange={ handleSceneSelect } disabled={ multiplayerConnected } onKeyDown={ handleSceneInputKeyPress } placeholder="Goto..." />
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.green ) } />
                 </div>
-                <div className={ styles['button-wrap'] } onClick={ handleRoomMenuOpen.bind( this, null ) }>
+                <div className={ styles['button-wrap'] } onMouseUp={ handleRoomMenuOpen.bind( this, null ) }>
                     <button className={ classnames( styles.button, ( roomsMenuOpened || multiplayerConnected ) ? null : styles.disabled ) }>
                     <img src="images/wifi.svg" />
                 </button>
@@ -200,7 +198,7 @@ export const SceneSelect = ({ multiplayerConnected, selectedScene, setSelectedSc
                 <div className={ styles.rooms }>
                 {
                     sceneNames.map( ( sceneName, i ) => (
-                        <div className={ styles.room } onClick={ ( e ) => { handleSceneSelect( e, sceneName ) } } key={ i }>
+                        <div className={ styles.room } onMouseUp={ ( e ) => { handleSceneSelect( e, sceneName ) } } key={ i }>
                             <img className={ styles.image } src="images/world.jpg" />
                             <div className={ styles.name }>{ sceneName }</div>
                         </div>
@@ -214,15 +212,15 @@ export const SceneSelect = ({ multiplayerConnected, selectedScene, setSelectedSc
             roomsMenuOpened ? (
                 <div className={ styles.rooms }>
                     <div className={ styles.create }>
-                        <button className={ styles.button } onClick={ handleRoomCreateBtnClick }>Create room</button>
+                        <button className={ styles.button } onMouseUp={ handleRoomCreateBtnClick }>Create room</button>
                     </div>
                     {
                         rooms.map( ( room, i ) => (
-                            <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( e, roomName ) } } key={ i }>
+                            <div className={ styles.room } onMouseUp={ ( e ) => { handleRoomSelect( e, roomName ) } } key={ i }>
                                 <img className={ styles.image } src="images/world.jpg" />
                                 <div className={ styles.name }>{ room.name }</div>
                                 <div className={ styles.delete }>
-                                    <button className={ classnames( styles.button, styles.warning ) } onClick={ handleDeleteRoomBtnClick }>Delete</button>
+                                    <button className={ classnames( styles.button, styles.warning ) } onMouseUp={ handleDeleteRoomBtnClick }>Delete</button>
                                 </div>
                             </div>
                         ))

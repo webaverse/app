@@ -26,34 +26,30 @@ export const WorldObjectsList = ({ app }) => {
 
     const handleWorldObjectsBtnClick = ( event ) => {
 
-        event.stopPropagation();
         setOpened( true );
 
     };
 
-    const handleItemClick = () => {
+    const handleItemClick = ( event, targetApp ) => {
 
-        e.preventDefault();
-        e.stopPropagation();
-
-        const physicsObjects = app.getPhysicsObjects();
+        const physicsObjects = targetApp.getPhysicsObjects();
         const physicsObject = physicsObjects[0] || null;
         const physicsId = physicsObject ? physicsObject.physicsId : 0;
-        selectApp( app, physicsId );
+        selectApp( targetApp, physicsId );
 
         const localPlayer = metaversefile.useLocalPlayer();
-        localPlayer.lookAt( app.position );
+        localPlayer.lookAt( targetApp.position );
 
     };
 
-    const handleItemMouseEnter = () => {
+    const handleItemMouseEnter = ( targetApp ) => {
 
-        const physicsObjects = app.getPhysicsObjects();
+        const physicsObjects = targetApp.getPhysicsObjects();
         const physicsObject = physicsObjects[0] || null;
         const physicsId = physicsObject ? physicsObject.physicsId : 0;
 
         game.setMouseHoverObject( null );
-        game.setMouseDomHoverObject( app, physicsId );
+        game.setMouseDomHoverObject( targetApp, physicsId );
 
     };
 
@@ -81,13 +77,13 @@ export const WorldObjectsList = ({ app }) => {
 
         world.appManager.addEventListener( 'appadd', update );
         world.appManager.addEventListener( 'appremove', update );
-        window.addEventListener( 'click', handleOnFocusLost );
+        window.addEventListener( 'mousedown', handleOnFocusLost );
 
         return () => {
 
             world.appManager.removeEventListener( 'appadd', update );
             world.appManager.removeEventListener( 'appremove', update );
-            window.removeEventListener( 'click', handleOnFocusLost );
+            window.removeEventListener( 'mousedown', handleOnFocusLost );
 
         };
 
@@ -106,7 +102,7 @@ export const WorldObjectsList = ({ app }) => {
                     <div className={ styles.objects }>
                     {
                         apps.map( ( app, i ) => (
-                            <div className={ classnames( styles.object, app === selectedApp ? styles.selected : null ) } key={ i } onClick={ handleItemClick } onMouseEnter={ handleItemMouseEnter } onMouseLeave={ handleItemMouseLeave }>
+                            <div className={ classnames( styles.object, app === selectedApp ? styles.selected : null ) } key={ i } onMouseUp={ handleItemClick.bind( this, app ) } onMouseEnter={ handleItemMouseEnter.bind( this, app ) } onMouseLeave={ handleItemMouseLeave.bind( this, app ) }>
                                 <img src="images/webpencil.svg" className={ classnames( styles.backgroundInner, styles.lime ) } />
                                 <img src="images/object.jpg" className={ styles.img } />
                                 <div className={ styles.wrap }>

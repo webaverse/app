@@ -20,8 +20,19 @@ export const Chat = () => {
 
     const handleChatBtnClick = ( event ) => {
 
-        event.stopPropagation();
         setChatOpened( ! chatOpened );
+
+        if ( ! chatOpened ) {
+
+            chatInput.current.focus();
+
+        }
+
+    };
+
+    const handleChatFocusLost = () => {
+
+        setChatOpened( false );
 
     };
 
@@ -73,10 +84,12 @@ export const Chat = () => {
     useEffect( () => {
 
         window.addEventListener( 'keypress', keyPressHandler );
+        window.addEventListener( 'mousedown', handleChatFocusLost );
 
         return () => {
 
             window.removeEventListener( 'keypress', keyPressHandler );
+            window.removeEventListener( 'mousedown', handleChatFocusLost );
 
         };
 
@@ -86,7 +99,7 @@ export const Chat = () => {
 
     return (
         <div className={ classNames( styles.chat, chatOpened ? styles.open : null ) }>
-            <div className={ styles.header } onClick={ handleChatBtnClick }>
+            <div className={ styles.header } onMouseUp={ handleChatBtnClick }>
                 <div className={ styles.icon } />
                 World chat
             </div>
