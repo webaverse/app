@@ -1,11 +1,13 @@
 // import metaversefile from 'metaversefile';
 // import {chatManager} from './chat-manager.js';
+import murmurhash3js from 'murmurhash3js';
 import {loreAiEndpoint, defaultPlayerName, defaultPlayerBio, defaultSetting} from './constants.js';
 
-const numGenerateTries = 3;
+const numGenerateTries = 1;
 const temperature = 1;
 const top_p = 1;
 
+const hash = s => murmurhash3js.x86.hash32(s).toString(16);
 const characterLore = `\
 # Overview
 
@@ -21,7 +23,7 @@ ${setting}
 
 ${
   characters.map((c, i) => {
-    return `Id: ${c.name.toUpperCase()}#${i+1}
+    return `Id: ${hash(c.name)}/${c.name}#${i+1}
 Name: ${c.name}
 Bio: ${c.bio}
 `;
@@ -31,11 +33,11 @@ Bio: ${c.bio}
 ${
   messages.map(m => {
     const characterIndex = characters.indexOf(m.character);
-    return `*${m.character.name.toUpperCase()}#${characterIndex+1}: ${m.message}`;
+    return `*${hash(m.character.name)}/${m.character.name}#${characterIndex+1}: ${m.message}`;
   }).join('\n')
 }
 *${
-  dstCharacter ? `${dstCharacter.name.toUpperCase()}#${characters.indexOf(dstCharacter)+1}:` : ''
+  dstCharacter ? `${hash(dstCharacter.name)}/${dstCharacter.name}#${characters.indexOf(dstCharacter)+1}:` : ''
 }`;
 
 class AICharacter extends EventTarget {
@@ -104,15 +106,14 @@ class AIScene {
             // const nextCharacterIndex = 1 + Math.floor(Math.random() * (this.characters.length - 1)); // skip over local character
             // const nextCharacter = this.characters[nextCharacterIndex];
             const response = await this.generate();
-            const match = response?.match(/^([^#]+)#([0-9]+):([\s\S]*?)$/);
+            const match = response?.match(/^([^\/]+?)\/([^#]+?)#([0-9]+?):([\s\S]*?)$/);
             // console.log('response match', response, match);
             if (match) {
-              const characterName = match[1];
-              const characterNameLowerCase = characterName.toLowerCase();
-              const message = match[3].trim();
-              const character = this.characters.find(c => c.name.toLowerCase() === characterNameLowerCase);
+              const characterName = match[2];
+              const message = match[4].trim();
+              const character = this.characters.find(c => c.name === characterName);
               // console.log('character name', this.characters.map(c => c.name), characterNameLowerCase, !!character);
-              if (character) {
+              if (message && character && character !== this.localCharacter) {
                 _pushResponseMessage(character, message);
               }
               break;
