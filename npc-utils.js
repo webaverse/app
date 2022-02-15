@@ -427,7 +427,9 @@ class PathFinder {
               minDistanceSquaredFrontier = frontier;
             }
           });
-          this.found(minDistanceSquaredFrontier);
+          if (minDistanceSquaredFrontier) { // May all frontiers disappeared because of enclosed by obstacles, thus no minDistanceSquaredFrontier.
+            this.found(minDistanceSquaredFrontier);
+          }
 
         // }
         }
