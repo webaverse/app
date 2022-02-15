@@ -606,17 +606,15 @@ const damageMeshOffsetDistance = 1.5;
 
 let grabUseMesh = null;
 const _gameInit = () => {
-  {
-    grabUseMesh = metaversefileApi.createApp();
-    (async () => {
-      await metaverseModules.waitForLoad();
-      const {modules} = metaversefileApi.useDefaultModules();
-      const m = modules['button'];
-      await grabUseMesh.addModule(m);
-    })();
-    grabUseMesh.targetApp = null;
-    sceneLowPriority.add(grabUseMesh);
-  }
+  grabUseMesh = metaversefileApi.createApp();
+  (async () => {
+    await metaverseModules.waitForLoad();
+    const {modules} = metaversefileApi.useDefaultModules();
+    const m = modules['button'];
+    await grabUseMesh.addModule(m);
+  })();
+  grabUseMesh.targetApp = null;
+  sceneLowPriority.add(grabUseMesh);
 };
 Promise.resolve()
   .then(_gameInit);
