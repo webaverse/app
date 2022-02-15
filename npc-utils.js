@@ -361,8 +361,9 @@ class PathFinder {
     localVector.copy(currentVoxel.position);
     localVector.x += -1;
     const leftVoxel = this.createVoxel(localVector);
+    currentVoxel._leftVoxel = leftVoxel;
     if (leftVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
-      currentVoxel._leftVoxel = leftVoxel;
+      currentVoxel._canLeft = true;
     }
   }
 
@@ -370,8 +371,9 @@ class PathFinder {
     localVector.copy(currentVoxel.position);
     localVector.x += 1;
     const rightVoxel = this.createVoxel(localVector);
+    currentVoxel._rightVoxel = rightVoxel;
     if (rightVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
-      currentVoxel._rightVoxel = rightVoxel;
+      currentVoxel._canRigth = true;
     }
   }
 
@@ -379,8 +381,9 @@ class PathFinder {
     localVector.copy(currentVoxel.position);
     localVector.z += -1;
     const btmVoxel = this.createVoxel(localVector);
+    currentVoxel._btmVoxel = btmVoxel;
     if (btmVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
-      currentVoxel._btmVoxel = btmVoxel;
+      currentVoxel._canBtm = true;
     }
   }
 
@@ -388,8 +391,9 @@ class PathFinder {
     localVector.copy(currentVoxel.position);
     localVector.z += 1;
     const topVoxel = this.createVoxel(localVector);
+    currentVoxel._topVoxel = topVoxel;
     if (topVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
-      currentVoxel._topVoxel = topVoxel;
+      currentVoxel._canTop = true;
     }
   }
 
@@ -504,26 +508,26 @@ class PathFinder {
     const currentVoxel = this.frontiers.shift();
     currentVoxel._isFrontier = false;
 
-    this.generateVoxelMapLeft(currentVoxel);
-    if (currentVoxel._leftVoxel) {
+    if (!currentVoxel._leftVoxel) this.generateVoxelMapLeft(currentVoxel);
+    if (currentVoxel._canLeft) {
       this.stepVoxel(currentVoxel._leftVoxel, currentVoxel);
       if (this.isFound) return;
     }
 
-    this.generateVoxelMapRight(currentVoxel);
-    if (currentVoxel._rightVoxel) {
+    if (!currentVoxel._rightVoxel) this.generateVoxelMapRight(currentVoxel);
+    if (currentVoxel._canRigth) {
       this.stepVoxel(currentVoxel._rightVoxel, currentVoxel);
       if (this.isFound) return;
     }
 
-    this.generateVoxelMapBtm(currentVoxel);
-    if (currentVoxel._btmVoxel) {
+    if (!currentVoxel._btmVoxel) this.generateVoxelMapBtm(currentVoxel);
+    if (currentVoxel._canBtm) {
       this.stepVoxel(currentVoxel._btmVoxel, currentVoxel);
       if (this.isFound) return;
     }
 
-    this.generateVoxelMapTop(currentVoxel);
-    if (currentVoxel._topVoxel) {
+    if (!currentVoxel._topVoxel) this.generateVoxelMapTop(currentVoxel);
+    if (currentVoxel._canTop) {
       this.stepVoxel(currentVoxel._topVoxel, currentVoxel);
       // if (this.isFound) return
     }
