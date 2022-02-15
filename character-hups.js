@@ -3,8 +3,12 @@ it controls the animated dioramas that happen when players perform actions.
 the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
+import metaversefile from 'metaversefile';
 import {VoicePack, VoicePackVoicer} from './voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-endpoint-voicer.js';
+import {chatManager} from './chat-manager.js';
+
+const deadTimeoutTime = 2000;
 
 let nextHupId = 0;
 class Hup extends EventTarget {
@@ -40,29 +44,43 @@ class Hup extends EventTarget {
   
     this.actionIds.push(action.actionId);
 
-    const _updateVoicer = () => {
-      if (this.parent.voicer) {
-        this.parent.voicer.start(message);
-      }
-    };
-    _updateVoicer();
-
-    const _clearDeadTimeout = () => {
-      if (this.deadTimeout) {
-        clearTimeout(this.deadTimeout);
-        this.deadTimeout = null;
-      }
-    };
-    _clearDeadTimeout();
+    this.clearDeadTimeout();
 
     this.dispatchEvent(new MessageEvent('update'));
+  }
+  async updateVoicer(message) {
+    // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice start');
+    this.dispatchEvent(new MessageEvent('voicequeue', {
+      data: {
+        message,
+      },
+    }));
+    if (this.parent.voicer) {
+      const preloadedMessage = this.parent.voicer.preloadMessage(message);
+      await chatManager.waitForVoiceTurn(() => {
+        this.dispatchEvent(new MessageEvent('voicestart', {
+          data: {
+            message,
+          },
+        }));
+        return this.parent.voicer.start(preloadedMessage);
+      });
+    } else {
+      await Promise.resolve();
+    }
+    // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice end');
+    this.dispatchEvent(new MessageEvent('voiceend', {
+      data: {
+        fullText: this.fullText,
+      },
+    }));
   }
   unmergeAction(action) {
     const index = this.actionIds.indexOf(action.actionId);
     if (index !== -1) {
       this.actionIds.splice(index, 1);
     }
-    if (this.actionIds.length === 0) {
+    /* if (this.actionIds.length === 0) {
       const _updateVoicer = () => {
         if (this.parent.voicer) {
           this.parent.voicer.stop();
@@ -73,7 +91,19 @@ class Hup extends EventTarget {
       this.deadTimeout = setTimeout(() => {
         this.dispatchEvent(new MessageEvent('deadtimeout'));
       }, 2000);
+    } */
+  }
+  clearDeadTimeout() {
+    if (this.deadTimeout) {
+      clearTimeout(this.deadTimeout);
+      this.deadTimeout = null;
     }
+  }
+  startDeadTimeout() {
+    this.clearDeadTimeout();
+    this.deadTimeout = setTimeout(() => {
+      this.dispatchEvent(new MessageEvent('deadtimeout'));
+    }, deadTimeoutTime);
   }
   destroy() {
     this.dispatchEvent(new MessageEvent('destroy'));
@@ -96,9 +126,20 @@ class CharacterHups extends EventTarget {
       // console.log('got old hup', oldHup, actionId, this.hups.map(h => h.actionIds).flat());
       if (oldHup) {
         oldHup.mergeAction(action);
+        oldHup.updateVoicer(action.message);
       } else if (Hup.isHupAction(action)) {
         const newHup = new Hup(action.type, this);
         newHup.mergeAction(action);
+        let pendingVoices = 0;
+        newHup.addEventListener('voicequeue', () => {
+          pendingVoices++;
+          newHup.clearDeadTimeout();
+        });
+        newHup.addEventListener('voiceend', () => {
+          if (--pendingVoices === 0) {
+            newHup.startDeadTimeout();
+          }
+        });
         newHup.addEventListener('deadtimeout', () => {
           newHup.destroy();
 
@@ -119,6 +160,7 @@ class CharacterHups extends EventTarget {
             hup: newHup,
           },
         }));
+        newHup.updateVoicer(action.message);
       }
     });
     player.addEventListener('actionremove', e => {

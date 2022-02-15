@@ -224,6 +224,12 @@ class PlayerBase extends THREE.Object3D {
     const voice = new VoiceEndpoint(url);
     this.characterHups.setVoice(voice);
   }
+  getCrouchFactor() {
+    return 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
+    /* let factor = 1;
+    factor *= 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
+    return factor; */
+  }
   destroy() {
     // nothing
   }
@@ -575,7 +581,6 @@ class StatePlayer extends PlayerBase {
 
       this.avatar.update(timestamp, timeDiff);
     }
-    this.characterPhysics.updateCamera(timeDiff);
     this.characterHups.update(timestamp);
   }
   destroy() {
@@ -1147,8 +1152,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
 
       this.characterHups.update(timestamp);
     }
-
-    // this.characterPhysics.updateCamera(timeDiff);
   }
   /* detachState() {
     return null;
@@ -1191,16 +1194,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   }
 }
 
-function getPlayerCrouchFactor(player) {
-  let factor = 1;
-  factor *= 1 - 0.4 * player.actionInterpolants.crouch.getNormalized();
-  //factor *= 1 - 0.8 * Math.min(player.actionInterpolants.activate.getNormalized() * 1.5, 1);
-  return factor;
-};
-
 export {
   LocalPlayer,
   RemotePlayer,
   NpcPlayer,
-  getPlayerCrouchFactor,
 };

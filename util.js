@@ -756,3 +756,14 @@ export async function loadAudioBuffer(audioContext, url) {
   const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
   return audioBuffer;
 }
+export const memoize = fn => {
+  let loaded = false;
+  let cache = null;
+  return () => {
+    if (!loaded) {
+      cache = fn();
+      loaded = true;
+    }
+    return cache;
+  };
+};
