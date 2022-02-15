@@ -5,9 +5,9 @@
   "main": "index.mjs",
   "scripts": {
     "start": "forever start index.mjs -p",
-    "dev": "node index.mjs",
+    "dev": "node index.mjs --experimental-module",
     "prod": "sudo $(which node) index.mjs -p",
-    "build": "vite build",
+    "build": "vite build && cp -r ./scenes ./dist/",
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
     "test": "cd test && npm run test"

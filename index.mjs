@@ -1,3 +1,4 @@
+/* eslint-disable node/no-deprecated-api */
 /* eslint-disable camelcase */
 /* eslint-disable promise/param-names */
 import http from 'http';
@@ -8,11 +9,16 @@ import fs from 'fs';
 import express from 'express';
 import vite from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
-
+import metaversefile from 'metaversefile/plugins/rollup.js';
+import SystemJS from 'systemjs';
+const {System} = SystemJS;
+global.self = global;
 Error.stackTraceLimit = 300;
 const cwd = process.cwd();
 
 const isProduction = process.argv[2] === '-p';
+
+const totum = metaversefile();
 
 const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.test(p);
 
@@ -38,16 +44,46 @@ function makeId(length) {
   return result;
 }
 
+async function readExports(assets_dir) {
+  const absAssetsPath = path.resolve('.', assets_dir);
+  console.log('absAssetsPath', absAssetsPath);
+
+  let files = fs.readdirSync(absAssetsPath);
+  console.log('files', files);
+
+  files = files.filter(file => {
+    return path.extname(file).toLowerCase() === '.js';
+  });
+  console.log('Files', files);
+  const modules = {};
+
+  for (const file of files) {
+    const result = await import(path.resolve('.', assets_dir, file));
+
+    // console.log(result);
+
+    const exports = Object.keys(result);
+
+    for (const exportedMembers of exports) {
+      modules[exportedMembers] = file;
+    }
+  }
+  console.log(modules);
+}
+
 (async () => {
+  await readExports(process.env.ASSETSDIR);
+
   const app = express();
-  app.use(express.static('dist'));
   app.use('*', async (req, res, next) => {
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     const o = url.parse(req.originalUrl, true);
+
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
+      console.log('IF-1');
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
@@ -69,10 +105,11 @@ function makeId(length) {
         proxyReq.end();
       } else {
         req.originalUrl = u;
+        console.log(o);
         next();
       }
     } else if (o.query.noimport !== undefined) {
-      console.log(o);
+      console.log('IF-2');
       const p = path.join(cwd, path.resolve(o.pathname));
       const rs = fs.createReadStream(p);
       rs.on('error', err => {
@@ -88,13 +125,37 @@ function makeId(length) {
       rs.pipe(res);
       // _proxyUrl(req, res, req.originalUrl);
     } else if (/^\/login/.test(o.pathname)) {
+      console.log('IF-3');
       req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
-      console.log(o);
+      if (/^\/(?:@import)\//.test(o.pathname)) {
+        console.log('IF-4');
+        console.log(o);
+
+        try {
+          const loadUrl = o.pathname.replace('/@import', '');
+          const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
+          const reqURL = new URL(fullUrl);
+          totum.resolveId(loadUrl, reqURL.href).then(id => {
+            totum.load(id).then(({code, map}) => {
+              debugger;
+              res.writeHead(200, {'Content-Type': 'application/javascript'});
+              res.end(code);
+            });
+          });
+        } catch (e) {
+          debugger;
+        }
+        return;
+        // totum.load(loadUrl);
+      }
+      // return res.end();
       next();
     }
   });
+
+  app.use(express.static('dist'));
 
   const isHttps = !process.env.HTTP_ONLY && (!!certs.key && !!certs.cert);
   const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
