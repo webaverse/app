@@ -131,8 +131,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   if (danceAction) {
     rig.danceAnimation = danceAnimation;
   }
-  rig.throwState = !!throwAction;
-  rig.throwTime = player.actionInterpolants.throw.get();
+  // rig.throwState = !!throwAction;
+  // rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
   // rig.chargeJumpTime = player.actionInterpolants.chargeJump.get();
   // rig.chargeAnimation = chargeJumpAnimation;
