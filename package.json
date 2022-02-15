@@ -34,6 +34,7 @@
     "key-did-resolver": "^1.4.0",
     "maxrects-packer": "^2.7.2",
     "metaversefile": "./packages/totum",
+    "murmurhash3js": "^3.0.1",
     "node-fetch": "^3.1.0",
     "openai-api": "^1.2.6",
     "react": "17.0.2",
