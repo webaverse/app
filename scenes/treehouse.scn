@@ -28,8 +28,8 @@
           "maxDistance": 0.1
         },
         "dof": {
-          "focus": 2.0,
-          "aperture": 0.0001,
+          "focus": 3.0,
+          "aperture": 0.00004,
           "maxblur": 0.005
         },
         "hdr": {
