@@ -81,9 +81,9 @@
     },
     {
       "position": [
-        24,
+        8,
         0,
-        24
+        16
       ],
       "quaternion": [
         0,
@@ -113,9 +113,9 @@
     },
     {
       "position": [
-        4,
-        1,
-        4
+        3,
+        0,
+        -2
       ],
       "quaternion": [
         0,
@@ -123,9 +123,57 @@
         0,
         1
       ],
-      "physics": false,
-      "start_url": "https://webaverse.github.io/basiheart/",
-      "dynamic": true
+      "start_url": "../npc/",
+      "components": [
+        {
+          "key": "name",
+          "value": "Scillia"
+        },
+        {
+          "key": "voice",
+          "value": "1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO"
+        },
+        {
+          "key": "avatarUrl",
+          "value": "/avatars/scillia_drophunter_v15_vian.vrm"
+        },
+        {
+          "key": "bio",
+          "value": "Nickname Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled."
+        }
+      ]
+    },
+    {
+      "position": [
+        -3,
+        0,
+        -2
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "../npc/",
+      "components": [
+        {
+          "key": "name",
+          "value": "Drake"
+        },
+        {
+          "key": "voice",
+          "value": "1PUUS71w2ik0uuycNB30nXFze8C7O8OzY"
+        },
+        {
+          "key": "avatarUrl",
+          "value": "/avatars/drake_hacker_v3_vian.vrm"
+        },
+        {
+          "key": "bio",
+          "value": "Nickname DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+        }
+      ]
     },
     {
       "position": [
@@ -182,20 +230,6 @@
         1
       ],
       "start_url": "https://webaverse.github.io/dragon-mount/"
-    },
-    {
-      "position": [
-        -6,
-        0.16,
-        16
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "https://webaverse.github.io/fox/"
     },
     {
       "position": [
@@ -272,6 +306,94 @@
         1
       ],
       "start_url": "https://webaverse.github.io/silsword/"
+    },
+    {
+      "position": [
+        -6,
+        0.5,
+        9
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/scissors/"
+    },
+    {
+      "position": [30, 0, 4],
+      "start_url": "https://webaverse.github.io/origin-tablet/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        -1
+      ],
+      "start_url": "https://webaverse.github.io/mirror/"
+    },
+    {
+      "position": [
+        3,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/bomb/"
+    },
+    {
+      "position": [
+        3,
+        0,
+        2
+      ],
+      "start_url": "https://webaverse.github.io/bow/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        2
+      ],
+      "start_url": "https://webaverse.github.io/flower/"
+    },
+    {
+      "position": [
+        -2,
+        0,
+        2
+      ],
+      "start_url": "https://webaverse.github.io/witch-hat/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        6
+      ],
+      "start_url": "https://webaverse.github.io/turret/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        6
+      ],
+      "start_url": "https://webaverse.github.io/dreadnought/"
+    },
+    {
+      "position": [
+        -15,
+        -2,
+        -20
+      ],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "https://webaverse.github.io/lisk/"
     }
   ]
 }
