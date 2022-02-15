@@ -407,7 +407,7 @@ class PathFinder {
       if (this.iterStep >= this.maxIterStep) {
         // console.log('maxIterDetect: untilFound');
 
-        if (this.allowNearest) { // use nearest frontier, if not found.
+        if (this.allowNearest) { // use nearest frontier as mid-point dest, if not found real dest.
           // // Use nearest frontier, if not found and npc reached dest.
           // // Check whether npc reached dest in such as npc repo, do not check here. Keep PathFinder as simple as possible.
           // const destResult = this.waypointResult[this.waypointResult.length - 1];
@@ -439,12 +439,12 @@ class PathFinder {
     }
   }
 
-  recurSetPrev(voxel) {
+  setNextOfPathVoxel(voxel) {
     if (voxel) {
       voxel._isPath = true;
       if (voxel._prev) voxel._prev._next = voxel;
 
-      this.recurSetPrev(voxel._prev);
+      this.setNextOfPathVoxel(voxel._prev);
     }
   }
 
@@ -465,7 +465,7 @@ class PathFinder {
 
       voxel._isFrontier = true;
       voxel._prev = prevVoxel;
-      // prevVoxel._next = voxel; // Can't assign _next here, because one voxel will has multiple _next. Need use `recurSetPrev()`.
+      // prevVoxel._next = voxel; // Can't assign _next here, because one voxel will has multiple _next. Need use `setNextOfPathVoxel()`.
 
       if (voxel._isDest) {
         this.found(voxel);
@@ -476,7 +476,7 @@ class PathFinder {
   found(voxel) {
     // if (this.debugRender) console.log('found');
     this.isFound = true;
-    this.recurSetPrev(voxel);
+    this.setNextOfPathVoxel(voxel);
 
     this.waypointResult.length = 0;
     let wayPoint = this.startVoxel; // wayPoint: voxel
