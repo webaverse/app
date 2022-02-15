@@ -161,20 +161,6 @@
     },
     {
       "position": [
-        4,
-        0,
-        -2
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/npc/"
-    },
-    {
-      "position": [
         -13,
         0,
         0
