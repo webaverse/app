@@ -6,7 +6,7 @@ import { WorldObjectsList } from './world-objects-list';
 
 //
 
-export const EditorMode = ({ selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
+export const EditorMode = ({ app, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
     const multiplayerConnected = !! selectedRoom;
 
@@ -15,7 +15,7 @@ export const EditorMode = ({ selectedScene, setSelectedScene, selectedRoom, setS
     return (
         <div>
             <SceneSelect multiplayerConnected={ multiplayerConnected } selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
-            <WorldObjectsList />
+            <WorldObjectsList app={ app } />
         </div>
     );
 

@@ -309,7 +309,7 @@ export const App = () => {
     //
 
     return (
-        <div className={ styles.App }>
+        <div className={ styles.app }>
             <MagicMenu open={ magicMenuOpened } setOpen={ setMagicMenuOpened } />
             <canvas className={ styles.canvas } ref={ canvasRef } onClick={ handleCanvasClick } />
             <Crosshair />
@@ -323,6 +323,7 @@ export const App = () => {
                 setSelectedScene={ setSelectedScene }
                 selectedRoom={ selectedRoom }
                 setSelectedRoom={ setSelectedRoom }
+                app={ app }
             />
             <LoginPopup
                 open={ loginPopupOpened }
