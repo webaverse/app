@@ -24,7 +24,11 @@ const CharacterHup = function(props) {
   const [text, setText] = useState('');
   const [fullText, setFullText] = useState('');
 
+  // console.log('render text', text, hup.fullText);
+
   useEffect(() => {
+    // console.log('effect 1', hup);
+
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const player = hup.parent.player;
@@ -53,6 +57,7 @@ const CharacterHup = function(props) {
     }
   }, [canvasRef]);
   useEffect(() => {
+    // console.log('effect 2', hup);
     if (hupRef.current) {
       const hupEl = hupRef.current;
       function transitionend() {
@@ -71,28 +76,34 @@ const CharacterHup = function(props) {
     }
   }, [hupRef, localOpen, hups, hups.length]);
   useEffect(() => {
+    // console.log('set full text', hup);
     setFullText(hup.fullText);
   }, []);
   useEffect(() => {
-    function update(e) {
-      setFullText(hup.fullText);
+    // console.log('effect 3', hup);
+    function voicestart(e) {
+      console.log('voice start', hup.fullText, e.data, e.data.fullText);
+      setLocalOpen(true);
+      setFullText(e.data.fullText);
     }
-    hup.addEventListener('update', update);
+    hup.addEventListener('voicestart', voicestart);
     function destroy(e) {
       setLocalOpen(false);
     }
     hup.addEventListener('destroy', destroy);
     return () => {
-      hup.removeEventListener('update', update);
+      hup.removeEventListener('voicestart', voicestart);
       hup.removeEventListener('destroy', destroy);
     };
-  }, [hup]);
+  }, [hup, localOpen, fullText]);
   useEffect(() => {
+    // console.log('effect 4', hup);
     requestAnimationFrame(() => {
       setLocalOpen(true);
     });
   }, []);
   useEffect(() => {
+    // console.log('effect 5', text.length <= fullText.length, text.length, fullText.length);
     if (text.length <= fullText.length) {
       const timeout = setTimeout(() => {
         // XXX this text slicing should be done with a mathematical factor in the hups code
@@ -128,7 +139,7 @@ const CharacterHup = function(props) {
       <div className={styles.message}>{text}</div>
     </div>
   );
-}
+};
 
 export default function CharacterHups({
   localPlayer,
@@ -172,7 +183,7 @@ export default function CharacterHups({
           <CharacterHup
             key={hup.hupId}
             hup={hup}
-            index={index}
+            // index={index}
             hups={hups}
             setHups={setHups}
           />
