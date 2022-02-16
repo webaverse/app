@@ -590,7 +590,7 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedConvexGeometry);
-      physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
+      /* physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
         enablePhysicsObject.call(this, physicsObject);
       })(physics.enablePhysicsObject);
       physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
@@ -601,11 +601,11 @@ metaversefile.setApi({
       })(physics.enableGeometryQueries);
       physics.disableGeometryQueries = (disableGeometryQueries => function(physicsObject) {
         disableGeometryQueries.call(this, physicsObject);
-      })(physics.disableGeometryQueries);
+      })(physics.disableGeometryQueries); */
 
-      physics.setTransform = (setTransform => function(physicsObject) {
+      /* physics.setTransform = (setTransform => function(physicsObject) {
         setTransform.call(this, physicsObject);
-      })(physics.setTransform);
+      })(physics.setTransform); */
       /* physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
         const transform = getPhysicsTransform.apply(this, arguments);
         const {position, quaternion} = transform;
