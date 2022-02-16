@@ -47,9 +47,9 @@ export const ActionMenu = ({ setSettingsOpened, app }) => {
     return (
         <div className={ styles.actionMenu } >
 
-            <div className={ classnames( styles.btn, styles.settings ) } onClick={ handleSettingsBtnClick } />
-            <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >MODE</div>
-            <div className={ classnames( styles.btn, styles.vr ) } onClick={ handleVRBtnClick } >{ xrSupported ? '' : 'no' } VR</div>
+            <div className={ classnames( styles.btn, styles.settings ) } onClick={ handleSettingsBtnClick } >設定 Settings</div>
+            <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >モード Mode</div>
+            <div className={ classnames( styles.btn, styles.vr, xrSupported ? null : styles.inactive ) } onClick={ handleVRBtnClick } >{ xrSupported ? '仮想現実 VR ' : '仮想現実 VR (no)' }</div>
 
         </div>
     );
