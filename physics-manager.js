@@ -166,10 +166,10 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) =
 
 physicsManager.getGeometryForPhysicsId = physicsId => physx.physxWorker.getGeometryPhysics(physx.physics, physicsId);
 physicsManager.getBoundingBoxForPhysicsId = (physicsId, box) => physx.physxWorker.getBoundsPhysics(physx.physics, physicsId, box);
-physicsManager.disablePhysicsObject = physicsObject => {
+physicsManager.disableGeometry = physicsObject => {
   physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
-physicsManager.enablePhysicsObject = physicsObject => {
+physicsManager.enableGeometry = physicsObject => {
   physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.disableGeometryQueries = physicsObject => {
