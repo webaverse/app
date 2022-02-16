@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { App } from './new-components/app';
-import { ErrorPage } from './new-components/general/error-page';
+import { App } from './components/app';
+import { ErrorPage } from './components/general/error-page';
 
 //
 
