@@ -11,6 +11,7 @@ import * as ReactThreeFiber from '@react-three/fiber';
 import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
+import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
@@ -589,7 +590,7 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedConvexGeometry);
-      physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
+      /* physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
         enablePhysicsObject.call(this, physicsObject);
       })(physics.enablePhysicsObject);
       physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
@@ -600,11 +601,11 @@ metaversefile.setApi({
       })(physics.enableGeometryQueries);
       physics.disableGeometryQueries = (disableGeometryQueries => function(physicsObject) {
         disableGeometryQueries.call(this, physicsObject);
-      })(physics.disableGeometryQueries);
+      })(physics.disableGeometryQueries); */
 
-      physics.setTransform = (setTransform => function(physicsObject) {
+      /* physics.setTransform = (setTransform => function(physicsObject) {
         setTransform.call(this, physicsObject);
-      })(physics.setTransform);
+      })(physics.setTransform); */
       /* physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
         const transform = getPhysicsTransform.apply(this, arguments);
         const {position, quaternion} = transform;
@@ -639,6 +640,9 @@ metaversefile.setApi({
     } else {
       throw new Error('usePhysics cannot be called outside of render()');
     }
+  },
+  useCameraManager() {
+    return cameraManager;
   },
   useParticleSystem() {
     return world.particleSystem;
