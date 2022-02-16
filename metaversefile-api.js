@@ -31,6 +31,7 @@ import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './lore-ai.js';
+import loreAIScene from './lore-ai-scene.js';
 import npcManager from './npc-manager.js';
 import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 import {PathFinder} from './npc-utils.js';
@@ -343,6 +344,9 @@ metaversefile.setApi({
   },
   useLoreAI() {
     return loreAI;
+  },
+  useLoreAIScene() {
+    return loreAIScene;
   },
   useAvatarCruncher() {
     return avatarCruncher;
