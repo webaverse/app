@@ -7,19 +7,30 @@ import styles from './hotbar.module.css';
 
 export const Hotbar = () => {
 
-    const hotKeys = [ 1, 2, 3, 4, 5, 6, 7, 8 ];
+    const itemsNum = 8;
 
     return (
         <div className={ styles.hotbar } >
 
             {
-                hotKeys.map( ( item ) => {
-                    return (
-                        <div className={ styles.item } key={ `item${ item }` }>
-                            { item }
-                        </div>
-                    );
-                })
+                ( () => {
+
+                    const items = Array( itemsNum );
+
+                    for ( let i = 0; i < itemsNum; i ++ ) {
+
+                        items[ i ] = (
+                            <div className={ styles.item } key={ i } >
+                                <div className={ styles.box } />
+                                <div className={ styles.label }>{ i + 1 }</div>
+                            </div>
+                        );
+
+                    }
+
+                    return items;
+
+                })()
             }
 
         </div>
