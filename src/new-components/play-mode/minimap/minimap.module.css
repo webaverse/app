@@ -1,0 +1,19 @@
+
+.locationMenu {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 200px;
+    height: 200px;
+    z-index: 1;
+}
+
+.map {
+    margin-left: 20px;
+    margin-bottom: 20px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background-color: #000;
+    opacity: 0.5;
+}
