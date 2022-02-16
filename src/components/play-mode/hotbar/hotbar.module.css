@@ -1,0 +1,22 @@
+
+.hotbar {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translate( -50%, 0% );
+    width: 640px;
+    height: 80px;
+    background-color: #000;
+    opacity: 0.5;
+    z-index: 1;
+}
+
+.item {
+    position: relative;
+    float: left;
+    margin: 5px;
+    width: 70px;
+    height: 70px;
+    background-color: #ff0000;
+    opacity: 0.5;
+}
