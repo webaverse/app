@@ -38,113 +38,120 @@ const componentTemplates = {
         if (wearSpec) {
           // const {app, wearSpec} = e.data;
           // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
-          if (wearSpec.skinnedMesh && app.glb) {
-            let skinnedMesh = null;
-            app.glb.scene.traverse(o => {
-              if (skinnedMesh === null && o.isSkinnedMesh && o.name === wearSpec.skinnedMesh) {
-                skinnedMesh = o;
-              }
-            });
-            if (skinnedMesh && localPlayer.avatar) {
-              app.position.set(0, 0, 0);
-              app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-              app.scale.copy(initialScale)//.multiplyScalar(wearableScale);
-              app.updateMatrix();
-              app.matrixWorld.copy(app.matrix);
-              
-              // this adds pseudo-VRM onto our GLB assuming a mixamo rig
-              // used for the glb wearable skinning feature
-              const _mixamoRigToFakeVRMHack = () => {
-                const {nodes} = app.glb.parser.json;
-                const boneNodeMapping = {
-                  hips: 'J_Bip_C_Hips',
-                  leftUpperLeg: 'J_Bip_L_UpperLeg',
-                  rightUpperLeg: 'J_Bip_R_UpperLeg',
-                  leftLowerLeg: 'J_Bip_L_LowerLeg',
-                  rightLowerLeg: 'J_Bip_R_LowerLeg',
-                  leftFoot: 'J_Bip_L_Foot',
-                  rightFoot: 'J_Bip_R_Foot',
-                  spine: 'J_Bip_C_Spine',
-                  chest: 'J_Bip_C_Chest',
-                  neck: 'J_Bip_C_Neck',
-                  head: 'J_Bip_C_Head',
-                  leftShoulder: 'J_Bip_L_Shoulder',
-                  rightShoulder: 'J_Bip_R_Shoulder',
-                  leftUpperArm: 'J_Bip_L_UpperArm',
-                  rightUpperArm: 'J_Bip_R_UpperArm',
-                  leftLowerArm: 'J_Bip_L_LowerArm',
-                  rightLowerArm: 'J_Bip_R_LowerArm',
-                  leftHand: 'J_Bip_L_Hand',
-                  rightHand: 'J_Bip_R_Hand',
-                  leftToes: 'J_Bip_L_ToeBase',
-                  rightToes: 'J_Bip_R_ToeBase',
-                  leftEye: 'J_Adj_L_FaceEye',
-                  rightEye: 'J_Adj_R_FaceEye',
-                  leftThumbProximal: 'J_Bip_L_Thumb1',
-                  leftThumbIntermediate: 'J_Bip_L_Thumb2',
-                  leftThumbDistal: 'J_Bip_L_Thumb3',
-                  leftIndexProximal: 'J_Bip_L_Index1',
-                  leftIndexIntermediate: 'J_Bip_L_Index2',
-                  leftIndexDistal: 'J_Bip_L_Index3',
-                  leftMiddleProximal: 'J_Bip_L_Middle1',
-                  leftMiddleIntermediate: 'J_Bip_L_Middle2',
-                  leftMiddleDistal: 'J_Bip_L_Middle3',
-                  leftRingProximal: 'J_Bip_L_Ring1',
-                  leftRingIntermediate: 'J_Bip_L_Ring2',
-                  leftRingDistal: 'J_Bip_L_Ring3',
-                  leftLittleProximal: 'J_Bip_L_Little1',
-                  leftLittleIntermediate: 'J_Bip_L_Little2',
-                  leftLittleDistal: 'J_Bip_L_Little3',
-                  rightThumbProximal: 'J_Bip_R_Thumb1',
-                  rightThumbIntermediate: 'J_Bip_R_Thumb2',
-                  rightThumbDistal: 'J_Bip_R_Thumb3',
-                  rightIndexProximal: 'J_Bip_R_Index1',
-                  rightIndexIntermediate: 'J_Bip_R_Index2',
-                  rightIndexDistal: 'J_Bip_R_Index3',
-                  rightMiddleProximal: 'J_Bip_R_Middle3',
-                  rightMiddleIntermediate: 'J_Bip_R_Middle2',
-                  rightMiddleDistal: 'J_Bip_R_Middle1',
-                  rightRingProximal: 'J_Bip_R_Ring1',
-                  rightRingIntermediate: 'J_Bip_R_Ring2',
-                  rightRingDistal: 'J_Bip_R_Ring3',
-                  rightLittleProximal: 'J_Bip_R_Little1',
-                  rightLittleIntermediate: 'J_Bip_R_Little2',
-                  rightLittleDistal: 'J_Bip_R_Little3',
-                  upperChest: 'J_Bip_C_UpperChest',
-                };
-                const humanBones = [];
-                for (const k in boneNodeMapping) {
-                  const boneName = boneNodeMapping[k];
-                  const boneNodeIndex = nodes.findIndex(node => node.name === boneName);
-                  if (boneNodeIndex !== -1) {
-                    const boneSpec = {
-                      bone: k,
-                      node: boneNodeIndex,
-                      // useDefaultValues: true, // needed?
-                    };
-                    humanBones.push(boneSpec);
-                  } else {
-                    console.log('failed to find bone', boneNodeMapping, k, nodes, boneNodeIndex);
-                  }
-                }
-                if (!app.glb.parser.json.extensions) {
-                  app.glb.parser.json.extensions = {};
-                }
-                app.glb.parser.json.extensions.VRM = {
-                  humanoid: {
-                    humanBones,
-                  },
-                };
-              };
-              _mixamoRigToFakeVRMHack();
-              const bindSpec = Avatar.bindAvatar(app.glb);
-  
-              // skeleton = bindSpec.skeleton;
-              modelBones = bindSpec.modelBones;
+          if (app.glb) {
+            const physicsObjects = app.getPhysicsObjects();
+            for (const physicsObject of physicsObjects) {
+              physicsManager.disableActor(physicsObject);
             }
+
+            if (wearSpec.skinnedMesh) {
+              let skinnedMesh = null;
+              app.glb.scene.traverse(o => {
+                if (skinnedMesh === null && o.isSkinnedMesh && o.name === wearSpec.skinnedMesh) {
+                  skinnedMesh = o;
+                }
+              });
+              if (skinnedMesh && localPlayer.avatar) {
+                app.position.set(0, 0, 0);
+                app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                app.scale.copy(initialScale)//.multiplyScalar(wearableScale);
+                app.updateMatrix();
+                app.matrixWorld.copy(app.matrix);
+                
+                // this adds pseudo-VRM onto our GLB assuming a mixamo rig
+                // used for the glb wearable skinning feature
+                const _mixamoRigToFakeVRMHack = () => {
+                  const {nodes} = app.glb.parser.json;
+                  const boneNodeMapping = {
+                    hips: 'J_Bip_C_Hips',
+                    leftUpperLeg: 'J_Bip_L_UpperLeg',
+                    rightUpperLeg: 'J_Bip_R_UpperLeg',
+                    leftLowerLeg: 'J_Bip_L_LowerLeg',
+                    rightLowerLeg: 'J_Bip_R_LowerLeg',
+                    leftFoot: 'J_Bip_L_Foot',
+                    rightFoot: 'J_Bip_R_Foot',
+                    spine: 'J_Bip_C_Spine',
+                    chest: 'J_Bip_C_Chest',
+                    neck: 'J_Bip_C_Neck',
+                    head: 'J_Bip_C_Head',
+                    leftShoulder: 'J_Bip_L_Shoulder',
+                    rightShoulder: 'J_Bip_R_Shoulder',
+                    leftUpperArm: 'J_Bip_L_UpperArm',
+                    rightUpperArm: 'J_Bip_R_UpperArm',
+                    leftLowerArm: 'J_Bip_L_LowerArm',
+                    rightLowerArm: 'J_Bip_R_LowerArm',
+                    leftHand: 'J_Bip_L_Hand',
+                    rightHand: 'J_Bip_R_Hand',
+                    leftToes: 'J_Bip_L_ToeBase',
+                    rightToes: 'J_Bip_R_ToeBase',
+                    leftEye: 'J_Adj_L_FaceEye',
+                    rightEye: 'J_Adj_R_FaceEye',
+                    leftThumbProximal: 'J_Bip_L_Thumb1',
+                    leftThumbIntermediate: 'J_Bip_L_Thumb2',
+                    leftThumbDistal: 'J_Bip_L_Thumb3',
+                    leftIndexProximal: 'J_Bip_L_Index1',
+                    leftIndexIntermediate: 'J_Bip_L_Index2',
+                    leftIndexDistal: 'J_Bip_L_Index3',
+                    leftMiddleProximal: 'J_Bip_L_Middle1',
+                    leftMiddleIntermediate: 'J_Bip_L_Middle2',
+                    leftMiddleDistal: 'J_Bip_L_Middle3',
+                    leftRingProximal: 'J_Bip_L_Ring1',
+                    leftRingIntermediate: 'J_Bip_L_Ring2',
+                    leftRingDistal: 'J_Bip_L_Ring3',
+                    leftLittleProximal: 'J_Bip_L_Little1',
+                    leftLittleIntermediate: 'J_Bip_L_Little2',
+                    leftLittleDistal: 'J_Bip_L_Little3',
+                    rightThumbProximal: 'J_Bip_R_Thumb1',
+                    rightThumbIntermediate: 'J_Bip_R_Thumb2',
+                    rightThumbDistal: 'J_Bip_R_Thumb3',
+                    rightIndexProximal: 'J_Bip_R_Index1',
+                    rightIndexIntermediate: 'J_Bip_R_Index2',
+                    rightIndexDistal: 'J_Bip_R_Index3',
+                    rightMiddleProximal: 'J_Bip_R_Middle3',
+                    rightMiddleIntermediate: 'J_Bip_R_Middle2',
+                    rightMiddleDistal: 'J_Bip_R_Middle1',
+                    rightRingProximal: 'J_Bip_R_Ring1',
+                    rightRingIntermediate: 'J_Bip_R_Ring2',
+                    rightRingDistal: 'J_Bip_R_Ring3',
+                    rightLittleProximal: 'J_Bip_R_Little1',
+                    rightLittleIntermediate: 'J_Bip_R_Little2',
+                    rightLittleDistal: 'J_Bip_R_Little3',
+                    upperChest: 'J_Bip_C_UpperChest',
+                  };
+                  const humanBones = [];
+                  for (const k in boneNodeMapping) {
+                    const boneName = boneNodeMapping[k];
+                    const boneNodeIndex = nodes.findIndex(node => node.name === boneName);
+                    if (boneNodeIndex !== -1) {
+                      const boneSpec = {
+                        bone: k,
+                        node: boneNodeIndex,
+                        // useDefaultValues: true, // needed?
+                      };
+                      humanBones.push(boneSpec);
+                    } else {
+                      console.log('failed to find bone', boneNodeMapping, k, nodes, boneNodeIndex);
+                    }
+                  }
+                  if (!app.glb.parser.json.extensions) {
+                    app.glb.parser.json.extensions = {};
+                  }
+                  app.glb.parser.json.extensions.VRM = {
+                    humanoid: {
+                      humanBones,
+                    },
+                  };
+                };
+                _mixamoRigToFakeVRMHack();
+                const bindSpec = Avatar.bindAvatar(app.glb);
+    
+                // skeleton = bindSpec.skeleton;
+                modelBones = bindSpec.modelBones;
+              }
+            }
+            
+            // app.wear();
           }
-          
-          // app.wear();
         }
       } else {
         _unwear();
@@ -154,6 +161,11 @@ const componentTemplates = {
 
     const _unwear = () => {
       if (wearSpec) {
+        const physicsObjects = app.getPhysicsObjects();
+        for (const physicsObject of physicsObjects) {
+          physicsManager.enableActor(physicsObject);
+        }
+
         app.scale.copy(initialScale);
         app.updateMatrixWorld();
 
