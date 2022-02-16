@@ -103,6 +103,7 @@ class PathFinder {
       this.untilFound();
       if (this.isFound) {
         this.interpoWaypointResult();
+        this.simplifyWaypointResult(this.waypointResult[0]);
         // this.simplifyWaypointResultXZ(this.waypointResult[0]);
         // this.simplifyWaypointResultXZ2(this.waypointResult[0]);
         // this.simplifyWaypointResultX(this.waypointResult[0]);
@@ -173,80 +174,18 @@ class PathFinder {
     }
   }
 
-  simplifyWaypointResultX(result) {
+  simplifyWaypointResult(result) {
     if (result?._next?._next) {
       if (
-        result.position.x === result._next._next.position.x && // check whether in one line
-        Math.sign(result.position.z - result._next.position.z) === Math.sign(result._next.position.z - result._next._next.position.z) // check wheter in same direction ( will have different directions even in one line when on different layers). // TODO: simplifyWaypointResultXZ() should need check wheter in one layer too.
+        Math.sign(result._next._next.position.x - result._next.position.x) === Math.sign(result._next.position.x - result.position.x) &&
+        Math.sign(result._next._next.position.z - result._next.position.z) === Math.sign(result._next.position.z - result.position.z)
       ) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
         result._next = result._next._next;
         result._next._prev = result;
-        this.simplifyWaypointResultX(result);
+        this.simplifyWaypointResult(result);
       } else {
-        this.simplifyWaypointResultX(result._next);
-      }
-    }
-  }
-
-  simplifyWaypointResultZ(result) {
-    if (result?._next?._next) {
-      if (
-        result.position.z === result._next._next.position.z && // See simplifyWaypointResultX().
-        Math.sign(result.position.x - result._next.position.x) === Math.sign(result._next.position.x - result._next._next.position.x) // See simplifyWaypointResultX().
-      ) {
-        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
-        result._next = result._next._next;
-        result._next._prev = result;
-        this.simplifyWaypointResultZ(result);
-      } else {
-        this.simplifyWaypointResultZ(result._next);
-      }
-    }
-  }
-
-  simplifyWaypointResultXZ(result) {
-    if (result?._next?._next?._next) {
-      if (
-        Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z) &&
-        (
-          (result._prev && Math.abs(result._prev.position.x - result.position.x) === Math.abs(result._prev.position.z - result.position.z)) ||
-          (
-            result._next.position.x - result.position.x === result._next._next._next.position.x - result._next._next.position.x &&
-            result._next.position.z - result.position.z === result._next._next._next.position.z - result._next._next.position.z
-          )
-        )
-      ) {
-        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
-        result._next = result._next._next;
-        result._next._prev = result;
-      }
-      this.simplifyWaypointResultXZ(result._next);
-    } else if (result?._next?._next && !result._next._next._next) {
-      if (Math.abs(result._next._next.position.x - result.position.x) === Math.abs(result._next._next.position.z - result.position.z)) {
-        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
-        result._next = result._next._next;
-        result._next._prev = result;
-      }
-      this.simplifyWaypointResultXZ(result._next);
-    }
-  }
-
-  simplifyWaypointResultXZ2(result) {
-    if (result?._next?._next) {
-      const xBias = Math.abs(result._next._next.position.x - result.position.x);
-      const zBias = Math.abs(result._next._next.position.z - result.position.z);
-      if (
-        xBias === zBias &&
-        xBias > 1 &&
-        zBias > 1
-      ) {
-        this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
-        result._next = result._next._next;
-        result._next._prev = result;
-        this.simplifyWaypointResultXZ2(result);
-      } else {
-        this.simplifyWaypointResultXZ2(result._next);
+        this.simplifyWaypointResult(result._next);
       }
     }
   }
