@@ -9,7 +9,6 @@ const identityQuaternion = new THREE.Quaternion();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localMatrix = new THREE.Matrix4();
 const localVoxel = new THREE.Object3D();
 
 const colorIdle = new THREE.Color('rgb(221,213,213)');
@@ -21,7 +20,7 @@ const colorPath = new THREE.Color('rgb(149,64,191)');
 const colorPathSimplified = new THREE.Color('rgb(69,0,98)');
 
 class PathFinder {
-  constructor({voxelHeight = 1.5, heightTolerance = 0.6, detectStep = 0.1, maxIterdetect = 1000, maxIterStep = 1000, maxVoxelCacheLen = 10000, ignorePhysicsIds = [], debugRender = true}) {
+  constructor({voxelHeight = 1.5, heightTolerance = 0.6, detectStep = 0.1, maxIterdetect = 1000, maxIterStep = 1000, maxVoxelCacheLen = 10000, ignorePhysicsIds = [], debugRender = false}) {
     /* args:
       voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
       heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
@@ -104,36 +103,18 @@ class PathFinder {
       if (this.isFound) {
         this.interpoWaypointResult();
         this.simplifyWaypointResult(this.waypointResult[0]);
-        // this.simplifyWaypointResultXZ(this.waypointResult[0]);
-        // this.simplifyWaypointResultXZ2(this.waypointResult[0]);
-        // this.simplifyWaypointResultX(this.waypointResult[0]);
-        // this.simplifyWaypointResultZ(this.waypointResult[0]);
       }
       // console.log('waypointResult', this.waypointResult.length);
     }
 
     if (this.debugRender) {
-      // // const len = this.waypointResult.length - 1;
-      // const len = this.waypointResult.length;
-      // for (let i = 0; i < len; i++) {
-      //   const voxel = this.getVoxel(this.waypointResult[i].position);
-      //   if (voxel) { // May already disposed.
-      //     voxel._isPathSimplified = true;
-      //   }
-      // }
-
       this.debugMesh.count = this.voxels.children.length + this.waypointResult.length;
-      localMatrix.identity();
       this.voxels.children.forEach((voxel, i) => {
         this.debugMesh.setMatrixAt(i, voxel.matrix);
-        // this.debugMesh.setMatrixAt(i, localMatrix); // test
-        // this.debugMesh.setColorAt(i, colorIdle); // test
         if (voxel._isStart) {
           this.debugMesh.setColorAt(i, colorStart);
         } else if (voxel._isDest) {
           this.debugMesh.setColorAt(i, colorDest);
-        } else if (voxel._isPathSimplified) {
-          // this.debugMesh.setColorAt(i, colorPathSimplified);
         } else if (voxel._isPath) {
           this.debugMesh.setColorAt(i, colorPath);
         } else if (voxel._isFrontier) {
@@ -204,7 +185,6 @@ class PathFinder {
     voxel._prev = null;
     voxel._next = null;
     voxel._isPath = false;
-    // voxel._isPathSimplified = false;
     voxel._isFrontier = false;
   }
 
@@ -457,14 +437,12 @@ class PathFinder {
     let wayPoint = this.startVoxel; // wayPoint: voxel
     let result = new THREE.Object3D();
     result.position.copy(wayPoint.position);
-    // result._priority = wayPoint._priority;
     this.waypointResult.push(result);
     while (wayPoint._next) {
       wayPoint = wayPoint._next;
 
       result._next = new THREE.Object3D();
       result._next.position.copy(wayPoint.position);
-      // result._priority = wayPoint._priority;
       this.waypointResult.push(result._next);
 
       result._next._prev = result;
