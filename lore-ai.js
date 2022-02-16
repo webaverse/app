@@ -8,6 +8,7 @@ const temperature = 1;
 const top_p = 1;
 
 const hash = s => murmurhash3js.x86.hash32(s).toString(16);
+const characterHash = (character, index) => `${hash(character.name)}/${character.name}#${index+1}`;
 const characterLore = `\
 # Overview
 
@@ -19,25 +20,46 @@ ${characterLore}
 
 ${setting}
 
+# Scene Format
+
+Each line starts with the character's Id, followed by their message or action.
+
+## Supported actions
+
+*emotes {happy,sorrow,angry,joy,surprised}*
+*moves to <location>*
+*grabs <item>*
+*drops <item>*
+
+## Example
+
++${characterHash(characters[0], 0)} Hello! *emotes happy*
++${characterHash(characters[0], 0)} *moves to sword*
++${characterHash(characters[0], 0)} *grabs sword*
+
 # Scene 1
+
+## Characters
 
 ${
   characters.map((c, i) => {
-    return `Id: ${hash(c.name)}/${c.name}#${i+1}
+    return `Id: ${characterHash(c, i)}
 Name: ${c.name}
 Bio: ${c.bio}
 `;
   }).join('\n')
 }
 
+## Script
+
 ${
   messages.map(m => {
     const characterIndex = characters.indexOf(m.character);
-    return `*${hash(m.character.name)}/${m.character.name}#${characterIndex+1}: ${m.message}`;
+    return `+${characterHash(m.character, characterIndex)}: ${m.message}`;
   }).join('\n')
 }
-*${
-  dstCharacter ? `${hash(dstCharacter.name)}/${dstCharacter.name}#${characters.indexOf(dstCharacter)+1}:` : ''
++${
+  dstCharacter ? `${characterHash(dstCharacter, characters.indexOf(dstCharacter))}:` : ''
 }`;
 
 class AICharacter extends EventTarget {
