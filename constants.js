@@ -69,6 +69,7 @@ export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;
 export const aimMaxTime = 1000;
+export const throwReleaseTime = 750;
 export const minFov = 60;
 export const maxFov = 120;
 export const initialPosY = 1.5;
@@ -86,6 +87,11 @@ export const defaultVoicePack = {
   indexUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json`,
 };
 export const voiceEndpoint = `https://voice.webaverse.com/tts`;
+export const defaultVoice = `1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO`; // Sweetie Belle
+
+export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
+export const chatTextSpeed = 20;
+export const shakeAnimationSpeed = 30;
 
 export const defaultDioramaSize = 512;
 export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';

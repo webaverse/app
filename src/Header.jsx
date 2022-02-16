@@ -48,7 +48,7 @@ const _getCurrentRoom = () => {
 export default function Header({
   app,
 }) {
-  
+  const localPlayer = metaversefile.useLocalPlayer();  
   const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
   
 	// console.log('index 2');
@@ -68,7 +68,6 @@ export default function Header({
   const [dragging, setDragging] = useState(false);
   const [loginFrom, setLoginFrom] = useState('');
 
-  const localPlayer = metaversefile.useLocalPlayer();
   const [wearActions, setWearActions] = useState(_getWearActions());
   
   let [px, setPx] = useState(0);
@@ -341,13 +340,28 @@ export default function Header({
     };
   }, [dragging]);
 
+  const npcManager = metaversefile.useNpcManager();
+  const [npcs, setNpcs] = useState(npcManager.npcs);
+  useEffect(() => {
+    npcManager.addEventListener('npcadd', e => {
+      const {player} = e.data;
+      const newNpcs = npcs.concat([player]);
+      setNpcs(newNpcs);
+    });
+    npcManager.addEventListener('npcremove', e => {
+      const {player} = e.data;
+      const newNpcs = npcs.slice().splice(npcs.indexOf(player), 1);
+      setNpcs(newNpcs);
+    });
+  }, []);
+
 	return (
     <div className={styles.container} onClick={e => {
       e.stopPropagation();
     }}>
       <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
 			<Chat open={open} setOpen={setOpen} />
-      <CharacterHups />
+      <CharacterHups localPlayer={localPlayer} npcs={npcs} />
       <MagicMenu open={open} setOpen={setOpen} />
       <div className={styles.inner}>
 				<header className={styles.header}>

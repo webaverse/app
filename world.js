@@ -14,9 +14,10 @@ import {AppManager} from './app-manager.js';
 // import {makeId} from './util.js';
 import {scene, postSceneOrthographic, postScenePerspective, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import metaversefileApi from 'metaversefile';
-import {worldMapName, appsMapName, playersMapName} from './constants.js';
+import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 import * as metaverseModules from './metaverse-modules.js';
+import {createParticleSystem} from './particle-system.js';
 
 const localEuler = new THREE.Euler();
 
@@ -30,6 +31,9 @@ world.appManager = appManager;
 
 world.lights = new THREE.Object3D();
 scene.add(world.lights);
+
+world.particleSystem = createParticleSystem();
+scene.add(world.particleSystem);
 
 // multiplayer
 let wsrtc = null;

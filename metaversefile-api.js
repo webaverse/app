@@ -5,40 +5,36 @@ metaversfile can load many file types, including javascript.
 */
 
 import * as THREE from 'three';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
-import {KTX2Loader} from 'three/examples/jsm/loaders/KTX2Loader.js';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
+import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
-// import * as ui from './vr-ui.js';
-import {ShadertoyLoader} from './shadertoy.js';
-import {GIFLoader} from './GIFLoader.js';
-import {VOXLoader} from './VOXLoader.js';
 import ERC721 from './erc721-abi.json';
 import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
-import {LocalPlayer, /*RemotePlayer,*/ NpcPlayer} from './character-controller.js';
+import {LocalPlayer} from './character-controller.js';
 import postProcessing from './post-processing.js';
-// import {getState} from './state.js';
-import {makeId, getRandomString, getPlayerPrefix} from './util.js';
+import {makeId, getRandomString, getPlayerPrefix, memoize} from './util.js';
 import JSON6 from 'json-6';
 import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
+import {chatManager} from './chat-manager.js';
+import loreAI from './lore-ai.js';
+import npcManager from './npc-manager.js';
 import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
 import {PathFinder} from './npc-utils.js';
-
+import loaders from './loaders.js';
 import {getHeight} from './avatars/util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -151,7 +147,6 @@ const localPlayer = new LocalPlayer({
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
 const remotePlayers = new Map();
-const npcs = [];
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -224,72 +219,6 @@ function createPointerEvents(store) {
   }
 }
 
-const _memoize = fn => {
-  let loaded = false;
-  let cache = null;
-  return () => {
-    if (!loaded) {
-      cache = fn();
-      loaded = true;
-    }
-    return cache;
-  };
-};
-const _dracoLoader = _memoize(() => {
-  const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath('/three/draco/');
-  return dracoLoader;
-});
-const _ktx2Loader = _memoize(() => {
-  const ktx2Loader = new KTX2Loader();
-  ktx2Loader.load = (_load => function load() {
-    if (!this.workerConfig) {
-      const renderer = getRenderer();
-      this.detectSupport(renderer);
-    }
-    return _load.apply(this, arguments);
-  })(ktx2Loader.load);
-  ktx2Loader.setTranscoderPath('/three/basis/');
-  return ktx2Loader;
-});
-const _gltfLoader = _memoize(() => {
-  const gltfLoader = new GLTFLoader();
-  {
-    const dracoLoader = _dracoLoader();
-    gltfLoader.setDRACOLoader(dracoLoader);
-  }
-  {
-    const ktx2Loader = _ktx2Loader();
-    gltfLoader.setKTX2Loader(ktx2Loader);
-  }
-  return gltfLoader;
-});
-const _shadertoyLoader = _memoize(() => new ShadertoyLoader());
-const _gifLoader = _memoize(() => new GIFLoader());
-const _voxLoader = _memoize(() => new VOXLoader({
-  scale: 0.01,
-}));
-const loaders = {
-  get dracoLoader() {
-    return _dracoLoader();
-  },
-  get ktx2Loader() {
-    return _ktx2Loader();
-  },
-  get gltfLoader() {
-    return _gltfLoader();
-  },
-  get shadertoyLoader() {
-    return _shadertoyLoader();
-  },
-  get gifLoader() {
-    return _gifLoader();
-  },
-  get voxLoader() {
-    return _voxLoader();
-  },
-};
-
 const _loadImageTexture = src => {
   const img = new Image();
   img.onload = () => {
@@ -306,13 +235,13 @@ const _loadImageTexture = src => {
   // texture.anisotropy = 16;
   return texture;
 };
-const _threeTone = _memoize(() => {
+const _threeTone = memoize(() => {
   return _loadImageTexture('/textures/threeTone.jpg');
 });
-const _fiveTone = _memoize(() => {
+const _fiveTone = memoize(() => {
   return _loadImageTexture('/textures/fiveTone.jpg');
 });
-const _twentyTone = _memoize(() => {
+const _twentyTone = memoize(() => {
   return _loadImageTexture('/textures/twentyTone.png');
 });
 const gradientMaps = {
@@ -409,6 +338,12 @@ metaversefile.setApi({
       },
     };
   },
+  useChatManager() {
+    return chatManager;
+  },
+  useLoreAI() {
+    return loreAI;
+  },
   useAvatarCruncher() {
     return avatarCruncher;
   },
@@ -494,8 +429,8 @@ metaversefile.setApi({
   useRemotePlayers() {
     return Array.from(remotePlayers.values());
   },
-  useNpcs() {
-     return npcs;
+  useNpcManager() {
+    return npcManager;
   },
   usePathFinder() {
     return PathFinder;
@@ -659,7 +594,7 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedConvexGeometry);
-      physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
+      /* physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
         enablePhysicsObject.call(this, physicsObject);
       })(physics.enablePhysicsObject);
       physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
@@ -670,11 +605,11 @@ metaversefile.setApi({
       })(physics.enableGeometryQueries);
       physics.disableGeometryQueries = (disableGeometryQueries => function(physicsObject) {
         disableGeometryQueries.call(this, physicsObject);
-      })(physics.disableGeometryQueries);
+      })(physics.disableGeometryQueries); */
 
-      physics.setTransform = (setTransform => function(physicsObject) {
+      /* physics.setTransform = (setTransform => function(physicsObject) {
         setTransform.call(this, physicsObject);
-      })(physics.setTransform);
+      })(physics.setTransform); */
       /* physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
         const transform = getPhysicsTransform.apply(this, arguments);
         const {position, quaternion} = transform;
@@ -709,6 +644,12 @@ metaversefile.setApi({
     } else {
       throw new Error('usePhysics cannot be called outside of render()');
     }
+  },
+  useCameraManager() {
+    return cameraManager;
+  },
+  useParticleSystem() {
+    return world.particleSystem;
   },
   useDefaultModules() {
     return defaultModules;
@@ -851,7 +792,8 @@ export default () => {
   },
   getPhysicsObjectByPhysicsId() {
     const remotePlayers = metaversefile.useRemotePlayers();
-    const npcs = metaversefile.useNpcs();
+    /* const npcManager = metaversefile.useNpcManager();
+    const {npcs} = npcManager; */
     let result = world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
       localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments);
     if (result) {
@@ -912,9 +854,6 @@ export default () => {
   }, */
   useAvatarInternal() {
     return Avatar;
-  },
-  useNpcPlayerInternal() {
-    return NpcPlayer;
   },
   useTextInternal() {
     return Text;
