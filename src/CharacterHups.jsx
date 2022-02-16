@@ -3,8 +3,9 @@ import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import dioramaManager from '../diorama.js';
 import styles from './CharacterHups.module.css';
-import metaversefile from 'metaversefile';
-const {useLocalPlayer} = metaversefile;
+// import metaversefile from 'metaversefile';
+// const {useLocalPlayer} = metaversefile;
+import {chatTextSpeed} from '../constants.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -52,7 +53,7 @@ function CharacterHup(props) {
         hupEl.removeEventListener('transitionend', transitionend);
       };
     }
-  }, [hupRef.current, localOpen]);
+  }, [hupRef.current, localOpen, hups, hups.length]);
   useEffect(() => {
     setFullText(hup.fullText);
   }, []);
@@ -81,7 +82,7 @@ function CharacterHup(props) {
         // XXX this text slicing should be done with a mathematical factor in the hups code
         const newText = text + fullText.charAt(text.length);
         setText(newText);
-      }, 50);
+      }, chatTextSpeed);
       return () => {
         clearTimeout(timeout);
       };
@@ -124,24 +125,26 @@ export default function CharacterHups({
       const newHups = hups.concat([e.data.hup]);
       setHups(newHups);
     }
-    function hupremove(e) {
+    /* function hupremove(e) {
       const oldHup = e.data.hup;
-      const newHups = hups.splice(hups.indexOf(oldHup), 1);
+      const index = hups.indexOf(oldHup);
+      const newHups = hups.slice();
+      newHups.splice(index, 1);
       setHups(newHups);
-    }
+    } */
     localPlayer.characterHups.addEventListener('hupadd', hupadd);
-    localPlayer.characterHups.addEventListener('hupremove', hupremove);
+    // localPlayer.characterHups.addEventListener('hupremove', hupremove);
     for (const npcPlayer of npcs) {
       npcPlayer.characterHups.addEventListener('hupadd', hupadd);
-      npcPlayer.characterHups.addEventListener('hupremove', hupremove);
+      // npcPlayer.characterHups.addEventListener('hupremove', hupremove);
     }
 
     return () => {
       localPlayer.characterHups.removeEventListener('hupadd', hupadd);
-      localPlayer.characterHups.removeEventListener('hupremove', hupremove);
+      // localPlayer.characterHups.removeEventListener('hupremove', hupremove);
       for (const npcPlayer of npcs) {
         npcPlayer.characterHups.removeEventListener('hupadd', hupadd);
-        npcPlayer.characterHups.removeEventListener('hupremove', hupremove);
+        // npcPlayer.characterHups.removeEventListener('hupremove', hupremove);
       }
     };
   }, [localPlayer, npcs, npcs.length, hups, hups.length]);
