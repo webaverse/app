@@ -53,15 +53,17 @@ class PathFinder {
 
     this.voxelo = {};
 
-    this.geometry = new THREE.BoxGeometry();
-    this.geometry.scale(0.5, this.voxelHeight, 0.5);
-    // this.geometry.scale(0.9, 0.1, 0.9);
-    this.material = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe: false});
-    this.maxDebugCount = this.maxVoxelCacheLen + this.maxIterStep * 4 + 1 + 100; // One step() can create up to 4 voxels. Add 1 startVoxel. Add 100 for interpoed waypointResult.
-    this.debugMesh = new THREE.InstancedMesh(this.geometry, this.material, this.maxDebugCount);
-    this.debugMesh.name = 'PathFinder debugMesh';
-    this.debugMesh.setColorAt(0, colorIdle); // init instanceColor
-    rootScene.add(this.debugMesh);
+    if (this.debugRender) {
+      this.geometry = new THREE.BoxGeometry();
+      this.geometry.scale(0.5, this.voxelHeight, 0.5);
+      // this.geometry.scale(0.9, 0.1, 0.9);
+      this.material = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe: false});
+      this.maxDebugCount = this.maxVoxelCacheLen + this.maxIterStep * 4 + 1 + 100; // One step() can create up to 4 voxels. Add 1 startVoxel. Add 100 for interpoed waypointResult.
+      this.debugMesh = new THREE.InstancedMesh(this.geometry, this.material, this.maxDebugCount);
+      this.debugMesh.name = 'PathFinder debugMesh';
+      this.debugMesh.setColorAt(0, colorIdle); // init instanceColor
+      rootScene.add(this.debugMesh);
+    }
 
     this.waypointResult = [];
   }
@@ -500,12 +502,15 @@ class PathFinder {
   // }
 
   toggleDebugRender() {
-    this.debugRender = !this.debugRender;
-    this.debugMesh.visible = this.debugRender;
+    if (this.debugRender) {
+      this.debugMesh.visible = !this.debugMesh.visible;
+    }
   }
 
   toggleDebugRenderWireframe() {
-    this.material.wireframe = !this.material.wireframe;
+    if (this.debugRender) {
+      this.material.wireframe = !this.material.wireframe;
+    }
   }
 
   moveDownVoxels() {
