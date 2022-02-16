@@ -21,9 +21,6 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
-// import {loadAudioBuffer} from './util.js';
-// import {VoicePack} from './voice-pack-voicer.js';
-// import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import {
   getRenderer,
   scene,
@@ -40,7 +37,7 @@ import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-import {voiceEndpoint, defaultVoicePack} from './constants.js';
+import {defaultVoice, defaultVoicePack} from './constants.js';
 
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
@@ -160,6 +157,7 @@ export default class Webaverse extends EventTarget {
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
         game.loadVoicePack(defaultVoicePack),
+        // game.setVoice(defaultVoice),
       ]);
     })();
     this.contentLoaded = false;
@@ -342,18 +340,17 @@ export default class Webaverse extends EventTarget {
   } */
   
   render(timestamp, timeDiff) {
+    // console.log('frame 1');
+
     const renderer = getRenderer();
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
-    // frameEvent.data.lastTimestamp = timestamp;
-    
-    // equipment panel render
-    // equipmentRender.previewScene.add(world.lights);
-    // equipmentRender.render();
 
     getComposer().render();
     game.debugMode && rendererStats.update(renderer);
+    
+    // console.log('frame 2');
   }
   
   startLoop() {
@@ -368,12 +365,9 @@ export default class Webaverse extends EventTarget {
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 
-      //const timeDiffCapped = timeDiff;
 
       ioManager.update(timeDiffCapped);
       // this.injectRigInput();
-      
-      cameraManager.update(timeDiffCapped);
       
       const localPlayer = metaversefileApi.useLocalPlayer();
       if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
@@ -381,8 +375,6 @@ export default class Webaverse extends EventTarget {
         physicsManager.simulatePhysics(timeDiffCapped); 
         localPlayer.updatePhysics(timestamp, timeDiffCapped);
       }
-
-      lastTimestamp = timestamp;
 
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
@@ -394,12 +386,11 @@ export default class Webaverse extends EventTarget {
 
       hpManager.update(timestamp, timeDiffCapped);
 
+      cameraManager.updatePost(timestamp, timeDiffCapped);
       ioManager.updatePost();
-      
+
       game.pushAppUpdates();
       game.pushPlayerUpdates();
-
-      dioramaManager.update(timestamp, timeDiffCapped);
 
       const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
@@ -407,9 +398,12 @@ export default class Webaverse extends EventTarget {
       localMatrix3.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
-        
-      this.render(timestamp, timeDiffCapped);
+      
+      lastTimestamp = timestamp;
 
+      // render scenes
+      dioramaManager.update(timestamp, timeDiffCapped);
+      this.render(timestamp, timeDiffCapped);
     }
     renderer.setAnimationLoop(animate);
 

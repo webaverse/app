@@ -4,7 +4,7 @@ import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 import game from '../../game.js';
-import {defaultVoicePack, voiceEndpoint} from '../../constants.js';
+import {defaultVoicePack} from '../../constants.js';
 
 export const Options = ({app, open, toggleOpen, panelsRef}) => {
   const [avatarStyle, setAvatarStyle] = useState(4);
@@ -101,7 +101,7 @@ export const Options = ({app, open, toggleOpen, panelsRef}) => {
               const vp = voicePacks[voicePack];
               
               if (typeof vp.drive_id === 'string') {
-                game.setVoiceEndpoint(voiceEndpoint, vp.drive_id);
+                game.setVoice(vp.drive_id);
               } else if (typeof vp.audioUrl === 'string' || typeof vp.indexUrl === 'string') {
                 (async () => {
                   await game.loadVoicePack({

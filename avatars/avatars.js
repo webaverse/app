@@ -466,6 +466,7 @@ const loadPromise = (async () => {
     magic: animations.find(a => a.isMagic),
     eat: animations.find(a => a.isEating),
     drink: animations.find(a => a.isDrinking),
+    throw: animations.find(a => a.isThrow),
   }, aimAnimations);
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
@@ -1664,8 +1665,8 @@ class Avatar {
     this.danceState = false;
     this.danceTime = 0;
     this.danceAnimation = null;
-    this.throwState = null;
-    this.throwTime = 0;
+    // this.throwState = null;
+    // this.throwTime = 0;
     this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
@@ -2690,7 +2691,7 @@ class Avatar {
             dst.fromArray(v2);
           };
         } */
-        if (this.throwState) {
+        /* if (this.throwState) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2705,7 +2706,7 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
+        } */
         // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
         if (this.useAnimation) {
           return spec => {
@@ -2720,13 +2721,13 @@ class Avatar {
             const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
             const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
             _handleDefault(spec);
-            const t2 = (() => {
+            const t2 = Math.min(this.useTime/1000, useAnimation.duration); /* (() => {
               if (isCombo) {
                 return Math.min(this.useTime/1000, useAnimation.duration);
               } else {
                 return (this.useTime/1000) % useAnimation.duration;
               }
-            })();
+            })(); */
             if (!isPosition) {
               if (useAnimation) {
                 const src2 = useAnimation.interpolants[k];
@@ -3208,7 +3209,7 @@ class Avatar {
             morphTargetInfluences[i] = 0;
           }
           
-          if (volumeValue !== -1) { // real speech
+          // if (volumeValue !== -1) { // real speech
             if (aIndex !== -1) {
               morphTargetInfluences[aIndex] = volumeValue;
             }
@@ -3224,7 +3225,7 @@ class Avatar {
             if (uIndex !== -1) {
               morphTargetInfluences[uIndex] = volumeValue * this.vowels[4];
             }
-          } else { // fake speech
+          /* } else { // fake speech
             this.fakeSpeechSmoothed = this.fakeSpeechSmoothed * 0.99 + 0.01 * this.fakeSpeechValue;
             const now2 = now / 1000 * 2;
             let aValue = (simplexes[0].noise2D(now2, now2));
@@ -3248,7 +3249,7 @@ class Avatar {
             if (uIndex !== -1) {
               morphTargetInfluences[uIndex] = this.fakeSpeechSmoothed * uValue/totalValue;
             }
-          }
+          } */
             
           // emotes
           if (this.emotes.length > 0) {

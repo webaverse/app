@@ -1,3 +1,7 @@
+/*
+this file implements avatar transformation effects/shaders.
+*/
+
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
