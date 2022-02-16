@@ -364,6 +364,7 @@ class StatePlayer extends PlayerBase {
   getAvatarInstanceId() {
     return this.getAvatarState().get('instanceId') ?? '';
   }
+  // serializers
   getPosition() {
     return this.playerMap.get('position') ?? [0, 0, 0];
   }
