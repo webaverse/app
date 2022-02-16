@@ -1162,18 +1162,12 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (useAction && useAction.behavior === 'throw') {
       const v = localPlayer.actionInterpolants.use.get() / throwReleaseTime;
       const currentThrowing = v >= 1;
-      // console.log('got throw', v);
 
       if (currentThrowing && !lastThrowing) {
-        console.log('got throw action', useAction, localPlayer);
+        // console.log('got throw action', useAction, localPlayer);
 
         const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
         localPlayer.unwear(app);
-
-        /* if (grabUseMesh.targetApp) {
-          grabUseMesh.targetApp.activate();
-        }
-        localPlayer.removeAction('activate'); */
       }
       lastThrowing = currentThrowing;
     }
