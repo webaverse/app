@@ -103,6 +103,7 @@ class PathFinder {
       if (this.isFound) {
         this.interpoWaypointResult();
         this.simplifyWaypointResult(this.waypointResult[0]);
+        this.waypointResult.shift();
       }
       // console.log('waypointResult', this.waypointResult.length);
     }
