@@ -1250,6 +1250,12 @@ const physxWorker = (() => {
     }
   };
 
+  w.enableActorPhysics = (physics, id) => {
+    moduleInstance._enableActorPhysics(physics, id);
+  };
+  w.disableActorPhysics = (physics, id) => {
+    moduleInstance._disableActorPhysics(physics, id);
+  };
   w.disableGeometryPhysics = (physics, id) => {
     moduleInstance._disableGeometryPhysics(physics, id);
   };
