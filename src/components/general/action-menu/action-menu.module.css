@@ -1,0 +1,39 @@
+
+.actionMenu {
+    position: absolute;
+    top: 200px; /* tmp value is 200px, cause overlaping with old items, correct value should be 20px */
+    right: 20px;
+    width: 70px;
+    height: 200px;
+    z-index: 1;
+}
+
+.btn {
+    margin-top: 10px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 200ms ease;
+    background-size: 100% 100%;
+    text-align: center;
+    color: #fff;
+    line-height: 60px;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.btn.settings {
+    background-image: url(./images/settings.png);
+}
+
+.btn.mode {
+    background-color: #000;
+}
+
+.btn.vr {
+    background-color: #000;
+}

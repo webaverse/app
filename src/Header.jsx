@@ -23,8 +23,6 @@ import {Location} from './components/location';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {World} from './tabs/world';
-import {Options} from './tabs/options';
-import {XR} from './tabs/xr';
 import {Tokens} from './tabs/tokens';
 
 const localEuler = new THREE.Euler();
@@ -63,7 +61,6 @@ export default function Header({
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
   const [roomName, setRoomName] = useState(_getCurrentRoom());
   const [micOn, setMicOn] = useState(false);
-  const [xrSupported, setXrSupported] = useState(false);
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [loginFrom, setLoginFrom] = useState('');
@@ -292,11 +289,6 @@ export default function Header({
     };
   }, [open, selectedApp]);
   useEffect(async () => {
-    const isXrSupported = await app.isXrSupported();
-    // console.log('is supported', isXrSupported);
-    setXrSupported(isXrSupported);
-  }, []);
-  useEffect(async () => {
     window.addEventListener('click', e => {
       const hoverObject = game.getMouseHoverObject();
       if (hoverObject) {
@@ -423,19 +415,6 @@ export default function Header({
               sx={sx}
               sy={sy}
               sz={sz}
-            />
-            <Options
-              app={app}
-              open={open}
-              toggleOpen={toggleOpen}
-              panelsRef={panelsRef}
-            />
-            <XR
-              xrSupported={xrSupported}
-              app={app}
-              open={open}
-              toggleOpen={toggleOpen}
-              panelsRef={panelsRef}
             />
             <Claims
               claims={claims}
