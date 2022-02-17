@@ -3,7 +3,7 @@
 import murmurhash3js from 'murmurhash3js';
 import {loreAiEndpoint, defaultPlayerName, defaultPlayerBio, defaultSetting} from './constants.js';
 
-const numGenerateTries = 3;
+const numGenerateTries = 5;
 const temperature = 1;
 const top_p = 1;
 
