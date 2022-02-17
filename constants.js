@@ -101,7 +101,7 @@ export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/ti
 // ['Sweetie Belle', 'Trixie', 'Shining Armor', 'Maud Pie', 'Rapunzel']
 
 export const loreAiEndpoint = `https://ai.webaverse.com:9000/`;
-export const chatTextSpeed = 20;
+export const chatTextSpeed = 15;
 export const shakeAnimationSpeed = 30;
 
 export const hotbarSize = 60;
