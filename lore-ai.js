@@ -12,7 +12,7 @@ const characterHash = (character, index) => `${hash(character.name)}/${character
 const characterLore = `\
 # Overview
 
-AI anime avatars in a virtual world. They have human-level intelligence, but they have interesting personalities and conversations. The script is throught provoking.
+AI anime avatars in a virtual world. They have human-level intelligence and unique and interesting personalities.
 `;
 const _makeChatPrompt = (setting, characters, messages, dstCharacter) => `\
 ${characterLore}
@@ -21,16 +21,18 @@ Script examples:
 
 \`\`\`
 +${characterHash({name:'Character1'}, 0)}: What's the meaning of life? [emote=normal,action=none,object=none,target=none]
-+${characterHash({name:'Character1'}, 0)}: Hi! [emote=surprised,action=none,object=none,target=none]
-+${characterHash({name:'Npc1'}, 1)}: I will beat you! [emote=angry,action=none,object=none,target=none]
-+${characterHash({name:'Npc1'}, 1)}: I'm coming to you, Character1. [emote=normal,action=moveto,object=none,target=${characterHash({name:'Character1'}, 0)}]
++${characterHash({name:'Npc1'}, 1)}: Doesn't matter. Anyway, I'll follow you Character1. [emote=happy,action=follow,object=none,target=${characterHash({name:'Character1'}, 0)}]
++${characterHash({name:'Character1'}, 0)}: Don't do that. [emote=normal,action=none,object=none,target=none]
++${characterHash({name:'Npc1'}, 1)}: Ok I'll stop. [emote=normal,action=stop,object=none,target=none]
++${characterHash({name:'Character1'}, 0)}: Come over here, Npc1! [emote=normal,action=none,object=none,target=none]
++${characterHash({name:'Npc1'}, 1)}: Ok coming. [emote=normal,action=none,object=none,target=${characterHash({name:'Character1'}, 0)}]
++${characterHash({name:'Npc1'}, 1)}: I'm going Super Saiyan mode! [emote=angry,action=supersaiyan,object=none,target=none]
++${characterHash({name:'Character1'}, 0)}: Press that button. [emote=normal,action=none,object=none,target=none]
 +${characterHash({name:'Npc1'}, 1)}: What does this button do? [emote=joy,action=use,object=${'BUTTON#1'},target=none]
-+${characterHash({name:'Npc1'}, 1)}: I'm gonna follow you, Character1. [emote=happy,action=follow,object=none,target=${characterHash({name:'Character1'}, 0)}]
 +${characterHash({name:'Npc1'}, 1)}: Here, Character1, take my sword. [emote=sorrow,action=give,object=${'SWORD#2'},target=${characterHash({name:'Character1'}, 0)}]
-+${characterHash({name:'Npc1'}, 1)}: I'm grabbing this book. [emote=normal,action=take,object=${'BOOK#3'},target=none]
 +${characterHash({name:'Npc1'}, 1)}: I'm equipping my armor. [emote=angry,action=equip,object=${'ARMOR#5'},target=none]
 +${characterHash({name:'Npc1'}, 1)}: I'm dropping this potion. [emote=normal,action=drop,object=${'POTION#6'},target=none]
-+${characterHash({name:'Npc1'}, 1)}: Ok Character1, I'll go get the bow. [emote=sorrow,action=fetch,object=${'BOW#7'},target=${characterHash({name:'Character1'}, 0)}]
++${characterHash({name:'Npc1'}, 1)}: Ok Character1, I'll go get the bow. [emote=normal,action=fetch,object=${'BOW#7'},target=${characterHash({name:'Character1'}, 0)}]
 \`\`\`
 
 # Scene 1
@@ -202,6 +204,10 @@ class AIScene {
       character.dispatchEvent(new MessageEvent('say', {
         data: {
           message,
+          emote,
+          action,
+          object,
+          target,
         },
       }));
       await _waitForFrame();
@@ -224,16 +230,18 @@ class AIScene {
               if (response) {
                 response = `+${characterHash(mentionedCharacter, mentionedCharacterIndex)}: ${response}`;
                 const a = parseLoreResponses(response);
-                for (const o of a) {
-                  const {name, message} = o;
-                  const character = this.characters.find(c => c.name === name);
-                  if (message && character && character !== this.localCharacter) {
-                    await _pushResponseMessage(o);
-                  } else {
-                    break;
+                if (a.length > 0) {
+                  for (const o of a) {
+                    const {name, message} = o;
+                    const character = this.characters.find(c => c.name === name);
+                    if (message && character && character !== this.localCharacter) {
+                      await _pushResponseMessage(o);
+                    } else {
+                      break;
+                    }
                   }
+                  break;
                 }
-                break;
               }
             }
           }
@@ -246,15 +254,19 @@ class AIScene {
             let response = await this.generate();
             response = `+${response}`;
             const a = parseLoreResponses(response);
-            for (const o of a) {
-              const {
-                name,
-                message,
-              } = o;
-              const character = this.characters.find(c => c.name === name);
-              // console.log('character name', this.characters.map(c => c.name), characterNameLowerCase, !!character);
-              if (message && character && character !== this.localCharacter) {
-                await _pushResponseMessage(o);
+            if (a.length > 0) {
+              for (const o of a) {
+                const {
+                  name,
+                  message,
+                } = o;
+                const character = this.characters.find(c => c.name === name);
+                // console.log('character name', this.characters.map(c => c.name), characterNameLowerCase, !!character);
+                if (message && character && character !== this.localCharacter) {
+                  await _pushResponseMessage(o);
+                } else {
+                  break;
+                }
               }
               break;
             }
