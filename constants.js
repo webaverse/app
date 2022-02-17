@@ -45,7 +45,7 @@ export const localstorageHost = 'https://localstorage.webaverse.com';
 export const loginEndpoint = 'https://login.webaverse.com';
 export const tokensHost = `https://${chainName}all-tokens.webaverse.com`;
 export const landHost = `https://${chainName}sidechain-land.webaverse.com`;
-export const aiHost = `https://ai.webaverse.com:9000`;
+export const aiHost = `https://ai.webaverse.com`;
 export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const worldUrl = 'worlds.webaverse.com';
@@ -100,7 +100,7 @@ export const voiceEndpoint = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
 // ['Sweetie Belle', 'Trixie', 'Shining Armor', 'Maud Pie', 'Rapunzel']
 
-export const loreAiEndpoint = `https://ai.webaverse.com:9000/`;
+export const loreAiEndpoint = `https://ai.webaverse.com/`;
 export const chatTextSpeed = 15;
 export const shakeAnimationSpeed = 30;
 
