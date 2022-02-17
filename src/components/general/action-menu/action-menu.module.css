@@ -7,6 +7,7 @@
 }
 
 .btn {
+    position: relative;
     margin-top: 10px;
     height: 41px;
     opacity: 1;
@@ -18,25 +19,45 @@
     padding-left: 10px;
     padding-right: 9px;
     text-align: left;
-    font-size: 13px;
-}
-
-.btn:hover {
-    /* todo */
-}
-
-.btn.settings {
+    font-size: 16px;
+    user-select: none;
+    overflow: hidden;
+    transition: color 1s cubic-bezier(0, 1, 0, 1);
     background-color: #000;
 }
 
-.btn.mode {
-    background-color: #000;
+.btn .text {
+    position: relative;
+    z-index: 2;
+}
+
+.btn .background {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    transition: transform 1s cubic-bezier(0, 1, 0, 1);
+    z-index: 1;
+}
+
+.btn .background {
+    right: 0;
+    transform: translateX(-100%);
+}
+
+.btn .background.blue {
+    filter: invert(50%) sepia(99%) saturate(514%) hue-rotate(177deg) brightness(99%) contrast(94%);
+}
+
+.btn:not(.disabled):hover .background,
+.btn.open .background {
+    transform: translateX(50px);
 }
 
 .btn.vr {
-    background-color: #000;
+    font-size: 13px;
 }
 
-.btn.vr.inactive {
+.btn.vr.disabled {
     opacity: 0.6;
 }

@@ -17,6 +17,12 @@ export const Settings = ({ opened, setOpened }) => {
 
     //
 
+    const stopPropagation = ( event ) => {
+
+        event.stopPropagation();
+
+    };
+
     const handleCloseBtnClick = ( event ) => {
 
         event.stopPropagation();
@@ -59,7 +65,7 @@ export const Settings = ({ opened, setOpened }) => {
 
     return (
 
-        <div className={ classNames( styles.settings, opened ? styles.open : null ) } >
+        <div className={ classNames( styles.settings, opened ? styles.open : null ) } onClick={ stopPropagation } >
 
             <div className={ styles.closeBtn } onClick={ handleCloseBtnClick } >X</div>
 
