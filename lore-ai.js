@@ -17,32 +17,20 @@ AI anime avatars in a virtual world. They have human-level intelligence, but the
 const _makeChatPrompt = (setting, characters, messages, dstCharacter) => `\
 ${characterLore}
 
-# Script Format
-
-Each line starts with the plus sign (+) followed by the character's Id, followed by a chat message. Chat messages can have actions in them.
-
-If the character's chat mentions a logical action performed by the character, it should be included in the metadata.
+Script examples:
 
 \`\`\`
-+${characterHash({name:'Character1'}, 0)}: <text> [emote={normal,happy,sorrow,angry,joy,surprised},action={moveto,follow,use,give,pickup,drop,fetch},object=(none|<characterId>|<objectId>),target=(none|<characterId>|<objectId>)]
-\`\`\`
-
-Script line examples:
-
-\`\`\`
-+${characterHash({name:'Character1'}, 0)}: What is this? [emote=normal,action=none,object=none,target=none]
-+${characterHash({name:'Character1'}, 0)}: Hi! [emote=happy,action=none,object=none,target=none]
++${characterHash({name:'Character1'}, 0)}: What's the meaning of life? [emote=normal,action=none,object=none,target=none]
++${characterHash({name:'Character1'}, 0)}: Hi! [emote=surprised,action=none,object=none,target=none]
 +${characterHash({name:'Npc1'}, 1)}: I will beat you! [emote=angry,action=none,object=none,target=none]
-+${characterHash({name:'Npc1'}, 1)}: I wasn't expecting that! [emote=surprised,action=none,object=none,target=none]
 +${characterHash({name:'Npc1'}, 1)}: I'm coming to you, Character1. [emote=normal,action=moveto,object=none,target=${characterHash({name:'Character1'}, 0)}]
-+${characterHash({name:'Npc1'}, 1)}: What does this button do? [emote=surprised,action=use,object=${'BUTTON#1'},target=none]
++${characterHash({name:'Npc1'}, 1)}: What does this button do? [emote=joy,action=use,object=${'BUTTON#1'},target=none]
 +${characterHash({name:'Npc1'}, 1)}: I'm gonna follow you, Character1. [emote=happy,action=follow,object=none,target=${characterHash({name:'Character1'}, 0)}]
-+${characterHash({name:'Npc1'}, 1)}: Here, Character1, take my sword. [emote=happy,action=give,object=${'SWORD#2'},target=${characterHash({name:'Character1'}, 0)}]
-+${characterHash({name:'Npc1'}, 1)}: I'm grabbing this book. [emote=normal,action=pickup,object=${'BOOK#3'},target=none]
-+${characterHash({name:'Npc1'}, 1)}: Hey, I found a rock! [emote=joy,action=pickup,object=${'ROCK#4'},target=none]
-+${characterHash({name:'Npc1'}, 1)}: I'm equipping my armor. [emote=angry,action=pickup,object=${'ARMOR#5'},target=none]
++${characterHash({name:'Npc1'}, 1)}: Here, Character1, take my sword. [emote=sorrow,action=give,object=${'SWORD#2'},target=${characterHash({name:'Character1'}, 0)}]
++${characterHash({name:'Npc1'}, 1)}: I'm grabbing this book. [emote=normal,action=take,object=${'BOOK#3'},target=none]
++${characterHash({name:'Npc1'}, 1)}: I'm equipping my armor. [emote=angry,action=equip,object=${'ARMOR#5'},target=none]
 +${characterHash({name:'Npc1'}, 1)}: I'm dropping this potion. [emote=normal,action=drop,object=${'POTION#6'},target=none]
-+${characterHash({name:'Npc1'}, 1)}: Ok Character1, I'll go get the bow. [emote=normal,action=fetch,object=${'BOW#7'},target=${characterHash({name:'Character1'}, 0)}]
++${characterHash({name:'Npc1'}, 1)}: Ok Character1, I'll go get the bow. [emote=sorrow,action=fetch,object=${'BOW#7'},target=${characterHash({name:'Character1'}, 0)}]
 \`\`\`
 
 # Scene 1
@@ -62,7 +50,7 @@ Bio: ${c.bio}
   }).join('\n')
 }
 
-# Props
+# Objects
 
 Id: SILSWORD#1
 Name: The Sil Sword
@@ -109,10 +97,10 @@ const parseLoreResponse = response => {
     const name = match[2];
     const nonce = parseInt(match[3], 10);
     const message = match[4].trim();
-    const emote = match[5];
-    const action = match[6];
-    const object = match[7];
-    const target = match[8];
+    const emote = match[5].trim();
+    const action = match[6].trim();
+    const object = match[7].trim();
+    const target = match[8].trim();
     return {
       hash,
       name,
@@ -192,6 +180,9 @@ class AIScene {
         object,
         target,
       });
+      while (this.messages.length > 8) {
+        this.messages.shift();
+      }
       await _waitForFrame();
     };
     const _pushResponseMessage = async o => {
@@ -205,6 +196,9 @@ class AIScene {
         object,
         target,
       });
+      while (this.messages.length > 8) {
+        this.messages.shift();
+      }
       character.dispatchEvent(new MessageEvent('say', {
         data: {
           message,
