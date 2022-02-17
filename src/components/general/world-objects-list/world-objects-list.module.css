@@ -1,0 +1,97 @@
+
+.worldObjectsBtn {
+    position: absolute;
+    top: 350px;
+    right: 0px;
+    padding: 10px;
+    background-color: rgba( 0, 0, 0, 0.5 );
+    color: #fff;
+    transition: background-color 200ms ease, padding 200ms ease;
+    cursor: pointer;
+}
+
+.worldObjectsBtn:hover {
+    background-color: rgba( 0, 0, 0, 0.7 );
+    padding-left: 20px;
+}
+
+.list {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 350px;
+    height: 100%;
+    background-color: #000;
+    border-left: 3px solid #aaa;
+    z-index: 1;
+    transform: translate( 350px, 0px );
+    transition: transform 300ms ease;
+}
+
+.opened {
+    transform: translate( 0px, 0px ) !important;
+}
+
+.list .header {
+    color: #fff;
+    text-align: left;
+    padding: 0px 30px;
+    font-size: 12px;
+    height: 40px;
+    margin-top: 70px;
+}
+
+.objects {
+    height: calc( 100% - 40px );
+    overflow-y: scroll;
+}
+
+.objects .object {
+    position: relative;
+    display: flex;
+    height: 100px;
+    padding: 10px 0;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.objects .object .img {
+    position: relative;
+    min-width: 80px;
+    height: 80px;
+    margin: 0 10px;
+    object-fit: cover;
+}
+
+.objects .object .wrap {
+    display: flex;
+    flex-direction: column;
+}
+
+.objects .object .wrap .name {
+    position: relative;
+    font-size: 16px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    color: #fff;
+}
+
+.objects .object .backgroundInner.lime {
+    filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
+}
+
+.objects .object .backgroundInner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    transform: translateX(-100%) scale(1, 2);
+    transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+
+.objects .object:hover .backgroundInner,
+.objects .object.selected .backgroundInner {
+    height: 100%;
+    transform: translateX(50px) scale(1, 2);
+}
