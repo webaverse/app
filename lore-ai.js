@@ -153,6 +153,17 @@ class AICharacter extends EventTarget {
     this.bio = bio;
   }
 }
+class AIObject extends EventTarget {
+  constructor({
+    name = defaultObjectName,
+    description = defaultObjectDescription,
+  } = {}) {
+    super();
+
+    this.name = name;
+    this.description = description;
+  }
+}
 class AIScene {
   constructor(localPlayer, {
     setting = defaultSetting,
@@ -287,6 +298,14 @@ class AIScene {
   }
   removeCharacter(character) {
     this.characters.splice(this.characters.indexOf(character), 1);
+  }
+  addObject(opts) {
+    const object = new AIObject(opts);
+    this.objects.push(object);
+    return object;
+  }
+  removeObject(object) {
+    this.objects.splice(this.objects.indexOf(object), 1);
   }
   async generate(dstCharacter = null) {
     const prompt = _makeChatPrompt(
