@@ -1119,8 +1119,9 @@ class Avatar {
         },
       };
     }
-    
+
     this.object = object;
+
     const model = (() => {
       let o = object;
       if (o && !o.isMesh) {
@@ -1146,9 +1147,12 @@ class Avatar {
       } */
       return o;
     })();
+
     this.model = model;
+    this.spriteMegaAvatarMesh = null;
+    this.crunchedModel = null;
     this.options = options;
-    
+
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension);
 
@@ -1177,17 +1181,15 @@ class Avatar {
     this.vowels = Float32Array.from([1, 0, 0, 0, 0]);
     this.poseAnimation = null;
 
-    this.spriteMegaAvatarMesh = null;
-
     modelBones.Root.traverse(o => {
       o.savedPosition = o.position.clone();
       o.savedMatrixWorld = o.matrixWorld.clone();
     });
 
-		this.poseManager = new PoseManager();
-		this.shoulderTransforms = new ShoulderTransforms(this);
-		this.legsManager = new LegsManager(this);
-    
+    this.poseManager = new PoseManager();
+    this.shoulderTransforms = new ShoulderTransforms(this);
+    this.legsManager = new LegsManager(this);
+
     const fingerBoneMap = {
       left: [
         {
@@ -1322,7 +1324,6 @@ class Avatar {
       });
     }
 
-
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
     this.initializeBonePositions({
@@ -1383,7 +1384,7 @@ class Avatar {
       rightUpperLeg: _getOffset(modelBones.Left_leg),
       rightLowerLeg: _getOffset(modelBones.Left_knee),
       rightFoot: _getOffset(modelBones.Left_ankle),
-      
+
       leftToe: _getOffset(modelBones.Left_toe),
       rightToe: _getOffset(modelBones.Right_toe),
     });
@@ -2108,27 +2109,34 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
+
+    this.model.visible = false;
+    if ( this.crunchedModel ) this.crunchedModel.visible = false;
+    if ( this.spriteMegaAvatarMesh ) this.spriteMegaAvatarMesh.visible = false;
+
     switch (quality) {
       case 1: {
         const skinnedMesh = await this.object.cloneVrm();
-        this.spriteMegaAvatarMesh = avatarSpriter.createSpriteMegaMesh(skinnedMesh);
-        scene.add(this.spriteMegaAvatarMesh);
-        this.model.visible = false;
+        this.spriteMegaAvatarMesh = this.spriteMegaAvatarMesh ?? avatarSpriter.createSpriteMegaMesh( skinnedMesh );
+        scene.add( this.spriteMegaAvatarMesh );
+        this.spriteMegaAvatarMesh.visible = true;
         break;
       }
       case 2: {
-        const crunchedModel = avatarCruncher.crunchAvatarModel(this.model);
-        crunchedModel.frustumCulled = false;
-        scene.add(crunchedModel);
-        this.model.visible = false;
+        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel( this.model );
+        this.crunchedModel.frustumCulled = false;
+        scene.add( this.crunchedModel );
+        this.crunchedModel.visible = true;
         break;
       }
       case 3: {
         console.log('not implemented'); // XXX
+        this.model.visible = true;
         break;
       }
       case 4: {
         console.log('not implemented'); // XXX
+        this.model.visible = true;
         break;
       }
       default: {
@@ -2140,7 +2148,7 @@ class Avatar {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
-    
+
     const idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     const walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
