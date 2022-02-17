@@ -94,7 +94,7 @@ world.enableMic = async () => {
   localSpeechRecognition.onend = () => {
     // document.querySelector("#status").style.display = "none";
     final_transcript = final_transcript
-      .replace(/celia|sylvia|sileo|cilia|tilia|zilia/gi, 'Scillia')
+      // .replace(/celia|sylvia|sileo|cilia|tilia|zilia/gi, 'Scillia')
     console.log('speech:', [final_transcript]);
     if (final_transcript) {
       chatManager.addMessage(final_transcript, {
