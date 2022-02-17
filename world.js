@@ -69,6 +69,18 @@ world.enableMic = async () => {
 
   let final_transcript = '';
   const localSpeechRecognition = new webkitSpeechRecognition();
+
+  /* const names = [
+    'Scillia',
+  ];
+  const grammar = '#JSGF V1.0; grammar names; public <name> = ' + names.join(' | ') + ' ;'
+  const speechRecognitionList = new webkitSpeechGrammarList();
+  speechRecognitionList.addFromString(grammar, 1);
+  localSpeechRecognition.grammars = speechRecognitionList;
+  localSpeechRecognition.maxAlternatives = 10; */
+  localSpeechRecognition.interimResults = false;
+  localSpeechRecognition.maxAlternatives = 1;
+
   // speechRecognition.continuous = true;
   // speechRecognition.interimResults = true;
   // speechRecognition.lang = document.querySelector("#select_dialect").value;
