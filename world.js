@@ -84,17 +84,15 @@ world.enableMic = async () => {
   // speechRecognition.continuous = true;
   // speechRecognition.interimResults = true;
   // speechRecognition.lang = document.querySelector("#select_dialect").value;
-  localSpeechRecognition.onstart = () => {
+  /* localSpeechRecognition.onstart = () => {
     // document.querySelector("#status").style.display = "block";
-  };
+  }; */
   localSpeechRecognition.onerror = e => {
-    // document.querySelector("#status").style.display = "none";
     console.log('speech recognition error', e);
   };
   localSpeechRecognition.onend = () => {
-    // document.querySelector("#status").style.display = "none";
-    final_transcript = final_transcript
-      // .replace(/celia|sylvia|sileo|cilia|tilia|zilia/gi, 'Scillia')
+    /* final_transcript = final_transcript
+      .replace(/celia|sylvia|sileo|cilia|tilia|zilia/gi, 'Scillia'); */
     console.log('speech:', [final_transcript]);
     if (final_transcript) {
       chatManager.addMessage(final_transcript, {
@@ -107,16 +105,10 @@ world.enableMic = async () => {
       localSpeechRecognition.start();
     }
   };
-  // let isFinal = false;
   localSpeechRecognition.onresult = event => {
     for (let i = event.resultIndex; i < event.results.length; ++i) {
       final_transcript += event.results[i][0].transcript;
-      // isFinal = isFinal || event.results[i].isFinal;
     }
-    /* console.log('got result', final_transcript, event);
-    if (isFinal) {
-      console.log('final_transcript', final_transcript);
-    } */
   };
   localSpeechRecognition.start();
 
