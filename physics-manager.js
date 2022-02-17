@@ -128,6 +128,7 @@ physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
 };
 
 physicsManager.addConvexGeometry = mesh => {
+  // console.log('add convex geometry', mesh);
   const physicsMesh = convertMeshToPhysicsMesh(mesh);
   if (mesh.parent) {
     mesh.parent.matrixWorld.decompose(
@@ -167,21 +168,27 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) =
 physicsManager.getGeometryForPhysicsId = physicsId => physx.physxWorker.getGeometryPhysics(physx.physics, physicsId);
 physicsManager.getBoundingBoxForPhysicsId = (physicsId, box) => physx.physxWorker.getBoundsPhysics(physx.physics, physicsId, box);
 physicsManager.enableActor = physicsObject => {
+  // console.log('enable actor', physicsObject);
   physx.physxWorker.enableActorPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.disableActor = physicsObject => {
+  // console.log('disable actor', physicsObject, new Error().stack);
   physx.physxWorker.disableActorPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.disableGeometry = physicsObject => {
+  // console.log('disable geometry', physicsObject, new Error().stack);
   physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.enableGeometry = physicsObject => {
+  // console.log('enable geometry', physicsObject);
   physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.disableGeometryQueries = physicsObject => {
+  // console.log('disable geometry queries', physicsObject, new Error().stack);
   physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.enableGeometryQueries = physicsObject => {
+  // console.log('enable geometry queries', physicsObject);
   physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.setMassAndInertia = (physicsObject, mass, inertia) => {
@@ -321,6 +328,8 @@ physicsManager.simulatePhysics = timeDiff => {
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
+
+        // console.log('update', position.toArray().join(','));
 
         physicsObject.collided = collided;
         physicsObject.grounded = grounded;
