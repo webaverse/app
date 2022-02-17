@@ -28,8 +28,8 @@
           "maxDistance": 0.1
         },
         "dof": {
-          "focus": 3.0,
-          "aperture": 0.00004,
+          "focus": 2.0,
+          "aperture": 0.0001,
           "maxblur": 0.005
         },
         "hdr": {
@@ -53,7 +53,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/street-green/"
+      "start_url": "../street-green/"
     },
     {
       "position": [
@@ -139,7 +139,7 @@
         },
         {
           "key": "bio",
-          "value": "Nickname Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled."
+          "value": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
         }
       ]
     },
@@ -171,7 +171,7 @@
         },
         {
           "key": "bio",
-          "value": "Nickname DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+          "value": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
         }
       ]
     },
@@ -248,7 +248,7 @@
         0.5,
         0.5
       ],
-      "start_url": "https://webaverse.github.io/potion/"
+      "start_url": "../potion/"
     },
     {
       "position": [
@@ -267,7 +267,7 @@
         1,
         1
       ],
-      "start_url": "https://webaverse.github.io/pistol/"
+      "start_url": "../pistol/"
     },
     {
       "position": [
@@ -305,7 +305,7 @@
         1,
         1
       ],
-      "start_url": "https://webaverse.github.io/silsword/"
+      "start_url": "../silsword/"
     },
     {
       "position": [
@@ -324,11 +324,11 @@
         1,
         1
       ],
-      "start_url": "https://webaverse.github.io/scissors/"
+      "start_url": "../scissors/"
     },
     {
       "position": [30, 0, 4],
-      "start_url": "https://webaverse.github.io/origin-tablet/"
+      "start_url": "../origin-tablet/"
     },
     {
       "position": [
@@ -336,15 +336,15 @@
         0,
         -1
       ],
-      "start_url": "https://webaverse.github.io/mirror/"
-    },
+      "start_url": "../mirror/"
+    }, 
     {
       "position": [
         3,
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/bomb/"
+      "start_url": "../bomb/"
     },
     {
       "position": [
@@ -352,7 +352,7 @@
         0,
         2
       ],
-      "start_url": "https://webaverse.github.io/bow/"
+      "start_url": "../bow/"
     },
     {
       "position": [
@@ -360,7 +360,7 @@
         0,
         2
       ],
-      "start_url": "https://webaverse.github.io/flower/"
+      "start_url": "../flower/"
     },
     {
       "position": [
@@ -368,7 +368,7 @@
         0,
         2
       ],
-      "start_url": "https://webaverse.github.io/witch-hat/"
+      "start_url": "../witch-hat/"
     },
     {
       "position": [
@@ -376,7 +376,7 @@
         0,
         6
       ],
-      "start_url": "https://webaverse.github.io/turret/"
+      "start_url": "../turret/"
     },
     {
       "position": [
@@ -384,7 +384,7 @@
         0,
         6
       ],
-      "start_url": "https://webaverse.github.io/dreadnought/"
+      "start_url": "../dreadnought/"
     },
     {
       "position": [
@@ -393,7 +393,7 @@
         -20
       ],
       "quaternion": [0, 0, 0, 1],
-      "start_url": "https://webaverse.github.io/lisk/"
+      "start_url": "../lisk/"
     }
   ]
 }
