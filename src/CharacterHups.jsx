@@ -82,7 +82,7 @@ const CharacterHup = function(props) {
   useEffect(() => {
     // console.log('effect 3', hup);
     function voicestart(e) {
-      console.log('voice start', hup.fullText, e.data, e.data.fullText);
+      // console.log('voice start', hup.fullText, e.data, e.data.fullText);
       setLocalOpen(true);
       setFullText(e.data.fullText);
     }
