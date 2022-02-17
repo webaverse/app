@@ -53,7 +53,7 @@ export const App = () => {
 
         }
 
-    }, [ canvasRef.current ] );
+    }, [ canvasRef ] );
 
     //
 
