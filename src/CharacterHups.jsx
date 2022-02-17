@@ -95,16 +95,20 @@ const CharacterHup = function(props) {
       hup.removeEventListener('voicestart', voicestart);
       hup.removeEventListener('destroy', destroy);
     };
-  }, [hup, localOpen, fullText]);
+  }, [hup, localOpen]);
   useEffect(() => {
-    // console.log('effect 4', hup);
-    requestAnimationFrame(() => {
+    // console.log('start animation frame', hup);
+    const animationFrame = requestAnimationFrame(() => {
       setLocalOpen(true);
     });
-  }, []);
+    return () => {
+      // console.log('end animation frame', hup);
+      cancelAnimationFrame(animationFrame);
+    };
+  }, [hup]);
   useEffect(() => {
-    // console.log('effect 5', text.length <= fullText.length, text.length, fullText.length);
-    if (text.length <= fullText.length) {
+    // console.log('effect 5', text.length < fullText.length, text.length, fullText.length);
+    if (text.length < fullText.length) {
       const timeout = setTimeout(() => {
         // XXX this text slicing should be done with a mathematical factor in the hups code
         const newText = text + fullText.charAt(text.length);
@@ -116,11 +120,21 @@ const CharacterHup = function(props) {
     }
   }, [text, fullText]);
 
-  // console.log('got hup', hup);
+  // console.log('render hup', hup);
 
   return (
-    <div className={classnames(styles['character-hup'], localOpen ? styles['open'] : null)} ref={hupRef}>
-      <canvas width={defaultHupSize*pixelRatio} height={defaultHupSize*pixelRatio} ref={canvasRef} />
+    <div
+      className={classnames(styles['character-hup'], localOpen ? styles['open'] : null)}
+      style={{
+        top: `${index * defaultHupSize}px`,
+      }}
+      ref={hupRef}
+    >
+      <canvas
+        width={defaultHupSize*pixelRatio}
+        height={defaultHupSize*pixelRatio}
+        ref={canvasRef}
+      />
       <div className={styles.name}>
         <div className={styles.bar} />
         <h1>{hup.playerName}</h1>
@@ -150,6 +164,7 @@ export default function CharacterHups({
   useEffect(() => {
     function hupadd(e) {
       const newHups = hups.concat([e.data.hup]);
+      // console.log('new hups', newHups);
       setHups(newHups);
     }
     /* function hupremove(e) {
@@ -183,7 +198,7 @@ export default function CharacterHups({
           <CharacterHup
             key={hup.hupId}
             hup={hup}
-            // index={index}
+            index={index}
             hups={hups}
             setHups={setHups}
           />
