@@ -1,22 +1,21 @@
 
-import * as THREE from 'three';
 import React, { useState, useEffect, useRef } from 'react';
-import classnames from 'classnames';
-import logo from '../../logo.svg';
+
 import MagicMenu from '../../MagicMenu.jsx';
-import {defaultAvatarUrl} from '../../../constants';
-import Header from '../../Header.jsx';
-import Footer from '../../Footer.jsx';
+import { defaultAvatarUrl } from '../../../constants';
+import dropManager from '../../../drop-manager.js';
 
 import Webaverse from '../../../webaverse.js';
 import * as universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
-const { useLocalPlayer } = metaversefileApi;
 
+import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
+import { Settings } from '../general/settings';
+import { PlayMode } from '../play-mode';
+import Header from '../../Header.jsx';
+
 import styles from './App.module.css';
-import { PlayMode } from '../play-mode/index.jsx';
-import dropManager from '../../../drop-manager.js';
 
 //
 
@@ -26,23 +25,27 @@ const _startApp = async ( weba, canvas ) => {
 
     weba.bindInput();
     weba.bindInterface();
-    weba.bindCanvas(canvas);
+    weba.bindCanvas( canvas );
 
     await weba.waitForLoad();
     universe.handleUrlUpdate();
     await weba.startLoop();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
-    await localPlayer.setAvatarUrl(defaultAvatarUrl);
+    await localPlayer.setAvatarUrl( defaultAvatarUrl );
 
 };
 
 export const App = () => {
 
     const canvasRef = useRef();
-    const [ app, setApp ] = useState(() => new Webaverse());
+    const [ app, setApp ] = useState( () => new Webaverse() );
 
-    useEffect(() => {
+    const [ settingsOpened, setSettingsOpened ] = useState( false );
+
+    //
+
+    useEffect( () => {
 
         if ( canvasRef.current ) {
 
@@ -50,16 +53,18 @@ export const App = () => {
 
         }
 
-    }, [ canvasRef.current ]);
+    }, [ canvasRef.current ] );
 
     //
 
     return (
         <div className={ styles.App } id="app">
             <Header app={ app } />
+            <ActionMenu app={ app } setSettingsOpened={ setSettingsOpened } />
             <Crosshair />
             <canvas id="canvas" className={ styles.canvas } ref={ canvasRef } />
             <PlayMode />
+            <Settings opened={ settingsOpened } setOpened={ setSettingsOpened } />
         </div>
     );
 
