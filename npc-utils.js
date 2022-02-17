@@ -37,7 +37,7 @@ class PathFinder {
     this.heightTolerance = heightTolerance;
     this.start = new THREE.Vector3();
     this.dest = new THREE.Vector3();
-    this.debugRender = debugRender;
+    this.debugRender = true;
     this.detectStep = detectStep;
     this.iterDetect = 0;
     this.maxIterDetect = maxIterdetect;
@@ -176,7 +176,6 @@ class PathFinder {
 
   resetVoxelDetect(voxel) {
     voxel._detectState = 'initial'; // 'initial', 'colliding', 'stopped'
-    voxel._detectDir = null; // null, 1, -1
   }
 
   resetVoxelAStar(voxel) {
@@ -240,7 +239,7 @@ class PathFinder {
     localVoxel.position.copy(position);
     localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
     this.iterDetect = 0;
-    this.detect(localVoxel);
+    this.detect(localVoxel, 0);
     localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
 
     let voxel = this.getVoxel(localVoxel.position);
@@ -257,7 +256,7 @@ class PathFinder {
     return voxel;
   }
 
-  detect(voxel) {
+  detect(voxel, detectDir) {
     // this.detectCount++;
     if (this.iterDetect >= this.maxIterDetect) {
       console.warn('maxIterDetect reached! High probability created wrong redundant voxel with wrong position.y! Especially when localPlayer is flying.');
@@ -276,40 +275,28 @@ class PathFinder {
       collide = false;
     }
 
-    if (voxel._detectState === 'initial') {
+    if (detectDir === 0) {
       if (collide) {
-        voxel._detectDir = 1;
+        detectDir = 1;
       } else {
-        voxel._detectDir = -1;
+        detectDir = -1;
       }
     }
 
-    if (voxel._detectDir === 1) {
-      if (voxel._detectState === 'initial' || voxel._detectState === 'colliding') {
-        if (collide) {
-          voxel._detectState = 'colliding';
-        } else if (voxel._detectState === 'colliding') {
-          voxel._detectState = 'stopped';
-        }
+    if (detectDir === 1) {
+      if (collide) {
+        voxel.position.y += detectDir * this.detectStep;
+        this.detect(voxel, detectDir);
+      } else {
+        // do nothing, stop recur
       }
-      if (voxel._detectState === 'stopped') {
+    } else if (detectDir === -1) {
+      if (collide) {
+        voxel.position.y += this.detectStep;
         // do nothing, stop recur
       } else {
-        voxel.position.y += voxel._detectDir * this.detectStep;
-        this.detect(voxel);
-      }
-    } else if (voxel._detectDir === -1) {
-      if (voxel._detectState === 'initial') {
-        if (collide) {
-          voxel._detectState = 'stopped';
-        }
-      }
-      if (voxel._detectState === 'stopped') {
-        voxel.position.y += -1 * voxel._detectDir * this.detectStep;
-        // do nothing, stop recur
-      } else {
-        voxel.position.y += voxel._detectDir * this.detectStep;
-        this.detect(voxel);
+        voxel.position.y += detectDir * this.detectStep;
+        this.detect(voxel, detectDir);
       }
     }
   }
