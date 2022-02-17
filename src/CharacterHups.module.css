@@ -8,6 +8,7 @@
 }
 .character-hups > .character-hup {
   display: flex;
+  position: absolute;
   transform: translate3d(0, 0, 0);
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
