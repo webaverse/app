@@ -1,22 +1,48 @@
 
 .hotbar {
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translate( -50%, 0% );
-    width: 640px;
-    height: 80px;
-    background-color: #000;
-    opacity: 0.5;
-    z-index: 1;
+    position: fixed;
+    display: flex;
+    margin-left: calc( 300px + 10px );
+    bottom: 10px;
 }
 
-.item {
+.hotbar .item {
+    display: flex;
+    flex-direction: column;
+}
+
+.hotbar .item .box {
     position: relative;
-    float: left;
-    margin: 5px;
-    width: 70px;
-    height: 70px;
-    background-color: #ff0000;
-    opacity: 0.5;
+    width: 60px;
+    height: 60px;
+    margin-right: 2px;
+    background: radial-gradient( #222, #000 );
+    border: 2px solid #000;
+    transition: all cubic-bezier( 0, 1, 0, 1 ) 0.3s;
+}
+
+.hotbar .item .label {
+    display: flex;
+    margin: 5px auto;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    border: 1px solid;
+    border-radius: 3px;
+    color: #FFFFFF80;
+}
+
+.hotbar .item .box img {
+    width: 100%;
+    height: 100%;
+}
+
+.hotbar .item.selected .box {
+    top: -3px;
+    border-color: #FFF;
+}
+
+.hotbar .item.selected .label {
+    color: #FFF;
 }
