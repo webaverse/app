@@ -27,25 +27,22 @@ If the character's chat mentions a logical action performed by the character, it
 +${characterHash({name:'Character1'}, 0)}: <text> [emote={normal,happy,sorrow,angry,joy,surprised},action={moveto,follow,use,give,pickup,drop,fetch},object=(none|<characterId>|<objectId>),target=(none|<characterId>|<objectId>)]
 \`\`\`
 
-Chat examples:
+Script line examples:
 
 \`\`\`
-+${characterHash({name:'Character1'}, 0)}: What is this? [emote=none,action=none,object=none,target=none]
++${characterHash({name:'Character1'}, 0)}: What is this? [emote=normal,action=none,object=none,target=none]
 +${characterHash({name:'Character1'}, 0)}: Hi! [emote=happy,action=none,object=none,target=none]
 +${characterHash({name:'Npc1'}, 1)}: I will beat you! [emote=angry,action=none,object=none,target=none]
 +${characterHash({name:'Npc1'}, 1)}: I wasn't expecting that! [emote=surprised,action=none,object=none,target=none]
-\`\`\`
-
-Action examples:
-
-\`\`\`
-+${characterHash({name:'Npc1'}, 1)}: I'm coming to you, Character1. [emote=none,action=moveto,object=none,target=${characterHash({name:'Character1'}, 0)}]
++${characterHash({name:'Npc1'}, 1)}: I'm coming to you, Character1. [emote=normal,action=moveto,object=none,target=${characterHash({name:'Character1'}, 0)}]
 +${characterHash({name:'Npc1'}, 1)}: What does this button do? [emote=surprised,action=use,object=${'BUTTON#1'},target=none]
 +${characterHash({name:'Npc1'}, 1)}: I'm gonna follow you, Character1. [emote=happy,action=follow,object=none,target=${characterHash({name:'Character1'}, 0)}]
-+${characterHash({name:'Npc1'}, 1)}: Here, Character1, take my sword. [emote=happy,action=give,object=${'SWORD#1'},target=${characterHash({name:'Character1'}, 0)}]
-+${characterHash({name:'Npc1'}, 1)}: Hey, I picked up a sword. [emote=joy,action=pickup,object=${'SWORD#1'},target=none]
-+${characterHash({name:'Npc1'}, 1)}: I'm dropping this potion. [emote=none,action=drop,object=${'POTION#2'},target=none]
-+${characterHash({name:'Npc1'}, 1)}: Ok Character1 I'll go get the bow. [emote=none,action=fetch,object=${'BOW#2'},target=${characterHash({name:'Character1'}, 0)}]
++${characterHash({name:'Npc1'}, 1)}: Here, Character1, take my sword. [emote=happy,action=give,object=${'SWORD#2'},target=${characterHash({name:'Character1'}, 0)}]
++${characterHash({name:'Npc1'}, 1)}: I'm grabbing this book. [emote=normal,action=pickup,object=${'BOOK#3'},target=none]
++${characterHash({name:'Npc1'}, 1)}: Hey, I found a rock! [emote=joy,action=pickup,object=${'ROCK#4'},target=none]
++${characterHash({name:'Npc1'}, 1)}: I'm equipping my armor. [emote=angry,action=pickup,object=${'ARMOR#5'},target=none]
++${characterHash({name:'Npc1'}, 1)}: I'm dropping this potion. [emote=normal,action=drop,object=${'POTION#6'},target=none]
++${characterHash({name:'Npc1'}, 1)}: Ok Character1, I'll go get the bow. [emote=normal,action=fetch,object=${'BOW#7'},target=${characterHash({name:'Character1'}, 0)}]
 \`\`\`
 
 # Scene 1
@@ -106,7 +103,8 @@ const parseLoreResponse = response => {
       object,
       target,
     };
-  } else */if (match = response?.match(/^\+([^\/]+?)\/([^#]+?)#([0-9]+?):([\s\S]*)\[emote=([\s\S]*?),action=([\s\S]*?),object=([\s\S]*?),target=([\s\S]*?)\]$/)) {
+  } else */if (match = response?.match(/^\+([^\/]+?)\/([^#]+?)#([0-9]+?):([^\[]*?)\[emote=([\s\S]*?),action=([\s\S]*?),object=([\s\S]*?),target=([\s\S]*?)\]$/)) {
+    // console.log('match 1', match);
     const hash = match[1];
     const name = match[2];
     const nonce = parseInt(match[3], 10);
@@ -125,7 +123,8 @@ const parseLoreResponse = response => {
       object,
       target,
     };
-  } else if (match = response?.match(/^\+([^\/]+?)\/([^#]+?)#([0-9]+?):([\s\S]*)$/)) {
+  } else if (match = response?.match(/^\+([^\/]+?)\/([^#]+?)#([0-9]+?):([^\[]*?)$/)) {
+    // console.log('match 2', match);
     const hash = match[1];
     const name = match[2];
     const nonce = parseInt(match[3], 10);
@@ -145,6 +144,7 @@ const parseLoreResponse = response => {
       target,
     };
   } else {
+    // console.log('no match', response);
     return null;
   }
 };
