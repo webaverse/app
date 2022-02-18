@@ -6,7 +6,8 @@ phases:
       nodejs: latest
     commands:
       - echo Entered the install phase...
-      - git submodule update --init --recursive
+      - git submodule init
+      - git submodule update
   pre_build:
     commands:
       - REPOSITORY_URI=907263135169.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrrepository-app-$AWS_DEFAULT_REGION
