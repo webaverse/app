@@ -270,6 +270,7 @@ const physxWorker = (() => {
 
     moduleInstance = Module;
     scratchStack = new ScratchStack();
+    window.scratchStack = scratchStack; // test
     physx.physics = physxWorker.makePhysics();
   })();
 
@@ -815,12 +816,20 @@ const physxWorker = (() => {
     // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
     localVector.set(0, 0, 0).toArray(scratchStack.f32, 7);
     localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10);
+    // scratchStack.f32[13] = 1;
+    // scratchStack.u32[14] = 3;
 
     const positionOffset = scratchStack.f32.byteOffset;
     const quaternionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
     const meshPositionOffset = scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT;
     const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
-    const ignorePhysicsIdsOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+    const ignorePhysicsIdsOffset = scratchStack.u32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+    // console.log(scratchStack)
+    // debugger
+
+    ignorePhysicsIds.forEach((id, i) => {
+      scratchStack.u32[14 + i] = ignorePhysicsIds[i];
+    })
 
     const outputBufferOffset = moduleInstance._detectPathVoxelPhysics(
       physics,
@@ -832,15 +841,15 @@ const physxWorker = (() => {
       meshPositionOffset,
       meshQuaternionOffset,
       maxIter,
-      ignorePhysicsIdsOffset.length,
+      ignorePhysicsIds.length,
       ignorePhysicsIdsOffset,
     );
 
     const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     // let tail = head + 1;
     const outY = moduleInstance.HEAPF32[head];
-    const iter = moduleInstance.HEAPF32[head + 1];
-    console.log(iter);
+    const test = moduleInstance.HEAPF32[head + 1];
+    console.log(test);
 
     moduleInstance._doFree(outputBufferOffset);
 
