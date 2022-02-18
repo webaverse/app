@@ -182,8 +182,8 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
     //
 
     return (
-        <div className={ styles.worldObjectListWrapper } onClick={ stopPropagation } >
-            <div className={ classnames( styles.list, opened ? styles.opened : null ) } >
+        <div className={ classnames( styles.worldObjectListWrapper, opened ? styles.opened : null ) } onClick={ stopPropagation } >
+            <div className={ classnames( styles.panel, ( ! selectedApp && opened ) ? styles.opened : null ) } >
                 <div className={ styles.header } >
                     <h1>Tokens</h1>
                 </div>
@@ -202,37 +202,33 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
                     }
                     </div>
                 }
-                {
-                    selectedApp ? (
-                        <div className={ styles.objectProperties } >
-                            <div className={ styles.header } >
-                                <div className={ classnames( styles.button, styles.back ) } onClick={ handleBackBtn } >
-                                    <img src="images/webchevron.svg" className={ styles.img } />
-                                </div>
-                                <h1>{ _formatContentId( selectedApp.contentId ) } </h1>
-                            </div>
-                            <div className={ styles.clearfix } />
-                            <div className={ styles.subheader } >Position</div>
-                            <div className={ styles.inputs } >
-                                <NumberInput input={ px } />
-                                <NumberInput input={ py } />
-                                <NumberInput input={ pz } />
-                            </div>
-                            <div className={ styles.subheader } >Rotation</div>
-                            <div className={ styles.inputs } >
-                                <NumberInput input={ rx } />
-                                <NumberInput input={ ry } />
-                                <NumberInput input={ rz } />
-                            </div>
-                            <div className={ styles.subheader } >Scale</div>
-                            <div className={ styles.inputs } >
-                                <NumberInput input={ sx } />
-                                <NumberInput input={ sy } />
-                                <NumberInput input={ sz } />
-                            </div>
-                        </div>
-                    ) : null
-                }
+            </div>
+            <div className={ classnames( styles.objectProperties, styles.panel, selectedApp ? styles.opened : null ) } >
+                <div className={ styles.header } >
+                    <div className={ classnames( styles.button, styles.back ) } onClick={ handleBackBtn } >
+                        <img src="images/webchevron.svg" className={ styles.img } />
+                    </div>
+                    <h1>{ selectedApp ? _formatContentId( selectedApp.contentId ) : null } </h1>
+                </div>
+                <div className={ styles.clearfix } />
+                <div className={ styles.subheader } >Position</div>
+                <div className={ styles.inputs } >
+                    <NumberInput input={ px } />
+                    <NumberInput input={ py } />
+                    <NumberInput input={ pz } />
+                </div>
+                <div className={ styles.subheader } >Rotation</div>
+                <div className={ styles.inputs } >
+                    <NumberInput input={ rx } />
+                    <NumberInput input={ ry } />
+                    <NumberInput input={ rz } />
+                </div>
+                <div className={ styles.subheader } >Scale</div>
+                <div className={ styles.inputs } >
+                    <NumberInput input={ sx } />
+                    <NumberInput input={ sy } />
+                    <NumberInput input={ sz } />
+                </div>
             </div>
         </div>
     );

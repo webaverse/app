@@ -1,22 +1,41 @@
 
-.list {
+.worldObjectListWrapper {
     position: absolute;
     top: 0px;
     right: 0px;
     width: 350px;
     height: 100%;
+    transform: translateX( 350px );
+    transition: transform 300ms ease;
     background-color: #000;
     border-left: 3px solid #aaa;
     z-index: 1;
-    transform: translate( 350px, 0px );
+    overflow: hidden;
+}
+
+.worldObjectListWrapper.opened {
+    transform: translateX( 0px );
+}
+
+.panel {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 100%;
+    height: 100%;
+    transform: translate( 100%, 0px );
     transition: transform 300ms ease;
+}
+
+.panel.opened {
+    transform: translateX( 0px );
 }
 
 .opened {
     transform: translate( 0px, 0px ) !important;
 }
 
-.list .header {
+.header {
     color: #fff;
     text-align: left;
     padding: 0px 10px;
@@ -94,6 +113,12 @@
     height: 100%;
     background-color: #000;
     border-left: 3px solid #aaa;
+    transform: translateX( -100% );
+    transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+
+.objectProperties.opened {
+    transform: translateX( 0px );
 }
 
 .objectProperties .header h1 {
