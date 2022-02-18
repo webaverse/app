@@ -1,7 +1,14 @@
 // import metaversefile from 'metaversefile';
 // import {chatManager} from './chat-manager.js';
 import murmurhash3js from 'murmurhash3js';
-import {loreAiEndpoint, defaultPlayerName, defaultPlayerBio, defaultSetting} from './constants.js';
+import {
+  loreAiEndpoint,
+  defaultPlayerName,
+  defaultPlayerBio,
+  defaultSetting,
+  defaultObjectName,
+  defaultObjectDescription,
+} from './constants.js';
 
 const numGenerateTries = 5;
 const temperature = 1;
