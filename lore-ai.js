@@ -8,7 +8,7 @@ const temperature = 1;
 const top_p = 1;
 
 const hash = s => murmurhash3js.x86.hash32(s).toString(16);
-const characterHash = (character, index) => `${hash(character.name)}/${character.name}#${index+1}`;
+const thingHash = (o, index) => `${hash(o.name)}/${o.name}#${index+1}`;
 const characterLore = `\
 # Overview
 
@@ -20,19 +20,19 @@ ${characterLore}
 Script examples:
 
 \`\`\`
-+${characterHash({name:'Character1'}, 0)}: What's the meaning of life? [emote=normal,action=none,object=none,target=none]
-+${characterHash({name:'Npc1'}, 1)}: Doesn't matter. Anyway, I'll follow you Character1. [emote=happy,action=follow,object=none,target=${characterHash({name:'Character1'}, 0)}]
-+${characterHash({name:'Character1'}, 0)}: Don't do that. [emote=normal,action=none,object=none,target=none]
-+${characterHash({name:'Npc1'}, 1)}: Ok I'll stop. [emote=normal,action=stop,object=none,target=none]
-+${characterHash({name:'Character1'}, 0)}: Come over here, Npc1! [emote=normal,action=none,object=none,target=none]
-+${characterHash({name:'Npc1'}, 1)}: Ok coming. [emote=normal,action=none,object=none,target=${characterHash({name:'Character1'}, 0)}]
-+${characterHash({name:'Npc1'}, 1)}: I'm going Super Saiyan mode! [emote=angry,action=supersaiyan,object=none,target=none]
-+${characterHash({name:'Character1'}, 0)}: Press that button. [emote=normal,action=none,object=none,target=none]
-+${characterHash({name:'Npc1'}, 1)}: What does this button do? [emote=joy,action=use,object=${'BUTTON#1'},target=none]
-+${characterHash({name:'Npc1'}, 1)}: Here, Character1, take my sword. [emote=sorrow,action=give,object=${'SWORD#2'},target=${characterHash({name:'Character1'}, 0)}]
-+${characterHash({name:'Npc1'}, 1)}: I'm equipping my armor. [emote=angry,action=equip,object=${'ARMOR#5'},target=none]
-+${characterHash({name:'Npc1'}, 1)}: I'm dropping this potion. [emote=normal,action=drop,object=${'POTION#6'},target=none]
-+${characterHash({name:'Npc1'}, 1)}: Ok Character1, I'll go get the bow. [emote=normal,action=fetch,object=${'BOW#7'},target=${characterHash({name:'Character1'}, 0)}]
++${thingHash({name:'Character1'}, 0)}: What's the meaning of life? [emote=normal,action=none,object=none,target=none]
++${thingHash({name:'Npc1'}, 1)}: Doesn't matter. Anyway, I'll follow you Character1. [emote=happy,action=follow,object=none,target=${thingHash({name:'Character1'}, 0)}]
++${thingHash({name:'Character1'}, 0)}: Don't do that. [emote=normal,action=none,object=none,target=none]
++${thingHash({name:'Npc1'}, 1)}: Ok I'll stop. [emote=normal,action=stop,object=none,target=none]
++${thingHash({name:'Character1'}, 0)}: Come over here, Npc1! [emote=normal,action=none,object=none,target=none]
++${thingHash({name:'Npc1'}, 1)}: Ok coming. [emote=normal,action=none,object=none,target=${thingHash({name:'Character1'}, 0)}]
++${thingHash({name:'Npc1'}, 1)}: I'm going Super Saiyan mode! [emote=angry,action=supersaiyan,object=none,target=none]
++${thingHash({name:'Character1'}, 0)}: Press that button. [emote=normal,action=none,object=none,target=none]
++${thingHash({name:'Npc1'}, 1)}: What does this button do? [emote=joy,action=use,object=${'BUTTON#1'},target=none]
++${thingHash({name:'Npc1'}, 1)}: Here, Character1, take my sword. [emote=sorrow,action=give,object=${'SWORD#2'},target=${thingHash({name:'Character1'}, 0)}]
++${thingHash({name:'Npc1'}, 1)}: I'm equipping my armor. [emote=angry,action=equip,object=${'ARMOR#5'},target=none]
++${thingHash({name:'Npc1'}, 1)}: I'm dropping this potion. [emote=normal,action=drop,object=${'POTION#6'},target=none]
++${thingHash({name:'Npc1'}, 1)}: Ok Character1, I'll go get the bow. [emote=normal,action=fetch,object=${'BOW#7'},target=${thingHash({name:'Character1'}, 0)}]
 \`\`\`
 
 # Scene 1
@@ -45,18 +45,22 @@ ${setting}
 
 ${
   characters.map((c, i) => {
-    return `Id: ${characterHash(c, i)}
+    return `Id: ${thingHash(c, i)}
 Name: ${c.name}
 Bio: ${c.bio}
 `;
-  }).join('\n')
+  }).join('\n\n')
 }
 
 # Objects
 
-Id: SILSWORD#1
-Name: The Sil Sword
-Bio: The Sil Sword is a sword that is made of the sil of the Silph Co. Just kidding, it stands for Scillia's Sword.
+${
+  objects.map((o, i) => {
+    return `Id: ${thingHash(o, i)}
+Name: ${o.name}${c.description ? `\nDescription: ${c.description}` : ''}
+`;
+  }).join('\n\n')
+}
 
 ## Script (raw format)
 
@@ -64,11 +68,11 @@ ${
   messages.map(m => {
     const characterIndex = characters.indexOf(m.character);
     const suffix = `[emote=${m.emote},action=${m.action},object=${m.object},target=${m.target}]`;
-    return `+${characterHash(m.character, characterIndex)}: ${m.message} ${suffix}`;
+    return `+${thingHash(m.character, characterIndex)}: ${m.message} ${suffix}`;
   }).join('\n')
 }
 +${
-  dstCharacter ? `${characterHash(dstCharacter, characters.indexOf(dstCharacter))}:` : ''
+  dstCharacter ? `${thingHash(dstCharacter, characters.indexOf(dstCharacter))}:` : ''
 }`;
 
 const parseLoreResponse = response => {
@@ -241,7 +245,7 @@ class AIScene {
             for (let i = 0; i < numGenerateTries; i++) {
               let response = await this.generate(mentionedCharacter);
               if (response) {
-                response = `+${characterHash(mentionedCharacter, mentionedCharacterIndex)}: ${response}`;
+                response = `+${thingHash(mentionedCharacter, mentionedCharacterIndex)}: ${response}`;
                 const a = parseLoreResponses(response);
                 if (a.length > 0) {
                   for (const o of a) {
@@ -322,7 +326,7 @@ class AIScene {
       dstCharacter,
     ]); */
     let response = await loreAI.generate(prompt, {
-      end: `\n+${characterHash(this.localCharacter, 0)}`,
+      end: `\n+${thingHash(this.localCharacter, 0)}`,
       maxTokens: 100,
       temperature,
       top_p,
