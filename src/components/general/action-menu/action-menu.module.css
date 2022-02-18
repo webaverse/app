@@ -1,7 +1,7 @@
 
 .actionMenu {
     position: absolute;
-    top: 144px; /* tmp value is 160px, cause overlaping with old items, correct value should be 20px */
+    top: 100px;
     right: 0px;
     z-index: 1;
 }
@@ -52,6 +52,15 @@
 .btn:not(.disabled):hover .background,
 .btn.open .background {
     transform: translateX(50px);
+}
+
+.key {
+    margin: 0 10px;
+    padding: 3px;
+    border: 2px solid #CCC;
+    border-radius: 3px;
+    font-size: 13px;
+    transition: border-color 1s cubic-bezier(0, 1, 0, 1);
 }
 
 .btn.vr {

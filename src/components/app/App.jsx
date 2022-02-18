@@ -12,6 +12,7 @@ import metaversefileApi from '../../../metaversefile-api';
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
 import { Settings } from '../general/settings';
+import { WorldObjectsList } from '../general/world-objects-list';
 import { PlayMode } from '../play-mode';
 import Header from '../../Header.jsx';
 
@@ -38,10 +39,11 @@ const _startApp = async ( weba, canvas ) => {
 
 export const App = () => {
 
-    const canvasRef = useRef();
+    const canvasRef = useRef( null );
     const [ app, setApp ] = useState( () => new Webaverse() );
 
     const [ settingsOpened, setSettingsOpened ] = useState( false );
+    const [ worldObjectsListOpened, setWorldObjectsListOpened ] = useState( false );
 
     //
 
@@ -58,13 +60,14 @@ export const App = () => {
     //
 
     return (
-        <div className={ styles.App } id="app">
+        <div className={ styles.App } id="app" >
             <Header app={ app } />
-            <ActionMenu app={ app } setSettingsOpened={ setSettingsOpened } />
+            <ActionMenu app={ app } setSettingsOpened={ setSettingsOpened } setWorldObjectsListOpened={ setWorldObjectsListOpened } />
             <Crosshair />
-            <canvas id="canvas" className={ styles.canvas } ref={ canvasRef } />
+            <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
             <PlayMode />
             <Settings opened={ settingsOpened } setOpened={ setSettingsOpened } />
+            <WorldObjectsList opened={ worldObjectsListOpened } setOpened={ setWorldObjectsListOpened } />
         </div>
     );
 
