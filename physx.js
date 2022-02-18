@@ -820,9 +820,7 @@ const physxWorker = (() => {
     const quaternionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
     const meshPositionOffset = scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT;
     const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
-    const maxIterOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
-    const numIgnorePhysicsIdsOffset = scratchStack.f32.byteOffset + 15 * Float32Array.BYTES_PER_ELEMENT;
-    const ignorePhysicsIdsOffset = scratchStack.f32.byteOffset + 16 * Float32Array.BYTES_PER_ELEMENT;
+    const ignorePhysicsIdsOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
 
     const outputBufferOffset = moduleInstance._detectPathVoxelPhysics(
       physics,
@@ -833,14 +831,16 @@ const physxWorker = (() => {
       quaternionOffset,
       meshPositionOffset,
       meshQuaternionOffset,
-      maxIterOffset,
-      numIgnorePhysicsIdsOffset,
+      maxIter,
+      ignorePhysicsIdsOffset.length,
       ignorePhysicsIdsOffset,
     );
 
     const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     // let tail = head + 1;
     const outY = moduleInstance.HEAPF32[head];
+    const iter = moduleInstance.HEAPF32[head + 1];
+    console.log(iter);
 
     moduleInstance._doFree(outputBufferOffset);
 
