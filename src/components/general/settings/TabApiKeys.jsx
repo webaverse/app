@@ -59,7 +59,7 @@ export const TabApiKeys = ({ active }) => {
 
     function applySettings () {
 
-        console.log('apply AI settings', {apiType, apiKey});
+        // console.log('apply AI settings', {apiType, apiKey});
         
         /* // set avatar style
 
