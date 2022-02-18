@@ -62,11 +62,7 @@ Bio: ${c.bio}
 # Objects
 
 ${
-  objects.map((o, i) => {
-    return `Id: ${thingHash(o, i)}
-Name: ${o.name}${o.description ? `\nDescription: ${o.description}` : ''}
-`;
-  }).join('\n\n')
+  objects.map((o, i) => thingHash(o, i)).join('\n')
 }
 
 ## Script (raw format)
