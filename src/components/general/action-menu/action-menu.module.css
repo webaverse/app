@@ -1,7 +1,7 @@
 
 .actionMenu {
     position: absolute;
-    top: 144px; /* tmp value is 160px, cause overlaping with old items, correct value should be 20px */
+    top: 100px;
     right: 0px;
     z-index: 1;
 }
