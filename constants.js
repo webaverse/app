@@ -94,6 +94,9 @@ export const avatarInterpolationNumFrames = 4;
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
 
+export const defaultObjectName = 'Thing';
+export const defaultObjectDescription = 'A thing. Not much is known about it.';
+
 export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
 
 export const voiceEndpoint = `https://voice.webaverse.com/tts`;
