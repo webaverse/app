@@ -21,7 +21,7 @@ const characterLore = `\
 
 AI anime avatars in a virtual world. They have human-level intelligence and unique and interesting personalities.
 `;
-const _makeChatPrompt = (setting, characters, messages, objects, dstCharacter) => `\
+const _makeChatPrompt = (settings, characters, messages, objects, dstCharacter) => `\
 ${characterLore}
 
 Script examples:
@@ -46,7 +46,7 @@ Script examples:
 
 # Setting
 
-${setting}
+${settings.join('\n\n')}
 
 ## Characters
 
@@ -176,12 +176,9 @@ class AIObject extends EventTarget {
   }
 }
 class AIScene {
-  constructor(localPlayer, {
-    setting = defaultSetting,
-    objects = [],
-  } = {}) {
-    this.setting = setting;
-    this.objects = objects;
+  constructor(localPlayer) {
+    this.settings = [];
+    this.objects = [];
     this.localCharacter = new AICharacter(localPlayer.name, localPlayer.bio);
     this.characters = [
       this.localCharacter,
@@ -299,8 +296,11 @@ class AIScene {
       });
     });
   }
-  setSetting(setting) {
-    this.setting = setting;
+  addSetting(setting) {
+    this.settings.push(setting);
+  }
+  removeSetting(setting) {
+    this.settings.splice(this.settings.indexOf(setting), 1);
   }
   addCharacter(opts) {
     const character = new AICharacter(opts);
@@ -320,14 +320,14 @@ class AIScene {
   }
   async generate(dstCharacter = null) {
     const prompt = _makeChatPrompt(
-      this.setting,
+      this.settings,
       this.characters,
       this.messages,
       this.objects,
       dstCharacter
     );
     /* console.log('generate prompt', prompt, [
-      this.setting,
+      this.settings,
       this.characters,
       this.messages,
       dstCharacter,
