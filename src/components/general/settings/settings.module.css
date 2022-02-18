@@ -1,0 +1,189 @@
+
+.clearfix {
+    clear: both;
+}
+
+.settings {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    background-image: linear-gradient(315deg, #000000 0%, #414141 74%);
+    z-index: 2;
+    transition: visibility 0s 300ms, opacity 300ms ease;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.settings.open {
+    opacity: 1;
+    visibility: visible;
+    transition: visibility 0s 0ms, opacity 300ms ease;
+}
+
+.closeBtn {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    font-size: 35px;
+    color: #fff;
+    opacity: 0.7;
+    transition: opacity 200ms ease;
+    cursor: pointer;
+}
+
+.closeBtn:hover {
+    opacity: 0.9;
+}
+
+.wrapper {
+    margin-left: auto;
+    margin-right: auto;
+    width: 40%;
+    min-width: 640px;
+    height: 100%;
+}
+
+.title {
+    text-align: left;
+    padding-top: 100px;
+    font-size: 30px;
+    color: #fff;
+}
+
+.tabs {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.tab {
+    float: left;
+    margin-right: 10px;
+    padding: 10px 0px;
+    width: 118px;
+    border-radius: 10px;
+    border: 1px solid #fff;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+}
+
+.tab:hover {
+    background-color: rgba( 255, 255, 255, 0.1 );
+}
+
+.tab.active {
+    background-color: rgba( 255, 255, 255, 0.2 );
+}
+
+.tabContentWrapper {
+    position: relative;
+    width: 100%;
+    height: calc( 100% - 250px );
+    text-align: left;
+    overflow-y: scroll;
+}
+
+.tabContent {
+    padding-top: 30px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    display: none;
+}
+
+.tabContent.active {
+    display: block;
+}
+
+/*  */
+
+.row {
+    margin-bottom: 20px;
+}
+
+.blockTitle {
+    padding: 10px;
+    border-bottom: 1px solid #aaa;
+    color: #fff;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.paramName {
+    float: left;
+    width: 300px;
+    text-align: right;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    color: #fff;
+}
+
+.switch {
+    float: left;
+    margin-left: 80px;
+    width: 200px;
+}
+
+.apiKeysTab .input {
+    width: 350px;
+    margin: 20px 0;
+    padding: 5px;
+    margin-left: 230px;
+    font-family: inherit;
+}
+
+.audioTab .slider {
+    float: left;
+    margin-left: 20px;
+    margin-top: 8px;
+}
+
+.audioTab .row {
+    margin-top: 50px;
+}
+
+.audioTab .paramName {
+    width: 250px;
+}
+
+/*  */
+
+.controlsTab .keyInput {
+    float: left;
+    margin-left: 20px;
+    margin-top: 2px;
+}
+
+/*  */
+
+.logoutBtn {
+    margin-left: 50%;
+    transform: translate( -50%, 0px );
+}
+
+/*  */
+
+.applyBtn {
+    position: fixed;
+    right: 100px;
+    bottom: 20px;
+    color: #fff;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 200ms ease;
+}
+
+.applyBtn:hover {
+    opacity: 0.9;
+}
+
+.applyBtn.active {
+    opacity: 0.7;
+}
