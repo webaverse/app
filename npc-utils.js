@@ -57,7 +57,7 @@ class PathFinder {
       this.geometry = new THREE.BoxGeometry();
       this.geometry.scale(0.5, this.voxelHeight, 0.5);
       // this.geometry.scale(0.9, 0.1, 0.9);
-      this.material = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe: false});
+      this.material = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe: true});
       this.maxDebugCount = this.maxVoxelCacheLen + this.maxIterStep * 4 + 1 + 100; // One step() can create up to 4 voxels. Add 1 startVoxel. Add 100 for interpoed waypointResult.
       this.debugMesh = new THREE.InstancedMesh(this.geometry, this.material, this.maxDebugCount);
       this.debugMesh.name = 'PathFinder debugMesh';
