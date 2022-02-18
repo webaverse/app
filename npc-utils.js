@@ -236,7 +236,8 @@ class PathFinder {
     localVoxel.position.copy(position);
     localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
     this.iterDetect = 0;
-    this.detect(localVoxel, 0);
+    // this.detect(localVoxel, 0);
+    localVoxel.position.y = physicsManager.detectPathVoxel(0.5, this.voxelHeightHalf, 0.5, localVoxel.position, identityQuaternion);
     localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
 
     let voxel = this.getVoxel(localVoxel.position);
