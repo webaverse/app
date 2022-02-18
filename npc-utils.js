@@ -40,7 +40,7 @@ class PathFinder {
     this.debugRender = debugRender;
     this.detectStep = detectStep;
     this.iterDetect = 0;
-    this.maxIterDetect = 3; // test
+    this.maxIterDetect = 1000; // test
     this.iterStep = 0;
     this.maxIterStep = maxIterStep;
     this.allowNearest = true;
