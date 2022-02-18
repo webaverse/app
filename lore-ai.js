@@ -182,9 +182,9 @@ class AIScene {
     this.messages = [];
 
     const _waitForFrame = () => new Promise(resolve => {
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         resolve();
-      }, 100);
+      });
     });
     const _pushRequestMessage = async message => {
       const emote = 'none';
