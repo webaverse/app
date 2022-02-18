@@ -57,7 +57,7 @@ Bio: ${c.bio}
 ${
   objects.map((o, i) => {
     return `Id: ${thingHash(o, i)}
-Name: ${o.name}${c.description ? `\nDescription: ${c.description}` : ''}
+Name: ${o.name}${o.description ? `\nDescription: ${o.description}` : ''}
 `;
   }).join('\n\n')
 }
