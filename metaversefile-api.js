@@ -133,6 +133,24 @@ const defaultModules = {
 };
 
 const loreAIScene = loreAI.createScene(localPlayer);
+const _bindAppManagerToLoreAIScene = (appManager, loreAIScene) => {
+  const bindings = new WeakMap();
+  appManager.addEventListener('appadd', e => {
+    const app = e.data;
+    const object = loreAIScene.addObject({
+      name: app.name,
+      description: app.description,
+    });
+    bindings.set(app, object);
+  });
+  appManager.addEventListener('appremove', e => {
+    const app = e.data;
+    const object = bindings.get(app);
+    loreAIScene.removeObject(object);
+    bindings.delete(app);
+  });
+};
+_bindAppManagerToLoreAIScene(world.appManager, loreAIScene);
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
