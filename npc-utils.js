@@ -43,7 +43,7 @@ class PathFinder {
     this.maxIterDetect = maxIterdetect;
     this.iterStep = 0;
     this.maxIterStep = maxIterStep;
-    this.allowNearest = false;
+    this.allowNearest = true;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
     this.ignorePhysicsIds = ignorePhysicsIds;
 
@@ -68,7 +68,7 @@ class PathFinder {
     this.waypointResult = [];
   }
 
-  getPath(start, dest, allowNearest = false) {
+  getPath(start, dest) {
     // this.detectCount = 0;
 
     this.reset();
@@ -84,8 +84,6 @@ class PathFinder {
       dest.y,
       Math.round(dest.z),
     );
-
-    this.allowNearest = allowNearest;
 
     this.startVoxel = this.createVoxel(this.start);
     this.startVoxel._isStart = true;
@@ -193,7 +191,6 @@ class PathFinder {
   reset() {
     this.isFound = false;
     this.frontiers.length = 0;
-    this.allowNearest = false;
     this.waypointResult = [];
 
     // // pure realtime, no any cache
