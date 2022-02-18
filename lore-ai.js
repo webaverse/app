@@ -14,7 +14,7 @@ const characterLore = `\
 
 AI anime avatars in a virtual world. They have human-level intelligence and unique and interesting personalities.
 `;
-const _makeChatPrompt = (setting, characters, objects, messages, dstCharacter) => `\
+const _makeChatPrompt = (setting, characters, messages, objects, dstCharacter) => `\
 ${characterLore}
 
 Script examples:
