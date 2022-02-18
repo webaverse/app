@@ -22,9 +22,6 @@ import sceneNames from '../scenes/scenes.json';
 import {Location} from './components/location';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
-import {World} from './tabs/world';
-import {Options} from './tabs/options';
-import {XR} from './tabs/xr';
 import {Tokens} from './tabs/tokens';
 
 const localEuler = new THREE.Euler();
@@ -63,37 +60,16 @@ export default function Header({
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
   const [roomName, setRoomName] = useState(_getCurrentRoom());
   const [micOn, setMicOn] = useState(false);
-  const [xrSupported, setXrSupported] = useState(false);
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [loginFrom, setLoginFrom] = useState('');
 
   const [wearActions, setWearActions] = useState(_getWearActions());
-  
-  let [px, setPx] = useState(0);
-  let [py, setPy] = useState(0);
-  let [pz, setPz] = useState(0);
-  let [rx, setRx] = useState(0);
-  let [ry, setRy] = useState(0);
-  let [rz, setRz] = useState(0);
-  let [sx, setSx] = useState(1);
-  let [sy, setSy] = useState(1);
-  let [sz, setSz] = useState(1);
-  px = {value: px, onChange: e => {const v = e.target.value; selectedApp.position.x = v; selectedApp.updateMatrixWorld(); setPx(v);}};
-  py = {value: py, onChange: e => {const v = e.target.value; selectedApp.position.y = v; selectedApp.updateMatrixWorld(); setPy(v);}};
-  pz = {value: pz, onChange: e => {const v = e.target.value; selectedApp.position.z = v; selectedApp.updateMatrixWorld(); setPz(v);}};
-  rx = {value: rx, onChange: e => {const v = e.target.value; selectedApp.rotation.x = v; selectedApp.updateMatrixWorld(); setRx(v);}};
-  ry = {value: ry, onChange: e => {const v = e.target.value; selectedApp.rotation.y = v; selectedApp.updateMatrixWorld(); setRy(v);}};
-  rz = {value: rz, onChange: e => {const v = e.target.value; selectedApp.rotation.z = v; selectedApp.updateMatrixWorld(); setRz(v);}};
-  sx = {value: sx, onChange: e => {const v = e.target.value; selectedApp.scale.x = v; selectedApp.updateMatrixWorld(); setSx(v);}};
-  sy = {value: sy, onChange: e => {const v = e.target.value; selectedApp.scale.y = v; selectedApp.updateMatrixWorld(); setSy(v);}};
-  sz = {value: sz, onChange: e => {const v = e.target.value; selectedApp.scale.z = v; selectedApp.updateMatrixWorld(); setSz(v);}};
-  
+
   const userOpen = open === 'user';
   const scenesOpen = open === 'scenes';
   const multiplayerOpen = open === 'multiplayer';
   const characterOpen = open === 'character';
-  const worldOpen = open === 'world';
   const magicMenuOpen = open === 'magicMenu';
   const multiplayerConnected = !!roomName;
 
@@ -110,11 +86,7 @@ export default function Header({
       setMicOn(false);
     }
   };
-  const selectApp = (app, physicsId, position) => {
-    game.setMouseSelectedObject(app, physicsId, position);
-  };
-  
-  const _formatContentId = contentId => contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1');
+
   useEffect(() => {
     const update = e => {
       setApps(world.appManager.getApps().slice());
@@ -225,20 +197,6 @@ export default function Header({
         toggleMic();
         return true;
       }
-      case 90: { // Z
-        e.preventDefault();
-        e.stopPropagation();
-        if (worldOpen) {
-          if (selectedApp) {
-            selectApp(null);
-          } else {
-            cameraManager.requestPointerLock();
-          }
-        } else {
-          setOpen('world');
-        }
-        return true;
-      }
       case 191: { // /
         if (!magicMenuOpen && !ioManager.inputFocused()) { 
           e.preventDefault();
@@ -292,11 +250,6 @@ export default function Header({
     };
   }, [open, selectedApp]);
   useEffect(async () => {
-    const isXrSupported = await app.isXrSupported();
-    // console.log('is supported', isXrSupported);
-    setXrSupported(isXrSupported);
-  }, []);
-  useEffect(async () => {
     window.addEventListener('click', e => {
       const hoverObject = game.getMouseHoverObject();
       if (hoverObject) {
@@ -310,28 +263,13 @@ export default function Header({
     });
   }, []);
   useEffect(() => {
-    if (selectedApp) {
-      const {position, quaternion, scale} = selectedApp;
-      const rotation = localEuler.setFromQuaternion(quaternion, 'YXZ');
-      setPx(position.x);
-      setPy(position.y);
-      setPz(position.z);
-      setRx(rotation.x);
-      setRy(rotation.y);
-      setRz(rotation.z);
-      setSx(scale.x);
-      setSy(scale.y);
-      setSz(scale.z);
-    }
-  }, [selectedApp]);
-  useEffect(() => {
     const dragchange = e => {
       const {dragging} = e.data;
       setDragging(dragging);
     };
     world.appManager.addEventListener('dragchange', dragchange);
     const selectchange = e => {
-      setSelectedApp(e.data.app);
+    //   setSelectedApp(e.data.app);
     };
     world.appManager.addEventListener('selectchange', selectchange);
     return () => {
@@ -404,46 +342,12 @@ export default function Header({
               previewCanvasRef={previewCanvasRef}
               game={game}
             />
-            <World
-              open={open}
-              setOpen={setOpen}
-              toggleOpen={toggleOpen}
-              panelsRef={panelsRef}
-              game={game}
-              apps={apps}
-              selectApp={selectApp}
-              setSelectedApp={setSelectedApp}
-              selectedApp={selectedApp}
-              px={px}
-              py={py}
-              pz={pz}
-              rx={rx}
-              ry={ry}
-              rz={rz}
-              sx={sx}
-              sy={sy}
-              sz={sz}
-            />
-            <Options
-              app={app}
-              open={open}
-              toggleOpen={toggleOpen}
-              panelsRef={panelsRef}
-            />
-            <XR
-              xrSupported={xrSupported}
-              app={app}
-              open={open}
-              toggleOpen={toggleOpen}
-              panelsRef={panelsRef}
-            />
             <Claims
               claims={claims}
               open={open}
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
             />
-
           </div>
         </header>
         <Tokens
