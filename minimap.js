@@ -357,7 +357,7 @@ const _makeMapRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   format: THREE.RGBAFormat,
 });
 
-const minimapWorldSize = 100;
+// const minimapWorldSize = 100;
 const pixelRatio = window.devicePixelRatio;
 
 const minimaps = [];
@@ -370,10 +370,10 @@ class MiniMap {
 
     this.mapRenderTarget = null;
     this.topCamera = new THREE.OrthographicCamera(
-      -minimapWorldSize*0.5,
-      minimapWorldSize*0.5,
-      minimapWorldSize*0.5,
-      -minimapWorldSize*0.5,
+      -this.worldWidth*0.5,
+      this.worldWidth*0.5,
+      this.worldHeight*0.5,
+      -this.worldHeight*0.5,
       0,
       1000
     );
