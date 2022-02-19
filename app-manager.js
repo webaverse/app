@@ -176,7 +176,10 @@ class AppManager extends EventTarget {
           app.scale.fromArray(trackedApp.get('scale'));
         }
         if (e.changes.keys.has('load') ) {
-          trackedApp.get('load') && this.addApp(app);
+          if (trackedApp.get('load')){
+            app.skinnedVrms.active.scene.visible = true;
+            this.addApp(app);
+          } 
         }
       }
     };

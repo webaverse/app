@@ -67,7 +67,7 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     rig.velocity.length() < 0.001,
   );
 }
-export function makeAvatar(app) {
+export async function makeAvatar(app) {
   if (app) {
     const {skinnedVrms} = app;
     if (skinnedVrms && skinnedVrms['active']) {
@@ -78,44 +78,18 @@ export function makeAvatar(app) {
         debug: false,
       });
 
-      const qualityMap = {
-        "ULTRA": 1,
-        "HIGH": 3,
-        "MEDIUM": 2,
-        "LOW": 1
-      }
-      // Avatar.waitForLoad().then(()=>{
-        avatar[appSymbol] = app;
+      // window.avatar = avatar;  //for debugging
 
-        const quality = metaversefile.getQualitySetting();
-        // avatar.getModel().visible = false;
-        
-        const am = metaversefile.useLocalPlayer().appManager;
-        const trackedApp = am.getTrackedApp(app.instanceId);
-        // trackedApp.set('load', true);
-        // avatar.setQuality(qualityMap[quality]).then(()=>{
-        // })
-      // })
+      avatar[appSymbol] = app;
 
+      //we're gonna change this
+      const am = metaversefile.useLocalPlayer().appManager;
+      const trackedApp = am.getTrackedApp(app.instanceId);
+      trackedApp.set('load', true);
 
-
-/*
-       (async () => {
-         // await Avatar.waitForLoad();
-         avatar[appSymbol] = app;
-         await avatar.setQuality(quality);
-         const am = metaversefile.useLocalPlayer().appManager;
-         const trackedApp = am.getTrackedApp(app.instanceId);
-         console.log("PLAYER AVATAR", trackedApp, app.instanceId);
-         trackedApp.set('load', true);
-         unFrustumCull(app);
-         enableShadows(app);
-         console.log("ASYNC DONE");
-      })();
-*/
       unFrustumCull(app);
       enableShadows(app);
-console.log("Made player", avatar);
+
       return avatar;
     }
   }
@@ -305,7 +279,7 @@ export async function switchAvatar(oldAvatar, newApp) {
       // unwear old rig
 
       if (!newApp[avatarSymbol]) {
-        newApp[avatarSymbol] = makeAvatar(newApp);
+        newApp[avatarSymbol] = await makeAvatar(newApp);
       }
       result = newApp[avatarSymbol];
     })());
