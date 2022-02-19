@@ -17,6 +17,8 @@ import {
   getRenderer,
   getComposer,
   rootScene,
+  sceneHighPriority,
+  scene,
   sceneLowPriority,
   postSceneOrthographic,
   postScenePerspective,
@@ -35,38 +37,10 @@ import metaversefileApi from 'metaversefile';
 // const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 
-/* const testSpec = {
-  "background": {
-    "color": [0, 0, 0]
-  },
-  "fog": {
-    "fogType": "exp",
-    "args": [[255, 255, 255], 0.01]
-  },
-  "ssao": {
-    "kernelRadius": 16,
-    "minDistance": 0.005,
-    "maxDistance": 0.1
-  },
-  "dof": {
-    "focus": 3.0,
-    "aperture": 0.00002,
-    "maxblur": 0.005
-  },
-  "hdr": {
-    "adaptive": true,
-    "resolution": 256,
-    "adaptionRate": 100,
-    "maxLuminance": 10,
-    "minLuminance": 0,
-    "middleGrey": 3
-  },
-  "bloom": {
-    "strength": 0.2,
-    "radius": 0.5,
-    "threshold": 0.8
-  }
-}; */
+const regularScenes = [
+  sceneHighPriority,
+  scene,
+];
 
 const _isObjectChildOf = (object, parent) => {
   for (let o = object; o; o = o.parent) {
@@ -90,7 +64,7 @@ function makeDepthPass({ssao, hdr}) {
   const size = renderer.getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
 
-  const depthPass = new DepthPass(rootScene, camera, {
+  const depthPass = new DepthPass(regularScenes, camera, {
     width: size.x,
     height: size.y,
     filterFn,
