@@ -79,7 +79,7 @@ const _makeScene = renderTarget => {
       },
       vertexShader,
       fragmentShader,
-      transparent: true,
+      // transparent: true,
       depthTest: false,
       // depthWrite: false,
     }),
@@ -106,7 +106,7 @@ class MiniMap {
       0,
       1000
     );
-    this.mapRenderTarget = _makeMapRenderTarget(this.width * pixelRatio * 3, this.height * pixelRatio * 3);
+    this.mapRenderTarget = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
     this.canvasIndices = new Int32Array(3 * 3 * 2);
     this.canvasIndices.fill(0xffff);
     this.scene = _makeScene(this.mapRenderTarget);
@@ -118,9 +118,9 @@ class MiniMap {
     this.canvases.length = 0;
   }
   addCanvas(canvas) {
-    const {width, height} = canvas;
-    this.width = Math.max(this.width, width);
-    this.height = Math.max(this.height, height);
+    // const {width, height} = canvas;
+    // this.width = Math.max(this.width, width);
+    // this.height = Math.max(this.height, height);
 
     const ctx = canvas.getContext('2d');
     canvas.ctx = ctx;
@@ -129,6 +129,8 @@ class MiniMap {
   }
   update(timestamp, timeDiff) {
     const localPlayer = metaversefileApi.useLocalPlayer();
+
+    // console.log('update');
 
     const renderer = getRenderer();
     const size = renderer.getSize(localVector2D);
@@ -147,29 +149,30 @@ class MiniMap {
     const oldRenderTarget = renderer.getRenderTarget();
     const oldViewport = renderer.getViewport(localVector4D);
   
-    const _render = (dx, dy, index) => {
+    const _render = (dx, dy) => {
       // set up top camera
-      this.topCamera.position.copy(localPlayer.position);
+      this.topCamera.position.copy(localPlayer.position)
+        .add(localVector.set(dx * this.worldWidth, cameraHeight, -dy * this.worldHeight));
       this.topCamera.quaternion.setFromRotationMatrix(
         localMatrix.lookAt(
           localVector.copy(localPlayer.position)
             .add(localVector3.set(0, cameraHeight, 0)),
           localPlayer.position,
           localVector2.set(0, 0, -1)
-            .applyQuaternion(camera.quaternion),
+            // .applyQuaternion(camera.quaternion),
         )
       );
       this.topCamera.updateMatrixWorld();
       
-      renderer.setRenderTarget(this.mapRenderTarget);
       renderer.setViewport((dx+1) * this.width/3, (dy+1) * this.height/3, this.width/3, this.height/3);
       // renderer.setViewport(0, 0, this.width, this.height);
-      renderer.clear();
       for (const scene of regularScenes) {
         renderer.render(scene, this.topCamera);
       }
     };
     const _updateTiles = () => {
+      let first = true;
+
       let index = 0;
       for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
@@ -177,10 +180,16 @@ class MiniMap {
           const iy = Math.floor((localPlayer.position.y + dy * this.worldHeight/2) / this.worldHeight);
           const requiredIndex = localVector2D3.set(ix, iy);
           const currentIndex = localVector2D4.fromArray(this.canvasIndices, index * 2);
-          if (!currentIndex.equals(requiredIndex)) {
+          // if (!currentIndex.equals(requiredIndex)) {
+            if (first) {
+              renderer.setRenderTarget(this.mapRenderTarget);
+              renderer.setViewport(0, 0, this.width, this.height);
+              renderer.clear();
+              first = false;
+            }
             _render(dx, dy, index);
             requiredIndex.toArray(this.canvasIndices, index * 2);
-          }
+          // }
           index++;
         }
       }
