@@ -2,7 +2,7 @@
 # input: directory of wav files
 # output: mp3 data file and json metadata file
 
-ls {walk,run,jump,land,narutoRun,food}/*.wav | sort -n >sound-files.txt
+ls {walk,run,jump,land,narutoRun,food,combat}/*.wav | sort -n >sound-files.txt
 # cat sounds.txt | awk '{print "file " $0}' >sounds-list.txt
 sox $(< sound-files.txt) sounds.mp3
 

@@ -18,6 +18,7 @@ import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 import * as metaverseModules from './metaverse-modules.js';
 import {createParticleSystem} from './particle-system.js';
+import * as sounds from './sounds.js';
 
 const localEuler = new THREE.Euler();
 
@@ -346,6 +347,10 @@ const _bindHitTracker = app => {
       const {collisionId, hitPosition, hitDirection, hitQuaternion, willDie} = opts;
       if (willDie) {
         hpManager.triggerDamageAnimation(collisionId);
+        
+        const soundFiles = sounds.getSoundFiles();
+        const enemyDeathSound = soundFiles.enemyDeath[Math.floor(Math.random() * soundFiles.enemyDeath.length)];
+        sounds.playSound(enemyDeathSound);
       }
 
       {
