@@ -3,7 +3,7 @@ this file implements post processing.
 */
 
 import * as THREE from 'three';
-import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
+// import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
 import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
@@ -17,13 +17,16 @@ import {
   getRenderer,
   getComposer,
   rootScene,
+  sceneHighPriority,
+  scene,
+  sceneLowPriority,
   postSceneOrthographic,
   postScenePerspective,
   camera,
   orthographicCamera,
 } from './renderer.js';
 // import {rigManager} from './rig.js';
-import {world} from './world.js';
+// import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import {WebaverseRenderPass} from './webaverse-render-pass.js';
 import metaversefileApi from 'metaversefile';
@@ -34,45 +37,20 @@ import metaversefileApi from 'metaversefile';
 // const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 
-/* const testSpec = {
-  "background": {
-    "color": [0, 0, 0]
-  },
-  "fog": {
-    "fogType": "exp",
-    "args": [[255, 255, 255], 0.01]
-  },
-  "ssao": {
-    "kernelRadius": 16,
-    "minDistance": 0.005,
-    "maxDistance": 0.1
-  },
-  "dof": {
-    "focus": 3.0,
-    "aperture": 0.00002,
-    "maxblur": 0.005
-  },
-  "hdr": {
-    "adaptive": true,
-    "resolution": 256,
-    "adaptionRate": 100,
-    "maxLuminance": 10,
-    "minLuminance": 0,
-    "middleGrey": 3
-  },
-  "bloom": {
-    "strength": 0.2,
-    "radius": 0.5,
-    "threshold": 0.8
-  }
-}; */
+const regularScenes = [
+  sceneHighPriority,
+  scene,
+];
 
 function makeDepthPass({ssao, hdr}) {
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
 
-  const depthPass = new DepthPass(rootScene, camera, {width: size.x, height: size.y});
+  const depthPass = new DepthPass(regularScenes, camera, {
+    width: size.x,
+    height: size.y,
+  });
   depthPass.needsSwap = false;
   // depthPass.enabled = hqDefault;
   return depthPass;
