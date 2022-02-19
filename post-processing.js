@@ -3,7 +3,7 @@ this file implements post processing.
 */
 
 import * as THREE from 'three';
-import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
+// import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
 import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
