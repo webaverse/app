@@ -78,24 +78,14 @@ class CharacterSfx {
     const soundFiles = sounds.getSoundFiles();
     const soundFileAudioBuffer = sounds.getSoundFileAudioBuffer();
 
-    const _playSound = audioSpec => {
-      const {offset, duration} = audioSpec;
-
-      const audioContext = Avatar.getAudioContext();
-      const audioBufferSourceNode = audioContext.createBufferSource();
-      audioBufferSourceNode.buffer = soundFileAudioBuffer;
-      audioBufferSourceNode.connect(audioContext.destination);
-      audioBufferSourceNode.start(0, offset, duration);
-    };
-
     // jump
     const _handleJump = () => {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
         const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
-        _playSound(audioSpec);
+        sounds.playSound(audioSpec);
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
         const audioSpec = soundFiles.land[Math.floor(Math.random() * soundFiles.land.length)];
-        _playSound(audioSpec);
+        sounds.playSound(audioSpec);
       }
       this.lastJumpState = this.player.avatar.jumpState;
     };
@@ -161,7 +151,7 @@ class CharacterSfx {
                 } */
                 
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-                _playSound(audioSpec);
+                sounds.playSound(audioSpec);
               }
             }
             this.lastStepped[0] = leftStepIndices[i];
@@ -174,7 +164,7 @@ class CharacterSfx {
                 } */
 
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-                _playSound(audioSpec);
+                sounds.playSound(audioSpec);
               }
             }
             this.lastStepped[1] = rightStepIndices[i];
@@ -198,7 +188,7 @@ class CharacterSfx {
           // console.log('chomp', v, eatFrameIndex, this.lastEatFrameIndex);
           if (eatFrameIndex !== 0 && eatFrameIndex !== this.lastEatFrameIndex) {
             const audioSpec = soundFiles.chomp[Math.floor(Math.random() * soundFiles.chomp.length)];
-            _playSound(audioSpec);
+            sounds.playSound(audioSpec);
           }
 
           this.lastEatFrameIndex = eatFrameIndex;
@@ -212,7 +202,7 @@ class CharacterSfx {
           // console.log('gulp', v, drinkFrameIndex, this.lastDrinkFrameIndex);
           if (drinkFrameIndex !== 0 && drinkFrameIndex !== this.lastDrinkFrameIndex) {
             const audioSpec = soundFiles.gulp[Math.floor(Math.random() * soundFiles.gulp.length)];
-            _playSound(audioSpec);
+            sounds.playSound(audioSpec);
           }
 
           this.lastDrinkFrameIndex = drinkFrameIndex;
