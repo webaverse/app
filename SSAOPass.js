@@ -35,12 +35,13 @@ const oldMaterialCache = new WeakMap();
 
 class SSAOPass extends Pass {
 
-	constructor( scene, camera, width, height, depthPass ) {
+	constructor( scene, camera, width, height, filterFn, depthPass ) {
 
 		super();
 
 		this.width = ( width !== undefined ) ? width : 512;
 		this.height = ( height !== undefined ) ? height : 512;
+		this.filterFn = filterFn;
 		this.depthPass = depthPass;
 
 		this.clear = true;
