@@ -450,7 +450,7 @@ class SSAOPass extends Pass {
 
 	}
 
-	overrideVisibility() {
+	/* overrideVisibility() {
 
 		const scene = this.scene;
 		const cache = this._visibilityCache;
@@ -460,7 +460,7 @@ class SSAOPass extends Pass {
 
 			cache.set( object, object.visible );
 
-			if ( object.isPoints || object.isLine || !self.filterFn(object) ) object.visible = false;
+			if ( object.isPoints || object.isLine ) object.visible = false;
 
 		} );
 
@@ -480,7 +480,7 @@ class SSAOPass extends Pass {
 
 		cache.clear();
 
-	}
+	} */
 
 }
 
