@@ -4,6 +4,7 @@ import {
   sceneHighPriority,
   scene,
   sceneLowPriority,
+  camera,
 } from './renderer.js';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
@@ -427,7 +428,7 @@ class MiniMap {
             .add(localVector3.set(0, cameraHeight, 0)),
           localPlayer.position,
           localVector2.set(0, 0, -1)
-            .applyQuaternion(localPlayer.quaternion),
+            .applyQuaternion(camera.quaternion),
         )
       );
       this.topCamera.updateMatrixWorld();
