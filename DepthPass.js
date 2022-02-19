@@ -28,11 +28,11 @@ const oldMaterialCache = new WeakMap();
 
 class DepthPass extends Pass {
 
-	constructor( scene, camera, {width, height, filterFn} ) {
+	constructor( scenes, camera, {width, height, filterFn} ) {
 
 		super();
 
-    this.scene = scene;
+    this.scenes = scenes;
     this.camera = camera;
     this.width = width;
     this.height = height;
@@ -84,37 +84,41 @@ class DepthPass extends Pass {
 
     }
 
-    const cachedNodes = [];
-    const _recurse = o => {
-			if (o.isMesh && o.customPostMaterial) {
-				cachedNodes.push(o);
-			} else {
-				for (const child of o.children) {
-					_recurse(child);
+		for (const scene of this.scenes) {
+			const cachedNodes = [];
+			const _recurse = o => {
+				if (o.isMesh && o.customPostMaterial) {
+					cachedNodes.push(o);
+				} else {
+					for (const child of o.children) {
+						_recurse(child);
+					}
 				}
+			};
+		
+      _recurse(scene);
+
+			for (const o of cachedNodes) {
+				oldParentCache.set(o, o.parent);
+				oldMaterialCache.set(o, o.material);
+
+				o.material = o.customPostMaterial;
+				this.customScene.add(o);
 			}
-		};
-    _recurse(this.scene);
-		for (const o of cachedNodes) {
-			oldParentCache.set(o, o.parent);
-			oldMaterialCache.set(o, o.material);
+			renderer.render( this.customScene, this.camera );
 
-			o.material = o.customPostMaterial;
-			this.customScene.add(o);
+			scene.overrideMaterial = overrideMaterial;
+			renderer.render( scene, this.camera );
+			scene.overrideMaterial = null;
+
+			for (const child of cachedNodes) {
+				oldParentCache.get(child).add(child);
+				child.material = oldMaterialCache.get(child);
+
+				oldParentCache.delete(child);
+				oldMaterialCache.delete(child);
+			}
 		}
-    renderer.render( this.customScene, this.camera );
-
-    this.scene.overrideMaterial = overrideMaterial;
-    renderer.render( this.scene, this.camera );
-    this.scene.overrideMaterial = null;
-
-		for (const child of cachedNodes) {
-      oldParentCache.get(child).add(child);
-      child.material = oldMaterialCache.get(child);
-
-      oldParentCache.delete(child);
-      oldMaterialCache.delete(child);
-    }
 
     // restore original state
 
@@ -132,24 +136,26 @@ class DepthPass extends Pass {
 
 		// render normals and depth (honor only meshes, points and lines do not contribute to SSAO)
 
-		this.overrideVisibility();
+		// this.overrideVisibility();
 		this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0xffffff, 1.0 );
-		this.restoreVisibility();
+		// this.restoreVisibility();
   }
 
-  overrideVisibility() {
+  /* overrideVisibility() {
 
 		const scene = this.scene;
 		const cache = this._visibilityCache;
 		const self = this;
 
-		scene.traverse( function ( object ) {
+		for (const scene of this.scenes) {
+			scene.traverse( function ( object ) {
 
-			cache.set( object, object.visible );
+				cache.set( object, object.visible );
 
-			if ( object.isPoints || object.isLine || !self.filterFn(object) ) object.visible = false;
+				if ( object.isPoints || object.isLine || !self.filterFn(object) ) object.visible = false;
 
-		} );
+			} );
+	  }
 
 	}
 
@@ -158,16 +164,18 @@ class DepthPass extends Pass {
 		const scene = this.scene;
 		const cache = this._visibilityCache;
 
-		scene.traverse( function ( object ) {
+		for (const scene of this.scenes) {
+			scene.traverse( function ( object ) {
 
-			const visible = cache.get( object );
-			object.visible = visible;
+				const visible = cache.get( object );
+				object.visible = visible;
 
-		} );
+			} );
+		}
 
 		cache.clear();
 
-	}
+	} */
 
 }
 
