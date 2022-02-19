@@ -191,11 +191,11 @@ physicsManager.setGravityEnabled = (physicsObject, enabled) => {
   physx.physxWorker.setGravityEnabledPhysics(physx.physics, physicsObject.physicsId, enabled);
 };
 physicsManager.removeGeometry = physicsObject => {
-  try {
+  // try {
     physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
-  } catch(err) {
+  /* } catch(err) {
     console.warn('failed to remove geometry', err.stack);
-  }
+  } */
 };
 /* physicsManager.getVelocity = (physicsObject, velocity) => {
   physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
