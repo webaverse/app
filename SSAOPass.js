@@ -454,12 +454,13 @@ class SSAOPass extends Pass {
 
 		const scene = this.scene;
 		const cache = this._visibilityCache;
+		const self = this;
 
 		scene.traverse( function ( object ) {
 
 			cache.set( object, object.visible );
 
-			if ( object.isPoints || object.isLine || object.isLowPriority ) object.visible = false;
+			if ( object.isPoints || object.isLine || !self.filterFn(object) ) object.visible = false;
 
 		} );
 
