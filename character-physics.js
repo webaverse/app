@@ -78,13 +78,13 @@ class CharacterPhysics {
         localVector3,
         minDist,
         timeDiffS,
-        this.player.characterControllerObject.position
+        this.player.characterController.position
       );
       // const collided = flags !== 0;
       const grounded = !!(flags & 0x1); 
 
-      this.player.characterControllerObject.updateMatrixWorld();
-      this.player.characterControllerObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      this.player.characterController.updateMatrixWorld();
+      this.player.characterController.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localQuaternion.copy(this.player.quaternion);
       localVector.y += this.player.avatar.height * 0.5;
       
