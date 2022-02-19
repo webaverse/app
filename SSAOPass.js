@@ -35,13 +35,12 @@ import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
 class SSAOPass extends Pass {
 
-	constructor( scene, camera, width, height, filterFn, depthPass ) {
+	constructor( scene, camera, width, height, depthPass ) {
 
 		super();
 
 		this.width = ( width !== undefined ) ? width : 512;
 		this.height = ( height !== undefined ) ? height : 512;
-		this.filterFn = filterFn;
 		this.depthPass = depthPass;
 
 		this.clear = true;

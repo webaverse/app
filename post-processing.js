@@ -42,23 +42,6 @@ const regularScenes = [
   scene,
 ];
 
-const _isObjectChildOf = (object, parent) => {
-  for (let o = object; o; o = o.parent) {
-    if (o === parent) {
-      return true;
-    }
-  }
-};
-const filterCache = new WeakMap();
-const filterFn = object => {
-  let entry = filterCache.get(object);
-  if (entry === undefined) {
-    entry = !_isObjectChildOf(object, sceneLowPriority);
-    filterCache.set(object, entry);
-  }
-  return entry;
-};
-
 function makeDepthPass({ssao, hdr}) {
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D)
@@ -67,7 +50,6 @@ function makeDepthPass({ssao, hdr}) {
   const depthPass = new DepthPass(regularScenes, camera, {
     width: size.x,
     height: size.y,
-    filterFn,
   });
   depthPass.needsSwap = false;
   // depthPass.enabled = hqDefault;
@@ -83,7 +65,7 @@ function makeSsaoRenderPass({
   const size = renderer.getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
 
-  const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y, filterFn, depthPass);
+  const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y, depthPass);
   ssaoRenderPass.kernelSize = kernelSize;
   ssaoRenderPass.kernelRadius = kernelRadius;
   ssaoRenderPass.minDistance = minDistance;
