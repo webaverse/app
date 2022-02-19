@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
 // import * as CharacterHupsModule from './character-hups.js';
+import * as sounds from './sounds.js';
 import * as CharacterSfxModule from './character-sfx.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
@@ -152,7 +153,7 @@ export default class Webaverse extends EventTarget {
         physx.waitForLoad(),
         Avatar.waitForLoad(),
         _loadAudioContext(),
-        CharacterSfxModule.waitForLoad(),
+        sounds.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
