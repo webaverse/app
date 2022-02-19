@@ -22,6 +22,7 @@ const loadPromise = (async () => {
   soundFiles.narutoRun = soundFileSpecs.filter(f => /^narutoRun\//.test(f.name));
   soundFiles.chomp = soundFileSpecs.filter(f => /^food\/chomp/.test(f.name));
   soundFiles.gulp = soundFileSpecs.filter(f => /^food\/gulp/.test(f.name));
+  soundFiles.enemyDeath = soundFileSpecs.filter(f => /enemyDeath/.test(f.name));
   soundFileAudioBuffer = _soundFileAudioBuffer;
 
   // console.log('loaded audio', soundFileSpecs, soundFileAudioBuffer);
