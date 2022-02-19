@@ -27,11 +27,11 @@ import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
 import { SSAOShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 import { SSAOBlurShader } from 'three/examples/jsm/shaders/SSAOShader.js';
-import { SSAODepthShader } from 'three/examples/jsm/shaders/SSAOShader.js';
+// import { SSAODepthShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
-const oldParentCache = new WeakMap();
-const oldMaterialCache = new WeakMap();
+// const oldParentCache = new WeakMap();
+// const oldMaterialCache = new WeakMap();
 
 class SSAOPass extends Pass {
 
@@ -69,7 +69,7 @@ class SSAOPass extends Pass {
 
 		// beauty render target
 
-		const depthTexture = new DepthTexture();
+		// const depthTexture = new DepthTexture();
 		// depthTexture.type = UnsignedShortType;
 
 		this.beautyRenderTarget = new WebGLRenderTarget( this.width, this.height, {
