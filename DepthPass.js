@@ -28,7 +28,7 @@ const oldMaterialCache = new WeakMap();
 
 class DepthPass extends Pass {
 
-	constructor( scenes, camera, {width, height, filterFn} ) {
+	constructor( scenes, camera, {width, height} ) {
 
 		super();
 
@@ -36,8 +36,6 @@ class DepthPass extends Pass {
     this.camera = camera;
     this.width = width;
     this.height = height;
-		this.filterFn = filterFn;
-
     const depthTexture = new DepthTexture();
 		// depthTexture.type = UnsignedShortType;
 
@@ -152,7 +150,7 @@ class DepthPass extends Pass {
 
 				cache.set( object, object.visible );
 
-				if ( object.isPoints || object.isLine || !self.filterFn(object) ) object.visible = false;
+				if ( object.isPoints || object.isLine ) object.visible = false;
 
 			} );
 	  }
