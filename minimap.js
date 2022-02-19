@@ -472,8 +472,8 @@ class MiniMap {
 }
 
 const minimapManager = {
-  createMiniMap(width, height) {
-    const minimap = new MiniMap(width, height);
+  createMiniMap(width, height, worldWidth, worldHeight) {
+    const minimap = new MiniMap(width, height, worldWidth, worldHeight);
     minimaps.push(minimap);
     return minimap;
   },
