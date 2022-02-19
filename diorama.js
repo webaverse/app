@@ -1651,10 +1651,10 @@ const createPlayerDiorama = (player, {
     triggerLoad() {
       Promise.all([
         (async () => {
-          await renderer.compileAsync(player.avatar.model, outlineRenderScene);
+          await renderer.compileAsync(player.avatar.crunchedModel, outlineRenderScene);
         })(),
         (async () => {
-          await renderer.compileAsync(player.avatar.model, sideScene);
+          await renderer.compileAsync(player.avatar.crunchedModel, sideScene);
         })(),
       ]).then(() => {
         this.loaded = true;
@@ -1685,9 +1685,10 @@ const createPlayerDiorama = (player, {
 
       if (player.avatar) {
         // push old state
-        const oldParent = player.avatar.model.parent;
+        const oldParent = player.avatar.crunchedModel.parent;
         const oldRenderTarget = renderer.getRenderTarget();
         const oldViewport = renderer.getViewport(localVector4D);
+        const oldVisibility = player.avatar.crunchedModel.visible;
       
         const _render = () => {
           // set up side camera
@@ -1703,7 +1704,7 @@ const createPlayerDiorama = (player, {
           sideCamera.updateMatrixWorld();
 
           // set up side avatar scene
-          outlineRenderScene.add(player.avatar.model);
+          outlineRenderScene.add(player.avatar.crunchedModel);
           // outlineRenderScene.add(world.lights);
           // render side avatar scene
           renderer.setRenderTarget(outlineRenderTarget);
@@ -1711,7 +1712,8 @@ const createPlayerDiorama = (player, {
           renderer.render(outlineRenderScene, sideCamera);
           
           // set up side scene
-          sideScene.add(player.avatar.model);
+          sideScene.add(player.avatar.crunchedModel);
+          player.avatar.crunchedModel.visible = true;
           // sideScene.add(world.lights);
       
           const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
@@ -1810,9 +1812,9 @@ const createPlayerDiorama = (player, {
 
         // pop old state
         if (oldParent) {
-          oldParent.add(player.avatar.model);
+          oldParent.add(player.avatar.crunchedModel);
         } else {
-          player.avatar.model.parent.remove(player.avatar.model);
+          player.avatar.crunchedModel.parent.remove(player.avatar.crunchedModel);
         }
         /* if (oldWorldLightParent) {
           oldWorldLightParent.add(world.lights);
@@ -1821,6 +1823,7 @@ const createPlayerDiorama = (player, {
         } */
         renderer.setRenderTarget(oldRenderTarget);
         renderer.setViewport(oldViewport);
+        player.avatar.crunchedModel.visible = oldVisibility;
       }
     },
     destroy() {
