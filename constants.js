@@ -81,6 +81,9 @@ export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
 export const avatarInterpolationNumFrames = 4;
 
+export const eatFrameIndices = [500, 800, 1100];
+export const drinkFrameIndices = [400, 700, 1000];
+
 export const defaultVoicePack = {
   name: `ShiShi voice pack`,
   audioUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3`,
