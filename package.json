@@ -9,7 +9,7 @@
   "scripts": {
     "start": "forever start index.mjs -p",
     "stop": "killall -SIGINT webaverse || true",
-    "dev": "node index.mjs --name=webaverse",
+    "dev": "node --max_old_space_size=6144 index.mjs --name=webaverse",
     "prerestart": "npm run stop",
     "restart": "npm run dev",
     "prod": "sudo $(which node) index.mjs -p",
