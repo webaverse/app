@@ -34,7 +34,7 @@ class WebaverseRenderPass extends Pass {
     this.onBeforeRender && this.onBeforeRender();
     
     // render
-    sceneHighPriority.traverse(o => {
+    /* sceneHighPriority.traverse(o => {
       o.isLowPriority = false;
     });
     scene.traverse(o => {
@@ -42,7 +42,7 @@ class WebaverseRenderPass extends Pass {
     });
     sceneLowPriority.traverse(o => {
       o.isLowPriority = true;
-    });
+    }); */
     if (this.internalDepthPass) {
       this.internalDepthPass.renderToScreen = false;
       this.internalDepthPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
