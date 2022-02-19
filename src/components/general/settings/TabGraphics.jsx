@@ -103,10 +103,7 @@ export const TabGraphics = ({ active }) => {
 
         // set avatar style
 
-        let avatarStyle = metaversefileApi.getQualitySetting();
-        if ( characterDetails === 'HIGH' ) avatarStyle = 'HIGH';
-        if ( characterDetails === 'MEDIUM' ) avatarStyle = 'MEDIUM';
-        if ( characterDetails === 'LOW' ) avatarStyle = 'LOW';
+        let avatarStyle = characterDetails || metaversefileApi.getQualitySetting();
 
         const localPlayer = metaversefileApi.useLocalPlayer();
 
