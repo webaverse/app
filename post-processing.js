@@ -17,13 +17,14 @@ import {
   getRenderer,
   getComposer,
   rootScene,
+  sceneLowPriority,
   postSceneOrthographic,
   postScenePerspective,
   camera,
   orthographicCamera,
 } from './renderer.js';
 // import {rigManager} from './rig.js';
-import {world} from './world.js';
+// import {world} from './world.js';
 import cameraManager from './camera-manager.js';
 import {WebaverseRenderPass} from './webaverse-render-pass.js';
 import metaversefileApi from 'metaversefile';
@@ -67,12 +68,33 @@ const localVector2D = new THREE.Vector2();
   }
 }; */
 
+const _isObjectChildOf = (object, parent) => {
+  for (let o = object; o; o = o.parent) {
+    if (o === parent) {
+      return true;
+    }
+  }
+};
+const filterCache = new WeakMap();
+const filterFn = object => {
+  let entry = filterCache.get(object);
+  if (entry === undefined) {
+    entry = !_isObjectChildOf(object, sceneLowPriority);
+    filterCache.set(object, entry);
+  }
+  return entry;
+};
+
 function makeDepthPass({ssao, hdr}) {
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
 
-  const depthPass = new DepthPass(rootScene, camera, {width: size.x, height: size.y});
+  const depthPass = new DepthPass(rootScene, camera, {
+    width: size.x,
+    height: size.y,
+    filterFn,
+  });
   depthPass.needsSwap = false;
   // depthPass.enabled = hqDefault;
   return depthPass;
@@ -87,7 +109,7 @@ function makeSsaoRenderPass({
   const size = renderer.getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
 
-  const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y, depthPass);
+  const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y, filterFn, depthPass);
   ssaoRenderPass.kernelSize = kernelSize;
   ssaoRenderPass.kernelRadius = kernelRadius;
   ssaoRenderPass.minDistance = minDistance;
