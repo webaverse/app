@@ -236,7 +236,6 @@ class PathFinder {
     localVoxel.position.copy(position);
     localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
     this.iterDetect = 0;
-    // this.detect(localVoxel, 0);
     localVoxel.position.y = physicsManager.detectPathVoxel(0.5, this.voxelHeightHalf, 0.5, localVoxel.position, identityQuaternion, this.maxIterDetect, this.ignorePhysicsIds);
     localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
 
@@ -252,51 +251,6 @@ class PathFinder {
     this.setVoxelo(voxel);
 
     return voxel;
-  }
-
-  detect(voxel, detectDir) {
-    // this.detectCount++;
-    if (this.iterDetect >= this.maxIterDetect) {
-      console.warn('maxIterDetect reached! High probability created wrong redundant voxel with wrong position.y! Especially when localPlayer is flying.');
-      // Use raycast first? No, raycast can only handle line not voxel.
-      return;
-    }
-    this.iterDetect++;
-
-    const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
-    let collide;
-    if (overlapResult.objectIds.length === 1 && this.ignorePhysicsIds.includes(overlapResult.objectIds[0])) {
-      collide = false;
-    } else if (overlapResult.objectIds.length > 0) {
-      collide = true;
-    } else {
-      collide = false;
-    }
-
-    if (detectDir === 0) {
-      if (collide) {
-        detectDir = 1;
-      } else {
-        detectDir = -1;
-      }
-    }
-
-    if (detectDir === 1) {
-      if (collide) {
-        voxel.position.y += detectDir * this.detectStep;
-        this.detect(voxel, detectDir);
-      } else {
-        // do nothing, stop recur
-      }
-    } else if (detectDir === -1) {
-      if (collide) {
-        voxel.position.y += this.detectStep;
-        // do nothing, stop recur
-      } else {
-        voxel.position.y += detectDir * this.detectStep;
-        this.detect(voxel, detectDir);
-      }
-    }
   }
 
   generateVoxelMapLeft(currentVoxel) {
