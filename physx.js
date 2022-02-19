@@ -1386,7 +1386,7 @@ const physxWorker = (() => {
     //console.log(newUpdates);
     return newUpdates;
   };
-  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, flags = {}) => {
+  w.addCapsuleGeometryPhysics = (physics, position, quaternion, radius, halfHeight, physicsMaterial, id, dynamic, flags = {}) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
@@ -1397,7 +1397,7 @@ const physxWorker = (() => {
     physicsMaterial.toArray(mat);
     
     const flagsInt = (
-      (+(flags.physics !== false) << 0) |
+      (+flags.physics << 0) |
       (+flags.ccd << 1)
     );
     moduleInstance._addCapsuleGeometryPhysics(
@@ -1408,6 +1408,7 @@ const physxWorker = (() => {
       halfHeight,
       mat.byteOffset,
       id,
+      dynamic,
       flagsInt,
     );
     allocator.freeAll();
@@ -1432,7 +1433,7 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
-  w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, stepOffset, position, mat) => {
+  w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, stepOffset, position, mat, id) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const m = allocator.alloc(Float32Array, 3);
@@ -1447,7 +1448,8 @@ const physxWorker = (() => {
       contactOffset,
       stepOffset,
       p.byteOffset,
-      m.byteOffset
+      m.byteOffset,
+      id
     );
     allocator.freeAll();
   
