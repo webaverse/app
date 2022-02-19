@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
+import * as sounds from './sounds.js';
 import {
   idleFactorSpeed,
   walkFactorSpeed,
@@ -11,42 +12,11 @@ import {
 } from './constants.js';
 import {
   mod,
-  loadJson,
-  loadAudioBuffer,
+  // loadJson,
+  // loadAudioBuffer,
 } from './util.js';
 
 const localVector = new THREE.Vector3();
-
-let walkSoundFiles;
-let runSoundFiles;
-let jumpSoundFiles;
-let landSoundFiles;
-let narutoRunSoundFiles;
-let soundFileAudioBuffer;
-const loadPromise = (async () => {
-  await Avatar.waitForLoad();
-
-  const audioContext = Avatar.getAudioContext();
-  const [
-    soundFileSpecs,
-    _soundFileAudioBuffer,
-  ] = await Promise.all([
-    loadJson(`/sounds/sound-files.json`),
-    loadAudioBuffer(audioContext, '/sounds/sounds.mp3'),
-  ]);
-
-  // console.log('got specs', soundFileSpecs);
-
-  walkSoundFiles = soundFileSpecs.filter(f => /^walk\//.test(f.name));
-  runSoundFiles = soundFileSpecs.filter(f => /^run\//.test(f.name));
-  jumpSoundFiles = soundFileSpecs.filter(f => /^jump\//.test(f.name));
-  landSoundFiles = soundFileSpecs.filter(f => /^land\//.test(f.name));
-  narutoRunSoundFiles = soundFileSpecs.filter(f => /^narutoRun\//.test(f.name));
-  soundFileAudioBuffer = _soundFileAudioBuffer;
-
-  // console.log('loaded audio', soundFileSpecs, soundFileAudioBuffer);
-})();
-const waitForLoad = () => loadPromise;
 
 // HACK: this is used to dynamically control the step offset for a particular animation
 // it is useful during development to adjust sync between animations and sound
@@ -90,6 +60,9 @@ class CharacterSfx {
     const walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     const crouchFactor = Math.min(Math.max(1 - (this.player.avatar.crouchTime / crouchMaxTime), 0), 1);
 
+    const soundFiles = sounds.getSoundFiles();
+    const soundFileAudioBuffer = sounds.getSoundFileAudioBuffer();
+
     // jump
     const _playSound = audioSpec => {
       const {offset, duration} = audioSpec;
@@ -102,10 +75,10 @@ class CharacterSfx {
     };
     {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
-        const audioSpec = jumpSoundFiles[Math.floor(Math.random() * jumpSoundFiles.length)];
+        const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
         _playSound(audioSpec);
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
-        const audioSpec = landSoundFiles[Math.floor(Math.random() * landSoundFiles.length)];
+        const audioSpec = soundFiles.land[Math.floor(Math.random() * soundFiles.land.length)];
         _playSound(audioSpec);
       }
       this.lastJumpState = this.player.avatar.jumpState;
@@ -131,15 +104,15 @@ class CharacterSfx {
           return animationAngles[0].name;
         }
       })();
-      const soundFiles = (() => {
+      const localSoundFiles = (() => {
         if (isNarutoRun) {
-          return narutoRunSoundFiles;
+          return soundFiles.narutoRun;
         } else if (isCrouching) {
-          return walkSoundFiles;
+          return soundFiles.walk;
         } else if (isRunning) {
-          return runSoundFiles;
+          return soundFiles.run;
         } else {
-          return walkSoundFiles;
+          return soundFiles.walk;
         }
       })();
       const animations = Avatar.getAnimations();
@@ -163,7 +136,7 @@ class CharacterSfx {
         i = i % leftStepIndices.length;
         if (i !== endIndex) {
           if (leftStepIndices[i] && !this.lastStepped[0]) {
-            const candidateAudios = soundFiles//.filter(a => a.paused);
+            const candidateAudios = localSoundFiles//.filter(a => a.paused);
             if (candidateAudios.length > 0) {
               /* for (const a of candidateAudios) {
                 !a.paused && a.pause();
@@ -176,7 +149,7 @@ class CharacterSfx {
           this.lastStepped[0] = leftStepIndices[i];
 
           if (rightStepIndices[i] && !this.lastStepped[1]) {
-            const candidateAudios = soundFiles// .filter(a => a.paused);
+            const candidateAudios = localSoundFiles// .filter(a => a.paused);
             if (candidateAudios.length > 0) {
               /* for (const a of candidateAudios) {
                 !a.paused && a.pause();
@@ -201,6 +174,5 @@ class CharacterSfx {
 }
 
 export {
-  waitForLoad,
   CharacterSfx,
 };
