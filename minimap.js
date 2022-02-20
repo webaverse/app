@@ -297,7 +297,7 @@ class MiniMap {
       this.mapRenderTarget2 = tempRenderTarget;
     };
     const _ensureMapRenderTarget = () => {
-      if (!this.mapRenderTarget) {
+      if (this.mapRenderTarget === null) {
         this.mapRenderTarget = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
         this.mapRenderTarget2 = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
       }
