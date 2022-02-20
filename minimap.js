@@ -30,7 +30,6 @@ const cameraHeight = 50;
 // debug mirrors
 
 const fullscreenVertexShader = `\
-  // uniform vec4 uUvOffset;
   varying vec2 vUv;
 
   void main() {
@@ -44,14 +43,7 @@ const fullscreenFragmentShader = `\
   varying vec2 vUv;
 
   void main() {
-    // vec2 uv = uUvOffset.xy + vUv + uUvOffset.zw;
-    // gl_FragColor = texture2D(uTex, uv);
-    // vec2 uv = vUv;
-    // uv.y = 1. - uv.y;
-    // vec2 oUv = uUvOffset.xy;
-    // oUv.y = 1. - oUv.y;
     gl_FragColor = texture2D(uTex, (vUv + 1. +  uUvOffset.xy) * uUvOffset.zw);
-    // gl_FragColor.gb += uv * 0.05;
   }
 `;
 
