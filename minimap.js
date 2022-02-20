@@ -29,6 +29,32 @@ const cameraHeight = 50;
 // do not render avatars
 // debug mirrors
 
+const fullscreenVertexShader = `\
+  // uniform vec4 uUvOffset;
+  varying vec2 vUv;
+
+  void main() {
+    vUv = uv;
+    gl_Position = vec4(position.xy, 1.0, 1.0);
+  }
+`;
+const fullscreenFragmentShader = `\
+  uniform sampler2D uTex;
+  uniform vec4 uUvOffset;
+  varying vec2 vUv;
+
+  void main() {
+    // vec2 uv = uUvOffset.xy + vUv + uUvOffset.zw;
+    // gl_FragColor = texture2D(uTex, uv);
+    // vec2 uv = vUv;
+    // uv.y = 1. - uv.y;
+    // vec2 oUv = uUvOffset.xy;
+    // oUv.y = 1. - oUv.y;
+    gl_FragColor = texture2D(uTex, (vUv + 1. +  uUvOffset.xy) * uUvOffset.zw);
+    // gl_FragColor.gb += uv * 0.05;
+  }
+`;
+
 const vertexShader = `\
   varying vec2 vUv;
   varying vec3 vPosition;
@@ -40,8 +66,6 @@ const vertexShader = `\
   }
 `;
 const floorFragmentShader = `\
-  // uniform float iTime;
-  // uniform int iFrame;
   uniform sampler2D uTex;
   varying vec2 vUv;
 
@@ -56,8 +80,6 @@ const floorFragmentShader = `\
   }
 `;
 const reticleFragmentShader = `\
-  // uniform float iTime;
-  // uniform int iFrame;
   uniform sampler2D uTex;
   varying vec2 vUv;
   varying vec3 vPosition;
@@ -87,18 +109,46 @@ const _makeMapRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
 
 const pixelRatio = window.devicePixelRatio;
 
-const _makeScene = (renderTarget, worldWidth, worldHeight) => {
+const _makeCopyScene = () => {
   const scene = new THREE.Scene();
   
   // full screen quad mesh
+  const fullScreenQuadMesh = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(2, 2),
+    new THREE.ShaderMaterial({
+      uniforms: {
+        uTex: {
+          value: null,
+          needsUpdate: false,
+        },
+        uUvOffset: {
+          value: new THREE.Vector4(),
+          needsUpdate: true,
+        }
+      },
+      vertexShader: fullscreenVertexShader,
+      fragmentShader: fullscreenFragmentShader,
+      depthTest: false,
+    }),
+  );
+  fullScreenQuadMesh.frustumCulled = false;
+  scene.add(fullScreenQuadMesh);
+  scene.fullScreenQuadMesh = fullScreenQuadMesh;
+
+  return scene;
+};
+const _makeScene = (renderTarget, worldWidth, worldHeight) => {
+  const scene = new THREE.Scene();
+  
+  // floor map mesh
   const floorMesh = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
       .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
     new THREE.ShaderMaterial({
       uniforms: {
         uTex: {
-          value: renderTarget.texture,
-          needsUpdate: true,
+          value: null,
+          needsUpdate: false,
         },
       },
       vertexShader,
@@ -110,11 +160,10 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
   scene.add(floorMesh);
   scene.floorMesh = floorMesh;
 
-  const reticleWidth = worldWidth/6;
-  // const reticleHeight = worldHeight/10;
+  // map direction pointer mesh
+  const reticleSize = worldWidth/6;
   const reticleMesh = new THREE.Mesh(
     new THREE.CircleGeometry(1, 4, Math.PI/2/2, Math.PI/2)
-      // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, reticleWidth/2, 0))
       .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
     new THREE.ShaderMaterial({
       uniforms: {
@@ -127,7 +176,7 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
       fragmentShader: reticleFragmentShader,
     })
   );
-  reticleMesh.scale.setScalar(reticleWidth);
+  reticleMesh.scale.setScalar(reticleSize);
   reticleMesh.frustumCulled = false;
   scene.add(reticleMesh);
   scene.reticleMesh = reticleMesh;
@@ -154,10 +203,13 @@ class MiniMap {
       1000
     );
     this.mapRenderTarget = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
+    this.mapRenderTarget2 = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
     this.canvasIndices = new Int32Array(3 * 3 * 2);
     this.canvasIndices.fill(0xffff);
     this.scene = _makeScene(this.mapRenderTarget, this.worldWidth, this.worldHeight);
     this.camera = new THREE.OrthographicCamera(-this.worldWidth/2, this.worldWidth/2, this.worldHeight/2, -this.worldHeight/2, 0, 1000);
+
+    this.copyScene = _makeCopyScene();
 
     this.canvases = [];
 
@@ -177,10 +229,6 @@ class MiniMap {
     this.canvases.length = 0;
   }
   addCanvas(canvas) {
-    // const {width, height} = canvas;
-    // this.width = Math.max(this.width, width);
-    // this.height = Math.max(this.height, height);
-
     const ctx = canvas.getContext('2d');
     canvas.ctx = ctx;
 
@@ -218,17 +266,44 @@ class MiniMap {
       this.topCamera.updateMatrixWorld();
       
       renderer.setViewport((dx+1) * this.width/3, (-dy+1) * this.height/3, this.width/3, this.height/3);
-      // renderer.setViewport(0, 0, this.width, this.height);
-      // for (const scene of regularScenes) {
-        renderer.render(rootScene, this.topCamera);
-      // }
+      renderer.render(rootScene, this.topCamera);
+    };
+    const _copy = (srcRenderTarget, px, py, dx, dy) => {
+      this.copyScene.fullScreenQuadMesh.material.uniforms.uUvOffset.value.set(px, -py, 1/3, 1/3);
+      this.copyScene.fullScreenQuadMesh.material.uniforms.uUvOffset.needsUpdate = true;
+      this.copyScene.fullScreenQuadMesh.material.uniforms.uTex.value = srcRenderTarget.texture;
+      this.copyScene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
+
+      renderer.setViewport((dx+1) * this.width/3, (-dy+1) * this.height/3, this.width/3, this.height/3);
+      renderer.render(this.copyScene, this.topCamera);
+    };
+    const _swapBuffers = () => {
+      const tempRenderTarget = this.mapRenderTarget;
+      this.mapRenderTarget = this.mapRenderTarget2;
+      this.mapRenderTarget2 = tempRenderTarget;
     };
     const _updateTiles = () => {
       const baseX = Math.floor(localPlayer.position.x / this.worldWidthD3 + 0.5);
       const baseY = Math.floor(localPlayer.position.z / this.worldHeightD3 + 0.5);
 
+      const _getPreviousOffset = (ax, ay) => {
+        if (this.worldEpoch === this.lastWorldEpoch) {
+          const previousOffset = new THREE.Vector2(ax, ay)
+            .sub(this.lastBase);
+          const dx = previousOffset.x;
+          const dy = previousOffset.y;
+          if (dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1) {
+            return new THREE.Vector2(dx, dy);
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      };
+
       if (baseX !== this.lastBase.x || baseY !== this.lastBase.y || this.worldEpoch !== this.lastWorldEpoch) {
-        renderer.setRenderTarget(this.mapRenderTarget);
+        renderer.setRenderTarget(this.mapRenderTarget2);
         renderer.setViewport(0, 0, this.width, this.height);
         renderer.clear();
         
@@ -237,18 +312,30 @@ class MiniMap {
           for (let dx = -1; dx <= 1; dx++) {
             const ix = baseX + dx;
             const iy = baseY + dy;
-            const requiredIndex = localVector2D3.set(ix, iy);
-            _render(baseX, baseY, dx, dy);
-            requiredIndex.toArray(this.canvasIndices, index * 2);
+            // const requiredIndex = localVector2D3.set(ix, iy);
+
+            const previousOffset = _getPreviousOffset(ix, iy);
+            if (previousOffset) {
+              _copy(this.mapRenderTarget, previousOffset.x, previousOffset.y, dx, dy);
+            } else {
+              _render(baseX, baseY, dx, dy);
+            }
+            // requiredIndex.toArray(this.canvasIndices, index * 2);
             index++;
           }
         }
 
+        this.scene.floorMesh.material.uniforms.uTex.value = this.mapRenderTarget2.texture;
+        this.scene.floorMesh.material.uniforms.uTex.needsUpdate = true;
         this.scene.floorMesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
         this.scene.floorMesh.updateMatrixWorld();
 
         this.lastBase.set(baseX, baseY);
         this.lastWorldEpoch = this.worldEpoch;
+
+        renderer.setRenderTarget(oldRenderTarget);
+
+        _swapBuffers();
       }
     };
     _updateTiles();
