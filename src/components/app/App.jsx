@@ -6,7 +6,7 @@ import { defaultAvatarUrl } from '../../../constants';
 import dropManager from '../../../drop-manager.js';
 
 import Webaverse from '../../../webaverse.js';
-import * as universe from '../../../universe.js';
+import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
 
 import { ActionMenu } from '../general/action-menu';

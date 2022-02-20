@@ -33,7 +33,7 @@ import {chatManager} from './chat-manager.js';
 import loreAI from './lore-ai.js';
 import loreAIScene from './lore-ai-scene.js';
 import npcManager from './npc-manager.js';
-import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
+import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
 import loaders from './loaders.js';
 import {getHeight} from './avatars/util.mjs';
@@ -887,10 +887,10 @@ export default () => {
     return gradientMaps;
   },
   isSceneLoaded() {
-    return isSceneLoaded();
+    return universe.isSceneLoaded();
   },
   async waitForSceneLoaded() {
-    await waitForSceneLoaded();
+    await universe.waitForSceneLoaded();
   },
   async addModule(app, m) {
     currentAppRender = app;
