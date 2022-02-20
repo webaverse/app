@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
   getRenderer,
   rootScene,
@@ -78,7 +79,7 @@ const floorFragmentShader = `\
     // vec2 uv = screenSpaceUv * 2. - 1.;
     vec2 uv = screenSpaceUv;
     float l = length(uv - vec2(0.25));
-    if (l < 0.25) {
+    if (l < 0.25 * 0.85) {
       mainImage(gl_FragColor, vUv);
       gl_FragColor.gb += uv * 0.5;
     } else {
@@ -107,6 +108,51 @@ const reticleFragmentShader = `\
     }
   }
 `;
+const compassFragmentShader = `\
+  void main() {
+    gl_FragColor = vec4(0., 0., 0., 1.);
+  }
+`;
+
+const compassGeometry = (() => {
+  const path = new THREE.Shape();
+  path.moveTo(-0.15, 0.85);
+  path.lineTo(0, 1);
+  path.lineTo(0.15, 0.85);
+  path.lineTo(-0.15, 0.85);
+  const roseGeometry = new THREE.ShapeGeometry(path);
+
+  const ringGeometry = new THREE.RingGeometry(
+    0.825, // innerRadius
+    0.9, // outerRadius
+    32, // thetaSegments
+    1, // phiSegments
+  );
+
+  return BufferGeometryUtils.mergeBufferGeometries([
+    roseGeometry,
+    ringGeometry,
+  ]).applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+})();
+const compassMaterial = new THREE.ShaderMaterial({
+  /* uniforms: {
+    uTex: {
+      value: null,
+      needsUpdate: false,
+    },
+    uUvOffset: {
+      value: new THREE.Vector4(),
+      needsUpdate: true,
+    },
+  }, */
+  vertexShader,
+  fragmentShader: compassFragmentShader,
+  depthTest: false,
+  // transparent: true,
+});
+/* const compassMaterial = new THREE.MeshBasicMaterial({
+  color: 0x000000,
+}); */
 
 const _makeMapRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   minFilter: THREE.LinearFilter,
@@ -191,6 +237,17 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
   reticleMesh.frustumCulled = false;
   scene.add(reticleMesh);
   scene.reticleMesh = reticleMesh;
+
+  const compassSize = worldWidth/2;
+  const compassMesh = new THREE.Mesh(
+    compassGeometry,
+    compassMaterial,
+  );
+  compassMesh.scale.setScalar(compassSize);
+  compassMesh.updateMatrixWorld();
+  compassMesh.frustumCulled = false;
+  scene.add(compassMesh);
+  scene.compassMesh = compassMesh;
 
   return scene;
 };
@@ -400,6 +457,13 @@ class MiniMap {
       localEuler.z = 0;
       this.scene.reticleMesh.quaternion.setFromEuler(localEuler);
       this.scene.reticleMesh.updateMatrixWorld();
+
+      this.scene.compassMesh.position.copy(this.scene.reticleMesh.position);
+      /* localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      this.scene.compassMesh.quaternion.setFromEuler(localEuler); */
+      this.scene.compassMesh.updateMatrixWorld();
 
       renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(0, 0, this.width, this.height);
