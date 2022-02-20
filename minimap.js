@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {
   getRenderer,
+  rootScene,
   sceneHighPriority,
   scene,
   sceneLowPriority,
@@ -21,10 +22,11 @@ const localVector2D4 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 
-const regularScenes = [
-  scene,
+/* const regularScenes = [
   sceneHighPriority,
-];
+  scene,
+  sceneLowPriority,
+]; */
 const cameraHeight = 50;
 
 const vertexShader = `\
@@ -168,9 +170,9 @@ class MiniMap {
       
       renderer.setViewport((dx+1) * this.width/3, (-dy+1) * this.height/3, this.width/3, this.height/3);
       // renderer.setViewport(0, 0, this.width, this.height);
-      for (const scene of regularScenes) {
-        renderer.render(scene, this.topCamera);
-      }
+      // for (const scene of regularScenes) {
+        renderer.render(rootScene, this.topCamera);
+      // }
     };
     const _updateTiles = () => {
       let first = true;
