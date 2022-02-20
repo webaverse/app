@@ -1,7 +1,7 @@
 import {Vector3, Matrix4, Mesh, BoxGeometry, PlaneGeometry, DoubleSide, sRGBEncoding, MeshBasicMaterial, NearestFilter, Texture} from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {scene, renderer, camera, runtime, world, physics, ui, app, appManager} from 'app';
-import metaversefile from 'metaversefile';
+import {metaversefile} from 'metaversefile';
 const {useApp, useActivate, removeApp} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\/]*$/, '$1');

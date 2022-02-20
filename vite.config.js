@@ -1,28 +1,19 @@
+/* eslint-disable no-unused-expressions */
 import {defineConfig} from 'vite';
 import reactRefresh from '@vitejs/plugin-react-refresh';
 import metaversefilePlugin from 'metaversefile/plugins/rollup.js';
 import {dependencies} from './package.json';
 import fs from 'fs';
+import defaultExport from 'rollup-plugin-export-default';
 
-function renderChunks(deps) {
-  const chunks = {};
-  Object.keys(deps).forEach(key => {
-    if (['three', 'metaversefile'].includes(key)) return;
-    chunks[key] = [key];
-  });
-  return chunks;
-}
+let plugins = [reactRefresh()];
+/** Use totum if not production */
+plugins = process.env.NODE_ENV !== 'production' ? plugins.concat([metaversefilePlugin(), defaultExport()]) : [];
 
 const build = () => {
   return {
-    name: 'build-provider', // this name will show up in warnings and errors
-    // moduleParsed(data) {
-    //   console.log('***********PLUGIN - 1**************', data);
-    //   return null;
-    // },
-
+    name: 'build-provider',
     generateBundle(options, bundle) {
-      console.log('***********PLUGIN - 2**************', options);
       const exports = {
         // "_____NAME______", "filePath"
       };
@@ -34,9 +25,7 @@ const build = () => {
           }
         }
       }
-      fs.writeFileSync('bundle.json', JSON.stringify(exports, null, 4));
-      fs.writeFileSync('actualBundle.json', JSON.stringify(bundle, null, 4));
-
+      fs.writeFileSync('dist/dependencies.json', JSON.stringify(exports, null, 4));
       return null;
     },
   };
@@ -44,28 +33,25 @@ const build = () => {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    reactRefresh(),
-    // metaversefilePlugin(),
-  ],
+  plugins,
   build: {
     sourcemap: false,
-    polyfillDynamicImport: true,
     rollupOptions: {
       external: ['plugin-transform-react-jsx'],
       output: {
         minifyInternalExports: false,
+        syntheticNamedExports: 'default',
         manualChunks: id => {
-          if (id.includes('packages/three/build')) {
+          if (id.includes('three/examples') || id.includes('three/build')) {
+            console.log('*******           ' + id + '           *******');
             return 'three';
-          }else if(id.includes('web3.min.js')){
+          } else if (id.includes('web3.min.js')) {
             return 'web3';
-          }else if(id.includes('metaversefile.js') || id.includes('totum')){
-            return 'metaversefile'
-          }  else if(id.includes('metaversefile-api.js')){
-            return 'metaversefile-api'
+          } else if (id.includes('metaversefile.js') || id.includes('totum')) {
+            return 'metaversefile';
+          } else if (id.includes('metaversefile-api.js')) {
+            return 'metaversefile-api';
           }
-
         },
         assetFileNames: 'assets/[name].[ext]',
         chunkFileNames: 'assets/[name].js',

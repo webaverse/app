@@ -1,0 +1,21 @@
+import {build} from 'vite';
+import path from 'path';
+import {execSync} from 'child_process';
+
+(async () => {
+  /** Create Build */
+
+  await build({
+    root: '.',
+    base: './',
+  });
+
+  /** Copy scene directory */
+  execSync('cp -r ./scenes ./dist/scenes');
+
+  /** Copy scene directory */
+  execSync('cp -r ./metaverse_modules ./dist/metaverse_modules');
+
+  /** Copy public directory */
+  execSync('cp -r ./public/* ./dist/');
+})();

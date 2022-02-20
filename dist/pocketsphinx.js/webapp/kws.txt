@@ -1,3 +1,0 @@
-turn left
-turn right
-go straight

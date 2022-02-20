@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 // import easing from './easing.js';
-import metaversefile from 'metaversefile';
+import {metaversefile} from 'metaversefile';
 const {useApp, useFrame} = metaversefile;
 
 const cardPreviewHost = `https://card-preview.exokit.org`;
