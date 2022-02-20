@@ -326,11 +326,11 @@ class MiniMap {
   
     const _render = (baseX, baseY, dx, dy) => {
       // set up top camera
-      this.topCamera.position.set((baseX + dx) * this.worldWidthD3, cameraHeight, (baseY + dy) * this.worldHeightD3);
+      this.topCamera.position.set((baseX + dx) * this.worldWidthD3, localPlayer.position.y + cameraHeight, (baseY + dy) * this.worldHeightD3);
       this.topCamera.quaternion.setFromRotationMatrix(
         localMatrix.lookAt(
-          localVector.copy(this.topCamera.position),
-          localVector2.set(this.topCamera.position.x, 0, this.topCamera.position.z),
+          this.topCamera.position,
+          localVector2.set(this.topCamera.position.x, localPlayer.position.y, this.topCamera.position.z),
           localVector3.set(0, 0, -1)
         )
       );
