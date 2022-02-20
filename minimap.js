@@ -2,16 +2,13 @@ import * as THREE from 'three';
 import {
   getRenderer,
   rootScene,
-  sceneHighPriority,
+  /* sceneHighPriority,
   scene,
-  sceneLowPriority,
+  sceneLowPriority, */
   camera,
 } from './renderer.js';
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-// import {world} from './world.js';
 import universe from './universe.js';
 import metaversefileApi from 'metaversefile';
-// import {fitCameraToBoundingBox} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -19,15 +16,9 @@ const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localVector2D3 = new THREE.Vector2();
-// const localVector2D4 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 
-/* const regularScenes = [
-  sceneHighPriority,
-  scene,
-  sceneLowPriority,
-]; */
 const cameraHeight = 50;
 
 const vertexShader = `\
@@ -63,7 +54,6 @@ const _makeMapRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   format: THREE.RGBAFormat,
 });
 
-// const minimapWorldSize = 100;
 const pixelRatio = window.devicePixelRatio;
 
 const _makeScene = (renderTarget, worldWidth, worldHeight) => {
@@ -72,21 +62,17 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
   // full screen quad mesh
   const mesh = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
-      // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -1)),
       .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
     new THREE.ShaderMaterial({
-      // map: renderTarget.texture,
       uniforms: {
         uTex: {
           value: renderTarget.texture,
-          // needsUpdate: true,
+          needsUpdate: true,
         },
       },
       vertexShader,
       fragmentShader,
-      // transparent: true,
       depthTest: false,
-      // depthWrite: false,
     }),
   );
   mesh.frustumCulled = false;
@@ -163,7 +149,6 @@ class MiniMap {
     }
 
     // push old state
-    // const oldParent = app.parent;
     const oldRenderTarget = renderer.getRenderTarget();
     const oldViewport = renderer.getViewport(localVector4D);
   
@@ -207,7 +192,6 @@ class MiniMap {
         }
 
         this.scene.mesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
-        // this.scene.mesh.scale.set(this.worldWidth, 1, this.worldHeight);
         this.scene.mesh.updateMatrixWorld();
 
         this.lastBase.set(baseX, baseY);
