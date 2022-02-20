@@ -460,10 +460,6 @@ class MiniMap {
       this.scene.reticleMesh.updateMatrixWorld();
 
       this.scene.compassMesh.position.copy(this.scene.reticleMesh.position);
-      /* localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      this.scene.compassMesh.quaternion.setFromEuler(localEuler); */
       this.scene.compassMesh.updateMatrixWorld();
 
       renderer.setRenderTarget(oldRenderTarget);
