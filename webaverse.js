@@ -407,6 +407,8 @@ export default class Webaverse extends EventTarget {
       dioramaManager.update(timestamp, timeDiffCapped);
       minimapManager.update(timestamp, timeDiffCapped);
       this.render(timestamp, timeDiffCapped);
+
+      renderer.info.reset();
     }
     renderer.setAnimationLoop(animate);
 
