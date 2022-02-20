@@ -33,7 +33,6 @@ const _waitForFrame = () => new Promise(accept => {
 // add compass border circle
 // add compass north
 // do not render avatars
-// debug mirrors
 
 const fullscreenVertexShader = `\
   varying vec2 vUv;
