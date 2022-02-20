@@ -9,6 +9,7 @@ import {
 } from './renderer.js';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
+import universe from './universe.js';
 import metaversefileApi from 'metaversefile';
 // import {fitCameraToBoundingBox} from './util.js';
 
@@ -18,7 +19,7 @@ const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localVector2D3 = new THREE.Vector2();
-const localVector2D4 = new THREE.Vector2();
+// const localVector2D4 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 
@@ -120,6 +121,18 @@ class MiniMap {
     this.camera = new THREE.OrthographicCamera(-this.worldWidth/2, this.worldWidth/2, this.worldHeight/2, -this.worldHeight/2, 0, 1000);
 
     this.canvases = [];
+
+    this.worldEpoch = 0;
+    const worldload = e => {
+      this.worldEpoch++;
+    }
+    universe.addEventListener('worldload', worldload);
+    this.cleanup = () => {
+      universe.removeEventListener('worldload', worldload);
+    };
+
+    this.lastBase = new THREE.Vector2(NaN, NaN);
+    this.lastWorldEpoch = -1;
   }
   resetCanvases() {
     this.canvases.length = 0;
@@ -136,8 +149,6 @@ class MiniMap {
   }
   update(timestamp, timeDiff) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-
-    // console.log('update');
 
     const renderer = getRenderer();
     const size = renderer.getSize(localVector2D);
@@ -175,35 +186,33 @@ class MiniMap {
       // }
     };
     const _updateTiles = () => {
-      let first = true;
+      const baseX = Math.floor(localPlayer.position.x / this.worldWidthD3 + 0.5);
+      const baseY = Math.floor(localPlayer.position.z / this.worldHeightD3 + 0.5);
 
-      let baseX = Math.floor(localPlayer.position.x / this.worldWidthD3 + 0.5);
-      let baseY = Math.floor(localPlayer.position.z / this.worldHeightD3 + 0.5);
-
-      let index = 0;
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dx = -1; dx <= 1; dx++) {
-          const ix = baseX + dx;
-          const iy = baseY + dy;
-          const requiredIndex = localVector2D3.set(ix, iy);
-          const currentIndex = localVector2D4.fromArray(this.canvasIndices, index * 2);
-          // if (!currentIndex.equals(requiredIndex)) {
-            if (first) {
-              renderer.setRenderTarget(this.mapRenderTarget);
-              renderer.setViewport(0, 0, this.width, this.height);
-              renderer.clear();
-              first = false;
-            }
+      if (baseX !== this.lastBase.x || baseY !== this.lastBase.y || this.worldEpoch !== this.lastWorldEpoch) {
+        renderer.setRenderTarget(this.mapRenderTarget);
+        renderer.setViewport(0, 0, this.width, this.height);
+        renderer.clear();
+        
+        let index = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const ix = baseX + dx;
+            const iy = baseY + dy;
+            const requiredIndex = localVector2D3.set(ix, iy);
             _render(baseX, baseY, dx, dy);
             requiredIndex.toArray(this.canvasIndices, index * 2);
-          // }
-          index++;
+            index++;
+          }
         }
-      }
 
-      this.scene.mesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
-      // this.scene.mesh.scale.set(this.worldWidth, 1, this.worldHeight);
-      this.scene.mesh.updateMatrixWorld();
+        this.scene.mesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
+        // this.scene.mesh.scale.set(this.worldWidth, 1, this.worldHeight);
+        this.scene.mesh.updateMatrixWorld();
+
+        this.lastBase.set(baseX, baseY);
+        this.lastWorldEpoch = this.worldEpoch;
+      }
     };
     _updateTiles();
 
@@ -256,6 +265,7 @@ class MiniMap {
       canvas.parentNode.removeChild(canvas);
     }
     minimaps.splice(minimaps.indexOf(this), 1);
+    this.cleanup();
   }
 }
 
