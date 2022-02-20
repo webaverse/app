@@ -20,6 +20,7 @@ import hpManager from './hp-manager.js';
 // import equipmentRender from './equipment-render.js';
 // import * as characterController from './character-controller.js';
 import {playersManager} from './players-manager.js';
+import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
 import {Stats} from './stats.js';
 import {
@@ -404,6 +405,7 @@ export default class Webaverse extends EventTarget {
 
       // render scenes
       dioramaManager.update(timestamp, timeDiffCapped);
+      minimapManager.update(timestamp, timeDiffCapped);
       this.render(timestamp, timeDiffCapped);
     }
     renderer.setAnimationLoop(animate);
