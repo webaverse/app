@@ -853,6 +853,9 @@ const physxWorker = (() => {
       moduleInstance.HEAPF32[head + 1],
       moduleInstance.HEAPF32[head + 2],
       moduleInstance.HEAPF32[head + 3],
+      moduleInstance.HEAPF32[head + 4],
+      moduleInstance.HEAPF32[head + 5],
+      moduleInstance.HEAPF32[head + 6],
     );
 
     moduleInstance._doFree(outputBufferOffset);
