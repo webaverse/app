@@ -25,7 +25,7 @@ const cameraHeight = 50;
 // XXX TODO:
 // add compass border circle
 // add compass north
-// render at mose once per frame
+// render at most once per frame
 // do not render avatars
 // debug mirrors
 
