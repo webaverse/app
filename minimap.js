@@ -22,7 +22,6 @@ const localMatrix = new THREE.Matrix4();
 const cameraHeight = 50;
 
 // XXX TODO:
-// add center reticle
 // add compass border circle
 // add compass north
 // render at mose once per frame
@@ -31,13 +30,15 @@ const cameraHeight = 50;
 
 const vertexShader = `\
   varying vec2 vUv;
+  varying vec3 vPosition;
 
   void main() {
     vUv = uv;
+    vPosition = position;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
-const fragmentShader = `\
+const floorFragmentShader = `\
   // uniform float iTime;
   // uniform int iFrame;
   uniform sampler2D uTex;
@@ -47,12 +48,33 @@ const fragmentShader = `\
     vec4 c = texture2D(uTex, fragCoord);
     fragColor = c;
     fragColor.a = 1.;
-    // fragColor.bg = vUv;
-    // fragColor.rgb = vec3(1., 0., 0.);
   }
 
   void main() {
     mainImage(gl_FragColor, vUv);
+  }
+`;
+const reticleFragmentShader = `\
+  // uniform float iTime;
+  // uniform int iFrame;
+  uniform sampler2D uTex;
+  varying vec2 vUv;
+  varying vec3 vPosition;
+
+  #define PI 3.1415926535897932384626433832795
+
+  void main() {
+    float angle = (PI/4. + atan(vPosition.x, -vPosition.z)) / (PI/2.);
+    float l = length(vPosition);
+    // angle *= length(vPosition);
+    // angle = min(angle, 1. - angle);
+    float angleDistanceToEdge = min(angle, 1. - angle);
+    angleDistanceToEdge *= l;
+    gl_FragColor.a = 1.;
+    gl_FragColor.r = angle;
+    if (angleDistanceToEdge <= 0.04 || l >= 0.95) {
+      gl_FragColor.rgb = vec3(1.);
+    }
   }
 `;
 
@@ -68,7 +90,7 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
   const scene = new THREE.Scene();
   
   // full screen quad mesh
-  const mesh = new THREE.Mesh(
+  const floorMesh = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
       .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
     new THREE.ShaderMaterial({
@@ -79,13 +101,35 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
         },
       },
       vertexShader,
-      fragmentShader,
+      fragmentShader: floorFragmentShader,
       depthTest: false,
     }),
   );
-  mesh.frustumCulled = false;
-  scene.mesh = mesh;
-  scene.add(mesh);
+  floorMesh.frustumCulled = false;
+  scene.add(floorMesh);
+  scene.floorMesh = floorMesh;
+
+  const reticleWidth = worldWidth/6;
+  // const reticleHeight = worldHeight/10;
+  const reticleMesh = new THREE.Mesh(
+    new THREE.CircleGeometry(1, 4, Math.PI/2/2, Math.PI/2)
+      // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, reticleWidth/2, 0))
+      .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
+    new THREE.ShaderMaterial({
+      uniforms: {
+        uTex: {
+          value: renderTarget.texture,
+          needsUpdate: true,
+        },
+      },
+      vertexShader,
+      fragmentShader: reticleFragmentShader,
+    })
+  );
+  reticleMesh.scale.setScalar(reticleWidth);
+  reticleMesh.frustumCulled = false;
+  scene.add(reticleMesh);
+  scene.reticleMesh = reticleMesh;
 
   return scene;
 };
@@ -199,8 +243,8 @@ class MiniMap {
           }
         }
 
-        this.scene.mesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
-        this.scene.mesh.updateMatrixWorld();
+        this.scene.floorMesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
+        this.scene.floorMesh.updateMatrixWorld();
 
         this.lastBase.set(baseX, baseY);
         this.lastWorldEpoch = this.worldEpoch;
@@ -209,6 +253,10 @@ class MiniMap {
     _updateTiles();
 
     const _renderMiniMap = () => {
+      this.scene.reticleMesh.position.set(localPlayer.position.x, cameraHeight - 1, localPlayer.position.z);
+      this.scene.reticleMesh.quaternion.copy(localPlayer.quaternion);
+      this.scene.reticleMesh.updateMatrixWorld();
+
       renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(0, 0, this.width, this.height);
       renderer.clear();
