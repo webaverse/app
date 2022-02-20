@@ -40,11 +40,11 @@ export default defineConfig({
       external: ['plugin-transform-react-jsx'],
       output: {
         minifyInternalExports: false,
-        syntheticNamedExports: 'default',
         manualChunks: id => {
           if (id.includes('three/examples') || id.includes('three/build')) {
-            console.log('*******           ' + id + '           *******');
             return 'three';
+          } else if (id.includes('three-vrm')) {
+            return 'three-vrm';
           } else if (id.includes('web3.min.js')) {
             return 'web3';
           } else if (id.includes('metaversefile.js') || id.includes('totum')) {
