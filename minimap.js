@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
   getRenderer,
   rootScene,
@@ -17,11 +18,11 @@ const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localVector2D3 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
-const localVector4D2 = new THREE.Vector4();
+// const localVector4D2 = new THREE.Vector4();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
-const cameraHeight = 50;
+const cameraHeight = 15;
 
 const _waitForFrame = () => new Promise(accept => {
   requestAnimationFrame(() => {
@@ -33,7 +34,6 @@ const _waitForFrame = () => new Promise(accept => {
 // add compass border circle
 // add compass north
 // do not render avatars
-// debug mirrors
 
 const fullscreenVertexShader = `\
   varying vec2 vUv;
@@ -65,6 +65,7 @@ const vertexShader = `\
 `;
 const floorFragmentShader = `\
   uniform sampler2D uTex;
+  uniform vec2 uScreenSize;
   varying vec2 vUv;
 
   void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
@@ -74,7 +75,16 @@ const floorFragmentShader = `\
   }
 
   void main() {
-    mainImage(gl_FragColor, vUv);
+    vec2 screenSpaceUv = gl_FragCoord.xy / uScreenSize;
+    // vec2 uv = screenSpaceUv * 2. - 1.;
+    vec2 uv = screenSpaceUv;
+    float l = length(uv - vec2(0.25));
+    if (l < 0.25 * 0.85) {
+      mainImage(gl_FragColor, vUv);
+      gl_FragColor.gb += uv * 0.5;
+    } else {
+      discard;
+    }
   }
 `;
 const reticleFragmentShader = `\
@@ -91,13 +101,58 @@ const reticleFragmentShader = `\
     // angle = min(angle, 1. - angle);
     float angleDistanceToEdge = min(angle, 1. - angle);
     angleDistanceToEdge *= l;
-    gl_FragColor.a = 1.;
     gl_FragColor.r = angle;
     if (angleDistanceToEdge <= 0.04 || l >= 0.95) {
       gl_FragColor.rgb = vec3(1.);
     }
+    gl_FragColor.a = 1. - l;
   }
 `;
+const compassFragmentShader = `\
+  void main() {
+    gl_FragColor = vec4(0., 0., 0., 1.);
+  }
+`;
+
+const compassGeometry = (() => {
+  const path = new THREE.Shape();
+  path.moveTo(-0.15, 0.85);
+  path.lineTo(0, 1);
+  path.lineTo(0.15, 0.85);
+  path.lineTo(-0.15, 0.85);
+  const roseGeometry = new THREE.ShapeGeometry(path);
+
+  const ringGeometry = new THREE.RingGeometry(
+    0.825, // innerRadius
+    0.9, // outerRadius
+    32, // thetaSegments
+    1, // phiSegments
+  );
+
+  return BufferGeometryUtils.mergeBufferGeometries([
+    roseGeometry,
+    ringGeometry,
+  ]).applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+})();
+const compassMaterial = new THREE.ShaderMaterial({
+  /* uniforms: {
+    uTex: {
+      value: null,
+      needsUpdate: false,
+    },
+    uUvOffset: {
+      value: new THREE.Vector4(),
+      needsUpdate: true,
+    },
+  }, */
+  vertexShader,
+  fragmentShader: compassFragmentShader,
+  depthTest: false,
+  // transparent: true,
+});
+/* const compassMaterial = new THREE.MeshBasicMaterial({
+  color: 0x000000,
+}); */
 
 const _makeMapRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   minFilter: THREE.LinearFilter,
@@ -105,7 +160,6 @@ const _makeMapRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   format: THREE.RGBAFormat,
 });
 
-const pixelRatio = window.devicePixelRatio;
 
 const _makeCopyScene = () => {
   const scene = new THREE.Scene();
@@ -122,7 +176,7 @@ const _makeCopyScene = () => {
         uUvOffset: {
           value: new THREE.Vector4(),
           needsUpdate: true,
-        }
+        },
       },
       vertexShader: fullscreenVertexShader,
       fragmentShader: fullscreenFragmentShader,
@@ -148,10 +202,15 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
           value: null,
           needsUpdate: false,
         },
+        uScreenSize: {
+          value: new THREE.Vector2(),
+          needsUpdate: true,
+        },
       },
       vertexShader,
       fragmentShader: floorFragmentShader,
       depthTest: false,
+      // transparent: true,
     }),
   );
   floorMesh.frustumCulled = false;
@@ -165,19 +224,31 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
       .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
     new THREE.ShaderMaterial({
       uniforms: {
-        uTex: {
+        /* uTex: {
           value: renderTarget.texture,
           needsUpdate: true,
-        },
+        }, */
       },
       vertexShader,
       fragmentShader: reticleFragmentShader,
+      transparent: true,
     })
   );
   reticleMesh.scale.setScalar(reticleSize);
   reticleMesh.frustumCulled = false;
   scene.add(reticleMesh);
   scene.reticleMesh = reticleMesh;
+
+  const compassSize = worldWidth/2;
+  const compassMesh = new THREE.Mesh(
+    compassGeometry,
+    compassMaterial,
+  );
+  compassMesh.scale.setScalar(compassSize);
+  compassMesh.updateMatrixWorld();
+  compassMesh.frustumCulled = false;
+  scene.add(compassMesh);
+  scene.compassMesh = compassMesh;
 
   return scene;
 };
@@ -201,8 +272,8 @@ class MiniMap {
       0,
       1000
     );
-    this.mapRenderTarget = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
-    this.mapRenderTarget2 = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
+    this.mapRenderTarget = null;
+    this.mapRenderTarget2 = null;
     this.scene = _makeScene(this.mapRenderTarget, this.worldWidth, this.worldHeight);
     this.camera = new THREE.OrthographicCamera(-this.worldWidth/2, this.worldWidth/2, this.worldHeight/2, -this.worldHeight/2, 0, 1000);
 
@@ -238,6 +309,7 @@ class MiniMap {
 
     const renderer = getRenderer();
     const size = renderer.getSize(localVector2D);
+    const pixelRatio = renderer.getPixelRatio();
     // a Vector2 representing the largest power of two less than or equal to the current canvas size
     const sizePowerOfTwo = localVector2D2.set(
       Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
@@ -254,11 +326,11 @@ class MiniMap {
   
     const _render = (baseX, baseY, dx, dy) => {
       // set up top camera
-      this.topCamera.position.set((baseX + dx) * this.worldWidthD3, cameraHeight, (baseY + dy) * this.worldHeightD3);
+      this.topCamera.position.set((baseX + dx) * this.worldWidthD3, localPlayer.position.y + cameraHeight, (baseY + dy) * this.worldHeightD3);
       this.topCamera.quaternion.setFromRotationMatrix(
         localMatrix.lookAt(
-          localVector.copy(this.topCamera.position),
-          localVector2.set(this.topCamera.position.x, 0, this.topCamera.position.z),
+          this.topCamera.position,
+          localVector2.set(this.topCamera.position.x, localPlayer.position.y, this.topCamera.position.z),
           localVector3.set(0, 0, -1)
         )
       );
@@ -281,6 +353,12 @@ class MiniMap {
       const tempRenderTarget = this.mapRenderTarget;
       this.mapRenderTarget = this.mapRenderTarget2;
       this.mapRenderTarget2 = tempRenderTarget;
+    };
+    const _ensureMapRenderTarget = () => {
+      if (this.mapRenderTarget === null) {
+        this.mapRenderTarget = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
+        this.mapRenderTarget2 = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
+      }
     };
     const _updateTiles = () => {
       const baseX = Math.floor(localPlayer.position.x / this.worldWidthD3 + 0.5);
@@ -305,13 +383,17 @@ class MiniMap {
           (async () => {
             this.running = true;
 
+            _ensureMapRenderTarget();
+
             renderer.setRenderTarget(this.mapRenderTarget2);
             renderer.setViewport(0, 0, this.width, this.height);
             renderer.clear();
 
             this.scene.floorMesh.material.uniforms.uTex.value = this.mapRenderTarget2.texture;
             this.scene.floorMesh.material.uniforms.uTex.needsUpdate = true;
-            this.scene.floorMesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
+            this.scene.floorMesh.material.uniforms.uScreenSize.value.set(this.width*3, this.height*3);
+            this.scene.floorMesh.material.uniforms.uScreenSize.needsUpdate = true;
+            this.scene.floorMesh.position.set(baseX * this.worldWidthD3, localPlayer.position.y, baseY * this.worldHeightD3);
             this.scene.floorMesh.updateMatrixWorld();
             
             // copies
@@ -370,12 +452,15 @@ class MiniMap {
     _updateTiles();
 
     const _renderMiniMap = () => {
-      this.scene.reticleMesh.position.set(localPlayer.position.x, cameraHeight - 1, localPlayer.position.z);
+      this.scene.reticleMesh.position.set(localPlayer.position.x, localPlayer.position.y + cameraHeight, localPlayer.position.z);
       localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       this.scene.reticleMesh.quaternion.setFromEuler(localEuler);
       this.scene.reticleMesh.updateMatrixWorld();
+
+      this.scene.compassMesh.position.copy(this.scene.reticleMesh.position);
+      this.scene.compassMesh.updateMatrixWorld();
 
       renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(0, 0, this.width, this.height);
