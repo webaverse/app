@@ -101,11 +101,11 @@ const reticleFragmentShader = `\
     // angle = min(angle, 1. - angle);
     float angleDistanceToEdge = min(angle, 1. - angle);
     angleDistanceToEdge *= l;
-    gl_FragColor.a = 1.;
     gl_FragColor.r = angle;
     if (angleDistanceToEdge <= 0.04 || l >= 0.95) {
       gl_FragColor.rgb = vec3(1.);
     }
+    gl_FragColor.a = 1. - l;
   }
 `;
 const compassFragmentShader = `\
@@ -231,6 +231,7 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
       },
       vertexShader,
       fragmentShader: reticleFragmentShader,
+      transparent: true,
     })
   );
   reticleMesh.scale.setScalar(reticleSize);
