@@ -848,8 +848,12 @@ const physxWorker = (() => {
     const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     // let tail = head + 1;
     const outY = moduleInstance.HEAPF32[head];
-    const test = moduleInstance.HEAPF32[head + 1];
-    console.log(test);
+    // const test = moduleInstance.HEAPF32[head + 1];
+    console.log(
+      moduleInstance.HEAPF32[head + 1],
+      moduleInstance.HEAPF32[head + 2],
+      moduleInstance.HEAPF32[head + 3],
+    );
 
     moduleInstance._doFree(outputBufferOffset);
 
