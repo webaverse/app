@@ -32,11 +32,11 @@ const vertexShader = `\
 
   void main() {
     vUv = uv;
-    gl_Position = vec4(position.xy, 1., 1.);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 const fragmentShader = `\
-  uniform float iTime;
+  // uniform float iTime;
   // uniform int iFrame;
   uniform sampler2D uTex;
   varying vec2 vUv;
@@ -68,7 +68,9 @@ const _makeScene = renderTarget => {
   
   // full screen quad mesh
   const mesh = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(2, 2),
+    new THREE.PlaneBufferGeometry(2, 2)
+      // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -1)),
+      .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
     new THREE.ShaderMaterial({
       // map: renderTarget.texture,
       uniforms: {
@@ -110,7 +112,7 @@ class MiniMap {
     this.canvasIndices = new Int32Array(3 * 3 * 2);
     this.canvasIndices.fill(0xffff);
     this.scene = _makeScene(this.mapRenderTarget);
-    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1000);
 
     this.canvases = [];
   }
@@ -200,6 +202,17 @@ class MiniMap {
       renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(0, 0, this.width, this.height);
       renderer.clear();
+      this.camera.position.set(0, cameraHeight, 0);
+      this.camera.quaternion.setFromRotationMatrix(
+        localMatrix.lookAt(
+          localVector.copy(localPlayer.position)
+            .add(localVector3.set(0, cameraHeight, 0)),
+          localPlayer.position,
+          localVector2.set(0, 0, -1)
+            .applyQuaternion(camera.quaternion),
+        )
+      );
+      this.camera.updateMatrixWorld();
       renderer.render(this.scene, this.camera);
     };
     _renderMiniMap();
