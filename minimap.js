@@ -22,6 +22,9 @@ const localMatrix = new THREE.Matrix4();
 const cameraHeight = 50;
 
 // XXX TODO:
+// add center reticle
+// add compass border circle
+// add compass north
 // render at mose once per frame
 // do not render avatars
 // debug mirrors
