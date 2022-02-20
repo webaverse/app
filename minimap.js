@@ -114,7 +114,6 @@ const _makeMapRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   format: THREE.RGBAFormat,
 });
 
-const pixelRatio = window.devicePixelRatio;
 
 const _makeCopyScene = () => {
   const scene = new THREE.Scene();
@@ -179,10 +178,10 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
       .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
     new THREE.ShaderMaterial({
       uniforms: {
-        uTex: {
+        /* uTex: {
           value: renderTarget.texture,
           needsUpdate: true,
-        },
+        }, */
       },
       vertexShader,
       fragmentShader: reticleFragmentShader,
@@ -215,8 +214,8 @@ class MiniMap {
       0,
       1000
     );
-    this.mapRenderTarget = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
-    this.mapRenderTarget2 = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
+    this.mapRenderTarget = null;
+    this.mapRenderTarget2 = null;
     this.scene = _makeScene(this.mapRenderTarget, this.worldWidth, this.worldHeight);
     this.camera = new THREE.OrthographicCamera(-this.worldWidth/2, this.worldWidth/2, this.worldHeight/2, -this.worldHeight/2, 0, 1000);
 
@@ -252,6 +251,7 @@ class MiniMap {
 
     const renderer = getRenderer();
     const size = renderer.getSize(localVector2D);
+    const pixelRatio = renderer.getPixelRatio();
     // a Vector2 representing the largest power of two less than or equal to the current canvas size
     const sizePowerOfTwo = localVector2D2.set(
       Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
@@ -296,6 +296,12 @@ class MiniMap {
       this.mapRenderTarget = this.mapRenderTarget2;
       this.mapRenderTarget2 = tempRenderTarget;
     };
+    const _ensureMapRenderTarget = () => {
+      if (!this.mapRenderTarget) {
+        this.mapRenderTarget = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
+        this.mapRenderTarget2 = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
+      }
+    };
     const _updateTiles = () => {
       const baseX = Math.floor(localPlayer.position.x / this.worldWidthD3 + 0.5);
       const baseY = Math.floor(localPlayer.position.z / this.worldHeightD3 + 0.5);
@@ -318,6 +324,8 @@ class MiniMap {
         if (!this.running) {
           (async () => {
             this.running = true;
+
+            _ensureMapRenderTarget();
 
             renderer.setRenderTarget(this.mapRenderTarget2);
             renderer.setViewport(0, 0, this.width, this.height);
