@@ -196,8 +196,6 @@ class MiniMap {
     );
     this.mapRenderTarget = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
     this.mapRenderTarget2 = _makeMapRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
-    this.canvasIndices = new Int32Array(3 * 3 * 2);
-    this.canvasIndices.fill(0xffff);
     this.scene = _makeScene(this.mapRenderTarget, this.worldWidth, this.worldHeight);
     this.camera = new THREE.OrthographicCamera(-this.worldWidth/2, this.worldWidth/2, this.worldHeight/2, -this.worldHeight/2, 0, 1000);
 
@@ -304,7 +302,6 @@ class MiniMap {
           for (let dx = -1; dx <= 1; dx++) {
             const ix = baseX + dx;
             const iy = baseY + dy;
-            // const requiredIndex = localVector2D3.set(ix, iy);
 
             const previousOffset = _getPreviousOffset(ix, iy);
             if (previousOffset) {
@@ -312,7 +309,6 @@ class MiniMap {
             } else {
               _render(baseX, baseY, dx, dy);
             }
-            // requiredIndex.toArray(this.canvasIndices, index * 2);
             index++;
           }
         }
