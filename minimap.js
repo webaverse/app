@@ -452,7 +452,7 @@ class MiniMap {
     _updateTiles();
 
     const _renderMiniMap = () => {
-      this.scene.reticleMesh.position.set(localPlayer.position.x, cameraHeight - 1, localPlayer.position.z);
+      this.scene.reticleMesh.position.set(localPlayer.position.x, localPlayer.position.y + cameraHeight, localPlayer.position.z);
       localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
