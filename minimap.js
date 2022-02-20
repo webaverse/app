@@ -393,7 +393,7 @@ class MiniMap {
             this.scene.floorMesh.material.uniforms.uTex.needsUpdate = true;
             this.scene.floorMesh.material.uniforms.uScreenSize.value.set(this.width*3, this.height*3);
             this.scene.floorMesh.material.uniforms.uScreenSize.needsUpdate = true;
-            this.scene.floorMesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
+            this.scene.floorMesh.position.set(baseX * this.worldWidthD3, localPlayer.position.y, baseY * this.worldHeightD3);
             this.scene.floorMesh.updateMatrixWorld();
             
             // copies
