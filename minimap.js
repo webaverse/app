@@ -238,6 +238,8 @@ class MiniMap {
     };
     _copyToCanvases();
 
+    renderer.clear();
+
     // pop old state
     renderer.setRenderTarget(oldRenderTarget);
     renderer.setViewport(oldViewport);
