@@ -185,6 +185,7 @@ class MiniMap {
     this.worldHeightD3 = Math.floor(worldHeight / 3);
     this.worldWidth = this.worldWidthD3 * 3;
     this.worldHeight = this.worldHeightD3 * 3;
+    this.enabled = true;
 
     this.topCamera = new THREE.OrthographicCamera(
       -this.worldWidth/3*0.5,
@@ -396,7 +397,7 @@ const minimapManager = {
   },
   update(timestamp, timeDiff) {
     for (const minimap of minimaps) {
-      minimap.update(timestamp, timeDiff);
+      minimap.enabled && minimap.update(timestamp, timeDiff);
     }
   }
 };
