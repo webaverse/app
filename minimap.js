@@ -17,15 +17,21 @@ const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localVector2D3 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
+const localVector4D2 = new THREE.Vector4();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const cameraHeight = 50;
 
+const _waitForFrame = () => new Promise(accept => {
+  requestAnimationFrame(() => {
+    accept();
+  });
+});
+
 // XXX TODO:
 // add compass border circle
 // add compass north
-// render at most once per frame
 // do not render avatars
 // debug mirrors
 
@@ -213,6 +219,8 @@ class MiniMap {
       universe.removeEventListener('worldload', worldload);
     };
 
+    this.running = false;
+    this.queued = false;
     this.lastBase = new THREE.Vector2(NaN, NaN);
     this.lastWorldEpoch = -1;
   }
@@ -260,6 +268,7 @@ class MiniMap {
       renderer.render(rootScene, this.topCamera);
     };
     const _copy = (srcRenderTarget, px, py, dx, dy) => {
+      // set up copy scene
       this.copyScene.fullScreenQuadMesh.material.uniforms.uUvOffset.value.set(px, -py, 1/3, 1/3);
       this.copyScene.fullScreenQuadMesh.material.uniforms.uUvOffset.needsUpdate = true;
       this.copyScene.fullScreenQuadMesh.material.uniforms.uTex.value = srcRenderTarget.texture;
@@ -277,14 +286,12 @@ class MiniMap {
       const baseX = Math.floor(localPlayer.position.x / this.worldWidthD3 + 0.5);
       const baseY = Math.floor(localPlayer.position.z / this.worldHeightD3 + 0.5);
 
-      const _getPreviousOffset = (ax, ay) => {
+      const _getPreviousOffset = (ax, ay, target) => {
         if (this.worldEpoch === this.lastWorldEpoch) {
-          const previousOffset = new THREE.Vector2(ax, ay)
+          const previousOffset = target.set(ax, ay)
             .sub(this.lastBase);
-          const dx = previousOffset.x;
-          const dy = previousOffset.y;
-          if (dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1) {
-            return new THREE.Vector2(dx, dy);
+          if (previousOffset.x >= -1 && previousOffset.x <= 1 && previousOffset.y >= -1 && previousOffset.y <= 1) {
+            return target;
           } else {
             return null;
           }
@@ -294,37 +301,70 @@ class MiniMap {
       };
 
       if (baseX !== this.lastBase.x || baseY !== this.lastBase.y || this.worldEpoch !== this.lastWorldEpoch) {
-        renderer.setRenderTarget(this.mapRenderTarget2);
-        renderer.setViewport(0, 0, this.width, this.height);
-        renderer.clear();
-        
-        let index = 0;
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            const ix = baseX + dx;
-            const iy = baseY + dy;
+        if (!this.running) {
+          (async () => {
+            this.running = true;
 
-            const previousOffset = _getPreviousOffset(ix, iy);
-            if (previousOffset) {
-              _copy(this.mapRenderTarget, previousOffset.x, previousOffset.y, dx, dy);
-            } else {
-              _render(baseX, baseY, dx, dy);
+            renderer.setRenderTarget(this.mapRenderTarget2);
+            renderer.setViewport(0, 0, this.width, this.height);
+            renderer.clear();
+
+            this.scene.floorMesh.material.uniforms.uTex.value = this.mapRenderTarget2.texture;
+            this.scene.floorMesh.material.uniforms.uTex.needsUpdate = true;
+            this.scene.floorMesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
+            this.scene.floorMesh.updateMatrixWorld();
+            
+            // copies
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                const ix = baseX + dx;
+                const iy = baseY + dy;
+
+                const previousOffset = _getPreviousOffset(ix, iy, localVector2D3);
+                if (previousOffset) {
+                  _copy(this.mapRenderTarget, previousOffset.x, previousOffset.y, dx, dy);
+                }
+              }
             }
-            index++;
-          }
+
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                const ix = baseX + dx;
+                const iy = baseY + dy;
+
+                const previousOffset = _getPreviousOffset(ix, iy, localVector2D3);
+                if (!previousOffset) {
+                  // const oldRenderTarget = renderer.getRenderTarget();
+                  // const oldViewport2 = renderer.getViewport(localVector4D2);
+                  
+                  renderer.setRenderTarget(this.mapRenderTarget2);
+                  _render(baseX, baseY, dx, dy);
+                  
+                  renderer.setRenderTarget(oldRenderTarget);
+                  renderer.setViewport(oldViewport);
+                  
+                  await _waitForFrame();
+                }
+              }
+            }
+
+            renderer.setRenderTarget(oldRenderTarget);
+
+            _swapBuffers();
+
+            this.lastBase.set(baseX, baseY);
+            this.lastWorldEpoch = this.worldEpoch;
+
+            this.running = false;
+
+            if (this.queued) {
+              this.queued = false;
+              _updateTiles();
+            }
+          })();
+        } else {
+          this.queued = true;
         }
-
-        this.scene.floorMesh.material.uniforms.uTex.value = this.mapRenderTarget2.texture;
-        this.scene.floorMesh.material.uniforms.uTex.needsUpdate = true;
-        this.scene.floorMesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
-        this.scene.floorMesh.updateMatrixWorld();
-
-        this.lastBase.set(baseX, baseY);
-        this.lastWorldEpoch = this.worldEpoch;
-
-        renderer.setRenderTarget(oldRenderTarget);
-
-        _swapBuffers();
       }
     };
     _updateTiles();

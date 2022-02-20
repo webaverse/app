@@ -7,7 +7,7 @@ import styles from './minimap.module.css';
 //
 
 let minimap = null;
-const minimapSize = 128;
+const minimapSize = 300;
 const minimapWorldSize = 50;
 
 export const Minimap = () => {
