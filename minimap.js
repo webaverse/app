@@ -17,6 +17,7 @@ const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localVector2D3 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
+const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const cameraHeight = 50;
@@ -254,7 +255,10 @@ class MiniMap {
 
     const _renderMiniMap = () => {
       this.scene.reticleMesh.position.set(localPlayer.position.x, cameraHeight - 1, localPlayer.position.z);
-      this.scene.reticleMesh.quaternion.copy(localPlayer.quaternion);
+      localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      this.scene.reticleMesh.quaternion.setFromEuler(localEuler);
       this.scene.reticleMesh.updateMatrixWorld();
 
       renderer.setRenderTarget(oldRenderTarget);
