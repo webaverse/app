@@ -181,10 +181,10 @@ class MiniMap {
   constructor(width, height, worldWidth, worldHeight) {
     this.width = width;
     this.height = height;
-    this.worldWidth = worldWidth;
-    this.worldHeight = worldHeight;
-    this.worldWidthD3 = worldWidth / 3;
-    this.worldHeightD3 = worldHeight / 3;
+    this.worldWidthD3 = Math.floor(worldWidth / 3);
+    this.worldHeightD3 = Math.floor(worldHeight / 3);
+    this.worldWidth = this.worldWidthD3 * 3;
+    this.worldHeight = this.worldHeightD3 * 3;
 
     this.topCamera = new THREE.OrthographicCamera(
       -this.worldWidth/3*0.5,
