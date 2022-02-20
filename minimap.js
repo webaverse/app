@@ -21,7 +21,7 @@ const localVector4D2 = new THREE.Vector4();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
-const cameraHeight = 50;
+const cameraHeight = 15;
 
 const _waitForFrame = () => new Promise(accept => {
   requestAnimationFrame(() => {
