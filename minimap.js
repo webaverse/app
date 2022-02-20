@@ -21,6 +21,11 @@ const localMatrix = new THREE.Matrix4();
 
 const cameraHeight = 50;
 
+// XXX TODO:
+// render at mose once per frame
+// do not render avatars
+// debug mirrors
+
 const vertexShader = `\
   varying vec2 vUv;
 
