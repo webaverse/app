@@ -17,7 +17,7 @@ const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localVector2D3 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
-const localVector4D2 = new THREE.Vector4();
+// const localVector4D2 = new THREE.Vector4();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
@@ -64,6 +64,7 @@ const vertexShader = `\
 `;
 const floorFragmentShader = `\
   uniform sampler2D uTex;
+  uniform vec2 uScreenSize;
   varying vec2 vUv;
 
   void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
@@ -73,7 +74,16 @@ const floorFragmentShader = `\
   }
 
   void main() {
-    mainImage(gl_FragColor, vUv);
+    vec2 screenSpaceUv = gl_FragCoord.xy / uScreenSize;
+    // vec2 uv = screenSpaceUv * 2. - 1.;
+    vec2 uv = screenSpaceUv;
+    float l = length(uv - vec2(0.25));
+    if (l < 0.25) {
+      mainImage(gl_FragColor, vUv);
+      gl_FragColor.gb += uv * 0.5;
+    } else {
+      discard;
+    }
   }
 `;
 const reticleFragmentShader = `\
@@ -121,7 +131,7 @@ const _makeCopyScene = () => {
         uUvOffset: {
           value: new THREE.Vector4(),
           needsUpdate: true,
-        }
+        },
       },
       vertexShader: fullscreenVertexShader,
       fragmentShader: fullscreenFragmentShader,
@@ -147,10 +157,15 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
           value: null,
           needsUpdate: false,
         },
+        uScreenSize: {
+          value: new THREE.Vector2(),
+          needsUpdate: true,
+        },
       },
       vertexShader,
       fragmentShader: floorFragmentShader,
       depthTest: false,
+      // transparent: true,
     }),
   );
   floorMesh.frustumCulled = false;
@@ -310,6 +325,8 @@ class MiniMap {
 
             this.scene.floorMesh.material.uniforms.uTex.value = this.mapRenderTarget2.texture;
             this.scene.floorMesh.material.uniforms.uTex.needsUpdate = true;
+            this.scene.floorMesh.material.uniforms.uScreenSize.value.set(this.width*3, this.height*3);
+            this.scene.floorMesh.material.uniforms.uScreenSize.needsUpdate = true;
             this.scene.floorMesh.position.set(baseX * this.worldWidthD3, 0, baseY * this.worldHeightD3);
             this.scene.floorMesh.updateMatrixWorld();
             
