@@ -144,7 +144,7 @@ export default class Webaverse extends EventTarget {
     super();
 
     rendererStats.domElement.style.position = 'absolute';
-    rendererStats.domElement.style.left = '0px';
+    rendererStats.domElement.style.right = '0px';
     rendererStats.domElement.style.bottom = '0px';
     rendererStats.domElement.style.display = 'none';
     document.body.appendChild(rendererStats.domElement);
