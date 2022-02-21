@@ -78,8 +78,8 @@ const floorFragmentShader = `\
     vec2 screenSpaceUv = gl_FragCoord.xy / uScreenSize;
     // vec2 uv = screenSpaceUv * 2. - 1.;
     vec2 uv = screenSpaceUv;
-    float l = length(uv - vec2(0.25));
-    if (l < 0.25 * 0.85) {
+    float l = length(uv - vec2(0.5));
+    if (l < 0.5 * 0.85) {
       mainImage(gl_FragColor, vUv);
       gl_FragColor.gb += uv * 0.5;
     } else {
@@ -391,8 +391,6 @@ class MiniMap {
 
             this.scene.floorMesh.material.uniforms.uTex.value = this.mapRenderTarget2.texture;
             this.scene.floorMesh.material.uniforms.uTex.needsUpdate = true;
-            this.scene.floorMesh.material.uniforms.uScreenSize.value.set(this.width*3, this.height*3);
-            this.scene.floorMesh.material.uniforms.uScreenSize.needsUpdate = true;
             this.scene.floorMesh.position.set(baseX * this.worldWidthD3, localPlayer.position.y, baseY * this.worldHeightD3);
             this.scene.floorMesh.updateMatrixWorld();
             
@@ -461,6 +459,9 @@ class MiniMap {
 
       this.scene.compassMesh.position.copy(this.scene.reticleMesh.position);
       this.scene.compassMesh.updateMatrixWorld();
+
+      this.scene.floorMesh.material.uniforms.uScreenSize.value.set(this.width * pixelRatio, this.height * pixelRatio);
+      this.scene.floorMesh.material.uniforms.uScreenSize.needsUpdate = true;
 
       renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(0, 0, this.width, this.height);
