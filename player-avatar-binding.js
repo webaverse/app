@@ -50,8 +50,16 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     }
     return null;
   })();
-  for (let i = 0; i < 2; i++) {
-    rig.setHandEnabled(i, !!session || (i === 0 && (!!aimAction && !aimAction.playerAnimation) && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
+  {
+    const isSession = !!session;
+    const isPlayerAiming = !!aimAction && !aimAction.playerAnimation;
+    const isObjectAimable = !!aimComponent;
+    const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable));
+    for (let i = 0; i < 2; i++) {
+      const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : 0);
+      const enabled = isHandEnabled && isExpectedHandIndex;
+      rig.setHandEnabled(i, enabled);
+    }
   }
   rig.setTopEnabled(
     (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
