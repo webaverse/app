@@ -102,7 +102,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const sitAnimation = sitAction ? sitAction.animation : '';
   const danceAction = player.getAction('dance');
   const danceAnimation = danceAction ? danceAction.animation : '';
-  const throwAction = player.getAction('throw');
+  // const throwAction = player.getAction('throw');
   const aimAction = player.getAction('aim');
   const crouchAction = player.getAction('crouch');
   // const chargeJump = player.getAction('chargeJump');
@@ -124,7 +124,28 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
   rig.useTime = player.actionInterpolants.use.get();
-  rig.useAnimation = (useAction?.animation) || '';
+  if (useAction?.animation) {
+    rig.useAnimation = useAction.animation;
+  } else {
+    if (rig.useAnimation) {
+      rig.useAnimation = '';
+    }
+  }
+  if (useAction?.animationCombo) {
+    rig.useAnimationCombo = useAction.animationCombo;
+  } else {
+    if (rig.useAnimationCombo.length > 0) {
+      rig.useAnimationCombo = [];
+    }
+  }
+  // console.log('got use action', useAction);
+  if (useAction?.animationEnvelope) {
+    rig.useAnimationEnvelope = useAction.animationEnvelope;
+  } else {
+    if (rig.useAnimationEnvelope.length > 0) {
+      rig.useAnimationEnvelope = [];
+    }
+  }
   rig.useAnimationIndex = useAction?.index;
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
