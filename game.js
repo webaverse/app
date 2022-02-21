@@ -49,8 +49,6 @@ const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
 
 const oneVector = new THREE.Vector3(1, 1, 1);
-const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
-const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 // const cubicBezier = easing(0, 1, 0, 1);
 
@@ -332,16 +330,7 @@ const _getNextUseIndex = animationCombo => {
   } else {
     return 0;
   }
-};
-let lastPistolUseStartTime = -Infinity;
-const _handleNewLocalUseAction = (app, action) => {
-  // console.log('got action animation', action);
-  if (action.ik === 'pistol') {
-    lastPistolUseStartTime = performance.now();
-  }
-
-  app.use();
-};
+}
 const _startUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const wearApps = Array.from(localPlayer.getActionsState())
@@ -372,7 +361,7 @@ const _startUse = () => {
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
 
-        _handleNewLocalUseAction(wearApp, newUseAction);
+        wearApp.use();
       }
       break;
     }
@@ -632,73 +621,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const renderer = getRenderer();
   
   const localPlayer = metaversefileApi.useLocalPlayer();
-  
-  const _updateFakeHands = () => {
-    const session = renderer.xr.getSession();
-    if (!session) {
-      localMatrix.copy(localPlayer.matrixWorld)
-        .decompose(localVector, localQuaternion, localVector2);
-
-      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-      const handOffsetScale = localPlayer.avatar ? avatarHeight / 1.5 : 1;
-      {
-        const leftGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-        const leftGamepadQuaternion = localQuaternion;
-        const leftGamepadPointer = 0;
-        const leftGamepadGrip = 0;
-        const leftGamepadEnabled = false;
-        
-        localPlayer.leftHand.position.copy(leftGamepadPosition);
-        localPlayer.leftHand.quaternion.copy(leftGamepadQuaternion);
-      }
-      {
-        const rightGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-        const rightGamepadQuaternion = localQuaternion;
-        const rightGamepadPointer = 0;
-        const rightGamepadGrip = 0;
-        const rightGamepadEnabled = false;
-
-        localPlayer.rightHand.position.copy(rightGamepadPosition);
-        localPlayer.rightHand.quaternion.copy(rightGamepadQuaternion);
-      }
-      
-      if (lastPistolUseStartTime >= 0) {
-        const lastUseTimeDiff = timestamp - lastPistolUseStartTime;
-        const kickbackTime = 300;
-        const kickbackExponent = 0.05;
-        const f = Math.min(Math.max(lastUseTimeDiff / kickbackTime, 0), 1);
-        const v = Math.sin(Math.pow(f, kickbackExponent) * Math.PI);
-        const fakeArmLength = 0.2;
-        localQuaternion.setFromRotationMatrix(
-          localMatrix.lookAt(
-            localVector.copy(localPlayer.leftHand.position),
-            localVector2.copy(localPlayer.leftHand.position)
-              .add(
-                localVector3.set(0, 1, -1)
-                  .applyQuaternion(localPlayer.leftHand.quaternion)
-              ),
-            localVector3.set(0, 0, 1)
-              .applyQuaternion(localPlayer.leftHand.quaternion)
-          )
-        )// .multiply(localPlayer.leftHand.quaternion);
-        
-        localPlayer.leftHand.position.sub(
-          localVector.set(0, 0, -fakeArmLength)
-            .applyQuaternion(localPlayer.leftHand.quaternion)
-        );
-        
-        localPlayer.leftHand.quaternion.slerp(localQuaternion, v);
-        
-        localPlayer.leftHand.position.add(
-          localVector.set(0, 0, -fakeArmLength)
-            .applyQuaternion(localPlayer.leftHand.quaternion)
-        );
-      }
-    }
-  };
-  _updateFakeHands();
 
   const _handlePush = () => {
     if (gameManager.canPush()) {
