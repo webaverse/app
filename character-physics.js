@@ -20,7 +20,7 @@ const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
-const localEuler = new THREE.Euler();
+// const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 // const localOffset = new THREE.Vector3();
