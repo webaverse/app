@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 
 import { world } from '../../../../world'
-import * as universe from '../../../../universe.js'
+import universe from '../../../../universe.js'
 import sceneNames from '../../../../scenes/scenes.json';
 
 import styles from './scene-menu.module.css';
