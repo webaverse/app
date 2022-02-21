@@ -56,7 +56,7 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     const isObjectAimable = !!aimComponent;
     const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable));
     for (let i = 0; i < 2; i++) {
-      const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 0 : 1);
+      const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : 0);
       const enabled = isHandEnabled && isExpectedHandIndex;
       rig.setHandEnabled(i, enabled);
     }
