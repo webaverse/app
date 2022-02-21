@@ -177,7 +177,7 @@ class AppManager extends EventTarget {
         }
         if (e.changes.keys.has('load') ) {
           if (trackedApp.get('load')){
-            app.skinnedVrms.active.scene.visible = true;
+            app.getActive().scene.visible = true;
             this.addApp(app);
           } 
         }

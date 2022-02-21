@@ -267,7 +267,7 @@ const _getType = id => {
     const app = await metaversefileApi.load(url);
     if (app.appType === 'vrm') {
       // await app.setSkinning(true);
-      const avatar = new Avatar(app.skinnedVrms['active'], {
+      const avatar = new Avatar(app.getActive(), {
         fingers: true,
         hair: true,
         visemes: true,

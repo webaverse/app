@@ -70,7 +70,8 @@ export function applyPlayerModesToAvatar(player, session, rig) {
 export async function makeAvatar(app) {
   if (app) {
     const {skinnedVrms} = app;
-    if (skinnedVrms && skinnedVrms['active']) {
+    skinnedVrms.active = app.getActive();
+    if (skinnedVrms) {
       const avatar = new Avatar(skinnedVrms, {
         fingers: true,
         hair: true,
@@ -78,8 +79,8 @@ export async function makeAvatar(app) {
         debug: false,
       });
 
-      // window.avatar = avatar;  //for debugging
-
+      window.avatar = avatar;  //for debugging
+      app.name = "Local Player Avatar"
       avatar[appSymbol] = app;
 
       //we're gonna change this
