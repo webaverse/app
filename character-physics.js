@@ -31,6 +31,8 @@ const localMatrix = new THREE.Matrix4();
 
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
+const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
+const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 class CharacterPhysics {
   constructor(player) {
@@ -39,6 +41,9 @@ class CharacterPhysics {
     this.velocity = new THREE.Vector3();
     this.lastGroundedTime = 0;
     this.sitOffset = new THREE.Vector3();
+   
+    this.lastPistolUse = false;
+    this.lastPistolUseStartTime = -Infinity;
   }
   setPosition(p) {
     localVector.copy(p);
@@ -59,6 +64,10 @@ class CharacterPhysics {
         this.velocity.add(localVector);
       }
     // }
+  }
+  updateVelocity(timeDiffS) {
+    const timeDiff = timeDiffS * 1000;
+    this.applyVelocityDamping(this.velocity, timeDiff);
   }
   applyAvatarPhysicsDetail(
     velocityAvatarDirection,
@@ -246,14 +255,129 @@ class CharacterPhysics {
       }
     // }
   }
-  updateVelocity(timeDiffS) {
-    const timeDiff = timeDiffS * 1000;
-    this.applyVelocityDamping(this.velocity, timeDiff);
+  applyAvatarActionKinematics(now, timeDiffS) {
+    const renderer = getRenderer();
+    const session = renderer.xr.getSession();
+    const aimAction = this.player.getAction('aim');
+    const aimComponent = (() => {
+      for (const action of this.player.getActions()) {
+        if (action.type === 'wear') {
+          const app = this.player.appManager.getAppByInstanceId(action.instanceId);
+          if (!app) {
+            return null;
+          }
+          for (const {key, value} of app.components) {
+            if (key === 'aim') {
+              return value;
+            }
+          }
+        }
+      }
+      return null;
+    })();
+    const useAction = this.player.getAction('use');
+
+    const _updateHandsEnabled = () => {
+      const isSession = !!session;
+      const isPlayerAiming = !!aimAction && !aimAction.playerAnimation;
+      const isObjectAimable = !!aimComponent;
+      const isPlayingEnvelopeIkAnimation = !!useAction && useAction.ik === 'bow';
+      const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable)) && !isPlayingEnvelopeIkAnimation;
+      for (let i = 0; i < 2; i++) {
+        const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : 0);
+        const enabled = isHandEnabled && isExpectedHandIndex;
+        this.player.hands[i].enabled = enabled;
+      }
+    };
+    _updateHandsEnabled();
+
+    const _updateFakeHands = () => {
+      if (!session) {
+        localMatrix.copy(this.player.matrixWorld)
+          .decompose(localVector, localQuaternion, localVector2);
+  
+        const avatarHeight = this.player.avatar ? this.player.avatar.height : 0;
+        const handOffsetScale = this.player.avatar ? avatarHeight / 1.5 : 1;
+        if (this.player.hands[0].enabled) {
+          const leftGamepadPosition = localVector2.copy(localVector)
+            .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
+          const leftGamepadQuaternion = localQuaternion;
+          /* const leftGamepadPointer = 0;
+          const leftGamepadGrip = 0;
+          const leftGamepadEnabled = false; */
+          
+          this.player.leftHand.position.copy(leftGamepadPosition);
+          this.player.leftHand.quaternion.copy(leftGamepadQuaternion);
+        }
+        if (this.player.hands[1].enabled) {
+          const rightGamepadPosition = localVector2.copy(localVector)
+            .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
+          const rightGamepadQuaternion = localQuaternion;
+          /* const rightGamepadPointer = 0;
+          const rightGamepadGrip = 0;
+          const rightGamepadEnabled = false; */
+  
+          this.player.rightHand.position.copy(rightGamepadPosition);
+          this.player.rightHand.quaternion.copy(rightGamepadQuaternion);
+        }
+      }
+    };
+    _updateFakeHands();
+
+    const _updateIkAnimation = () => {
+      const pistolUse = !!useAction && useAction.ik === 'pistol';
+      // console.log('got use action', !!pistolUse, useAction?.ik);
+      if (!this.lastPistolUse && pistolUse) {
+        this.lastPistolUseStartTime = now;
+      }
+      this.lastPistolUse = pistolUse;
+
+      if (isFinite(this.lastPistolUseStartTime)) {
+        const lastUseTimeDiff = now - this.lastPistolUseStartTime;
+        const kickbackTime = 300;
+        const kickbackExponent = 0.05;
+        const f = Math.min(Math.max(lastUseTimeDiff / kickbackTime, 0), 1);
+        const v = Math.sin(Math.pow(f, kickbackExponent) * Math.PI);
+        const fakeArmLength = 0.2;
+        localQuaternion.setFromRotationMatrix(
+          localMatrix.lookAt(
+            localVector.copy(this.player.leftHand.position),
+            localVector2.copy(this.player.leftHand.position)
+              .add(
+                localVector3.set(0, 1, -1)
+                  .applyQuaternion(this.player.leftHand.quaternion)
+              ),
+            localVector3.set(0, 0, 1)
+              .applyQuaternion(this.player.leftHand.quaternion)
+          )
+        );
+        
+        this.player.leftHand.position.sub(
+          localVector.set(0, 0, -fakeArmLength)
+            .applyQuaternion(this.player.leftHand.quaternion)
+        );
+        
+        this.player.leftHand.quaternion.slerp(localQuaternion, v);
+        
+        this.player.leftHand.position.add(
+          localVector.set(0, 0, -fakeArmLength)
+            .applyQuaternion(this.player.leftHand.quaternion)
+        );
+
+        this.player.leftHand.updateMatrixWorld();
+
+        if (f >= 1) {
+          this.lastPistolUseStartTime = -Infinity;
+        }
+      }
+    };
+    _updateIkAnimation();
   }
   update(now, timeDiffS) {
     this.applyGravity(timeDiffS);
     this.updateVelocity(timeDiffS);
     this.applyAvatarPhysics(now, timeDiffS);
+    this.applyAvatarActionKinematics(now, timeDiffS);
   }
   reset() {
     if (this.player.avatar) {
