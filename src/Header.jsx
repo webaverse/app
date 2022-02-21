@@ -11,7 +11,6 @@ import * as Z from 'zjs';
 import {world} from '../world.js'
 import game from '../game.js'
 import universe from '../universe.js'
-import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
@@ -55,6 +54,7 @@ export default function Header({
   const [open, setOpen] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
+  const [chain, setChain] = useState(false);
   const [nfts, setNfts] = useState(null);
   const [apps, setApps] = useState(world.appManager.getApps().slice());
   const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
@@ -324,6 +324,8 @@ export default function Header({
             <User
               address={address}
               setAddress={setAddress}
+              chain={chain}
+              setChain={setChain}
               open={open}
               setOpen={setOpen}
               toggleOpen={toggleOpen}
@@ -353,10 +355,11 @@ export default function Header({
         <Tokens
           userOpen={userOpen}
           nfts={nfts}
-          hacks={hacks}
           address={address}
           setNfts={setNfts}
           loginFrom={loginFrom}
+          chain={chain}
+          setChain={setChain}
         />
       </div>
     </div>

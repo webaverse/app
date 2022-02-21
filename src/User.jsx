@@ -1,14 +1,14 @@
-
 import React, {useState, Component, useRef, useEffect} from 'react';
 import classnames from 'classnames';
 import styles from './Header.module.css';
-import * as ceramicApi from '../ceramic.js';
 import {discordClientId} from '../constants';
 import {parseQuery} from '../util.js';
 import Modal from './components/modal';
 import WebaWallet from './components/wallet';
 
-const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) => {
+import {MetamaskWallet} from '../blockchain/metamask';
+
+const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom, chain, setChain}) => {
   const [show, setShow] = useState(false);
 
   const showModal = async e => {
@@ -22,21 +22,30 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
   const [autoLoginRequestMade, setAutoLoginRequestMade] = useState(false);
 
   const metaMaskLogin = async e => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (address) {
       toggleOpen('user');
     } else {
       if (!loggingIn) {
         setLoggingIn(true);
         try {
-          const {address, profile} = await ceramicApi.login();
-          setAddress(address);
-          setLoginFrom('metamask');
-          setShow(false);
-          setLoginFrom('metamask');
+          const metamaskWallet = new MetamaskWallet();
+          const address = await metamaskWallet.initMetamaskWallet();
+          if (address) {
+            setAddress(address);
+            setLoginFrom('metamask');
+            setShow(false);
+            setLoginFrom('metamask');
+            localStorage.setItem('metamaskConnected', 'true');
+            setChain(await metamaskWallet.getChainInfo());
+          }
         } catch (err) {
           console.warn(err);
+          window.alert(err.message);
+          localStorage.setItem('metamaskConnected', 'false');
         } finally {
           setLoggingIn(false);
         }
@@ -55,6 +64,10 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
     } = parseQuery(window.location.search);
     if (!autoLoginRequestMade) {
       setAutoLoginRequestMade(true);
+      if (localStorage.getItem('metamaskConnected') === 'true') {
+        metaMaskLogin();
+      }
+
       if (code) {
         setLoggingIn(true);
         WebaWallet.waitForLaunch().then(async ()=>{
@@ -111,6 +124,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
             e.stopPropagation();
             WebaWallet.logout();
             setAddress(null);
+            localStorage.removeItem('metamaskConnected');
           }}
         >Logout</div>
         : ''
