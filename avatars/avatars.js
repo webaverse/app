@@ -2670,58 +2670,11 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
-        /* if (this.chargeJumpState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            
-            const t2 = (this.chargeJumpTime/1000) ;
-            const src2 = chargeJump.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
-        /* if (this.jumpState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              // isTop,
-            } = spec;
-            
-
-            const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
-            const danceAnimation = danceAnimations[0];
-            const src2 = throwAnimation.interpolants[k];
-            const t2 = (this.danceTime/1000) ;
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
-        /* if (this.throwState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              // isTop,
-            } = spec;
-            
-            const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
-            const src2 = throwAnimation.interpolants[k];
-            const t2 = this.throwTime/1000;
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
-        // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
-        if (this.useAnimation) {
+        if (
+          this.useAnimation ||
+          this.useAnimationCombo.length > 0 ||
+          this.useAnimationEnvelope.length > 0
+        ) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2729,20 +2682,49 @@ class Avatar {
               // isTop,
               isPosition,
             } = spec;
-            
-            const isCombo = Array.isArray(this.useAnimation);
-            const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
-            const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
-            _handleDefault(spec);
-            const t2 = Math.min(this.useTime/1000, useAnimation.duration); /* (() => {
-              if (isCombo) {
-                return Math.min(this.useTime/1000, useAnimation.duration);
-              } else {
-                return (this.useTime/1000) % useAnimation.duration;
+
+            let useAnimation;
+            let t2;
+            const useTimeS = this.useTime/1000;
+            if (this.useAnimation) {
+              const useAnimationName = this.useAnimation;
+              useAnimation = useAnimations[useAnimationName];
+              t2 = Math.min(useTimeS, useAnimation.duration);
+            } else if (this.useAnimationCombo.length > 0) {
+              const useAnimationName = this.useAnimationCombo[this.useAnimationIndex];
+              useAnimation = useAnimations[useAnimationName];
+              t2 = Math.min(useTimeS, useAnimation.duration);
+            } else if (this.useAnimationEnvelope.length > 0) {
+              let totalTime = 0;
+              for (const animationName of this.useAnimationEnvelope) {
+                const animation = useAnimations[animationName];
+                totalTime += animation.duration;
               }
-            })(); */
-            if (!isPosition) {
-              if (useAnimation) {
+              
+              if (totalTime > 0) {
+                let animationTimeBase = 0;
+                for (const animationName of this.useAnimationEnvelope) {
+                  const animation = useAnimations[animationName];
+                  if (useTimeS < (animationTimeBase + animation.duration)) {
+                    useAnimation = animation;
+                    break;
+                  }
+                  animationTimeBase += animation.duration;
+                }
+                if (useAnimation !== undefined) {
+                  t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
+                } else {
+                  const lastAnimationName = this.useAnimationEnvelope[this.useAnimationEnvelope.length - 1];
+                  useAnimation = useAnimations[lastAnimationName];
+                  t2 = useAnimation.duration;
+                }
+              }
+            }
+
+            _handleDefault(spec);
+            
+            if (useAnimation) {
+              if (!isPosition) {
                 const src2 = useAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
@@ -2754,24 +2736,22 @@ class Avatar {
                 dst
                   .premultiply(localQuaternion2.fromArray(v3).invert())
                   .premultiply(localQuaternion2.fromArray(v2));
-              } /* else {
-                _handleDefault(spec);
-              } */
-            } else {
-              const src2 = useAnimation.interpolants[k];
-              const v2 = src2.evaluate(t2);
-              localVector2.fromArray(v2);
-              _clearXZ(localVector2, isPosition);
+              } else {
+                const src2 = useAnimation.interpolants[k];
+                const v2 = src2.evaluate(t2);
+                localVector2.fromArray(v2);
+                _clearXZ(localVector2, isPosition);
 
-              const idleAnimation = _getIdleAnimation('walk');
-              const t3 = 0;
-              const src3 = idleAnimation.interpolants[k];
-              const v3 = src3.evaluate(t3);
-              localVector3.fromArray(v3);
-              
-              dst
-                .sub(localVector3)
-                .add(localVector2);
+                const idleAnimation = _getIdleAnimation('walk');
+                const t3 = 0;
+                const src3 = idleAnimation.interpolants[k];
+                const v3 = src3.evaluate(t3);
+                localVector3.fromArray(v3);
+                
+                dst
+                  .sub(localVector3)
+                  .add(localVector2);
+              }
             }
           };
         } else if (this.aimAnimation) {
@@ -2799,9 +2779,7 @@ class Avatar {
                 dst
                   .premultiply(localQuaternion2.fromArray(v3).invert())
                   .premultiply(localQuaternion2.fromArray(v2));
-              } /* else {
-                _handleDefault(spec);
-              } */
+              }
             } else {
               const src2 = aimAnimation.interpolants[k];
               const v2 = src2.evaluate(t2);
