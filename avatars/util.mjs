@@ -520,6 +520,9 @@ export const decorateAnimation = animation => {
   animation.isMagic = /magic/i.test(animation.name);
   animation.isSkateboarding = /skateboarding/i.test(animation.name);
   animation.isThrow = /throw/i.test(animation.name);
+  animation.isBowDraw = /bow draw/i.test(animation.name);
+  animation.isBowIdle = /bow idle/i.test(animation.name);
+  animation.isBowLoose = /bow loose/i.test(animation.name);
   animation.isDancing = /dancing/i.test(animation.name);
   animation.isPowerUp = /powerup/i.test(animation.name);
   animation.isEating = /eating/i.test(animation.name);
