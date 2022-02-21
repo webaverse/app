@@ -326,9 +326,9 @@ const _click = () => {
   }
 };
 let lastUseIndex = 0;
-const _getNextUseIndex = animation => {
-  if (Array.isArray(animation)) {
-    return (lastUseIndex++) % animation.length;
+const _getNextUseIndex = animationCombo => {
+  if (Array.isArray(animationCombo)) {
+    return (lastUseIndex++) % animationCombo.length;
   } else {
     return 0;
   }
@@ -353,13 +353,14 @@ const _startUse = () => {
       const useAction = localPlayer.getAction('use');
       if (!useAction) {
         const {instanceId} = wearApp;
-        const {boneAttachment, animation, ik, behavior, position, quaternion, scale} = useComponent;
-        const index = _getNextUseIndex(animation);
-        // console.log('index', index, swordTopDownSlash);
+        const {boneAttachment, animation, animationCombo, animationEnvelope, ik, behavior, position, quaternion, scale} = useComponent;
+        const index = _getNextUseIndex(animationCombo);
         const newUseAction = {
           type: 'use',
           instanceId,
           animation,
+          animationCombo,
+          animationEnvelope,
           ik,
           behavior,
           boneAttachment,
@@ -368,6 +369,7 @@ const _startUse = () => {
           quaternion,
           scale,
         };
+        // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
 
         _handleNewLocalUseAction(wearApp, newUseAction);
