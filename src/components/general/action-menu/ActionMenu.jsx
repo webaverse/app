@@ -6,7 +6,7 @@ import styles from './action-menu.module.css';
 
 //
 
-export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }) => {
+export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened, setCharacterOverviewOpened }) => {
 
     const [ xrSupported, setXrSupported ] = useState( false );
 
@@ -33,6 +33,12 @@ export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }
     const handleModeBtnClick = () => {
 
         // todo
+
+    };
+
+    const handleInventoryBtnClick = () => {
+
+        setCharacterOverviewOpened( true );
 
     };
 
@@ -69,6 +75,10 @@ export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }
             <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
                 <span className={ styles.text } >モード Mode</span>
+            </div>
+            <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleInventoryBtnClick } >
+                <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
+                <span className={ styles.text } >在庫 Inventory</span>
             </div>
             <div className={ classnames( styles.btn, styles.vr, xrSupported ? null : styles.disabled ) } onClick={ handleVRBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />

@@ -6,10 +6,11 @@ import { Hotbar } from './hotbar';
 import { Inventory } from './inventory';
 
 import styles from './play-mode.module.css';
+import { CharacterOverview } from './character-overview/CharacterOverview';
 
 //
 
-export const PlayMode = () => {
+export const PlayMode = ({ characterOverviewOpened, setCharacterOverviewOpened }) => {
 
     //
 
@@ -18,6 +19,7 @@ export const PlayMode = () => {
             <Minimap />
             <Hotbar />
             <Inventory />
+            <CharacterOverview opened={ characterOverviewOpened } setOpened={ setCharacterOverviewOpened } />
         </div>
     );
 

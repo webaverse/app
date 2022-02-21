@@ -1,0 +1,138 @@
+
+.characterOverview {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    min-width: 1070px;
+    background-color: #000000;
+    background-image: linear-gradient(315deg, #000000 0%, #414141 74%);
+    z-index: 6;
+    transition: visibility 0s 300ms, opacity 300ms ease;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.characterOverview.open {
+    opacity: 1;
+    visibility: visible;
+    transition: visibility 0s 0ms, opacity 300ms ease;
+}
+
+.closeBtn {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    font-size: 35px;
+    color: #fff;
+    opacity: 0.7;
+    transition: opacity 200ms ease;
+    cursor: pointer;
+}
+
+.closeBtn:hover {
+    opacity: 0.9;
+}
+
+/*  */
+
+.characterBlock {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 38%;
+    height: 70vh;
+}
+
+.characterBlockCanvas {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: #aaa;
+}
+
+.characterItems {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    right: 20%;
+    height: 80%;
+    transition: visibility 0s 300ms, opacity 300ms ease;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.characterItems.opened {
+    opacity: 1;
+    visibility: visible;
+    transition: visibility 0s 0ms, opacity 300ms ease;
+}
+
+.characterItems .header {
+    width: 300px;
+    padding: 10px 0px;
+    padding-left: 10px;
+    text-align: left;
+    font-size: 25px;
+    font-weight: bold;
+    color: #fff;
+    border-bottom: 1px solid #fff;
+    margin-bottom: 25px;
+}
+
+.characterItems .contentWrapper {
+    width: 100%;
+    height: calc( 100% - 35px );
+    overflow-x: none;
+    overflow-y: scroll;
+}
+
+.characterItems .contentWrapper .slot {
+    position: relative;
+    float: left;
+    margin: 10px;
+    width: 70px;
+    height: 70px;
+    background-color: #414141;
+    border: 1px solid #6f6f6f;
+    cursor: pointer;
+    transition: opacity 200ms ease;
+    opacity: 0.8;
+}
+
+.characterItems .contentWrapper .slot:hover {
+    opacity: 1;
+}
+
+/*  */
+
+.backBtn {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: opacity 200ms ease;
+}
+
+.backBtn:hover {
+    opacity: 0.9;
+}
+
+.backBtn .icon {
+    float: left;
+    width: 35px;
+    height: 35px;
+    background-size: 100% 100%;
+    background-image: url(./image/close.png);
+}
+
+.backBtn .label {
+    float: left;
+    padding-left: 15px;
+    color: #fff;
+    line-height: 35px;
+}

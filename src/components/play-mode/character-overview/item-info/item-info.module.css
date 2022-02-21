@@ -1,0 +1,144 @@
+
+.clearfix {
+    clear: both;
+}
+
+.itemInfo {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    right: 10%;
+    transition: visibility 0s 300ms, opacity 300ms ease;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.itemInfo.opened {
+    opacity: 1;
+    visibility: visible;
+    transition: visibility 0s 0ms, opacity 300ms ease;
+}
+
+.itemInfo .itemInfoBackBtn {
+    position: absolute;
+    top: -30px;
+    left: 0px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 200ms ease;
+    opacity: 0.7;
+}
+
+.itemInfo .itemInfoBackBtn:hover {
+    opacity: 0.9;
+}
+
+.itemInfo .title {
+    padding: 10px 0px;
+    border-bottom: 1px solid #fff;
+    color: #fff;
+    font-size: 18px;
+    width: 70%;
+    text-align: left;
+}
+
+.itemInfo .generalInfoBlock {
+    position: relative;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.itemInfo .generalInfoBlock .image {
+    position: relative;
+    float: left;
+    width: 30%;
+    height: 14vw;
+    background-color: #aaa;
+}
+
+.itemInfo .generalInfoBlock .textBlock {
+    position: relative;
+    float: left;
+}
+
+.itemInfo .generalInfoBlock .textBlock .author {
+    padding: 5px 25px;
+    font-size: 14px;
+    color: #fff600;
+    text-align: left;
+}
+
+.itemInfo .generalInfoBlock .textBlock .text {
+    padding: 5px 25px;
+    color: #fff;
+    text-align: left;
+}
+
+/*  */
+
+.itemInfo .propList {
+    margin-top: 20px;
+}
+
+.itemInfo .property {
+    position: relative;
+    display: table;
+    float: left;
+    margin-right: 20px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: 1px solid #fff600;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.itemInfo .property .propTitle {
+    color: #fff600;
+}
+
+.itemInfo .property .propDescription {
+    color: #fff;
+}
+
+.itemInfo .property .propRarity {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    line-height: 25px;
+    top: -15px;
+    right: -15px;
+    background-color: #fff;
+    color: #666;
+    border-radius: 50%;
+}
+
+/*  */
+
+.itemInfo .descriptionBlock {
+    margin-top: 20px;
+    width: 85%;
+}
+
+.itemInfo .descriptionBlock .descriptionTitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    text-align: left;
+}
+
+.itemInfo .descriptionBlock .descriptionLine {
+    width: 50%;
+    padding: 10px 0px;
+}
+
+.itemInfo .descriptionBlock .descriptionLine .descriptionItemTitle {
+    float: left;
+    color: #fff;
+}
+
+.itemInfo .descriptionBlock .descriptionLine .descriptionItemValue {
+    float: right;
+    color: #fff;
+}

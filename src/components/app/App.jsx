@@ -71,6 +71,7 @@ export const App = () => {
 
     const [ settingsOpened, setSettingsOpened ] = useState( false );
     const [ worldObjectsListOpened, setWorldObjectsListOpened ] = useState( false );
+    const [ characterOverviewOpened, setCharacterOverviewOpened ] = useState( false );
 
     //
 
@@ -128,10 +129,10 @@ export const App = () => {
             <Header app={ app } />
             <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
             <Crosshair />
-            <ActionMenu app={ app } setSettingsOpened={ setSettingsOpened } setWorldObjectsListOpened={ setWorldObjectsListOpened } />
+            <ActionMenu app={ app } setSettingsOpened={ setSettingsOpened } setWorldObjectsListOpened={ setWorldObjectsListOpened } setCharacterOverviewOpened={ setCharacterOverviewOpened } />
             <Settings opened={ settingsOpened } setOpened={ setSettingsOpened } />
             <WorldObjectsList opened={ worldObjectsListOpened } setOpened={ setWorldObjectsListOpened } />
-            <PlayMode />
+            <PlayMode characterOverviewOpened={ characterOverviewOpened } setCharacterOverviewOpened={ setCharacterOverviewOpened } />
             <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
         </div>
     );
