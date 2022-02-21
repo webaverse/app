@@ -68,8 +68,8 @@ const floorFragmentShader = `\
   uniform vec2 uScreenSize;
   varying vec2 vUv;
 
-  void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
-    vec4 c = texture2D(uTex, fragCoord);
+  void mainImage( out vec4 fragColor, in vec2 uv ) {
+    vec4 c = texture2D(uTex, uv);
     fragColor = c;
     fragColor.a = 1.;
   }
