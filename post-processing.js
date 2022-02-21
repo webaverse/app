@@ -211,6 +211,11 @@ webaverseRenderPass.onAfterRender = () => {
     }
   }
 };
+
+webaverseRenderPass.toggleAvatar = (isOn) => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  localPlayer.avatar && localPlayer.avatar.toggleDepthModel(isOn);
+}
 const encodingPass = makeEncodingPass();
 
 class PostProcessing extends EventTarget {

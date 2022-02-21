@@ -44,8 +44,10 @@ class WebaverseRenderPass extends Pass {
       o.isLowPriority = true;
     });
     if (this.internalDepthPass) {
+      this.toggleAvatar(true);
       this.internalDepthPass.renderToScreen = false;
       this.internalDepthPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+      this.toggleAvatar(false);
     }
     if (this.internalRenderPass) {
       this.internalRenderPass.renderToScreen = this.renderToScreen;

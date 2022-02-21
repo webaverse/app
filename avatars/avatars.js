@@ -1120,6 +1120,7 @@ class Avatar {
         },
       };
     }
+    // this.game = game;  //debugging helper
 
     const model = (() => {
       let o = this.object;
@@ -1148,6 +1149,7 @@ class Avatar {
     })();
 
     this.model = model;
+    this.model.name = "base mesh"
     this.spriteMegaAvatarMesh = null;
     this.crunchedModel = null;
     this.options = options;
@@ -2141,7 +2143,11 @@ class Avatar {
   }
   
   getModel(quality = metaversefile.getQualitySetting()){
-    return quality == 'LOW' ? this.spriteMegaAvatarMesh : quality == 'MEDIUM' ? this.crunchedModel : this.model;
+    return quality == 'LOW' || quality == 1 ? 
+      this.spriteMegaAvatarMesh : 
+      quality == 'MEDIUM' || quality == 2 ? 
+        this.crunchedModel : 
+        this.model;
   }
   
   async setQuality(quality) {
@@ -2237,7 +2243,7 @@ class Avatar {
         throw new Error('unknown avatar quality: ' + quality);
       }
     }
-    this.getModel().visible = true;
+    this.getModel(quality).visible = true;
   }
   update(timestamp, timeDiff) {
     const now = timestamp;
@@ -3505,6 +3511,22 @@ class Avatar {
         });
       } */
       this.decapitated = false;
+    }
+  }
+
+  toggleDepthModel(on = false) {
+    // return true;
+    const localPlayer = metaversefile.useLocalPlayer();
+    if (!localPlayer.avatar) return false;
+    const avatar = localPlayer.avatar;
+    // console.log(`init, `, avatar.crunchedModel, avatar.model)
+
+    if (on){
+      avatar.crunchedModel && (avatar.crunchedModel.visible = true);
+      avatar.getModel() && (avatar.getModel().visible = false);
+    } else {
+      avatar.crunchedModel && (avatar.crunchedModel.visible = false);
+      avatar.getModel() && (avatar.getModel().visible = true);
     }
   }
 
