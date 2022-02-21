@@ -809,7 +809,7 @@ const physxWorker = (() => {
     );
   };
 
-  w.detectPathVoxelPhysics = (physics, hx, hy, hz, p, q, maxIter, ignorePhysicsIds) => {
+  w.detectPathVoxelPhysics = (physics, start, dest, hx, hy, hz, p, q, maxIterDetect, ignorePhysicsIds) => {
     p.toArray(scratchStack.f32, 0);
     localQuaternion.copy(q)
       .toArray(scratchStack.f32, 3);
@@ -818,21 +818,27 @@ const physxWorker = (() => {
     localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10);
     // scratchStack.f32[13] = 1;
     // scratchStack.u32[14] = 3;
+    start.toArray(scratchStack.f32, 14);
+    dest.toArray(scratchStack.f32, 17);
 
     const positionOffset = scratchStack.f32.byteOffset;
     const quaternionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
     const meshPositionOffset = scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT;
     const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
-    const ignorePhysicsIdsOffset = scratchStack.u32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+    const startOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
+    const destOffset = scratchStack.f32.byteOffset + 17 * Float32Array.BYTES_PER_ELEMENT;
+    const ignorePhysicsIdsOffset = scratchStack.u32.byteOffset + 20 * Float32Array.BYTES_PER_ELEMENT;
     // console.log(scratchStack)
     // debugger
 
     ignorePhysicsIds.forEach((id, i) => {
-      scratchStack.u32[14 + i] = ignorePhysicsIds[i];
+      scratchStack.u32[20 + i] = ignorePhysicsIds[i];
     })
 
     const outputBufferOffset = moduleInstance._detectPathVoxelPhysics(
       physics,
+      startOffset,
+      destOffset,
       hx,
       hy,
       hz,
@@ -840,7 +846,7 @@ const physxWorker = (() => {
       quaternionOffset,
       meshPositionOffset,
       meshQuaternionOffset,
-      maxIter,
+      maxIterDetect,
       ignorePhysicsIds.length,
       ignorePhysicsIdsOffset,
     );

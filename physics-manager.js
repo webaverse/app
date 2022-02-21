@@ -28,6 +28,7 @@ const localMatrix = new THREE.Matrix4();
 // const upVector = new THREE.Vector3(0, 1, 0);
 
 const physicsManager = new EventTarget();
+window.physicsManager = physicsManager;
 
 const physicsUpdates = [];
 const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
@@ -212,8 +213,8 @@ physicsManager.setAngularVelocity = (physicsObject, velocity, autoWake) => {
 physicsManager.setTransform = (physicsObject, autoWake) => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale, autoWake);
 };
-physicsManager.detectPathVoxel = (hx, hy, hz, p, q, maxIter, ignorePhysicsIds) => {
-  return physx.physxWorker.detectPathVoxelPhysics(physx.physics, hx, hy, hz, p, q, maxIter, ignorePhysicsIds);
+physicsManager.detectPathVoxel = (start, dest, hx, hy, hz, p, q, maxIterDetect, ignorePhysicsIds) => {
+  return physx.physxWorker.detectPathVoxelPhysics(physx.physics, start, dest, hx, hy, hz, p, q, maxIterDetect, ignorePhysicsIds);
 };
 physicsManager.overlapBox = (hx, hy, hz, p, q) => {
   return physx.physxWorker.overlapBoxPhysics(physx.physics, hx, hy, hz, p, q);

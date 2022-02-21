@@ -4,6 +4,7 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
+window.THREE = THREE;
 import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
 // import * as CharacterHupsModule from './character-hups.js';
