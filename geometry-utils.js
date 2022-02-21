@@ -77,32 +77,82 @@ const geometryUtils = (() => {
         }
     }
 
-    scope.generateChunk = (
-        x, y, z, chunkSize,
-        noiseScale, octaves, persistence, lacunarity, floorOffset, hardFloor, hardFloorWeight, noiseWeight
+    scope.generateTerrain = (
+        chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam
     ) => {
-        const outputBufferOffset = moduleInstance._generateChunk(
-            x, y, z, chunkSize,
-            noiseScale, octaves, persistence, lacunarity, floorOffset, hardFloor, hardFloorWeight, noiseWeight
+
+        const outputBuffer = moduleInstance._generateTerrain(
+            chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam
         );
 
-        const head = outputBufferOffset / 4;
+        const head = outputBuffer / 4;
 
-        const positionCount = moduleInstance.HEAP32[head];
-        const faceCount = moduleInstance.HEAP32[head + 1];
-        const positions = moduleInstance.HEAPF32.slice(head + 2, head + 2 + positionCount);
-        const faces = moduleInstance.HEAP32.slice(
-            head + 2 + positionCount, head + 2 + positionCount + faceCount
-        );
+        const positionCount = chunkCount * chunkCount * segment * segment * vertexBufferSizeParam;
+        const indexCount = chunkCount * chunkCount * segment * segment * indexBufferSizeParam;
 
-        moduleInstance._doFree(outputBufferOffset);
+        const positionBuffer = moduleInstance.HEAP32.subarray(head + 0, head + 1)[0];
+        const normalBuffer = moduleInstance.HEAP32.subarray(head + 1, head + 2)[0];
+        const indexBuffer = moduleInstance.HEAP32.subarray(head + 2, head + 3)[0];
+        const chunkVertexRangeBuffer = moduleInstance.HEAP32.subarray(head + 3, head + 4)[0];
+        const vertexFreeRangeBuffer = moduleInstance.HEAP32.subarray(head + 4, head + 5)[0];
+        const chunkIndexRangeBuffer = moduleInstance.HEAP32.subarray(head + 5, head + 6)[0];
+        const indexFreeRangeBuffer = moduleInstance.HEAP32.subarray(head + 6, head + 7)[0];
+
+        const positions = moduleInstance.HEAPF32.subarray(positionBuffer / 4, positionBuffer / 4 + positionCount * 3);
+        const normals = moduleInstance.HEAPF32.subarray(normalBuffer / 4, normalBuffer / 4 + positionCount * 3);
+        const indices = moduleInstance.HEAPU32.subarray(indexBuffer / 4, indexBuffer / 4 + indexCount);
+        const vertexRanges = moduleInstance.HEAP32.subarray(
+            chunkVertexRangeBuffer / 4, chunkVertexRangeBuffer / 4 + chunkCount * chunkCount * 2);
+        const indexRanges = moduleInstance.HEAP32.subarray(
+            chunkIndexRangeBuffer / 4, chunkIndexRangeBuffer / 4 + chunkCount * chunkCount * 2);
+
+        moduleInstance._doFree(outputBuffer);
 
         return {
             positionCount: positionCount,
-            faceCount: faceCount,
+            indexCount: indexCount,
+            positionBuffer: positionBuffer,
+            normalBuffer: normalBuffer,
+            indexBuffer: indexBuffer,
+            chunkVertexRangeBuffer: chunkVertexRangeBuffer,
+            vertexFreeRangeBuffer: vertexFreeRangeBuffer,
+            chunkIndexRangeBuffer: chunkIndexRangeBuffer,
+            indexFreeRangeBuffer: indexFreeRangeBuffer,
             positions: positions,
-            faces: faces
+            normals: normals,
+            indices: indices,
+            vertexRanges: vertexRanges,
+            indexRanges: indexRanges
         }
+    }
+
+    scope.deallocateChunk = (
+        vertexSlot, indexSlot, totalChunkCount,
+        chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
+    ) => {
+
+        moduleInstance._deallocateChunk(
+            vertexSlot, indexSlot, totalChunkCount,
+            chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
+        );
+    }
+
+    scope.allocateChunk = (
+        positionBuffer, normalBuffer, indexBuffer,
+        chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
+        x, y, z, chunkSize, segment, totalChunkCount
+    ) => {
+
+        let slotsPtr = moduleInstance._allocateChunk(
+            positionBuffer, normalBuffer, indexBuffer,
+            chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
+            x, y, z, chunkSize, segment, totalChunkCount
+        );
+
+        let slots = moduleInstance.HEAP32.slice(slotsPtr / 4, slotsPtr / 4 + 2);
+        moduleInstance._doFree(slotsPtr);
+
+        return { vertexSlot: slots[0], indexSlot: slots[1] };
     }
 
     return scope;
