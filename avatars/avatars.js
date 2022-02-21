@@ -1719,8 +1719,7 @@ class Avatar {
     });
 
     object.crunch && (async () => {
-      await object.crunch.makeCrunched(this.object);
-      this.crunchedModel = object.crunch.scene;
+      this.crunchedModel = await object.crunch.makeCrunched(this.object);
     })()
 
   }
