@@ -33,6 +33,7 @@ const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
+const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
 
 class CharacterPhysics {
   constructor(player) {
@@ -281,8 +282,8 @@ class CharacterPhysics {
       const isSession = !!session;
       const isPlayerAiming = !!aimAction && !aimAction.playerAnimation;
       const isObjectAimable = !!aimComponent;
-      const isPlayingEnvelopeIkAnimation = !!useAction && useAction.ik === 'bow';
-      const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable)) && !isPlayingEnvelopeIkAnimation;
+      // const isPlayingEnvelopeIkAnimation = !!useAction && useAction.ik === 'bow';
+      const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable)) /* && !isPlayingEnvelopeIkAnimation */;
       for (let i = 0; i < 2; i++) {
         const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : 0);
         const enabled = isHandEnabled && isExpectedHandIndex;
@@ -324,7 +325,11 @@ class CharacterPhysics {
     };
     _updateFakeHands();
 
-    const _updateIkAnimation = () => {
+    const _updatePistolIkAnimation = () => {
+      const kickbackTime = 300;
+      const kickbackExponent = 0.05;
+      const fakeArmLength = 0.2;
+
       const pistolUse = !!useAction && useAction.ik === 'pistol';
       // console.log('got use action', !!pistolUse, useAction?.ik);
       if (!this.lastPistolUse && pistolUse) {
@@ -334,11 +339,8 @@ class CharacterPhysics {
 
       if (isFinite(this.lastPistolUseStartTime)) {
         const lastUseTimeDiff = now - this.lastPistolUseStartTime;
-        const kickbackTime = 300;
-        const kickbackExponent = 0.05;
         const f = Math.min(Math.max(lastUseTimeDiff / kickbackTime, 0), 1);
         const v = Math.sin(Math.pow(f, kickbackExponent) * Math.PI);
-        const fakeArmLength = 0.2;
         localQuaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             localVector.copy(this.player.leftHand.position),
@@ -371,7 +373,45 @@ class CharacterPhysics {
         }
       }
     };
-    _updateIkAnimation();
+    _updatePistolIkAnimation();
+
+    const _updateBowIkAnimation = () => {
+      const bowUse = !!useAction && useAction.ik === 'bow';
+      // console.log('got use action', !!pistolUse, useAction?.ik);
+      if (!this.lastBowUse && bowUse) {
+        this.lastBowUseStartTime = now;
+      }
+      if (!bowUse) {
+        this.lastBowUseStartTime = -Infinity;
+      }
+      this.lastBowUse = bowUse;
+
+      if (isFinite(this.lastBowUseStartTime)) {
+        const lastUseTimeDiff = now - this.lastBowUseStartTime;
+        // const fakeArmLength = 0.2;
+
+        const v = Math.min(Math.max(lastUseTimeDiff / 300, 0), 1);
+        
+        const targetPosition = localVector.copy(this.player.rightHand.position).add(
+          localVector2.set(-rightHandOffset.x*2, 0, -0.2)
+            .applyQuaternion(this.player.rightHand.quaternion)
+        );
+        const targetQuaternion = localQuaternion.copy(this.player.rightHand.quaternion)
+          .multiply(z22Quaternion);
+
+        this.player.rightHand.position.lerp(targetPosition, v);
+        this.player.rightHand.quaternion.slerp(targetQuaternion, v);
+        
+        /* this.player.rightHand.quaternion.slerp(localQuaternion, v);
+        this.player.rightHand.position.add(
+          localVector.set(0, 0, -fakeArmLength)
+            .applyQuaternion(this.player.rightHand.quaternion)
+        ); */
+
+        this.player.rightHand.updateMatrixWorld();
+      }
+    };
+    _updateBowIkAnimation();
   }
   update(now, timeDiffS) {
     this.applyGravity(timeDiffS);
