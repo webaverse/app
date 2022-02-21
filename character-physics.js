@@ -199,16 +199,16 @@ class CharacterPhysics {
         .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
 
-      this.player.updateMatrixWorld();
+      // this.player.updateMatrixWorld();
 
-      if (this.avatar) {
+      /* if (this.avatar) {
         if (this.player.hasAction('jump')) {
           this.avatar.setFloorHeight(-0xFFFFFF);
         } else {
           this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
         }
         this.avatar.updateMatrixWorld();
-      }
+      } */
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */
