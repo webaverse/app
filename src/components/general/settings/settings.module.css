@@ -187,3 +187,15 @@
 .applyBtn.active {
     opacity: 0.7;
 }
+
+/*  */
+
+.select {
+    margin-left: 20px;
+    width: 41%;
+    line-height: 35px;
+    height: 35px;
+    text-align: center;
+    font-weight: bold;
+    background-color: #aaa;
+}
