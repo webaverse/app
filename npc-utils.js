@@ -172,10 +172,6 @@ class PathFinder {
     }
   }
 
-  resetVoxelDetect(voxel) {
-    voxel._detectState = 'initial'; // 'initial', 'colliding', 'stopped'
-  }
-
   resetVoxelAStar(voxel) {
     voxel._isStart = false;
     voxel._isDest = false;
@@ -232,7 +228,6 @@ class PathFinder {
   }
 
   createVoxel(position) {
-    this.resetVoxelDetect(localVoxel);
     localVoxel.position.copy(position);
     localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
     this.iterDetect = 0;
