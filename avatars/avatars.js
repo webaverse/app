@@ -1662,6 +1662,8 @@ class Avatar {
     this.flyTime = NaN;
     this.useTime = NaN;
     this.useAnimation = null;
+    this.useAnimationCombo = [];
+    this.useAnimationEnvelope = [];
     this.sitState = false;
     this.sitAnimation = null;
     // this.activateState = false;
