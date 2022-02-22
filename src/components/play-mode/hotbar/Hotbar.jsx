@@ -20,6 +20,7 @@ const fullscreenFragmentShader = `\
   uniform sampler2D uTex;
   uniform float uSelected;
   uniform float uSelectFactor;
+  uniform float uTime;
   varying vec2 vUv;
 
   //---------------------------------------------------------------------------
@@ -131,6 +132,16 @@ const fullscreenFragmentShader = `\
         highlightColor.gb = vUv;
       }
     } else {
+      float extraIntensity = min(max(0.3 + fbm(uTime * 0.001 * 10., 3, 0.7), 0.), 1.);
+      float distanceToBottomMiddle = length(vUv - vec2(0.5, 1.));
+      float extraFactor = min(max(distanceToBottomMiddle, 0.), 1.);
+
+      vec3 color1 = vec3(${new THREE.Color(0x00F260).toArray().map(n => n.toFixed(8)).join(', ')});
+      vec3 color2 = vec3(${new THREE.Color(0x0575E6).toArray().map(n => n.toFixed(8)).join(', ')});
+      vec3 colorMix = mix(color1, color2, vUv.y);
+
+      highlightColor.rgb += colorMix * extraFactor * extraIntensity * uSelectFactor;
+
       const float arrowHeight = 0.25;
       Tri t1 = Tri(
         vec2(borderWidth, borderWidth),
@@ -182,6 +193,10 @@ const _makeHotboxScene = () => {
             needsUpdate: true,
           },
           uSelectFactor: {
+            value: 0,
+            needsUpdate: true,
+          },
+          uTime: {
             value: 0,
             needsUpdate: true,
           },
@@ -249,6 +264,8 @@ class Hotbox {
                 this.scene.fullScreenQuadMesh.material.uniforms.uSelected.needsUpdate = true;
                 this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.value = smoothedSelectFactor;
                 this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.needsUpdate = true;
+                this.scene.fullScreenQuadMesh.material.uniforms.uTime.value = timestamp;
+                this.scene.fullScreenQuadMesh.material.uniforms.uTime.needsUpdate = true;
 
                 renderer.setViewport(0, 0, this.width, this.height);
                 renderer.clear();
