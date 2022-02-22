@@ -2771,7 +2771,6 @@ class Avatar {
             const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
             const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
             const f2 = Math.pow(1 - f, 2);
-            // const remainingF = 1 - f;
 
             if (!isPosition) {
               const src2 = unuseAnimation.interpolants[k];
