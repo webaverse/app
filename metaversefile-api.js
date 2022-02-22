@@ -301,6 +301,9 @@ metaversefile.setApi({
       throw new Error('useApp cannot be called outside of render()');
     }
   },
+  useCamera() {
+    return camera;
+  },
   useScene() {
     return scene;
   },

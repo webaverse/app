@@ -16,8 +16,6 @@ export const KeyInput = ({ value, setValue, className }) => {
         let value = '';
         let index = 0;
 
-        console.log( keysList );
-
         keysList.forEach( ( key, keyIndex ) => {
 
             let keyName = '';
