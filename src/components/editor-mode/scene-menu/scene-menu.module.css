@@ -17,7 +17,7 @@
 
 .location .rooms {
     position: absolute;
-    top: 50px;
+    top: 40px;
     display: flex;
     width: 100%;
     background-color: #000;
