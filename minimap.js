@@ -23,6 +23,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const cameraHeight = 15;
+const cameraSafetyFactor = 1; // 1 is safest (least glitching)
 
 const _waitForFrame = () => new Promise(accept => {
   requestAnimationFrame(() => {
@@ -31,8 +32,6 @@ const _waitForFrame = () => new Promise(accept => {
 });
 
 // XXX TODO:
-// add compass border circle
-// add compass north
 // do not render avatars
 
 const fullscreenVertexShader = `\
@@ -76,12 +75,13 @@ const floorFragmentShader = `\
 
   void main() {
     vec2 screenSpaceUv = gl_FragCoord.xy / uScreenSize;
-    // vec2 uv = screenSpaceUv * 2. - 1.;
     vec2 uv = screenSpaceUv;
+    // vec2 uv2 = floor(vUv * 3.)/3.;
     float l = length(uv - vec2(0.5));
     if (l < 0.5 * 0.85) {
       mainImage(gl_FragColor, vUv);
       gl_FragColor.gb += uv * 0.5;
+      // gl_FragColor.gb += uv2 * 0.5;
     } else {
       discard;
     }
@@ -189,7 +189,7 @@ const _makeCopyScene = () => {
 
   return scene;
 };
-const _makeScene = (renderTarget, worldWidth, worldHeight) => {
+const _makeScene = (worldWidth, worldHeight, minZoom) => {
   const scene = new THREE.Scene();
   
   // floor map mesh
@@ -218,9 +218,9 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
   scene.floorMesh = floorMesh;
 
   // map direction pointer mesh
-  const reticleSize = worldWidth/6;
+  const reticleSize = worldWidth/3/3 * minZoom;
   const reticleMesh = new THREE.Mesh(
-    new THREE.CircleGeometry(1, 4, Math.PI/2/2, Math.PI/2)
+    new THREE.CircleGeometry(reticleSize, 4, Math.PI/2/2, Math.PI/2)
       .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
     new THREE.ShaderMaterial({
       uniforms: {
@@ -234,17 +234,18 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
       transparent: true,
     })
   );
-  reticleMesh.scale.setScalar(reticleSize);
+  reticleMesh.scale.setScalar(reticleSize * cameraSafetyFactor);
   reticleMesh.frustumCulled = false;
   scene.add(reticleMesh);
   scene.reticleMesh = reticleMesh;
 
-  const compassSize = worldWidth/2;
+  const compassSize = worldWidth/3 * cameraSafetyFactor;
   const compassMesh = new THREE.Mesh(
-    compassGeometry,
+    compassGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(compassSize, compassSize, compassSize)),
     compassMaterial,
   );
-  compassMesh.scale.setScalar(compassSize);
+  // compassMesh.scale.setScalar(compassSize);
   compassMesh.updateMatrixWorld();
   compassMesh.frustumCulled = false;
   scene.add(compassMesh);
@@ -255,27 +256,47 @@ const _makeScene = (renderTarget, worldWidth, worldHeight) => {
 
 const minimaps = [];
 class MiniMap {
-  constructor(width, height, worldWidth, worldHeight) {
+  constructor(width, height, worldWidth, worldHeight, minZoom, baseSpeed) {
     this.width = width;
     this.height = height;
     this.worldWidthD3 = Math.floor(worldWidth / 3);
     this.worldHeightD3 = Math.floor(worldHeight / 3);
     this.worldWidth = this.worldWidthD3 * 3;
     this.worldHeight = this.worldHeightD3 * 3;
+    this.minZoom = minZoom;
+    this.baseSpeed = baseSpeed;
+    this.canvasWidth = 1;
+    this.canvasHeight = 1;
     this.enabled = true;
 
     this.topCamera = new THREE.OrthographicCamera(
-      -this.worldWidth/3*0.5,
-      this.worldWidth/3*0.5,
-      this.worldHeight/3*0.5,
-      -this.worldHeight/3*0.5,
+      -this.worldWidthD3*0.5,
+      this.worldWidthD3*0.5,
+      this.worldHeightD3*0.5,
+      -this.worldHeightD3*0.5,
       0,
       1000
     );
     this.mapRenderTarget = null;
     this.mapRenderTarget2 = null;
-    this.scene = _makeScene(this.mapRenderTarget, this.worldWidth, this.worldHeight);
-    this.camera = new THREE.OrthographicCamera(-this.worldWidth/2, this.worldWidth/2, this.worldHeight/2, -this.worldHeight/2, 0, 1000);
+    this.scene = _makeScene(this.worldWidth, this.worldHeight, this.minZoom);
+    const cameraRadiusBase = this.worldWidthD3 * cameraSafetyFactor;
+    this.camera = new THREE.OrthographicCamera(
+      -cameraRadiusBase,
+      cameraRadiusBase,
+      cameraRadiusBase,
+      -cameraRadiusBase,
+      0,
+      1000
+    );
+    this.camera.setRadiusFactor = f => {
+      const cameraRadius = cameraRadiusBase * f;
+      this.camera.left = -cameraRadius;
+      this.camera.right = cameraRadius;
+      this.camera.top = cameraRadius;
+      this.camera.bottom = -cameraRadius;
+      this.camera.updateProjectionMatrix();
+    };
 
     this.copyScene = _makeCopyScene();
 
@@ -294,11 +315,17 @@ class MiniMap {
     this.queued = false;
     this.lastBase = new THREE.Vector2(NaN, NaN);
     this.lastWorldEpoch = -1;
+
+    this.smoothSpeed = 0;
   }
   resetCanvases() {
     this.canvases.length = 0;
   }
   addCanvas(canvas) {
+    const {width, height} = canvas;
+    this.canvasWidth = Math.max(this.canvasWidth, width);
+    this.canvasHeight = Math.max(this.canvasHeight, height);
+
     const ctx = canvas.getContext('2d');
     canvas.ctx = ctx;
 
@@ -315,7 +342,7 @@ class MiniMap {
       Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
       Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
     );
-    if (sizePowerOfTwo.x < this.width || sizePowerOfTwo.y < this.height) {
+    if (sizePowerOfTwo.x < this.canvasWidth || sizePowerOfTwo.y < this.canvasHeight) {
       console.warn('renderer is too small');
       return;
     }
@@ -450,21 +477,28 @@ class MiniMap {
     _updateTiles();
 
     const _renderMiniMap = () => {
+      // window.player = localPlayer;
+      const currentSpeed = localVector.set(localPlayer.characterPhysics.velocity.x, 0, localPlayer.characterPhysics.velocity.z).length();
+      this.smoothSpeed = this.smoothSpeed * 0.95 + currentSpeed * 0.05;
+      const speedFactor = Math.min(Math.max(this.smoothSpeed / this.baseSpeed, this.minZoom), 1);
+
       this.scene.reticleMesh.position.set(localPlayer.position.x, localPlayer.position.y + cameraHeight, localPlayer.position.z);
       localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       this.scene.reticleMesh.quaternion.setFromEuler(localEuler);
+      // this.scene.reticleMesh.scale.setScalar(speedFactor);
       this.scene.reticleMesh.updateMatrixWorld();
 
       this.scene.compassMesh.position.copy(this.scene.reticleMesh.position);
+      this.scene.compassMesh.scale.setScalar(speedFactor);
       this.scene.compassMesh.updateMatrixWorld();
 
-      this.scene.floorMesh.material.uniforms.uScreenSize.value.set(this.width * pixelRatio, this.height * pixelRatio);
+      this.scene.floorMesh.material.uniforms.uScreenSize.value.set(this.canvasWidth * pixelRatio, this.canvasHeight * pixelRatio);
       this.scene.floorMesh.material.uniforms.uScreenSize.needsUpdate = true;
 
       renderer.setRenderTarget(oldRenderTarget);
-      renderer.setViewport(0, 0, this.width, this.height);
+      renderer.setViewport(0, 0, this.canvasWidth, this.canvasHeight);
       renderer.clear();
       this.camera.position.copy(localPlayer.position)
         .add(localVector.set(0, cameraHeight, 0));
@@ -477,6 +511,8 @@ class MiniMap {
         )
       );
       this.camera.updateMatrixWorld();
+      this.camera.setRadiusFactor(speedFactor);
+      
       renderer.render(this.scene, this.camera);
     };
     _renderMiniMap();
@@ -488,9 +524,9 @@ class MiniMap {
         ctx.drawImage(
           renderer.domElement,
           0,
-          size.y * pixelRatio - this.height * pixelRatio,
-          this.width * pixelRatio,
-          this.height * pixelRatio,
+          size.y * pixelRatio - this.canvasHeight * pixelRatio,
+          this.canvasWidth * pixelRatio,
+          this.canvasHeight * pixelRatio,
           0,
           0,
           width,
@@ -516,8 +552,8 @@ class MiniMap {
 }
 
 const minimapManager = {
-  createMiniMap(width, height, worldWidth, worldHeight) {
-    const minimap = new MiniMap(width, height, worldWidth, worldHeight);
+  createMiniMap(width, height, worldWidth, worldHeight, minimapMinZoom, baseSpeed) {
+    const minimap = new MiniMap(width, height, worldWidth, worldHeight, minimapMinZoom, baseSpeed);
     minimaps.push(minimap);
     return minimap;
   },
