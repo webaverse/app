@@ -2753,6 +2753,70 @@ class Avatar {
                 .add(localVector2.fromArray(v2));
             }
           };
+        } else if (this.unuseAnimation && this.unuseTime >= 0 && this.used) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              lerpFn,
+              // isTop,
+              isPosition,
+            } = spec;
+
+            _handleDefault(spec);
+            
+            const unuseTimeS = this.unuseTime/1000;
+            const unuseAnimationName = this.unuseAnimation;
+            const unuseAnimation = useAnimations[unuseAnimationName];
+            const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
+            const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
+            const f2 = Math.pow(1 - f, 0.5);
+            // const remainingF = 1 - f;
+
+            if (!isPosition) {
+              const src2 = unuseAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              localQuaternion.copy(dst)
+                .premultiply(localQuaternion2.fromArray(v3).invert())
+                .premultiply(localQuaternion2.fromArray(v2));
+
+              lerpFn
+                .call(
+                  dst,
+                  localQuaternion,
+                  f2
+                );
+            } else {
+              const src2 = unuseAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              localVector.copy(dst)
+                .sub(localVector2.fromArray(v3))
+                .add(localVector2.fromArray(v2));
+              
+              lerpFn
+                .call(
+                  dst,
+                  localVector,
+                  f2
+                );
+            }
+
+            if (f >= 1) {
+              this.used = false;
+            }
+          };
         }
         return _handleDefault;
       };
