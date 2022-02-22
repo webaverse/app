@@ -31,8 +31,6 @@ const _waitForFrame = () => new Promise(accept => {
 });
 
 // XXX TODO:
-// add compass border circle
-// add compass north
 // do not render avatars
 
 const fullscreenVertexShader = `\
