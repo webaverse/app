@@ -74,12 +74,13 @@ const floorFragmentShader = `\
 
   void main() {
     vec2 screenSpaceUv = gl_FragCoord.xy / uScreenSize;
-    // vec2 uv = screenSpaceUv * 2. - 1.;
     vec2 uv = screenSpaceUv;
+    // vec2 uv2 = floor(vUv * 3.)/3.;
     float l = length(uv - vec2(0.5));
     if (l < 0.5 * 0.85) {
       mainImage(gl_FragColor, vUv);
       gl_FragColor.gb += uv * 0.5;
+      // gl_FragColor.gb += uv2 * 0.5;
     } else {
       discard;
     }
