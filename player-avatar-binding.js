@@ -98,7 +98,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
-  rig.useTime = player.actionInterpolants.use.get();
+  
   if (useAction?.animation) {
     rig.useAnimation = useAction.animation;
   } else {
@@ -113,15 +113,21 @@ export function applyPlayerActionsToAvatar(player, rig) {
       rig.useAnimationCombo = [];
     }
   }
-  // console.log('got use action', useAction);
   if (useAction?.animationEnvelope) {
     rig.useAnimationEnvelope = useAction.animationEnvelope;
+    rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
   } else {
     if (rig.useAnimationEnvelope.length > 0) {
       rig.useAnimationEnvelope = [];
     }
   }
   rig.useAnimationIndex = useAction?.index;
+  rig.useTime = player.actionInterpolants.use.get();
+  rig.unuseTime = player.actionInterpolants.unuse.get();
+  if (useAction) {
+    rig.used = true;
+  }
+
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimTime = player.actionInterpolants.aim.get();
