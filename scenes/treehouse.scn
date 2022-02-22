@@ -297,7 +297,7 @@
         1,
         1
       ],
-      "start_url": "https://webaverse.github.io/bow/"
+      "start_url": "../bow/"
     },
     {
       "position": [
@@ -356,14 +356,6 @@
         0
       ],
       "start_url": "../bomb/"
-    },
-    {
-      "position": [
-        3,
-        0,
-        2
-      ],
-      "start_url": "../bow/"
     },
     {
       "position": [
