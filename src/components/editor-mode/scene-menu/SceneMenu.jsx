@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
+import * as Z from 'zjs';
 
 import { world } from '../../../../world'
 import universe from '../../../../universe.js'
@@ -42,11 +43,11 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     useEffect( () => {
 
         refreshRooms();
-        window.addEventListener( 'mousedown', handleOnFocusLost );
+        window.addEventListener( 'click', handleOnFocusLost );
 
         return () => {
 
-            window.removeEventListener( 'mousedown', handleOnFocusLost );
+            window.removeEventListener( 'click', handleOnFocusLost );
 
         };
 
@@ -103,32 +104,33 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleRoomCreateBtnClick = async () => {
 
-        const roomName = _makeName();
-        const data = Z.encodeStateAsUpdate( world.getState( true ) );
+        alert( 'todo' );
+        // const roomName = _makeName();
+        // const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
 
-        const res = await fetch( universe.getWorldsHost() + roomName, { method: 'POST', body: data } );
+        // const res = await fetch( universe.getWorldsHost() + roomName, { method: 'POST', body: data } );
 
-        if ( res.ok ) {
+        // if ( res.ok ) {
 
-            refreshRooms();
-            setSelectedRoom( roomName );
-            universe.pushUrl( `/?src=${ encodeURIComponent( sceneName ) }&room=${ roomName }` );
+        //     refreshRooms();
+        //     setSelectedRoom( roomName );
+        //     universe.pushUrl( `/?src=${ encodeURIComponent( sceneName ) }&room=${ roomName }` );
 
-            /* this.parent.sendMessage([
-                MESSAGE.ROOMSTATE,
-                data,
-            ]); */
+        //     /* this.parent.sendMessage([
+        //         MESSAGE.ROOMSTATE,
+        //         data,
+        //     ]); */
 
-        } else {
+        // } else {
 
-            const text = await res.text();
-            console.warn( 'error creating room', res.status, text );
+        //     const text = await res.text();
+        //     console.warn( 'error creating room', res.status, text );
 
-        }
+        // }
 
     };
 
-    const handleRoomSelect = () => {
+    const handleRoomSelect = ( room ) => {
 
         if ( ! world.isConnected() ) {
 
@@ -145,15 +147,15 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     };
 
-    const handleDeleteRoomBtnClick = async () => {
+    const handleDeleteRoomBtnClick = async ( room, event ) => {
 
-        const res = await fetch( universe.getWorldsHost() + selectedRoom.name, { method: 'DELETE' } );
+        event.stopPropagation();
+
+        const res = await fetch( universe.getWorldsHost() + room.name, { method: 'DELETE' } );
 
         if ( res.ok ) {
 
             refreshRooms();
-            // const newRooms = rooms.slice().splice(rooms.indexOf(room), 1);
-            // setRooms(newRooms);
 
         } else {
 
@@ -246,11 +248,11 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                         </div>
                         {
                             rooms.map( ( room, i ) => (
-                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( e, roomName ) } } key={ i } >
+                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( e, room ) } } key={ i } >
                                     <img className={ styles.image } src="images/world.jpg" />
                                     <div className={ styles.name } >{ room.name }</div>
                                     <div className={ styles.delete } >
-                                        <button className={ classnames( styles.button, styles.warning ) } onClick={ handleDeleteRoomBtnClick } >Delete</button>
+                                        <button className={ classnames( styles.button, styles.warning ) } onClick={ handleDeleteRoomBtnClick.bind( this, room ) } >Delete</button>
                                     </div>
                                 </div>
                             ))

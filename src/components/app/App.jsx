@@ -5,6 +5,7 @@ import MagicMenu from '../../MagicMenu.jsx';
 import { defaultAvatarUrl } from '../../../constants';
 import dropManager from '../../../drop-manager.js';
 
+import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
 import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';

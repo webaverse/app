@@ -10,13 +10,13 @@
 
 .weapon {
     position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 180px;
-    height: 180px;
+    bottom: 28px;
+    right: 28px;
+    width: 150px;
+    height: 150px;
+    border: 7px solid #000;
     border-radius: 50%;
     background-color: rgba( 0, 0, 0, 0.5 );
-    border-radius: 1px solid #000;
 }
 
 .weaponStats {

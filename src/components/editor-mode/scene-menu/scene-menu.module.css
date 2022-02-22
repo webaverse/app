@@ -3,7 +3,7 @@
     position: absolute;
     display: flex;
     top: 0px;
-    right: 220px;
+    right: 460px;
     height: 40px;
     flex-direction: column;
     overflow: visible;
@@ -17,11 +17,13 @@
 
 .location .rooms {
     position: absolute;
-    top: 50px;
+    top: 40px;
     display: flex;
     width: 100%;
     background-color: #000;
     flex-direction: column;
+    max-height: 50vh;
+    overflow-y: scroll;
 }
 
 .location .rooms .room {
