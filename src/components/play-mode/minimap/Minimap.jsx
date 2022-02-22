@@ -7,8 +7,11 @@ import styles from './minimap.module.css';
 //
 
 let minimap = null;
-const minimapSize = 300;
-const minimapWorldSize = 50;
+const canvasSize = 180 * window.devicePixelRatio;
+const minimapSize = 2048*3;
+const minimapWorldSize = 400;
+const minimapMinZoom = 0.1;
+const minimapBaseSpeed = 30;
 
 export const Minimap = () => {
     const canvasRef = useRef();
@@ -18,7 +21,12 @@ export const Minimap = () => {
           const canvas = canvasRef.current;
 
           if (!minimap) {
-            minimap = minimapManager.createMiniMap(minimapSize, minimapSize, minimapWorldSize, minimapWorldSize);
+            minimap = minimapManager.createMiniMap(
+                minimapSize, minimapSize,
+                minimapWorldSize, minimapWorldSize,
+                minimapMinZoom,
+                minimapBaseSpeed
+            );
           }
           minimap.resetCanvases();
           minimap.addCanvas(canvas);
@@ -28,7 +36,7 @@ export const Minimap = () => {
     return (
         <div className={ styles.locationMenu } >
 
-            <canvas width={minimapSize} height={minimapSize} className={ styles.map } ref={canvasRef} />
+            <canvas width={canvasSize} height={canvasSize} className={ styles.map } ref={canvasRef} />
 
         </div>
     );
