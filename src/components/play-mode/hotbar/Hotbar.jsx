@@ -301,9 +301,14 @@ export const Hotbar = () => {
                 case 53:
                 case 54:
                 case 55:
-                case 56:
-                    setHotbarIndex(e.which - 49);
+                case 56: {
+                    let newHotbarIndex = e.which - 49;
+                    if (newHotbarIndex === hotbarIndex) {
+                        newHotbarIndex = -1;
+                    }
+                    setHotbarIndex(newHotbarIndex);
                     break;
+                }
             }
         }
         window.addEventListener('keydown', keydown);
@@ -311,7 +316,7 @@ export const Hotbar = () => {
         return () => {
           window.removeEventListener('keydown', keydown);
         };
-    }, []);
+    }, [hotbarIndex]);
 
     return (
         <div className={ styles.hotbar } >
