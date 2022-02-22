@@ -2648,14 +2648,16 @@ class Avatar {
               t2 = Math.min(useTimeS, useAnimation.duration);
             } else if (this.useAnimationEnvelope.length > 0) {
               let totalTime = 0;
-              for (const animationName of this.useAnimationEnvelope) {
+              for (let i = 0; i < this.useAnimationEnvelope.length - 1; i++) {
+                const animationName = this.useAnimationEnvelope[i];
                 const animation = useAnimations[animationName];
                 totalTime += animation.duration;
               }
               
               if (totalTime > 0) {
                 let animationTimeBase = 0;
-                for (const animationName of this.useAnimationEnvelope) {
+                for (let i = 0; i < this.useAnimationEnvelope.length - 1; i++) {
+                  const animationName = this.useAnimationEnvelope[i];
                   const animation = useAnimations[animationName];
                   if (useTimeS < (animationTimeBase + animation.duration)) {
                     useAnimation = animation;
@@ -2663,12 +2665,12 @@ class Avatar {
                   }
                   animationTimeBase += animation.duration;
                 }
-                if (useAnimation !== undefined) {
+                if (useAnimation !== undefined) { // first iteration
                   t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
-                } else {
-                  const lastAnimationName = this.useAnimationEnvelope[this.useAnimationEnvelope.length - 1];
-                  useAnimation = useAnimations[lastAnimationName];
-                  t2 = useAnimation.duration;
+                } else { // loop
+                  const secondLastAnimationName = this.useAnimationEnvelope[this.useAnimationEnvelope.length - 2];
+                  useAnimation = useAnimations[secondLastAnimationName];
+                  t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
                 }
               }
             }
