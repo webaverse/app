@@ -23,7 +23,10 @@ const DefaultSettings = {
 
 export const TabControls = ({ active }) => {
 
+    const [ appyingChanges, setAppyingChanges ] = useState( false );
+    const [ changesNotSaved, setChangesNotSaved ] = useState( false );
     const [ settingsLoaded, setSettingsLoaded ] = useState( false );
+
     const [ moveForward, setMoveForward ] = useState( null );
     const [ moveLeft, setMoveLeft ] = useState( null );
     const [ moveRight, setMoveRight ] = useState( null );
@@ -52,7 +55,6 @@ export const TabControls = ({ active }) => {
             inventory
         };
 
-        applySettings();
         localStorage.setItem( 'ControlsSettings', JSON.stringify( settings ) );
 
     };
@@ -85,14 +87,24 @@ export const TabControls = ({ active }) => {
         setChat( settings.chat ?? DefaultSettings.chat );
         setInventory( settings.inventory ?? DefaultSettings.inventory );
 
-        applySettings();
-        setSettingsLoaded( true );
-
     };
 
     function applySettings () {
 
         // todo
+
+        //
+
+        saveSettings();
+        setChangesNotSaved( false );
+        setTimeout( () => { setAppyingChanges( false ) }, 1000 );
+
+    };
+
+    function handleApplySettingsBtnClick () {
+
+        setAppyingChanges( true );
+        setTimeout( applySettings, 100 );
 
     };
 
@@ -100,10 +112,22 @@ export const TabControls = ({ active }) => {
 
     useEffect( () => {
 
-        if ( ! settingsLoaded ) return;
-        saveSettings();
+        if ( moveForward && moveLeft && moveRight && moveBack && jump && run && narutoRun && action && chat && inventory ) {
 
-    }, [ settingsLoaded, moveForward, moveLeft, moveRight, moveBack, jump, run, narutoRun, action, chat, inventory ] );
+            if ( settingsLoaded ) {
+
+                setChangesNotSaved( true );
+
+            } else {
+
+                setSettingsLoaded( true );
+                applySettings();
+
+            }
+
+        }
+
+    }, [ moveForward, moveLeft, moveRight, moveBack, jump, run, narutoRun, action, chat, inventory ] );
 
     useEffect( () => {
 
@@ -164,6 +188,10 @@ export const TabControls = ({ active }) => {
                 <div className={ styles.paramName }>Inventory</div>
                 <KeyInput className={ styles.keyInput } value={ inventory } setValue={ setInventory } />
                 <div className={ styles.clearfix } />
+            </div>
+
+            <div className={ classNames( styles.applyBtn, changesNotSaved ? styles.active : null ) } onClick={ handleApplySettingsBtnClick } >
+                { appyingChanges ? 'APPLYING' : 'APPLY' }
             </div>
         </div>
     );

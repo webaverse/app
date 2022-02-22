@@ -131,16 +131,13 @@ export const TabGraphics = ({ active }) => {
 
         saveSettings();
         setChangesNotSaved( false );
-
         setTimeout( () => { setAppyingChanges( false ) }, 1000 );
 
     };
 
-    function handleApplySettingsBtnClick ( event ) {
+    function handleApplySettingsBtnClick () {
 
-        event.stopPropagation();
         setAppyingChanges( true );
-
         setTimeout( applySettings, 100 );
 
     };
@@ -179,7 +176,7 @@ export const TabGraphics = ({ active }) => {
             <div className={ styles.blockTitle }>Display</div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Resolution</div>
-                <Switch className={ styles.switch } value={ resolution } setValue={ setResolution } values={ [ 'HIGH', 'MEDIUM', 'LOW' ] } />
+                <Switch className={ styles.switch } value={ resolution } setValue={ setResolution } values={ [ 'LOW', 'MEDIUM', 'HIGH' ] } />
                 <div className={ styles.clearfix } />
             </div>
             <div className={ styles.row }>
@@ -189,12 +186,12 @@ export const TabGraphics = ({ active }) => {
             </div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>View range</div>
-                <Switch className={ styles.switch } value={ viewRange } setValue={ setViewRange } values={ [ 'HIGH', 'MEDIUM', 'LOW' ] } />
+                <Switch className={ styles.switch } value={ viewRange } setValue={ setViewRange } values={ [ 'LOW', 'MEDIUM', 'HIGH' ] } />
                 <div className={ styles.clearfix } />
             </div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Shadows quality</div>
-                <Switch className={ styles.switch } value={ shadowQuality } setValue={ setShadowQuality } values={ [ 'HIGH', 'MEDIUM', 'LOW', 'OFF' ] } />
+                <Switch className={ styles.switch } value={ shadowQuality } setValue={ setShadowQuality } values={ [ 'OFF', 'LOW', 'MEDIUM', 'HIGH' ] } />
                 <div className={ styles.clearfix } />
             </div>
             <div className={ styles.row }>
@@ -203,22 +200,22 @@ export const TabGraphics = ({ active }) => {
             </div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Enabled</div>
-                <Switch className={ styles.switch } value={ postprocessing } setValue={ setPostprocessing } values={ [ 'ON', 'OFF' ] } />
+                <Switch className={ styles.switch } value={ postprocessing } setValue={ setPostprocessing } values={ [ 'OFF', 'ON' ] } />
                 <div className={ styles.clearfix } />
             </div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Depth of field</div>
-                <Switch className={ styles.switch } value={ depthOfField } setValue={ setDepthOfField } values={ [ 'ON', 'OFF' ] } />
+                <Switch className={ styles.switch } value={ depthOfField } setValue={ setDepthOfField } values={ [ 'OFF', 'ON' ] } />
                 <div className={ styles.clearfix } />
             </div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>HDR</div>
-                <Switch className={ styles.switch } value={ hdr } setValue={ setHdr } values={ [ 'ON', 'OFF' ] } />
+                <Switch className={ styles.switch } value={ hdr } setValue={ setHdr } values={ [ 'OFF', 'ON' ] } />
                 <div className={ styles.clearfix } />
             </div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Bloom</div>
-                <Switch className={ styles.switch } value={ bloom } setValue={ setBloom } values={ [ 'ON', 'OFF' ] } />
+                <Switch className={ styles.switch } value={ bloom } setValue={ setBloom } values={ [ 'OFF', 'ON' ] } />
                 <div className={ styles.clearfix } />
             </div>
             <div className={ styles.row }>
@@ -227,12 +224,12 @@ export const TabGraphics = ({ active }) => {
             </div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Character details</div>
-                <Switch className={ styles.switch } value={ characterDetails } setValue={ setCharacterDetails } values={ [ 'ULTRA', 'HIGH', 'MEDIUM', 'LOW' ] } />
+                <Switch className={ styles.switch } value={ characterDetails } setValue={ setCharacterDetails } values={ [ 'LOW', 'MEDIUM', 'HIGH', 'ULTRA' ] } />
                 <div className={ styles.clearfix } />
             </div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Hair physics</div>
-                <Switch className={ styles.switch } value={ hairPhysics } setValue={ setHairPhysics } values={ [ 'ON', 'OFF' ] } />
+                <Switch className={ styles.switch } value={ hairPhysics } setValue={ setHairPhysics } values={ [ 'OFF', 'ON' ] } />
                 <div className={ styles.clearfix } />
             </div>
 
