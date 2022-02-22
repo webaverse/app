@@ -152,7 +152,7 @@ const geometryUtils = (() => {
         let slots = moduleInstance.HEAP32.slice(slotsPtr / 4, slotsPtr / 4 + 2);
         moduleInstance._doFree(slotsPtr);
 
-        return { vertexSlot: slots[0], indexSlot: slots[1] };
+        return slots;
     }
 
     return scope;
