@@ -1660,10 +1660,15 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
+
     this.useTime = NaN;
     this.useAnimation = null;
     this.useAnimationCombo = [];
     this.useAnimationEnvelope = [];
+    this.unuseAnimation = null;
+    this.unuseTime = -1;
+    this.used = false;
+    
     this.sitState = false;
     this.sitAnimation = null;
     // this.activateState = false;
