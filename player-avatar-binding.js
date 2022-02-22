@@ -115,7 +115,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
   }
   if (useAction?.animationEnvelope) {
     rig.useAnimationEnvelope = useAction.animationEnvelope;
-    rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
   } else {
     if (rig.useAnimationEnvelope.length > 0) {
       rig.useAnimationEnvelope = [];
@@ -124,8 +123,10 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.useAnimationIndex = useAction?.index;
   rig.useTime = player.actionInterpolants.use.get();
   rig.unuseTime = player.actionInterpolants.unuse.get();
-  if (useAction) {
-    rig.used = true;
+  if (rig.unuseTime === 0) {
+    if (useAction?.animationEnvelope) {
+      rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
+    }
   }
 
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
