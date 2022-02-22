@@ -1667,7 +1667,6 @@ class Avatar {
     this.useAnimationEnvelope = [];
     this.unuseAnimation = null;
     this.unuseTime = -1;
-    this.used = false;
     
     this.sitState = false;
     this.sitAnimation = null;
@@ -2753,7 +2752,7 @@ class Avatar {
                 .add(localVector2.fromArray(v2));
             }
           };
-        } else if (this.unuseAnimation && this.unuseTime >= 0 && this.used) {
+        } else if (this.unuseAnimation && this.unuseTime >= 0) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2813,7 +2812,7 @@ class Avatar {
             }
 
             if (f >= 1) {
-              this.used = false;
+              this.useAnimation = '';
             }
           };
         }
