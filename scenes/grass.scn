@@ -56,6 +56,20 @@
         1
       ],
       "start_url": "../skybox-360/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "../grass-anime/"
     }
   ]
 }
