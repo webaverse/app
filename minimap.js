@@ -23,6 +23,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const cameraHeight = 15;
+const cameraSafetyFactor = 1; // 1 is safest (least glitching)
 
 const _waitForFrame = () => new Promise(accept => {
   requestAnimationFrame(() => {
