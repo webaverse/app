@@ -22,7 +22,7 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
-import wearableManager from './wearable-manager.js';
+import loadoutManager from './loadout-manager.js';
 import {Stats} from './stats.js';
 import {
   getRenderer,
@@ -407,7 +407,7 @@ export default class Webaverse extends EventTarget {
       // render scenes
       dioramaManager.update(timestamp, timeDiffCapped);
       minimapManager.update(timestamp, timeDiffCapped);
-      wearableManager.update(timestamp, timeDiffCapped);
+      loadoutManager.update(timestamp, timeDiffCapped);
       this.render(timestamp, timeDiffCapped);
     }
     renderer.setAnimationLoop(animate);

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {world} from './world.js';
+// import {world} from './world.js';
 import {getRenderer} from './renderer.js';
 import easing from './easing.js';
 import {createObjectSprite} from './object-spriter.js';

@@ -1,7 +1,7 @@
 import React, {useState, useRef, useEffect} from 'react';
 import styles from './hotbar.module.css';
 // import metaversefileApi from 'metaversefile';
-import wearableManager from '../../../../wearable-manager.js';
+import loadoutManager from '../../../../loadout-manager.js';
 import {hotbarSize} from '../../../../constants.js';
 
 const HotbarItem = props => {
@@ -11,7 +11,7 @@ const HotbarItem = props => {
       if (canvasRef.current) {
         const canvas = canvasRef.current;
 
-        const hotbarRenderer = wearableManager.getHotbarRenderer(props.index);
+        const hotbarRenderer = loadoutManager.getHotbarRenderer(props.index);
         hotbarRenderer.addCanvas(canvas);
 
         return () => {

@@ -4,7 +4,7 @@ import metaversefileApi from 'metaversefile';
 import {hotbarSize} from './constants.js';
 
 const numSlots = 8;
-class WearableManager extends EventTarget {
+class LoadoutManager extends EventTarget {
   constructor() {
     super();
 
@@ -61,6 +61,6 @@ class WearableManager extends EventTarget {
     }
   }
 }
-const wearableManager = new WearableManager();
+const loadoutManager = new LoadoutManager();
 
-export default wearableManager;
+export default loadoutManager;
