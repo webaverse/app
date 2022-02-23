@@ -86,7 +86,6 @@ const createObjectSprite = async (app, {
             .applyQuaternion(app.quaternion)
             .multiplyScalar(2)
         );
-      // sideCamera.updateMatrixWorld();
 
       const physicsObjects = app.getPhysicsObjects();
       if (physicsObjects.length > 0) {
