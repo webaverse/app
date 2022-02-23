@@ -1393,11 +1393,10 @@ const gameManager = {
   menuAim() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      const wearApp = loadoutManager.getSelectedApp();
       const wearAimApp = (() => {
-        const wearApps = Array.from(localPlayer.getActionsState())
-          .filter(action => action.type === 'wear')
-          .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
-        for (const wearApp of wearApps) {
+        if (wearApp) {
           const aimComponent = wearApp.getComponent('aim');
           if (aimComponent) {
             return wearApp;
