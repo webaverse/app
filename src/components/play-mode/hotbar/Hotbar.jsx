@@ -333,7 +333,7 @@ class Hotbox {
           frameSize,
           numFramesPerRow,
         } = await createObjectSprite(app);
-        console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
+        // console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
         this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = texture;
         this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
         this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
