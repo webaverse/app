@@ -154,7 +154,7 @@ export default function Header({
           ioManager.click(new MouseEvent('click'));
           cameraManager.requestPointerLock();
         } else {
-          window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: 'CharacterMenu', lockPointer: false } } ) );
+          window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: 'CharacterMenu' } } ) );
           setOpen('character');
         }
         return true;
@@ -242,7 +242,7 @@ export default function Header({
       e.stopPropagation();
     }}>
       <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
-			<Chat open={open} setOpen={setOpen} />
+      <Chat open={open} setOpen={setOpen} />
       <CharacterHups localPlayer={localPlayer} npcs={npcs} />
       <MagicMenu open={open} setOpen={setOpen} />
       <div className={styles.inner}>

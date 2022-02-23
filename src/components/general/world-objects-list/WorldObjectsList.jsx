@@ -145,7 +145,7 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
 
         if ( event.detail && event.detail.dispatcher === componentName ) return;
 
-        if ( ! event.detail || event.detail.lockPointer !== false ) {
+        if ( ! event.detail ) {
 
             ioManager.click( new MouseEvent('click') );
             cameraManager.requestPointerLock();
