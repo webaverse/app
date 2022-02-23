@@ -1,7 +1,6 @@
 import {/*HotbarRenderer, */createHotbarRenderer} from './hotbar.js';
 // import {getRenderer} from './renderer.js';
 import {localPlayer} from './players.js';
-import metaversefileApi from './metaversefile-api.js';
 import {hotbarSize} from './constants.js';
 
 const numSlots = 8;
@@ -10,19 +9,29 @@ class LoadoutManager extends EventTarget {
     super();
 
     this.hotbarRenderers = [];
-    this.selectedIndex = 0;
+    this.selectedIndex = -1;
   
     localPlayer.addEventListener('wearupdate', e => {
       // console.log('wear update', e);
       const {app, wear} = e;
 
       this.ensureHotbarRenderers();
-      if (this.selectedIndex !== -1) {
-        const hotbarRenderer = this.hotbarRenderers[this.selectedIndex];
-        if (wear) {
+      if (wear) {
+        const nextIndex = this.getNextIndex();
+        if (nextIndex !== -1) {
+          const hotbarRenderer = this.hotbarRenderers[nextIndex];
           hotbarRenderer.setApp(app);
-        } else {
-          hotbarRenderer.setApp(null);
+
+          this.setSelectedIndex(nextIndex);
+        }
+      } else {
+        for (let i = 0; i < this.hotbarRenderers.length; i++) {
+          const hotbarRenderer = this.hotbarRenderers[i];
+          if (hotbarRenderer.app === app) {
+            hotbarRenderer.setApp(null);
+            this.setSelectedIndex(-1);
+            break;
+          }
         }
       }
     });
@@ -45,20 +54,31 @@ class LoadoutManager extends EventTarget {
     return this.hotbarRenderers[index];
   }
   setSelectedIndex(index) {
-    if (index !== this.selectedIndex) {
-      this.selectedIndex = index;
-    } else {
-      this.selectedIndex = -1;
+    this.ensureHotbarRenderers();
+
+    if (index === this.selectedIndex) {
+      index = -1;
     }
 
-    this.ensureHotbarRenderers();
-    for (let i = 0; i < this.hotbarRenderers.length; i++) {
-      this.hotbarRenderers[i].setSelected(i === this.selectedIndex);
+    if (index === -1 || this.hotbarRenderers[index].app) {
+      for (let i = 0; i < this.hotbarRenderers.length; i++) {
+        this.hotbarRenderers[i].setSelected(i === index);
+      }
+      this.selectedIndex = index;
     }
   }
+  getNextIndex() {
+    this.ensureHotbarRenderers();
+    for (let i = 0; i < this.hotbarRenderers.length; i++) {
+      if (!this.hotbarRenderers[i].app) {
+        return i;
+      }
+    }
+    return -1;
+  }
   update(timestamp, timeDiff) {
-    for (const hotbarRenderer of this.hotbarRenderers) {
-      hotbarRenderer.update(timestamp, timeDiff);
+    for (let i = 0; i < this.hotbarRenderers.length; i++) {
+      this.hotbarRenderers[i].update(timestamp, timeDiff, i);
     }
   }
 }

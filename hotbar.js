@@ -297,6 +297,7 @@ class HotbarRenderer {
       1000
     );
     this.canvases = [];
+    this.app = null;
     this.selected = selected;
     this.selectFactor = +selected;
     this.needsUpdate = false;
@@ -314,6 +315,7 @@ class HotbarRenderer {
   }
   setSelected(selected) {
     this.selected = selected;
+    this.needsUpdate = true;
   }
   setApp(app) {
     if (app) {
@@ -346,6 +348,9 @@ class HotbarRenderer {
       this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
       this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true; */
     }
+
+    this.app = app;
+    this.needsUpdate = true;
   }
   update(timestamp, timeDiff) {
     const renderer = getRenderer();
@@ -361,7 +366,7 @@ class HotbarRenderer {
     }
     this.selectFactor = Math.min(Math.max(this.selectFactor, 0), 1);
 
-    if (this.selected || this.selectFactor !== lastSelectFactor || this.needsUpdate) {
+    if (this.needsUpdate) {
       const _render = () => {
         // push old state
         const oldRenderTarget = renderer.getRenderTarget();
@@ -411,7 +416,7 @@ class HotbarRenderer {
       };
       _copyToCanvases();
 
-      this.needsUpdate = false;
+      this.needsUpdate = this.selected || this.selectFactor !== lastSelectFactor;
     }
   }
   destroy() {
