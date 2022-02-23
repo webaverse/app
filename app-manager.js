@@ -545,40 +545,41 @@ class AppManager extends EventTarget {
   pushAppUpdates() {
     if (this.appsArray) {
       this.appsArray.doc.transact(() => { 
-        for (const app of this.apps) {
-          if (this.hasTrackedApp(app.instanceId)) {
-            if (!app.matrix.equals(app.lastMatrix)) {
-              app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-              this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
-              app.updateMatrixWorld();
+        this.updatePhysics();
+      }, 'push');
+    }
+  }
+  updatePhysics() {
+    for (const app of this.apps) {
+      if (!app.matrix.equals(app.lastMatrix)) {
+        app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
+        app.updateMatrixWorld();
 
-              // update attached physics objects with a relative transform
-              const physicsObjects = app.getPhysicsObjects();
-              if (physicsObjects.length > 0) {
-                const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
+        // update attached physics objects with a relative transform
+        const physicsObjects = app.getPhysicsObjects();
+        if (physicsObjects.length > 0) {
+          const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
 
-                for (const physicsObject of physicsObjects) {
-                  if (!physicsObject.detached) {
-                    physicsObject.matrix
-                      .premultiply(lastMatrixInverse)
-                      .premultiply(app.matrix)
-                      .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
-                    physicsObject.matrixWorld.copy(physicsObject.matrix);
-                    for (const child of physicsObject.children) {
-                      child.updateMatrixWorld();
-                    }
-
-                    physicsManager.setTransform(physicsObject);
-                    physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
-                  }
-                }
+          for (const physicsObject of physicsObjects) {
+            if (!physicsObject.detached) {
+              physicsObject.matrix
+                .premultiply(lastMatrixInverse)
+                .premultiply(app.matrix)
+                .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+              physicsObject.matrixWorld.copy(physicsObject.matrix);
+              for (const child of physicsObject.children) {
+                child.updateMatrixWorld();
               }
 
-              app.lastMatrix.copy(app.matrix);
+              physicsManager.setTransform(physicsObject);
+              physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
             }
           }
         }
-      }, 'push');
+
+        app.lastMatrix.copy(app.matrix);
+      }
     }
   }
   destroy() {
