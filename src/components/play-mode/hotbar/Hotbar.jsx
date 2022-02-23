@@ -528,7 +528,7 @@ export const Hotbar = () => {
                             <div className={ styles.item } key={ i } >
                                 <div className={ styles.box } />
                                 <div className={ styles.label }>{ i + 1 }</div>
-                                <HotbarItem size={1024} selected={hotbarIndex === i} />
+                                <HotbarItem size={60} selected={hotbarIndex === i} />
                             </div>
                         );
 
