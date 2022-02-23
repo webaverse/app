@@ -223,10 +223,10 @@ const fullscreenFragmentShader = `\
       float x = mod(frameIndex, numFramesPerRow);
       float y = floor(frameIndex / numFramesPerRow);
 
-      float xOffset = x / numFramesPerRow;
-      float yOffset = 1. - y / numFramesPerRow;
-
       float frameSize = 1. / numFramesPerRow;
+
+      float xOffset = x * frameSize;
+      float yOffset = y * frameSize;
 
       vec2 uv = vUv;
       uv.x = xOffset + uv.x * frameSize;
