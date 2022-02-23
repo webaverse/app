@@ -137,13 +137,13 @@ const geometryUtils = (() => {
         );
     }
 
-    scope.allocateChunk = (
+    scope.generateChunk = (
         positionBuffer, normalBuffer, indexBuffer,
         chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
         x, y, z, chunkSize, segment, totalChunkCount
     ) => {
 
-        let slotsPtr = moduleInstance._allocateChunk(
+        let slotsPtr = moduleInstance._generateChunk(
             positionBuffer, normalBuffer, indexBuffer,
             chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
             x, y, z, chunkSize, segment, totalChunkCount
