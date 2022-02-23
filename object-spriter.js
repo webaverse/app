@@ -50,14 +50,14 @@ const createObjectSprite = async (app, {
 
   const renderer = getRenderer();
   // const size = renderer.getSize(localVector2D);
-  // const pixelRatio = renderer.getPixelRatio();
+  const pixelRatio = renderer.getPixelRatio();
 
   const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
   const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
   const frameSize = size / numFramesPerRow;
 
   // create render target
-  const renderTarget = _makeSpritesheetRenderTarget(size, size);
+  const renderTarget = _makeSpritesheetRenderTarget(size * pixelRatio, size * pixelRatio);
 
   // push old state
   const oldRenderTarget = renderer.getRenderTarget();
