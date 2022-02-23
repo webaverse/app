@@ -1,6 +1,7 @@
-import {HotbarRenderer, createHotbarRenderer} from './hotbar.js';
+import {/*HotbarRenderer, */createHotbarRenderer} from './hotbar.js';
 // import {getRenderer} from './renderer.js';
-import metaversefileApi from 'metaversefile';
+import {localPlayer} from './players.js';
+import metaversefileApi from './metaversefile-api.js';
 import {hotbarSize} from './constants.js';
 
 const numSlots = 8;
@@ -10,6 +11,21 @@ class LoadoutManager extends EventTarget {
 
     this.hotbarRenderers = [];
     this.selectedIndex = 0;
+  
+    localPlayer.addEventListener('wearupdate', e => {
+      // console.log('wear update', e);
+      const {app, wear} = e;
+
+      this.ensureHotbarRenderers();
+      if (this.selectedIndex !== -1) {
+        const hotbarRenderer = this.hotbarRenderers[this.selectedIndex];
+        if (wear) {
+          hotbarRenderer.setApp(app);
+        } else {
+          hotbarRenderer.setApp(null);
+        }
+      }
+    });
   }
   ensureHotbarRenderers() {
     if (this.hotbarRenderers.length === 0) {
@@ -38,21 +54,6 @@ class LoadoutManager extends EventTarget {
     this.ensureHotbarRenderers();
     for (let i = 0; i < this.hotbarRenderers.length; i++) {
       this.hotbarRenderers[i].setSelected(i === this.selectedIndex);
-    }
-
-    { // XXX test hack
-      if (this.selectedIndex !== -1) {
-        const hotbarRenderer = this.hotbarRenderers[this.selectedIndex];
-        if (hotbarRenderer) {
-          const localPlayer = metaversefileApi.useLocalPlayer();
-          const wearActions = localPlayer.getActionsArray().filter(a => a.type === 'wear');
-          const firstWearAction = wearActions[0];
-          if (firstWearAction) {
-            const app = metaversefileApi.getAppByInstanceId(firstWearAction.instanceId);
-            hotbarRenderer.setApp(app);
-          }
-        }
-      }
     }
   }
   update(timestamp, timeDiff) {
