@@ -14,6 +14,7 @@ import styles from './settings.module.css';
 
 export const Settings = ({ opened, setOpened }) => {
 
+    const componentName = 'Settings';
     const [ activeTab, setActiveTab ] = useState('general');
 
     //
@@ -40,7 +41,21 @@ export const Settings = ({ opened, setOpened }) => {
 
     };
 
+    const closeOtherWindows = () => {
+
+        window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: componentName } } ) );
+
+    };
+
+    //
+
     useEffect( () => {
+
+        if ( opened ) {
+
+            closeOtherWindows();
+
+        }
 
         const handleKeyPress = ( event ) => {
 

@@ -7,7 +7,7 @@
     height: 40px;
     flex-direction: column;
     overflow: visible;
-    z-index: 5;
+    z-index: 0;
 }
 
 .location .row {
@@ -22,7 +22,8 @@
     width: 100%;
     background-color: #000;
     flex-direction: column;
-    max-height: 50vh;
+    max-height: 70vh;
+    min-height: 100px;
     overflow-y: scroll;
 }
 

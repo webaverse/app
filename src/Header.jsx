@@ -154,6 +154,7 @@ export default function Header({
           ioManager.click(new MouseEvent('click'));
           cameraManager.requestPointerLock();
         } else {
+          window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: 'CharacterMenu', lockPointer: false } } ) );
           setOpen('character');
         }
         return true;
@@ -162,6 +163,15 @@ export default function Header({
     return false;
   };
   useEffect(() => {
+
+    const handleOnFocusLost = () => {
+
+        setOpen( false );
+
+    };
+
+    window.addEventListener( 'CloseAllMenus', handleOnFocusLost );
+
     const keydown = e => {
       let handled = false;
       const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
@@ -179,6 +189,7 @@ export default function Header({
     };
     window.addEventListener('keydown', keydown);
     return () => {
+      window.removeEventListener( 'CloseAllMenus', handleOnFocusLost );
       window.removeEventListener('keydown', keydown);
     };
   }, [open, selectedApp]);

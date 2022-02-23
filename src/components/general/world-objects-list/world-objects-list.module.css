@@ -9,7 +9,7 @@
     transition: transform 300ms ease;
     background-color: #000;
     border-left: 3px solid #aaa;
-    z-index: 1;
+    z-index: 9;
     overflow: hidden;
 }
 
@@ -45,7 +45,7 @@
 }
 
 .objects {
-    height: calc( 100% - 40px );
+    height: calc( 100% - 110px );
     overflow-y: scroll;
 }
 

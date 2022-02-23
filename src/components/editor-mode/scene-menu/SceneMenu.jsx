@@ -13,6 +13,7 @@ import styles from './scene-menu.module.css';
 
 export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
+    const componentName = 'SceneMenu';
     const [ rooms, setRooms ] = useState([]);
     const [ scenesMenuOpened, setScenesMenuOpened ] = useState( false );
     const [ roomsMenuOpened, setRoomsMenuOpened ] = useState( false );
@@ -40,19 +41,6 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     };
 
-    useEffect( () => {
-
-        refreshRooms();
-        window.addEventListener( 'click', handleOnFocusLost );
-
-        return () => {
-
-            window.removeEventListener( 'click', handleOnFocusLost );
-
-        };
-
-    }, [] );
-
     //
 
     const stopPropagation = ( event ) => {
@@ -61,14 +49,21 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     };
 
-    const handleOnFocusLost = () => {
+    const closeOtherWindows = () => {
 
+        window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: componentName } } ) );
+
+    };
+
+    const handleOnFocusLost = ( event ) => {
+
+        if ( event.detail && event.detail.dispatcher === componentName ) return;
         setScenesMenuOpened( false );
         setRoomsMenuOpened( false );
 
     };
 
-    const handleSceneMenuOpen = ( value, event ) => {
+    const handleSceneMenuOpen = ( value ) => {
 
         value = ( typeof value === 'boolean' ? value : ( ! scenesMenuOpened ) );
         setScenesMenuOpened( value );
@@ -78,14 +73,16 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleSceneSelect = ( event, sceneName ) => {
 
+        setScenesMenuOpened( false );
+        setRoomsMenuOpened( false );
+
         sceneName = sceneName ?? event.target.value;
         setSelectedScene( sceneName );
         universe.pushUrl( `/?src=${ encodeURIComponent( './scenes/' + sceneName ) }` );
-        setScenesMenuOpened( false );
 
     };
 
-    const handleRoomMenuOpen = ( value, event ) => {
+    const handleRoomMenuOpen = ( value ) => {
 
         value = ( typeof value === 'boolean' ? value : ( ! roomsMenuOpened ) );
         setScenesMenuOpened( false );
@@ -132,6 +129,9 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleRoomSelect = ( room ) => {
 
+        setScenesMenuOpened( false );
+        setRoomsMenuOpened( false );
+
         if ( ! world.isConnected() ) {
 
             universe.pushUrl( `/?src=${ encodeURIComponent( selectedScene ) }&room=${ room.name }` );
@@ -166,13 +166,20 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     };
 
-    const handleSceneInputKeyPress = ( event ) => {
+    const handleSceneInputKeyDown = ( event ) => {
 
         switch ( event.which ) {
 
+            case 27: { // escape
+
+                setScenesMenuOpened( false );
+                setRoomsMenuOpened( false );
+                break;
+
+            }
+
             case 13: { // enter
 
-                event.preventDefault();
                 universe.pushUrl( `/?src=${ encodeURIComponent( selectedScene ) }` );
                 break;
 
@@ -198,6 +205,31 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     };
 
+    useEffect( () => {
+
+        refreshRooms();
+        window.addEventListener( 'CloseAllMenus', handleOnFocusLost );
+        window.addEventListener( 'click', handleOnFocusLost );
+
+        return () => {
+
+            window.removeEventListener( 'CloseAllMenus', handleOnFocusLost );
+            window.removeEventListener( 'click', handleOnFocusLost );
+
+        };
+
+    }, [] );
+
+    useEffect( () => {
+
+        if ( scenesMenuOpened || roomsMenuOpened ) {
+
+            closeOtherWindows();
+
+        }
+
+    }, [ scenesMenuOpened, roomsMenuOpened ] );
+
     //
 
     return (
@@ -209,7 +241,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                     </button>
                 </div>
                 <div className={ styles.inputWrap } >
-                    <input type="text" className={ styles.input } value={ multiplayerConnected ? selectedRoom : selectedScene } onFocus={ handleSceneMenuOpen.bind( this, false ) } onChange={ handleSceneSelect } disabled={ multiplayerConnected } onKeyDown={ handleSceneInputKeyPress } placeholder="Goto..." />
+                    <input type="text" className={ styles.input } value={ multiplayerConnected ? selectedRoom : selectedScene } onFocus={ handleSceneMenuOpen.bind( this, false ) } onChange={ handleSceneSelect } disabled={ multiplayerConnected } onKeyDown={ handleSceneInputKeyDown } placeholder="Goto..." />
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.green ) } />
                 </div>
                 <div className={ styles.buttonWrap  } onClick={ handleRoomMenuOpen.bind( this, null ) } >
