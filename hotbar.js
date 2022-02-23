@@ -1,8 +1,14 @@
 import * as THREE from 'three';
-import {world} from './world.js';
-import {getRenderer} from './renderer.js';
+import {
+  world
+} from './world.js';
+import {
+  getRenderer
+} from './renderer.js';
 import easing from './easing.js';
-import {createObjectSprite} from './object-spriter.js';
+import {
+  createObjectSprite
+} from './object-spriter.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -293,117 +299,124 @@ const _makeHotbarRendererScene = () => {
 };
 
 class HotbarRenderer {
-    constructor(width, height, selected) {
-        this.width = width;
-        this.height = height;
+  constructor(width, height, selected) {
+    this.width = width;
+    this.height = height;
 
-        this.scene = _makeHotbarRendererScene();
-        this.camera = new THREE.OrthographicCamera(
-            -1,
-            1,
-            1,
-            -1,
-            0,
-            1000
-          );
-        this.canvases = [];
-        this.selected = selected;
-        this.selectFactor = +selected;
-    }
-    addCanvas(canvas) {
-        const ctx = canvas.getContext('2d');
-        canvas.ctx = ctx;
+    this.scene = _makeHotbarRendererScene();
+    this.camera = new THREE.OrthographicCamera(
+      -1,
+      1,
+      1,
+      -1,
+      0,
+      1000
+    );
+    this.canvases = [];
+    this.selected = selected;
+    this.selectFactor = +selected;
+  }
+  addCanvas(canvas) {
+    const ctx = canvas.getContext('2d');
+    canvas.ctx = ctx;
 
-        this.canvases.push(canvas);
+    this.canvases.push(canvas);
+  }
+  setSelected(selected) {
+    this.selected = selected;
+  }
+  setApp(app) {
+    (async () => {
+      const {
+        texture,
+        numFrames,
+        // frameSize,
+        numFramesPerRow,
+      } = await createObjectSprite(app);
+      // console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
+      this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = texture;
+      this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
+      this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
+      this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value = numFrames;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFrames.needsUpdate = true;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true;
+    })().catch(err => {
+      console.warn('error rendering hotbar app', err);
+    });
+  }
+  update(timestamp, timeDiff) {
+    const renderer = getRenderer();
+    const size = renderer.getSize(localVector2D);
+    const pixelRatio = renderer.getPixelRatio();
+
+    if (this.selected) {
+      this.selectFactor += timeDiff / 1000;
+    } else {
+      this.selectFactor -= timeDiff / 1000;
     }
-    setSelected(selected) {
-        this.selected = selected;
-    }
-    setApp(app) {
-      (async () => {
+    this.selectFactor = Math.min(Math.max(this.selectFactor, 0), 1);
+
+    const _render = () => {
+      // push old state
+      const oldRenderTarget = renderer.getRenderTarget();
+      const oldViewport = renderer.getViewport(localVector4D);
+
+      {
+        const smoothedSelectFactor = this.selected ? cubicBezier(this.selectFactor) : 1 - cubicBezier(1 - this.selectFactor);
+
+        this.scene.fullScreenQuadMesh.material.uniforms.uSelected.value = +this.selected;
+        this.scene.fullScreenQuadMesh.material.uniforms.uSelected.needsUpdate = true;
+        this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.value = smoothedSelectFactor;
+        this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.needsUpdate = true;
+        this.scene.fullScreenQuadMesh.material.uniforms.uTime.value = timestamp;
+        this.scene.fullScreenQuadMesh.material.uniforms.uTime.needsUpdate = true;
+
+        renderer.setViewport(0, 0, this.width, this.height);
+        renderer.clear();
+        renderer.render(this.scene, this.camera);
+      }
+
+      // pop old state
+      renderer.setRenderTarget(oldRenderTarget);
+      renderer.setViewport(oldViewport);
+    };
+    _render();
+
+    const _copyToCanvases = () => {
+      for (const canvas of this.canvases) {
         const {
-          texture,
-          numFrames,
-          // frameSize,
-          numFramesPerRow,
-        } = await createObjectSprite(app);
-        // console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
-        this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = texture;
-        this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
-        this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
-        this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
-        this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value = numFrames;
-        this.scene.fullScreenQuadMesh.material.uniforms.numFrames.needsUpdate = true;
-        this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
-        this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true;
-      })().catch(err => {
-        console.warn('error rendering hotbar app', err);
-      });
-    }
-    update(timestamp, timeDiff) {
-        const renderer = getRenderer();
-        const size = renderer.getSize(localVector2D);
-        const pixelRatio = renderer.getPixelRatio();
-
-        if (this.selected) {
-            this.selectFactor += timeDiff / 1000;
-        } else {
-            this.selectFactor -= timeDiff / 1000;
-        }
-        this.selectFactor = Math.min(Math.max(this.selectFactor, 0), 1);
-
-        const _render = () => {
-            // push old state
-            const oldRenderTarget = renderer.getRenderTarget();
-            const oldViewport = renderer.getViewport(localVector4D);
-
-            {
-                const smoothedSelectFactor = this.selected ? cubicBezier(this.selectFactor) : 1-cubicBezier(1-this.selectFactor);
-
-                this.scene.fullScreenQuadMesh.material.uniforms.uSelected.value = +this.selected;
-                this.scene.fullScreenQuadMesh.material.uniforms.uSelected.needsUpdate = true;
-                this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.value = smoothedSelectFactor;
-                this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.needsUpdate = true;
-                this.scene.fullScreenQuadMesh.material.uniforms.uTime.value = timestamp;
-                this.scene.fullScreenQuadMesh.material.uniforms.uTime.needsUpdate = true;
-
-                renderer.setViewport(0, 0, this.width, this.height);
-                renderer.clear();
-                renderer.render(this.scene, this.camera);
-            }
-
-            // pop old state
-            renderer.setRenderTarget(oldRenderTarget);
-            renderer.setViewport(oldViewport);
-        };
-        _render();
-
-        const _copyToCanvases = () => {
-            for (const canvas of this.canvases) {
-                const {width, height, ctx} = canvas;
-                ctx.clearRect(0, 0, width, height);
-                ctx.drawImage(
-                    renderer.domElement,
-                    0,
-                    size.y * pixelRatio - this.height * pixelRatio,
-                    this.width * pixelRatio,
-                    this.height * pixelRatio,
-                    0,
-                    0,
-                    width,
-                    height
-                );
-            }
-        };
-        _copyToCanvases();
-    }
-    destroy() {
-        hotbarRenderers.splice(hotbarRenderers.indexOf(hotbarRenderer), 1);
-    }
+          width,
+          height,
+          ctx
+        } = canvas;
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(
+          renderer.domElement,
+          0,
+          size.y * pixelRatio - this.height * pixelRatio,
+          this.width * pixelRatio,
+          this.height * pixelRatio,
+          0,
+          0,
+          width,
+          height
+        );
+      }
+    };
+    _copyToCanvases();
+  }
+  destroy() {
+    hotbarRenderers.splice(hotbarRenderers.indexOf(hotbarRenderer), 1);
+  }
 }
 const hotbarRenderers = [];
 world.appManager.addEventListener('frame', e => {
-  const {timestamp, timeDiff} = e.data;
+  const {
+    timestamp,
+    timeDiff
+  } = e.data;
   for (const hotbarRenderer of hotbarRenderers) {
     hotbarRenderer.update(timestamp, timeDiff);
   }
