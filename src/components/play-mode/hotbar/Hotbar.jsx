@@ -452,13 +452,17 @@ const HotbarItem = props => {
     const pixelRatio = window.devicePixelRatio;
 
     return (
-        <canvas className={styles.hotbox}
-          style={props.selected ? {
+        <canvas
+          className={styles.hotbox}
+          /* style={props.selected ? {
             position: 'fixed',
             width: '512px',
             height: '512px',
-          } : {}}
-          width={props.size * pixelRatio} height={props.size * pixelRatio} ref={canvasRef} />
+          } : {}} */
+          width={props.size * pixelRatio}
+          height={props.size * pixelRatio}
+          ref={canvasRef}
+        />
     );
 };
 
