@@ -127,7 +127,7 @@ const fullscreenFragmentShader = `\
   void main() {
     // base color
     vec3 baseColor;
-    const float borderWidth = 0.02;
+    const float borderWidth = 0.03;
     float boxInnerRadius = 0.5 - borderWidth;
     float boxInnerSize = boxInnerRadius * 2.;
     bool isInside = vUv.x >= borderWidth &&
