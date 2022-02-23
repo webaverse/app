@@ -1,10 +1,11 @@
-
 import * as THREE from 'three';
 import React, {useState, useRef, useEffect} from 'react';
 import styles from './hotbar.module.css';
 import {world} from '../../../../world.js';
 import {getRenderer} from '../../../../renderer.js';
 import easing from '../../../../easing.js';
+import metaversefileApi from 'metaversefile';
+import {createObjectSprite} from '../../../../object-spriter.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -18,6 +19,7 @@ const fullscreenVertexShader = `\
 `;
 const fullscreenFragmentShader = `\
   uniform sampler2D uTex;
+  uniform float uTexEnabled;
   uniform float uSelected;
   uniform float uSelectFactor;
   uniform float uTime;
@@ -61,7 +63,6 @@ const fullscreenFragmentShader = `\
       }
       return total / maxValue;
   }
-
   
   struct Tri {
     vec2 a;
@@ -211,9 +212,18 @@ const fullscreenFragmentShader = `\
       }
     }
 
-    // mix
-    gl_FragColor.rgb = highlightColor;
-    gl_FragColor.a = 1.;
+    // sample texture
+    vec4 s;
+    if (uTexEnabled > 0.) {
+      s = texture2D(uTex, vUv);
+      gl_FragColor = s;
+    } else {
+      s = vec4(0.);
+
+      // result
+      gl_FragColor.rgb = highlightColor * (1.-s.a) + s.rgb * s.a;
+      gl_FragColor.a = 1.;
+    }
   }
 `;
 const localVector2D = new THREE.Vector2();
@@ -230,6 +240,10 @@ const _makeHotboxScene = () => {
           uTex: {
             value: null,
             needsUpdate: false,
+          },
+          uTexEnabled: {
+            value: 0,
+            needsUpdate: true,
           },
           uSelected: {
             value: 0,
@@ -261,6 +275,8 @@ class Hotbox {
         this.width = width;
         this.height = height;
 
+        // console.log('new hotbox');
+
         this.scene = _makeHotboxScene();
         this.camera = new THREE.OrthographicCamera(
             -1,
@@ -282,6 +298,24 @@ class Hotbox {
     }
     setSelected(selected) {
         this.selected = selected;
+    }
+    setApp(app) {
+      (async () => {
+        const {
+          texture,
+          numFrames,
+          frameSize,
+          numFramesPerRow,
+        } = await createObjectSprite(app);
+        // console.log('got new render target', spriteRenderTarget);
+        this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = texture;
+        this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
+        this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
+        this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
+        // window.material = this.scene.fullScreenQuadMesh.material;
+      })().catch(err => {
+        console.warn(err);
+      });
     }
     update(timestamp, timeDiff) {
         const renderer = getRenderer();
@@ -345,6 +379,7 @@ class Hotbox {
     }
 }
 const hotboxes = [];
+// window.hotboxes = hotboxes;
 world.appManager.addEventListener('frame', e => {
     const {timestamp, timeDiff} = e.data;
     for (const hotbox of hotboxes) {
@@ -357,6 +392,14 @@ const HotbarItem = props => {
     const canvasRef = useRef();
     
     useEffect(() => {
+        const _cleanup = () => {
+          if (hotbox) {
+            hotboxes.splice(hotboxes.indexOf(hotbox), 1);
+            hotbox.destroy();
+            setHotbox(null);
+          }
+        };
+
         if (canvasRef.current) {
             const canvas = canvasRef.current;
             
@@ -364,19 +407,16 @@ const HotbarItem = props => {
             newHotbox.addCanvas(canvas);
             hotboxes.push(newHotbox);
             setHotbox(newHotbox);
+        } else {
+          _cleanup();
         }
-    }, [canvasRef.current]);
+        return _cleanup;
+    }, [canvasRef]);
     useEffect(() => {
         if (hotbox) {
             hotbox.setSelected(props.selected);
         }
     }, [hotbox, props.selected]);
-    useEffect(() => {
-        if (hotbox) {
-            hotbox.destroy();
-            hotboxes.splice(hotboxes.indexOf(hotbox), 1);
-        }
-    }, []);
     
     const pixelRatio = window.devicePixelRatio;
 
@@ -407,6 +447,23 @@ export const Hotbar = () => {
                         newHotbarIndex = -1;
                     }
                     setHotbarIndex(newHotbarIndex);
+                    
+                    { // XXX test hack
+                      const i = e.which - 49;
+                      if (i === 0) {
+                        const hotbox = hotboxes[i];
+                        if (hotbox) {
+                          const localPlayer = metaversefileApi.useLocalPlayer();
+                          const wearActions = localPlayer.getActionsArray().filter(a => a.type === 'wear');
+                          const firstWearAction = wearActions[0];
+                          if (firstWearAction) {
+                            const app = metaversefileApi.getAppByInstanceId(firstWearAction.instanceId);
+                            hotbox.setApp(app);
+                          }
+                        }
+                      }
+                    }
+                    
                     break;
                 }
             }
