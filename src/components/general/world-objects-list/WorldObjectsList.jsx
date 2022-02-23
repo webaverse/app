@@ -6,6 +6,8 @@ import classnames from 'classnames';
 import { world } from '../../../../world.js'
 import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
+import cameraManager from '../../../../camera-manager.js';
+import ioManager from '../../../../io-manager.js';
 
 import styles from './world-objects-list.module.css';
 
@@ -37,8 +39,9 @@ const NumberInput = ({ input }) => {
 
 //
 
-export const WorldObjectsList = ({ app, opened, setOpened }) => {
+export const WorldObjectsList = ({ opened, setOpened }) => {
 
+    const componentName = 'WorldObjectsList';
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
     const [ selectedApp, setSelectedApp ] = useState( null );
 
@@ -76,7 +79,16 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
 
             case 90: {   // Z
 
-                setOpened( ! opened );
+                if ( opened ) {
+
+                    handleOnFocusLost();
+
+                } else {
+
+                    setOpened( true );
+
+                }
+
                 break;
 
             }
@@ -89,6 +101,12 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
 
         setSelectedApp( targetApp );
         game.setMouseSelectedObject( targetApp, physicsId, position );
+
+    };
+
+    const closeOtherWindows = () => {
+
+        window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: componentName } } ) );
 
     };
 
@@ -121,7 +139,18 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
 
     };
 
-    const handleOnFocusLost = () => {
+    const handleOnFocusLost = ( event ) => {
+
+        event = event ?? {};
+
+        if ( event.detail && event.detail.dispatcher === componentName ) return;
+
+        if ( ! event.detail || event.detail.lockPointer !== false ) {
+
+            ioManager.click( new MouseEvent('click') );
+            cameraManager.requestPointerLock();
+
+        }
 
         setOpened( false );
 
@@ -137,6 +166,13 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
 
     useEffect( () => {
 
+        if ( opened ) {
+
+            document.exitPointerLock();
+            closeOtherWindows();
+
+        }
+
         const update = () => {
 
             setApps( world.appManager.getApps().slice() );
@@ -147,6 +183,7 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
         world.appManager.addEventListener( 'appremove', update );
         window.addEventListener( 'click', handleOnFocusLost );
         window.addEventListener( 'keydown', handleKeyDown );
+        window.addEventListener( 'CloseAllMenus', handleOnFocusLost );
 
         return () => {
 
@@ -154,10 +191,11 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
             world.appManager.removeEventListener( 'appremove', update );
             window.removeEventListener( 'click', handleOnFocusLost );
             window.removeEventListener( 'keydown', handleKeyDown );
+            window.removeEventListener( 'CloseAllMenus', handleOnFocusLost );
 
         };
 
-    }, [] );
+    }, [ opened ] );
 
     useEffect( () => {
 
