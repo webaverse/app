@@ -217,7 +217,6 @@ const fullscreenFragmentShader = `\
     // sample texture
     vec4 s;
     if (uTexEnabled > 0.) {
-      // XXX compute the frame offset using numFrames, frameTime, and uTime
       float f = mod(uTime / 1000. * 0.5, 1.);
       float frameIndex = floor(f * numFrames);
       float x = mod(frameIndex, numFramesPerRow);
