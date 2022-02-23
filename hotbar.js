@@ -299,12 +299,15 @@ class HotbarRenderer {
     this.canvases = [];
     this.selected = selected;
     this.selectFactor = +selected;
+    this.needsUpdate = false;
   }
   addCanvas(canvas) {
     const ctx = canvas.getContext('2d');
     canvas.ctx = ctx;
 
     this.canvases.push(canvas);
+
+    this.needsUpdate = true;
   }
   setSelected(selected) {
     this.selected = selected;
@@ -335,6 +338,8 @@ class HotbarRenderer {
     const size = renderer.getSize(localVector2D);
     const pixelRatio = renderer.getPixelRatio();
 
+    const lastSelectFactor = this.selectFactor;
+
     if (this.selected) {
       this.selectFactor += timeDiff / 1000;
     } else {
@@ -342,54 +347,58 @@ class HotbarRenderer {
     }
     this.selectFactor = Math.min(Math.max(this.selectFactor, 0), 1);
 
-    const _render = () => {
-      // push old state
-      const oldRenderTarget = renderer.getRenderTarget();
-      const oldViewport = renderer.getViewport(localVector4D);
+    if (this.selected || this.selectFactor !== lastSelectFactor || this.needsUpdate) {
+      const _render = () => {
+        // push old state
+        const oldRenderTarget = renderer.getRenderTarget();
+        const oldViewport = renderer.getViewport(localVector4D);
 
-      {
-        const smoothedSelectFactor = this.selected ? cubicBezier(this.selectFactor) : 1 - cubicBezier(1 - this.selectFactor);
+        {
+          const smoothedSelectFactor = this.selected ? cubicBezier(this.selectFactor) : 1 - cubicBezier(1 - this.selectFactor);
 
-        this.scene.fullScreenQuadMesh.material.uniforms.uSelected.value = +this.selected;
-        this.scene.fullScreenQuadMesh.material.uniforms.uSelected.needsUpdate = true;
-        this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.value = smoothedSelectFactor;
-        this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.needsUpdate = true;
-        this.scene.fullScreenQuadMesh.material.uniforms.uTime.value = timestamp;
-        this.scene.fullScreenQuadMesh.material.uniforms.uTime.needsUpdate = true;
+          this.scene.fullScreenQuadMesh.material.uniforms.uSelected.value = +this.selected;
+          this.scene.fullScreenQuadMesh.material.uniforms.uSelected.needsUpdate = true;
+          this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.value = smoothedSelectFactor;
+          this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.needsUpdate = true;
+          this.scene.fullScreenQuadMesh.material.uniforms.uTime.value = timestamp;
+          this.scene.fullScreenQuadMesh.material.uniforms.uTime.needsUpdate = true;
 
-        renderer.setViewport(0, 0, this.width, this.height);
-        renderer.clear();
-        renderer.render(this.scene, this.camera);
-      }
+          renderer.setViewport(0, 0, this.width, this.height);
+          renderer.clear();
+          renderer.render(this.scene, this.camera);
+        }
 
-      // pop old state
-      renderer.setRenderTarget(oldRenderTarget);
-      renderer.setViewport(oldViewport);
-    };
-    _render();
+        // pop old state
+        renderer.setRenderTarget(oldRenderTarget);
+        renderer.setViewport(oldViewport);
+      };
+      _render();
 
-    const _copyToCanvases = () => {
-      for (const canvas of this.canvases) {
-        const {
-          width,
-          height,
-          ctx
-        } = canvas;
-        ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(
-          renderer.domElement,
-          0,
-          size.y * pixelRatio - this.height * pixelRatio,
-          this.width * pixelRatio,
-          this.height * pixelRatio,
-          0,
-          0,
-          width,
-          height
-        );
-      }
-    };
-    _copyToCanvases();
+      const _copyToCanvases = () => {
+        for (const canvas of this.canvases) {
+          const {
+            width,
+            height,
+            ctx
+          } = canvas;
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(
+            renderer.domElement,
+            0,
+            size.y * pixelRatio - this.height * pixelRatio,
+            this.width * pixelRatio,
+            this.height * pixelRatio,
+            0,
+            0,
+            width,
+            height
+          );
+        }
+      };
+      _copyToCanvases();
+
+      this.needsUpdate = false;
+    }
   }
   destroy() {
     hotbarRenderers.splice(hotbarRenderers.indexOf(hotbarRenderer), 1);
