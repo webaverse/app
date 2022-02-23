@@ -1496,10 +1496,8 @@ const gameManager = {
   },
   drop() {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    const wearActions = localPlayer.getActionsArray().filter(action => action.type === 'wear');
-    if (wearActions.length > 0) {
-      const wearAction = wearActions[0];
-      const app = metaversefileApi.getAppByInstanceId(wearAction.instanceId);
+    const app = loadoutManager.getSelectedApp();
+    if (app) {
       localPlayer.unwear(app);
     }
   },
