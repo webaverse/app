@@ -22,6 +22,7 @@ import {Location} from './components/location';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {Tokens} from './tabs/tokens';
+import { Minting } from './tabs/minting';
 
 const localEuler = new THREE.Euler();
 
@@ -350,6 +351,7 @@ export default function Header({
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
             />
+            <Minting/>
           </div>
         </header>
         <Tokens
