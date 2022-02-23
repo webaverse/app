@@ -408,25 +408,14 @@ class HotbarRenderer {
   }
 }
 const hotbarRenderers = [];
-world.appManager.addEventListener('frame', e => {
-  const {
-    timestamp,
-    timeDiff
-  } = e.data;
-  for (const hotbarRenderer of hotbarRenderers) {
-    hotbarRenderer.update(timestamp, timeDiff);
-  }
-});
 
 const createHotbarRenderer = (width, height, selected) => {
   const hotbarRenderer = new HotbarRenderer(width, height, selected);
   hotbarRenderers.push(hotbarRenderer);
   return hotbarRenderer;
 };
-const getHotbarRenderers = () => hotbarRenderers;
 
 export {
   HotbarRenderer,
   createHotbarRenderer,
-  getHotbarRenderers,
 };
