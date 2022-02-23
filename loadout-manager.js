@@ -1,5 +1,4 @@
-import {/*HotbarRenderer, */createHotbarRenderer} from './hotbar.js';
-// import {getRenderer} from './renderer.js';
+import {createHotbarRenderer} from './hotbar.js';
 import {localPlayer} from './players.js';
 import {hotbarSize} from './constants.js';
 
@@ -12,12 +11,11 @@ class LoadoutManager extends EventTarget {
     this.selectedIndex = -1;
   
     localPlayer.addEventListener('wearupdate', e => {
-      // console.log('wear update', e);
       const {app, wear} = e;
 
       this.ensureHotbarRenderers();
       if (wear) {
-        const nextIndex = this.getNextIndex();
+        const nextIndex = this.getNextFreeIndex();
         if (nextIndex !== -1) {
           const hotbarRenderer = this.hotbarRenderers[nextIndex];
           hotbarRenderer.setApp(app);
@@ -29,7 +27,9 @@ class LoadoutManager extends EventTarget {
           const hotbarRenderer = this.hotbarRenderers[i];
           if (hotbarRenderer.app === app) {
             hotbarRenderer.setApp(null);
-            this.setSelectedIndex(-1);
+
+            const nextIndex = this.getNextUsedIndex();
+            this.setSelectedIndex(nextIndex);
             break;
           }
         }
@@ -53,6 +53,15 @@ class LoadoutManager extends EventTarget {
     this.ensureHotbarRenderers();
     return this.hotbarRenderers[index];
   }
+  getSelectedApp() {
+    this.ensureHotbarRenderers();
+    
+    if (this.selectedIndex !== -1) {
+      return this.hotbarRenderers[this.selectedIndex].app;
+    } else {
+      return null;
+    }
+  }
   setSelectedIndex(index) {
     this.ensureHotbarRenderers();
 
@@ -67,10 +76,19 @@ class LoadoutManager extends EventTarget {
       this.selectedIndex = index;
     }
   }
-  getNextIndex() {
+  getNextFreeIndex() {
     this.ensureHotbarRenderers();
     for (let i = 0; i < this.hotbarRenderers.length; i++) {
       if (!this.hotbarRenderers[i].app) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  getNextUsedIndex() {
+    this.ensureHotbarRenderers();
+    for (let i = 0; i < this.hotbarRenderers.length; i++) {
+      if (this.hotbarRenderers[i].app) {
         return i;
       }
     }

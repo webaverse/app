@@ -326,10 +326,8 @@ const _getNextUseIndex = animationCombo => {
 }
 const _startUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
-  const wearApps = Array.from(localPlayer.getActionsState())
-    .filter(action => action.type === 'wear')
-    .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
-  for (const wearApp of wearApps) {
+  const wearApp = loadoutManager.getSelectedApp();
+  if (wearApp) {
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
       const useAction = localPlayer.getAction('use');
@@ -356,7 +354,6 @@ const _startUse = () => {
 
         wearApp.use();
       }
-      break;
     }
   }
 };
@@ -1396,11 +1393,10 @@ const gameManager = {
   menuAim() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      const wearApp = loadoutManager.getSelectedApp();
       const wearAimApp = (() => {
-        const wearApps = Array.from(localPlayer.getActionsState())
-          .filter(action => action.type === 'wear')
-          .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
-        for (const wearApp of wearApps) {
+        if (wearApp) {
           const aimComponent = wearApp.getComponent('aim');
           if (aimComponent) {
             return wearApp;
@@ -1496,10 +1492,8 @@ const gameManager = {
   },
   drop() {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    const wearActions = localPlayer.getActionsArray().filter(action => action.type === 'wear');
-    if (wearActions.length > 0) {
-      const wearAction = wearActions[0];
-      const app = metaversefileApi.getAppByInstanceId(wearAction.instanceId);
+    const app = loadoutManager.getSelectedApp();
+    if (app) {
       localPlayer.unwear(app);
     }
   },
