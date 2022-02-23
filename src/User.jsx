@@ -31,6 +31,9 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom, cha
     } else {
       if (!loggingIn) {
         setLoggingIn(true);
+        // If metamask is locked sometimes promise gets stuck, therefore if in 5 second
+        // no response is received, set the logging in to false so user can try again
+        setTimeout(() => setLoggingIn(false), 5000);
         try {
           const metamaskWallet = new MetamaskWallet();
           const address = await metamaskWallet.initMetamaskWallet();
