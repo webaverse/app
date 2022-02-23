@@ -235,14 +235,13 @@ const fullscreenFragmentShader = `\
       // gl_FragColor.a = 1.;
 
       s = texture2D(uTex, uv);
-      gl_FragColor = s;
     } else {
       s = vec4(0.);
-
-      // result
-      gl_FragColor.rgb = highlightColor * (1.-s.a) + s.rgb * s.a;
-      gl_FragColor.a = 1.;
     }
+
+    // result
+    gl_FragColor.rgb = highlightColor * (1.-s.a) + s.rgb * s.a;
+    gl_FragColor.a = 1.;
   }
 `;
 const localVector2D = new THREE.Vector2();

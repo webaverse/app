@@ -17,7 +17,7 @@ const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 
 const defaultSize = 2048;
-const defaultNumFrames = 64;
+const defaultNumFrames = 128;
 
 const _addPreviewLights = scene => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 2);
