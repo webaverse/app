@@ -809,7 +809,7 @@ const physxWorker = (() => {
     );
   };
 
-  w.detectPathVoxelPhysics = (physics, start, dest, hx, hy, hz, p, q, maxIterDetect, ignorePhysicsIds) => {
+  w.getPathPhysics = (physics, start, dest, hx, hy, hz, p, q, maxIterDetect, ignorePhysicsIds) => {
     p.toArray(scratchStack.f32, 0);
     localQuaternion.copy(q)
       .toArray(scratchStack.f32, 3);
@@ -835,7 +835,7 @@ const physxWorker = (() => {
       scratchStack.u32[20 + i] = ignorePhysicsIds[i];
     })
 
-    const outputBufferOffset = moduleInstance._detectPathVoxelPhysics(
+    const outputBufferOffset = moduleInstance._getPathPhysics(
       physics,
       startOffset,
       destOffset,
