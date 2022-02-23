@@ -17,7 +17,7 @@ class LoadoutManager extends EventTarget {
 
       this.ensureHotbarRenderers();
       if (wear) {
-        const nextIndex = this.getNextIndex();
+        const nextIndex = this.getNextFreeIndex();
         if (nextIndex !== -1) {
           const hotbarRenderer = this.hotbarRenderers[nextIndex];
           hotbarRenderer.setApp(app);
@@ -29,7 +29,9 @@ class LoadoutManager extends EventTarget {
           const hotbarRenderer = this.hotbarRenderers[i];
           if (hotbarRenderer.app === app) {
             hotbarRenderer.setApp(null);
-            this.setSelectedIndex(-1);
+
+            const nextIndex = this.getNextUsedIndex();
+            this.setSelectedIndex(nextIndex);
             break;
           }
         }
@@ -76,10 +78,19 @@ class LoadoutManager extends EventTarget {
       this.selectedIndex = index;
     }
   }
-  getNextIndex() {
+  getNextFreeIndex() {
     this.ensureHotbarRenderers();
     for (let i = 0; i < this.hotbarRenderers.length; i++) {
       if (!this.hotbarRenderers[i].app) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  getNextUsedIndex() {
+    this.ensureHotbarRenderers();
+    for (let i = 0; i < this.hotbarRenderers.length; i++) {
+      if (this.hotbarRenderers[i].app) {
         return i;
       }
     }
