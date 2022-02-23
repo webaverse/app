@@ -101,7 +101,7 @@ const createObjectSprite = async (app, {
           )
         );
       }
-      console.log('render position', sideCamera.position.toArray(), app.position.toArray());
+      // console.log('render position', sideCamera.position.toArray(), app.position.toArray());
       sideCamera.updateMatrixWorld();
       
       // render side scene
