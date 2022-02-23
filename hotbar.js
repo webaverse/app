@@ -297,8 +297,6 @@ class HotbarRenderer {
         this.width = width;
         this.height = height;
 
-        // console.log('new hotbox');
-
         this.scene = _makeHotbarRendererScene();
         this.camera = new THREE.OrthographicCamera(
             -1,
