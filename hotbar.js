@@ -306,7 +306,10 @@ class HotbarRenderer {
     canvas.ctx = ctx;
 
     this.canvases.push(canvas);
-
+    this.needsUpdate = true;
+  }
+  removeCanvas(canvas) {
+    this.canvases.splice(this.canvases.indexOf(canvas), 1);
     this.needsUpdate = true;
   }
   setSelected(selected) {
