@@ -248,53 +248,52 @@ const localVector2D = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 
 const _makeHotboxScene = () => {
-    const scene = new THREE.Scene();
-  
-    // full screen quad mesh
-    const fullScreenQuadMesh = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(2, 2),
-      new THREE.ShaderMaterial({
-        uniforms: {
-          uTex: {
-            value: null,
-            needsUpdate: false,
-          },
-          uTexEnabled: {
-            value: 0,
-            needsUpdate: true,
-          },
-          uSelected: {
-            value: 0,
-            needsUpdate: true,
-          },
-          uSelectFactor: {
-            value: 0,
-            needsUpdate: true,
-          },
-          uTime: {
-            value: 0,
-            needsUpdate: true,
-          },
-          numFrames: {
-            value: 0,
-            needsUpdate: true,
-          },
-          numFramesPerRow: {
-            value: 0,
-            needsUpdate: true,
-          },
+  const scene = new THREE.Scene();
+
+  const fullScreenQuadMesh = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(2, 2),
+    new THREE.ShaderMaterial({
+      uniforms: {
+        uTex: {
+          value: null,
+          needsUpdate: false,
         },
-        vertexShader: fullscreenVertexShader,
-        fragmentShader: fullscreenFragmentShader,
-        depthTest: false,
-      }),
-    );
-    fullScreenQuadMesh.frustumCulled = false;
-    scene.add(fullScreenQuadMesh);
-    scene.fullScreenQuadMesh = fullScreenQuadMesh;
-  
-    return scene;
-  };
+        uTexEnabled: {
+          value: 0,
+          needsUpdate: true,
+        },
+        uSelected: {
+          value: 0,
+          needsUpdate: true,
+        },
+        uSelectFactor: {
+          value: 0,
+          needsUpdate: true,
+        },
+        uTime: {
+          value: 0,
+          needsUpdate: true,
+        },
+        numFrames: {
+          value: 0,
+          needsUpdate: true,
+        },
+        numFramesPerRow: {
+          value: 0,
+          needsUpdate: true,
+        },
+      },
+      vertexShader: fullscreenVertexShader,
+      fragmentShader: fullscreenFragmentShader,
+      depthTest: false,
+    }),
+  );
+  fullScreenQuadMesh.frustumCulled = false;
+  scene.add(fullScreenQuadMesh);
+  scene.fullScreenQuadMesh = fullScreenQuadMesh;
+
+  return scene;
+};
 
 class Hotbox {
     constructor(width, height, selected) {
