@@ -1,9 +1,36 @@
-
-import React from 'react';
-
+import React, {useState, useRef, useEffect} from 'react';
 import styles from './hotbar.module.css';
+// import metaversefileApi from 'metaversefile';
+import loadoutManager from '../../../../loadout-manager.js';
+import {hotbarSize} from '../../../../constants.js';
 
-//
+const HotbarItem = props => {
+    const canvasRef = useRef();
+    
+    useEffect(() => {
+      if (canvasRef.current) {
+        const canvas = canvasRef.current;
+
+        const hotbarRenderer = loadoutManager.getHotbarRenderer(props.index);
+        hotbarRenderer.addCanvas(canvas);
+
+        return () => {
+          hotbarRenderer.removeCanvas(canvas);
+        };
+      }
+    }, [canvasRef]);
+    
+    const pixelRatio = window.devicePixelRatio;
+
+    return (
+        <canvas
+          className={styles.hotbox}
+          width={props.size * pixelRatio}
+          height={props.size * pixelRatio}
+          ref={canvasRef}
+        />
+    );
+};
 
 export const Hotbar = () => {
 
@@ -23,6 +50,7 @@ export const Hotbar = () => {
                             <div className={ styles.item } key={ i } >
                                 <div className={ styles.box } />
                                 <div className={ styles.label }>{ i + 1 }</div>
+                                <HotbarItem size={hotbarSize} index={i} />
                             </div>
                         );
 

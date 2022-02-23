@@ -26,6 +26,7 @@ import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './
 import metaversefileApi from './metaversefile-api.js';
 import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
+import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
 
 const {contractNames} = metaversefileConstants;
@@ -245,14 +246,6 @@ let mouseDomEquipmentHoverObject = null;
 let mouseDomEquipmentHoverPhysicsId = 0;
 
 let selectedLoadoutIndex = -1;
-let selectedLoadoutObject = null;
-const _selectLoadout = index => {
-  if (index !== selectedLoadoutIndex) {
-    selectedLoadoutIndex = index;
-  } else {
-    selectedLoadoutIndex = -1;
-  }
-};
 
 const _use = () => {
   if (gameManager.getMenu() === 3) {
@@ -1654,7 +1647,7 @@ const gameManager = {
     }
   },
   selectLoadout(index) {
-    _selectLoadout(index);
+    loadoutManager.setSelectedIndex(index);
   },
   canToggleAxis() {
     return false; // !!world.appManager.grabbedObjects[0]; // || (editedObject && editedObject.isBuild);

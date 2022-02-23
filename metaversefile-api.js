@@ -8,7 +8,6 @@ import * as THREE from 'three';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
-import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
@@ -20,11 +19,9 @@ import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
-import {LocalPlayer} from './character-controller.js';
 import postProcessing from './post-processing.js';
 import {makeId, getRandomString, getPlayerPrefix, memoize} from './util.js';
 import JSON6 from 'json-6';
-import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
@@ -35,6 +32,7 @@ import loreAIScene from './lore-ai-scene.js';
 import npcManager from './npc-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
+import {localPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
 import {getHeight} from './avatars/util.mjs';
 
@@ -141,13 +139,6 @@ const defaultModules = {
   moduleUrls,
   modules,
 };
-const localPlayer = new LocalPlayer({
-  prefix: getPlayerPrefix(makeId(5)),
-  state: new Z.Doc(),
-});
-localPlayer.position.y = initialPosY;
-localPlayer.updateMatrixWorld();
-const remotePlayers = new Map();
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
