@@ -257,8 +257,8 @@ class StatePlayer extends PlayerBase {
     });
     this.appManager.addEventListener('appadd', e => {
       const trackedApp = this.appManager.getTrackedApp( e.data.instanceId);
-      const load = trackedApp.get('load');
-      if(!load) return;
+      // const load = trackedApp.get('load');
+      // if(!load) return;
       const app = e.data;
       scene.add(app);
     });
