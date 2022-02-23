@@ -362,7 +362,7 @@ class HotbarRenderer {
     }
     this.selectFactor = Math.min(Math.max(this.selectFactor, 0), 1);
 
-    if (this.selected || this.selectFactor !== lastSelectFactor || this.needsUpdate) {
+    if (this.needsUpdate) {
       const _render = () => {
         // push old state
         const oldRenderTarget = renderer.getRenderTarget();
@@ -412,7 +412,7 @@ class HotbarRenderer {
       };
       _copyToCanvases();
 
-      this.needsUpdate = false;
+      this.needsUpdate = this.selected || this.selectFactor !== lastSelectFactor;
     }
   }
   destroy() {
