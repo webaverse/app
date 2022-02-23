@@ -104,6 +104,25 @@ const fullscreenFragmentShader = `\
   bool isPointInTriangle(vec2 point, Tri tri) {
     return isPointInTriangle(point, tri.a, tri.b, tri.c);
   }
+  bool isInsideChevron(vec2 point, vec2 center, float width, float height, float skew) {
+    point -= center;
+
+    vec2 a = vec2(-width/2., height/2. - skew);
+    vec2 b = vec2(-width/2., -height/2. - skew);
+    vec2 c = vec2(0., height/2. + skew);
+    vec2 d = vec2(0., -height/2. + skew);
+    vec2 e = vec2(width/2., height/2. - skew);
+    vec2 f = vec2(width/2., -height/2. - skew);
+    Tri t1 = Tri(a, b, c);
+    Tri t2 = Tri(b, d, c);
+    Tri t3 = Tri(e, f, c);
+    Tri t4 = Tri(f, d, c);
+
+    return isPointInTriangle(point, t1) ||
+      isPointInTriangle(point, t2) ||
+      isPointInTriangle(point, t3) ||
+      isPointInTriangle(point, t4);
+  }
 
   void main() {
     // base color
@@ -164,6 +183,10 @@ const fullscreenFragmentShader = `\
         isPointInTriangle(vUv, t1) ||
         isPointInTriangle(vUv, t2)
       ) {
+        highlightColor = vec3(1.);
+      }
+
+      if (isInsideChevron(vUv, vec2(0.5), 0.5, 0.05, 0.05)) {
         highlightColor = vec3(1.);
       }
     }
