@@ -1,5 +1,4 @@
-import {/*HotbarRenderer, */createHotbarRenderer} from './hotbar.js';
-// import {getRenderer} from './renderer.js';
+import {createHotbarRenderer} from './hotbar.js';
 import {localPlayer} from './players.js';
 import {hotbarSize} from './constants.js';
 
@@ -12,7 +11,6 @@ class LoadoutManager extends EventTarget {
     this.selectedIndex = -1;
   
     localPlayer.addEventListener('wearupdate', e => {
-      // console.log('wear update', e);
       const {app, wear} = e;
 
       this.ensureHotbarRenderers();
