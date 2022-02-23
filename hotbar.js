@@ -316,25 +316,36 @@ class HotbarRenderer {
     this.selected = selected;
   }
   setApp(app) {
-    (async () => {
-      const {
-        texture,
-        numFrames,
-        // frameSize,
-        numFramesPerRow,
-      } = await createObjectSprite(app);
-      // console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
-      this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = texture;
-      this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
-      this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
+    if (app) {
+      (async () => {
+        const {
+          texture,
+          numFrames,
+          // frameSize,
+          numFramesPerRow,
+        } = await createObjectSprite(app);
+        // console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
+        this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = texture;
+        this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
+        this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
+        this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
+        this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value = numFrames;
+        this.scene.fullScreenQuadMesh.material.uniforms.numFrames.needsUpdate = true;
+        this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
+        this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true;
+      })().catch(err => {
+        console.warn('error rendering hotbar app', err);
+      });
+    } else {
+      /* this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = null;
+      this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true; */
+      this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 0;
       this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
-      this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value = numFrames;
+      /* this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value = numFrames;
       this.scene.fullScreenQuadMesh.material.uniforms.numFrames.needsUpdate = true;
       this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
-      this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true;
-    })().catch(err => {
-      console.warn('error rendering hotbar app', err);
-    });
+      this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true; */
+    }
   }
   update(timestamp, timeDiff) {
     const renderer = getRenderer();
