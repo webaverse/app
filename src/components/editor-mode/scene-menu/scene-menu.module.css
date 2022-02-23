@@ -1,0 +1,179 @@
+
+.location {
+    position: absolute;
+    display: flex;
+    top: 0px;
+    right: 460px;
+    height: 40px;
+    flex-direction: column;
+    overflow: visible;
+    z-index: 5;
+}
+
+.location .row {
+    display: flex;
+    height: 100%;
+}
+
+.location .rooms {
+    position: absolute;
+    top: 40px;
+    display: flex;
+    width: 100%;
+    background-color: #000;
+    flex-direction: column;
+    max-height: 70vh;
+    min-height: 100px;
+    overflow-y: scroll;
+}
+
+.location .rooms .room {
+    display: flex;
+    padding: 10px;
+    color: #FFF;
+    cursor: pointer;
+}
+
+.location .rooms .room:hover {
+    background-color: #42a5f5;
+}
+
+.location .rooms .room .image {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    user-drag: none;
+    -webkit-user-drag: none;
+}
+
+.location .rooms .room .name {
+    margin-right: auto;
+    font-size: 16px;
+}
+
+.location .rooms .button {
+    padding: 10px;
+    background: linear-gradient(to right, #673ab7, #512da8);
+    border-radius: 5px;
+    color: #FFF;
+    cursor: pointer;
+}
+
+.location .rooms .button.warning {
+    background: linear-gradient(to right, #ff416c, #ff4b2b);
+}
+
+.location .rooms .button:hover {
+    filter: brightness(0.7);
+}
+
+.location .rooms .create {
+    padding: 10px;
+    margin-right: auto;
+}
+
+.location .rooms .delete {
+    display: flex;
+}
+
+.location .inputWrap {
+    position: relative;
+    height: 100%;
+    width: 300px;
+    background-color: #000;
+    font-family: monospace;
+    overflow: hidden;
+}
+
+.location .inputWrap .background {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+
+.location .inputWrap .input {
+    position: relative;
+    height: inherit;
+    width: inherit;
+    padding: 10px;
+    background-color: transparent;
+    border: 0;
+    color: #FFF;
+    font-family: monospace;
+    font-size: 15px;
+    outline: none;
+    z-index: 1;
+    transition: color 1s cubic-bezier(0, 1, 0, 1);
+}
+
+.location .inputWrap .input:focus {
+    color: #000;
+}
+
+.location .inputWrap .input:focus + .background {
+    transform: none;
+}
+
+.location .buttonWrap {
+    position: relative;
+    display: flex;
+    height: 100%;
+    cursor: pointer;
+}
+
+.location .button-wrap:active .button {
+    transform: scale(0.7);
+    transition: none;
+}
+
+.location .button {
+    outline: none;
+    transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+
+.location .button,
+.location .button.disabled:hover
+{
+    display: flex;
+    height: 100%;
+    border: 0;
+    background-color: #9ccc65;
+    align-items: center;
+}
+
+.location .button:hover {
+    background-color: #7cb342;
+}
+
+.location .button.primary:not(.disabled),
+.location .button.primary:hover
+{
+    background: linear-gradient(to right, #ff416c, #ff4b2b);
+}
+
+.location .button.disabled {
+    background-color: #888;
+}
+
+.location .button img {
+    width: 30px;
+    height: 30px;
+}
+
+.location .button:not(.disabled) img {
+    filter: invert(1);
+}
+
+.location .button .hidden {
+    display: none;
+}
+
+.background.green {
+    /* filter: invert(66%) sepia(10%) saturate(2152%) hue-rotate(73deg) brightness(101%) contrast(77%); */
+    filter: invert(86%) sepia(22%) saturate(938%) hue-rotate(36deg) brightness(89%) contrast(84%);
+}
