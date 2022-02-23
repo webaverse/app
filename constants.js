@@ -96,5 +96,7 @@ export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
 export const chatTextSpeed = 20;
 export const shakeAnimationSpeed = 30;
 
+export const hotbarSize = 60;
+
 export const defaultDioramaSize = 512;
 export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';
