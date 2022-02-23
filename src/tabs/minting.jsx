@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
+import { MetamaskWallet } from '../../blockchain/metamask';
 
 export const Minting = () => {
   const [file, setFile] = useState(false);
@@ -15,7 +16,15 @@ export const Minting = () => {
         method: 'POST',
         body: formData,
       }).then(res => res.json());
-      
+      const wallet = await new MetamaskWallet();
+      await wallet.initMetamaskWallet();
+      try {
+        await wallet.mint(`${cid}/${file.name}`);
+        window.alert('Minted');
+      } catch (error) {
+        window.alert(error.message);
+        throw new Error(error);
+      }
     } else {
       window.alert('No file uploaded.');
     }

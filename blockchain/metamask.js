@@ -1,7 +1,9 @@
 import { ethers } from 'ethers';
+import WebaverseABI from '../blockchain/abis/Webaverse.json';
 
 export class MetamaskWallet {
     metamask = undefined;
+    webaverseContract = undefined;
 
     async initMetamaskWallet() {
         if (window.ethereum) {
@@ -26,6 +28,7 @@ export class MetamaskWallet {
                 signer,
                 address,
             };
+            this.webaverseContract = new ethers.Contract('0x458F0Ea512dd4dAb86475662FB4d0FDC6423d9CE', WebaverseABI.abi, signer);
             return address;
         } else {
             throw new Error('Metamask not installed');
@@ -61,5 +64,16 @@ export class MetamaskWallet {
                 chainName: 'unknown'
             }
         }
+    }
+
+    async mint(link) {
+        const { chainId } = await this.getChainInfo();
+        const address = this.initMetamaskWallet();
+        if (chainId !== 137) {
+            throw new Error('Minting only supported on Polygon.');
+        }
+        const tx = await this.webaverseContract.mint(address, 1, link, []);
+        await tx.wait();
+        return tx.hash;
     }
 }
