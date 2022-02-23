@@ -855,15 +855,15 @@ const physxWorker = (() => {
     // let tail = head + 1;
 
     const numWaypointResult = moduleInstance.HEAPF32[head + 0];
-    console.log(numWaypointResult);
-    const waypointResult = [];
+    const waypointResultPositions = [];
     for (let i = 0; i < numWaypointResult; i++) {
-      const result = new THREE.Vector3();
-      result.x = moduleInstance.HEAPF32[head + i * 3 + 1];
-      result.y = moduleInstance.HEAPF32[head + i * 3 + 2];
-      result.z = moduleInstance.HEAPF32[head + i * 3 + 3];
-      waypointResult.push(result);
+      const position = new THREE.Vector3();
+      position.x = moduleInstance.HEAPF32[head + i * 3 + 1];
+      position.y = moduleInstance.HEAPF32[head + i * 3 + 2];
+      position.z = moduleInstance.HEAPF32[head + i * 3 + 3];
+      waypointResultPositions.push(position);
     }
+    console.log(waypointResultPositions);
 
     // // TEST:
     // const outY = moduleInstance.HEAPF32[head];
@@ -891,7 +891,7 @@ const physxWorker = (() => {
 
     moduleInstance._doFree(outputBufferOffset);
 
-    return waypointResult;
+    return waypointResultPositions;
   };
 
   w.overlapBoxPhysics = (physics, hx, hy, hz, p, q) => {
