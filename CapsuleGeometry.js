@@ -34,7 +34,7 @@ class CapsuleGeometry extends THREE.BufferGeometry {
     thetaLength = thetaLength !== undefined ? thetaLength : 2.0 * Math.PI;
 
     // Alpha is the angle such that Math.PI/2 - alpha is the cone part angle.
-    var alpha = Math.acos((radiusBottom-radiusTop)/height);
+    var alpha = height !== 0 ? Math.acos((radiusBottom-radiusTop)/height) : Math.PI;
     var eqRadii = (radiusTop-radiusBottom === 0);
 
     var vertexCount = calculateVertexCount();

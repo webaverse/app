@@ -467,6 +467,9 @@ const loadPromise = (async () => {
     eat: animations.find(a => a.isEating),
     drink: animations.find(a => a.isDrinking),
     throw: animations.find(a => a.isThrow),
+    bowDraw: animations.find(a => a.isBowDraw),
+    bowIdle: animations.find(a => a.isBowIdle),
+    bowLoose: animations.find(a => a.isBowLoose),
   }, aimAnimations);
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
@@ -1119,8 +1122,9 @@ class Avatar {
         },
       };
     }
-    
+
     this.object = object;
+
     const model = (() => {
       let o = object;
       if (o && !o.isMesh) {
@@ -1146,9 +1150,12 @@ class Avatar {
       } */
       return o;
     })();
+
     this.model = model;
+    this.spriteMegaAvatarMesh = null;
+    this.crunchedModel = null;
     this.options = options;
-    
+
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension);
 
@@ -1177,17 +1184,15 @@ class Avatar {
     this.vowels = Float32Array.from([1, 0, 0, 0, 0]);
     this.poseAnimation = null;
 
-    this.spriteMegaAvatarMesh = null;
-
     modelBones.Root.traverse(o => {
       o.savedPosition = o.position.clone();
       o.savedMatrixWorld = o.matrixWorld.clone();
     });
 
-		this.poseManager = new PoseManager();
-		this.shoulderTransforms = new ShoulderTransforms(this);
-		this.legsManager = new LegsManager(this);
-    
+    this.poseManager = new PoseManager();
+    this.shoulderTransforms = new ShoulderTransforms(this);
+    this.legsManager = new LegsManager(this);
+
     const fingerBoneMap = {
       left: [
         {
@@ -1322,7 +1327,6 @@ class Avatar {
       });
     }
 
-
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
     this.initializeBonePositions({
@@ -1383,7 +1387,7 @@ class Avatar {
       rightUpperLeg: _getOffset(modelBones.Left_leg),
       rightLowerLeg: _getOffset(modelBones.Left_knee),
       rightFoot: _getOffset(modelBones.Left_ankle),
-      
+
       leftToe: _getOffset(modelBones.Left_toe),
       rightToe: _getOffset(modelBones.Right_toe),
     });
@@ -1656,8 +1660,14 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
+
     this.useTime = NaN;
     this.useAnimation = null;
+    this.useAnimationCombo = [];
+    this.useAnimationEnvelope = [];
+    this.unuseAnimation = null;
+    this.unuseTime = -1;
+    
     this.sitState = false;
     this.sitAnimation = null;
     // this.activateState = false;
@@ -2108,27 +2118,34 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
+
+    this.model.visible = false;
+    if ( this.crunchedModel ) this.crunchedModel.visible = false;
+    if ( this.spriteMegaAvatarMesh ) this.spriteMegaAvatarMesh.visible = false;
+
     switch (quality) {
       case 1: {
         const skinnedMesh = await this.object.cloneVrm();
-        this.spriteMegaAvatarMesh = avatarSpriter.createSpriteMegaMesh(skinnedMesh);
-        scene.add(this.spriteMegaAvatarMesh);
-        this.model.visible = false;
+        this.spriteMegaAvatarMesh = this.spriteMegaAvatarMesh ?? avatarSpriter.createSpriteMegaMesh( skinnedMesh );
+        scene.add( this.spriteMegaAvatarMesh );
+        this.spriteMegaAvatarMesh.visible = true;
         break;
       }
       case 2: {
-        const crunchedModel = avatarCruncher.crunchAvatarModel(this.model);
-        crunchedModel.frustumCulled = false;
-        scene.add(crunchedModel);
-        this.model.visible = false;
+        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel( this.model );
+        this.crunchedModel.frustumCulled = false;
+        scene.add( this.crunchedModel );
+        this.crunchedModel.visible = true;
         break;
       }
       case 3: {
         console.log('not implemented'); // XXX
+        this.model.visible = true;
         break;
       }
       case 4: {
         console.log('not implemented'); // XXX
+        this.model.visible = true;
         break;
       }
       default: {
@@ -2140,7 +2157,7 @@ class Avatar {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
-    
+
     const idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     const walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
@@ -2521,7 +2538,6 @@ class Avatar {
               dst,
               // isTop,
             } = spec;
-            // console.log('JumpState', spec)
 
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
@@ -2582,8 +2598,6 @@ class Avatar {
             const t2 = (timestamp/1000) % danceAnimation.duration;
             const v2 = src2.evaluate(t2);
 
-            // console.log('dance time', this.danceTime, t2);
-            // dst.fromArray(v2);
             const danceTimeS = this.danceTime/crouchMaxTime;
             const f = Math.min(Math.max(danceTimeS, 0), 1);
             lerpFn
@@ -2597,51 +2611,6 @@ class Avatar {
           };
         }
 
-        /* if (this.standChargeState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.standChargeTime/1000) ;
-            const src2 = standCharge.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
-        if (this.swordSideSlashState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.swordSideSlashTime/1000) ;
-            const src2 = swordSideSlash.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
-        if (this.swordTopDownSlashState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.swordTopDownSlashTime/1000) ;
-            const src2 = swordTopDownSlash.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
         if (this.fallLoopState) {
           return spec => {
             const {
@@ -2657,58 +2626,11 @@ class Avatar {
             dst.fromArray(v2);
           };
         }
-        /* if (this.chargeJumpState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            
-            const t2 = (this.chargeJumpTime/1000) ;
-            const src2 = chargeJump.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
-        /* if (this.jumpState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              // isTop,
-            } = spec;
-            
-
-            const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
-            const danceAnimation = danceAnimations[0];
-            const src2 = throwAnimation.interpolants[k];
-            const t2 = (this.danceTime/1000) ;
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
-        /* if (this.throwState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              // isTop,
-            } = spec;
-            
-            const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
-            const src2 = throwAnimation.interpolants[k];
-            const t2 = this.throwTime/1000;
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
-        // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
-        if (this.useAnimation) {
+        if (
+          this.useAnimation ||
+          this.useAnimationCombo.length > 0 ||
+          this.useAnimationEnvelope.length > 0
+        ) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2716,20 +2638,51 @@ class Avatar {
               // isTop,
               isPosition,
             } = spec;
-            
-            const isCombo = Array.isArray(this.useAnimation);
-            const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
-            const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
-            _handleDefault(spec);
-            const t2 = Math.min(this.useTime/1000, useAnimation.duration); /* (() => {
-              if (isCombo) {
-                return Math.min(this.useTime/1000, useAnimation.duration);
-              } else {
-                return (this.useTime/1000) % useAnimation.duration;
+
+            let useAnimation;
+            let t2;
+            const useTimeS = this.useTime/1000;
+            if (this.useAnimation) {
+              const useAnimationName = this.useAnimation;
+              useAnimation = useAnimations[useAnimationName];
+              t2 = Math.min(useTimeS, useAnimation.duration);
+            } else if (this.useAnimationCombo.length > 0) {
+              const useAnimationName = this.useAnimationCombo[this.useAnimationIndex];
+              useAnimation = useAnimations[useAnimationName];
+              t2 = Math.min(useTimeS, useAnimation.duration);
+            } else if (this.useAnimationEnvelope.length > 0) {
+              let totalTime = 0;
+              for (let i = 0; i < this.useAnimationEnvelope.length - 1; i++) {
+                const animationName = this.useAnimationEnvelope[i];
+                const animation = useAnimations[animationName];
+                totalTime += animation.duration;
               }
-            })(); */
-            if (!isPosition) {
-              if (useAnimation) {
+              
+              if (totalTime > 0) {
+                let animationTimeBase = 0;
+                for (let i = 0; i < this.useAnimationEnvelope.length - 1; i++) {
+                  const animationName = this.useAnimationEnvelope[i];
+                  const animation = useAnimations[animationName];
+                  if (useTimeS < (animationTimeBase + animation.duration)) {
+                    useAnimation = animation;
+                    break;
+                  }
+                  animationTimeBase += animation.duration;
+                }
+                if (useAnimation !== undefined) { // first iteration
+                  t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
+                } else { // loop
+                  const secondLastAnimationName = this.useAnimationEnvelope[this.useAnimationEnvelope.length - 2];
+                  useAnimation = useAnimations[secondLastAnimationName];
+                  t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
+                }
+              }
+            }
+
+            _handleDefault(spec);
+            
+            if (useAnimation) {
+              if (!isPosition) {
                 const src2 = useAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
@@ -2741,24 +2694,22 @@ class Avatar {
                 dst
                   .premultiply(localQuaternion2.fromArray(v3).invert())
                   .premultiply(localQuaternion2.fromArray(v2));
-              } /* else {
-                _handleDefault(spec);
-              } */
-            } else {
-              const src2 = useAnimation.interpolants[k];
-              const v2 = src2.evaluate(t2);
-              localVector2.fromArray(v2);
-              _clearXZ(localVector2, isPosition);
+              } else {
+                const src2 = useAnimation.interpolants[k];
+                const v2 = src2.evaluate(t2);
+                localVector2.fromArray(v2);
+                _clearXZ(localVector2, isPosition);
 
-              const idleAnimation = _getIdleAnimation('walk');
-              const t3 = 0;
-              const src3 = idleAnimation.interpolants[k];
-              const v3 = src3.evaluate(t3);
-              localVector3.fromArray(v3);
-              
-              dst
-                .sub(localVector3)
-                .add(localVector2);
+                const idleAnimation = _getIdleAnimation('walk');
+                const t3 = 0;
+                const src3 = idleAnimation.interpolants[k];
+                const v3 = src3.evaluate(t3);
+                localVector3.fromArray(v3);
+                
+                dst
+                  .sub(localVector3)
+                  .add(localVector2);
+              }
             }
           };
         } else if (this.aimAnimation) {
@@ -2786,9 +2737,7 @@ class Avatar {
                 dst
                   .premultiply(localQuaternion2.fromArray(v3).invert())
                   .premultiply(localQuaternion2.fromArray(v2));
-              } /* else {
-                _handleDefault(spec);
-              } */
+              }
             } else {
               const src2 = aimAnimation.interpolants[k];
               const v2 = src2.evaluate(t2);
@@ -2801,6 +2750,69 @@ class Avatar {
               dst
                 .sub(localVector2.fromArray(v3))
                 .add(localVector2.fromArray(v2));
+            }
+          };
+        } else if (this.unuseAnimation && this.unuseTime >= 0) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              lerpFn,
+              // isTop,
+              isPosition,
+            } = spec;
+
+            _handleDefault(spec);
+            
+            const unuseTimeS = this.unuseTime/1000;
+            const unuseAnimationName = this.unuseAnimation;
+            const unuseAnimation = useAnimations[unuseAnimationName];
+            const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
+            const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
+            const f2 = Math.pow(1 - f, 2);
+
+            if (!isPosition) {
+              const src2 = unuseAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              localQuaternion.copy(dst)
+                .premultiply(localQuaternion2.fromArray(v3).invert())
+                .premultiply(localQuaternion2.fromArray(v2));
+
+              lerpFn
+                .call(
+                  dst,
+                  localQuaternion,
+                  f2
+                );
+            } else {
+              const src2 = unuseAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              localVector.copy(dst)
+                .sub(localVector2.fromArray(v3))
+                .add(localVector2.fromArray(v2));
+              
+              lerpFn
+                .call(
+                  dst,
+                  localVector,
+                  f2
+                );
+            }
+
+            if (f >= 1) {
+              this.useAnimation = '';
             }
           };
         }

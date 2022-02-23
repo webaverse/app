@@ -33,25 +33,8 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
   }
 } */
 export function applyPlayerModesToAvatar(player, session, rig) {
-  const aimAction = player.getAction('aim');
-  const aimComponent = (() => {
-    for (const action of player.getActions()) {
-      if (action.type === 'wear') {
-        const app = player.appManager.getAppByInstanceId(action.instanceId);
-        if (!app) {
-          return null;
-        }
-        for (const {key, value} of app.components) {
-          if (key === 'aim') {
-            return value;
-          }
-        }
-      }
-    }
-    return null;
-  })();
   for (let i = 0; i < 2; i++) {
-    rig.setHandEnabled(i, !!session || (i === 0 && (!!aimAction && !aimAction.playerAnimation) && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
+    rig.setHandEnabled(i, player.hands[i].enabled);
   }
   rig.setTopEnabled(
     (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
@@ -94,7 +77,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const sitAnimation = sitAction ? sitAction.animation : '';
   const danceAction = player.getAction('dance');
   const danceAnimation = danceAction ? danceAction.animation : '';
-  const throwAction = player.getAction('throw');
+  // const throwAction = player.getAction('throw');
   const aimAction = player.getAction('aim');
   const crouchAction = player.getAction('crouch');
   // const chargeJump = player.getAction('chargeJump');
@@ -115,9 +98,37 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
-  rig.useTime = player.actionInterpolants.use.get();
-  rig.useAnimation = (useAction?.animation) || '';
+  
+  if (useAction?.animation) {
+    rig.useAnimation = useAction.animation;
+  } else {
+    if (rig.useAnimation) {
+      rig.useAnimation = '';
+    }
+  }
+  if (useAction?.animationCombo) {
+    rig.useAnimationCombo = useAction.animationCombo;
+  } else {
+    if (rig.useAnimationCombo.length > 0) {
+      rig.useAnimationCombo = [];
+    }
+  }
+  if (useAction?.animationEnvelope) {
+    rig.useAnimationEnvelope = useAction.animationEnvelope;
+  } else {
+    if (rig.useAnimationEnvelope.length > 0) {
+      rig.useAnimationEnvelope = [];
+    }
+  }
   rig.useAnimationIndex = useAction?.index;
+  rig.useTime = player.actionInterpolants.use.get();
+  rig.unuseTime = player.actionInterpolants.unuse.get();
+  if (rig.unuseTime === 0) { // this means use is active
+    if (useAction?.animationEnvelope) {
+      rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
+    }
+  }
+
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimTime = player.actionInterpolants.aim.get();
