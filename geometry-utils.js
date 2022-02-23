@@ -85,10 +85,14 @@ const geometryUtils = (() => {
             chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam
         );
 
-        const head = outputBuffer / 4;
+        const ELEMENT_BYTES = moduleInstance.HEAP32.BYTES_PER_ELEMENT;
 
-        const positionCount = chunkCount * chunkCount * segment * segment * vertexBufferSizeParam;
-        const indexCount = chunkCount * chunkCount * segment * segment * indexBufferSizeParam;
+        const head = outputBuffer / ELEMENT_BYTES;
+
+        const totalChunkCount = chunkCount ** 2;
+
+        const positionCount = totalChunkCount * segment * segment * vertexBufferSizeParam;
+        const indexCount = totalChunkCount * segment * segment * indexBufferSizeParam;
 
         const positionBuffer = moduleInstance.HEAP32.subarray(head + 0, head + 1)[0];
         const normalBuffer = moduleInstance.HEAP32.subarray(head + 1, head + 2)[0];
@@ -98,13 +102,22 @@ const geometryUtils = (() => {
         const chunkIndexRangeBuffer = moduleInstance.HEAP32.subarray(head + 5, head + 6)[0];
         const indexFreeRangeBuffer = moduleInstance.HEAP32.subarray(head + 6, head + 7)[0];
 
-        const positions = moduleInstance.HEAPF32.subarray(positionBuffer / 4, positionBuffer / 4 + positionCount * 3);
-        const normals = moduleInstance.HEAPF32.subarray(normalBuffer / 4, normalBuffer / 4 + positionCount * 3);
-        const indices = moduleInstance.HEAPU32.subarray(indexBuffer / 4, indexBuffer / 4 + indexCount);
+        const positions = moduleInstance.HEAPF32.subarray(
+            positionBuffer / ELEMENT_BYTES, positionBuffer / ELEMENT_BYTES + positionCount * 3);
+
+        const normals = moduleInstance.HEAPF32.subarray(
+            normalBuffer / ELEMENT_BYTES, normalBuffer / ELEMENT_BYTES + positionCount * 3);
+
+        const indices = moduleInstance.HEAPU32.subarray(
+            indexBuffer / ELEMENT_BYTES, indexBuffer / ELEMENT_BYTES + indexCount);
+
         const vertexRanges = moduleInstance.HEAP32.subarray(
-            chunkVertexRangeBuffer / 4, chunkVertexRangeBuffer / 4 + chunkCount * chunkCount * 2);
+            chunkVertexRangeBuffer / ELEMENT_BYTES,
+            chunkVertexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
+
         const indexRanges = moduleInstance.HEAP32.subarray(
-            chunkIndexRangeBuffer / 4, chunkIndexRangeBuffer / 4 + chunkCount * chunkCount * 2);
+            chunkIndexRangeBuffer / ELEMENT_BYTES,
+            chunkIndexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
 
         moduleInstance._doFree(outputBuffer);
 
@@ -133,7 +146,8 @@ const geometryUtils = (() => {
 
         moduleInstance._deallocateChunk(
             vertexSlot, indexSlot, totalChunkCount,
-            chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
+            chunkVertexRangeBuffer, vertexFreeRangeBuffer,
+            chunkIndexRangeBuffer, indexFreeRangeBuffer
         );
     }
 
@@ -145,11 +159,16 @@ const geometryUtils = (() => {
 
         let slotsPtr = moduleInstance._generateChunk(
             positionBuffer, normalBuffer, indexBuffer,
-            chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
+            chunkVertexRangeBuffer, vertexFreeRangeBuffer,
+            chunkIndexRangeBuffer, indexFreeRangeBuffer,
             x, y, z, chunkSize, segment, totalChunkCount
         );
 
-        let slots = moduleInstance.HEAP32.slice(slotsPtr / 4, slotsPtr / 4 + 2);
+        let slots = moduleInstance.HEAP32.slice(
+            slotsPtr / moduleInstance.HEAP32.BYTES_PER_ELEMENT,
+            slotsPtr / moduleInstance.HEAP32.BYTES_PER_ELEMENT + 2
+        );
+
         moduleInstance._doFree(slotsPtr);
 
         return slots;
