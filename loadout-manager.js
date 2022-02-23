@@ -53,6 +53,15 @@ class LoadoutManager extends EventTarget {
     this.ensureHotbarRenderers();
     return this.hotbarRenderers[index];
   }
+  getSelectedApp() {
+    this.ensureHotbarRenderers();
+    
+    if (this.selectedIndex !== -1) {
+      return this.hotbarRenderers[this.selectedIndex].app;
+    } else {
+      return null;
+    }
+  }
   setSelectedIndex(index) {
     this.ensureHotbarRenderers();
 
