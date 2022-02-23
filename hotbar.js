@@ -297,6 +297,7 @@ class HotbarRenderer {
       1000
     );
     this.canvases = [];
+    this.app = null;
     this.selected = selected;
     this.selectFactor = +selected;
     this.needsUpdate = false;
@@ -347,6 +348,9 @@ class HotbarRenderer {
       this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
       this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true; */
     }
+
+    this.app = app;
+    this.needsUpdate = true;
   }
   update(timestamp, timeDiff) {
     const renderer = getRenderer();
