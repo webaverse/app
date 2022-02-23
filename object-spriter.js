@@ -108,7 +108,7 @@ const createObjectSprite = async (app, {
       // render side scene
       // renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(x*frameSize, y*frameSize, frameSize, frameSize);
-      console.log('render', {x, y, frameSize, numFrames, numFramesPerRow});
+      // console.log('render', {x, y, frameSize, numFrames, numFramesPerRow});
       // renderer.clear();
       renderer.render(sideScene, sideCamera);
   
