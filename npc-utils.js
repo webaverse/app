@@ -5,6 +5,7 @@ import {
 } from './renderer.js';
 import physicsManager from './physics-manager.js';
 
+const identityPosition = new THREE.Vector3();
 const identityQuaternion = new THREE.Quaternion();
 
 const localVector = new THREE.Vector3();
@@ -69,72 +70,22 @@ class PathFinder {
   }
 
   getPath(start, dest) {
-    // this.detectCount = 0;
-
-    this.reset();
-    if (this.voxels.children.length > this.maxVoxelCacheLen) this.disposeVoxelCache();
-
-    this.start.set(
-      Math.round(start.x),
-      start.y,
-      Math.round(start.z),
-    );
-    this.dest.set(
-      Math.round(dest.x),
-      dest.y,
-      Math.round(dest.z),
-    );
-
-    this.startVoxel = this.createVoxel(this.start);
-    this.startVoxel._isStart = true;
-    this.startVoxel._isReached = true;
-    // this.startVoxel._priority = start.manhattanDistanceTo(dest)
-    this.startVoxel._priority = this.start.distanceTo(this.dest);
-    this.startVoxel._costSoFar = 0;
-    this.frontiers.push(this.startVoxel);
-
-    this.destVoxel = this.createVoxel(this.dest);
-    this.destVoxel._isDest = true;
-
-    if (this.startVoxel === this.destVoxel) {
-      this.found(this.destVoxel);
-    } else {
-      this.untilFound();
-      if (this.isFound) {
-        this.interpoWaypointResult();
-        this.simplifyWaypointResult(this.waypointResult[0]);
-        this.waypointResult.shift();
+    const positions = physicsManager.detectPathVoxel(start, dest, 0.5, this.voxelHeightHalf, 0.5, identityPosition, identityQuaternion, this.maxIterDetect, this.ignorePhysicsIds);
+    const isFound = positions.length > 0;
+    const waypointResult = [];
+    positions.forEach(position => {
+      const result = new THREE.Object3D();
+      result.position.copy(position);
+      waypointResult.push(result);
+    });
+    waypointResult.forEach((result, i) => {
+      const next = waypointResult[i + 1];
+      if (next) {
+        result._next = next;
       }
-      // console.log('waypointResult', this.waypointResult.length);
-    }
+    });
 
-    if (this.debugRender) {
-      this.debugMesh.count = this.voxels.children.length + this.waypointResult.length;
-      this.voxels.children.forEach((voxel, i) => {
-        this.debugMesh.setMatrixAt(i, voxel.matrix);
-        if (voxel._isStart) {
-          this.debugMesh.setColorAt(i, colorStart);
-        } else if (voxel._isDest) {
-          this.debugMesh.setColorAt(i, colorDest);
-        } else if (voxel._isPath) {
-          this.debugMesh.setColorAt(i, colorPath);
-        } else if (voxel._isFrontier) {
-          this.debugMesh.setColorAt(i, colorFrontier);
-        } else if (voxel._isReached) {
-          this.debugMesh.setColorAt(i, colorReached);
-        }
-      });
-      this.waypointResult.forEach((result, i) => {
-        this.debugMesh.setMatrixAt(this.voxels.children.length + i, result.matrix);
-        this.debugMesh.setColorAt(this.voxels.children.length + i, colorPathSimplified);
-      });
-      this.debugMesh.instanceMatrix.needsUpdate = true;
-      this.debugMesh.instanceColor.needsUpdate = true;
-    }
-
-    // console.log(this.detectCount);
-
-    return this.isFound ? this.waypointResult : null;
+    return isFound ? waypointResult : null;
   }
 
   interpoWaypointResult() {
