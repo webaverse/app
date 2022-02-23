@@ -45,6 +45,10 @@ class PathFinder {
 
     return isFound ? waypointResult : null;
   }
+
+  setIgnorePhysicsIds(ignorePhysicsIds) {
+    this.ignorePhysicsIds = ignorePhysicsIds;
+  }
 }
 
 export {PathFinder};
