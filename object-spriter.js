@@ -92,7 +92,7 @@ const createObjectSprite = async (app, {
       if (physicsObjects.length > 0) {
         const physicsObject = physicsObjects[0];
         const {physicsMesh} = physicsObject;
-        fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1.2);
+        fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1);
       } else {
         throw new Error('fail');
         /* sideCamera.quaternion.setFromRotationMatrix(
