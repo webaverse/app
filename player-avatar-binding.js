@@ -70,7 +70,6 @@ export function applyPlayerModesToAvatar(player, session, rig) {
 export async function makeAvatar(app) {
   if (app) {
     const {skinnedVrms} = app;
-    skinnedVrms.active = app.getActive();
     if (skinnedVrms) {
       const avatar = new Avatar(skinnedVrms, {
         fingers: true,

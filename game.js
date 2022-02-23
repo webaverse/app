@@ -1985,11 +1985,19 @@ const gameManager = {
     }
     metaversefileApi.setQualitySetting(quality);
     const localPlayer = metaversefileApi.useLocalPlayer();
-    const npcs = metaversefileApi.useNpcManager().npcs;
-    localPlayer.avatar.setQuality(qualityMap[quality]);
-    npcs.forEach((npc) => {
-      npc.avatar.setQuality(qualityMap[quality]);
-    });
+    const trackedApp = world.appManager.getTrackedApp(app.instanceId);
+    const apps = world.appManager.getApps();
+
+    (async()=>{
+        
+      await Promise.resolve(); // wait for quality to change
+      const out = apps.filter(app => {
+        if (app.appType && app.appType == "vrm") return app.updateQuality();
+      })
+      out.unshift(localPlayer.avatar.updateQuality());
+      await Promise.all(out);
+
+    })()
 
   },
   playerDiorama: null,

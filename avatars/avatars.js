@@ -1112,7 +1112,7 @@ class Avatar {
     if (!object) {
       object = {};
     }
-    this.object = object.active ? object.sprite ? object.base : object.active : object;
+    this.object = object.base ? object.base : object;
     if (!this.object.parser) {
       this.object.parser = {
         json: {
@@ -1149,7 +1149,6 @@ class Avatar {
     })();
 
     this.model = model;
-    this.model.name = "base mesh"
     this.spriteMegaAvatarMesh = null;
     this.crunchedModel = null;
     this.options = options;
@@ -1187,7 +1186,7 @@ class Avatar {
     this.poseAnimation = null;
 
     this.spriteMegaAvatarMesh = object.sprite && object.sprite.scene || null;
-    this.crunchedModel = object.crunch && object.crunch.scene || null;
+    this.crunchedModel = object.crunched && object.crunched.scene || null;
 
     modelBones.Root.traverse(o => {
       o.savedPosition = o.position.clone();
@@ -1720,10 +1719,6 @@ class Avatar {
       }
     });
 
-    object.crunch && (async () => {
-      this.crunchedModel = await object.crunch.makeCrunched(this.object);
-    })()
-
   }
 
   //make sure we have materials to work with
@@ -2143,108 +2138,41 @@ class Avatar {
   }
   
   getModel(quality = metaversefile.getQualitySetting()){
-    return quality == 'LOW' || quality == 1 ? 
-      this.spriteMegaAvatarMesh : 
-      quality == 'MEDIUM' || quality == 2 ? 
-        this.crunchedModel : 
-        this.model;
+    // return quality == 'LOW' || quality == 1 ? 
+    //   this.spriteMegaAvatarMesh : 
+    //   quality == 'MEDIUM' || quality == 2 ? 
+    //     this.crunchedModel : 
+    //     this.model;
+    return this.app.getActive();
   }
   
-  async setQuality(quality) {
-    const _swapMaterials = async (type, avatar = this) => {
-      
-      //actually swap
-      switch (type) {
-        case "toon": {
-          let update = Object.keys(avatar.materials.toon).length > 0;
-          if(!update){
-            avatar.model.visable = false;
-            await avatar.object.toonShaderify(avatar.object);
-            avatar.model.visable = true;
-          } 
+  async updateQuality() {
+    const vrm = await this.app.updateQuality();
 
-          avatar.model.traverse( ( object ) => {
-            if ( object.material && this.isBasic(object.material) ){
-                const name = object.material.name;
-                this.setMaterial(name, 'base', object.material);
-                update && (object.material = [avatar.materials.toon[name]]);
-              }
-            
-          } );          
-          break;
-          
-        }
-        default: {
-          let update = false;
-          avatar.model.traverse( ( object ) => {
-            if ( !update && object.material && this.isToon(object.material)){
-                update = true;
-              }
-          } );
-                    
-          avatar.model.traverse( ( object ) => {
-            if ( object.material && this.isToon(object.material) ){
-              const name = object.material[0].name;
-              update && this.setMaterial(name, 'toon', object.material[0]);
-
-              object.material = avatar.materials.base[name];
-            } 
-          } );
-        }
-      }
-    }
-    
-    //add model if it's not added yet
-    this.getModel() && !this.app.getObjectById( this.getModel().id) && this.app.add(this.getModel());
-
-    switch (quality) {
-      case 1: {
-        
-        if (this.spriteMegaAvatarMesh){
-          //
-        } else {
-          const skinnedMesh = await this.object.cloneVrm();
-          this.spriteMegaAvatarMesh = avatarSpriter.createSpriteMegaMesh(skinnedMesh);
-          scene.add(this.spriteMegaAvatarMesh);
-        }
-        
-        this.model.visible = false;
-        this.crunchedModel && (this.crunchedModel.visible = false);
+    switch (metaversefile.getQualitySetting()) {
+      case 'LOW': {
+        this.spriteMegaAvatarMesh ??= vrm;
         break;
       }
-      case 2: {
-        if (this.crunchedModel){
-          //
-        }else{
-          this.crunchedModel = avatarCruncher.crunchAvatarModel(this.model);
-          this.crunchedModel.frustumCulled = false;
-          scene.add(this.crunchedModel);
-        }
-        
-        this.spriteMegaAvatarMesh && (this.spriteMegaAvatarMesh.visible = false);
-        this.model.visible = false;
+      case 'MEDIUM': {
+        this.crunchedModel ??= vrm;
         break;
       }
-      case 3: {
-        await _swapMaterials();
-
-        this.spriteMegaAvatarMesh && (this.spriteMegaAvatarMesh.visible = false);
-        this.crunchedModel && (this.crunchedModel.visible = false);
+      case 'HIGH': {
+        this.model ??= vrm;
         break;
       }
-      case 4: {
-        await _swapMaterials("toon");
-
-        this.spriteMegaAvatarMesh && (this.spriteMegaAvatarMesh.visible = false);
-        this.crunchedModel && (this.crunchedModel.visible = false);
+      case 'ULTRA': {
+        this.model ??= vrm;
         break;
       }
       default: {
         throw new Error('unknown avatar quality: ' + quality);
-      }
+      }    
     }
-    this.getModel(quality).visible = true;
+    return vrm;
   }
+
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;

@@ -1109,7 +1109,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     // await app.setSkinning(true);
     
     const {skinnedVrms} = app;
-    const avatar = new Avatar(skinnedVrms['active'], {
+    const avatar = new Avatar(skinnedVrms, {
       fingers: true,
       hair: true,
       visemes: true,
@@ -1117,7 +1117,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     });
     console.log("MADE NPC AVATAR", avatar);
     const quality = metaversefile.getQualitySetting();
-    avatar.setQuality(quality);
+    avatar.updateQuality();
 
     unFrustumCull(app);
     enableShadows(app);
