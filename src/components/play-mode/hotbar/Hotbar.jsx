@@ -148,18 +148,42 @@ const fullscreenFragmentShader = `\
     vec3 highlightColor = baseColor;
     if (isBorder) {
       if (uSelected > 0.) {
-        highlightColor.gb = vUv;
+        vec3 color3 = vec3(${new THREE.Color(0x59C173).toArray().map(n => n.toFixed(8)).join(', ')});
+        vec3 color4 = vec3(${new THREE.Color(0x5D26C1).toArray().map(n => n.toFixed(8)).join(', ')});
+        vec3 colorMix2 = mix(color3, color4, vUv.y);
+        
+        highlightColor = colorMix2 * 0.5;
+        // highlightColor.gb = vUv * 0.5;
       }
     } else {
-      float extraIntensity = min(max(0.3 + fbm(uTime * 0.001 * 10., 3, 0.7), 0.), 1.);
-      float distanceToBottomMiddle = length(vUv - vec2(0.5, 1.));
-      float extraFactor = min(max(distanceToBottomMiddle, 0.), 1.);
-
       vec3 color1 = vec3(${new THREE.Color(0x00F260).toArray().map(n => n.toFixed(8)).join(', ')});
       vec3 color2 = vec3(${new THREE.Color(0x0575E6).toArray().map(n => n.toFixed(8)).join(', ')});
       vec3 colorMix = mix(color1, color2, vUv.y);
 
+      float extraIntensity = min(max(0.5 + fbm(uTime * 0.001 * 3., 3, 0.7), 0.), 1.) * 0.5;
+      float distanceToBottomMiddle = length(vUv - vec2(0.5, 1.));
+      float extraFactor = min(max(distanceToBottomMiddle, 0.), 1.);
+
       highlightColor.rgb += colorMix * extraFactor * extraIntensity * uSelectFactor;
+
+      const int numChevrons = 5;
+      float fNumChevrons = float(numChevrons);
+      float timeYOffset = mod(uTime / 1000. * 2., 1.);
+      for (int i = 0; i < numChevrons; i++) {
+        float fi = float(i);
+        vec2 uv2 = vUv;
+        /* uv2.x -= 0.5;
+        uv2.x *= (0.5 + uv2.y * 0.5) * 1.2;
+        uv2.x += 0.5; */
+        if (isInsideChevron(uv2, vec2(0.5, (fi + 0.5)/fNumChevrons + timeYOffset/fNumChevrons), 0.5, 0.05, 0.05)) {
+          // if (uSelected > 0.) {
+            highlightColor = mix(highlightColor, vec3(0.7), (1. - vUv.y) * 0.3 * uSelectFactor);
+          /* } else {
+            // highlightColor = mix(highlightColor, vec3(0.1), (1. - vUv.y) * 0.25);
+          } */
+          break;
+        }
+      }
 
       const float arrowHeight = 0.25;
       Tri t1 = Tri(
@@ -183,10 +207,6 @@ const fullscreenFragmentShader = `\
         isPointInTriangle(vUv, t1) ||
         isPointInTriangle(vUv, t2)
       ) {
-        highlightColor = vec3(1.);
-      }
-
-      if (isInsideChevron(vUv, vec2(0.5), 0.5, 0.05, 0.05)) {
         highlightColor = vec3(1.);
       }
     }
