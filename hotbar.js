@@ -314,6 +314,7 @@ class HotbarRenderer {
   }
   setSelected(selected) {
     this.selected = selected;
+    this.needsUpdate = true;
   }
   setApp(app) {
     if (app) {
