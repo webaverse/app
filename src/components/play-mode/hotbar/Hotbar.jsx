@@ -235,7 +235,7 @@ const fullscreenFragmentShader = `\
       // gl_FragColor.gb = uv;
       // gl_FragColor.a = 1.;
 
-      s = texture2D(uTex, vUv);
+      s = texture2D(uTex, uv);
       gl_FragColor = s;
     } else {
       s = vec4(0.);
