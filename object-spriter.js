@@ -93,14 +93,13 @@ const createObjectSprite = async (app, {
         const {physicsMesh} = physicsObject;
         fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1);
       } else {
-        throw new Error('fail');
-        /* sideCamera.quaternion.setFromRotationMatrix(
+        sideCamera.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             sideCamera.position,
             app.position,
             localVector2.set(0, 1, 0)
           )
-        ); */
+        );
       }
       console.log('render position', sideCamera.position.toArray(), app.position.toArray());
       sideCamera.updateMatrixWorld();
