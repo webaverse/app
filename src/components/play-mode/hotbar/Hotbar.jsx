@@ -23,6 +23,8 @@ const fullscreenFragmentShader = `\
   uniform float uSelected;
   uniform float uSelectFactor;
   uniform float uTime;
+  uniform float numFrames;
+  uniform float numFramesPerRow;
   varying vec2 vUv;
 
   //---------------------------------------------------------------------------
@@ -215,6 +217,24 @@ const fullscreenFragmentShader = `\
     // sample texture
     vec4 s;
     if (uTexEnabled > 0.) {
+      // XXX compute the frame offset using numFrames, frameTime, and uTime
+      float f = mod(uTime / 1000. * 0.1, 1.);
+      float frameIndex = floor(f * numFrames);
+      float x = mod(frameIndex, numFramesPerRow);
+      float y = floor(frameIndex / numFramesPerRow);
+
+      float xOffset = x / numFramesPerRow;
+      float yOffset = 1. - y / numFramesPerRow;
+
+      float frameSize = 1. / numFramesPerRow;
+
+      vec2 uv = vUv;
+      uv.x = xOffset + uv.x * frameSize;
+      uv.y = yOffset + uv.y * frameSize;
+
+      // gl_FragColor.gb = uv;
+      // gl_FragColor.a = 1.;
+
       s = texture2D(uTex, vUv);
       gl_FragColor = s;
     } else {
@@ -254,6 +274,14 @@ const _makeHotboxScene = () => {
             needsUpdate: true,
           },
           uTime: {
+            value: 0,
+            needsUpdate: true,
+          },
+          numFrames: {
+            value: 0,
+            needsUpdate: true,
+          },
+          numFramesPerRow: {
             value: 0,
             needsUpdate: true,
           },
@@ -307,12 +335,15 @@ class Hotbox {
           frameSize,
           numFramesPerRow,
         } = await createObjectSprite(app);
-        // console.log('got new render target', spriteRenderTarget);
+        console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
         this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = texture;
         this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
         this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
         this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
-        // window.material = this.scene.fullScreenQuadMesh.material;
+        this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value = numFrames;
+        this.scene.fullScreenQuadMesh.material.uniforms.numFrames.needsUpdate = true;
+        this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
+        this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true;
       })().catch(err => {
         console.warn(err);
       });
@@ -421,7 +452,13 @@ const HotbarItem = props => {
     const pixelRatio = window.devicePixelRatio;
 
     return (
-        <canvas className={styles.hotbox} width={props.size * pixelRatio} height={props.size * pixelRatio} ref={canvasRef} />
+        <canvas className={styles.hotbox}
+          style={props.selected ? {
+            position: 'fixed',
+            width: '512px',
+            height: '512px',
+          } : {}}
+          width={props.size * pixelRatio} height={props.size * pixelRatio} ref={canvasRef} />
     );
 };
 
@@ -489,7 +526,7 @@ export const Hotbar = () => {
                             <div className={ styles.item } key={ i } >
                                 <div className={ styles.box } />
                                 <div className={ styles.label }>{ i + 1 }</div>
-                                <HotbarItem size={60} selected={hotbarIndex === i} />
+                                <HotbarItem size={1024} selected={hotbarIndex === i} />
                             </div>
                         );
 
