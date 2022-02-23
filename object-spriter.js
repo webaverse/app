@@ -64,18 +64,15 @@ const createObjectSprite = async (app, {
   const oldViewport = renderer.getViewport(localVector4D);
   
   {
-    renderer.setRenderTarget(renderTarget);
-    // renderer.setViewport(0, 0, sizePowerOfTwo.x, sizePowerOfTwo.y);
-    renderer.clear();
-
-    const originalPosition = app.position.clone();
+    /* const originalPosition = app.position.clone();
     const originalQuaternion = app.quaternion.clone();
     const originalScale = app.scale.clone();
     const originalMatrix = app.matrix.clone();
-    const originalMatrixWorld = app.matrixWorld.clone();
+    const originalMatrixWorld = app.matrixWorld.clone(); */
 
     const originalParent = app.parent;
     sideScene.add(app);
+    sideScene.updateMatrixWorld();
 
     for (let i = 0; i < numFrames; i++) {
       const y = Math.floor(i / numFramesPerRow);
@@ -89,6 +86,7 @@ const createObjectSprite = async (app, {
             .applyQuaternion(app.quaternion)
             .multiplyScalar(2)
         );
+      // sideCamera.updateMatrixWorld();
 
       const physicsObjects = app.getPhysicsObjects();
       if (physicsObjects.length > 0) {
@@ -96,18 +94,20 @@ const createObjectSprite = async (app, {
         const {physicsMesh} = physicsObject;
         fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1.2);
       } else {
-        sideCamera.quaternion.setFromRotationMatrix(
+        throw new Error('fail');
+        /* sideCamera.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             sideCamera.position,
             app.position,
-            localVector3.set(0, 1, 0)
+            localVector2.set(0, 1, 0)
           )
-        );
+        ); */
       }
+      console.log('render position', sideCamera.position.toArray(), app.position.toArray());
       sideCamera.updateMatrixWorld();
       
       // render side scene
-      // renderer.setRenderTarget(oldRenderTarget);
+      renderer.setRenderTarget(renderTarget);
       renderer.setViewport(x*frameSize, y*frameSize, frameSize, frameSize);
       // console.log('render', {x, y, frameSize, numFrames, numFramesPerRow});
       // renderer.clear();
@@ -131,11 +131,11 @@ const createObjectSprite = async (app, {
     }
 
     originalParent && originalParent.add(app);
-    app.position.copy(originalPosition);
+    /* app.position.copy(originalPosition);
     app.quaternion.copy(originalQuaternion);
     app.scale.copy(originalScale);
     app.matrix.copy(originalMatrix);
-    app.matrixWorld.copy(originalMatrixWorld);
+    app.matrixWorld.copy(originalMatrixWorld); */
   }
 
   // pop old state
