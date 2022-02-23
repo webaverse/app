@@ -46,7 +46,7 @@ const createObjectSprite = async (app, {
 } = {}) => {
   // const {devicePixelRatio: pixelRatio} = window;
 
-  console.log('create object sprite', app, size, numFrames);
+  // console.log('create object sprite', app, size, numFrames);
 
   const renderer = getRenderer();
   // const size = renderer.getSize(localVector2D);
