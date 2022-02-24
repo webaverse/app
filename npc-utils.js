@@ -28,7 +28,7 @@ class PathFinder {
   }
 
   getPath(start, dest) {
-    const positions = physicsManager.getPath(start, dest, 0.5, this.voxelHeightHalf, 0.5, identityPosition, identityQuaternion, this.maxIterDetect, this.ignorePhysicsIds);
+    const positions = physicsManager.getPath(start, dest, this.voxelHeight, identityPosition, identityQuaternion, this.heightTolerance, this.detectStep, this.maxIterdetect, this.maxIterStep, this.maxVoxelCacheLen, this.ignorePhysicsIds);
     const isFound = positions.length > 0;
     const waypointResult = [];
     positions.forEach(position => {
