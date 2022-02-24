@@ -270,7 +270,6 @@ const physxWorker = (() => {
 
     moduleInstance = Module;
     scratchStack = new ScratchStack();
-    window.scratchStack = scratchStack; // test
     physx.physics = physxWorker.makePhysics();
   })();
 
