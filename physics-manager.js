@@ -213,8 +213,8 @@ physicsManager.setAngularVelocity = (physicsObject, velocity, autoWake) => {
 physicsManager.setTransform = (physicsObject, autoWake) => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale, autoWake);
 };
-physicsManager.getPath = (start, dest, hx, hy, hz, p, q, maxIterDetect, ignorePhysicsIds) => {
-  return physx.physxWorker.getPathPhysics(physx.physics, start, dest, hx, hy, hz, p, q, maxIterDetect, ignorePhysicsIds);
+physicsManager.getPath = (start, dest, hy, p, q, heightTolerance, detectStep, maxIterdetect, maxIterStep, maxVoxelCacheLen, ignorePhysicsIds) => {
+  return physx.physxWorker.getPathPhysics(physx.physics, start, dest, hy, p, q, heightTolerance, detectStep, maxIterdetect, maxIterStep, maxVoxelCacheLen, ignorePhysicsIds);
 };
 physicsManager.overlapBox = (hx, hy, hz, p, q) => {
   return physx.physxWorker.overlapBoxPhysics(physx.physics, hx, hy, hz, p, q);

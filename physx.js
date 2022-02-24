@@ -809,7 +809,7 @@ const physxWorker = (() => {
     );
   };
 
-  w.getPathPhysics = (physics, start, dest, hx, hy, hz, p, q, maxIterDetect, ignorePhysicsIds) => {
+  w.getPathPhysics = (physics, start, dest, hy, p, q, heightTolerance, detectStep, maxIterdetect, maxIterStep, maxVoxelCacheLen, ignorePhysicsIds) => {
     p.toArray(scratchStack.f32, 0);
     localQuaternion.copy(q)
       .toArray(scratchStack.f32, 3);
@@ -839,14 +839,16 @@ const physxWorker = (() => {
       physics,
       startOffset,
       destOffset,
-      hx,
       hy,
-      hz,
       positionOffset,
       quaternionOffset,
       meshPositionOffset,
       meshQuaternionOffset,
-      maxIterDetect,
+      heightTolerance,
+      detectStep,
+      maxIterdetect,
+      maxIterStep,
+      maxVoxelCacheLen,
       ignorePhysicsIds.length,
       ignorePhysicsIdsOffset,
     );
