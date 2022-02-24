@@ -1,0 +1,14 @@
+{
+  "objects": [
+{
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://github.com/amnaarshed4224/assets/raw/main/floor.glb",
+      "dynamic": false
+    }
+]
+}
