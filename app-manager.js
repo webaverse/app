@@ -454,12 +454,6 @@ class AppManager extends EventTarget {
       self.removeTrackedAppInternal(removeInstanceId);
     });
   }
-  setTrackedAppTransformInternal(instanceId, p, q, s) {
-    const trackedApp = this.getTrackedApp(instanceId);
-    trackedApp.set('position', p.toArray());
-    trackedApp.set('quaternion', q.toArray());
-    trackedApp.set('scale', s.toArray());
-  }
   addApp(app) {
     this.apps.push(app);
     
@@ -552,31 +546,45 @@ class AppManager extends EventTarget {
   updatePhysics() {
     for (const app of this.apps) {
       if (!app.matrix.equals(app.lastMatrix)) {
-        app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        this.setTrackedAppTransformInternal(app.instanceId, localVector, localQuaternion, localVector2);
-        app.updateMatrixWorld();
+        const _updateTrackedApp = () => {
+          // note: not all apps are tracked in multiplayer. for those that are, we push the transform update here.
+          const trackedApp = this.getTrackedApp(app.instanceId);
+          if (trackedApp) {
+            app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-        // update attached physics objects with a relative transform
-        const physicsObjects = app.getPhysicsObjects();
-        if (physicsObjects.length > 0) {
-          const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
+            trackedApp.set('position', p.toArray());
+            trackedApp.set('quaternion', q.toArray());
+            trackedApp.set('scale', s.toArray());
 
-          for (const physicsObject of physicsObjects) {
-            if (!physicsObject.detached) {
-              physicsObject.matrix
-                .premultiply(lastMatrixInverse)
-                .premultiply(app.matrix)
-                .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
-              physicsObject.matrixWorld.copy(physicsObject.matrix);
-              for (const child of physicsObject.children) {
-                child.updateMatrixWorld();
+            app.updateMatrixWorld();
+          }
+        };
+        _updateTrackedApp();
+
+        const _updatePhysicsObjects = () => {
+          // update attached physics objects with a relative transform
+          const physicsObjects = app.getPhysicsObjects();
+          if (physicsObjects.length > 0) {
+            const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
+
+            for (const physicsObject of physicsObjects) {
+              if (!physicsObject.detached) {
+                physicsObject.matrix
+                  .premultiply(lastMatrixInverse)
+                  .premultiply(app.matrix)
+                  .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+                physicsObject.matrixWorld.copy(physicsObject.matrix);
+                for (const child of physicsObject.children) {
+                  child.updateMatrixWorld();
+                }
+
+                physicsManager.setTransform(physicsObject);
+                physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
               }
-
-              physicsManager.setTransform(physicsObject);
-              physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
             }
           }
-        }
+        };
+        _updatePhysicsObjects();
 
         app.lastMatrix.copy(app.matrix);
       }
