@@ -959,6 +959,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
     }, 'push');
 
+    // mark
     this.appManager.updatePhysics();
   }
   updatePhysics(timestamp, timeDiff) {
