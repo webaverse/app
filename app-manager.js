@@ -552,9 +552,9 @@ class AppManager extends EventTarget {
           if (trackedApp) {
             app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-            trackedApp.set('position', p.toArray());
-            trackedApp.set('quaternion', q.toArray());
-            trackedApp.set('scale', s.toArray());
+            trackedApp.set('position', localVector.toArray());
+            trackedApp.set('quaternion', localQuaternion.toArray());
+            trackedApp.set('scale', localVector2.toArray());
 
             app.updateMatrixWorld();
           }
