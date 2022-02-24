@@ -960,7 +960,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     }, 'push');
 
     // mark
-    this.appManager.updatePhysics();
+    // this.appManager.updatePhysics();
   }
   updatePhysics(timestamp, timeDiff) {
     const timeDiffS = timeDiff / 1000;
