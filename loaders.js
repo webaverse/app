@@ -6,6 +6,7 @@ this file contains common file format loaders which are re-used throughout the e
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import {KTX2Loader} from 'three/examples/jsm/loaders/KTX2Loader.js';
+import {MeshoptDecoder} from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import {getRenderer} from './renderer.js';
 import {ShadertoyLoader} from './shadertoy.js';
 import {GIFLoader} from './GIFLoader.js';
@@ -29,6 +30,9 @@ const _ktx2Loader = memoize(() => {
   ktx2Loader.setTranscoderPath('/three/basis/');
   return ktx2Loader;
 });
+const _meshoptDecoder = memoize(() => {
+  return MeshoptDecoder;
+});
 const _gltfLoader = memoize(() => {
   const gltfLoader = new GLTFLoader();
   {
@@ -38,6 +42,10 @@ const _gltfLoader = memoize(() => {
   {
     const ktx2Loader = _ktx2Loader();
     gltfLoader.setKTX2Loader(ktx2Loader);
+  }
+  {
+    const meshoptDecoder = _meshoptDecoder();
+    gltfLoader.setMeshoptDecoder(meshoptDecoder);
   }
   return gltfLoader;
 });
@@ -53,6 +61,9 @@ const loaders = {
   },
   get ktx2Loader() {
     return _ktx2Loader();
+  },
+  get meshoptDecoder() {
+    return _meshoptDecoder();
   },
   get gltfLoader() {
     return _gltfLoader();

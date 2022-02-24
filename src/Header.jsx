@@ -10,56 +10,33 @@ import * as Z from 'zjs';
 // import {Color} from './Color.js';
 import {world} from '../world.js'
 import game from '../game.js'
-import * as universe from '../universe.js'
+import universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
-import {parseQuery} from '../util.js'
 import User from './User';
 // import * as ceramicAdmin from '../ceramic-admin.js';
-import sceneNames from '../scenes/scenes.json';
-import {Location} from './components/location';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {Tokens} from './tabs/tokens';
 
 const localEuler = new THREE.Euler();
 
-// console.log('index 1');
-
-const _getCurrentSceneSrc = () => {
-  const q = parseQuery(window.location.search);
-  let {src} = q;
-  if (src === undefined) {
-    src = './scenes/' + sceneNames[0];
-  }
-  return src;
-};
-const _getCurrentRoom = () => {
-  const q = parseQuery(window.location.search);
-  const {room} = q;
-  return room || '';
-};
-
 export default function Header({
   app,
 }) {
-  const localPlayer = metaversefile.useLocalPlayer();  
+  const localPlayer = metaversefile.useLocalPlayer();
   const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
-  
-	// console.log('index 2');
+
   const previewCanvasRef = useRef();
   const panelsRef = useRef();
-	
+
   const [open, setOpen] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
   const [address, setAddress] = useState(false);
   const [nfts, setNfts] = useState(null);
   const [apps, setApps] = useState(world.appManager.getApps().slice());
-  const [sceneName, setSceneName] = useState(_getCurrentSceneSrc());
-  const [roomName, setRoomName] = useState(_getCurrentRoom());
-  const [micOn, setMicOn] = useState(false);
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [loginFrom, setLoginFrom] = useState('');
@@ -67,24 +44,11 @@ export default function Header({
   const [wearActions, setWearActions] = useState(_getWearActions());
 
   const userOpen = open === 'user';
-  const scenesOpen = open === 'scenes';
-  const multiplayerOpen = open === 'multiplayer';
   const characterOpen = open === 'character';
   const magicMenuOpen = open === 'magicMenu';
-  const multiplayerConnected = !!roomName;
 
   const toggleOpen = newOpen => {
     setOpen(newOpen === open ? null : newOpen);
-  };
-  const toggleMic = async e => {
-    // console.log('toggle mic');
-    if (!world.micEnabled()) {
-      await world.enableMic();
-      setMicOn(true);
-    } else {
-      world.disableMic();
-      setMicOn(false);
-    }
   };
 
   useEffect(() => {
@@ -125,38 +89,7 @@ export default function Header({
       game.playerDiorama.enabled = !!open;
     }
   }, [open]);
-  const _loadUrlState = () => {
-    const src = _getCurrentSceneSrc();
-    setSceneName(src);
-    const roomName = _getCurrentRoom();
-    setRoomName(roomName);
-    if (multiplayerOpen) {
-      setOpen(null);
-    }
-    // console.log('set url state', {src, roomName, search: window.location.search, q: parseQuery(window.location.search)});
-  };
-  useEffect(() => {
-    // console.log('waiting');
-    const pushstate = e => {
-      _loadUrlState();
-      // console.log('set room name', {roomName});
-    };
-    const popstate = e => {
-      _loadUrlState();
-      // console.log('set room name', {roomName});
-      
-      universe.handleUrlUpdate();
-    };
-    window.addEventListener('pushstate', pushstate);
-    window.addEventListener('popstate', popstate);
-    return () => {
-      window.removeEventListener('pushstate', pushstate);
-      window.removeEventListener('popstate', popstate);
-    };
-  }, []);
-  useEffect(() => {
-    _loadUrlState();
-  }, []);
+
   useEffect(() => {
     const pickup = e => {
       const {app} = e.data;
@@ -221,6 +154,7 @@ export default function Header({
           ioManager.click(new MouseEvent('click'));
           cameraManager.requestPointerLock();
         } else {
+          window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: 'CharacterMenu' } } ) );
           setOpen('character');
         }
         return true;
@@ -229,6 +163,15 @@ export default function Header({
     return false;
   };
   useEffect(() => {
+
+    const handleOnFocusLost = () => {
+
+        setOpen( false );
+
+    };
+
+    window.addEventListener( 'CloseAllMenus', handleOnFocusLost );
+
     const keydown = e => {
       let handled = false;
       const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
@@ -246,6 +189,7 @@ export default function Header({
     };
     window.addEventListener('keydown', keydown);
     return () => {
+      window.removeEventListener( 'CloseAllMenus', handleOnFocusLost );
       window.removeEventListener('keydown', keydown);
     };
   }, [open, selectedApp]);
@@ -298,7 +242,7 @@ export default function Header({
       e.stopPropagation();
     }}>
       <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
-			<Chat open={open} setOpen={setOpen} />
+      <Chat open={open} setOpen={setOpen} />
       <CharacterHups localPlayer={localPlayer} npcs={npcs} />
       <MagicMenu open={open} setOpen={setOpen} />
       <div className={styles.inner}>
@@ -307,20 +251,6 @@ export default function Header({
             <a href="/" className={styles.logo}>
               <img src="images/arrow-logo.svg" className={styles.image} />
             </a>
-            <Location
-              sceneName={sceneName}
-              setSceneName={setSceneName}
-              roomName={roomName}
-              setRoomName={setRoomName}
-              open={open}
-              setOpen={setOpen}
-              toggleOpen={toggleOpen}
-              multiplayerConnected={multiplayerConnected}
-              micOn={micOn}
-              toggleMic={toggleMic}
-              universe={universe}
-              sceneNames={sceneNames}
-            />
             <User
               address={address}
               setAddress={setAddress}

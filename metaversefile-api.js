@@ -8,7 +8,6 @@ import * as THREE from 'three';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
-import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
@@ -20,11 +19,9 @@ import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
-import {LocalPlayer} from './character-controller.js';
 import postProcessing from './post-processing.js';
 import {makeId, getRandomString, getPlayerPrefix, memoize} from './util.js';
 import JSON6 from 'json-6';
-import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
@@ -33,8 +30,9 @@ import {chatManager} from './chat-manager.js';
 import loreAI from './lore-ai.js';
 import loreAIScene from './lore-ai-scene.js';
 import npcManager from './npc-manager.js';
-import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
+import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
+import {localPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
 import {getHeight} from './avatars/util.mjs';
 
@@ -141,13 +139,6 @@ const defaultModules = {
   moduleUrls,
   modules,
 };
-const localPlayer = new LocalPlayer({
-  prefix: getPlayerPrefix(makeId(5)),
-  state: new Z.Doc(),
-});
-localPlayer.position.y = initialPosY;
-localPlayer.updateMatrixWorld();
-const remotePlayers = new Map();
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -300,6 +291,9 @@ metaversefile.setApi({
     } else {
       throw new Error('useApp cannot be called outside of render()');
     }
+  },
+  useCamera() {
+    return camera;
   },
   useScene() {
     return scene;
@@ -483,7 +477,7 @@ metaversefile.setApi({
 
         return physicsObject;
       })(physics.addBoxGeometry);
-      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, flags) {
+      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags) {
         // const basePosition = position;
         // const baseQuaternion = quaternion;
         // const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
@@ -497,7 +491,7 @@ metaversefile.setApi({
         // quaternion = localQuaternion;
         //size = localVector2;
         
-        const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, flags);
+        const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags);
         // physicsObject.position.copy(app.position);
         // physicsObject.quaternion.copy(app.quaternion);
         // physicsObject.scale.copy(app.scale);
@@ -780,40 +774,52 @@ export default () => {
   removeTrackedApp(app) {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
-  getAppByInstanceId() {
-    const localPlayer = metaversefile.useLocalPlayer();
-    const remotePlayers = metaversefile.useRemotePlayers();
-    return world.appManager.getAppByInstanceId.apply(world.appManager, arguments) ||
-      localPlayer.appManager.getAppByInstanceId.apply(localPlayer.appManager, arguments) ||
-      remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByInstanceId.apply(remotePlayer.appManager, arguments));
-  },
-  getAppByPhysicsId() {
-    const localPlayer = metaversefile.useLocalPlayer();
-    const remotePlayers = metaversefile.useRemotePlayers();
-    return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments) ||
-      localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
-      remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
-  },
-  getPhysicsObjectByPhysicsId() {
-    const remotePlayers = metaversefile.useRemotePlayers();
-    /* const npcManager = metaversefile.useNpcManager();
-    const {npcs} = npcManager; */
-    let result = world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
-      localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments);
+  getAppByInstanceId(instanceId) {
+    let result = world.appManager.getAppByInstanceId(instanceId) ||
+      localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return result;
     } else {
-      let remotePhysicsObject = null;
-      remotePlayers.some(remotePlayer => {
-        const physicsObject = remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments);
-        if (physicsObject) {
-          remotePhysicsObject = physicsObject;
-          return true;
-        } else {
-          return false;
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return remoteApp;
         }
-      })
-      return remotePhysicsObject;
+      }
+      return null;
+    }
+  },
+  getAppByPhysicsId(physicsId) {
+    let result = world.appManager.getAppByPhysicsId(physicsId) ||
+      localPlayer.appManager.getAppByPhysicsId(physicsId);
+    if (result) {
+      return result;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remoteApp = remotePlayer.appManager.getAppByPhysicsId(physicsId);
+        if (remoteApp) {
+          return remoteApp;
+        }
+      }
+      return null;
+    }
+  },
+  getPhysicsObjectByPhysicsId(physicsId) {
+    let result = world.appManager.getPhysicsObjectByPhysicsId(physicsId) ||
+      localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+    if (result) {
+      return result;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remotePhysicsObject = remotePlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+        if (remotePhysicsObject) {
+          return remotePhysicsObject;
+        }
+      }
+      return null;
     }
   },
   getAvatarHeight(obj) {
@@ -875,10 +881,10 @@ export default () => {
     return gradientMaps;
   },
   isSceneLoaded() {
-    return isSceneLoaded();
+    return universe.isSceneLoaded();
   },
   async waitForSceneLoaded() {
-    await waitForSceneLoaded();
+    await universe.waitForSceneLoaded();
   },
   async addModule(app, m) {
     currentAppRender = app;

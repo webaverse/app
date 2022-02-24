@@ -55,9 +55,9 @@ const _extractPhysicsGeometryForId = physicsId => {
   return geometry;
 };
 
-physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, flags = {}) => {
+physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags = {}) => {
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, flags);
+  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, dynamic, flags);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, localVector2.set(1, 1, 1));
   const physicsMesh = new THREE.Mesh(
@@ -192,11 +192,11 @@ physicsManager.setGravityEnabled = (physicsObject, enabled) => {
   physx.physxWorker.setGravityEnabledPhysics(physx.physics, physicsObject.physicsId, enabled);
 };
 physicsManager.removeGeometry = physicsObject => {
-  try {
+  // try {
     physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
-  } catch(err) {
+  /* } catch(err) {
     console.warn('failed to remove geometry', err.stack);
-  }
+  } */
 };
 /* physicsManager.getVelocity = (physicsObject, velocity) => {
   physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
@@ -229,18 +229,45 @@ physicsManager.collideCapsule = (radius, halfHeight, p, q, maxIter) => {
   return physx.physxWorker.collideCapsulePhysics(physx.physics, radius, halfHeight, p, q, maxIter);
 };
 physicsManager.createCharacterController = (radius, height, contactOffset, stepOffset, position, mat) => {
-  const characterController = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, stepOffset, position, mat);
-  return characterController;
+  const physicsId = getNextPhysicsId();
+  const characterControllerId = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, stepOffset, position, mat, physicsId);
+  
+  const halfHeight = height / 2;
+  const physicsObject = new THREE.Object3D();
+  const physicsMesh = new THREE.Mesh(
+    new CapsuleGeometry(radius, radius, halfHeight*2)
+  );
+  physicsMesh.visible = false;
+  physicsObject.add(physicsMesh);
+  physicsMesh.updateMatrixWorld();
+  const {bounds} = physicsManager.getGeometryForPhysicsId(physicsId);
+  physicsMesh.geometry.boundingBox = new THREE.Box3(new THREE.Vector3().fromArray(bounds, 0), new THREE.Vector3().fromArray(bounds, 3));
+  // console.log('character controller bounds', physicsId, physicsMesh.geometry.boundingBox);
+  physicsObject.physicsMesh = physicsMesh;
+  physicsObject.characterControllerId = characterControllerId;
+  physicsObject.physicsId = physicsId;
+
+  /* const physicsObject = _makePhysicsObject(physicsId, mesh.position, mesh.quaternion, mesh.scale);
+  physicsObject.add(physicsMesh);
+  physicsMesh.position.set(0, 0, 0);
+  physicsMesh.quaternion.set(0, 0, 0, 1);
+  physicsMesh.scale.set(1, 1, 1);
+  physicsMesh.updateMatrixWorld();
+  physicsObject.physicsMesh = physicsMesh;
+  characterController.physicsObject = physicsObject;
+  console.log('character controller id', physicsObject); */
+
+  return physicsObject;
 };
 physicsManager.destroyCharacterController = characterController => {
-  physx.physxWorker.destroyCharacterControllerPhysics(physx.physics, characterController);
+  physx.physxWorker.destroyCharacterControllerPhysics(physx.physics, characterController.characterControllerId);
 };
 physicsManager.moveCharacterController = (characterController, displacement, minDist, elapsedTime, position) => {
-  const result = physx.physxWorker.moveCharacterControllerPhysics(physx.physics, characterController, displacement, minDist, elapsedTime, position);
+  const result = physx.physxWorker.moveCharacterControllerPhysics(physx.physics, characterController.characterControllerId, displacement, minDist, elapsedTime, position);
   return result;
 };
 physicsManager.setCharacterControllerPosition = (characterController, position) => {
-  const result = physx.physxWorker.setCharacterControllerPositionPhysics(physx.physics, characterController, position);
+  const result = physx.physxWorker.setCharacterControllerPositionPhysics(physx.physics, characterController.characterControllerId, position);
   return result;
 };
 /* physicsManager.getTransforms = physicsObjects => {

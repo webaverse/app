@@ -16,8 +16,6 @@ export const KeyInput = ({ value, setValue, className }) => {
         let value = '';
         let index = 0;
 
-        console.log( keysList );
-
         keysList.forEach( ( key, keyIndex ) => {
 
             let keyName = '';
@@ -43,8 +41,6 @@ export const KeyInput = ({ value, setValue, className }) => {
     };
 
     const handleKeyDown = ( event ) => {
-
-        event.stopPropagation();
 
         keysList.set( event.key, true );
         updateValue();
