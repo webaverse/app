@@ -91,6 +91,8 @@ export const defaultVoicePack = {
 };
 export const voiceEndpoint = `https://voice.webaverse.com/tts`;
 export const defaultVoice = `1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO`; // Sweetie Belle
+export const defaultVoice = 'Sweetie Belle';
+// export const defaultVoice = 'Trixie';
 
 export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
 export const chatTextSpeed = 20;
