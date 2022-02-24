@@ -4,6 +4,7 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
+window.THREE = THREE;
 import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
 // import * as CharacterHupsModule from './character-hups.js';
@@ -365,6 +366,18 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => {
+
+      if (window.heli?.physicsObjects[0]) {
+        window.vehicle = window.heli.physicsObjects[0]
+        // physics.enableGeometry(vehicle)
+        // physics.setVelocity(vehicle, new THREE.Vector3(10,10,0), false)
+
+        // window.vehicle.updateMatrixWorld();
+        window.heli.position.copy(window.vehicle.position);
+        window.heli.quaternion.copy(window.vehicle.quaternion);
+        // window.heli.updateMatrixWorld();
+      }
+
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;
       const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 
