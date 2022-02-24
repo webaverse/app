@@ -809,30 +809,16 @@ const physxWorker = (() => {
     );
   };
 
-  w.getPathPhysics = (physics, start, dest, hy, p, q, heightTolerance, detectStep, maxIterdetect, maxIterStep, maxVoxelCacheLen, ignorePhysicsIds) => {
-    p.toArray(scratchStack.f32, 0);
-    localQuaternion.copy(q)
-      .toArray(scratchStack.f32, 3);
-    // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    localVector.set(0, 0, 0).toArray(scratchStack.f32, 7);
-    localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10);
-    // scratchStack.f32[13] = 1;
-    // scratchStack.u32[14] = 3;
-    start.toArray(scratchStack.f32, 14);
-    dest.toArray(scratchStack.f32, 17);
+  w.getPathPhysics = (physics, start, dest, hy, heightTolerance, detectStep, maxIterdetect, maxIterStep, maxVoxelCacheLen, ignorePhysicsIds) => {
+    start.toArray(scratchStack.f32, 0);
+    dest.toArray(scratchStack.f32, 3);
 
-    const positionOffset = scratchStack.f32.byteOffset;
-    const quaternionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
-    const meshPositionOffset = scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT;
-    const meshQuaternionOffset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
-    const startOffset = scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT;
-    const destOffset = scratchStack.f32.byteOffset + 17 * Float32Array.BYTES_PER_ELEMENT;
-    const ignorePhysicsIdsOffset = scratchStack.u32.byteOffset + 20 * Float32Array.BYTES_PER_ELEMENT;
-    // console.log(scratchStack)
-    // debugger
+    const startOffset = scratchStack.f32.byteOffset + 0 * Float32Array.BYTES_PER_ELEMENT;
+    const destOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
+    const ignorePhysicsIdsOffset = scratchStack.u32.byteOffset + 6 * Float32Array.BYTES_PER_ELEMENT;
 
     ignorePhysicsIds.forEach((id, i) => {
-      scratchStack.u32[20 + i] = ignorePhysicsIds[i];
+      scratchStack.u32[6 + i] = ignorePhysicsIds[i];
     })
 
     const outputBufferOffset = moduleInstance._getPathPhysics(
@@ -840,10 +826,6 @@ const physxWorker = (() => {
       startOffset,
       destOffset,
       hy,
-      positionOffset,
-      quaternionOffset,
-      meshPositionOffset,
-      meshQuaternionOffset,
       heightTolerance,
       detectStep,
       maxIterdetect,
