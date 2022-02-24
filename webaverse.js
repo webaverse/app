@@ -369,13 +369,13 @@ export default class Webaverse extends EventTarget {
 
       if (window.heli?.physicsObjects[0]) {
         window.vehicle = window.heli.physicsObjects[0]
-        // physics.enableGeometry(vehicle)
+        physicsManager.enableGeometry(window.vehicle)
         // physics.setVelocity(vehicle, new THREE.Vector3(10,10,0), false)
 
-        // window.vehicle.updateMatrixWorld();
+        window.vehicle.updateMatrixWorld();
         window.heli.position.copy(window.vehicle.position);
         window.heli.quaternion.copy(window.vehicle.quaternion);
-        // window.heli.updateMatrixWorld();
+        window.heli.updateMatrixWorld();
       }
 
       timestamp = timestamp ?? performance.now();
@@ -386,6 +386,7 @@ export default class Webaverse extends EventTarget {
       // this.injectRigInput();
       
       const localPlayer = metaversefileApi.useLocalPlayer();
+      window.localPlayer = localPlayer;
       if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
         //if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
         physicsManager.simulatePhysics(timeDiffCapped); 
