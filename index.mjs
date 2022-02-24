@@ -48,13 +48,26 @@ function dynamicImporter(o, req, res) {
     const loadUrl = o.pathname.replace('/@import', '');
     const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
     const reqURL = new URL(fullUrl);
+
+    if (reqURL.href.includes('https://webaverse.github.io/street/') || loadUrl.includes('https://webaverse.github.io/street/')) {
+      debugger;
+      // loadUrl = loadUrl.slice(0, loadUrl.indexOf('/@proxy/'));
+    }
     totum.resolveId(loadUrl, reqURL.href).then(id => {
       /** ID might have /@proxy/ in the start that needs to be trimmed */
+      if (!id) {
+        console.log(loadUrl, reqURL);
+        debugger;
+        return res.end();
+      }
       id = id.replace('/@proxy/', '');
+
       totum.load(id).then(({code, map}) => {
         // debugger;
         res.writeHead(200, {'Content-Type': 'application/javascript'});
         res.end(code);
+      }).catch(e => {
+        console.log('******Promise Failed***********', e);
       });
     });
   } catch (e) {
@@ -71,8 +84,9 @@ function dynamicImporter(o, req, res) {
 
     const o = url.parse(req.originalUrl, true);
 
-    if (o.href.includes('metaverse_modules/button/three.js')) {
+    if (o.href.includes('https://webaverse.github.io/street/')) {
       debugger;
+      // loadUrl = loadUrl.slice(0, loadUrl.indexOf('/@proxy/'));
     }
 
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
@@ -97,7 +111,7 @@ function dynamicImporter(o, req, res) {
         proxyReq.end();
       } else {
         req.originalUrl = u;
-        next();
+        isProduction ? dynamicImporter(o, req, res) : next();
       }
     } else if (o.query.noimport !== undefined) {
       const p = path.join(cwd, path.resolve(o.pathname));
