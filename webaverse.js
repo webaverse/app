@@ -8,6 +8,7 @@ window.THREE = THREE;
 import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
 // import * as CharacterHupsModule from './character-hups.js';
+import * as sounds from './sounds.js';
 import * as CharacterSfxModule from './character-sfx.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
@@ -20,7 +21,9 @@ import hpManager from './hp-manager.js';
 // import equipmentRender from './equipment-render.js';
 // import * as characterController from './character-controller.js';
 import {playersManager} from './players-manager.js';
+import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
+import loadoutManager from './loadout-manager.js';
 import {Stats} from './stats.js';
 import {
   getRenderer,
@@ -143,7 +146,7 @@ export default class Webaverse extends EventTarget {
     super();
 
     rendererStats.domElement.style.position = 'absolute';
-    rendererStats.domElement.style.left = '0px';
+    rendererStats.domElement.style.right = '0px';
     rendererStats.domElement.style.bottom = '0px';
     rendererStats.domElement.style.display = 'none';
     document.body.appendChild(rendererStats.domElement);
@@ -153,7 +156,7 @@ export default class Webaverse extends EventTarget {
         physx.waitForLoad(),
         Avatar.waitForLoad(),
         _loadAudioContext(),
-        CharacterSfxModule.waitForLoad(),
+        sounds.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
@@ -404,6 +407,8 @@ export default class Webaverse extends EventTarget {
 
       // render scenes
       dioramaManager.update(timestamp, timeDiffCapped);
+      minimapManager.update(timestamp, timeDiffCapped);
+      loadoutManager.update(timestamp, timeDiffCapped);
       this.render(timestamp, timeDiffCapped);
     }
     renderer.setAnimationLoop(animate);

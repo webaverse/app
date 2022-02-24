@@ -26,6 +26,7 @@ import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './
 import metaversefileApi from './metaversefile-api.js';
 import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
+import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
 
 const {contractNames} = metaversefileConstants;
@@ -49,8 +50,6 @@ const localRay = new THREE.Ray();
 const localRaycaster = new THREE.Raycaster();
 
 const oneVector = new THREE.Vector3(1, 1, 1);
-const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
-const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 // const cubicBezier = easing(0, 1, 0, 1);
 
@@ -247,14 +246,6 @@ let mouseDomEquipmentHoverObject = null;
 let mouseDomEquipmentHoverPhysicsId = 0;
 
 let selectedLoadoutIndex = -1;
-let selectedLoadoutObject = null;
-const _selectLoadout = index => {
-  if (index !== selectedLoadoutIndex) {
-    selectedLoadoutIndex = index;
-  } else {
-    selectedLoadoutIndex = -1;
-  }
-};
 
 const _use = () => {
   if (gameManager.getMenu() === 3) {
@@ -326,40 +317,30 @@ const _click = () => {
   }
 };
 let lastUseIndex = 0;
-const _getNextUseIndex = animation => {
-  if (Array.isArray(animation)) {
-    return (lastUseIndex++) % animation.length;
+const _getNextUseIndex = animationCombo => {
+  if (Array.isArray(animationCombo)) {
+    return (lastUseIndex++) % animationCombo.length;
   } else {
     return 0;
   }
-};
-let lastPistolUseStartTime = -Infinity;
-const _handleNewLocalUseAction = (app, action) => {
-  // console.log('got action animation', action);
-  if (action.ik === 'pistol') {
-    lastPistolUseStartTime = performance.now();
-  }
-
-  app.use();
-};
+}
 const _startUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
-  const wearApps = Array.from(localPlayer.getActionsState())
-    .filter(action => action.type === 'wear')
-    .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
-  for (const wearApp of wearApps) {
+  const wearApp = loadoutManager.getSelectedApp();
+  if (wearApp) {
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
       const useAction = localPlayer.getAction('use');
       if (!useAction) {
         const {instanceId} = wearApp;
-        const {boneAttachment, animation, ik, behavior, position, quaternion, scale} = useComponent;
-        const index = _getNextUseIndex(animation);
-        // console.log('index', index, swordTopDownSlash);
+        const {boneAttachment, animation, animationCombo, animationEnvelope, ik, behavior, position, quaternion, scale} = useComponent;
+        const index = _getNextUseIndex(animationCombo);
         const newUseAction = {
           type: 'use',
           instanceId,
           animation,
+          animationCombo,
+          animationEnvelope,
           ik,
           behavior,
           boneAttachment,
@@ -368,11 +349,11 @@ const _startUse = () => {
           quaternion,
           scale,
         };
+        // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
 
-        _handleNewLocalUseAction(wearApp, newUseAction);
+        wearApp.use();
       }
-      break;
     }
   }
 };
@@ -630,73 +611,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const renderer = getRenderer();
   
   const localPlayer = metaversefileApi.useLocalPlayer();
-  
-  const _updateFakeHands = () => {
-    const session = renderer.xr.getSession();
-    if (!session) {
-      localMatrix.copy(localPlayer.matrixWorld)
-        .decompose(localVector, localQuaternion, localVector2);
-
-      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-      const handOffsetScale = localPlayer.avatar ? avatarHeight / 1.5 : 1;
-      {
-        const leftGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-        const leftGamepadQuaternion = localQuaternion;
-        const leftGamepadPointer = 0;
-        const leftGamepadGrip = 0;
-        const leftGamepadEnabled = false;
-        
-        localPlayer.leftHand.position.copy(leftGamepadPosition);
-        localPlayer.leftHand.quaternion.copy(leftGamepadQuaternion);
-      }
-      {
-        const rightGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-        const rightGamepadQuaternion = localQuaternion;
-        const rightGamepadPointer = 0;
-        const rightGamepadGrip = 0;
-        const rightGamepadEnabled = false;
-
-        localPlayer.rightHand.position.copy(rightGamepadPosition);
-        localPlayer.rightHand.quaternion.copy(rightGamepadQuaternion);
-      }
-      
-      if (lastPistolUseStartTime >= 0) {
-        const lastUseTimeDiff = timestamp - lastPistolUseStartTime;
-        const kickbackTime = 300;
-        const kickbackExponent = 0.05;
-        const f = Math.min(Math.max(lastUseTimeDiff / kickbackTime, 0), 1);
-        const v = Math.sin(Math.pow(f, kickbackExponent) * Math.PI);
-        const fakeArmLength = 0.2;
-        localQuaternion.setFromRotationMatrix(
-          localMatrix.lookAt(
-            localVector.copy(localPlayer.leftHand.position),
-            localVector2.copy(localPlayer.leftHand.position)
-              .add(
-                localVector3.set(0, 1, -1)
-                  .applyQuaternion(localPlayer.leftHand.quaternion)
-              ),
-            localVector3.set(0, 0, 1)
-              .applyQuaternion(localPlayer.leftHand.quaternion)
-          )
-        )// .multiply(localPlayer.leftHand.quaternion);
-        
-        localPlayer.leftHand.position.sub(
-          localVector.set(0, 0, -fakeArmLength)
-            .applyQuaternion(localPlayer.leftHand.quaternion)
-        );
-        
-        localPlayer.leftHand.quaternion.slerp(localQuaternion, v);
-        
-        localPlayer.leftHand.position.add(
-          localVector.set(0, 0, -fakeArmLength)
-            .applyQuaternion(localPlayer.leftHand.quaternion)
-        );
-      }
-    }
-  };
-  _updateFakeHands();
 
   const _handlePush = () => {
     if (gameManager.canPush()) {
@@ -1479,11 +1393,10 @@ const gameManager = {
   menuAim() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      const wearApp = loadoutManager.getSelectedApp();
       const wearAimApp = (() => {
-        const wearApps = Array.from(localPlayer.getActionsState())
-          .filter(action => action.type === 'wear')
-          .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
-        for (const wearApp of wearApps) {
+        if (wearApp) {
           const aimComponent = wearApp.getComponent('aim');
           if (aimComponent) {
             return wearApp;
@@ -1579,10 +1492,8 @@ const gameManager = {
   },
   drop() {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    const wearActions = localPlayer.getActionsArray().filter(action => action.type === 'wear');
-    if (wearActions.length > 0) {
-      const wearAction = wearActions[0];
-      const app = metaversefileApi.getAppByInstanceId(wearAction.instanceId);
+    const app = loadoutManager.getSelectedApp();
+    if (app) {
       localPlayer.unwear(app);
     }
   },
@@ -1730,7 +1641,7 @@ const gameManager = {
     }
   },
   selectLoadout(index) {
-    _selectLoadout(index);
+    loadoutManager.setSelectedIndex(index);
   },
   canToggleAxis() {
     return false; // !!world.appManager.grabbedObjects[0]; // || (editedObject && editedObject.isBuild);

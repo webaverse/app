@@ -1536,10 +1536,12 @@ const skinnedRedMaterial = (() => {
 
 const outlineRenderScene = new THREE.Scene();
 outlineRenderScene.name = 'outlineRenderScene';
+outlineRenderScene.autoUpdate = false;
 outlineRenderScene.overrideMaterial = skinnedRedMaterial;
 
 const sideScene = new THREE.Scene();
 sideScene.name = 'sideScene';
+sideScene.autoUpdate = false;
 sideScene.add(lightningMesh);
 sideScene.add(radialMesh);
 sideScene.add(grassMesh);
