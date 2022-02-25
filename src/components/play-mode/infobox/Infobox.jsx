@@ -65,7 +65,7 @@ export const Infobox = () => {
             <div className={ styles.content }>
                 {selectedApp ? <>
                     <div className={ styles.row }>
-                        <h1>{selectedApp.name}</h1>
+                        <h1>{name}</h1>
                         <h2>Lv. {level}</h2>
                     </div>
                     {/* <div className={ styles.row }>
