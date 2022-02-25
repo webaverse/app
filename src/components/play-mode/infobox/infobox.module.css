@@ -120,20 +120,21 @@
   text-transform: uppercase;
 }
 .infobox .hints .hint .key {
+  position: relative;
   display: flex;
-  width: 20px;
   height: 20px;
+  min-width: 20px;
+  padding: 0 4px;
   justify-content: center;
   align-items: center;
-  background-color: #000;
-  border: 2px solid #484848;
+  background-color: #333;
   border-radius: 3px;
   font-size: 12px;
   font-weight: 600;
   color: #FFF;
 }
 .infobox .hints .hint .label {
-  background-color: #FFF;
-  border-radius: 0 2px 2px 0;
-  padding: 0 3px;
+  background-color: #CCC;
+  border-radius: 0 3px 3px 0;
+  padding: 1px 4px;
 }
