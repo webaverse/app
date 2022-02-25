@@ -12,10 +12,9 @@
 
 .infobox .screenshot {
   position: relative;
-  top: -50px;
-  left: -35px;
   width: 100px;
   height: 100px;
+  left: -25px;
   /* background-color: white; */
 }
 .infobox .background {
@@ -31,12 +30,16 @@
 .infobox .background-1 {
   width: 100px;
   height: 100px;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3));
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7)),
+    radial-gradient(ellipse closest-corner at 50% 80%, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 100%);
 }
 .infobox .background-2 {
   flex: 1;
   border: 2px solid #222;
-  background: radial-gradient(circle at 25% 50%,#44444480, #00000080), linear-gradient(to bottom, rgb(30, 30, 30), rgb(0, 0, 0));
+  background:
+    radial-gradient(circle at 25% 50%,#44444480, #00000080),
+    linear-gradient(to bottom, rgb(30, 30, 30), rgb(0, 0, 0));
 }
 .infobox h1,
 .infobox h2
