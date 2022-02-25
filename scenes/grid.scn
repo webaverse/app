@@ -30,6 +30,11 @@
       "position": [ 0, 5, -10 ],
       "quaternion": [ 0, 0, 0, 1 ],
       "start_url": "http://localhost/lib/webaverse_resource/heli-hack/"
+    },
+    {
+      "position": [ -5, 0, -10 ],
+      "quaternion": [ 0, 0, 0, 1 ],
+      "start_url": "http://localhost/lib/webaverse_resource/hovercraft/"
     }
   ]
 }
