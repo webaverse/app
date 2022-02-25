@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 // import {world} from './world.js';
 import {getRenderer} from './renderer.js';
-import easing from './easing.js';
+// import easing from './easing.js';
 // import {createObjectSprite} from './object-spriter.js';
 
-const cubicBezier = easing(0, 1, 0, 1);
+// const cubicBezier = easing(0, 1, 0, 1);
 
 const fullscreenVertexShader = `\
   varying vec2 vUv;
@@ -118,96 +118,9 @@ const fullscreenFragmentShader = `\
   }
 
   void main() {
-    // base color
-    vec3 baseColor;
-    const float borderWidth = 0.03;
-    float boxInnerRadius = 0.5 - borderWidth;
-    float boxInnerSize = boxInnerRadius * 2.;
-    bool isInside = vUv.x >= borderWidth &&
-      vUv.x <= 1.-borderWidth &&
-      vUv.y >= borderWidth &&
-      vUv.y <= 1.-borderWidth;
-    bool isBorder = !isInside;
-    if (isInside) {
-      baseColor = vec3(0.1);
-      float distanceToCenter = length(vUv - vec2(0.5));
-      float distanceFactor = min(max(distanceToCenter / boxInnerRadius, 0.), 1.);
-      baseColor += 0.15 * (1. - distanceFactor);
-    } else {
-      baseColor = vec3(0.);
-    }
-
-    // highlight color
-    vec3 highlightColor = baseColor;
-    if (isBorder) {
-      if (uSelected > 0.) {
-        vec3 color3 = vec3(${new THREE.Color(0x59C173).toArray().map(n => n.toFixed(8)).join(', ')});
-        vec3 color4 = vec3(${new THREE.Color(0x5D26C1).toArray().map(n => n.toFixed(8)).join(', ')});
-        vec3 colorMix2 = mix(color3, color4, vUv.y);
-        
-        highlightColor = colorMix2 * 0.5;
-        // highlightColor.gb = vUv * 0.5;
-      }
-    } else {
-      vec3 color1 = vec3(${new THREE.Color(0x00F260).toArray().map(n => n.toFixed(8)).join(', ')});
-      vec3 color2 = vec3(${new THREE.Color(0x0575E6).toArray().map(n => n.toFixed(8)).join(', ')});
-      vec3 colorMix = mix(color1, color2, vUv.y);
-
-      float extraIntensity = min(max(0.5 + fbm(uTime * 0.001 * 3., 3, 0.7), 0.), 1.) * 0.5;
-      float distanceToBottomMiddle = length(vUv - vec2(0.5, 1.));
-      float extraFactor = min(max(distanceToBottomMiddle, 0.), 1.);
-
-      highlightColor.rgb += colorMix * extraFactor * extraIntensity * uSelectFactor;
-
-      const int numChevrons = 5;
-      float fNumChevrons = float(numChevrons);
-      float timeYOffset = mod(uTime / 1000. * 2., 1.);
-      for (int i = 0; i < numChevrons; i++) {
-        float fi = float(i);
-        vec2 uv2 = vUv;
-        /* uv2.x -= 0.5;
-        uv2.x *= (0.5 + uv2.y * 0.5) * 1.2;
-        uv2.x += 0.5; */
-        if (isInsideChevron(uv2, vec2(0.5, (fi + 0.5)/fNumChevrons + timeYOffset/fNumChevrons), 0.5, 0.05, 0.05)) {
-          // if (uSelected > 0.) {
-            highlightColor = mix(highlightColor, vec3(0.7), (1. - vUv.y) * 0.3 * uSelectFactor);
-          /* } else {
-            // highlightColor = mix(highlightColor, vec3(0.1), (1. - vUv.y) * 0.25);
-          } */
-          break;
-        }
-      }
-
-      const float arrowHeight = 0.25;
-      Tri t1 = Tri(
-        vec2(borderWidth, borderWidth),
-        vec2(0.5, arrowHeight),
-        vec2(0.5, borderWidth)
-      );
-      Tri t2 = Tri(
-        vec2(0.5, borderWidth),
-        vec2(0.5, arrowHeight),
-        vec2(1. - borderWidth, borderWidth)
-      );
-      float arrowHeightOffset = (-1. + uSelectFactor) * arrowHeight;
-      t1.a.y += arrowHeightOffset;
-      t1.b.y += arrowHeightOffset;
-      t1.c.y += arrowHeightOffset;
-      t2.a.y += arrowHeightOffset;
-      t2.b.y += arrowHeightOffset;
-      t2.c.y += arrowHeightOffset;
-      if (
-        isPointInTriangle(vUv, t1) ||
-        isPointInTriangle(vUv, t2)
-      ) {
-        highlightColor = vec3(1.);
-      }
-    }
-
     // compute uv
-    /* float f = mod(uTime / 1000. * 0.5, 1.);
-    float frameIndex = floor(f * numFrames); */
-    float frameIndex = floor(0.25 * numFrames);
+    float f = mod(uTime / 1000. * 0.5, 1.);
+    float frameIndex = floor(f * numFrames);
     float x = mod(frameIndex, numFramesPerRow);
     float y = floor(frameIndex / numFramesPerRow);
 
@@ -219,6 +132,17 @@ const fullscreenFragmentShader = `\
     vec2 uv = vUv;
     uv.x = xOffset + uv.x * frameSize;
     uv.y = yOffset + uv.y * frameSize;
+
+    // gl_FragColor.gb = uv;
+    // gl_FragColor.a = 1.;
+
+    // sample texture
+    vec4 s;
+    if (uTexEnabled > 0.) {
+      s = texture2D(uTex, uv);
+    } else {
+      s = vec4(0.);
+    }
 
     // outline
     if (uTexEnabled > 0.) {
@@ -239,56 +163,33 @@ const fullscreenFragmentShader = `\
       }
 
       if (sum > 0.) {
-        vec3 colorMix3 = mix(vec3(0.7), vec3(1.), vUv.y);
-
-        vec3 color3 = vec3(${new THREE.Color(0x59C173).toArray().map(n => n.toFixed(8)).join(', ')});
-        vec3 color4 = vec3(${new THREE.Color(0x5D26C1).toArray().map(n => n.toFixed(8)).join(', ')});
-        vec3 colorMix2 = mix(color3, color4, vUv.y);
-
-        vec3 outlineColor = mix(colorMix3, colorMix2, uSelectFactor);
-        
-        highlightColor = mix(highlightColor, outlineColor, 0.25 + uSelectFactor * 0.75);
+        s.rgb = mix(
+          mix(vec3(0.8), vec3(1.), vUv.y),
+          s.rgb,
+          s.a
+        );
+        // s.a = max(s.a, 0.5);
+        s.a = 1.;
       }
     }
+    
+    gl_FragColor = s;
 
-    // sample texture
-    vec4 s;
-    if (uTexEnabled > 0.) {
-      s = texture2D(uTex, uv);
-    } else {
-      s = vec4(0.);
-    }
+    /* vec3 c = vec3(0.1);
+    c = c * (1. - s.a) + s.rgb * s.a;
 
+    float backgroundAlpha = (1. - vUv.y * 2.) * 0.7;
+    float a = max(backgroundAlpha, s.a);
+    
     // result
-    gl_FragColor.rgb = highlightColor * (1.-s.a) + s.rgb * s.a;
-    gl_FragColor.a = 1.;
+    gl_FragColor.rgb = c;
+    gl_FragColor.a = backgroundAlpha; */
   }
 `;
-
-/* float sum = 0.0;
-int passes = 32;
-float passesFloat = float(passes);
-float angleStep = 2.0 * PI / passesFloat;
-for (int i = 0; i < passes; ++i) {
-    float n = float(i);
-    float angle = angleStep * n;
-
-    vec2 uv = tex_coords + vec2(cos(angle), sin(angle)) * outline_thickness;
-    sum += texture(t0, uv).a; // / passesFloat;
-}
-
-if (sum > 0.) {
-  vec3 c = mix(uColor1, uColor2, 1. - tex_coords.y) * 0.35;
-  pixel = vec4(c, 1);
-} else {
-  discard;
-  // pixel = texture(t0, tex_coords);
-} */
-
 const localVector2D = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 
-const _makeHotbarRendererScene = () => {
+const _makeInfoboxRendererScene = () => {
   const scene = new THREE.Scene();
 
   const fullScreenQuadMesh = new THREE.Mesh(
@@ -300,14 +201,6 @@ const _makeHotbarRendererScene = () => {
           needsUpdate: false,
         },
         uTexEnabled: {
-          value: 0,
-          needsUpdate: true,
-        },
-        uSelected: {
-          value: 0,
-          needsUpdate: true,
-        },
-        uSelectFactor: {
           value: 0,
           needsUpdate: true,
         },
@@ -331,6 +224,7 @@ const _makeHotbarRendererScene = () => {
       vertexShader: fullscreenVertexShader,
       fragmentShader: fullscreenFragmentShader,
       depthTest: false,
+      transparent: true,
     }),
   );
   fullScreenQuadMesh.frustumCulled = false;
@@ -340,12 +234,12 @@ const _makeHotbarRendererScene = () => {
   return scene;
 };
 
-class HotbarRenderer {
+class InfoboxRenderer {
   constructor(width, height, selected) {
     this.width = width;
     this.height = height;
 
-    this.scene = _makeHotbarRendererScene();
+    this.scene = _makeInfoboxRendererScene();
     this.camera = new THREE.OrthographicCamera(
       -1,
       1,
@@ -368,10 +262,6 @@ class HotbarRenderer {
   }
   removeCanvas(canvas) {
     this.canvases.splice(this.canvases.indexOf(canvas), 1);
-    this.needsUpdate = true;
-  }
-  setSelected(selected) {
-    this.selected = selected;
     this.needsUpdate = true;
   }
   setSpritesheet(spritesheet) {
@@ -401,89 +291,72 @@ class HotbarRenderer {
       this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
       this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true; */
     }
-
-    this.needsUpdate = true;
   }
   update(timestamp, timeDiff) {
     const renderer = getRenderer();
     const size = renderer.getSize(localVector2D);
     const pixelRatio = renderer.getPixelRatio();
 
-    const lastSelectFactor = this.selectFactor;
+    const _render = () => {
+      // push old state
+      const oldRenderTarget = renderer.getRenderTarget();
+      const oldViewport = renderer.getViewport(localVector4D);
 
-    if (this.selected) {
-      this.selectFactor += timeDiff / 1000;
-    } else {
-      this.selectFactor -= timeDiff / 1000;
-    }
-    this.selectFactor = Math.min(Math.max(this.selectFactor, 0), 1);
+      {
+        // const smoothedSelectFactor = this.selected ? cubicBezier(this.selectFactor) : 1 - cubicBezier(1 - this.selectFactor);
 
-    if (this.needsUpdate) {
-      const _render = () => {
-        // push old state
-        const oldRenderTarget = renderer.getRenderTarget();
-        const oldViewport = renderer.getViewport(localVector4D);
+        /* this.scene.fullScreenQuadMesh.material.uniforms.uSelected.value = +this.selected;
+        this.scene.fullScreenQuadMesh.material.uniforms.uSelected.needsUpdate = true;
+        this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.value = smoothedSelectFactor;
+        this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.needsUpdate = true; */
+        this.scene.fullScreenQuadMesh.material.uniforms.uTime.value = timestamp;
+        this.scene.fullScreenQuadMesh.material.uniforms.uTime.needsUpdate = true;
 
-        {
-          const smoothedSelectFactor = this.selected ? cubicBezier(this.selectFactor) : 1 - cubicBezier(1 - this.selectFactor);
+        renderer.setViewport(0, 0, this.width, this.height);
+        renderer.clear();
+        renderer.render(this.scene, this.camera);
+      }
 
-          this.scene.fullScreenQuadMesh.material.uniforms.uSelected.value = +this.selected;
-          this.scene.fullScreenQuadMesh.material.uniforms.uSelected.needsUpdate = true;
-          this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.value = smoothedSelectFactor;
-          this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.needsUpdate = true;
-          this.scene.fullScreenQuadMesh.material.uniforms.uTime.value = timestamp;
-          this.scene.fullScreenQuadMesh.material.uniforms.uTime.needsUpdate = true;
+      // pop old state
+      renderer.setRenderTarget(oldRenderTarget);
+      renderer.setViewport(oldViewport);
+    };
+    _render();
 
-          renderer.setViewport(0, 0, this.width, this.height);
-          renderer.clear();
-          renderer.render(this.scene, this.camera);
-        }
-
-        // pop old state
-        renderer.setRenderTarget(oldRenderTarget);
-        renderer.setViewport(oldViewport);
-      };
-      _render();
-
-      const _copyToCanvases = () => {
-        for (const canvas of this.canvases) {
-          const {
-            width,
-            height,
-            ctx
-          } = canvas;
-          ctx.clearRect(0, 0, width, height);
-          ctx.drawImage(
-            renderer.domElement,
-            0,
-            size.y * pixelRatio - this.height * pixelRatio,
-            this.width * pixelRatio,
-            this.height * pixelRatio,
-            0,
-            0,
-            width,
-            height
-          );
-        }
-      };
-      _copyToCanvases();
-
-      this.needsUpdate = this.selected || this.selectFactor !== lastSelectFactor;
-    }
+    const _copyToCanvases = () => {
+      for (const canvas of this.canvases) {
+        const {
+          width,
+          height,
+          ctx
+        } = canvas;
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(
+          renderer.domElement,
+          0,
+          size.y * pixelRatio - this.height * pixelRatio,
+          this.width * pixelRatio,
+          this.height * pixelRatio,
+          0,
+          0,
+          width,
+          height
+        );
+      }
+    };
+    _copyToCanvases();
   }
   destroy() {
-    // hotbarRenderers.splice(hotbarRenderers.indexOf(hotbarRenderer), 1);
+    // XXX
   }
 }
-// const hotbarRenderers = [];
 
-const createHotbarRenderer = (width, height, selected) => {
-  const hotbarRenderer = new HotbarRenderer(width, height, selected);
-  // hotbarRenderers.push(hotbarRenderer);
-  return hotbarRenderer;
+const createInfoboxRenderer = (width, height) => {
+  const infoboxRenderer = new InfoboxRenderer(width, height);
+  return infoboxRenderer;
 };
 
 export {
-  HotbarRenderer,
-  createHotbarRenderer,
+  InfoboxRenderer,
+  createInfoboxRenderer,
 };
