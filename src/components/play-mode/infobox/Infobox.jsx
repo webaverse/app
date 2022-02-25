@@ -37,9 +37,7 @@ export const Infobox = () => {
     useEffect(() => {
         function selectedchange(e) {
             const {app} = e.data;
-            // if (app) {
-              setSelectedApp(app);
-            // }
+            setSelectedApp(app);
         }
         loadoutManager.addEventListener('selectedchange', selectedchange);
         return () => {
