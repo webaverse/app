@@ -125,7 +125,7 @@ export default function Header({
       case 84: { // T
         e.preventDefault();
         e.stopPropagation();
-        toggleMic();
+        world.toggleMic();
         return true;
       }
       case 191: { // /
