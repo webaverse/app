@@ -802,7 +802,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     this.appManager.bindState(this.getAppsState());
   }
-  wear(app) {
+  wear(app, disablePhysics = true) {
     app.dispatchEvent({
       type: 'wearupdate',
       wear: true,
@@ -815,10 +815,12 @@ class LocalPlayer extends UninterpolatedPlayer {
       // debugger;
     }
     
-    const physicsObjects = app.getPhysicsObjects();
-    for (const physicsObject of physicsObjects) {
-      physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-      physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+    if(disablePhysics) {
+      const physicsObjects = app.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+        physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+      }
     }
     
     const {instanceId} = app;
