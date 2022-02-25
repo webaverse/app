@@ -105,8 +105,8 @@ class App extends THREE.Object3D {
       type: 'activate',
     });
   }
-  wear(disablePhysics = true) {
-    localPlayer.wear(this, disablePhysics);
+  wear() {
+    localPlayer.wear(this);
   }
   unwear() {
     localPlayer.unwear(this);

@@ -561,21 +561,21 @@ class AppManager extends EventTarget {
         if (physicsObjects.length > 0) {
           const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
 
-          // for (const physicsObject of physicsObjects) {
-          //   if (!physicsObject.detached) {
-          //     physicsObject.matrix
-          //       .premultiply(lastMatrixInverse)
-          //       .premultiply(app.matrix)
-          //       .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
-          //     physicsObject.matrixWorld.copy(physicsObject.matrix);
-          //     for (const child of physicsObject.children) {
-          //       child.updateMatrixWorld();
-          //     }
+          for (const physicsObject of physicsObjects) {
+            if (!physicsObject.detached) {
+              physicsObject.matrix
+                .premultiply(lastMatrixInverse)
+                .premultiply(app.matrix)
+                .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+              physicsObject.matrixWorld.copy(physicsObject.matrix);
+              for (const child of physicsObject.children) {
+                child.updateMatrixWorld();
+              }
 
-          //     physicsManager.setTransform(physicsObject);
-          //     physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
-          //   }
-          // }
+              physicsManager.setTransform(physicsObject);
+              physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
+            }
+          }
         }
 
         app.lastMatrix.copy(app.matrix);
