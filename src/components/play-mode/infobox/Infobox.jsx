@@ -10,13 +10,25 @@ import {getRenderer} from '../../../../renderer.js';
 import easing from '../../../../easing.js';
 import {createObjectSprite} from '../../../../object-spriter.js'; */
 import loadoutManager from '../../../../loadout-manager.js';
+import alea from '../../../../alea.js';
 
-const infoboxSize = new THREE.Vector3(600, 300);
+// const infoboxSize = new THREE.Vector3(600, 300);
 const screenshotSize = 100;
 
 export const Infobox = () => {
     const canvasRef = useRef();
-    const [selected, setSelected] = useState(false);
+    const [selectedApp, setSelectedApp] = useState(null);
+
+    const rng = selectedApp ? alea(selectedApp.contentId) : null;
+    const level = rng ? 1 + Math.floor((rng() ** 3) * 99) : 0;
+    const dps = rng ? Math.floor((rng() ** 3) * 1000) : 0;
+    const exp = rng ? Math.floor((rng() ** 3) * 100) : 0;
+
+    let name = selectedApp ? selectedApp.name : '';
+    if (name) {
+        console.warn('app has no name', selectedApp);
+        name = 'MissingNo.';
+    }
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -32,8 +44,8 @@ export const Infobox = () => {
     }, [canvasRef]);
     useEffect(() => {
         function selectedchange(e) {
-            const {index} = e.data;
-            setSelected(index !== -1)
+            const {app} = e.data;
+            setSelectedApp(app);
         }
         loadoutManager.addEventListener('selectedchange', selectedchange);
         return () => {
@@ -42,42 +54,34 @@ export const Infobox = () => {
     }, []);
 
     return (
-        <div className={ classnames(styles.infobox, selected ? styles.selected : null) } >
+        <div className={ classnames(styles.infobox, selectedApp ? styles.selected : null) } >
             <canvas width={screenshotSize} height={screenshotSize} className={ styles.screenshot } ref={canvasRef} />
             <div className={ styles.background }>
               <div className={ styles['background-1'] } />
               <div className={ styles['background-2'] } />
             </div>
             <div className={ styles.content }>
-                <div className={ styles.row }>
-                    <h1>
-                        SilSword
-                    </h1>
-                    <h2>
-                        Lv. 3
-                    </h2>
-                </div>
-                {/* <div className={ styles.row }>
-                    <div className={ styles.pill }>
-                        Weapon
+                {selectedApp ? <>
+                    <div className={ styles.row }>
+                        <h1>{selectedApp.name}</h1>
+                        <h2>Lv. {level}</h2>
                     </div>
-                </div> */}
-                <div className={ styles.row }>
-                    <div className={ styles.stat }>
-                        <div className={ styles.label }>
-                            DPS
+                    {/* <div className={ styles.row }>
+                        <div className={ styles.pill }>
+                            Weapon
                         </div>
-                        <div className={ styles.value }>
-                            130
+                    </div> */}
+                    <div className={ styles.row }>
+                        <div className={ styles.stat }>
+                            <div className={ styles.label }>DPS</div>
+                            <div className={ styles.value }>{dps}</div>
                         </div>
                     </div>
-                </div>
-                <div className={ classnames(styles.row, styles.exp) }>
-                    <div className={ styles.label }>
-                        EXP
+                    <div className={ classnames(styles.row, styles.exp) }>
+                        <div className={ styles.label }>EXP</div>
+                        <progress className={ styles.progress } value={exp} max={100}></progress>
                     </div>
-                    <progress className={ styles.progress } value={0.83}></progress>
-                </div>
+                </> : null}
             </div>
         </div>
     );
