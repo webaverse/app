@@ -424,9 +424,10 @@ const _blendFly = spec => {
     lerpFn,
   } = spec;
 
-  if (activeAvatar.flyState || (activeAvatar.flyTime >= 0 && activeAvatar.flyTime < 1000)) {
-    const t2 = activeAvatar.flyTime / 1000;
-    const f = activeAvatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+  const flyState = activeAvatar.tracker.getState('fly');
+  if (flyState.active || (flyState?.time >= 0 && flyState?.time < 1000)) {
+    const t2 = flyState.time / 1000;
+    const f = flyState.active ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
     const src2 = activeAnimations.float.interpolants[k];
     const v2 = src2.evaluate(t2 % activeAnimations.float.duration);
 

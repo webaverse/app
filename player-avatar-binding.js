@@ -3,6 +3,7 @@ set the avatar state from the player state */
 
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
+import StateMachine from './avatars/States.js';
 import {unFrustumCull, enableShadows} from './util.js';
 import {
   getEyePosition,
@@ -69,6 +70,7 @@ export function makeAvatar(app) {
   return null;
 }
 export function applyPlayerActionsToAvatar(player, rig) {
+
   const jumpAction = player.getAction('jump');
   const flyAction = player.getAction('fly');
   const useAction = player.getAction('use');
@@ -96,8 +98,16 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
-  rig.flyState = !!flyAction;
-  rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
+
+  //this is here for testing
+  StateMachine.registerObj("playerAvatar", rig);
+  StateMachine.getTracked("playerAvatar").registerState = {
+    ...flyAction, 
+    name: flyAction?.type ?? 'fly',
+    time: flyAction ? player.actionInterpolants.fly.get() : -1, 
+    active:!!flyAction
+  }
+
   rig.activateTime = player.actionInterpolants.activate.get();
   
   if (useAction?.animation) {
