@@ -36,8 +36,10 @@ export const Infobox = () => {
     }, [canvasRef]);
     useEffect(() => {
         function selectedchange(e) {
-            const {app} = e.data;
-            setSelectedApp(app);
+            const {index, app} = e.data;
+            if (index === -1 || app) {
+                setSelectedApp(app);
+            }
         }
         loadoutManager.addEventListener('selectedchange', selectedchange);
         return () => {
