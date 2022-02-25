@@ -6,11 +6,11 @@ import Inspector from './Inspector.jsx';
 import Chat from './Chat.jsx';
 import CharacterHups from './CharacterHups.jsx';
 import MagicMenu from './MagicMenu.jsx';
-import * as Z from 'zjs';
+// import * as Z from 'zjs';
 // import {Color} from './Color.js';
 import {world} from '../world.js'
 import game from '../game.js'
-import universe from '../universe.js'
+// import universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
@@ -20,8 +20,6 @@ import User from './User';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {Tokens} from './tabs/tokens';
-
-const localEuler = new THREE.Euler();
 
 export default function Header({
   app,
@@ -127,7 +125,7 @@ export default function Header({
       case 84: { // T
         e.preventDefault();
         e.stopPropagation();
-        toggleMic();
+        world.toggleMic();
         return true;
       }
       case 191: { // /
