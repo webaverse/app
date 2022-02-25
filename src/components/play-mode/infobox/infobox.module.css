@@ -1,0 +1,81 @@
+
+.infobox {
+  position: fixed;
+  display: flex;
+  width: 375px;
+  height: 100px;
+  bottom: 15px;
+  right: 30px;
+  padding-left: 30px;
+  color: #FFF;
+}
+
+.infobox .screenshot {
+  position: relative;
+  top: -50px;
+  left: -35px;
+  width: 100px;
+  height: 100px;
+  /* background-color: white; */
+}
+.infobox .background {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* background: radial-gradient(circle at 25% 50%,#44444480, #00000080), linear-gradient(to bottom, rgb(30, 30, 30), rgb(0, 0, 0)); */
+  transform: skew(22deg);
+}
+.infobox .background-1 {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3));
+}
+.infobox .background-2 {
+  flex: 1;
+  border: 2px solid #222;
+  background: radial-gradient(circle at 25% 50%,#44444480, #00000080), linear-gradient(to bottom, rgb(30, 30, 30), rgb(0, 0, 0));
+}
+.infobox h1,
+.infobox h2
+{
+  display: flex;
+  margin: 10px 0;
+  height: 30px;
+  font-family: 'WinchesterCaps';
+  text-align: left;
+  align-items: flex-end;
+  letter-spacing: 1px;
+}
+.infobox h1 {
+  margin-right: 10px;
+}
+.infobox h2 {
+  padding-bottom: 1px;
+  font-size: 13px;
+  vertical-align: bottom;
+}
+.infobox .content {
+  position: relative;
+  display: flex;
+  min-width: 200px;
+  flex-direction: column;
+}
+.infobox .row {
+  display: flex;
+}
+.infobox .stat {
+  display: flex;
+}
+/* .infobox .pill {
+  margin-right: 10px;
+  padding: 0 5px;
+  background-image: linear-gradient(to bottom, #4CAF50, #2E7D32);
+  border-radius: 3px;
+} */
+.infobox .label {
+  width: 60px;
+  text-align: left;
+}
