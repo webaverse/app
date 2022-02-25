@@ -1912,9 +1912,9 @@ const gameManager = {
     const localPlayer = metaversefileApi.useLocalPlayer();
     return localPlayer.loadVoicePack(voicePack);
   },
-  setVoice(voiceId) {
+  setVoiceEndpoint(voiceId) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    return localPlayer.setVoice(voiceId);
+    return localPlayer.setVoiceEndpoint(voiceId);
   },
   update: _gameUpdate,
   pushAppUpdates: _pushAppUpdates,
