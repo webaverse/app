@@ -11,7 +11,7 @@
   transition: cubic-bezier(0, 1, 0, 1) 1s transform;
 }
 .infobox:not(.selected) {
-  transform: translateY(115px);
+  transform: translateY(150px);
 }
 .infobox .screenshot {
   position: relative;
@@ -66,7 +66,7 @@
 .infobox .content {
   position: relative;
   display: flex;
-  min-width: 200px;
+  min-width: 160px;
   flex-direction: column;
 }
 .infobox .row {
@@ -99,7 +99,41 @@
   background-image: linear-gradient(to bottom, #4CAF50, #2E7D32);
   border-radius: 3px;
 } */
-.infobox .label {
+.infobox .content .label {
   width: 40px;
   text-align: left;
+}
+.infobox .hints {
+  position: absolute;
+  right: 30px;
+  top: -23px;
+  display: flex;
+  align-items: flex-start;
+}
+.infobox .hints .hint {
+  display: flex;
+  padding-right: 10px;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+}
+.infobox .hints .hint .key {
+  display: flex;
+  width: 20px;
+  height: 20px;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
+  border: 2px solid #484848;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFF;
+}
+.infobox .hints .hint .label {
+  background-color: #FFF;
+  border-radius: 0 2px 2px 0;
+  padding: 0 3px;
 }
