@@ -862,6 +862,11 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
+        physicsObject.position.copy(app.position);
+        physicsObject.quaternion.copy(app.quaternion);
+        physicsObject.scale.copy(app.scale);
+        physicsObject.updateMatrixWorld();
+        physicsManager.setTransform(physicsObject);
         physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
         physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
       }
