@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import React, {useState, useRef, useEffect} from 'react';
+import classnames from 'classnames';
 import styles from './infobox.module.css';
 // import metaversefileApi from 'metaversefile';
 // import loadoutManager from '../../../../loadout-manager.js';
@@ -15,6 +16,7 @@ const screenshotSize = 100;
 
 export const Infobox = () => {
     const canvasRef = useRef();
+    const [selected, setSelected] = useState(false);
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -28,9 +30,19 @@ export const Infobox = () => {
             };
         }
     }, [canvasRef]);
+    useEffect(() => {
+        function selectedchange(e) {
+            const {index} = e.data;
+            setSelected(index !== -1)
+        }
+        loadoutManager.addEventListener('selectedchange', selectedchange);
+        return () => {
+            loadoutManager.removeEventListener('selectedchange', selectedchange);
+        };
+    }, []);
 
     return (
-        <div className={ styles.infobox } >
+        <div className={ classnames(styles.infobox, selected ? styles.selected : null) } >
             <canvas width={screenshotSize} height={screenshotSize} className={ styles.screenshot } ref={canvasRef} />
             <div className={ styles.background }>
               <div className={ styles['background-1'] } />
@@ -60,7 +72,7 @@ export const Infobox = () => {
                         </div>
                     </div>
                 </div>
-                <div className={ styles.exp }>
+                <div className={ classnames(styles.row, styles.exp) }>
                     <div className={ styles.label }>
                         EXP
                     </div>

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
-import { defaultVoicePack } from '../../../../constants.js';
+import { defaultVoicePack, defaultVoice } from '../../../../constants.js';
 import game from '../../../../game';
 import { Slider } from './slider';
 
@@ -15,7 +15,8 @@ const DefaultSettings = {
     music:          100,
     voice:          100,
     effects:        100,
-    voicePack:      defaultVoicePack.name
+    voicePack:      defaultVoicePack.name,
+    // voicePack:      defaultVoice.name
 };
 
 export const TabAudio = ({ active }) => {
