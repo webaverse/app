@@ -38,9 +38,9 @@ class LoadoutManager extends EventTarget {
           if (a === app) {
             const hotbarRenderer = this.hotbarRenderers[i];
             hotbarRenderer.setSpritesheet(null);
-            if (i === this.selectedIndex) {
+            /* if (i === this.selectedIndex) {
               this.infoboxRenderer.setSpritesheet(null);
-            }
+            } */
 
             this.apps[i] = null;
 
@@ -98,6 +98,13 @@ class LoadoutManager extends EventTarget {
       }
       this.selectedIndex = index;
     }
+
+    this.dispatchEvent(new MessageEvent('selectedchange', {
+      data: {
+        index,
+        app: this.apps[index],
+      },
+    }));
   }
   getNextFreeIndex() {
     this.ensureRenderers();
