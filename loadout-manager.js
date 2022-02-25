@@ -102,7 +102,7 @@ class LoadoutManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('selectedchange', {
       data: {
         index,
-        app: this.apps[index],
+        app: this.apps[index] || null,
       },
     }));
   }
