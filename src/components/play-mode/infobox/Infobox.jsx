@@ -4,10 +4,10 @@ import styles from './infobox.module.css';
 // import metaversefileApi from 'metaversefile';
 // import loadoutManager from '../../../../loadout-manager.js';
 // import {hotbarSize} from '../../../../constants.js';
-import {world} from '../../../../world.js';
+/* import {world} from '../../../../world.js';
 import {getRenderer} from '../../../../renderer.js';
 import easing from '../../../../easing.js';
-import {createObjectSprite} from '../../../../object-spriter.js';
+import {createObjectSprite} from '../../../../object-spriter.js'; */
 import loadoutManager from '../../../../loadout-manager.js';
 
 const infoboxSize = new THREE.Vector3(600, 300);
