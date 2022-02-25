@@ -17,7 +17,7 @@ export const Infobox = () => {
     const exp = rng ? Math.floor((rng() ** 3) * 100) : 0;
 
     let name = selectedApp ? selectedApp.name : '';
-    if (!name) {
+    if (selectedApp && !name) {
         console.warn('app has no name', selectedApp);
         name = 'MissingNo.';
     }
