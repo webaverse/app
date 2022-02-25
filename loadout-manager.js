@@ -6,6 +6,16 @@ import {hotbarSize, infoboxSize} from './constants.js';
 
 const numSlots = 8;
 
+const appSpritesheetCache = new WeakMap();
+const _getAppSpritesheet = app => {
+  let spritesheet = appSpritesheetCache.get(app);
+  if (!spritesheet) {
+    spritesheet = createObjectSprite(app);
+    appSpritesheetCache.set(app, spritesheet);
+  }
+  return spritesheet;
+};
+
 class LoadoutManager extends EventTarget {
   constructor() {
     super();
@@ -22,12 +32,6 @@ class LoadoutManager extends EventTarget {
       if (wear) {
         const nextIndex = this.getNextFreeIndex();
         if (nextIndex !== -1) {
-          const spritesheet = createObjectSprite(app);
-
-          const hotbarRenderer = this.hotbarRenderers[nextIndex];
-          hotbarRenderer.setSpritesheet(spritesheet);
-          this.infoboxRenderer.setSpritesheet(spritesheet);
-
           this.apps[nextIndex] = app;
 
           this.setSelectedIndex(nextIndex);
@@ -97,6 +101,15 @@ class LoadoutManager extends EventTarget {
         this.hotbarRenderers[i].setSelected(i === index);
       }
       this.selectedIndex = index;
+    }
+
+    if (this.selectedIndex !== -1) {
+      const app = this.apps[this.selectedIndex];
+      const spritesheet = _getAppSpritesheet(app);
+      
+      const hotbarRenderer = this.hotbarRenderers[this.selectedIndex];
+      hotbarRenderer.setSpritesheet(spritesheet);
+      this.infoboxRenderer.setSpritesheet(spritesheet);
     }
 
     this.dispatchEvent(new MessageEvent('selectedchange', {
