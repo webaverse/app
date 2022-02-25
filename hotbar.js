@@ -230,8 +230,12 @@ const fullscreenFragmentShader = `\
         float n = float(i);
         float angle = angleStep * n;
 
-        vec2 uv2 = uv + vec2(cos(angle), sin(angle)) * outline_thickness / numFramesPerRow;
-        sum += texture(uTex, uv2).a; // / passesFloat;
+        vec2 angleOffset = vec2(cos(angle), sin(angle)) * outline_thickness;
+        vec2 targetUv = vUv + angleOffset;
+        if (targetUv.x >= 0. && targetUv.x <= 1. && targetUv.y >= 0. && targetUv.y <= 1.) {
+          vec2 uv2 = uv + angleOffset / numFramesPerRow;
+          sum += texture(uTex, uv2).a;
+        }
       }
 
       if (sum > 0.) {
