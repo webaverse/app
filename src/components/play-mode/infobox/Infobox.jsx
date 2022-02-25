@@ -1,18 +1,10 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import React, {useState, useRef, useEffect} from 'react';
 import classnames from 'classnames';
 import styles from './infobox.module.css';
-// import metaversefileApi from 'metaversefile';
-// import loadoutManager from '../../../../loadout-manager.js';
-// import {hotbarSize} from '../../../../constants.js';
-/* import {world} from '../../../../world.js';
-import {getRenderer} from '../../../../renderer.js';
-import easing from '../../../../easing.js';
-import {createObjectSprite} from '../../../../object-spriter.js'; */
 import loadoutManager from '../../../../loadout-manager.js';
 import alea from '../../../../alea.js';
 
-// const infoboxSize = new THREE.Vector3(600, 300);
 const screenshotSize = 100;
 
 export const Infobox = () => {
