@@ -79,6 +79,20 @@
   display: flex;
   align-items: center;
 }
+.infobox progress {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: auto 0;
+  height: 2px;
+  border-radius: 1px;
+}
+.infobox progress::-webkit-progress-bar {
+  /* background-image: linear-gradient(to right, #000, #333); */
+  background-color: #333;
+}
+.infobox progress::-webkit-progress-value {
+  background-image: linear-gradient(to right, #56ab2f, #a8e063);
+}
 /* .infobox .pill {
   margin-right: 10px;
   padding: 0 5px;
@@ -86,6 +100,6 @@
   border-radius: 3px;
 } */
 .infobox .label {
-  width: 60px;
+  width: 40px;
   text-align: left;
 }
