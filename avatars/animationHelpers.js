@@ -131,7 +131,14 @@ const animationsIdleArrays = {
 };
 
 
-animationStepIndices// export const _normalizeAnimationDurations = (animations, baseIndex = 0, factor = 1) => {
+const _clearXZ = (dst, isPosition) => {
+  if (isPosition) {
+    dst.x = 0;
+    dst.z = 0;
+  }
+};
+
+// export const _normalizeAnimationDurations = (animations, baseIndex = 0, factor = 1) => {
 const _normalizeAnimationDurations = (animations, baseAnimation, factor = 1) => {
 
   // const baseAnimation = animations[baseIndex];
@@ -850,7 +857,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const throwAnimation = throwAnimations[avatar.throwAnimation || defaultThrowAnimation];
         const danceAnimation = danceAnimations[0];
         const src2 = throwAnimation.interpolants[k];
-        const t2 = (avatar.danceTime/1000) ;
         const v2 = src2.evaluate(t2);
 
         let useAnimation;
