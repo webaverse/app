@@ -38,6 +38,8 @@ const _makeSpritesheetRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h,
   minFilter: THREE.LinearFilter,
   magFilter: THREE.LinearFilter,
   format: THREE.RGBAFormat,
+  wrapS: THREE.ClampToEdgeWrapping,
+  wrapT: THREE.ClampToEdgeWrapping,
 });
 const createObjectSprite = (app, {
   // canvas,
