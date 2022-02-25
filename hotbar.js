@@ -2,7 +2,7 @@ import * as THREE from 'three';
 // import {world} from './world.js';
 import {getRenderer} from './renderer.js';
 import easing from './easing.js';
-import {createObjectSprite} from './object-spriter.js';
+// import {createObjectSprite} from './object-spriter.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -22,7 +22,10 @@ const fullscreenFragmentShader = `\
   uniform float uTime;
   uniform float numFrames;
   uniform float numFramesPerRow;
+  uniform float outline_thickness;
   varying vec2 vUv;
+
+  #define PI 3.1415926535897932384626433832795
 
   //---------------------------------------------------------------------------
   //1D Perlin noise implementation 
@@ -201,26 +204,52 @@ const fullscreenFragmentShader = `\
       }
     }
 
+    // compute uv
+    /* float f = mod(uTime / 1000. * 0.5, 1.);
+    float frameIndex = floor(f * numFrames); */
+    float frameIndex = floor(0.25 * numFrames);
+    float x = mod(frameIndex, numFramesPerRow);
+    float y = floor(frameIndex / numFramesPerRow);
+
+    float frameSize = 1. / numFramesPerRow;
+
+    float xOffset = x * frameSize;
+    float yOffset = y * frameSize;
+
+    vec2 uv = vUv;
+    uv.x = xOffset + uv.x * frameSize;
+    uv.y = yOffset + uv.y * frameSize;
+
+    // outline
+    if (uTexEnabled > 0.) {
+      float sum = 0.0;
+      int passes = 32;
+      float passesFloat = float(passes);
+      float angleStep = 2.0 * PI / passesFloat;
+      for (int i = 0; i < passes; ++i) {
+        float n = float(i);
+        float angle = angleStep * n;
+
+        vec2 uv2 = uv + vec2(cos(angle), sin(angle)) * outline_thickness / numFramesPerRow;
+        sum += texture(uTex, uv2).a; // / passesFloat;
+      }
+
+      if (sum > 0.) {
+        vec3 colorMix3 = mix(vec3(0.7), vec3(1.), vUv.y);
+
+        vec3 color3 = vec3(${new THREE.Color(0x59C173).toArray().map(n => n.toFixed(8)).join(', ')});
+        vec3 color4 = vec3(${new THREE.Color(0x5D26C1).toArray().map(n => n.toFixed(8)).join(', ')});
+        vec3 colorMix2 = mix(color3, color4, vUv.y);
+
+        vec3 outlineColor = mix(colorMix3, colorMix2, uSelectFactor);
+        
+        highlightColor = mix(highlightColor, outlineColor, 0.25 + uSelectFactor * 0.75);
+      }
+    }
+
     // sample texture
     vec4 s;
     if (uTexEnabled > 0.) {
-      float f = mod(uTime / 1000. * 0.5, 1.);
-      float frameIndex = floor(f * numFrames);
-      float x = mod(frameIndex, numFramesPerRow);
-      float y = floor(frameIndex / numFramesPerRow);
-
-      float frameSize = 1. / numFramesPerRow;
-
-      float xOffset = x * frameSize;
-      float yOffset = y * frameSize;
-
-      vec2 uv = vUv;
-      uv.x = xOffset + uv.x * frameSize;
-      uv.y = yOffset + uv.y * frameSize;
-
-      // gl_FragColor.gb = uv;
-      // gl_FragColor.a = 1.;
-
       s = texture2D(uTex, uv);
     } else {
       s = vec4(0.);
@@ -231,6 +260,27 @@ const fullscreenFragmentShader = `\
     gl_FragColor.a = 1.;
   }
 `;
+
+/* float sum = 0.0;
+int passes = 32;
+float passesFloat = float(passes);
+float angleStep = 2.0 * PI / passesFloat;
+for (int i = 0; i < passes; ++i) {
+    float n = float(i);
+    float angle = angleStep * n;
+
+    vec2 uv = tex_coords + vec2(cos(angle), sin(angle)) * outline_thickness;
+    sum += texture(t0, uv).a; // / passesFloat;
+}
+
+if (sum > 0.) {
+  vec3 c = mix(uColor1, uColor2, 1. - tex_coords.y) * 0.35;
+  pixel = vec4(c, 1);
+} else {
+  discard;
+  // pixel = texture(t0, tex_coords);
+} */
+
 const localVector2D = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 
@@ -269,6 +319,10 @@ const _makeHotbarRendererScene = () => {
           value: 0,
           needsUpdate: true,
         },
+        outline_thickness: {
+          value: 0.02,
+          needsUpdate: true,
+        },
       },
       vertexShader: fullscreenVertexShader,
       fragmentShader: fullscreenFragmentShader,
@@ -297,7 +351,6 @@ class HotbarRenderer {
       1000
     );
     this.canvases = [];
-    this.app = null;
     this.selected = selected;
     this.selectFactor = +selected;
     this.needsUpdate = false;
@@ -317,27 +370,23 @@ class HotbarRenderer {
     this.selected = selected;
     this.needsUpdate = true;
   }
-  setApp(app) {
-    if (app) {
-      (async () => {
-        const {
-          texture,
-          numFrames,
-          // frameSize,
-          numFramesPerRow,
-        } = await createObjectSprite(app);
-        // console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
-        this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = texture;
-        this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
-        this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
-        this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
-        this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value = numFrames;
-        this.scene.fullScreenQuadMesh.material.uniforms.numFrames.needsUpdate = true;
-        this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
-        this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true;
-      })().catch(err => {
-        console.warn('error rendering hotbar app', err);
-      });
+  setSpritesheet(spritesheet) {
+    if (spritesheet) {
+      const {
+        texture,
+        numFrames,
+        // frameSize,
+        numFramesPerRow,
+      } = spritesheet;
+      // console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
+      this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = texture;
+      this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
+      this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
+      this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value = numFrames;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFrames.needsUpdate = true;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true;
     } else {
       /* this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = null;
       this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true; */
@@ -349,7 +398,6 @@ class HotbarRenderer {
       this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true; */
     }
 
-    this.app = app;
     this.needsUpdate = true;
   }
   update(timestamp, timeDiff) {
@@ -420,14 +468,14 @@ class HotbarRenderer {
     }
   }
   destroy() {
-    hotbarRenderers.splice(hotbarRenderers.indexOf(hotbarRenderer), 1);
+    // hotbarRenderers.splice(hotbarRenderers.indexOf(hotbarRenderer), 1);
   }
 }
-const hotbarRenderers = [];
+// const hotbarRenderers = [];
 
 const createHotbarRenderer = (width, height, selected) => {
   const hotbarRenderer = new HotbarRenderer(width, height, selected);
-  hotbarRenderers.push(hotbarRenderer);
+  // hotbarRenderers.push(hotbarRenderer);
   return hotbarRenderer;
 };
 
