@@ -23,10 +23,10 @@ const HotbarItem = props => {
     }, [canvasRef]);
     useEffect(() => {
       function selectedchange(e) {
-        // console.log('selectedchange hotbar 1', e.data);
-        const {index} = e.data;
-        setSelected(index === props.index);
-        // console.log('selectedchange hotbar 2', e.data);
+        const {index, app} = e.data;
+        if (index === -1 || app) {
+          setSelected(index === props.index);
+        }
       }
 
       loadoutManager.addEventListener('selectedchange', selectedchange);
