@@ -6,11 +6,11 @@ import Inspector from './Inspector.jsx';
 import Chat from './Chat.jsx';
 import CharacterHups from './CharacterHups.jsx';
 import MagicMenu from './MagicMenu.jsx';
-import * as Z from 'zjs';
+// import * as Z from 'zjs';
 // import {Color} from './Color.js';
 import {world} from '../world.js'
 import game from '../game.js'
-import universe from '../universe.js'
+// import universe from '../universe.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
