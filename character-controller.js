@@ -228,7 +228,6 @@ class PlayerBase extends THREE.Object3D {
     this.updateVoice();
   }
   updateVoice() {
-    console.log('set voice', this.voiceEndpoint || this.voicePack || null, this.voiceEndpoint, this.voicePack, null, new Error().stack);
     this.characterHups.setVoice(this.voiceEndpoint || this.voicePack || null);
   }
   getCrouchFactor() {
