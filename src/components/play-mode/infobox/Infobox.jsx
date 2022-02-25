@@ -79,7 +79,7 @@ export const Infobox = () => {
             </div>
             <div className={ styles.hints }>
                 <div className={ styles.hint }>
-                    <div className={ styles.key }>E</div>
+                    <div className={ styles.key }>LMB</div>
                     <div className={ styles.label }>Use</div>
                 </div>
                 <div className={ styles.hint }>
