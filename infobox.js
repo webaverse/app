@@ -22,7 +22,10 @@ const fullscreenFragmentShader = `\
   uniform float uTime;
   uniform float numFrames;
   uniform float numFramesPerRow;
+  uniform float outline_thickness;
   varying vec2 vUv;
+
+  #define PI 3.1415926535897932384626433832795
 
   //---------------------------------------------------------------------------
   //1D Perlin noise implementation 
@@ -115,32 +118,60 @@ const fullscreenFragmentShader = `\
   }
 
   void main() {
+    // compute uv
+    float f = mod(uTime / 1000. * 0.5, 1.);
+    float frameIndex = floor(f * numFrames);
+    float x = mod(frameIndex, numFramesPerRow);
+    float y = floor(frameIndex / numFramesPerRow);
+
+    float frameSize = 1. / numFramesPerRow;
+
+    float xOffset = x * frameSize;
+    float yOffset = y * frameSize;
+
+    vec2 uv = vUv;
+    uv.x = xOffset + uv.x * frameSize;
+    uv.y = yOffset + uv.y * frameSize;
+
+    // gl_FragColor.gb = uv;
+    // gl_FragColor.a = 1.;
+
     // sample texture
     vec4 s;
     if (uTexEnabled > 0.) {
-      float f = mod(uTime / 1000. * 0.5, 1.);
-      float frameIndex = floor(f * numFrames);
-      float x = mod(frameIndex, numFramesPerRow);
-      float y = floor(frameIndex / numFramesPerRow);
-
-      float frameSize = 1. / numFramesPerRow;
-
-      float xOffset = x * frameSize;
-      float yOffset = y * frameSize;
-
-      vec2 uv = vUv;
-      uv.x = xOffset + uv.x * frameSize;
-      uv.y = yOffset + uv.y * frameSize;
-
-      // gl_FragColor.gb = uv;
-      // gl_FragColor.a = 1.;
-
       s = texture2D(uTex, uv);
     } else {
       s = vec4(0.);
     }
 
-    vec3 c = vec3(0.1);
+    // outline
+    if (uTexEnabled > 0.) {
+      float sum = 0.0;
+      int passes = 32;
+      float passesFloat = float(passes);
+      float angleStep = 2.0 * PI / passesFloat;
+      for (int i = 0; i < passes; ++i) {
+        float n = float(i);
+        float angle = angleStep * n;
+
+        vec2 uv2 = uv + vec2(cos(angle), sin(angle)) * outline_thickness / numFramesPerRow;
+        sum += texture(uTex, uv2).a; // / passesFloat;
+      }
+
+      if (sum > 0.) {
+        s.rgb = mix(
+          mix(vec3(0.8), vec3(1.), vUv.y),
+          s.rgb,
+          s.a
+        );
+        // s.a = max(s.a, 0.5);
+        s.a = 1.;
+      }
+    }
+    
+    gl_FragColor = s;
+
+    /* vec3 c = vec3(0.1);
     c = c * (1. - s.a) + s.rgb * s.a;
 
     float backgroundAlpha = (1. - vUv.y * 2.) * 0.7;
@@ -148,7 +179,7 @@ const fullscreenFragmentShader = `\
     
     // result
     gl_FragColor.rgb = c;
-    gl_FragColor.a = a;
+    gl_FragColor.a = backgroundAlpha; */
   }
 `;
 const localVector2D = new THREE.Vector2();
@@ -179,6 +210,10 @@ const _makeInfoboxRendererScene = () => {
         },
         numFramesPerRow: {
           value: 0,
+          needsUpdate: true,
+        },
+        outline_thickness: {
+          value: 0.02,
           needsUpdate: true,
         },
       },
