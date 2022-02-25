@@ -90,9 +90,12 @@ export const defaultVoicePack = {
   indexUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json`,
 };
 export const voiceEndpoint = `https://voice.webaverse.com/tts`;
-export const defaultVoice = `1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO`; // Sweetie Belle
-// export const defaultVoice = 'Sweetie Belle';
-// export const defaultVoice = 'Trixie';
+/* export const defaultVoice = {
+  name: 'Sweetie Belle',
+}; */
+export const defaultVoiceEndpoint = {
+  name: 'Trixie',
+};
 
 export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
 export const chatTextSpeed = 20;
