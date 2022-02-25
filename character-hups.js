@@ -180,6 +180,8 @@ class CharacterHups extends EventTarget {
       this.voicer = new VoicePackVoicer(syllableFiles, audioBuffer, this.player);
     } else if (voice instanceof VoiceEndpoint) {
       this.voicer = new VoiceEndpointVoicer(voice, this.player);
+    } else if (voice === null) {
+      this.voicer = null;
     } else {
       throw new Error('invalid voice');
     }
