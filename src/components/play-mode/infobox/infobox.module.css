@@ -8,8 +8,12 @@
   right: 30px;
   padding-left: 30px;
   color: #FFF;
+  transform: translateY(0);
+  transition: cubic-bezier(0, 1, 0, 1) 1s transform;
 }
-
+.infobox:not(.selected) {
+  transform: translateY(115px);
+}
 .infobox .screenshot {
   position: relative;
   width: 100px;
@@ -71,6 +75,10 @@
 }
 .infobox .stat {
   display: flex;
+}
+.infobox .progress {
+  display: flex;
+  align-items: center;
 }
 /* .infobox .pill {
   margin-right: 10px;
