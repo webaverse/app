@@ -21,8 +21,6 @@ import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {Tokens} from './tabs/tokens';
 
-// const localEuler = new THREE.Euler();
-
 export default function Header({
   app,
 }) {
