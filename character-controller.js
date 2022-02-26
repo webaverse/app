@@ -139,6 +139,8 @@ class PlayerBase extends THREE.Object3D {
     this.avatar = null;
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
+    this.voicePack = null;
+    this.voiceEndpoint = null;
   }
   findAction(fn) {
     const actions = this.getActionsState();
@@ -210,16 +212,23 @@ class PlayerBase extends THREE.Object3D {
     return false;
   }
   async loadVoicePack({audioUrl, indexUrl}) {
-    const voicePack = await VoicePack.load({
+    this.voicePack = await VoicePack.load({
       audioUrl,
       indexUrl,
     });
-    this.characterHups.setVoice(voicePack);
+    this.updateVoice();
   }
-  setVoice(voiceId) {
-    const url = `${voiceEndpoint}?voice=${encodeURIComponent(voiceId)}`;
-    const voice = new VoiceEndpoint(url);
-    this.characterHups.setVoice(voice);
+  setVoiceEndpoint(voiceId) {
+    if (voiceId) {
+      const url = `${voiceEndpoint}?voice=${encodeURIComponent(voiceId)}`;
+      this.voiceEndpoint = new VoiceEndpoint(url);
+    } else {
+      this.voiceEndpoint = null;
+    }
+    this.updateVoice();
+  }
+  updateVoice() {
+    this.characterHups.setVoice(this.voiceEndpoint || this.voicePack || null);
   }
   getCrouchFactor() {
     return 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();

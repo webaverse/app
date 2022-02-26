@@ -23,15 +23,31 @@
 }
 
 .hotbar .item .label {
+    position: relative;
     display: flex;
     margin: 5px auto;
     justify-content: center;
     align-items: center;
     width: 20px;
     height: 20px;
-    border: 1px solid;
+    background-color: #666;
     border-radius: 3px;
     color: #FFFFFF80;
+}
+.hotbar .item:not(.selected) .label {
+    opacity: 0.3;
+}
+.hotbar .item .background {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    bottom: 2px;
+    right: 2px;
+    background-color: #000;
+    border-radius: 2px;
+}
+.hotbar .item .text {
+  position: relative;
 }
 
 /* .hotbar .item .box img {

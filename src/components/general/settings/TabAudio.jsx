@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
-import { defaultVoicePack } from '../../../../constants.js';
+import { defaultVoicePack, defaultVoiceEndpoint } from '../../../../constants.js';
 import game from '../../../../game';
 import { Slider } from './slider';
 
@@ -10,12 +10,17 @@ import styles from './settings.module.css';
 
 //
 
+const noneVoiceEndpoint = {
+    name: 'None',
+    drive_id: null,
+};
 const DefaultSettings = {
     general:        100,
     music:          100,
     voice:          100,
     effects:        100,
-    voicePack:      defaultVoicePack.name
+    voicePack:      defaultVoicePack.name,
+    voiceEndpoint:  noneVoiceEndpoint.name,
 };
 
 export const TabAudio = ({ active }) => {
@@ -25,12 +30,14 @@ export const TabAudio = ({ active }) => {
     const [ settingsLoaded, setSettingsLoaded ] = useState( null );
 
     const [ voicePacks, setVoicePacks ] = useState([]);
+    const [ voiceEndpoints, setVoiceEndpoints ] = useState([]);
 
     const [ generalVolume, setGeneralVolume ] = useState( null );
     const [ musicVolume, setMusicVolume ] = useState( null );
     const [ voiceVolume, setVoiceVolume ] = useState( null );
     const [ effectsVolume, setEffectsVolume ] = useState( null );
     const [ voicePack, setVoicePack ] = useState( '' );
+    const [ voiceEndpoint, setVoiceEndpoint ] = useState( '' );
 
     //
 
@@ -41,7 +48,8 @@ export const TabAudio = ({ active }) => {
             music:          musicVolume,
             voice:          voiceVolume,
             effects:        effectsVolume,
-            voicePack:      voicePack
+            voicePack:      voicePack,
+            voiceEndpoint:  voiceEndpoint,
         };
 
         localStorage.setItem( 'AudioSettings', JSON.stringify( settings ) );
@@ -70,6 +78,7 @@ export const TabAudio = ({ active }) => {
         setVoiceVolume( settings.voice ?? DefaultSettings.voice );
         setEffectsVolume( settings.effects ?? DefaultSettings.effects );
         setVoicePack( settings.voicePack ?? DefaultSettings.voicePack );
+        setVoiceEndpoint( settings.voiceEndpoint ?? DefaultSettings.voiceEndpoint );
 
         setSettingsLoaded( true );
 
@@ -79,13 +88,8 @@ export const TabAudio = ({ active }) => {
 
         // set voice pack
 
-        const vp = voicePacks[ voicePacks.map( ( vp ) => { return vp.name; } ).indexOf( voicePack ).toString() ];
-
-        if ( typeof vp.drive_id === 'string' ) {
-
-            game.setVoice( vp.drive_id );
-
-        } else if ( typeof vp.audioUrl === 'string' || typeof vp.indexUrl === 'string' ) {
+        const vp = voicePacks[ voicePacks.map( ( vp ) => { return vp.name; } ).indexOf( voicePack ) ];
+        if ( vp ) {
 
             (async () => {
 
@@ -100,9 +104,14 @@ export const TabAudio = ({ active }) => {
 
             });
 
-        } else {
+        }
 
-            console.warn( 'no such voice pack', voicePack );
+        // set voice endpoint
+
+        const ve = voiceEndpoints[ voiceEndpoints.map( ( vp ) => { return vp.name; } ).indexOf( voiceEndpoint ) ];
+        if ( ve ) {
+
+            game.setVoiceEndpoint( ve.drive_id );
 
         }
 
@@ -116,9 +125,15 @@ export const TabAudio = ({ active }) => {
 
     async function loadVoicePack () {
 
+        setVoicePacks( [ defaultVoicePack ] );
+
+    };
+
+    async function loadVoiceEndpoint () {
+
         const res = await fetch( `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json` );
-        const voicePacks = await res.json();
-        setVoicePacks( [ defaultVoicePack ].concat( voicePacks ) );
+        const voiceEndpoints = await res.json();
+        setVoiceEndpoints( [ noneVoiceEndpoint ].concat(voiceEndpoints) );
 
     };
 
@@ -133,7 +148,7 @@ export const TabAudio = ({ active }) => {
 
     useEffect( () => {
 
-        if ( generalVolume && musicVolume && voiceVolume && effectsVolume && voicePack ) {
+        if ( generalVolume && musicVolume && voiceVolume && effectsVolume && voicePack && voiceEndpoint ) {
 
             if ( settingsLoaded ) {
 
@@ -148,11 +163,14 @@ export const TabAudio = ({ active }) => {
 
         }
 
-    }, [ generalVolume, musicVolume, voiceVolume, effectsVolume, voicePack ] );
+    }, [ generalVolume, musicVolume, voiceVolume, effectsVolume, voicePack, voiceEndpoint ] );
 
     useEffect( async () => {
 
-        await loadVoicePack();
+        await Promise.all([
+            loadVoicePack(),
+            loadVoiceEndpoint(),
+        ]);
         loadSettings();
 
     }, [] );
@@ -188,6 +206,18 @@ export const TabAudio = ({ active }) => {
                         voicePacks.map( ( voicePack, i ) => {
                             return (
                                 <option value={ voicePack.name } key={ i }>{ voicePack.name }</option>
+                            );
+                        })
+                    }
+                </select>
+            </div>
+            <div className={ styles.row } >
+                <div className={ styles.paramName }>Voice endpoint</div>
+                <select className={ styles.select } value={ voiceEndpoint } onChange={ e => { setVoiceEndpoint( e.target.value ); } } >
+                    {
+                        voiceEndpoints.map( ( voiceEndpoint, i ) => {
+                            return (
+                                <option value={ voiceEndpoint.name } key={ i }>{ voiceEndpoint.name }</option>
                             );
                         })
                     }
