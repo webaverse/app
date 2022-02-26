@@ -84,18 +84,11 @@ export const avatarInterpolationNumFrames = 4;
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
 
-export const defaultVoicePack = {
-  name: `ShiShi voice pack`,
-  audioUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3`,
-  indexUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json`,
-};
+export const voicePacksUrl = `./voicepacks/all_packs.json`;
+
 export const voiceEndpoint = `https://voice.webaverse.com/tts`;
-/* export const defaultVoice = {
-  name: 'Sweetie Belle',
-}; */
-export const defaultVoiceEndpoint = {
-  name: 'Trixie',
-};
+export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
+// ['Sweetie Belle', 'Trixie', 'Shining Armor', 'Maud Pie', 'Rapunzel']
 
 export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
 export const chatTextSpeed = 20;
