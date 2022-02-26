@@ -42,12 +42,16 @@ class StateMachine{
             states: {},
             set registerState(params)  { //assign a state to a tracked object
                 if(!params) return;
+                // params.active && console.log(params)
                 const {name} = params;
                 this.states[name] ??= new StateObj(params);
                 this.states[name] = { ...this.states[name], ...params }
             },
             getState: function(state, active = false) {
                 return active ? (this.states[state]?.active) : this.states[state];
+            },
+            deactivate:function(state){
+                this.states[state].active = false;
             }
         };
         obj.tracker = this.getTracked(name);
