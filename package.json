@@ -8,7 +8,7 @@
     "dev": "node index.mjs -p",
     "dev:dist": "node index.mjs -p",
     "prod": "sudo $(which node) index.mjs -p",
-    "build": "vite build && cp -r ./scenes ./dist/",
+    "build": "rm -rf dist && vite build && cp -r ./scenes ./dist/",
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
     "test": "cd test && npm run test"
@@ -36,6 +36,7 @@
     "openai-api": "^1.2.6",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "rollup-plugin-esbuild": "^4.8.2",
     "smile2emoji": "^1.1.6",
     "stats.js": "^0.17.0",
     "three": "./packages/three",
