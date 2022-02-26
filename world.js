@@ -78,6 +78,13 @@ world.disableMic = () => {
     localPlayer.setMicMediaStream(null);
   }
 };
+world.toggleMic = () => {
+  if (mediaStream) {
+    world.disableMic();
+  } else {
+    world.enableMic();
+  }
+};
 
 world.connectState = state => {
   state.setResolvePriority(1);
