@@ -38,7 +38,8 @@ class VoicePack {
     ] = await Promise.all([
       (async () => {
         const res = await fetch(indexUrl);
-        const j = await res.json();
+        let j = await res.json();
+        j = j.filter(({name}) => /\/[0-9]+\.wav$/.test(name));
         return j;
       })(),
       loadAudioBuffer(audioContext, audioUrl),
