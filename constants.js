@@ -84,7 +84,7 @@ export const avatarInterpolationNumFrames = 4;
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
 
-export const voicePacksUrl = `./voicepacks/all_packs.json`;
+export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
 
 export const voiceEndpoint = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
