@@ -8,6 +8,7 @@ import {unFrustumCull, enableShadows} from './util.js';
 import {
   getEyePosition,
 } from './avatars/util.mjs';
+import stateMachine from './avatars/States.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -71,6 +72,8 @@ export function makeAvatar(app) {
 }
 export function applyPlayerActionsToAvatar(player, rig) {
 
+  //this is here for testing
+
   const jumpAction = player.getAction('jump');
   const flyAction = player.getAction('fly');
   const useAction = player.getAction('use');
@@ -96,11 +99,16 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const emoteAction = player.getAction('emote');
   const poseAction = player.getAction('pose');
 
-  rig.jumpState = !!jumpAction;
-  rig.jumpTime = player.actionInterpolants.jump.get();
+  // rig.jumpState = !!jumpAction;
+  // rig.jumpTime = player.actionInterpolants.jump.get();
+  
+  StateMachine.getTracked("playerAvatar").registerState = {
+    ...jumpAction,
+    name: jumpAction?.type ?? 'jump',
+    time: player.actionInterpolants.jump.get(),
+    active: !!jumpAction
+  }
 
-  //this is here for testing
-  StateMachine.registerObj("playerAvatar", rig);
   StateMachine.getTracked("playerAvatar").registerState = {
     ...flyAction, 
     name: flyAction?.type ?? 'fly',

@@ -553,7 +553,8 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
       const currentSpeed = localVector.set(avatar.velocity.x * velocityScaleFactor, 0, avatar.velocity.z * velocityScaleFactor)
         .length();
 
-      if (avatar.jumpState) {
+      if (avatar.tracker.getState('jump', true)) {
+      // if (avatar.jumpState) {
         return 'jump';
       } else if (avatar.narutoRunState) {
         return 'naruto run';
@@ -1185,10 +1186,16 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
-    
+
+              // console.log("LOCAL RIG", localRig);
+
+              // localRig.tracker.registerState = {
+              //   name: 'jump',
+              //   time: jumpTime,
+              //   // active: true
+              // }
               localRig.jumpState = true;
               localRig.jumpTime = jumpTime;
-    
               jumpTime += timeDiffMs * jumpIncrementSpeed;
               
               // console.log('got jump time', jumpTime, timeDiffMs, jumpIncrementSpeed);
@@ -1197,6 +1204,8 @@ const getSpriteSpecs = () => {
             },
             cleanup() {
               localRig.jumpState = false;
+
+              // localRig.tracker.deactivate('jump');
             },
           };
         },
@@ -1498,6 +1507,7 @@ const _renderSpriteImages = skinnedVrm => {
     visemes: true,
     debug: false,
   });
+  // console.log(localRig)
   for (let h = 0; h < 2; h++) {
     localRig.setHandEnabled(h, false);
   }

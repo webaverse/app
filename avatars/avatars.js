@@ -48,6 +48,9 @@ import Blinker from './Blinker.js'
 import Nodder from './Nodder.js'
 import Looker from './Looker.js'
 
+import StateMachine from './States.js';
+
+
 const textEncoder = new TextEncoder();
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
@@ -101,16 +104,6 @@ const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
-const defaultSitAnimation = 'chair';
-const defaultUseAnimation = 'combo';
-const defaultDanceAnimation = 'dansu';
-const defaultThrowAnimation = 'throw';
-// const defaultCrouchAnimation = 'crouch';
-const defaultActivateAnimation = 'activate';
-const defaultNarutoRunAnimation = 'narutoRun';
-// const defaultchargeJumpAnimation = 'chargeJump';
-// const defaultStandChargeAnimation = 'standCharge';
-// const defaultHurtAnimation = 'pain_back';
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 import {
@@ -394,6 +387,8 @@ class Avatar {
     }
 
     window.avatar = this;
+    window.StateMachine = StateMachine;
+    StateMachine.registerObj("playerAvatar", this);    
     this.object = object;
 
     const model = (() => {
@@ -881,10 +876,6 @@ class Avatar {
 
     // shared state
     this.direction = new THREE.Vector3();
-    this.jumpState = false;
-    this.jumpTime = NaN;
-    // this.flyState = this.tracker.getState('fly', true);  //we likely don't need these anymore
-    // this.flyTime = this.tracker.getState('fly').time;
 
     this.useTime = NaN;
     this.useAnimation = null;
@@ -934,7 +925,23 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
+    // this.jumpState ??= null;
+    // this.jumpTime ??= NaN;
   }
+
+  // get jumpState (){return this?.tracker.getState('jump', true)};
+  // get jumpTime() {return this?.tracker.getState('jump')?.time};
+  get jumpState (){return this?._jumpState};
+  get jumpTime() {return this?._jumpTime};
+  set jumpState(_s){
+    this._jumpState = _s;
+  }
+  set jumpTime(_t){
+    this._jumpTime = _t;
+  }
+    // this.flyState = this.tracker.getState('fly', true);  //we likely don't need these anymore
+    // this.flyTime = this.tracker.getState('fly')?.time;
+
   static bindAvatar(object) {
     const model = object.scene;
     model.updateMatrixWorld(true);

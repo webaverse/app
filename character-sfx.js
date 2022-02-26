@@ -80,20 +80,20 @@ class CharacterSfx {
 
     // jump
     const _handleJump = () => {
-      if (this.player.avatar.jumpState && !this.lastJumpState) {
+      if (this.player.avatar.tracker.getState('jump', true) && !this.lastJumpState) {
         const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
         sounds.playSound(audioSpec);
-      } else if (this.lastJumpState && !this.player.avatar.jumpState) {
+      } else if (this.lastJumpState && !this.player.avatar.tracker.getState('jump', true)) {
         const audioSpec = soundFiles.land[Math.floor(Math.random() * soundFiles.land.length)];
         sounds.playSound(audioSpec);
       }
-      this.lastJumpState = this.player.avatar.jumpState;
+      this.lastJumpState = this.player.avatar.tracker.getState('jump', true);
     };
     _handleJump();
 
     // step
     const _handleStep = () => {
-      if (idleWalkFactor > 0.7 && !this.player.avatar.jumpState && !this.player.avatar.tracker.getState('fly', true)) {
+      if (idleWalkFactor > 0.7 && !this.player.avatar.tracker.getState('jump', true) && !this.player.avatar.tracker.getState('fly', true)) {
         const isRunning = walkRunFactor > 0.5;
         const isCrouching = crouchFactor > 0.5;
         const isNarutoRun = this.player.avatar.narutoRunState;

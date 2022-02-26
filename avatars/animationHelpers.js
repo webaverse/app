@@ -61,6 +61,17 @@ const activeAnimations = {};
 let animationStepIndices;
 let animationsBaseModel;
 
+const defaultSitAnimation = 'chair';
+const defaultUseAnimation = 'combo';
+const defaultDanceAnimation = 'dansu';
+const defaultThrowAnimation = 'throw';
+// const defaultCrouchAnimation = 'crouch';
+const defaultActivateAnimation = 'activate';
+const defaultNarutoRunAnimation = 'narutoRun';
+const defaultchargeJumpAnimation = 'chargeJump';
+const defaultStandChargeAnimation = 'standCharge';
+
+
   // let crouchAnimations;
   // let jumpAnimationSegments;
   // let chargeJump;
@@ -425,7 +436,7 @@ const _blendFly = spec => {
   } = spec;
 
   const flyState = activeAvatar.tracker.getState('fly');
-  if (flyState.active || (flyState?.time >= 0 && flyState?.time < 1000)) {
+  if (flyState?.active || (flyState?.time >= 0 && flyState?.time < 1000)) {
     const t2 = flyState.time / 1000;
     const f = flyState.active ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
     const src2 = activeAnimations.float.interpolants[k];
@@ -765,14 +776,17 @@ export const _applyAnimation = (avatar, now) => {
   };
 
   const _getApplyFn = () => {
-    if (avatar.jumpState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
-
+    // if (avatar.tracker.getState('jump', true)) {
+      if (avatar.jumpState) {
+        return spec => {
+          const {
+            animationTrackName: k,
+            dst,
+            // isTop,
+          } = spec;
+        // console.log("JUMP", avatar.jumpState, avatar.tracker.getState('jump', true))
+          
+        // const t2 = avatar.tracker.getState('jump').time / 1000 * 0.6 + 0.7;
         const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
         const src2 = activeAnimations.jump.interpolants[k];
         const v2 = src2.evaluate(t2);
@@ -1077,7 +1091,10 @@ export const _applyAnimation = (avatar, now) => {
 
     // ignore all animation position except y
     if (isPosition) {
-      if (!avatar.jumpState) {
+      if (!avatar.tracker.getState('jump', true)) {
+        // console.log("LAND", avatar.tracker.getState('jump', true))
+
+      // if (!avatar.jumpState) {
         // animations position is height-relative
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       } else {
