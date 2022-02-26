@@ -807,51 +807,6 @@ const physxWorker = (() => {
       z
     );
   };
-
-  w.getPathPhysics = (physics, start, dest, hy, heightTolerance, detectStep, maxIterdetect, maxIterStep, maxVoxelCacheLen, ignorePhysicsIds) => {
-    start.toArray(scratchStack.f32, 0);
-    dest.toArray(scratchStack.f32, 3);
-
-    const startOffset = scratchStack.f32.byteOffset + 0 * Float32Array.BYTES_PER_ELEMENT;
-    const destOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
-    const ignorePhysicsIdsOffset = scratchStack.u32.byteOffset + 6 * Float32Array.BYTES_PER_ELEMENT;
-
-    ignorePhysicsIds.forEach((id, i) => {
-      scratchStack.u32[6 + i] = ignorePhysicsIds[i];
-    })
-
-    const outputBufferOffset = moduleInstance._getPathPhysics(
-      physics,
-      startOffset,
-      destOffset,
-      hy,
-      heightTolerance,
-      detectStep,
-      maxIterdetect,
-      maxIterStep,
-      maxVoxelCacheLen,
-      ignorePhysicsIds.length,
-      ignorePhysicsIdsOffset,
-    );
-
-    const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
-    // let tail = head + 1;
-    const numWaypointResult = moduleInstance.HEAPF32[head + 0];
-    const waypointResultPositions = [];
-    for (let i = 0; i < numWaypointResult; i++) {
-      const position = new THREE.Vector3();
-      position.x = moduleInstance.HEAPF32[head + i * 3 + 1];
-      position.y = moduleInstance.HEAPF32[head + i * 3 + 2];
-      position.z = moduleInstance.HEAPF32[head + i * 3 + 3];
-      waypointResultPositions.push(position);
-    }
-    // console.log(waypointResultPositions);
-
-    moduleInstance._doFree(outputBufferOffset);
-
-    return waypointResultPositions;
-  };
-
   w.overlapBoxPhysics = (physics, hx, hy, hz, p, q) => {
     p.toArray(scratchStack.f32, 0);
     localQuaternion.copy(q)
