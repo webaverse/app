@@ -100,11 +100,6 @@ export const TabAudio = ({ active }) => {
 
             (async () => {
 
-                /* console.log('load voice pack', {
-                    audioUrl,
-                    indexUrl,
-                }); */
-
                 await game.loadVoicePack({
                     audioUrl,
                     indexUrl
