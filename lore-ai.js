@@ -339,8 +339,8 @@ class LoreAI {
     this.endpoint = null;
   }
   async generate(prompt, {
-    stop,
-    max_tokens = 100,
+    stop = '\n',
+    max_tokens = 25,
     temperature,
     top_p,
   } = {}) {
