@@ -103,7 +103,6 @@ export const voiceEndpoint = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
 // ['Sweetie Belle', 'Trixie', 'Shining Armor', 'Maud Pie', 'Rapunzel']
 
-export const loreAiEndpoint = `https://ai.webaverse.com/`;
 export const chatTextSpeed = 15;
 export const shakeAnimationSpeed = 30;
 
