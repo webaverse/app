@@ -142,7 +142,7 @@
         },
         {
           "key": "voice",
-          "value": "1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO"
+          "value": "Sweetie Belle"
         },
         {
           "key": "avatarUrl",
@@ -174,7 +174,7 @@
         },
         {
           "key": "voice",
-          "value": "1PUUS71w2ik0uuycNB30nXFze8C7O8OzY"
+          "value": "Shining Armor"
         },
         {
           "key": "avatarUrl",
@@ -183,6 +183,70 @@
         {
           "key": "bio",
           "value": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+        }
+      ]
+    },
+    {
+      "position": [
+        3,
+        0,
+        -4
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "../npc/",
+      "components": [
+        {
+          "key": "name",
+          "value": "Hyacinth"
+        },
+        {
+          "key": "voice",
+          "value": "Maud Pie"
+        },
+        {
+          "key": "avatarUrl",
+          "value": "/avatars/hya_influencer_v2_vian.vrm"
+        },
+        {
+          "key": "bio",
+          "value": "Scillia's mentor. 15/F beast tamer. She is quite famous."
+        }
+      ]
+    },
+    {
+      "position": [
+        -3,
+        0,
+        -4
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "../npc/",
+      "components": [
+        {
+          "key": "name",
+          "value": "Juniper"
+        },
+        {
+          "key": "voice",
+          "value": "Rapunzel"
+        },
+        {
+          "key": "avatarUrl",
+          "value": "/avatars/jun_engineer_v1_vian.vrm"
+        },
+        {
+          "key": "bio",
+          "value": "She is an engineer. 17/F engineer. She is new on the street."
         }
       ]
     },
