@@ -84,17 +84,20 @@ function dynamicImporter(o, req, res) {
 
     const o = url.parse(req.originalUrl, true);
 
-    if (o.href.includes('https://webaverse.github.io/street/')) {
+    if (o.href.includes('light')) {
       debugger;
       // loadUrl = loadUrl.slice(0, loadUrl.indexOf('/@proxy/'));
     }
+
+    /** Replace any double / caused due to both proxy & import */
+    o.pathname = o.pathname.replaceAll('//', '/');
 
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
         .replace(/^(https?:\/(?!\/))/, '$1/');
-      if (_isMediaType(o.pathname)) {
+      if (_isMediaType(o.pathname) && !/^\/(?:@proxy)\//.test(o.pathname)) {
         const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
         proxyReq.on('response', proxyRes => {
           for (const header in proxyRes.headers) {

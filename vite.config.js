@@ -6,48 +6,64 @@ import metaversefilePlugin from 'metaversefile/plugins/rollup.js';
 import path from 'path';
 import fs from 'fs';
 import defaultExport from 'rollup-plugin-export-default';
-// import esbuild from 'rollup-plugin-esbuild-transform';
 import {transform} from 'esbuild';
-import esbuild from 'rollup-plugin-esbuild';
+
 
 const esbuildLoaders = ['js', 'jsx', 'ts', 'tsx', 'text', 'base64', 'file', 'dataurl', 'binary', 'default'];
 let plugins = [
   // reactRefresh()
 ];
 
-/** Manually configure default exporters so they can be added into proxy modules */
-const defaultExporters = {
-  'three.js': 'THREE',
-  'metaversefile.js': 'metaversefile',
-};
+const baseDirectory = 'assets';
+const proxyModuleBase = '-proxy';
 
-const avoidTransforms = ['/packages/totum/index.js', 'three/build'];
+const entryPoints = [
+  {
+    path: './packages/totum/index.js',
+    name: `${baseDirectory}/metaversefile${proxyModuleBase}.js`,
+  },
+  {
+    path: './packages/three/build/three.module.js',
+    name: `${baseDirectory}/three${proxyModuleBase}.js`,
+  },
+  {
+    path: './packages/three-vrm/lib/three-vrm.module.min.js',
+    name: `${baseDirectory}/three-vrm${proxyModuleBase}.js`,
+  },
+];
 
 const build = () => {
-  let metaversefile, threejs;
+  const _entryPoints = [];
 
   return {
     name: 'build-provider',
     post: true,
+    renderDynamicImport({moduleId}) {
+      if (moduleId.includes('metaversefile')) {
+        return {
+          left: 'import(`/@import/${',
+          right: '}`)',
+        };
+      }
+    },
+
     buildStart() {
-      metaversefile = this.emitFile({
-        type: 'chunk',
-        id: './packages/totum/index.js',
-        fileName: 'assets/metaversefile.js',
-      });
-      threejs = this.emitFile({
-        type: 'chunk',
-        id: './packages/three/build/three.module.js',
-        fileName: 'assets/three-proxy.js'
-      });
+      for (const iterator of entryPoints) {
+        const entry = this.emitFile({
+          type: 'chunk',
+          id: iterator.path,
+          fileName: iterator.name,
+        });
+        _entryPoints.push(entry);
+      }
     },
     generateBundle(options, bundle) {
+      /** testing exports */
+
       if (process.env.OUTPUT_EXPORTS || true) {
         const exports = {
-          // "_____NAME______", "filePath"
         };
-  
-        /** testing exports */
+
         for (const chunk of Object.keys(bundle)) {
           if (bundle[chunk].exports) {
             for (const _export of bundle[chunk].exports) {
@@ -66,11 +82,6 @@ const build = () => {
 
       if (code === null || id === null) {
         return null;
-      } else if (avoidTransforms.some(v => id.includes(v))) {
-        return {
-          code: code,
-          map: null,
-        };
       }
 
       const loader = path.parse(id).ext.replace('.', '');
@@ -91,13 +102,6 @@ const build = () => {
         target: ['es6'],
       });
 
-      if (id.includes('three/build')) {
-        console.log('*************** coming here*******************');
-        console.log(id);
-        console.log('*************** coming here*******************');
-        fs.writeFileSync('three.js', JSON.stringify(transformed.code, null, 5));
-      }
-
       return {
         code: transformed.code,
         map: transformed.map,
@@ -108,7 +112,7 @@ const build = () => {
 
 /** Use totum if not production */
 plugins = process.env.NODE_ENV !== 'production' ? plugins.concat([metaversefilePlugin()]) : plugins.concat([
-  build()
+  build(),
 ]);
 
 // https://vitejs.dev/config/
@@ -131,9 +135,11 @@ export default defineConfig({
             return 'three-vrm';
           } else if (id.includes('web3.min.js')) {
             return 'web3';
-          } else if (id.includes('totum/index.js')) {
-            return 'metaversefile';
-          } else if (id.includes('totum/constants')) {
+          }
+          // else if (id.includes('totum/index.js')) {
+          //   return 'metaversefile';
+          // }
+          else if (id.includes('totum/constants')) {
             return 'totum_constants';
           } else if (id.includes('metaversefile-api.js')) {
             return 'metaversefile-api';

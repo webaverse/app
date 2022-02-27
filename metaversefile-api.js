@@ -361,8 +361,6 @@ metaversefile.setApi({
         s = s.slice(prefix.length);
       }
       s = `/@proxy/${s}`;
-    } else {
-      s = `/@import/${s}`;
     }
     // console.log('do import', s);
     try {
