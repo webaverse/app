@@ -2,8 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
-// import game from '../../../../game.js';
-// import metaversefileApi from '../../../../metaversefile-api'
 import { Switch } from './switch';
 import loreAI from '../../../../lore-ai';
 import preauthenticator from '../../../../preauthenticator';
@@ -46,7 +44,6 @@ export const TabApiKeys = ({ active }) => {
                 return await preauthenticator.callAuthenticatedApi(authenticatedApiName, url, query);
             });
         } else {
-            console.log('lore ai set urlendpoint', {url});
             loreAI.setEndpointUrl(url);
         }
     };
@@ -62,7 +59,6 @@ export const TabApiKeys = ({ active }) => {
         if (apiKey) {
             const url = _getApiUrl(apiType);
             const origin = new URL(url).origin;
-            // console.log('set api key', [authenticatedApiName, origin, `Bearer ${apiKey}`]);
             
             (async () => {
                 await preauthenticator.setAuthenticatedApi(authenticatedApiName, origin, `Bearer ${apiKey}`);
