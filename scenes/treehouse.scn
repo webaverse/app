@@ -53,7 +53,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/street/index.js"
+      "start_url": "http://localhost/lib/webaverse_resource/street/index.js"
     },
     {
       "position": [
@@ -61,7 +61,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/skybox-anime/"
+      "start_url": "http://localhost/lib/webaverse_resource/skybox-anime/"
     },
     {
       "position": [
@@ -92,7 +92,7 @@
         1
       ],
       "physics": false,
-      "start_url": "https://webaverse.github.io/infinifruit/",
+      "start_url": "http://localhost/lib/webaverse_resource/infinifruit/",
       "dynamic": true
     },
     {
@@ -108,7 +108,7 @@
         1
       ],
       "physics": false,
-      "start_url": "https://webaverse.github.io/barrier/",
+      "start_url": "http://localhost/lib/webaverse_resource/barrier/",
       "dynamic": true
     },
     {
@@ -124,7 +124,7 @@
         1
       ],
       "physics": false,
-      "start_url": "https://webaverse.github.io/silkworm/",
+      "start_url": "http://localhost/lib/webaverse_resource/silkworm/",
       "dynamic": true
     },
     {
@@ -140,7 +140,7 @@
         1
       ],
       "physics": false,
-      "start_url": "https://webaverse.github.io/basiheart/",
+      "start_url": "http://localhost/lib/webaverse_resource/basiheart/",
       "dynamic": true
     },
     {
@@ -155,7 +155,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/treehouse/"
+      "start_url": "http://localhost/lib/webaverse_resource/treehouse/"
     },
     {
       "position": [
@@ -169,7 +169,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/ramp/"
+      "start_url": "http://localhost/lib/webaverse_resource/ramp/"
     },
     {
       "position": [
@@ -183,7 +183,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/hovercraft/"
+      "start_url": "http://localhost/lib/webaverse_resource/hovercraft/"
     },
     {
       "position": [
@@ -197,7 +197,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/dragon-mount/"
+      "start_url": "http://localhost/lib/webaverse_resource/dragon-mount/"
     },
     {
       "position": [
@@ -211,7 +211,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/fox/"
+      "start_url": "http://localhost/lib/webaverse_resource/fox/"
     },
     {
       "position": [
@@ -230,7 +230,7 @@
         0.5,
         0.5
       ],
-      "start_url": "https://webaverse.github.io/potion/"
+      "start_url": "http://localhost/lib/webaverse_resource/potion/"
     },
     {
       "position": [
@@ -249,7 +249,7 @@
         1,
         1
       ],
-      "start_url": "https://webaverse.github.io/pistol/"
+      "start_url": "http://localhost/lib/webaverse_resource/pistol/"
     },
     {
       "position": [
@@ -268,7 +268,7 @@
         1,
         1
       ],
-      "start_url": "https://webaverse.github.io/bow/"
+      "start_url": "http://localhost/lib/webaverse_resource/bow/"
     },
     {
       "position": [
@@ -287,7 +287,21 @@
         1,
         1
       ],
-      "start_url": "https://webaverse.github.io/silsword/"
+      "start_url": "http://localhost/lib/webaverse_resource/silsword/"
+    },
+    {
+      "position": [
+        24,
+        0,
+        30
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "http://localhost/lib/webaverse_resource/npc/"
     }
   ]
 }
