@@ -49,25 +49,19 @@ function dynamicImporter(o, req, res) {
     const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
     const reqURL = new URL(fullUrl);
 
-    if (reqURL.href.includes('https://webaverse.github.io/street/') || loadUrl.includes('https://webaverse.github.io/street/')) {
-      debugger;
-      // loadUrl = loadUrl.slice(0, loadUrl.indexOf('/@proxy/'));
-    }
     totum.resolveId(loadUrl, reqURL.href).then(id => {
       /** ID might have /@proxy/ in the start that needs to be trimmed */
       if (!id) {
-        console.log(loadUrl, reqURL);
-        debugger;
-        return res.end();
+        res.status(500);
+        return res.end('Failed to load');
       }
       id = id.replace('/@proxy/', '');
 
       totum.load(id).then(({code, map}) => {
-        // debugger;
         res.writeHead(200, {'Content-Type': 'application/javascript'});
         res.end(code);
       }).catch(e => {
-        console.log('******Promise Failed***********', e);
+        console.warn(e);
       });
     });
   } catch (e) {
@@ -83,11 +77,6 @@ function dynamicImporter(o, req, res) {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     const o = url.parse(req.originalUrl, true);
-
-    if (o.href.includes('light')) {
-      debugger;
-      // loadUrl = loadUrl.slice(0, loadUrl.indexOf('/@proxy/'));
-    }
 
     /** Replace any double / caused due to both proxy & import */
     o.pathname = o.pathname.replaceAll('//', '/');
@@ -144,6 +133,7 @@ function dynamicImporter(o, req, res) {
     app.use(express.static('dist'));
     app.use(express.static('dist/public'));
     app.use(express.static('dist/assets'));
+    app.enable('view cache');
   }
 
   const isHttps = !process.env.HTTP_ONLY && (!!certs.key && !!certs.cert);

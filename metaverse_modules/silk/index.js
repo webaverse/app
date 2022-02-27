@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import Simplex from './simplex-noise.js';
-import {metaversefile} from 'metaversefile';
+import metaversefile from 'metaversefile';
 const {useApp, useFrame, useDefaultComponents} = metaversefile;
 
 const localVector = new THREE.Vector3();

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {metaversefile} from 'metaversefile';
+import metaversefile from 'metaversefile';
 const {useApp, useFrame} = metaversefile;
 
 const keySize = 0.3;
