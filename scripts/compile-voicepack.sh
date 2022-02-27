@@ -6,7 +6,7 @@ find . -name '*-pad.wav' | xargs rm
 rm -f lol.txt
 rm -f sounds.txt
 
-ls {walk,run,jump,land,narutoRun,food,combat,spells}/*.wav | sort -n >sound-files.txt
+ls {actions,syllables}/*.wav 2>/dev/null | sort -n >sound-files.txt
 
 set --
 while IFS='' read -r item; do
