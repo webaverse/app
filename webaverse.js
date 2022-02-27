@@ -38,6 +38,7 @@ import {
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
+import * as voices from './voices.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 // import {defaultVoiceEndpoint, defaultVoicePack} from './constants.js';
@@ -158,6 +159,7 @@ export default class Webaverse extends EventTarget {
         sounds.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
+        voices.waitForLoad(),
         WebaWallet.waitForLoad(),
         // game.loadVoicePack(defaultVoicePack),
         // game.setVoiceEndpoint(defaultVoice),
