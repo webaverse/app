@@ -324,7 +324,7 @@ class AIScene {
     );
     let response = await loreAI.generate(prompt, {
       stop: `\n+${thingHash(this.localCharacter, 0)}`,
-      maxTokens: 100,
+      max_tokens: 100,
       temperature,
       top_p,
     });
