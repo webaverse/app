@@ -34,6 +34,7 @@ import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
 import {localPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
+import * as voices from './voices.js';
 import {getHeight} from './avatars/util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -341,6 +342,9 @@ metaversefile.setApi({
   },
   useLoreAIScene() {
     return loreAIScene;
+  },
+  useVoices() {
+    return voices;
   },
   useAvatarCruncher() {
     return avatarCruncher;
