@@ -348,9 +348,7 @@ class LoreAI {
       const query = {};
       query.prompt = prompt;
       query.max_tokens = max_tokens;
-      if (typeof end !== 'undefined') {
-        query.stop = stop;
-      }
+      query.stop = stop;
       if (typeof temperature === 'number') {
         query.temperature = temperature;
       }
