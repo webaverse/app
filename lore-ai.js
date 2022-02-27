@@ -1,7 +1,6 @@
 // import metaversefile from 'metaversefile';
 // import {chatManager} from './chat-manager.js';
 import murmurhash3js from 'murmurhash3js';
-import preauthenticator from './preauthenticator.js';
 import {
   // loreAiEndpoint,
   defaultPlayerName,
@@ -11,7 +10,6 @@ import {
   defaultObjectDescription,
 } from './constants.js';
 
-const authenticatedApiName = 'ai';
 const numGenerateTries = 5;
 const temperature = 1;
 const top_p = 1;
@@ -359,61 +357,16 @@ class LoreAI {
       if (typeof top_p === 'number') {
         query.top_p = top_p;
       }
-      // console.log('got url', url);
 
       const result = await this.endpoint(query);
-      // console.log('got result', result);
+
       const {choices} = result;
       const {text} = choices[0];
       return text;
-      /* await preauthenticator.callAuthenticatedApi(name, url, `Bearer ${key}`);
-    
-      const es = new EventSource(url);
-      let fullS = '';
-      es.addEventListener('message', e => {
-        const s = e.data;
-        // console.log('got s', s);
-
-        const _finish = () => {
-          // console.log('close');
-          es.close();
-          resolve(fullS);
-        };
-        if (s !== '[DONE]') {
-          const j = JSON.parse(s);
-          // console.log(j.choices);
-          const {choices} = j;
-          if (choices) {
-            const {text} = choices[0];
-            fullS += text;
-      
-            const endIndex = fullS.indexOf(end);
-            // console.log('got end index', {fullS, end, endIndex});
-            if (endIndex !== -1) {
-              es.close();
-              resolve(fullS.substring(0, endIndex));
-            }
-          } else {
-            _finish();
-          }
-        } else {
-          _finish();
-        }
-    
-        // console.log(JSON.stringify(prompt + fullS));
-      });
-      es.addEventListener('error', err => {
-        console.log('lore event source error', err);
-        es.close();
-        reject(err);
-      }); */
     } else {
       reject(new Error('prompt is required'));
     }
   }
-  /* async hasAuthenticatedEndpoint() {
-    return await preauthenticator.hasAuthenticatedApi(authenticatedApiName);
-  } */
   async setEndpointUrl(url) {
     this.endpoint = async query => {
       const u = new URL(url);
