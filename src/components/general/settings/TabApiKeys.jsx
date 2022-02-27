@@ -5,14 +5,18 @@ import classNames from 'classnames';
 // import game from '../../../../game.js';
 // import metaversefileApi from '../../../../metaversefile-api'
 import { Switch } from './switch';
+import loreAI from '../../../../lore-ai';
+import preauthenticator from '../../../../preauthenticator';
 
 import styles from './settings.module.css';
 
 //
 
 const DefaultSettings = {
+    apiType: 'GOOSEAI',
     apiKey: '',
 };
+const authenticatedApiName = 'ai';
 
 export const TabApiKeys = ({ active }) => {
 
@@ -20,24 +24,60 @@ export const TabApiKeys = ({ active }) => {
     const [ changesNotSaved, setChangesNotSaved ] = useState( false );
     const [ settingsLoaded, setSettingsLoaded ] = useState( false );
 
-    const [ apiType, setApiType ] = useState( 'OPENAI' );
-    const [ apiKey, setApiKey ] = useState( '' );
+    const [ apiType, setApiType ] = useState( null );
+    const [ apiKey, setApiKey ] = useState( null );
 
     //
 
-    function saveSettings () {
+    const _getApiUrl = apiType => {
+        const url = apiType === 'OPENAI' ?
+            `https://api.openai.com/v1/engines/text-davinci-001/completions`
+        :
+            `https://ai.webaverse.com/gooseai/completions`;
+        return url;
+    };
+
+    function updateLoreEndpoint(apiType) {
+        const url = _getApiUrl(apiType);
+        if (apiType === 'OPENAI') {
+            // console.log('lore ai set endpoint', {authenticatedApiName, url});
+            loreAI.setEndpoint(async query => {
+                // console.log('call lore ai endpoint', {authenticatedApiName, url, query});
+                return await preauthenticator.callAuthenticatedApi(authenticatedApiName, url, query);
+            });
+        } else {
+            console.log('lore ai set urlendpoint', {url});
+            loreAI.setEndpointUrl(url);
+        }
+    };
+
+    async function saveSettings () {
 
         const settings = {
             apiType:        apiType,
-            apiKey:         apiKey,
+            apiKey:         '',
         };
 
         localStorage.setItem( 'ApiKeySettings', JSON.stringify( settings ) );
+        if (apiKey) {
+            const url = _getApiUrl(apiType);
+            const origin = new URL(url).origin;
+            // console.log('set api key', [authenticatedApiName, origin, `Bearer ${apiKey}`]);
+            
+            (async () => {
+                await preauthenticator.setAuthenticatedApi(authenticatedApiName, origin, `Bearer ${apiKey}`);
+            })().catch(err => {
+                console.warn(err);
+            });
+        }
+
+        updateLoreEndpoint(apiType);
 
     };
 
-    function loadSettings () {
+    async function loadSettings () {
 
+        // load local storage
         const settingsString = localStorage.getItem( 'ApiKeySettings' );
         let settings;
 
@@ -53,43 +93,25 @@ export const TabApiKeys = ({ active }) => {
 
         settings = settings ?? DefaultSettings;
 
-        setApiKey( settings.apiKey ?? DefaultSettings.apiKey );
+        const apiType = settings.apiType ?? DefaultSettings.apiType;
+
+        updateLoreEndpoint(apiType);
+
+        // set react state
+        setApiType( apiType );
+        setApiKey( '' );
+
+        // console.log('set api', settings.apiType ?? DefaultSettings.apiType, keyString ?? DefaultSettings.apiKey);
+
+        setSettingsLoaded( true );
 
     };
 
     function applySettings () {
 
-        // console.log('apply AI settings', {apiType, apiKey});
-        
-        /* // set avatar style
-
-        let avatarStyle = 4;
-        if ( characterDetails === 'HIGH' ) avatarStyle = 3;
-        if ( characterDetails === 'MEDIUM' ) avatarStyle = 2;
-        if ( characterDetails === 'LOW' ) avatarStyle = 1;
-
-        const localPlayer = metaversefileApi.useLocalPlayer();
-
-        function setAvatarQuality () {
-
-            game.setAvatarQuality( avatarStyle );
-            localPlayer.removeEventListener( 'avatarchange', setAvatarQuality );
-
-        };
-
-        if ( ! localPlayer.avatar ) {
-
-            localPlayer.addEventListener( 'avatarchange', setAvatarQuality );
-
-        } else {
-
-            setAvatarQuality();
-
-        } */
-
-        //
-
         saveSettings();
+        setApiKey( '' );
+
         setChangesNotSaved( false );
 
         setTimeout( () => { setAppyingChanges( false ) }, 1000 );
@@ -99,9 +121,11 @@ export const TabApiKeys = ({ active }) => {
     function handleApplySettingsBtnClick ( event ) {
 
         event.stopPropagation();
+
         setAppyingChanges( true );
 
         setTimeout( applySettings, 100 );
+        applySettings();
 
     };
 
@@ -109,7 +133,7 @@ export const TabApiKeys = ({ active }) => {
 
     useEffect( () => {
 
-        if ( apiType && apiKey ) {
+        if ( apiType !== null && apiKey !== null ) {
 
             if ( settingsLoaded ) {
 
@@ -139,9 +163,9 @@ export const TabApiKeys = ({ active }) => {
             <div className={ styles.blockTitle }>AI</div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Provider</div>
-                <Switch className={ styles.switch } value={ apiType } setValue={ setApiType } values={ [ 'OPENAI', 'GOOSEAI' ] } />
+                <Switch className={ styles.switch } value={ apiType } setValue={ setApiType } values={ [ 'GOOSEAI', 'OPENAI' ] } />
                 {apiType === 'OPENAI' ?
-                  <input type="text" className={ styles.input } value={ apiKey } onChange={e => setApiKey(e.target.value) } placeholder="API Key" />
+                  <input type="text" className={ styles.input } value={ apiKey ?? '' } onChange={e => setApiKey(e.target.value) } placeholder="API Key" />
                 :
                   null}
                 <div className={ styles.clearfix } />
