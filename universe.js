@@ -55,7 +55,7 @@ class Universe extends EventTarget {
         }
       } else {
         const p = (async () => {
-          const roomUrl = getWorldsHost() + room;
+          const roomUrl = this.getWorldsHost() + room;
           await world.connectRoom(roomUrl);
         })();
         promises.push(p);

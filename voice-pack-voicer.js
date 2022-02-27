@@ -37,11 +37,12 @@ class VoicePack {
       audioBuffer,
     ] = await Promise.all([
       (async () => {
-        const res = await fetch('https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json');
-        const j = await res.json();
+        const res = await fetch(indexUrl);
+        let j = await res.json();
+        j = j.filter(({name}) => /\/[0-9]+\.wav$/.test(name));
         return j;
       })(),
-      loadAudioBuffer(audioContext, 'https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3'),
+      loadAudioBuffer(audioContext, audioUrl),
     ]);
     const voicePack = new VoicePack(syllableFiles, audioBuffer);
     return voicePack;

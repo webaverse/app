@@ -1,8 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
-
-import { defaultVoicePack, defaultVoiceEndpoint } from '../../../../constants.js';
+import { voicePacksUrl, voiceEndpointsUrl } from '../../../../constants.js';
 import game from '../../../../game';
 import { Slider } from './slider';
 
@@ -10,6 +9,9 @@ import styles from './settings.module.css';
 
 //
 
+export const defaultVoicePack = {
+    name: `ShiShi voice pack`,
+};
 const noneVoiceEndpoint = {
     name: 'None',
     drive_id: null,
@@ -91,11 +93,16 @@ export const TabAudio = ({ active }) => {
         const vp = voicePacks[ voicePacks.map( ( vp ) => { return vp.name; } ).indexOf( voicePack ) ];
         if ( vp ) {
 
+            const { audioPath, indexPath } = vp;
+            const voicePacksUrlBase = voicePacksUrl.replace( /\/+[^\/]+$/, '' );
+            const audioUrl = voicePacksUrlBase + audioPath;
+            const indexUrl = voicePacksUrlBase + indexPath;
+
             (async () => {
 
                 await game.loadVoicePack({
-                    audioUrl: vp.audioUrl,
-                    indexUrl: vp.indexUrl
+                    audioUrl,
+                    indexUrl
                 });
 
             })().catch( ( err ) => {
@@ -125,13 +132,15 @@ export const TabAudio = ({ active }) => {
 
     async function loadVoicePack () {
 
-        setVoicePacks( [ defaultVoicePack ] );
+        const res = await fetch( voicePacksUrl );
+        const voicePacks = await res.json();
+        setVoicePacks( voicePacks );
 
     };
 
     async function loadVoiceEndpoint () {
 
-        const res = await fetch( `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json` );
+        const res = await fetch( voiceEndpointsUrl );
         const voiceEndpoints = await res.json();
         setVoiceEndpoints( [ noneVoiceEndpoint ].concat(voiceEndpoints) );
 
