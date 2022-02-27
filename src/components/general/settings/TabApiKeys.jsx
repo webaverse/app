@@ -33,7 +33,7 @@ export const TabApiKeys = ({ active }) => {
         const url = apiType === 'OPENAI' ?
             `https://api.openai.com/v1/engines/text-davinci-001/completions`
         :
-            `https://ai.webaverse.com/gooseai/completions`;
+            `https://ai.webaverse.com/gooseai/v1/engines/gpt-neo-20b/completions`;
         return url;
     };
 
