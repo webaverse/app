@@ -367,13 +367,13 @@ class LoreAI {
   }
   async setEndpointUrl(url) {
     this.endpoint = async query => {
-      const u = new URL(url);
-      for (const k in query) {
-        const v = query[k];
-        u.searchParams.set(k, v);
-      }
-      const urlString = u.toString();
-      const res = await fetch(urlString);
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(query),
+      });
       const j = await res.json();
       return j;
     };
