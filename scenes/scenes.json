@@ -1,5 +1,6 @@
 [
   "street.scn",
+  "street-simple.scn",
   "treehouse.scn",
   "treehouse-simple.scn",
   "shadows.scn",
@@ -8,6 +9,8 @@
   "gunroom.scn",
   "classroom.scn",
   "grid.scn",
+  "grid-simple.scn",
+  "grid-heli.scn",
   "canyon.scn",
   "prototype.scn",
   "silk-fountains.scn",
