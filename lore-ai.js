@@ -1,8 +1,9 @@
 // import metaversefile from 'metaversefile';
 // import {chatManager} from './chat-manager.js';
 import murmurhash3js from 'murmurhash3js';
+import preauthenticator from './preauthenticator.js';
 import {
-  loreAiEndpoint,
+  // loreAiEndpoint,
   defaultPlayerName,
   defaultPlayerBio,
   defaultSetting,
@@ -10,6 +11,7 @@ import {
   defaultObjectDescription,
 } from './constants.js';
 
+const authenticatedApiName = 'ai';
 const numGenerateTries = 5;
 const temperature = 1;
 const top_p = 1;
@@ -322,98 +324,111 @@ class AIScene {
       this.objects,
       dstCharacter
     );
-    /* console.log('generate prompt', prompt, [
-      this.settings,
-      this.characters,
-      this.messages,
-      dstCharacter,
-    ]); */
     let response = await loreAI.generate(prompt, {
-      end: `\n+${thingHash(this.localCharacter, 0)}`,
+      stop: `\n+${thingHash(this.localCharacter, 0)}`,
       maxTokens: 100,
       temperature,
       top_p,
     });
-    // if (/[a-z]/i.test(response)) {
-      console.log('got response', {prompt, response});
-      response = response.trim();
-    /* } else {
-      response = '';
-    } */
+    console.log('got response', {prompt, response});
+    response = response.trim();
     return response;
   }
 }
 
 class LoreAI {
-  generate(prompt, {
-    end,
-    maxTokens = 25,
+  constructor() {
+    this.endpoint = null;
+  }
+  async generate(prompt, {
+    stop,
+    max_tokens = 100,
     temperature,
     top_p,
   } = {}) {
-    return new Promise((resolve, reject) => {
-      if (prompt) {    
-        const url = new URL(loreAiEndpoint);
-        url.searchParams.set('p', prompt);
-        url.searchParams.set('l', maxTokens);
-        if (typeof end !== 'undefined') {
-          url.searchParams.set('e', end);
-        }
-        if (typeof temperature === 'number') {
-          url.searchParams.set('t', temperature);
-        }
-        if (typeof top_p === 'number') {
-          url.searchParams.set('tp', top_p);
-        }
-        const openAiKey = localStorage.getItem('openAiKey');
-        if (openAiKey) {
-          url.searchParams.set('k', openAiKey);
-        }
-        // console.log('got url', url);
-      
-        const es = new EventSource(url);
-        let fullS = '';
-        es.addEventListener('message', e => {
-          const s = e.data;
-          // console.log('got s', s);
+    if (prompt) {    
+      const query = {};
+      query.prompt = prompt;
+      query.max_tokens = max_tokens;
+      if (typeof end !== 'undefined') {
+        query.stop = stop;
+      }
+      if (typeof temperature === 'number') {
+        query.temperature = temperature;
+      }
+      if (typeof top_p === 'number') {
+        query.top_p = top_p;
+      }
+      // console.log('got url', url);
 
-          const _finish = () => {
-            // console.log('close');
-            es.close();
-            resolve(fullS);
-          };
-          if (s !== '[DONE]') {
-            const j = JSON.parse(s);
-            // console.log(j.choices);
-            const {choices} = j;
-            if (choices) {
-              const {text} = choices[0];
-              fullS += text;
-        
-              const endIndex = fullS.indexOf(end);
-              // console.log('got end index', {fullS, end, endIndex});
-              if (endIndex !== -1) {
-                es.close();
-                resolve(fullS.substring(0, endIndex));
-              }
-            } else {
-              _finish();
+      const result = await this.endpoint(query);
+      // console.log('got result', result);
+      const {choices} = result;
+      const {text} = choices[0];
+      return text;
+      /* await preauthenticator.callAuthenticatedApi(name, url, `Bearer ${key}`);
+    
+      const es = new EventSource(url);
+      let fullS = '';
+      es.addEventListener('message', e => {
+        const s = e.data;
+        // console.log('got s', s);
+
+        const _finish = () => {
+          // console.log('close');
+          es.close();
+          resolve(fullS);
+        };
+        if (s !== '[DONE]') {
+          const j = JSON.parse(s);
+          // console.log(j.choices);
+          const {choices} = j;
+          if (choices) {
+            const {text} = choices[0];
+            fullS += text;
+      
+            const endIndex = fullS.indexOf(end);
+            // console.log('got end index', {fullS, end, endIndex});
+            if (endIndex !== -1) {
+              es.close();
+              resolve(fullS.substring(0, endIndex));
             }
           } else {
             _finish();
           }
-      
-          // console.log(JSON.stringify(prompt + fullS));
-        });
-        es.addEventListener('error', err => {
-          console.log('lore event source error', err);
-          es.close();
-          reject(err);
-        });
-      } else {
-        reject(new Error('prompt is required'));
+        } else {
+          _finish();
+        }
+    
+        // console.log(JSON.stringify(prompt + fullS));
+      });
+      es.addEventListener('error', err => {
+        console.log('lore event source error', err);
+        es.close();
+        reject(err);
+      }); */
+    } else {
+      reject(new Error('prompt is required'));
+    }
+  }
+  /* async hasAuthenticatedEndpoint() {
+    return await preauthenticator.hasAuthenticatedApi(authenticatedApiName);
+  } */
+  async setEndpointUrl(url) {
+    this.endpoint = async query => {
+      const u = new URL(url);
+      for (const k in query) {
+        const v = query[k];
+        u.searchParams.set(k, v);
       }
-    });
+      const urlString = u.toString();
+      const res = await fetch(urlString);
+      const j = await res.json();
+      return j;
+    };
+  }
+  async setEndpoint(endpoint) {
+    this.endpoint = endpoint;
   }
   createScene(localPlayer, opts) {
     return new AIScene(localPlayer, opts);
