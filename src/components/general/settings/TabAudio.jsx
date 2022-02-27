@@ -1,9 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
-import { voicePacksUrl, voiceEndpointsUrl } from '../../../../constants.js';
+import { voicePacksUrl, voiceEndpointsUrl } from '../../../../constants';
 import game from '../../../../game';
 import { Slider } from './slider';
+import * as voices from '../../../../voices';
 
 import styles from './settings.module.css';
 
@@ -132,17 +133,17 @@ export const TabAudio = ({ active }) => {
 
     async function loadVoicePack () {
 
-        const res = await fetch( voicePacksUrl );
-        const voicePacks = await res.json();
-        setVoicePacks( voicePacks );
+        await voices.waitForLoad();
+
+        setVoicePacks( voices.voicePacks );
 
     };
 
     async function loadVoiceEndpoint () {
 
-        const res = await fetch( voiceEndpointsUrl );
-        const voiceEndpoints = await res.json();
-        setVoiceEndpoints( [ noneVoiceEndpoint ].concat(voiceEndpoints) );
+        await voices.waitForLoad();
+
+        setVoiceEndpoints( [ noneVoiceEndpoint ].concat(voices.voiceEndpoints) );
 
     };
 
