@@ -236,15 +236,7 @@ class AppManager extends EventTarget {
         const m = await metaversefile.import(contentId);
         if (!live) return _bailout(null);
         const app = metaversefile.createApp({
-          name: contentId,
-          /* type: (() => {
-            const match = contentId.match(/\.([a-z0-9]+)$/i);
-            if (match) {
-              return match[1];
-            } else {
-              return '';
-            }
-          })(), */
+          // name: contentId,
         });
         
         app.position.fromArray(position);
