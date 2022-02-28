@@ -22,15 +22,11 @@ const componentTemplates = {
     let modelBones = null;
     let appAimAnimationMixers = null;
 
-    // console.log('wear component add', app.contentId);
-
     const initialScale = app.scale.clone();
 
     const localPlayer = metaversefile.useLocalPlayer();
 
     const wearupdate = e => {
-      // console.log('wear update', e);
-      
       if (e.wear) {
         wearSpec = app.getComponent('wear');
         initialScale.copy(app.scale);
