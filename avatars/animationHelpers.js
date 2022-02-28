@@ -773,18 +773,15 @@ export const _applyAnimation = (avatar, now) => {
   };
 
   const _getApplyFn = () => {
-    // if (avatar.tracker.getState('jump', true)) {
-      if (avatar.jumpState) {
+    if (avatar.tracker.getState('jump', true)) {
         return spec => {
           const {
             animationTrackName: k,
             dst,
             // isTop,
           } = spec;
-        // console.log("JUMP", avatar.jumpState, avatar.tracker.getState('jump', true))
           
-        // const t2 = avatar.tracker.getState('jump').time / 1000 * 0.6 + 0.7;
-        const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
+        const t2 = avatar.tracker.getState('jump').time / 1000 * 0.6 + 0.7;
         const src2 = activeAnimations.jump.interpolants[k];
         const v2 = src2.evaluate(t2);
 
@@ -1089,9 +1086,7 @@ export const _applyAnimation = (avatar, now) => {
     // ignore all animation position except y
     if (isPosition) {
       if (!avatar.tracker.getState('jump', true)) {
-        // console.log("LAND", avatar.tracker.getState('jump', true))
 
-      // if (!avatar.jumpState) {
         // animations position is height-relative
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       } else {

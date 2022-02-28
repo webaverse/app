@@ -927,20 +927,11 @@ class Avatar {
     this.lastEyeTargetTime = -Infinity;
     // this.jumpState ??= null;
     // this.jumpTime ??= NaN;
-  }
-
-  // get jumpState (){return this?.tracker.getState('jump', true)};
-  // get jumpTime() {return this?.tracker.getState('jump')?.time};
-  get jumpState (){return this?._jumpState};
-  get jumpTime() {return this?._jumpTime};
-  set jumpState(_s){
-    this._jumpState = _s;
-  }
-  set jumpTime(_t){
-    this._jumpTime = _t;
-  }
     // this.flyState = this.tracker.getState('fly', true);  //we likely don't need these anymore
     // this.flyTime = this.tracker.getState('fly')?.time;
+  }
+
+
 
   static bindAvatar(object) {
     const model = object.scene;

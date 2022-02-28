@@ -1187,25 +1187,18 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
 
-              // console.log("LOCAL RIG", localRig);
+              localRig.tracker.registerState = {
+                name: 'jump',
+                time: jumpTime,
+                active: true
+              }
 
-              // localRig.tracker.registerState = {
-              //   name: 'jump',
-              //   time: jumpTime,
-              //   // active: true
-              // }
-              localRig.jumpState = true;
-              localRig.jumpTime = jumpTime;
               jumpTime += timeDiffMs * jumpIncrementSpeed;
                   
-              // console.log('got jump time', jumpTime, timeDiffMs, jumpIncrementSpeed);
-    
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.jumpState = false;
-
-              // localRig.tracker.deactivate('jump');
+              localRig.tracker.deactivate('jump');
             },
           };
         },
