@@ -136,7 +136,21 @@ class PlayerBase extends THREE.Object3D {
       this.leftHand,
       this.rightHand,
     ];
+    
     this.avatar = null;
+    
+    this.appManager = new AppManager({
+      appsMap: null,
+    });
+    this.appManager.addEventListener('appadd', e => {
+      const app = e.data;
+      scene.add(app);
+    });
+    this.appManager.addEventListener('appremove', e => {
+      const app = e.data;
+      app.parent && app.parent.remove(app);
+    });
+
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
     this.voicePack = null;
@@ -257,18 +271,6 @@ class StatePlayer extends PlayerBase {
     this.playersArray = null;
     this.playerMap = null;
     this.microphoneMediaStream = null;
-
-    this.appManager = new AppManager({
-      appsMap: null,
-    });
-    this.appManager.addEventListener('appadd', e => {
-      const app = e.data;
-      scene.add(app);
-    });
-    this.appManager.addEventListener('appremove', e => {
-      const app = e.data;
-      app.parent && app.parent.remove(app);
-    });
     
     this.avatarEpoch = 0;
     this.syncAvatarCancelFn = null;
