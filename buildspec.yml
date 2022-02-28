@@ -8,6 +8,9 @@ phases:
       - echo Entered the install phase...
       - git submodule init
       - git submodule update
+      - cd ./packages/totum
+      - git pull origin main
+      - cd ../../
   pre_build:
     commands:
       - REPOSITORY_URI=907263135169.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrrepository-app-$AWS_DEFAULT_REGION
@@ -31,6 +34,6 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
-      - printf '[{"name":"ECSContainer-app-'$AWS_DEFAULT_REGION'","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - printf '[{"name":"ECSContainer-'$SERVICE_NAME'-'$AWS_DEFAULT_REGION'","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 artifacts:
     files: imagedefinitions.json
