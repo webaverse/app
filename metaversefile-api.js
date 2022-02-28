@@ -72,6 +72,9 @@ class App extends THREE.Object3D {
       value,
     });
   }
+  hasComponent(key) {
+    return this.components.some(component => component.key === key);
+  }
   removeComponent(key) {
     const index = this.components.findIndex(component => component.type === key);
     if (index !== -1) {
