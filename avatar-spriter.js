@@ -1197,7 +1197,7 @@ const getSpriteSpecs = () => {
               localRig.jumpState = true;
               localRig.jumpTime = jumpTime;
               jumpTime += timeDiffMs * jumpIncrementSpeed;
-              
+                  
               // console.log('got jump time', jumpTime, timeDiffMs, jumpIncrementSpeed);
     
               localRig.update(timestamp, timeDiffMs);
