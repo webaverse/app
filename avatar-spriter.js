@@ -1157,10 +1157,10 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
+            cleanup() {
+              localRig.narutoRunState = false;
+            },            
           };
-        },
-        cleanup() {
-          localRig.narutoRunState = false;
         },
       },
       {
