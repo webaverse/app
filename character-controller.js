@@ -942,7 +942,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
     }
   }
-  lookAt(p) {
+  /* lookAt(p) {
     const cameraOffset = cameraManager.getCameraOffset();
     camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
     camera.quaternion.setFromRotationMatrix(
@@ -954,14 +954,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     );
     camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
     camera.updateMatrixWorld();
-    
-    /* this.quaternion.setFromRotationMatrix(
-      localMatrix.lookAt(this.position, p, upVector)
-    );
-    teleportTo(this.position, this.quaternion, {
-      relation: 'head',
-    }); */
-  }
+  } */
   pushPlayerUpdates() {
     this.playersArray.doc.transact(() => {
       /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
