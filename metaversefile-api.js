@@ -900,6 +900,17 @@ export default () => {
     await universe.waitForSceneLoaded();
   },
   async addModule(app, m) {
+    app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
+    app.description = m.description ?? '';
+    app.contentId = m.contentId ?? '';
+    if (Array.isArray(m.components)) {
+      for (const {key, value} of m.components) {
+        if (!app.hasComponent(key)) {
+          app.setComponent(key, value);
+        }
+      }
+    }
+
     currentAppRender = app;
 
     let renderSpec = null;
