@@ -81,24 +81,8 @@ const defaultStandChargeAnimation = 'standCharge';
 
 
 
-const angles = {
-  walk:{
-    base:null,
-    mirrored:null
-  },
-  run: {
-    base: null,
-    mirrored: null
-  },
-  crouch: {
-    base: null,
-    mirrored: null
-  },
-  // horizontalWalkAnimationAngles: null,
-  // horizontalWalkAnimationAnglesMirror: null,
-  // horizontalRunAnimationAngles: null,
-  // horizontalRunAnimationAnglesMirror: null
-}
+
+let activeAvatar;
 
 let idleAnimation;
 let idleAnimationOther;
@@ -115,9 +99,24 @@ const alphaFactors = {
   // eyeTargetFactor:null,
 }
 
-
-let activeAvatar;
-let localPlayer;
+const angles = {
+  walk: {
+    base: null,
+    mirrored: null
+  },
+  run: {
+    base: null,
+    mirrored: null
+  },
+  crouch: {
+    base: null,
+    mirrored: null
+  },
+  // horizontalWalkAnimationAngles: null,
+  // horizontalWalkAnimationAnglesMirror: null,
+  // horizontalRunAnimationAngles: null,
+  // horizontalRunAnimationAnglesMirror: null
+}
 
 const animationsAngleArrays = {
   walk: [
@@ -227,6 +226,17 @@ async function loadAnimations() {
   } */
 }
 
+function mergeAnimations(a, b) {
+  const o = {};
+  for (const k in a) {
+    o[k] = a[k];
+  }
+  for (const k in b) {
+    o[k] = b[k];
+  }
+  return o;
+}
+
 //should this return to avatar?
 async function loadSkeleton() {
   const srcUrl = '/animations/animations-skeleton.glb';
@@ -243,17 +253,6 @@ async function loadSkeleton() {
   if (o) {
     animationsBaseModel = o;
   }
-}
-
-function mergeAnimations(a, b) {
-  const o = {};
-  for (const k in a) {
-    o[k] = a[k];
-  }
-  for (const k in b) {
-    o[k] = b[k];
-  }
-  return o;
 }
 
 export const loadPromise = (async () => {
@@ -403,7 +402,32 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
+const _getMirrorAnimationAngles = (animationAngles, key) => {
+  const animations = animationAngles.map(({ animation }) => animation);
+  const animationAngleArrayMirror = animationsAngleArraysMirror[key];
 
+  const backwardIndex = animations.findIndex(a => a.isBackward);
+  if (backwardIndex !== -1) {
+    // const backwardAnimationAngle = animationAngles[backwardIndex];
+    // const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
+    // if (angleToBackwardAnimation < Math.PI * 0.3) {
+    const sideIndex = backwardIndex === 0 ? 1 : 0;
+    const wrongAngle = animationAngles[sideIndex].angle;
+    const newAnimationAngle = animationAngleArrayMirror.find(animationAngle => animationAngle.matchAngle === wrongAngle);
+    animationAngles = animationAngles.slice();
+    animationAngles[sideIndex] = newAnimationAngle;
+    // animations[sideIndex] = newAnimationAngle.animation;
+    // return {
+    // return animationAngles;
+    // angleToBackwardAnimation,
+    // };
+    // }
+  }
+  // return {
+  return animationAngles;
+  // angleToBackwardAnimation: Infinity,
+  // ;
+};
 
 const _getAngleToBackwardAnimation = (angle, animationAngles) => {
   const animations = animationAngles.map(({ animation }) => animation);
@@ -417,6 +441,23 @@ const _getAngleToBackwardAnimation = (angle, animationAngles) => {
     return Infinity;
   }
 };
+
+const prepAngles = (angle) => {
+  angles.walk.base = getClosest2AnimationAngles('walk', angle);
+  angles.walk.mirrored = _getMirrorAnimationAngles(angles.walk.base, 'walk');
+
+  angles.run.base = getClosest2AnimationAngles('run', angle);
+  angles.run.mirrored = _getMirrorAnimationAngles(angles.run.base, 'run');
+
+  angles.crouch.base = getClosest2AnimationAngles('crouch', angle);
+  angles.crouch.mirrored = _getMirrorAnimationAngles(angles.crouch.base, 'crouch');
+
+  const angleToClosestAnimation = Math.abs(angleDifference(angle, angles.walk.mirrored[0].angle));
+  const angleBetweenAnimations = Math.abs(angleDifference(angles.walk.mirrored[0].angle, angles.walk.mirrored[1].angle));
+  alphaFactors.angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
+
+}
+
 const _getIdleAnimation = key => animationsIdleArrays[key].animation;
 /* const _getIdleAnimation = key => {
   if (key === 'walk' || key === 'run') {
@@ -461,7 +502,7 @@ const _blendActivateAction = spec => {
 
   if (activeAvatar.activateTime > 0) {
 
-    localPlayer ??= metaversefile.useLocalPlayer();
+    const localPlayer = metaversefile.useLocalPlayer();
 
     let defaultAnimation = "grab_forward";
 
@@ -484,7 +525,6 @@ const _blendActivateAction = spec => {
       );
   }
 };
-
 
 const _get7wayBlend = (
   avatar,
@@ -666,49 +706,6 @@ const _getHorizontalBlend = (k, lerpFn, isPosition, target, now) => {
     );
 
 };
-
-const _getMirrorAnimationAngles = (animationAngles, key) => {
-  const animations = animationAngles.map(({ animation }) => animation);
-  const animationAngleArrayMirror = animationsAngleArraysMirror[key];
-
-  const backwardIndex = animations.findIndex(a => a.isBackward);
-  if (backwardIndex !== -1) {
-    // const backwardAnimationAngle = animationAngles[backwardIndex];
-    // const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
-    // if (angleToBackwardAnimation < Math.PI * 0.3) {
-    const sideIndex = backwardIndex === 0 ? 1 : 0;
-    const wrongAngle = animationAngles[sideIndex].angle;
-    const newAnimationAngle = animationAngleArrayMirror.find(animationAngle => animationAngle.matchAngle === wrongAngle);
-    animationAngles = animationAngles.slice();
-    animationAngles[sideIndex] = newAnimationAngle;
-    // animations[sideIndex] = newAnimationAngle.animation;
-    // return {
-    // return animationAngles;
-    // angleToBackwardAnimation,
-    // };
-    // }
-  }
-  // return {
-  return animationAngles;
-  // angleToBackwardAnimation: Infinity,
-  // ;
-};
-
-const prepAngles = (angle)=>{
-  angles.walk.base = getClosest2AnimationAngles('walk', angle);
-  angles.walk.mirrored = _getMirrorAnimationAngles(angles.walk.base, 'walk');
-
-  angles.run.base = getClosest2AnimationAngles('run', angle);
-  angles.run.mirrored = _getMirrorAnimationAngles(angles.run.base, 'run');
-
-  angles.crouch.base = getClosest2AnimationAngles('crouch', angle);
-  angles.crouch.mirrored = _getMirrorAnimationAngles(angles.crouch.base, 'crouch');
-
-  const angleToClosestAnimation = Math.abs(angleDifference(angle, angles.walk.mirrored[0].angle));
-  const angleBetweenAnimations = Math.abs(angleDifference(angles.walk.mirrored[0].angle, angles.walk.mirrored[1].angle));
-  alphaFactors.angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
-  
-}
 
 export const _applyAnimation = (avatar, now) => {
 
