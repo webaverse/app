@@ -250,6 +250,80 @@ class PlayerBase extends THREE.Object3D {
     factor *= 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
     return factor; */
   }
+  wear(app) { 
+    if (world.appManager.hasTrackedApp(app.instanceId)) {
+      world.appManager.transplantApp(app, this.appManager);
+    } else {
+      // console.warn('need to transplant unowned app', app, world.appManager, this.appManager);
+      // debugger;
+    }
+    
+    const physicsObjects = app.getPhysicsObjects();
+    for (const physicsObject of physicsObjects) {
+      physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+      physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+    }
+    
+    const {instanceId} = app;
+    this.addAction({
+      type: 'wear',
+      instanceId,
+    });
+    // this.ungrab();
+    
+    app.dispatchEvent({
+      type: 'wearupdate',
+      player: this,
+      wear: true,
+    });
+    this.dispatchEvent({
+      type: 'wearupdate',
+      app,
+      wear: true,
+    });
+  }
+  unwear(app) {
+    const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
+      return type === 'wear' && instanceId === app.instanceId;
+    });
+    if (wearActionIndex !== -1) {
+      this.removeActionIndex(wearActionIndex);
+      
+      if (this.appManager.hasTrackedApp(app.instanceId)) {
+        this.appManager.transplantApp(app, world.appManager);
+      } else {
+        // console.warn('need to transplant unowned app', app, this.appManager, world.appManager);
+        // debugger;
+      }
+      
+      const wearComponent = app.getComponent('wear');
+      if (wearComponent) {
+        const avatarHeight = this.avatar ? this.avatar.height : 0;
+        app.position.copy(this.position)
+          .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
+        app.quaternion.identity();
+        app.scale.set(1, 1, 1);
+        app.updateMatrixWorld();
+      }
+
+      const physicsObjects = app.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+        physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+      }
+      
+      app.dispatchEvent({
+        type: 'wearupdate',
+        player: this,
+        wear: false,
+      });
+      this.dispatchEvent({
+        type: 'wearupdate',
+        app,
+        wear: false,
+      });
+    }
+  }
   destroy() {
     // nothing
   }
@@ -812,79 +886,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     });
     
     this.appManager.bindState(this.getAppsState());
-  }
-  wear(app) {
-    app.dispatchEvent({
-      type: 'wearupdate',
-      wear: true,
-    });
-    
-    if (world.appManager.hasTrackedApp(app.instanceId)) {
-      world.appManager.transplantApp(app, this.appManager);
-    } else {
-      // console.warn('need to transplant unowned app', app, world.appManager, this.appManager);
-      // debugger;
-    }
-    
-    const physicsObjects = app.getPhysicsObjects();
-    for (const physicsObject of physicsObjects) {
-      physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-      physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
-    }
-    
-    const {instanceId} = app;
-    this.addAction({
-      type: 'wear',
-      instanceId,
-    });
-    this.ungrab();
-    
-    this.dispatchEvent({
-      type: 'wearupdate',
-      app,
-      wear: true,
-    });
-  }
-  unwear(app) {
-    const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
-      return type === 'wear' && instanceId === app.instanceId;
-    });
-    if (wearActionIndex !== -1) {
-      this.removeActionIndex(wearActionIndex);
-      
-      if (this.appManager.hasTrackedApp(app.instanceId)) {
-        this.appManager.transplantApp(app, world.appManager);
-      } else {
-        // console.warn('need to transplant unowned app', app, this.appManager, world.appManager);
-        // debugger;
-      }
-      
-      const wearComponent = app.getComponent('wear');
-      if (wearComponent) {
-        const avatarHeight = this.avatar ? this.avatar.height : 0;
-        app.position.copy(this.position)
-          .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
-        app.quaternion.identity();
-        app.scale.set(1, 1, 1);
-        app.updateMatrixWorld();
-      }
-
-      const physicsObjects = app.getPhysicsObjects();
-      for (const physicsObject of physicsObjects) {
-        physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-        physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
-      }
-      
-      app.dispatchEvent({
-        type: 'wearupdate',
-        wear: false,
-      });
-      this.dispatchEvent({
-        type: 'wearupdate',
-        app,
-        wear: false,
-      });
-    }
   }
   grab(app, hand = 'left') {
     const renderer = getRenderer();
