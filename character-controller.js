@@ -1053,7 +1053,7 @@ class RemotePlayer extends InterpolatedPlayer {
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
     
     this.appManager.bindState(this.getAppsState());
-    this.appManager.syncApps();
+    this.appManager.loadApps();
     
     this.syncAvatar();
   }
