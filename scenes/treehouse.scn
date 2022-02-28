@@ -119,7 +119,7 @@
         1
       ],
       "physics": false,
-      "start_url": "https://webaverse.github.io/silkworm/",
+      "start_url": "../silkworm/",
       "dynamic": true
     },
     {
