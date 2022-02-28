@@ -163,7 +163,7 @@ export const TabAi = ({ active }) => {
             <div className={ styles.blockTitle }>MODEL</div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Provider</div>
-                <Switch className={ styles.switch } value={ apiType } setValue={ setApiType } values={ [ 'GOOSEAI', 'OPENAI' ] } />
+                <Switch className={ styles.switch } value={ apiType } setValue={ setApiType } values={ [ 'AI21', 'GOOSEAI', 'OPENAI' ] } />
                 {_apiTypeNeedsApiKey(apiType) ?
                   <input type="text" className={ styles.input } value={ apiKey ?? '' } onChange={e => setApiKey(e.target.value) } placeholder="API Key" />
                 :
