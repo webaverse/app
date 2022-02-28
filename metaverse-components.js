@@ -5,6 +5,7 @@ import {world} from './world.js';
 import physicsManager from './physics-manager.js';
 import {glowMaterial} from './shaders.js';
 import easing from './easing.js';
+import npcManager from './npc-manager.js';
 import {rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -154,6 +155,22 @@ const componentTemplates = {
       }
     };
     app.addEventListener('wearupdate', wearupdate);
+    app.addEventListener('destroy', () => {
+      const localPlayer = metaversefile.useLocalPlayer();
+      const remotePlayers = metaversefile.useRemotePlayers();
+      const {npcs} = npcManager;
+      const players = [localPlayer]
+        .concat(remotePlayers)
+        .concat(npcs);
+      for (const player of players) {
+        const wearActionIndex = player.findActionIndex(action => {
+          return action.type === 'wear' && action.instanceId === app.instanceId;
+        });
+        if (wearActionIndex !== -1) {
+          player.removeActionIndex(wearActionIndex);
+        }
+      }
+    });
 
     const _unwear = () => {
       if (wearSpec) {
