@@ -72,6 +72,9 @@ class App extends THREE.Object3D {
       value,
     });
   }
+  hasComponent(key) {
+    return this.components.some(component => component.key === key);
+  }
   removeComponent(key) {
     const index = this.components.findIndex(component => component.type === key);
     if (index !== -1) {
@@ -279,12 +282,12 @@ metaversefile.setApi({
       return null;
     }
   },
-  async load(u) {
+  /* async load(u) {
     const m = await metaversefile.import(u);
     const app = metaversefile.createApp();
     await metaversefile.addModule(app, m);
     return app;
-  },
+  }, */
   useApp() {
     const app = currentAppRender;
     if (app) {
@@ -720,12 +723,9 @@ metaversefile.setApi({
   getNextInstanceId() {
     return getRandomString();
   },
-  createApp({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}) {
+  createAppInternal({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}, {onWaitPromise = null} = {}) {
     const app = new App();
-    // app.name = name;
-    // app.type = type;
-    app.contentId = start_url;
-    // app.components = components;
+
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
       app.quaternion.copy(localPlayer.quaternion);
@@ -733,20 +733,29 @@ metaversefile.setApi({
       app.lastMatrix.copy(app.matrixWorld);
     }
     if (start_url) {
-      (async () => {
+      const p = (async () => {
         const m = await metaversefile.import(start_url);
         await metaversefile.addModule(app, m);
       })();
-    }
-    app.addEventListener('destroy', () => {
-      const localPlayer = metaversefile.useLocalPlayer();
-      const wearActionIndex = localPlayer.findActionIndex(action => {
-        return action.type === 'wear' && action.instanceId === app.instanceId;
-      });
-      if (wearActionIndex !== -1) {
-        localPlayer.removeActionIndex(wearActionIndex);
+      if (onWaitPromise) {
+        onWaitPromise(p);
       }
+    }
+    return app;
+  },
+  createApp(opts) {
+    return this.createAppInternal(opts);
+  },
+  async createAppAsync(opts) {
+    let p = null;
+    const app = this.createAppInternal(opts, {
+      onWaitPromise(newP) {
+        p = newP;
+      },
     });
+    if (p !== null) {
+      await p;
+    }
     return app;
   },
   createModule: (() => {
@@ -891,6 +900,17 @@ export default () => {
     await universe.waitForSceneLoaded();
   },
   async addModule(app, m) {
+    app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
+    app.description = m.description ?? '';
+    app.contentId = m.contentId ?? '';
+    if (Array.isArray(m.components)) {
+      for (const {key, value} of m.components) {
+        if (!app.hasComponent(key)) {
+          app.setComponent(key, value);
+        }
+      }
+    }
+
     currentAppRender = app;
 
     let renderSpec = null;
@@ -905,7 +925,7 @@ export default () => {
             },
           });
         } else {
-          console.warn('module is not a function', m);
+          console.warn('module default export is not a function', m);
           return null;
         }
       } catch(err) {
