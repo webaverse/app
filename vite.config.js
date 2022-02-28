@@ -7,7 +7,7 @@ import path from 'path';
 import fs from 'fs';
 import defaultExport from 'rollup-plugin-export-default';
 import {transform} from 'esbuild';
-
+import glob from 'glob';
 
 const esbuildLoaders = ['js', 'jsx', 'ts', 'tsx', 'text', 'base64', 'file', 'dataurl', 'binary', 'default'];
 let plugins = [
@@ -30,10 +30,28 @@ const entryPoints = [
     path: './packages/three-vrm/lib/three-vrm.module.min.js',
     name: `${baseDirectory}/three-vrm${proxyModuleBase}.js`,
   },
+  {
+    path: './packages/three/examples/jsm/**/*.js',
+    name: `${baseDirectory}/{{filename}}${proxyModuleBase}.js`,
+    glob: true,
+  },
 ];
+
+glob('./packages/three/examples/jsm/**/*.js', {}, function(er, files) {
+  console.log(files);
+});
 
 const build = () => {
   const _entryPoints = [];
+
+  const resolveGlob = pathToExpand => {
+    return new Promise((resolve, reject) => {
+      glob(pathToExpand, {}, (err, files) => {
+        if (err) reject(err);
+        resolve(files);
+      });
+    });
+  };
 
   return {
     name: 'build-provider',
@@ -47,14 +65,27 @@ const build = () => {
       }
     },
 
-    buildStart() {
+    async buildStart() {
       for (const iterator of entryPoints) {
-        const entry = this.emitFile({
-          type: 'chunk',
-          id: iterator.path,
-          fileName: iterator.name,
-        });
-        _entryPoints.push(entry);
+        if (iterator.glob) {
+          const files = await resolveGlob(iterator.path);
+          for (const file of files) {
+            const fileName = path.parse(file).name;
+            const entry = this.emitFile({
+              type: 'chunk',
+              id: file,
+              fileName: iterator.name.replace('{{filename}}', fileName),
+            });
+            _entryPoints.push(entry);
+          }
+        } else {
+          const entry = this.emitFile({
+            type: 'chunk',
+            id: iterator.path,
+            fileName: iterator.name,
+          });
+          _entryPoints.push(entry);
+        }
       }
     },
     generateBundle(options, bundle) {
@@ -126,6 +157,7 @@ export default defineConfig({
       output: {
         exports: 'named',
         minifyInternalExports: false,
+        format: 'esm',
         manualChunks: id => {
           if (id.includes('three/build')) {
             return 'three';
