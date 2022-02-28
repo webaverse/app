@@ -723,12 +723,9 @@ metaversefile.setApi({
   getNextInstanceId() {
     return getRandomString();
   },
-  createApp({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}) {
+  createAppInternal({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}, {onWaitPromise = null} = {}) {
     const app = new App();
-    // app.name = name;
-    // app.type = type;
-    app.contentId = start_url;
-    // app.components = components;
+
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
       app.quaternion.copy(localPlayer.quaternion);
@@ -736,20 +733,29 @@ metaversefile.setApi({
       app.lastMatrix.copy(app.matrixWorld);
     }
     if (start_url) {
-      (async () => {
+      const p = (async () => {
         const m = await metaversefile.import(start_url);
         await metaversefile.addModule(app, m);
       })();
-    }
-    app.addEventListener('destroy', () => {
-      const localPlayer = metaversefile.useLocalPlayer();
-      const wearActionIndex = localPlayer.findActionIndex(action => {
-        return action.type === 'wear' && action.instanceId === app.instanceId;
-      });
-      if (wearActionIndex !== -1) {
-        localPlayer.removeActionIndex(wearActionIndex);
+      if (onWaitPromise) {
+        onWaitPromise(p);
       }
+    }
+    return app;
+  },
+  createApp(opts) {
+    return this.createAppInternal(opts);
+  },
+  async createAppAsync(opts) {
+    let p = null;
+    const app = this.createAppInternal(opts, {
+      onWaitPromise(newP) {
+        p = newP;
+      },
     });
+    if (p !== null) {
+      await p;
+    }
     return app;
   },
   createModule: (() => {
