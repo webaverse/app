@@ -16,7 +16,7 @@ const DefaultSettings = {
 };
 const authenticatedApiName = 'ai';
 
-export const TabApiKeys = ({ active }) => {
+export const TabAi = ({ active }) => {
 
     const [ appyingChanges, setAppyingChanges ] = useState( false );
     const [ changesNotSaved, setChangesNotSaved ] = useState( false );
@@ -28,11 +28,14 @@ export const TabApiKeys = ({ active }) => {
     //
 
     const _getApiUrl = apiType => {
-        const url = apiType === 'OPENAI' ?
-            `https://api.openai.com/v1/engines/text-davinci-001/completions`
-        :
-            `https://ai.webaverse.com/gooseai/v1/engines/gpt-neo-20b/completions`;
-        return url;
+        switch (apiType) {
+            case 'GOOSEAI': return `https://ai.webaverse.com/gooseai/v1/engines/gpt-neo-20b/completions`;
+            case 'OPENAI': return `https://api.openai.com/v1/engines/text-davinci-001/completions`;
+            default: return null;
+        }
+    };
+    const _apiTypeNeedsApiKey = apiType => {
+        return apiType === 'OPENAI';
     };
 
     function updateLoreEndpoint(apiType) {
@@ -55,7 +58,7 @@ export const TabApiKeys = ({ active }) => {
             apiKey:         '',
         };
 
-        localStorage.setItem( 'ApiKeySettings', JSON.stringify( settings ) );
+        localStorage.setItem( 'AiSettings', JSON.stringify( settings ) );
         if (apiKey) {
             const url = _getApiUrl(apiType);
             const origin = new URL(url).origin;
@@ -74,7 +77,7 @@ export const TabApiKeys = ({ active }) => {
     async function loadSettings () {
 
         // load local storage
-        const settingsString = localStorage.getItem( 'ApiKeySettings' );
+        const settingsString = localStorage.getItem( 'AiSettings' );
         let settings;
 
         try {
@@ -156,11 +159,11 @@ export const TabApiKeys = ({ active }) => {
 
     return (
         <div className={ classNames( styles.apiKeysTab, styles.tabContent, active ? styles.active : null ) }>
-            <div className={ styles.blockTitle }>AI</div>
+            <div className={ styles.blockTitle }>MODEL</div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Provider</div>
                 <Switch className={ styles.switch } value={ apiType } setValue={ setApiType } values={ [ 'GOOSEAI', 'OPENAI' ] } />
-                {apiType === 'OPENAI' ?
+                {_apiTypeNeedsApiKey(apiType) ?
                   <input type="text" className={ styles.input } value={ apiKey ?? '' } onChange={e => setApiKey(e.target.value) } placeholder="API Key" />
                 :
                   null}
