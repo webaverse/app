@@ -925,7 +925,7 @@ export default () => {
             },
           });
         } else {
-          console.warn('module is not a function', m);
+          console.warn('module default export is not a function', m);
           return null;
         }
       } catch(err) {
