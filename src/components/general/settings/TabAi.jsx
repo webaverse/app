@@ -11,7 +11,7 @@ import styles from './settings.module.css';
 //
 
 const DefaultSettings = {
-    apiType: 'GOOSEAI',
+    apiType: 'AI21',
     apiKey: '',
 };
 const authenticatedApiName = 'ai';
@@ -29,6 +29,7 @@ export const TabAi = ({ active }) => {
 
     const _getApiUrl = apiType => {
         switch (apiType) {
+            case 'AI21': return `https://ai.webaverse.com/ai21/v1/engines/j1-large/completions`;
             case 'GOOSEAI': return `https://ai.webaverse.com/gooseai/v1/engines/gpt-neo-20b/completions`;
             case 'OPENAI': return `https://api.openai.com/v1/engines/text-davinci-001/completions`;
             default: return null;
