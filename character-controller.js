@@ -1147,7 +1147,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   }
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
-      // this.updateInterpolation(timeDiff);
+      this.updateInterpolation(timeDiff);
       
       // const renderer = getRenderer();
       // const session = renderer.xr.getSession();
@@ -1203,6 +1203,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
 
     super.destroy();
   }
+  updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 }
 
 export {
