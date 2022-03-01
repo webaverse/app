@@ -24,7 +24,7 @@ import {VOXLoader} from './VOXLoader.js';
 import ERC721 from './erc721-abi.json';
 import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
-// import {moduleUrls, modules} from './metaverse-modules.js';
+import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import {LocalPlayer, /* RemotePlayer, */ NpcPlayer} from './character-controller.js';
 import postProcessing from './post-processing.js';
@@ -153,11 +153,10 @@ class App extends THREE.Object3D {
   }
 }
 
-// const defaultModules = {
-//   moduleUrls,
-//   modules,
-// };
-const defaultModules = {};
+const defaultModules = {
+  moduleUrls,
+  modules,
+};
 
 const localPlayer = new LocalPlayer({
   prefix: getPlayerPrefix(makeId(5)),

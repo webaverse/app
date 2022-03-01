@@ -6,7 +6,7 @@
   "scripts": {
     "start": "NODE_ENV=production node ./server/boot.mjs && node index.mjs -p",
     "dev": "node index.mjs -p",
-    "dev:dist": "node index.mjs -p",
+    "devX": "NODE_ENV=production node ./server/boot.mjs && node index.mjs -p",
     "prod": "sudo $(which node) index.mjs -p",
     "build": "rm -rf dist && vite build && cp -r ./scenes ./dist/",
     "serve": "vite preview",
@@ -69,6 +69,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
+    "glob": "^7.2.0",
     "node-fetch": "^3.1.0",
     "rollup-plugin-export-default": "^1.4.0",
     "spectorjs": "^0.9.27",

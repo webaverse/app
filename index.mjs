@@ -43,30 +43,54 @@ function makeId(length) {
   return result;
 }
 
-function dynamicImporter(o, req, res) {
+function dynamicImporter(o, req, res, next) {
   try {
     const loadUrl = o.pathname.replace('/@import', '');
     const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
     const reqURL = new URL(fullUrl);
 
-    totum.resolveId(loadUrl, reqURL.href).then(id => {
-      /** ID might have /@proxy/ in the start that needs to be trimmed */
-      if (!id) {
-        res.status(500);
-        return res.end('Failed to load');
-      }
-      id = id.replace('/@proxy/', '');
+    /** Check intiator */
+    if (req.headers['sec-fetch-dest'] === 'script') {
+      totum.resolveId(loadUrl, reqURL.href).then(id => {
+        /** ID might have /@proxy/ in the start that needs to be trimmed */
+        if (!id) {
+          res.status(500);
+          return res.end('Failed to load');
+        }
 
-      totum.load(id).then(({code, map}) => {
-        res.writeHead(200, {'Content-Type': 'application/javascript'});
-        res.end(code);
-      }).catch(e => {
-        console.warn(e);
+        id = id.replace('/@proxy/', '');
+
+        totum.load(id).then(({code, map}) => {
+          res.writeHead(200, {'Content-Type': 'application/javascript'});
+          res.end(code);
+        }).catch(e => {
+          console.warn(e);
+        });
       });
-    });
+    } else {
+      req.originalUrl = loadUrl;
+      return res.redirect(req.originalUrl);
+    }
   } catch (e) {
-    debugger;
+    console.warn(e);
   }
+}
+
+function proxyReq(u, res) {
+  const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
+  proxyReq.on('response', proxyRes => {
+    for (const header in proxyRes.headers) {
+      res.setHeader(header, proxyRes.headers[header]);
+    }
+    res.statusCode = proxyRes.statusCode;
+    proxyRes.pipe(res);
+  });
+  proxyReq.on('error', err => {
+    console.error(err);
+    res.statusCode = 500;
+    res.end();
+  });
+  proxyReq.end();
 }
 
 (async () => {
@@ -81,29 +105,22 @@ function dynamicImporter(o, req, res) {
     /** Replace any double / caused due to both proxy & import */
     o.pathname = o.pathname.replaceAll('//', '/');
 
+    if (o.href.includes('button/e-key.png')) {
+      debugger;
+    }
+
+    if (o.href.includes('grid.glb')) { debugger; }
+
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
         .replace(/^(https?:\/(?!\/))/, '$1/');
       if (_isMediaType(o.pathname) && !/^\/(?:@proxy)\//.test(o.pathname)) {
-        const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
-        proxyReq.on('response', proxyRes => {
-          for (const header in proxyRes.headers) {
-            res.setHeader(header, proxyRes.headers[header]);
-          }
-          res.statusCode = proxyRes.statusCode;
-          proxyRes.pipe(res);
-        });
-        proxyReq.on('error', err => {
-          console.error(err);
-          res.statusCode = 500;
-          res.end();
-        });
-        proxyReq.end();
+        proxyReq(u, res);
       } else {
         req.originalUrl = u;
-        isProduction ? dynamicImporter(o, req, res) : next();
+        isProduction ? dynamicImporter(o, req, res, next) : next();
       }
     } else if (o.query.noimport !== undefined) {
       const p = path.join(cwd, path.resolve(o.pathname));
@@ -124,15 +141,14 @@ function dynamicImporter(o, req, res) {
       req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
-      isProduction && /^\/(?:@import)\//.test(o.pathname) ? dynamicImporter(o, req, res) : next();
+      isProduction && /^\/(?:@import)\//.test(o.pathname)
+        ? dynamicImporter(o, req, res, next) : next();
     }
   });
 
   /** Setup static assets */
   if (isProduction) {
     app.use(express.static('dist'));
-    app.use(express.static('dist/public'));
-    app.use(express.static('dist/assets'));
     app.enable('view cache');
   }
 

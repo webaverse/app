@@ -10,12 +10,15 @@ import {execSync} from 'child_process';
     base: './',
   });
 
+  console.log('Copying Scenes');
   /** Copy scene directory */
   execSync('cp -r ./scenes ./dist/scenes');
 
-  /** Copy scene directory */
+  console.log('Copying Metaverse_Modules');
+  /** Copy Metaverse directory */
   execSync('cp -r ./metaverse_modules ./dist/metaverse_modules');
 
+  console.log('Copying Public Direcotry');
   /** Copy public directory */
   execSync('cp -r ./public/* ./dist/');
 })();

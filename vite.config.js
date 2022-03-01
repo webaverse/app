@@ -1,11 +1,9 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable no-unused-expressions */
 import {defineConfig} from 'vite';
-import reactRefresh from '@vitejs/plugin-react-refresh';
 import metaversefilePlugin from 'metaversefile/plugins/rollup.js';
 import path from 'path';
 import fs from 'fs';
-import defaultExport from 'rollup-plugin-export-default';
 import {transform} from 'esbuild';
 import glob from 'glob';
 
@@ -18,6 +16,9 @@ const baseDirectory = 'assets';
 const proxyModuleBase = '-proxy';
 
 const entryPoints = [
+  {
+    path: 'metaversefile-api',
+  },
   {
     path: './packages/totum/index.js',
     name: `${baseDirectory}/metaversefile${proxyModuleBase}.js`,
@@ -33,13 +34,10 @@ const entryPoints = [
   {
     path: './packages/three/examples/jsm/**/*.js',
     name: `${baseDirectory}/{{filename}}${proxyModuleBase}.js`,
+    replaceExpression: './packages',
     glob: true,
   },
 ];
-
-glob('./packages/three/examples/jsm/**/*.js', {}, function(er, files) {
-  console.log(files);
-});
 
 const build = () => {
   const _entryPoints = [];
@@ -70,11 +68,10 @@ const build = () => {
         if (iterator.glob) {
           const files = await resolveGlob(iterator.path);
           for (const file of files) {
-            const fileName = path.parse(file).name;
             const entry = this.emitFile({
               type: 'chunk',
               id: file,
-              fileName: iterator.name.replace('{{filename}}', fileName),
+              fileName: file.replace(iterator.replaceExpression, baseDirectory),
             });
             _entryPoints.push(entry);
           }
@@ -116,6 +113,7 @@ const build = () => {
       }
 
       const loader = path.parse(id).ext.replace('.', '');
+      const isNodeModule = id.includes('node_modules');
 
       if (!esbuildLoaders.includes(loader)) {
         return {
@@ -126,6 +124,7 @@ const build = () => {
 
       const transformed = await transform(code, {
         loader: loader,
+        format: loader === 'js' && !isNodeModule ? 'esm' : undefined,
         minifySyntax: true,
         minifyWhitespace: true,
         keepNames: true,
@@ -161,23 +160,28 @@ export default defineConfig({
         manualChunks: id => {
           if (id.includes('three/build')) {
             return 'three';
-          } else if (id.includes('three/examples')) {
-            return 'three-examples';
-          } else if (id.includes('three-vrm')) {
-            return 'three-vrm';
-          } else if (id.includes('web3.min.js')) {
-            return 'web3';
           }
+          //  else if (id.includes('three/examples')) {
+          //   return 'three-examples';
+          // }
+          // else if (id.includes('three-vrm')) {
+          //   return 'three-vrm';
+          // }
+          // else if (id.includes('web3.min.js')) {
+          //   return 'web3';
+          // }
           // else if (id.includes('totum/index.js')) {
           //   return 'metaversefile';
           // }
-          else if (id.includes('totum/constants')) {
-            return 'totum_constants';
-          } else if (id.includes('metaversefile-api.js')) {
-            return 'metaversefile-api';
-          } else if (id.includes('constants.js')) {
-            return 'constants';
-          }
+          // else if (id.includes('totum/constants')) {
+          //   return 'totum_constants';
+          // }
+          //  else if (id.includes('metaversefile-api.js')) {
+          //   return 'metaversefile-api';
+          // }
+          //  else if (id.includes('constants.js')) {
+          //   return 'constants';
+          // }
         },
 
         assetFileNames: 'assets/[name].[ext]',
