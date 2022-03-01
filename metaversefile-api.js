@@ -121,17 +121,6 @@ class App extends THREE.Object3D {
       use: true,
     });
   }
-  /* hit(damage) {
-    console.log('hit', new Error().stack);
-    this.dispatchEvent({
-      type: 'hit',
-      hp: 100,
-      totalHp: 100,
-    });
-  } */
-  /* willDieFrom(damage) {
-    return false;
-  } */
   destroy() {
     this.dispatchEvent({
       type: 'destroy',
@@ -875,10 +864,10 @@ export default () => {
   /* useRigManagerInternal() {
     return rigManager;
   }, */
-  useAvatarInternal() {
+  useAvatar() {
     return Avatar;
   },
-  useTextInternal() {
+  useText() {
     return Text;
   },
   useGeometries() {
