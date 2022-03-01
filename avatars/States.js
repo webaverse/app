@@ -112,7 +112,7 @@ class StateMachine{
                 let curState = tracked.getState(name);
                 if(!curState.active) return;
                 // console.log(`${key} is active`, curState)
-                curState.animation();
+                curState.animation?.();
             })
         })
     }
