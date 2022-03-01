@@ -864,10 +864,10 @@ export default () => {
   /* useRigManagerInternal() {
     return rigManager;
   }, */
-  useAvatarInternal() {
+  useAvatar() {
     return Avatar;
   },
-  useTextInternal() {
+  useText() {
     return Text;
   },
   useGeometries() {
