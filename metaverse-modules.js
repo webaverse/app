@@ -1,12 +1,13 @@
 import metaversefile from 'metaversefile';
 
 const moduleUrls = {
-  button: './metaverse_modules/button/',
-  silk: './metaverse_modules/silk/',
-  card: './metaverse_modules/card/',
-  arrowLoader: './metaverse_modules/arrow-loader/',
-  errorPlaceholder: './metaverse_modules/error-placeholder/',
-  damageMesh: './metaverse_modules/damage-mesh/',
+  button: `./metaverse_modules/button/`,
+  silk: `./metaverse_modules/silk/`,
+  card: `./metaverse_modules/card/`,
+  arrowLoader: `./metaverse_modules/arrow-loader/`,
+  errorPlaceholder: `./metaverse_modules/error-placeholder/`,
+  damageMesh: `./metaverse_modules/damage-mesh/`,
+  ki: `./metaverse_modules/ki/`,
 };
 const modules = {};
 const loadPromise = (async () => {
