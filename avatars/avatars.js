@@ -389,6 +389,27 @@ class Avatar {
     window.avatar = this;
     window.StateMachine = StateMachine;
     StateMachine.registerObj("playerAvatar", this);    
+
+
+    StateMachine.getTracked("playerAvatar").registerState ({
+      name: 'jump',
+      animation: spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+        } = spec;
+        
+        const t2 = this.tracker.getState('jump').time / 1000 * 0.6 + 0.7;
+        const src2 = activeAnimations.jump.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        dst.fromArray(v2);
+      }
+    });
+
+
+
     this.object = object;
 
     const model = (() => {

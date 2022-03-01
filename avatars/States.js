@@ -111,7 +111,8 @@ class StateMachine{
                 const name = node.data;
                 let curState = tracked.getState(name);
                 if(!curState.active) return;
-                console.log(`${key} is active`, curState)
+                // console.log(`${key} is active`, curState)
+                curState.animation();
             })
         })
     }
