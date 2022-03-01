@@ -102,19 +102,19 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.jumpState = !!jumpAction;
   // rig.jumpTime = player.actionInterpolants.jump.get();
   
-  StateMachine.getTracked("playerAvatar").registerState = {
+  StateMachine.getTracked("playerAvatar").registerState({
     ...jumpAction,
     name: jumpAction?.type ?? 'jump',
     time: player.actionInterpolants.jump.get(),
     active: !!jumpAction
-  }
+  })
 
-  StateMachine.getTracked("playerAvatar").registerState = {
+  StateMachine.getTracked("playerAvatar").registerState({
     ...flyAction, 
     name: flyAction?.type ?? 'fly',
     time: flyAction ? player.actionInterpolants.fly.get() : -1, 
     active:!!flyAction
-  }
+  })
 
   rig.activateTime = player.actionInterpolants.activate.get();
   

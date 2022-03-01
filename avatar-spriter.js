@@ -1172,7 +1172,7 @@ const getSpriteSpecs = () => {
     
           let jumpTime = -200;
           const jumpIncrementSpeed = 250;
-    
+          
           return {
             update(timestamp, timeDiff) {
               const timeDiffMs = timeDiff/1000;
@@ -1186,13 +1186,12 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
-
-              localRig.tracker.registerState = {
+              
+              localRig.tracker.registerState( {
                 name: 'jump',
                 time: jumpTime,
                 active: true
-              }
-
+              })
               jumpTime += timeDiffMs * jumpIncrementSpeed;
                   
               localRig.update(timestamp, timeDiffMs);
