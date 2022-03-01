@@ -5,39 +5,36 @@ metaversfile can load many file types, including javascript.
 */
 
 import * as THREE from 'three';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
-import {KTX2Loader} from 'three/examples/jsm/loaders/KTX2Loader.js';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
-import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
+import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
-// import * as ui from './vr-ui.js';
-import {ShadertoyLoader} from './shadertoy.js';
-import {GIFLoader} from './GIFLoader.js';
-import {VOXLoader} from './VOXLoader.js';
 import ERC721 from './erc721-abi.json';
 import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
-import {LocalPlayer, /*RemotePlayer,*/ NpcPlayer} from './character-controller.js';
 import postProcessing from './post-processing.js';
-// import {getState} from './state.js';
-import {makeId, getRandomString, getPlayerPrefix} from './util.js';
+import {makeId, getRandomString, getPlayerPrefix, memoize} from './util.js';
 import JSON6 from 'json-6';
-import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
-import {isSceneLoaded, waitForSceneLoaded} from './universe.js';
-
+import {chatManager} from './chat-manager.js';
+import loreAI from './lore-ai.js';
+import loreAIScene from './lore-ai-scene.js';
+import npcManager from './npc-manager.js';
+import universe from './universe.js';
+import {PathFinder} from './npc-utils.js';
+import {localPlayer, remotePlayers} from './players.js';
+import loaders from './loaders.js';
+import * as voices from './voices.js';
 import {getHeight} from './avatars/util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -74,6 +71,9 @@ class App extends THREE.Object3D {
       key,
       value,
     });
+  }
+  hasComponent(key) {
+    return this.components.some(component => component.key === key);
   }
   removeComponent(key) {
     const index = this.components.findIndex(component => component.type === key);
@@ -121,17 +121,6 @@ class App extends THREE.Object3D {
       use: true,
     });
   }
-  /* hit(damage) {
-    console.log('hit', new Error().stack);
-    this.dispatchEvent({
-      type: 'hit',
-      hp: 100,
-      totalHp: 100,
-    });
-  } */
-  /* willDieFrom(damage) {
-    return false;
-  } */
   destroy() {
     this.dispatchEvent({
       type: 'destroy',
@@ -143,13 +132,6 @@ const defaultModules = {
   moduleUrls,
   modules,
 };
-const localPlayer = new LocalPlayer({
-  prefix: getPlayerPrefix(makeId(5)),
-  state: new Z.Doc(),
-});
-localPlayer.position.y = initialPosY;
-localPlayer.updateMatrixWorld();
-const remotePlayers = new Map();
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -222,72 +204,6 @@ function createPointerEvents(store) {
   }
 }
 
-const _memoize = fn => {
-  let loaded = false;
-  let cache = null;
-  return () => {
-    if (!loaded) {
-      cache = fn();
-      loaded = true;
-    }
-    return cache;
-  };
-};
-const _dracoLoader = _memoize(() => {
-  const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath('/three/draco/');
-  return dracoLoader;
-});
-const _ktx2Loader = _memoize(() => {
-  const ktx2Loader = new KTX2Loader();
-  ktx2Loader.load = (_load => function load() {
-    if (!this.workerConfig) {
-      const renderer = getRenderer();
-      this.detectSupport(renderer);
-    }
-    return _load.apply(this, arguments);
-  })(ktx2Loader.load);
-  ktx2Loader.setTranscoderPath('/three/basis/');
-  return ktx2Loader;
-});
-const _gltfLoader = _memoize(() => {
-  const gltfLoader = new GLTFLoader();
-  {
-    const dracoLoader = _dracoLoader();
-    gltfLoader.setDRACOLoader(dracoLoader);
-  }
-  {
-    const ktx2Loader = _ktx2Loader();
-    gltfLoader.setKTX2Loader(ktx2Loader);
-  }
-  return gltfLoader;
-});
-const _shadertoyLoader = _memoize(() => new ShadertoyLoader());
-const _gifLoader = _memoize(() => new GIFLoader());
-const _voxLoader = _memoize(() => new VOXLoader({
-  scale: 0.01,
-}));
-const loaders = {
-  get dracoLoader() {
-    return _dracoLoader();
-  },
-  get ktx2Loader() {
-    return _ktx2Loader();
-  },
-  get gltfLoader() {
-    return _gltfLoader();
-  },
-  get shadertoyLoader() {
-    return _shadertoyLoader();
-  },
-  get gifLoader() {
-    return _gifLoader();
-  },
-  get voxLoader() {
-    return _voxLoader();
-  },
-};
-
 const _loadImageTexture = src => {
   const img = new Image();
   img.onload = () => {
@@ -304,13 +220,13 @@ const _loadImageTexture = src => {
   // texture.anisotropy = 16;
   return texture;
 };
-const _threeTone = _memoize(() => {
+const _threeTone = memoize(() => {
   return _loadImageTexture('/textures/threeTone.jpg');
 });
-const _fiveTone = _memoize(() => {
+const _fiveTone = memoize(() => {
   return _loadImageTexture('/textures/fiveTone.jpg');
 });
-const _twentyTone = _memoize(() => {
+const _twentyTone = memoize(() => {
   return _loadImageTexture('/textures/twentyTone.png');
 });
 const gradientMaps = {
@@ -355,12 +271,12 @@ metaversefile.setApi({
       return null;
     }
   },
-  async load(u) {
+  /* async load(u) {
     const m = await metaversefile.import(u);
     const app = metaversefile.createApp();
     await metaversefile.addModule(app, m);
     return app;
-  },
+  }, */
   useApp() {
     const app = currentAppRender;
     if (app) {
@@ -368,6 +284,9 @@ metaversefile.setApi({
     } else {
       throw new Error('useApp cannot be called outside of render()');
     }
+  },
+  useCamera() {
+    return camera;
   },
   useScene() {
     return scene;
@@ -406,6 +325,18 @@ metaversefile.setApi({
         return world.lights;
       },
     };
+  },
+  useChatManager() {
+    return chatManager;
+  },
+  useLoreAI() {
+    return loreAI;
+  },
+  useLoreAIScene() {
+    return loreAIScene;
+  },
+  useVoices() {
+    return voices;
   },
   useAvatarCruncher() {
     return avatarCruncher;
@@ -492,6 +423,12 @@ metaversefile.setApi({
   useRemotePlayers() {
     return Array.from(remotePlayers.values());
   },
+  useNpcManager() {
+    return npcManager;
+  },
+  usePathFinder() {
+    return PathFinder;
+  },
   useLoaders() {
     return loaders;
   },
@@ -536,7 +473,7 @@ metaversefile.setApi({
 
         return physicsObject;
       })(physics.addBoxGeometry);
-      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled = false) {
+      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags) {
         // const basePosition = position;
         // const baseQuaternion = quaternion;
         // const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
@@ -550,7 +487,7 @@ metaversefile.setApi({
         // quaternion = localQuaternion;
         //size = localVector2;
         
-        const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, ccdEnabled);
+        const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags);
         // physicsObject.position.copy(app.position);
         // physicsObject.quaternion.copy(app.quaternion);
         // physicsObject.scale.copy(app.scale);
@@ -651,7 +588,7 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physics.addCookedConvexGeometry);
-      physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
+      /* physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
         enablePhysicsObject.call(this, physicsObject);
       })(physics.enablePhysicsObject);
       physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
@@ -662,11 +599,11 @@ metaversefile.setApi({
       })(physics.enableGeometryQueries);
       physics.disableGeometryQueries = (disableGeometryQueries => function(physicsObject) {
         disableGeometryQueries.call(this, physicsObject);
-      })(physics.disableGeometryQueries);
+      })(physics.disableGeometryQueries); */
 
-      physics.setTransform = (setTransform => function(physicsObject) {
+      /* physics.setTransform = (setTransform => function(physicsObject) {
         setTransform.call(this, physicsObject);
-      })(physics.setTransform);
+      })(physics.setTransform); */
       /* physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
         const transform = getPhysicsTransform.apply(this, arguments);
         const {position, quaternion} = transform;
@@ -701,6 +638,12 @@ metaversefile.setApi({
     } else {
       throw new Error('usePhysics cannot be called outside of render()');
     }
+  },
+  useCameraManager() {
+    return cameraManager;
+  },
+  useParticleSystem() {
+    return world.particleSystem;
   },
   useDefaultModules() {
     return defaultModules;
@@ -769,12 +712,9 @@ metaversefile.setApi({
   getNextInstanceId() {
     return getRandomString();
   },
-  createApp({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}) {
+  createAppInternal({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}, {onWaitPromise = null} = {}) {
     const app = new App();
-    // app.name = name;
-    // app.type = type;
-    app.contentId = start_url;
-    // app.components = components;
+
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
       app.quaternion.copy(localPlayer.quaternion);
@@ -782,20 +722,29 @@ metaversefile.setApi({
       app.lastMatrix.copy(app.matrixWorld);
     }
     if (start_url) {
-      (async () => {
+      const p = (async () => {
         const m = await metaversefile.import(start_url);
         await metaversefile.addModule(app, m);
       })();
-    }
-    app.addEventListener('destroy', () => {
-      const localPlayer = metaversefile.useLocalPlayer();
-      const wearActionIndex = localPlayer.findActionIndex(action => {
-        return action.type === 'wear' && action.instanceId === app.instanceId;
-      });
-      if (wearActionIndex !== -1) {
-        localPlayer.removeActionIndex(wearActionIndex);
+      if (onWaitPromise) {
+        onWaitPromise(p);
       }
+    }
+    return app;
+  },
+  createApp(opts) {
+    return this.createAppInternal(opts);
+  },
+  async createAppAsync(opts) {
+    let p = null;
+    const app = this.createAppInternal(opts, {
+      onWaitPromise(newP) {
+        p = newP;
+      },
     });
+    if (p !== null) {
+      await p;
+    }
     return app;
   },
   createModule: (() => {
@@ -827,25 +776,53 @@ export default () => {
   removeTrackedApp(app) {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
-  getAppByInstanceId() {
-    const localPlayer = metaversefile.useLocalPlayer();
-    const remotePlayers = metaversefile.useRemotePlayers();
-    return world.appManager.getAppByInstanceId.apply(world.appManager, arguments) ||
-      localPlayer.appManager.getAppByInstanceId.apply(localPlayer.appManager, arguments) ||
-      remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByInstanceId.apply(remotePlayer.appManager, arguments));
+  getAppByInstanceId(instanceId) {
+    let result = world.appManager.getAppByInstanceId(instanceId) ||
+      localPlayer.appManager.getAppByInstanceId(instanceId);
+    if (result) {
+      return result;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return remoteApp;
+        }
+      }
+      return null;
+    }
   },
-  getAppByPhysicsId() {
-    const localPlayer = metaversefile.useLocalPlayer();
-    const remotePlayers = metaversefile.useRemotePlayers();
-    return world.appManager.getAppByPhysicsId.apply(world.appManager, arguments) ||
-      localPlayer.appManager.getAppByPhysicsId.apply(localPlayer.appManager, arguments) ||
-      remotePlayers.some(remotePlayer => remotePlayer.appManager.getAppByPhysicsId.apply(remotePlayer.appManager, arguments));
+  getAppByPhysicsId(physicsId) {
+    let result = world.appManager.getAppByPhysicsId(physicsId) ||
+      localPlayer.appManager.getAppByPhysicsId(physicsId);
+    if (result) {
+      return result;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remoteApp = remotePlayer.appManager.getAppByPhysicsId(physicsId);
+        if (remoteApp) {
+          return remoteApp;
+        }
+      }
+      return null;
+    }
   },
-  getPhysicsObjectByPhysicsId() {
-    const remotePlayers = metaversefile.useRemotePlayers();
-    return world.appManager.getPhysicsObjectByPhysicsId.apply(world.appManager, arguments) ||
-      localPlayer.appManager.getPhysicsObjectByPhysicsId.apply(localPlayer.appManager, arguments) ||
-      remotePlayers.some(remotePlayer => remotePlayer.appManager.getPhysicsObjectByPhysicsId.apply(remotePlayer.appManager, arguments));
+  getPhysicsObjectByPhysicsId(physicsId) {
+    let result = world.appManager.getPhysicsObjectByPhysicsId(physicsId) ||
+      localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+    if (result) {
+      return result;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remotePhysicsObject = remotePlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+        if (remotePhysicsObject) {
+          return remotePhysicsObject;
+        }
+      }
+      return null;
+    }
   },
   getAvatarHeight(obj) {
     return getHeight(obj);
@@ -887,13 +864,10 @@ export default () => {
   /* useRigManagerInternal() {
     return rigManager;
   }, */
-  useAvatarInternal() {
+  useAvatar() {
     return Avatar;
   },
-  useNpcPlayerInternal() {
-    return NpcPlayer;
-  },
-  useTextInternal() {
+  useText() {
     return Text;
   },
   useGeometries() {
@@ -909,12 +883,23 @@ export default () => {
     return gradientMaps;
   },
   isSceneLoaded() {
-    return isSceneLoaded();
+    return universe.isSceneLoaded();
   },
   async waitForSceneLoaded() {
-    await waitForSceneLoaded();
+    await universe.waitForSceneLoaded();
   },
   async addModule(app, m) {
+    app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
+    app.description = m.description ?? '';
+    app.contentId = m.contentId ?? '';
+    if (Array.isArray(m.components)) {
+      for (const {key, value} of m.components) {
+        if (!app.hasComponent(key)) {
+          app.setComponent(key, value);
+        }
+      }
+    }
+
     currentAppRender = app;
 
     let renderSpec = null;
@@ -929,7 +914,7 @@ export default () => {
             },
           });
         } else {
-          console.warn('module is not a function', m);
+          console.warn('module default export is not a function', m);
           return null;
         }
       } catch(err) {

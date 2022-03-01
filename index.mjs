@@ -1,3 +1,7 @@
+/* eslint-disable no-debugger */
+/* eslint-disable node/no-deprecated-api */
+/* eslint-disable camelcase */
+/* eslint-disable promise/param-names */
 import http from 'http';
 import https from 'https';
 import url from 'url';
@@ -6,18 +10,21 @@ import fs from 'fs';
 import express from 'express';
 import vite from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
+import metaversefile from 'metaversefile/plugins/rollup.js';
 
 Error.stackTraceLimit = 300;
 const cwd = process.cwd();
 
 const isProduction = process.argv[2] === '-p';
+process.env.MODULE_URL = process.env.MODULE_URL || 'https://local.webaverse.com/assets/';
+const totum = metaversefile();
 
 const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.test(p);
 
 const _tryReadFile = p => {
   try {
     return fs.readFileSync(p);
-  } catch(err) {
+  } catch (err) {
     // console.warn(err);
     return null;
   }
@@ -36,7 +43,41 @@ function makeId(length) {
   return result;
 }
 
-const _proxyUrl = (req, res, u) => {
+function dynamicImporter(o, req, res, next) {
+  try {
+    const loadUrl = o.pathname.replace('/@import', '');
+    const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
+    const reqURL = new URL(fullUrl);
+
+    /** Check intiator */
+    if (req.headers['sec-fetch-dest'] === 'script') {
+      totum.resolveId(loadUrl, reqURL.href).then(id => {
+        /** ID might have /@proxy/ in the start that needs to be trimmed */
+        if (!id) {
+          res.status(500);
+          return res.end('Failed to load');
+        }
+
+        id = id.replace('/@proxy/', '');
+
+        totum.load(id).then(({code, map}) => {
+          res.writeHead(200, {'Content-Type': 'application/javascript'});
+          res.end(code);
+        }).catch(e => {
+          console.warn(e);
+        });
+      });
+    } else {
+      req.originalUrl = loadUrl;
+      return /^\/(?:@proxy)\//.test(req.originalUrl) ? proxyReq(loadUrl, res) : res.redirect(req.originalUrl);
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+}
+
+function proxyReq(u, res) {
+  u = u.replace(/^\/@proxy\//, '');
   const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
   proxyReq.on('response', proxyRes => {
     for (const header in proxyRes.headers) {
@@ -51,7 +92,7 @@ const _proxyUrl = (req, res, u) => {
     res.end();
   });
   proxyReq.end();
-};
+}
 
 (async () => {
   const app = express();
@@ -61,31 +102,28 @@ const _proxyUrl = (req, res, u) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     const o = url.parse(req.originalUrl, true);
-    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query['import'] === undefined) {
+
+    /** Replace any double / caused due to both proxy & import */
+    o.pathname = o.pathname.replaceAll('//', '/');
+
+    // if (o.href.includes('button/e-key.png')) {
+    //   debugger;
+    // }
+
+    // if (o.href.includes('grid.glb')) { debugger; }
+
+    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
         .replace(/^(https?:\/(?!\/))/, '$1/');
-      if (_isMediaType(o.pathname)) {
-        const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
-        proxyReq.on('response', proxyRes => {
-          for (const header in proxyRes.headers) {
-            res.setHeader(header, proxyRes.headers[header]);
-          }
-          res.statusCode = proxyRes.statusCode;
-          proxyRes.pipe(res);
-        });
-        proxyReq.on('error', err => {
-          console.error(err);
-          res.statusCode = 500;
-          res.end();
-        });
-        proxyReq.end();
+      if (_isMediaType(o.pathname) && !/^\/(?:@proxy)\//.test(o.pathname)) {
+        proxyReq(u, res);
       } else {
         req.originalUrl = u;
-        next();
+        isProduction ? dynamicImporter(o, req, res, next) : next();
       }
-    } else if (o.query['noimport'] !== undefined) {
+    } else if (o.query.noimport !== undefined) {
       const p = path.join(cwd, path.resolve(o.pathname));
       const rs = fs.createReadStream(p);
       rs.on('error', err => {
@@ -101,12 +139,19 @@ const _proxyUrl = (req, res, u) => {
       rs.pipe(res);
       // _proxyUrl(req, res, req.originalUrl);
     } else if (/^\/login/.test(o.pathname)) {
-      req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
+      req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
-      next();
+      isProduction && /^\/(?:@import)\//.test(o.pathname)
+        ? dynamicImporter(o, req, res, next) : next();
     }
   });
+
+  /** Setup static assets */
+  if (isProduction) {
+    app.use(express.static('dist'));
+    app.enable('view cache');
+  }
 
   const isHttps = !process.env.HTTP_ONLY && (!!certs.key && !!certs.cert);
   const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
@@ -114,19 +159,7 @@ const _proxyUrl = (req, res, u) => {
 
   const _makeHttpServer = () => isHttps ? https.createServer(certs, app) : http.createServer(app);
   const httpServer = _makeHttpServer();
-  const viteServer = await vite.createServer({
-    server: {
-      middlewareMode: 'html',
-      force:true,
-      hmr: {
-        server: httpServer,
-        port,
-        overlay: false,
-      },
-    }
-  });
-  app.use(viteServer.middlewares);
-  
+
   await new Promise((accept, reject) => {
     httpServer.listen(port, '0.0.0.0', () => {
       accept();
@@ -134,7 +167,7 @@ const _proxyUrl = (req, res, u) => {
     httpServer.on('error', reject);
   });
   console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
-  
+
   const wsServer = (() => {
     if (isHttps) {
       return https.createServer(certs);
@@ -143,10 +176,10 @@ const _proxyUrl = (req, res, u) => {
     }
   })();
   const initialRoomState = (() => {
-    const s = fs.readFileSync('./scenes/gunroom.scn', 'utf8');
+    const s = fs.readFileSync('./dist/scenes/gunroom.scn', 'utf8');
     const j = JSON.parse(s);
     const {objects} = j;
-    
+
     const appsMapName = 'apps';
     const result = {
       [appsMapName]: [],

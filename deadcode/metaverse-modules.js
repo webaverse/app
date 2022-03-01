@@ -7,7 +7,6 @@ const moduleUrls = {
   arrowLoader: `./metaverse_modules/arrow-loader/`,
   errorPlaceholder: `./metaverse_modules/error-placeholder/`,
   damageMesh: `./metaverse_modules/damage-mesh/`,
-  ki: `./metaverse_modules/ki/`,
 };
 const modules = {};
 const loadPromise = (async () => {
