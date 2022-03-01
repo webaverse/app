@@ -15,7 +15,13 @@ let plugins = [
 const baseDirectory = 'assets';
 const proxyModuleBase = '-proxy';
 
-let entryPoints = [
+const entryPoints = [
+  {
+    path: 'metaversefile-api.js',
+  },
+  // {
+  //   path: 'metaverse-modules.js',
+  // },
   {
     path: './packages/totum/index.js',
     name: `${baseDirectory}/metaversefile${proxyModuleBase}.js`,
@@ -33,26 +39,12 @@ let entryPoints = [
     name: `${baseDirectory}/{{filename}}${proxyModuleBase}.js`,
     replaceExpression: './packages',
     glob: true,
-  }, 
-  {
-    path: './avatars/**/*.js',
-    exclude: ['avatars.js'],
-    replaceExpression: '.',
-    glob: true,
-  },
-  {
-    path: './workers/**/*.js',
-    replaceExpression: '.',
-    glob: true,
-  },
-  {
+  }, {
     path: './packages/wsrtc/*.js',
     replaceExpression: './packages',
     glob: true,
   },
 ];
-
-//entryPoints = [];
 
 const build = () => {
   const _entryPoints = [];
@@ -80,24 +72,15 @@ const build = () => {
 
     async buildStart() {
       for (const iterator of entryPoints) {
-        iterator.exclude = iterator.exclude || [];
         if (iterator.glob) {
           const files = await resolveGlob(iterator.path);
           for (const file of files) {
-            let name = path.parse(file).base;
-            if(iterator.exclude.length > 0){
-              console.log(name, iterator.exclude);
-            }
-            if(!iterator.exclude.includes(name)){
-              const entry = this.emitFile({
-                type: 'chunk',
-                id: file,
-                fileName: file.replace(iterator.replaceExpression, baseDirectory),
-              });
-              _entryPoints.push(entry);  
-            }else{
-              console.log('******* EXCLUDING ***********', name);
-            }
+            const entry = this.emitFile({
+              type: 'chunk',
+              id: file,
+              fileName: file.replace(iterator.replaceExpression, baseDirectory),
+            });
+            _entryPoints.push(entry);
           }
         } else {
           const entry = this.emitFile({
@@ -178,56 +161,46 @@ plugins = process.env.NODE_ENV !== 'production' ? plugins.concat([metaversefileP
 
 const viteConfiProduction = {
   build: {
-    polyfillModulePreload: false,
     format: 'es',
     target: 'esnext',
-    manifest: true,
+    minify: false,
     rollupOptions: {
       preserveEntrySignatures: 'strict',
+      treeshake: false,
       output: {
-        // __vite_skip_esbuild__: true,
+        __vite_skip_esbuild__: true,
         exports: 'named',
         minifyInternalExports: false,
         format: 'es',
         manualChunks: id => {
           if (id.includes('three/build')) {
             return 'three';
+          } else if (id.includes('node_modules')) {
+            return 'vendor';
           }
-          else if (id.includes('ceramic')) {
-            return 'ceramic';
-          }  
-          // else if (id.includes('node_modules')) {
-          //   return 'vendor';
+          //  else if (id.includes('three/examples')) {
+          //   return 'three-examples';
           // }
-
           else if (id.includes('three-vrm')) {
             return 'three-vrm';
           } else if (id.includes('web3.min.js')) {
             return 'web3';
-          }else if (id.includes('totum/index.js')) {
+          }
+          else if (id.includes('totum/index.js')) {
             return 'metaversefile';
           }
           // else if (id.includes('totum/constants')) {
           //   return 'totum_constants';
           // }
-          // else if (id.includes('metaversefile-api.js')) {
-          //   return 'metaversefile-api';
-          // } 
-          // else if (id.includes('metaverse-modules.js')) {
-          //   return 'metaverse-modules';
-          // }
-          else if (id.includes('app/util.js')) {
-            return 'util';
+          else if (id.includes('metaversefile-api.js')) {
+            return 'metaversefile-api';
+          } else if (id.includes('metaverse-modules.js')) {
+            return 'metaverse-modules';
           }
-
-          //  else if (id.includes('wsrtc')) {
-          //   return 'wsrtc';
+          //  else if (id.includes('constants.js')) {
+          //   return 'constants';
           // }
-          // else if (id.includes('src/')) {
-          //   return 'ui';
-          // } 
-
-          //return 'app';
+          // return 'app';
         },
         assetFileNames: 'assets/[name].[ext]',
         chunkFileNames: 'assets/[name].js',

@@ -44,7 +44,7 @@ function makeId(length) {
 
 function dynamicImporter(o, req, res, next) {
   try {
-    const loadUrl =   o.pathname.slice(o.pathname.lastIndexOf('/@import'),o.pathname.length).replace('/@import', '');
+    const loadUrl = o.pathname.replace('/@import', '');
     const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
     const reqURL = new URL(fullUrl);
 
@@ -103,7 +103,13 @@ function proxyReq(u, res) {
     const o = url.parse(req.originalUrl, true);
 
     /** Replace any double / caused due to both proxy & import */
-    o.pathname = o.pathname.replace(/(?<!(http:|https:))\/\//g, '/');
+    o.pathname = o.pathname.replaceAll('//', '/');
+
+    // if (o.href.includes('button/e-key.png')) {
+    //   debugger;
+    // }
+
+    // if (o.href.includes('grid.glb')) { debugger; }
 
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
       const u = o.pathname
@@ -135,7 +141,7 @@ function proxyReq(u, res) {
       req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
-      isProduction && /^\/@import/.test(o.pathname)
+      isProduction && /^\/(?:@import)\//.test(o.pathname)
         ? dynamicImporter(o, req, res, next) : next();
     }
   });
@@ -143,7 +149,6 @@ function proxyReq(u, res) {
   /** Setup static assets */
   if (isProduction) {
     app.use(express.static('dist'));
-    app.use(express.static('dist/assets'));
     app.enable('view cache');
   }
 
