@@ -302,6 +302,7 @@ let narutoRunAnimations;
 // let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
+let hurtAnimations;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -496,6 +497,10 @@ const loadPromise = (async () => {
   };
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
+  };
+  hurtAnimations = {
+    pain_back: animations.index['pain_back.fbx'],
+    pain_arch: animations.index['pain_arch.fbx'],
   };
   {
     const down10QuaternionArray = new THREE.Quaternion()
@@ -1697,7 +1702,9 @@ class Avatar {
     this.aimTime = NaN;
     this.aimAnimation = null;
     // this.aimDirection = new THREE.Vector3();
-    
+    this.hurtTime = NaN;
+    this.hurtAnimation = null;
+
     // internal state
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
@@ -2711,6 +2718,48 @@ class Avatar {
                   .sub(localVector3)
                   .add(localVector2);
               }
+            }
+          };
+        } else if (this.hurtAnimation) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              // isTop,
+              isPosition,
+            } = spec;
+            
+            const hurtAnimation = (this.hurtAnimation && hurtAnimations[this.hurtAnimation]);
+            _handleDefault(spec);
+            const hurtTimeS = this.hurtTime/1000;
+            const t2 = Math.min(hurtTimeS, hurtAnimation.duration);
+            // console.log('hurtAnimation', this.hurtAnimation, this.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
+            if (!isPosition) {
+              if (hurtAnimation) {
+                const src2 = hurtAnimation.interpolants[k];
+                const v2 = src2.evaluate(t2);
+
+                const idleAnimation = _getIdleAnimation('walk');
+                const t3 = 0;
+                const src3 = idleAnimation.interpolants[k];
+                const v3 = src3.evaluate(t3);
+                
+                dst
+                  .premultiply(localQuaternion2.fromArray(v3).invert())
+                  .premultiply(localQuaternion2.fromArray(v2));
+              }
+            } else {
+              const src2 = hurtAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              dst
+                .sub(localVector2.fromArray(v3))
+                .add(localVector2.fromArray(v2));
             }
           };
         } else if (this.aimAnimation) {
