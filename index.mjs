@@ -69,7 +69,7 @@ function dynamicImporter(o, req, res, next) {
       });
     } else {
       req.originalUrl = loadUrl;
-      return res.redirect(req.originalUrl);
+      return /^\/(?:@proxy)\//.test(req.originalUrl) ? proxyReq(loadUrl, res) : res.redirect(req.originalUrl);
     }
   } catch (e) {
     console.warn(e);
@@ -77,6 +77,7 @@ function dynamicImporter(o, req, res, next) {
 }
 
 function proxyReq(u, res) {
+  u = u.replace(/^\/@proxy\//, '');
   const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
   proxyReq.on('response', proxyRes => {
     for (const header in proxyRes.headers) {
@@ -105,11 +106,11 @@ function proxyReq(u, res) {
     /** Replace any double / caused due to both proxy & import */
     o.pathname = o.pathname.replaceAll('//', '/');
 
-    if (o.href.includes('button/e-key.png')) {
-      debugger;
-    }
+    // if (o.href.includes('button/e-key.png')) {
+    //   debugger;
+    // }
 
-    if (o.href.includes('grid.glb')) { debugger; }
+    // if (o.href.includes('grid.glb')) { debugger; }
 
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
       const u = o.pathname
