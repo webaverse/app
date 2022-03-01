@@ -36,6 +36,10 @@ const entryPoints = [
     name: `${baseDirectory}/{{filename}}${proxyModuleBase}.js`,
     replaceExpression: './packages',
     glob: true,
+  }, {
+    path: './packages/wsrtc/*.js',
+    replaceExpression: './packages',
+    glob: true,
   },
 ];
 
@@ -105,52 +109,45 @@ const build = () => {
       }
       return null;
     },
-    // async transform(code, id) {
-    //   const avoidTransform = false;
+    async transform(code, id) {
+      const avoidTransform = false;
 
-    //   if (code === null || id === null) {
-    //     return null;
-    //   }
+      if (code === null || id === null) {
+        return null;
+      }
 
-    //   const loader = path.parse(id).ext.replace('.', '');
-    //   const isNodeModule = false && id.includes('node_modules');
+      const loader = path.parse(id).ext.replace('.', '');
 
-    //   if (!esbuildLoaders.includes(loader)) {
-    //     return {
-    //       code: code,
-    //       map: null,
-    //     };
-    //   }
+      const isNodeModule = id.includes('node_modules');
 
-    //   let transformed;
+      if (!esbuildLoaders.includes(loader)) {
+        return {
+          code: code,
+          map: null,
+        };
+      }
 
-    //   try {
-    //     transformed = await transform(code, {
-    //       loader: loader,
-    //       format: loader === 'js' && !isNodeModule ? 'esm' : undefined,
-    //       minifySyntax: true,
-    //       minifyWhitespace: true,
-    //       keepNames: true,
-    //       sourcemap: true,
-    //       target: ['es6'],
-    //     });
-    //   } catch (e) {
-    //     /** Probably some developer coded jsx in js file */
-    //     transformed = await transform(code, {
-    //       loader: loader,
-    //       minifySyntax: true,
-    //       minifyWhitespace: true,
-    //       keepNames: true,
-    //       sourcemap: true,
-    //       target: ['es6'],
-    //     });
-    //   }
+      const transformed = await transform(code, {
+        loader: loader,
+        format: loader === 'js' && !isNodeModule ? 'esm' : undefined,
+        minifySyntax: true,
+        minifyWhitespace: true,
+        keepNames: true,
+        sourcemap: true,
+        target: ['es2020'],
+      });
 
-    //   return {
-    //     code: transformed.code,
-    //     map: transformed.map,
-    //   };
-    // },
+      return {
+        code: transformed.code,
+        map: transformed.map,
+      };
+    },
+    resolveImportMeta(property, {moduleId}) {
+      // if (property === 'url') {
+      //   return '"./"';
+      // }
+      return null;
+    },
   };
 };
 
@@ -163,17 +160,18 @@ plugins = process.env.NODE_ENV !== 'production' ? plugins.concat([metaversefileP
 export default defineConfig({
   plugins,
   logLevel: 'info',
-  esbuild: {
-    format: 'esm',
-  },
+  esbuild: false,
   build: {
+    format: 'es',
+    target: 'esnext',
     rollupOptions: {
       preserveEntrySignatures: 'strict',
       treeshake: false,
       output: {
+        __vite_skip_esbuild__: true,
         exports: 'named',
         minifyInternalExports: false,
-        format: 'esm',
+        format: 'es',
         manualChunks: id => {
           if (id.includes('three/build')) {
             return 'three';
