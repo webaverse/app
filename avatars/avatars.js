@@ -2904,7 +2904,7 @@ class Avatar {
           
             const localPlayer = metaversefile.useLocalPlayer();
 
-            let defaultAnimation = "grab_forward";
+            let defaultAnimation = 'grab_forward';
 
             if (localPlayer.getAction('activate').animationName) {
               defaultAnimation = localPlayer.getAction('activate').animationName;
