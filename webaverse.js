@@ -5,6 +5,8 @@ it uses the help of various managers and stores, and executes the render loop.
 
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
+import stateMachine from './avatars/States.js';
+// import * as CharacterHupsModule from './character-hups.js';
 import * as sounds from './sounds.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
@@ -376,6 +378,8 @@ export default class Webaverse extends EventTarget {
       transformControls.update();
       game.update(timestamp, timeDiffCapped);
       
+      stateMachine.update(timestamp, timeDiffCapped);
+
       localPlayer.updateAvatar(timestamp, timeDiffCapped);
       playersManager.update(timestamp, timeDiffCapped);
       
