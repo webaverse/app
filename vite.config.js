@@ -7,7 +7,7 @@ import fs from 'fs';
 import {transform} from 'esbuild';
 import glob from 'glob';
 
-const esbuildLoaders = ['js', 'jsx', 'ts', 'tsx', 'text', 'base64', 'file', 'dataurl', 'binary', 'default'];
+const esbuildLoaders = ['js', 'jsx', 'ts', 'tsx'];
 let plugins = [
   // reactRefresh()
 ];
@@ -105,38 +105,52 @@ const build = () => {
       }
       return null;
     },
-    async transform(code, id) {
-      const avoidTransform = false;
+    // async transform(code, id) {
+    //   const avoidTransform = false;
 
-      if (code === null || id === null) {
-        return null;
-      }
+    //   if (code === null || id === null) {
+    //     return null;
+    //   }
 
-      const loader = path.parse(id).ext.replace('.', '');
-      const isNodeModule = id.includes('node_modules');
+    //   const loader = path.parse(id).ext.replace('.', '');
+    //   const isNodeModule = false && id.includes('node_modules');
 
-      if (!esbuildLoaders.includes(loader)) {
-        return {
-          code: code,
-          map: null,
-        };
-      }
+    //   if (!esbuildLoaders.includes(loader)) {
+    //     return {
+    //       code: code,
+    //       map: null,
+    //     };
+    //   }
 
-      const transformed = await transform(code, {
-        loader: loader,
-        format: loader === 'js' && !isNodeModule ? 'esm' : undefined,
-        minifySyntax: true,
-        minifyWhitespace: true,
-        keepNames: true,
-        sourcemap: true,
-        target: ['es6'],
-      });
+    //   let transformed;
 
-      return {
-        code: transformed.code,
-        map: transformed.map,
-      };
-    },
+    //   try {
+    //     transformed = await transform(code, {
+    //       loader: loader,
+    //       format: loader === 'js' && !isNodeModule ? 'esm' : undefined,
+    //       minifySyntax: true,
+    //       minifyWhitespace: true,
+    //       keepNames: true,
+    //       sourcemap: true,
+    //       target: ['es6'],
+    //     });
+    //   } catch (e) {
+    //     /** Probably some developer coded jsx in js file */
+    //     transformed = await transform(code, {
+    //       loader: loader,
+    //       minifySyntax: true,
+    //       minifyWhitespace: true,
+    //       keepNames: true,
+    //       sourcemap: true,
+    //       target: ['es6'],
+    //     });
+    //   }
+
+    //   return {
+    //     code: transformed.code,
+    //     map: transformed.map,
+    //   };
+    // },
   };
 };
 
@@ -149,6 +163,9 @@ plugins = process.env.NODE_ENV !== 'production' ? plugins.concat([metaversefileP
 export default defineConfig({
   plugins,
   logLevel: 'info',
+  esbuild: {
+    format: 'esm',
+  },
   build: {
     rollupOptions: {
       preserveEntrySignatures: 'strict',
@@ -160,6 +177,8 @@ export default defineConfig({
         manualChunks: id => {
           if (id.includes('three/build')) {
             return 'three';
+          } else if (id.includes('node_modules')) {
+            return 'vendor';
           }
           //  else if (id.includes('three/examples')) {
           //   return 'three-examples';
