@@ -156,7 +156,7 @@ const getClosest2AnimationAngles = (key, angle) => {
 
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
-const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
+// const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
@@ -167,8 +167,9 @@ const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
 const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
-const defaultchargeJumpAnimation = 'chargeJump';
-const defaultStandChargeAnimation = 'standCharge';
+// const defaultchargeJumpAnimation = 'chargeJump';
+// const defaultStandChargeAnimation = 'standCharge';
+// const defaultHurtAnimation = 'pain_back';
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 // const crouchMagnitude = 0.2;
