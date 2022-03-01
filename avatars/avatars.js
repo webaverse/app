@@ -299,7 +299,7 @@ let narutoRunAnimations;
 // let jumpAnimationSegments;
 // let chargeJump;
 // let standCharge;
-let fallLoop;
+// let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
 const loadPromise = (async () => {
@@ -430,7 +430,7 @@ const loadPromise = (async () => {
 
   // chargeJump = animations.find(a => a.isChargeJump);
   // standCharge = animations.find(a => a.isStandCharge);
-  fallLoop = animations.find(a => a.isFallLoop);
+  // fallLoop = animations.find(a => a.isFallLoop);
   // swordSideSlash = animations.find(a => a.isSwordSideSlash);
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
@@ -2612,7 +2612,7 @@ class Avatar {
           };
         }
 
-        if (this.fallLoopState) {
+        /* if (this.fallLoopState) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2626,7 +2626,7 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
+        } */
         if (
           this.useAnimation ||
           this.useAnimationCombo.length > 0 ||
