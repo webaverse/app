@@ -105,12 +105,6 @@ function proxyReq(u, res) {
     /** Replace any double / caused due to both proxy & import */
     o.pathname = o.pathname.replaceAll('//', '/');
 
-    // if (o.href.includes('button/e-key.png')) {
-    //   debugger;
-    // }
-
-    // if (o.href.includes('grid.glb')) { debugger; }
-
     if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
