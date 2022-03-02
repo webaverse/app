@@ -15,13 +15,7 @@ let plugins = [
 const baseDirectory = 'assets';
 const proxyModuleBase = '-proxy';
 
-const entryPoints = [
-  {
-    path: 'metaversefile-api.js',
-  },
-  // {
-  //   path: 'metaverse-modules.js',
-  // },
+let entryPoints = [
   {
     path: './packages/totum/index.js',
     name: `${baseDirectory}/metaversefile${proxyModuleBase}.js`,
@@ -45,6 +39,8 @@ const entryPoints = [
     glob: true,
   },
 ];
+
+//entryPoints = [];
 
 const build = () => {
   const _entryPoints = [];
