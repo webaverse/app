@@ -15,10 +15,6 @@
     "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000"
   },
   "dependencies": {
-    "@3id/connect": "^0.2.5",
-    "@ceramicnetwork/3id-did-resolver": "^1.4.3",
-    "@ceramicnetwork/http-client": "^1.3.0",
-    "@ceramicstudio/idx": "^0.12.2",
     "@glazed/devtools": "^0.1.3",
     "@pixiv/three-vrm": "./packages/three-vrm",
     "@react-three/fiber": "^7.0.6",
