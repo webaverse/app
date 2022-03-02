@@ -149,6 +149,7 @@ function proxyReq(u, res) {
   /** Setup static assets */
   if (isProduction) {
     app.use(express.static('dist'));
+    app.use(express.static('dist/assets'));
     app.enable('view cache');
   }
 

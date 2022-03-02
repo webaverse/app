@@ -22,5 +22,5 @@ process.env.NODE_ENV='production';
 
   console.log('Copying Public Direcotry');
   /** Copy public directory */
-  execSync('cp -r ./public/* ./dist/');
+  execSync('cp -r ./public ./dist/public');
 })();
