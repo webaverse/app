@@ -1,5 +1,7 @@
+/* eslint-disable no-shadow */
+/* eslint-disable no-trailing-spaces */
 import * as THREE from 'three';
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import classnames from 'classnames';
 import styles from './Header.module.css';
 import Inspector from './Inspector.jsx';
@@ -8,24 +10,24 @@ import CharacterHups from './CharacterHups.jsx';
 import MagicMenu from './MagicMenu.jsx';
 // import * as Z from 'zjs';
 // import {Color} from './Color.js';
-import {world} from '../world.js'
-import game from '../game.js'
+import { world } from '../world.js';
+import game from '../game.js';
 // import universe from '../universe.js'
-import * as hacks from '../hacks.js'
-import cameraManager from '../camera-manager.js'
-import metaversefile from '../metaversefile-api.js'
-import ioManager from '../io-manager.js'
+import * as hacks from '../hacks.js';
+import cameraManager from '../camera-manager.js';
+import metaversefile from '../metaversefile-api.js';
+import ioManager from '../io-manager.js';
 import User from './User';
 // import * as ceramicAdmin from '../ceramic-admin.js';
-import {Character} from './tabs/character';
-import {Claims} from './tabs/claims';
-import {Tokens} from './tabs/tokens';
+import { Character } from './tabs/character';
+import { Claims } from './tabs/claims';
+import { Tokens } from './tabs/tokens';
 
 export default function Header({
   app,
 }) {
   const localPlayer = metaversefile.useLocalPlayer();
-  const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
+  const _getWearActions = () => localPlayer.getActionsArray().filter((action) => action.type === 'wear');
 
   const previewCanvasRef = useRef();
   const panelsRef = useRef();
@@ -45,30 +47,30 @@ export default function Header({
   const characterOpen = open === 'character';
   const magicMenuOpen = open === 'magicMenu';
 
-  const toggleOpen = newOpen => {
+  const toggleOpen = (newOpen) => {
     setOpen(newOpen === open ? null : newOpen);
   };
 
   useEffect(() => {
-    const update = e => {
+    const update = (e) => {
       setApps(world.appManager.getApps().slice());
     };
     world.appManager.addEventListener('appadd', update);
     world.appManager.addEventListener('appremove', update);
   }, []);
   useEffect(() => {
-    localPlayer.addEventListener('wearupdate', e => {
+    localPlayer.addEventListener('wearupdate', (e) => {
       const wearActions = _getWearActions();
       setWearActions(wearActions);
       
       const mouseDomEquipmentHoverObject = game.getMouseDomEquipmentHoverObject();
-      if (mouseDomEquipmentHoverObject && !wearActions.some(action => action.type === 'wear' && action.instanceId === mouseDomEquipmentHoverObject.instanceId)) {
+      if (mouseDomEquipmentHoverObject && !wearActions.some((action) => action.type === 'wear' && action.instanceId === mouseDomEquipmentHoverObject.instanceId)) {
         game.setMouseDomEquipmentHoverObject(null);
       }
     });
   }, []);
   useEffect(() => {
-    const pointerlockchange = e => {
+    const pointerlockchange = (e) => {
       // console.log('pointer lock change', e, document.pointerLockElement);
       if (document.pointerLockElement) {
         setOpen(null);
@@ -89,9 +91,9 @@ export default function Header({
   }, [open]);
 
   useEffect(() => {
-    const pickup = e => {
-      const {app} = e.data;
-      const {contentId} = app;
+    const pickup = (e) => {
+      const { app } = e.data;
+      const { contentId } = app;
       const newClaims = claims.slice();
       newClaims.push({
         contentId,
@@ -114,7 +116,7 @@ export default function Header({
     }
   }, [selectedApp, panelsRef.current]);
   
-  const _handleNonInputKey = e => {
+  const _handleNonInputKey = (e) => {
     switch (e.which) {
       case 13: { // enter
         e.preventDefault();
@@ -143,7 +145,7 @@ export default function Header({
     }
     return false;
   };
-  const _handleAnytimeKey = e => {
+  const _handleAnytimeKey = (e) => {
     switch (e.which) {
       case 9: { // tab
         e.preventDefault();
@@ -152,7 +154,7 @@ export default function Header({
           ioManager.click(new MouseEvent('click'));
           cameraManager.requestPointerLock();
         } else {
-          window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: 'CharacterMenu' } } ) );
+          window.dispatchEvent(new CustomEvent('CloseAllMenus', { detail: { dispatcher: 'CharacterMenu' } }));
           setOpen('character');
         }
         return true;
@@ -161,16 +163,13 @@ export default function Header({
     return false;
   };
   useEffect(() => {
-
     const handleOnFocusLost = () => {
-
-        setOpen( false );
-
+      setOpen(false);
     };
 
-    window.addEventListener( 'CloseAllMenus', handleOnFocusLost );
+    window.addEventListener('CloseAllMenus', handleOnFocusLost);
 
-    const keydown = e => {
+    const keydown = (e) => {
       let handled = false;
       const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
       if (!inputFocused) {
@@ -187,12 +186,12 @@ export default function Header({
     };
     window.addEventListener('keydown', keydown);
     return () => {
-      window.removeEventListener( 'CloseAllMenus', handleOnFocusLost );
+      window.removeEventListener('CloseAllMenus', handleOnFocusLost);
       window.removeEventListener('keydown', keydown);
     };
   }, [open, selectedApp]);
   useEffect(async () => {
-    window.addEventListener('click', e => {
+    window.addEventListener('click', (e) => {
       const hoverObject = game.getMouseHoverObject();
       if (hoverObject) {
         e.preventDefault();
@@ -205,12 +204,12 @@ export default function Header({
     });
   }, []);
   useEffect(() => {
-    const dragchange = e => {
-      const {dragging} = e.data;
+    const dragchange = (e) => {
+      const { dragging } = e.data;
       setDragging(dragging);
     };
     world.appManager.addEventListener('dragchange', dragchange);
-    const selectchange = e => {
+    const selectchange = (e) => {
     //   setSelectedApp(e.data.app);
     };
     world.appManager.addEventListener('selectchange', selectchange);
@@ -223,28 +222,31 @@ export default function Header({
   const npcManager = metaversefile.useNpcManager();
   const [npcs, setNpcs] = useState(npcManager.npcs);
   useEffect(() => {
-    npcManager.addEventListener('npcadd', e => {
-      const {player} = e.data;
+    npcManager.addEventListener('npcadd', (e) => {
+      const { player } = e.data;
       const newNpcs = npcs.concat([player]);
       setNpcs(newNpcs);
     });
-    npcManager.addEventListener('npcremove', e => {
-      const {player} = e.data;
+    npcManager.addEventListener('npcremove', (e) => {
+      const { player } = e.data;
       const newNpcs = npcs.slice().splice(npcs.indexOf(player), 1);
       setNpcs(newNpcs);
     });
   }, []);
 
-	return (
-    <div className={styles.container} onClick={e => {
-      e.stopPropagation();
-    }}>
+  return (
+    <div
+      className={styles.container}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+    >
       <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
       <Chat open={open} setOpen={setOpen} />
       <CharacterHups localPlayer={localPlayer} npcs={npcs} />
       <MagicMenu open={open} setOpen={setOpen} />
       <div className={styles.inner}>
-				<header className={styles.header}>
+        <header className={styles.header}>
           <div className={styles.row}>
             <a href="/" className={styles.logo}>
               <img src="images/arrow-logo.svg" className={styles.image} />
@@ -258,10 +260,10 @@ export default function Header({
               setLoginFrom={setLoginFrom}
             />
           </div>
-				</header>
+        </header>
         <header className={classnames(styles.header, styles.subheader)}>
           <div className={styles.row}>
-          <Character
+            <Character
               open={open}
               setOpen={setOpen}
               toggleOpen={toggleOpen}
@@ -288,5 +290,5 @@ export default function Header({
         />
       </div>
     </div>
-  )
-};
+  );
+}
