@@ -41,6 +41,11 @@ let entryPoints = [
     glob: true,
   },
   {
+    path: './workers/**/*.js',
+    replaceExpression: '.',
+    glob: true,
+  },
+  {
     path: './packages/wsrtc/*.js',
     replaceExpression: './packages',
     glob: true,
