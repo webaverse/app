@@ -323,7 +323,7 @@ export const animeRadialShader = `\
     mainImage(gl_FragColor, tex_coords);
   }
 `;
-const grassFragmentShader = `\
+export const grassFragmentShader = `\
 uniform sampler2D iChannel0;
 uniform float iTime;
 varying vec2 tex_coords;
