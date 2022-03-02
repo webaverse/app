@@ -716,6 +716,8 @@ const createPlayerDiorama = ({
 
   const {devicePixelRatio: pixelRatio} = window;
 
+  const renderer = getRenderer();
+
   let locallyOwnedCanvas;
   if (canvas) {
     locallyOwnedCanvas = null;
@@ -828,7 +830,149 @@ const createPlayerDiorama = ({
             }
           }
         }
-      };
+        /* if (oldWorldLightParent) {
+          oldWorldLightParent.add(world.lights);
+        } else {
+          world.lights.parent.remove(world.lights);
+        } */
+        renderer.setRenderTarget(oldRenderTarget);
+        renderer.setViewport(oldViewport);
+      }
+    },
+    destroy() {
+      if (locallyOwnedCanvas) {
+        locallyOwnedCanvas.parentNode.removeChild(locallyOwnedCanvas);
+      }
+      dioramas.splice(dioramas.indexOf(diorama), 1);
+
+      postProcessing.removeEventListener('update', recompile);
+    },
+  };
+
+  function recompile() {
+    diorama.triggerLoad();
+  }
+  const compile = () => {
+    diorama.triggerLoad();
+    postProcessing.addEventListener('update', recompile);
+  }
+  if (player.avatar) {
+    compile();
+  } else {
+    function avatarchange() {
+      if (player.avatar) {
+        compile();
+        player.removeEventListener('avatarchange', avatarchange);
+      }
+    }
+    player.addEventListener('avatarchange', avatarchange);
+  }
+
+  diorama.addCanvas(canvas);
+  dioramas.push(diorama);
+  return diorama;
+};
+
+const createAppDiorama = (app, {
+  canvas,
+  label = null,
+  outline = false,
+  lightningBackground = false,
+  radialBackground = false,
+  grassBackground = false,
+  glyphBackground = false,
+} = {}) => {
+  // _ensureSideSceneCompiled();
+
+  const {devicePixelRatio: pixelRatio} = window;
+
+  const renderer = getRenderer();
+
+  if (!canvas) {
+    canvas = _makeCanvas(defaultDioramaSize, defaultDioramaSize);
+    document.body.appendChild(canvas);
+  }
+  const canvases = [];
+  let outlineRenderTarget = null;
+  let lastDisabledTime = 0;
+
+  const diorama = {
+    width: 0,
+    height: 0,
+    loaded: false,
+    enabled: true,
+    addCanvas(canvas) {
+      const {width, height} = canvas;
+      this.width = Math.max(this.width, width);
+      this.height = Math.max(this.height, height);
+
+      const ctx = canvas.getContext('2d');
+      canvas.ctx = ctx;
+
+      canvases.push(canvas);
+    },
+    toggleShader() {
+      const oldValues = {lightningBackground, radialBackground, glyphBackground, grassBackground};
+      lightningBackground = false;
+      radialBackground = false;
+      glyphBackground = false;
+      grassBackground = false;
+      if (oldValues.lightningBackground) {
+        radialBackground = true;
+      } else if (oldValues.radialBackground) {
+        glyphBackground = true;
+      } else if (oldValues.glyphBackground) {
+        grassBackground = true;
+      } else if (oldValues.grassBackground) {
+        lightningBackground = true;
+      }
+    },
+    triggerLoad() {
+      const oldParent = app.parent;
+      Promise.all([
+        (async () => {
+          outlineRenderScene.add(app);
+          await renderer.compileAsync(outlineRenderScene);
+        })(),
+        (async () => {
+          sideScene.add(app);
+          await renderer.compileAsync(sideScene);
+        })(),
+      ]).then(() => {
+        this.loaded = true;
+      });
+      
+      if (oldParent) {
+        oldParent.add(app);
+      } else {
+        app.parent.remove(app);
+      }
+    },
+    update(timestamp, timeDiff) {
+      if (!this.loaded || !this.enabled) {
+        lastDisabledTime = timestamp;
+        return;
+      }
+      const timeOffset = timestamp - lastDisabledTime;
+
+      if (!outlineRenderTarget || (outlineRenderTarget.width !== this.width * pixelRatio) || (outlineRenderTarget.height !== this.height * pixelRatio)) {
+        outlineRenderTarget = _makeOutlineRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
+      }
+
+      const renderer = getRenderer();
+      const size = renderer.getSize(localVector2D);
+      // a Vector2 representing the largest power of two less than or equal to the current canvas size
+      const sizePowerOfTwo = localVector2D2.set(
+        Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
+        Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
+      );
+      if (sizePowerOfTwo.x < this.width || sizePowerOfTwo.y < this.height) {
+        console.warn('renderer is too small');
+        return;
+      }
+    
+      // push old state
+      const oldParent = app.parent;
       const oldRenderTarget = renderer.getRenderTarget();
       const oldViewport = renderer.getViewport(localVector4D);
 
