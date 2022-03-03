@@ -120,7 +120,7 @@ class StateMachine{
                 try {
                     curState.animationFn?.();
                 } catch (error) {
-                    console.log("could not run animation function", error);
+                    console.log(`could not run animation function for ${name}`, error);
                 }
             })
         })

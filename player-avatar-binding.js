@@ -108,6 +108,12 @@ export function applyPlayerActionsToAvatar(player, rig) {
     time: player.actionInterpolants.jump.get(),
     active: !!jumpAction
   })
+  StateMachine.getTracked("playerAvatar").registerState({
+    ...sitAction,
+    name: sitAction?.type ?? 'sit',
+    animation: sitAnimation,
+    active: !!sitAction
+  })
 
   StateMachine.getTracked("playerAvatar").registerState({
     ...flyAction, 
@@ -167,8 +173,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.aimAnimation = (aimAction?.playerAnimation) || '';
   // rig.aimDirection.set(0, 0, -1);
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
-  rig.sitState = !!sitAction;
-  rig.sitAnimation = sitAnimation;
+  // rig.sitState = !!sitAction;
+  // rig.sitAnimation = sitAnimation;
 
   // rig.danceState = !!danceAction;
   // rig.danceTime = player.actionInterpolants.dance.get();

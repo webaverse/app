@@ -189,19 +189,19 @@ const _blendActivateAction = spec => {
 //   // console.log(src2);
 // };
 
-const sitFunc = (spec, now) => {
-  const {
-    animationTrackName: k,
-    dst,
-    // isTop,
-  } = spec;
+// const sitFunc = (spec, now) => {
+//   const {
+//     animationTrackName: k,
+//     dst,
+//     // isTop,
+//   } = spec;
 
-  const sitAnimation = getActiveAnimation("sit")[avatar.sitAnimation || defaultSitAnimation];
-  const src2 = sitAnimation.interpolants[k];
-  const v2 = src2.evaluate(1);
+//   const sitAnimation = getActiveAnimation("sit")[avatar.tracker.getState('sit').animation || defaultSitAnimation];
+//   const src2 = sitAnimation.interpolants[k];
+//   const v2 = src2.evaluate(1);
 
-  dst.fromArray(v2);
-}
+//   dst.fromArray(v2);
+// }
 
 /* const danceFunc = (spec, now, avatar) => {
   const {
@@ -303,8 +303,8 @@ export const _applyAnimation = (avatar, now) => {
     if (avatar.tracker.getState('jump', true)) {
       return avatar.tracker.getState('jump').animationFn;
     }
-    if (avatar.sitState) {
-      return sitFunc;
+    if (avatar.tracker.getState('sit', true)) {
+      return avatar.tracker.getState('sit').animationFn;
     }
     if (avatar.tracker.getState('narutoRun', true)) {
       return avatar.tracker.getState('narutoRun').animationFn;

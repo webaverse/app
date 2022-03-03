@@ -418,6 +418,21 @@ class Avatar {
       dst.fromArray(v2);
     });
 
+    tmpAnimation.addAnimation(stateName, "sit", function(spec, now, avatar) {
+      const defaultSitAnimation = 'chair';
+      const {
+        animationTrackName: k,
+        dst,
+        // isTop,
+      } = spec;
+
+      const sitAnimation = this.getActiveAnimation("sit")[avatar.tracker.getState('sit')?.animation || defaultSitAnimation];
+      const src2 = sitAnimation.interpolants[k];
+      const v2 = src2.evaluate(1);
+
+      dst.fromArray(v2);
+    });
+
     tmpAnimation.addAnimation(stateName, "dance", function (spec, now, avatar) {
       const {
         animationTrackName: k,
@@ -430,7 +445,7 @@ class Avatar {
 
       _handleDefault(spec, now, avatar); //this needs to be changed/moved
 
-      const danceAnimation = this.getActiveAnimation("dance")[avatar.tracker.getState("dance")?.variation || defaultDanceAnimation];
+      const danceAnimation = this.getActiveAnimation("dance")[avatar.tracker.getState("dance")?.animation || defaultDanceAnimation];
       const src2 = danceAnimation.interpolants[k];
       const t2 = (now / 1000) % danceAnimation.duration;
       const v2 = src2.evaluate(t2);
@@ -964,8 +979,8 @@ class Avatar {
     this.unuseAnimation = null;
     this.unuseTime = -1;
     
-    this.sitState = false;
-    this.sitAnimation = null;
+    // this.sitState = false;
+    // this.sitAnimation = null;
     // this.activateState = false;
     this.activateTime = 0;
     this.danceState = false;
