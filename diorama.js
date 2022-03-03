@@ -24,9 +24,6 @@ const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 
-// I like... macaroni and cheese, is that ok?
-// we all want unlimited power, don't we?
-
 // this function maps the speed histogram to a position, integrated up to the given timestamp
 const mapTime = (speedHistogram = new SpeedHistogram, time = 0) => {
   const {elements} = speedHistogram;
