@@ -81,7 +81,7 @@ export const genPic = async ({
   // o.name = 'npc';
   // await o.addModule(m);
 
-  console.log('got avatar app', app);
+  // console.log('got avatar app', app);
 
   // const position = app.position.clone()
     // .add(new THREE.Vector3(0, 1, 0));
