@@ -1854,7 +1854,7 @@ const gameManager = {
     localPlayer.avatar.setQuality(quality);
   },
   playerDiorama: null,
-  async bindPreviewCanvas(canvas) {
+  async bindDioramaCanvas(canvas) {
     await rendererWaitForLoad();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
