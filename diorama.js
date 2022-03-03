@@ -704,8 +704,10 @@ const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   magFilter: THREE.LinearFilter,
   format: THREE.RGBAFormat,
 });
-const createPlayerDiorama = (player, {
-  canvas,
+const createPlayerDiorama = ({
+  canvas = null,
+  objects = [],
+  target = null,
   label = null,
   outline = false,
   lightningBackground = false,
@@ -716,12 +718,6 @@ const createPlayerDiorama = (player, {
   // _ensureSideSceneCompiled();
 
   const {devicePixelRatio: pixelRatio} = window;
-
-  const renderer = getRenderer();
-  /* sideCamera.position.set(0, 0, 10);
-  sideCamera.quaternion.identity();
-  sideCamera.updateMatrixWorld();
-  renderer.compile(sideScene, sideCamera); */
 
   let locallyOwnedCanvas;
   if (canvas) {
@@ -740,6 +736,15 @@ const createPlayerDiorama = (player, {
     height: 0,
     loaded: false,
     enabled: true,
+    setTarget(newTarget) {
+      target = newTarget;
+    },
+    setObjects(newObjects) {
+      objects = newObjects;
+    },
+    resetCanvases() {
+      canvases.length = 0;
+    },
     addCanvas(canvas) {
       const {width, height} = canvas;
       this.width = Math.max(this.width, width);
@@ -768,12 +773,12 @@ const createPlayerDiorama = (player, {
     },
     triggerLoad() {
       Promise.all([
-        (async () => {
+        /* (async () => {
           await renderer.compileAsync(player.avatar.model, outlineRenderScene);
         })(),
         (async () => {
           await renderer.compileAsync(player.avatar.model, sideScene);
-        })(),
+        })(), */
       ]).then(() => {
         this.loaded = true;
       });
@@ -801,145 +806,158 @@ const createPlayerDiorama = (player, {
         outlineRenderTarget = _makeOutlineRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
       }
 
-      if (player.avatar) {
-        // push old state
-        const oldParent = player.avatar.model.parent;
-        const oldRenderTarget = renderer.getRenderTarget();
-        const oldViewport = renderer.getViewport(localVector4D);
-      
-        const _render = () => {
-          // set up side camera
-          sideCamera.position.copy(player.position)
-            .add(localVector.set(0.3, 0, -0.5).applyQuaternion(player.quaternion));
-          sideCamera.quaternion.setFromRotationMatrix(
-            localMatrix.lookAt(
-              sideCamera.position,
-              player.position,
-              localVector3.set(0, 1, 0)
-            )
-          );
-          sideCamera.updateMatrixWorld();
-
-          // set up side avatar scene
-          outlineRenderScene.add(player.avatar.model);
-          // outlineRenderScene.add(world.lights);
-          // render side avatar scene
-          renderer.setRenderTarget(outlineRenderTarget);
-          renderer.clear();
-          renderer.render(outlineRenderScene, sideCamera);
-          
-          // set up side scene
-          sideScene.add(player.avatar.model);
-          // sideScene.add(world.lights);
-      
-          const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
-          if (lightningBackground) {
-            lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
-            lightningMesh.material.uniforms.iTime.needsUpdate = true;
-            lightningMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
-            lightningMesh.material.uniforms.iFrame.needsUpdate = true;
-            lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
-            lightningMesh.material.uniforms.uColor1.needsUpdate = true;
-            lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-            lightningMesh.material.uniforms.uColor2.needsUpdate = true;
-            lightningMesh.visible = true;
-          } else {
-            lightningMesh.visible = false;
-          }
-          if (radialBackground) {
-            radialMesh.material.uniforms.iTime.value = timeOffset / 1000;
-            radialMesh.material.uniforms.iTime.needsUpdate = true;
-            radialMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
-            radialMesh.material.uniforms.iFrame.needsUpdate = true;
-            radialMesh.visible = true;
-          } else {
-            radialMesh.visible = false;
-          }
-          if (grassBackground) {
-            grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
-            grassMesh.material.uniforms.iTime.needsUpdate = true;
-            grassMesh.material.uniforms.uColor1.value.set(colors[0]);
-            grassMesh.material.uniforms.uColor1.needsUpdate = true;
-            grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-            grassMesh.material.uniforms.uColor2.needsUpdate = true;
-            grassMesh.visible = true;
-          } else {
-            grassMesh.visible = false;
-          }
-          if (glyphBackground) {
-            glyphMesh.material.uniforms.iTime.value = timeOffset / 1000;
-            glyphMesh.material.uniforms.iTime.needsUpdate = true;
-            glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
-            glyphMesh.material.uniforms.uColor1.needsUpdate = true;
-            glyphMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-            glyphMesh.material.uniforms.uColor2.needsUpdate = true;
-            glyphMesh.visible = true;
-          } else {
-            glyphMesh.visible = false;
-          }
-          if (outline) {
-            outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-            outlineMesh.material.uniforms.t0.needsUpdate = true;
-            outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-            outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-            outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-            outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-            outlineMesh.visible = true;
-          } else {
-            outlineMesh.visible = false;
-          }
-          if (label) {
-            labelMesh.material.uniforms.iTime.value = timeOffset / 1000;
-            labelMesh.material.uniforms.iTime.needsUpdate = true;
-            labelMesh.visible = true;
-            for (const child of textObject.children) {
-              child.material.uniforms.uTroikaOutlineOpacity.value = timeOffset / 1000;
-              child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
-            }
-            textObject.visible = true;
-          } else {
-            labelMesh.visible = false;
-            textObject.visible = false;
-          }
-          
-          // render side scene
-          renderer.setRenderTarget(oldRenderTarget);
-          renderer.setViewport(0, 0, this.width, this.height);
-          renderer.clear();
-          renderer.render(sideScene, sideCamera);
-      
-          for (const canvas of canvases) {
-            const {width, height, ctx} = canvas;
-            ctx.clearRect(0, 0, width, height);
-            ctx.drawImage(
-              renderer.domElement,
-              0,
-              size.y * pixelRatio - this.height * pixelRatio,
-              this.width * pixelRatio,
-              this.height * pixelRatio,
-              0,
-              0,
-              width,
-              height
-            );
-          }
-        };
-        _render();
-
-        // pop old state
-        if (oldParent) {
-          oldParent.add(player.avatar.model);
-        } else {
-          player.avatar.model.parent.remove(player.avatar.model);
+      const _addObjectsToScene = scene => {
+        for (const object of objects) {
+          scene.add(object);
         }
-        /* if (oldWorldLightParent) {
-          oldWorldLightParent.add(world.lights);
+      };
+
+      // push old state
+      const oldParents = (() => {
+        const parents = new WeakMap();
+        for (const object of objects) {
+          parents.set(object, object.parent);
+        }
+        return parents;
+      })();
+      const _restoreParents = () => {
+        for (const object of objects) {
+          const parent = oldParents.get(object);
+          if (parent) {
+            parent.add(object);
+          } else {
+            if (object.parent) {
+              object.parent.remove(object);
+            }
+          }
+        }
+      };
+      const oldRenderTarget = renderer.getRenderTarget();
+      const oldViewport = renderer.getViewport(localVector4D);
+
+      const _render = () => {
+        // set up side camera
+        sideCamera.position.copy(target.position)
+          .add(localVector.set(0.3, 0, -0.5).applyQuaternion(target.quaternion));
+        sideCamera.quaternion.setFromRotationMatrix(
+          localMatrix.lookAt(
+            sideCamera.position,
+            target.position,
+            localVector3.set(0, 1, 0)
+          )
+        );
+        sideCamera.updateMatrixWorld();
+
+        // set up side avatar scene
+        _addObjectsToScene(outlineRenderScene);
+        // outlineRenderScene.add(world.lights);
+        // render side avatar scene
+        renderer.setRenderTarget(outlineRenderTarget);
+        renderer.clear();
+        renderer.render(outlineRenderScene, sideCamera);
+        
+        // set up side scene
+        _addObjectsToScene(sideScene);
+        // sideScene.add(world.lights);
+    
+        const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
+        if (lightningBackground) {
+          lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
+          lightningMesh.material.uniforms.iTime.needsUpdate = true;
+          lightningMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
+          lightningMesh.material.uniforms.iFrame.needsUpdate = true;
+          lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
+          lightningMesh.material.uniforms.uColor1.needsUpdate = true;
+          lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          lightningMesh.material.uniforms.uColor2.needsUpdate = true;
+          lightningMesh.visible = true;
         } else {
-          world.lights.parent.remove(world.lights);
-        } */
+          lightningMesh.visible = false;
+        }
+        if (radialBackground) {
+          radialMesh.material.uniforms.iTime.value = timeOffset / 1000;
+          radialMesh.material.uniforms.iTime.needsUpdate = true;
+          radialMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
+          radialMesh.material.uniforms.iFrame.needsUpdate = true;
+          radialMesh.visible = true;
+        } else {
+          radialMesh.visible = false;
+        }
+        if (grassBackground) {
+          grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
+          grassMesh.material.uniforms.iTime.needsUpdate = true;
+          grassMesh.material.uniforms.uColor1.value.set(colors[0]);
+          grassMesh.material.uniforms.uColor1.needsUpdate = true;
+          grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          grassMesh.material.uniforms.uColor2.needsUpdate = true;
+          grassMesh.visible = true;
+        } else {
+          grassMesh.visible = false;
+        }
+        if (glyphBackground) {
+          glyphMesh.material.uniforms.iTime.value = timeOffset / 1000;
+          glyphMesh.material.uniforms.iTime.needsUpdate = true;
+          glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
+          glyphMesh.material.uniforms.uColor1.needsUpdate = true;
+          glyphMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          glyphMesh.material.uniforms.uColor2.needsUpdate = true;
+          glyphMesh.visible = true;
+        } else {
+          glyphMesh.visible = false;
+        }
+        if (outline) {
+          outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
+          outlineMesh.material.uniforms.t0.needsUpdate = true;
+          outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
+          outlineMesh.material.uniforms.uColor1.needsUpdate = true;
+          outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          outlineMesh.material.uniforms.uColor2.needsUpdate = true;
+          outlineMesh.visible = true;
+        } else {
+          outlineMesh.visible = false;
+        }
+        if (label) {
+          labelMesh.material.uniforms.iTime.value = timeOffset / 1000;
+          labelMesh.material.uniforms.iTime.needsUpdate = true;
+          labelMesh.visible = true;
+          for (const child of textObject.children) {
+            child.material.uniforms.uTroikaOutlineOpacity.value = timeOffset / 1000;
+            child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+          }
+          textObject.visible = true;
+        } else {
+          labelMesh.visible = false;
+          textObject.visible = false;
+        }
+        
+        // render side scene
         renderer.setRenderTarget(oldRenderTarget);
-        renderer.setViewport(oldViewport);
-      }
+        renderer.setViewport(0, 0, this.width, this.height);
+        renderer.clear();
+        renderer.render(sideScene, sideCamera);
+    
+        for (const canvas of canvases) {
+          const {width, height, ctx} = canvas;
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(
+            renderer.domElement,
+            0,
+            size.y * pixelRatio - this.height * pixelRatio,
+            this.width * pixelRatio,
+            this.height * pixelRatio,
+            0,
+            0,
+            width,
+            height
+          );
+        }
+      };
+      _render();
+
+      // pop old state
+      _restoreParents();
+      renderer.setRenderTarget(oldRenderTarget);
+      renderer.setViewport(oldViewport);
     },
     destroy() {
       if (locallyOwnedCanvas) {
@@ -951,27 +969,30 @@ const createPlayerDiorama = (player, {
     },
   };
 
-  function recompile() {
+  /* function recompile() {
     diorama.triggerLoad();
   }
   const compile = () => {
     diorama.triggerLoad();
     postProcessing.addEventListener('update', recompile);
-  }
-  if (player.avatar) {
+  } */
+  /* if (player.avatar) {
     compile();
   } else {
     function avatarchange() {
       if (player.avatar) {
-        compile();
+        // compile();
         player.removeEventListener('avatarchange', avatarchange);
       }
     }
     player.addEventListener('avatarchange', avatarchange);
-  }
+  } */
 
-  diorama.addCanvas(canvas);
+  if (canvas) {
+    diorama.addCanvas(canvas);
+  }
   dioramas.push(diorama);
+  diorama.loaded = true; // XXX hack
   return diorama;
 };
 
