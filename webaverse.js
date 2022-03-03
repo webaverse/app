@@ -35,6 +35,7 @@ import {
   bindCanvas,
   getComposer,
 } from './renderer.js';
+import * as audioManager from './audio-manager.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
@@ -82,11 +83,11 @@ const frameEvent = new MessageEvent('frame', {
 });
 const rendererStats = Stats();
 
-const _loadAudioContext = async () => {
+/* const _loadAudioContext = async () => {
   const audioContext = WSRTC.getAudioContext();
   Avatar.setAudioContext(audioContext);
   await audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
-};
+}; */
 
 /* const voiceFiles = `\
 B6_somnium_65_01 - Part_1.wav
@@ -155,7 +156,7 @@ export default class Webaverse extends EventTarget {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
-        _loadAudioContext(),
+        audioManager.waitForLoad(),
         sounds.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
