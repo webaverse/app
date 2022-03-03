@@ -18,9 +18,23 @@ git clone --recurse-submodules https://github.com/webaverse/app.git
 cd app/
 # Install dependencies
 npm install
-# Run the app
+# Run the app in dev mode
 npm run dev
 # Navigate to the URL mentioned in the terminal
+
+# Alternatively to run the application in compiled form
+
+# Run the build command
+npm run build
+
+# Run the build command
+npm run build
+
+# Run the start command
+# by default the MODULE_URL points to local.webaverse.com (127.0.0.1)
+# Please note it's important to pass the exact module url with port
+# Module url will compile and match all the references / assets 
+MODULE_URL={{URL of your app}} npm run startX
 
 ```
 ## Pay Attention

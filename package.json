@@ -9,7 +9,7 @@
     "devX": "rm -rf dist && node ./server/boot.mjs && NODE_ENV=production node index.prod.mjs -p",
     "startX": "NODE_ENV=production node index.prod.mjs -p",
     "prod": "sudo $(which node) index.mjs -p",
-    "build": "vite build",
+    "build": "node server/boot.mjs",
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
     "test": "cd test && npm run test",
