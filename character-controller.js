@@ -484,6 +484,7 @@ class StatePlayer extends PlayerBase {
         this.dispatchEvent({
           type: 'avatarchange',
           app,
+          avatar,
         });
         
         loadPhysxCharacterController.call(this);
