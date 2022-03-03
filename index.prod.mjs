@@ -10,6 +10,7 @@ import fs from 'fs';
 import express from 'express';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 import metaversefile from 'metaversefile/plugins/rollup.js';
+import glob from 'glob';
 
 Error.stackTraceLimit = 300;
 const cwd = process.cwd();
@@ -144,6 +145,22 @@ function proxyReq(u, res) {
   if (isProduction) {
     app.use(express.static('dist'));
     app.use(express.static('dist/assets'));
+
+    app.use('*', (req,res)=>{
+      const o = url.parse(req.originalUrl, true);
+
+      let fileName = path.parse(o.pathname).base;
+
+      glob(`dist/**/${fileName}`, (err,files)=>{
+        let _404 = err || files.length === 0;
+        if(files.length > 0){
+         return res.sendFile(path.resolve('.',files[0]));
+        }else if(_404){
+          res.status(404).end();
+        }
+      });
+    });
+
     app.enable('view cache');
   }
 
