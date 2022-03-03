@@ -55,21 +55,21 @@ const localMatrix = new THREE.Matrix4();
   return {renderer, scene, camera};
 }; */
 const _makeLights = () => {
-  const ambientLight = new THREE.AmbientLight(0xFFFFFF, 100);
+  // const ambientLight = new THREE.AmbientLight(0xFFFFFF, 50);
   // directionalLight.position.set(1, 1.5, -2);
   // directionalLight.updateMatrixWorld();
 
-  /* const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.5);
+  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 5);
   directionalLight.position.set(1, 1.5, -2);
   directionalLight.updateMatrixWorld();
   
-  const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1.5);
+  /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1.5);
   directionalLight2.position.set(-1, 1.5, -2);
   directionalLight2.updateMatrixWorld(); */
 
   return [
-    ambientLight,
-    // directionalLight,
+    // ambientLight,
+    directionalLight,
     // directionalLight2,
   ];
 };
