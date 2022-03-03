@@ -3313,7 +3313,9 @@ class Avatar {
       this.model.add(this.debugMesh);
     }
     if (this.debugMesh) {
-      metaversefile.isDebugMode() && this.debugMesh.setFromAvatar(this);
+      if (metaversefile.isDebugMode()) {
+        this.debugMesh.setFromAvatar(this);
+      }
       this.debugMesh.visible = game.debugMode;
     }
 	}
