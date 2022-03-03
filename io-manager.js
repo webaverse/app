@@ -684,17 +684,21 @@ const _updateMouseMovement = e => {
 const _getMouseRaycaster = (e, raycaster) => {
   const {clientX, clientY} = e;
   const renderer = getRenderer();
-  renderer.getSize(localVector2D2);
-  localVector2D.set(
-    (clientX / localVector2D2.x) * 2 - 1,
-    -(clientY / localVector2D2.y) * 2 + 1
-  );
-  if (
-    localVector2D.x >= -1 && localVector2D.x <= 1 &&
-    localVector2D.y >= -1 && localVector2D.y <= 1
-  ) {
-    raycaster.setFromCamera(localVector2D, camera);
-    return raycaster;
+  if (renderer) {
+    renderer.getSize(localVector2D2);
+    localVector2D.set(
+      (clientX / localVector2D2.x) * 2 - 1,
+      -(clientY / localVector2D2.y) * 2 + 1
+    );
+    if (
+      localVector2D.x >= -1 && localVector2D.x <= 1 &&
+      localVector2D.y >= -1 && localVector2D.y <= 1
+    ) {
+      raycaster.setFromCamera(localVector2D, camera);
+      return raycaster;
+    } else {
+      return null;
+    }
   } else {
     return null;
   }
