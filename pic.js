@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import metaversefile from './metaversefile-api.js';
-import {getExt, makePromise, parseQuery, fitCameraToBoundingBox} from './util.js';
+// import {getExt, makePromise, parseQuery, fitCameraToBoundingBox} from './util.js';
 import Avatar from './avatars/avatars.js';
 import * as audioManager from './audio-manager.js';
 import npcManager from './npc-manager.js';
+import dioramaManager from './diorama.js';
 
 // import GIF from './gif.js';
 import * as WebMWriter from 'webm-writer';
@@ -19,7 +20,9 @@ const localMatrix = new THREE.Matrix4();
 // I can take all of you motherfuckers on at once!
 
 const _makeRenderer = (width, height) => {
-  const canvas = new OffscreenCanvas(width, height);
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
   const context = canvas.getContext('webgl2', {
     alpha: true,
     antialias: true,
