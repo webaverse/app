@@ -96,7 +96,7 @@ export const genPic = async ({
     quaternion,
     scale,
   });
-  window.player = player;
+  // window.player = player;
 
   const _setTransform = () => {
     player.position.y = player.avatar.height;
