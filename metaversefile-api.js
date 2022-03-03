@@ -347,9 +347,9 @@ metaversefile.setApi({
   usePostProcessing() {
     return postProcessing;
   },
-  createAvatar(o, options) {
+  /* createAvatar(o, options) {
     return new Avatar(o, options);
-  },
+  }, */
   useAvatarAnimations() {
     return Avatar.getAnimations();
   },
@@ -864,9 +864,9 @@ export default () => {
   /* useRigManagerInternal() {
     return rigManager;
   }, */
-  useAvatar() {
+  /* useAvatar() {
     return Avatar;
-  },
+  }, */
   useText() {
     return Text;
   },

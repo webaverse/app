@@ -1123,7 +1123,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       visemes: true,
       debug: false,
     });
-  
+
     unFrustumCull(app);
     enableShadows(app);
   
