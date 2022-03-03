@@ -40,7 +40,7 @@ import {
 import metaversefile from 'metaversefile';
 
 import { getFirstPersonCurves, loadPromise, _findArmature, _getLerpFn, _applyAnimation} from './animationHelpers.js'
-import { getClosest2AnimationAngles} from './Animations.js'
+import { getClosest2AnimationAngles, getLoadedAnimation} from './Animations.js'
 
 import {animationMappingConfig} from './animationMappingConfig';
 
@@ -110,7 +110,7 @@ const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 
 import{
   animationStepIndices,
-  getLoadedAnimation
+  tmpAnimation
 } from './Animations.js';
 
 
@@ -367,14 +367,6 @@ const _makeDebugMesh = (avatar) => {
   return mesh;
 };
 
-const _clearXZ = (dst, isPosition) => {
-  if (isPosition) {
-    dst.x = 0;
-    dst.z = 0;
-  }
-};
-
-
 class Avatar {
 	constructor(object, options = {}) {
     if (!object) {
@@ -391,26 +383,25 @@ class Avatar {
 
     window.avatar = this;
     window.StateMachine = StateMachine;
-    StateMachine.registerObj(options.name ?? "playerAvatar", this);    
+    window.tmpAnimation = tmpAnimation;
+    const stateName = "playerAvatar"
+    StateMachine.registerObj(options.name ?? stateName, this);
 
 
-    // StateMachine.getTracked("playerAvatar").registerState ({
-    //   name: 'jump',
-    //   animation: spec => {
-    //     const {
-    //       animationTrackName: k,
-    //       dst,
-    //       // isTop,
-    //     } = spec;
-        
-    //     const t2 = this.tracker.getState('jump').time / 1000 * 0.6 + 0.7;
-    //     const src2 = activeAnimations.jump.interpolants[k];
-    //     const v2 = src2.evaluate(t2);
+    tmpAnimation.addAnimation(stateName, "jump", function(spec, now, avatar){   
+      if (!this.activeAnimations) return;
+      const {
+        animationTrackName: k,
+        dst,
+        // isTop,
+      } = spec;
 
-    //     dst.fromArray(v2);
-    //   }
-    // });
+      const t2 = avatar.tracker.getState('jump').time / 1000 * 0.6 + 0.7;
+      const src2 = this.activeAnimations.jump.interpolants[k];
+      const v2 = src2.evaluate(t2);
 
+      dst.fromArray(v2);
+    });
 
 
     this.object = object;

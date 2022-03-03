@@ -1,10 +1,10 @@
 import {Vector3, Object3D} from 'three'
 
 class StateObj{
-    constructor({ time= NaN, target, direction= new Vector3(), active=false} = {}){
+    constructor({ time= NaN, target, direction= new Vector3(), active=false, animationFn, animation} = {}){
         this.time = time;
-        this.animation = null;
-        this.animationFn = null;
+        this.animation = animation;
+        this.animationFn = animationFn;
         this.target = target
         this.direction = direction;
         this.active = active;
@@ -117,7 +117,11 @@ class StateMachine{
                 let curState = tracked.getState(name);
                 if(!curState.active) return;
                 // console.log(`${key} is active`, curState)
-                curState.animationFn?.();
+                try {
+                    curState.animationFn?.();
+                } catch (error) {
+                    console.log("could not run animation function", error);
+                }
             })
         })
     }

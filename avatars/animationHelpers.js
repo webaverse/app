@@ -9,7 +9,6 @@ import {
   _clearXZ
 } from "./Animations.js";
 import{
-  jumpFunc,
   danceFunc,
   narutoRunFunc
 } from "./Animations.js"
@@ -305,7 +304,7 @@ export const _applyAnimation = (avatar, now) => {
   const _getApplyFn = () => {
 
     if (avatar.tracker.getState('jump', true)) {
-      return jumpFunc;
+      return avatar.tracker.getState('jump').animationFn;
     }
     if (avatar.sitState) {
       return sitFunc;

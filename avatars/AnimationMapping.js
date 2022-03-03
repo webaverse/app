@@ -4,6 +4,8 @@ export default class AnimationMapping {
     this.boneName = boneName;
     this.isTop = isTop;
     this.isPosition = isPosition;
+    this.dst = undefined;
+    this.lerpFn = undefined;
   }
 
   clone() {
