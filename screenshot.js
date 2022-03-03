@@ -273,6 +273,7 @@ const _getType = id => {
         visemes: true,
         debug: false,
       });
+      await avatar.waitForLoad();
       app.avatar = avatar;
     }
     o = app;

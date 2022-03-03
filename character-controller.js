@@ -1123,7 +1123,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       visemes: true,
       debug: false,
     });
-  
+    await avatar.waitForLoad();
+
     unFrustumCull(app);
     enableShadows(app);
   
