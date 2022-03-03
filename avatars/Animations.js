@@ -149,6 +149,7 @@ export const getLoadedAnimation = (animation) => {
     return loadedAnimations;
 }
 
+//this will be used from factory and removed from here
 export const getActiveAnimation = (animation) => {
     return tmpAnimation.activeAnimations[animation];
 }
@@ -179,6 +180,7 @@ export const _getAngleToBackwardAnimation = (angle, animation) => {
 
 
 // used in animations
+//this will be used from factory and removed from here
 export const _clearXZ = (dst, isPosition) => {
     if (isPosition) {
         dst.x = 0;
@@ -187,7 +189,7 @@ export const _clearXZ = (dst, isPosition) => {
 };
 
 // animations, will likely be moved still
-
+// this is probably going to be the root state
 export const _handleDefault = (spec, now, avatar) => {
     const {
         animationTrackName: k,
@@ -199,71 +201,6 @@ export const _handleDefault = (spec, now, avatar) => {
 
     // _getHorizontalBlend(k, lerpFn, isPosition, dst, avatar, now);
     tmpAnimation.getHorizontalBlend(k, lerpFn, isPosition, dst, avatar, now);
-};
-
-// export const jumpFunc = (spec, now, avatar) => {
-//     if (!avatar.tracker.getState('jump', true)) return;
-//     const {
-//         animationTrackName: k,
-//         dst,
-//         // isTop,
-//     } = spec;
-
-//     const t2 = avatar.tracker.getState('jump').time / 1000 * 0.6 + 0.7;
-//     const src2 = tmpAnimation.activeAnimations.jump.interpolants[k];
-//     const v2 = src2.evaluate(t2);
-
-//     dst.fromArray(v2);
-//     // console.log(t2, src2, v2, dst);
-//     // console.log(src2);
-// };
-
-export const danceFunc = (spec, now, avatar) => {
-    const {
-        animationTrackName: k,
-        dst,
-        lerpFn,
-        // isTop,
-        isPosition,
-    } = spec;
-
-
-
-    _handleDefault(spec, now, avatar);
-
-    const danceAnimation = getActiveAnimation("dance")[avatar.tracker.getState("dance")?.variation || defaultDanceAnimation];
-    const src2 = danceAnimation.interpolants[k];
-    const t2 = (now / 1000) % danceAnimation.duration;
-    const v2 = src2.evaluate(t2);
-
-    const danceTimeS = avatar.tracker.getState("dance")?.time / crouchMaxTime;
-    const f = Math.min(Math.max(danceTimeS, 0), 1);
-    lerpFn
-        .call(
-            dst,
-            avatar.localQuaternion.fromArray(v2),
-            f
-        );
-
-    _clearXZ(dst, isPosition);
-};
-
-export const narutoRunFunc = (spec, now) => {
-    const {
-        animationTrackName: k,
-        dst,
-        // isTop,
-        isPosition,
-    } = spec;
-
-    const narutoRunAnimation = getActiveAnimation("narutoRun")[defaultNarutoRunAnimation];
-    const src2 = narutoRunAnimation.interpolants[k];
-    const t2 = (avatar.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
-    const v2 = src2.evaluate(t2);
-
-    dst.fromArray(v2);
-
-    _clearXZ(dst, isPosition);
 };
 
 
@@ -736,6 +673,18 @@ class AnimationFactory{
         // this.animations.set('test', func.apply(this));
         // this.animations.get('test')();
     }
+
+
+    getActiveAnimation(animation) {
+        return this.activeAnimations[animation];
+    }
+
+    _clearXZ (dst, isPosition) {
+        if (isPosition) {
+            dst.x = 0;
+            dst.z = 0;
+        }
+    };
 
     // makeAnimation(spec, model){
     //     const out = (now) => {

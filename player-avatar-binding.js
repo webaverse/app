@@ -122,6 +122,12 @@ export function applyPlayerActionsToAvatar(player, rig) {
     animation: danceAnimation,
     active:!!danceAction
   })
+  StateMachine.getTracked("playerAvatar").registerState({
+    ...narutoRunAction, 
+    name: narutoRunAction?.type ?? 'narutoRun',
+    time: narutoRunAction ? player.actionInterpolants.narutoRun.get() : NaN, 
+    active: !!narutoRunAction && !crouchAction
+  })
 
   rig.activateTime = player.actionInterpolants.activate.get();
   
@@ -155,8 +161,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
     }
   }
 
-  rig.narutoRunState = !!narutoRunAction && !crouchAction;
-  rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
+  // rig.narutoRunState = !!narutoRunAction && !crouchAction;
+  // rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimTime = player.actionInterpolants.aim.get();
   rig.aimAnimation = (aimAction?.playerAnimation) || '';
   // rig.aimDirection.set(0, 0, -1);

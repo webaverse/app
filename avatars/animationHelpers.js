@@ -8,10 +8,7 @@ import {
   loadAnimations,
   _clearXZ
 } from "./Animations.js";
-import{
-  danceFunc,
-  narutoRunFunc
-} from "./Animations.js"
+
 import { Vector3, Quaternion, AnimationClip } from 'three';
 import metaversefile from 'metaversefile';
 import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
@@ -309,12 +306,12 @@ export const _applyAnimation = (avatar, now) => {
     if (avatar.sitState) {
       return sitFunc;
     }
-    if (avatar.narutoRunState) {
-      return narutoRunFunc;
+    if (avatar.tracker.getState('narutoRun', true)) {
+      return avatar.tracker.getState('narutoRun').animationFn;
     }
 
     if (avatar.tracker.getState('dance')?.time > 0) {
-      return danceFunc;
+      return avatar.tracker.getState('dance').animationFn;      
     }
 
     if (avatar.fallLoopState) {

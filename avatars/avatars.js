@@ -21,6 +21,14 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
+
+import {
+  idleFactorSpeed,
+  walkFactorSpeed,
+  runFactorSpeed,
+  narutoRunTimeFactor,
+} from './constants.js';
+
 import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
@@ -40,7 +48,7 @@ import {
 import metaversefile from 'metaversefile';
 
 import { getFirstPersonCurves, loadPromise, _findArmature, _getLerpFn, _applyAnimation} from './animationHelpers.js'
-import { getClosest2AnimationAngles, getLoadedAnimation} from './Animations.js'
+import { getClosest2AnimationAngles, getLoadedAnimation, _handleDefault} from './Animations.js'
 
 import {animationMappingConfig} from './animationMappingConfig';
 
@@ -387,7 +395,14 @@ class Avatar {
     const stateName = "playerAvatar"
     StateMachine.registerObj(options.name ?? stateName, this);
 
-
+    /**animations start 
+     * 
+     * adding these here currently, but doesn't nessessarily need to be here long term
+     * may be trying in different areas
+     * might make sense to define the funcs as consts(in another file?)
+     * and pass the conts for readability
+    */
+    // 
     tmpAnimation.addAnimation(stateName, "jump", function(spec, now, avatar){   
       if (!this.activeAnimations) return;
       const {
@@ -403,6 +418,56 @@ class Avatar {
       dst.fromArray(v2);
     });
 
+    tmpAnimation.addAnimation(stateName, "dance", function (spec, now, avatar) {
+      const {
+        animationTrackName: k,
+        dst,
+        lerpFn,
+        // isTop,
+        isPosition,
+      } = spec;
+      const defaultDanceAnimation = 'dansu';
+
+      _handleDefault(spec, now, avatar); //this needs to be changed/moved
+
+      const danceAnimation = this.getActiveAnimation("dance")[avatar.tracker.getState("dance")?.variation || defaultDanceAnimation];
+      const src2 = danceAnimation.interpolants[k];
+      const t2 = (now / 1000) % danceAnimation.duration;
+      const v2 = src2.evaluate(t2);
+
+      const danceTimeS = avatar.tracker.getState("dance")?.time / crouchMaxTime;
+      const f = Math.min(Math.max(danceTimeS, 0), 1);
+      lerpFn
+        .call(
+          dst,
+          avatar.localQuaternion.fromArray(v2),
+          f
+        );
+
+      this._clearXZ(dst, isPosition);
+    });
+
+    tmpAnimation.addAnimation(stateName, "narutoRun", function(spec, now) {
+      const defaultNarutoRunAnimation = 'narutoRun';
+      const {
+        animationTrackName: k,
+        dst,
+        // isTop,
+        isPosition,
+      } = spec;
+
+      const narutoRunAnimation = this.getActiveAnimation("narutoRun")[defaultNarutoRunAnimation];
+      const src2 = narutoRunAnimation.interpolants[k];
+      const t2 = (avatar.tracker.getState("narutoRun").time / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
+      const v2 = src2.evaluate(t2);
+
+      dst.fromArray(v2);
+
+      this._clearXZ(dst, isPosition);
+    });
+
+
+    /***animations end */
 
     this.object = object;
 
