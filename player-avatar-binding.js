@@ -146,6 +146,18 @@ export function applyPlayerActionsToAvatar(player, rig) {
     animation: (aimAction?.playerAnimation) || '',
     active: !!aimAction
   })
+  //use
+  StateMachine.getTracked("playerAvatar").registerState({
+    ...useAction, 
+    name: useAction?.type ?? 'use',
+    time: useAction ? player.actionInterpolants.use.get() : NaN, 
+    animation: (useAction?.animation) || '',
+    animationIndex:useAction?.index,
+    animationCombo: (useAction?.animationCombo) || [],
+    animationEnvelope: (useAction?.animationEnvelope) || [],
+    active: !!useAction
+  })
+  
 
   //fallLoop
   //currently disabled
@@ -159,29 +171,29 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.activateTime = player.actionInterpolants.activate.get();
   
-  if (useAction?.animation) {
-    rig.useAnimation = useAction.animation;
-  } else {
-    if (rig.useAnimation) {
-      rig.useAnimation = '';
-    }
-  }
-  if (useAction?.animationCombo) {
-    rig.useAnimationCombo = useAction.animationCombo;
-  } else {
-    if (rig.useAnimationCombo.length > 0) {
-      rig.useAnimationCombo = [];
-    }
-  }
-  if (useAction?.animationEnvelope) {
-    rig.useAnimationEnvelope = useAction.animationEnvelope;
-  } else {
-    if (rig.useAnimationEnvelope.length > 0) {
-      rig.useAnimationEnvelope = [];
-    }
-  }
-  rig.useAnimationIndex = useAction?.index;
-  rig.useTime = player.actionInterpolants.use.get();
+  // if (useAction?.animation) {
+  //   rig.useAnimation = useAction.animation;
+  // } else {
+  //   if (rig.useAnimation) {
+  //     rig.useAnimation = '';
+  //   }
+  // }
+  // if (useAction?.animationCombo) {
+  //   rig.useAnimationCombo = useAction.animationCombo;
+  // } else {
+  //   if (rig.useAnimationCombo.length > 0) {
+  //     rig.useAnimationCombo = [];
+  //   }
+  // }
+  // if (useAction?.animationEnvelope) {
+  //   rig.useAnimationEnvelope = useAction.animationEnvelope;
+  // } else {
+  //   if (rig.useAnimationEnvelope.length > 0) {
+  //     rig.useAnimationEnvelope = [];
+  //   }
+  // }
+  // rig.useAnimationIndex = useAction?.index;
+  // rig.useTime = player.actionInterpolants.use.get();
   rig.unuseTime = player.actionInterpolants.unuse.get();
   if (rig.unuseTime === 0) { // this means use is active
     if (useAction?.animationEnvelope) {

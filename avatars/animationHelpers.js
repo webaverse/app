@@ -222,98 +222,12 @@ export const _applyAnimation = (avatar, now) => {
       return avatar.tracker.getState('fallLoop').animationFn;      
     }
     if (
-      avatar.useAnimation ||
-      avatar.useAnimationCombo.length > 0 ||
-      avatar.useAnimationEnvelope.length > 0
-    ) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
+      avatar.tracker.getState('use')?.animation ||
+      avatar.tracker.getState('use')?.animationCombo?.length > 0 ||
+      avatar.tracker.getState('use')?.animationEnvelope?.length > 0
+      ) {
         
-
-        const throwAnimation = getActiveAnimation("throw")[avatar.throwAnimation || defaultThrowAnimation];
-        // const danceAnimation = getActiveAnimation("dance")[0];
-        const src2 = throwAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
-
-        let useAnimation;
-        let t2;
-        const useTimeS = avatar.useTime / 1000;
-        if (avatar.useAnimation) {
-          const useAnimationName = avatar.useAnimation;
-          useAnimation = getActiveAnimation("use")[useAnimationName];
-          t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (avatar.useAnimationCombo.length > 0) {
-          const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-          useAnimation = getActiveAnimation("use")[useAnimationName];
-          t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (avatar.useAnimationEnvelope.length > 0) {
-          let totalTime = 0;
-          for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-            const animationName = avatar.useAnimationEnvelope[i];
-            const animation = getActiveAnimation("use")[animationName];
-            totalTime += animation.duration;
-          }
-
-          if (totalTime > 0) {
-            let animationTimeBase = 0;
-            for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-              const animationName = avatar.useAnimationEnvelope[i];
-              const animation = getActiveAnimation("use")[animationName];
-              if (useTimeS < (animationTimeBase + animation.duration)) {
-                useAnimation = animation;
-                break;
-              }
-              animationTimeBase += animation.duration;
-            }
-            if (useAnimation !== undefined) { // first iteration
-              t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
-            } else { // loop
-              const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
-              useAnimation = getActiveAnimation("use")[secondLastAnimationName];
-              t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
-            }
-          }
-        }
-
-        _handleDefault(spec, now, avatar);
-
-        if (useAnimation) {
-          if (!isPosition) {
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            // const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-
-            dst
-              .premultiply(avatar.localQuaternion2.fromArray(v3).invert())
-              .premultiply(avatar.localQuaternion2.fromArray(v2));
-          } else {
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            localVector2.fromArray(v2);
-            _clearXZ(localVector2, isPosition);
-
-            // const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-            localVector3.fromArray(v3);
-
-            dst
-              .sub(localVector3)
-              .add(localVector2);
-          }
-        }
-      };
-    //  } else if (avatar.tracker.getState('aim', true)) {
+      return avatar.tracker.getState('use').animationFn;
     } else if (avatar.tracker.getState('aim')?.animation) {
       return avatar.tracker.getState('aim').animationFn;       
     } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {

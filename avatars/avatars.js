@@ -375,6 +375,96 @@ const _makeDebugMesh = (avatar) => {
   return mesh;
 };
 
+function useFunc(spec, now, avatar) {
+  const {
+    animationTrackName: k,
+    dst,
+    // isTop,
+    isPosition,
+  } = spec;
+
+  const useState = avatar.tracker.getState('use');
+  let useAnimation;
+  let t2;
+  const useTimeS = useState.time / 1000;
+
+  if (useState?.animation) {
+    const useAnimationName = useState.animation;
+    useAnimation = this.getActiveAnimation("use")[useAnimationName];
+    t2 = Math.min(useTimeS, useAnimation.duration);    
+
+  } else if (useState?.animationCombo.length > 0) {
+    const useAnimationName = useState.animationCombo[useState.animationIndex];
+    useAnimation = this.getActiveAnimation("use")[useAnimationName];
+    t2 = Math.min(useTimeS, useAnimation.duration);
+
+  } else if (useState?.animationEnvelope.length > 0) {
+    let totalTime = 0;
+    for (let i = 0; i < useState.animationEnvelope.length - 1; i++) {
+      const animationName = useState.animationEnvelope[i];
+      const animation = this.getActiveAnimation("use")[animationName];
+      totalTime += animation.duration;
+    }
+
+    if (totalTime > 0) {
+      let animationTimeBase = 0;
+      for (let i = 0; i < useState.animationEnvelope.length - 1; i++) {
+        const animationName = useState.animationEnvelope[i];
+        const animation = this.getActiveAnimation("use")[animationName];
+        if (useTimeS < (animationTimeBase + animation.duration)) {
+          useAnimation = animation;
+          break;
+        }
+        animationTimeBase += animation.duration;
+      }
+      if (useAnimation !== undefined) { // first iteration
+        t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
+
+      } else { // loop
+        const secondLastAnimationName = useState.animationEnvelope[useState.animationEnvelope.length - 2];
+        useAnimation = this.getActiveAnimation("use")[secondLastAnimationName];
+        t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
+
+      }
+    }
+  }
+
+  _handleDefault(spec, now, avatar);
+
+  if (useAnimation) {
+    if (!isPosition) {
+      const src2 = useAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      const idleAnimation = this.getIdleAnimation('walk');
+      const t3 = 0;
+      const src3 = idleAnimation.interpolants[k];
+      const v3 = src3.evaluate(t3);
+
+      dst
+        .premultiply(avatar.localQuaternion2.fromArray(v3).invert())
+        .premultiply(avatar.localQuaternion2.fromArray(v2));
+
+    } else {
+      const src2 = useAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+      avatar.localVector2.fromArray(v2);
+      this._clearXZ(avatar.localVector2, isPosition);
+
+      const idleAnimation = this.getIdleAnimation('walk');
+      const t3 = 0;
+      const src3 = idleAnimation.interpolants[k];
+      const v3 = src3.evaluate(t3);
+      avatar.localVector3.fromArray(v3);
+
+      dst
+        .sub(avatar.localVector3)
+        .add(avatar.localVector2);
+
+    }
+  }
+};   
+
 class Avatar {
 	constructor(object, options = {}) {
     if (!object) {
@@ -538,6 +628,7 @@ class Avatar {
     }
 
     tmpAnimation.addAnimation(stateName, "aim", aimFunc);
+    tmpAnimation.addAnimation(stateName, "use", useFunc);
     /***animations end */
 
     this.object = object;
