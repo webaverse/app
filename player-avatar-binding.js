@@ -258,10 +258,10 @@ export function applyPlayerChatToAvatar(player, rig) {
   };
   _applyChatEmote(lastMessage);
   
-  const _applyFakeSpeech = message => {
+  /* const _applyFakeSpeech = message => {
     rig.fakeSpeechValue = message?.fakeSpeech ? 1 : 0;
   };
-  _applyFakeSpeech(lastMessage);
+  _applyFakeSpeech(lastMessage); */
 }
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
