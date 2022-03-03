@@ -962,7 +962,7 @@ const createPlayerDiorama = ({
       }
       dioramas.splice(dioramas.indexOf(diorama), 1);
 
-      postProcessing.removeEventListener('update', recompile);
+      // postProcessing.removeEventListener('update', recompile);
     },
   };
 
