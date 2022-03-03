@@ -1346,7 +1346,6 @@ const gameManager = {
   closestObject: null,
   usableObject: null,
   hoverEnabled: false,
-  debugMode: false,
   getMenu() {
     return this.menuOpen;
   },
@@ -1605,10 +1604,6 @@ const gameManager = {
       localPlayer.removeAction('narutoRun');
     }
   },
-  toggleDebug(debugMode) {
-    document.getElementById('statsBox').style.display = debugMode ? null : 'none';
-    this.debugMode = debugMode;
-  },
   isFlying() {
     return metaversefileApi.useLocalPlayer().hasAction('fly');
   },
@@ -1666,39 +1661,6 @@ const gameManager = {
     }
   },
   menuUpload: _upload,
-  /* addLocalEmote(index) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    if (localPlayer.avatar) {
-      const timestamp = performance.now();
-      const startTimestamp = timestamp;
-      const aTimestamp = startTimestamp + 300;
-      const bTimestamp = aTimestamp + 1000;
-      const endTimestamp = bTimestamp + 300;
-      
-      const emote = {
-        index,
-        value: 0,
-      };
-      localPlayer.avatar.emotes.push(emote);
-      const _finish = () => {
-        localPlayer.avatar.emotes.splice(localPlayer.avatar.emotes.indexOf(emote), 1);
-        world.appManager.removeEventListener('frame', frame);
-      };
-      const frame = e => {
-        const {timestamp} = e.data;
-        if (timestamp < aTimestamp) {
-          emote.value = cubicBezier((timestamp - startTimestamp) / (aTimestamp - startTimestamp));
-        } else if (timestamp < bTimestamp) {
-          emote.value = 1;
-        } else if (timestamp < endTimestamp) {
-          emote.value = 1 - cubicBezier((timestamp - bTimestamp) / (endTimestamp - bTimestamp));
-        } else {
-          _finish();
-        }
-      };
-      world.appManager.addEventListener('frame', frame);
-    }
-  }, */
   isJumping() {
     return metaversefileApi.useLocalPlayer().hasAction('jump');
   },
