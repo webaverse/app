@@ -1276,14 +1276,25 @@ class Avatar {
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
 
-    this.springBoneManager = null;
+    let springBoneLoadPromise = null;
+    this.springBoneManager = {
+      springBoneGroupList: [],
+      lateUpdate(timeDiffS) {
+        throw new Error('update before spring bone manager loaded');
+      },
+      async waitForLoad() {
+        if (springBoneLoadPromise) {
+          await springBoneLoadPromise;
+        }
+      },
+    };
     this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
+      // console.log('update hairs', new Error().stack);
       const timeDiffS = timeDiff / 1000;
       this.springBoneManager.lateUpdate(timeDiffS);
     }, avatarInterpolationFrameRate);
-    let springBoneManagerPromise = null;
     if (options.hair) {
-      new Promise((accept, reject) => {
+      // new Promise((accept, reject) => {
         /* if (!object.parser.json.extensions) {
           object.parser.json.extensions = {};
         }
@@ -1326,11 +1337,13 @@ class Avatar {
           };
         } */
 
-        springBoneManagerPromise = new VRMSpringBoneImporter().import(object)
+        springBoneLoadPromise = new VRMSpringBoneImporter().import(object)
           .then(springBoneManager => {
             this.springBoneManager = springBoneManager;
+            this.springBoneManager.waitForLoad = async () => {};
+            springBoneLoadPromise = null;
           });
-      });
+      // });
     }
 
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
@@ -3005,7 +3018,7 @@ class Avatar {
         this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
         this.lastModelScaleFactor = modelScaleFactor;
 
-        this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
+        this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
           springBoneGroup.forEach(springBone => {
             springBone._worldBoneLength = springBone.bone
               .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
@@ -3231,9 +3244,9 @@ class Avatar {
     );
     // this.modelBones.Root.updateMatrixWorld();
 
-    if (this.springBoneManager) {
+    // if (this.springBoneManager) {
       this.springBoneTimeStep.update(timeDiff);
-    }
+    // }
     /* if (this.springBoneManager && wasDecapitated) {
       this.decapitate();
     } */
@@ -3381,6 +3394,10 @@ class Avatar {
       this.debugMesh.visible = game.debugMode;
     }
 	}
+
+  async waitForLoad() {
+    await this.springBoneManager.waitForLoad();
+  }
 
   isAudioEnabled() {
     return !!this.microphoneWorker;
