@@ -1858,13 +1858,24 @@ const gameManager = {
     await rendererWaitForLoad();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
-    this.playerDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
+    localPlayer.addEventListener('avatarchange', e => {
+      this.playerDiorama.setObjects([
+        e.avatar.model,
+      ]);
+    });
+    this.playerDiorama = dioramaManager.createPlayerDiorama({
       canvas,
+      target: localPlayer,
+      /* objects: [
+        localPlayer.avatar,
+      ], */
       // label: true,
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
     });
+    // window.diorama = this.playerDiorama;
+    // this.playerDiorama.addCanvas(canvas);
     this.playerDiorama.enabled = false;
     canvas.addEventListener('click', e => {
       this.playerDiorama.toggleShader();
