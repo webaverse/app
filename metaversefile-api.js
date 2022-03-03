@@ -889,9 +889,9 @@ export default () => {
   async waitForSceneLoaded() {
     await universe.waitForSceneLoaded();
   },
-  toggleDebug(debugMode) {
+  toggleDebug(newDebugMode) {
+    debugMode = newDebugMode;
     document.getElementById('statsBox').style.display = debugMode ? null : 'none';
-    this.debugMode = debugMode;
   },
   isDebugMode() {
     return debugMode;
