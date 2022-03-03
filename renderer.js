@@ -34,9 +34,10 @@ function bindCanvas(c) {
     logarithmicDepthBuffer: true,
   });
 
-  const rect = renderer.domElement.getBoundingClientRect();
-  renderer.setSize(rect.width, rect.height);
-  renderer.setPixelRatio(window.devicePixelRatio);
+  // const rect = renderer.domElement.getBoundingClientRect();
+  // renderer.setSize(canvas.width, canvas.height);
+  // renderer.setPixelRatio(window.devicePixelRatio);
+  _setRendererSize();
   renderer.autoClear = false;
   renderer.sortObjects = false;
   renderer.physicallyCorrectLights = true;
@@ -124,6 +125,23 @@ scene.add(dolly);
 const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
 // scene.add(orthographicCamera);
 
+const _setRendererSize = () => {
+  const renderer = getRenderer();
+
+  let width, height;
+  if (renderer.domElement.parentNode) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    width = rect.width;
+    height = rect.height;
+  } else {
+    width = renderer.domElement.width;
+    height = renderer.domElement.height;
+  }
+  const pixelRatio = window.devicePixelRatio;
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(pixelRatio);
+}
+
 window.addEventListener('resize', e => {
   const renderer = getRenderer();
   if (renderer) {
@@ -131,12 +149,7 @@ window.addEventListener('resize', e => {
       renderer.xr.isPresenting = false;
     }
 
-    const containerElement = getContainerElement();
-    const {width, height} = containerElement.getBoundingClientRect();
-    const pixelRatio = window.devicePixelRatio;
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(pixelRatio);
-    // renderer2.setSize(window.innerWidth, window.innerHeight);
+    _setRendererSize();
 
     const aspect = width / height;
     camera.aspect = aspect;
