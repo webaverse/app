@@ -416,7 +416,6 @@ const _startHacks = () => {
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
   let playerDiorama = null;
-  let appDiorama = null;
   const lastEmoteKey = {
     key: -1,
     timestamp: 0,
@@ -636,38 +635,6 @@ const _startHacks = () => {
           playerDiorama.destroy();
           playerDiorama = null;
         }
-      }
-    } else if (e.which === 220) { // \\
-      const targetApp = (() => {
-        const worldApps = world.appManager.getApps();
-        const swordApp = worldApps.find(a => /sword/i.test(a.contentId));
-        if (swordApp) {
-          return swordApp;
-        } else {
-          const wearAction = localPlayer.getAction('wear');
-          if (wearAction) {
-            const app = localPlayer.appManager.getAppByInstanceId(wearAction.instanceId);
-            return app;
-          } else {
-            return null;
-          }
-        }
-      })();
-
-      if (!appDiorama) {
-        if (targetApp) {
-          appDiorama = dioramaManager.createAppDiorama(targetApp, {
-            // canvas,
-            // label: true,
-            outline: true,
-            radialBackground: true,
-          });
-        } else {
-          console.warn('no target app');
-        }
-      } else {
-        appDiorama.destroy();
-        appDiorama = null;
       }
     } else if (e.which === 46) { // .
       emoteIndex = -1;
