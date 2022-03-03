@@ -1891,10 +1891,13 @@ class Avatar {
       const modelBoneOutput = modelBoneOutputs[k];
 
       modelBone.position.copy(modelBoneOutput.position);
-      modelBone.quaternion.multiplyQuaternions(
-        modelBoneOutput.quaternion,
-        modelBone.initialQuaternion
-      );
+      // VisMark
+      if(modelBone.name !== 'Root') {
+        modelBone.quaternion.multiplyQuaternions(
+          modelBoneOutput.quaternion,
+          modelBone.initialQuaternion
+        );
+      }
 
       // if (topEnabled) {
         if (k === 'Left_wrist') {
@@ -2987,11 +2990,21 @@ class Avatar {
       }
     }
     // if (!this.getBottomEnabled()) {
+      // console.log(
+      //   (this.inputs.hmd.quaternion.x).toFixed(1) + '_' +
+      //   (this.inputs.hmd.quaternion.y).toFixed(1) + '_' +
+      //   (this.inputs.hmd.quaternion.z).toFixed(1) + '_' +
+      //   (this.inputs.hmd.quaternion.w).toFixed(1)
+      // )
       localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
-      this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
+      // const aaa = new THREE.Vector3(0,0,-1);
+      // aaa.applyEuler(localEuler);
+      // console.log(aaa.x, aaa.y, aaa.z);
+      // VisMark
+      // this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
       
       this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
         .sub(localVector.set(0, this.height, 0));
@@ -3161,6 +3174,7 @@ class Avatar {
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
     
+    // VisMark
     Avatar.applyModelBoneOutputs(
       this.foundModelBones,
       this.modelBoneOutputs,
