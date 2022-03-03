@@ -1276,75 +1276,14 @@ class Avatar {
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
 
-    let springBoneLoadPromise = null;
-    this.springBoneManager = {
-      springBoneGroupList: [],
-      lateUpdate(timeDiffS) {
-        throw new Error('update before spring bone manager loaded');
-      },
-      async waitForLoad() {
-        if (springBoneLoadPromise) {
-          await springBoneLoadPromise;
-        }
-      },
-    };
+    if (options.hair) {
+      this.springBoneManager = new VRMSpringBoneImporter().import(object);
+    }
     this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
       // console.log('update hairs', new Error().stack);
       const timeDiffS = timeDiff / 1000;
-      this.springBoneManager.lateUpdate(timeDiffS);
+      this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
     }, avatarInterpolationFrameRate);
-    if (options.hair) {
-      // new Promise((accept, reject) => {
-        /* if (!object.parser.json.extensions) {
-          object.parser.json.extensions = {};
-        }
-        if (!object.parser.json.extensions.VRM) {
-          object.parser.json.extensions.VRM = {
-            secondaryAnimation: {
-              boneGroups: this.hairBones.map(hairBone => {
-                const boneIndices = [];
-                const _recurse = bone => {
-                  boneIndices.push(this.allHairBones.indexOf(bone));
-                  if (bone.children.length > 0) {
-                    _recurse(bone.children[0]);
-                  }
-                };
-                _recurse(hairBone);
-                return {
-                  comment: hairBone.name,
-                  stiffiness: 0.5,
-                  gravityPower: 0.2,
-                  gravityDir: {
-                    x: 0,
-                    y: -1,
-                    z: 0
-                  },
-                  dragForce: 0.3,
-                  center: -1,
-                  hitRadius: 0.02,
-                  bones: boneIndices,
-                  colliderGroups: [],
-                };
-              }),
-            },
-          };
-          object.parser.getDependency = async (type, nodeIndex) => {
-            if (type === 'node') {
-              return this.allHairBones[nodeIndex];
-            } else {
-              throw new Error('unsupported type');
-            }
-          };
-        } */
-
-        springBoneLoadPromise = new VRMSpringBoneImporter().import(object)
-          .then(springBoneManager => {
-            this.springBoneManager = springBoneManager;
-            this.springBoneManager.waitForLoad = async () => {};
-            springBoneLoadPromise = null;
-          });
-      // });
-    }
 
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
@@ -1648,17 +1587,6 @@ class Avatar {
     if (options.bottom !== undefined) {
       this.setBottomEnabled(!!options.bottom);
     }
-
-    /* this.decapitated = false;
-    if (options.decapitate) {
-      if (springBoneManagerPromise) {
-        springBoneManagerPromise.then(() => {
-          this.decapitate();
-        });
-      } else {
-        this.decapitate();
-      }
-    } */
 
     this.animationMappings = animationMappingConfig.map(animationMapping => {
       animationMapping = animationMapping.clone();
@@ -3018,7 +2946,7 @@ class Avatar {
         this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
         this.lastModelScaleFactor = modelScaleFactor;
 
-        this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
+        this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
           springBoneGroup.forEach(springBone => {
             springBone._worldBoneLength = springBone.bone
               .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
@@ -3244,12 +3172,7 @@ class Avatar {
     );
     // this.modelBones.Root.updateMatrixWorld();
 
-    // if (this.springBoneManager) {
-      this.springBoneTimeStep.update(timeDiff);
-    // }
-    /* if (this.springBoneManager && wasDecapitated) {
-      this.decapitate();
-    } */
+    this.springBoneTimeStep.update(timeDiff);
 
     // XXX hook these up
     this.nodder.update(now);
