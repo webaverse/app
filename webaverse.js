@@ -5,11 +5,8 @@ it uses the help of various managers and stores, and executes the render loop.
 
 import * as THREE from 'three';
 window.THREE = THREE;
-import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
-// import * as CharacterHupsModule from './character-hups.js';
 import * as sounds from './sounds.js';
-import * as CharacterSfxModule from './character-sfx.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
@@ -18,8 +15,6 @@ import * as blockchain from './blockchain.js';
 import cameraManager from './camera-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
-// import equipmentRender from './equipment-render.js';
-// import * as characterController from './character-controller.js';
 import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
@@ -36,9 +31,11 @@ import {
   bindCanvas,
   getComposer,
 } from './renderer.js';
+import * as audioManager from './audio-manager.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
+import * as voices from './voices.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 // import {defaultVoiceEndpoint, defaultVoicePack} from './constants.js';
@@ -81,12 +78,6 @@ const frameEvent = new MessageEvent('frame', {
   },
 });
 const rendererStats = Stats();
-
-const _loadAudioContext = async () => {
-  const audioContext = WSRTC.getAudioContext();
-  Avatar.setAudioContext(audioContext);
-  await audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
-};
 
 /* const voiceFiles = `\
 B6_somnium_65_01 - Part_1.wav
@@ -155,10 +146,11 @@ export default class Webaverse extends EventTarget {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
-        _loadAudioContext(),
+        audioManager.waitForLoad(),
         sounds.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
+        voices.waitForLoad(),
         WebaWallet.waitForLoad(),
         // game.loadVoicePack(defaultVoicePack),
         // game.setVoiceEndpoint(defaultVoice),
@@ -202,8 +194,8 @@ export default class Webaverse extends EventTarget {
     
     postProcessing.bindCanvas();
   }
-  bindPreviewCanvas(canvas) {
-    game.bindPreviewCanvas(canvas);
+  bindDioramaCanvas(canvas) {
+    game.bindDioramaCanvas(canvas);
   }
   async isXrSupported() {
     if (navigator.xr) {
@@ -352,8 +344,10 @@ export default class Webaverse extends EventTarget {
     this.dispatchEvent(frameEvent);
 
     getComposer().render();
-    game.debugMode && rendererStats.update(renderer);
-    
+    if (metaversefileApi.isDebugMode()) {
+      rendererStats.update(renderer);
+    }
+
     // console.log('frame 2');
   }
   
@@ -424,7 +418,6 @@ const _startHacks = () => {
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
   let playerDiorama = null;
-  let appDiorama = null;
   const lastEmoteKey = {
     key: -1,
     timestamp: 0,
@@ -644,38 +637,6 @@ const _startHacks = () => {
           playerDiorama.destroy();
           playerDiorama = null;
         }
-      }
-    } else if (e.which === 220) { // \\
-      const targetApp = (() => {
-        const worldApps = world.appManager.getApps();
-        const swordApp = worldApps.find(a => /sword/i.test(a.contentId));
-        if (swordApp) {
-          return swordApp;
-        } else {
-          const wearAction = localPlayer.getAction('wear');
-          if (wearAction) {
-            const app = localPlayer.appManager.getAppByInstanceId(wearAction.instanceId);
-            return app;
-          } else {
-            return null;
-          }
-        }
-      })();
-
-      if (!appDiorama) {
-        if (targetApp) {
-          appDiorama = dioramaManager.createAppDiorama(targetApp, {
-            // canvas,
-            // label: true,
-            outline: true,
-            radialBackground: true,
-          });
-        } else {
-          console.warn('no target app');
-        }
-      } else {
-        appDiorama.destroy();
-        appDiorama = null;
       }
     } else if (e.which === 46) { // .
       emoteIndex = -1;

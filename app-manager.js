@@ -152,7 +152,7 @@ class AppManager extends EventTarget {
     }
     this.appsArray = nextAppsArray;
   }
-  syncApps() {
+  loadApps() {
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
       this.dispatchEvent(new MessageEvent('trackedappadd', {
@@ -236,15 +236,7 @@ class AppManager extends EventTarget {
         const m = await metaversefile.import(contentId);
         if (!live) return _bailout(null);
         const app = metaversefile.createApp({
-          name: contentId,
-          /* type: (() => {
-            const match = contentId.match(/\.([a-z0-9]+)$/i);
-            if (match) {
-              return match[1];
-            } else {
-              return '';
-            }
-          })(), */
+          // name: contentId,
         });
         
         app.position.fromArray(position);
@@ -253,19 +245,12 @@ class AppManager extends EventTarget {
         app.updateMatrixWorld();
         app.lastMatrix.copy(app.matrixWorld);
 
-        app.name = m.name ?? contentId.match(/([^\/\.]*)$/)[1];
-        app.description = m.description ?? '';
-        app.contentId = contentId;
         app.instanceId = instanceId;
         app.setComponent('physics', true);
-        if (Array.isArray(m.components)) {
-          for (const {key, value} of m.components) {
-            app.setComponent(key, value);
-          }
-        }
         for (const {key, value} of components) {
           app.setComponent(key, value);
         }
+        // console.log('add module', m);
         const mesh = await app.addModule(m);
         if (!live) return _bailout(app);
         if (!mesh) {

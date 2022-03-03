@@ -33,8 +33,8 @@ class Universe extends EventTarget {
     localPlayer.position.set(0, initialPosY, 0);
     localPlayer.resetPhysics();
     localPlayer.updateMatrixWorld();
-    physicsManager.setPhysicsEnabled(true);
-    localPlayer.updatePhysics(0, 0);
+    // physicsManager.setPhysicsEnabled(true);
+    // localPlayer.updatePhysics(0, 0);
     physicsManager.setPhysicsEnabled(false);
 
     const _doLoad = async () => {
@@ -47,11 +47,15 @@ class Universe extends EventTarget {
         world.connectState(state);
         
         if (src === undefined) {
-          promises.push(metaversefile.load('./scenes/' + sceneNames[0]));
+          promises.push(metaversefile.createAppAsync({
+            start_url: './scenes/' + sceneNames[0],
+          }));
         } else if (src === '') {
           // nothing
         } else {
-          promises.push(metaversefile.load(src));
+          promises.push(metaversefile.createAppAsync({
+            start_url: src,
+          }));
         }
       } else {
         const p = (async () => {
