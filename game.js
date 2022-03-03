@@ -1866,16 +1866,11 @@ const gameManager = {
     this.playerDiorama = dioramaManager.createPlayerDiorama({
       canvas,
       target: localPlayer,
-      /* objects: [
-        localPlayer.avatar,
-      ], */
       // label: true,
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
     });
-    // window.diorama = this.playerDiorama;
-    // this.playerDiorama.addCanvas(canvas);
     this.playerDiorama.enabled = false;
     canvas.addEventListener('click', e => {
       this.playerDiorama.toggleShader();
