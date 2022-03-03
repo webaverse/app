@@ -462,6 +462,21 @@ class Avatar {
       this._clearXZ(dst, isPosition);
     });
 
+    tmpAnimation.addAnimation(stateName, "fallLoop", function (spec, now) {
+
+      const {
+        animationTrackName: k,
+        dst,
+        // isTop,
+      } = spec;
+
+      const t2 = (avatar.tracker.getState("fallLoop")?.time / 1000);
+      const src2 = this.getActiveAnimation('fallLoop').interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      dst.fromArray(v2);
+    });
+
     tmpAnimation.addAnimation(stateName, "narutoRun", function(spec, now) {
       const defaultNarutoRunAnimation = 'narutoRun';
       const {
@@ -998,8 +1013,8 @@ class Avatar {
     this.narutoRunTime = 0;
     // this.standChargeState = false;
     // this.standChargeTime = 0;
-    this.fallLoopState = false;
-    this.fallLoopTime = 0;
+    // this.fallLoopState = false;
+    // this.fallLoopTime = 0;
     // this.swordSideSlashState = false;
     // this.swordSideSlashTime = 0;
     // this.swordTopDownSlashState = false;

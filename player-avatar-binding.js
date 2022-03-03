@@ -102,25 +102,28 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.jumpState = !!jumpAction;
   // rig.jumpTime = player.actionInterpolants.jump.get();
 
+  //jump
   StateMachine.getTracked("playerAvatar").registerState({
     ...jumpAction,
     name: jumpAction?.type ?? 'jump',
     time: player.actionInterpolants.jump.get(),
     active: !!jumpAction
   })
+  //sit
   StateMachine.getTracked("playerAvatar").registerState({
     ...sitAction,
     name: sitAction?.type ?? 'sit',
     animation: sitAnimation,
     active: !!sitAction
   })
-
+  //fly
   StateMachine.getTracked("playerAvatar").registerState({
     ...flyAction, 
     name: flyAction?.type ?? 'fly',
     time: flyAction ? player.actionInterpolants.fly.get() : -1, 
     active:!!flyAction
   })
+  //dance
   StateMachine.getTracked("playerAvatar").registerState({
     ...danceAction, 
     name: danceAction?.type ?? 'dance',
@@ -128,12 +131,23 @@ export function applyPlayerActionsToAvatar(player, rig) {
     animation: danceAnimation,
     active:!!danceAction
   })
+  //nar run
   StateMachine.getTracked("playerAvatar").registerState({
     ...narutoRunAction, 
     name: narutoRunAction?.type ?? 'narutoRun',
     time: narutoRunAction ? player.actionInterpolants.narutoRun.get() : NaN, 
     active: !!narutoRunAction && !crouchAction
   })
+
+  //fallLoop
+  //currently disabled
+/*   StateMachine.getTracked("playerAvatar").registerState({
+    ...fallLoop, 
+    name: fallLoop?.type ?? 'fallLoop',
+    time: player.actionInterpolants.fallLoop.get(),
+    animation: fallLoopAnimation,
+    active: !!fallLoop
+  }) */
 
   rig.activateTime = player.actionInterpolants.activate.get();
   
@@ -232,6 +246,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // pose
   rig.poseAnimation = poseAction?.animation || null;
 }
+
 // returns whether eyes were applied
 export function applyPlayerEyesToAvatar(player, rig) {
   if (player.eyeballTargetEnabled) {

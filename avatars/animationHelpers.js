@@ -157,102 +157,6 @@ const _blendActivateAction = spec => {
   }
 };
 
-/** animation funcs */
-
-// const _handleDefault = (spec, now, avatar) => {
-//   const {
-//     animationTrackName: k,
-//     dst,
-//     // isTop,
-//     lerpFn,
-//     isPosition,
-//   } = spec;
-
-//   _getHorizontalBlend(k, lerpFn, isPosition, dst, avatar, now);
-// };
-
-// const jumpFunc = () => {};
-// const jumpFunc = _tmplateFunc;
-// const jumpFunc = (spec, now) => {
-//   const {
-//     animationTrackName: k,
-//     dst,
-//     // isTop,
-//   } = spec;
-
-//   const t2 = avatar.tracker.getState('jump').time / 1000 * 0.6 + 0.7;
-//   const src2 = activeAnimations.jump.interpolants[k];
-//   const v2 = src2.evaluate(t2);
-
-//   dst.fromArray(v2);
-//   // console.log(t2, src2, v2, dst);
-//   // console.log(src2);
-// };
-
-// const sitFunc = (spec, now) => {
-//   const {
-//     animationTrackName: k,
-//     dst,
-//     // isTop,
-//   } = spec;
-
-//   const sitAnimation = getActiveAnimation("sit")[avatar.tracker.getState('sit').animation || defaultSitAnimation];
-//   const src2 = sitAnimation.interpolants[k];
-//   const v2 = src2.evaluate(1);
-
-//   dst.fromArray(v2);
-// }
-
-/* const danceFunc = (spec, now, avatar) => {
-  const {
-    animationTrackName: k,
-    dst,
-    lerpFn,
-    // isTop,
-    isPosition,
-  } = spec;
-
-  
-  
-  _handleDefault(spec, now, avatar);
-  
-  const danceAnimation = getActiveAnimation("dance")[avatar.tracker.getState("dance")?.variation || defaultDanceAnimation];
-  const src2 = danceAnimation.interpolants[k];
-  const t2 = (now / 1000) % danceAnimation.duration;
-  const v2 = src2.evaluate(t2);
-
-  const danceTimeS = avatar.tracker.getState("dance")?.time / crouchMaxTime;
-  const f = Math.min(Math.max(danceTimeS, 0), 1);
-  lerpFn
-    .call(
-      dst,
-      avatar.localQuaternion.fromArray(v2),
-      f
-    );
-
-  _clearXZ(dst, isPosition);
-}; */
-
-//is this being used at all?
-const fallLoopFunc = (spec, now) => {
-  console.log("fall");
-  
-  const {
-    animationTrackName: k,
-    dst,
-    // isTop,
-  } = spec;
-
-  const t2 = (avatar.fallLoopTime / 1000);
-  const src2 = getActiveAnimation('fallLoop').interpolants[k];
-  const v2 = src2.evaluate(t2);
-
-  dst.fromArray(v2);
-};
-
-/** */
-
-
 export const _applyAnimation = (avatar, now) => {
   // if (!loaded) return;
   const currentSpeed = avatar.localVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
@@ -314,8 +218,8 @@ export const _applyAnimation = (avatar, now) => {
       return avatar.tracker.getState('dance').animationFn;      
     }
 
-    if (avatar.fallLoopState) {
-      return fallLoopFunc;
+    if (avatar.tracker.getState('fallLoop', true)) {
+      return avatar.tracker.getState('fallLoop').animationFn;      
     }
     if (
       avatar.useAnimation ||
