@@ -1080,7 +1080,10 @@ class StaticUninterpolatedPlayer extends PlayerBase {
     return this.actions;
   }
   getActions() {
-    return this.getActionsState();
+    return this.actions;
+  }
+  getActionsArray() {
+    return this.actions;
   }
   getAction(type) {
     return this.actions.find(action => action.type === type);
