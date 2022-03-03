@@ -662,7 +662,7 @@ sideScene.add(glyphMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
 sideScene.add(textObject);
-const _addPreviewLights = scene => {
+/* const _addPreviewLights = scene => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 2);
   scene.add(ambientLight);
   
@@ -671,7 +671,19 @@ const _addPreviewLights = scene => {
   directionalLight.updateMatrixWorld();
   scene.add(directionalLight);
 };
-_addPreviewLights(sideScene);
+_addPreviewLights(sideScene); */
+const autoLights = (() => {
+  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+  directionalLight.position.set(1, 2, 3);
+  directionalLight.updateMatrixWorld();
+
+  return [
+    ambientLight,
+    directionalLight,
+  ];
+})();
 /* let sideSceneCompiled = false;
 const _ensureSideSceneCompiled = () => {
   if (!sideSceneCompiled) {
@@ -705,6 +717,7 @@ const createPlayerDiorama = ({
   canvas = null,
   objects = [],
   target = null,
+  lights = true,
   label = null,
   outline = false,
   lightningBackground = false,
@@ -809,6 +822,11 @@ const createPlayerDiorama = ({
         for (const object of objects) {
           scene.add(object);
         }
+        if (lights) {
+          for (const autoLight of autoLights) {
+            scene.add(autoLight);
+          }
+        }
       };
 
       // push old state
@@ -828,6 +846,11 @@ const createPlayerDiorama = ({
             if (object.parent) {
               object.parent.remove(object);
             }
+          }
+        }
+        if (lights) {
+          for (const autoLight of autoLights) {
+            autoLight.parent.remove(autoLight);
           }
         }
       };
