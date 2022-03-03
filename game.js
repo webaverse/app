@@ -1854,12 +1854,18 @@ const gameManager = {
     localPlayer.avatar.setQuality(quality);
   },
   playerDiorama: null,
-  async bindPreviewCanvas(canvas) {
+  async bindDioramaCanvas(canvas) {
     await rendererWaitForLoad();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
-    this.playerDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
+    localPlayer.addEventListener('avatarchange', e => {
+      this.playerDiorama.setObjects([
+        e.avatar.model,
+      ]);
+    });
+    this.playerDiorama = dioramaManager.createPlayerDiorama({
       canvas,
+      target: localPlayer,
       // label: true,
       outline: true,
       grassBackground: true,

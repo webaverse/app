@@ -477,13 +477,14 @@ class StatePlayer extends PlayerBase {
     
     const _setNextAvatarApp = app => {
       (async () => {
-        const nextAvatar = await switchAvatar(this.avatar, app);
+        const avatar = await switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
-        this.avatar = nextAvatar;
+        this.avatar = avatar;
 
         this.dispatchEvent({
           type: 'avatarchange',
           app,
+          avatar,
         });
         
         loadPhysxCharacterController.call(this);
