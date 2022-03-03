@@ -230,7 +230,7 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
   }
 }
 export function applyPlayerChatToAvatar(player, rig) {
-  const actions = player.getActions();
+  const actions = player.getActionsArray();
   for (let i = actions.length - 1; i >= 0; i--) {
     const action = actions[i];
     if (action.type === 'chat') {
@@ -268,8 +268,7 @@ export function applyPlayerChatToAvatar(player, rig) {
       }
       break;
     }
-  };
-  _applyChatEmote(lastMessage);
+  }
   
   /* const _applyFakeSpeech = message => {
     rig.fakeSpeechValue = message?.fakeSpeech ? 1 : 0;
