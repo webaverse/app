@@ -285,9 +285,6 @@ export async function switchAvatar(oldAvatar, newApp) {
       
       if (!newApp[avatarSymbol]) {
         newApp[avatarSymbol] = makeAvatar(newApp);
-        if (newApp[avatarSymbol]) {
-          await newApp[avatarSymbol].waitForLoad();
-        }
       }
       result = newApp[avatarSymbol];
     })());
