@@ -3318,10 +3318,6 @@ class Avatar {
     }
 	}
 
-  async waitForLoad() {
-    await this.springBoneManager.waitForLoad();
-  }
-
   isAudioEnabled() {
     return !!this.microphoneWorker;
   }
