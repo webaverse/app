@@ -1498,7 +1498,7 @@ const _renderSpriteImages = skinnedVrm => {
     visemes: true,
     debug: false,
   });
-  await localRig.waitForLoad();
+  // await localRig.waitForLoad();
   for (let h = 0; h < 2; h++) {
     localRig.setHandEnabled(h, false);
   }
