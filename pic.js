@@ -38,7 +38,7 @@ const _makeRenderer = (width, height) => {
   renderer.setClearColor(0xff0000, 1);
 
   const scene = new THREE.Scene();
-  // scene.autoUpdate = false;
+  scene.autoUpdate = false;
 
   const camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 100);
 
