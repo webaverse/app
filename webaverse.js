@@ -4,11 +4,8 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
-// import * as CharacterHupsModule from './character-hups.js';
 import * as sounds from './sounds.js';
-import * as CharacterSfxModule from './character-sfx.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
@@ -17,8 +14,6 @@ import * as blockchain from './blockchain.js';
 import cameraManager from './camera-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
-// import equipmentRender from './equipment-render.js';
-// import * as characterController from './character-controller.js';
 import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
@@ -35,6 +30,7 @@ import {
   bindCanvas,
   getComposer,
 } from './renderer.js';
+import * as audioManager from './audio-manager.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
@@ -81,12 +77,6 @@ const frameEvent = new MessageEvent('frame', {
   },
 });
 const rendererStats = Stats();
-
-const _loadAudioContext = async () => {
-  const audioContext = WSRTC.getAudioContext();
-  Avatar.setAudioContext(audioContext);
-  await audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
-};
 
 /* const voiceFiles = `\
 B6_somnium_65_01 - Part_1.wav
@@ -155,7 +145,7 @@ export default class Webaverse extends EventTarget {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
-        _loadAudioContext(),
+        audioManager.waitForLoad(),
         sounds.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
