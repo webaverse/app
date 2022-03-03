@@ -74,21 +74,11 @@ export const genPic = async ({
   const idleAnimation = animations.find(a => a.name === 'idle.fbx');
   const idleAnimationDuration = idleAnimation.duration;
 
-  // const screenshotResult = document.getElementById('screenshot-result');
-
   // load app
   const app = await metaversefile.createAppAsync({
     start_url: url,
   });
-  // window.app = app;
-  // o.name = 'npc';
-  // await o.addModule(m);
 
-  // console.log('got avatar app', app);
-
-  // const position = app.position.clone()
-    // .add(new THREE.Vector3(0, 1, 0));
-  // const {quaternion, scale} = app;
   const position = new THREE.Vector3(0, 1.5, 0);
   const quaternion = new THREE.Quaternion();
   const scale = new THREE.Vector3(1, 1, 1);
@@ -99,7 +89,6 @@ export const genPic = async ({
     quaternion,
     scale,
   });
-  // window.player = player;
 
   const _setTransform = () => {
     player.position.y = player.avatar.height;
@@ -149,7 +138,6 @@ export const genPic = async ({
   // rendering
   const {renderer, scene, camera} = _makeRenderer(width, height);
   scene.add(app);
-  // app.updateMatrixWorld();
 
   const videoWriter = new WebMWriter({
     quality: 1,
@@ -158,8 +146,6 @@ export const genPic = async ({
     frameDuration: null,
     frameRate: FPS,
   });
-
-  // const writeCanvas = document.createElement('canvas');
   const writeCanvas = canvas;
   writeCanvas.width = width;
   writeCanvas.height = height;
@@ -170,7 +156,6 @@ export const genPic = async ({
   const framePromises = [];
   const _pushFrame = async () => {
     writeCtx.drawImage(renderer.domElement, 0, 0);
-    // const imageData = writeCtx.getImageData(0, 0, width, height);
 
     const p = new Promise((resolve, reject) => {
       writeCanvas.toBlob(blob => {
@@ -186,43 +171,22 @@ export const genPic = async ({
   };
   const _render = async () => {
     const boundingBox = new THREE.Box3().setFromObject(app);
-    // console.log('bounding box', boundingBox.min.toArray(), boundingBox.max.toArray());
 
     _initializeAnimation();
     // _lookAt(camera, boundingBox);
 
     const _renderFrames = async () => {
-      // console.log('got player emotes -1', player.avatar.emotes.length)
-
       let now = 0;
       const timeDiff = 1000/FPS;
       for (let i = 0; i < FPS*2; i++) {
-        // _lookAt(camera, boundingBox);
-        // _animate(now, timeDiff);
-        // now += timeDiff;
-        
-        // const timeDiffS = timeDiff/1000;
-        // player.avatar.springBoneManager.lateUpdate(timeDiffS);
         _lookAt(camera, boundingBox);
         _animate(now, timeDiff);
         app.updateMatrixWorld();
-
-        /* this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
-          console.log('update hairs', new Error().stack);
-          const timeDiffS = timeDiff / 1000;
-          this.springBoneManager.lateUpdate(timeDiffS);
-        }, avatarInterpolationFrameRate); */
       }
-
-      // console.log('got player emotes 0', player.avatar.emotes.length)
 
       let index = 0;
       const framesPerFrame = FPS;
       while (now < idleAnimationDuration*1000) {
-        // console.log('got frame', index);
-
-        // console.log('got player emotes 1', player.avatar.emotes.length)
-
         _lookAt(camera, boundingBox);
         _animate(now, timeDiff);
 
@@ -259,11 +223,6 @@ export const genPic = async ({
   await _render();
 
   const blob = await videoWriter.complete();
-  // console.log('got video blob', blob);
-
-  // const video = document.createElement('video');
-  // video.muted = true;
-  // video.autoplay = true;
   await new Promise((accept, reject) => {
     video.oncanplaythrough = accept;
     video.onerror = reject;
@@ -273,5 +232,4 @@ export const genPic = async ({
   video.style.height = `${height/window.devicePixelRatio}px`;
   video.controls = true;
   video.loop = true;
-  // screenshotResult.appendChild(video);
 };
