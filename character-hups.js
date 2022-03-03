@@ -3,7 +3,7 @@ it controls the animated dioramas that happen when players perform actions.
 the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
-import metaversefile from 'metaversefile';
+// import metaversefile from 'metaversefile';
 import {VoicePack, VoicePackVoicer} from './voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-endpoint-voicer.js';
 import {chatManager} from './chat-manager.js';
