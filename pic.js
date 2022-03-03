@@ -55,18 +55,23 @@ const localMatrix = new THREE.Matrix4();
   return {renderer, scene, camera};
 }; */
 const _makeLights = () => {
-  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
-  directionalLight.position.set(2, 2, -2);
+  const ambientLight = new THREE.AmbientLight(0xFFFFFF, 100);
+  // directionalLight.position.set(1, 1.5, -2);
+  // directionalLight.updateMatrixWorld();
+
+  /* const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.5);
+  directionalLight.position.set(1, 1.5, -2);
   directionalLight.updateMatrixWorld();
   
-  const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 2);
-  directionalLight2.position.set(-2, 2, -2);
-  directionalLight2.updateMatrixWorld();
+  const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1.5);
+  directionalLight2.position.set(-1, 1.5, -2);
+  directionalLight2.updateMatrixWorld(); */
 
-  return {
-    directionalLight,
-    directionalLight2,
-  }
+  return [
+    ambientLight,
+    // directionalLight,
+    // directionalLight2,
+  ];
 };
 
 export const genPic = async ({
@@ -153,19 +158,15 @@ export const genPic = async ({
   };
 
   // rendering
-  const {
-    directionalLight,
-    directionalLight2,
-  } = _makeLights();
-  const objects = [
-    directionalLight,
-    directionalLight2,
+  const localLights = _makeLights();
+  const objects = localLights.concat([
     player.avatar.model,
-  ];
+  ]);
   const diorama = dioramaManager.createPlayerDiorama({
     canvas,
     target: player,
     objects,
+    lights: false,
     // label: true,
     outline: true,
     grassBackground: true,
