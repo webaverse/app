@@ -192,12 +192,6 @@ class CharacterHups extends EventTarget {
       text,
     });
   }
-  /* addEmoteHupAction(emotion) {
-    this.player.addAction({
-      type: 'emote',
-      emotion,
-    });
-  } */
   update(timestamp) {
     // nothing
   }
