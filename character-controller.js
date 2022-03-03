@@ -946,11 +946,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
     camera.updateMatrixWorld();
   } */
-  getSession() {
-    const renderer = getRenderer();
-    const session = renderer.xr.getSession();
-    return session;
-  }
+  
   pushPlayerUpdates() {
     this.playersArray.doc.transact(() => {
       /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
@@ -963,7 +959,9 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.appManager.updatePhysics();
   }
   getSession() {
-    return null;
+    const renderer = getRenderer();
+    const session = renderer.xr.getSession();
+    return session;
   }
   updatePhysics(timestamp, timeDiff) {
     if (this.avatar) {
@@ -1148,6 +1146,9 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     
     loadPhysxCharacterController.call(this);
     // loadPhysxAuxCharacterCapsule.call(this);
+  }
+  getSession() {
+    return null;
   }
   updatePhysics = LocalPlayer.prototype.updatePhysics;
   updateAvatar = LocalPlayer.prototype.updateAvatar;
