@@ -112,6 +112,14 @@ export const genPic = async ({
     player.avatar.inputs.hmd.position.y = player.avatar.height;
     player.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
     player.avatar.inputs.hmd.updateMatrixWorld();
+    player.addAction({
+      type: 'emote',
+      emotion: 'fun',
+    });
+    /* player.avatar.emotes.push({
+      emotion: 'fun',
+      value: 1,
+    }); */
     // player.avatar.update(1000);
   };
   const _animate = (timestamp, timeDiff) => {
@@ -186,6 +194,8 @@ export const genPic = async ({
     // _lookAt(camera, boundingBox);
 
     const _renderFrames = async () => {
+      // console.log('got player emotes -1', player.avatar.emotes.length)
+
       let now = 0;
       const timeDiff = 1000/FPS;
       for (let i = 0; i < FPS*2; i++) {
@@ -206,10 +216,14 @@ export const genPic = async ({
         }, avatarInterpolationFrameRate); */
       }
 
+      // console.log('got player emotes 0', player.avatar.emotes.length)
+
       let index = 0;
       const framesPerFrame = FPS;
       while (now < idleAnimationDuration*1000) {
         // console.log('got frame', index);
+
+        // console.log('got player emotes 1', player.avatar.emotes.length)
 
         _lookAt(camera, boundingBox);
         _animate(now, timeDiff);
