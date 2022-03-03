@@ -6,7 +6,7 @@
   "scripts": {
     "start": "forever start index.mjs -p",
     "dev": "node index.mjs",
-    "devX": "rm -rf dist && node ./server/boot.mjs && NODE_ENV=production node index.prod.mjs -p",
+    "devX": "rm -rf dist && OUTPUT_EXPORTS=true node ./server/boot.mjs && NODE_ENV=production node index.prod.mjs -p",
     "startX": "NODE_ENV=production node index.prod.mjs -p",
     "prod": "sudo $(which node) index.mjs -p",
     "build": "node server/boot.mjs",
