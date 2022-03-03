@@ -17,7 +17,7 @@ import {
   crouchMaxTime,
   avatarInterpolationFrameRate,
   // useMaxTime,
-  // aimMaxTime,
+  aimMaxTime,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
@@ -496,7 +496,48 @@ class Avatar {
       this._clearXZ(dst, isPosition);
     });
 
+    function aimFunc(spec, now, avatar) {
+      const {
+        animationTrackName: k,
+        dst,
+        // isTop,
+        isPosition,
+      } = spec;
 
+      const aimTime = avatar.tracker.getState("narutoRun").time;
+
+      const aimAnimation = (avatar.tracker.getState("aim").animation && this.getActiveAnimation("aim")[avatar.aimAnimation]);
+      _handleDefault(spec, now, avatar);
+      const t2 = (aimTime / aimMaxTime) % aimAnimation.duration;
+      const idleAnimation = this.getIdleAnimation('walk');
+      if (!isPosition) {
+        if (aimAnimation) {
+          const src2 = aimAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          const t3 = 0;
+          const src3 = idleAnimation.interpolants[k];
+          const v3 = src3.evaluate(t3);
+
+          dst
+            .premultiply(avatar.localQuaternion2.fromArray(v3).invert())
+            .premultiply(avatar.localQuaternion2.fromArray(v2));
+        }
+      } else {
+        const src2 = aimAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        const t3 = 0;
+        const src3 = idleAnimation.interpolants[k];
+        const v3 = src3.evaluate(t3);
+
+        dst
+          .sub(avatar.localVector2.fromArray(v3))
+          .add(avatar.localVector2.fromArray(v2));
+      }
+    }
+
+    tmpAnimation.addAnimation(stateName, "aim", aimFunc);
     /***animations end */
 
     this.object = object;
@@ -1019,8 +1060,8 @@ class Avatar {
     // this.swordSideSlashTime = 0;
     // this.swordTopDownSlashState = false;
     // this.swordTopDownSlashTime = 0;
-    this.aimTime = NaN;
-    this.aimAnimation = null;
+    // this.aimTime = NaN;
+    // this.aimAnimation = null;
     // this.aimDirection = new THREE.Vector3();
     this.hurtTime = NaN;
     this.hurtAnimation = null;

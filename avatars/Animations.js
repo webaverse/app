@@ -154,6 +154,7 @@ export const getActiveAnimation = (animation) => {
     return tmpAnimation.activeAnimations[animation];
 }
 
+//this will be used from factory and removed from here
 export const _getIdleAnimation = key => tmpAnimation.animationsIdleArrays[key].animation;
 /* const _getIdleAnimation = key => {
   if (key === 'walk' || key === 'run') {
@@ -678,6 +679,18 @@ class AnimationFactory{
     getActiveAnimation(animation) {
         return this.activeAnimations[animation];
     }
+
+    getIdleAnimation (key) {
+        return this.animationsIdleArrays[key].animation
+    }
+/* const _getIdleAnimation = key => {
+      if (key === 'walk' || key === 'run') {
+        const name = animationsIdleArrays[key].name;
+        return avatar.retargetedAnimations.find(a => a.name === name);
+      } else {
+        return animationsIdleArrays[key].animation;
+      }
+    }; */
 
     _clearXZ (dst, isPosition) {
         if (isPosition) {

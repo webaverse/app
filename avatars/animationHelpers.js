@@ -313,46 +313,9 @@ export const _applyAnimation = (avatar, now) => {
           }
         }
       };
-    } else if (avatar.aimAnimation) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        const aimAnimation = (avatar.aimAnimation && getActiveAnimation("aim")[avatar.aimAnimation]);
-        _handleDefault(spec, now, avatar);
-        const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
-        if (!isPosition) {
-          if (aimAnimation) {
-            const src2 = aimAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            // const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-
-            dst
-              .premultiply(avatar.localQuaternion2.fromArray(v3).invert())
-              .premultiply(avatar.localQuaternion2.fromArray(v2));
-          }
-        } else {
-          const src2 = aimAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          // const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          dst
-            .sub(avatar.localVector2.fromArray(v3))
-            .add(avatar.localVector2.fromArray(v2));
-        }
-      };
+    //  } else if (avatar.tracker.getState('aim', true)) {
+    } else if (avatar.tracker.getState('aim')?.animation) {
+      return avatar.tracker.getState('aim').animationFn;       
     } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
       return spec => {
         const {

@@ -138,6 +138,14 @@ export function applyPlayerActionsToAvatar(player, rig) {
     time: narutoRunAction ? player.actionInterpolants.narutoRun.get() : NaN, 
     active: !!narutoRunAction && !crouchAction
   })
+  //aim
+  StateMachine.getTracked("playerAvatar").registerState({
+    ...aimAction, 
+    name: aimAction?.type ?? 'aim',
+    time: aimAction ? player.actionInterpolants.aim.get() : NaN, 
+    animation: (aimAction?.playerAnimation) || '',
+    active: !!aimAction
+  })
 
   //fallLoop
   //currently disabled
@@ -183,8 +191,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   // rig.narutoRunState = !!narutoRunAction && !crouchAction;
   // rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
-  rig.aimTime = player.actionInterpolants.aim.get();
-  rig.aimAnimation = (aimAction?.playerAnimation) || '';
+  // rig.aimTime = player.actionInterpolants.aim.get();
+  // rig.aimAnimation = (aimAction?.playerAnimation) || '';
   // rig.aimDirection.set(0, 0, -1);
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   // rig.sitState = !!sitAction;
