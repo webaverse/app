@@ -112,7 +112,7 @@ const build = () => {
     generateBundle(options, bundle) {
       /** testing exports */
 
-      if (process.env.OUTPUT_EXPORTS || true) {
+      if (process.env.OUTPUT_EXPORTS) {
         const exports = {
         };
 
@@ -163,9 +163,7 @@ const build = () => {
     //   };
     // },
     resolveImportMeta(property, {moduleId}) {
-      // if (property === 'url') {
-      //   return '"./"';
-      // }
+      /** Send force null to avoid import.meta transformation */
       return null;
     },
   };
@@ -176,6 +174,7 @@ plugins = process.env.NODE_ENV !== 'production' ? plugins.concat([metaversefileP
   build(),
 ]);
 
+/** Vite config for production */
 const viteConfiProduction = {
   build: {
     polyfillModulePreload: false,
