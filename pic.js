@@ -114,13 +114,8 @@ export const genPic = async ({
     player.avatar.inputs.hmd.updateMatrixWorld();
     player.addAction({
       type: 'emote',
-      emotion: 'fun',
+      emotion: 'angry',
     });
-    /* player.avatar.emotes.push({
-      emotion: 'fun',
-      value: 1,
-    }); */
-    // player.avatar.update(1000);
   };
   const _animate = (timestamp, timeDiff) => {
     // console.log('got position', player.position.y);
