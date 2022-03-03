@@ -27,7 +27,7 @@ export default function Header({
   const localPlayer = metaversefile.useLocalPlayer();
   const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
 
-  const previewCanvasRef = useRef();
+  const dioramaCanvasRef = useRef();
   const panelsRef = useRef();
 
   const [open, setOpen] = useState(null);
@@ -104,10 +104,10 @@ export default function Header({
     };
   }, [claims]);
   useEffect(() => {
-    if (previewCanvasRef.current && !game.playerDiorama) {
-      app.bindPreviewCanvas(previewCanvasRef.current);
+    if (dioramaCanvasRef.current && !game.playerDiorama) {
+      app.bindDioramaCanvas(dioramaCanvasRef.current);
     }
-  }, [previewCanvasRef.current]);
+  }, [dioramaCanvasRef.current]);
   useEffect(() => {
     if (selectedApp && panelsRef.current) {
       panelsRef.current.scrollTo(0, 0);
@@ -267,7 +267,7 @@ export default function Header({
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
               wearActions={wearActions}
-              previewCanvasRef={previewCanvasRef}
+              dioramaCanvasRef={dioramaCanvasRef}
               game={game}
             />
             <Claims
