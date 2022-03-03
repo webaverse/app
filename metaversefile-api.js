@@ -252,6 +252,7 @@ let recursion = 0;
 let wasDecapitated = false;
 // const apps = [];
 const mirrors = [];
+let debugMode = false;
 metaversefile.setApi({
   // apps,
   async import(s) {
@@ -887,6 +888,13 @@ export default () => {
   },
   async waitForSceneLoaded() {
     await universe.waitForSceneLoaded();
+  },
+  toggleDebug(newDebugMode) {
+    debugMode = newDebugMode;
+    document.getElementById('statsBox').style.display = debugMode ? null : 'none';
+  },
+  isDebugMode() {
+    return debugMode;
   },
   async addModule(app, m) {
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');

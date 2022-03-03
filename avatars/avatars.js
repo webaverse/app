@@ -3307,13 +3307,15 @@ class Avatar {
     };
     _updateSubAvatars();
 
-    if (game.debugMode && !this.debugMesh) {
+    if (metaversefile.isDebugMode() && !this.debugMesh) {
       this.debugMesh = _makeDebugMesh();
       this.debugMesh.wrapToAvatar(this);
       this.model.add(this.debugMesh);
     }
     if (this.debugMesh) {
-      game.debugMode && this.debugMesh.setFromAvatar(this);
+      if (metaversefile.isDebugMode()) {
+        this.debugMesh.setFromAvatar(this);
+      }
       this.debugMesh.visible = game.debugMode;
     }
 	}
