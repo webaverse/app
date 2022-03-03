@@ -26,7 +26,6 @@ import {
 import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
-import game from '../game.js';
 import {
   idleFactorSpeed,
   walkFactorSpeed,
@@ -3316,7 +3315,7 @@ class Avatar {
       if (metaversefile.isDebugMode()) {
         this.debugMesh.setFromAvatar(this);
       }
-      this.debugMesh.visible = game.debugMode;
+      this.debugMesh.visible = metaversefile.isDebugMode();
     }
 	}
 
