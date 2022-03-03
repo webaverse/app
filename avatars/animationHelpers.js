@@ -141,9 +141,9 @@ const _blendActivateAction = spec => {
       defaultAnimation = localPlayer.getAction('activate').animationName;
     }
 
-    const activateAnimation = activateAnimations[defaultAnimation].animation;
+    const activateAnimation = getActiveAnimation("activate")[defaultAnimation].animation;
     const src2 = activateAnimation.interpolants[k];
-    const t2 = ((activeAvatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
+    const t2 = ((activeAvatar.activateTime / 1000) * getActiveAnimation("activate")[defaultAnimation].speedFactor) % activateAnimation.duration;
     const v2 = src2.evaluate(t2);
 
     const f = activeAvatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
