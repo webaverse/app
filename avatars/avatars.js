@@ -39,7 +39,8 @@ import {
 } from './util.mjs';
 import metaversefile from 'metaversefile';
 
-import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation} from './animationHelpers.js'
+import { getFirstPersonCurves, loadPromise, _findArmature, _getLerpFn, _applyAnimation} from './animationHelpers.js'
+import { getClosest2AnimationAngles} from './Animations.js'
 
 import {animationMappingConfig} from './animationMappingConfig';
 
@@ -106,10 +107,11 @@ const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(
 const cubicBezier = easing(0, 1, 0, 1);
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
-import {
-  loadedAnimations,
-  animationStepIndices
-} from './animationHelpers.js';
+
+import{
+  animationStepIndices,
+  getLoadedAnimation
+} from './Animations.js';
 
 
 const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -385,28 +387,29 @@ class Avatar {
         },
       };
     }
+    this.id = crypto.randomUUID();
 
     window.avatar = this;
     window.StateMachine = StateMachine;
-    StateMachine.registerObj("playerAvatar", this);    
+    StateMachine.registerObj(options.name ?? "playerAvatar", this);    
 
 
-    StateMachine.getTracked("playerAvatar").registerState ({
-      name: 'jump',
-      animation: spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
+    // StateMachine.getTracked("playerAvatar").registerState ({
+    //   name: 'jump',
+    //   animation: spec => {
+    //     const {
+    //       animationTrackName: k,
+    //       dst,
+    //       // isTop,
+    //     } = spec;
         
-        const t2 = this.tracker.getState('jump').time / 1000 * 0.6 + 0.7;
-        const src2 = activeAnimations.jump.interpolants[k];
-        const v2 = src2.evaluate(t2);
+    //     const t2 = this.tracker.getState('jump').time / 1000 * 0.6 + 0.7;
+    //     const src2 = activeAnimations.jump.interpolants[k];
+    //     const v2 = src2.evaluate(t2);
 
-        dst.fromArray(v2);
-      }
-    });
+    //     dst.fromArray(v2);
+    //   }
+    // });
 
 
 
@@ -953,7 +956,6 @@ class Avatar {
   }
 
 
-
   static bindAvatar(object) {
     const model = object.scene;
     model.updateMatrixWorld(true);
@@ -1430,8 +1432,8 @@ class Avatar {
     };
     
     const _overwritePose = poseName => {
-      const poseAnimation = loadedAnimations.index[poseName];
-      // const noiseAnimation = loadedAnimations.index['t-pose_rot.fbx'];
+      const poseAnimation = getLoadedAnimation("index")[poseName];
+      // const noiseAnimation = getLoadedAnimation("index")['t-pose_rot.fbx'];
       // const noiseTime = (now/1000) % noiseAnimation.duration;
       for (const spec of this.animationMappings) {
         const {
@@ -1983,7 +1985,7 @@ class Avatar {
   }
 }
 Avatar.waitForLoad = () => loadPromise;
-Avatar.getAnimations = () => loadedAnimations;
+Avatar.getAnimations = () => getLoadedAnimation();
 Avatar.getAnimationStepIndices = () => animationStepIndices;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
 let avatarAudioContext = null;

@@ -6,6 +6,7 @@ const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials
 import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import Avatar from './avatars/avatars.js';
+import StateMachine from './avatars/States.js';
 
 const preview = false; // whether to draw debug meshes
 
@@ -1172,7 +1173,7 @@ const getSpriteSpecs = () => {
     
           let jumpTime = -200;
           const jumpIncrementSpeed = 250;
-          
+    
           return {
             update(timestamp, timeDiff) {
               const timeDiffMs = timeDiff/1000;
@@ -1186,7 +1187,7 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
-              
+
               localRig.tracker.registerState( {
                 name: 'jump',
                 time: jumpTime,
@@ -1198,6 +1199,7 @@ const getSpriteSpecs = () => {
             },
             cleanup() {
               localRig.tracker.deactivate('jump');
+              StateMachine.untrack("tempSpriteRig");
             },
           };
         },
@@ -1498,6 +1500,7 @@ const _renderSpriteImages = skinnedVrm => {
     hair: true,
     visemes: true,
     debug: false,
+    name: 'tempSpriteRig'
   });
   // console.log(localRig)
   for (let h = 0; h < 2; h++) {

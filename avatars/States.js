@@ -4,6 +4,7 @@ class StateObj{
     constructor({ time= NaN, target, direction= new Vector3(), active=false} = {}){
         this.time = time;
         this.animation = null;
+        this.animationFn = null;
         this.target = target
         this.direction = direction;
         this.active = active;
@@ -73,7 +74,7 @@ class StateMachine{
                 return active ? this.states.get(state)?.active : this.states.get(state);
             },
             deactivate:function(state){
-                this.states.get(state).active = false;
+                if (this.states.has(state)) this.states.get(state).active = false;
             },
             addToGraph:function(states=[]){
                 const node = new GraphNode(states)
@@ -90,6 +91,10 @@ class StateMachine{
 
     getTracked(name){
         return name ? this.tracking.get(name) : this.tracking;
+    }
+
+    untrack(name){
+        return this.tracking.delete(name);
     }
     
     getState(name, state){
@@ -112,7 +117,7 @@ class StateMachine{
                 let curState = tracked.getState(name);
                 if(!curState.active) return;
                 // console.log(`${key} is active`, curState)
-                curState.animation?.();
+                curState.animationFn?.();
             })
         })
     }

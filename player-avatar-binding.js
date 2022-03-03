@@ -101,7 +101,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   // rig.jumpState = !!jumpAction;
   // rig.jumpTime = player.actionInterpolants.jump.get();
-  
+
   StateMachine.getTracked("playerAvatar").registerState({
     ...jumpAction,
     name: jumpAction?.type ?? 'jump',
@@ -114,6 +114,13 @@ export function applyPlayerActionsToAvatar(player, rig) {
     name: flyAction?.type ?? 'fly',
     time: flyAction ? player.actionInterpolants.fly.get() : -1, 
     active:!!flyAction
+  })
+  StateMachine.getTracked("playerAvatar").registerState({
+    ...danceAction, 
+    name: danceAction?.type ?? 'dance',
+    time: danceAction ? player.actionInterpolants.dance.get() : NaN, 
+    animation: danceAnimation,
+    active:!!danceAction
   })
 
   rig.activateTime = player.actionInterpolants.activate.get();
@@ -156,11 +163,13 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
+
   // rig.danceState = !!danceAction;
-  rig.danceTime = player.actionInterpolants.dance.get();
-  if (danceAction) {
-    rig.danceAnimation = danceAnimation;
-  }
+  // rig.danceTime = player.actionInterpolants.dance.get();
+  // if (danceAction) {
+  //   rig.danceAnimation = danceAnimation;
+  // }
+
   // rig.throwState = !!throwAction;
   // rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
