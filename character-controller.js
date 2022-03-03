@@ -655,19 +655,6 @@ class StatePlayer extends PlayerBase {
       }
     });
   }
-  updateAvatar(timestamp, timeDiff) {
-    if (this.avatar) {
-      this.updateInterpolation(timeDiff);
-      
-      const renderer = getRenderer();
-      const session = renderer.xr.getSession();
-      const mirrors = metaversefile.getMirrors();
-      applyPlayerToAvatar(this, session, this.avatar, mirrors);
-
-      this.avatar.update(timestamp, timeDiff);
-    }
-    this.characterHups.update(timestamp);
-  }
   destroy() {
     this.unbindState();
     this.appManager.unbindState();
@@ -959,6 +946,11 @@ class LocalPlayer extends UninterpolatedPlayer {
     camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
     camera.updateMatrixWorld();
   } */
+  getSession() {
+    const renderer = getRenderer();
+    const session = renderer.xr.getSession();
+    return session;
+  }
   pushPlayerUpdates() {
     this.playersArray.doc.transact(() => {
       /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
@@ -970,11 +962,31 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.appManager.updatePhysics();
   }
+  getSession() {
+    return null;
+  }
   updatePhysics(timestamp, timeDiff) {
-    const timeDiffS = timeDiff / 1000;
-    this.characterPhysics.update(timestamp, timeDiffS);
-    this.characterSfx.update(timestamp, timeDiffS);
-    this.characterFx.update(timestamp, timeDiffS);
+    if (this.avatar) {
+      const timeDiffS = timeDiff / 1000;
+      this.characterPhysics.update(timestamp, timeDiffS);
+    }
+  }
+  updateAvatar(timestamp, timeDiff) {
+    if (this.avatar) {
+      const timeDiffS = timeDiff / 1000;
+      this.characterSfx.update(timestamp, timeDiffS);
+      this.characterFx.update(timestamp, timeDiffS);
+
+      this.updateInterpolation(timeDiff);
+
+      const session = this.getSession();
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, session, this.avatar, mirrors);
+
+      this.avatar.update(timestamp, timeDiff);
+
+      this.characterHups.update(timestamp);
+    }
   }
   resetPhysics() {
     this.characterPhysics.reset();
@@ -1137,33 +1149,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     loadPhysxCharacterController.call(this);
     // loadPhysxAuxCharacterCapsule.call(this);
   }
-  updatePhysics(timestamp, timeDiff) {
-    if (this.avatar) {
-      const timeDiffS = timeDiff / 1000;
-      this.characterPhysics.update(timestamp, timeDiffS);
-      this.characterSfx.update(timestamp, timeDiffS);
-      this.characterFx.update(timestamp, timeDiffS);
-    }
-  }
-  updateAvatar(timestamp, timeDiff) {
-    if (this.avatar) {
-      this.updateInterpolation(timeDiff);
-      
-      // const renderer = getRenderer();
-      // const session = renderer.xr.getSession();
-      const mirrors = metaversefile.getMirrors();
-      applyPlayerToAvatar(this, null, this.avatar, mirrors);
-
-      this.avatar.update(timestamp, timeDiff);
-
-      /* this.physicsObject.position.copy(this.position)
-        .add(new THREE.Vector3(0, -this.avatar.height/2, 0));
-      this.physicsObject.updateMatrixWorld();
-      physicsManager.setTransform(this.physicsObject); */
-
-      this.characterHups.update(timestamp);
-    }
-  }
+  updatePhysics = LocalPlayer.prototype.updatePhysics;
+  updateAvatar = LocalPlayer.prototype.updateAvatar;
   /* detachState() {
     return null;
   }
