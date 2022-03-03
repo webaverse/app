@@ -29,7 +29,7 @@
     {
       "position": [ 5, 5, -10 ],
       "quaternion": [ 0, 0, 0, 1 ],
-      "start_url": "http://localhost/lib/webaverse_resource/heli-hack/"
+      "start_url": "http://localhost/lib/webaverse_resource/heli/"
     },
     {
       "position": [ -5, 0, -10 ],
