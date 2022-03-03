@@ -12,6 +12,8 @@ import * as WebMWriter from 'webm-writer';
 // const defaultWidth = 512;
 // const defaultHeight = 512;
 const FPS = 60;
+// const videoQuality = 0.99999;
+const videoQuality = 0.95;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -197,7 +199,7 @@ export const genPic = async ({
           const dataUrl = reader.result;                
           resolve(dataUrl);
         };
-      }, 'image/webp', 0.99999);
+      }, 'image/webp', videoQuality);
     });
     framePromises.push(p);
   };
