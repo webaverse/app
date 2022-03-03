@@ -5,6 +5,7 @@ import Avatar from './avatars/avatars.js';
 import * as audioManager from './audio-manager.js';
 import npcManager from './npc-manager.js';
 import dioramaManager from './diorama.js';
+import {getRenderer, scene} from './renderer.js';
 
 // import GIF from './gif.js';
 import * as WebMWriter from 'webm-writer';
@@ -19,7 +20,7 @@ const localMatrix = new THREE.Matrix4();
 
 // I can take all of you motherfuckers on at once!
 
-const _makeRenderer = (width, height) => {
+/* const _makeRenderer = (width, height) => {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -50,6 +51,20 @@ const _makeRenderer = (width, height) => {
   scene.add(directionalLight2);
 
   return {renderer, scene, camera};
+}; */
+const _makeLights = () => {
+  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+  directionalLight.position.set(2, 2, -2);
+  directionalLight.updateMatrixWorld();
+  
+  const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 2);
+  directionalLight2.position.set(-2, 2, -2);
+  directionalLight2.updateMatrixWorld();
+
+  return {
+    directionalLight,
+    directionalLight2,
+  }
 };
 
 export const genPic = async ({
@@ -136,8 +151,25 @@ export const genPic = async ({
   };
 
   // rendering
-  const {renderer, scene, camera} = _makeRenderer(width, height);
-  scene.add(app);
+  const {
+    directionalLight,
+    directionalLight2,
+  } = _makeLights();
+  const objects = [
+    directionalLight,
+    directionalLight2,
+    player.avatar.model,
+  ];
+  const diorama = dioramaManager.createPlayerDiorama({
+    canvas,
+    target: player,
+    objects,
+    // label: true,
+    outline: true,
+    grassBackground: true,
+    // glyphBackground: true,
+  });
+  // diorama.enabled = false;
 
   const videoWriter = new WebMWriter({
     quality: 1,
@@ -155,7 +187,7 @@ export const genPic = async ({
 
   const framePromises = [];
   const _pushFrame = async () => {
-    writeCtx.drawImage(renderer.domElement, 0, 0);
+    writeCtx.drawImage(canvas, 0, 0);
 
     const p = new Promise((resolve, reject) => {
       writeCanvas.toBlob(blob => {
@@ -179,19 +211,19 @@ export const genPic = async ({
       let now = 0;
       const timeDiff = 1000/FPS;
       for (let i = 0; i < FPS*2; i++) {
-        _lookAt(camera, boundingBox);
+        // _lookAt(camera, boundingBox);
         _animate(now, timeDiff);
-        app.updateMatrixWorld();
+        // app.updateMatrixWorld();
       }
 
       let index = 0;
       const framesPerFrame = FPS;
       while (now < idleAnimationDuration*1000) {
-        _lookAt(camera, boundingBox);
+        // _lookAt(camera, boundingBox);
         _animate(now, timeDiff);
 
-        renderer.clear();
-        renderer.render(scene, camera);
+        diorama.update(now, timeDiff);
+        // renderer.render(scene, camera);
         // renderer.getContext().flush();
 
         _pushFrame();
