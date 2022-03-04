@@ -47,6 +47,7 @@ const CharacterHup = function(props) {
       }
 
       return () => {
+        chatDioramas.delete(player);
         diorama.destroy();
       };
     }
