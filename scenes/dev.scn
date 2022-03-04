@@ -64,7 +64,7 @@
         0,
         0
       ],
-      "start_url": "../street-green/"
+      "start_url": "https://webaverse.github.io/street-green/"
     },
     {
       "position": [
@@ -119,7 +119,7 @@
         1
       ],
       "physics": false,
-      "start_url": "../silkworm/",
+      "start_url": "https://webaverse.github.io/silkworm/",
       "dynamic": true
     },
     {
@@ -134,7 +134,7 @@
         0,
         1
       ],
-      "start_url": "../npc/",
+      "start_url": "https://webaverse.github.io/npc/",
       "components": [
         {
           "key": "name",
@@ -166,7 +166,7 @@
         0,
         1
       ],
-      "start_url": "../npc/",
+      "start_url": "https://webaverse.github.io/npc/",
       "components": [
         {
           "key": "name",
@@ -198,7 +198,7 @@
         0,
         1
       ],
-      "start_url": "../npc/",
+      "start_url": "https://webaverse.github.io/npc/",
       "components": [
         {
           "key": "name",
@@ -230,7 +230,7 @@
         0,
         1
       ],
-      "start_url": "../npc/",
+      "start_url": "https://webaverse.github.io/npc/",
       "components": [
         {
           "key": "name",
@@ -323,7 +323,7 @@
         0.5,
         0.5
       ],
-      "start_url": "../potion/"
+      "start_url": "https://webaverse.github.io/potion/"
     },
     {
       "position": [
@@ -342,7 +342,7 @@
         1,
         1
       ],
-      "start_url": "../pistol/"
+      "start_url": "https://webaverse.github.io/pistol/"
     },
     {
       "position": [
@@ -361,7 +361,7 @@
         1,
         1
       ],
-      "start_url": "../bow/"
+      "start_url": "https://webaverse.github.io/bow/"
     },
     {
       "position": [
@@ -380,7 +380,7 @@
         1,
         1
       ],
-      "start_url": "../silsword/"
+      "start_url": "https://webaverse.github.io/silsword/"
     },
     {
       "position": [
@@ -399,11 +399,11 @@
         1,
         1
       ],
-      "start_url": "../scissors/"
+      "start_url": "https://webaverse.github.io/scissors/"
     },
     {
       "position": [30, 0, 4],
-      "start_url": "../origin-tablet/"
+      "start_url": "https://webaverse.github.io/origin-tablet/"
     },
     {
       "position": [
@@ -411,7 +411,7 @@
         0,
         -1
       ],
-      "start_url": "../mirror/"
+      "start_url": "https://webaverse.github.io/mirror/"
     }, 
     {
       "position": [
@@ -419,7 +419,7 @@
         0,
         0
       ],
-      "start_url": "../bomb/"
+      "start_url": "https://webaverse.github.io/bomb/"
     },
     {
       "position": [
@@ -427,7 +427,7 @@
         0,
         2
       ],
-      "start_url": "../flower/"
+      "start_url": "https://webaverse.github.io/flower/"
     },
     {
       "position": [
@@ -435,7 +435,7 @@
         0,
         2
       ],
-      "start_url": "../witch-hat/"
+      "start_url": "https://webaverse.github.io/witch-hat/"
     },
     {
       "position": [
@@ -443,7 +443,7 @@
         0,
         6
       ],
-      "start_url": "../turret/"
+      "start_url": "https://webaverse.github.io/turret/"
     },
     {
       "position": [
@@ -451,7 +451,7 @@
         0,
         6
       ],
-      "start_url": "../dreadnought/"
+      "start_url": "https://webaverse.github.io/dreadnought/"
     },
     {
       "position": [
@@ -460,7 +460,7 @@
         -20
       ],
       "quaternion": [0, 0, 0, 1],
-      "start_url": "../lisk/"
+      "start_url": "https://webaverse.github.io/lisk/"
     }
   ]
 }
