@@ -37,6 +37,8 @@ class PathFinder {
     this.heightTolerance = heightTolerance;
     this.start = new THREE.Vector3();
     this.dest = new THREE.Vector3();
+    this.startIn = new THREE.Vector3();
+    this.destIn = new THREE.Vector3();
     this.debugRender = true;
     this.detectStep = detectStep;
     this.iterDetect = 0;
@@ -53,9 +55,12 @@ class PathFinder {
 
     this.voxelo = {};
 
+    this.startDestQuaternion = new THREE.Quaternion();
+
     if (this.debugRender) {
       this.geometry = new THREE.BoxGeometry();
       this.geometry.scale(0.5, this.voxelHeight, 0.5);
+      // this.geometry.scale(1, this.voxelHeight, 1);
       // this.geometry.scale(0.9, 0.1, 0.9);
       this.material = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe: true});
       this.maxDebugCount = this.maxVoxelCacheLen + this.maxIterStep * 4 + 1 + 100; // One step() can create up to 4 voxels. Add 1 startVoxel. Add 100 for interpoed waypointResult.
@@ -69,20 +74,27 @@ class PathFinder {
   }
 
   getPath(start, dest) {
+    this.startIn.copy(start);
+    this.destIn.copy(dest);
+
     // this.detectCount = 0;
+    this.startDestQuaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3().subVectors(this.destIn, this.startIn).setY(0).normalize(),
+    );
 
     this.reset();
     if (this.voxels.children.length > this.maxVoxelCacheLen) this.disposeVoxelCache();
 
     this.start.set(
       0,
-      start.y,
+      this.startIn.y,
       0,
     );
     this.dest.set(
       0,
-      dest.y,
-      Math.round(start.distanceTo(dest)),
+      this.destIn.y,
+      Math.round(this.startIn.distanceTo(this.destIn)),
     );
 
     this.startVoxel = this.createVoxel(this.start);
@@ -130,9 +142,20 @@ class PathFinder {
       });
       this.debugMesh.instanceMatrix.needsUpdate = true;
       this.debugMesh.instanceColor.needsUpdate = true;
+
+      this.debugMesh.quaternion.copy(this.startDestQuaternion);
+      this.debugMesh.position.copy(this.startIn);
+      this.debugMesh.updateMatrixWorld();
     }
 
     // console.log(this.detectCount);
+
+    if (this.isFound) {
+      this.waypointResult.forEach(result => {
+        result.position.applyQuaternion(this.startDestQuaternion);
+        result.position.add(this.startIn);
+      });
+    }
 
     return this.isFound ? this.waypointResult : null;
   }
@@ -199,10 +222,15 @@ class PathFinder {
 
     // // simple cache
     // this.voxels.children.forEach((voxel, i) => {
-    //   this.resetVoxelAStar(voxel);
     //   if (this.debugRender) this.debugMesh.setColorAt(i, colorIdle);
     // });
-    // if (this.debugRender) this.debugMesh.instanceColor.needsUpdate = true;
+
+    if (this.debugRender) {
+      for (let i = 0; i < this.maxDebugCount; i++) {
+        this.debugMesh.setColorAt(i, colorIdle);
+      }
+      this.debugMesh.instanceColor.needsUpdate = true;
+    }
   }
 
   // disposeOld(maxVoxelsLen) {
@@ -262,7 +290,11 @@ class PathFinder {
     }
     this.iterDetect++;
 
-    const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, voxel.position, identityQuaternion);
+    localVector.copy(voxel.position);
+    localVector.applyQuaternion(this.startDestQuaternion);
+    localVector.add(this.startIn);
+    // const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVector, identityQuaternion);
+    const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVector, this.startDestQuaternion);
     let collide;
     if (overlapResult.objectIds.length === 1 && this.ignorePhysicsIds.includes(overlapResult.objectIds[0])) {
       collide = false;
