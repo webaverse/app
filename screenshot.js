@@ -266,7 +266,6 @@ const _makeRenderer = (width, height) => {
   try {
     const app = await metaversefileApi.load(url);
     if (app.appType === 'vrm') {
-      await app.setSkinning(true);
       const avatar = new Avatar(app.skinnedVrm, {
         fingers: true,
         hair: true,

@@ -62,7 +62,7 @@ export function makeAvatar(app) {
       
       unFrustumCull(app);
       enableShadows(app);
-      
+
       return avatar;
     }
   }
@@ -286,14 +286,8 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
 export async function switchAvatar(oldAvatar, newApp) {
   let result;
   const promises = [];
-  if (oldAvatar) {
-    promises.push((async () => {
-      await oldAvatar[appSymbol].setSkinning(false);
-    })());
-  }
   if (newApp) {
     promises.push((async () => {
-      await newApp.setSkinning(true);
       
       if (!newApp[avatarSymbol]) {
         newApp[avatarSymbol] = makeAvatar(newApp);
