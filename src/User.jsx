@@ -20,6 +20,7 @@ function User({
     e.preventDefault();
     setShow(!show);
   };
+  const discordBtn = useRef(null);
 
   const [loggingIn, setLoggingIn] = useState(false);
   const [loginButtons, setLoginButtons] = useState(false);
@@ -33,11 +34,13 @@ function User({
       setLoggingIn(true);
       try {
         const { address, profile } = await ceramicApi.login();
+        localStorage.setItem('loginMethod', 'metaMask')
         setAddress(address);
         setLoginFrom('metamask');
         setShow(false);
         setLoginFrom('metamask');
       } catch (err) {
+        localStorage.setItem('loginMethod', 'discord')
         console.warn(err);
       } finally {
         setLoggingIn(false);
@@ -46,7 +49,11 @@ function User({
   };
 
   useEffect(() => {
-    metaMaskLogin();
+    if(localStorage.getItem('loginMethod') === 'discord') {
+      window.location = `https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`
+    } else {
+      metaMaskLogin();
+    }
   }, []);
 
   useEffect(() => {
@@ -148,7 +155,7 @@ function User({
                         <span>MetaMask</span>
                       </div>
                     </div>
-                    <a href={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`}>
+                    <a href={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`} onClick={() => (localStorage.setItem('loginMethod', 'discord'))}>
                       <div className={styles.loginBtn} style={{ marginTop: '10px' }}>
                         <div className={styles.loginBtnText}>
                           <img className={styles.loginBtnImg} src="images/discord-dark.png" alt="discord" width="28px" />
