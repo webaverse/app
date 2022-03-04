@@ -5,7 +5,6 @@ import {
   // loreAiEndpoint,
   defaultPlayerName,
   defaultPlayerBio,
-  defaultSetting,
   defaultObjectName,
   defaultObjectDescription,
 } from './constants.js';
