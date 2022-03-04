@@ -61,9 +61,6 @@ export const appsMapName = 'apps';
 export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;
 
-export const defaultPlayerName = 'Anon';
-export const defaultPlayerBio = 'A new player. Not much is known about them.';
-
 export const audioTimeoutTime = 10 * 1000;
 
 export const crouchMaxTime = 200;
@@ -84,9 +81,6 @@ export const avatarInterpolationNumFrames = 4;
 
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
-
-export const defaultObjectName = 'Thing';
-export const defaultObjectDescription = 'A thing. Not much is known about it.';
 
 export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
 
