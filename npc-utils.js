@@ -75,14 +75,14 @@ class PathFinder {
     if (this.voxels.children.length > this.maxVoxelCacheLen) this.disposeVoxelCache();
 
     this.start.set(
-      Math.round(start.x),
+      0,
       start.y,
-      Math.round(start.z),
+      0,
     );
     this.dest.set(
-      Math.round(dest.x),
+      0,
       dest.y,
-      Math.round(dest.z),
+      Math.round(start.distanceTo(dest)),
     );
 
     this.startVoxel = this.createVoxel(this.start);
