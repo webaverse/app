@@ -80,10 +80,9 @@ world.enableMic = async () => {
   localSpeechRecognition.maxAlternatives = 10; */
   localSpeechRecognition.interimResults = false;
   localSpeechRecognition.maxAlternatives = 1;
-
-  // speechRecognition.continuous = true;
-  // speechRecognition.interimResults = true;
-  // speechRecognition.lang = document.querySelector("#select_dialect").value;
+  // localSpeechRecognition.continuous = true;
+  // localSpeechRecognition.interimResults = true;
+  // localSpeechRecognition.lang = document.querySelector("#select_dialect").value;
   /* localSpeechRecognition.onstart = () => {
     // document.querySelector("#status").style.display = "block";
   }; */
