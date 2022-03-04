@@ -214,6 +214,10 @@ class LoreAI {
       query.prompt = prompt;
       query.max_tokens = max_tokens;
       query.stop = stop;
+      
+      query.temperature = temperature;
+      query.top_p = top_p;
+
       /* if (typeof temperature === 'number') {
         query.temperature = temperature;
       }
