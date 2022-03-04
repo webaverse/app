@@ -13,7 +13,9 @@ import {chatTextSpeed} from '../constants.js';
 const defaultHupSize = 256;
 const pixelRatio = window.devicePixelRatio;
 
-function CharacterHup(props) {
+const chatDioramas = new WeakMap();
+
+const CharacterHup = function(props) {
   const {hup, index, hups, setHups} = props;
 
   const canvasRef = useRef();
@@ -26,7 +28,7 @@ function CharacterHup(props) {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const player = hup.parent.player;
-      let diorama = dioramas.get(player);
+      let diorama = chatDioramas.get(player);
       if (diorama) {
         // console.log('got diorama', diorama);
         diorama.resetCanvases();
@@ -40,7 +42,7 @@ function CharacterHup(props) {
           ],
           grassBackground: true,
         });
-        dioramas.set(player, diorama);
+        chatDioramas.set(player, diorama);
         // console.log('no diorama');
       }
 
