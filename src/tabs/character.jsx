@@ -5,7 +5,7 @@ import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
 import {defaultPlayerName} from '../../constants.js';
 
-export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, previewCanvasRef}) => {
+export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, dioramaCanvasRef}) => {
   const sideSize = 400;
 
   return (
@@ -22,7 +22,7 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
       }
       panels={[
         (<div className={styles.panel} key="left">
-          <canvas id="previewCanvas" className={styles.avatar} ref={previewCanvasRef} width={sideSize} height={sideSize} />
+          <canvas id="previewCanvas" className={styles.avatar} ref={dioramaCanvasRef} width={sideSize} height={sideSize} />
           <div className={styles['panel-header']}>
             <div className={classnames(styles['panel-section'], styles.name)}>
               <h1>{defaultPlayerName}</h1>
