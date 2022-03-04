@@ -50,7 +50,7 @@ const CharacterHup = function(props) {
         diorama.destroy();
       };
     }
-  }, [canvasRef.current]);
+  }, [canvasRef]);
   useEffect(() => {
     if (hupRef.current) {
       const hupEl = hupRef.current;
@@ -68,7 +68,7 @@ const CharacterHup = function(props) {
         hupEl.removeEventListener('transitionend', transitionend);
       };
     }
-  }, [hupRef.current, localOpen, hups, hups.length]);
+  }, [hupRef, localOpen, hups, hups.length]);
   useEffect(() => {
     setFullText(hup.fullText);
   }, []);
