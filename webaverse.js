@@ -622,20 +622,6 @@ const _startHacks = () => {
           });
         })();
       }
-    } else if (e.which === 221) { // ]
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      if (localPlayer.avatar) {
-        if (!playerDiorama) {
-          playerDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
-            label: true,
-            outline: true,
-            lightningBackground: true,
-          });
-        } else {
-          playerDiorama.destroy();
-          playerDiorama = null;
-        }
-      }
     } else if (e.which === 46) { // .
       emoteIndex = -1;
       _updateEmote();
