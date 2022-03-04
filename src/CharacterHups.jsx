@@ -13,7 +13,9 @@ import {chatTextSpeed} from '../constants.js';
 const defaultHupSize = 256;
 const pixelRatio = window.devicePixelRatio;
 
-function CharacterHup(props) {
+const chatDioramas = new WeakMap();
+
+const CharacterHup = function(props) {
   const {hup, index, hups, setHups} = props;
 
   const canvasRef = useRef();
@@ -26,16 +28,30 @@ function CharacterHup(props) {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const player = hup.parent.player;
-      const diorama = dioramaManager.createPlayerDiorama(player, {
-        canvas,
-        grassBackground: true,
-      });
+      let diorama = chatDioramas.get(player);
+      if (diorama) {
+        // console.log('got diorama', diorama);
+        diorama.resetCanvases();
+        diorama.addCanvas(canvas);
+      } else {
+        diorama = dioramaManager.createPlayerDiorama({
+          canvas,
+          target: player,
+          objects: [
+            player.avatar.model,
+          ],
+          grassBackground: true,
+        });
+        chatDioramas.set(player, diorama);
+        // console.log('no diorama');
+      }
 
       return () => {
+        chatDioramas.delete(player);
         diorama.destroy();
       };
     }
-  }, [canvasRef.current]);
+  }, [canvasRef]);
   useEffect(() => {
     if (hupRef.current) {
       const hupEl = hupRef.current;
@@ -53,7 +69,7 @@ function CharacterHup(props) {
         hupEl.removeEventListener('transitionend', transitionend);
       };
     }
-  }, [hupRef.current, localOpen, hups, hups.length]);
+  }, [hupRef, localOpen, hups, hups.length]);
   useEffect(() => {
     setFullText(hup.fullText);
   }, []);
