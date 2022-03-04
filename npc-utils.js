@@ -121,25 +121,36 @@ class PathFinder {
     }
 
     if (this.debugRender) {
-      this.debugMesh.count = this.voxels.children.length + this.waypointResult.length;
-      this.voxels.children.forEach((voxel, i) => {
-        this.debugMesh.setMatrixAt(i, voxel.matrix);
-        if (voxel._isStart) {
-          this.debugMesh.setColorAt(i, colorStart);
-        } else if (voxel._isDest) {
-          this.debugMesh.setColorAt(i, colorDest);
-        } else if (voxel._isPath) {
-          this.debugMesh.setColorAt(i, colorPath);
-        } else if (voxel._isFrontier) {
-          this.debugMesh.setColorAt(i, colorFrontier);
-        } else if (voxel._isReached) {
-          this.debugMesh.setColorAt(i, colorReached);
-        }
-      });
+      // // Show all voxels
+      // this.debugMesh.count = this.voxels.children.length + this.waypointResult.length;
+      // this.voxels.children.forEach((voxel, i) => {
+      //   this.debugMesh.setMatrixAt(i, voxel.matrix);
+      //   if (voxel._isStart) {
+      //     this.debugMesh.setColorAt(i, colorStart);
+      //   } else if (voxel._isDest) {
+      //     this.debugMesh.setColorAt(i, colorDest);
+      //   } else if (voxel._isPath) {
+      //     this.debugMesh.setColorAt(i, colorPath);
+      //   } else if (voxel._isFrontier) {
+      //     this.debugMesh.setColorAt(i, colorFrontier);
+      //   } else if (voxel._isReached) {
+      //     this.debugMesh.setColorAt(i, colorReached);
+      //   }
+      // });
+      // this.waypointResult.forEach((result, i) => {
+      //   this.debugMesh.setMatrixAt(this.voxels.children.length + i, result.matrix);
+      //   this.debugMesh.setColorAt(this.voxels.children.length + i, colorPathSimplified);
+      // });
+
+      // Only show waypointResult
+      this.debugMesh.count = this.waypointResult.length;
       this.waypointResult.forEach((result, i) => {
-        this.debugMesh.setMatrixAt(this.voxels.children.length + i, result.matrix);
-        this.debugMesh.setColorAt(this.voxels.children.length + i, colorPathSimplified);
+        this.debugMesh.setMatrixAt(i, result.matrix);
+        this.debugMesh.setColorAt(i, colorPathSimplified);
       });
+
+      //
+
       this.debugMesh.instanceMatrix.needsUpdate = true;
       this.debugMesh.instanceColor.needsUpdate = true;
 
