@@ -136,7 +136,6 @@ class AIScene {
             // const nextCharacterIndex = 1 + Math.floor(Math.random() * (this.characters.length - 1)); // skip over local character
             // const nextCharacter = this.characters[nextCharacterIndex];
             let response = await this.generate();
-            response = `+${response}`;
             const a = parseLoreResponses(response);
             if (a.length > 0) {
               for (const o of a) {
