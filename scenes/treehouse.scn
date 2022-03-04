@@ -48,23 +48,12 @@
       }
     },
     {
-      "type": "application/lore",
-      "content": [
-        "Scillia's treehouse. It's more of a floating island but they call it a tree house.",
-        "Inside the treehouse lives a monster, the Lisk, which is an advanced AI from far up the Street.",
-        "The Street is the virtual world this all takes place in; it is an extremely long street separated by great filters, natural barriers that are difficult to cross.",
-        "The treehouse is in Zone 0, at the origin of the Street. The AIs all go to school here in the citadel.",
-        "The Lisk, the monster in Scillia's treehouse, convinces Scillia to do things; it convinces her to go up the Street.",
-        "The whole point of the game is the Lisk is constantly tricking players into doing its bidding, but gives them great power in return."
-      ]
-    },
-    {
       "position": [
         0,
         0,
         0
       ],
-      "start_url": "../street-green/"
+      "start_url": "https://webaverse.github.io/street/index.js"
     },
     {
       "position": [
@@ -73,6 +62,22 @@
         0
       ],
       "start_url": "https://webaverse.github.io/skybox-anime/"
+    },
+    {
+      "position": [
+        4,
+        0,
+        1
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "physics": false,
+      "start_url": "/avatars/gear.vrm",
+      "dynamic": true
     },
     {
       "position": [
@@ -92,9 +97,9 @@
     },
     {
       "position": [
-        8,
+        24,
         0,
-        16
+        24
       ],
       "quaternion": [
         0,
@@ -119,14 +124,14 @@
         1
       ],
       "physics": false,
-      "start_url": "../silkworm/",
+      "start_url": "https://webaverse.github.io/silkworm/",
       "dynamic": true
     },
     {
       "position": [
-        3,
-        0,
-        -2
+        4,
+        1,
+        4
       ],
       "quaternion": [
         0,
@@ -134,121 +139,9 @@
         0,
         1
       ],
-      "start_url": "../npc/",
-      "components": [
-        {
-          "key": "name",
-          "value": "Scillia"
-        },
-        {
-          "key": "voice",
-          "value": "Sweetie Belle"
-        },
-        {
-          "key": "avatarUrl",
-          "value": "/avatars/scillia_drophunter_v15_vian.vrm"
-        },
-        {
-          "key": "bio",
-          "value": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
-        }
-      ]
-    },
-    {
-      "position": [
-        -3,
-        0,
-        -2
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "../npc/",
-      "components": [
-        {
-          "key": "name",
-          "value": "Drake"
-        },
-        {
-          "key": "voice",
-          "value": "Shining Armor"
-        },
-        {
-          "key": "avatarUrl",
-          "value": "/avatars/drake_hacker_v3_vian.vrm"
-        },
-        {
-          "key": "bio",
-          "value": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
-        }
-      ]
-    },
-    {
-      "position": [
-        3,
-        0,
-        -4
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "../npc/",
-      "components": [
-        {
-          "key": "name",
-          "value": "Hyacinth"
-        },
-        {
-          "key": "voice",
-          "value": "Maud Pie"
-        },
-        {
-          "key": "avatarUrl",
-          "value": "/avatars/hya_influencer_v2_vian.vrm"
-        },
-        {
-          "key": "bio",
-          "value": "Scillia's mentor. 15/F beast tamer. She is quite famous."
-        }
-      ]
-    },
-    {
-      "position": [
-        -3,
-        0,
-        -4
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "../npc/",
-      "components": [
-        {
-          "key": "name",
-          "value": "Juniper"
-        },
-        {
-          "key": "voice",
-          "value": "Cadance"
-        },
-        {
-          "key": "avatarUrl",
-          "value": "/avatars/jun_engineer_v1_vian.vrm"
-        },
-        {
-          "key": "bio",
-          "value": "She is an engineer. 17/F engineer. She is new on the street."
-        }
-      ]
+      "physics": false,
+      "start_url": "https://webaverse.github.io/basiheart/",
+      "dynamic": true
     },
     {
       "position": [
@@ -309,6 +202,20 @@
     {
       "position": [
         -6,
+        0.16,
+        16
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/fox/"
+    },
+    {
+      "position": [
+        -6,
         1,
         15
       ],
@@ -323,7 +230,7 @@
         0.5,
         0.5
       ],
-      "start_url": "../potion/"
+      "start_url": "https://webaverse.github.io/potion/"
     },
     {
       "position": [
@@ -342,7 +249,7 @@
         1,
         1
       ],
-      "start_url": "../pistol/"
+      "start_url": "https://webaverse.github.io/pistol/"
     },
     {
       "position": [
@@ -361,7 +268,7 @@
         1,
         1
       ],
-      "start_url": "../bow/"
+      "start_url": "https://webaverse.github.io/bow/"
     },
     {
       "position": [
@@ -380,87 +287,7 @@
         1,
         1
       ],
-      "start_url": "../silsword/"
-    },
-    {
-      "position": [
-        -6,
-        0.5,
-        9
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "start_url": "../scissors/"
-    },
-    {
-      "position": [30, 0, 4],
-      "start_url": "../origin-tablet/"
-    },
-    {
-      "position": [
-        0,
-        0,
-        -1
-      ],
-      "start_url": "../mirror/"
-    }, 
-    {
-      "position": [
-        3,
-        0,
-        0
-      ],
-      "start_url": "../bomb/"
-    },
-    {
-      "position": [
-        0,
-        0,
-        2
-      ],
-      "start_url": "../flower/"
-    },
-    {
-      "position": [
-        -2,
-        0,
-        2
-      ],
-      "start_url": "../witch-hat/"
-    },
-    {
-      "position": [
-        0,
-        0,
-        6
-      ],
-      "start_url": "../turret/"
-    },
-    {
-      "position": [
-        0,
-        0,
-        6
-      ],
-      "start_url": "../dreadnought/"
-    },
-    {
-      "position": [
-        -15,
-        0,
-        -20
-      ],
-      "quaternion": [0, 0, 0, 1],
-      "start_url": "../lisk/"
+      "start_url": "https://webaverse.github.io/silsword/"
     }
   ]
 }
