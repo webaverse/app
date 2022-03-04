@@ -26,8 +26,12 @@ function CharacterHup(props) {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const player = hup.parent.player;
-      const diorama = dioramaManager.createPlayerDiorama(player, {
+      const diorama = dioramaManager.createPlayerDiorama({
         canvas,
+        target: player,
+        objects: [
+          player.avatar.model,
+        ],
         grassBackground: true,
       });
 
