@@ -808,7 +808,9 @@ ioManager.mousedown = e => {
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
       const raycaster = _getMouseRaycaster(e, localRaycaster);
-      transformControls.handleMouseDown(raycaster);
+      if (raycaster) {
+        transformControls.handleMouseDown(raycaster);
+      }
     }
     if ((changedButtons & 1) && (e.buttons & 2)) { // right
       game.menuDragdownRight();
