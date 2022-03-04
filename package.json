@@ -5,13 +5,17 @@
   "main": "index.mjs",
   "scripts": {
     "start": "forever start index.mjs -p",
-    "dev": "node index.mjs",
+    "stop": "killall -SIGINT webaverse || true",    
+    "dev": "node index.mjs --name=webaverse",
+    "prerestart": "npm run stop",
+    "restart": "npm run dev",    
     "prod": "sudo $(which node) index.mjs -p",
     "build": "vite build",
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
     "test": "cd test && npm run test",
-    "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000"
+    "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000",
+    "watch": "watch 'npm run restart' ./packages"    
   },
   "dependencies": {
     "@3id/connect": "^0.2.5",
@@ -70,6 +74,7 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "spectorjs": "^0.9.27",
-    "vite": "^2.5.1"
+    "vite": "^2.5.1",
+    "watch": "^1.0.2"
   }
 }
