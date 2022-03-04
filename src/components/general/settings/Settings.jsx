@@ -93,7 +93,7 @@ export const Settings = ({ opened, setOpened }) => {
                     <div className={ classNames( styles.tab, activeTab === 'controls' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='controls' >CONTROLS</div>
                     <div className={ classNames( styles.tab, activeTab === 'audio' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='audio' >AUDIO</div>
                     <div className={ classNames( styles.tab, activeTab === 'graphics' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='graphics' >GRAPHICS</div>
-                    <div className={ classNames( styles.tab, activeTab === 'apiKeys' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='apiKeys' >API KEYS</div>
+                    {/* <div className={ classNames( styles.tab, activeTab === 'apiKeys' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='apiKeys' >API KEYS</div> */}
                     <div className={ styles.clearfix } />
                 </div>
 
@@ -103,7 +103,7 @@ export const Settings = ({ opened, setOpened }) => {
                     <TabControls active={ activeTab === 'controls' } />
                     <TabAudio active={ activeTab === 'audio' } />
                     <TabGraphics active={ activeTab === 'graphics' } />
-                    <TabApiKeys active={ activeTab === 'apiKeys' } />
+                    {/* <TabApiKeys active={ activeTab === 'apiKeys' } /> */}
 
                 </div>
 
