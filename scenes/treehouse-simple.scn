@@ -25,7 +25,7 @@
       "start_url": "http://localhost/lib/webaverse_resource/ramp/"
     },
     {
-      "position": [ 0, 0.16, 19 ],
+      "position": [ 0, 0.16, -5 ],
       "quaternion": [ 0, 0.7071067811865475, 0, 0.7071067811865475 ],
       "physics": false,
       "start_url": "http://localhost/lib/webaverse_resource/npc/"
