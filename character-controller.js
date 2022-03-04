@@ -23,8 +23,6 @@ import {
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
   // groundFriction,
-  defaultPlayerName,
-  defaultPlayerBio,
   voiceEndpoint,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
@@ -36,6 +34,10 @@ import {VoicePack} from './voice-pack-voicer.js';
 import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
+import {
+  defaultPlayerName,
+  defaultPlayerBio,
+} from './lore-model.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 
 const localVector = new THREE.Vector3();

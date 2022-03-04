@@ -1,15 +1,13 @@
 import {
+  defaultPlayerName,
+  defaultPlayerBio,
+  defaultObjectName,
+  defaultObjectDescription,
   makeLorePrompt,
   makeLoreStop,
   postProcessResponse,
   parseLoreResponses,
 } from './lore-model.js'
-import {
-  defaultPlayerName,
-  defaultPlayerBio,
-  defaultObjectName,
-  defaultObjectDescription,
-} from './constants.js';
 
 const numGenerateTries = 5;
 const temperature = 1;
@@ -184,13 +182,13 @@ class AIScene {
     this.objects.splice(this.objects.indexOf(object), 1);
   }
   async generate(dstCharacter = null) {
-    const prompt = makeLorePrompt(
-      this.settings,
-      this.characters,
-      this.messages,
-      this.objects,
-      dstCharacter
-    );
+    const prompt = makeLorePrompt({
+      settings: this.settings,
+      characters: this.characters,
+      messages: this.messages,
+      objects: this.objects,
+      dstCharacter,
+    });
     const stop = makeLoreStop(this.localCharacter, 0);
     let response = await this.generateFn(prompt, stop);
     console.log('got response', {prompt, response});
