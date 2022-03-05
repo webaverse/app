@@ -47,24 +47,7 @@ import {
 } from './util.mjs';
 import metaversefile from 'metaversefile';
 import { animationMappingConfig } from './AnimationMapping.js';
-
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
-// const localVector4 = new THREE.Vector3();
-// const localVector5 = new THREE.Vector3();
-// const localVector6 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
-const localQuaternion3 = new THREE.Quaternion();
-const localQuaternion4 = new THREE.Quaternion();
-const localQuaternion5 = new THREE.Quaternion();
-const localQuaternion6 = new THREE.Quaternion();
-const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
-const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
-const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
-const localPlane = new THREE.Plane();
+import Looker from './Looker.js'
 
 const textEncoder = new TextEncoder();
 
@@ -914,137 +897,14 @@ class Nodder {
 // const m = new THREE.MeshBasicMaterial({ color: 0xFF00FF });
 // const testMesh = new THREE.Mesh(g, m);
 // scene.add(testMesh);
-class Looker {
-  constructor(avatar) {
-    this.avatar = avatar;
 
-    this.mode = 'ready';
-    this.startTarget = new THREE.Vector3();
-    this.endTarget = new THREE.Vector3();
-    this.waitTime = 0;
-    this.lastTimestamp = 0;
 
-    this._target = new THREE.Vector3();
-  }
-  // returns the world space eye target
-  update(now) {
-    const _getEndTargetRandom = target => {
-      const root = this.avatar.modelBoneOutputs['Root'];
-      const eyePosition = getEyePosition(this.avatar.modelBones);
-      return target.copy(eyePosition)
-        .add(
-          localVector.set(0, 0, 1.5 + 3 * Math.random())
-            .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld))
-        )
-        .add(
-          localVector.set(-0.5+Math.random(), (-0.5+Math.random()) * 0.3, -0.5+Math.random())
-            .normalize()
-            // .multiplyScalar(1)
-        );
-    };
-    const _getEndTargetForward = target => {
-      const root = this.avatar.modelBoneOutputs['Root'];
-      const eyePosition = getEyePosition(this.avatar.modelBones);
-      return target.copy(eyePosition)
-        .add(
-          localVector.set(0, 0, 2)
-            .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld))
-        );
-    };
-    const _startMove = () => {
-      this.mode = 'moving';
-      // const head = this.avatar.modelBoneOutputs['Head'];
-      // const root = this.avatar.modelBoneOutputs['Root'];
-      this.startTarget.copy(this.endTarget);
-      _getEndTargetRandom(this.endTarget);
-      this.waitTime = 100;
-      this.lastTimestamp = now;
-    };
-    const _startDelay = () => {
-      this.mode = 'delay';
-      this.waitTime = Math.random() * 2000;
-      this.lastTimestamp = now;
-    };
-    const _startWaiting = () => {
-      this.mode = 'waiting';
-      this.waitTime = Math.random() * 3000;
-      this.lastTimestamp = now;
-    };
-    const _isSpeedTooFast = () => this.avatar.velocity.length() > 0.5;
-    const _isPointTooClose = () => {
-      const root = this.avatar.modelBoneOutputs['Root'];
-      // const head = this.avatar.modelBoneOutputs['Head'];
-      localVector.set(0, 0, 1)
-        .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld));
-      localVector2.setFromMatrixPosition(root.matrixWorld);
-      localPlane.setFromNormalAndCoplanarPoint(
-        localVector,
-        localVector2
-      );
-      const distance = localPlane.distanceToPoint(this.endTarget);
-      return distance < 1;
-    };
-
-    // console.log('got mode', this.mode, this.waitTime);
-    
-    if (_isSpeedTooFast()) {
-      _getEndTargetForward(this.endTarget);
-      // this.startTarget.copy(this.endTarget);
-      _startDelay();
-      return null;
-    } else if (_isPointTooClose()) {
-      _getEndTargetForward(this.endTarget);
-      // this.startTarget.copy(this.endTarget);
-      _startDelay();
-      return null;
-    } else {
-      switch (this.mode) {
-        case 'ready': {
-          _startMove();
-          return this.startTarget;
-        }
-        case 'delay': {
-          const timeDiff = now - this.lastTimestamp;
-          if (timeDiff > this.waitTime) {
-            _startMove();
-            return this.startTarget;
-          } else {
-            return null;
-          }
-        }
-        case 'moving': {
-          const timeDiff = now - this.lastTimestamp;
-          const f = Math.min(Math.max(timeDiff / this.waitTime, 0), 1);
-          // console.log('got time diff', timeDiff, this.waitTime, f);
-          const target = this._target.copy(this.startTarget)
-            .lerp(this.endTarget, f);
-          // _setTarget(target);
-
-          if (f >= 1) {
-            _startWaiting();
-          }
-
-          return target;
-        }
-        case 'waiting': {
-          const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
-          if (f >= 1) {
-            _startMove();
-            return this.startTarget;
-          } else {
-            return this.endTarget;
-          }
-        }
-      }
-    }
-  }
-}
 class Emoter {
   constructor() {
-    
+
   }
   update() {
-    
+
   }
 }
 
@@ -1096,6 +956,24 @@ class Avatar {
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension);
+
+    this.localVector = new THREE.Vector3();
+    this.localVector2 = new THREE.Vector3();
+    this.localVector3 = new THREE.Vector3();
+    // this.localVector4 = new THREE.Vector3();
+    // this.localVector5 = new THREE.Vector3();
+    // this.localVector6 = new THREE.Vector3();
+    this.localQuaternion = new THREE.Quaternion();
+    this.localQuaternion2 = new THREE.Quaternion();
+    this.localQuaternion3 = new THREE.Quaternion();
+    this.localQuaternion4 = new THREE.Quaternion();
+    this.localQuaternion5 = new THREE.Quaternion();
+    this.localQuaternion6 = new THREE.Quaternion();
+    this.localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+    this.localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
+    this.localMatrix = new THREE.Matrix4();
+    this.localMatrix2 = new THREE.Matrix4();
+    this.localPlane = new THREE.Plane();    
 
     const {
       skinnedMeshes,
@@ -1709,7 +1587,7 @@ class Avatar {
           _recurseBoneAttachments(child);
         } else {
           child.matrix
-            .premultiply(localMatrix.compose(localVector.set(0, 0, 0), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI), localVector2.set(1, 1, 1)))
+            .premultiply(this.localMatrix.compose(this.localVector.set(0, 0, 0), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI), this.localVector2.set(1, 1, 1)))
             .decompose(child.position, child.quaternion, child.scale);
         }
       }
@@ -2000,15 +1878,15 @@ class Avatar {
     return this.legsManager.enabled;
   }
   getAngle() {
-    localEuler.setFromRotationMatrix(
-      localMatrix.lookAt(
-        localVector.set(0, 0, 0),
+    this.localEuler.setFromRotationMatrix(
+      this.localMatrix.lookAt(
+        this.localVector.set(0, 0, 0),
         this.direction,
-        localVector2.set(0, 1, 0)
+        this.localVector2.set(0, 1, 0)
       ),
       'YXZ'
     );
-    return localEuler.y;
+    return this.localEuler.y;
   }
   async setQuality(quality) {
 
@@ -2049,6 +1927,17 @@ class Avatar {
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
+
+    let {
+          localVector, localVector2, localVector3,
+          localEuler, localEuler2,
+          localMatrix, localMatrix2,
+          // localPlane,
+          localQuaternion, localQuaternion2,
+          localQuaternion3, localQuaternion4,
+          localQuaternion5, localQuaternion6
+        } = this;
+
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
     const idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
@@ -3001,7 +2890,7 @@ class Avatar {
       const leftEye = this.modelBoneOutputs['Eye_L'];
       const rightEye = this.modelBoneOutputs['Eye_R'];
 
-      const lookerEyeballTarget = this.looker.update(now);
+      const lookerEyeballTarget = this.looker.update(now, this);
       const eyeballTarget = this.eyeballTargetEnabled ? this.eyeballTarget : lookerEyeballTarget;
 
       if (eyeballTarget && this.firstPersonCurves) {
