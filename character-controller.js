@@ -30,8 +30,8 @@ import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
 import {CharacterFx} from './character-fx.js';
-import {VoicePack} from './voice-pack-voicer.js';
-import {VoiceEndpoint} from './voice-endpoint-voicer.js';
+import {VoicePack} from './voice-output/voice-pack-voicer.js';
+import {VoiceEndpoint} from './voice-output/voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
