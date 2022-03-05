@@ -3,8 +3,10 @@ import {chatManager} from '../chat-manager.js';
 import {world} from '../world.js';
 import metaversefile from 'metaversefile';
 
-class VoiceInput {
+class VoiceInput extends EventTarget {
   constructor() {
+    super();
+
     this.mediaStream = null;
     this.speechRecognition = null;
   }
@@ -23,9 +25,15 @@ class VoiceInput {
     if (wsrtc) {
       wsrtc.enableMic(this.mediaStream);
     }
+
+    this.dispatchEvent(new MessageEvent('micchange', {
+      data: {
+        enabled: true,
+      }
+    }));
   }
   disableMic() {
-    if (this.micEnabled()) {
+    /* if (this.micEnabled()) */ {
       const wsrtc = world.getConnection();
       if (wsrtc) {
         wsrtc.disableMic();
@@ -36,6 +44,12 @@ class VoiceInput {
       
       const localPlayer = metaversefile.useLocalPlayer();
       localPlayer.setMicMediaStream(null);
+
+      this.dispatchEvent(new MessageEvent('micchange', {
+        data: {
+          enabled: false,
+        }
+      }));
     }
     if (this.speechEnabled()) {
       this.disableSpeech();
@@ -98,10 +112,22 @@ class VoiceInput {
     localSpeechRecognition.start();
 
     this.speechRecognition = localSpeechRecognition;
+
+    this.dispatchEvent(new MessageEvent('speechchange', {
+      data: {
+        enabled: true,
+      }
+    }));
   }
   disableSpeech() {
     this.speechRecognition.stop();
     this.speechRecognition = null;
+
+    this.dispatchEvent(new MessageEvent('speechchange', {
+      data: {
+        enabled: false,
+      }
+    }));
   }
   toggleSpeech() {
     if (this.speechEnabled()) {
