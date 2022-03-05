@@ -265,13 +265,13 @@ ioManager.bindInterface = () => {
     document.body.classList.remove('no-ui');
   }
 };
-const _setTransformMode = transformMode => {
+/* const _setTransformMode = transformMode => {
   if (transformControls.getTransformMode() !== transformMode) {
     transformControls.setTransformMode(transformMode);
   } else {
     transformControls.setTransformMode('disabled');
   }
-};
+}; */
 const doubleTapTime = 200;
 ioManager.keydown = e => {
   if (_inputFocused() || e.repeat) {
