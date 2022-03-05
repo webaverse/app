@@ -66,7 +66,33 @@ world.enableMic = async () => {
   
   const localPlayer = metaversefileApi.useLocalPlayer();
   localPlayer.setMicMediaStream(mediaStream);
+};
+world.disableMic = () => {
+  if (mediaStream) {
+    if (wsrtc) {
+      wsrtc.disableMic();
+    } else {
+      WSRTC.destroyUserMedia(mediaStream);
+    }
+    mediaStream = null;
+    
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.setMicMediaStream(null);
+  }
+  if (world.speechEnabled) {
+    world.disableSpeech();
+  }
+};
+world.toggleMic = () => {
+  if (world.micEnabled()) {
+    world.disableMic();
+  } else {
+    world.enableMic();
+  }
+};
 
+world.speechEnabled = () => !!speechRecognition;
+world.enableSpeech = () => {
   let final_transcript = '';
   const localSpeechRecognition = new webkitSpeechRecognition();
 
@@ -113,28 +139,15 @@ world.enableMic = async () => {
 
   speechRecognition = localSpeechRecognition;
 };
-world.disableMic = () => {
-  if (mediaStream) {
-    if (wsrtc) {
-      wsrtc.disableMic();
-    } else {
-      WSRTC.destroyUserMedia(mediaStream);
-    }
-    mediaStream = null;
-    
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.setMicMediaStream(null);
-  }
-  if (speechRecognition) {
-    speechRecognition.stop();
-    speechRecognition = null;
-  }
+world.disableSpeech = () => {
+  speechRecognition.stop();
+  speechRecognition = null;
 };
-world.toggleMic = () => {
-  if (mediaStream) {
-    world.disableMic();
+world.toggleSpeech = () => {
+  if (world.speechEnabled()) {
+    world.disableSpeech();
   } else {
-    world.enableMic();
+    world.enableSpeech();
   }
 };
 
