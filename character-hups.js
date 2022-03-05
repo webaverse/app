@@ -4,8 +4,8 @@ the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
 // import metaversefile from 'metaversefile';
-import {VoicePack, VoicePackVoicer} from './voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-endpoint-voicer.js';
+import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
 import {chatManager} from './chat-manager.js';
 
 const deadTimeoutTime = 2000;
