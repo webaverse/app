@@ -17,6 +17,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     const [ scenesMenuOpened, setScenesMenuOpened ] = useState( false );
     const [ roomsMenuOpened, setRoomsMenuOpened ] = useState( false );
     const [ micEnabled, setMicEnabled ] = useState( false );
+    const [ speechEnabled, setSpeechEnabled ] = useState( false );
 
     //
 
@@ -204,6 +205,35 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     };
 
+    const _ensureMicEnabled = async () => {
+        
+        if ( ! world.micEnabled() ) {
+
+            await world.enableMic();
+            setMicEnabled( true );
+
+        }
+
+    };
+
+    const handleSpeakBtnClick = async () => {
+
+        await _ensureMicEnabled();
+
+        if ( ! world.speechEnabled() ) {
+
+            world.enableSpeech();
+            setSpeechEnabled( true );
+
+        } else {
+
+            world.disableSpeech();
+            setSpeechEnabled( false );
+
+        }
+
+    };
+
     useEffect( () => {
 
         refreshRooms();
@@ -252,6 +282,11 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                     <button className={ classnames( styles.button, micEnabled ? null : styles.disabled ) } >
                         <img src="images/microphone.svg" className={ classnames( micEnabled ? null : styles.hidden ) } />
                         <img src="images/microphone-slash.svg" className={ classnames( micEnabled ? styles.hidden : null ) } />
+                    </button>
+                </div>
+                <div className={styles.buttonWrap } onClick={ handleSpeakBtnClick } >
+                    <button className={ classnames( styles.button, speechEnabled ? null : styles.disabled ) } >
+                        <img src="images/speak.svg" />
                     </button>
                 </div>
             </div>
