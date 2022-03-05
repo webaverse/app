@@ -20,7 +20,12 @@
       "start_url": "http://localhost/lib/webaverse_resource/street/index.js"
     },
     {
-      "position": [ 10, 5, -10 ],
+      "position": [ 12, 0, -6 ],
+      "quaternion": [ 0, 1, 0, 0 ],
+      "start_url": "http://localhost/lib/webaverse_resource/ramp/"
+    },
+    {
+      "position": [ 25, 0.16, -10 ],
       "quaternion": [ 0, 0.7071067811865475, 0, 0.7071067811865475 ],
       "physics": false,
       "start_url": "http://localhost/lib/webaverse_resource/npc/"
