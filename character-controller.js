@@ -23,7 +23,6 @@ import {
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
   // groundFriction,
-  defaultPlayerName,
   voiceEndpoint,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
@@ -31,16 +30,20 @@ import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
 import {CharacterFx} from './character-fx.js';
-import {VoicePack} from './voice-pack-voicer.js';
-import {VoiceEndpoint} from './voice-endpoint-voicer.js';
+import {VoicePack} from './voice-output/voice-pack-voicer.js';
+import {VoiceEndpoint} from './voice-output/voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
+import {
+  defaultPlayerName,
+  defaultPlayerBio,
+} from './ai/lore/lore-model.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 
 const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
+// const localVector2 = new THREE.Vector3();
+// const localQuaternion = new THREE.Quaternion();
+// const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray3 = [0, 0, 0];
@@ -802,6 +805,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.isLocalPlayer = true;
 
     this.name = defaultPlayerName;
+    this.bio = defaultPlayerBio;
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);

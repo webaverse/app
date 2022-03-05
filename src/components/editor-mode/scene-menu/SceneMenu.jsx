@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
-import * as Z from 'zjs';
 
 import { world } from '../../../../world'
-import universe from '../../../../universe.js'
+import universe from '../../../../universe'
+import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
 
 import styles from './scene-menu.module.css';
@@ -18,10 +18,9 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     const [ scenesMenuOpened, setScenesMenuOpened ] = useState( false );
     const [ roomsMenuOpened, setRoomsMenuOpened ] = useState( false );
     const [ micEnabled, setMicEnabled ] = useState( false );
+    const [ speechEnabled, setSpeechEnabled ] = useState( false );
 
     //
-
-    const _makeName = ( N = 8 ) => ( Math.random().toString(36) + '00000000000000000' ).slice( 2, N + 2 );
 
     const refreshRooms = async () => {
 
@@ -191,15 +190,27 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleMicBtnClick = async () => {
 
-        if ( ! world.micEnabled() ) {
+        if ( ! voiceInput.micEnabled() ) {
 
-            await world.enableMic();
-            setMicEnabled( true );
+            await voiceInput.enableMic();
 
         } else {
 
-            world.disableMic();
-            setMicEnabled( false );
+            voiceInput.disableMic();
+
+        }
+
+    };
+
+    const handleSpeakBtnClick = async () => {
+
+        if ( ! voiceInput.speechEnabled() ) {
+
+            await voiceInput.enableSpeech();
+
+        } else {
+
+            voiceInput.disableSpeech();
 
         }
 
@@ -230,6 +241,27 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     }, [ scenesMenuOpened, roomsMenuOpened ] );
 
+    useEffect( () => {
+
+        function michange(e) {
+            setMicEnabled(e.data.enabled);
+        }
+
+        function speechchange(e) {
+            setSpeechEnabled(e.data.enabled);
+        }
+
+        voiceInput.addEventListener( 'micchange', michange );
+        voiceInput.addEventListener( 'speechchange', speechchange );
+    
+        return () => {
+          
+            voiceInput.removeEventListener( 'micchange', michange );
+            voiceInput.removeEventListener( 'speechchange', speechchange );
+            
+        };
+    }, [] );
+
     //
 
     return (
@@ -253,6 +285,11 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                     <button className={ classnames( styles.button, micEnabled ? null : styles.disabled ) } >
                         <img src="images/microphone.svg" className={ classnames( micEnabled ? null : styles.hidden ) } />
                         <img src="images/microphone-slash.svg" className={ classnames( micEnabled ? styles.hidden : null ) } />
+                    </button>
+                </div>
+                <div className={styles.buttonWrap } onClick={ handleSpeakBtnClick } >
+                    <button className={ classnames( styles.button, speechEnabled ? null : styles.disabled ) } >
+                        <img src="images/speak.svg" />
                     </button>
                 </div>
             </div>

@@ -4,8 +4,8 @@ the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
 // import metaversefile from 'metaversefile';
-import {VoicePack, VoicePackVoicer} from './voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-endpoint-voicer.js';
+import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
 import {chatManager} from './chat-manager.js';
 
 const deadTimeoutTime = 2000;
@@ -34,21 +34,14 @@ class Hup extends EventTarget {
     if (playerName) {
       this.playerName = playerName;
     }
-    if (message) {
-      if (this.fullText.length > 0) {
-        this.fullText += '\n';
-      }
-      this.fullText += message;
-    }
-    this.emote = emote ?? null;
   
     this.actionIds.push(action.actionId);
 
     this.clearDeadTimeout();
 
-    this.dispatchEvent(new MessageEvent('update'));
+    // this.dispatchEvent(new MessageEvent('update'));
   }
-  async updateVoicer(message) {
+  async updateVoicer(message, emote) {
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice start');
     this.dispatchEvent(new MessageEvent('voicequeue', {
       data: {
@@ -58,9 +51,18 @@ class Hup extends EventTarget {
     if (this.parent.voicer) {
       const preloadedMessage = this.parent.voicer.preloadMessage(message);
       await chatManager.waitForVoiceTurn(() => {
+        if (message) {
+          if (this.fullText.length > 0) {
+            this.fullText += '\n';
+          }
+          this.fullText += message;
+        }
+        this.emote = emote ?? null;
+
         this.dispatchEvent(new MessageEvent('voicestart', {
           data: {
             message,
+            fullText: this.fullText,
           },
         }));
         return this.parent.voicer.start(preloadedMessage);
@@ -126,7 +128,7 @@ class CharacterHups extends EventTarget {
       // console.log('got old hup', oldHup, actionId, this.hups.map(h => h.actionIds).flat());
       if (oldHup) {
         oldHup.mergeAction(action);
-        oldHup.updateVoicer(action.message);
+        oldHup.updateVoicer(action.message, action.emote);
       } else if (Hup.isHupAction(action)) {
         const newHup = new Hup(action.type, this);
         newHup.mergeAction(action);
@@ -160,7 +162,7 @@ class CharacterHups extends EventTarget {
             hup: newHup,
           },
         }));
-        newHup.updateVoicer(action.message);
+        newHup.updateVoicer(action.message, action.emote);
       }
     });
     player.addEventListener('actionremove', e => {
