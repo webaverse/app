@@ -1278,11 +1278,6 @@ class Avatar {
     if (options.hair) {
       this.springBoneManager = new VRMSpringBoneImporter().import(object);
     }
-    /* this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
-      // console.log('update hairs', new Error().stack);
-      const timeDiffS = timeDiff / 1000;
-      this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
-    }, avatarInterpolationFrameRate); */
 
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
@@ -3171,7 +3166,6 @@ class Avatar {
     );
     // this.modelBones.Root.updateMatrixWorld();
 
-    // this.springBoneTimeStep.update(timeDiff);
     this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
 
     // XXX hook these up
