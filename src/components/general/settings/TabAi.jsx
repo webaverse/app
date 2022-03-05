@@ -10,8 +10,9 @@ import styles from './settings.module.css';
 
 //
 
+const ApiTypes = [ 'NONE', 'AI21', 'GOOSEAI', 'OPENAI' ];
 const DefaultSettings = {
-    apiType: 'AI21',
+    apiType: ApiTypes[0],
     apiKey: '',
 };
 const authenticatedApiName = 'ai';
@@ -29,19 +30,18 @@ export const TabAi = ({ active }) => {
 
     const _getApiUrl = apiType => {
         switch (apiType) {
+            case 'NONE': return null;
             case 'AI21': return `https://ai.webaverse.com/ai21/v1/engines/j1-large/completions`;
             case 'GOOSEAI': return `https://ai.webaverse.com/gooseai/v1/engines/gpt-neo-20b/completions`;
             case 'OPENAI': return `https://api.openai.com/v1/engines/text-davinci-001/completions`;
             default: return null;
         }
     };
-    const _apiTypeNeedsApiKey = apiType => {
-        return apiType === 'OPENAI';
-    };
+    const _apiTypeNeedsApiKey = apiType => apiType === 'OPENAI';
 
     function updateLoreEndpoint(apiType) {
         const url = _getApiUrl(apiType);
-        if (apiType === 'OPENAI') {
+        if (_apiTypeNeedsApiKey(apiType)) {
             // console.log('lore ai set endpoint', {authenticatedApiName, url});
             loreAI.setEndpoint(async query => {
                 // console.log('call lore ai endpoint', {authenticatedApiName, url, query});
@@ -163,7 +163,7 @@ export const TabAi = ({ active }) => {
             <div className={ styles.blockTitle }>MODEL</div>
             <div className={ styles.row }>
                 <div className={ styles.paramName }>Provider</div>
-                <Switch className={ styles.switch } value={ apiType } setValue={ setApiType } values={ [ 'AI21', 'GOOSEAI', 'OPENAI' ] } />
+                <Switch className={ styles.switch } value={ apiType } setValue={ setApiType } values={ ApiTypes } />
                 {_apiTypeNeedsApiKey(apiType) ?
                   <input type="text" className={ styles.input } value={ apiKey ?? '' } onChange={e => setApiKey(e.target.value) } placeholder="API Key" />
                 :
