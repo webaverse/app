@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 
 import { world } from '../../../../world'
-import universe from '../../../../universe.js'
+import universe from '../../../../universe'
+import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
 
 import styles from './scene-menu.module.css';
@@ -191,14 +192,14 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleMicBtnClick = async () => {
 
-        if ( ! world.micEnabled() ) {
+        if ( ! voiceInput.micEnabled() ) {
 
-            await world.enableMic();
+            await voiceInput.enableMic();
             setMicEnabled( true );
 
         } else {
 
-            world.disableMic();
+            voiceInput.disableMic();
             setMicEnabled( false );
 
         }
@@ -207,9 +208,9 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const _ensureMicEnabled = async () => {
         
-        if ( ! world.micEnabled() ) {
+        if ( ! voiceInput.micEnabled() ) {
 
-            await world.enableMic();
+            await voiceInput.enableMic();
             setMicEnabled( true );
 
         }
@@ -220,14 +221,14 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
         await _ensureMicEnabled();
 
-        if ( ! world.speechEnabled() ) {
+        if ( ! voiceInput.speechEnabled() ) {
 
-            world.enableSpeech();
+            voiceInput.enableSpeech();
             setSpeechEnabled( true );
 
         } else {
 
-            world.disableSpeech();
+            voiceInput.disableSpeech();
             setSpeechEnabled( false );
 
         }
