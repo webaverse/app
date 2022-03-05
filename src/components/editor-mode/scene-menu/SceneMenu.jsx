@@ -22,8 +22,6 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     //
 
-    const _makeName = ( N = 8 ) => ( Math.random().toString(36) + '00000000000000000' ).slice( 2, N + 2 );
-
     const refreshRooms = async () => {
 
         const res = await fetch( universe.getWorldsHost() );
