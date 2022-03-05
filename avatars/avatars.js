@@ -17,13 +17,12 @@ import {zbdecode} from 'zjs/encoding.mjs';
 import Simplex from '../simplex-noise.js';
 import {
   crouchMaxTime,
-  useMaxTime,
+  // useMaxTime,
   aimMaxTime,
-  avatarInterpolationFrameRate,
-  avatarInterpolationTimeDelay,
-  avatarInterpolationNumFrames,
+  // avatarInterpolationFrameRate,
+  // avatarInterpolationTimeDelay,
+  // avatarInterpolationNumFrames,
 } from '../constants.js';
-import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import {
