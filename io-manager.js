@@ -10,6 +10,7 @@ import cameraManager from './camera-manager.js';
 import game from './game.js';
 // import physicsManager from './physics-manager.js';
 import {world} from './world.js';
+import voiceInput from './voice-input/voice-input.js';
 // import * as universe from './universe.js';
 // import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe, getVelocityDampingFactor} from './util.js';
@@ -487,15 +488,18 @@ ioManager.keydown = e => {
       // }
       break;
     }
-    /* case 84: { // T
-      // if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        world.toggleMic();
-      // }
+    case 84: { // T
+      e.preventDefault();
+      e.stopPropagation();
+      voiceInput.toggleMic();
       break;
-    } */
+    }
+    case 89: { // Y
+      e.preventDefault();
+      e.stopPropagation();
+      voiceInput.toggleSpeech();
+      break;
+    }
     case 85: { // U
       // if (game.canUpload()) {
         e.preventDefault();
