@@ -83,7 +83,7 @@ export default function Header({
       document.exitPointerLock();
     }
     if (game.playerDiorama) {
-      game.playerDiorama.enabled = !!open;
+      game.playerDiorama.enabled = characterOpen;
     }
   }, [open]);
 
