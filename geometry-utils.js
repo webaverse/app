@@ -89,7 +89,7 @@ const geometryUtils = (() => {
 
         const head = outputBuffer / ELEMENT_BYTES;
 
-        const totalChunkCount = chunkCount ** 2;
+        const totalChunkCount = chunkCount ** 3;
 
         const positionCount = totalChunkCount * segment * segment * vertexBufferSizeParam;
         const indexCount = totalChunkCount * segment * segment * indexBufferSizeParam;
