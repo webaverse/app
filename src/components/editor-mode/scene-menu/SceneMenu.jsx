@@ -193,23 +193,10 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
         if ( ! voiceInput.micEnabled() ) {
 
             await voiceInput.enableMic();
-            setMicEnabled( true );
 
         } else {
 
             voiceInput.disableMic();
-            setMicEnabled( false );
-
-        }
-
-    };
-
-    const _ensureMicEnabled = async () => {
-        
-        if ( ! voiceInput.micEnabled() ) {
-
-            await voiceInput.enableMic();
-            setMicEnabled( true );
 
         }
 
@@ -217,17 +204,13 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleSpeakBtnClick = async () => {
 
-        await _ensureMicEnabled();
-
         if ( ! voiceInput.speechEnabled() ) {
 
-            voiceInput.enableSpeech();
-            setSpeechEnabled( true );
+            await voiceInput.enableSpeech();
 
         } else {
 
             voiceInput.disableSpeech();
-            setSpeechEnabled( false );
 
         }
 
