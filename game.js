@@ -1292,25 +1292,6 @@ const _bindPointerLock = () => {
 };
 _bindPointerLock();
 
-/* let lastLocalPlayerPosition;
-let lastLocalPlayerQuaternion;
-const _bindLocalPlayerTeleport = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  lastLocalPlayerPosition = localPlayer.position.clone();
-  lastLocalPlayerQuaternion = localPlayer.quaternion.clone();
-  world.appManager.addEventListener('preframe', e => {
-    if (
-      !localPlayer.position.equals(lastLocalPlayerPosition) ||
-      !localPlayer.quaternion.equals(lastLocalPlayerQuaternion)
-    ) {
-      localPlayer.teleportTo(localPlayer.position, localPlayer.quaternion, {
-        relation: 'head',
-      });
-    }
-  });
-};
-_bindLocalPlayerTeleport(); */
-
 const _setFirstPersonAction = firstPerson => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   if (firstPerson) {
