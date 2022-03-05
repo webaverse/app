@@ -37,7 +37,7 @@ import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
   defaultPlayerName,
   defaultPlayerBio,
-} from './lore-model.js';
+} from './ai/lore/lore-model.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 
 const localVector = new THREE.Vector3();

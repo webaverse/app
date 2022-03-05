@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import { Switch } from './switch';
-import loreAI from '../../../../lore-ai';
+import loreAI from '../../../../ai/lore/lore-ai';
 import preauthenticator from '../../../../preauthenticator';
 
 import styles from './settings.module.css';
