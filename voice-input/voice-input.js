@@ -66,7 +66,11 @@ class VoiceInput extends EventTarget {
   speechEnabled() {
     return !!this.speechRecognition;
   }
-  enableSpeech() {
+  async enableSpeech() {
+    if (!this.micEnabled()) {
+      await this.enableMic();
+    }
+
     let final_transcript = '';
     const localSpeechRecognition = new webkitSpeechRecognition();
 
@@ -129,11 +133,11 @@ class VoiceInput extends EventTarget {
       }
     }));
   }
-  toggleSpeech() {
+  async toggleSpeech() {
     if (this.speechEnabled()) {
       this.disableSpeech();
     } else {
-      this.enableSpeech();
+      await this.enableSpeech();
     }
   }
 }
