@@ -23,7 +23,7 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
-import {FixedTimeStep} from '../interpolants.js';
+// import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import {
@@ -1277,6 +1277,8 @@ class Avatar {
 
     if (options.hair) {
       this.springBoneManager = new VRMSpringBoneImporter().import(object);
+    } else {
+      this.springBoneManager = null;
     }
     /* this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
       // console.log('update hairs', new Error().stack);
