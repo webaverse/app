@@ -4,7 +4,10 @@
 
 find . -name '*-pad.wav' | xargs -d '\n' rm
 rm -f lol.txt
+rm -f sound-files.txt
 rm -f sounds.txt
+rm -f sounds.wav
+rm -f sounds.mp3
 
 ls {actions,syllables}/*.wav 2>/dev/null | sort -n >sound-files.txt
 
