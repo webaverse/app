@@ -10,7 +10,7 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import hpManager from './hp-manager.js';
 // import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
-import {chatManager} from './chat-manager.js';
+// import {chatManager} from './chat-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
 import {scene, postSceneOrthographic, postScenePerspective, sceneHighPriority, sceneLowPriority} from './renderer.js';
@@ -19,6 +19,7 @@ import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 import * as metaverseModules from './metaverse-modules.js';
 import {createParticleSystem} from './particle-system.js';
+// import voiceInput from './voice-input/voice-input.js';
 import * as sounds from './sounds.js';
 
 const localEuler = new THREE.Euler();
@@ -54,102 +55,7 @@ const extra = {
   states: new Float32Array(15),
 }; */
 
-let mediaStream = null;
-let speechRecognition = null;
-world.micEnabled = () => !!mediaStream;
-world.enableMic = async () => {
-  await WSRTC.waitForReady();
-  mediaStream = await WSRTC.getUserMedia();
-  if (wsrtc) {
-    wsrtc.enableMic(mediaStream);
-  }
-  
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.setMicMediaStream(mediaStream);
-};
-world.disableMic = () => {
-  if (mediaStream) {
-    if (wsrtc) {
-      wsrtc.disableMic();
-    } else {
-      WSRTC.destroyUserMedia(mediaStream);
-    }
-    mediaStream = null;
-    
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.setMicMediaStream(null);
-  }
-  if (world.speechEnabled) {
-    world.disableSpeech();
-  }
-};
-world.toggleMic = () => {
-  if (world.micEnabled()) {
-    world.disableMic();
-  } else {
-    world.enableMic();
-  }
-};
-
-world.speechEnabled = () => !!speechRecognition;
-world.enableSpeech = () => {
-  let final_transcript = '';
-  const localSpeechRecognition = new webkitSpeechRecognition();
-
-  /* const names = [
-    'Scillia',
-  ];
-  const grammar = '#JSGF V1.0; grammar names; public <name> = ' + names.join(' | ') + ' ;'
-  const speechRecognitionList = new webkitSpeechGrammarList();
-  speechRecognitionList.addFromString(grammar, 1);
-  localSpeechRecognition.grammars = speechRecognitionList;
-  localSpeechRecognition.maxAlternatives = 10; */
-  localSpeechRecognition.interimResults = false;
-  localSpeechRecognition.maxAlternatives = 1;
-  // localSpeechRecognition.continuous = true;
-  // localSpeechRecognition.interimResults = true;
-  // localSpeechRecognition.lang = document.querySelector("#select_dialect").value;
-  /* localSpeechRecognition.onstart = () => {
-    // document.querySelector("#status").style.display = "block";
-  }; */
-  localSpeechRecognition.onerror = e => {
-    console.log('speech recognition error', e);
-  };
-  localSpeechRecognition.onend = () => {
-    /* final_transcript = final_transcript
-      .replace(/celia|sylvia|sileo|cilia|tilia|zilia/gi, 'Scillia'); */
-    console.log('speech:', [final_transcript]);
-    if (final_transcript) {
-      chatManager.addMessage(final_transcript, {
-        timeout: 3000,
-      });
-    }
-
-    if (localSpeechRecognition === speechRecognition) {
-      final_transcript = '';
-      localSpeechRecognition.start();
-    }
-  };
-  localSpeechRecognition.onresult = event => {
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-      final_transcript += event.results[i][0].transcript;
-    }
-  };
-  localSpeechRecognition.start();
-
-  speechRecognition = localSpeechRecognition;
-};
-world.disableSpeech = () => {
-  speechRecognition.stop();
-  speechRecognition = null;
-};
-world.toggleSpeech = () => {
-  if (world.speechEnabled()) {
-    world.disableSpeech();
-  } else {
-    world.enableSpeech();
-  }
-};
+world.getConnection = () => wsrtc;
 
 world.connectState = state => {
   state.setResolvePriority(1);
