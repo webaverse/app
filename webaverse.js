@@ -37,26 +37,15 @@ import dioramaManager from './diorama.js';
 import * as voices from './voices.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-// import {defaultVoiceEndpoint, defaultVoicePack} from './constants.js';
 
 // const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 // const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-// const localVector3 = new THREE.Vector3();
-// const localVector4 = new THREE.Vector3();
-// const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
-// const localQuaternion2 = new THREE.Quaternion();
-// const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
-// const localMatrix2 = new THREE.Matrix4();
-const localMatrix3 = new THREE.Matrix4();
-// const localArray = Array(4);
-// const localArray2 = Array(4);
-// const localArray3 = Array(4);
-// const localArray4 = Array(4);
+const localMatrix2 = new THREE.Matrix4();
 
 const sessionMode = 'immersive-vr';
 const sessionOpts = {
@@ -78,59 +67,6 @@ const frameEvent = new MessageEvent('frame', {
 });
 const rendererStats = Stats();
 
-/* const voiceFiles = `\
-B6_somnium_65_01 - Part_1.wav
-B6_somnium_66_01 - Part_1.wav
-D5-begin20_10_09_03 - Part_1.wav
-D5-begin20_10_09_03 - Part_2.wav
-D5-begin20_10_09_09 - Part_1.wav
-D5-begin20_10_09_10 - Part_1.wav
-D5-begin20_10_09_10 - Part_2.wav
-D5-begin20_10_09_10 - Part_3.wav
-D5-begin20_10_09_11 - Part_1.wav
-D5-begin20_10_09_14 - Part_1.wav
-E5-begin40_10_04_05 - Part_1.wav
-E5-begin40_10_04_06 - Part_1.wav
-E5-begin40_10_04_07 - Part_1.wav
-E5-begin40_10_04_07 - Part_2.wav
-E5-begin40_10_04_09 - Part_1.wav
-E5-begin40_10_05_01 - Part_1.wav
-E5-begin40_10_06_02 - Part_1.wav
-E5-begin40_10_06_05 - Part_1.wav
-E5-begin40_10_06_07 - Part_1.wav
-E5-begin40_10_07_24 - Part_1.wav
-E5-begin40_10_08_01 - Part_1.wav
-E5-begin40_10_08_01 - Part_2.wav
-E5-begin40_10_08_02 - Part_1.wav
-E5-begin40_10_08_03 - Part_1.wav
-E5-begin40_10_08_03 - Part_2.wav
-E5-begin40_10_08_04 - Part_1.wav
-E5-begin40_10_08_04 - Part_2.wav
-E5-begin40_10_08_05 - Part_1.wav
-E5-begin40_10_08_06 - Part_1.wav
-E5-begin40_10_08_07 - Part_1.wav
-E5-begin40_10_08_07 - Part_2.wav
-E5-begin40_10_08_10 - Part_1.wav
-E5-begin40_10_08_10 - Part_2.wav
-E5-begin40_10_08_10 - Part_3.wav
-E5-begin40_10_08_10 - Part_4.wav
-E5-begin40_10_08_12 - Part_1.wav
-E5-begin40_10_08_13 - Part_1.wav
-E5-begin40_10_10_02 - Part_1.wav
-E5-begin40_10_12_02 - Part_1.wav
-E5-begin40_10_14_11 - Part_1.wav
-E5-begin40_10_14_15 - Part_1.wav
-E5-begin40_10_14_15 - Part_2.wav
-E6-wrap_74_10_05_02 - Part_1.wav
-E6-wrap_74_10_19_03 - Part_1.wav
-E6-wrap_74_10_19_21 - Part_1.wav
-E6-wrap_74_10_19_29 - Part_1.wav`
-  .split('\n')
-  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/vocalizations/${voiceFile}`); */
-/* const numFiles = 361;
-const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
-  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`); */
-
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
@@ -151,8 +87,6 @@ export default class Webaverse extends EventTarget {
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
         WebaWallet.waitForLoad(),
-        // game.loadVoicePack(defaultVoicePack),
-        // game.setVoiceEndpoint(defaultVoice),
       ]);
     })();
     this.contentLoaded = false;
@@ -209,9 +143,6 @@ export default class Webaverse extends EventTarget {
       return false;
     }
   }
-  /* toggleMic() {
-    return world.toggleMic();
-  } */
   async enterXr() {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -392,7 +323,7 @@ export default class Webaverse extends EventTarget {
       const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
       localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
-      localMatrix3.copy(xrCamera.matrix)
+      localMatrix2.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
       
