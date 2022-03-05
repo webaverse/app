@@ -198,7 +198,7 @@ class AIScene {
 
 class LoreAI {
   constructor() {
-    this.endpoint = null;
+    this.endpointFn = null;
   }
   async generate(prompt, {
     stop = '\n',
@@ -231,21 +231,37 @@ class LoreAI {
       reject(new Error('prompt is required'));
     }
   }
-  async setEndpointUrl(url) {
-    this.endpoint = async query => {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(query),
-      });
-      const j = await res.json();
-      return j;
-    };
+  async endpoint(query) {
+    if (this.endpointFn) {
+      return await this.endpointFn(query);
+    } else {
+      return {
+        choices: [{
+          text: '',
+        }],
+      };
+    }
   }
-  async setEndpoint(endpoint) {
-    this.endpoint = endpoint;
+  setEndpoint(endpointFn) {
+    this.endpointFn = endpointFn;
+  }
+  async setEndpointUrl(url) {
+    if (url) {
+      const endpointFn = async query => {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(query),
+        });
+        const j = await res.json();
+        return j;
+      };
+      this.setEndpoint(endpointFn);
+    } else {
+      this.setEndpoint(null);
+    }
   }
   createScene(localPlayer) {
     return new AIScene({
