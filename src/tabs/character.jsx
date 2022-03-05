@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
-import {defaultPlayerName} from '../../lore-model.js';
+import {defaultPlayerName} from '../../ai/lore/lore-model.js';
 
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, dioramaCanvasRef}) => {
   const sideSize = 400;

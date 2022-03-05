@@ -27,7 +27,7 @@ import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
-import loreAI from './lore-ai.js';
+import loreAI from './ai/lore/lore-ai.js';
 import npcManager from './npc-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
