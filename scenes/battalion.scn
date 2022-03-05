@@ -141,6 +141,14 @@
         6
       ],
       "start_url": "https://webaverse.github.io/dreadnought/"
+    },
+    {
+      "position": [
+        -150,
+        20,
+        300
+      ],
+      "start_url": "https://webaverse.github.io/dreadnought/"
     }
   ]
 }
