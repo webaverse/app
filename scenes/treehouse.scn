@@ -28,8 +28,8 @@
           "maxDistance": 0.1
         },
         "dof": {
-          "focus": 3.0,
-          "aperture": 0.00002,
+          "focus": 2.0,
+          "aperture": 0.0001,
           "maxblur": 0.005
         },
         "hdr": {
@@ -41,9 +41,9 @@
           "middleGrey": 3
         },
         "bloom": {
-          "strength": 0.2,
+          "strength": 0.1,
           "radius": 0.5,
-          "threshold": 0.8
+          "threshold": 0.9
         }
       }
     },
@@ -129,22 +129,6 @@
     },
     {
       "position": [
-        2,
-        1,
-        0
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "physics": false,
-      "start_url": "https://webaverse.github.io/particle-mesh/",
-      "dynamic": true
-    },
-    {
-      "position": [
         4,
         1,
         4
@@ -158,20 +142,6 @@
       "physics": false,
       "start_url": "https://webaverse.github.io/basiheart/",
       "dynamic": true
-    },
-    {
-      "position": [
-        4,
-        0,
-        -2
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/npc/"
     },
     {
       "position": [
@@ -266,7 +236,7 @@
       "position": [
         -6,
         0.5,
-        12
+        13
       ],
       "quaternion": [
         0,
@@ -280,6 +250,25 @@
         1
       ],
       "start_url": "https://webaverse.github.io/pistol/"
+    },
+    {
+      "position": [
+        -6,
+        0.5,
+        12
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/bow/"
     },
     {
       "position": [

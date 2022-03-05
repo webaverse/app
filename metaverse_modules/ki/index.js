@@ -4,13 +4,21 @@ const {useApp, useInternals, useFrame, useLocalPlayer, useLoaders, useMaterials}
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\/]*$/, '$1');
 
-const identityQuaternion = new THREE.Quaternion();
+// const localVector = new THREE.Vector3();
+// const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+
+const identityQuaternion = new THREE.Quaternion();
 
 let kiGlbApp = null;
 const loadPromise = (async () => {
-  kiGlbApp = await metaversefile.load(baseUrl + 'ki.glb');
+  kiGlbApp = await metaversefile.createAppAsync({
+    start_url: baseUrl + 'ki.glb',
+  });
 })();
+
+const color1 = new THREE.Color(0x59C173);
+const color2 = new THREE.Color(0xa17fe0);
 
 export default e => {
   const app = useApp();
@@ -59,6 +67,14 @@ export default e => {
           value: now,
           needsUpdate: true,
         },
+        color1: {
+          value: color1.clone(),
+          needsUpdate: true,
+        },
+        color2: {
+          value: color2.clone(),
+          needsUpdate: true,
+        },
       },
       vertexShader: `\
         attribute vec3 positions;
@@ -81,11 +97,40 @@ export default e => {
       fragmentShader: `\
         uniform sampler2D uTex;
         uniform float uTime;
+        uniform vec3 color1;
+        uniform vec3 color2;
         varying vec2 vUv;
         
         varying float vStartTimes;
 
         const float animationSpeed = ${animationSpeed.toFixed(8)};
+        // const vec3 color1 = vec3(${color1.toArray().join(', ')});
+        // const vec3 color2 = vec3(${color2.toArray().join(', ')});
+
+        vec4 pow4(vec4 v, float n) {
+          return vec4(pow(v.x, n), pow(v.y, n), pow(v.z, n), pow(v.w, n));
+        }
+
+        // All components are in the range [0…1], including hue.
+        vec3 rgb2hsv(vec3 c)
+        {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        
+
+        // All components are in the range [0…1], including hue.
+        vec3 hsv2rgb(vec3 c)
+        {
+            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+        }
 
         void main() {
           if (vStartTimes >= 0.) {
@@ -93,16 +138,17 @@ export default e => {
             float timeDiff = t - vStartTimes;
 
             vec2 uv = vUv;
-            // uv.y *= 2.;
+            uv *= 2.;
             uv.y += timeDiff * animationSpeed;
-            // uv.y *= 2.;
 
-            vec4 c = texture2D(uTex, uv);
-            c *= min(max(1.-pow(timeDiff*${(animationSpeed * 2).toFixed(8)}, 2.), 0.), 1.) * 3.;
-            // c.a = min(c.a, f);
+            vec2 sampleUv = uv;
+            vec4 c = texture2D(uTex, sampleUv);
+            c.rgb *= mix(color1, color2, 1.-vUv.y);
+            c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
             if (vUv.y < .3) {
-              c *= pow(vUv.y/.3, 1.);
+              c *= vUv.y/.3;
             }
+            c = pow4(c, 5.) * 2.;
             gl_FragColor = c;
           } else {
             discard;
@@ -131,6 +177,14 @@ export default e => {
           value: now,
           needsUpdate: true,
         },
+        color1: {
+          value: color1.clone(),
+          needsUpdate: true,
+        },
+        color2: {
+          value: color2.clone(),
+          needsUpdate: true,
+        },
       },
       vertexShader: `\
         attribute vec3 positions;
@@ -158,6 +212,8 @@ export default e => {
       fragmentShader: `\
         uniform sampler2D uTex;
         uniform float uTime;
+        uniform vec3 color1;
+        uniform vec3 color2;
         varying vec2 vUv;
         
         varying float vStartTimes;
@@ -174,22 +230,18 @@ export default e => {
             float timeDiff = t - vStartTimes;
 
             vec2 uv = vUv;
-            // uv.y *= 2.;
             uv.y += timeDiff * animationSpeed;
-            // uv.y *= 2.;
-            // uv.y = 0.2 + pow(uv.y, 0.7);
 
-            float distanceToMiddle = abs(vUv.y - 0.5);
+            // float distanceToMiddle = abs(vUv.y - 0.5);
 
-            vec4 c = texture2D(uTex, uv);
+            vec2 sampleUv = uv;
+            vec4 c = texture2D(uTex, sampleUv);
+            c.rgb *= mix(color1, color2, sampleUv.y);
             c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
             if (vUv.y < .3) {
               c *= pow(vUv.y/.3, 0.5);
             }
-            // c *= pow(0.5-distanceToMiddle, 3.);
             c = pow4(c, 6.) * 2.;
-            // c *= 1.-pow(distanceToMiddle, 2.)*4.;
-            // c.a = min(c.a, f);
             gl_FragColor = c;
           } else {
             discard;
@@ -218,15 +270,24 @@ export default e => {
           value: now,
           needsUpdate: true,
         },
+        color1: {
+          value: color1.clone(),
+          needsUpdate: true,
+        },
+        color2: {
+          value: color2.clone(),
+          needsUpdate: true,
+        },
       },
       vertexShader: `\
+        uniform float uTime;
+        uniform vec3 color1;
+        uniform vec3 color2;
         attribute vec3 positions;
         attribute vec4 quaternions;
         attribute float startTimes;
         varying vec2 vUv;
         varying float vStartTimes;
-
-        uniform float uTime;
 
         vec3 qtransform(vec3 v, vec4 q) { 
           return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
@@ -244,6 +305,8 @@ export default e => {
       `,
       fragmentShader: `
         uniform sampler2D uTex;
+        uniform vec3 color1;
+        uniform vec3 color2;
         uniform float uTime;
         varying vec2 vUv;
         
@@ -266,18 +329,13 @@ export default e => {
             uv.y += timeDiff * animationSpeed;
             // uv.y = 0.2 + pow(uv.y, 0.7);
 
-            float distanceToMiddle = abs(vUv.y - 0.5);
+            // float distanceToMiddle = abs(vUv.y - 0.5);
 
-            vec4 c = texture2D(uTex, uv);
+            vec2 sampleUv = uv;
+            vec4 c = texture2D(uTex, sampleUv);
+            c.rgb *= mix(color1, color2, sampleUv.y);
             c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
-            /* if (vUv.y < 0.1) {
-              // c *= pow((vUv.y - 0.9)/.1, 0.5);
-              c = vec4(1.,0.,0.,1.);
-            } */
-            // c *= pow(0.5-distanceToMiddle, 3.);
             c = pow4(c, 6.) * 2.;
-            // c *= 1.-pow(distanceToMiddle, 2.)*4.;
-            // c.a = min(c.a, f);
             gl_FragColor = c;
           } else {
             discard;
@@ -364,6 +422,7 @@ export default e => {
   let nextAuraParticleTime = 0;
 
   // const timeOffset = Math.random() * 10;
+  // let hairMeshes = null;
   useFrame(({timestamp, timeDiff}) => {
     const localPlayer = useLocalPlayer();
     const now = timestamp;

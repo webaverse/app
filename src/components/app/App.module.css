@@ -1,0 +1,77 @@
+* {
+    box-sizing: border-box;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@font-face {
+    font-family: 'Bangers';
+    src: url('Bangers-Regular.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'GeoSans';
+    src: url('GeosansLight.woff2') format('woff2'); /* Super Modern Browsers */
+}
+@font-face {
+    font-family: 'PlazaRegular';
+    src:  url('../public/fonts/Plaza\ Regular.ttf');
+}
+@font-face {
+    font-family: 'WinchesterCaps';
+    src:  url('../public/fonts/WinchesterCaps.ttf');
+}
+@font-face {
+    font-family: 'FastMonkRegular';
+    src:  url('../public/fonts/FastMonk-Regular.ttf');
+}
+@font-face {
+    font-family: 'FastMonkInkRegular';
+    src:  url('../public/fonts/FastMonk_Ink-Regular.ttf');
+}
+
+html, body {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    margin: 0;
+    font-family: 'Muli';
+    font-size: 12px;
+
+    --color: #ec407a;
+    --color2: #ffa726;
+    --color3: #42a5f5;
+}
+
+.App {
+    height: 100%;
+    width: 100%;
+    text-align: center;
+}
+
+.canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+/*  */
+
+::-webkit-scrollbar {
+    width: 1em;
+}
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+::-webkit-scrollbar-thumb {
+    background-color: darkgrey;
+    outline: 1px solid slategrey;
+}

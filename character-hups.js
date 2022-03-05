@@ -3,7 +3,12 @@ it controls the animated dioramas that happen when players perform actions.
 the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
-import {Voicer} from './voicer.js';
+// import metaversefile from 'metaversefile';
+import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
+import {chatManager} from './chat-manager.js';
+
+const deadTimeoutTime = 2000;
 
 let nextHupId = 0;
 class Hup extends EventTarget {
@@ -19,7 +24,7 @@ class Hup extends EventTarget {
     this.fullText = '';
     this.emote = null;
     this.live = false;
-    this.lastTimestamp = 0;
+    this.deadTimeout = null;
   }
   static isHupAction(action) {
     return action.type === 'chat';
@@ -29,30 +34,83 @@ class Hup extends EventTarget {
     if (playerName) {
       this.playerName = playerName;
     }
-    if (message) {
-      this.fullText += message;
-    }
-    this.emote = emote ?? null;
   
     this.actionIds.push(action.actionId);
 
-    this.dispatchEvent(new MessageEvent('update'));
+    this.clearDeadTimeout();
+
+    // this.dispatchEvent(new MessageEvent('update'));
   }
-  setLive(live) {
+  async updateVoicer(message, emote) {
+    // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice start');
+    this.dispatchEvent(new MessageEvent('voicequeue', {
+      data: {
+        message,
+      },
+    }));
     if (this.parent.voicer) {
-      if (live && !this.live) {
-        this.parent.voicer.start();
-      } else if (this.live && !live) {
-        this.parent.voicer.stop();
-      }
+      const preloadedMessage = this.parent.voicer.preloadMessage(message);
+      await chatManager.waitForVoiceTurn(() => {
+        if (message) {
+          if (this.fullText.length > 0) {
+            this.fullText += '\n';
+          }
+          this.fullText += message;
+        }
+        this.emote = emote ?? null;
+
+        this.dispatchEvent(new MessageEvent('voicestart', {
+          data: {
+            message,
+            fullText: this.fullText,
+          },
+        }));
+        return this.parent.voicer.start(preloadedMessage);
+      });
+    } else {
+      await Promise.resolve();
     }
-    this.live = live;
+    // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice end');
+    this.dispatchEvent(new MessageEvent('voiceend', {
+      data: {
+        fullText: this.fullText,
+      },
+    }));
+  }
+  unmergeAction(action) {
+    const index = this.actionIds.indexOf(action.actionId);
+    if (index !== -1) {
+      this.actionIds.splice(index, 1);
+    }
+    /* if (this.actionIds.length === 0) {
+      const _updateVoicer = () => {
+        if (this.parent.voicer) {
+          this.parent.voicer.stop();
+        }
+      };
+      _updateVoicer();
+
+      this.deadTimeout = setTimeout(() => {
+        this.dispatchEvent(new MessageEvent('deadtimeout'));
+      }, 2000);
+    } */
+  }
+  clearDeadTimeout() {
+    if (this.deadTimeout) {
+      clearTimeout(this.deadTimeout);
+      this.deadTimeout = null;
+    }
+  }
+  startDeadTimeout() {
+    this.clearDeadTimeout();
+    this.deadTimeout = setTimeout(() => {
+      this.dispatchEvent(new MessageEvent('deadtimeout'));
+    }, deadTimeoutTime);
   }
   destroy() {
     this.dispatchEvent(new MessageEvent('destroy'));
   }
 }
-
 class CharacterHups extends EventTarget {
   constructor(player) {
     super();
@@ -61,75 +119,74 @@ class CharacterHups extends EventTarget {
 
     this.hups = [];
 
-    this.update();
-  }
-  update(timestamp) {
-    // let hups = [];
-    const player = this.player;
-    const actions = player.getActions();
+    player.addEventListener('actionadd', e => {
+      const {action} = e;
+      const {type, actionId} = action;
+      // console.log('action add', action);
 
-    // remove old hups
-    // console.log('hups remove old 1', this.hups.length, actions.length);
-    this.hups = this.hups.filter(hup => {
-      hup.actionIds = hup.actionIds.filter(actionId => {
-        for (const action of actions) {
-          if (action.actionId === actionId) {
-            return true;
+      const oldHup = this.hups.find(hup => hup.type === type);
+      // console.log('got old hup', oldHup, actionId, this.hups.map(h => h.actionIds).flat());
+      if (oldHup) {
+        oldHup.mergeAction(action);
+        oldHup.updateVoicer(action.message, action.emote);
+      } else if (Hup.isHupAction(action)) {
+        const newHup = new Hup(action.type, this);
+        newHup.mergeAction(action);
+        let pendingVoices = 0;
+        newHup.addEventListener('voicequeue', () => {
+          pendingVoices++;
+          newHup.clearDeadTimeout();
+        });
+        newHup.addEventListener('voiceend', () => {
+          if (--pendingVoices === 0) {
+            newHup.startDeadTimeout();
           }
-        }
-        return false;
-      });
+        });
+        newHup.addEventListener('deadtimeout', () => {
+          newHup.destroy();
 
-      if (hup.actionIds.length > 0) {
-        hup.setLive(true);
-        hup.lastTimestamp = timestamp;
-        return true;
-      } else {
-        hup.setLive(false);
-
-        const deadTime = timestamp - hup.lastTimestamp;
-        // console.log('dead time', deadTime);
-        if (deadTime > 1000) {
-          hup.destroy();
+          const index = this.hups.indexOf(newHup);
+          this.hups.splice(index, 1);
+          
           this.dispatchEvent(new MessageEvent('hupremove', {
             data: {
-              hup,
-            },
-          }));
-          return false;
-        } else {
-          return true;
-        }
-      }
-    });
-    // console.log('hups remove old 2', this.hups.length);
-
-    // add new hups
-    for (const action of actions) {
-      // console.log('hups update 0', action.actionId);
-      const oldHup = this.hups.find(hup => hup.type === action.type);
-      if (oldHup) {
-        // console.log('hups update 1', action.actionId, this.hups.map(hup => hup.actionId));
-        if (!oldHup.actionIds.includes(action.actionId)) {
-          oldHup.mergeAction(action);
-        }
-      } else {
-        // console.log('hups update 2', action.actionId, this.hups.map(hup => hup.actionId));
-        if (Hup.isHupAction(action)) {
-          const newHup = new Hup(action.type, this);
-          newHup.mergeAction(action);
-          this.hups.push(newHup);
-          this.dispatchEvent(new MessageEvent('hupadd', {
-            data: {
+              player,
               hup: newHup,
             },
           }));
-        }
+        });
+        this.hups.push(newHup);
+        this.dispatchEvent(new MessageEvent('hupadd', {
+          data: {
+            player,
+            hup: newHup,
+          },
+        }));
+        newHup.updateVoicer(action.message, action.emote);
       }
-    }
+    });
+    player.addEventListener('actionremove', e => {
+      const {action} = e;
+      const {actionId} = action;
+      // console.log('action remove', action);
+
+      const oldHup = this.hups.find(hup => hup.actionIds.includes(actionId));
+      if (oldHup) {
+        oldHup.unmergeAction(action);
+      }
+    });
   }
-  setVoicePack(syllableFiles, audioBuffer) {
-    this.voicer = new Voicer(syllableFiles, audioBuffer, this.player);
+  setVoice(voice) {
+    if (voice instanceof VoicePack) {
+      const {syllableFiles, audioBuffer} = voice;
+      this.voicer = new VoicePackVoicer(syllableFiles, audioBuffer, this.player);
+    } else if (voice instanceof VoiceEndpoint) {
+      this.voicer = new VoiceEndpointVoicer(voice, this.player);
+    } else if (voice === null) {
+      this.voicer = null;
+    } else {
+      throw new Error('invalid voice');
+    }
   }
   addChatHupAction(text) {
     this.player.addAction({
@@ -137,11 +194,8 @@ class CharacterHups extends EventTarget {
       text,
     });
   }
-  addEmoteHupAction(emote) {
-    this.player.addAction({
-      type: 'emote',
-      emote,
-    });
+  update(timestamp) {
+    // nothing
   }
   destroy() {
     // nothing

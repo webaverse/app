@@ -3,7 +3,7 @@ import * as THREE from 'three';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
 // import {getCaretAtPoint} from 'troika-three-text';
-const {useApp, useInternals, useGeometries, useMaterials, useFrame, useActivate, useLoaders, usePhysics, useTextInternal, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
+const {useApp, useInternals, useMaterials, useFrame, usePhysics, useText} = metaversefile;
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -36,7 +36,7 @@ export default e => {
   const physics = usePhysics();
   // const {CapsuleGeometry} = useGeometries();
   const {WebaverseShaderMaterial} = useMaterials();
-  const Text = useTextInternal();
+  const Text = useText();
 
   const frameHandlers = [];
 

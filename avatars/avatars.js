@@ -7,22 +7,25 @@ import LegsManager from './vrarmik/LegsManager.js';
 import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
-import {angleDifference, getVelocityDampingFactor} from '../util.js';
+import {
+  angleDifference,
+  // getVelocityDampingFactor,
+  getNextPhysicsId,
+} from '../util.js';
 import easing from '../easing.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 import Simplex from '../simplex-noise.js';
 import {
   crouchMaxTime,
-  useMaxTime,
+  // useMaxTime,
   aimMaxTime,
-  avatarInterpolationFrameRate,
-  avatarInterpolationTimeDelay,
-  avatarInterpolationNumFrames,
+  // avatarInterpolationFrameRate,
+  // avatarInterpolationTimeDelay,
+  // avatarInterpolationNumFrames,
 } from '../constants.js';
-import {FixedTimeStep} from '../interpolants.js';
+// import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
-import metaversefile from 'metaversefile';
 import {
   idleFactorSpeed,
   walkFactorSpeed,
@@ -34,7 +37,7 @@ import {
   getSkeleton,
   getEyePosition,
   getHeight,
-  makeBoneMap,
+  // makeBoneMap,
   getTailBones,
   getModelBones,
   // cloneModelBones,
@@ -42,11 +45,14 @@ import {
   // retargetAnimation,
   // animationBoneToModelBone,
 } from './util.mjs';
+import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
+// const localVector5 = new THREE.Vector3();
+// const localVector6 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -59,11 +65,13 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
 
+const textEncoder = new TextEncoder();
+
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
 
-VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
+/* VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
   return function(a, b) {
     const bone = _createSpringBone.apply(this, arguments);
@@ -89,7 +97,7 @@ VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
     
     return bone;
   };
-})(VRMSpringBoneImporter.prototype._createSpringBone);
+})(VRMSpringBoneImporter.prototype._createSpringBone); */
 
 function getFirstPersonCurves(vrmExtension) {
   if (vrmExtension) {
@@ -147,7 +155,7 @@ const getClosest2AnimationAngles = (key, angle) => {
 
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
-const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
+// const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
@@ -158,8 +166,9 @@ const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
 const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
-const defaultchargeJumpAnimation = 'chargeJump';
-const defaultStandChargeAnimation = 'standCharge';
+// const defaultchargeJumpAnimation = 'chargeJump';
+// const defaultStandChargeAnimation = 'standCharge';
+// const defaultHurtAnimation = 'pain_back';
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 // const crouchMagnitude = 0.2;
@@ -289,9 +298,10 @@ let narutoRunAnimations;
 // let jumpAnimationSegments;
 // let chargeJump;
 // let standCharge;
-let fallLoop;
+// let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
+let hurtAnimations;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -420,7 +430,7 @@ const loadPromise = (async () => {
 
   // chargeJump = animations.find(a => a.isChargeJump);
   // standCharge = animations.find(a => a.isStandCharge);
-  fallLoop = animations.find(a => a.isFallLoop);
+  // fallLoop = animations.find(a => a.isFallLoop);
   // swordSideSlash = animations.find(a => a.isSwordSideSlash);
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
@@ -457,6 +467,10 @@ const loadPromise = (async () => {
     magic: animations.find(a => a.isMagic),
     eat: animations.find(a => a.isEating),
     drink: animations.find(a => a.isDrinking),
+    throw: animations.find(a => a.isThrow),
+    bowDraw: animations.find(a => a.isBowDraw),
+    bowIdle: animations.find(a => a.isBowIdle),
+    bowLoose: animations.find(a => a.isBowLoose),
   }, aimAnimations);
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
@@ -482,6 +496,10 @@ const loadPromise = (async () => {
   };
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
+  };
+  hurtAnimations = {
+    pain_back: animations.index['pain_back.fbx'],
+    pain_arch: animations.index['pain_arch.fbx'],
   };
   {
     const down10QuaternionArray = new THREE.Quaternion()
@@ -536,123 +554,258 @@ const _findBoneDeep = (bones, boneName) => {
   dst.calculateInverses();
 }; */
 
-const cubeGeometry = new THREE.ConeBufferGeometry(0.05, 0.2, 3)
-  .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
-    new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)))
-  );
-const cubeGeometryPositions = cubeGeometry.attributes.position.array;
-const numCubeGeometryPositions = cubeGeometryPositions.length;
+const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
 const srcCubeGeometries = {};
-/* const _makeDebugMeshes = () => {
-  const geometries = [];
-  const _makeCubeMesh = (color, scale = 1) => {
-    color = new THREE.Color(color);
-
+const debugMeshMaterial = new THREE.MeshNormalMaterial({
+  // color: 0xFF0000,
+  transparent: true,
+  depthTest: false,
+});
+const _makeDebugMesh = () => {
+  const baseScale = 0.01;
+  const fingerScale = 0.5;
+  const _makeCubeMesh = (name, scale = 1) => {
     let srcGeometry = srcCubeGeometries[scale];
     if (!srcGeometry) {
       srcGeometry = cubeGeometry.clone()
-        .applyMatrix4(localMatrix.makeScale(scale, scale, scale));
+        .applyMatrix4(localMatrix.makeScale(scale * baseScale, scale * baseScale, 1))
       srcCubeGeometries[scale] = srcGeometry;
     }
-    const geometry = srcGeometry.clone();
-    const colors = new Float32Array(cubeGeometry.attributes.position.array.length);
-    for (let i = 0; i < colors.length; i += 3) {
-      color.toArray(colors, i);
-    }
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    const index = geometries.length;
-    geometries.push(geometry);
-    return [index, srcGeometry];
+    const geometry = srcGeometry//.clone();
+    const object = new THREE.Object3D();
+    object.name = name;
+    object.physicsId = getNextPhysicsId();
+    const mesh = new THREE.Mesh(geometry, debugMeshMaterial);
+    object.add(mesh);
+    object.mesh = mesh;
+    return object;
   };
-  const fingerScale = 0.25;
   const attributes = {
-    eyes: _makeCubeMesh(0xFF0000),
-    head: _makeCubeMesh(0xFF8080),
-
-    chest: _makeCubeMesh(0xFFFF00),
-    upperChest: _makeCubeMesh(0x808000),
-    leftShoulder: _makeCubeMesh(0x00FF00),
-    rightShoulder: _makeCubeMesh(0x008000),
-    leftUpperArm: _makeCubeMesh(0x00FFFF),
-    rightUpperArm: _makeCubeMesh(0x008080),
-    leftLowerArm: _makeCubeMesh(0x0000FF),
-    rightLowerArm: _makeCubeMesh(0x000080),
-    leftHand: _makeCubeMesh(0xFFFFFF),
-    rightHand: _makeCubeMesh(0x808080),
-
-    leftThumb2: _makeCubeMesh(0xFF0000, fingerScale),
-    leftThumb1: _makeCubeMesh(0x00FF00, fingerScale),
-    leftThumb0: _makeCubeMesh(0x0000FF, fingerScale),
-    leftIndexFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    leftIndexFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    leftIndexFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    leftMiddleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    leftMiddleFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    leftMiddleFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    leftRingFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    leftRingFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    leftRingFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    leftLittleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    leftLittleFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    leftLittleFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    rightThumb2: _makeCubeMesh(0xFF0000, fingerScale),
-    rightThumb1: _makeCubeMesh(0x00FF00, fingerScale),
-    rightThumb0: _makeCubeMesh(0x0000FF, fingerScale),
-    rightIndexFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    rightIndexFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    rightIndexFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    rightMiddleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    rightMiddleFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    rightMiddleFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    rightRingFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    rightRingFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    rightRingFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-    rightLittleFinger3: _makeCubeMesh(0xFF0000, fingerScale),
-    rightLittleFinger2: _makeCubeMesh(0x00FF00, fingerScale),
-    rightLittleFinger1: _makeCubeMesh(0x0000FF, fingerScale),
-
-    hips: _makeCubeMesh(0xFF0000),
-    leftUpperLeg: _makeCubeMesh(0xFFFF00),
-    rightUpperLeg: _makeCubeMesh(0x808000),
-    leftLowerLeg: _makeCubeMesh(0x00FF00),
-    rightLowerLeg: _makeCubeMesh(0x008000),
-    leftFoot: _makeCubeMesh(0xFFFFFF),
-    rightFoot: _makeCubeMesh(0x808080),
+    Root: _makeCubeMesh('Root'),
+    Head: _makeCubeMesh('Head'),
+    Eye_L: _makeCubeMesh('Eye_L'),
+    Eye_R: _makeCubeMesh('Eye_R'),
+    Neck: _makeCubeMesh('Neck'),
+    UpperChest: _makeCubeMesh('UpperChest'),
+    Chest: _makeCubeMesh('Chest'),
+    Hips: _makeCubeMesh('Hips'),
+    Spine: _makeCubeMesh('Spine'),
+    Left_shoulder: _makeCubeMesh('Left_shoulder'),
+    Left_wrist: _makeCubeMesh('Left_wrist'),
+    Left_thumb2: _makeCubeMesh('Left_thumb2', fingerScale),
+    Left_thumb1: _makeCubeMesh('Left_thumb1', fingerScale),
+    Left_thumb0: _makeCubeMesh('Left_thumb0', fingerScale),
+    Left_indexFinger3: _makeCubeMesh('Left_indexFinger3', fingerScale),
+    Left_indexFinger2: _makeCubeMesh('Left_indexFinger2', fingerScale),
+    Left_indexFinger1: _makeCubeMesh('Left_indexFinger1', fingerScale),
+    Left_middleFinger3: _makeCubeMesh('Left_middleFinger3', fingerScale),
+    Left_middleFinger2: _makeCubeMesh('Left_middleFinger2', fingerScale),
+    Left_middleFinger1: _makeCubeMesh('Left_middleFinger1', fingerScale),
+    Left_ringFinger3: _makeCubeMesh('Left_ringFinger3', fingerScale),
+    Left_ringFinger2: _makeCubeMesh('Left_ringFinger2', fingerScale),
+    Left_ringFinger1: _makeCubeMesh('Left_ringFinger3', fingerScale),
+    Left_littleFinger3: _makeCubeMesh('Left_littleFinger3', fingerScale),
+    Left_littleFinger2: _makeCubeMesh('Left_littleFinger2', fingerScale),
+    Left_littleFinger1: _makeCubeMesh('Left_littleFinger1', fingerScale),
+    Left_elbow: _makeCubeMesh('Left_elbow'),
+    Left_arm: _makeCubeMesh('Left_arm'),
+    Right_shoulder: _makeCubeMesh('Right_shoulder'),
+    Right_wrist: _makeCubeMesh('Right_wrist'),
+    Right_thumb2: _makeCubeMesh('Right_thumb2', fingerScale),
+    Right_thumb1: _makeCubeMesh('Right_thumb1', fingerScale),
+    Right_thumb0: _makeCubeMesh('Right_thumb0', fingerScale),
+    Right_indexFinger3: _makeCubeMesh('Right_indexFinger3', fingerScale),
+    Right_indexFinger2: _makeCubeMesh('Right_indexFinger2', fingerScale),
+    Right_indexFinger1: _makeCubeMesh('Right_indexFinger1', fingerScale),
+    Right_middleFinger3: _makeCubeMesh('Right_middleFinger3', fingerScale),
+    Right_middleFinger2: _makeCubeMesh('Right_middleFinger2', fingerScale),
+    Right_middleFinger1: _makeCubeMesh('Right_middleFinger1', fingerScale),
+    Right_ringFinger3: _makeCubeMesh('Right_ringFinger3', fingerScale),
+    Right_ringFinger2: _makeCubeMesh('Right_ringFinger2', fingerScale),
+    Right_ringFinger1: _makeCubeMesh('Right_ringFinger1', fingerScale),
+    Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', fingerScale),
+    Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', fingerScale),
+    Right_littleFinger1: _makeCubeMesh('Right_littleFinger1', fingerScale),
+    Right_elbow: _makeCubeMesh('Right_elbow'),
+    Right_arm: _makeCubeMesh('Right_arm'),
+    Left_ankle: _makeCubeMesh('Left_ankle'),
+    Left_knee: _makeCubeMesh('Left_knee'),
+    Left_leg: _makeCubeMesh('Left_leg'),
+    Left_toe: _makeCubeMesh('Left_toe'),
+    Right_ankle: _makeCubeMesh('Right_ankle'),
+    Right_knee: _makeCubeMesh('Right_knee'),
+    Right_leg: _makeCubeMesh('Right_leg'),
+    Right_toe: _makeCubeMesh('Right_toe'),
   };
-  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
-  for (const k in attributes) {
-    const [index, srcGeometry] = attributes[k];
-    const attribute = new THREE.BufferAttribute(
-      new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*numCubeGeometryPositions*Float32Array.BYTES_PER_ELEMENT, numCubeGeometryPositions),
-      3
-    );
-    attribute.srcGeometry = srcGeometry;
-    attribute.visible = true;
-    attributes[k] = attribute;
-  }
-  const material = new THREE.MeshPhongMaterial({
-    flatShading: true,
-    vertexColors: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  mesh.attributes = attributes;
-  return mesh;
-}; */
-/* const _traverseChild = (bone, distance) => {
-  if (distance <= 0) {
-    return bone;
-  } else {
-    for (let i = 0; i < bone.children.length; i++) {
-      const child = bone.children[i];
-      const subchild = _traverseChild(child, distance - 1);
-      if (subchild !== null) {
-        return subchild;
-      }
+
+  // hips
+  attributes.Root.add(attributes.Hips);
+  attributes.Hips.add(attributes.Spine);
+  attributes.Spine.add(attributes.Chest);
+  attributes.Chest.add(attributes.UpperChest);
+
+  // head
+  attributes.UpperChest.add(attributes.Neck);
+  attributes.Neck.add(attributes.Head);
+  attributes.Head.add(attributes.Eye_L);
+  attributes.Head.add(attributes.Eye_R);
+
+  // shoulders
+  attributes.UpperChest.add(attributes.Left_shoulder);
+  attributes.UpperChest.add(attributes.Right_shoulder);
+
+  // arms
+  attributes.Left_shoulder.add(attributes.Left_arm);
+  attributes.Left_arm.add(attributes.Left_elbow);
+  attributes.Left_elbow.add(attributes.Left_wrist);
+  attributes.Right_shoulder.add(attributes.Right_arm);
+  attributes.Right_arm.add(attributes.Right_elbow);
+  attributes.Right_elbow.add(attributes.Right_wrist);
+
+  // hands
+  attributes.Left_wrist.add(attributes.Left_thumb0);
+  attributes.Left_thumb0.add(attributes.Left_thumb1);
+  attributes.Left_thumb1.add(attributes.Left_thumb2);
+  attributes.Left_wrist.add(attributes.Left_indexFinger1);
+  attributes.Left_indexFinger1.add(attributes.Left_indexFinger2);
+  attributes.Left_indexFinger2.add(attributes.Left_indexFinger3);
+  attributes.Left_wrist.add(attributes.Left_middleFinger1);
+  attributes.Left_middleFinger1.add(attributes.Left_middleFinger2);
+  attributes.Left_middleFinger2.add(attributes.Left_middleFinger3);
+  attributes.Left_wrist.add(attributes.Left_ringFinger1);
+  attributes.Left_ringFinger1.add(attributes.Left_ringFinger2);
+  attributes.Left_ringFinger2.add(attributes.Left_ringFinger3);
+  attributes.Left_wrist.add(attributes.Left_littleFinger1);
+  attributes.Left_littleFinger1.add(attributes.Left_littleFinger2);
+  attributes.Left_littleFinger2.add(attributes.Left_littleFinger3);
+
+  attributes.Right_wrist.add(attributes.Right_thumb0);
+  attributes.Right_thumb0.add(attributes.Right_thumb1);
+  attributes.Right_thumb1.add(attributes.Right_thumb2);
+  attributes.Right_wrist.add(attributes.Right_indexFinger1);
+  attributes.Right_indexFinger1.add(attributes.Right_indexFinger2);
+  attributes.Right_indexFinger2.add(attributes.Right_indexFinger3);
+  attributes.Right_wrist.add(attributes.Right_middleFinger1);
+  attributes.Right_middleFinger1.add(attributes.Right_middleFinger2);
+  attributes.Right_middleFinger2.add(attributes.Right_middleFinger3);
+  attributes.Right_wrist.add(attributes.Right_ringFinger1);
+  attributes.Right_ringFinger1.add(attributes.Right_ringFinger2);
+  attributes.Right_ringFinger2.add(attributes.Right_ringFinger3);
+  attributes.Right_wrist.add(attributes.Right_littleFinger1);
+  attributes.Right_littleFinger1.add(attributes.Right_littleFinger2);
+  attributes.Right_littleFinger2.add(attributes.Right_littleFinger3);
+
+  // legs
+  attributes.Hips.add(attributes.Left_leg);
+  attributes.Left_leg.add(attributes.Left_knee);
+  attributes.Left_knee.add(attributes.Left_ankle);
+  attributes.Left_ankle.add(attributes.Left_toe);
+
+  attributes.Hips.add(attributes.Right_leg);
+  attributes.Right_leg.add(attributes.Right_knee);
+  attributes.Right_knee.add(attributes.Right_ankle);
+  attributes.Right_ankle.add(attributes.Right_toe);
+
+  const mesh = attributes.Root;
+  const modelBoneToMeshBoneMap = new Map();
+
+  mesh.wrapToAvatar = avatar => {
+    avatar.modelBoneOutputs.Root.updateMatrixWorld();
+
+    for (const k in avatar.modelBoneOutputs) {
+      const modelBone = avatar.modelBoneOutputs[k];
+      const meshBone = attributes[k];
+      const l = k !== 'Root' ? modelBone.position.length() : 0;
+      meshBone.mesh.scale.z = l;
     }
-    return null;
-  }
-}; */
+
+    const modelBoneOutputsArray = Object.keys(avatar.modelBoneOutputs).map(k => avatar.modelBoneOutputs[k]);
+    for (const k in avatar.modelBoneOutputs) {
+      const modelBone = avatar.modelBoneOutputs[k];
+      const meshBone = attributes[k];
+
+      modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+        localMatrix.lookAt(
+          localVector.set(0, 0, 0),
+          modelBone.position,
+          localVector2.set(0, 1, 0)
+        )
+      );
+      modelBoneToMeshBoneMap.set(modelBone, meshBone);
+    }
+  };
+  mesh.setFromAvatar = avatar => {
+    for (const k in avatar.modelBoneOutputs) {
+      const modelBone = avatar.modelBoneOutputs[k];
+      const meshBone = modelBoneToMeshBoneMap.get(modelBone);
+
+      (modelBone.parent ?
+        modelBone.parent.matrixWorld
+      :
+        localMatrix.identity()
+      ).decompose(localVector, localQuaternion, localVector2);
+
+      localVector.add(
+        localVector3.set(0, 0, -meshBone.mesh.scale.z*0.5)
+          .applyQuaternion(modelBone.forwardQuaternion)
+          .applyQuaternion(localQuaternion)
+      );
+
+      localQuaternion.multiply(
+        modelBone.forwardQuaternion
+      );
+
+      meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
+      meshBone.matrix.copy(meshBone.matrixWorld);
+      if (meshBone.parent) {
+        meshBone.matrix.premultiply(localMatrix.copy(meshBone.parent.matrixWorld).invert());
+      }
+      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+    }
+    mesh.updateMatrixWorld();
+  };
+  mesh.serializeSkeleton = () => {
+    const buffers = [];
+
+    const _recurse = meshBone => {
+      const idBuffer = Uint32Array.from([meshBone.physicsId]);
+      buffers.push(idBuffer);
+
+      const nameBuffer = textEncoder.encode(meshBone.name);
+      const nameBufferLengthBuffer = Uint32Array.from([nameBuffer.length]);
+      buffers.push(nameBufferLengthBuffer);
+      buffers.push(nameBuffer);
+
+      const transformBuffer = new Float32Array(10);
+      meshBone.position.toArray(transformBuffer, 0);
+      meshBone.quaternion.toArray(transformBuffer, 3);
+      meshBone.scale.toArray(transformBuffer, 7);
+      buffers.push(transformBuffer);
+
+      const objectChildren = meshBone.children.filter(child => !child.isMesh);
+      const numChildrenBuffer = Uint32Array.from([objectChildren.length]);
+      buffers.push(numChildrenBuffer);
+
+      for (const child of objectChildren) {
+        _recurse(child);
+      }
+    };
+    _recurse(attributes.Root);
+
+    let totalBufferSize = 0;
+    for (const buffer of buffers) {
+      totalBufferSize += buffer.byteLength;
+    }
+    const result = new Uint8Array(totalBufferSize);
+    let offset = 0;
+    for (const buffer of buffers) {
+      result.set(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength), offset);
+      offset += buffer.byteLength;
+    }
+    return result;
+  };
+  return mesh;
+};
 const _findArmature = bone => {
   for (;; bone = bone.parent) {
     if (!bone.isBone) {
@@ -974,8 +1127,9 @@ class Avatar {
         },
       };
     }
-    
+
     this.object = object;
+
     const model = (() => {
       let o = object;
       if (o && !o.isMesh) {
@@ -1001,9 +1155,12 @@ class Avatar {
       } */
       return o;
     })();
+
     this.model = model;
+    this.spriteMegaAvatarMesh = null;
+    this.crunchedModel = null;
     this.options = options;
-    
+
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension);
 
@@ -1032,25 +1189,15 @@ class Avatar {
     this.vowels = Float32Array.from([1, 0, 0, 0, 0]);
     this.poseAnimation = null;
 
-    this.spriteMegaAvatarMesh = null;
-
-    /* if (options.debug) {
-      const debugMeshes = _makeDebugMeshes();
-      this.model.add(debugMeshes);
-      this.debugMeshes = debugMeshes;
-    } else {
-      this.debugMeshes = null;
-    } */
-
     modelBones.Root.traverse(o => {
       o.savedPosition = o.position.clone();
       o.savedMatrixWorld = o.matrixWorld.clone();
     });
 
-		this.poseManager = new PoseManager();
-		this.shoulderTransforms = new ShoulderTransforms(this);
-		this.legsManager = new LegsManager(this);
-    
+    this.poseManager = new PoseManager();
+    this.shoulderTransforms = new ShoulderTransforms(this);
+    this.legsManager = new LegsManager(this);
+
     const fingerBoneMap = {
       left: [
         {
@@ -1110,7 +1257,7 @@ class Avatar {
       }
     };
     _recurseAllHairBones(skeleton.bones); */
-    const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
+    /* const hairBones = tailBones.filter(bone => /hair/i.test(bone.name)).map(bone => {
       for (; bone; bone = bone.parent) {
         if (bone.parent === modelBones.Head) {
           return bone;
@@ -1119,7 +1266,7 @@ class Avatar {
       return null;
     }).filter(bone => bone);
     // this.allHairBones = allHairBones;
-    this.hairBones = hairBones;
+    this.hairBones = hairBones; */
     
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetInverted = false;
@@ -1128,63 +1275,16 @@ class Avatar {
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
 
-    this.springBoneManager = null;
-    this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
-      const timeDiffS = timeDiff / 1000;
-      this.springBoneManager.lateUpdate(timeDiffS);
-    }, avatarInterpolationFrameRate);
-    let springBoneManagerPromise = null;
     if (options.hair) {
-      new Promise((accept, reject) => {
-        /* if (!object.parser.json.extensions) {
-          object.parser.json.extensions = {};
-        }
-        if (!object.parser.json.extensions.VRM) {
-          object.parser.json.extensions.VRM = {
-            secondaryAnimation: {
-              boneGroups: this.hairBones.map(hairBone => {
-                const boneIndices = [];
-                const _recurse = bone => {
-                  boneIndices.push(this.allHairBones.indexOf(bone));
-                  if (bone.children.length > 0) {
-                    _recurse(bone.children[0]);
-                  }
-                };
-                _recurse(hairBone);
-                return {
-                  comment: hairBone.name,
-                  stiffiness: 0.5,
-                  gravityPower: 0.2,
-                  gravityDir: {
-                    x: 0,
-                    y: -1,
-                    z: 0
-                  },
-                  dragForce: 0.3,
-                  center: -1,
-                  hitRadius: 0.02,
-                  bones: boneIndices,
-                  colliderGroups: [],
-                };
-              }),
-            },
-          };
-          object.parser.getDependency = async (type, nodeIndex) => {
-            if (type === 'node') {
-              return this.allHairBones[nodeIndex];
-            } else {
-              throw new Error('unsupported type');
-            }
-          };
-        } */
-
-        springBoneManagerPromise = new VRMSpringBoneImporter().import(object)
-          .then(springBoneManager => {
-            this.springBoneManager = springBoneManager;
-          });
-      });
+      this.springBoneManager = new VRMSpringBoneImporter().import(object);
+    } else {
+      this.springBoneManager = null;
     }
-
+    /* this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
+      // console.log('update hairs', new Error().stack);
+      const timeDiffS = timeDiff / 1000;
+      this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
+    }, 10); */
 
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
@@ -1246,7 +1346,7 @@ class Avatar {
       rightUpperLeg: _getOffset(modelBones.Left_leg),
       rightLowerLeg: _getOffset(modelBones.Left_knee),
       rightFoot: _getOffset(modelBones.Left_ankle),
-      
+
       leftToe: _getOffset(modelBones.Left_toe),
       rightToe: _getOffset(modelBones.Right_toe),
     });
@@ -1356,21 +1456,21 @@ class Avatar {
 	    Left_arm: this.shoulderTransforms.rightArm.upperArm,
 	    Left_elbow: this.shoulderTransforms.rightArm.lowerArm,
 	    Left_wrist: this.shoulderTransforms.rightArm.hand,
-      Left_thumb2: this.shoulderTransforms.rightArm.thumb2,
-      Left_thumb1: this.shoulderTransforms.rightArm.thumb1,
       Left_thumb0: this.shoulderTransforms.rightArm.thumb0,
-      Left_indexFinger3: this.shoulderTransforms.rightArm.indexFinger3,
-      Left_indexFinger2: this.shoulderTransforms.rightArm.indexFinger2,
+      Left_thumb1: this.shoulderTransforms.rightArm.thumb1,
+      Left_thumb2: this.shoulderTransforms.rightArm.thumb2,
       Left_indexFinger1: this.shoulderTransforms.rightArm.indexFinger1,
-      Left_middleFinger3: this.shoulderTransforms.rightArm.middleFinger3,
-      Left_middleFinger2: this.shoulderTransforms.rightArm.middleFinger2,
+      Left_indexFinger2: this.shoulderTransforms.rightArm.indexFinger2,
+      Left_indexFinger3: this.shoulderTransforms.rightArm.indexFinger3,
       Left_middleFinger1: this.shoulderTransforms.rightArm.middleFinger1,
-      Left_ringFinger3: this.shoulderTransforms.rightArm.ringFinger3,
-      Left_ringFinger2: this.shoulderTransforms.rightArm.ringFinger2,
+      Left_middleFinger2: this.shoulderTransforms.rightArm.middleFinger2,
+      Left_middleFinger3: this.shoulderTransforms.rightArm.middleFinger3,
       Left_ringFinger1: this.shoulderTransforms.rightArm.ringFinger1,
-      Left_littleFinger3: this.shoulderTransforms.rightArm.littleFinger3,
-      Left_littleFinger2: this.shoulderTransforms.rightArm.littleFinger2,
+      Left_ringFinger2: this.shoulderTransforms.rightArm.ringFinger2,
+      Left_ringFinger3: this.shoulderTransforms.rightArm.ringFinger3,
       Left_littleFinger1: this.shoulderTransforms.rightArm.littleFinger1,
+      Left_littleFinger2: this.shoulderTransforms.rightArm.littleFinger2,
+      Left_littleFinger3: this.shoulderTransforms.rightArm.littleFinger3,
 	    Left_leg: this.legsManager.rightLeg.upperLeg,
 	    Left_knee: this.legsManager.rightLeg.lowerLeg,
 	    Left_ankle: this.legsManager.rightLeg.foot,
@@ -1379,27 +1479,30 @@ class Avatar {
 	    Right_arm: this.shoulderTransforms.leftArm.upperArm,
 	    Right_elbow: this.shoulderTransforms.leftArm.lowerArm,
 	    Right_wrist: this.shoulderTransforms.leftArm.hand,
-      Right_thumb2: this.shoulderTransforms.leftArm.thumb2,
-      Right_thumb1: this.shoulderTransforms.leftArm.thumb1,
       Right_thumb0: this.shoulderTransforms.leftArm.thumb0,
-      Right_indexFinger3: this.shoulderTransforms.leftArm.indexFinger3,
-      Right_indexFinger2: this.shoulderTransforms.leftArm.indexFinger2,
+      Right_thumb1: this.shoulderTransforms.leftArm.thumb1,
+      Right_thumb2: this.shoulderTransforms.leftArm.thumb2,
       Right_indexFinger1: this.shoulderTransforms.leftArm.indexFinger1,
-      Right_middleFinger3: this.shoulderTransforms.leftArm.middleFinger3,
-      Right_middleFinger2: this.shoulderTransforms.leftArm.middleFinger2,
+      Right_indexFinger2: this.shoulderTransforms.leftArm.indexFinger2,
+      Right_indexFinger3: this.shoulderTransforms.leftArm.indexFinger3,
       Right_middleFinger1: this.shoulderTransforms.leftArm.middleFinger1,
-      Right_ringFinger3: this.shoulderTransforms.leftArm.ringFinger3,
-      Right_ringFinger2: this.shoulderTransforms.leftArm.ringFinger2,
+      Right_middleFinger2: this.shoulderTransforms.leftArm.middleFinger2,
+      Right_middleFinger3: this.shoulderTransforms.leftArm.middleFinger3,
       Right_ringFinger1: this.shoulderTransforms.leftArm.ringFinger1,
-      Right_littleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
-      Right_littleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
+      Right_ringFinger2: this.shoulderTransforms.leftArm.ringFinger2,
+      Right_ringFinger3: this.shoulderTransforms.leftArm.ringFinger3,
       Right_littleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
+      Right_littleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
+      Right_littleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
+
 	    Right_leg: this.legsManager.leftLeg.upperLeg,
 	    Right_knee: this.legsManager.leftLeg.lowerLeg,
 	    Right_ankle: this.legsManager.leftLeg.foot,
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
+
+    this.debugMesh = null;
 
     this.emotes = [];
     if (this.options.visemes) {
@@ -1486,17 +1589,6 @@ class Avatar {
       this.setBottomEnabled(!!options.bottom);
     }
 
-    /* this.decapitated = false;
-    if (options.decapitate) {
-      if (springBoneManagerPromise) {
-        springBoneManagerPromise.then(() => {
-          this.decapitate();
-        });
-      } else {
-        this.decapitate();
-      }
-    } */
-
     this.animationMappings = animationMappingConfig.map(animationMapping => {
       animationMapping = animationMapping.clone();
       const isPosition = /\.position$/.test(animationMapping.animationTrackName);
@@ -1516,8 +1608,14 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
+
     this.useTime = NaN;
     this.useAnimation = null;
+    this.useAnimationCombo = [];
+    this.useAnimationEnvelope = [];
+    this.unuseAnimation = null;
+    this.unuseTime = -1;
+    
     this.sitState = false;
     this.sitAnimation = null;
     // this.activateState = false;
@@ -1525,8 +1623,8 @@ class Avatar {
     this.danceState = false;
     this.danceTime = 0;
     this.danceAnimation = null;
-    this.throwState = null;
-    this.throwTime = 0;
+    // this.throwState = null;
+    // this.throwTime = 0;
     this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
@@ -1546,7 +1644,9 @@ class Avatar {
     this.aimTime = NaN;
     this.aimAnimation = null;
     // this.aimDirection = new THREE.Vector3();
-    
+    this.hurtTime = NaN;
+    this.hurtAnimation = null;
+
     // internal state
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
@@ -1968,27 +2068,34 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
+
+    this.model.visible = false;
+    if ( this.crunchedModel ) this.crunchedModel.visible = false;
+    if ( this.spriteMegaAvatarMesh ) this.spriteMegaAvatarMesh.visible = false;
+
     switch (quality) {
       case 1: {
         const skinnedMesh = await this.object.cloneVrm();
-        this.spriteMegaAvatarMesh = avatarSpriter.createSpriteMegaMesh(skinnedMesh);
-        scene.add(this.spriteMegaAvatarMesh);
-        this.model.visible = false;
+        this.spriteMegaAvatarMesh = this.spriteMegaAvatarMesh ?? avatarSpriter.createSpriteMegaMesh( skinnedMesh );
+        scene.add( this.spriteMegaAvatarMesh );
+        this.spriteMegaAvatarMesh.visible = true;
         break;
       }
       case 2: {
-        const crunchedModel = avatarCruncher.crunchAvatarModel(this.model);
-        crunchedModel.frustumCulled = false;
-        scene.add(crunchedModel);
-        this.model.visible = false;
+        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel( this.model );
+        this.crunchedModel.frustumCulled = false;
+        scene.add( this.crunchedModel );
+        this.crunchedModel.visible = true;
         break;
       }
       case 3: {
         console.log('not implemented'); // XXX
+        this.model.visible = true;
         break;
       }
       case 4: {
         console.log('not implemented'); // XXX
+        this.model.visible = true;
         break;
       }
       default: {
@@ -2000,7 +2107,7 @@ class Avatar {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
-    
+
     const idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     const walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     const crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
@@ -2031,11 +2138,11 @@ class Avatar {
     _updatePosition();
     
     const _applyAnimation = () => {
-      const runSpeed = 0.5;
+      // const runSpeed = 0.5;
       const angle = this.getAngle();
       const timeSeconds = now/1000;
       
-      const _getAnimationKey = crouchState => {
+      /* const _getAnimationKey = crouchState => {
         if (crouchState) {
           return 'crouch';
         } else {
@@ -2045,7 +2152,7 @@ class Avatar {
             return 'walk';
           }
         }
-      };
+      }; */
       const _getMirrorAnimationAngles = (animationAngles, key) => {
         const animations = animationAngles.map(({animation}) => animation);
         const animationAngleArrayMirror = animationsAngleArraysMirror[key];
@@ -2362,6 +2469,17 @@ class Avatar {
           );
 
       };
+      const _handleDefault = spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+          lerpFn,
+          isPosition,
+        } = spec;
+        
+        _getHorizontalBlend(k, lerpFn, isPosition, dst);
+      };
       const _getApplyFn = () => {
         if (this.jumpState) {
           return spec => {
@@ -2370,7 +2488,6 @@ class Avatar {
               dst,
               // isTop,
             } = spec;
-            // console.log('JumpState', spec)
 
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
@@ -2414,72 +2531,37 @@ class Avatar {
           };
         }
 
-        if (this.danceState) {
+        if (this.danceTime > 0) {
           return spec => {
             const {
               animationTrackName: k,
               dst,
+              lerpFn,
               // isTop,
               isPosition,
             } = spec;
 
+            _handleDefault(spec);
+
             const danceAnimation = danceAnimations[this.danceAnimation || defaultDanceAnimation];
             const src2 = danceAnimation.interpolants[k];
-            const t2 = (this.danceTime/1000) % danceAnimation.duration;
+            const t2 = (timestamp/1000) % danceAnimation.duration;
             const v2 = src2.evaluate(t2);
 
-            dst.fromArray(v2);
+            const danceTimeS = this.danceTime/crouchMaxTime;
+            const f = Math.min(Math.max(danceTimeS, 0), 1);
+            lerpFn
+              .call(
+                dst,
+                localQuaternion.fromArray(v2),
+                f
+              );
 
             _clearXZ(dst, isPosition);
           };
         }
 
-        /* if (this.standChargeState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.standChargeTime/1000) ;
-            const src2 = standCharge.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
-        if (this.swordSideSlashState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.swordSideSlashTime/1000) ;
-            const src2 = swordSideSlash.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
-        if (this.swordTopDownSlashState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            const t2 = (this.swordTopDownSlashTime/1000) ;
-            const src2 = swordTopDownSlash.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        } */
-        if (this.fallLoopState) {
+        /* if (this.fallLoopState) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2493,70 +2575,12 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
-        /* if (this.chargeJumpState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
-
-            
-            const t2 = (this.chargeJumpTime/1000) ;
-            const src2 = chargeJump.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
         } */
-        if (this.jumpState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              // isTop,
-            } = spec;
-            
-
-            const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
-            const danceAnimation = danceAnimations[0];
-            const src2 = throwAnimation.interpolants[k];
-            const t2 = (this.danceTime/1000) ;
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
-        if (this.throwState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              // isTop,
-            } = spec;
-            
-            const throwAnimation = throwAnimations[this.throwAnimation || defaultThrowAnimation];
-            const src2 = throwAnimation.interpolants[k];
-            const t2 = this.throwTime/1000;
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          };
-        }
-        const _handleDefault = spec => {
-          const {
-            animationTrackName: k,
-            dst,
-            // isTop,
-            lerpFn,
-            isPosition,
-          } = spec;
-          
-          _getHorizontalBlend(k, lerpFn, isPosition, dst);
-        };
-        // console.log('got aim time', this.useAnimation, this.useTime, this.aimAnimation, this.aimTime);
-        if (this.useAnimation) {
+        if (
+          this.useAnimation ||
+          this.useAnimationCombo.length > 0 ||
+          this.useAnimationEnvelope.length > 0
+        ) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2564,20 +2588,51 @@ class Avatar {
               // isTop,
               isPosition,
             } = spec;
-            
-            const isCombo = Array.isArray(this.useAnimation);
-            const useAnimationName = isCombo ? this.useAnimation[this.useAnimationIndex] : this.useAnimation;
-            const useAnimation = (useAnimationName && useAnimations[useAnimationName]);
-            _handleDefault(spec);
-            const t2 = (() => {
-              if (isCombo) {
-                return Math.min(this.useTime/1000, useAnimation.duration);
-              } else {
-                return (this.useTime/1000) % useAnimation.duration;
+
+            let useAnimation;
+            let t2;
+            const useTimeS = this.useTime/1000;
+            if (this.useAnimation) {
+              const useAnimationName = this.useAnimation;
+              useAnimation = useAnimations[useAnimationName];
+              t2 = Math.min(useTimeS, useAnimation.duration);
+            } else if (this.useAnimationCombo.length > 0) {
+              const useAnimationName = this.useAnimationCombo[this.useAnimationIndex];
+              useAnimation = useAnimations[useAnimationName];
+              t2 = Math.min(useTimeS, useAnimation.duration);
+            } else if (this.useAnimationEnvelope.length > 0) {
+              let totalTime = 0;
+              for (let i = 0; i < this.useAnimationEnvelope.length - 1; i++) {
+                const animationName = this.useAnimationEnvelope[i];
+                const animation = useAnimations[animationName];
+                totalTime += animation.duration;
               }
-            })();
-            if (!isPosition) {
-              if (useAnimation) {
+              
+              if (totalTime > 0) {
+                let animationTimeBase = 0;
+                for (let i = 0; i < this.useAnimationEnvelope.length - 1; i++) {
+                  const animationName = this.useAnimationEnvelope[i];
+                  const animation = useAnimations[animationName];
+                  if (useTimeS < (animationTimeBase + animation.duration)) {
+                    useAnimation = animation;
+                    break;
+                  }
+                  animationTimeBase += animation.duration;
+                }
+                if (useAnimation !== undefined) { // first iteration
+                  t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
+                } else { // loop
+                  const secondLastAnimationName = this.useAnimationEnvelope[this.useAnimationEnvelope.length - 2];
+                  useAnimation = useAnimations[secondLastAnimationName];
+                  t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
+                }
+              }
+            }
+
+            _handleDefault(spec);
+            
+            if (useAnimation) {
+              if (!isPosition) {
                 const src2 = useAnimation.interpolants[k];
                 const v2 = src2.evaluate(t2);
 
@@ -2589,24 +2644,64 @@ class Avatar {
                 dst
                   .premultiply(localQuaternion2.fromArray(v3).invert())
                   .premultiply(localQuaternion2.fromArray(v2));
-              } /* else {
-                _handleDefault(spec);
-              } */
+              } else {
+                const src2 = useAnimation.interpolants[k];
+                const v2 = src2.evaluate(t2);
+                localVector2.fromArray(v2);
+                _clearXZ(localVector2, isPosition);
+
+                const idleAnimation = _getIdleAnimation('walk');
+                const t3 = 0;
+                const src3 = idleAnimation.interpolants[k];
+                const v3 = src3.evaluate(t3);
+                localVector3.fromArray(v3);
+                
+                dst
+                  .sub(localVector3)
+                  .add(localVector2);
+              }
+            }
+          };
+        } else if (this.hurtAnimation) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              // isTop,
+              isPosition,
+            } = spec;
+            
+            const hurtAnimation = (this.hurtAnimation && hurtAnimations[this.hurtAnimation]);
+            _handleDefault(spec);
+            const hurtTimeS = this.hurtTime/1000;
+            const t2 = Math.min(hurtTimeS, hurtAnimation.duration);
+            // console.log('hurtAnimation', this.hurtAnimation, this.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
+            if (!isPosition) {
+              if (hurtAnimation) {
+                const src2 = hurtAnimation.interpolants[k];
+                const v2 = src2.evaluate(t2);
+
+                const idleAnimation = _getIdleAnimation('walk');
+                const t3 = 0;
+                const src3 = idleAnimation.interpolants[k];
+                const v3 = src3.evaluate(t3);
+                
+                dst
+                  .premultiply(localQuaternion2.fromArray(v3).invert())
+                  .premultiply(localQuaternion2.fromArray(v2));
+              }
             } else {
-              const src2 = useAnimation.interpolants[k];
+              const src2 = hurtAnimation.interpolants[k];
               const v2 = src2.evaluate(t2);
-              localVector2.fromArray(v2);
-              _clearXZ(localVector2, isPosition);
 
               const idleAnimation = _getIdleAnimation('walk');
               const t3 = 0;
               const src3 = idleAnimation.interpolants[k];
               const v3 = src3.evaluate(t3);
-              localVector3.fromArray(v3);
-              
+
               dst
-                .sub(localVector3)
-                .add(localVector2);
+                .sub(localVector2.fromArray(v3))
+                .add(localVector2.fromArray(v2));
             }
           };
         } else if (this.aimAnimation) {
@@ -2634,9 +2729,7 @@ class Avatar {
                 dst
                   .premultiply(localQuaternion2.fromArray(v3).invert())
                   .premultiply(localQuaternion2.fromArray(v2));
-              } /* else {
-                _handleDefault(spec);
-              } */
+              }
             } else {
               const src2 = aimAnimation.interpolants[k];
               const v2 = src2.evaluate(t2);
@@ -2649,6 +2742,69 @@ class Avatar {
               dst
                 .sub(localVector2.fromArray(v3))
                 .add(localVector2.fromArray(v2));
+            }
+          };
+        } else if (this.unuseAnimation && this.unuseTime >= 0) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              lerpFn,
+              // isTop,
+              isPosition,
+            } = spec;
+
+            _handleDefault(spec);
+            
+            const unuseTimeS = this.unuseTime/1000;
+            const unuseAnimationName = this.unuseAnimation;
+            const unuseAnimation = useAnimations[unuseAnimationName];
+            const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
+            const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
+            const f2 = Math.pow(1 - f, 2);
+
+            if (!isPosition) {
+              const src2 = unuseAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              localQuaternion.copy(dst)
+                .premultiply(localQuaternion2.fromArray(v3).invert())
+                .premultiply(localQuaternion2.fromArray(v2));
+
+              lerpFn
+                .call(
+                  dst,
+                  localQuaternion,
+                  f2
+                );
+            } else {
+              const src2 = unuseAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              localVector.copy(dst)
+                .sub(localVector2.fromArray(v3))
+                .add(localVector2.fromArray(v2));
+              
+              lerpFn
+                .call(
+                  dst,
+                  localVector,
+                  f2
+                );
+            }
+
+            if (f >= 1) {
+              this.useAnimation = '';
             }
           };
         }
@@ -2690,7 +2846,7 @@ class Avatar {
           
             const localPlayer = metaversefile.useLocalPlayer();
 
-            let defaultAnimation = "grab_forward";
+            let defaultAnimation = 'grab_forward';
 
             if (localPlayer.getAction('activate').animationName) {
               defaultAnimation = localPlayer.getAction('activate').animationName;
@@ -3017,12 +3173,8 @@ class Avatar {
     );
     // this.modelBones.Root.updateMatrixWorld();
 
-    if (this.springBoneManager) {
-      this.springBoneTimeStep.update(timeDiff);
-    }
-    /* if (this.springBoneManager && wasDecapitated) {
-      this.decapitate();
-    } */
+    // this.springBoneTimeStep.update(timeDiff);
+    this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
 
     // XXX hook these up
     this.nodder.update(now);
@@ -3057,7 +3209,7 @@ class Avatar {
             morphTargetInfluences[i] = 0;
           }
           
-          if (volumeValue !== -1) { // real speech
+          // if (volumeValue !== -1) { // real speech
             if (aIndex !== -1) {
               morphTargetInfluences[aIndex] = volumeValue;
             }
@@ -3073,7 +3225,7 @@ class Avatar {
             if (uIndex !== -1) {
               morphTargetInfluences[uIndex] = volumeValue * this.vowels[4];
             }
-          } else { // fake speech
+          /* } else { // fake speech
             this.fakeSpeechSmoothed = this.fakeSpeechSmoothed * 0.99 + 0.01 * this.fakeSpeechValue;
             const now2 = now / 1000 * 2;
             let aValue = (simplexes[0].noise2D(now2, now2));
@@ -3097,7 +3249,7 @@ class Avatar {
             if (uIndex !== -1) {
               morphTargetInfluences[uIndex] = this.fakeSpeechSmoothed * uValue/totalValue;
             }
-          }
+          } */
             
           // emotes
           if (this.emotes.length > 0) {
@@ -3157,26 +3309,17 @@ class Avatar {
     };
     _updateSubAvatars();
 
-    /* if (this.debugMeshes) {
-      if (this.getTopEnabled()) {
-        this.getHandEnabled(0) && this.modelBoneOutputs.Left_arm.quaternion.multiply(rightRotation); // center
-        this.modelBoneOutputs.Left_arm.updateMatrixWorld();
-        this.getHandEnabled(1) && this.modelBoneOutputs.Right_arm.quaternion.multiply(leftRotation); // center
-        this.modelBoneOutputs.Right_arm.updateMatrixWorld();
+    if (metaversefile.isDebugMode() && !this.debugMesh) {
+      this.debugMesh = _makeDebugMesh();
+      this.debugMesh.wrapToAvatar(this);
+      this.model.add(this.debugMesh);
+    }
+    if (this.debugMesh) {
+      if (metaversefile.isDebugMode()) {
+        this.debugMesh.setFromAvatar(this);
       }
-
-      for (const k in this.debugMeshes.attributes) {
-        const attribute = this.debugMeshes.attributes[k];
-        if (attribute.visible) {
-          const output = this.modelBoneOutputs[k];
-          attribute.array.set(attribute.srcGeometry.attributes.position.array);
-          attribute.applyMatrix4(localMatrix.multiplyMatrices(this.model.matrixWorld, output.matrixWorld));
-        } else {
-          attribute.array.fill(0);
-        }
-      }
-      this.debugMeshes.geometry.attributes.position.needsUpdate = true;
-    } */
+      this.debugMesh.visible = metaversefile.isDebugMode();
+    }
 	}
 
   isAudioEnabled() {

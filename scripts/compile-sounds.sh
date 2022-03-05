@@ -2,13 +2,28 @@
 # input: directory of wav files
 # output: mp3 data file and json metadata file
 
-ls {walk,run,jump,land,narutoRun}/*.wav | sort -n >sounds.txt
-cat sounds.txt | awk '{print "file " $0}' >sounds-list.txt
-ffmpeg -f concat -i sounds-list.txt -b:a 320k -y sounds.mp3
-
+find . -name '*-pad.wav' | xargs -d '\n' rm
+rm -f lol.txt
 rm -f sound-files.txt
-cat sounds.txt | while read f; do
-  a=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$f")
-  echo "$a $f" | tee -a sound-files.txt
+rm -f sounds.txt
+rm -f sounds.wav
+rm -f sounds.mp3
+
+ls {walk,run,jump,land,narutoRun,food,combat,spells,ui}/*.wav | sort -n >sound-files.txt
+
+set --
+while IFS='' read -r item; do
+  # pad files to avoid clipping at the edges
+  sox -V "$item" "$item"-pad.wav pad 0 0.03
+  set -- "$@" "$item"-pad.wav
+done <sound-files.txt
+sox -V "$@" sounds.wav 2>&1 | tee lol.txt
+sox -V sounds.wav sounds.mp3 2>&1 | tee lol.txt
+
+cat sound-files.txt | while read f; do
+  samples=$(soxi -s "$f"-pad.wav)
+  samplerate=$(soxi -r "$f"-pad.wav)
+  a=$(echo "scale=20; $samples / $samplerate" | bc)
+  echo "$a $f" | tee -a sounds.txt
 done;
-node -e 'offset = 0; a = require("fs").readFileSync("./sound-files.txt", "utf8").split("\n").filter(l => !!l).map(s => {m = s.match(/^([0-9\.]+) (.+)$/); duration = parseFloat(m[1]); name = m[2]; r = {name,offset,duration}; offset += duration; return r;}); console.log(JSON.stringify(a, null, 2))' >sound-files.json
+node -e 'offset = 0; a = require("fs").readFileSync("./sounds.txt", "utf8").split("\n").filter(l => !!l).map(s => {m = s.match(/^([0-9\.]+) (.+)$/); duration = parseFloat(m[1]); name = m[2]; r = {name,offset,duration}; offset += duration; return r;}); console.log(JSON.stringify(a, null, 2))' >sound-files.json

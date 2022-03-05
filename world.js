@@ -10,13 +10,16 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import hpManager from './hp-manager.js';
 // import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
+// import {chatManager} from './chat-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
 import {scene, postSceneOrthographic, postScenePerspective, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import metaversefileApi from 'metaversefile';
-import {worldMapName, appsMapName, playersMapName} from './constants.js';
+import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 import * as metaverseModules from './metaverse-modules.js';
+import {createParticleSystem} from './particle-system.js';
+import * as sounds from './sounds.js';
 
 const localEuler = new THREE.Euler();
 
@@ -30,6 +33,9 @@ world.appManager = appManager;
 
 world.lights = new THREE.Object3D();
 scene.add(world.lights);
+
+world.particleSystem = createParticleSystem();
+scene.add(world.particleSystem);
 
 // multiplayer
 let wsrtc = null;
@@ -48,31 +54,7 @@ const extra = {
   states: new Float32Array(15),
 }; */
 
-let mediaStream = null;
-world.micEnabled = () => !!mediaStream;
-world.enableMic = async () => {
-  await WSRTC.waitForReady();
-  mediaStream = await WSRTC.getUserMedia();
-  if (wsrtc) {
-    wsrtc.enableMic(mediaStream);
-  }
-  
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.setMicMediaStream(mediaStream);
-};
-world.disableMic = () => {
-  if (mediaStream) {
-    if (wsrtc) {
-      wsrtc.disableMic();
-    } else {
-      WSRTC.destroyUserMedia(mediaStream);
-    }
-    mediaStream = null;
-    
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.setMicMediaStream(null);
-  }
-};
+world.getConnection = () => wsrtc;
 
 world.connectState = state => {
   state.setResolvePriority(1);
@@ -342,6 +324,10 @@ const _bindHitTracker = app => {
       const {collisionId, hitPosition, hitDirection, hitQuaternion, willDie} = opts;
       if (willDie) {
         hpManager.triggerDamageAnimation(collisionId);
+        
+        const soundFiles = sounds.getSoundFiles();
+        const enemyDeathSound = soundFiles.enemyDeath[Math.floor(Math.random() * soundFiles.enemyDeath.length)];
+        sounds.playSound(enemyDeathSound);
       }
 
       {
