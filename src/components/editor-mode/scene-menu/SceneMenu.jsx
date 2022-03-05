@@ -258,6 +258,27 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     }, [ scenesMenuOpened, roomsMenuOpened ] );
 
+    useEffect( () => {
+
+        function michange(e) {
+            setMicEnabled(e.data.enabled);
+        }
+
+        function speechchange(e) {
+            setSpeechEnabled(e.data.enabled);
+        }
+
+        voiceInput.addEventListener( 'micchange', michange );
+        voiceInput.addEventListener( 'speechchange', speechchange );
+    
+        return () => {
+          
+            voiceInput.removeEventListener( 'micchange', michange );
+            voiceInput.removeEventListener( 'speechchange', speechchange );
+            
+        };
+    }, [] );
+
     //
 
     return (
