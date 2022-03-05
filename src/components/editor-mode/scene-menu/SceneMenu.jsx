@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
-// import * as Z from 'zjs';
 
 import { world } from '../../../../world'
 import universe from '../../../../universe.js'
