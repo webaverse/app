@@ -27,8 +27,7 @@ import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
-import loreAI from './lore-ai.js';
-import loreAIScene from './lore-ai-scene.js';
+import loreAI from './ai/lore/lore-ai.js';
 import npcManager from './npc-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
@@ -132,6 +131,26 @@ const defaultModules = {
   moduleUrls,
   modules,
 };
+
+const loreAIScene = loreAI.createScene(localPlayer);
+const _bindAppManagerToLoreAIScene = (appManager, loreAIScene) => {
+  const bindings = new WeakMap();
+  appManager.addEventListener('appadd', e => {
+    const app = e.data;
+    const object = loreAIScene.addObject({
+      name: app.name,
+      description: app.description,
+    });
+    bindings.set(app, object);
+  });
+  appManager.addEventListener('appremove', e => {
+    const app = e.data;
+    const object = bindings.get(app);
+    loreAIScene.removeObject(object);
+    bindings.delete(app);
+  });
+};
+_bindAppManagerToLoreAIScene(world.appManager, loreAIScene);
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -313,12 +332,6 @@ metaversefile.setApi({
   useWorld() {
     return {
       appManager: world.appManager,
-      /* addObject() {
-        return world.appManager.addObject.apply(world.appManager, arguments);
-      },
-      removeObject() {
-        return world.appManager.removeObject.apply(world.appManager, arguments);
-      }, */
       getApps() {
         return world.appManager.apps;
       },

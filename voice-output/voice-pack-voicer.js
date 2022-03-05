@@ -1,9 +1,9 @@
 /* this is the fake speech synthesis module.
 it is responsible for playing Banjo-Kazooie style character speech. */
 
-import Avatar from './avatars/avatars.js';
-import {loadAudioBuffer, makePromise} from './util.js';
-import {chatTextSpeed} from './constants.js';
+import Avatar from '../avatars/avatars.js';
+import {loadAudioBuffer, makePromise} from '../util.js';
+import {chatTextSpeed} from '../constants.js';
 
 function weightedRandom(weights) {
 	let totalWeight = 0;

@@ -1,47 +1,8 @@
 import React, {useState, useEffect, useRef} from 'react'
 import classes from './MagicMenu.module.css'
 import ioManager from '../io-manager.js';
-import {aiHost} from '../constants.js';
+import * as codeAi from '../ai/code/code-ai.js';
 import metaversefile from 'metaversefile';
-
-function parseQueryString(queryString) {
-  const query = {};
-  const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-  for (let i = 0; i < pairs.length; i++) {
-    const pair = pairs[i].split('=');
-    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-  }
-  return query;
-}
-
-// window.metaversefile = metaversefile; // XXX
-const makeAi = prompt => {
-    const es = new EventSource(`${aiHost}/code?p=${encodeURIComponent(prompt)}`);
-    let fullS = '';
-    es.addEventListener('message', e => {
-      const s = e.data;
-      if (s !== '[DONE]') {
-        const j = JSON.parse(s);
-        const {choices} = j;
-        const {text} = choices[0];
-        fullS += text;
-        if (!fullS) {
-          fullS = '// nope';
-        }
-        result.dispatchEvent(new MessageEvent('update', {
-          data: fullS,
-        }));
-      } else {
-        es.close();
-        result.dispatchEvent(new MessageEvent('done'));
-      }
-    });
-    const result = new EventTarget();
-    result.destroy = () => {
-      es.close();
-    };
-    return result;
-};
 
 function MagicMenu({open, setOpen}) {
   const [page, setPage] = useState('input');
@@ -70,7 +31,7 @@ function MagicMenu({open, setOpen}) {
       let newAi = null;
       try {
         const input = inputTextarea.current.value;
-        newAi = makeAi(input);
+        newAi = codeAi.generateStream(input);
         setAi(newAi);
         setPage('output');
         setOutput('');

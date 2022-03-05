@@ -122,12 +122,6 @@ export default function Header({
         setOpen('chat');
         return true;
       }
-      case 84: { // T
-        e.preventDefault();
-        e.stopPropagation();
-        world.toggleMic();
-        return true;
-      }
       case 191: { // /
         if (!magicMenuOpen && !ioManager.inputFocused()) { 
           e.preventDefault();
