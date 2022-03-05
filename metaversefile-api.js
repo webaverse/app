@@ -841,6 +841,13 @@ export default () => {
   getAvatarHeight(obj) {
     return getHeight(obj);
   },
+  getGfxSettingJSON(setting){
+    if (setting) return JSON.parse(localStorage.getItem( 'GfxSettings' ))[setting];
+    return JSON.parse(localStorage.getItem( 'GfxSettings' ));
+  },
+  setGfxSetting(quality){
+    localStorage.setItem( 'GfxSettings', JSON.stringify( quality ) );
+  },  
   useInternals() {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
