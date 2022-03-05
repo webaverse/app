@@ -573,56 +573,7 @@ const _startHacks = () => {
     }
   }; */
   window.addEventListener('keydown', e => {
-    if (e.which === 219) { // [
-      if (localPlayer.avatar) {
-        (async () => {
-          const audioUrl = '/sounds/pissbaby.mp3';
-          // const audioUrl2 = '/sounds/music.mp3';
-
-          const _loadAudio = u => new Promise((accept, reject) => {
-            const audio = new Audio(u);
-            audio.addEventListener('canplaythrough', async e => {
-              accept(audio);
-            }, {once: true});
-            audio.addEventListener('error', e => {
-              reject(e);
-            });
-            // audio.play();
-            // audioContext.resume();
-          });
-
-          const audios = await Promise.all([
-            _loadAudio(audioUrl),
-            // _loadAudio(audioUrl2),
-          ]);
-          localPlayer.avatar.setAudioEnabled(true);
-
-          const _createMediaStreamSource = o => {
-            if (o instanceof MediaStream) {
-              const audio = document.createElement('audio');
-              audio.srcObject = o;
-              audio.muted = true;
-            }
-
-            const audioContext = Avatar.getAudioContext();
-            if (o instanceof MediaStream) {
-              return audioContext.createMediaStreamSource(o);
-            } else {
-              return audioContext.createMediaElementSource(o);
-            }
-          };
-          const mediaStreamSource = _createMediaStreamSource(audios[0]);
-          mediaStreamSource.connect(localPlayer.avatar.getAudioInput());
-
-          audios[0].play();
-          // audios[1].play();
-          audios[0].addEventListener('ended', e => {
-            mediaStreamSource.disconnect();
-            localPlayer.avatar.setAudioEnabled(false);
-          });
-        })();
-      }
-    } else if (e.which === 46) { // .
+    if (e.which === 46) { // .
       emoteIndex = -1;
       _updateEmote();
     } else if (e.which === 107) { // +
