@@ -17,13 +17,13 @@ import {zbdecode} from 'zjs/encoding.mjs';
 import Simplex from '../simplex-noise.js';
 import {
   crouchMaxTime,
-  useMaxTime,
+  // useMaxTime,
   aimMaxTime,
-  avatarInterpolationFrameRate,
-  avatarInterpolationTimeDelay,
-  avatarInterpolationNumFrames,
+  // avatarInterpolationFrameRate,
+  // avatarInterpolationTimeDelay,
+  // avatarInterpolationNumFrames,
 } from '../constants.js';
-import {FixedTimeStep} from '../interpolants.js';
+// import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import {
@@ -1277,12 +1277,14 @@ class Avatar {
 
     if (options.hair) {
       this.springBoneManager = new VRMSpringBoneImporter().import(object);
+    } else {
+      this.springBoneManager = null;
     }
-    this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
+    /* this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
       // console.log('update hairs', new Error().stack);
       const timeDiffS = timeDiff / 1000;
       this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
-    }, avatarInterpolationFrameRate);
+    }, 10); */
 
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
@@ -3171,7 +3173,8 @@ class Avatar {
     );
     // this.modelBones.Root.updateMatrixWorld();
 
-    this.springBoneTimeStep.update(timeDiff);
+    // this.springBoneTimeStep.update(timeDiff);
+    this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
 
     // XXX hook these up
     this.nodder.update(now);
