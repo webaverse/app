@@ -51,7 +51,6 @@ const CharacterHup = function(props) {
       }
 
       return () => {
-        chatDioramas.delete(player);
         diorama.destroy();
       };
     }
@@ -88,6 +87,9 @@ const CharacterHup = function(props) {
     }
     hup.addEventListener('voicestart', voicestart);
     function destroy(e) {
+      const player = hup.parent.player;
+      chatDioramas.delete(player);
+
       setLocalOpen(false);
     }
     hup.addEventListener('destroy', destroy);
