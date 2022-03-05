@@ -41,9 +41,9 @@ import {
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 
 const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
+// const localVector2 = new THREE.Vector3();
+// const localQuaternion = new THREE.Quaternion();
+// const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray3 = [0, 0, 0];
