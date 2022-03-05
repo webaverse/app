@@ -97,5 +97,4 @@ export const defaultDioramaSize = 512;
 
 export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';
 // export const defaultAvatarUrl = './avatars/scillia_drophunter_v25_gloria_vian.vrm';
-// export const defaultAvatarUrl = './avatars/scilly_drophunter_v27_Guilty.vrm';
 // export const defaultAvatarUrl = './avatars/ann.vrm';
