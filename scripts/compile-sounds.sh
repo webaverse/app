@@ -9,7 +9,7 @@ rm -f sounds.txt
 rm -f sounds.wav
 rm -f sounds.mp3
 
-ls {walk,run,jump,land,narutoRun,food,combat,spells}/*.wav | sort -n >sound-files.txt
+ls {walk,run,jump,land,narutoRun,food,combat,spells,ui}/*.wav | sort -n >sound-files.txt
 
 set --
 while IFS='' read -r item; do
