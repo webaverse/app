@@ -19,7 +19,6 @@ import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 import * as metaverseModules from './metaverse-modules.js';
 import {createParticleSystem} from './particle-system.js';
-// import voiceInput from './voice-input/voice-input.js';
 import * as sounds from './sounds.js';
 
 const localEuler = new THREE.Euler();
