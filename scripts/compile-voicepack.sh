@@ -2,7 +2,7 @@
 # input: directory of wav files
 # output: mp3 data file and json metadata file
 
-find . -name '*-pad.wav' | xargs rm
+find . -name '*-pad.wav' | xargs -d '\n' rm
 rm -f lol.txt
 rm -f sounds.txt
 
