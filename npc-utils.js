@@ -57,6 +57,8 @@ class PathFinder {
 
     this.startDestQuaternion = new THREE.Quaternion();
 
+    this.directions = ['left', 'right', 'btm', 'top'];
+
     if (this.debugRender) {
       this.geometry = new THREE.BoxGeometry();
       this.geometry.scale(0.5, this.voxelHeight, 0.5);
@@ -357,7 +359,7 @@ class PathFinder {
     const rightVoxel = this.createVoxel(localVector);
     currentVoxel._rightVoxel = rightVoxel;
     if (rightVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
-      currentVoxel._canRigth = true;
+      currentVoxel._canRight = true;
     }
   }
 
@@ -481,6 +483,10 @@ class PathFinder {
     }
   }
 
+  capitalize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
   step() {
     if (this.frontiers.length <= 0) {
       // if (this.debugRender) console.log('finish');
@@ -491,28 +497,12 @@ class PathFinder {
     const currentVoxel = this.frontiers.shift();
     currentVoxel._isFrontier = false;
 
-    if (!currentVoxel._leftVoxel) this.generateVoxelMapLeft(currentVoxel);
-    if (currentVoxel._canLeft) {
-      this.stepVoxel(currentVoxel._leftVoxel, currentVoxel);
-      if (this.isFound) return;
-    }
-
-    if (!currentVoxel._rightVoxel) this.generateVoxelMapRight(currentVoxel);
-    if (currentVoxel._canRigth) {
-      this.stepVoxel(currentVoxel._rightVoxel, currentVoxel);
-      if (this.isFound) return;
-    }
-
-    if (!currentVoxel._btmVoxel) this.generateVoxelMapBtm(currentVoxel);
-    if (currentVoxel._canBtm) {
-      this.stepVoxel(currentVoxel._btmVoxel, currentVoxel);
-      if (this.isFound) return;
-    }
-
-    if (!currentVoxel._topVoxel) this.generateVoxelMapTop(currentVoxel);
-    if (currentVoxel._canTop) {
-      this.stepVoxel(currentVoxel._topVoxel, currentVoxel);
-      // if (this.isFound) return
+    for (const direction of this.directions) {
+      if (!currentVoxel[`_${direction}Voxel`]) this[`generateVoxelMap${this.capitalize(direction)}`](currentVoxel);
+      if (currentVoxel[`_can${this.capitalize(direction)}`]) {
+        this.stepVoxel(currentVoxel[`_${direction}Voxel`], currentVoxel);
+        if (this.isFound) return;
+      }
     }
   }
 
