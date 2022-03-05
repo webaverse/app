@@ -69,8 +69,7 @@ export default function Header({
   }, []);
   useEffect(() => {
     const pointerlockchange = e => {
-      // console.log('pointer lock change', e, document.pointerLockElement);
-      if (document.pointerLockElement) {
+      if (document.pointerLockElement && open !== null) {
         setOpen(null);
       }
     };
@@ -78,7 +77,7 @@ export default function Header({
     return () => {
       window.document.removeEventListener('pointerlockchange', pointerlockchange);
     };
-  }, []);
+  }, [open]);
   useEffect(() => {
     if (open && document.pointerLockElement && open !== 'chat') {
       document.exitPointerLock();
