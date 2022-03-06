@@ -57,7 +57,7 @@ class PathFinder {
 
     this.startDestQuaternion = new THREE.Quaternion();
 
-    this.directions = ['left', 'right', 'btm', 'top'];
+    this.directions = ['left', 'right', 'btm', 'top', 'back', 'front'];
 
     if (this.debugRender) {
       this.geometry = new THREE.BoxGeometry();
@@ -353,9 +353,15 @@ class PathFinder {
         localVector.x += 1;
         break;
       case 'btm':
-        localVector.z += -1;
+        localVector.y += -1;
         break;
       case 'top':
+        localVector.y += 1;
+        break;
+      case 'back':
+        localVector.z += -1;
+        break;
+      case 'front':
         localVector.z += 1;
         break;
     }
