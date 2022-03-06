@@ -79,7 +79,11 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
 
               return (
                 <div
-                  className={styles.emotion}
+                  className={classnames(
+                    styles.emotion,
+                    emotionStates[emotionIndex].value > 0 ? styles.nonzero : null,
+                    emotionStates[emotionIndex].value === 1 ? styles.full : null,
+                  )}
                   onMouseDown={e => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -96,7 +100,9 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
                   // ref={emotionRef}
                   key={emotion}
                 >
-                  <progress className={classnames(styles.emotionProgress, emotionStates[emotionIndex].value === 1 ? styles.full : null)} value={emotionStates[emotionIndex].value} />
+                  <div className={styles.emotionIconPlaceholder} />
+                  <div className={styles.emotionNamePlaceholder} />
+                  <progress className={classnames(styles.emotionProgress)} value={emotionStates[emotionIndex].value} />
                   <img src={`images/emotions/${emotion}.svg`} className={styles.emotionIcon} />
                   <div className={styles.emotionName}>{emotion}</div>
                 </div>
