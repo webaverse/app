@@ -40,7 +40,6 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
             const emotionState = emotionStates[dragEmotionIndex];
             const oldValue = emotionState.action ? emotionState.action.value : 0;
             const value = Math.min(Math.max(oldValue - movementY * 0.01, 0), 1);
-            // console.log('new value', value);
             if (value > 0) {
               if (emotionState.action === null) {
                 const newAction = localPlayer.addAction({
@@ -48,19 +47,15 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
                   emotion,
                   value,
                 });
-                // console.log('add action', newAction);
                 emotionState.setAction(newAction);
                 emotionState.setValue(value);
               } else {
-                // console.log('update action', emotionState.action.value, value);
                 emotionState.action.value = value;
                 emotionState.setValue(value);
               }
             } else {
               const emoteActionIndex = localPlayer.findActionIndex(a => a.type === 'emote' && a.emotion === emotion);
-              // console.log('remove action index', emoteActionIndex);
               if (emoteActionIndex !== -1) {
-                // console.log('remove action', emoteActionIndex);
                 localPlayer.removeActionIndex(emoteActionIndex);
                 emotionState.setAction(null);
                 emotionState.setValue(0);
