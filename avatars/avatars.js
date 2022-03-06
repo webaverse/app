@@ -3254,9 +3254,9 @@ class Avatar {
           // emotes
           if (this.emotes.length > 0) {
             for (const emote of this.emotes) {
-              if (emote.index >= 0 && emote.index < morphTargetInfluences.length) {
+              /* if (emote.index >= 0 && emote.index < morphTargetInfluences.length) {
                 morphTargetInfluences[emote.index] = emote.value;
-              } else {
+              } else { */
                 let index = -1;
                 switch (emote.emotion) {
                   case 'neutral': {
@@ -3279,11 +3279,18 @@ class Avatar {
                     index = sorrowIndex;
                     break;
                   }
+                  default: {
+                    const match = emote.emotion.match(/^emotion-([0-9]+)$/);
+                    if (match) {
+                      index = parseInt(match[1], 10);
+                    }
+                    break;
+                  }
                 }
                 if (index !== -1) {
                   morphTargetInfluences[index] = emote.value;
                 }
-              }
+              // }
             }
           }
 
