@@ -35,7 +35,7 @@ class PathFinder {
     */
     this.voxelHeight = 1;
     this.heightTolerance = 1;
-    this.maxIterStep = maxIterStep;
+    this.maxIterStep = 3000;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
     this.ignorePhysicsIds = ignorePhysicsIds;
     this.debugRender = true;
