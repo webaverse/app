@@ -84,8 +84,24 @@ class CameraManager extends EventTarget {
   constructor() {
     super();
 
+    this.pointerLockElement = null;
+    this.pointerLockEpoch = 0;
     this.shakes = [];
-    // this.shakeFactor = 0.1;
+
+    document.addEventListener('pointerlockchange', e => {
+      let pointerLockElement = document.pointerLockElement;
+      const renderer = getRenderer();
+      if (pointerLockElement !== null && pointerLockElement !== renderer.domElement) {
+        pointerLockElement = null;
+      }
+      
+      this.pointerLockElement = pointerLockElement;
+      this.dispatchEvent(new MessageEvent('pointerlockchange', {
+        data: {
+          pointerLockElement,
+        },
+      }));
+    });
   }
   wasActivated() {
     return wasActivated;
@@ -95,6 +111,7 @@ class CameraManager extends EventTarget {
     camera.updateMatrixWorld();
   }
   async requestPointerLock() {
+    const localPointerLockEpoch = ++this.pointerLockEpoch;
     for (const options of [
       {
         unadjustedMovement: true,
@@ -103,9 +120,12 @@ class CameraManager extends EventTarget {
     ]) {
       try {
         await new Promise((accept, reject) => {
-          if (!document.pointerLockElement) {
+          const renderer = getRenderer();
+          if (document.pointerLockElement !== renderer.domElement) {
             const _pointerlockchange = e => {
-              accept();
+              if (localPointerLockEpoch === this.pointerLockEpoch) {
+                accept();
+              }
               _cleanup();
             };
             document.addEventListener('pointerlockchange', _pointerlockchange);
@@ -113,7 +133,7 @@ class CameraManager extends EventTarget {
               reject(err);
               _cleanup();
               
-              notifications.addNotification(`\
+              /* notifications.addNotification(`\
                 <i class="icon fa fa-mouse-pointer"></i>
                 <div class=wrap>
                   <div class=label>Whoa there!</div>
@@ -124,15 +144,15 @@ class CameraManager extends EventTarget {
                 </div>
               `, {
                 timeout: 3000,
-              });
+              }); */
             };
             document.addEventListener('pointerlockerror', _pointerlockerror);
             const _cleanup = () => {
               document.removeEventListener('pointerlockchange', _pointerlockchange);
               document.removeEventListener('pointerlockerror', _pointerlockerror);
             };
-            const renderer = getRenderer();
-            renderer.domElement.requestPointerLock(options);
+            renderer.domElement.requestPointerLock(options)
+              .catch(_pointerlockerror);
           } else {
             accept();
           }
@@ -143,6 +163,9 @@ class CameraManager extends EventTarget {
         continue;
       }
     }
+  }
+  exitPointerLock() {
+    document.exitPointerLock();
   }
   getMode() {
     const f = -cameraOffset.z;
