@@ -78,7 +78,7 @@ const resetKeys = () => {
   }
 };
 
-document.addEventListener('pointerlockchange', () => {
+cameraManager.addEventListener('pointerlockchange', () => {
   resetKeys();
 });
 
@@ -315,7 +315,7 @@ ioManager.keydown = e => {
     }
     case 87: { // W
       ioManager.keys.up = true;
-      if (!document.pointerLockElement) {
+      if (!cameraManager.pointerLockElement) {
         game.menuVertical(-1);
       }
 
@@ -331,7 +331,7 @@ ioManager.keydown = e => {
     }
     case 65: { // A
       ioManager.keys.left = true;
-      if (!document.pointerLockElement) {
+      if (!cameraManager.pointerLockElement) {
         game.menuHorizontal(-1);
       }
 
@@ -347,7 +347,7 @@ ioManager.keydown = e => {
     }
     case 83: { // S
       ioManager.keys.down = true;
-      if (!document.pointerLockElement) {
+      if (!cameraManager.pointerLockElement) {
         if (game.menuOpen) {
           game.menuVertical(1);
         } else {
@@ -369,7 +369,7 @@ ioManager.keydown = e => {
     }
     case 68: { // D
       ioManager.keys.right = true;
-      if (!document.pointerLockElement) {
+      if (!cameraManager.pointerLockElement) {
         game.menuHorizontal(1);
       }
 
@@ -384,7 +384,7 @@ ioManager.keydown = e => {
       break;
     }
     case 82: { // R
-      if (document.pointerLockElement) {
+      if (cameraManager.pointerLockElement) {
         if (game.canRotate()) {
           game.menuRotate(1);
         } else {
@@ -411,7 +411,7 @@ ioManager.keydown = e => {
       break;
     }
     case 71: { // G
-      if (document.pointerLockElement) {
+      if (cameraManager.pointerLockElement) {
         /* if (game.canTry()) {
           game.menuTry();
         } */
@@ -540,7 +540,7 @@ ioManager.keydown = e => {
       break;
     }
     case 69: { // E
-      // if (document.pointerLockElement) {
+      // if (cameraManager.pointerLockElement) {
         if (game.canRotate()) {
           game.menuRotate(-1);
         } else {
@@ -609,19 +609,19 @@ ioManager.keyup = e => {
       break;
     } */
     case 69: { // E
-      if (document.pointerLockElement) {
+      if (cameraManager.pointerLockElement) {
         game.menuActivateUp();
       }
       break;
     }
     case 70: { // F
-      // if (document.pointerLockElement) {
+      // if (cameraManager.pointerLockElement) {
         ioManager.keys.forward = false;
       // }
       break;
     }
     case 67: { // C
-      // if (document.pointerLockElement) {
+      // if (cameraManager.pointerLockElement) {
         ioManager.keys.backward = false;
         ioManager.keys.ctrl = false;
       // }
@@ -754,7 +754,7 @@ ioManager.mousemove = e => {
   /* if (game.weaponWheel) {
     game.updateWeaponWheel(e);
   } else { */
-    if (document.pointerLockElement) {
+    if (cameraManager.pointerLockElement) {
       _updateMouseMovement(e);
     } else {
       if (game.dragging) {
@@ -772,7 +772,7 @@ ioManager.mouseleave = e => {
   renderer.domElement.classList.remove('hover');
 };
 ioManager.click = e => {
-  if (document.pointerLockElement) {
+  if (cameraManager.pointerLockElement) {
     game.menuClick();
   } else {
     // game.setContextMenu(false);
@@ -802,7 +802,7 @@ ioManager.click = e => {
 let lastMouseButtons = 0;
 ioManager.mousedown = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
-  if (document.pointerLockElement) {
+  if (cameraManager.pointerLockElement) {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
       game.menuMouseDown();
     }
@@ -832,7 +832,7 @@ ioManager.mousedown = e => {
 ioManager.mouseup = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
   // if (mouseDown) {
-    if (document.pointerLockElement) {
+    if (cameraManager.pointerLockElement) {
       if ((changedButtons & 1) && !(e.buttons & 1)) { // left
         game.menuMouseUp();
       }

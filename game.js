@@ -1159,7 +1159,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         localPlayer.avatar.eyeTarget.copy(mouseSelectedPosition);
         localPlayer.avatar.eyeTargetInverted = true;
         localPlayer.avatar.eyeTargetEnabled = true;
-      } else if (!document.pointerLockElement && lastMouseEvent) {
+      } else if (!cameraManager.pointerLockElement && lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
@@ -1199,7 +1199,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
-    const visible = !!document.pointerLockElement &&
+    const visible = !!cameraManager.pointerLockElement &&
       (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || metaversefileApi.useLocalPlayer().hasAction('aim')) &&
       !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
@@ -1283,9 +1283,11 @@ window.addEventListener('drop', async e => {
 });
 
 const _bindPointerLock = () => {
-  document.addEventListener('pointerlockchange', () => {
+  cameraManager.addEventListener('pointerlockchange', e => {
+    const {pointerLockElement} = e.data;
+
     gameManager.setMouseHoverObject(null);
-    if (!document.pointerLockElement) {
+    if (!pointerLockElement) {
       gameManager.editMode = false;
     }
   });
@@ -1629,7 +1631,7 @@ const gameManager = {
     this.editMode = !this.editMode;
     // console.log('got edit mode', this.editMode);
     if (this.editMode) {
-      if (!document.pointerLockElement) {
+      if (!cameraManager.pointerLockElement) {
         await cameraManager.requestPointerLock();
       }
       if (this.mouseSelectedObject) {
