@@ -34,7 +34,7 @@ export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }
 
     const handleModeBtnClick = () => {
 
-        setModeOpen(true);
+        setModeOpen(!modeOpen);
 
     };
 
