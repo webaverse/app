@@ -168,7 +168,7 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
 
         if ( opened ) {
 
-            document.exitPointerLock();
+            cameraManager.exitPointerLock();
             closeOtherWindows();
 
         }
