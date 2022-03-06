@@ -84,8 +84,9 @@ class CameraManager extends EventTarget {
   constructor() {
     super();
 
+    this.pointerLockElement = null;
+    this.pointerLockEpoch = 0;
     this.shakes = [];
-    // this.shakeFactor = 0.1;
   }
   wasActivated() {
     return wasActivated;
@@ -95,6 +96,7 @@ class CameraManager extends EventTarget {
     camera.updateMatrixWorld();
   }
   async requestPointerLock() {
+    const localPointerLockEpoch = ++this.pointerLockEpoch;
     for (const options of [
       {
         unadjustedMovement: true,
@@ -103,9 +105,47 @@ class CameraManager extends EventTarget {
     ]) {
       try {
         await new Promise((accept, reject) => {
-          if (!document.pointerLockElement) {
+          const renderer = getRenderer();
+          if (document.pointerLockElement !== renderer.domElement) {
             const _pointerlockchange = e => {
-              accept();
+              if (localPointerLockEpoch === this.pointerLockEpoch) {
+                if (document.pointerLockElement === renderer.domElement) {
+                  accept();
+
+                  this.pointerLockElement = document.pointerLockElement;
+                  this.dispatchEvent(new MessageEvent('pointerlockchange', {
+                    data: {
+                      pointerLockElement: this.pointerLockElement,
+                    },
+                  }));
+
+                  const _setUpUnlockNotification = () => {
+                    const _pointerlockchange2 = e => {
+                      if (localPointerLockEpoch === this.pointerLockEpoch) {
+                        if (document.pointerLockElement === null) {
+                          this.pointerLockElement = document.pointerLockElement;
+
+                          this.dispatchEvent(new MessageEvent('pointerlockchange', {
+                            data: {
+                              pointerLockElement: null,
+                            },
+                          }));
+                        } else {
+                          console.warn('unexpected pointer lock change 1', document.pointerLockElement);
+                        }
+                      }
+                      _cleanup2();
+                    };
+                    document.addEventListener('pointerlockchange', _pointerlockchange2);
+                    const _cleanup2 = () => {
+                      document.removeEventListener('pointerlockchange', _pointerlockchange2);
+                    };
+                  };
+                  _setUpUnlockNotification();
+                } else {
+                  console.warn('unexpected pointer lock change 2', document.pointerLockElement);
+                }
+              }
               _cleanup();
             };
             document.addEventListener('pointerlockchange', _pointerlockchange);
@@ -131,8 +171,8 @@ class CameraManager extends EventTarget {
               document.removeEventListener('pointerlockchange', _pointerlockchange);
               document.removeEventListener('pointerlockerror', _pointerlockerror);
             };
-            const renderer = getRenderer();
-            renderer.domElement.requestPointerLock(options);
+            renderer.domElement.requestPointerLock(options)
+              .catch(_pointerlockerror);
           } else {
             accept();
           }
@@ -143,6 +183,10 @@ class CameraManager extends EventTarget {
         continue;
       }
     }
+  }
+  exitPointerLock() {
+    // this.pointerLockEpoch++;
+    document.exitPointerLock();
   }
   getMode() {
     const f = -cameraOffset.z;
