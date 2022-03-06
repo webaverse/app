@@ -5,7 +5,7 @@ import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
-import alea from './alea.js';
+// import alea from './alea.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -85,7 +85,7 @@ class CameraManager extends EventTarget {
     super();
 
     this.pointerLockElement = null;
-    this.pointerLockEpoch = 0;
+    // this.pointerLockEpoch = 0;
     this.shakes = [];
 
     document.addEventListener('pointerlockchange', e => {
@@ -94,7 +94,7 @@ class CameraManager extends EventTarget {
       if (pointerLockElement !== null && pointerLockElement !== renderer.domElement) {
         pointerLockElement = null;
       }
-      
+
       this.pointerLockElement = pointerLockElement;
       this.dispatchEvent(new MessageEvent('pointerlockchange', {
         data: {
@@ -103,15 +103,12 @@ class CameraManager extends EventTarget {
       }));
     });
   }
-  wasActivated() {
-    return wasActivated;
-  }
   focusCamera(position) {
     camera.lookAt(position);
     camera.updateMatrixWorld();
   }
   async requestPointerLock() {
-    const localPointerLockEpoch = ++this.pointerLockEpoch;
+    // const localPointerLockEpoch = ++this.pointerLockEpoch;
     for (const options of [
       {
         unadjustedMovement: true,
@@ -123,9 +120,9 @@ class CameraManager extends EventTarget {
           const renderer = getRenderer();
           if (document.pointerLockElement !== renderer.domElement) {
             const _pointerlockchange = e => {
-              if (localPointerLockEpoch === this.pointerLockEpoch) {
+              // if (localPointerLockEpoch === this.pointerLockEpoch) {
                 accept();
-              }
+              // }
               _cleanup();
             };
             document.addEventListener('pointerlockchange', _pointerlockchange);

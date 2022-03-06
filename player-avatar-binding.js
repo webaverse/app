@@ -91,8 +91,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
-  const emoteAction = player.getAction('emote');
-  const poseAction = player.getAction('pose');
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
@@ -163,35 +161,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
   rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
-
-  // emote
-  if (emoteAction) {
-    const {index, emotion} = emoteAction;
-    if (index !== undefined) {
-      if (!player.avatar.emotes.some(e => e.index === index)) {
-        const newEmote = {
-          index,
-          value: 1,
-        };
-        player.avatar.emotes.push(newEmote);
-      }
-    } else if (emotion !== undefined) {
-      if (!player.avatar.emotes.some(e => e.emotion === emotion)) {
-        const newEmote = {
-          emotion,
-          value: 1,
-        };
-        player.avatar.emotes.push(newEmote);
-      }
-    }
-  } else {
-    if (player.avatar.emotes.length > 0) {
-      player.avatar.emotes.length = 0;
-    }
-  }
-
-  // pose
-  rig.poseAnimation = poseAction?.animation || null;
 }
 // returns whether eyes were applied
 export function applyPlayerEyesToAvatar(player, rig) {
@@ -229,59 +198,30 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
     }
   }
 }
-export function applyPlayerChatToAvatar(player, rig) {
-  const actions = player.getActionsArray();
-  for (let i = actions.length - 1; i >= 0; i--) {
-    const action = actions[i];
-    if (action.type === 'chat') {
-      const {emotion} = action;
-      if (emotion) {
-        // ensure new emotion and no others
-        let found = false;
-        for (let i = 0; i < rig.emotes.length; i++) {
-          const emote = rig.emotes[i];
-          if (emote.emotion) {
-            if (emote.emotion === emotion) {
-              found = true;
-            } else {
-              rig.emotes.splice(i, 1);
-              i--;
-            }
-          }
-        }
-        if (!found) {
-          const emote = {
-            emotion,
-            value: 1,
-          };
-          rig.emotes.push(emote);
-        }
-      } else {
-        // ensure no emotions
-        for (let i = 0; i < rig.emotes.length; i++) {
-          const emote = rig.emotes[i];
-          if (emote.emotion) {
-            rig.emotes.splice(i, 1);
-            i--;
-          }
-        }
-      }
-      break;
+export function applyPlayerEmotesToAvatar(player, rig) {
+  const emoteActions = player.getActionsArray().filter(a => a.type === 'emote');
+  if (emoteActions.length > 0) {
+    player.avatar.emotes = emoteActions;
+  } else {
+    if (player.avatar.emotes.length !== 0) {
+      player.avatar.emotes.length = 0;
     }
   }
-  
-  /* const _applyFakeSpeech = message => {
-    rig.fakeSpeechValue = message?.fakeSpeech ? 1 : 0;
-  };
-  _applyFakeSpeech(lastMessage); */
+}
+export function applyPlayerPoseToAvatar(player, rig) {
+  const poseAction = player.getAction('pose');
+  rig.poseAnimation = poseAction?.animation || null;
 }
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
+  
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
-  applyPlayerChatToAvatar(player, rig);
+  
+  applyPlayerEmotesToAvatar(player, rig);
+  applyPlayerPoseToAvatar(player, rig);
 }
 export async function switchAvatar(oldAvatar, newApp) {
   let result;
