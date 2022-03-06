@@ -346,7 +346,7 @@ const _startHacks = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
-  let playerDiorama = null;
+  // let playerDiorama = null;
   const lastEmoteKey = {
     key: -1,
     timestamp: 0,
@@ -368,11 +368,15 @@ const _startHacks = () => {
     }
   };
   const _updateEmote = () => {
-    localPlayer.removeAction('emote');
+    const oldEmoteActionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && /^emotion-/.test(action.emotion));
+    if (oldEmoteActionIndex !== -1) {
+      localPlayer.removeActionIndex(oldEmoteActionIndex);
+    }
     if (emoteIndex !== -1) {
       const emoteAction = {
         type: 'emote',
-        index: emoteIndex,
+        emotion: `emotion-${emoteIndex}`,
+        value: 1,
       };
       localPlayer.addAction(emoteAction);
     }

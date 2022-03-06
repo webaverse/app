@@ -1520,6 +1520,16 @@ class Avatar {
           return -1;
         }
       };
+      const _getMorphTargetInfluenceIndexForRegex = (morphTargetDictionary, regex) => {
+        let index = 0;
+        for (const k in morphTargetDictionary) {
+          if (regex.test(k)) {
+            return index;
+          }
+          index++;
+        }
+        return -1;
+      };
       /* const _getBlendShapeIndexForName = name => {
         const blendShapes = this.vrmExtension && this.vrmExtension.blendShapeMaster && this.vrmExtension.blendShapeMaster.blendShapeGroups;
         if (Array.isArray(blendShapes)) {
@@ -1549,7 +1559,7 @@ class Avatar {
           const funIndex = _getBlendShapeIndexForPresetName('fun');
           const joyIndex = _getBlendShapeIndexForPresetName('joy');
           const sorrowIndex = _getBlendShapeIndexForPresetName('sorrow');
-          // const surprisedIndex = _getBlendShapeIndexForName('surprised');
+          const surpriseIndex = _getMorphTargetInfluenceIndexForRegex(morphTargetDictionary, /surprise/i);
           // const extraIndex = _getBlendShapeIndexForName('extra');
           return [
             morphTargetInfluences,
@@ -1565,7 +1575,7 @@ class Avatar {
             funIndex,
             joyIndex,
             sorrowIndex,
-            // surprisedIndex,
+            surpriseIndex,
             // extraIndex,
           ];
         } else {
@@ -3200,7 +3210,7 @@ class Avatar {
             funIndex,
             joyIndex,
             sorrowIndex,
-            // surprisedIndex,
+            surpriseIndex,
             // extraIndex,
           ] = visemeMapping;
           
@@ -3254,9 +3264,9 @@ class Avatar {
           // emotes
           if (this.emotes.length > 0) {
             for (const emote of this.emotes) {
-              if (emote.index >= 0 && emote.index < morphTargetInfluences.length) {
+              /* if (emote.index >= 0 && emote.index < morphTargetInfluences.length) {
                 morphTargetInfluences[emote.index] = emote.value;
-              } else {
+              } else { */
                 let index = -1;
                 switch (emote.emotion) {
                   case 'neutral': {
@@ -3279,11 +3289,22 @@ class Avatar {
                     index = sorrowIndex;
                     break;
                   }
+                  case 'surprise': {
+                    index = surpriseIndex;
+                    break;
+                  }
+                  default: {
+                    const match = emote.emotion.match(/^emotion-([0-9]+)$/);
+                    if (match) {
+                      index = parseInt(match[1], 10);
+                    }
+                    break;
+                  }
                 }
                 if (index !== -1) {
                   morphTargetInfluences[index] = emote.value;
                 }
-              }
+              // }
             }
           }
 
