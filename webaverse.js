@@ -346,7 +346,7 @@ const _startHacks = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
-  let playerDiorama = null;
+  // let playerDiorama = null;
   const lastEmoteKey = {
     key: -1,
     timestamp: 0,
