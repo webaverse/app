@@ -5,6 +5,10 @@ import {
 } from './renderer.js';
 import physicsManager from './physics-manager.js';
 
+window.domBtns.addEventListener('click', event => { // test
+  event.stopPropagation();
+});
+
 const identityQuaternion = new THREE.Quaternion();
 
 const localVector = new THREE.Vector3();
@@ -20,34 +24,33 @@ const colorPath = new THREE.Color('rgb(149,64,191)');
 const colorPathSimplified = new THREE.Color('rgb(69,0,98)');
 
 class PathFinder {
-  constructor({voxelHeight = 1.5, heightTolerance = 0.6, detectStep = 0.1, maxIterdetect = 1000, maxIterStep = 1000, maxVoxelCacheLen = 10000, ignorePhysicsIds = [], debugRender = false}) {
+  constructor({voxelHeight = 1, heightTolerance = 1, maxIterStep = 1000, maxVoxelCacheLen = 10000, ignorePhysicsIds = [], debugRender = false}) {
     /* args:
       voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
       heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
-      detectStep: How height every detecting step moving.
-      maxIterdetect: How many steps can one voxel detecing iterate.
       maxIterStep: How many A* path-finding step can one getPath() iterate. One A* step can create up to 4 voxels, 0 ~ 4.
       maxVoxelCacheLen: How many detected voxels can be cached.
       ignorePhysicsIds: physicsIds that voxel detect() ignored, usually npc CharacterController's capsule.
       debugRender: Whether show voxel boxes for debugging.
     */
+    this.voxelHeight = 1;
+    this.heightTolerance = 1;
+    this.maxIterStep = maxIterStep;
+    this.maxVoxelCacheLen = maxVoxelCacheLen;
+    this.ignorePhysicsIds = ignorePhysicsIds;
+    this.debugRender = true;
 
-    this.voxelHeight = voxelHeight;
-    this.voxelHeightHalf = this.voxelHeight / 2;
-    this.heightTolerance = heightTolerance;
+    // end args
+
+    this.iterStep = 0;
+    this.allowNearest = true;
+
     this.start = new THREE.Vector3();
     this.dest = new THREE.Vector3();
     this.startIn = new THREE.Vector3();
     this.destIn = new THREE.Vector3();
-    this.debugRender = true;
-    this.detectStep = detectStep;
-    this.iterDetect = 0;
-    this.maxIterDetect = maxIterdetect;
-    this.iterStep = 0;
-    this.maxIterStep = maxIterStep;
-    this.allowNearest = true;
-    this.maxVoxelCacheLen = maxVoxelCacheLen;
-    this.ignorePhysicsIds = ignorePhysicsIds;
+
+    this.voxelHeightHalf = this.voxelHeight / 2;
 
     this.frontiers = [];
     this.voxels = new THREE.Group();
@@ -61,7 +64,7 @@ class PathFinder {
 
     if (this.debugRender) {
       this.geometry = new THREE.BoxGeometry();
-      this.geometry.scale(0.5, this.voxelHeight, 0.5);
+      this.geometry.scale(0.5, this.voxelHeight * 0.5, 0.5);
       // this.geometry.scale(1, this.voxelHeight, 1);
       // this.geometry.scale(0.9, 0.1, 0.9);
       this.material = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe: false});
@@ -90,12 +93,12 @@ class PathFinder {
 
     this.start.set(
       0,
-      this.startIn.y,
+      0,
       0,
     );
     this.dest.set(
       0,
-      this.destIn.y,
+      Math.round(this.destIn.y - this.startIn.y), // Round to 1 because voxelHeight is 1;
       Math.round(this.startIn.distanceTo(this.destIn)),
     );
 
@@ -110,56 +113,17 @@ class PathFinder {
     this.destVoxel = this.createVoxel(this.dest);
     this.destVoxel._isDest = true;
 
-    if (this.startVoxel === this.destVoxel) {
-      this.found(this.destVoxel);
-    } else {
-      this.untilFound();
-      if (this.isFound) {
-        this.interpoWaypointResult();
-        this.simplifyWaypointResult(this.waypointResult[0]);
-        this.waypointResult.shift();
-      }
-      // console.log('waypointResult', this.waypointResult.length);
-    }
-
-    if (this.debugRender) {
-      // Show all voxels
-      this.debugMesh.count = this.voxels.children.length + this.waypointResult.length;
-      this.voxels.children.forEach((voxel, i) => {
-        this.debugMesh.setMatrixAt(i, voxel.matrix);
-        if (voxel._isStart) {
-          this.debugMesh.setColorAt(i, colorStart);
-        } else if (voxel._isDest) {
-          this.debugMesh.setColorAt(i, colorDest);
-        } else if (voxel._isPath) {
-          this.debugMesh.setColorAt(i, colorPath);
-        } else if (voxel._isFrontier) {
-          this.debugMesh.setColorAt(i, colorFrontier);
-        } else if (voxel._isReached) {
-          this.debugMesh.setColorAt(i, colorReached);
-        }
-      });
-      this.waypointResult.forEach((result, i) => {
-        this.debugMesh.setMatrixAt(this.voxels.children.length + i, result.matrix);
-        this.debugMesh.setColorAt(this.voxels.children.length + i, colorPathSimplified);
-      });
-
-      // // Only show waypointResult
-      // this.debugMesh.count = this.waypointResult.length;
-      // this.waypointResult.forEach((result, i) => {
-      //   this.debugMesh.setMatrixAt(i, result.matrix);
-      //   this.debugMesh.setColorAt(i, colorPathSimplified);
-      // });
-
-      //
-
-      this.debugMesh.instanceMatrix.needsUpdate = true;
-      this.debugMesh.instanceColor.needsUpdate = true;
-
-      this.debugMesh.quaternion.copy(this.startDestQuaternion);
-      this.debugMesh.position.copy(this.startIn);
-      this.debugMesh.updateMatrixWorld();
-    }
+    // if (this.startVoxel === this.destVoxel) {
+    //   this.found(this.destVoxel);
+    // } else {
+    //   this.untilFound();
+    //   if (this.isFound) {
+    //     this.interpoWaypointResult();
+    //     this.simplifyWaypointResult(this.waypointResult[0]);
+    //     this.waypointResult.shift();
+    //   }
+    //   // console.log('waypointResult', this.waypointResult.length);
+    // }
 
     // console.log(this.detectCount);
 
@@ -275,13 +239,13 @@ class PathFinder {
   createVoxel(position) {
     this.resetVoxelDetect(localVoxel);
     localVoxel.position.copy(position);
-    localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
-    this.iterDetect = 0;
-    this.detect(localVoxel, 0);
-    localVoxel.position.y = Math.round(localVoxel.position.y * 10) / 10; // Round position.y to 0.1 because detectStep is 0.1; // Need round both input and output of `detect()`, because of float calc precision problem.
+    localVoxel.position.y = Math.round(localVoxel.position.y); // Round to 1 because voxelHeight is 1;
 
     let voxel = this.getVoxel(localVoxel.position);
     if (voxel) return voxel;
+
+    const collide = this.detect(localVoxel, 0);
+    if (collide) return null;
 
     voxel = new THREE.Object3D();
     this.voxels.add(voxel);
@@ -294,15 +258,7 @@ class PathFinder {
     return voxel;
   }
 
-  detect(voxel, detectDir) {
-    // this.detectCount++;
-    if (this.iterDetect >= this.maxIterDetect) {
-      console.warn('maxIterDetect reached! High probability created wrong redundant voxel with wrong position.y! Especially when localPlayer is flying.');
-      // Use raycast first? No, raycast can only handle line not voxel.
-      return;
-    }
-    this.iterDetect++;
-
+  detect(voxel) {
     localVector.copy(voxel.position);
     localVector.applyQuaternion(this.startDestQuaternion);
     localVector.add(this.startIn);
@@ -316,31 +272,7 @@ class PathFinder {
     } else {
       collide = false;
     }
-
-    if (detectDir === 0) {
-      if (collide) {
-        detectDir = 1;
-      } else {
-        detectDir = -1;
-      }
-    }
-
-    if (detectDir === 1) {
-      if (collide) {
-        voxel.position.y += detectDir * this.detectStep;
-        this.detect(voxel, detectDir);
-      } else {
-        // do nothing, stop recur
-      }
-    } else if (detectDir === -1) {
-      if (collide) {
-        voxel.position.y += this.detectStep;
-        // do nothing, stop recur
-      } else {
-        voxel.position.y += detectDir * this.detectStep;
-        this.detect(voxel, detectDir);
-      }
-    }
+    return collide;
   }
 
   generateVoxelMap(currentVoxel, direction/*: string */) {
@@ -353,10 +285,10 @@ class PathFinder {
         localVector.x += 1;
         break;
       case 'btm':
-        localVector.y += -1;
+        localVector.y += -this.heightTolerance;
         break;
       case 'top':
-        localVector.y += 1;
+        localVector.y += this.heightTolerance;
         break;
       case 'back':
         localVector.z += -1;
@@ -365,9 +297,9 @@ class PathFinder {
         localVector.z += 1;
         break;
     }
-    const voxel = this.createVoxel(localVector);
-    currentVoxel[`_${direction}Voxel`] = voxel;
-    if (voxel.position.y - currentVoxel.position.y < this.heightTolerance) {
+    const neighborVoxel = this.createVoxel(localVector);
+    if (neighborVoxel) {
+      currentVoxel[`_${direction}Voxel`] = neighborVoxel;
       currentVoxel[`_can${this.capitalize(direction)}`] = true;
     }
   }
@@ -380,8 +312,6 @@ class PathFinder {
     this.iterStep = 0;
     while (this.frontiers.length > 0 && !this.isFound) {
       if (this.iterStep >= this.maxIterStep) {
-        // console.log('maxIterDetect: untilFound');
-
         if (this.allowNearest) { // use nearest frontier as mid-point dest, if not found real dest.
           // // Use nearest frontier, if not found and npc reached dest.
           // // Check whether npc reached dest in such as npc repo, do not check here. Keep PathFinder as simple as possible.
@@ -451,7 +381,7 @@ class PathFinder {
   }
 
   found(voxel) {
-    // if (this.debugRender) console.log('found');
+    if (this.debugRender) console.log('found');
     this.isFound = true;
     this.setNextOfPathVoxel(voxel);
 
@@ -477,6 +407,45 @@ class PathFinder {
   }
 
   step() {
+    if (this.debugRender) {
+      // Show all voxels
+      this.debugMesh.count = this.voxels.children.length + this.waypointResult.length;
+      this.voxels.children.forEach((voxel, i) => {
+        this.debugMesh.setMatrixAt(i, voxel.matrix);
+        if (voxel._isStart) {
+          this.debugMesh.setColorAt(i, colorStart);
+        } else if (voxel._isDest) {
+          this.debugMesh.setColorAt(i, colorDest);
+        } else if (voxel._isPath) {
+          this.debugMesh.setColorAt(i, colorPath);
+        } else if (voxel._isFrontier) {
+          this.debugMesh.setColorAt(i, colorFrontier);
+        } else if (voxel._isReached) {
+          this.debugMesh.setColorAt(i, colorReached);
+        }
+      });
+      this.waypointResult.forEach((result, i) => {
+        this.debugMesh.setMatrixAt(this.voxels.children.length + i, result.matrix);
+        this.debugMesh.setColorAt(this.voxels.children.length + i, colorPathSimplified);
+      });
+
+      // // Only show waypointResult
+      // this.debugMesh.count = this.waypointResult.length;
+      // this.waypointResult.forEach((result, i) => {
+      //   this.debugMesh.setMatrixAt(i, result.matrix);
+      //   this.debugMesh.setColorAt(i, colorPathSimplified);
+      // });
+
+      //
+
+      this.debugMesh.instanceMatrix.needsUpdate = true;
+      this.debugMesh.instanceColor.needsUpdate = true;
+
+      this.debugMesh.quaternion.copy(this.startDestQuaternion);
+      this.debugMesh.position.copy(this.startIn);
+      this.debugMesh.updateMatrixWorld();
+    }
+
     if (this.frontiers.length <= 0) {
       // if (this.debugRender) console.log('finish');
       return;
