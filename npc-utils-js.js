@@ -343,43 +343,26 @@ class PathFinder {
     }
   }
 
-  generateVoxelMapLeft(currentVoxel) {
+  generateVoxelMap(currentVoxel, direction/*: string */) {
     localVector.copy(currentVoxel.position);
-    localVector.x += -1;
-    const leftVoxel = this.createVoxel(localVector);
-    currentVoxel._leftVoxel = leftVoxel;
-    if (leftVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
-      currentVoxel._canLeft = true;
+    switch (direction) {
+      case 'left':
+        localVector.x += -1;
+        break;
+      case 'right':
+        localVector.x += 1;
+        break;
+      case 'btm':
+        localVector.z += -1;
+        break;
+      case 'top':
+        localVector.z += 1;
+        break;
     }
-  }
-
-  generateVoxelMapRight(currentVoxel) {
-    localVector.copy(currentVoxel.position);
-    localVector.x += 1;
-    const rightVoxel = this.createVoxel(localVector);
-    currentVoxel._rightVoxel = rightVoxel;
-    if (rightVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
-      currentVoxel._canRight = true;
-    }
-  }
-
-  generateVoxelMapBtm(currentVoxel) {
-    localVector.copy(currentVoxel.position);
-    localVector.z += -1;
-    const btmVoxel = this.createVoxel(localVector);
-    currentVoxel._btmVoxel = btmVoxel;
-    if (btmVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
-      currentVoxel._canBtm = true;
-    }
-  }
-
-  generateVoxelMapTop(currentVoxel) {
-    localVector.copy(currentVoxel.position);
-    localVector.z += 1;
-    const topVoxel = this.createVoxel(localVector);
-    currentVoxel._topVoxel = topVoxel;
-    if (topVoxel.position.y - currentVoxel.position.y < this.heightTolerance) {
-      currentVoxel._canTop = true;
+    const voxel = this.createVoxel(localVector);
+    currentVoxel[`_${direction}Voxel`] = voxel;
+    if (voxel.position.y - currentVoxel.position.y < this.heightTolerance) {
+      currentVoxel[`_can${this.capitalize(direction)}`] = true;
     }
   }
 
@@ -498,7 +481,7 @@ class PathFinder {
     currentVoxel._isFrontier = false;
 
     for (const direction of this.directions) {
-      if (!currentVoxel[`_${direction}Voxel`]) this[`generateVoxelMap${this.capitalize(direction)}`](currentVoxel);
+      if (!currentVoxel[`_${direction}Voxel`]) this.generateVoxelMap(currentVoxel, direction);
       if (currentVoxel[`_can${this.capitalize(direction)}`]) {
         this.stepVoxel(currentVoxel[`_${direction}Voxel`], currentVoxel);
         if (this.isFound) return;
