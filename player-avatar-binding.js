@@ -172,30 +172,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
       player.avatar.emotes.length = 0;
     }
   }
-  /* if (emoteAction) {
-    const {index, emotion} = emoteAction;
-    if (index !== undefined) {
-      if (!player.avatar.emotes.some(e => e.index === index)) {
-        const newEmote = {
-          index,
-          value: 1,
-        };
-        player.avatar.emotes.push(newEmote);
-      }
-    } else if (emotion !== undefined) {
-      if (!player.avatar.emotes.some(e => e.emotion === emotion)) {
-        const newEmote = {
-          emotion,
-          value: 1,
-        };
-        player.avatar.emotes.push(newEmote);
-      }
-    }
-  } else {
-    if (player.avatar.emotes.length > 0) {
-      player.avatar.emotes.length = 0;
-    }
-  } */
 
   // pose
   rig.poseAnimation = poseAction?.animation || null;
