@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 
 import styles from './action-menu.module.css';
+import {ZoneTitleCard} from '../zone-title-card';
 
 //
 
 export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }) => {
 
+    const [ modeOpen, setModeOpen ] = useState( false );
     const [ xrSupported, setXrSupported ] = useState( false );
 
     //
@@ -32,7 +34,7 @@ export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }
 
     const handleModeBtnClick = () => {
 
-        // todo
+        setModeOpen(true);
 
     };
 
@@ -56,6 +58,10 @@ export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }
 
     return (
         <div className={ styles.actionMenu } onClick={ stopPropagation } >
+
+            {modeOpen ?
+              <ZoneTitleCard />
+            : null}
 
             <div className={ classnames( styles.btn, styles.settings ) } onClick={ handleWorldBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
