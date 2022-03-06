@@ -85,7 +85,7 @@ class CameraManager extends EventTarget {
     super();
 
     this.pointerLockElement = null;
-    this.pointerLockEpoch = 0;
+    // this.pointerLockEpoch = 0;
     this.shakes = [];
 
     document.addEventListener('pointerlockchange', e => {
@@ -108,7 +108,7 @@ class CameraManager extends EventTarget {
     camera.updateMatrixWorld();
   }
   async requestPointerLock() {
-    const localPointerLockEpoch = ++this.pointerLockEpoch;
+    // const localPointerLockEpoch = ++this.pointerLockEpoch;
     for (const options of [
       {
         unadjustedMovement: true,
@@ -120,9 +120,9 @@ class CameraManager extends EventTarget {
           const renderer = getRenderer();
           if (document.pointerLockElement !== renderer.domElement) {
             const _pointerlockchange = e => {
-              if (localPointerLockEpoch === this.pointerLockEpoch) {
+              // if (localPointerLockEpoch === this.pointerLockEpoch) {
                 accept();
-              }
+              // }
               _cleanup();
             };
             document.addEventListener('pointerlockchange', _pointerlockchange);
