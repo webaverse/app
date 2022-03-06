@@ -92,9 +92,6 @@ The application uses vite to hot reload itself automatically if there are any ch
 npm run dev
 ```
 
-Any changes inside the `packages` folder won't recompile automatically and so will require restarting the entire development server by just running again: `npm run dev`
-
-
 ---
 
 
