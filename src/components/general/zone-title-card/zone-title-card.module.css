@@ -1,0 +1,78 @@
+
+.zoneTitleCard {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-family: 'PlazaRegular';
+  pointer-events: none;
+  z-index: 1;
+}
+
+.zoneTitleCard .leftWing {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  left: 10vw;
+  width: 300px;
+}
+.zoneTitleCard .leftWing .block {
+  display: flex;
+  flex-direction: column;
+  height: 65vh;
+  width: 100%;
+  background-color: #000;
+}
+.zoneTitleCard .leftWing .block .title {
+  margin: 0;
+  margin-top: auto;
+  font-size: 50px;
+  color: #FFF;
+  text-shadow: 2px 2px 0px #333;
+}
+.zoneTitleCard .leftWing .tailImg {
+  width: calc(300px);
+  height: calc(300px * 300px / 512px);
+  transform: scaleY(0.7) translateY(-250px);
+  transform-origin: 50% 0;
+  z-index: -1;
+}
+
+.zoneTitleCard .rightSection {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 30vh;
+  right: 30vw;
+}
+.zoneTitleCard .rightSection .title {
+  font-size: 60px;
+}
+.zoneTitleCard .rightSection .description {
+  font-size: 30px;
+}
+.zoneTitleCard .rightSection .comment {
+  font-size: 20px;
+}
+.zoneTitleCard .rightSection .title,
+.zoneTitleCard .rightSection .description,
+.zoneTitleCard .rightSection .comment {
+  position: relative;
+  display: flex;
+  margin-bottom: 40px;
+  color: #FFF;
+  text-shadow: 2px 2px 0px #333;
+}
+.zoneTitleCard .rightSection .title::before,
+.zoneTitleCard .rightSection .description::before {
+  position: absolute;
+  top: 40%;
+  bottom: 0;
+  left: -20px;
+  right: -20px;
+  background-color: #000;
+  transform: skew(22deg);
+  z-index: -1;
+  content: '';
+}
