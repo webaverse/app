@@ -14,9 +14,43 @@ const emotions = [
 ];
 
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, dioramaCanvasRef}) => {
+  const emotionStates = emotions.map(e => {
+    const [value, setValue] = useState(0);
+    return {
+      value,
+      setValue,
+    };
+  });
+  const [dragEmotionIndex, setDragEmotionIndex] = useState(-1);
   const emotionsRef = useRef();
   
   const sideSize = 400;
+
+  for (const emotionState of emotionStates) {
+    useEffect(() => {
+      function mousemove(e) {
+        const emotionsEl = emotionsRef.current;
+        if (document.pointerLockElement === emotionsEl) {
+          const {/* clientX, clientY, */movementX, movementY} = e;
+          /* const {left, top} = emotionsEl.getBoundingClientRect();
+          const x = clientX - left;
+          const y = clientY - top; */
+          // console.log('emotions move', {movementX, movementY});
+          if (dragEmotionIndex !== -1) {
+            // const emotion = emotions[dragEmotionIndex];
+            const emotionState = emotionStates[dragEmotionIndex];
+            const newValue = Math.min(Math.max(emotionState.value - movementY * 0.01, 0), 1);
+            // console.log('set value', dragEmotionIndex, emotionState.value, newValue);
+            emotionState.setValue(newValue);
+          }
+        }
+      }
+      document.addEventListener('mousemove', mousemove);
+      return () => {
+        document.removeEventListener('mousemove', mousemove);
+      };
+    }, [emotionsRef, dragEmotionIndex, emotionState]);
+  }
 
   return (
     <Tab
@@ -36,10 +70,11 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
             className={styles.emotions}
             onMouseUp={e => {
               document.exitPointerLock();
+              setDragEmotionIndex(-1);
             }}
             ref={emotionsRef}
           >
-            {emotions.map(emotion => {
+            {emotions.map((emotion, emotionIndex) => {
               // const emotionRef = useRef();
 
               return (
@@ -55,10 +90,13 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
                       /* const emotionEl = emotionRef.current;
                       await emotionEl.requestPointerLock(); */
                     })();
+
+                    setDragEmotionIndex(emotionIndex);
                   }}
                   // ref={emotionRef}
                   key={emotion}
                 >
+                  <progress className={classnames(styles.emotionProgress, emotionStates[emotionIndex].value === 1 ? styles.full : null)} value={emotionStates[emotionIndex].value} />
                   <img src={`images/emotions/${emotion}.svg`} className={styles.emotionIcon} />
                   <div className={styles.emotionName}>{emotion}</div>
                 </div>
