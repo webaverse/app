@@ -829,16 +829,9 @@ input[type=range]::-webkit-slider-thumb {
 .emotions .emotion {
   display: flex;
   position: relative;
-  background-color: #111;
+  background-color: #000;
   cursor: ns-resize;
-}
-.emotions .emotion:hover .emotionIcon,
-.emotions .emotion:hover .emotionName
-{
-  opacity: 0.7;
-}
-.emotions .emotion:hover .emotionIcon {
-  background-color: #333;
+  transition: all 1s cubic-bezier(0, 1, 0, 1);
 }
 .emotions .emotion .emotionProgress {
   position: absolute;
@@ -854,30 +847,67 @@ input[type=range]::-webkit-slider-thumb {
   background: transparent;
 }
 .emotions .emotion .emotionProgress::-webkit-progress-value {
-  background-color: #7e57c2;
+  background-color: #444;
   /* background-image: linear-gradient(to bottom, #56ab2f, #a8e063); */
+  transition: background-color 1s cubic-bezier(0, 1, 0, 1);
 }
-.emotions .emotion .emotionProgress.full::-webkit-progress-value {
-  background-color: #9ccc65;
+.emotions .emotion.full {
+  filter: invert(1);
 }
-.emotions .emotion:hover .emotionName {
-  background-color: #222;
+.emotions .emotion.full .emotionProgress::-webkit-progress-value {
+  background-color: #000;
 }
 .emotions .emotion .emotionIcon {
   width: 50px;
   height: 50px;
   object-fit: contain;
-  opacity: 0.3;
-  transition: opacity 1s cubic-bezier(0, 1, 0, 1);
+  filter: brightness(0.3);
+  /* transition: filter 1s cubic-bezier(0, 1, 0, 1); */
 }
+
+.emotions .emotion .emotionIconPlaceholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50px;
+  height: 50px;
+  /* background-color: #333; */
+}
+.emotions .emotion .emotionNamePlaceholder {
+  position: absolute;
+  top: 0;
+  left: 50px;
+  width: calc(140px - 50px);
+  height: 50px;
+  /* background-color: #111; */
+}
+.emotions .emotion:hover .emotionIconPlaceholder {
+  background-color: #222;
+}
+.emotions .emotion:hover .emotionNamePlaceholder {
+  background-color: #111;
+}
+
+.emotions .emotion:hover .emotionIcon,
+.emotions .emotion.nonzero .emotionIcon {
+  filter: brightness(0.7);
+}
+.emotions .emotion.full .emotionIcon {
+  filter: brightness(1);
+}
+
 .emotions .emotion .emotionName {
   display: flex;
+  position: relative;
   align-items: center;
   width: 90px;
   padding: 0 10px;
   text-align: center;
-  color: #FFF;
-  opacity: 0.3;
+  color: #666;
   text-transform: uppercase;
-  transition: opacity 1s cubic-bezier(0, 1, 0, 1);
+  /* transition: color 1s cubic-bezier(0, 1, 0, 1); */
+}
+.emotions .emotion:hover .emotionName,
+.emotions .emotion.nonzero .emotionName {
+  color: #FFFFFF;
 }
