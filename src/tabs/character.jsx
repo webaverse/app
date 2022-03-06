@@ -75,8 +75,6 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
             ref={emotionsRef}
           >
             {emotions.map((emotion, emotionIndex) => {
-              // const emotionRef = useRef();
-
               return (
                 <div
                   className={classnames(
@@ -91,13 +89,10 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
                     (async () => {
                       const emotionsEl = emotionsRef.current;
                       await emotionsEl.requestPointerLock();
-                      /* const emotionEl = emotionRef.current;
-                      await emotionEl.requestPointerLock(); */
                     })();
 
                     setDragEmotionIndex(emotionIndex);
                   }}
-                  // ref={emotionRef}
                   key={emotion}
                 >
                   <div className={styles.emotionIconPlaceholder} />
