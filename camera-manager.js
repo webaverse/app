@@ -94,7 +94,7 @@ class CameraManager extends EventTarget {
       if (pointerLockElement !== null && pointerLockElement !== renderer.domElement) {
         pointerLockElement = null;
       }
-      
+
       this.pointerLockElement = pointerLockElement;
       this.dispatchEvent(new MessageEvent('pointerlockchange', {
         data: {
@@ -102,9 +102,6 @@ class CameraManager extends EventTarget {
         },
       }));
     });
-  }
-  wasActivated() {
-    return wasActivated;
   }
   focusCamera(position) {
     camera.lookAt(position);
