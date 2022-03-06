@@ -31,7 +31,8 @@ import loreAI from './lore-ai.js';
 import loreAIScene from './lore-ai-scene.js';
 import npcManager from './npc-manager.js';
 import universe from './universe.js';
-import {PathFinder} from './npc-utils.js';
+import {PathFinder} from './npc-utils-js.js'; // js version
+// import {PathFinder} from './npc-utils.js'; // wasm version
 import {localPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
