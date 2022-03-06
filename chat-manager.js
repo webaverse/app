@@ -33,18 +33,38 @@ class ChatManager extends EventTarget {
   addPlayerMessage(player, message = '', {timeout = 3000} = {}) {
     const chatId = makeId(5);
     const match = _getEmotion(message);
-    const emotion = match && match.emotion;
-    const fakeSpeech = match ? (match[1] !== message) : true;
+    const emotion = match ? match.emotion : null;
+    const value = emotion ? 1 : 0;
+    // const fakeSpeech = match ? (match[1] !== message) : true;
     const m = {
       type: 'chat',
       chatId,
       playerName: player.name,
       message,
-      emotion,
-      fakeSpeech,
+      // emotion,
+      // fakeSpeech,
     };
     player.addAction(m);
-    // this.messageActions.push(m);
+    
+    const _addEmotion = () => {
+      if (emotion) {
+        player.addAction({
+          type: 'emote',
+          // chatId,
+          emotion,
+          value: 1,
+        });
+      }
+    };
+    _addEmotion();
+    const _removeEmotion = () => {
+      if (emotion) {
+        const emoteActionIndex = player.findActionIndex(action => action.type === 'emote' && action.value === value);
+        if (emoteActionIndex !== -1) {
+          player.removeActionIndex(emoteActionIndex);
+        }
+      }
+    };
     
     this.dispatchEvent(new MessageEvent('messageadd', {
       data: {
@@ -55,6 +75,8 @@ class ChatManager extends EventTarget {
     
     const localTimeout = setTimeout(() => {
       this.removePlayerMessage(player, m);
+      
+      _removeEmotion();
     }, timeout);
     m.cleanup = () => {
       clearTimeout(localTimeout);
