@@ -5,6 +5,14 @@ import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
 import {defaultPlayerName} from '../../ai/lore/lore-model.js';
 
+const emotions = [
+  'joy',
+  'sorrow',
+  'angry',
+  'surprised',
+  'fun',
+];
+
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, dioramaCanvasRef}) => {
   const sideSize = 400;
 
@@ -23,6 +31,16 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
       panels={[
         (<div className={styles.panel} key="left">
           <canvas id="previewCanvas" className={styles.avatar} ref={dioramaCanvasRef} width={sideSize} height={sideSize} />
+          <div className={styles.emotions}>
+            {emotions.map(emotion => {
+              return (
+                <div className={styles.emotion} key={emotion}>
+                  <img src={`images/emotions/${emotion}.svg`} className={styles.emotionIcon} />
+                  <div className={styles.emotionName}>{emotion}</div>
+                </div>
+              );
+            })}
+          </div>
           <div className={styles['panel-header']}>
             <div className={classnames(styles['panel-section'], styles.name)}>
               <h1>{defaultPlayerName}</h1>
