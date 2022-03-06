@@ -87,6 +87,21 @@ class CameraManager extends EventTarget {
     this.pointerLockElement = null;
     this.pointerLockEpoch = 0;
     this.shakes = [];
+
+    document.addEventListener('pointerlockchange', e => {
+      let pointerLockElement = document.pointerLockElement;
+      const renderer = getRenderer();
+      if (pointerLockElement !== null && pointerLockElement !== renderer.domElement) {
+        pointerLockElement = null;
+      }
+      
+      this.pointerLockElement = pointerLockElement;
+      this.dispatchEvent(new MessageEvent('pointerlockchange', {
+        data: {
+          pointerLockElement,
+        },
+      }));
+    });
   }
   wasActivated() {
     return wasActivated;
@@ -109,42 +124,7 @@ class CameraManager extends EventTarget {
           if (document.pointerLockElement !== renderer.domElement) {
             const _pointerlockchange = e => {
               if (localPointerLockEpoch === this.pointerLockEpoch) {
-                if (document.pointerLockElement === renderer.domElement) {
-                  accept();
-
-                  this.pointerLockElement = document.pointerLockElement;
-                  this.dispatchEvent(new MessageEvent('pointerlockchange', {
-                    data: {
-                      pointerLockElement: this.pointerLockElement,
-                    },
-                  }));
-
-                  const _setUpUnlockNotification = () => {
-                    const _pointerlockchange2 = e => {
-                      if (localPointerLockEpoch === this.pointerLockEpoch) {
-                        if (document.pointerLockElement === null) {
-                          this.pointerLockElement = document.pointerLockElement;
-
-                          this.dispatchEvent(new MessageEvent('pointerlockchange', {
-                            data: {
-                              pointerLockElement: null,
-                            },
-                          }));
-                        } else {
-                          console.warn('unexpected pointer lock change 1', document.pointerLockElement);
-                        }
-                      }
-                      _cleanup2();
-                    };
-                    document.addEventListener('pointerlockchange', _pointerlockchange2);
-                    const _cleanup2 = () => {
-                      document.removeEventListener('pointerlockchange', _pointerlockchange2);
-                    };
-                  };
-                  _setUpUnlockNotification();
-                } else {
-                  console.warn('unexpected pointer lock change 2', document.pointerLockElement);
-                }
+                accept();
               }
               _cleanup();
             };
