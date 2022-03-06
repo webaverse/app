@@ -91,7 +91,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
-  const emoteAction = player.getAction('emote');
+  const emoteActions = player.getActionsArray().filter(a => a.type === 'emote');
   const poseAction = player.getAction('pose');
 
   rig.jumpState = !!jumpAction;
@@ -165,7 +165,14 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.hurtTime = player.actionInterpolants.hurt.get();
 
   // emote
-  if (emoteAction) {
+  if (emoteActions.length > 0) {
+    player.avatar.emotes = emoteActions;
+  } else {
+    if (player.avatar.emotes.length !== 0) {
+      player.avatar.emotes.length = 0;
+    }
+  }
+  /* if (emoteAction) {
     const {index, emotion} = emoteAction;
     if (index !== undefined) {
       if (!player.avatar.emotes.some(e => e.index === index)) {
@@ -188,7 +195,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
     if (player.avatar.emotes.length > 0) {
       player.avatar.emotes.length = 0;
     }
-  }
+  } */
 
   // pose
   rig.poseAnimation = poseAction?.animation || null;
