@@ -162,6 +162,7 @@ class PathFinder {
     if (result?._next?._next) {
       if (
         Math.sign(result._next._next.position.x - result._next.position.x) === Math.sign(result._next.position.x - result.position.x) &&
+        Math.sign(result._next._next.position.y - result._next.position.y) === Math.sign(result._next.position.y - result.position.y) &&
         Math.sign(result._next._next.position.z - result._next.position.z) === Math.sign(result._next.position.z - result.position.z)
       ) {
         this.waypointResult.splice(this.waypointResult.indexOf(result._next), 1);
