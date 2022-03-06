@@ -35,14 +35,11 @@ class ChatManager extends EventTarget {
     const match = _getEmotion(message);
     const emotion = match ? match.emotion : null;
     const value = emotion ? 1 : 0;
-    // const fakeSpeech = match ? (match[1] !== message) : true;
     const m = {
       type: 'chat',
       chatId,
       playerName: player.name,
       message,
-      // emotion,
-      // fakeSpeech,
     };
     player.addAction(m);
     
@@ -50,7 +47,6 @@ class ChatManager extends EventTarget {
       if (emotion) {
         player.addAction({
           type: 'emote',
-          // chatId,
           emotion,
           value: 1,
         });
