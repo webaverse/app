@@ -839,6 +839,24 @@ input[type=range]::-webkit-slider-thumb {
 .emotions .emotion:hover .emotionIcon {
   background-color: #333;
 }
+.emotions .emotion .emotionProgress {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  -webkit-appearance: none;
+  transform: rotateZ(-90deg);
+  transition: color 1s cubic-bezier(0, 1, 0, 1);
+}
+.emotions .emotion .emotionProgress::-webkit-progress-bar {
+  background: transparent;
+}
+.emotions .emotion .emotionProgress::-webkit-progress-value {
+  background-color: #7e57c2;
+  /* background-image: linear-gradient(to bottom, #56ab2f, #a8e063); */
+}
+.emotions .emotion .emotionProgress.full::-webkit-progress-value {
+  background-color: #9ccc65;
+}
 .emotions .emotion:hover .emotionName {
   background-color: #222;
 }
