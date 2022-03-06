@@ -30,7 +30,6 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
       }
       panels={[
         (<div className={styles.panel} key="left">
-          <canvas id="previewCanvas" className={styles.avatar} ref={dioramaCanvasRef} width={sideSize} height={sideSize} />
           <div className={styles.emotions}>
             {emotions.map(emotion => {
               return (
@@ -41,6 +40,7 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
               );
             })}
           </div>
+          <canvas id="previewCanvas" className={styles.avatar} ref={dioramaCanvasRef} width={sideSize} height={sideSize} />
           <div className={styles['panel-header']}>
             <div className={classnames(styles['panel-section'], styles.name)}>
               <h1>{defaultPlayerName}</h1>
