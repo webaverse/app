@@ -15,8 +15,11 @@ const emotions = [
 
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, dioramaCanvasRef}) => {
   const emotionStates = emotions.map(e => {
+    const [action, setAction] = useState(null);
     const [value, setValue] = useState(0);
     return {
+      action,
+      setAction,
       value,
       setValue,
     };
@@ -24,18 +27,45 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
   const [dragEmotionIndex, setDragEmotionIndex] = useState(-1);
   const emotionsRef = useRef();
   
+  const localPlayer = metaversefile.useLocalPlayer();
   const sideSize = 400;
 
-  for (const emotionState of emotionStates) {
     useEffect(() => {
       function mousemove(e) {
         const emotionsEl = emotionsRef.current;
         if (document.pointerLockElement === emotionsEl) {
-          const {movementX, movementY} = e;
+          const {/*movementX, */movementY} = e;
           if (dragEmotionIndex !== -1) {
+            const emotion = emotions[dragEmotionIndex];
             const emotionState = emotionStates[dragEmotionIndex];
-            const newValue = Math.min(Math.max(emotionState.value - movementY * 0.01, 0), 1);
-            emotionState.setValue(newValue);
+            const oldValue = emotionState.action ? emotionState.action.value : 0;
+            const value = Math.min(Math.max(oldValue - movementY * 0.01, 0), 1);
+            // console.log('new value', value);
+            if (value > 0) {
+              if (emotionState.action === null) {
+                const newAction = localPlayer.addAction({
+                  type: 'emote',
+                  emotion,
+                  value,
+                });
+                // console.log('add action', newAction);
+                emotionState.setAction(newAction);
+                emotionState.setValue(value);
+              } else {
+                // console.log('update action', emotionState.action.value, value);
+                emotionState.action.value = value;
+                emotionState.setValue(value);
+              }
+            } else {
+              const emoteActionIndex = localPlayer.findActionIndex(a => a.type === 'emote' && a.emotion === emotion);
+              // console.log('remove action index', emoteActionIndex);
+              if (emoteActionIndex !== -1) {
+                // console.log('remove action', emoteActionIndex);
+                localPlayer.removeActionIndex(emoteActionIndex);
+                emotionState.setAction(null);
+                emotionState.setValue(0);
+              }
+            }
           }
         }
       }
@@ -43,8 +73,7 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
       return () => {
         document.removeEventListener('mousemove', mousemove);
       };
-    }, [emotionsRef, dragEmotionIndex, emotionState]);
-  }
+    }, [emotionsRef, dragEmotionIndex].concat(emotionStates.flatMap(e => [e.action, e.value])));
 
   return (
     <Tab
@@ -138,7 +167,6 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
                 <img src="images/flower.png" className={styles.icon} />
                 <div className={styles.name}>{app.name}</div>
                 <button className={styles.button} onClick={e => {
-                  const localPlayer = metaversefile.useLocalPlayer();
                   localPlayer.unwear(app);
                 }}>
                   <img src="images/remove.svg" />
