@@ -113,17 +113,19 @@ class PathFinder {
     this.destVoxel = this.createVoxel(this.dest);
     this.destVoxel._isDest = true;
 
-    // if (this.startVoxel === this.destVoxel) {
-    //   this.found(this.destVoxel);
-    // } else {
-    //   this.untilFound();
-    //   if (this.isFound) {
-    //     this.interpoWaypointResult();
-    //     this.simplifyWaypointResult(this.waypointResult[0]);
-    //     this.waypointResult.shift();
-    //   }
-    //   // console.log('waypointResult', this.waypointResult.length);
-    // }
+    if (this.startVoxel === this.destVoxel) {
+      this.found(this.destVoxel);
+    } else {
+      this.untilFound();
+      if (this.isFound) {
+        this.interpoWaypointResult();
+        this.simplifyWaypointResult(this.waypointResult[0]);
+        this.waypointResult.shift();
+      }
+      // console.log('waypointResult', this.waypointResult.length);
+    }
+
+    this.step(); // test: one more step() just for color the result path in debugRender.
 
     // console.log(this.detectCount);
 
