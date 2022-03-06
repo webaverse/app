@@ -120,6 +120,7 @@ class PathFinder {
     this.frontiers.push(this.startVoxel);
 
     this.destVoxel = this.createVoxel(this.dest);
+    if (!this.destVoxel) return null; // todo: clear debugMesh.
     this.destVoxel._isDest = true;
 
     if (this.startVoxel === this.destVoxel) {
