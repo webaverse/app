@@ -185,7 +185,6 @@ class CameraManager extends EventTarget {
     }
   }
   exitPointerLock() {
-    // this.pointerLockEpoch++;
     document.exitPointerLock();
   }
   getMode() {
