@@ -31,16 +31,10 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
       function mousemove(e) {
         const emotionsEl = emotionsRef.current;
         if (document.pointerLockElement === emotionsEl) {
-          const {/* clientX, clientY, */movementX, movementY} = e;
-          /* const {left, top} = emotionsEl.getBoundingClientRect();
-          const x = clientX - left;
-          const y = clientY - top; */
-          // console.log('emotions move', {movementX, movementY});
+          const {movementX, movementY} = e;
           if (dragEmotionIndex !== -1) {
-            // const emotion = emotions[dragEmotionIndex];
             const emotionState = emotionStates[dragEmotionIndex];
             const newValue = Math.min(Math.max(emotionState.value - movementY * 0.01, 0), 1);
-            // console.log('set value', dragEmotionIndex, emotionState.value, newValue);
             emotionState.setValue(newValue);
           }
         }
