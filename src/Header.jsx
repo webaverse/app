@@ -69,18 +69,19 @@ export default function Header({
   }, []);
   useEffect(() => {
     const pointerlockchange = e => {
-      if (document.pointerLockElement && open !== null) {
+      const {pointerLockElement} = e.data;
+      if (pointerLockElement && open !== null) {
         setOpen(null);
       }
     };
-    window.document.addEventListener('pointerlockchange', pointerlockchange);
+    cameraManager.addEventListener('pointerlockchange', pointerlockchange);
     return () => {
-      window.document.removeEventListener('pointerlockchange', pointerlockchange);
+      cameraManager.removeEventListener('pointerlockchange', pointerlockchange);
     };
   }, [open]);
   useEffect(() => {
-    if (open && document.pointerLockElement && open !== 'chat') {
-      document.exitPointerLock();
+    if (open && open !== 'chat') {
+      cameraManager.exitPointerLock();
     }
     if (game.playerDiorama) {
       game.playerDiorama.enabled = characterOpen;
