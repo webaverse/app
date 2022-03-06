@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
@@ -14,6 +14,8 @@ const emotions = [
 ];
 
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, dioramaCanvasRef}) => {
+  const emotionsRef = useRef();
+  
   const sideSize = 400;
 
   return (
@@ -30,10 +32,33 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
       }
       panels={[
         (<div className={styles.panel} key="left">
-          <div className={styles.emotions}>
+          <div
+            className={styles.emotions}
+            onMouseUp={e => {
+              document.exitPointerLock();
+            }}
+            ref={emotionsRef}
+          >
             {emotions.map(emotion => {
+              // const emotionRef = useRef();
+
               return (
-                <div className={styles.emotion} key={emotion}>
+                <div
+                  className={styles.emotion}
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    (async () => {
+                      const emotionsEl = emotionsRef.current;
+                      await emotionsEl.requestPointerLock();
+                      /* const emotionEl = emotionRef.current;
+                      await emotionEl.requestPointerLock(); */
+                    })();
+                  }}
+                  // ref={emotionRef}
+                  key={emotion}
+                >
                   <img src={`images/emotions/${emotion}.svg`} className={styles.emotionIcon} />
                   <div className={styles.emotionName}>{emotion}</div>
                 </div>
