@@ -91,8 +91,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
-  const emoteActions = player.getActionsArray().filter(a => a.type === 'emote');
-  const poseAction = player.getAction('pose');
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
@@ -163,18 +161,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
   rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
-
-  // emote
-  if (emoteActions.length > 0) {
-    player.avatar.emotes = emoteActions;
-  } else {
-    if (player.avatar.emotes.length !== 0) {
-      player.avatar.emotes.length = 0;
-    }
-  }
-
-  // pose
-  rig.poseAnimation = poseAction?.animation || null;
 }
 // returns whether eyes were applied
 export function applyPlayerEyesToAvatar(player, rig) {
@@ -212,7 +198,7 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
     }
   }
 }
-export function applyPlayerChatToAvatar(player, rig) {
+/* export function applyPlayerChatToAvatar(player, rig) {
   const actions = player.getActionsArray();
   for (let i = actions.length - 1; i >= 0; i--) {
     const action = actions[i];
@@ -252,19 +238,32 @@ export function applyPlayerChatToAvatar(player, rig) {
       break;
     }
   }
-  
-  /* const _applyFakeSpeech = message => {
-    rig.fakeSpeechValue = message?.fakeSpeech ? 1 : 0;
-  };
-  _applyFakeSpeech(lastMessage); */
+} */
+export function applyPlayerEmotesToAvatar(player, rig) {
+  const emoteActions = player.getActionsArray().filter(a => a.type === 'emote');
+  if (emoteActions.length > 0) {
+    player.avatar.emotes = emoteActions;
+  } else {
+    if (player.avatar.emotes.length !== 0) {
+      player.avatar.emotes.length = 0;
+    }
+  }
+}
+export function applyPlayerPoseToAvatar(player, rig) {
+  const poseAction = player.getAction('pose');
+  rig.poseAnimation = poseAction?.animation || null;
 }
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
+  
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
-  applyPlayerChatToAvatar(player, rig);
+  
+  // applyPlayerChatToAvatar(player, rig);
+  applyPlayerEmotesToAvatar(player, rig);
+  applyPlayerPoseToAvatar(player, rig);
 }
 export async function switchAvatar(oldAvatar, newApp) {
   let result;
