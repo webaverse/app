@@ -9,8 +9,8 @@ const emotions = [
   'joy',
   'sorrow',
   'angry',
-  'surprised',
   'fun',
+  'surprise',
 ];
 
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, dioramaCanvasRef}) => {
