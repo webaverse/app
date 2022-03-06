@@ -5,7 +5,7 @@ import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
-import alea from './alea.js';
+// import alea from './alea.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
