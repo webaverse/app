@@ -1520,6 +1520,16 @@ class Avatar {
           return -1;
         }
       };
+      const _getMorphTargetInfluenceIndexForRegex = (morphTargetDictionary, regex) => {
+        let index = 0;
+        for (const k in morphTargetDictionary) {
+          if (regex.test(k)) {
+            return index;
+          }
+          index++;
+        }
+        return -1;
+      };
       /* const _getBlendShapeIndexForName = name => {
         const blendShapes = this.vrmExtension && this.vrmExtension.blendShapeMaster && this.vrmExtension.blendShapeMaster.blendShapeGroups;
         if (Array.isArray(blendShapes)) {
@@ -1549,7 +1559,7 @@ class Avatar {
           const funIndex = _getBlendShapeIndexForPresetName('fun');
           const joyIndex = _getBlendShapeIndexForPresetName('joy');
           const sorrowIndex = _getBlendShapeIndexForPresetName('sorrow');
-          // const surprisedIndex = _getBlendShapeIndexForName('surprised');
+          const surpriseIndex = _getMorphTargetInfluenceIndexForRegex(morphTargetDictionary, /surprise/i);
           // const extraIndex = _getBlendShapeIndexForName('extra');
           return [
             morphTargetInfluences,
@@ -1565,7 +1575,7 @@ class Avatar {
             funIndex,
             joyIndex,
             sorrowIndex,
-            // surprisedIndex,
+            surpriseIndex,
             // extraIndex,
           ];
         } else {
@@ -3200,7 +3210,7 @@ class Avatar {
             funIndex,
             joyIndex,
             sorrowIndex,
-            // surprisedIndex,
+            surpriseIndex,
             // extraIndex,
           ] = visemeMapping;
           
@@ -3277,6 +3287,10 @@ class Avatar {
                   }
                   case 'sorrow': {
                     index = sorrowIndex;
+                    break;
+                  }
+                  case 'surprise': {
+                    index = surpriseIndex;
                     break;
                   }
                   default: {
