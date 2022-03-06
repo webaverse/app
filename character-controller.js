@@ -569,6 +569,7 @@ class StatePlayer extends PlayerBase {
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);
+    return action;
   }
   removeAction(type) {
     const actions = this.getActionsState();
