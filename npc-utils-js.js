@@ -45,10 +45,15 @@ class PathFinder {
     this.iterStep = 0;
     this.allowNearest = true;
 
+    // npc-local ( start-dest space )
+    // all parameters, unless otherwise specified, are npc-local
     this.start = new THREE.Vector3();
     this.dest = new THREE.Vector3();
-    this.startIn = new THREE.Vector3();
-    this.destIn = new THREE.Vector3();
+
+    // global sapce
+    // todo: needs to be rounded, otherwise in narrow passages, will generate unstable voxels map, cause sometimes can go, sometimes can't, thus go back and forth.
+    this.startGlobal = new THREE.Vector3();
+    this.destGlobal = new THREE.Vector3();
 
     this.voxelHeightHalf = this.voxelHeight / 2;
 
@@ -79,14 +84,18 @@ class PathFinder {
   }
 
   getPath(start, dest) {
-    this.startIn.copy(start);
-    this.destIn.copy(dest);
+    this.startGlobal.copy(start);
+    this.destGlobal.copy(dest);
 
-    // this.detectCount = 0;
-    this.startDestQuaternion.setFromUnitVectors(
-      new THREE.Vector3(0, 0, 1),
-      new THREE.Vector3().subVectors(this.destIn, this.startIn).setY(0).normalize(),
-    );
+    // this.debugMesh.quaternion.copy(this.startDestQuaternion);
+    this.debugMesh.position.copy(this.startGlobal);
+    this.debugMesh.lookAt(this.destGlobal);
+
+    // this.startDestQuaternion.setFromUnitVectors(
+    //   new THREE.Vector3(0, 0, 1),
+    //   new THREE.Vector3().subVectors(this.destGlobal, this.startGlobal).normalize(),
+    // );
+    this.startDestQuaternion.copy(this.debugMesh.quaternion);
 
     this.reset();
     if (this.voxels.children.length > this.maxVoxelCacheLen) this.disposeVoxelCache();
@@ -98,8 +107,8 @@ class PathFinder {
     );
     this.dest.set(
       0,
-      Math.round(this.destIn.y - this.startIn.y), // Round to 1 because voxelHeight is 1;
-      Math.round(this.startIn.distanceTo(this.destIn)),
+      0,
+      Math.round(this.startGlobal.distanceTo(this.destGlobal)),
     );
 
     this.startVoxel = this.createVoxel(this.start);
@@ -127,12 +136,10 @@ class PathFinder {
 
     this.step(); // test: one more step() just for color the result path in debugRender.
 
-    // console.log(this.detectCount);
-
     if (this.isFound) {
       this.waypointResult.forEach(result => {
         result.position.applyQuaternion(this.startDestQuaternion);
-        result.position.add(this.startIn);
+        result.position.add(this.startGlobal);
       });
     }
 
@@ -264,7 +271,7 @@ class PathFinder {
   detect(voxel) {
     localVector.copy(voxel.position);
     localVector.applyQuaternion(this.startDestQuaternion);
-    localVector.add(this.startIn);
+    localVector.add(this.startGlobal);
     // const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVector, identityQuaternion);
     const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVector, this.startDestQuaternion);
     let collide;
@@ -411,25 +418,33 @@ class PathFinder {
 
   step() {
     if (this.debugRender) {
-      // Show all voxels
-      this.debugMesh.count = this.voxels.children.length + this.waypointResult.length;
-      this.voxels.children.forEach((voxel, i) => {
-        this.debugMesh.setMatrixAt(i, voxel.matrix);
-        if (voxel._isStart) {
-          this.debugMesh.setColorAt(i, colorStart);
-        } else if (voxel._isDest) {
-          this.debugMesh.setColorAt(i, colorDest);
-        } else if (voxel._isPath) {
-          this.debugMesh.setColorAt(i, colorPath);
-        } else if (voxel._isFrontier) {
-          this.debugMesh.setColorAt(i, colorFrontier);
-        } else if (voxel._isReached) {
-          this.debugMesh.setColorAt(i, colorReached);
-        }
-      });
-      this.waypointResult.forEach((result, i) => {
-        this.debugMesh.setMatrixAt(this.voxels.children.length + i, result.matrix);
-        this.debugMesh.setColorAt(this.voxels.children.length + i, colorPathSimplified);
+      // // Show all voxels
+      // this.debugMesh.count = this.voxels.children.length + this.waypointResult.length;
+      // this.voxels.children.forEach((voxel, i) => {
+      //   this.debugMesh.setMatrixAt(i, voxel.matrix);
+      //   if (voxel._isStart) {
+      //     this.debugMesh.setColorAt(i, colorStart);
+      //   } else if (voxel._isDest) {
+      //     this.debugMesh.setColorAt(i, colorDest);
+      //   } else if (voxel._isPath) {
+      //     this.debugMesh.setColorAt(i, colorPath);
+      //   } else if (voxel._isFrontier) {
+      //     this.debugMesh.setColorAt(i, colorFrontier);
+      //   } else if (voxel._isReached) {
+      //     this.debugMesh.setColorAt(i, colorReached);
+      //   }
+      // });
+      // this.waypointResult.forEach((result, i) => {
+      //   this.debugMesh.setMatrixAt(this.voxels.children.length + i, result.matrix);
+      //   this.debugMesh.setColorAt(this.voxels.children.length + i, colorPathSimplified);
+      // });
+
+      // Only show path
+      const paths = this.voxels.children.filter(voxel => voxel._isPath);
+      this.debugMesh.count = paths.length;
+      paths.forEach((result, i) => {
+        this.debugMesh.setMatrixAt(i, result.matrix);
+        this.debugMesh.setColorAt(i, colorPath);
       });
 
       // // Only show waypointResult
@@ -444,8 +459,6 @@ class PathFinder {
       this.debugMesh.instanceMatrix.needsUpdate = true;
       this.debugMesh.instanceColor.needsUpdate = true;
 
-      this.debugMesh.quaternion.copy(this.startDestQuaternion);
-      this.debugMesh.position.copy(this.startIn);
       this.debugMesh.updateMatrixWorld();
     }
 
