@@ -368,11 +368,15 @@ const _startHacks = () => {
     }
   };
   const _updateEmote = () => {
-    localPlayer.removeAction('emote');
+    const oldEmoteActionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && /^emotion-/.test(action.emotion));
+    if (oldEmoteActionIndex !== -1) {
+      localPlayer.removeActionIndex(oldEmoteActionIndex);
+    }
     if (emoteIndex !== -1) {
       const emoteAction = {
         type: 'emote',
-        index: emoteIndex,
+        emotion: `emotion-${emoteIndex}`,
+        value: 1,
       };
       localPlayer.addAction(emoteAction);
     }
