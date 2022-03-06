@@ -153,7 +153,7 @@ class CameraManager extends EventTarget {
               reject(err);
               _cleanup();
               
-              notifications.addNotification(`\
+              /* notifications.addNotification(`\
                 <i class="icon fa fa-mouse-pointer"></i>
                 <div class=wrap>
                   <div class=label>Whoa there!</div>
@@ -164,7 +164,7 @@ class CameraManager extends EventTarget {
                 </div>
               `, {
                 timeout: 3000,
-              });
+              }); */
             };
             document.addEventListener('pointerlockerror', _pointerlockerror);
             const _cleanup = () => {
