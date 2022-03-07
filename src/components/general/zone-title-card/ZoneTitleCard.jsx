@@ -1,21 +1,24 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import classnames from 'classnames';
 
+import {RenderMirror} from './RenderMirror';
 import styles from './zone-title-card.module.css';
 
 //
 
 export const ZoneTitleCard = ({
-    /* open,
-    setOpen, */
+    app,
+    open,
+    setOpen,
 }) => {
 
-    const [ open, setOpen ] = useState( false );
+    // const [ open, setOpen ] = useState( false );
+    const [ loadProgress, setLoadProgress ] = useState( false );
 
-    useEffect(() => {
+    /* useEffect(() => {
         setOpen(true);
-    }, []);
+    }, []); */
 
     // const [ xrSupported, setXrSupported ] = useState( false );
 
@@ -65,6 +68,15 @@ export const ZoneTitleCard = ({
 
     */
 
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => {
+            setLoadProgress((loadProgress + 0.005) % 1);
+        });
+        return () => {
+            cancelAnimationFrame(frame);
+        };
+    }, [loadProgress]);
+
     const title = 'Zone Title';
     const description = 'Zone Description';
     const comment = 'This is a zone comment.';
@@ -78,9 +90,17 @@ export const ZoneTitleCard = ({
                 <img className={ styles.tailImg } src="images/snake-tongue.svg" />
             </div>
             <div className={ styles.rightSection }>
+                <RenderMirror app={app} width={128} />
                 <div className={ styles.title }>{title}</div>
                 <div className={ styles.description }>{description}</div>
-                <div className={ styles.comment }>{description}</div>
+                <div className={ styles.comment }>{comment}</div>
+            </div>
+            <div className={ styles.bottomSection }>
+                <div className={ styles.loadingBar }>
+                    <div className={ styles.label }>Loading</div>
+                    <progress className={ styles.loadProgress } value={loadProgress} />
+                    <img src="images/loading-bar.svg" className={ styles.loadProgressImage } />
+                </div>
             </div>
         </div>
     );
