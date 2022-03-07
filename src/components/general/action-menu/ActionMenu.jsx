@@ -59,9 +59,11 @@ export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }
     return (
         <div className={ styles.actionMenu } onClick={ stopPropagation } >
 
-            {modeOpen ?
-              <ZoneTitleCard />
-            : null}
+            <ZoneTitleCard
+                app={ app }
+                open={ modeOpen }
+                setOpen={ setModeOpen }
+            />
 
             <div className={ classnames( styles.btn, styles.settings ) } onClick={ handleWorldBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
