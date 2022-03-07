@@ -480,7 +480,7 @@ class StatePlayer extends PlayerBase {
     
     const _setNextAvatarApp = app => {
       (async () => {
-        const avatar = await switchAvatar(this.avatar, app);
+        const avatar = switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = avatar;
 
@@ -1132,9 +1132,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   
     this.isNpcPlayer = true;
   }
-  async setAvatarAppAsync(app) {
-    await app.setSkinning(true);
-    
+  setAvatarApp(app) {
+    app.toggleBoneUpdates(true);
     const {skinnedVrm} = app;
     const avatar = new Avatar(skinnedVrm, {
       fingers: true,
