@@ -278,6 +278,13 @@ export default class Webaverse extends EventTarget {
       rendererStats.update(renderer);
     }
 
+    this.dispatchEvent(new MessageEvent('frameend', {
+      data: {
+        canvas: renderer.domElement,
+        context: renderer.getContext(),
+      }
+    }));
+
     // console.log('frame 2');
   }
   
