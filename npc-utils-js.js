@@ -110,6 +110,7 @@ class PathFinder {
     );
 
     this.startVoxel = this.createVoxel(this.start);
+    if (!this.startVoxel) return null; // todo: clear debugMesh.
     this.startVoxel._isStart = true;
     this.startVoxel._isReached = true;
     // this.startVoxel._priority = start.manhattanDistanceTo(dest)
