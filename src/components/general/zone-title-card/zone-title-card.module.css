@@ -1,27 +1,3 @@
-@keyframes blink {
-  0% {
-    border-color: #000;
-  }
-  25% {
-    border-color: #000;
-  }
-  26% {
-    border-color: #FFF;
-  }
-  50% {
-    border-color: #FFF;
-  }
-  75% {
-    border-color: #FFF;
-  }
-  76% {
-    border-color: #000;
-  }
-  100% {
-    border-color: #000;
-  }
-}
-
 .zoneTitleCard {
   position: fixed;
   top: 0;
@@ -110,7 +86,7 @@
   left: -100px;
   border: 2px solid #000;
   box-shadow: 2px 2px 0 #333;
-  animation: blink 0.5s linear infinite;
+  animation: border-blink 0.5s linear infinite;
 }
 
 .zoneTitleCard .bottomSection {
