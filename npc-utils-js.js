@@ -36,7 +36,7 @@ class PathFinder {
       debugRender: Whether show voxel boxes for debugging.
     */
     this.voxelHeight = 0.5; // Need let round() compatible with this value/precision.
-    this.maxIterStep = 3000;
+    this.maxIterStep = 10000;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
     this.ignorePhysicsIds = ignorePhysicsIds;
     this.debugRender = true;
@@ -44,7 +44,7 @@ class PathFinder {
     // end args
 
     this.iterStep = 0;
-    this.allowNearest = true;
+    this.allowNearest = false;
 
     // npc-local ( start-dest space )
     // all parameters, unless otherwise specified, are npc-local
@@ -71,7 +71,8 @@ class PathFinder {
 
     if (this.debugRender) {
       this.geometry = new THREE.BoxGeometry();
-      this.geometry.scale(0.3, this.voxelHeight * 0.3, 0.3);
+      // this.geometry.scale(0.3, this.voxelHeight * 0.3, 0.3);
+      this.geometry.scale(0.5, this.voxelHeight * 0.5, 0.5);
       // this.geometry.scale(1, this.voxelHeight, 1);
       // this.geometry.scale(0.9, 0.1, 0.9);
       this.material = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe: false});
@@ -153,6 +154,7 @@ class PathFinder {
       });
     }
 
+    if (this.debugRender) console.log('isFound:', this.isFound);
     return this.isFound ? this.waypointResult : null;
   }
 
@@ -406,7 +408,6 @@ class PathFinder {
   }
 
   found(voxel) {
-    if (this.debugRender) console.log('found');
     this.isFound = true;
     this.setNextOfPathVoxel(voxel);
 
@@ -454,30 +455,30 @@ class PathFinder {
       //   this.debugMesh.setColorAt(this.voxels.children.length + i, colorPathSimplified);
       // });
 
-      // Show all voxels
-      this.debugMesh.count = this.voxels.children.length;
-      this.voxels.children.forEach((voxel, i) => {
-        this.debugMesh.setMatrixAt(i, voxel.matrix);
-        if (voxel._isStart) {
-          this.debugMesh.setColorAt(i, colorStart);
-        } else if (voxel._isDest) {
-          this.debugMesh.setColorAt(i, colorDest);
-        } else if (voxel._isPath) {
-          this.debugMesh.setColorAt(i, colorPath);
-        } else if (voxel._isFrontier) {
-          this.debugMesh.setColorAt(i, colorFrontier);
-        } else if (voxel._isReached) {
-          this.debugMesh.setColorAt(i, colorReached);
-        }
-      });
-
-      // // Only show path
-      // const paths = this.voxels.children.filter(voxel => voxel._isPath);
-      // this.debugMesh.count = paths.length;
-      // paths.forEach((result, i) => {
-      //   this.debugMesh.setMatrixAt(i, result.matrix);
-      //   this.debugMesh.setColorAt(i, colorPath);
+      // // Show all voxels
+      // this.debugMesh.count = this.voxels.children.length;
+      // this.voxels.children.forEach((voxel, i) => {
+      //   this.debugMesh.setMatrixAt(i, voxel.matrix);
+      //   if (voxel._isStart) {
+      //     this.debugMesh.setColorAt(i, colorStart);
+      //   } else if (voxel._isDest) {
+      //     this.debugMesh.setColorAt(i, colorDest);
+      //   } else if (voxel._isPath) {
+      //     this.debugMesh.setColorAt(i, colorPath);
+      //   } else if (voxel._isFrontier) {
+      //     this.debugMesh.setColorAt(i, colorFrontier);
+      //   } else if (voxel._isReached) {
+      //     this.debugMesh.setColorAt(i, colorReached);
+      //   }
       // });
+
+      // Only show path
+      const paths = this.voxels.children.filter(voxel => voxel._isPath);
+      this.debugMesh.count = paths.length;
+      paths.forEach((result, i) => {
+        this.debugMesh.setMatrixAt(i, result.matrix);
+        this.debugMesh.setColorAt(i, colorPath);
+      });
 
       // // Only show waypointResult
       // this.debugMesh.count = this.waypointResult.length;
