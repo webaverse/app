@@ -194,10 +194,6 @@ class PathFinder {
     }
   }
 
-  resetVoxelDetect(voxel) {
-    voxel._detectState = 'initial'; // 'initial', 'colliding', 'stopped'
-  }
-
   resetVoxelAStar(voxel) {
     voxel._isStart = false;
     voxel._isDest = false;
@@ -259,30 +255,29 @@ class PathFinder {
   }
 
   createVoxel(position) {
-    this.resetVoxelDetect(localVoxel);
-    localVoxel.position.copy(position);
-    // localVoxel.position.y = Math.round(localVoxel.position.y); // Round to 1 because voxelHeight is 1;
-    localVoxel.position.y = Math.round(localVoxel.position.y * 2) / 2; // Round to 0.5 because voxelHeight is 0.5;
+    localVector2.copy(position); // note: can't use localVector, because detect() will use too and change.
+    // localVector2.y = Math.round(localVector2.y); // Round to 1 because voxelHeight is 1;
+    localVector2.y = Math.round(localVector2.y * 2) / 2; // Round to 0.5 because voxelHeight is 0.5;
 
-    let voxel = this.getVoxel(localVoxel.position);
+    let voxel = this.getVoxel(localVector2);
     if (voxel) return voxel;
 
-    const collide = this.detect(localVoxel, 0);
+    const collide = this.detect(localVector2);
     if (collide) return null;
 
     voxel = new THREE.Object3D();
     this.voxels.add(voxel);
     this.resetVoxelAStar(voxel);
 
-    voxel.position.copy(localVoxel.position);
+    voxel.position.copy(localVector2);
     voxel.updateMatrixWorld();
     this.setVoxelo(voxel);
 
     return voxel;
   }
 
-  detect(voxel) {
-    localVector.copy(voxel.position);
+  detect(position) {
+    localVector.copy(position);
     localVector.applyQuaternion(this.startDestQuaternion);
     localVector.add(this.startGlobal);
     // const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVector, identityQuaternion);
