@@ -24,17 +24,15 @@ const colorPath = new THREE.Color('rgb(149,64,191)');
 const colorPathSimplified = new THREE.Color('rgb(69,0,98)');
 
 class PathFinder {
-  constructor({voxelHeight = 1, heightTolerance = 1, maxIterStep = 1000, maxVoxelCacheLen = 10000, ignorePhysicsIds = [], debugRender = false}) {
+  constructor({voxelHeight = 1, maxIterStep = 1000, maxVoxelCacheLen = 10000, ignorePhysicsIds = [], debugRender = false}) {
     /* args:
       voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
-      heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
       maxIterStep: How many A* path-finding step can one getPath() iterate. One A* step can create up to 4 voxels, 0 ~ 4.
       maxVoxelCacheLen: How many detected voxels can be cached.
       ignorePhysicsIds: physicsIds that voxel detect() ignored, usually npc CharacterController's capsule.
       debugRender: Whether show voxel boxes for debugging.
     */
-    this.voxelHeight = 1;
-    this.heightTolerance = 1;
+    this.voxelHeight = 0.5;
     this.maxIterStep = 3000;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
     this.ignorePhysicsIds = ignorePhysicsIds;
@@ -296,10 +294,10 @@ class PathFinder {
         localVector.x += 1;
         break;
       case 'btm':
-        localVector.y += -this.heightTolerance;
+        localVector.y += -this.voxelHeight;
         break;
       case 'top':
-        localVector.y += this.heightTolerance;
+        localVector.y += this.voxelHeight;
         break;
       case 'back':
         localVector.z += -1;
