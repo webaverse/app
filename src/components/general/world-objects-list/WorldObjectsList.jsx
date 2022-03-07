@@ -233,7 +233,7 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
                                 <img src="images/webpencil.svg" className={ classnames( styles.backgroundInner, styles.lime ) } />
                                 <img src="images/object.jpg" className={ styles.img } />
                                 <div className={ styles.wrap } >
-                                    <div className={ styles.name } >{ app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1') }</div>
+                                    <div className={ styles.name } >{ app.name }</div>
                                 </div>
                             </div>
                         ))

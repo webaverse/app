@@ -1,0 +1,53 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 1],
+        "position": [1, 2, 3],
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 0.5],
+        "position": [-1, -2, -3]
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "http://localhost/lib/webaverse_resource/atmospheric-sky/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "http://localhost/lib/webaverse_resource/proto-sandbox_gonnavis/",
+      "dynamic": false
+    },
+    {
+      "position": [ 0, 5, -5 ],
+      "quaternion": [ 0, 0.7071067811865475, 0, 0.7071067811865475 ],
+      "physics": false,
+      "start_url": "http://localhost/lib/webaverse_resource/npc/"
+    }
+  ]
+}
+

@@ -55,7 +55,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/skybox-360/"
+      "start_url": "../skybox-360/"
     },
     {
       "position": [
@@ -69,7 +69,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/grass-anime/"
+      "start_url": "../grass-anime/"
     }
   ]
 }

@@ -1,7 +1,7 @@
 /* this module is responsible for mapping a remote TTS endpoint to the character. */
 
-import Avatar from './avatars/avatars.js';
-import {makePromise} from './util.js';
+import Avatar from '../avatars/avatars.js';
+import {makePromise} from '../util.js';
 
 class VoiceEndpoint {
   constructor(url) {

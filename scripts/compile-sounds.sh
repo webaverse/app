@@ -2,11 +2,14 @@
 # input: directory of wav files
 # output: mp3 data file and json metadata file
 
-find . -name '*-pad.wav' | xargs rm
+find . -name '*-pad.wav' | xargs -d '\n' rm
 rm -f lol.txt
+rm -f sound-files.txt
 rm -f sounds.txt
+rm -f sounds.wav
+rm -f sounds.mp3
 
-ls {walk,run,jump,land,narutoRun,food,combat,spells}/*.wav | sort -n >sound-files.txt
+ls {walk,run,jump,land,narutoRun,food,combat,spells,ui}/*.wav | sort -n >sound-files.txt
 
 set --
 while IFS='' read -r item; do
