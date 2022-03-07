@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
-import {defaultPlayerName} from '../../constants.js';
+import {defaultPlayerName} from '../../ai/lore/lore-model.js';
 
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, dioramaCanvasRef}) => {
   const sideSize = 400;
@@ -43,12 +43,13 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
             <h1>Equipment</h1>
           </div> */}
           {wearActions.map((wearAction, i) => {
+            const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+
             return (
               <div
                 className={styles.equipment}
                 key={i}
                 onMouseEnter={e => {
-                  const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
                   game.setMouseHoverObject(null);
                   const physicsId = app.getPhysicsObjects()[0]?.physicsId;
                   game.setMouseDomEquipmentHoverObject(app, physicsId);
@@ -59,10 +60,9 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
               >
                 <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
                 <img src="images/flower.png" className={styles.icon} />
-                <div className={styles.name}>{wearAction.instanceId}</div>
+                <div className={styles.name}>{app.name}</div>
                 <button className={styles.button} onClick={e => {
                   const localPlayer = metaversefile.useLocalPlayer();
-                  const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
                   localPlayer.unwear(app);
                 }}>
                   <img src="images/remove.svg" />

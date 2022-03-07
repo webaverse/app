@@ -69,8 +69,7 @@ export default function Header({
   }, []);
   useEffect(() => {
     const pointerlockchange = e => {
-      // console.log('pointer lock change', e, document.pointerLockElement);
-      if (document.pointerLockElement) {
+      if (document.pointerLockElement && open !== null) {
         setOpen(null);
       }
     };
@@ -78,13 +77,13 @@ export default function Header({
     return () => {
       window.document.removeEventListener('pointerlockchange', pointerlockchange);
     };
-  }, []);
+  }, [open]);
   useEffect(() => {
     if (open && document.pointerLockElement && open !== 'chat') {
       document.exitPointerLock();
     }
     if (game.playerDiorama) {
-      game.playerDiorama.enabled = !!open;
+      game.playerDiorama.enabled = characterOpen;
     }
   }, [open]);
 
@@ -120,12 +119,6 @@ export default function Header({
         e.preventDefault();
         e.stopPropagation();
         setOpen('chat');
-        return true;
-      }
-      case 84: { // T
-        e.preventDefault();
-        e.stopPropagation();
-        world.toggleMic();
         return true;
       }
       case 191: { // /

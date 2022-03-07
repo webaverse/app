@@ -7,6 +7,7 @@
   "shadows.scn",
   "darkness.scn",
   "grass.scn",
+  "battalion.scn",
   "gunroom.scn",
   "classroom.scn",
   "grid.scn",
@@ -14,6 +15,7 @@
   "grid-heli.scn",
   "canyon.scn",
   "prototype.scn",
+  "prototype-vis.scn",
   "silk-fountains.scn",
   "moon.scn"
 ]

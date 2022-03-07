@@ -76,7 +76,7 @@ class CharacterSfx {
     const crouchFactor = Math.min(Math.max(1 - (this.player.avatar.crouchTime / crouchMaxTime), 0), 1);
 
     const soundFiles = sounds.getSoundFiles();
-    const soundFileAudioBuffer = sounds.getSoundFileAudioBuffer();
+    // const soundFileAudioBuffer = sounds.getSoundFileAudioBuffer();
 
     // jump
     const _handleJump = () => {
