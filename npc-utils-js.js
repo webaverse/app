@@ -9,6 +9,9 @@ window.domBtns.addEventListener('click', event => { // test
   event.stopPropagation();
 });
 
+const npcPlayerHeight = 1.518240094787793; // test
+const localPlayerHeight = 1.2576430977951292; // test
+
 const identityQuaternion = new THREE.Quaternion();
 
 const localVector = new THREE.Vector3();
@@ -64,11 +67,11 @@ class PathFinder {
     this.startDestQuaternion = new THREE.Quaternion();
 
     this.directions = ['left', 'right', 'btm', 'top', 'back', 'front'];
-    // this.directions = ['left', 'right', 'btm', 'back', 'front'];
+    this.directionsNoTop = ['left', 'right', 'btm', 'back', 'front'];
 
     if (this.debugRender) {
       this.geometry = new THREE.BoxGeometry();
-      this.geometry.scale(0.5, this.voxelHeight * 0.5, 0.5);
+      this.geometry.scale(0.3, this.voxelHeight * 0.3, 0.3);
       // this.geometry.scale(1, this.voxelHeight, 1);
       // this.geometry.scale(0.9, 0.1, 0.9);
       this.material = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe: false});
@@ -84,7 +87,13 @@ class PathFinder {
 
   getPath(start, dest) {
     this.startGlobal.copy(start);
+    this.startGlobal.y -= npcPlayerHeight;
+    this.startGlobal.y += this.voxelHeightHalf;
+    this.startGlobal.y += 0.1;
     this.destGlobal.copy(dest);
+    this.destGlobal.y -= localPlayerHeight;
+    this.destGlobal.y += this.voxelHeightHalf;
+    this.destGlobal.y += 0.1;
 
     // this.debugMesh.quaternion.copy(this.startDestQuaternion);
     this.debugMesh.position.copy(this.startGlobal);
@@ -367,7 +376,7 @@ class PathFinder {
     }
   }
 
-  stepVoxel(voxel, prevVoxel) {
+  stepVoxel(voxel, prevVoxel) { // do A-Star.
     // const newCost = prevVoxel._costSoFar + 1;
     const newCost = prevVoxel._costSoFar + voxel.position.distanceTo(prevVoxel.position); // todo: performace: use already known direction instead of distanceTo().
     // console.log(voxel.position.distanceTo(prevVoxel.position));
@@ -424,7 +433,7 @@ class PathFinder {
 
   step() {
     if (this.debugRender) {
-      // // Show all voxels
+      // // Show all voxels & waypointResult
       // this.debugMesh.count = this.voxels.children.length + this.waypointResult.length;
       // this.voxels.children.forEach((voxel, i) => {
       //   this.debugMesh.setMatrixAt(i, voxel.matrix);
@@ -445,13 +454,30 @@ class PathFinder {
       //   this.debugMesh.setColorAt(this.voxels.children.length + i, colorPathSimplified);
       // });
 
-      // Only show path
-      const paths = this.voxels.children.filter(voxel => voxel._isPath);
-      this.debugMesh.count = paths.length;
-      paths.forEach((result, i) => {
-        this.debugMesh.setMatrixAt(i, result.matrix);
-        this.debugMesh.setColorAt(i, colorPath);
+      // Show all voxels
+      this.debugMesh.count = this.voxels.children.length;
+      this.voxels.children.forEach((voxel, i) => {
+        this.debugMesh.setMatrixAt(i, voxel.matrix);
+        if (voxel._isStart) {
+          this.debugMesh.setColorAt(i, colorStart);
+        } else if (voxel._isDest) {
+          this.debugMesh.setColorAt(i, colorDest);
+        } else if (voxel._isPath) {
+          this.debugMesh.setColorAt(i, colorPath);
+        } else if (voxel._isFrontier) {
+          this.debugMesh.setColorAt(i, colorFrontier);
+        } else if (voxel._isReached) {
+          this.debugMesh.setColorAt(i, colorReached);
+        }
       });
+
+      // // Only show path
+      // const paths = this.voxels.children.filter(voxel => voxel._isPath);
+      // this.debugMesh.count = paths.length;
+      // paths.forEach((result, i) => {
+      //   this.debugMesh.setMatrixAt(i, result.matrix);
+      //   this.debugMesh.setColorAt(i, colorPath);
+      // });
 
       // // Only show waypointResult
       // this.debugMesh.count = this.waypointResult.length;
@@ -477,7 +503,16 @@ class PathFinder {
     const currentVoxel = this.frontiers.shift();
     currentVoxel._isFrontier = false;
 
-    for (const direction of this.directions) {
+    let directions;
+    localVector.copy(currentVoxel.position);
+    localVector.y -= this.voxelHeight;
+    const btmVoxel = this.getVoxel(localVector); // todo: performance: don't getVoxel() here.
+    if (btmVoxel) {
+      directions = this.directionsNoTop;
+    } else {
+      directions = this.directions;
+    }
+    for (const direction of directions) {
       if (!currentVoxel[`_${direction}Voxel`]) this.generateVoxelMap(currentVoxel, direction);
       if (currentVoxel[`_can${this.capitalize(direction)}`]) {
         this.stepVoxel(currentVoxel[`_${direction}Voxel`], currentVoxel);
