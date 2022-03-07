@@ -32,7 +32,7 @@ class PathFinder {
       ignorePhysicsIds: physicsIds that voxel detect() ignored, usually npc CharacterController's capsule.
       debugRender: Whether show voxel boxes for debugging.
     */
-    this.voxelHeight = 0.5;
+    this.voxelHeight = 0.5; // Need let round() compatible with this value/precision.
     this.maxIterStep = 3000;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
     this.ignorePhysicsIds = ignorePhysicsIds;
@@ -64,6 +64,7 @@ class PathFinder {
     this.startDestQuaternion = new THREE.Quaternion();
 
     this.directions = ['left', 'right', 'btm', 'top', 'back', 'front'];
+    // this.directions = ['left', 'right', 'btm', 'back', 'front'];
 
     if (this.debugRender) {
       this.geometry = new THREE.BoxGeometry();
@@ -87,7 +88,7 @@ class PathFinder {
 
     // this.debugMesh.quaternion.copy(this.startDestQuaternion);
     this.debugMesh.position.copy(this.startGlobal);
-    this.debugMesh.lookAt(this.destGlobal);
+    this.debugMesh.lookAt(localVector.copy(this.destGlobal).setY(this.startGlobal.y));
 
     // this.startDestQuaternion.setFromUnitVectors(
     //   new THREE.Vector3(0, 0, 1),
@@ -249,7 +250,8 @@ class PathFinder {
   createVoxel(position) {
     this.resetVoxelDetect(localVoxel);
     localVoxel.position.copy(position);
-    localVoxel.position.y = Math.round(localVoxel.position.y); // Round to 1 because voxelHeight is 1;
+    // localVoxel.position.y = Math.round(localVoxel.position.y); // Round to 1 because voxelHeight is 1;
+    localVoxel.position.y = Math.round(localVoxel.position.y * 2) / 2; // Round to 0.5 because voxelHeight is 0.5;
 
     let voxel = this.getVoxel(localVoxel.position);
     if (voxel) return voxel;
@@ -366,10 +368,14 @@ class PathFinder {
   }
 
   stepVoxel(voxel, prevVoxel) {
-    const newCost = prevVoxel._costSoFar + 1;
+    // const newCost = prevVoxel._costSoFar + 1;
+    const newCost = prevVoxel._costSoFar + voxel.position.distanceTo(prevVoxel.position); // todo: performace: use already known direction instead of distanceTo().
+    // console.log(voxel.position.distanceTo(prevVoxel.position));
+
     // if (voxel._isReached === false || newCost < voxel._costSoFar) {
     if (voxel._isReached === false) {
       // Seems no need `|| newCost < voxel._costSoFar` ? Need? http://disq.us/p/2mgpazs
+
       voxel._isReached = true;
       voxel._costSoFar = newCost;
 
