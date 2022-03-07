@@ -96,6 +96,7 @@ const geometryUtils = (() => {
 
         const positionBuffer = moduleInstance.HEAP32.subarray(head + 0, head + 1)[0];
         const normalBuffer = moduleInstance.HEAP32.subarray(head + 1, head + 2)[0];
+        const biomeBuffer = moduleInstance.HEAP32.subarray(head + 7, head + 8)[0];
         const indexBuffer = moduleInstance.HEAP32.subarray(head + 2, head + 3)[0];
         const chunkVertexRangeBuffer = moduleInstance.HEAP32.subarray(head + 3, head + 4)[0];
         const vertexFreeRangeBuffer = moduleInstance.HEAP32.subarray(head + 4, head + 5)[0];
@@ -107,6 +108,9 @@ const geometryUtils = (() => {
 
         const normals = moduleInstance.HEAPF32.subarray(
             normalBuffer / ELEMENT_BYTES, normalBuffer / ELEMENT_BYTES + positionCount * 3);
+
+        const biomes = moduleInstance.HEAP32.subarray(
+            biomeBuffer / ELEMENT_BYTES, biomeBuffer / ELEMENT_BYTES + positionCount);
 
         const indices = moduleInstance.HEAPU32.subarray(
             indexBuffer / ELEMENT_BYTES, indexBuffer / ELEMENT_BYTES + indexCount);
@@ -126,6 +130,7 @@ const geometryUtils = (() => {
             indexCount: indexCount,
             positionBuffer: positionBuffer,
             normalBuffer: normalBuffer,
+            biomeBuffer: biomeBuffer,
             indexBuffer: indexBuffer,
             chunkVertexRangeBuffer: chunkVertexRangeBuffer,
             vertexFreeRangeBuffer: vertexFreeRangeBuffer,
@@ -133,6 +138,7 @@ const geometryUtils = (() => {
             indexFreeRangeBuffer: indexFreeRangeBuffer,
             positions: positions,
             normals: normals,
+            biomes: biomes,
             indices: indices,
             vertexRanges: vertexRanges,
             indexRanges: indexRanges
@@ -152,13 +158,13 @@ const geometryUtils = (() => {
     }
 
     scope.generateChunk = (
-        positionBuffer, normalBuffer, indexBuffer,
+        positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
         chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
         x, y, z, chunkSize, segment, totalChunkCount
     ) => {
 
         let slotsPtr = moduleInstance._generateChunk(
-            positionBuffer, normalBuffer, indexBuffer,
+            positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
             chunkVertexRangeBuffer, vertexFreeRangeBuffer,
             chunkIndexRangeBuffer, indexFreeRangeBuffer,
             x, y, z, chunkSize, segment, totalChunkCount
