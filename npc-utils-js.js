@@ -35,7 +35,7 @@ class PathFinder {
       ignorePhysicsIds: physicsIds that voxel detect() ignored, usually npc CharacterController's capsule.
       debugRender: Whether show voxel boxes for debugging.
     */
-    this.voxelHeight = 0.5; // Need let round() compatible with this value/precision.
+    this.voxelHeight = 0.5; // Need let roundToVoxelHeight() compatible with this value/precision.
     this.maxIterStep = 10000;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
     this.ignorePhysicsIds = ignorePhysicsIds;
@@ -68,11 +68,12 @@ class PathFinder {
 
     this.directions = ['left', 'right', 'btm', 'top', 'back', 'front'];
     this.directionsNoTop = ['left', 'right', 'btm', 'back', 'front'];
+    this.directionBtm = ['btm'];
 
     if (this.debugRender) {
       this.geometry = new THREE.BoxGeometry();
-      // this.geometry.scale(0.3, this.voxelHeight * 0.3, 0.3);
-      this.geometry.scale(0.5, this.voxelHeight * 0.5, 0.5);
+      this.geometry.scale(0.3, this.voxelHeight * 0.3, 0.3);
+      // this.geometry.scale(0.5, this.voxelHeight * 0.5, 0.5);
       // this.geometry.scale(1, this.voxelHeight, 1);
       // this.geometry.scale(0.9, 0.1, 0.9);
       this.material = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe: false});
@@ -116,8 +117,8 @@ class PathFinder {
     );
     this.dest.set(
       0,
-      0,
-      Math.round(this.startGlobal.distanceTo(this.destGlobal)),
+      this.roundToVoxelHeight(this.destGlobal.y - this.startGlobal.y), // todo: need ceil?
+      Math.round(localVector.subVectors(this.destGlobal, this.startGlobal).setY(0).length()),
     );
 
     this.startVoxel = this.createVoxel(this.start);
@@ -254,10 +255,14 @@ class PathFinder {
     this.voxelo[`${voxel.position.x}_${voxel.position.y}_${voxel.position.z}`] = voxel;
   }
 
+  roundToVoxelHeight(y) {
+    // return Math.round(y); // Round to 1 because voxelHeight is 1;
+    return Math.round(y * 2) / 2; // Round to 0.5 because voxelHeight is 0.5;
+  }
+
   createVoxel(position) {
     localVector2.copy(position); // note: can't use localVector, because detect() will use too and change.
-    // localVector2.y = Math.round(localVector2.y); // Round to 1 because voxelHeight is 1;
-    localVector2.y = Math.round(localVector2.y * 2) / 2; // Round to 0.5 because voxelHeight is 0.5;
+    localVector2.y = this.roundToVoxelHeight(localVector2.y);
 
     let voxel = this.getVoxel(localVector2);
     if (voxel) return voxel;
@@ -450,30 +455,30 @@ class PathFinder {
       //   this.debugMesh.setColorAt(this.voxels.children.length + i, colorPathSimplified);
       // });
 
-      // // Show all voxels
-      // this.debugMesh.count = this.voxels.children.length;
-      // this.voxels.children.forEach((voxel, i) => {
-      //   this.debugMesh.setMatrixAt(i, voxel.matrix);
-      //   if (voxel._isStart) {
-      //     this.debugMesh.setColorAt(i, colorStart);
-      //   } else if (voxel._isDest) {
-      //     this.debugMesh.setColorAt(i, colorDest);
-      //   } else if (voxel._isPath) {
-      //     this.debugMesh.setColorAt(i, colorPath);
-      //   } else if (voxel._isFrontier) {
-      //     this.debugMesh.setColorAt(i, colorFrontier);
-      //   } else if (voxel._isReached) {
-      //     this.debugMesh.setColorAt(i, colorReached);
-      //   }
-      // });
-
-      // Only show path
-      const paths = this.voxels.children.filter(voxel => voxel._isPath);
-      this.debugMesh.count = paths.length;
-      paths.forEach((result, i) => {
-        this.debugMesh.setMatrixAt(i, result.matrix);
-        this.debugMesh.setColorAt(i, colorPath);
+      // Show all voxels
+      this.debugMesh.count = this.voxels.children.length;
+      this.voxels.children.forEach((voxel, i) => {
+        this.debugMesh.setMatrixAt(i, voxel.matrix);
+        if (voxel._isStart) {
+          this.debugMesh.setColorAt(i, colorStart);
+        } else if (voxel._isDest) {
+          this.debugMesh.setColorAt(i, colorDest);
+        } else if (voxel._isPath) {
+          this.debugMesh.setColorAt(i, colorPath);
+        } else if (voxel._isFrontier) {
+          this.debugMesh.setColorAt(i, colorFrontier);
+        } else if (voxel._isReached) {
+          this.debugMesh.setColorAt(i, colorReached);
+        }
       });
+
+      // // Only show path
+      // const paths = this.voxels.children.filter(voxel => voxel._isPath);
+      // this.debugMesh.count = paths.length;
+      // paths.forEach((result, i) => {
+      //   this.debugMesh.setMatrixAt(i, result.matrix);
+      //   this.debugMesh.setColorAt(i, colorPath);
+      // });
 
       // // Only show waypointResult
       // this.debugMesh.count = this.waypointResult.length;
@@ -502,12 +507,17 @@ class PathFinder {
     let directions;
     localVector.copy(currentVoxel.position);
     localVector.y -= this.voxelHeight;
-    const btmVoxel = this.getVoxel(localVector); // todo: performance: don't getVoxel() here.
-    if (btmVoxel) {
+    const canBtm = !this.detect(localVector); // todo: performance: may not need detect() here.
+    // const btmVoxel = this.getVoxel(localVector); // todo: performance: don't getVoxel() here.
+    // if (canBtm && !btmVoxel) {
+    //   directions = this.directionBtm;
+    // } else {
+    if (canBtm) {
       directions = this.directionsNoTop;
     } else {
       directions = this.directions;
     }
+    // }
     for (const direction of directions) {
       if (!currentVoxel[`_${direction}Voxel`]) this.generateVoxelMap(currentVoxel, direction);
       if (currentVoxel[`_can${this.capitalize(direction)}`]) {
