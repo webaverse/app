@@ -41,7 +41,7 @@ class PathFinder {
       debugRender: Whether show voxel boxes for debugging.
     */
     this.voxelHeight = 0.5; // Need let roundToVoxelHeight() compatible with this value/precision.
-    this.maxIterStep = 15000;
+    this.maxIterStep = 1000;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
     this.ignorePhysicsIds = ignorePhysicsIds;
     this.debugRender = true;
@@ -49,7 +49,7 @@ class PathFinder {
     // end args
 
     this.iterStep = 0;
-    this.allowNearest = false;
+    this.allowNearest = true;
 
     this.iterDetect = 0;
     this.maxIterDetect = 10000;
@@ -95,7 +95,7 @@ class PathFinder {
     this.waypointResult = [];
   }
 
-  getPath(start, dest, isWalk = false) {
+  getPath(start, dest, isWalk = true) {
     this.isWalk = isWalk;
 
     this.startGlobal.copy(start);
