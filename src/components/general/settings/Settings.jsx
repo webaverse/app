@@ -64,12 +64,12 @@ export const Settings = () => {
         };
 
         AppUIStateManager.addEventListener( 'ToggleSettingsPanel', toggle );
-        ioManager.addEventListener( 'Esc', close );
+        AppUIStateManager.addEventListener( 'Esc', close );
 
         return () => {
 
             AppUIStateManager.removeEventListener( 'ToggleSettingsPanel', toggle );
-            ioManager.removeEventListener( 'Esc', close );
+            AppUIStateManager.removeEventListener( 'Esc', close );
 
         };
 
