@@ -109,7 +109,7 @@ const geometryUtils = (() => {
         const normals = moduleInstance.HEAPF32.subarray(
             normalBuffer / ELEMENT_BYTES, normalBuffer / ELEMENT_BYTES + positionCount * 3);
 
-        const biomes = moduleInstance.HEAP32.subarray(
+        const biomes = moduleInstance.HEAPF32.subarray(
             biomeBuffer / ELEMENT_BYTES, biomeBuffer / ELEMENT_BYTES + positionCount);
 
         const indices = moduleInstance.HEAPU32.subarray(
