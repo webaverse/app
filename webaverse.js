@@ -344,12 +344,12 @@ export default class Webaverse extends EventTarget {
     }
     renderer.setAnimationLoop(animate);
 
-    _startHacks();
+    _startHacks(this);
   }
 }
 
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
-const _startHacks = () => {
+const _startHacks = webaverse => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
@@ -514,6 +514,7 @@ const _startHacks = () => {
       mikuModel.updateMatrixWorld();
     }
   }; */
+  webaverse.titleCardHack = false;
   window.addEventListener('keydown', e => {
     if (e.which === 46) { // .
       emoteIndex = -1;
@@ -532,6 +533,13 @@ const _startHacks = () => {
 
       // _ensureMikuModel();
       // _updateMikuModel();
+    } else if (e.which === 106) { // *
+      webaverse.titleCardHack = !webaverse.titleCardHack;
+      webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
+        data: {
+          titleCardHack: webaverse.titleCardHack,
+        }
+      }));
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {
