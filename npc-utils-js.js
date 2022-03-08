@@ -14,11 +14,14 @@ const localPlayerHeight = 1.2576430977951292; // test
 
 const identityQuaternion = new THREE.Quaternion();
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-// prevent local/tempVector trap if multi chained functions use them.
+// const localVector = new THREE.Vector3();
+// prevent temp/localVector trap if multi chained functions use them. Still need notice recur situation.
+const localVectorGetPath = new THREE.Vector3();
 const localVectorGenerateVoxelMap = new THREE.Vector3();
-const localVoxel = new THREE.Object3D();
+const localVectorInterpoWaypointResult = new THREE.Vector3();
+const localVectorInterpoWaypointResult2 = new THREE.Vector3();
+const localVectorDetect = new THREE.Vector3();
+const localVectorStep = new THREE.Vector3();
 
 const colorIdle = new THREE.Color('rgb(221,213,213)');
 const colorReached = new THREE.Color('rgb(171,163,163)');
@@ -108,7 +111,7 @@ class PathFinder {
     // this.debugMesh.quaternion.copy(this.startDestQuaternion);
     this.debugMesh.position.copy(this.startGlobal);
     if (this.isWalk) {
-      this.debugMesh.lookAt(localVector.copy(this.destGlobal).setY(this.startGlobal.y));
+      this.debugMesh.lookAt(localVectorGetPath.copy(this.destGlobal).setY(this.startGlobal.y));
     } else {
       this.debugMesh.lookAt(this.destGlobal);
     }
@@ -131,13 +134,13 @@ class PathFinder {
       this.dest.set(
         0,
         this.roundToVoxelHeight(this.destGlobal.y - this.startGlobal.y), // todo: need ceil?
-        Math.round(localVector.subVectors(this.destGlobal, this.startGlobal).setY(0).length()),
+        Math.round(localVectorGetPath.subVectors(this.destGlobal, this.startGlobal).setY(0).length()),
       );
     } else {
       this.dest.set(
         0,
         0,
-        Math.round(localVector.subVectors(this.destGlobal, this.startGlobal).length()),
+        Math.round(localVectorGetPath.subVectors(this.destGlobal, this.startGlobal).length()),
       );
     }
 
@@ -182,20 +185,20 @@ class PathFinder {
 
   interpoWaypointResult() {
     let tempResult = this.waypointResult.shift();
-    localVector.copy(tempResult.position);
+    localVectorInterpoWaypointResult.copy(tempResult.position);
     while (tempResult._next) {
-      localVector2.copy(tempResult._next.position);
+      localVectorInterpoWaypointResult2.copy(tempResult._next.position);
 
-      tempResult._next.position.x += localVector.x;
+      tempResult._next.position.x += localVectorInterpoWaypointResult.x;
       tempResult._next.position.x /= 2;
-      tempResult._next.position.y += localVector.y;
+      tempResult._next.position.y += localVectorInterpoWaypointResult.y;
       tempResult._next.position.y /= 2;
-      tempResult._next.position.z += localVector.z;
+      tempResult._next.position.z += localVectorInterpoWaypointResult.z;
       tempResult._next.position.z /= 2;
       tempResult._next.updateMatrixWorld();
 
       tempResult = tempResult._next;
-      localVector.copy(localVector2);
+      localVectorInterpoWaypointResult.copy(localVectorInterpoWaypointResult2);
     }
   }
 
@@ -303,11 +306,11 @@ class PathFinder {
   }
 
   detect(position) {
-    localVector.copy(position);
-    localVector.applyQuaternion(this.startDestQuaternion);
-    localVector.add(this.startGlobal);
-    // const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVector, identityQuaternion);
-    const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVector, this.startDestQuaternion);
+    localVectorDetect.copy(position);
+    localVectorDetect.applyQuaternion(this.startDestQuaternion);
+    localVectorDetect.add(this.startGlobal);
+    // const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVectorDetect, identityQuaternion);
+    const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVectorDetect, this.startDestQuaternion);
     let collide;
     if (overlapResult.objectIds.length === 1 && this.ignorePhysicsIds.includes(overlapResult.objectIds[0])) {
       collide = false;
@@ -537,10 +540,10 @@ class PathFinder {
     // todo: add ._isGround.
     let directions;
     if (this.isWalk) {
-      localVector2.copy(currentVoxel.position);
-      localVector2.y -= this.voxelHeight;
-      const canBtm = !this.detect(localVector2); // todo: performance: may not need detect() here.
-      const btmVoxel = this.getVoxel(localVector2); // todo: performance: may not need getVoxel() here.
+      localVectorStep.copy(currentVoxel.position);
+      localVectorStep.y -= this.voxelHeight;
+      const canBtm = !this.detect(localVectorStep); // todo: performance: may not need detect() here.
+      const btmVoxel = this.getVoxel(localVectorStep); // todo: performance: may not need getVoxel() here.
       if (canBtm) {
         if (btmVoxel && btmVoxel === currentVoxel._prev) {
           directions = this.directionsNoTop;
