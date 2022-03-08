@@ -720,6 +720,8 @@ const createPlayerDiorama = ({
   objects = [],
   target = null,
   cameraOffset = new THREE.Vector3(0.3, 0, -0.5),
+  clearColor = null,
+  clearAlpha = 1,
   lights = true,
   label = null,
   outline = false,
@@ -801,6 +803,10 @@ const createPlayerDiorama = ({
     setCameraOffset(newCameraOffset) {
       cameraOffset.copy(newCameraOffset);
     },
+    setClearColor(newClearColor, newClearAlpha) {
+      clearColor = newClearColor;
+      clearAlpha = newClearAlpha;
+    },
     update(timestamp, timeDiff) {
       if (!this.loaded || !this.enabled) {
         lastDisabledTime = timestamp;
@@ -862,6 +868,8 @@ const createPlayerDiorama = ({
       };
       const oldRenderTarget = renderer.getRenderTarget();
       const oldViewport = renderer.getViewport(localVector4D);
+      const oldClearColor = renderer.getClearColor(localColor);
+      const oldClearAlpha = renderer.getClearAlpha();
 
       const _render = () => {
         // set up side camera
@@ -888,6 +896,7 @@ const createPlayerDiorama = ({
         // outlineRenderScene.add(world.lights);
         // render side avatar scene
         renderer.setRenderTarget(outlineRenderTarget);
+        renderer.setClearColor(0x000000, 0);
         renderer.clear();
         renderer.render(outlineRenderScene, sideCamera);
         
@@ -968,6 +977,9 @@ const createPlayerDiorama = ({
         // render side scene
         renderer.setRenderTarget(oldRenderTarget);
         renderer.setViewport(0, 0, this.width, this.height);
+        if (clearColor !== null) {
+          renderer.setClearColor(clearColor, clearAlpha);
+        }
         renderer.clear();
         renderer.render(sideScene, sideCamera);
     
@@ -993,6 +1005,7 @@ const createPlayerDiorama = ({
       _restoreParents();
       renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(oldViewport);
+      renderer.setClearColor(oldClearColor, oldClearAlpha);
     },
     destroy() {
       if (locallyOwnedCanvas) {
