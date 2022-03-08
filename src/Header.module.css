@@ -266,29 +266,6 @@ body {
     transform: none;
   }
 }
-@keyframes border-blink {
-  0% {
-    border-color: #000;
-  }
-  25% {
-    border-color: #000;
-  }
-  26% {
-    border-color: #FFF;
-  }
-  50% {
-    border-color: #FFF;
-  }
-  75% {
-    border-color: #FFF;
-  }
-  76% {
-    border-color: #000;
-  }
-  100% {
-    border-color: #000;
-  }
-}
 
 .mint-button {
   position: relative;
