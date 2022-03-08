@@ -1,5 +1,5 @@
 # this script is used to compile sounds into an indexed mp3 file
-# input: directory of wav files
+# input: directories containing wav files (48000 Hz)
 # output: mp3 data file and json metadata file
 
 find . -name '*-pad.wav' | xargs -d '\n' rm
