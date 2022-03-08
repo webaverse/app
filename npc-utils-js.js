@@ -16,6 +16,8 @@ const identityQuaternion = new THREE.Quaternion();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+// prevent local/tempVector trap if multi chained functions use them.
+const localVectorGenerateVoxelMap = new THREE.Vector3();
 const localVoxel = new THREE.Object3D();
 
 const colorIdle = new THREE.Color('rgb(221,213,213)');
@@ -87,7 +89,9 @@ class PathFinder {
     this.waypointResult = [];
   }
 
-  getPath(start, dest) {
+  getPath(start, dest, isWalk = true) {
+    this.isWalk = isWalk;
+
     this.startGlobal.copy(start);
     this.startGlobal.y -= npcPlayerHeight;
     this.startGlobal.y += this.voxelHeightHalf;
@@ -121,8 +125,8 @@ class PathFinder {
       Math.round(localVector.subVectors(this.destGlobal, this.startGlobal).setY(0).length()),
     );
 
+    // todo: start/destVoxel don't need detect, otherwise sometimes will cause no start/destVoxel error, eg: there's obstacle around npc/localPlayer's feet in the same voxel.
     this.startVoxel = this.createVoxel(this.start);
-    if (!this.startVoxel) return null; // todo: clear debugMesh.
     this.startVoxel._isStart = true;
     this.startVoxel._isReached = true;
     // this.startVoxel._priority = start.manhattanDistanceTo(dest)
@@ -130,8 +134,8 @@ class PathFinder {
     this.startVoxel._costSoFar = 0;
     this.frontiers.push(this.startVoxel);
 
+    // todo: handle localPlayer in air situation.
     this.destVoxel = this.createVoxel(this.dest);
-    if (!this.destVoxel) return null; // todo: clear debugMesh.
     this.destVoxel._isDest = true;
     // return;
 
@@ -262,20 +266,20 @@ class PathFinder {
   }
 
   createVoxel(position) {
-    localVector2.copy(position); // note: can't use localVector, because detect() will use too and change.
-    localVector2.y = this.roundToVoxelHeight(localVector2.y);
+    // localVector2.copy(position); // note: can't use localVector, because detect() will use too and change.
+    // localVector2.y = this.roundToVoxelHeight(localVector2.y);
 
-    let voxel = this.getVoxel(localVector2);
-    if (voxel) return voxel;
+    // let voxel = this.getVoxel(localVector2);
+    // if (voxel) return voxel;
 
-    const collide = this.detect(localVector2);
-    if (collide) return null;
+    // const collide = this.detect(localVector2);
+    // if (collide) return null;
 
-    voxel = new THREE.Object3D();
+    const voxel = new THREE.Object3D();
     this.voxels.add(voxel);
     this.resetVoxelAStar(voxel);
 
-    voxel.position.copy(localVector2);
+    voxel.position.copy(position);
     voxel.updateMatrixWorld();
     this.setVoxelo(voxel);
 
@@ -300,28 +304,37 @@ class PathFinder {
   }
 
   generateVoxelMap(currentVoxel, direction/*: string */) {
-    localVector.copy(currentVoxel.position);
+    localVectorGenerateVoxelMap.copy(currentVoxel.position);
     switch (direction) {
       case 'left':
-        localVector.x += -1;
+        localVectorGenerateVoxelMap.x += -1;
         break;
       case 'right':
-        localVector.x += 1;
+        localVectorGenerateVoxelMap.x += 1;
         break;
       case 'btm':
-        localVector.y += -this.voxelHeight;
+        localVectorGenerateVoxelMap.y += -this.voxelHeight;
         break;
       case 'top':
-        localVector.y += this.voxelHeight;
+        localVectorGenerateVoxelMap.y += this.voxelHeight;
         break;
       case 'back':
-        localVector.z += -1;
+        localVectorGenerateVoxelMap.z += -1;
         break;
       case 'front':
-        localVector.z += 1;
+        localVectorGenerateVoxelMap.z += 1;
         break;
     }
-    const neighborVoxel = this.createVoxel(localVector);
+    localVectorGenerateVoxelMap.y = this.roundToVoxelHeight(localVectorGenerateVoxelMap.y);
+
+    let neighborVoxel = this.getVoxel(localVectorGenerateVoxelMap);
+    if (!neighborVoxel) {
+      const collide = this.detect(localVectorGenerateVoxelMap);
+      if (!collide) {
+        neighborVoxel = this.createVoxel(localVectorGenerateVoxelMap);
+      }
+    }
+
     if (neighborVoxel) {
       currentVoxel[`_${direction}Voxel`] = neighborVoxel;
       currentVoxel[`_can${this.capitalize(direction)}`] = true;
@@ -510,7 +523,7 @@ class PathFinder {
     localVector2.copy(currentVoxel.position);
     localVector2.y -= this.voxelHeight;
     const canBtm = !this.detect(localVector2); // todo: performance: may not need detect() here.
-    const btmVoxel = this.getVoxel(localVector2); // todo: performance: don't getVoxel() here.
+    const btmVoxel = this.getVoxel(localVector2); // todo: performance: may not need getVoxel() here.
     if (canBtm) {
       if (btmVoxel && btmVoxel === currentVoxel._prev) {
         directions = this.directionsNoTop;
