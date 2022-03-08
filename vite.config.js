@@ -6,48 +6,21 @@ import path from 'path';
 import fs from 'fs';
 import {transform} from 'esbuild';
 import glob from 'glob';
+import {dependencies} from './package.json';
 
-const esbuildLoaders = ['js', 'jsx', 'ts', 'tsx'];
+
+const esbuildLoaders = ['js', 'jsx', 'mjs', 'cjs'];
 let plugins = [
   // reactRefresh()
 ];
 
 const baseDirectory = 'assets';
-const proxyModuleBase = '-proxy';
 
 let entryPoints = [
   {
-    path: './packages/totum/index.js',
-    name: `${baseDirectory}/metaversefile${proxyModuleBase}.js`,
-  },
-  {
-    path: './packages/three/build/three.module.js',
-    name: `${baseDirectory}/three${proxyModuleBase}.js`,
-  },
-  {
-    path: './packages/three-vrm/lib/three-vrm.module.min.js',
-    name: `${baseDirectory}/three-vrm${proxyModuleBase}.js`,
-  },
-  {
-    path: './packages/three/examples/jsm/**/*.js',
-    name: `${baseDirectory}/{{filename}}${proxyModuleBase}.js`,
-    replaceExpression: './packages',
-    glob: true,
-  }, 
-  {
     path: './avatars/**/*.js',
-    exclude: ['avatars.js'],
+    exclude: ['./avatars/avatars.js'],
     replaceExpression: '.',
-    glob: true,
-  },
-  {
-    path: './workers/**/*.js',
-    replaceExpression: '.',
-    glob: true,
-  },
-  {
-    path: './packages/wsrtc/*.js',
-    replaceExpression: './packages',
     glob: true,
   },
 ];
@@ -56,6 +29,82 @@ let entryPoints = [
 
 const build = () => {
   const _entryPoints = [];
+  const base = path.resolve('.', 'node_modules');
+  const exportPaths = {};
+
+  const resolveEntryOfModule = (_path) =>{
+    console.log(_path);
+    let packageJSON = JSON.parse(fs.readFileSync(path.resolve(base , _path, 'package.json')).toString());
+    let moduleEntryFile = packageJSON.module || packageJSON.main || 'index.js';
+    let entryPoint = `./${path.normalize(`node_modules/${_path}/${moduleEntryFile}`)}` ;
+    let hasBin = (()=>{
+      if(packageJSON.bin){
+        return `./${path.normalize(`node_modules/${_path}/${packageJSON.bin}`)}`
+      }
+      return undefined;
+    })()
+    
+    console.log('-- Resolved entry point at', moduleEntryFile);
+
+    entryPoints.push({
+      path:entryPoint,
+      replaceExpression: './node_modules'
+    });
+
+    exportPaths[_path] = entryPoint.replace('./node_modules',baseDirectory);
+    exportPaths[_path + '.meta'] = {
+      moduleEntryFile,
+      files: packageJSON.files
+    }
+
+
+    if(packageJSON.files){
+      for (const file of packageJSON.files) {
+
+        const fp = path.join(base,_path,file);
+        let isFile; 
+        try {
+          isFile = fs.statSync(fp).isFile();
+          if(isFile && !esbuildLoaders.includes(path.parse(fp).ext.replace('.',''))){
+            console.log('---- Skipping file ',fp);
+            continue;
+          }         
+        } catch (error) {
+          /** Definitely a blob */
+          isFile = false;
+        }
+        const isEntryPoint = fp === entryPoint;
+
+        if(isFile && !isEntryPoint){
+          entryPoints.push({
+            path: `./${path.normalize(`node_modules/${_path}/${file}`)}`,
+            replaceExpression: './node_modules'
+          })
+          console.log('---- Resolved file at', file);
+        }else{
+          entryPoints.push(
+            {
+              path: `./node_modules/${_path}/${file}/**/*.*`,
+              replaceExpression: './node_modules',
+              exclude: [entryPoint, hasBin],
+              glob: true,
+            }, 
+          )
+          console.log('---- Resolved folder at', file);         
+        }
+        
+      }
+
+    }
+
+  }
+
+  for (const dependency in dependencies) {
+    resolveEntryOfModule(dependency);
+    console.log('---------------------------');
+  }
+
+  // process.exit(0)
 
   const resolveGlob = pathToExpand => {
     return new Promise((resolve, reject) => {
@@ -84,26 +133,30 @@ const build = () => {
         if (iterator.glob) {
           const files = await resolveGlob(iterator.path);
           for (const file of files) {
-            let name = path.parse(file).base;
-            if(iterator.exclude.length > 0){
-              console.log(name, iterator.exclude);
-            }
-            if(!iterator.exclude.includes(name)){
+            let parseFile = path.parse(file);
+            if(!iterator.exclude.includes(file) && esbuildLoaders.includes(parseFile.ext.replace('.',''))){
+              const replacedPath = `${path.normalize(file.replace(iterator.replaceExpression, baseDirectory))}`;
+              exportPaths[file.replace('./node_modules/','')] = replacedPath;
               const entry = this.emitFile({
                 type: 'chunk',
                 id: file,
-                fileName: file.replace(iterator.replaceExpression, baseDirectory),
+                fileName:replacedPath,
               });
               _entryPoints.push(entry);  
-            }else{
-              console.log('******* EXCLUDING ***********', name);
             }
           }
         } else {
+
+          let _name = iterator.name;
+          iterator.path = `./${path.normalize(iterator.path)}` 
+          if(iterator.replaceExpression){
+            _name = iterator.path.replace(iterator.replaceExpression, baseDirectory);
+          }
+          // console.log('Emitting', iterator);
           const entry = this.emitFile({
             type: 'chunk',
             id: iterator.path,
-            fileName: iterator.name,
+            fileName: _name,
           });
           _entryPoints.push(entry);
         }
@@ -127,41 +180,15 @@ const build = () => {
         fs.writeFileSync('dist/dependencies.json', JSON.stringify(exports, null, 4));
         fs.writeFileSync('dist/actualBundle.json', JSON.stringify(bundle, null, 4));
       }
+      fs.writeFileSync('dist/exports.json', JSON.stringify(exportPaths, null, 4));
       return null;
     },
-    // async transform(code, id) {
-    //   const avoidTransform = false;
-
-    //   if (code === null || id === null) {
-    //     return null;
-    //   }
-
-    //   const loader = path.parse(id).ext.replace('.', '');
-
-    //   const isNodeModule = id.includes('node_modules');
-
-    //   if (!esbuildLoaders.includes(loader)) {
-    //     return {
-    //       code: code,
-    //       map: null,
-    //     };
-    //   }
-
-    //   const transformed = await transform(code, {
-    //     loader: loader,
-    //     format: loader === 'js' && !isNodeModule ? 'esm' : undefined,
-    //     minifySyntax: false,
-    //     minifyWhitespace: true,
-    //     keepNames: true,
-    //     sourcemap: true,
-    //     target: ['es6'],
-    //   });
-
-    //   return {
-    //     code: transformed.code,
-    //     map: transformed.map,
-    //   };
-    // },
+    transform: (code, id) => {
+      if(code.startsWith('#!/usr/bin/env node')){
+        return code.replace(/[\s\n]*#!.*[\s\n]*/, '');
+      }
+      return null;
+    },
     resolveImportMeta(property, {moduleId}) {
       /** Send force null to avoid import.meta transformation */
       return null;
@@ -181,6 +208,7 @@ const viteConfiProduction = {
     format: 'es',
     target: 'esnext',
     manifest: true,
+    minify: false,
     rollupOptions: {
       preserveEntrySignatures: 'strict',
       output: {
@@ -188,43 +216,20 @@ const viteConfiProduction = {
         exports: 'named',
         minifyInternalExports: false,
         format: 'es',
+        strict: false,
         manualChunks: id => {
-          if (id.includes('three/build')) {
-            return 'three';
-          }
-          else if (id.includes('ceramic')) {
+          if (id.includes('ceramic')) {
             return 'ceramic';
           }  
-          // else if (id.includes('node_modules')) {
-          //   return 'vendor';
-          // }
-
-          else if (id.includes('three-vrm')) {
-            return 'three-vrm';
-          } else if (id.includes('web3.min.js')) {
+          else if (id.includes('web3.min.js')) {
             return 'web3';
-          }else if (id.includes('totum/index.js')) {
-            return 'metaversefile';
           }
-          // else if (id.includes('totum/constants')) {
-          //   return 'totum_constants';
-          // }
-          // else if (id.includes('metaversefile-api.js')) {
-          //   return 'metaversefile-api';
-          // } 
-          // else if (id.includes('metaverse-modules.js')) {
-          //   return 'metaverse-modules';
-          // }
+          else if (id.includes('metaverse-modules.js')) {
+            return 'metaverse-modules';
+          }
           else if (id.includes('app/util.js')) {
             return 'util';
           }
-
-          //  else if (id.includes('wsrtc')) {
-          //   return 'wsrtc';
-          // }
-          // else if (id.includes('src/')) {
-          //   return 'ui';
-          // } 
 
           //return 'app';
         },
@@ -253,6 +258,7 @@ const config = {
 
 console.log('Using Node Env', process.env.NODE_ENV);
 console.log('Using Config', config);
+console.log('Using Entry Points', entryPoints);
 
 // https://vitejs.dev/config/
 export default defineConfig(config);

@@ -6,8 +6,8 @@ import KeyDidResolver from 'key-did-resolver';
 import {Ed25519Provider} from 'key-did-provider-ed25519';
 import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver';
 import {ModelManager} from '@glazed/devtools';
-import {getMainnetAddress} from './blockchain.js';
-import {ceramicNodeUrl} from './constants.js';
+import {getMainnetAddress} from '../blockchain.js';
+import {ceramicNodeUrl} from '../constants.js';
 
 const keyString = ``;
 

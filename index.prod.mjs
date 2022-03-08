@@ -16,7 +16,7 @@ Error.stackTraceLimit = 300;
 const cwd = process.cwd();
 
 const isProduction = process.argv[2] === '-p';
-process.env.MODULE_URL = process.env.MODULE_URL || 'https://local.webaverse.com/assets/';
+process.env.MODULE_URL = process.env.MODULE_URL || 'https://local.webaverse.com/';
 const totum = metaversefile();
 
 const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.test(p);
@@ -43,7 +43,7 @@ function makeId(length) {
   return result;
 }
 
-function dynamicImporter(o, req, res, next) {
+async function dynamicImporter(o, req, res, next) {
   try {
     const loadUrl =   o.pathname.slice(o.pathname.lastIndexOf('/@import'),o.pathname.length).replace('/@import', '');
     const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
@@ -51,28 +51,23 @@ function dynamicImporter(o, req, res, next) {
 
     /** Check intiator */
     if (req.headers['sec-fetch-dest'] === 'script') {
-      totum.resolveId(loadUrl, reqURL.href).then(id => {
-        /** ID might have /@proxy/ in the start that needs to be trimmed */
-        if (!id) {
-          res.status(500);
-          return res.end('Failed to load');
-        }
+      let id = await totum.resolveId(loadUrl, reqURL.href);
+      if (!id) {
+        res.status(500);
+        return res.end('Failed to load');
+      }
 
-        id = id.replace('/@proxy/', '');
-
-        totum.load(id).then(({code, map}) => {
-          res.writeHead(200, {'Content-Type': 'application/javascript'});
-          res.end(code);
-        }).catch(e => {
-          console.warn(e);
-        });
-      });
+      id = id.replace('/@proxy/', '');
+      const {code, map} = await totum.load(id);
+      res.writeHead(200, {'Content-Type': 'application/javascript'});
+      res.end(code);
     } else {
       req.originalUrl = loadUrl;
       return /^\/(?:@proxy)\//.test(req.originalUrl) ? proxyReq(loadUrl, res) : res.redirect(req.originalUrl);
     }
   } catch (e) {
-    console.warn(e);
+    console.log(e);
+    res.status(500).end(e.stack);
   }
 }
 
