@@ -92,33 +92,6 @@ export const App = () => {
 
     };
 
-    const handleShortKeyPress = ( event ) => {
-
-        const key = event.detail.key;
-
-        switch ( key ) {
-
-            case 'z':
-
-                if ( AppUIStateManager.state.settings ) break;
-                AppUIStateManager.dispatchEvent( new CustomEvent( 'ToggleWorldPanel' ) );
-                break;
-
-            case 'tab':
-
-                if ( AppUIStateManager.state.settings ) break;
-                AppUIStateManager.dispatchEvent( new CustomEvent( 'ToggleDioramaPanel' ) );
-                break;
-
-            case 'esc':
-
-                AppUIStateManager.dispatchEvent( new CustomEvent( 'Esc' ) );
-                break;
-
-        }
-
-    };
-
     useEffect( () => {
 
         const pushstate = e => {
