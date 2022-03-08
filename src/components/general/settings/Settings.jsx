@@ -2,19 +2,21 @@
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
+import ioManager from '../../../../io-manager';
 import { TabGeneral } from './TabGeneral';
 import { TabControls } from './TabControls';
 import { TabAudio } from './TabAudio';
 import { TabGraphics } from './TabGraphics';
 import { TabAi } from './TabAi';
+import { AppUIStateManager } from '../../app/App';
 
 import styles from './settings.module.css';
 
 //
 
-export const Settings = ({ opened, setOpened }) => {
+export const Settings = () => {
 
-    const componentName = 'Settings';
+    const [ isOpened, setOpened ] = useState( false );
     const [ activeTab, setActiveTab ] = useState('general');
 
     //
@@ -41,47 +43,43 @@ export const Settings = ({ opened, setOpened }) => {
 
     };
 
-    const closeOtherWindows = () => {
-
-        window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: componentName } } ) );
-
-    };
-
     //
 
     useEffect( () => {
 
-        if ( opened ) {
+        AppUIStateManager.state.settings = isOpened;
 
-            closeOtherWindows();
+        function toggle () {
 
-        }
-
-        const handleKeyPress = ( event ) => {
-
-            if ( opened && event.key === 'Escape' ) {
-
-                setOpened( false );
-
-            }
+            const newValue = ! isOpened;
+            if ( newValue ) AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
+            setOpened( newValue );
 
         };
 
-        window.addEventListener( 'keydown', handleKeyPress );
+        function close () {
+
+            setOpened( false );
+
+        };
+
+        AppUIStateManager.addEventListener( 'ToggleSettingsPanel', toggle );
+        ioManager.addEventListener( 'Esc', close );
 
         return () => {
 
-            window.removeEventListener( 'keydown', handleKeyPress );
+            AppUIStateManager.removeEventListener( 'ToggleSettingsPanel', toggle );
+            ioManager.removeEventListener( 'Esc', close );
 
         };
 
-    }, [ opened ] );
+    }, [ isOpened ] );
 
     //
 
     return (
 
-        <div className={ classNames( styles.settings, opened ? styles.open : null ) } onClick={ stopPropagation } >
+        <div className={ classNames( styles.settings, isOpened ? styles.open : null ) } onClick={ stopPropagation } >
 
             <div className={ styles.closeBtn } onClick={ handleCloseBtnClick } >X</div>
 

@@ -5,26 +5,19 @@ the functionality is implemented in other managers.
 */
 
 import * as THREE from 'three';
+
 import cameraManager from './camera-manager.js';
-// import controlsManager from './controls-manager.js';
 import game from './game.js';
-// import physicsManager from './physics-manager.js';
-import {world} from './world.js';
+import { world } from './world.js';
 import voiceInput from './voice-input/voice-input.js';
-// import * as universe from './universe.js';
-// import {toggle as inventoryToggle} from './inventory.js';
-import {isInIframe, getVelocityDampingFactor} from './util.js';
-import {getRenderer, /*renderer2,*/ scene, camera, dolly, getContainerElement} from './renderer.js';
+import { isInIframe } from './util.js';
+import { getRenderer, camera, dolly } from './renderer.js';
 import physicsManager from './physics-manager.js';
-/* import {menuActions} from './mithril-ui/store/actions.js';
-import {menuState} from './mithril-ui/store/state.js'; */
 import physx from './physx.js';
-// import {airFriction, flyFriction} from './constants.js';
 import transformControls from './transform-controls.js';
 import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
@@ -38,8 +31,8 @@ const zeroVector = new THREE.Vector3();
 
 const ioManager = new EventTarget();
 
-ioManager.lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
-ioManager.lastButtons = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]];
+ioManager.lastAxes = [ [0, 0, 0, 0], [0, 0, 0, 0] ];
+ioManager.lastButtons = [ [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0] ];
 ioManager.currentWeaponValue = 0;
 ioManager.lastWeaponValue = 0;
 ioManager.currentTeleport = false;
@@ -48,38 +41,47 @@ ioManager.currentMenuDown = false;
 ioManager.lastMenuDown = false;
 ioManager.menuExpanded = false;
 ioManager.lastMenuExpanded = false;
-ioManager.currentWeaponGrabs = [false, false];
-ioManager.lastWeaponGrabs = [false, false];
+ioManager.currentWeaponGrabs = [ false, false ];
+ioManager.lastWeaponGrabs = [ false, false ];
 ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
 
 ioManager.keys = {
-  up: false,
-  down: false,
-  left: false,
-  right: false,
-  forward: false,
-  backward: false,
-  shift: false,
-  doubleTap: false,
-  space: false,
-  ctrl: false,
-};
-const lastWASDDownTime = {
-  keyW: 0,
-  keyA: 0,
-  keyS: 0,
-  keyD: 0
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+    forward: false,
+    backward: false,
+    shift: false,
+    doubleTap: false,
+    space: false,
+    ctrl: false,
 };
 
+const lastWASDDownTime = {
+    keyW: 0,
+    keyA: 0,
+    keyS: 0,
+    keyD: 0
+};
+
+//
+
 const resetKeys = () => {
-  for (const k in ioManager.keys) {
-    ioManager.keys[k] = false;
-  }
+
+    for ( const k in ioManager.keys ) {
+
+        ioManager.keys[k] = false;
+
+    }
+
 };
 
 cameraManager.addEventListener('pointerlockchange', () => {
-  resetKeys();
+
+    resetKeys();
+
 });
 
 const _inputFocused = () => document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.getAttribute('contenteditable') !== null);
@@ -266,406 +268,531 @@ ioManager.bindInterface = () => {
     document.body.classList.remove('no-ui');
   }
 };
-/* const _setTransformMode = transformMode => {
-  if (transformControls.getTransformMode() !== transformMode) {
-    transformControls.setTransformMode(transformMode);
-  } else {
-    transformControls.setTransformMode('disabled');
-  }
-}; */
+
 const doubleTapTime = 200;
+
 ioManager.keydown = e => {
-  if (_inputFocused() || e.repeat) {
-    return;
-  }
 
-  // HACK: these keybindings control developer avatar animation offset settings in avatars.js
-  /* if (e.which === 74) {
-    window.lol -= 0.01;
-    console.log(window.lol);
-  } else if (e.which === 75) {
-    window.lol += 0.01;
-    console.log(window.lol);
-  } else if (e.which === 78) {
-    window.lol2 += 0.01;
-    console.log(window.lol2);
-  } else if (e.which === 77) {
-    window.lol2 += 0.01;
-    console.log(window.lol2);
-  } */
+    if ( _inputFocused() || e.repeat ) {
 
-  switch (e.which) {
-    /* case 9: { // tab
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('key-tab').click();
-      break;
-    } */
-    case 49: // 1
-    case 50: // 2
-    case 51: // 3
-    case 52: // 4
-    case 53: // 5
-    case 54: // 6
-    case 55: // 7
-    case 56: // 8
-    {
-      game.selectLoadout(e.which - 49);
-      break;
+        return;
+
     }
-    case 87: { // W
-      ioManager.keys.up = true;
-      if (!cameraManager.pointerLockElement) {
-        game.menuVertical(-1);
-      }
 
-      const now = performance.now();
-      const timeDiff = now - lastWASDDownTime.keyW;
-      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
-        ioManager.keys.doubleTap = true;
-        game.menuDoubleTap();
-      }
-      lastWASDDownTime.keyW = now;
-      lastWASDDownTime.keyS = 0;
-      break;
-    }
-    case 65: { // A
-      ioManager.keys.left = true;
-      if (!cameraManager.pointerLockElement) {
-        game.menuHorizontal(-1);
-      }
+    switch ( e.which ) {
 
-      const now = performance.now();
-      const timeDiff = now - lastWASDDownTime.keyA;
-      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
-        ioManager.keys.doubleTap = true;
-        game.menuDoubleTap();
-      }
-      lastWASDDownTime.keyA = now;
-      lastWASDDownTime.keyD = 0;
-      break;
-    }
-    case 83: { // S
-      ioManager.keys.down = true;
-      if (!cameraManager.pointerLockElement) {
-        if (game.menuOpen) {
-          game.menuVertical(1);
-        } else {
-          // if (!game.dragging) {
-            // _setTransformMode('scale');
-          // }
+        case 9: { // tab
+
+            e.preventDefault();
+            e.stopPropagation();
+            ioManager.dispatchEvent( new CustomEvent( 'UIShortKeyPressed', { detail: { key: 'tab' } } ) );
+            break;
+
         }
-      }
+        case 49: // 1
+        case 50: // 2
+        case 51: // 3
+        case 52: // 4
+        case 53: // 5
+        case 54: // 6
+        case 55: // 7
+        case 56: // 8
+        {
 
-      const now = performance.now();
-      const timeDiff = now - lastWASDDownTime.keyS;
-      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
-        ioManager.keys.doubleTap = true;
-        game.menuDoubleTap();
-      }
-      lastWASDDownTime.keyS = now;
-      lastWASDDownTime.keyW = 0;
-      break;
-    }
-    case 68: { // D
-      ioManager.keys.right = true;
-      if (!cameraManager.pointerLockElement) {
-        game.menuHorizontal(1);
-      }
+            game.selectLoadout( e.which - 49 );
+            break;
 
-      const now = performance.now();
-      const timeDiff = now - lastWASDDownTime.keyD;
-      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
-        ioManager.keys.doubleTap = true;
-        game.menuDoubleTap();
-      }
-      lastWASDDownTime.keyD = now;
-      lastWASDDownTime.keyA = 0;
-      break;
-    }
-    case 82: { // R
-      if (cameraManager.pointerLockElement) {
-        if (game.canRotate()) {
-          game.menuRotate(1);
-        } else {
-          game.drop();
         }
-      } else {
-        // if (!game.dragging) {
-          // _setTransformMode('rotate');
-        // }
-      }
-      break;
-    }
-    case 70: { // F
-      e.preventDefault();
-      e.stopPropagation();
-      if (game.canPush()) {
-        ioManager.keys.forward = true;
-      } else {
-        /* if (game.canJumpOff()) {
-          game.jumpOff();
+        case 87: { // W
+
+            ioManager.keys.up = true;
+            if ( ! cameraManager.pointerLockElement ) {
+                game.menuVertical(-1);
+            }
+
+            const now = performance.now();
+            const timeDiff = now - lastWASDDownTime.keyW;
+
+            if ( timeDiff < doubleTapTime && ioManager.keys.shift ) {
+
+                ioManager.keys.doubleTap = true;
+                game.menuDoubleTap();
+
+            }
+
+            lastWASDDownTime.keyW = now;
+            lastWASDDownTime.keyS = 0;
+            break;
+
+        }
+        case 65: { // A
+
+            ioManager.keys.left = true;
+
+            if ( ! cameraManager.pointerLockElement ) {
+
+                game.menuHorizontal(-1);
+
+            }
+
+            const now = performance.now();
+            const timeDiff = now - lastWASDDownTime.keyA;
+
+            if ( timeDiff < doubleTapTime && ioManager.keys.shift ) {
+
+                ioManager.keys.doubleTap = true;
+                game.menuDoubleTap();
+
+            }
+
+            lastWASDDownTime.keyA = now;
+            lastWASDDownTime.keyD = 0;
+            break;
+
+        }
+        case 83: { // S
+
+            ioManager.keys.down = true;
+
+            if ( ! cameraManager.pointerLockElement ) {
+
+                if ( game.menuOpen ) {
+
+                    game.menuVertical(1);
+
+                } else {
+
+                    // if (!game.dragging) {
+                        // _setTransformMode('scale');
+                    // }
+
+                }
+
+            }
+
+            const now = performance.now();
+            const timeDiff = now - lastWASDDownTime.keyS;
+
+            if ( timeDiff < doubleTapTime && ioManager.keys.shift ) {
+
+                ioManager.keys.doubleTap = true;
+                game.menuDoubleTap();
+
+            }
+
+            lastWASDDownTime.keyS = now;
+            lastWASDDownTime.keyW = 0;
+            break;
+
+        }
+        case 68: { // D
+
+            ioManager.keys.right = true;
+
+            if ( ! cameraManager.pointerLockElement ) {
+
+                game.menuHorizontal(1);
+
+            }
+
+            const now = performance.now();
+            const timeDiff = now - lastWASDDownTime.keyD;
+
+            if ( timeDiff < doubleTapTime && ioManager.keys.shift ) {
+
+                ioManager.keys.doubleTap = true;
+                game.menuDoubleTap();
+
+            }
+
+            lastWASDDownTime.keyD = now;
+            lastWASDDownTime.keyA = 0;
+            break;
+
+        }
+        case 82: { // R
+
+            if ( cameraManager.pointerLockElement ) {
+
+                if ( game.canRotate() ) {
+
+                    game.menuRotate(1);
+
+                } else {
+
+                    game.drop();
+
+                }
+
+            } else {
+
+                // if (!game.dragging) {
+                // _setTransformMode('rotate');
+                // }
+
+            }
+
+            break;
+
+        }
+        case 70: { // F
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if ( game.canPush() ) {
+
+                ioManager.keys.forward = true;
+
+            } else {
+
+                /* if (game.canJumpOff()) {
+                game.jumpOff();
+                } */
+                game.toggleFly();
+
+            }
+
+            break;
+
+        }
+        case 71: { // G
+
+            if ( cameraManager.pointerLockElement ) {
+
+                /* if (game.canTry()) {
+                game.menuTry();
+                } */
+
+            } else {
+
+                // if (!game.dragging) {
+                // _setTransformMode('translate');
+                // }
+
+            }
+
+            break;
+
+        }
+        case 90: { // Z
+
+            // if (!e.ctrlKey) {
+            //     if (game.canStartBuild()) {
+            //     game.startBuild('wall');
+            //     } else if (game.canBuild()) {
+            //     game.setBuildMode('wall');
+            //     }
+            // }
+
+            ioManager.dispatchEvent( new CustomEvent( 'UIShortKeyPressed', { detail: { key: 'z' } } ) );
+            break;
+
+        }
+        case 88: { // X
+
+            if ( ! e.ctrlKey ) {
+
+                /* if (game.canStartBuild()) {
+                game.startBuild('floor');
+                } else if (game.canBuild()) {
+                game.setBuildMode('floor');
+                } else { */
+                game.menuDelete();
+                // }
+
+            }
+
+            break;
+
+        }
+        case 67: { // C
+
+            // if (!e.ctrlKey) {
+            /* if (game.canStartBuild()) {
+            game.startBuild('stair');
+            } else if (game.canBuild()) {
+            game.setBuildMode('stair');
+            } else */
+
+            if ( game.canPush() ) {
+
+                ioManager.keys.backward = true;
+
+            } else {
+
+                ioManager.keys.ctrl = true;
+
+            }
+
+            // }
+
+            break;
+
+        }
+        /* case 73: { // I
+        inventoryToggle();
+        break;
         } */
-        game.toggleFly();
-      }
-      break;
-    }
-    case 71: { // G
-      if (cameraManager.pointerLockElement) {
-        /* if (game.canTry()) {
-          game.menuTry();
-        } */
-      } else {
-        // if (!game.dragging) {
-          // _setTransformMode('translate');
-        // }
-      }
-      break;
-    }
-    /* case 90: { // Z
-      if (!e.ctrlKey) {
-        if (game.canStartBuild()) {
-          game.startBuild('wall');
-        } else if (game.canBuild()) {
-          game.setBuildMode('wall');
-        }
-      }
-      break;
-    } */
-    case 88: { // X
-      if (!e.ctrlKey) {
-        /* if (game.canStartBuild()) {
-          game.startBuild('floor');
-        } else if (game.canBuild()) {
-          game.setBuildMode('floor');
-        } else { */
-          game.menuDelete();
-        // }
-      }
-      break;
-    }
-    case 67: { // C
-      // if (!e.ctrlKey) {
-        /* if (game.canStartBuild()) {
-          game.startBuild('stair');
-        } else if (game.canBuild()) {
-          game.setBuildMode('stair');
-        } else */if (game.canPush()) {
-          ioManager.keys.backward = true;
-        } else {
-          ioManager.keys.ctrl = true;
-        }
-      // }
-      break;
-    }
-    /* case 73: { // I
-      inventoryToggle();
-      break;
-    } */
-    /* case 82: { // R
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('key-r').click(); // equip
-      break;
-    } */
-    case 71: { // G
-      game.menuDrop();
-      break;
-    }
-    case 86: { // V
-      // if (!_inputFocused()) {
+        /* case 82: { // R
         e.preventDefault();
         e.stopPropagation();
-        game.menuVDown(e);
-      // }
-      break;
-    }
-    case 66: { // B
-      // if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuBDown(e);
-      // }
-      break;
-    }
-    case 84: { // T
-      e.preventDefault();
-      e.stopPropagation();
-      voiceInput.toggleMic();
-      break;
-    }
-    case 89: { // Y
-      e.preventDefault();
-      e.stopPropagation();
-      voiceInput.toggleSpeech();
-      break;
-    }
-    case 85: { // U
-      // if (game.canUpload()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuUpload();
-      // }
-      break;
-    }
-    case 80: { // P
-      // game.destroyWorld()
-      // game.menuPhysics();
-      break;
-    }
-    case 16: { // shift
-      ioManager.keys.shift = true;
-      break;
-    }
-    case 32: { // space
-      ioManager.keys.space = true;
-      // if (controlsManager.isPossessed()) {
-        if (!game.isJumping()) {
-          game.jump();
-        } /* else {
-          physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
+        document.getElementById('key-r').click(); // equip
+        break;
         } */
-      // }
-      break;
-    }
-    /* case 17: { // ctrl
-      ioManager.keys.ctrl = true;
-      break;
-    } */
-    case 81: { // Q
-      // game.setWeaponWheel(true);
-      if (game.canToggleAxis()) {
-        game.toggleAxis();
-      }
-      break;
-    }
-    case 69: { // E
-      // if (cameraManager.pointerLockElement) {
-        if (game.canRotate()) {
-          game.menuRotate(-1);
-        } else {
-          game.menuActivateDown();
+        case 71: { // G
+
+            game.menuDrop();
+            break;
+
         }
-      // }
-      break;
+        case 86: { // V
+
+            // if (!_inputFocused()) {
+            e.preventDefault();
+            e.stopPropagation();
+            game.menuVDown(e);
+            // }
+            break;
+
+        }
+        case 66: { // B
+
+            // if (!_inputFocused()) {
+            e.preventDefault();
+            e.stopPropagation();
+            game.menuBDown(e);
+            // }
+            break;
+
+        }
+        case 84: { // T
+
+            e.preventDefault();
+            e.stopPropagation();
+            voiceInput.toggleMic();
+            break;
+
+        }
+        case 89: { // Y
+
+            e.preventDefault();
+            e.stopPropagation();
+            voiceInput.toggleSpeech();
+            break;
+
+        }
+        case 85: { // U
+
+            // if (game.canUpload()) {
+            e.preventDefault();
+            e.stopPropagation();
+            game.menuUpload();
+            // }
+            break;
+
+        }
+        case 80: { // P
+
+            // game.destroyWorld()
+            // game.menuPhysics();
+            break;
+
+        }
+        case 16: { // shift
+
+            ioManager.keys.shift = true;
+            break;
+
+        }
+        case 32: { // space
+
+            ioManager.keys.space = true;
+            // if (controlsManager.isPossessed()) {
+            if ( ! game.isJumping() ) {
+
+                game.jump();
+
+            } /* else {
+                physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
+            } */
+            // }
+
+            break;
+
+        }
+        /* case 17: { // ctrl
+        ioManager.keys.ctrl = true;
+        break;
+        } */
+        case 81: { // Q
+
+            // game.setWeaponWheel(true);
+            if ( game.canToggleAxis() ) {
+
+                game.toggleAxis();
+
+            }
+
+            break;
+
+        }
+        case 69: { // E
+
+            // if (cameraManager.pointerLockElement) {
+            if ( game.canRotate() ) {
+
+                game.menuRotate(-1);
+
+            } else {
+
+                game.menuActivateDown();
+
+            }
+
+            // }
+            break;
+
+        }
+        case 192: { // tilde
+
+            game.toggleEditMode();
+            break;
+
+        }
+        case 13: { // enter
+
+            game.enter();
+            break;
+
+        }
+        /* case 77: { // M
+            menuActions.setIsOpen(!menuState.isOpen);
+            break;
+        } */
+        case 74: { // J
+
+            game.inventoryHack = ! game.inventoryHack;
+            break;
+
+        }
+        case 27: { // esc
+
+            ioManager.dispatchEvent( new CustomEvent( 'UIShortKeyPressed', { detail: { key: 'esc' } } ) );
+            game.setContextMenu( false );
+            break;
+
+        }
+        case 72: { // H
+
+            metaversefile.toggleDebug( ! metaversefile.isDebugMode() );
+            break;
+
+        }
+
     }
-    case 192: { // tilde
-      game.toggleEditMode();
-      break;
-    }
-    case 13: { // enter
-      game.enter();
-      break;
-    }
-    /* case 77: { // M
-      menuActions.setIsOpen(!menuState.isOpen);
-      break;
-    } */
-    case 74: { // J
-      game.inventoryHack = !game.inventoryHack;
-      break;
-    }
-    case 27: { // esc
-      game.setContextMenu(false);
-      break;
-    }
-    case 72: { // H
-      metaversefile.toggleDebug(!metaversefile.isDebugMode());
-      break;
-    }
-  }
+
 };
+
 ioManager.keyup = e => {
-  if (_inputFocused() || e.repeat) {
-    return;
-  }
-  switch (e.which) {
-    /* case 81: { // Q
-      game.setWeaponWheel(false);
-      break;
-    } */
-    case 87: { // W
-      ioManager.keys.up = false;
-      break;
+
+    if ( _inputFocused() || e.repeat ) {
+
+        return;
+
     }
-    case 65: { // A
-      ioManager.keys.left = false;
-      break;
-    }
-    case 83: { // S
-      ioManager.keys.down = false;
-      break;
-    }
-    case 68: { // D
-      ioManager.keys.right = false;
-      break;
-    }
-    case 32: { // space
-      ioManager.keys.space = false;
-      break;
-    }
-    /* case 17: { // ctrl
-      ioManager.keys.ctrl = false;
-      break;
-    } */
-    case 69: { // E
-      if (cameraManager.pointerLockElement) {
-        game.menuActivateUp();
-      }
-      break;
-    }
-    case 70: { // F
-      // if (cameraManager.pointerLockElement) {
-        ioManager.keys.forward = false;
-      // }
-      break;
-    }
-    case 67: { // C
-      // if (cameraManager.pointerLockElement) {
-        ioManager.keys.backward = false;
+
+    switch ( e.which ) {
+
+        /* case 81: { // Q
+        game.setWeaponWheel(false);
+        break;
+        } */
+        case 87: { // W
+        ioManager.keys.up = false;
+        break;
+        }
+        case 65: { // A
+        ioManager.keys.left = false;
+        break;
+        }
+        case 83: { // S
+        ioManager.keys.down = false;
+        break;
+        }
+        case 68: { // D
+        ioManager.keys.right = false;
+        break;
+        }
+        case 32: { // space
+        ioManager.keys.space = false;
+        break;
+        }
+        /* case 17: { // ctrl
         ioManager.keys.ctrl = false;
-      // }
-      break;
+        break;
+        } */
+        case 69: { // E
+        if (cameraManager.pointerLockElement) {
+            game.menuActivateUp();
+        }
+        break;
+        }
+        case 70: { // F
+        // if (cameraManager.pointerLockElement) {
+            ioManager.keys.forward = false;
+        // }
+        break;
+        }
+        case 67: { // C
+        // if (cameraManager.pointerLockElement) {
+            ioManager.keys.backward = false;
+            ioManager.keys.ctrl = false;
+        // }
+        break;
+        }
+        case 86: { // V
+        // if (!_inputFocused()) {
+            e.preventDefault();
+            e.stopPropagation();
+            game.menuVUp();
+        // }
+        break;
+        }
+        case 66: { // B
+        // if (!_inputFocused()) {
+            e.preventDefault();
+            e.stopPropagation();
+            game.menuBUp();
+        // }
+        break;
+        }
+        case 16: { // shift
+        ioManager.keys.shift = false;
+        ioManager.keys.doubleTap = false;
+        
+        game.menuUnDoubleTap();
+        break;
+        }
+        case 46: { // delete
+        const object = game.getMouseSelectedObject();
+        if (object) {
+            game.setMouseHoverObject(null);
+            game.setMouseSelectedObject(null);
+            world.removeObject(object.instanceId);
+        }
+        break;
+        }
+        case 27: {
+        // if (game.getMouseSelectedObject()) {
+            game.setMouseSelectedObject(null);
+        // }
+        }
+
     }
-    case 86: { // V
-      // if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuVUp();
-      // }
-      break;
-    }
-    case 66: { // B
-      // if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuBUp();
-      // }
-      break;
-    }
-    case 16: { // shift
-      ioManager.keys.shift = false;
-      ioManager.keys.doubleTap = false;
-      
-      game.menuUnDoubleTap();
-      break;
-    }
-    case 46: { // delete
-      const object = game.getMouseSelectedObject();
-      if (object) {
-        game.setMouseHoverObject(null);
-        game.setMouseSelectedObject(null);
-        world.removeObject(object.instanceId);
-      }
-      break;
-    }
-    case 27: {
-      // if (game.getMouseSelectedObject()) {
-        game.setMouseSelectedObject(null);
-      // }
-    }
-  }
+
 };
+
 // let lastMouseDistance = 0;
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
@@ -771,33 +898,29 @@ ioManager.mouseleave = e => {
   const renderer = getRenderer();
   renderer.domElement.classList.remove('hover');
 };
+
 ioManager.click = e => {
-  if (cameraManager.pointerLockElement) {
-    game.menuClick();
-  } else {
-    // game.setContextMenu(false);
-    
-    if (!game.hoverEnabled) {
-      cameraManager.requestPointerLock();
-    }
-    
-    /* if (controlsManager.isPossessed()) {
-      cameraManager.requestPointerLock();
+
+    if ( cameraManager.pointerLockElement ) {
+
+        game.menuClick();
+
     } else {
-      const mouseHoverObject = game.getMouseHoverObject();
-      const mouseHoverPhysicsId = game.getMouseHoverPhysicsId();
-      if (mouseHoverObject) {
-        const mouseSelectedObject = game.getMouseSelectedObject();
-        if (mouseHoverObject !== mouseSelectedObject) {
-          game.setMouseSelectedObject(mouseHoverObject, mouseHoverPhysicsId);
-        } else {
-          game.setMouseSelectedObject(null);
+
+        // game.setContextMenu(false);
+
+        if ( ! game.hoverEnabled ) {
+
+            cameraManager.requestPointerLock();
+
         }
-      }
-    } */
-  }
-  game.setLastMouseEvent(e);
+
+    }
+
+    game.setLastMouseEvent( e );
+
 };
+
 // let mouseDown = false;
 let lastMouseButtons = 0;
 ioManager.mousedown = e => {

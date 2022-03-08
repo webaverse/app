@@ -20,8 +20,17 @@ import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 
 import styles from './App.module.css';
+import ioManager from '../../../io-manager.js';
 
 //
+
+export const AppUIStateManager = new EventTarget();
+
+AppUIStateManager.state = {
+    settings:       false,
+    world:          false,
+    diorama:        false
+};
 
 const _startApp = async ( weba, canvas ) => {
 
@@ -70,9 +79,6 @@ export const App = () => {
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
 
-    const [ settingsOpened, setSettingsOpened ] = useState( false );
-    const [ worldObjectsListOpened, setWorldObjectsListOpened ] = useState( false );
-
     //
 
     const _loadUrlState = () => {
@@ -82,6 +88,40 @@ export const App = () => {
 
         const roomName = _getCurrentRoom();
         setSelectedRoom( roomName );
+
+    };
+
+    const handleKeyDown = ( event ) => {
+
+        const inputFocused = document.activeElement && [ 'INPUT', 'TEXTAREA' ].includes( document.activeElement.nodeName );
+        ioManager.keydown( event, inputFocused );
+
+    };
+
+    const handleShortKeyPress = ( event ) => {
+
+        const key = event.detail.key;
+
+        switch ( key ) {
+
+            case 'z':
+
+                if ( AppUIStateManager.state.settings ) break;
+                AppUIStateManager.dispatchEvent( new CustomEvent( 'ToggleWorldPanel' ) );
+                break;
+
+            case 'tab':
+
+                if ( AppUIStateManager.state.settings ) break;
+                AppUIStateManager.dispatchEvent( new CustomEvent( 'ToggleDioramaPanel' ) );
+                break;
+
+            case 'esc':
+
+                AppUIStateManager.dispatchEvent( new CustomEvent( 'Esc' ) );
+                break;
+
+        }
 
     };
 
@@ -100,17 +140,23 @@ export const App = () => {
 
         };
 
-        window.addEventListener('pushstate', pushstate);
-        window.addEventListener('popstate', popstate);
+        _loadUrlState();
+
+        ioManager.addEventListener( 'UIShortKeyPressed', handleShortKeyPress );
+        window.addEventListener( 'pushstate', pushstate );
+        window.addEventListener( 'popstate', popstate );
+        window.addEventListener( 'keydown', handleKeyDown );
 
         return () => {
-            window.removeEventListener('pushstate', pushstate);
-            window.removeEventListener('popstate', popstate);
+
+            ioManager.removeEventListener( 'UIShortKeyPressed', handleShortKeyPress );
+            window.removeEventListener( 'pushstate', pushstate );
+            window.removeEventListener( 'popstate', popstate );
+            window.removeEventListener( 'keydown', handleKeyDown );
+
         };
 
     }, [] );
-
-    useEffect( _loadUrlState, [] );
 
     useEffect( () => {
 
@@ -129,9 +175,9 @@ export const App = () => {
             <Header app={ app } />
             <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
             <Crosshair />
-            <ActionMenu app={ app } setSettingsOpened={ setSettingsOpened } setWorldObjectsListOpened={ setWorldObjectsListOpened } />
-            <Settings opened={ settingsOpened } setOpened={ setSettingsOpened } />
-            <WorldObjectsList opened={ worldObjectsListOpened } setOpened={ setWorldObjectsListOpened } />
+            <ActionMenu app={ app } />
+            <Settings />
+            <WorldObjectsList />
             <PlayMode />
             <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
         </div>
