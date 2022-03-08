@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
-import { store } from '../../../store';
-import { SET_SETTINGS_OPEN } from '../../../actions/Actions';
+import { AppContext } from '../../app';
+import ioManager from '../../../../io-manager';
 
 import styles from './action-menu.module.css';
 
@@ -11,7 +11,7 @@ import styles from './action-menu.module.css';
 
 export const ActionMenu = ({ app }) => {
 
-    const { dispatch } = useContext( store );
+    const { setState } = useContext( AppContext );
     const [ xrSupported, setXrSupported ] = useState( false );
 
     //
@@ -24,15 +24,15 @@ export const ActionMenu = ({ app }) => {
 
     const handleWorldBtnClick = () => {
 
-        // AppUIStateManager.dispatchEvent( new CustomEvent( 'ToggleWorldPanel' ) );
+        ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+        setState( state => ({ ...state, world: { ...state.world, opened: true } }) );
 
     };
 
     const handleSettingsBtnClick = () => {
 
-        dispatch({ type: SET_SETTINGS_OPEN, opened: true });
-        // Store.setState( state => { state = { ... state }; state.settings = true; return state; });
-        // AppUIStateManager.dispatchEvent( new CustomEvent( 'ToggleSettingsPanel' ) );
+        ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+        setState( state => ({ ...state, settings: { ...state.settings, opened: true } }) );
 
     };
 

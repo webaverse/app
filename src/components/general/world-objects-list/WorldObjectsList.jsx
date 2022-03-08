@@ -6,8 +6,7 @@ import classnames from 'classnames';
 import { world } from '../../../../world.js'
 import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
-import cameraManager from '../../../../camera-manager';
-import { store } from '../../../store';
+import { AppContext } from '../../app';
 
 import styles from './world-objects-list.module.css';
 
@@ -41,7 +40,7 @@ const NumberInput = ({ input }) => {
 
 export const WorldObjectsList = () => {
 
-    const { state, dispatch } = useContext( store );
+    const { state, setState } = useContext( AppContext );
 
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
     const [ selectedApp, setSelectedApp ] = useState( null );
@@ -120,55 +119,6 @@ export const WorldObjectsList = () => {
 
     useEffect( () => {
 
-        const toggleOpen = () => {
-
-            const newValue = ! state;
-
-            if ( newValue ) {
-
-                // AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
-                cameraManager.exitPointerLock();
-
-            } else {
-
-                cameraManager.requestPointerLock();
-
-            }
-
-            setOpened( newValue );
-
-        };
-
-        // AppUIStateManager.addEventListener( 'ToggleWorldPanel', toggleOpen );
-
-        return () => {
-
-            // AppUIStateManager.removeEventListener( 'ToggleWorldPanel', toggleOpen );
-
-        };
-
-    }, [ state.world ] );
-
-    useEffect( () => {
-
-        const close = () => {
-
-            setOpened( false );
-
-        };
-
-        // AppUIStateManager.addEventListener( 'CloseOtherPanels', close );
-
-        return () => {
-
-            // AppUIStateManager.removeEventListener( 'CloseOtherPanels', close );
-
-        };
-
-    }, [] );
-
-    useEffect( () => {
-
         const update = () => {
 
             setApps( world.appManager.getApps().slice() );
@@ -212,8 +162,8 @@ export const WorldObjectsList = () => {
     //
 
     return (
-        <div className={ classnames( styles.worldObjectListWrapper, state.world ? styles.opened : null ) } onClick={ stopPropagation } >
-            <div className={ classnames( styles.panel, ( ! selectedApp && state.world ) ? styles.opened : null ) } >
+        <div className={ classnames( styles.worldObjectListWrapper, state.world.opened ? styles.opened : null ) } onClick={ stopPropagation } >
+            <div className={ classnames( styles.panel, ( ! selectedApp && state.world.opened ) ? styles.opened : null ) } >
                 <div className={ styles.header } >
                     <h1>Tokens</h1>
                 </div>

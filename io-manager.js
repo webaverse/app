@@ -31,8 +31,8 @@ const zeroVector = new THREE.Vector3();
 
 const ioManager = new EventTarget();
 
-ioManager.lastAxes = [ [0, 0, 0, 0], [0, 0, 0, 0] ];
-ioManager.lastButtons = [ [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0] ];
+ioManager.lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
+ioManager.lastButtons = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]];
 ioManager.currentWeaponValue = 0;
 ioManager.lastWeaponValue = 0;
 ioManager.currentTeleport = false;
@@ -47,40 +47,40 @@ ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
 
 ioManager.keys = {
-    up: false,
-    down: false,
-    left: false,
-    right: false,
-    forward: false,
-    backward: false,
-    shift: false,
-    doubleTap: false,
-    space: false,
-    ctrl: false,
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+  forward: false,
+  backward: false,
+  shift: false,
+  doubleTap: false,
+  space: false,
+  ctrl: false,
 };
 
 const lastWASDDownTime = {
-    keyW: 0,
-    keyA: 0,
-    keyS: 0,
-    keyD: 0
+  keyW: 0,
+  keyA: 0,
+  keyS: 0,
+  keyD: 0
 };
 
 //
 
 const resetKeys = () => {
 
-    for ( const k in ioManager.keys ) {
+  for ( const k in ioManager.keys ) {
 
-        ioManager.keys[k] = false;
+    ioManager.keys[k] = false;
 
-    }
+  }
 
 };
 
 cameraManager.addEventListener('pointerlockchange', () => {
 
-    resetKeys();
+  resetKeys();
 
 });
 
@@ -285,7 +285,7 @@ ioManager.keydown = e => {
 
       e.preventDefault();
       e.stopPropagation();
-      ioManager.dispatchEvent( new CustomEvent( 'UIShortKeyPressed', { detail: { key: 'tab' } } ) );
+      ioManager.dispatchEvent( new CustomEvent( 'ToggleDioramaPanel' ) );
       break;
 
     }
@@ -342,8 +342,8 @@ ioManager.keydown = e => {
 
       if ( timeDiff < doubleTapTime && ioManager.keys.shift ) {
 
-          ioManager.keys.doubleTap = true;
-          game.menuDoubleTap();
+        ioManager.keys.doubleTap = true;
+        game.menuDoubleTap();
 
       }
 
@@ -428,9 +428,9 @@ ioManager.keydown = e => {
 
       } else {
 
-          // if (!game.dragging) {
-          // _setTransformMode('rotate');
-          // }
+        // if (!game.dragging) {
+        // _setTransformMode('rotate');
+        // }
 
       }
 
@@ -487,7 +487,7 @@ ioManager.keydown = e => {
       //     }
       // }
 
-      ioManager.dispatchEvent( new CustomEvent( 'UIShortKeyPressed', { detail: { key: 'z' } } ) );
+      ioManager.dispatchEvent( new CustomEvent( 'ToggleWorldPanel' ) );
       break;
 
     }
@@ -616,7 +616,7 @@ ioManager.keydown = e => {
         game.jump();
 
       } /* else {
-          physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
+        physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
       } */
       // }
 
@@ -651,8 +651,8 @@ ioManager.keydown = e => {
         game.menuActivateDown();
 
       }
-
       // }
+
       break;
 
     }
@@ -738,7 +738,7 @@ ioManager.keyup = e => {
       if (cameraManager.pointerLockElement) {
         game.menuActivateUp();
       }
-    break;
+      break;
     }
     case 70: { // F
       // if (cameraManager.pointerLockElement) {
@@ -785,9 +785,9 @@ ioManager.keyup = e => {
       break;
     }
     case 27: {
-    // if (game.getMouseSelectedObject()) {
-        game.setMouseSelectedObject(null);
-    // }
+      // if (game.getMouseSelectedObject()) {
+      game.setMouseSelectedObject(null);
+      // }
     }
 
   }
@@ -902,23 +902,24 @@ ioManager.mouseleave = e => {
 
 ioManager.click = e => {
 
-    if ( cameraManager.pointerLockElement ) {
+  if ( cameraManager.pointerLockElement ) {
 
-        game.menuClick();
+    game.menuClick();
 
-    } else {
+  } else {
 
-        // game.setContextMenu(false);
+    ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+    // game.setContextMenu(false);
 
-        if ( ! game.hoverEnabled ) {
+    if ( ! game.hoverEnabled ) {
 
-            cameraManager.requestPointerLock();
-
-        }
+      cameraManager.requestPointerLock();
 
     }
 
-    game.setLastMouseEvent( e );
+  }
+
+  game.setLastMouseEvent( e );
 
 };
 
