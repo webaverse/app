@@ -145,7 +145,8 @@ class PathFinder {
       );
     }
 
-    // todo: start/destVoxel don't need detect, otherwise sometimes will cause no start/destVoxel error, eg: there's obstacle around npc/localPlayer's feet in the same voxel.
+    // note: start/destVoxel don't need detect, otherwise sometimes will cause no start/destVoxel error, eg: there's obstacle around npc/localPlayer's feet in the same voxel.
+    // todo: but sometimes will cause start voxel can't step/expand problem, need combined with jump or up detect() etc.
     this.startVoxel = this.createVoxel(this.start);
     this.startVoxel._isStart = true;
     this.startVoxel._isReached = true;
