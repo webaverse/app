@@ -7,6 +7,12 @@ import styles from './zone-title-card.module.css';
 
 //
 
+const logoImages = [
+  'images/logos/upstreet1.png',
+  'images/logos/upstreet2.png',
+  'images/logos/upstreet3.png',
+];
+
 export const ZoneTitleCard = ({
     app,
     // open,
@@ -14,6 +20,7 @@ export const ZoneTitleCard = ({
 }) => {
 
     const [ open, setOpen ] = useState( false );
+    const [ logoImage, setLogoImage ] = useState( logoImages[Math.floor(Math.random() * logoImages.length)] );
     const [ loadProgress, setLoadProgress ] = useState( false );
 
     /* useEffect(() => {
@@ -98,8 +105,9 @@ export const ZoneTitleCard = ({
         <div className={ classnames(styles.zoneTitleCard, open ? styles.open : null) } >
             <div className={ styles.leftWing }>
                 <div className={ styles.block }>
-                  <div className={ styles.title }>Webaverse</div>
-                  </div>
+                    {/* <div className={ styles.title }>Webaverse</div> */}
+                    <img className={ styles.logoImage } src={ logoImage } />
+                </div>
                 <img className={ styles.tailImg } src="images/snake-tongue.svg" />
             </div>
             <div className={ styles.rightSection }>
