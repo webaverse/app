@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import classnames from 'classnames';
 
 import {RenderMirror} from './RenderMirror';
+import {RainFx} from './RainFx';
 import styles from './zone-title-card.module.css';
 
 //
@@ -123,6 +124,8 @@ export const ZoneTitleCard = ({
                     <img src="images/loading-bar.svg" className={ styles.loadProgressImage } />
                 </div>
             </div>
+
+            <RainFx />
         </div>
     );
 
