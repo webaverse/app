@@ -1,6 +1,7 @@
 # this script is used to compile sounds into an indexed mp3 file
 # input: directories containing wav files (48000 Hz)
 # output: mp3 data file and json metadata file
+# run this in the voicepack directory
 
 find . -name '*-pad.wav' | xargs -d '\n' rm
 rm -f lol.txt
