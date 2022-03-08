@@ -202,7 +202,7 @@ plugins = process.env.NODE_ENV !== 'production' ? plugins.concat([metaversefileP
 ]);
 
 /** Vite config for production */
-const viteConfiProduction = {
+const viteConfigProduction = {
   build: {
     polyfillModulePreload: false,
     format: 'es',
@@ -253,7 +253,7 @@ const defaultConfig = {
 
 const config = {
   ...defaultConfig,
-  ...process.env.NODE_ENV === 'production' ? viteConfiProduction : {},
+  ...process.env.NODE_ENV === 'production' ? viteConfigProduction : {},
 };
 
 console.log('Using Node Env', process.env.NODE_ENV);
