@@ -1,6 +1,7 @@
 import {Vector3, Quaternion, AnimationClip} from 'three';
 import metaversefile from 'metaversefile';
 import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import easing from '../easing.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 
 import {
@@ -154,6 +155,8 @@ const animationsIdleArrays = {
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
+
+const cubicBezier = easing(0, 1, 0, 1);
 
 const _clearXZ = (dst, isPosition) => {
   if (isPosition) {
@@ -646,7 +649,7 @@ const _blendFly = spec => {
     lerpFn
       .call(
         dst,
-        localQuaternion.fromArray(v2),
+        activeAvatar.localQuaternion.fromArray(v2),
         f,
       );
   }
@@ -679,7 +682,7 @@ const _blendActivateAction = spec => {
     lerpFn
       .call(
         dst,
-        localQuaternion.fromArray(v2),
+        activeAvatar.localQuaternion.fromArray(v2),
         f,
       );
   }
@@ -1136,6 +1139,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 export {
   animations,
   animationStepIndices,
+ cubicBezier
 };
 
 export const getClosest2AnimationAngles = (key, angle) => {

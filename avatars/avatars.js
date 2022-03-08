@@ -12,8 +12,6 @@ import {
   // getVelocityDampingFactor,
   getNextPhysicsId,
 } from '../util.js';
-import easing from '../easing.js';
-import {zbdecode} from 'zjs/encoding.mjs';
 import Simplex from '../simplex-noise.js';
 import {
   crouchMaxTime,
@@ -101,17 +99,18 @@ const _makeSimplexes = numSimplexes => {
 const simplexes = _makeSimplexes(5);
 
 
-const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 // const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
-const cubicBezier = easing(0, 1, 0, 1);
+
+const upVector = new THREE.Vector3(0, 1, 0);
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 import {
   animations,
-  animationStepIndices
+  animationStepIndices,
+  cubicBezier
 } from './animationHelpers.js';
 
 
