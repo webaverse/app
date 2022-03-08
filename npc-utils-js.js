@@ -36,7 +36,7 @@ class PathFinder {
       debugRender: Whether show voxel boxes for debugging.
     */
     this.voxelHeight = 0.5; // Need let roundToVoxelHeight() compatible with this value/precision.
-    this.maxIterStep = 10000;
+    this.maxIterStep = 15000;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
     this.ignorePhysicsIds = ignorePhysicsIds;
     this.debugRender = true;
@@ -68,7 +68,7 @@ class PathFinder {
 
     this.directions = ['left', 'right', 'btm', 'top', 'back', 'front'];
     this.directionsNoTop = ['left', 'right', 'btm', 'back', 'front'];
-    this.directionBtm = ['btm'];
+    this.directionsOnlyBtm = ['btm'];
 
     if (this.debugRender) {
       this.geometry = new THREE.BoxGeometry();
@@ -133,6 +133,7 @@ class PathFinder {
     this.destVoxel = this.createVoxel(this.dest);
     if (!this.destVoxel) return null; // todo: clear debugMesh.
     this.destVoxel._isDest = true;
+    // return;
 
     if (this.startVoxel === this.destVoxel) {
       this.found(this.destVoxel);
@@ -504,20 +505,21 @@ class PathFinder {
     const currentVoxel = this.frontiers.shift();
     currentVoxel._isFrontier = false;
 
+    // todo: add ._isGround.
     let directions;
-    localVector.copy(currentVoxel.position);
-    localVector.y -= this.voxelHeight;
-    const canBtm = !this.detect(localVector); // todo: performance: may not need detect() here.
-    // const btmVoxel = this.getVoxel(localVector); // todo: performance: don't getVoxel() here.
-    // if (canBtm && !btmVoxel) {
-    //   directions = this.directionBtm;
-    // } else {
+    localVector2.copy(currentVoxel.position);
+    localVector2.y -= this.voxelHeight;
+    const canBtm = !this.detect(localVector2); // todo: performance: may not need detect() here.
+    const btmVoxel = this.getVoxel(localVector2); // todo: performance: don't getVoxel() here.
     if (canBtm) {
-      directions = this.directionsNoTop;
+      if (btmVoxel && btmVoxel === currentVoxel._prev) {
+        directions = this.directionsNoTop;
+      } else {
+        directions = this.directionsOnlyBtm;
+      }
     } else {
       directions = this.directions;
     }
-    // }
     for (const direction of directions) {
       if (!currentVoxel[`_${direction}Voxel`]) this.generateVoxelMap(currentVoxel, direction);
       if (currentVoxel[`_can${this.capitalize(direction)}`]) {
