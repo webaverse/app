@@ -1,13 +1,13 @@
 
 import * as THREE from 'three';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import classnames from 'classnames';
 
 import { world } from '../../../../world.js'
 import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
 import cameraManager from '../../../../camera-manager';
-import { AppUIStateManager } from '../../app/App.jsx';
+import { store } from '../../../store';
 
 import styles from './world-objects-list.module.css';
 
@@ -41,7 +41,8 @@ const NumberInput = ({ input }) => {
 
 export const WorldObjectsList = () => {
 
-    const [ isOpened, setOpened ] = useState( false );
+    const { state, dispatch } = useContext( store );
+
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
     const [ selectedApp, setSelectedApp ] = useState( null );
 
@@ -119,15 +120,13 @@ export const WorldObjectsList = () => {
 
     useEffect( () => {
 
-        AppUIStateManager.state.world = isOpened;
-
         const toggleOpen = () => {
 
-            const newValue = ! isOpened;
+            const newValue = ! state;
 
             if ( newValue ) {
 
-                AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
+                // AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
                 cameraManager.exitPointerLock();
 
             } else {
@@ -140,15 +139,15 @@ export const WorldObjectsList = () => {
 
         };
 
-        AppUIStateManager.addEventListener( 'ToggleWorldPanel', toggleOpen );
+        // AppUIStateManager.addEventListener( 'ToggleWorldPanel', toggleOpen );
 
         return () => {
 
-            AppUIStateManager.removeEventListener( 'ToggleWorldPanel', toggleOpen );
+            // AppUIStateManager.removeEventListener( 'ToggleWorldPanel', toggleOpen );
 
         };
 
-    }, [ isOpened ] );
+    }, [ state.world ] );
 
     useEffect( () => {
 
@@ -158,11 +157,11 @@ export const WorldObjectsList = () => {
 
         };
 
-        AppUIStateManager.addEventListener( 'CloseOtherPanels', close );
+        // AppUIStateManager.addEventListener( 'CloseOtherPanels', close );
 
         return () => {
 
-            AppUIStateManager.removeEventListener( 'CloseOtherPanels', close );
+            // AppUIStateManager.removeEventListener( 'CloseOtherPanels', close );
 
         };
 
@@ -213,8 +212,8 @@ export const WorldObjectsList = () => {
     //
 
     return (
-        <div className={ classnames( styles.worldObjectListWrapper, isOpened ? styles.opened : null ) } onClick={ stopPropagation } >
-            <div className={ classnames( styles.panel, ( ! selectedApp && isOpened ) ? styles.opened : null ) } >
+        <div className={ classnames( styles.worldObjectListWrapper, state.world ? styles.opened : null ) } onClick={ stopPropagation } >
+            <div className={ classnames( styles.panel, ( ! selectedApp && state.world ) ? styles.opened : null ) } >
                 <div className={ styles.header } >
                     <h1>Tokens</h1>
                 </div>

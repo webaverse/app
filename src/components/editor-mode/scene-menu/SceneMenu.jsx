@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
 import ioManager from '../../../../io-manager';
@@ -7,7 +7,7 @@ import { world } from '../../../../world'
 import universe from '../../../../universe'
 import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
-import { AppUIStateManager } from '../../app/App';
+import { store } from '../../../store';
 
 import styles from './scene-menu.module.css';
 

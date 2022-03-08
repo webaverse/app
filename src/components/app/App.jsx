@@ -10,6 +10,7 @@ import { parseQuery } from '../../../util.js'
 import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
+import ioManager from '../../../io-manager.js';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -18,19 +19,12 @@ import { WorldObjectsList } from '../general/world-objects-list';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
+// import { StateStore, State, SetState, useStore } from '../../store';
 
 import styles from './App.module.css';
-import ioManager from '../../../io-manager.js';
+import { StateProvider } from '../../store/index.jsx';
 
 //
-
-export const AppUIStateManager = new EventTarget();
-
-AppUIStateManager.state = {
-    settings:       false,
-    world:          false,
-    diorama:        false
-};
 
 const _startApp = async ( weba, canvas ) => {
 
@@ -172,14 +166,16 @@ export const App = () => {
 
     return (
         <div className={ styles.App } id="app" >
-            <Header app={ app } />
-            <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
-            <Crosshair />
-            <ActionMenu app={ app } />
-            <Settings />
-            <WorldObjectsList />
-            <PlayMode />
-            <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
+            <StateProvider>
+                <Header app={ app } />
+                <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
+                <Crosshair />
+                <ActionMenu app={ app } />
+                <Settings />
+                <WorldObjectsList />
+                <PlayMode />
+                {/* <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } /> */}
+            </StateProvider>
         </div>
     );
 
