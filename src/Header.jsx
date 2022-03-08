@@ -16,7 +16,7 @@ import User from './User';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {Tokens} from './tabs/tokens';
-import { AppUIStateManager } from './components/app/App.jsx';
+import { store } from './store';
 
 import styles from './Header.module.css';
 
@@ -74,17 +74,17 @@ export default function Header({ app }) {
 
         };
 
-        if ( open ) AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
+        // if ( open ) AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
 
-        AppUIStateManager.addEventListener( 'CloseOtherPanels', close );
-        AppUIStateManager.addEventListener( 'ToggleDioramaPanel', toggleDiorama );
+        // AppUIStateManager.addEventListener( 'CloseOtherPanels', close );
+        // AppUIStateManager.addEventListener( 'ToggleDioramaPanel', toggleDiorama );
 
         //
 
         return () => {
 
-            AppUIStateManager.removeEventListener( 'CloseOtherPanels', close );
-            AppUIStateManager.removeEventListener( 'ToggleDioramaPanel', toggleDiorama );
+            // AppUIStateManager.removeEventListener( 'CloseOtherPanels', close );
+            // AppUIStateManager.removeEventListener( 'ToggleDioramaPanel', toggleDiorama );
 
         };
 
@@ -259,7 +259,7 @@ export default function Header({ app }) {
 
         window.addEventListener('click', e => {
 
-            AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
+            // AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
 
             const hoverObject = game.getMouseHoverObject();
 

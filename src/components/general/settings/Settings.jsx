@@ -1,23 +1,23 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import classNames from 'classnames';
 
-import ioManager from '../../../../io-manager';
 import { TabGeneral } from './TabGeneral';
 import { TabControls } from './TabControls';
 import { TabAudio } from './TabAudio';
 import { TabGraphics } from './TabGraphics';
 import { TabAi } from './TabAi';
-import { AppUIStateManager } from '../../app/App';
+import { store } from '../../../store';
+import { SET_SETTINGS_OPEN } from '../../../actions/Actions';
 
 import styles from './settings.module.css';
+import ioManager from '../../../../io-manager';
 
 //
 
 export const Settings = () => {
 
-    const [ isOpened, setOpened ] = useState( false );
-    const [ activeTab, setActiveTab ] = useState('general');
+    const { state, dispatch } = useContext( store );
 
     //
 
@@ -29,14 +29,11 @@ export const Settings = () => {
 
     const handleCloseBtnClick = ( event ) => {
 
-        event.stopPropagation();
-        setOpened( false );
+        dispatch({ type: SET_SETTINGS_OPEN, opened: false });
 
     };
 
     const handleTabClick = ( event ) => {
-
-        event.stopPropagation();
 
         const tabName = event.currentTarget.getAttribute('data-tab-name');
         setActiveTab( tabName );
@@ -47,39 +44,27 @@ export const Settings = () => {
 
     useEffect( () => {
 
-        AppUIStateManager.state.settings = isOpened;
-
-        function toggle () {
-
-            const newValue = ! isOpened;
-            if ( newValue ) AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
-            setOpened( newValue );
-
-        };
-
         function close () {
 
-            setOpened( false );
+            dispatch({ type: SET_SETTINGS_OPEN, opened: false });
 
         };
 
-        AppUIStateManager.addEventListener( 'ToggleSettingsPanel', toggle );
-        AppUIStateManager.addEventListener( 'Esc', close );
+        ioManager.addEventListener( 'CloseAllPanels', close );
 
         return () => {
 
-            AppUIStateManager.removeEventListener( 'ToggleSettingsPanel', toggle );
-            AppUIStateManager.removeEventListener( 'Esc', close );
+            ioManager.addEventListener( 'CloseAllPanels', close );
 
         };
 
-    }, [ isOpened ] );
+    }, [ state.settings.opened ] );
 
     //
 
     return (
 
-        <div className={ classNames( styles.settings, isOpened ? styles.open : null ) } onClick={ stopPropagation } >
+        <div className={ classNames( styles.settings, state.settings.opened ? styles.open : null ) } onClick={ stopPropagation } >
 
             <div className={ styles.closeBtn } onClick={ handleCloseBtnClick } >X</div>
 

@@ -680,7 +680,7 @@ ioManager.keydown = e => {
     }
     case 27: { // esc
 
-      ioManager.dispatchEvent( new CustomEvent( 'UIShortKeyPressed', { detail: { key: 'esc' } } ) );
+      ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
       game.setContextMenu( false );
       break;
 
