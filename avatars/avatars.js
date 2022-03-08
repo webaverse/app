@@ -47,6 +47,8 @@ import {
 } from './util.mjs';
 import metaversefile from 'metaversefile';
 
+import StateMachine from './StateMachine';
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -1127,6 +1129,11 @@ class Avatar {
         },
       };
     }
+    window.StateMachine = StateMachine;
+    window.avatar = this;
+    window.localPlayer = metaversefile.useLocalPlayer();
+    const stateName = "playerAvatar"
+    StateMachine.registerObj(options.name ?? stateName, this);
 
     this.object = object;
 
@@ -2114,6 +2121,7 @@ class Avatar {
     }
   }
   update(timestamp, timeDiff) {
+    StateMachine.update(timestamp, timeDiff)
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
