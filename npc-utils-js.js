@@ -89,21 +89,29 @@ class PathFinder {
     this.waypointResult = [];
   }
 
-  getPath(start, dest, isWalk = true) {
+  getPath(start, dest, isWalk = false) {
     this.isWalk = isWalk;
 
     this.startGlobal.copy(start);
-    this.startGlobal.y -= npcPlayerHeight;
-    this.startGlobal.y += this.voxelHeightHalf;
-    this.startGlobal.y += 0.1;
+    if (this.isWalk) {
+      this.startGlobal.y -= npcPlayerHeight;
+      this.startGlobal.y += this.voxelHeightHalf;
+      this.startGlobal.y += 0.1;
+    }
     this.destGlobal.copy(dest);
-    this.destGlobal.y -= localPlayerHeight;
-    this.destGlobal.y += this.voxelHeightHalf;
-    this.destGlobal.y += 0.1;
+    if (this.isWalk) {
+      this.destGlobal.y -= localPlayerHeight;
+      this.destGlobal.y += this.voxelHeightHalf;
+      this.destGlobal.y += 0.1;
+    }
 
     // this.debugMesh.quaternion.copy(this.startDestQuaternion);
     this.debugMesh.position.copy(this.startGlobal);
-    this.debugMesh.lookAt(localVector.copy(this.destGlobal).setY(this.startGlobal.y));
+    if (this.isWalk) {
+      this.debugMesh.lookAt(localVector.copy(this.destGlobal).setY(this.startGlobal.y));
+    } else {
+      this.debugMesh.lookAt(this.destGlobal);
+    }
 
     // this.startDestQuaternion.setFromUnitVectors(
     //   new THREE.Vector3(0, 0, 1),
@@ -119,11 +127,19 @@ class PathFinder {
       0,
       0,
     );
-    this.dest.set(
-      0,
-      this.roundToVoxelHeight(this.destGlobal.y - this.startGlobal.y), // todo: need ceil?
-      Math.round(localVector.subVectors(this.destGlobal, this.startGlobal).setY(0).length()),
-    );
+    if (this.isWalk) {
+      this.dest.set(
+        0,
+        this.roundToVoxelHeight(this.destGlobal.y - this.startGlobal.y), // todo: need ceil?
+        Math.round(localVector.subVectors(this.destGlobal, this.startGlobal).setY(0).length()),
+      );
+    } else {
+      this.dest.set(
+        0,
+        0,
+        Math.round(localVector.subVectors(this.destGlobal, this.startGlobal).length()),
+      );
+    }
 
     // todo: start/destVoxel don't need detect, otherwise sometimes will cause no start/destVoxel error, eg: there's obstacle around npc/localPlayer's feet in the same voxel.
     this.startVoxel = this.createVoxel(this.start);
@@ -520,19 +536,24 @@ class PathFinder {
 
     // todo: add ._isGround.
     let directions;
-    localVector2.copy(currentVoxel.position);
-    localVector2.y -= this.voxelHeight;
-    const canBtm = !this.detect(localVector2); // todo: performance: may not need detect() here.
-    const btmVoxel = this.getVoxel(localVector2); // todo: performance: may not need getVoxel() here.
-    if (canBtm) {
-      if (btmVoxel && btmVoxel === currentVoxel._prev) {
-        directions = this.directionsNoTop;
+    if (this.isWalk) {
+      localVector2.copy(currentVoxel.position);
+      localVector2.y -= this.voxelHeight;
+      const canBtm = !this.detect(localVector2); // todo: performance: may not need detect() here.
+      const btmVoxel = this.getVoxel(localVector2); // todo: performance: may not need getVoxel() here.
+      if (canBtm) {
+        if (btmVoxel && btmVoxel === currentVoxel._prev) {
+          directions = this.directionsNoTop;
+        } else {
+          directions = this.directionsOnlyBtm;
+        }
       } else {
-        directions = this.directionsOnlyBtm;
+        directions = this.directions;
       }
     } else {
       directions = this.directions;
     }
+
     for (const direction of directions) {
       if (!currentVoxel[`_${direction}Voxel`]) this.generateVoxelMap(currentVoxel, direction);
       if (currentVoxel[`_can${this.capitalize(direction)}`]) {
