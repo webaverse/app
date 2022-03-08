@@ -111,6 +111,9 @@ export default () => {
     mesh.frustumCulled = false;
     // scene.add(mesh);
     // window.mesh = mesh;
+
+    const physicsId = physics.addGeometry(mesh);
+    physicsIds.push(physicsId);
   }
   
   useCleanup(() => {
