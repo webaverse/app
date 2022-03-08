@@ -718,7 +718,7 @@ const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
 const createPlayerDiorama = ({
   canvas = null,
   objects = [],
-  target = null,
+  target = new THREE.Object3D(),
   cameraOffset = new THREE.Vector3(0.3, 0, -0.5),
   clearColor = null,
   clearAlpha = 1,
