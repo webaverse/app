@@ -43,7 +43,7 @@
       "dynamic": false
     },
     {
-      "position": [ -49, 5, -7 ],
+      "position": [ -0, 5, -20 ],
       "quaternion": [ 0, 0.7071067811865475, 0, 0.7071067811865475 ],
       "physics": false,
       "start_url": "http://localhost/lib/webaverse_resource/npc/"
