@@ -9,11 +9,11 @@ import styles from './zone-title-card.module.css';
 
 export const ZoneTitleCard = ({
     app,
-    open,
-    setOpen,
+    // open,
+    // setOpen,
 }) => {
 
-    // const [ open, setOpen ] = useState( false );
+    const [ open, setOpen ] = useState( false );
     const [ loadProgress, setLoadProgress ] = useState( false );
 
     /* useEffect(() => {
@@ -69,13 +69,26 @@ export const ZoneTitleCard = ({
     */
 
     useEffect(() => {
-        const frame = requestAnimationFrame(() => {
-            setLoadProgress((loadProgress + 0.005) % 1);
-        });
+        function titlecardhackchange(e) {
+            const {titleCardHack} = e.data;
+            setOpen(titleCardHack);
+        }
+        app.addEventListener('titlecardhackchange', titlecardhackchange);
         return () => {
-            cancelAnimationFrame(frame);
+            app.removeEventListener('titlecardhackchange', titlecardhackchange);
         };
-    }, [loadProgress]);
+    }, []);
+
+    useEffect(() => {
+        if (open) {
+            const frame = requestAnimationFrame(() => {
+                setLoadProgress((loadProgress + 0.005) % 1);
+            });
+            return () => {
+                cancelAnimationFrame(frame);
+            };
+        }
+    }, [open, loadProgress]);
 
     const title = 'Zone Title';
     const description = 'Zone Description';
@@ -90,7 +103,7 @@ export const ZoneTitleCard = ({
                 <img className={ styles.tailImg } src="images/snake-tongue.svg" />
             </div>
             <div className={ styles.rightSection }>
-                <RenderMirror app={app} width={128} />
+                <RenderMirror app={app} width={128} enabled={app.titleCardHack} />
                 <div className={ styles.title }>{title}</div>
                 <div className={ styles.description }>{description}</div>
                 <div className={ styles.comment }>{comment}</div>
