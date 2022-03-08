@@ -1,0 +1,175 @@
+@keyframes border-blink {
+  0% {
+    border-color: #000;
+  }
+  25% {
+    border-color: #000;
+  }
+  26% {
+    border-color: #FFF;
+  }
+  50% {
+    border-color: #FFF;
+  }
+  75% {
+    border-color: #FFF;
+  }
+  76% {
+    border-color: #000;
+  }
+  100% {
+    border-color: #000;
+  }
+}
+
+.zoneTitleCard {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-family: 'PlazaRegular';
+  color: #FFF;
+  text-shadow: 2px 2px 0px #333;
+  transform: none;
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.zoneTitleCard:not(.open) {
+  transform: translateY(-100%);
+}
+
+.zoneTitleCard .leftWing {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  left: 10vw;
+  width: 300px;
+}
+.zoneTitleCard .leftWing .block {
+  display: flex;
+  flex-direction: column;
+  height: 65vh;
+  width: 100%;
+  background-color: #000;
+}
+.zoneTitleCard .leftWing .block .title {
+  margin: 0;
+  margin-top: auto;
+  font-size: 50px;
+}
+.zoneTitleCard .leftWing .block .logoImage {
+  margin-top: auto;
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+}
+.zoneTitleCard .leftWing .tailImg {
+  width: calc(300px);
+  height: calc(300px * 300px / 512px);
+  transform: scaleY(0.7) translateY(-250px);
+  transform-origin: 50% 0;
+  z-index: -1;
+}
+
+.zoneTitleCard .rightSection {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 30vh;
+  right: 30vw;
+}
+.zoneTitleCard .rightSection .title {
+  font-size: 60px;
+}
+.zoneTitleCard .rightSection .description {
+  font-size: 30px;
+}
+.zoneTitleCard .rightSection .comment {
+  font-size: 20px;
+}
+.zoneTitleCard .rightSection .title,
+.zoneTitleCard .rightSection .description,
+.zoneTitleCard .rightSection .comment {
+  position: relative;
+  display: flex;
+  margin-bottom: 40px;
+}
+.zoneTitleCard .rightSection .title::before,
+.zoneTitleCard .rightSection .description::before {
+  position: absolute;
+  top: 40%;
+  bottom: 0;
+  left: -20px;
+  right: -20px;
+  background-color: #000;
+  transform: skew(22deg);
+  z-index: -1;
+  content: '';
+}
+
+.zoneTitleCard .rightSection .renderMirror {
+  position: absolute;
+  top: -44px;
+  left: -100px;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #333;
+  animation: border-blink 0.5s linear infinite;
+}
+
+.zoneTitleCard .bottomSection {
+  position: absolute;
+  left: 40vw;
+  bottom: 150px;
+  /* background-color: #FFF; */
+  /* background-image: linear-gradient(to bottom, #333, #111); */
+}
+.zoneTitleCard .bottomSection .loadingBar {
+  display: flex;
+  flex-direction: column;
+  /* padding: 10px; */
+}
+.zoneTitleCard .bottomSection .loadingBar .label {
+  background-color: #000;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 30px;
+}
+.zoneTitleCard .bottomSection .loadingBar .loadProgressImage {
+  position: relative;
+  width: 512px;
+  height: 26px;
+}
+.zoneTitleCard .bottomSection .loadingBar .loadProgress {
+  position: absolute;
+  left: 51px;
+  width: calc(100% - 51px * 2);
+  bottom: 10px;
+  height: 10px;
+  -webkit-appearance: none;
+}
+.zoneTitleCard .bottomSection .loadingBar .loadProgress::-webkit-progress-bar {
+  background: transparent;
+}
+.zoneTitleCard .bottomSection .loadingBar .loadProgress::-webkit-progress-value {
+  /* background-color: #444; */
+  background-image: linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 1) 0%,
+        rgba(255, 154, 0, 1) 10%,
+        rgba(208, 222, 33, 1) 20%,
+        rgba(79, 220, 74, 1) 30%,
+        rgba(63, 218, 216, 1) 40%,
+        rgba(47, 201, 226, 1) 50%,
+        rgba(28, 127, 238, 1) 60%,
+        rgba(95, 21, 242, 1) 70%,
+        rgba(186, 12, 248, 1) 80%,
+        rgba(251, 7, 217, 1) 90%,
+        rgba(255, 0, 0, 1) 100%
+    );
+  background-size: 512px 100%;
+  /* background-image: linear-gradient(to bottom, #56ab2f, #a8e063); */
+  /* transition: background-color 1s cubic-bezier(0, 1, 0, 1); */
+}
