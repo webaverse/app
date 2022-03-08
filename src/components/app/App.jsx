@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-import MagicMenu from '../../MagicMenu.jsx';
+// import MagicMenu from '../../MagicMenu.jsx';
 import { defaultAvatarUrl } from '../../../constants';
-import dropManager from '../../../drop-manager.js';
+// import dropManager from '../../../drop-manager.js';
+import {ZoneTitleCard} from '../general/zone-title-card/ZoneTitleCard.jsx';
 
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
@@ -134,6 +135,7 @@ export const App = () => {
             <WorldObjectsList opened={ worldObjectsListOpened } setOpened={ setWorldObjectsListOpened } />
             <PlayMode />
             <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
+            <ZoneTitleCard app={ app } />
         </div>
     );
 
