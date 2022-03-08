@@ -484,6 +484,12 @@ class StatePlayer extends PlayerBase {
         if (!cancelFn.isLive()) return;
         this.avatar = avatar;
 
+        this.getActionsList().forEach((name) => {
+          this.avatar.tracker.registerState({
+            name,
+          })
+        });
+
         this.dispatchEvent({
           type: 'avatarchange',
           app,
@@ -546,6 +552,10 @@ class StatePlayer extends PlayerBase {
   getActionsArray() {
     return this.isBound() ? Array.from(this.getActionsState()) : [];
   }
+  getActionsList() {
+    const actionsList = this.actionBinaryInterpolant || this.actionInterpolants;
+    return actionsList ? Object.keys(actionsList) : [];
+  }  
   getAvatarState() {
     let avatarMap = this.playerMap.has(avatarMapName) ? this.playerMap.get(avatarMapName, Z.Map) : null;
     if (!avatarMap) {
