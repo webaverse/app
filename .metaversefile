@@ -1,7 +1,4 @@
 {
-  "name": "chest",
-  "start_url": "index.js",
-  "components": {
-    "activate": true
-  }
+  "name": "infinistreet",
+  "start_url": "index.js"
 }
