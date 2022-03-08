@@ -2,11 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 
+import { AppUIStateManager } from '../../app/App';
+
 import styles from './action-menu.module.css';
 
 //
 
-export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }) => {
+export const ActionMenu = ({ app }) => {
 
     const [ xrSupported, setXrSupported ] = useState( false );
 
@@ -20,13 +22,13 @@ export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }
 
     const handleWorldBtnClick = () => {
 
-        setWorldObjectsListOpened( true );
+        AppUIStateManager.dispatchEvent( new CustomEvent( 'ToggleWorldPanel' ) );
 
     };
 
     const handleSettingsBtnClick = () => {
 
-        setSettingsOpened( true );
+        AppUIStateManager.dispatchEvent( new CustomEvent( 'ToggleSettingsPanel' ) );
 
     };
 
