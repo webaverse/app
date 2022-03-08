@@ -22,7 +22,9 @@ const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
+const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
+const localColor = new THREE.Color();
 
 // this function maps the speed histogram to a position, integrated up to the given timestamp
 const mapTime = (speedHistogram = new SpeedHistogram, time = 0) => {
@@ -717,6 +719,7 @@ const createPlayerDiorama = ({
   canvas = null,
   objects = [],
   target = null,
+  cameraOffset = new THREE.Vector3(0.3, 0, -0.5),
   lights = true,
   label = null,
   outline = false,
@@ -795,6 +798,9 @@ const createPlayerDiorama = ({
         this.loaded = true;
       });
     },
+    setCameraOffset(newCameraOffset) {
+      cameraOffset.copy(newCameraOffset);
+    },
     update(timestamp, timeDiff) {
       if (!this.loaded || !this.enabled) {
         lastDisabledTime = timestamp;
@@ -859,12 +865,19 @@ const createPlayerDiorama = ({
 
       const _render = () => {
         // set up side camera
-        sideCamera.position.copy(target.position)
-          .add(localVector.set(0.3, 0, -0.5).applyQuaternion(target.quaternion));
+        target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        const targetPosition = localVector;
+        const targetQuaternion = localQuaternion;
+
+        sideCamera.position.copy(targetPosition)
+          .add(
+            localVector2.copy(cameraOffset)
+              .applyQuaternion(targetQuaternion)
+          );
         sideCamera.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             sideCamera.position,
-            target.position,
+            targetPosition,
             localVector3.set(0, 1, 0)
           )
         );
