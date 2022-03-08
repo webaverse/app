@@ -5,7 +5,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 import {defaultDioramaSize} from './constants.js';
-import postProcessing from './post-processing.js';
+// import postProcessing from './post-processing.js';
 import gradients from './gradients.json';
 import {
   fullscreenVertexShader,
