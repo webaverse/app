@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, createContext } from 'react';
 
 import MagicMenu from '../../MagicMenu.jsx';
 import { defaultAvatarUrl } from '../../../constants';
@@ -11,6 +11,7 @@ import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
 import ioManager from '../../../io-manager.js';
+import cameraManager from '../../../camera-manager';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -19,10 +20,8 @@ import { WorldObjectsList } from '../general/world-objects-list';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
-// import { StateStore, State, SetState, useStore } from '../../store';
 
 import styles from './App.module.css';
-import { StateProvider } from '../../store/index.jsx';
 
 //
 
@@ -66,7 +65,22 @@ const _getCurrentRoom = () => {
 
 };
 
+export const AppContext = createContext();
+
 export const App = () => {
+
+    const [ state, setState ] = useState({
+        settings: {
+            opened:     false,
+            activeTab:  'general'
+        },
+        world: {
+            opened:     false
+        },
+        diorama: {
+            opened:     false
+        }
+    });
 
     const canvasRef = useRef( null );
     const [ app, setApp ] = useState( () => new Webaverse() );
@@ -94,6 +108,29 @@ export const App = () => {
 
     useEffect( () => {
 
+        const closeAll = () => {
+
+            setState( state => ({
+                ...state,
+                settings:   { ...state.settings, opened: false },
+                world:      { ...state.world, opened: false },
+                diorama:    { ...state.diorama, opened: false },
+            }) );
+
+        };
+
+        ioManager.addEventListener( 'CloseAllPanels', closeAll );
+
+        return () => {
+
+            ioManager.addEventListener( 'CloseAllPanels', closeAll );
+
+        };
+
+    }, [] );
+
+    useEffect( () => {
+
         const pushstate = e => {
 
             _loadUrlState();
@@ -109,14 +146,12 @@ export const App = () => {
 
         _loadUrlState();
 
-        ioManager.addEventListener( 'UIShortKeyPressed', handleShortKeyPress );
         window.addEventListener( 'pushstate', pushstate );
         window.addEventListener( 'popstate', popstate );
         window.addEventListener( 'keydown', handleKeyDown );
 
         return () => {
 
-            ioManager.removeEventListener( 'UIShortKeyPressed', handleShortKeyPress );
             window.removeEventListener( 'pushstate', pushstate );
             window.removeEventListener( 'popstate', popstate );
             window.removeEventListener( 'keydown', handleKeyDown );
@@ -137,9 +172,44 @@ export const App = () => {
 
     //
 
+    useEffect( () => {
+
+        const toggleOpen = () => {
+
+            if ( state.settings.opened ) return;
+            ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+
+            const newValue = ! state.world.opened;
+
+            if ( newValue ) {
+
+                cameraManager.exitPointerLock();
+
+            } else {
+
+                cameraManager.requestPointerLock();
+
+            }
+
+            setState({ ...state, world: { ...state.world, opened: newValue } });
+
+        };
+
+        ioManager.addEventListener( 'ToggleWorldPanel', toggleOpen );
+
+        return () => {
+
+            ioManager.removeEventListener( 'ToggleWorldPanel', toggleOpen );
+
+        };
+
+    }, [ state ] );
+
+    //
+
     return (
         <div className={ styles.App } id="app" >
-            <StateProvider>
+            <AppContext.Provider value={{ state, setState }} >
                 <Header app={ app } />
                 <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
                 <Crosshair />
@@ -147,8 +217,8 @@ export const App = () => {
                 <Settings />
                 <WorldObjectsList />
                 <PlayMode />
-                {/* <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } /> */}
-            </StateProvider>
+                <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
+            </AppContext.Provider>
         </div>
     );
 

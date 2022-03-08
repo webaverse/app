@@ -7,7 +7,6 @@ import { world } from '../../../../world'
 import universe from '../../../../universe'
 import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
-import { store } from '../../../store';
 
 import styles from './scene-menu.module.css';
 
@@ -59,7 +58,8 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     const handleSceneMenuOpen = ( value ) => {
 
         value = ( typeof value === 'boolean' ? value : ( ! scenesMenuOpened ) );
-        if ( value ) AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
+        ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+
         setScenesMenuOpened( value );
         setRoomsMenuOpened( false );
 
@@ -80,7 +80,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
         value = ( typeof value === 'boolean' ? value : ( ! roomsMenuOpened ) );
 
-        if ( value ) AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
+        ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
         setScenesMenuOpened( false );
 
         if ( ! multiplayerConnected ) {
@@ -194,13 +194,11 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
         refreshRooms();
 
-        AppUIStateManager.addEventListener( 'CloseOtherPanels', close );
-        ioManager.addEventListener( 'EscBtnClick', close );
+        ioManager.addEventListener( 'CloseAllPanels', close );
 
         return () => {
 
-            AppUIStateManager.removeEventListener( 'CloseOtherPanels', close );
-            ioManager.removeEventListener( 'EscBtnClick', close );
+            ioManager.removeEventListener( 'CloseAllPanels', close );
 
         };
 

@@ -16,7 +16,6 @@ import User from './User';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {Tokens} from './tabs/tokens';
-import { store } from './store';
 
 import styles from './Header.module.css';
 
@@ -74,17 +73,21 @@ export default function Header({ app }) {
 
         };
 
-        // if ( open ) AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
+        if ( open ) {
 
-        // AppUIStateManager.addEventListener( 'CloseOtherPanels', close );
-        // AppUIStateManager.addEventListener( 'ToggleDioramaPanel', toggleDiorama );
+            ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+
+        }
+
+        ioManager.addEventListener( 'CloseAllPanels', close );
+        ioManager.addEventListener( 'ToggleDioramaPanel', toggleDiorama );
 
         //
 
         return () => {
 
-            // AppUIStateManager.removeEventListener( 'CloseOtherPanels', close );
-            // AppUIStateManager.removeEventListener( 'ToggleDioramaPanel', toggleDiorama );
+            ioManager.removeEventListener( 'CloseAllPanels', close );
+            ioManager.removeEventListener( 'ToggleDioramaPanel', toggleDiorama );
 
         };
 
@@ -240,7 +243,6 @@ export default function Header({ app }) {
 
                 } else {
 
-                    window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: 'CharacterMenu' } } ) );
                     setOpen('character');
 
                 }
@@ -258,8 +260,6 @@ export default function Header({ app }) {
     useEffect( async () => {
 
         window.addEventListener('click', e => {
-
-            // AppUIStateManager.dispatchEvent( new CustomEvent( 'CloseOtherPanels' ) );
 
             const hoverObject = game.getMouseHoverObject();
 
