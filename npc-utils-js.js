@@ -51,6 +51,9 @@ class PathFinder {
     this.iterStep = 0;
     this.allowNearest = false;
 
+    this.iterDetect = 0;
+    this.maxIterDetect = 10000;
+
     // npc-local ( start-dest space )
     // all parameters, unless otherwise specified, are npc-local
     this.start = new THREE.Vector3();
@@ -103,9 +106,7 @@ class PathFinder {
     }
     this.destGlobal.copy(dest);
     if (this.isWalk) {
-      this.destGlobal.y -= localPlayerHeight;
-      this.destGlobal.y += this.voxelHeightHalf;
-      this.destGlobal.y += 0.1;
+      this.detectDestGlobal(this.destGlobal, -1);
     }
 
     // this.debugMesh.quaternion.copy(this.startDestQuaternion);
@@ -305,12 +306,17 @@ class PathFinder {
     return voxel;
   }
 
-  detect(position) {
-    localVectorDetect.copy(position);
-    localVectorDetect.applyQuaternion(this.startDestQuaternion);
-    localVectorDetect.add(this.startGlobal);
-    // const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVectorDetect, identityQuaternion);
-    const overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVectorDetect, this.startDestQuaternion);
+  detect(position, isGlobal = false) {
+    let overlapResult;
+    if (isGlobal) {
+      localVectorDetect.copy(position);
+      overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVectorDetect, identityQuaternion);
+    } else {
+      localVectorDetect.copy(position);
+      localVectorDetect.applyQuaternion(this.startDestQuaternion);
+      localVectorDetect.add(this.startGlobal);
+      overlapResult = physicsManager.overlapBox(0.5, this.voxelHeightHalf, 0.5, localVectorDetect, this.startDestQuaternion);
+    }
     let collide;
     if (overlapResult.objectIds.length === 1 && this.ignorePhysicsIds.includes(overlapResult.objectIds[0])) {
       collide = false;
@@ -320,6 +326,43 @@ class PathFinder {
       collide = false;
     }
     return collide;
+  }
+
+  detectDestGlobal(position, detectDir) {
+    // this.detectCount++;
+    if (this.iterDetect >= this.maxIterDetect) {
+      console.warn('maxIterDetect reached! High probability created wrong destVoxel with wrong position.y!');
+      // Use raycast first? No, raycast can only handle line not voxel.
+      return;
+    }
+    this.iterDetect++;
+
+    const collide = this.detect(position, true);
+
+    if (detectDir === 0) {
+      if (collide) {
+        detectDir = 1;
+      } else {
+        detectDir = -1;
+      }
+    }
+
+    if (detectDir === 1) {
+      if (collide) {
+        position.y += detectDir * this.voxelHeight;
+        this.detectDestGlobal(position, detectDir);
+      } else {
+        // do nothing, stop recur
+      }
+    } else if (detectDir === -1) {
+      if (collide) {
+        position.y += this.voxelHeight;
+        // do nothing, stop recur
+      } else {
+        position.y += detectDir * this.voxelHeight;
+        this.detectDestGlobal(position, detectDir);
+      }
+    }
   }
 
   generateVoxelMap(currentVoxel, direction/*: string */) {
