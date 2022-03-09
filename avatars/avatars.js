@@ -53,6 +53,25 @@ import Blinker from './Blinker.js'
 import Nodder from './Nodder.js'
 import Looker from './Looker.js'
 
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+// const localVector4 = new THREE.Vector3();
+// const localVector5 = new THREE.Vector3();
+// const localVector6 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+// const localQuaternion3 = new THREE.Quaternion();
+// const localQuaternion4 = new THREE.Quaternion();
+// const localQuaternion5 = new THREE.Quaternion();
+// const localQuaternion6 = new THREE.Quaternion();
+const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+// const localPlane = new THREE.Plane();   
+
 const textEncoder = new TextEncoder();
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
@@ -129,7 +148,7 @@ const _makeDebugMesh = (avatar) => {
     let srcGeometry = srcCubeGeometries[scale];
     if (!srcGeometry) {
       srcGeometry = cubeGeometry.clone()
-        .applyMatrix4(avatar.localMatrix.makeScale(scale * baseScale, scale * baseScale, 1))
+        .applyMatrix4(localMatrix.makeScale(scale * baseScale, scale * baseScale, 1))
       srcCubeGeometries[scale] = srcGeometry;
     }
     const geometry = srcGeometry//.clone();
@@ -286,10 +305,10 @@ const _makeDebugMesh = (avatar) => {
       const meshBone = attributes[k];
 
       modelBone.forwardQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-        avatar.localMatrix.lookAt(
-          avatar.localVector.set(0, 0, 0),
+        localMatrix.lookAt(
+          localVector.set(0, 0, 0),
           modelBone.position,
-          avatar.localVector2.set(0, 1, 0)
+          localVector2.set(0, 1, 0)
         )
       );
       modelBoneToMeshBoneMap.set(modelBone, meshBone);
@@ -303,23 +322,23 @@ const _makeDebugMesh = (avatar) => {
       (modelBone.parent ?
         modelBone.parent.matrixWorld
       :
-        avatar.localMatrix.identity()
-      ).decompose(avatar.localVector, avatar.localQuaternion, avatar.localVector2);
+        localMatrix.identity()
+      ).decompose(localVector, localQuaternion, localVector2);
 
-      avatar.localVector.add(
-        avatar.localVector3.set(0, 0, -meshBone.mesh.scale.z*0.5)
+      localVector.add(
+        localVector3.set(0, 0, -meshBone.mesh.scale.z*0.5)
           .applyQuaternion(modelBone.forwardQuaternion)
-          .applyQuaternion(avatar.localQuaternion)
+          .applyQuaternion(localQuaternion)
       );
 
-      avatar.localQuaternion.multiply(
+      localQuaternion.multiply(
         modelBone.forwardQuaternion
       );
 
-      meshBone.matrixWorld.compose(avatar.localVector, avatar.localQuaternion, avatar.localVector2);
+      meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
       meshBone.matrix.copy(meshBone.matrixWorld);
       if (meshBone.parent) {
-        meshBone.matrix.premultiply(avatar.localMatrix.copy(meshBone.parent.matrixWorld).invert());
+        meshBone.matrix.premultiply(localMatrix.copy(meshBone.parent.matrixWorld).invert());
       }
       meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
     }
@@ -423,25 +442,7 @@ class Avatar {
     this.options = options;
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
-    this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension);
-
-    this.localVector = new THREE.Vector3();
-    this.localVector2 = new THREE.Vector3();
-    this.localVector3 = new THREE.Vector3();
-    // this.localVector4 = new THREE.Vector3();
-    // this.localVector5 = new THREE.Vector3();
-    // this.localVector6 = new THREE.Vector3();
-    this.localQuaternion = new THREE.Quaternion();
-    this.localQuaternion2 = new THREE.Quaternion();
-    this.localQuaternion3 = new THREE.Quaternion();
-    this.localQuaternion4 = new THREE.Quaternion();
-    this.localQuaternion5 = new THREE.Quaternion();
-    this.localQuaternion6 = new THREE.Quaternion();
-    this.localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
-    this.localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
-    this.localMatrix = new THREE.Matrix4();
-    this.localMatrix2 = new THREE.Matrix4();
-    this.localPlane = new THREE.Plane();    
+    this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
 
     const {
       skinnedMeshes,
@@ -1055,7 +1056,7 @@ class Avatar {
           _recurseBoneAttachments(child);
         } else {
           child.matrix
-            .premultiply(this.localMatrix.compose(this.localVector.set(0, 0, 0), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI), this.localVector2.set(1, 1, 1)))
+            .premultiply(localMatrix.compose(localVector.set(0, 0, 0), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI), localVector2.set(1, 1, 1)))
             .decompose(child.position, child.quaternion, child.scale);
         }
       }
@@ -1346,15 +1347,15 @@ class Avatar {
     return this.legsManager.enabled;
   }
   getAngle() {
-    this.localEuler.setFromRotationMatrix(
-      this.localMatrix.lookAt(
-        this.localVector.set(0, 0, 0),
+    localEuler.setFromRotationMatrix(
+      localMatrix.lookAt(
+        localVector.set(0, 0, 0),
         this.direction,
-        this.localVector2.set(0, 1, 0)
+        localVector2.set(0, 1, 0)
       ),
       'YXZ'
     );
-    return this.localEuler.y;
+    return localEuler.y;
   }
   async setQuality(quality) {
 
@@ -1395,16 +1396,6 @@ class Avatar {
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
-
-    let {
-          localVector, localVector2, localVector3,
-          localEuler, localEuler2,
-          localMatrix, localMatrix2,
-          // localPlane,
-          localQuaternion, localQuaternion2,
-          localQuaternion3, localQuaternion4,
-          localQuaternion5, localQuaternion6
-        } = this;
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
@@ -1537,11 +1528,11 @@ class Avatar {
           const headPosition = eyePosition;
 
           // Look at direction in world coordinate
-          const lookAtDir = this.localVector2.copy(headPosition).sub(position).normalize();
+          const lookAtDir = localVector2.copy(headPosition).sub(position).normalize();
 
           // Transform the direction into local coordinate from the first person bone
           lookAtDir.applyQuaternion(
-            this.localQuaternion.setFromRotationMatrix(head.matrixWorld)
+            localQuaternion.setFromRotationMatrix(head.matrixWorld)
               .invert()
           );
 
@@ -1560,47 +1551,47 @@ class Avatar {
 
           if (leftEye) {
             if (srcX < 0.0) {
-              this.localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
+              localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
             } else {
-              this.localEuler2.x = lookAtVerticalUpCurve.map(srcX);
+              localEuler2.x = lookAtVerticalUpCurve.map(srcX);
             }
 
             if (srcY < 0.0) {
-              this.localEuler2.y = -lookAtHorizontalInnerCurve.map(-srcY);
+              localEuler2.y = -lookAtHorizontalInnerCurve.map(-srcY);
             } else {
-              this.localEuler2.y = lookAtHorizontalOuterCurve.map(srcY);
+              localEuler2.y = lookAtHorizontalOuterCurve.map(srcY);
             }
-            this.localEuler2.x *= rotationFactor;
-            this.localEuler2.y *= rotationFactor;
-            this.localEuler2.y = Math.min(Math.max(this.localEuler2.y, -rotationRange), rotationRange);
+            localEuler2.x *= rotationFactor;
+            localEuler2.y *= rotationFactor;
+            localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
 
-            this.localEuler2.z = 0;
-            this.localEuler2.order = 'YXZ';
+            localEuler2.z = 0;
+            localEuler2.order = 'YXZ';
 
-            leftEye.quaternion.setFromEuler(this.localEuler2);
+            leftEye.quaternion.setFromEuler(localEuler2);
             leftEye.updateMatrix();
           }
 
           if (rightEye) {
             if (srcX < 0.0) {
-              this.localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
+              localEuler2.x = -lookAtVerticalDownCurve.map(-srcX);
             } else {
-              this.localEuler2.x = lookAtVerticalUpCurve.map(srcX);
+              localEuler2.x = lookAtVerticalUpCurve.map(srcX);
             }
 
             if (srcY < 0.0) {
-              this.localEuler2.y = -lookAtHorizontalOuterCurve.map(-srcY);
+              localEuler2.y = -lookAtHorizontalOuterCurve.map(-srcY);
             } else {
-              this.localEuler2.y = lookAtHorizontalInnerCurve.map(srcY);
+              localEuler2.y = lookAtHorizontalInnerCurve.map(srcY);
             }
-            this.localEuler2.x *= rotationFactor;
-            this.localEuler2.y *= rotationFactor;
-            this.localEuler2.y = Math.min(Math.max(this.localEuler2.y, -rotationRange), rotationRange);
+            localEuler2.x *= rotationFactor;
+            localEuler2.y *= rotationFactor;
+            localEuler2.y = Math.min(Math.max(localEuler2.y, -rotationRange), rotationRange);
 
-            this.localEuler2.z = 0;
-            this.localEuler2.order = 'YXZ';
+            localEuler2.z = 0;
+            localEuler2.order = 'YXZ';
 
-            rightEye.quaternion.setFromEuler(this.localEuler2);
+            rightEye.quaternion.setFromEuler(localEuler2);
             rightEye.updateMatrix();
           }
         }

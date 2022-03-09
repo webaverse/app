@@ -40,10 +40,12 @@ import {
   // avatarInterpolationNumFrames,
 } from '../constants.js';
 
-// const localVector4 = new Vector3();
-// const localVector5 = new Vector3();
-// const localVector6 = new Vector3();
+const localVector = new Vector3();
+const localVector2 = new Vector3();
+const localVector3 = new Vector3();
 
+const localQuaternion = new Quaternion();
+const localQuaternion2 = new Quaternion();
 const localQuaternion3 = new Quaternion();
 const localQuaternion4 = new Quaternion();
 const localQuaternion5 = new Quaternion();
@@ -443,7 +445,7 @@ const _getHorizontalBlend = (k, lerpFn, isPosition, target, now) => {
     k,
     lerpFn,
     isPosition,
-    activeAvatar.localQuaternion,
+    localQuaternion,
     now,
   );
   _get7wayBlend(
@@ -454,7 +456,7 @@ const _getHorizontalBlend = (k, lerpFn, isPosition, target, now) => {
     k,
     lerpFn,
     isPosition,
-    activeAvatar.localQuaternion2,
+    localQuaternion2,
     now,
   );
 
@@ -462,8 +464,8 @@ const _getHorizontalBlend = (k, lerpFn, isPosition, target, now) => {
 
   lerpFn
     .call(
-      target.copy(activeAvatar.localQuaternion),
-      activeAvatar.localQuaternion2,
+      target.copy(localQuaternion),
+      localQuaternion2,
       activeMoveFactors.crouchFactor,
     );
 };
@@ -649,7 +651,7 @@ const _blendFly = spec => {
     lerpFn
       .call(
         dst,
-        activeAvatar.localQuaternion.fromArray(v2),
+        localQuaternion.fromArray(v2),
         f,
       );
   }
@@ -682,7 +684,7 @@ const _blendActivateAction = spec => {
     lerpFn
       .call(
         dst,
-        activeAvatar.localQuaternion.fromArray(v2),
+        localQuaternion.fromArray(v2),
         f,
       );
   }
@@ -852,7 +854,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         lerpFn
           .call(
             dst,
-            activeAvatar.localQuaternion.fromArray(v2),
+            localQuaternion.fromArray(v2),
             f,
           );
 
@@ -941,23 +943,23 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const v3 = src3.evaluate(t3);
 
             dst
-              .premultiply(activeAvatar.localQuaternion2.fromArray(v3).invert())
-              .premultiply(activeAvatar.localQuaternion2.fromArray(v2));
+              .premultiply(localQuaternion2.fromArray(v3).invert())
+              .premultiply(localQuaternion2.fromArray(v2));
           } else {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
-            activeAvatar.localVector2.fromArray(v2);
-            _clearXZ(activeAvatar.localVector2, isPosition);
+            localVector2.fromArray(v2);
+            _clearXZ(localVector2, isPosition);
 
             const idleAnimation = _getIdleAnimation('walk');
             const t3 = 0;
             const src3 = idleAnimation.interpolants[k];
             const v3 = src3.evaluate(t3);
-            activeAvatar.localVector3.fromArray(v3);
+            localVector3.fromArray(v3);
 
             dst
-              .sub(activeAvatar.localVector3)
-              .add(activeAvatar.localVector2);
+              .sub(localVector3)
+              .add(localVector2);
           }
         }
       };
@@ -986,8 +988,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const v3 = src3.evaluate(t3);
 
             dst
-              .premultiply(activeAvatar.localQuaternion2.fromArray(v3).invert())
-              .premultiply(activeAvatar.localQuaternion2.fromArray(v2));
+              .premultiply(localQuaternion2.fromArray(v3).invert())
+              .premultiply(localQuaternion2.fromArray(v2));
           }
         } else {
           const src2 = hurtAnimation.interpolants[k];
@@ -999,8 +1001,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const v3 = src3.evaluate(t3);
 
           dst
-            .sub(activeAvatar.localVector2.fromArray(v3))
-            .add(activeAvatar.localVector2.fromArray(v2));
+            .sub(localVector2.fromArray(v3))
+            .add(localVector2.fromArray(v2));
         }
       };
     } else if (activeAvatar.aimAnimation) {
@@ -1026,8 +1028,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const v3 = src3.evaluate(t3);
 
             dst
-              .premultiply(activeAvatar.localQuaternion2.fromArray(v3).invert())
-              .premultiply(activeAvatar.localQuaternion2.fromArray(v2));
+              .premultiply(localQuaternion2.fromArray(v3).invert())
+              .premultiply(localQuaternion2.fromArray(v2));
           }
         } else {
           const src2 = aimAnimation.interpolants[k];
@@ -1039,8 +1041,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const v3 = src3.evaluate(t3);
 
           dst
-            .sub(activeAvatar.localVector2.fromArray(v3))
-            .add(activeAvatar.localVector2.fromArray(v2));
+            .sub(localVector2.fromArray(v3))
+            .add(localVector2.fromArray(v2));
         }
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
@@ -1071,14 +1073,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
 
-          activeAvatar.localQuaternion.copy(dst)
-            .premultiply(activeAvatar.localQuaternion2.fromArray(v3).invert())
-            .premultiply(activeAvatar.localQuaternion2.fromArray(v2));
+          localQuaternion.copy(dst)
+            .premultiply(localQuaternion2.fromArray(v3).invert())
+            .premultiply(localQuaternion2.fromArray(v2));
 
           lerpFn
             .call(
               dst,
-              activeAvatar.localQuaternion,
+              localQuaternion,
               f2,
             );
         } else {
@@ -1090,14 +1092,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
 
-          activeAvatar.localVector.copy(dst)
-            .sub(activeAvatar.localVector2.fromArray(v3))
-            .add(activeAvatar.localVector2.fromArray(v2));
+          localVector.copy(dst)
+            .sub(localVector2.fromArray(v3))
+            .add(localVector2.fromArray(v2));
 
           lerpFn
             .call(
               dst,
-              activeAvatar.localVector,
+              localVector,
               f2,
             );
         }
