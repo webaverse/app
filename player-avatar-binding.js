@@ -37,7 +37,7 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     rig.setHandEnabled(i, player.hands[i].enabled);
   }
   rig.setTopEnabled(
-    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
+    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled)),
   );
   rig.setBottomEnabled(
     (
@@ -60,10 +60,10 @@ export function makeAvatar(app) {
         name: 'playerAvatar',
       });
       avatar[appSymbol] = app;
-      
+
       unFrustumCull(app);
       enableShadows(app);
-      
+
       return avatar;
     }
   }
@@ -98,7 +98,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
-  
+
   if (useAction?.animation) {
     rig.useAnimation = useAction.animation;
   } else {
@@ -192,7 +192,7 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
         .setFromNormalAndCoplanarPoint(
           localVector.set(0, 0, 1)
             .applyQuaternion(localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)),
-          mirrorPosition
+          mirrorPosition,
         )
         .projectPoint(eyePosition, rig.eyeballTarget);
       rig.eyeballTargetEnabled = true;
@@ -216,11 +216,11 @@ export function applyPlayerPoseToAvatar(player, rig) {
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
-  
+
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
-  
+
   applyPlayerEmotesToAvatar(player, rig);
   applyPlayerPoseToAvatar(player, rig);
 }
@@ -235,7 +235,7 @@ export async function switchAvatar(oldAvatar, newApp) {
   if (newApp) {
     promises.push((async () => {
       await newApp.setSkinning(true);
-      
+
       if (!newApp[avatarSymbol]) {
         newApp[avatarSymbol] = makeAvatar(newApp);
       }
