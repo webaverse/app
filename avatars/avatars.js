@@ -1522,7 +1522,7 @@ class Avatar {
       const leftEye = this.modelBoneOutputs['Eye_L'];
       const rightEye = this.modelBoneOutputs['Eye_R'];
 
-      const lookerEyeballTarget = this.looker.update(now, this);
+      const lookerEyeballTarget = this.looker.update(now);
       const eyeballTarget = this.eyeballTargetEnabled ? this.eyeballTarget : lookerEyeballTarget;
 
       if (eyeballTarget && this.firstPersonCurves) {
@@ -1884,7 +1884,7 @@ class Avatar {
       this.debugMesh.wrapToAvatar(this);
       this.model.add(this.debugMesh);
     }
-    //redundant?
+
     if (this.debugMesh) {
       if (metaversefile.isDebugMode()) {
         this.debugMesh.setFromAvatar(this);
