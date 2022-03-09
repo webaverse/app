@@ -3,6 +3,10 @@ import {
   getEyePosition,
 } from './util.mjs';
 
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localPlane = new THREE.Plane();
 export default class Looker {
   constructor(avatar) {
     this.avatar = avatar;
@@ -18,8 +22,6 @@ export default class Looker {
 
   // returns the world space eye target
   update(now) {
-    const {localVector, localVector2, localQuaternion, localPlane} = this.avatar;
-
     const _getEndTargetRandom = target => {
       const root = this.avatar.modelBoneOutputs.Root;
       const eyePosition = getEyePosition(this.avatar.modelBones);
