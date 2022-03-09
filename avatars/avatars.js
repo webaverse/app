@@ -1129,9 +1129,7 @@ class Avatar {
         },
       };
     }
-    window.StateMachine = StateMachine;
-    window.avatar = this;
-    window.localPlayer = metaversefile.useLocalPlayer();
+
     const stateName = "playerAvatar"
     StateMachine.registerObj(options.name ?? stateName, this);
 
