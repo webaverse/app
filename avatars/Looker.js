@@ -17,8 +17,8 @@ export default class Looker {
   }
 
   // returns the world space eye target
-  update(now, localTransforms) {
-    const {localVector, localVector2, localQuaternion, localPlane} = localTransforms;
+  update(now) {
+    const {localVector, localVector2, localQuaternion, localPlane} = this.avatar;
 
     const _getEndTargetRandom = target => {
       const root = this.avatar.modelBoneOutputs.Root;
