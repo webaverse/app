@@ -32,16 +32,19 @@ const colorPath = new THREE.Color('rgb(149,64,191)');
 const colorPathSimplified = new THREE.Color('rgb(69,0,98)');
 
 class PathFinder {
-  constructor({voxelHeight = 1, maxIterStep = 1000, maxVoxelCacheLen = 10000, ignorePhysicsIds = [], debugRender = false}) {
+  constructor({voxelHeight = 1, heightTolerance = 0.5, maxIterStep = 1000, maxVoxelCacheLen = 10000, ignorePhysicsIds = [], debugRender = false}) {
     /* args:
       voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
+      heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
       maxIterStep: How many A* path-finding step can one getPath() iterate. One A* step can create up to 4 voxels, 0 ~ 4.
       maxVoxelCacheLen: How many detected voxels can be cached.
       ignorePhysicsIds: physicsIds that voxel detect() ignored, usually npc CharacterController's capsule.
       debugRender: Whether show voxel boxes for debugging.
     */
-    this.voxelHeight = 0.5; // Need let roundToVoxelHeight() compatible with this value/precision.
-    this.maxIterStep = 1000;
+    this.voxelHeight = 1.65; // todo: not hardecode.
+    // note: tested that, for drake.vrm, 1.65 is suitable ( 1.6 & 1.7 not well ).
+    this.heightTolerance = 0.5; // Need let roundToHeightTolerance() compatible with this value/precision.
+    this.maxIterStep = 10000;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
     this.ignorePhysicsIds = ignorePhysicsIds;
     this.debugRender = true;
@@ -134,7 +137,7 @@ class PathFinder {
     if (this.isWalk) {
       this.dest.set(
         0,
-        this.roundToVoxelHeight(this.destGlobal.y - this.startGlobal.y), // todo: need ceil?
+        this.roundToHeightTolerance(this.destGlobal.y - this.startGlobal.y), // todo: need ceil?
         Math.round(localVectorGetPath.subVectors(this.destGlobal, this.startGlobal).setY(0).length()),
       );
     } else {
@@ -281,14 +284,14 @@ class PathFinder {
     this.voxelo[`${voxel.position.x}_${voxel.position.y}_${voxel.position.z}`] = voxel;
   }
 
-  roundToVoxelHeight(y) {
-    // return Math.round(y); // Round to 1 because voxelHeight is 1;
-    return Math.round(y * 2) / 2; // Round to 0.5 because voxelHeight is 0.5;
+  roundToHeightTolerance(y) {
+    // return Math.round(y); // Round to 1 because heightTolerance is 1;
+    return Math.round(y * 2) / 2; // Round to 0.5 because heightTolerance is 0.5;
   }
 
   createVoxel(position) {
     // localVector2.copy(position); // note: can't use localVector, because detect() will use too and change.
-    // localVector2.y = this.roundToVoxelHeight(localVector2.y);
+    // localVector2.y = this.roundToHeightTolerance(localVector2.y);
 
     // let voxel = this.getVoxel(localVector2);
     // if (voxel) return voxel;
@@ -350,17 +353,17 @@ class PathFinder {
 
     if (detectDir === 1) {
       if (collide) {
-        position.y += detectDir * this.voxelHeight;
+        position.y += detectDir * this.heightTolerance;
         this.detectDestGlobal(position, detectDir);
       } else {
         // do nothing, stop recur
       }
     } else if (detectDir === -1) {
       if (collide) {
-        position.y += this.voxelHeight;
+        position.y += this.heightTolerance;
         // do nothing, stop recur
       } else {
-        position.y += detectDir * this.voxelHeight;
+        position.y += detectDir * this.heightTolerance;
         this.detectDestGlobal(position, detectDir);
       }
     }
@@ -376,10 +379,10 @@ class PathFinder {
         localVectorGenerateVoxelMap.x += 1;
         break;
       case 'btm':
-        localVectorGenerateVoxelMap.y += -this.voxelHeight;
+        localVectorGenerateVoxelMap.y += -this.heightTolerance;
         break;
       case 'top':
-        localVectorGenerateVoxelMap.y += this.voxelHeight;
+        localVectorGenerateVoxelMap.y += this.heightTolerance;
         break;
       case 'back':
         localVectorGenerateVoxelMap.z += -1;
@@ -388,7 +391,7 @@ class PathFinder {
         localVectorGenerateVoxelMap.z += 1;
         break;
     }
-    localVectorGenerateVoxelMap.y = this.roundToVoxelHeight(localVectorGenerateVoxelMap.y);
+    localVectorGenerateVoxelMap.y = this.roundToHeightTolerance(localVectorGenerateVoxelMap.y);
 
     let neighborVoxel = this.getVoxel(localVectorGenerateVoxelMap);
     if (!neighborVoxel) {
@@ -585,7 +588,7 @@ class PathFinder {
     let directions;
     if (this.isWalk) {
       localVectorStep.copy(currentVoxel.position);
-      localVectorStep.y -= this.voxelHeight;
+      localVectorStep.y -= this.heightTolerance;
       const canBtm = !this.detect(localVectorStep); // todo: performance: may not need detect() here.
       const btmVoxel = this.getVoxel(localVectorStep); // todo: performance: may not need getVoxel() here.
       if (canBtm) {
