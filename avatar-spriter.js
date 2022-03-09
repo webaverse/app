@@ -1497,6 +1497,7 @@ const _renderSpriteImages = skinnedVrm => {
     hair: true,
     visemes: true,
     debug: false,
+    name: 'tempSpriteRig',
   });
   for (let h = 0; h < 2; h++) {
     localRig.setHandEnabled(h, false);

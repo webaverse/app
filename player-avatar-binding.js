@@ -57,6 +57,7 @@ export function makeAvatar(app) {
         hair: true,
         visemes: true,
         debug: false,
+        name: 'playerAvatar',
       });
       avatar[appSymbol] = app;
       
