@@ -9,8 +9,8 @@ window.domBtns.addEventListener('click', event => { // test
   event.stopPropagation();
 });
 
-const npcPlayerHeight = 1.518240094787793; // test
-const localPlayerHeight = 1.2576430977951292; // test
+// const npcPlayerHeight = 1.518240094787793; // test
+// const localPlayerHeight = 1.2576430977951292; // test
 
 const identityQuaternion = new THREE.Quaternion();
 
@@ -32,12 +32,11 @@ const colorPath = new THREE.Color('rgb(149,64,191)');
 const colorPathSimplified = new THREE.Color('rgb(69,0,98)');
 
 class PathFinder {
-  constructor({voxelHeight = 1, heightTolerance = 0.5, maxIterStep = 1000, maxVoxelCacheLen = 10000, ignorePhysicsIds = [], debugRender = false}) {
+  constructor({voxelHeight = 1, heightTolerance = 0.5, maxIterStep = 1000, ignorePhysicsIds = [], debugRender = false}) {
     /* args:
       voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
       heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
       maxIterStep: How many A* path-finding step can one getPath() iterate. One A* step can create up to 4 voxels, 0 ~ 4.
-      maxVoxelCacheLen: How many detected voxels can be cached.
       ignorePhysicsIds: physicsIds that voxel detect() ignored, usually npc CharacterController's capsule.
       debugRender: Whether show voxel boxes for debugging.
     */
@@ -45,7 +44,6 @@ class PathFinder {
     // note: tested that, for drake.vrm, 1.65 is suitable ( 1.6 & 1.7 not well ). https://github.com/webaverse/app/pull/2506#issuecomment-1062504495
     this.heightTolerance = 0.5; // Need let roundToHeightTolerance() compatible with this value/precision.
     this.maxIterStep = 10000;
-    this.maxVoxelCacheLen = maxVoxelCacheLen;
     this.ignorePhysicsIds = ignorePhysicsIds;
     this.debugRender = true;
 
@@ -88,7 +86,7 @@ class PathFinder {
       // this.geometry.scale(1, this.voxelHeight, 1);
       // this.geometry.scale(0.9, 0.1, 0.9);
       this.material = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe: false});
-      this.maxDebugCount = this.maxVoxelCacheLen + this.maxIterStep * 4 + 1 + 100; // One step() can create up to 4 voxels. Add 1 startVoxel. Add 100 for interpoed waypointResult.
+      this.maxDebugCount = this.maxIterStep * 4 + 1 + 1000; // One step() can create up to 4 voxels. Add 1 startVoxel. Add 1000 for interpoed waypointResult.
       this.debugMesh = new THREE.InstancedMesh(this.geometry, this.material, this.maxDebugCount);
       this.debugMesh.name = 'PathFinder debugMesh';
       this.debugMesh.setColorAt(0, colorIdle); // init instanceColor
@@ -102,11 +100,11 @@ class PathFinder {
     this.isWalk = isWalk;
 
     this.startGlobal.copy(start);
-    if (this.isWalk) {
-      this.startGlobal.y -= npcPlayerHeight;
-      this.startGlobal.y += this.voxelHeightHalf;
-      this.startGlobal.y += 0.1;
-    }
+    // if (this.isWalk) {
+    //   this.startGlobal.y -= npcPlayerHeight;
+    //   this.startGlobal.y += this.voxelHeightHalf;
+    //   this.startGlobal.y += 0.1;
+    // }
     this.destGlobal.copy(dest);
     if (this.isWalk) {
       this.detectDestGlobal(this.destGlobal, -1);
@@ -127,7 +125,6 @@ class PathFinder {
     this.startDestQuaternion.copy(this.debugMesh.quaternion);
 
     this.reset();
-    if (this.voxels.children.length > this.maxVoxelCacheLen) this.disposeVoxelCache();
 
     this.start.set(
       0,
@@ -241,14 +238,8 @@ class PathFinder {
     this.frontiers.length = 0;
     this.waypointResult = [];
 
-    // pure realtime, no any cache
     this.voxels.children.length = 0;
     this.voxelo = {};
-
-    // // simple cache
-    // this.voxels.children.forEach((voxel, i) => {
-    //   if (this.debugRender) this.debugMesh.setColorAt(i, colorIdle);
-    // });
 
     if (this.debugRender) {
       for (let i = 0; i < this.maxDebugCount; i++) {
@@ -256,24 +247,6 @@ class PathFinder {
       }
       this.debugMesh.instanceColor.needsUpdate = true;
     }
-  }
-
-  // disposeOld(maxVoxelsLen) {
-  //   const currentLen = this.voxels.children.length;
-  //   if (currentLen > maxVoxelsLen) {
-  //     this.voxels.children = this.voxels.children.splice(currentLen - maxVoxelsLen);
-  //     this.voxelo = {};
-  //     this.voxels.children.forEach(voxel => {
-  //       this.setVoxelo(voxel);
-  //     });
-  //   }
-  // }
-
-  // disposeOldFar() {} // TODO // Is needed? Just disposeOld() enough? I feel don't need, and even disposeOld() is not needed, just dispose all when reach maxVoxelsLen is ok.
-
-  disposeVoxelCache() {
-    this.voxels.children.length = 0;
-    this.voxelo = {};
   }
 
   getVoxel(position) {
@@ -290,15 +263,6 @@ class PathFinder {
   }
 
   createVoxel(position) {
-    // localVector2.copy(position); // note: can't use localVector, because detect() will use too and change.
-    // localVector2.y = this.roundToHeightTolerance(localVector2.y);
-
-    // let voxel = this.getVoxel(localVector2);
-    // if (voxel) return voxel;
-
-    // const collide = this.detect(localVector2);
-    // if (collide) return null;
-
     const voxel = new THREE.Object3D();
     this.voxels.add(voxel);
     this.resetVoxelAStar(voxel);
@@ -333,9 +297,8 @@ class PathFinder {
   }
 
   detectDestGlobal(position, detectDir) {
-    // this.detectCount++;
     if (this.iterDetect >= this.maxIterDetect) {
-      console.warn('maxIterDetect reached! High probability created wrong destVoxel with wrong position.y!');
+      // console.warn('maxIterDetect reached! High probability created wrong destVoxel with wrong position.y!');
       // Use raycast first? No, raycast can only handle line not voxel.
       return;
     }
@@ -617,14 +580,6 @@ class PathFinder {
     this.ignorePhysicsIds = ignorePhysicsIds;
   }
 
-  // showAll() {
-  //   this.voxels.children.forEach(voxel => { voxel.visible = true; });
-  // }
-
-  // toggleNonPath() {
-  //   this.voxels.children.forEach(voxel => { if (!voxel._isPath) voxel.visible = !voxel.visible; });
-  // }
-
   toggleDebugRender() {
     if (this.debugRender) {
       this.debugMesh.visible = !this.debugMesh.visible;
@@ -635,11 +590,6 @@ class PathFinder {
     if (this.debugRender) {
       this.material.wireframe = !this.material.wireframe;
     }
-  }
-
-  moveDownVoxels() {
-    this.voxels.position.y -= 0.5;
-    this.voxels.updateMatrixWorld();
   }
 
   getHighestY() {
