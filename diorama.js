@@ -5,7 +5,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 import {defaultDioramaSize} from './constants.js';
-import postProcessing from './post-processing.js';
+// import postProcessing from './post-processing.js';
 import gradients from './gradients.json';
 import {
   fullscreenVertexShader,
@@ -22,7 +22,9 @@ const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
+const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
+const localColor = new THREE.Color();
 
 // this function maps the speed histogram to a position, integrated up to the given timestamp
 const mapTime = (speedHistogram = new SpeedHistogram, time = 0) => {
@@ -716,7 +718,10 @@ const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
 const createPlayerDiorama = ({
   canvas = null,
   objects = [],
-  target = null,
+  target = new THREE.Object3D(),
+  cameraOffset = new THREE.Vector3(0.3, 0, -0.5),
+  clearColor = null,
+  clearAlpha = 1,
   lights = true,
   label = null,
   outline = false,
@@ -795,6 +800,13 @@ const createPlayerDiorama = ({
         this.loaded = true;
       });
     },
+    setCameraOffset(newCameraOffset) {
+      cameraOffset.copy(newCameraOffset);
+    },
+    setClearColor(newClearColor, newClearAlpha) {
+      clearColor = newClearColor;
+      clearAlpha = newClearAlpha;
+    },
     update(timestamp, timeDiff) {
       if (!this.loaded || !this.enabled) {
         lastDisabledTime = timestamp;
@@ -856,15 +868,24 @@ const createPlayerDiorama = ({
       };
       const oldRenderTarget = renderer.getRenderTarget();
       const oldViewport = renderer.getViewport(localVector4D);
+      const oldClearColor = renderer.getClearColor(localColor);
+      const oldClearAlpha = renderer.getClearAlpha();
 
       const _render = () => {
         // set up side camera
-        sideCamera.position.copy(target.position)
-          .add(localVector.set(0.3, 0, -0.5).applyQuaternion(target.quaternion));
+        target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        const targetPosition = localVector;
+        const targetQuaternion = localQuaternion;
+
+        sideCamera.position.copy(targetPosition)
+          .add(
+            localVector2.copy(cameraOffset)
+              .applyQuaternion(targetQuaternion)
+          );
         sideCamera.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             sideCamera.position,
-            target.position,
+            targetPosition,
             localVector3.set(0, 1, 0)
           )
         );
@@ -875,6 +896,7 @@ const createPlayerDiorama = ({
         // outlineRenderScene.add(world.lights);
         // render side avatar scene
         renderer.setRenderTarget(outlineRenderTarget);
+        renderer.setClearColor(0x000000, 0);
         renderer.clear();
         renderer.render(outlineRenderScene, sideCamera);
         
@@ -955,6 +977,9 @@ const createPlayerDiorama = ({
         // render side scene
         renderer.setRenderTarget(oldRenderTarget);
         renderer.setViewport(0, 0, this.width, this.height);
+        if (clearColor !== null) {
+          renderer.setClearColor(clearColor, clearAlpha);
+        }
         renderer.clear();
         renderer.render(sideScene, sideCamera);
     
@@ -980,6 +1005,7 @@ const createPlayerDiorama = ({
       _restoreParents();
       renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(oldViewport);
+      renderer.setClearColor(oldClearColor, oldClearAlpha);
     },
     destroy() {
       if (locallyOwnedCanvas) {

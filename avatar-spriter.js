@@ -583,7 +583,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
           } else if (playerSide === 'left') {
             return 'crouch walk left';
           } else if (playerSide === 'right') {
-            return 'crouch walk  right';
+            return 'crouch walk right';
           }
         }
       } else {
