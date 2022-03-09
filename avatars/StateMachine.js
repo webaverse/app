@@ -30,6 +30,7 @@ class StateObj {
 class GraphNode {
   constructor(states = [], siblings = [], directed = true) {
     this.state = states.shift();
+    states = []; // support for children coming soon
     this.children = states.map(d => {
       return new GraphNode([d]);
     });
@@ -122,13 +123,13 @@ class StateMachine {
     });
   }
 
-  // incomplete
-  update(timestamp, timeDiff) {
+  // update(timestamp, timeDiff) {
+  update() {
     const funcs = [];
     const processNode = (tracked, node) => {
-      const curState = tracked.getState(node.state); // this may not work in arrow func
+      const curState = tracked.getState(node.state);
       if (!curState.active) return;
-      funcs.push({fn: curState.animationFn, name: node.state});
+      funcs.push({fn: curState.animationFn, state: node.state});
       node.children.forEach(child => { processNode(tracked, child); });
     };
 
@@ -144,13 +145,12 @@ class StateMachine {
     });
 
     while (funcs.length > 0) {
-      const {fn} = funcs.shift();
-      //   try {
-      //     // curState.animationFn?.();
-      fn?.call();
-    //   } catch (error) {
-    //     console.log(`could not run animation function for ${name}`, error);
-    //   }
+      const {fn, state} = funcs.shift();
+      try {
+        fn?.call();
+      } catch (error) {
+        console.log(`could not run animation function for ${state}`, error);
+      }
     }
   }
 }
