@@ -124,7 +124,7 @@ class PathFinder {
     // );
     this.startDestQuaternion.copy(this.debugMesh.quaternion);
 
-    this.reset();
+    this.reset(); // todo: move to top;
 
     this.start.set(
       0,
