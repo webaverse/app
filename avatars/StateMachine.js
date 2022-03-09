@@ -24,17 +24,17 @@ class StateObj {
 /**
  * graph nodes are used for queing order tasks when a state is triggered
  * @param {Array} states - array of states to be queued.  second and further elements are set as sibling
- * @param {Array} peers - array of existing graph nodes which run concurrently with this node
+ * @param {Array} siblings - array of existing graph nodes which run concurrently with this node
  * @param {Boolean} directed - is this node directed or undirected
  */
 class GraphNode {
-  constructor(states = [], peers = [], directed = true) {
+  constructor(states = [], siblings = [], directed = true) {
     this.state = states.shift();
-    // these aren't yet implimented
-    this.siblings = states.map(d => {
-      return new GraphNode(d);
+    this.children = states.map(d => {
+      return new GraphNode([d]);
     });
-    this.peers = peers;
+    // these aren't yet implimented
+    this.siblings = siblings;
     this.directed = directed;
   }
 }
@@ -64,8 +64,8 @@ class StateMachine {
         // add straight into graph if it's already active
         if (this.states.get(stateName).active) {
           const node = new GraphNode([stateName]);
-          const nodeName = this.graph.length + node.state;
-          this.graph[nodeName] = {name: stateName, node};
+          const nodeName = `${Object.keys(this.graph).length} - ${node.state}`;
+          this.graph[nodeName] = node;
         }
       },
       getState: function(state, active = false) {
@@ -80,10 +80,10 @@ class StateMachine {
       },
       addToGraph: function(states = []) {
         const node = new GraphNode(states);
-        const nodeName = this.graph.length + node.state;
-        this.graph[nodeName] = {name: node.state, node};
-        // do we want to add siblings to the graph var, or just look through their sublings list?
-        // node.siblings.forEach(n => {
+        const nodeName = `${Object.keys(this.graph).length} - ${node.state}`;
+        this.graph[nodeName] = node;
+        // do we want to add children to the graph var, or just look through their sublings list?
+        // node.children.forEach(n => {
         //     this.graph.set(n)
         // }, this)
       },
@@ -110,36 +110,44 @@ class StateMachine {
   // add a state to the animation graph
   queueState(states = []) {
     const node = new GraphNode(states);
-    const nodeName = this.graph.length + node.state;
-    this.graph[nodeName] = {name: node.state, node};
+    const nodeName = `${Object.keys(this.graph).length} - ${node.state}`;
+    this.graph[nodeName] = node;
+  }
+
+  triggerChain(tracked, graphNode) {
+    const curState = tracked.getState(graphNode.state);
+    graphNode.children.forEach(child => {
+      const sibState = tracked.getState(child.state);
+      sibState.active = curState.active;
+    });
   }
 
   // incomplete
   update(timestamp, timeDiff) {
     const funcs = [];
-    const processNode = (node, curState) => {
+    const processNode = (tracked, node) => {
+      const curState = tracked.getState(node.state); // this may not work in arrow func
       if (!curState.active) return;
       funcs.push({fn: curState.animationFn, name: node.state});
-      node.siblings.forEach(processNode);
+      node.children.forEach(child => { processNode(tracked, child); });
     };
 
     this.tracking.forEach(tracked => {
       for (const key in tracked.graph) {
         if (Object.hasOwnProperty.call(tracked.graph, key)) {
-          const {node, name} = tracked.graph[key];
+          const node = tracked.graph[key];
 
-          const curState = tracked.getState(name); // this may not work in arrow func
-
-          processNode(node, curState);
+          this.triggerChain(tracked, node);
+          processNode(tracked, node);
         }
       }
     });
 
     while (funcs.length > 0) {
-      const {fn, name} = funcs.shift();
-    //   try {
-    //     // curState.animationFn?.();
-        fn?.call();
+      const {fn} = funcs.shift();
+      //   try {
+      //     // curState.animationFn?.();
+      fn?.call();
     //   } catch (error) {
     //     console.log(`could not run animation function for ${name}`, error);
     //   }
