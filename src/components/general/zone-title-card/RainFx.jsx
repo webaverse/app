@@ -43,11 +43,18 @@ export const RainFx = ({
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
     };
+    const _updateAspectRatio = () => {
+        rainBgFxMesh.material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight;
+        rainBgFxMesh.material.uniforms.aspectRatio.needsUpdate = true;
+        // console.log('set aspect ratio', rainBgFxMesh.material.uniforms.aspectRatio.value);
+    };
+    _updateAspectRatio();
 
     useEffect(() => {
         function resize(e) {
             if (renderer) {
                 _updateRendererSize(renderer);
+                _updateAspectRatio();
             }
         }
         window.addEventListener('resize', resize);
@@ -66,9 +73,8 @@ export const RainFx = ({
                     antialias: true,
                     alpha: true,
                 });
-                // renderer.setSize(width, height);
-                // renderer.setPixelRatio(pixelRatio);
                 _updateRendererSize(renderer);
+                _updateAspectRatio();
                 setRenderer(renderer);
 
                 async function frame(e) {

@@ -27,6 +27,7 @@ const vec3 mainColor2 = vec3(0.050980392156862744, 0.27450980392156865, 0.627450
 #define ParticleColor2			mainColor2
 
 uniform float iTime;
+uniform float aspectRatio;
 varying vec2 tex_coords;
 
 
@@ -213,17 +214,21 @@ float avg(vec3 c) {
   return (c.r + c.g + c.b) / 3.;
 }
 
-void mainImage( out vec4 fragColor, in vec2 originalUv )
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
 
-    // vec2 originalUv = fragCoord.xy / iResolution.xy;    
+    vec2 originalUv = fragCoord;
     //correct aspect ratio
     // uv.x *= iResolution.x/iResolution.y;
     vec2 mainUv = originalUv;
-    
+
     // rotate
     mainUv.y = ((mainUv.y-0.3) * (-abs(mainUv.x - 0.5) + 2.)) + 1.;
     mainUv.y *= 0.25;
+
+    /* mainUv.x -= 0.5;
+    mainUv.x /= aspectRatio;   
+    mainUv.x += 0.5; */
     
     vec3 mainColor = mix(mainColor2, mainColor1, mainUv.y);
     mainColor.gb += mainUv;
@@ -231,8 +236,8 @@ void mainImage( out vec4 fragColor, in vec2 originalUv )
     float t = iTime;
     float scrollSpeed = 0.5;
     float alphaTest = 0.;
-    float numCols = 12.;
-    float offsetSpeed = 0.5 + hash(floor(mainUv.x*numCols)/numCols) * 0.2;
+    float numCols = 14.;
+    float offsetSpeed = 0.3 + hash(floor(mainUv.x*numCols)/numCols) * 0.2;
     float yOffset = iTime * offsetSpeed;
     float offsetColor = 1.;
     float shadowFactor = 0.7;
@@ -318,6 +323,10 @@ class RainBgFxMesh extends THREE.Mesh {
         iTime: {
           value: 0,
           needsUpdate: false,
+        },
+        aspectRatio: {
+          value: 1,
+          needsUpdate: true,
         },
         /* iFrame: {
           value: 0,
