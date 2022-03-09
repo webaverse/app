@@ -42,7 +42,7 @@ class PathFinder {
       debugRender: Whether show voxel boxes for debugging.
     */
     this.voxelHeight = 1.65; // todo: not hardecode.
-    // note: tested that, for drake.vrm, 1.65 is suitable ( 1.6 & 1.7 not well ).
+    // note: tested that, for drake.vrm, 1.65 is suitable ( 1.6 & 1.7 not well ). https://github.com/webaverse/app/pull/2506#issuecomment-1062504495
     this.heightTolerance = 0.5; // Need let roundToHeightTolerance() compatible with this value/precision.
     this.maxIterStep = 10000;
     this.maxVoxelCacheLen = maxVoxelCacheLen;
