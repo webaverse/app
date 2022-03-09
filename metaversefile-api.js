@@ -842,7 +842,7 @@ export default () => {
     return getHeight(obj);
   },
   getGfxSettingJSON(setting){
-    if (setting) return JSON.parse(localStorage.getItem( 'GfxSettings' ))[setting];
+    if (setting) return JSON.parse(localStorage.getItem( 'GfxSettings' ))?.[setting];
     return JSON.parse(localStorage.getItem( 'GfxSettings' ));
   },
   setGfxSetting(quality){
