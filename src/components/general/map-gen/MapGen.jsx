@@ -433,16 +433,16 @@ The Stacks
 The Heap`;
 
 const numChunks = 32;
-const mapSize = 512;
-const chunkSize = mapSize / numChunks;
+const chunkSize = 512;
+const voxelSize = chunkSize / numChunks;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
-const localVector4D = new THREE.Vector4();
+// const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
-const localColor = new THREE.Color();
+// const localColor = new THREE.Color();
 
 function shuffle(array, rng = Math.random) {
   let currentIndex = array.length,  randomIndex;
@@ -486,12 +486,12 @@ const sides = [
   'up',
   'down',
 ];
-const sideDeltas = {
+/* const sideDeltas = {
   left: [-1, 0],
   right: [1, 0],
   up: [0, -1],
   down: [0, 1],
-};
+}; */
 const sideOffsets = {
   left: [0, 0],
   right: [1, 0],
@@ -507,295 +507,272 @@ const sideCrossAxes = {
 
 //
 
+const generateMap = (x, y) => {
+  // generate blocks
+  const blocks = new Array(numChunks * numChunks);
+
+  const seed = ['lol', x + '', y + ''].join(':');
+  const rng = alea(seed);
+  const r = () => -1 + 2 * rng();
+
+  // blocks
+  for (let y = 0; y < numChunks; y++) {
+    for (let x = 0; x < numChunks; x++) {
+      const index = x + y * numChunks;
+      const block = new Block(x, y);
+      blocks[index] = block;
+    }
+  }
+
+  // exits
+  const pathCandidates = [];
+  const numExits = 2 + Math.floor(rng() * (2 + 1));
+  const localExits = shuffle(sides.slice(), rng).slice(0, numExits);
+  for (const side of localExits) {
+    let [ox, oy] = sideOffsets[side];
+    ox *= numChunks - 1;
+    oy *= numChunks - 1;
+
+    const [cx, cy] = sideCrossAxes[side];
+    const v = Math.floor(rng() * numChunks);
+
+    const x = ox + v * cx;
+    const y = oy + v * cy;
+
+    const block = blocks[x + y * numChunks];
+    block.exitTarget = true;
+    
+    pathCandidates.push(block);
+  }
+
+  // centers
+  const numCenters = Math.floor(rng() * (2 + 1));
+  for (let i = 0; i < numCenters; i++) {
+    const x = 1 + Math.floor(rng() * (numChunks - 2));
+    const y = 1 + Math.floor(rng() * (numChunks - 2));
+
+    const block = blocks[x + y * numChunks];
+    block.centerTarget = true;
+
+    pathCandidates.push(block);
+  }
+
+  const _connectBlocks = (block1, block2) => {
+    const distance = Math.ceil(block1.distanceTo(block2));
+    const numSplinePoints = Math.max(Math.floor(distance * 0.2), 3);
+    const splinePoints = Array(numSplinePoints);
+
+    localQuaternion.setFromRotationMatrix(
+      localMatrix.lookAt(
+        block1,
+        block2,
+        localVector.set(0, 1, 0),
+      )
+    );
+
+    for (let i = 0; i < numSplinePoints; i++) {
+      const v = i / (numSplinePoints - 1);
+
+      const point = localVector
+        .copy(
+          localVector2.set(block1.x, 0, block1.y)
+        )
+        .lerp(
+          localVector3.set(block2.x, 0, block2.y),
+          v
+        );
+
+      let minDistance = Math.min(
+        point.distanceTo(localVector2),
+        point.distanceTo(localVector3),
+      );
+
+      localVector2.set(r() * minDistance, 0, 0);
+      point.add(
+        localVector2
+          .applyQuaternion(localQuaternion)
+      );
+    
+      const x = Math.round(point.x);
+      const y = Math.round(point.z);
+      if (x >= 0 && x < numChunks && y >= 0 && y < numChunks) {
+        splinePoints[i] = point.clone();
+
+        const index = x + y * numChunks;
+        const block = blocks[index];
+        block.splinePoint = true;
+      } else {
+        i--;
+        continue;
+      }
+
+      block1.neighbors.push(block2);
+      block2.neighbors.push(block1);
+    }
+    const curve = new THREE.CatmullRomCurve3(splinePoints);
+    const lengths = curve.getLengths(numSplinePoints);
+    let lengthSum = 0;
+    for (let i = 0; i < lengths.length; i++) {
+      lengthSum += lengths[i];
+    }
+    const curveLength = lengthSum;
+    
+    const numPoints = Math.ceil(curveLength) * 3;
+    const points = curve.getPoints(numPoints);
+    for (let i = 0; i < numPoints; i++) {
+      const point = points[i];
+
+      for (const dx of [-1, 1]) {
+        const x = Math.round(point.x);
+        const y = Math.round(point.z);
+        if (x >= 0 && x < numChunks && y >= 0 && y < numChunks) {
+          const index = x + y * numChunks;
+          const block = blocks[index];
+          block.path = true;
+        }
+      }
+    }
+  };
+
+  const _getUnconnectedExitTargetSpecs = () => {
+    return pathCandidates.map(block => {
+      const map = new Map();
+      const startEntry = {
+        block,
+        depth: 0,
+      };
+      map.set(block, startEntry);
+      let foundExit = false;
+      let deepestEntry = startEntry;
+
+      const _recurse = (block, depth = 0) => {
+        for (const neighbor of block.neighbors) {
+          if (!map.has(neighbor)) {
+            const neighborEntry = {
+              block: neighbor,
+              depth,
+            };
+            map.set(neighbor, neighborEntry);
+            
+            if (neighbor.exitTarget) {
+              foundExit = true;
+            }
+            if (depth > deepestEntry.depth) {
+              deepestEntry = map.get(neighbor);
+            }
+            _recurse(neighbor, depth + 1);
+          }
+        }
+      };
+      _recurse(block);
+
+      if (!foundExit) {
+        return {
+          map,
+          startEntry,
+          deepestEntry,
+        };
+      } else {
+        return null;
+      }
+    }).filter(m => m !== null);
+  };
+  let unconnectedExitTargetCandidates;
+  while ((unconnectedExitTargetCandidates = _getUnconnectedExitTargetSpecs()).length > 0) {
+    const exitTargetCandidateIndex = Math.floor(rng() * unconnectedExitTargetCandidates.length);
+    const {map, startEntry, deepestEntry} = unconnectedExitTargetCandidates[exitTargetCandidateIndex];
+
+    const unseenPathCandidates = pathCandidates.filter(pathCandidate => {
+      return !map.has(pathCandidate);
+    }).sort((a, b) => {
+      return a.distanceTo(deepestEntry.block) - b.distanceTo(deepestEntry.block);
+    });
+    /* if (unseenPathCandidates.length === 0) {
+      console.warn('no candidate to go to');
+      debugger;
+    } */
+    _connectBlocks(deepestEntry.block, unseenPathCandidates[0]);
+  }
+  return blocks;
+};
+const drawChunk = blocks => {
+  const canvas = document.createElement('canvas');
+  canvas.width = chunkSize;
+  canvas.height = chunkSize;
+
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const border = 2;
+  for (let y = 0; y < numChunks; y++) {
+    for (let x = 0; x < numChunks; x++) {
+      const block = blocks[x + y * numChunks];
+
+      let fillStyle = '#000';
+      if (block.exitTarget) {
+        fillStyle = '#00F';
+      } else if (block.centerTarget) {
+        fillStyle = '#F00';
+      } else if (block.splinePoint) {
+        fillStyle = '#080';
+      } else if (block.path) {
+        fillStyle = '#666';
+      }
+      ctx.fillStyle = fillStyle;
+      ctx.fillRect(x * voxelSize + border, y * voxelSize + border, voxelSize - border*2, voxelSize - border*2);
+    }
+  }
+  return canvas;
+};
+
 export const MapGen = ({
   app,
 }) => {
-    const [epoch, setEpoch] = useState(0);
+    const [width, setWidth] = useState(window.innerWidth);
+    const [height, setHeight] = useState(window.innerHeight); 
+    const [open, setOpen] = useState(false);
     const canvasRef = useRef();
 
     useEffect(() => {
       function maphackchange(e) {
-        setEpoch(epoch + 1)
+        const {mapHack} = e.data;
+        setOpen(mapHack)
       }
       app.addEventListener('maphackchange', maphackchange);
       return () => {
         app.removeEventListener('maphackchange', maphackchange);
       };
-    }, [epoch]);
+    }, [open]);
+
+    useEffect(() => {
+      function resize(e) {
+        setWidth(window.innerWidth);
+        setHeight(window.innerHeight);
+      }
+      window.addEventListener('resize', resize);
+      return () => {
+        window.removeEventListener('resize', resize);
+      };
+    }, [width, height]);
 
     useEffect(() => {
       if (canvasRef.current) {
-        // generate blocks
-        const blocks = new Array(numChunks * numChunks);
-        {
-          const rng = alea('lol' + epoch);
-          const r = () => -1 + 2 * rng();
+        const chunkBlocks = generateMap(0, 0);
+        const chunkCanvas = drawChunk(chunkBlocks);
 
-          // blocks
-          for (let y = 0; y < numChunks; y++) {
-            for (let x = 0; x < numChunks; x++) {
-              const index = x + y * numChunks;
-              const block = new Block(x, y);
-              blocks[index] = block;
-            }
-          }
-
-          // exits
-          const pathCandidates = [];
-          const numExits = 2 + Math.floor(rng() * (2 + 1));
-          const localExits = shuffle(sides.slice(), rng).slice(0, numExits);
-          for (const side of localExits) {
-            let [ox, oy] = sideOffsets[side];
-            ox *= numChunks - 1;
-            oy *= numChunks - 1;
-
-            const [cx, cy] = sideCrossAxes[side];
-            const v = Math.floor(rng() * numChunks);
-
-            const x = ox + v * cx;
-            const y = oy + v * cy;
-
-            const block = blocks[x + y * numChunks];
-            block.exitTarget = true;
-            
-            pathCandidates.push(block);
-          }
-
-          // centers
-          const numCenters = Math.floor(rng() * (2 + 1));
-          for (let i = 0; i < numCenters; i++) {
-            const x = 1 + Math.floor(rng() * (numChunks - 2));
-            const y = 1 + Math.floor(rng() * (numChunks - 2));
-
-            const block = blocks[x + y * numChunks];
-            block.centerTarget = true;
-
-            pathCandidates.push(block);
-          }
-
-          const _connectBlocks = (block1, block2) => {
-            const distance = Math.ceil(block1.distanceTo(block2));
-            const numSplinePoints = Math.max(Math.floor(distance * 0.2), 3);
-            const splinePoints = Array(numSplinePoints);
-            // const point = new THREE.Vector3(0, 0, 0);
-            // const direction = new THREE.Vector3(0, 0, -1);
-
-            localQuaternion.setFromRotationMatrix(
-              localMatrix.lookAt(
-                block1,
-                block2,
-                localVector.set(0, 1, 0),
-              )
-            );
-
-            for (let i = 0; i < numSplinePoints; i++) {
-              const v = i / (numSplinePoints - 1);
-
-              const point = localVector
-                .copy(
-                  localVector2.set(block1.x, 0, block1.y)
-                )
-                .lerp(
-                  localVector3.set(block2.x, 0, block2.y),
-                  v
-                );
-
-              // const distanceRange = distance * 0.5;
-              let minDistance = Math.min(
-                point.distanceTo(localVector2),
-                point.distanceTo(localVector3),
-                // distanceRange,
-              );
-              // minDistance *= 0.5;
-
-              localVector2.set(r() * minDistance, 0, 0);
-              // console.log('offset', localVector2.x);
-              point.add(
-                localVector2
-                  .applyQuaternion(localQuaternion)
-              );
-
-              // point.add(localVector.copy(direction).multiplyScalar(segmentLength));
-            
-              const x = Math.round(point.x);
-              const y = Math.round(point.z);
-              if (x >= 0 && x < numChunks && y >= 0 && y < numChunks) {
-                splinePoints[i] = point.clone();
-
-                const index = x + y * numChunks;
-                const block = blocks[index];
-                block.splinePoint = true;
-              } else {
-                i--;
-                continue;
-              }
-
-              block1.neighbors.push(block2);
-              block2.neighbors.push(block1);
-            }
-            const curve = new THREE.CatmullRomCurve3(splinePoints);
-            // curve.updateArcLengths();
-            const lengths = curve.getLengths(numSplinePoints);
-            let lengthSum = 0;
-            for (let i = 0; i < lengths.length; i++) {
-              lengthSum += lengths[i];
-            }
-            const curveLength = lengthSum;
-            
-            const numPoints = Math.ceil(curveLength) * 3;
-            // console.log('num points', numSplinePoints, curveLength, numPoints);
-            const points = curve.getPoints(numPoints);
-            // const frenetFrames = curve.computeFrenetFrames(numPoints);
-            // const {tangents, normals, binormals} = frenetFrames;
-            // const lengths = curve.getLengths(numPoints);
-            for (let i = 0; i < numPoints; i++) {
-              const point = points[i];
-              /* const tangent = tangents[i];
-              localQuaternion.setFromRotationMatrix(
-                localMatrix.lookAt(
-                  localVector.set(0, 0, 0),
-                  tangent,
-                  localVector2.set(0, 1, 0),
-                )
-              ); */
-              /* const normal = normals[i];
-              const binormal = binormals[i];
-              const length = lengths[i]; */
-
-              for (const dx of [-1, 1]) {
-                const x = Math.round(point.x);
-                const y = Math.round(point.z);
-                if (x >= 0 && x < numChunks && y >= 0 && y < numChunks) {
-                  const index = x + y * numChunks;
-                  const block = blocks[index];
-                  block.path = true;
-                }
-              }
-            }
-          };
-
-          // paths
-          /* const unconnectedPathCandidates = pathCandidates.slice();
-          while (unconnectedPathCandidates.length > 0) {
-            let localPathCandidates = unconnectedPathCandidates;
-            if (localPathCandidates.length === 0) {
-              debugger;
-            }
-            const index1 = Math.floor(rng() * localPathCandidates.length);
-            const block1 = localPathCandidates[index1];
-            localPathCandidates.splice(index1, 1);
-
-            const localPathCandidates2 = pathCandidates.filter(pathCandidate => {
-              return pathCandidate !== block1 && pathCandidate.neighbors.indexOf(block1) === -1;
-            });
-            if (localPathCandidates2.length === 0) {
-              debugger;
-            }
-            localPathCandidates2.sort((a, b) => {
-              return a.distanceTo(block1) - b.distanceTo(block1);
-            });
-            const index2 = 0;
-            const block2 = localPathCandidates2[index2];
-
-            _connectBlocks(block1, block2);
-          } */
-
-          const _getUnconnectedExitTargetSpecs = () => {
-            return pathCandidates.map(block => {
-              const map = new Map();
-              const startEntry = {
-                block,
-                depth: 0,
-              };
-              map.set(block, startEntry);
-              let foundExit = false;
-              let deepestEntry = startEntry;
-
-              const _recurse = (block, depth = 0) => {
-                for (const neighbor of block.neighbors) {
-                  if (!map.has(neighbor)) {
-                    const neighborEntry = {
-                      block: neighbor,
-                      depth,
-                    };
-                    map.set(neighbor, neighborEntry);
-                    
-                    if (neighbor.exitTarget) {
-                      foundExit = true;
-                    }
-                    if (depth > deepestEntry.depth) {
-                      deepestEntry = map.get(neighbor);
-                    }
-                    _recurse(neighbor, depth + 1);
-                  }
-                }
-              };
-              _recurse(block);
-
-              if (!foundExit) {
-                return {
-                  map,
-                  startEntry,
-                  deepestEntry,
-                };
-              } else {
-                return null;
-              }
-            }).filter(m => m !== null);
-          };
-          let unconnectedExitTargetCandidates;
-          while ((unconnectedExitTargetCandidates = _getUnconnectedExitTargetSpecs()).length > 0) {
-            const exitTargetCandidateIndex = Math.floor(rng() * unconnectedExitTargetCandidates.length);
-            const {map, startEntry, deepestEntry} = unconnectedExitTargetCandidates[exitTargetCandidateIndex];
-
-            const unseenPathCandidates = pathCandidates.filter(pathCandidate => {
-              return !map.has(pathCandidate);
-            }).sort((a, b) => {
-              return a.distanceTo(deepestEntry.block) - b.distanceTo(deepestEntry.block);
-            });
-            /* if (unseenPathCandidates.length === 0) {
-              console.warn('no candidate to go to');
-              debugger;
-            } */
-            _connectBlocks(deepestEntry.block, unseenPathCandidates[0]);
-          }
-        }
-
-        // draw map
-        {
-          const canvas = canvasRef.current;
-          const ctx = canvas.getContext('2d');
-
-          ctx.fillStyle = '#111';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          const border = 2;
-          for (let y = 0; y < numChunks; y++) {
-            for (let x = 0; x < numChunks; x++) {
-              const block = blocks[x + y * numChunks];
-
-              let fillStyle = '#000';
-              if (block.exitTarget) {
-                fillStyle = '#00F';
-              } else if (block.centerTarget) {
-                fillStyle = '#F00';
-              } else if (block.splinePoint) {
-                fillStyle = '#080';
-              } else if (block.path) {
-                fillStyle = '#666';
-              }
-              ctx.fillStyle = fillStyle;
-              ctx.fillRect(x * chunkSize + border, y * chunkSize + border, chunkSize - border*2, chunkSize - border*2);
-            }
-          }
-        }
+        const canvas = canvasRef.current;
+        // canvas.width = width;
+        // canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(chunkCanvas, 0, 0);
       }
-    }, [canvasRef, epoch]);
+    }, [canvasRef, open, width, height]);
 
     return (
         <div className={styles.mapGen}>
-            {epoch > 0 ? (
-                <canvas width={mapSize} height={mapSize} className={styles.canvas} ref={canvasRef} />
+            {open > 0 ? (
+                <canvas width={width} height={height} className={styles.canvas} ref={canvasRef} />
             ) : null}
             
         </div>
