@@ -259,7 +259,11 @@ class PathFinder {
 
   roundToHeightTolerance(y) {
     // return Math.round(y); // Round to 1 because heightTolerance is 1;
-    return Math.round(y * 2) / 2; // Round to 0.5 because heightTolerance is 0.5;
+    // return Math.round(y * 2) / 2; // Round to 0.5 because heightTolerance is 0.5;
+    // return Math.round(y * (1 / 0.6)) / (1 / 0.6); // Round to 0.6 because heightTolerance is 0.6;
+    y = Math.round(y * (1 / this.heightTolerance)) / (1 / this.heightTolerance);
+    y = parseFloat(y.toFixed(1));
+    return y;
   }
 
   createVoxel(position) {
