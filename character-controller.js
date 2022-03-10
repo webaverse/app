@@ -487,7 +487,6 @@ class StatePlayer extends PlayerBase {
         this.getActionsList().forEach((name) => {
           this.avatar.tracker.registerState({
             name,
-            animationFn: ()=>{console.log(`${name} func ran`);}
           })
         });
 
