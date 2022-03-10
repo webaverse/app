@@ -698,12 +698,8 @@ const generateMap = (x, y) => {
   }
   return blocks;
 };
-const drawChunk = blocks => {
-  const canvas = document.createElement('canvas');
-  canvas.width = chunkSize;
-  canvas.height = chunkSize;
-
-  const ctx = canvas.getContext('2d');
+const renderChunk = (canvas, blocks) => {
+  const {ctx} = canvas;
   ctx.fillStyle = '#111';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -726,8 +722,44 @@ const drawChunk = blocks => {
       ctx.fillRect(x * voxelSize + border, y * voxelSize + border, voxelSize - border*2, voxelSize - border*2);
     }
   }
-  return canvas;
 };
+
+class Chunk {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+
+    this.imageBitmap = null;
+    this.readyState = 'pending';
+
+    this.loadPromise = (async () => {
+      const chunkBlocks = generateMap(this.x, this.y);
+
+      const {ctx} = Chunk.cachedCanvas;
+      ctx.fillStyle = '#111';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      renderChunk(Chunk.cachedCanvas, chunkBlocks);
+    
+      this.imageBitmap = await createImageBitmap(Chunk.cachedCanvas);
+      this.readyState = 'done';
+    })();
+  }
+  static cachedCanvas = (() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = chunkSize;
+    canvas.height = chunkSize;
+
+    const ctx = canvas.getContext('2d');
+    canvas.ctx = ctx;
+
+    return canvas;
+  })();
+  waitForLoad() {
+    return this.loadPromise;
+  }
+}
+const chunkCache = new Map();
 
 export const MapGen = ({
   app,
@@ -773,15 +805,60 @@ export const MapGen = ({
     }, [width, height]);
 
     useEffect(() => {
-      if (canvasRef.current) {
-        const chunkBlocks = generateMap(0, 0);
-        const chunkCanvas = drawChunk(chunkBlocks);
-
-        const canvas = canvasRef.current;
+      const canvas = canvasRef.current;
+      if (canvas && open) {
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(chunkCanvas, 0, 0);
+
+        const ix = Math.floor(-offset.x / chunkSize);
+        const iy = Math.floor(-offset.y / chunkSize);
+
+        const key = `${ix}:${iy}`;
+        let chunk = chunkCache.get(key);
+        if (!chunk) {
+          chunk = new Chunk(ix, iy);
+          chunkCache.set(key, chunk);
+        }
+
+        const chunks = [chunk];
+
+        function renderChunk(canvas, chunk) {
+          ctx.drawImage(
+            chunk.imageBitmap,
+            offset.x + chunk.x * chunkSize,
+            offset.y + chunk.y * chunkSize,
+          );
+        }
+
+        let live = true;
+        (async () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // sync render
+          const pendingChunks = [];
+          for (const chunk of chunks) {
+            if (chunk.readyState === 'done') {
+              renderChunk(canvas, chunk);
+            } else {
+              pendingChunks.push(chunk);
+            }
+          }
+
+          // async render
+          for (const chunk of pendingChunks) {
+            if (chunk.readyState !== 'done') {
+              await chunk.waitForLoad();
+              if (!live) return;
+
+              renderChunk(canvas, chunk);
+            }
+          }
+        })();
+
+        return () => {
+          live = false;
+        };
       }
-    }, [canvasRef, open, width, height]);
+    }, [canvasRef, open, width, height, offset.x, offset.y]);
 
     function mouseDown(e) {
       e.preventDefault();
@@ -848,9 +925,9 @@ export const MapGen = ({
                   onMouseDown={mouseDown}
                   // onMouseMove={mouseMove}
                   // onClick={click}
-                  style={{
-                    transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`,
-                  }}
+                  // style={{
+                    // transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`,
+                  // }}
                   ref={canvasRef}
                 />
             ) : null}
