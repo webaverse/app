@@ -542,10 +542,10 @@ const _startHacks = webaverse => {
         }
       }));
     } else if (e.which === 111) { // /
-      webaverse.mapCardHack = !webaverse.mapCardHack;
+      webaverse.mapHack = !webaverse.mapHack;
       webaverse.dispatchEvent(new MessageEvent('maphackchange', {
         data: {
-          mapCardHack: webaverse.mapCardHack,
+          mapHack: webaverse.mapHack,
         }
       }));
     } else {
