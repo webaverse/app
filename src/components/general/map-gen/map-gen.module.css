@@ -1,0 +1,16 @@
+.mapGen {
+  position: fixed;
+  display: flex;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+.mapGen .canvas {
+  width: 512px;
+  height: 512px;
+  pointer-events: all;
+}
