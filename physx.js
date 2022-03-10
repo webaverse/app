@@ -808,7 +808,7 @@ const physxWorker = (() => {
     );
   };
 
-  w.getPathPhysics = (physics, start, dest, hy, heightTolerance, maxIterDetect, maxIterStep, ignorePhysicsIds) => {
+  w.getPathPhysics = (physics, start, dest, isWalk, hy, heightTolerance, maxIterDetect, maxIterStep, ignorePhysicsIds) => {
     start.toArray(scratchStack.f32, 0);
     dest.toArray(scratchStack.f32, 3);
 
@@ -824,6 +824,7 @@ const physxWorker = (() => {
       physics,
       startOffset,
       destOffset,
+      isWalk,
       hy,
       heightTolerance,
       maxIterDetect,
