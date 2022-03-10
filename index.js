@@ -41,20 +41,27 @@ export default () => {
       iTime: {
         value: 0,
       },
-      iResolution: {
+      /* iResolution: {
         value: new THREE.Vector2(1024, 1024),
-      },
+        needsUpdate: false,
+      }, */
       uHighlight: {
         value: 0,
+        needsUpdate: false,
       },
+      /* cameraDirection: {
+        value: new THREE.Vector3(),
+        needsUpdate: true,
+      }, */
     },
     vertexShader: `\
       precision highp float;
       precision highp int;
 
-      uniform float uTime;
       varying vec3 vPosition;
       varying vec2 vUv;
+      // varying vec3 vNormal;
+      // varying vec3 vCameraDirection;
 
       float getBezierT(float x, float a, float b, float c, float d) {
         return float(sqrt(3.) *
@@ -72,10 +79,31 @@ export default () => {
       // const float moveDistance = 20.;
       // const float q = 0.1;
 
-      void main() {
+      /* void main() {
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
         vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+        vCameraDirection = normalize(normalMatrix * vec3(0., 0., -1.));
         vPosition = position;
+      } */
+
+
+
+      varying float darkening;
+
+      void main(){
+
+          vec4 view_pos = modelViewMatrix * vec4(position, 1.0);
+
+          vec3 view_dir = normalize(-view_pos.xyz); // vec3(0.0) - view_pos;
+          vec3 view_nv  = normalize(normalMatrix * normal.xyz);
+
+          float NdotV   = dot(view_dir, view_nv);
+          darkening     = NdotV;
+
+          gl_Position   = projectionMatrix * view_pos;
+
+          vUv = uv;
       }
     `,
     fragmentShader: `\
@@ -85,10 +113,14 @@ export default () => {
       #define PI 3.1415926535897932384626433832795
 
       uniform float iTime;
+      // uniform vec3 cameraDirection;
       uniform float uHighlight;
-      uniform vec2 iResolution;
+      // uniform vec2 iResolution;
       varying vec3 vPosition;
       varying vec2 vUv;
+      // varying vec3 vNormal;
+      // varying vec3 vCameraDirection;
+      varying float darkening;
 
       /* const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
       const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1).toArray().join(', ')});
@@ -134,9 +166,21 @@ export default () => {
           // vec2 uv = fragCoord.xy / iResolution.xy;    
           //correct aspect ratio
           // uv.x *= iResolution.x/iResolution.y;
-          if (vPosition.y <= 0. || vPosition.y >= iResolution.y - 0.01) {
+          /* if (vPosition.y <= 0. || vPosition.y >= iResolution.y - 0.01) {
             discard;
-          }
+          } */
+
+          // vec3 normal = vNormal;
+          /* vec3 normal = normalize(cross(dFdx(vPosition), dFdy(vPosition)));
+          normal.y *= -1.;
+          normal *= -1.; */
+          // vec3 cameraDirection = vCameraDirection;
+          // float normalDotCameraDirection = dot(normal, vCameraDirection);
+          // float normalDotCameraDirection = vNormalCameraDirection;
+          /* if (normalDotCameraDirection < 0.) {
+            discard;
+          } */
+
           uv /= 2.;
 
           float t = iTime;
@@ -174,12 +218,22 @@ export default () => {
           //if (cellRand < 0.1) b = 0.0;
           
           float c = 1.-b;
+          /* if (gl_FrontFacing == false) {
+            c *= 0.2;
+          } */
           if (b > 0.001) {
             c += uHighlight;
             fragColor = vec4(vec3(c), b);
           } else {
             discard;
           }
+
+          if (darkening <= 0.0) {
+            fragColor.a *= 0.5;
+          }
+          // fragColor.a = darkening;
+
+          // fragColor.rgb = normal;
       }
       void main() {
         mainImage(gl_FragColor, vUv);
@@ -194,8 +248,11 @@ export default () => {
   app.updateMatrixWorld();
 
   const _updateBarrierMesh = (now, timeDiff) => {
+    // camera.getWorldDirection(barrierMesh.material.uniforms.cameraDirection.value);
+    // barrierMesh.material.uniforms.needsUpdate = true;
+
     barrierMesh.material.uniforms.iTime.value = now/1000;
-    barrierMesh.material.uniforms.iResolution.value.set(w, h);
+    // barrierMesh.material.uniforms.iResolution.value.set(w, h);
     // renderer.getSize(barrierMesh.material.uniforms.iResolution.value).multiplyScalar(renderer.getPixelRatio());
     
     let highlight;
@@ -208,6 +265,7 @@ export default () => {
     }
     // const highlightValue = animationSpec ? animationSpec.highlight : 1; 
     barrierMesh.material.uniforms.uHighlight.value = highlight;
+    barrierMesh.material.uniforms.uHighlight.needsUpdate = true;
 
     barrierMesh.visible = animationSpec ? animationSpec.visible : true;
   };
