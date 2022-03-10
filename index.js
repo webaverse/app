@@ -69,14 +69,15 @@ const ClippedPlane = (() => {
       if (intersection) {
         const uv = this.getUV(intersection, localVector2D);
         if (uv !== null) {
-          target.copy(this.normal);
-          
           const direction = localVector.copy(line.end)
             .sub(line.start);
+          // console.log('dot', direction.dot(this.normal));
           if (direction.dot(this.normal) < 0) {
-            target.multiplyScalar(-1);
+            return target.copy(this.normal)
+              .multiplyScalar(-1);
+          } else {
+            return null;
           }
-          return target;
         } else {
           return null;
         }
