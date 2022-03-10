@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
 import { AppContext } from '../../app';
-import ioManager from '../../../../io-manager';
+import gameManager from '../../../../game';;
 
 import styles from './action-menu.module.css';
 
@@ -24,14 +24,14 @@ export const ActionMenu = ({ app }) => {
 
     const handleWorldBtnClick = () => {
 
-        ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+        gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
         setState( state => ({ ...state, world: { ...state.world, opened: true } }) );
 
     };
 
     const handleSettingsBtnClick = () => {
 
-        ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+        gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
         setState( state => ({ ...state, settings: { ...state.settings, opened: true } }) );
 
     };

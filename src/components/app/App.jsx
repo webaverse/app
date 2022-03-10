@@ -11,8 +11,8 @@ import { parseQuery } from '../../../util.js'
 import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
-import ioManager from '../../../io-manager.js';
 import cameraManager from '../../../camera-manager';
+import gameManager from '../../../game';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -100,13 +100,6 @@ export const App = () => {
 
     };
 
-    const handleKeyDown = ( event ) => {
-
-        const inputFocused = document.activeElement && [ 'INPUT', 'TEXTAREA' ].includes( document.activeElement.nodeName );
-        ioManager.keydown( event, inputFocused );
-
-    };
-
     useEffect( () => {
 
         const closeAll = () => {
@@ -120,11 +113,11 @@ export const App = () => {
 
         };
 
-        ioManager.addEventListener( 'CloseAllPanels', closeAll );
+        gameManager.addEventListener( 'CloseAllPanels', closeAll );
 
         return () => {
 
-            ioManager.addEventListener( 'CloseAllPanels', closeAll );
+            gameManager.addEventListener( 'CloseAllPanels', closeAll );
 
         };
 
@@ -149,13 +142,11 @@ export const App = () => {
 
         window.addEventListener( 'pushstate', pushstate );
         window.addEventListener( 'popstate', popstate );
-        window.addEventListener( 'keydown', handleKeyDown );
 
         return () => {
 
             window.removeEventListener( 'pushstate', pushstate );
             window.removeEventListener( 'popstate', popstate );
-            window.removeEventListener( 'keydown', handleKeyDown );
 
         };
 
@@ -178,7 +169,7 @@ export const App = () => {
         const toggleOpen = () => {
 
             if ( state.settings.opened ) return;
-            ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+            gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
 
             const newValue = ! state.world.opened;
 
@@ -196,11 +187,11 @@ export const App = () => {
 
         };
 
-        ioManager.addEventListener( 'ToggleWorldPanel', toggleOpen );
+        gameManager.addEventListener( 'ToggleWorldPanel', toggleOpen );
 
         return () => {
 
-            ioManager.removeEventListener( 'ToggleWorldPanel', toggleOpen );
+            gameManager.removeEventListener( 'ToggleWorldPanel', toggleOpen );
 
         };
 
