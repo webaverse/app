@@ -161,6 +161,7 @@ export default () => {
       // varying vec3 vNormal;
       // varying vec3 vCameraDirection;
       varying float darkening;
+      varying float dimming;
 
       float getBezierT(float x, float a, float b, float c, float d) {
         return float(sqrt(3.) *
@@ -180,15 +181,30 @@ export default () => {
 
       void main(){
         vec3 p = position;
-        p += uDirection * uSpeed * (iTime - uStartTimeS);
+        bool normalAligned = normal == -uDirection;
+        float t = (iTime - uStartTimeS);
+        if (normalAligned) {
+          p += uDirection * uSpeed * t;
+        }
 
         vec4 view_pos = modelViewMatrix * vec4(p, 1.0);
 
-        vec3 view_dir = normalize(-view_pos.xyz); // vec3(0.0) - view_pos;
-        vec3 view_nv  = normalize(normalMatrix * normal.xyz);
+        vec3 view_dir = normalize(-view_pos.xyz);
+        vec3 view_nv  = normalize(normalMatrix * normal);
 
         float NdotV   = dot(view_dir, view_nv);
         darkening     = NdotV;
+
+        if (uSpeed != 0.) {
+          if (normalAligned) {
+            dimming = 1. - t;
+          } else {
+            dimming = 1. - t * 4.;
+          }
+          dimming = max(dimming, 0.);
+        } else {
+          dimming = 1.;
+        }
 
         gl_Position   = projectionMatrix * view_pos;
 
@@ -202,14 +218,11 @@ export default () => {
       #define PI 3.1415926535897932384626433832795
 
       uniform float iTime;
-      // uniform vec3 cameraDirection;
       uniform float uHighlight;
-      // uniform vec2 iResolution;
       varying vec3 vPosition;
       varying vec2 vUv;
-      // varying vec3 vNormal;
-      // varying vec3 vCameraDirection;
       varying float darkening;
+      varying float dimming;
 
       /* const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
       const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1).toArray().join(', ')});
@@ -305,24 +318,25 @@ export default () => {
           
           //hide some
           //if (cellRand < 0.1) b = 0.0;
+
+          b = min(b, 1.);
           
           float c = 1.-b;
           /* if (gl_FrontFacing == false) {
             c *= 0.2;
           } */
-          if (b > 0.001) {
-            c += uHighlight;
-            fragColor = vec4(vec3(c), b);
-          } else {
-            discard;
-          }
+          
+          c += uHighlight;
+          fragColor = vec4(vec3(c), b);
 
           if (darkening <= 0.0) {
             fragColor.a *= 0.5;
           }
-          // fragColor.a = darkening;
-
-          // fragColor.rgb = normal;
+          fragColor.a *= dimming;
+      
+          if (fragColor.a < 0.001) {
+            discard;
+          } 
       }
       void main() {
         mainImage(gl_FragColor, vUv);
