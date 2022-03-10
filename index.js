@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import * as ThreeVrm from '@pixiv/three-vrm';
+const {MToonMaterial} = ThreeVrm;
+// window.ThreeVrm = ThreeVrm;
 // import easing from './easing.js';
 import {StreetGeometry} from './StreetGeometry.js';
 import alea from 'alea';
@@ -9,6 +12,49 @@ const {useApp, useFrame, useActivate, useLoaders, usePhysics, addTrackedApp, use
 
 const localVector = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+
+const _makeBlueSphere = () => {
+  const geometry = new THREE.SphereGeometry(0.2, 32, 32);
+
+  const c = new THREE.Color(0x2048e0)
+    .offsetHSL(0, 0.3, 0);
+  const params = {
+    // cutoff: 0.1,
+
+    color: new THREE.Vector4().fromArray(c.toArray().concat([1])),
+    shadeColor: new THREE.Vector4().fromArray(new THREE.Color(0xFFFFFF).toArray().concat([1])),
+    // emissionColor: new THREE.Vector4().fromArray(new THREE.Color(0x2048e0).toArray().concat([1])),
+    shadeToony: 1,
+    shadeShift: 0,
+    lightColorAttenuation: 0,
+    indirectLightIntensity: 0,
+    
+    rimLightingMix: 1,
+    rimFresnelPower: 2,
+    rimLift: -0.1,
+    rimColor: new THREE.Vector4().fromArray(new THREE.Color(0xFFFFFF).toArray().concat([1])),
+    
+    // outlineWidth: 0.5,
+    // outlineScaledMaxDistance: 0.5,
+    outlineColor: new THREE.Vector4().fromArray(new THREE.Color(0x000000).toArray().concat([1])),
+    // outlineLightingMix: 0.5,
+  };
+  const material = new MToonMaterial(params);
+
+  // const material2 = new MToonMaterial(params);
+  // material2.isOutline = true;
+
+  const group = new THREE.Group();
+  const m1 = new THREE.Mesh(geometry, material);
+  group.add(m1);
+  
+  /* const m2 = new THREE.Mesh(geometry, material2);
+  m2.scale.multiplyScalar(1.05);
+  m2.updateMatrixWorld
+  group.add(m2); */
+
+  return group;
+};
 
 export default () => {
   const app = useApp();
@@ -114,6 +160,11 @@ export default () => {
 
     const physicsId = physics.addGeometry(mesh);
     physicsIds.push(physicsId);
+
+    const blueSphere = _makeBlueSphere();
+    blueSphere.position.set(0, 1, -1);
+    app.add(blueSphere);
+    blueSphere.updateMatrixWorld();
   }
   
   useCleanup(() => {
