@@ -808,7 +808,7 @@ const physxWorker = (() => {
     );
   };
 
-  w.getPathPhysics = (physics, start, dest, hy, heightTolerance, detectStep, maxIterdetect, maxIterStep, maxVoxelCacheLen, ignorePhysicsIds) => {
+  w.getPathPhysics = (physics, start, dest, hy, heightTolerance, maxIterDetect, maxIterStep, ignorePhysicsIds) => {
     start.toArray(scratchStack.f32, 0);
     dest.toArray(scratchStack.f32, 3);
 
@@ -826,15 +826,13 @@ const physxWorker = (() => {
       destOffset,
       hy,
       heightTolerance,
-      detectStep,
-      maxIterdetect,
+      maxIterDetect,
       maxIterStep,
-      maxVoxelCacheLen,
       ignorePhysicsIds.length,
       ignorePhysicsIdsOffset,
     );
 
-    let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+    const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     // let tail = head + 1;
     const numWaypointResult = moduleInstance.HEAPF32[head + 0];
     const waypointResultPositions = [];
@@ -847,19 +845,19 @@ const physxWorker = (() => {
     }
     // console.log(waypointResultPositions);
 
-    // test
-    head += 1 + numWaypointResult * 3;
-    const numVoxels = moduleInstance.HEAPF32[head];
-    const voxels = [];
-    for (let i = 0; i < numVoxels; i++) {
-      const voxel = new THREE.Object3D();
-      voxel.position.x = moduleInstance.HEAPF32[head + i * 3 + 1];
-      voxel.position.y = moduleInstance.HEAPF32[head + i * 3 + 2];
-      voxel.position.z = moduleInstance.HEAPF32[head + i * 3 + 3];
-      voxels.push(voxel);
-    }
-    // console.log('voxels: ', voxels);
-    window.voxels = voxels;
+    // // test
+    // head += 1 + numWaypointResult * 3;
+    // const numVoxels = moduleInstance.HEAPF32[head];
+    // const voxels = [];
+    // for (let i = 0; i < numVoxels; i++) {
+    //   const voxel = new THREE.Object3D();
+    //   voxel.position.x = moduleInstance.HEAPF32[head + i * 3 + 1];
+    //   voxel.position.y = moduleInstance.HEAPF32[head + i * 3 + 2];
+    //   voxel.position.z = moduleInstance.HEAPF32[head + i * 3 + 3];
+    //   voxels.push(voxel);
+    // }
+    // // console.log('voxels: ', voxels);
+    // window.voxels = voxels;
 
     moduleInstance._doFree(outputBufferOffset);
 
