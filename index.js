@@ -9,7 +9,90 @@ const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-const localBox = new THREE.Box3();
+// const localBox = new THREE.Box3();
+const localLine = new THREE.Line3();
+const localMatrix = new THREE.Matrix4();
+
+const ClippedPlane = (() => {
+  const localVector = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  const localVector3 = new THREE.Vector3();
+  const localVector2D = new THREE.Vector2();
+  const zeroVector = new THREE.Vector3(0, 0, 0);
+  
+  class ClippedPlane extends THREE.Plane {
+    constructor(normal, coplanarPoint, size = new THREE.Vector2(1, 1), up = new THREE.Vector3(0, 1, 0)) {
+      super();
+      this.setFromNormalAndCoplanarPoint(normal, coplanarPoint);
+
+      this.coplanarPoint = coplanarPoint;
+      this.size = size;
+      this.up = up;
+      this.right = new THREE.Vector3().crossVectors(this.normal, this.up).normalize();
+
+      const center = this.projectPoint(zeroVector, localVector);
+      // {
+        const topLeft = center.clone()
+          .add(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
+          .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
+        const bottomLeft = center.clone()
+          .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
+          .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
+        this.leftLine = new THREE.Line3(bottomLeft, topLeft);
+      // }
+      // {
+        const bottomLeft2 = center.clone()
+          .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
+          .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
+        const bottomRight2 = center.clone()
+          .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
+          .add(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
+        this.bottomLine = new THREE.Line3(bottomLeft2, bottomRight2);
+      // }
+      /* if (this.normal.x === 1 && this.leftLine.start.y === -0.5) {
+        debugger;
+      } */
+    }
+    getUV(point, target) {
+      const x = this.leftLine.closestPointToPointParameter(point, false);
+      const y = this.bottomLine.closestPointToPointParameter(point, false);
+
+      if (x >= 0 && x <= 1 && y >= 0 && y <= 1) {
+        // console.log('got uv', x, y, this.normal.toArray(), point.toArray(), this.leftLine, this.bottomLine);
+        return target.set(x, y);
+      } else {
+        return null;
+      }
+    }
+    getPenetrationNormalVector(line, target) {
+      const intersection = this.intersectLine(line, localVector);
+      if (intersection) {
+        const uv = this.getUV(intersection, localVector2D);
+        if (uv !== null) {
+          target.copy(this.normal);
+          
+          const direction = localVector.copy(line.end)
+            .sub(line.start);
+          if (direction.dot(this.normal) < 0) {
+            target.multiplyScalar(-1);
+          }
+          return target;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    }
+    /* applyMatrix4(matrix, optionalNormalMatrix) {
+      super.applyMatrix4(matrix, optionalNormalMatrix);
+
+      this.leftLine.applyMatrix4(matrix);
+      this.bottomLine.applyMatrix4(matrix);
+    } */
+  }
+  return ClippedPlane;
+})();
 
 export default () => {
   const app = useApp();
@@ -22,7 +105,7 @@ export default () => {
 
   const [w, h, d] = app.getComponent('size') ?? [8, 4, 8];
   const barrierGeometry = new THREE.BoxGeometry(w, h, d)
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, h/2, 0));
+    // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, h/2, 0));
   for (let i = 0; i < barrierGeometry.attributes.position.count; i++) {
     const position = localVector.fromArray(barrierGeometry.attributes.position.array, i * 3)
     const normal = localVector2.fromArray(barrierGeometry.attributes.normal.array, i * 3)
@@ -281,15 +364,73 @@ export default () => {
     activateCb && activateCb();
   }); */
 
-  const _getBarrierBox = box => {
+  /* const _getBarrierBox = box => {
     return box.set(
       localVector.set(-w/2, 0, -d/2)
         .applyMatrix4(barrierMesh.matrixWorld),
       localVector2.set(w/2, h, d/2)
         .applyMatrix4(barrierMesh.matrixWorld),
     )
-  };
+  }; */
+  // console.log('got h', h);
+  const clipPlanes = [
+    // top
+    new ClippedPlane(
+      new THREE.Vector3(0, 1, 0), // normal
+      new THREE.Vector3(0, h/2, 0), // coplanarPoint
+      new THREE.Vector2(w, d), // size
+      new THREE.Vector3(0, 0, 1), // up
+    ),
+    // bottom
+    new ClippedPlane(
+      new THREE.Vector3(0, -1, 0), // normal
+      new THREE.Vector3(0, -h/2, 0), // coplanarPoint
+      new THREE.Vector2(w, d), // size
+      new THREE.Vector3(0, 0, 1), // up
+    ),
+    // left
+    new ClippedPlane(
+      new THREE.Vector3(-1, 0, 0), // normal
+      new THREE.Vector3(-w/2, 0, 0), // coplanarPoint
+      new THREE.Vector2(d, h), // size
+      new THREE.Vector3(0, 1, 0), // up
+    ),
+    // right
+    new ClippedPlane(
+      new THREE.Vector3(1, 0, 0), // normal
+      new THREE.Vector3(w/2, 0, 0), // coplanarPoint
+      new THREE.Vector2(d, h), // size
+      new THREE.Vector3(0, 1, 0), // up
+    ),
+    // front
+    new ClippedPlane(
+      new THREE.Vector3(0, 0, -1), // normal
+      new THREE.Vector3(0, 0, -d/2), // coplanarPoint
+      new THREE.Vector2(w, h), // size
+      new THREE.Vector3(0, 1, 0), // up
+    ),
+    // back
+    new ClippedPlane(
+      new THREE.Vector3(0, 0, 1), // normal
+      new THREE.Vector3(0, 0, d/2), // coplanarPoint
+      new THREE.Vector2(w, h), // size
+      new THREE.Vector3(0, 1, 0), // up
+    ),
+  ];
+  for (const clipPlane of clipPlanes) {
+    const geometry = new THREE.PlaneBufferGeometry(clipPlane.size.x, clipPlane.size.y, 0.1);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.copy(clipPlane.coplanarPoint);
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+  }
 
+  const localPlayer = useLocalPlayer();
+  const lastPosition = localPlayer.position.clone();
+  
   let animationSpec = null;
   // let lastAnimationFinishTime = 0;
   const cooldownTime = 2000;
@@ -312,25 +453,37 @@ export default () => {
       }
     }
 
-    const localPlayer = useLocalPlayer();
-    const barrierBox = _getBarrierBox(localBox);
+    // const barrierBox = _getBarrierBox(localBox);
     // window.barrierBox = barrierBox;
     // window.localPlayer = localPlayer;
-    if (barrierBox.containsPoint(localPlayer.position)) {
-      if (!animationSpec) {
-        animationSpec = {
-          type: 'trigger',
-          startValue: 0,
-          endValue: 1,
-          visible: true,
-          startTime: timestamp,
-          endTime: timestamp + 1000,
-        };
-      } else if (animationSpec && animationSpec.type === 'cooldown') {
-        animationSpec.startTime = timestamp;
-        animationSpec.endTime = timestamp + cooldownTime;
+    for (const clipPlane of clipPlanes) {
+      localLine.set(lastPosition, localPlayer.position)
+        .applyMatrix4(
+          localMatrix.copy(barrierMesh.matrixWorld)
+            .invert()
+        );
+
+      const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
+      if (penetrationNormalVector !== null) {
+        if (!animationSpec) {
+          animationSpec = {
+            type: 'trigger',
+            startValue: 0,
+            endValue: 1,
+            visible: true,
+            startTime: timestamp,
+            endTime: timestamp + 1000,
+          };
+        } else if (animationSpec && animationSpec.type === 'cooldown') {
+          animationSpec.startTime = timestamp;
+          animationSpec.endTime = timestamp + cooldownTime;
+        }
+
+        break;
+      } else {
+        // console.log('no intersection', localLine.start.toArray().join(','), localLine.end.toArray().join(','), clipPlane);
       }
-    }
+   }
 
     /* if (!playing) {
       const audio = new Audio(`${baseUrl}pissbaby.mp3`);
@@ -345,6 +498,8 @@ export default () => {
     } */
 
     _updateBarrierMesh(timestamp, timeDiff);
+
+    lastPosition.copy(localPlayer.position);
   });
   
   useCleanup(() => {
