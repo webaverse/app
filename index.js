@@ -68,7 +68,7 @@ export default () => {
         const scale = _getScaleFromNormal(wallNormal, localVector);
         const outerWidth = scale.x;
         const outerHeight = scale.y;
-        console.log('got scale', scale.x, scale.y, localExitSpecs);
+        // console.log('got scale', scale.x, scale.y, localExitSpecs);
 
         const wallShape = new THREE.Shape();
 
