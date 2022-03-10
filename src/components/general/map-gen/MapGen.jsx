@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // import classnames from 'classnames';
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
+import {registerKeyHandler, unregisterKeyHandler} from '../../../KeyHandlers.jsx';
 import game from '../../../../game.js';
 import cameraManager from '../../../../camera-manager.js';
 import alea from '../../../../alea.js';
@@ -734,6 +735,11 @@ export const MapGen = ({
     const [width, setWidth] = useState(window.innerWidth);
     const [height, setHeight] = useState(window.innerHeight); 
     const [open, setOpen] = useState(false);
+    const [offset, setOffset] = useState({
+      x: 0,
+      y: 0,
+    });
+    const [mouseState, setMouseState] = useState(null);
     const canvasRef = useRef();
 
     useEffect(() => {
@@ -777,10 +783,76 @@ export const MapGen = ({
       }
     }, [canvasRef, open, width, height]);
 
+    function mouseDown(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      setMouseState({
+        x: e.clientX,
+        y: e.clientY,
+      });
+    }
+    useEffect(() => {
+      function mouseMove(e) {
+        if (mouseState) {
+          const dx = e.clientX - mouseState.x;
+          const dy = e.clientY - mouseState.y;
+
+          setOffset({
+            x: offset.x + dx,
+            y: offset.y + dy,
+          });
+
+          setMouseState({
+            x: e.clientX,
+            y: e.clientY,
+          });
+        }
+      }
+      document.addEventListener('mousemove', mouseMove);
+      return () => {
+        document.removeEventListener('mousemove', mouseMove);
+      };
+    }, [mouseState]);
+    useEffect(() => {
+      function click(e) {
+        if (open) {
+          return false;
+        } else {
+          return true;
+        }
+      }
+      function mouseUp(e) {
+        if (open) {
+          setMouseState(null);
+          return false;
+        } else {
+          return true;
+        }
+      }
+      registerKeyHandler('click', click);
+      registerKeyHandler('mouseup', mouseUp);
+      return () => {
+        unregisterKeyHandler('click', click);
+        unregisterKeyHandler('mouseup', mouseUp);
+      };
+    }, [open]);
+
     return (
         <div className={styles.mapGen}>
-            {open > 0 ? (
-                <canvas width={width} height={height} className={styles.canvas} ref={canvasRef} />
+            {open ? (
+                <canvas
+                  width={width}
+                  height={height}
+                  className={styles.canvas}
+                  onMouseDown={mouseDown}
+                  // onMouseMove={mouseMove}
+                  // onClick={click}
+                  style={{
+                    transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`,
+                  }}
+                  ref={canvasRef}
+                />
             ) : null}
             
         </div>
