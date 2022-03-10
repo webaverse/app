@@ -31,7 +31,7 @@ class PathFinder {
     this.maxIterStep = maxIterStep;
     this.ignorePhysicsIds = ignorePhysicsIds;
     this.waypointResult = [];
-    this.debugRender = true;
+    this.debugRender = debugRender;
 
     if (this.debugRender) {
       this.geometry = new THREE.BoxGeometry();
@@ -45,9 +45,9 @@ class PathFinder {
     }
   }
 
-  getPath(start, dest) {
+  getPath(start, dest, isWalk = true) {
     this.waypointResult = [];
-    const positions = physicsManager.getPath(start, dest, this.hy, this.heightTolerance, this.maxIterDetect, this.maxIterStep, this.ignorePhysicsIds);
+    const positions = physicsManager.getPath(start, dest, isWalk, this.hy, this.heightTolerance, this.maxIterDetect, this.maxIterStep, this.ignorePhysicsIds);
     const isFound = positions.length > 0;
     positions.forEach(position => {
       const result = new THREE.Object3D();
