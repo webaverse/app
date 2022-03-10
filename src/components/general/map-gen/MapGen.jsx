@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // import classnames from 'classnames';
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
+import game from '../../../../game.js';
 import alea from '../../../../alea.js';
 import styles from './map-gen.module.css';
 
@@ -735,13 +736,13 @@ export const MapGen = ({
     const canvasRef = useRef();
 
     useEffect(() => {
-      function maphackchange(e) {
-        const {mapHack} = e.data;
-        setOpen(mapHack)
+      function mapopenchange(e) {
+        const {mapOpen} = e.data;
+        setOpen(mapOpen);
       }
-      app.addEventListener('maphackchange', maphackchange);
+      game.addEventListener('mapopenchange', mapopenchange);
       return () => {
-        app.removeEventListener('maphackchange', maphackchange);
+        game.removeEventListener('mapopenchange', mapopenchange);
       };
     }, [open]);
 
@@ -762,8 +763,6 @@ export const MapGen = ({
         const chunkCanvas = drawChunk(chunkBlocks);
 
         const canvas = canvasRef.current;
-        // canvas.width = width;
-        // canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(chunkCanvas, 0, 0);
       }
