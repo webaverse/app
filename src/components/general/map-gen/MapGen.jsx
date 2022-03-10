@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import game from '../../../../game.js';
+import cameraManager from '../../../../camera-manager.js';
 import alea from '../../../../alea.js';
 import styles from './map-gen.module.css';
 
@@ -739,6 +740,14 @@ export const MapGen = ({
       function mapopenchange(e) {
         const {mapOpen} = e.data;
         setOpen(mapOpen);
+
+        if (mapOpen) {
+          cameraManager.exitPointerLock();
+        } else {
+          if (cameraManager.pointerLockElement === null) {
+            cameraManager.requestPointerLock();
+          }
+        }
       }
       game.addEventListener('mapopenchange', mapopenchange);
       return () => {
