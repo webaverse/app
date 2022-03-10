@@ -1,4 +1,5 @@
-import {Vector3, Object3D} from 'three';
+import {Vector3} from 'three';
+import {makeId} from '../util.js';
 
 /** container for state data
  * @param {Object} stateData - the general state definition
@@ -52,7 +53,7 @@ class StateMachine {
   // add object to state machine
   registerObj(name, obj) {
     this.tracking.has(name) || this.tracking.set(name, {
-      id: crypto.randomUUID(),
+      id: makeId(5),
       obj: obj,
       graph: {},
       //   graphRoot: null,
