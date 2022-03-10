@@ -5,6 +5,9 @@ const {useApp, useFrame, useActivate, useLoaders, usePhysics, addTrackedApp, use
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
+// const localVector = new THREE.Vector3();
+const localVector2D = new THREE.Vector3();
+
 export default () => {
   const app = useApp();
   const physics = usePhysics();
@@ -18,8 +21,8 @@ export default () => {
     const boxPosition = new THREE.Vector2(outerWidth / 2, outerHeight / 2);
     const boxSize = new THREE.Vector2(4, 4);
     const innerBox = new THREE.Box2(
-      boxPosition.clone().sub(boxSize.clone().divideScalar(2)),
-      boxPosition.clone().add(boxSize.clone().divideScalar(2))
+      boxPosition.clone().sub(localVector2D.copy(boxSize).divideScalar(2)),
+      boxPosition.clone().add(localVector2D.copy(boxSize).divideScalar(2))
     );
 
     const wallShape = new THREE.Shape();
