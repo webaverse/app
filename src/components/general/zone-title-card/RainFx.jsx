@@ -13,6 +13,7 @@ const localColor = new THREE.Color();
 
 export const RainFx = ({
   // app,
+  enabled,
 }) => {
     // const [width, setWidth] = useState(window.innerWidth);
     // const [height, setHeight] = useState(window.innerHeight);
@@ -64,7 +65,7 @@ export const RainFx = ({
     }, [renderer]);
 
     useEffect(() => {
-        if (canvasRef.current) {
+        if (canvasRef.current && enabled) {
                 const canvas = canvasRef.current;
                 // const ctx = canvas.getContext('2d');
 
@@ -90,7 +91,7 @@ export const RainFx = ({
                     world.appManager.removeEventListener('frame', frame);
                 };
         }  
-    }, [canvasRef]);
+    }, [canvasRef, enabled]);
 
     return (
         <canvas className={styles.rainFx} ref={canvasRef} />

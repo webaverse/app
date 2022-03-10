@@ -125,7 +125,7 @@ export const ZoneTitleCard = ({
                 </div>
             </div>
 
-            <RainFx />
+            <RainFx enabled={open} />
         </div>
     );
 
