@@ -1317,7 +1317,7 @@ cameraManager.addEventListener('modechange', e => {
 });
 
 let lastMouseEvent = null;
-const gameManager = {
+const gameManagerCore = {
   menuOpen: 0,
   gridSnap: 0,
   editMode: false,
@@ -1871,4 +1871,7 @@ const gameManager = {
   pushAppUpdates: _pushAppUpdates,
   pushPlayerUpdates: _pushPlayerUpdates,
 };
+
+const gameManager = Object.assign( new EventTarget(), gameManagerCore );
+
 export default gameManager;

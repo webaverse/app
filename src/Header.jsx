@@ -11,7 +11,7 @@ import game from '../game.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
-import ioManager from '../io-manager.js'
+import gameManager from '../game.js';
 import User from './User';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
@@ -75,19 +75,19 @@ export default function Header({ app }) {
 
         if ( open ) {
 
-            ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+            gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
 
         }
 
-        ioManager.addEventListener( 'CloseAllPanels', close );
-        ioManager.addEventListener( 'ToggleDioramaPanel', toggleDiorama );
+        gameManager.addEventListener( 'CloseAllPanels', close );
+        gameManager.addEventListener( 'ToggleDioramaPanel', toggleDiorama );
 
         //
 
         return () => {
 
-            ioManager.removeEventListener( 'CloseAllPanels', close );
-            ioManager.removeEventListener( 'ToggleDioramaPanel', toggleDiorama );
+            gameManager.removeEventListener( 'CloseAllPanels', close );
+            gameManager.removeEventListener( 'ToggleDioramaPanel', toggleDiorama );
 
         };
 
@@ -193,69 +193,6 @@ export default function Header({ app }) {
         }
 
     }, [selectedApp, panelsRef.current]);
-
-    const _handleNonInputKey = e => {
-
-        switch (e.which) {
-
-            case 13: { // enter
-
-                e.preventDefault();
-                e.stopPropagation();
-                setOpen('chat');
-                return true;
-
-            }
-
-            case 191: { // /
-
-                if (!magicMenuOpen && !ioManager.inputFocused()) {
-
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setOpen('magicMenu');
-
-                }
-
-                return true;
-
-            }
-
-        }
-
-        return false;
-
-    };
-
-    const _handleAnytimeKey = e => {
-
-        switch (e.which) {
-
-            case 9: { // tab
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (characterOpen || magicMenuOpen) {
-
-                    ioManager.click(new MouseEvent('click'));
-                    cameraManager.requestPointerLock();
-
-                } else {
-
-                    setOpen('character');
-
-                }
-
-                return true;
-
-            }
-
-        }
-
-        return false;
-
-    };
 
     useEffect( async () => {
 

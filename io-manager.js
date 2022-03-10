@@ -16,6 +16,7 @@ import physicsManager from './physics-manager.js';
 import physx from './physx.js';
 import transformControls from './transform-controls.js';
 import metaversefile from 'metaversefile';
+import gameManager from './game.js';
 
 const localVector = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -286,7 +287,7 @@ ioManager.keydown = e => {
     case 9: { // tab
       e.preventDefault();
       e.stopPropagation();
-      ioManager.dispatchEvent(new CustomEvent('ToggleDioramaPanel'));
+      gameManager.dispatchEvent(new CustomEvent('ToggleDioramaPanel'));
       break;
     }
     case 49: // 1
@@ -425,7 +426,7 @@ ioManager.keydown = e => {
       //     }
       // }
 
-      ioManager.dispatchEvent(new CustomEvent('ToggleWorldPanel'));
+      gameManager.dispatchEvent(new CustomEvent('ToggleWorldPanel'));
       break;
     }
     case 88: { // X
@@ -570,7 +571,7 @@ ioManager.keydown = e => {
       break;
     }
     case 27: { // esc
-      ioManager.dispatchEvent(new CustomEvent('CloseAllPanels'));
+      gameManager.dispatchEvent(new CustomEvent('CloseAllPanels'));
       game.setContextMenu(false);
       break;
     }
@@ -790,7 +791,7 @@ ioManager.click = e => {
   if (cameraManager.pointerLockElement) {
     game.menuClick();
   } else {
-    ioManager.dispatchEvent(new CustomEvent('CloseAllPanels'));
+    gameManager.dispatchEvent(new CustomEvent('CloseAllPanels'));
     // game.setContextMenu(false);
 
     if (!game.hoverEnabled) {
@@ -887,6 +888,7 @@ ioManager.paste = e => {
 };
 
 ioManager.bindInput = () => {
+  window.addEventListener('keydown', ioManager.keydown);
   /* window.addEventListener('paste', async e => {
     if (!_inputFocused()) {
       e.preventDefault();

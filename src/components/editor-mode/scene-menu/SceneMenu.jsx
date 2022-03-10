@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 
-import ioManager from '../../../../io-manager';
+import gameManager from '../../../../game';
 import { world } from '../../../../world'
 import universe from '../../../../universe'
 import voiceInput from '../../../../voice-input/voice-input';
@@ -58,7 +58,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     const handleSceneMenuOpen = ( value ) => {
 
         value = ( typeof value === 'boolean' ? value : ( ! scenesMenuOpened ) );
-        ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+        gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
 
         setScenesMenuOpened( value );
         setRoomsMenuOpened( false );
@@ -80,7 +80,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
         value = ( typeof value === 'boolean' ? value : ( ! roomsMenuOpened ) );
 
-        ioManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
+        gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
         setScenesMenuOpened( false );
 
         if ( ! multiplayerConnected ) {
@@ -194,11 +194,11 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
         refreshRooms();
 
-        ioManager.addEventListener( 'CloseAllPanels', close );
+        gameManager.addEventListener( 'CloseAllPanels', close );
 
         return () => {
 
-            ioManager.removeEventListener( 'CloseAllPanels', close );
+            gameManager.removeEventListener( 'CloseAllPanels', close );
 
         };
 
