@@ -96,7 +96,6 @@ const ClippedPlane = (() => {
 
 export default () => {
   const app = useApp();
-  const {renderer, scene, camera} = useInternals();
   const physics = usePhysics();
   // const {CapsuleGeometry} = useGeometries();
   const {WebaverseShaderMaterial} = useMaterials();
@@ -437,7 +436,7 @@ export default () => {
       new THREE.Vector3(0, 1, 0), // up
     ),
   ];
-  for (const clipPlane of clipPlanes) {
+  /* for (const clipPlane of clipPlanes) {
     const geometry = new THREE.PlaneBufferGeometry(clipPlane.size.x, clipPlane.size.y, 0.1);
     const material = new THREE.MeshBasicMaterial({
       color: 0xff0000,
@@ -446,7 +445,7 @@ export default () => {
     mesh.position.copy(clipPlane.coplanarPoint);
     mesh.frustumCulled = false;
     scene.add(mesh);
-  }
+  } */
 
   const localPlayer = useLocalPlayer();
   const lastPosition = localPlayer.position.clone();
