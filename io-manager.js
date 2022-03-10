@@ -557,10 +557,10 @@ ioManager.keydown = e => {
       game.enter();
       break;
     }
-    /* case 77: { // M
-      menuActions.setIsOpen(!menuState.isOpen);
+    case 77: { // M
+      game.toggleMap();
       break;
-    } */
+    }
     case 74: { // J
       game.inventoryHack = !game.inventoryHack;
       break;
