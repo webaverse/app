@@ -515,6 +515,7 @@ const _startHacks = webaverse => {
     }
   }; */
   webaverse.titleCardHack = false;
+  webaverse.mapHack = false;
   window.addEventListener('keydown', e => {
     if (e.which === 46) { // .
       emoteIndex = -1;
@@ -538,6 +539,13 @@ const _startHacks = webaverse => {
       webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
         data: {
           titleCardHack: webaverse.titleCardHack,
+        }
+      }));
+    } else if (e.which === 111) { // /
+      webaverse.mapCardHack = !webaverse.mapCardHack;
+      webaverse.dispatchEvent(new MessageEvent('maphackchange', {
+        data: {
+          mapCardHack: webaverse.mapCardHack,
         }
       }));
     } else {
