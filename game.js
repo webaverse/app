@@ -1332,6 +1332,7 @@ class GameManager extends EventTarget {
     this.closestObject = null;
     this.usableObject = null;
     this.hoverEnabled = false;
+    this.mapOpen = false;
   }
   getMenu() {
     return this.menuOpen;
@@ -1518,6 +1519,15 @@ class GameManager extends EventTarget {
     } else {
       return 4/this.gridSnap;
     }
+  }
+
+  toggleMap() {
+    this.mapOpen = !this.mapOpen;
+    this.dispatchEvent(new MessageEvent('mapopenchange', {
+      data: {
+        mapOpen: this.mapOpen,
+      }
+    }));
   }
 
   menuVDown() {
