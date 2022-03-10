@@ -2,9 +2,9 @@ import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
-const {useApp, useLocalPlayer, useInternals, useGeometries, useMaterials, useFrame, useActivate, useLoaders, usePhysics, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
+const {useApp, useLocalPlayer, useInternals, useGeometries, useMaterials, useFrame, useActivate, useLoaders, usePhysics, useCleanup} = metaversefile;
 
-const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+// const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -71,7 +71,6 @@ const ClippedPlane = (() => {
         if (uv !== null) {
           const direction = localVector.copy(line.end)
             .sub(line.start);
-          // console.log('dot', direction.dot(this.normal));
           if (direction.dot(this.normal) < 0) {
             return target.copy(this.normal)
               .multiplyScalar(-1);
@@ -133,6 +132,18 @@ export default () => {
         value: 0,
         needsUpdate: false,
       },
+      uStartTimeS: {
+        value: 0,
+        needsUpdate: false,
+      },
+      uDirection: {
+        value: new THREE.Vector3(0, 0, 0),
+        needsUpdate: false,
+      },
+      uSpeed: {
+        value: 0,
+        needsUpdate: false,
+      },
       /* cameraDirection: {
         value: new THREE.Vector3(),
         needsUpdate: true,
@@ -142,10 +153,15 @@ export default () => {
       precision highp float;
       precision highp int;
 
+      uniform float iTime;
+      uniform float uStartTimeS;
+      uniform vec3 uDirection;
+      uniform float uSpeed;
       varying vec3 vPosition;
       varying vec2 vUv;
       // varying vec3 vNormal;
       // varying vec3 vCameraDirection;
+      varying float darkening;
 
       float getBezierT(float x, float a, float b, float c, float d) {
         return float(sqrt(3.) *
@@ -163,31 +179,21 @@ export default () => {
       // const float moveDistance = 20.;
       // const float q = 0.1;
 
-      /* void main() {
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-        vUv = uv;
-        vNormal = normalize(normalMatrix * normal);
-        vCameraDirection = normalize(normalMatrix * vec3(0., 0., -1.));
-        vPosition = position;
-      } */
-
-
-
-      varying float darkening;
-
       void main(){
+        vec3 p = position;
+        p += uDirection * uSpeed * (iTime - uStartTimeS);
 
-          vec4 view_pos = modelViewMatrix * vec4(position, 1.0);
+        vec4 view_pos = modelViewMatrix * vec4(p, 1.0);
 
-          vec3 view_dir = normalize(-view_pos.xyz); // vec3(0.0) - view_pos;
-          vec3 view_nv  = normalize(normalMatrix * normal.xyz);
+        vec3 view_dir = normalize(-view_pos.xyz); // vec3(0.0) - view_pos;
+        vec3 view_nv  = normalize(normalMatrix * normal.xyz);
 
-          float NdotV   = dot(view_dir, view_nv);
-          darkening     = NdotV;
+        float NdotV   = dot(view_dir, view_nv);
+        darkening     = NdotV;
 
-          gl_Position   = projectionMatrix * view_pos;
+        gl_Position   = projectionMatrix * view_pos;
 
-          vUv = uv;
+        vUv = uv;
       }
     `,
     fragmentShader: `\
@@ -347,9 +353,22 @@ export default () => {
     } else {
       highlight = 0;
     }
-    // const highlightValue = animationSpec ? animationSpec.highlight : 1; 
     barrierMesh.material.uniforms.uHighlight.value = highlight;
     barrierMesh.material.uniforms.uHighlight.needsUpdate = true;
+
+    if (animationSpec) {
+      barrierMesh.material.uniforms.uStartTimeS.value = animationSpec.startTimeS;
+      barrierMesh.material.uniforms.uStartTimeS.needsUpdate = true;
+
+      barrierMesh.material.uniforms.uDirection.value.copy(animationSpec.direction);
+      barrierMesh.material.uniforms.uDirection.needsUpdate = true;
+      
+      barrierMesh.material.uniforms.uSpeed.value = animationSpec.speed;
+      barrierMesh.material.uniforms.uSpeed.needsUpdate = true;
+    } else {
+      barrierMesh.material.uniforms.uSpeed.value = 0;
+      barrierMesh.material.uniforms.uSpeed.needsUpdate = true;
+    }
 
     barrierMesh.visible = animationSpec ? animationSpec.visible : true;
   };
@@ -437,6 +456,9 @@ export default () => {
   const cooldownTime = 2000;
   // let playing = false;
   useFrame(({timestamp, timeDiff}) => {
+    const timestampS = timestamp/1000;
+    const timeDiffS = timeDiff/1000;
+
     if (animationSpec) {
       if (timestamp >= animationSpec.endTime) {
         if (animationSpec.type === 'trigger') {
@@ -447,6 +469,9 @@ export default () => {
             visible: false,
             startTime: timestamp,
             endTime: timestamp + cooldownTime,
+            startTimeS: timestampS,
+            direction: new THREE.Vector3(0, 0, 0),
+            speed: 0,
           };
         } else {
           animationSpec = null;
@@ -474,6 +499,9 @@ export default () => {
             visible: true,
             startTime: timestamp,
             endTime: timestamp + 1000,
+            startTimeS: timestampS,
+            direction: penetrationNormalVector.clone(),
+            speed: localLine.start.distanceTo(localLine.end) / timeDiffS,
           };
         } else if (animationSpec && animationSpec.type === 'cooldown') {
           animationSpec.startTime = timestamp;
