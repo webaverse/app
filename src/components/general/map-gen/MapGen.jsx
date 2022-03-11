@@ -841,16 +841,20 @@ const fragmentShader = `\
   const vec3 color3 = vec3(${new THREE.Color(0xd4e157).toArray().join(', ')});
   const vec3 color4 = vec3(${new THREE.Color(0x9ccc65).toArray().join(', ')});
 
+  bool isInRange(float v, float e) {
+    return abs(v - e) <= 0.1/255.;
+  }
+
   void main() {
     vec3 c;
     float r = texture2D(map, vUv).r;
-    if (r == ${Block.TYPE_INDICES.exit.toFixed(8)}) {
+    if (isInRange(r, ${(Block.TYPE_INDICES.exit / 255).toFixed(8)})) {
       c = vec3(${new THREE.Color(Block.COLORS.exit).toArray().map(n => n.toFixed(8)).join(', ')});
-    } else if (r == ${Block.TYPE_INDICES.center.toFixed(8)}) {
+    } else if (isInRange(r, ${(Block.TYPE_INDICES.center / 255).toFixed(8)})) {
       c = vec3(${new THREE.Color(Block.COLORS.center).toArray().map(n => n.toFixed(8)).join(', ')});
-    } else if (r == ${Block.TYPE_INDICES.spline.toFixed(8)}) {
+    } else if (isInRange(r, ${(Block.TYPE_INDICES.spline / 255).toFixed(8)})) {
       c = vec3(${new THREE.Color(Block.COLORS.spline).toArray().map(n => n.toFixed(8)).join(', ')});
-    } else if (r == ${Block.TYPE_INDICES.path.toFixed(8)}) {
+    } else if (isInRange(r, ${(Block.TYPE_INDICES.path / 255).toFixed(8)})) {
       c = vec3(${new THREE.Color(Block.COLORS.path).toArray().map(n => n.toFixed(8)).join(', ')});
     }
     gl_FragColor.rgb = c;
