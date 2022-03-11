@@ -4,11 +4,7 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-<<<<<<< HEAD
-import WSRTC from 'wsrtc/wsrtc.js';
-=======
 window.THREE = THREE;
->>>>>>> HeliDev
 import Avatar from './avatars/avatars.js';
 import * as sounds from './sounds.js';
 import physx from './physx.js';
