@@ -39,9 +39,9 @@
     color: #fff;
     text-align: left;
     padding: 0px 10px;
-    font-size: 12px;
-    height: 40px;
-    margin-top: 70px;
+    font-size: 14px;
+    height: 50px;
+    margin-top: 40px;
 }
 
 .objects {
@@ -162,3 +162,5 @@
 .objectProperties .inputs .input + .input {
     margin-left: 10px;
 }
+
+

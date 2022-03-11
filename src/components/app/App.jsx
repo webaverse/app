@@ -130,7 +130,13 @@ export const App = () => {
             <Header app={ app } />
             <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
             <Crosshair />
-            <ActionMenu app={ app } setSettingsOpened={ setSettingsOpened } setWorldObjectsListOpened={ setWorldObjectsListOpened } />
+            <ActionMenu
+			opened={worldObjectsListOpened} 
+			setOpened={setWorldObjectsListOpened} 
+			app={ app } 
+			setSettingsOpened={ setSettingsOpened } 
+			setWorldObjectsListOpened={ setWorldObjectsListOpened } />
+			
             <Settings opened={ settingsOpened } setOpened={ setSettingsOpened } />
             <WorldObjectsList opened={ worldObjectsListOpened } setOpened={ setWorldObjectsListOpened } />
             <PlayMode />

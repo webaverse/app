@@ -70,3 +70,39 @@
 .btn.vr.disabled {
     opacity: 0.6;
 }
+
+/* close button */
+.closeBtn{
+	background: #42A5F5;
+	width: 143px;
+	line-height: 44px;
+	font-size: 14px;
+	font-weight: 300;
+	color: #fff;
+	position: absolute;
+	border: none;
+	left:0;
+	bottom: 100%;
+	transform: translateX(-220px);
+	z-index: 50;
+	opacity: 0;
+	visibility: hidden;
+	transition: transform 0.3s  opasity 0.1s;
+	transition-delay: 0s;
+	transition-timing-function: ease;
+	cursor: pointer;
+
+}
+.closeBtn>span{
+	content: "";
+	position: relative;
+	right: 8px;
+	top: 3px;
+}
+.closeBtn.opened{
+	transform: translateX(-370px);
+	opacity:1;
+
+	visibility: visible;
+	transition: all 0.3s 0.2s ease;
+}

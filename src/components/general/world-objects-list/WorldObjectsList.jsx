@@ -112,7 +112,7 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
 
     const handleItemClick = ( targetApp ) => {
 
-        const physicsObjects = targetApp.getPhysicsObjects();
+        const physicsObjects = targetApp.getPhysicsObjects();z
         const physicsObject = physicsObjects[0] || null;
         const physicsId = physicsObject ? physicsObject.physicsId : 0;
         selectApp( targetApp, physicsId );
