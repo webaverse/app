@@ -823,7 +823,28 @@ const fragmentShader = `\
 
   void main() {
     gl_FragColor = texture2D(map, vUv) * 50.;
-    gl_FragColor.gb += vUv * 0.2;
+    
+    // voxel border
+    vec2 voxelUv = mod(vUv * ${numBlocks.toFixed(8)}, 1.);
+    const float limit = 0.075;
+    if (
+      voxelUv.x <= limit || voxelUv.x >= (1. - limit) ||
+      voxelUv.y <= limit || voxelUv.y >= (1. - limit)
+    ) {
+      gl_FragColor.rgb = vec3(${new THREE.Color(0x111111).toArray().map(n => n.toFixed(8)).join(', ')});
+    }
+
+    // chunk border
+    float limit2 = 0.1/${numBlocks.toFixed(8)};
+    if (
+      vUv.x <= limit2 || vUv.x >= (1. - limit2) ||
+      vUv.y <= limit2 || vUv.y >= (1. - limit2)
+    ) {
+      gl_FragColor.rgb = vec3(${new THREE.Color(0x181818).toArray().map(n => n.toFixed(8)).join(', ')});
+    }
+    
+    // gl_FragColor.gb += vUv * 0.2;
+    
     gl_FragColor.a = 1.;
   }
 `;
