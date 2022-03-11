@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
 import gameManager from '../../../../game';
@@ -7,6 +7,7 @@ import { world } from '../../../../world'
 import universe from '../../../../universe'
 import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
+import { AppContext } from '../../app';
 
 import styles from './scene-menu.module.css';
 
@@ -14,9 +15,8 @@ import styles from './scene-menu.module.css';
 
 export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
+    const { openedPanel, setOpenedPanel } = useContext( AppContext );
     const [ rooms, setRooms ] = useState([]);
-    const [ scenesMenuOpened, setScenesMenuOpened ] = useState( false );
-    const [ roomsMenuOpened, setRoomsMenuOpened ] = useState( false );
     const [ micEnabled, setMicEnabled ] = useState( false );
     const [ speechEnabled, setSpeechEnabled ] = useState( false );
 
@@ -48,27 +48,16 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     };
 
-    const close = () => {
-
-        setScenesMenuOpened( false );
-        setRoomsMenuOpened( false );
-
-    };
-
     const handleSceneMenuOpen = ( value ) => {
 
-        value = ( typeof value === 'boolean' ? value : ( ! scenesMenuOpened ) );
-        gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
-
-        setScenesMenuOpened( value );
-        setRoomsMenuOpened( false );
+        value = ( typeof value === 'boolean' ? value : ( openedPanel === 'SceneMenuDropdownPanel' ) );
+        setOpenedPanel( value ? null : 'SceneMenuDropdownPanel' );
 
     };
 
     const handleSceneSelect = ( event, sceneName ) => {
 
-        setScenesMenuOpened( false );
-        setRoomsMenuOpened( false );
+        setOpenedPanel( null );
 
         sceneName = sceneName ?? event.target.value;
         setSelectedScene( sceneName );
@@ -78,14 +67,11 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleRoomMenuOpen = ( value ) => {
 
-        value = ( typeof value === 'boolean' ? value : ( ! roomsMenuOpened ) );
-
-        gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
-        setScenesMenuOpened( false );
+        value = ( typeof value === 'boolean' ? value : ( openedPanel === 'RoomMenuDropdownPanel' ) );
 
         if ( ! multiplayerConnected ) {
 
-            setRoomsMenuOpened( value );
+            setOpenedPanel( value ? null : 'RoomMenuDropdownPanel' );
 
         } else {
 
@@ -125,8 +111,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleRoomSelect = ( room ) => {
 
-        setScenesMenuOpened( false );
-        setRoomsMenuOpened( false );
+        setOpenedPanel( null );
 
         if ( ! world.isConnected() ) {
 
@@ -194,14 +179,6 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
         refreshRooms();
 
-        gameManager.addEventListener( 'CloseAllPanels', close );
-
-        return () => {
-
-            gameManager.removeEventListener( 'CloseAllPanels', close );
-
-        };
-
     }, [] );
 
     useEffect( () => {
@@ -238,7 +215,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
         <div className={ styles.location } onClick={ stopPropagation } >
             <div className={ styles.row }>
                 <div className={ styles.buttonWrap } onClick={ handleSceneMenuOpen.bind( this, null ) } >
-                    <button className={ classnames( styles.button, styles.primary, scenesMenuOpened ? null : styles.disabled ) } >
+                    <button className={ classnames( styles.button, styles.primary, openedPanel === 'SceneMenuDropdownPanel' ? null : styles.disabled ) } >
                         <img src="images/webarrow.svg" />
                     </button>
                 </div>
@@ -247,7 +224,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.green ) } />
                 </div>
                 <div className={ styles.buttonWrap  } onClick={ handleRoomMenuOpen.bind( this, null ) } >
-                    <button className={ classnames( styles.button, ( roomsMenuOpened || multiplayerConnected ) ? null : styles.disabled ) } >
+                    <button className={ classnames( styles.button, ( openedPanel === 'RoomMenuDropdownPanel' || multiplayerConnected ) ? null : styles.disabled ) } >
                         <img src="images/wifi.svg" />
                     </button>
                 </div>
@@ -265,7 +242,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
             </div>
 
             {
-                scenesMenuOpened ? (
+                openedPanel === 'SceneMenuDropdownPanel' ? (
                     <div className={ styles.rooms }>
                     {
                         sceneNames.map( ( sceneName, i ) => (
@@ -280,7 +257,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
             }
 
             {
-                roomsMenuOpened ? (
+                openedPanel === 'RoomMenuDropdownPanel' ? (
                     <div className={ styles.rooms } >
                         <div className={ styles.create } >
                             <button className={ styles.button } onClick={ handleRoomCreateBtnClick }>Create room</button>
