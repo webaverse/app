@@ -283,11 +283,23 @@ ioManager.keydown = e => {
     return;
   }
 
+  // HACK: these keybindings control developer avatar animation offset settings in avatars.js
+  /* if (e.which === 74) {
+    window.lol -= 0.01;
+    console.log(window.lol);
+  } else if (e.which === 75) {
+    window.lol += 0.01;
+    console.log(window.lol);
+  } else if (e.which === 78) {
+    window.lol2 += 0.01;
+    console.log(window.lol2);
+  } else if (e.which === 77) {
+    window.lol2 += 0.01;
+    console.log(window.lol2);
+  } */
+
   switch (e.which) {
     case 9: { // tab
-      e.preventDefault();
-      e.stopPropagation();
-      gameManager.dispatchEvent(new CustomEvent('ToggleDioramaPanel'));
       break;
     }
     case 49: // 1
@@ -425,8 +437,6 @@ ioManager.keydown = e => {
       //     game.setBuildMode('wall');
       //     }
       // }
-
-      gameManager.dispatchEvent(new CustomEvent('ToggleWorldPanel'));
       break;
     }
     case 88: { // X

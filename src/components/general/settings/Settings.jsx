@@ -44,7 +44,7 @@ export const Settings = () => {
 
         const handleKeyPress = ( event ) => {
 
-            if ( event.which === 27 && openedPanel === 'SettingsPanel' ) {
+            if ( event.which === 27 && openedPanel === 'SettingsPanel' ) { // esc key
 
                 setOpenedPanel( null );
                 return false;
