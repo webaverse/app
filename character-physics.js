@@ -212,12 +212,13 @@ class CharacterPhysics {
         // localVector.y += this.player.avatar.height;
         // localVector.y += 0.3; // note: value from test.
         // localVector.add(localVector4);
-        localVector.add(vehicle.getWorldDirection(localVector4).multiplyScalar(0.4));
+        // localVector.add(vehicle.getWorldDirection(localVector4).multiplyScalar(0.4));
 
         // vehicle.getWorldDirection(localVector4)
         // localQuaternion2.setFromUnitVectors(new THREE.Vector3(0,0,1), localVector4)
         // localVector5.set(0, 0.3, 0.4).applyQuaternion(localQuaternion2);
-        // localVector.add(localVector5);
+        localVector5.set(0, 0.2, 0.4).applyQuaternion(vehicle.quaternion);
+        localVector.add(localVector5);
 
         // localVector5.set(
         //   0,
@@ -245,6 +246,7 @@ class CharacterPhysics {
       this.player.matrix
         .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
+      console.log('player')
 
       // this.player.updateMatrixWorld();
 

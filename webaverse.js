@@ -360,6 +360,8 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => {
+      console.log('animate')
+      
       // const localPlayerRootBoneRotation = window.localPlayer?.avatar?.model?.children[0]?.children[0]?.rotation
       // const vehicleRotation = window.vehicle?.rotation
       // if (localPlayerRootBoneRotation && vehicleRotation) {

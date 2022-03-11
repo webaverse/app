@@ -3006,6 +3006,8 @@ class Avatar {
       // VisMark
       // this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
       
+      console.log('root bone')
+      // this.modelBoneOutputs.Root.position.copy(window.localPlayer.position)
       this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
         // .sub(localVector.set(0, this.height, 0));
     // }
