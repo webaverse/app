@@ -246,7 +246,7 @@ class CharacterPhysics {
       this.player.matrix
         .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
-      console.log('player')
+      // console.log('player')
 
       // this.player.updateMatrixWorld();
 
