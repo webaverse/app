@@ -68,8 +68,16 @@ export default function Header({ app }) {
 
             if ( event.which === 9 ) { // tab
 
-                event.preventDefault();
-                event.stopPropagation();
+                if ( openedPanel !== 'CharacterPanel' ) {
+
+                    cameraManager.exitPointerLock();
+
+                } else {
+
+                    cameraManager.requestPointerLock();
+
+                }
+
                 setOpenedPanel( openedPanel === 'CharacterPanel' ? '' : 'CharacterPanel' );
                 return false;
 
@@ -81,6 +89,8 @@ export default function Header({ app }) {
                 return false;
 
             }
+
+            return true;
 
         };
 
@@ -114,12 +124,6 @@ export default function Header({ app }) {
     }, []);
 
     useEffect(() => {
-
-        if (chatOpen) {
-
-            cameraManager.exitPointerLock();
-
-        }
 
         if (game.playerDiorama) {
 
