@@ -435,6 +435,7 @@ Seraphim Dust
 The Stacks
 The Heap`;
 
+const border = 2;
 const numChunks = 32;
 const chunkSize = 512;
 const voxelSize = chunkSize / numChunks;
@@ -700,10 +701,11 @@ const generateMap = (x, y) => {
 };
 const renderChunk = (canvas, blocks) => {
   const {ctx} = canvas;
-  ctx.fillStyle = '#111';
+  ctx.fillStyle = '#222';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#111';
+  ctx.fillRect(border, border, canvas.width - 2 * border, canvas.height - 2 * border);
 
-  const border = 2;
   for (let y = 0; y < numChunks; y++) {
     for (let x = 0; x < numChunks; x++) {
       const block = blocks[x + y * numChunks];
