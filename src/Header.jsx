@@ -83,9 +83,9 @@ export default function Header({ app }) {
 
             }
 
-            if ( event.which === 13 ) { // enter
+            if ( event.which === 13 && openedPanel !== 'ChatPanel' ) { // enter
 
-                setOpenedPanel( openedPanel === 'ChatPanel' ? '' : 'ChatPanel' );
+                setOpenedPanel( 'ChatPanel' );
                 return false;
 
             }
