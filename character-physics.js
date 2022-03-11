@@ -195,7 +195,7 @@ class CharacterPhysics {
         // localMatrix.copy(sitPos.matrixWorld)
         //   .decompose(localVector, localQuaternion, localVector2);
 
-        // localPlayer.avatar.object.scene.children[0].children[0].quaternion.copy(localQuaternion);
+        localPlayer.avatar.object.scene.children[0].children[0].quaternion.copy(localQuaternion);
         // localPlayer.avatar.object.scene.children[0].children[0].matrix.copy(vehicle.matrix)
         // localPlayer.avatar.object.scene.children[0].children[0].matrixWorld.copy(vehicle.matrixWorld)
 
