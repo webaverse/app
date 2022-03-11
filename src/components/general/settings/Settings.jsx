@@ -29,7 +29,7 @@ export const Settings = () => {
 
     const handleCloseBtnClick = () => {
 
-        setOpenedPanel( '' );
+        setOpenedPanel( null );
 
     };
 
@@ -46,7 +46,7 @@ export const Settings = () => {
 
             if ( event.which === 27 && openedPanel === 'SettingsPanel' ) {
 
-                setOpenedPanel( '' );
+                setOpenedPanel( null );
                 return false;
 
             }

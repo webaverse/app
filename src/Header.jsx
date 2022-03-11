@@ -113,30 +113,6 @@ export default function Header({ app }) {
 
     }, []);
 
-    // useEffect(() => {
-
-    //     const pointerlockchange = e => {
-
-    //         const {pointerLockElement} = e.data;
-
-    //         if (pointerLockElement && openedPanel !== null) {
-
-    //             setOpenedPanel(null);
-
-    //         }
-
-    //     };
-
-    //     cameraManager.addEventListener('pointerlockchange', pointerlockchange);
-
-    //     return () => {
-
-    //         cameraManager.removeEventListener('pointerlockchange', pointerlockchange);
-
-    //     };
-
-    // }, [ openedPanel ] );
-
     useEffect(() => {
 
         if (chatOpen) {
@@ -194,27 +170,6 @@ export default function Header({ app }) {
         }
 
     }, [selectedApp, panelsRef.current]);
-
-    useEffect( async () => {
-
-        window.addEventListener('click', e => {
-
-            const hoverObject = game.getMouseHoverObject();
-
-            if ( hoverObject ) {
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                const physicsId = game.getMouseHoverPhysicsId();
-                const position = game.getMouseHoverPosition();
-                selectApp( hoverObject, physicsId, position );
-
-            }
-
-        });
-
-    }, []);
 
     useEffect( () => {
 

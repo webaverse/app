@@ -11,6 +11,7 @@ import { AppContext } from '../../app';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../io-handler';
 
 import styles from './world-objects-list.module.css';
+import cameraManager from '../../../../camera-manager.js';
 
 //
 
@@ -128,6 +129,17 @@ export const WorldObjectsList = () => {
                 event.preventDefault();
                 event.stopPropagation();
                 setOpenedPanel( openedPanel === 'WorldPanel' ? '' : 'WorldPanel' );
+
+                if ( openedPanel !== 'WorldPanel' ) {
+
+                    cameraManager.exitPointerLock();
+
+                } else {
+
+                    cameraManager.requestPointerLock();
+
+                }
+
                 return false;
 
             }

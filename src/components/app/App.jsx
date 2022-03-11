@@ -10,8 +10,9 @@ import { parseQuery } from '../../../util.js'
 import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
+import game from '../../../game.js'
 
-import { IoHandler } from '../io-handler';
+import { IoHandler, registerIoEventHandler, unregisterIoEventHandler } from '../io-handler';
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
 import { Settings } from '../general/settings';
@@ -22,6 +23,7 @@ import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 
 import styles from './App.module.css';
+import cameraManager from '../../../camera-manager';
 
 //
 
@@ -69,7 +71,7 @@ export const AppContext = createContext();
 
 export const App = () => {
 
-    const [ openedPanel, setOpenedPanel ] = useState( '' );
+    const [ openedPanel, setOpenedPanel ] = useState( null );
 
     const canvasRef = useRef( null );
     const [ app, setApp ] = useState( () => new Webaverse() );
@@ -87,6 +89,61 @@ export const App = () => {
         setSelectedRoom( roomName );
 
     };
+
+    useEffect( () => {
+
+        const handleClick = ( event ) => {
+
+            const hoverObject = game.getMouseHoverObject();
+
+            if ( hoverObject ) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                const physicsId = game.getMouseHoverPhysicsId();
+                const position = game.getMouseHoverPosition();
+                selectApp( hoverObject, physicsId, position );
+
+            }
+
+            setOpenedPanel( null );
+
+        };
+
+        registerIoEventHandler( 'click', handleClick );
+
+        return () => {
+
+            unregisterIoEventHandler( 'click', handleClick );
+
+        };
+
+    }, []);
+
+    useEffect( () => {
+
+        const pointerlockchange = ( event ) => {
+
+            const { pointerLockElement } = event.data;
+
+            if ( pointerLockElement && openedPanel !== null ) {
+
+                setOpenedPanel( null );
+
+            }
+
+        };
+
+        cameraManager.addEventListener( 'pointerlockchange', pointerlockchange );
+
+        return () => {
+
+            cameraManager.removeEventListener( 'pointerlockchange', pointerlockchange );
+
+        };
+
+    }, [ openedPanel ] );
 
     useEffect( () => {
 
