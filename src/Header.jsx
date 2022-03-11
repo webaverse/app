@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
 
 import Inspector from './Inspector.jsx';
@@ -11,11 +11,12 @@ import game from '../game.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
-import gameManager from '../game.js';
 import User from './User';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {Tokens} from './tabs/tokens';
+import { AppContext } from './components/app';
+import { registerIoEventHandler, unregisterIoEventHandler } from './components/io-handler';
 
 import styles from './Header.module.css';
 
@@ -23,13 +24,14 @@ import styles from './Header.module.css';
 
 export default function Header({ app }) {
 
+    const { openedPanel, setOpenedPanel } = useContext( AppContext );
+
     const localPlayer = metaversefile.useLocalPlayer();
     const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
 
     const dioramaCanvasRef = useRef();
     const panelsRef = useRef();
 
-    const [open, setOpen] = useState(null);
     const [selectedApp, setSelectedApp] = useState(null);
     const [address, setAddress] = useState(false);
     const [nfts, setNfts] = useState(null);
@@ -40,12 +42,13 @@ export default function Header({ app }) {
 
     const [wearActions, setWearActions] = useState(_getWearActions());
 
-    const userOpen = open === 'user';
-    const characterOpen = open === 'character';
-    const magicMenuOpen = open === 'magicMenu';
+    const userOpen = openedPanel === 'user';
+    const chatOpen = openedPanel === 'ChatPanel';
+    const characterOpen = openedPanel === 'CharacterPanel';
+    const magicMenuOpen = openedPanel === 'magicMenu';
 
     const toggleOpen = newOpen => {
-        setOpen(newOpen === open ? null : newOpen);
+        setOpenedPanel(newOpen === openedPanel ? null : newOpen);
     };
 
     useEffect(() => {
@@ -61,37 +64,35 @@ export default function Header({ app }) {
 
     useEffect( () => {
 
-        const toggleDiorama = () => {
+        const handleKeyPress = ( event ) => {
 
-            setOpen( characterOpen ? '' : 'character' );
+            if ( event.which === 9 ) { // tab
+
+                event.preventDefault();
+                event.stopPropagation();
+                setOpenedPanel( openedPanel === 'CharacterPanel' ? '' : 'CharacterPanel' );
+                return false;
+
+            }
+
+            if ( event.which === 13 ) { // enter
+
+                setOpenedPanel( openedPanel === 'ChatPanel' ? '' : 'ChatPanel' );
+                return false;
+
+            }
 
         };
 
-        const close = () => {
-
-            setOpen('');
-
-        };
-
-        if ( open ) {
-
-            gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
-
-        }
-
-        gameManager.addEventListener( 'CloseAllPanels', close );
-        gameManager.addEventListener( 'ToggleDioramaPanel', toggleDiorama );
-
-        //
+        registerIoEventHandler( 'keyup', handleKeyPress );
 
         return () => {
 
-            gameManager.removeEventListener( 'CloseAllPanels', close );
-            gameManager.removeEventListener( 'ToggleDioramaPanel', toggleDiorama );
+            unregisterIoEventHandler( 'keyup', handleKeyPress );
 
         };
 
-    }, [ open ] );
+    }, [ openedPanel ] );
 
     useEffect(() => {
 
@@ -112,33 +113,33 @@ export default function Header({ app }) {
 
     }, []);
 
+    // useEffect(() => {
+
+    //     const pointerlockchange = e => {
+
+    //         const {pointerLockElement} = e.data;
+
+    //         if (pointerLockElement && openedPanel !== null) {
+
+    //             setOpenedPanel(null);
+
+    //         }
+
+    //     };
+
+    //     cameraManager.addEventListener('pointerlockchange', pointerlockchange);
+
+    //     return () => {
+
+    //         cameraManager.removeEventListener('pointerlockchange', pointerlockchange);
+
+    //     };
+
+    // }, [ openedPanel ] );
+
     useEffect(() => {
 
-        const pointerlockchange = e => {
-
-            const {pointerLockElement} = e.data;
-
-            if (pointerLockElement && open !== null) {
-
-                setOpen(null);
-
-            }
-
-        };
-
-        cameraManager.addEventListener('pointerlockchange', pointerlockchange);
-
-        return () => {
-
-            cameraManager.removeEventListener('pointerlockchange', pointerlockchange);
-
-        };
-
-    }, [open]);
-
-    useEffect(() => {
-
-        if (open && open !== 'chat') {
+        if (chatOpen) {
 
             cameraManager.exitPointerLock();
 
@@ -150,7 +151,7 @@ export default function Header({ app }) {
 
         }
 
-    }, [open]);
+    }, [ openedPanel ]);
 
     useEffect(() => {
 
@@ -263,10 +264,10 @@ export default function Header({ app }) {
 
 	return (
         <div className={styles.container} onClick={e => { e.stopPropagation(); }}>
-        <Inspector open={open} setOpen={setOpen} selectedApp={selectedApp} dragging={dragging} />
-        <Chat open={open} setOpen={setOpen} />
+        <Inspector open={ openedPanel } setOpen={ setOpenedPanel } selectedApp={selectedApp} dragging={dragging} />
+        <Chat open={ openedPanel } setOpen={ setOpenedPanel } />
         <CharacterHups localPlayer={localPlayer} npcs={npcs} />
-        <MagicMenu open={open} setOpen={setOpen} />
+        <MagicMenu open={ openedPanel } setOpen={ setOpenedPanel } />
         <div className={styles.inner}>
             <header className={styles.header}>
                 <div className={styles.row}>
@@ -276,8 +277,8 @@ export default function Header({ app }) {
                     <User
                         address={address}
                         setAddress={setAddress}
-                        open={open}
-                        setOpen={setOpen}
+                        open={ openedPanel }
+                        setOpen={ setOpenedPanel }
                         toggleOpen={toggleOpen}
                         setLoginFrom={setLoginFrom}
                     />
@@ -286,8 +287,8 @@ export default function Header({ app }) {
                 <header className={classnames(styles.header, styles.subheader)}>
                     <div className={styles.row}>
                         <Character
-                            open={open}
-                            setOpen={setOpen}
+                            open={ openedPanel }
+                            setOpen={ setOpenedPanel }
                             toggleOpen={toggleOpen}
                             panelsRef={panelsRef}
                             wearActions={wearActions}
@@ -296,7 +297,7 @@ export default function Header({ app }) {
                         />
                         <Claims
                             claims={claims}
-                            open={open}
+                            open={ openedPanel }
                             toggleOpen={toggleOpen}
                             panelsRef={panelsRef}
                         />

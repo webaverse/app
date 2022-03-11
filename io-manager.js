@@ -571,7 +571,6 @@ ioManager.keydown = e => {
       break;
     }
     case 27: { // esc
-      gameManager.dispatchEvent(new CustomEvent('CloseAllPanels'));
       game.setContextMenu(false);
       break;
     }
@@ -791,7 +790,6 @@ ioManager.click = e => {
   if (cameraManager.pointerLockElement) {
     game.menuClick();
   } else {
-    gameManager.dispatchEvent(new CustomEvent('CloseAllPanels'));
     // game.setContextMenu(false);
 
     if (!game.hoverEnabled) {
