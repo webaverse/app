@@ -809,24 +809,40 @@ export const MapGen = ({
       if (canvas && open) {
         const ctx = canvas.getContext('2d');
 
-        const ix = Math.floor(-offset.x / chunkSize);
-        const iy = Math.floor(-offset.y / chunkSize);
+        const chunks = [];
+        for (let y = -height/2 - chunkSize; y < height/2 + chunkSize; y += chunkSize) {
+          for (let x = -width/2 - chunkSize; x < width/2 + chunkSize; x += chunkSize) {
+            const ix = Math.round((x - offset.x) / chunkSize);
+            const iy = Math.round((y - offset.y) / chunkSize);
 
-        const key = `${ix}:${iy}`;
-        let chunk = chunkCache.get(key);
-        if (!chunk) {
-          chunk = new Chunk(ix, iy);
-          chunkCache.set(key, chunk);
+            const key = `${ix}:${iy}`;
+            let chunk = chunkCache.get(key);
+            if (!chunk) {
+              chunk = new Chunk(ix, iy);
+              chunkCache.set(key, chunk);
+            }
+            chunks.push(chunk);
+          }
         }
 
-        const chunks = [chunk];
-
         function renderChunk(canvas, chunk) {
-          ctx.drawImage(
-            chunk.imageBitmap,
-            offset.x + chunk.x * chunkSize,
-            offset.y + chunk.y * chunkSize,
-          );
+          const dx = width/2 - chunkSize/2 + offset.x + chunk.x * chunkSize;
+          const dy = height/2 - chunkSize/2 + offset.y + chunk.y * chunkSize;
+          if (chunk.x === 0 && chunk.y === 0) {
+            ctx.fillStyle = '#F00';
+            ctx.fillRect(
+              dx,
+              dy,
+              chunkSize,
+              chunkSize,
+            );
+          } else {
+            ctx.drawImage(
+              chunk.imageBitmap,
+              dx,
+              dy,
+            );
+          }
         }
 
         let live = true;
@@ -848,9 +864,9 @@ export const MapGen = ({
             if (chunk.readyState !== 'done') {
               await chunk.waitForLoad();
               if (!live) return;
-
-              renderChunk(canvas, chunk);
             }
+
+            renderChunk(canvas, chunk);
           }
         })();
 
