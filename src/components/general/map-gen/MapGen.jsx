@@ -826,23 +826,14 @@ export const MapGen = ({
         }
 
         function renderChunk(canvas, chunk) {
-          const dx = width/2 - chunkSize/2 + offset.x + chunk.x * chunkSize;
-          const dy = height/2 - chunkSize/2 + offset.y + chunk.y * chunkSize;
-          if (chunk.x === 0 && chunk.y === 0) {
-            ctx.fillStyle = '#F00';
-            ctx.fillRect(
-              dx,
-              dy,
-              chunkSize,
-              chunkSize,
-            );
-          } else {
-            ctx.drawImage(
-              chunk.imageBitmap,
-              dx,
-              dy,
-            );
-          }
+          const dx = width/2 - chunkSize/2 + chunk.x * chunkSize + offset.x;
+          const dy = height/2 - chunkSize/2 + chunk.y * chunkSize + offset.y;
+          
+          ctx.drawImage(
+            chunk.imageBitmap,
+            dx,
+            dy,
+          );
         }
 
         let live = true;
