@@ -160,12 +160,12 @@ const animationsIdleArrays = {
 
 const cubicBezier = easing(0, 1, 0, 1);
 
-const _clearXZ = (dst, isPosition) => {
-  if (isPosition) {
-    dst.x = 0;
-    dst.z = 0;
-  }
-};
+// const _clearXZ = (dst, isPosition) => {
+//   if (isPosition) {
+//     dst.x = 0;
+//     dst.z = 0;
+//   }
+// };
 
 const _normalizeAnimationDurations = (animations, baseAnimation, factor = 1) => {
   for (let i = 1; i < animations.length; i++) {
@@ -828,7 +828,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         dst.fromArray(v2);
 
-        _clearXZ(dst, isPosition);
+        // _clearXZ(dst, isPosition);
       };
     }
 
@@ -858,7 +858,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             f,
           );
 
-        _clearXZ(dst, isPosition);
+        // _clearXZ(dst, isPosition);
       };
     }
 
@@ -949,7 +949,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localVector2.fromArray(v2);
-            _clearXZ(localVector2, isPosition);
+            // _clearXZ(localVector2, isPosition);
 
             const idleAnimation = _getIdleAnimation('walk');
             const t3 = 0;
