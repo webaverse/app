@@ -500,6 +500,13 @@ class Block extends THREE.Vector3 {
     path: '#666',
     default: '#000',
   };
+  /* static INDEX_COLOR_MAP = (() => {
+    let map = {};
+    for (let key in Block.COLORS) {
+      map[Block.TYPE_INDICES[key]] = Block.COLORS[key];
+    }
+    return map;
+  })(); */
   getType() {
     if (this.exitTarget) {
       return 'exit';
@@ -818,11 +825,29 @@ const vertexShader = `\
   }
 `;
 const fragmentShader = `\
+  uniform float iTime;
   uniform sampler2D map;
+  uniform vec2 chunkCoords;
   varying vec2 vUv;
 
+  const vec3 color1 = vec3(${new THREE.Color(0x66bb6a).toArray().join(', ')});
+  const vec3 color2 = vec3(${new THREE.Color(0x9ccc65).toArray().join(', ')});
+  const vec3 color3 = vec3(${new THREE.Color(0xd4e157).toArray().join(', ')});
+  const vec3 color4 = vec3(${new THREE.Color(0x9ccc65).toArray().join(', ')});
+
   void main() {
-    gl_FragColor = texture2D(map, vUv) * 50.;
+    vec3 c;
+    float r = texture2D(map, vUv).r;
+    if (r == ${Block.TYPE_INDICES.exit.toFixed(8)}) {
+      c = vec3(${new THREE.Color(Block.COLORS.exit).toArray().map(n => n.toFixed(8)).join(', ')});
+    } else if (r == ${Block.TYPE_INDICES.center.toFixed(8)}) {
+      c = vec3(${new THREE.Color(Block.COLORS.center).toArray().map(n => n.toFixed(8)).join(', ')});
+    } else if (r == ${Block.TYPE_INDICES.spline.toFixed(8)}) {
+      c = vec3(${new THREE.Color(Block.COLORS.spline).toArray().map(n => n.toFixed(8)).join(', ')});
+    } else if (r == ${Block.TYPE_INDICES.path.toFixed(8)}) {
+      c = vec3(${new THREE.Color(Block.COLORS.path).toArray().map(n => n.toFixed(8)).join(', ')});
+    }
+    gl_FragColor.rgb = c;
     
     // voxel border
     vec2 voxelUv = mod(vUv * ${numBlocks.toFixed(8)}, 1.);
@@ -835,7 +860,7 @@ const fragmentShader = `\
     }
 
     // chunk border
-    const float limit2 = limit/${numBlocks.toFixed(8)};
+    float limit2 = limit/${numBlocks.toFixed(8)};
     if (
       vUv.x <= limit2 || vUv.x >= (1. - limit2) ||
       vUv.y <= limit2 || vUv.y >= (1. - limit2)
@@ -845,6 +870,14 @@ const fragmentShader = `\
     
     gl_FragColor.gb += vUv * 0.2;
     
+    if (chunkCoords.x == 0. && chunkCoords.y == 0.) {
+      gl_FragColor.rgb = mix(
+        mix(color1, color2, vUv.x),
+        mix(color3, color4, vUv.x),
+        vUv.y
+      );
+    }
+
     gl_FragColor.a = 1.;
   }
 `;
@@ -867,8 +900,16 @@ const _makeChunkMesh = (x, y) => {
     vertexShader,
     fragmentShader,
     uniforms: {
+      iTime: {
+        value: 0,
+        needsUpdate: false,
+      },
       map: {
         value: dataTexture,
+        needsUpdate: true,
+      },
+      chunkCoords: {
+        value: new THREE.Vector2(x, y),
         needsUpdate: true,
       },
     },
