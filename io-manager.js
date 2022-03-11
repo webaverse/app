@@ -300,6 +300,8 @@ ioManager.keydown = e => {
 
   switch (e.which) {
     case 9: { // tab
+        e.preventDefault();
+        e.stopPropagation();
       break;
     }
     case 49: // 1
