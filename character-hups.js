@@ -3,7 +3,7 @@ it controls the animated dioramas that happen when players perform actions.
 the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
-import metaversefile from 'metaversefile';
+// import metaversefile from 'metaversefile';
 import {VoicePack, VoicePackVoicer} from './voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-endpoint-voicer.js';
 import {chatManager} from './chat-manager.js';
@@ -180,6 +180,8 @@ class CharacterHups extends EventTarget {
       this.voicer = new VoicePackVoicer(syllableFiles, audioBuffer, this.player);
     } else if (voice instanceof VoiceEndpoint) {
       this.voicer = new VoiceEndpointVoicer(voice, this.player);
+    } else if (voice === null) {
+      this.voicer = null;
     } else {
       throw new Error('invalid voice');
     }
@@ -188,12 +190,6 @@ class CharacterHups extends EventTarget {
     this.player.addAction({
       type: 'chat',
       text,
-    });
-  }
-  addEmoteHupAction(emote) {
-    this.player.addAction({
-      type: 'emote',
-      emote,
     });
   }
   update(timestamp) {

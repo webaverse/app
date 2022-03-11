@@ -84,19 +84,18 @@ export const avatarInterpolationNumFrames = 4;
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
 
-export const defaultVoicePack = {
-  name: `ShiShi voice pack`,
-  audioUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3`,
-  indexUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json`,
-};
+export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
+
 export const voiceEndpoint = `https://voice.webaverse.com/tts`;
-export const defaultVoice = `1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO`; // Sweetie Belle
+export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
+// ['Sweetie Belle', 'Trixie', 'Shining Armor', 'Maud Pie', 'Rapunzel']
 
 export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
 export const chatTextSpeed = 20;
 export const shakeAnimationSpeed = 30;
 
 export const hotbarSize = 60;
+export const infoboxSize = 100;
 
 export const defaultDioramaSize = 512;
 export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';

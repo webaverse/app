@@ -38,8 +38,10 @@ const _makeSpritesheetRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h,
   minFilter: THREE.LinearFilter,
   magFilter: THREE.LinearFilter,
   format: THREE.RGBAFormat,
+  wrapS: THREE.ClampToEdgeWrapping,
+  wrapT: THREE.ClampToEdgeWrapping,
 });
-const createObjectSprite = async (app, {
+const createObjectSprite = (app, {
   // canvas,
   size = defaultSize,
   numFrames = defaultNumFrames,
@@ -91,7 +93,7 @@ const createObjectSprite = async (app, {
       if (physicsObjects.length > 0) {
         const physicsObject = physicsObjects[0];
         const {physicsMesh} = physicsObject;
-        fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1);
+        fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1.2);
       } else {
         sideCamera.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(

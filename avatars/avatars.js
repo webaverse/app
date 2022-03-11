@@ -26,7 +26,6 @@ import {
 import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
-import game from '../game.js';
 import {
   idleFactorSpeed,
   walkFactorSpeed,
@@ -156,7 +155,7 @@ const getClosest2AnimationAngles = (key, angle) => {
 
 const upVector = new THREE.Vector3(0, 1, 0);
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
-const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
+// const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const cubicBezier = easing(0, 1, 0, 1);
@@ -167,8 +166,9 @@ const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
 const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
-const defaultchargeJumpAnimation = 'chargeJump';
-const defaultStandChargeAnimation = 'standCharge';
+// const defaultchargeJumpAnimation = 'chargeJump';
+// const defaultStandChargeAnimation = 'standCharge';
+// const defaultHurtAnimation = 'pain_back';
 
 const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 // const crouchMagnitude = 0.2;
@@ -298,9 +298,10 @@ let narutoRunAnimations;
 // let jumpAnimationSegments;
 // let chargeJump;
 // let standCharge;
-let fallLoop;
+// let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
+let hurtAnimations;
 const loadPromise = (async () => {
   await Promise.resolve(); // wait for metaversefile to be defined
   
@@ -429,7 +430,7 @@ const loadPromise = (async () => {
 
   // chargeJump = animations.find(a => a.isChargeJump);
   // standCharge = animations.find(a => a.isStandCharge);
-  fallLoop = animations.find(a => a.isFallLoop);
+  // fallLoop = animations.find(a => a.isFallLoop);
   // swordSideSlash = animations.find(a => a.isSwordSideSlash);
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
@@ -495,6 +496,10 @@ const loadPromise = (async () => {
   };
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
+  };
+  hurtAnimations = {
+    pain_back: animations.index['pain_back.fbx'],
+    pain_arch: animations.index['pain_arch.fbx'],
   };
   {
     const down10QuaternionArray = new THREE.Quaternion()
@@ -1270,62 +1275,14 @@ class Avatar {
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
 
-    this.springBoneManager = null;
-    this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
-      const timeDiffS = timeDiff / 1000;
-      this.springBoneManager.lateUpdate(timeDiffS);
-    }, avatarInterpolationFrameRate);
-    let springBoneManagerPromise = null;
     if (options.hair) {
-      new Promise((accept, reject) => {
-        /* if (!object.parser.json.extensions) {
-          object.parser.json.extensions = {};
-        }
-        if (!object.parser.json.extensions.VRM) {
-          object.parser.json.extensions.VRM = {
-            secondaryAnimation: {
-              boneGroups: this.hairBones.map(hairBone => {
-                const boneIndices = [];
-                const _recurse = bone => {
-                  boneIndices.push(this.allHairBones.indexOf(bone));
-                  if (bone.children.length > 0) {
-                    _recurse(bone.children[0]);
-                  }
-                };
-                _recurse(hairBone);
-                return {
-                  comment: hairBone.name,
-                  stiffiness: 0.5,
-                  gravityPower: 0.2,
-                  gravityDir: {
-                    x: 0,
-                    y: -1,
-                    z: 0
-                  },
-                  dragForce: 0.3,
-                  center: -1,
-                  hitRadius: 0.02,
-                  bones: boneIndices,
-                  colliderGroups: [],
-                };
-              }),
-            },
-          };
-          object.parser.getDependency = async (type, nodeIndex) => {
-            if (type === 'node') {
-              return this.allHairBones[nodeIndex];
-            } else {
-              throw new Error('unsupported type');
-            }
-          };
-        } */
-
-        springBoneManagerPromise = new VRMSpringBoneImporter().import(object)
-          .then(springBoneManager => {
-            this.springBoneManager = springBoneManager;
-          });
-      });
+      this.springBoneManager = new VRMSpringBoneImporter().import(object);
     }
+    this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
+      // console.log('update hairs', new Error().stack);
+      const timeDiffS = timeDiff / 1000;
+      this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
+    }, avatarInterpolationFrameRate);
 
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
@@ -1630,17 +1587,6 @@ class Avatar {
       this.setBottomEnabled(!!options.bottom);
     }
 
-    /* this.decapitated = false;
-    if (options.decapitate) {
-      if (springBoneManagerPromise) {
-        springBoneManagerPromise.then(() => {
-          this.decapitate();
-        });
-      } else {
-        this.decapitate();
-      }
-    } */
-
     this.animationMappings = animationMappingConfig.map(animationMapping => {
       animationMapping = animationMapping.clone();
       const isPosition = /\.position$/.test(animationMapping.animationTrackName);
@@ -1696,7 +1642,9 @@ class Avatar {
     this.aimTime = NaN;
     this.aimAnimation = null;
     // this.aimDirection = new THREE.Vector3();
-    
+    this.hurtTime = NaN;
+    this.hurtAnimation = null;
+
     // internal state
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
@@ -1943,10 +1891,13 @@ class Avatar {
       const modelBoneOutput = modelBoneOutputs[k];
 
       modelBone.position.copy(modelBoneOutput.position);
-      modelBone.quaternion.multiplyQuaternions(
-        modelBoneOutput.quaternion,
-        modelBone.initialQuaternion
-      );
+      // VisMark
+      if(modelBone.name !== 'Root') {
+        modelBone.quaternion.multiplyQuaternions(
+          modelBoneOutput.quaternion,
+          modelBone.initialQuaternion
+        );
+      }
 
       // if (topEnabled) {
         if (k === 'Left_wrist') {
@@ -2611,7 +2562,7 @@ class Avatar {
           };
         }
 
-        if (this.fallLoopState) {
+        /* if (this.fallLoopState) {
           return spec => {
             const {
               animationTrackName: k,
@@ -2625,7 +2576,7 @@ class Avatar {
 
             dst.fromArray(v2);
           };
-        }
+        } */
         if (
           this.useAnimation ||
           this.useAnimationCombo.length > 0 ||
@@ -2710,6 +2661,48 @@ class Avatar {
                   .sub(localVector3)
                   .add(localVector2);
               }
+            }
+          };
+        } else if (this.hurtAnimation) {
+          return spec => {
+            const {
+              animationTrackName: k,
+              dst,
+              // isTop,
+              isPosition,
+            } = spec;
+            
+            const hurtAnimation = (this.hurtAnimation && hurtAnimations[this.hurtAnimation]);
+            _handleDefault(spec);
+            const hurtTimeS = this.hurtTime/1000;
+            const t2 = Math.min(hurtTimeS, hurtAnimation.duration);
+            // console.log('hurtAnimation', this.hurtAnimation, this.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
+            if (!isPosition) {
+              if (hurtAnimation) {
+                const src2 = hurtAnimation.interpolants[k];
+                const v2 = src2.evaluate(t2);
+
+                const idleAnimation = _getIdleAnimation('walk');
+                const t3 = 0;
+                const src3 = idleAnimation.interpolants[k];
+                const v3 = src3.evaluate(t3);
+                
+                dst
+                  .premultiply(localQuaternion2.fromArray(v3).invert())
+                  .premultiply(localQuaternion2.fromArray(v2));
+              }
+            } else {
+              const src2 = hurtAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+
+              dst
+                .sub(localVector2.fromArray(v3))
+                .add(localVector2.fromArray(v2));
             }
           };
         } else if (this.aimAnimation) {
@@ -2854,7 +2847,7 @@ class Avatar {
           
             const localPlayer = metaversefile.useLocalPlayer();
 
-            let defaultAnimation = "grab_forward";
+            let defaultAnimation = 'grab_forward';
 
             if (localPlayer.getAction('activate').animationName) {
               defaultAnimation = localPlayer.getAction('activate').animationName;
@@ -2997,14 +2990,26 @@ class Avatar {
       }
     }
     // if (!this.getBottomEnabled()) {
+      // console.log(
+      //   (this.inputs.hmd.quaternion.x).toFixed(1) + '_' +
+      //   (this.inputs.hmd.quaternion.y).toFixed(1) + '_' +
+      //   (this.inputs.hmd.quaternion.z).toFixed(1) + '_' +
+      //   (this.inputs.hmd.quaternion.w).toFixed(1)
+      // )
       localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
-      this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
+      // const aaa = new THREE.Vector3(0,0,-1);
+      // aaa.applyEuler(localEuler);
+      // console.log(aaa.x, aaa.y, aaa.z);
+      // VisMark
+      // this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
       
+      console.log('root bone')
+      // this.modelBoneOutputs.Root.position.copy(window.localPlayer.position)
       this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
-        .sub(localVector.set(0, this.height, 0));
+        // .sub(localVector.set(0, this.height, 0));
     // }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
       this.modelBoneOutputs.Hips.updateMatrixWorld();
@@ -3171,6 +3176,7 @@ class Avatar {
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
     
+    // VisMark
     Avatar.applyModelBoneOutputs(
       this.foundModelBones,
       this.modelBoneOutputs,
@@ -3181,12 +3187,7 @@ class Avatar {
     );
     // this.modelBones.Root.updateMatrixWorld();
 
-    if (this.springBoneManager) {
-      this.springBoneTimeStep.update(timeDiff);
-    }
-    /* if (this.springBoneManager && wasDecapitated) {
-      this.decapitate();
-    } */
+    this.springBoneTimeStep.update(timeDiff);
 
     // XXX hook these up
     this.nodder.update(now);
@@ -3321,14 +3322,16 @@ class Avatar {
     };
     _updateSubAvatars();
 
-    if (game.debugMode && !this.debugMesh) {
+    if (metaversefile.isDebugMode() && !this.debugMesh) {
       this.debugMesh = _makeDebugMesh();
       this.debugMesh.wrapToAvatar(this);
       this.model.add(this.debugMesh);
     }
     if (this.debugMesh) {
-      game.debugMode && this.debugMesh.setFromAvatar(this);
-      this.debugMesh.visible = game.debugMode;
+      if (metaversefile.isDebugMode()) {
+        this.debugMesh.setFromAvatar(this);
+      }
+      this.debugMesh.visible = metaversefile.isDebugMode();
     }
 	}
 

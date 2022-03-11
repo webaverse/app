@@ -12,7 +12,9 @@ const identityQuaternion = new THREE.Quaternion();
 
 let kiGlbApp = null;
 const loadPromise = (async () => {
-  kiGlbApp = await metaversefile.load(baseUrl + 'ki.glb');
+  kiGlbApp = await metaversefile.createAppAsync({
+    start_url: baseUrl + 'ki.glb',
+  });
 })();
 
 const color1 = new THREE.Color(0x59C173);

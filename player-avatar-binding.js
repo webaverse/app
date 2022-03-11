@@ -84,8 +84,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   // const standCharge = player.getAction('standCharge');
   // const standChargeAnimation = standCharge ? standCharge.animation : '';
-  const fallLoop = player.getAction('fallLoop');
-  const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
+  // const fallLoop = player.getAction('fallLoop');
+  // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
+  const hurtAction = player.getAction('hurt');
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
@@ -151,30 +152,42 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.standChargeTime = player.actionInterpolants.standCharge.get();
   // rig.standChargeAnimation = standChargeAnimation;
   // rig.standChargeState = !!standCharge;
-  rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
-  rig.fallLoopAnimation = fallLoopAnimation;
-  rig.fallLoopState = !!fallLoop;
+  // rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
+  // rig.fallLoopAnimation = fallLoopAnimation;
+  // rig.fallLoopState = !!fallLoop;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
   // rig.swordSideSlashAnimation = swordSideSlashAnimation;
   // rig.swordSideSlashState = !!swordSideSlash;
   // rig.swordTopDownSlashTime = player.actionInterpolants.swordTopDownSlash.get();
   // rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
+  rig.hurtAnimation = (hurtAction?.animation) || '';
+  rig.hurtTime = player.actionInterpolants.hurt.get();
 
   // emote
   if (emoteAction) {
-    const {index} = emoteAction;
-    if (!(player.avatar.emotes.length === 1 && player.avatar.emotes[0].index === index)) {
-      player.avatar.emotes.length = 0;
-
-      const newEmote = {
-        index,
-        value: 1,
-      };
-      player.avatar.emotes.push(newEmote);
+    const {index, emotion} = emoteAction;
+    if (index !== undefined) {
+      if (!player.avatar.emotes.some(e => e.index === index)) {
+        const newEmote = {
+          index,
+          value: 1,
+        };
+        player.avatar.emotes.push(newEmote);
+      }
+    } else if (emotion !== undefined) {
+      if (!player.avatar.emotes.some(e => e.emotion === emotion)) {
+        const newEmote = {
+          emotion,
+          value: 1,
+        };
+        player.avatar.emotes.push(newEmote);
+      }
     }
   } else {
-    player.avatar.emotes.length = 0;
+    if (player.avatar.emotes.length > 0) {
+      player.avatar.emotes.length = 0;
+    }
   }
 
   // pose
@@ -217,48 +230,50 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
   }
 }
 export function applyPlayerChatToAvatar(player, rig) {
-  const localPlayerChatActions = Array.from(player.getActions()).filter(action => action.type === 'chat');
-  const lastMessage = localPlayerChatActions.length > 0 ? localPlayerChatActions[localPlayerChatActions.length - 1] : null;
-  const _applyChatEmote = message => {
-    const localPlayerEmotion = message?.emotion;
-    if (localPlayerEmotion) {
-      // ensure new emotion and no others
-      let found = false;
-      for (let i = 0; i < rig.emotes.length; i++) {
-        const emote = rig.emotes[i];
-        if (emote.emotion) {
-          if (emote.emotion === localPlayerEmotion) {
-            found = true;
-          } else {
+  const actions = player.getActionsArray();
+  for (let i = actions.length - 1; i >= 0; i--) {
+    const action = actions[i];
+    if (action.type === 'chat') {
+      const {emotion} = action;
+      if (emotion) {
+        // ensure new emotion and no others
+        let found = false;
+        for (let i = 0; i < rig.emotes.length; i++) {
+          const emote = rig.emotes[i];
+          if (emote.emotion) {
+            if (emote.emotion === emotion) {
+              found = true;
+            } else {
+              rig.emotes.splice(i, 1);
+              i--;
+            }
+          }
+        }
+        if (!found) {
+          const emote = {
+            emotion,
+            value: 1,
+          };
+          rig.emotes.push(emote);
+        }
+      } else {
+        // ensure no emotions
+        for (let i = 0; i < rig.emotes.length; i++) {
+          const emote = rig.emotes[i];
+          if (emote.emotion) {
             rig.emotes.splice(i, 1);
             i--;
           }
         }
       }
-      if (!found) {
-        const emote = {
-          emotion: localPlayerEmotion,
-          value: 1,
-        };
-        rig.emotes.push(emote);
-      }
-    } else {
-      // ensure no emotions
-      for (let i = 0; i < rig.emotes.length; i++) {
-        const emote = rig.emotes[i];
-        if (emote.emotion) {
-          rig.emotes.splice(i, 1);
-          i--;
-        }
-      }
+      break;
     }
-  };
-  _applyChatEmote(lastMessage);
+  }
   
-  const _applyFakeSpeech = message => {
+  /* const _applyFakeSpeech = message => {
     rig.fakeSpeechValue = message?.fakeSpeech ? 1 : 0;
   };
-  _applyFakeSpeech(lastMessage);
+  _applyFakeSpeech(lastMessage); */
 }
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
@@ -279,8 +294,6 @@ export async function switchAvatar(oldAvatar, newApp) {
   if (newApp) {
     promises.push((async () => {
       await newApp.setSkinning(true);
-      
-      // unwear old rig
       
       if (!newApp[avatarSymbol]) {
         newApp[avatarSymbol] = makeAvatar(newApp);
