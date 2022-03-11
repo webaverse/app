@@ -360,25 +360,25 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
 
     const animate = (timestamp, frame) => {
-      const localPlayerRootBoneRotation = window.localPlayer?.avatar?.model?.children[0]?.children[0]?.rotation
-      const vehicleRotation = window.vehicle?.rotation
-      if (localPlayerRootBoneRotation && vehicleRotation) {
-        console.log(
-          localPlayerRootBoneRotation.x.toFixed(2),
-          localPlayerRootBoneRotation.y.toFixed(2),
-          localPlayerRootBoneRotation.z.toFixed(2)
-        )
-        console.log(
-          vehicleRotation.x.toFixed(2),
-          vehicleRotation.y.toFixed(2),
-          vehicleRotation.z.toFixed(2)
-        )
-        console.log(
-          localPlayerRootBoneRotation.x === vehicleRotation.x,
-          localPlayerRootBoneRotation.y === vehicleRotation.y,
-          localPlayerRootBoneRotation.z === vehicleRotation.z,
-        )
-      }
+      // const localPlayerRootBoneRotation = window.localPlayer?.avatar?.model?.children[0]?.children[0]?.rotation
+      // const vehicleRotation = window.vehicle?.rotation
+      // if (localPlayerRootBoneRotation && vehicleRotation) {
+      //   console.log(
+      //     localPlayerRootBoneRotation.x.toFixed(2),
+      //     localPlayerRootBoneRotation.y.toFixed(2),
+      //     localPlayerRootBoneRotation.z.toFixed(2)
+      //   )
+      //   console.log(
+      //     vehicleRotation.x.toFixed(2),
+      //     vehicleRotation.y.toFixed(2),
+      //     vehicleRotation.z.toFixed(2)
+      //   )
+      //   console.log(
+      //     localPlayerRootBoneRotation.x === vehicleRotation.x,
+      //     localPlayerRootBoneRotation.y === vehicleRotation.y,
+      //     localPlayerRootBoneRotation.z === vehicleRotation.z,
+      //   )
+      // }
 
       timestamp = timestamp ?? performance.now();
       const timeDiff = timestamp - lastTimestamp;

@@ -156,6 +156,7 @@ class CharacterPhysics {
             _ensureNoJumpAction();
           }
         }
+        localMatrix.compose(localVector, localQuaternion, localVector2);
       } else {
         debugger
         //Outdated vehicle code
@@ -191,8 +192,12 @@ class CharacterPhysics {
         // }
         // controlledApp.updateMatrixWorld();
 
-        localMatrix.copy(sitPos.matrixWorld)
-          .decompose(localVector, localQuaternion, localVector2);
+        // localMatrix.copy(sitPos.matrixWorld)
+        //   .decompose(localVector, localQuaternion, localVector2);
+
+        // localPlayer.avatar.object.scene.children[0].children[0].quaternion.copy(localQuaternion);
+        // localPlayer.avatar.object.scene.children[0].children[0].matrix.copy(vehicle.matrix)
+        // localPlayer.avatar.object.scene.children[0].children[0].matrixWorld.copy(vehicle.matrixWorld)
 
         // localVector.add(this.sitOffset);
         // localVector.y += this.player.avatar.height * 0.5;
@@ -200,6 +205,7 @@ class CharacterPhysics {
         // physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
         // localVector.y += this.player.avatar.height * 0.5;
 
+        // localVector.y += 1.2576432111999998;
         // localVector.y += this.player.avatar.height;
         // localVector.y += 0.3; // note: value from test.
         // localVector.add(localVector4);
@@ -215,10 +221,12 @@ class CharacterPhysics {
 
         // localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
         // localQuaternion.identity();
+
+       localMatrix.copy(window.vehicle.matrix);
       }
       // localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
       // localVector.add(localOffset2);
-      localMatrix.compose(localVector, localQuaternion, localVector2);
+      // localMatrix.compose(localVector, localQuaternion, localVector2);
 
       // apply to player
       if (updateRig) { // note: heli: true;
