@@ -157,11 +157,13 @@ class CharacterPhysics {
           }
         }
       } else {
+        debugger
         //Outdated vehicle code
-        this.velocity.y = 0;
+        // this.velocity.y = 0;
         // note: this === localPlayer.characterPhysics
 
         const sitAction = this.player.getAction('sit');
+        // note: this.player === localPlayer;
 
         const objInstanceId = sitAction.controllingId;
         const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
@@ -169,25 +171,25 @@ class CharacterPhysics {
         const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
         // note: heli: sitPos === controlledApp
         // note: heli: heli.physicsObjects[0] === vehicle
-        const vehicle = controlledApp.physicsObjects[0] // may only correct for heli.
+        // const vehicle = controlledApp.physicsObjects[0] // may only correct for heli.
 
-        const sitComponent = controlledApp.getComponent('sit');
-        const {
-          sitOffset = [0, 0, 0],
-          // damping,
-        } = sitComponent;
-        this.sitOffset.fromArray(sitOffset);
+        // const sitComponent = controlledApp.getComponent('sit');
+        // const {
+        //   sitOffset = [0, 0, 0],
+        //   // damping,
+        // } = sitComponent;
+        // this.sitOffset.fromArray(sitOffset);
 
-        applyVelocity(controlledApp.position, this.velocity, timeDiffS);
-        if (this.velocity.lengthSq() > 0) {
-          controlledApp.quaternion
-            .setFromUnitVectors(
-              localVector4.set(0, 0, -1),
-              localVector5.set(this.velocity.x, 0, this.velocity.z).normalize()
-            )
-            .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
-        }
-        controlledApp.updateMatrixWorld();
+        // applyVelocity(controlledApp.position, this.velocity, timeDiffS);
+        // if (this.velocity.lengthSq() > 0) {
+        //   controlledApp.quaternion
+        //     .setFromUnitVectors(
+        //       localVector4.set(0, 0, -1),
+        //       localVector5.set(this.velocity.x, 0, this.velocity.z).normalize()
+        //     )
+        //     .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+        // }
+        // controlledApp.updateMatrixWorld();
 
         localMatrix.copy(sitPos.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
@@ -198,18 +200,28 @@ class CharacterPhysics {
         // physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
         // localVector.y += this.player.avatar.height * 0.5;
 
-        localVector.y += this.player.avatar.height;
-        localVector.y += 0.3; // note: value from test.
-        localVector.add(vehicle.getWorldDirection(localVector4).multiplyScalar(0.5));
+        // localVector.y += this.player.avatar.height;
+        // localVector.y += 0.3; // note: value from test.
+        // localVector.add(localVector4);
+        // localVector.add(vehicle.getWorldDirection(localVector4).multiplyScalar(0.5));
 
-        localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+        // localVector5.set(
+        //   0,
+        //   // this.player.avatar.height + 0.3,
+        //   0,
+        //   0.5,
+        // ).applyQuaternion(vehicle.quaternion)
+        // localVector.add(localVector5)
+
+        // localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+        // localQuaternion.identity();
       }
       // localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
       // localVector.add(localOffset2);
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
       // apply to player
-      if (updateRig) {
+      if (updateRig) { // note: heli: true;
         this.player.matrix.copy(localMatrix);
       } else {
         this.player.matrix.identity();
