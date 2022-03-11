@@ -21,7 +21,7 @@ const NumberInput = ({ input }) => {
 
     const handleInputKeyDown = ( event ) => {
 
-        if ( event.which === 13 ) {
+        if ( event.which === 13 ) { // esc key
 
             event.target.blur();
 
@@ -124,7 +124,7 @@ export const WorldObjectsList = () => {
 
         const handleKeyPress = ( event ) => {
 
-            if ( event.which === 90 ) {
+            if ( event.which === 90 ) { // Z key
 
                 event.preventDefault();
                 event.stopPropagation();
