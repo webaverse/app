@@ -4,7 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
+import {getRenderer} from '../../../../renderer.js';
 import game from '../../../../game.js';
+import {world} from '../../../../world.js';
 import cameraManager from '../../../../camera-manager.js';
 import alea from '../../../../alea.js';
 import styles from './map-gen.module.css';
@@ -436,15 +438,15 @@ The Stacks
 The Heap`;
 
 const border = 2;
-const numChunks = 32;
+const numBlocks = 32;
 const chunkSize = 512;
-const voxelSize = chunkSize / numChunks;
+const voxelSize = chunkSize / numBlocks;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
-// const localVector4D = new THREE.Vector4();
+const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 // const localColor = new THREE.Color();
 
@@ -482,6 +484,43 @@ class Block extends THREE.Vector3 {
     this.splinePoint = false;
     this.neighbors = [];
   }
+  static TYPE_INDICES = (() => {
+    let iota = 0;
+    return {
+      exit: ++iota,
+      center: ++iota,
+      spline: ++iota,
+      path: ++iota,
+    };
+  })();
+  static COLORS = {
+    exit: '#00F',
+    center: '#F00',
+    spline: '#080',
+    path: '#666',
+    default: '#000',
+  };
+  getType() {
+    if (this.exitTarget) {
+      return 'exit';
+    } else if (this.centerTarget) {
+      return 'exit';
+    } else if (this.splinePoint) {
+      return 'spline'
+    } else if (this.path) {
+      return 'path';
+    } else {
+      return 'default';
+    }
+  }
+  toColorString() {
+    const type = this.getType();
+    return Block.COLORS[type] ?? Block.COLORS.default;
+  }
+  toUint8() {
+    const type = this.getType();
+    return Block.TYPE_INDICES[type];
+  }
 }
 
 const sides = [
@@ -513,16 +552,16 @@ const sideCrossAxes = {
 
 const generateMap = (x, y) => {
   // generate blocks
-  const blocks = new Array(numChunks * numChunks);
+  const blocks = new Array(numBlocks * numBlocks);
 
   const seed = ['lol', x + '', y + ''].join(':');
   const rng = alea(seed);
   const r = () => -1 + 2 * rng();
 
   // blocks
-  for (let y = 0; y < numChunks; y++) {
-    for (let x = 0; x < numChunks; x++) {
-      const index = x + y * numChunks;
+  for (let y = 0; y < numBlocks; y++) {
+    for (let x = 0; x < numBlocks; x++) {
+      const index = x + y * numBlocks;
       const block = new Block(x, y);
       blocks[index] = block;
     }
@@ -534,16 +573,16 @@ const generateMap = (x, y) => {
   const localExits = shuffle(sides.slice(), rng).slice(0, numExits);
   for (const side of localExits) {
     let [ox, oy] = sideOffsets[side];
-    ox *= numChunks - 1;
-    oy *= numChunks - 1;
+    ox *= numBlocks - 1;
+    oy *= numBlocks - 1;
 
     const [cx, cy] = sideCrossAxes[side];
-    const v = Math.floor(rng() * numChunks);
+    const v = Math.floor(rng() * numBlocks);
 
     const x = ox + v * cx;
     const y = oy + v * cy;
 
-    const block = blocks[x + y * numChunks];
+    const block = blocks[x + y * numBlocks];
     block.exitTarget = true;
     
     pathCandidates.push(block);
@@ -552,10 +591,10 @@ const generateMap = (x, y) => {
   // centers
   const numCenters = Math.floor(rng() * (2 + 1));
   for (let i = 0; i < numCenters; i++) {
-    const x = 1 + Math.floor(rng() * (numChunks - 2));
-    const y = 1 + Math.floor(rng() * (numChunks - 2));
+    const x = 1 + Math.floor(rng() * (numBlocks - 2));
+    const y = 1 + Math.floor(rng() * (numBlocks - 2));
 
-    const block = blocks[x + y * numChunks];
+    const block = blocks[x + y * numBlocks];
     block.centerTarget = true;
 
     pathCandidates.push(block);
@@ -599,10 +638,10 @@ const generateMap = (x, y) => {
     
       const x = Math.round(point.x);
       const y = Math.round(point.z);
-      if (x >= 0 && x < numChunks && y >= 0 && y < numChunks) {
+      if (x >= 0 && x < numBlocks && y >= 0 && y < numBlocks) {
         splinePoints[i] = point.clone();
 
-        const index = x + y * numChunks;
+        const index = x + y * numBlocks;
         const block = blocks[index];
         block.splinePoint = true;
       } else {
@@ -629,8 +668,8 @@ const generateMap = (x, y) => {
       for (const dx of [-1, 1]) {
         const x = Math.round(point.x);
         const y = Math.round(point.z);
-        if (x >= 0 && x < numChunks && y >= 0 && y < numChunks) {
-          const index = x + y * numChunks;
+        if (x >= 0 && x < numBlocks && y >= 0 && y < numBlocks) {
+          const index = x + y * numBlocks;
           const block = blocks[index];
           block.path = true;
         }
@@ -706,9 +745,9 @@ const renderChunk = (canvas, blocks) => {
   ctx.fillStyle = '#111';
   ctx.fillRect(border, border, canvas.width - 2 * border, canvas.height - 2 * border);
 
-  for (let y = 0; y < numChunks; y++) {
-    for (let x = 0; x < numChunks; x++) {
-      const block = blocks[x + y * numChunks];
+  for (let y = 0; y < numBlocks; y++) {
+    for (let x = 0; x < numBlocks; x++) {
+      const block = blocks[x + y * numBlocks];
 
       let fillStyle = '#000';
       if (block.exitTarget) {
@@ -726,7 +765,7 @@ const renderChunk = (canvas, blocks) => {
   }
 };
 
-class Chunk {
+/* class Chunk {
   constructor(x, y) {
     this.x = x;
     this.y = y;
@@ -760,8 +799,62 @@ class Chunk {
   waitForLoad() {
     return this.loadPromise;
   }
-}
+} */
 const chunkCache = new Map();
+
+const planeGeometry = new THREE.PlaneBufferGeometry(numBlocks, numBlocks)
+  .applyMatrix4(
+    new THREE.Matrix4()
+      .makeRotationFromQuaternion(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)
+      )
+  );
+const vertexShader = `\
+  varying vec2 vUv;
+
+  void main() {
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vUv = uv;
+  }
+`;
+const fragmentShader = `\
+  uniform sampler2D map;
+  varying vec2 vUv;
+
+  void main() {
+    gl_FragColor = texture2D(map, vUv) * 10.;
+    gl_FragColor.gb += vUv * 0.2;
+    gl_FragColor.a = 1.;
+  }
+`;
+const _makeChunkMesh = (x, y) => {
+  const chunkBlocks = generateMap(x, y);
+  const data = new Uint8Array(chunkBlocks.length);
+  for (let i = 0; i < chunkBlocks.length; i++) {
+    data[i] = chunkBlocks[i].toUint8();
+  }
+  const dataTexture = new THREE.DataTexture(data, numBlocks, numBlocks);
+  
+  const material = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      map: {
+        value: dataTexture,
+        needsUpdate: true,
+      },
+    },
+    // transparent: true,
+    // opacity: 0.5,
+    // side: THREE.DoubleSide, 
+  });
+  const mesh = new THREE.Mesh(planeGeometry, material);
+  mesh.position.set(x * numBlocks, 0, y * numBlocks);
+  mesh.updateMatrixWorld();
+  mesh.x = x;
+  mesh.y = y;
+  return mesh;
+};
 
 export const MapGen = ({
   app,
@@ -773,7 +866,10 @@ export const MapGen = ({
       x: 0,
       y: 0,
     });
+    const [scale, setScale] = useState(1);
     const [mouseState, setMouseState] = useState(null);
+    const [scene, setScene] = useState(() => new THREE.Scene());
+    const [camera, setCamera] = useState(() => new THREE.OrthographicCamera());
     const canvasRef = useRef();
 
     useEffect(() => {
@@ -809,7 +905,7 @@ export const MapGen = ({
     useEffect(() => {
       const canvas = canvasRef.current;
       if (canvas && open) {
-        const ctx = canvas.getContext('2d');
+        // const ctx = canvas.getContext('2d');
 
         const chunks = [];
         for (let y = -height/2 - chunkSize; y < height/2 + chunkSize; y += chunkSize) {
@@ -820,14 +916,32 @@ export const MapGen = ({
             const key = `${ix}:${iy}`;
             let chunk = chunkCache.get(key);
             if (!chunk) {
-              chunk = new Chunk(ix, iy);
+              chunk = _makeChunkMesh(ix, iy);
+              scene.add(chunk);
               chunkCache.set(key, chunk);
             }
             chunks.push(chunk);
           }
         }
 
-        function renderChunk(canvas, chunk) {
+        camera.position.set(-offset.x / voxelSize, 1, -offset.y / voxelSize);
+        camera.quaternion.setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          -Math.PI / 2,
+        );
+        camera.updateMatrixWorld();
+        
+        const renderer = getRenderer();
+        const pixelRatio = renderer.getPixelRatio();
+        camera.left = -(width / voxelSize) / 2 * pixelRatio * scale;
+        camera.right = (width / voxelSize) / 2 * pixelRatio * scale;
+        camera.top = (height / voxelSize) / 2 * pixelRatio * scale;
+        camera.bottom = -(height / voxelSize) / 2 * pixelRatio * scale;
+        camera.near = -10;
+        camera.far = 10;
+        camera.updateProjectionMatrix();
+
+        /* function renderChunk(canvas, chunk) {
           const dx = width/2 - chunkSize/2 + chunk.x * chunkSize + offset.x;
           const dy = height/2 - chunkSize/2 + chunk.y * chunkSize + offset.y;
           
@@ -836,9 +950,9 @@ export const MapGen = ({
             dx,
             dy,
           );
-        }
+        } */
 
-        let live = true;
+        /* let live = true;
         (async () => {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -861,13 +975,41 @@ export const MapGen = ({
 
             renderChunk(canvas, chunk);
           }
-        })();
+        })(); */
 
         return () => {
-          live = false;
+          // live = false;
         };
       }
     }, [canvasRef, open, width, height, offset.x, offset.y]);
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (canvas && open) {
+        const ctx = canvas.getContext('2d');
+
+        async function render(e) {
+          const {timestamp, timeDiff} = e.data;
+          const renderer = getRenderer();
+          
+          // push state
+          const oldViewport = renderer.getViewport(localVector4D);
+
+          renderer.setViewport(0, 0, width, height);
+          // renderer.setClearColor(0xFF0000, 1);
+          renderer.clear();
+          renderer.render(scene, camera);
+
+          ctx.drawImage(renderer.domElement, 0, 0);
+
+          // pop state
+          renderer.setViewport(oldViewport);
+        }
+        world.appManager.addEventListener('frame', render);
+        return () => {
+          world.appManager.removeEventListener('frame', render);
+        };
+      }
+    }, [canvasRef, open, width, height]);
 
     function mouseDown(e) {
       e.preventDefault();
