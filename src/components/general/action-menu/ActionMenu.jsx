@@ -3,7 +3,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
 import { AppContext } from '../../app';
-import gameManager from '../../../../game';;
 
 import styles from './action-menu.module.css';
 
@@ -11,7 +10,7 @@ import styles from './action-menu.module.css';
 
 export const ActionMenu = ({ app }) => {
 
-    const { setState } = useContext( AppContext );
+    const { setOpenedPanel } = useContext( AppContext );
     const [ xrSupported, setXrSupported ] = useState( false );
 
     //
@@ -24,15 +23,13 @@ export const ActionMenu = ({ app }) => {
 
     const handleWorldBtnClick = () => {
 
-        gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
-        setState( state => ({ ...state, world: { ...state.world, opened: true } }) );
+        setOpenedPanel( 'WorldPanel' );
 
     };
 
     const handleSettingsBtnClick = () => {
 
-        gameManager.dispatchEvent( new CustomEvent( 'CloseAllPanels' ) );
-        setState( state => ({ ...state, settings: { ...state.settings, opened: true } }) );
+        setOpenedPanel( 'SettingsPanel' );
 
     };
 

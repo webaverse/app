@@ -6,7 +6,9 @@ import classnames from 'classnames';
 import { world } from '../../../../world.js'
 import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
+
 import { AppContext } from '../../app';
+import { registerIoEventHandler, unregisterIoEventHandler } from '../../io-handler';
 
 import styles from './world-objects-list.module.css';
 
@@ -40,7 +42,7 @@ const NumberInput = ({ input }) => {
 
 export const WorldObjectsList = () => {
 
-    const { state, setState } = useContext( AppContext );
+    const { openedPanel, setOpenedPanel } = useContext( AppContext );
 
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
     const [ selectedApp, setSelectedApp ] = useState( null );
@@ -119,6 +121,31 @@ export const WorldObjectsList = () => {
 
     useEffect( () => {
 
+        const handleKeyPress = ( event ) => {
+
+            if ( event.which === 90 ) {
+
+                event.preventDefault();
+                event.stopPropagation();
+                setOpenedPanel( openedPanel === 'WorldPanel' ? '' : 'WorldPanel' );
+                return false;
+
+            }
+
+        };
+
+        registerIoEventHandler( 'keyup', handleKeyPress );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keyup', handleKeyPress );
+
+        };
+
+    }, [ openedPanel ] );
+
+    useEffect( () => {
+
         const update = () => {
 
             setApps( world.appManager.getApps().slice() );
@@ -162,8 +189,8 @@ export const WorldObjectsList = () => {
     //
 
     return (
-        <div className={ classnames( styles.worldObjectListWrapper, state.world.opened ? styles.opened : null ) } onClick={ stopPropagation } >
-            <div className={ classnames( styles.panel, ( ! selectedApp && state.world.opened ) ? styles.opened : null ) } >
+        <div className={ classnames( styles.worldObjectListWrapper, openedPanel === 'WorldPanel' ? styles.opened : null ) } onClick={ stopPropagation } >
+            <div className={ classnames( styles.panel, ( ! selectedApp && openedPanel === 'WorldPanel' ) ? styles.opened : null ) } >
                 <div className={ styles.header } >
                     <h1>Tokens</h1>
                 </div>
