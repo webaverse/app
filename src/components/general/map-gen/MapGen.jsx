@@ -450,6 +450,12 @@ const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 // const localColor = new THREE.Color();
 
+function makeRng() {
+  const a = Array.from(arguments);
+  const seed = a.join(':');
+  const rng = alea(seed);
+  return rng;
+}
 function shuffle(array, rng = Math.random) {
   let currentIndex = array.length,  randomIndex;
 
@@ -561,8 +567,7 @@ const generateMap = (x, y) => {
   // generate blocks
   const blocks = new Array(numBlocks * numBlocks);
 
-  const seed = ['lol', x + '', y + ''].join(':');
-  const rng = alea(seed);
+  const rng = makeRng('map', x, y);
   const r = () => -1 + 2 * rng();
 
   // blocks
