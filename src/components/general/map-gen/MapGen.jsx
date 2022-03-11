@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // import classnames from 'classnames';
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
-import {registerIoEventHandler, unregisterIoEventHandler} from '../../io-handler/IoHandler.jsx';
+import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
 import {getRenderer} from '../../../../renderer.js';
 import game from '../../../../game.js';
 import {world} from '../../../../world.js';
