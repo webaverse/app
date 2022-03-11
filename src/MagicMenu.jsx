@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react'
-import {registerKeyHandler, unregisterKeyHandler} from './KeyHandlers.jsx'
+import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx'
 import classes from './MagicMenu.module.css'
 import ioManager from '../io-manager.js';
 import * as codeAi from '../ai/code/code-ai.js';
@@ -92,9 +92,9 @@ function MagicMenu({open, setOpen}) {
         return true;
       }
     };
-    registerKeyHandler('', all);
+    registerIoEventHandler('', all);
     return () => {
-      unregisterKeyHandler('', all);
+      unregisterIoEventHandler('', all);
     };
   }, []);
 
