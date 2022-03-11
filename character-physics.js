@@ -188,10 +188,13 @@ class CharacterPhysics {
           .decompose(localVector, localQuaternion, localVector2);
 
         // localVector.add(this.sitOffset);
-        localVector.y += this.player.avatar.height * 0.5;
+        // localVector.y += this.player.avatar.height * 0.5;
 
         // physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
-        localVector.y += this.player.avatar.height * 0.5;
+        // localVector.y += this.player.avatar.height * 0.5;
+
+        localVector.y += this.player.avatar.height;
+        // localVector.z += 1;
 
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
