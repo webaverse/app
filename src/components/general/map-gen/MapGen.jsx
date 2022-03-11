@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // import classnames from 'classnames';
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
-import {registerKeyHandler, unregisterKeyHandler} from '../../../KeyHandlers.jsx';
+import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
 import game from '../../../../game.js';
 import cameraManager from '../../../../camera-manager.js';
 import alea from '../../../../alea.js';
@@ -914,11 +914,11 @@ export const MapGen = ({
           return true;
         }
       }
-      registerKeyHandler('click', click);
-      registerKeyHandler('mouseup', mouseUp);
+      registerIoEventHandler('click', click);
+      registerIoEventHandler('mouseup', mouseUp);
       return () => {
-        unregisterKeyHandler('click', click);
-        unregisterKeyHandler('mouseup', mouseUp);
+        unregisterIoEventHandler('click', click);
+        unregisterIoEventHandler('mouseup', mouseUp);
       };
     }, [open]);
 
