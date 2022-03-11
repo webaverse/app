@@ -159,12 +159,17 @@ class CharacterPhysics {
       } else {
         //Outdated vehicle code
         this.velocity.y = 0;
+        // note: this === localPlayer.characterPhysics
 
         const sitAction = this.player.getAction('sit');
 
         const objInstanceId = sitAction.controllingId;
         const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
+        // note: controlledApp === heli
         const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
+        // note: heli: sitPos === controlledApp
+        // note: heli: heli.physicsObjects[0] === vehicle
+        const vehicle = controlledApp.physicsObjects[0] // may only correct for heli.
 
         const sitComponent = controlledApp.getComponent('sit');
         const {
@@ -194,7 +199,8 @@ class CharacterPhysics {
         // localVector.y += this.player.avatar.height * 0.5;
 
         localVector.y += this.player.avatar.height;
-        // localVector.z += 1;
+        localVector.y += 0.3; // note: value from test.
+        localVector.add(vehicle.getWorldDirection(localVector4).multiplyScalar(0.5));
 
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
       }
