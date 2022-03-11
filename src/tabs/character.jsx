@@ -72,7 +72,7 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
 
   return (
     <Tab
-      type="character"
+      type="CharacterPanel"
       top
       left
       label={

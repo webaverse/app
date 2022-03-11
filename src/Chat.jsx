@@ -12,6 +12,7 @@ import {chatManager} from '../chat-manager.js';
 import {world2canvas} from './ThreeUtils.js';
 import metaversefile from 'metaversefile';
 import ioManager from '../io-manager.js';
+import { registerIoEventHandler, unregisterIoEventHandler } from './components/io-handler';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -19,32 +20,9 @@ const localVector2 = new THREE.Vector3();
 function ChatInput({open, setOpen}) {
   const [value, setValue] = useState('');
   const inputRef = useRef();
-  
-  const chatOpen = open === 'chat';
 
-  const _handleActiveKey = e => {
-    if (document.activeElement === inputRef.current) {
-      switch (e.which) {
-        case 13: { // enter
-          e.preventDefault();
-          e.stopPropagation();
-          
-          if (value) {
-            const text = checkText(value);
-            chatManager.addMessage(text, {
-              timeout: 3000,
-            });
-          }
-          setValue('');
-          setOpen(null);
-          
-          ioManager.click(new MouseEvent('click'));
-          return true;
-        }
-      }
-    }
-    return false;
-  };
+  const chatOpen = open === 'ChatPanel';
+
   const _handleAnytimeKey = e => {
     switch (e.which) {
       case 186: { // semicolon
@@ -61,18 +39,50 @@ function ChatInput({open, setOpen}) {
       }
     }
   };
-  useEffect(() => {
-    const keydown = e => {
-      let handled = _handleActiveKey(e);
-      if (!handled) {
-        handled = _handleAnytimeKey(e);
-      }
-    };
-    window.addEventListener('keydown', keydown);
-    return () => {
-      window.removeEventListener('keydown', keydown);
-    };
-  }, [value, chatOpen]);
+
+  useEffect( () => {
+
+        const handleKeyPress = ( event ) => {
+
+            if ( document.activeElement === inputRef.current ) {
+
+                switch ( event.which ) {
+
+                    case 13: { // enter
+
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        if (value) {
+                            const text = checkText(value);
+                            chatManager.addMessage(text, {
+                                timeout: 3000
+                            });
+                        }
+
+                        setValue('');
+                        setOpen(null);
+                        ioManager.click(new MouseEvent('click'));
+                        return true;
+
+                    }
+
+                }
+
+            }
+
+        };
+
+        registerIoEventHandler( 'keyup', handleKeyPress );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keyup', handleKeyPress );
+
+        };
+
+    }, [ open, value ] );
+
   useEffect(() => {
     if (inputRef.current) {
       if (chatOpen) {
