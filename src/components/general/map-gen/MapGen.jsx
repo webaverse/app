@@ -8,6 +8,7 @@ import {getRenderer} from '../../../../renderer.js';
 import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import cameraManager from '../../../../camera-manager.js';
+import {Text} from 'troika-three-text';
 import alea from '../../../../alea.js';
 import styles from './map-gen.module.css';
 
@@ -927,6 +928,28 @@ const _makeChunkMesh = (x, y) => {
   mesh.updateMatrixWorld();
   mesh.x = x;
   mesh.y = y;
+
+  {
+    const rng = makeRng(x, y);
+
+    const textMesh = new Text();
+    textMesh.text = names[Math.floor(rng() * names.length)];
+    textMesh.font = './assets/fonts/GeosansLight.ttf';
+    textMesh.fontSize = 1;
+    textMesh.color = 0xFFFFFF;
+    textMesh.anchorX = 'left';
+    textMesh.anchorY = 'bottom';
+    // textMesh.frustumCulled = false;
+    textMesh.sync();
+    /* await new Promise(accept => {
+      textMesh.sync(accept);
+    }); */
+    textMesh.position.set(-numBlocks / 2, 1, -numBlocks / 2);
+    textMesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+    mesh.add(textMesh);
+    textMesh.updateWorldMatrix();
+  }
+
   return mesh;
 };
 
