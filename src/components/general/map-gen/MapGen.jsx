@@ -437,7 +437,7 @@ Seraphim Dust
 The Stacks
 The Heap`.split('\n');
 
-const border = 2;
+// const border = 2;
 const numBlocks = 32;
 const chunkSize = 512;
 const voxelSize = chunkSize / numBlocks;
