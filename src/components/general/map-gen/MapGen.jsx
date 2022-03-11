@@ -435,7 +435,7 @@ Nectar Lush
 The Nest
 Seraphim Dust
 The Stacks
-The Heap`;
+The Heap`.split('\n');
 
 const border = 2;
 const numBlocks = 32;
