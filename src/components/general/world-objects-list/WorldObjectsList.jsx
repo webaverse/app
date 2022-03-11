@@ -21,7 +21,7 @@ const NumberInput = ({ input }) => {
 
     const handleInputKeyDown = ( event ) => {
 
-        if ( event.which === 13 ) { // esc key
+        if ( event.which === 13 ) { // enter
 
             event.target.blur();
 
