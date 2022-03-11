@@ -738,7 +738,7 @@ const generateMap = (x, y) => {
   }
   return blocks;
 };
-const renderChunk = (canvas, blocks) => {
+/* const renderChunk = (canvas, blocks) => {
   const {ctx} = canvas;
   ctx.fillStyle = '#222';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -763,7 +763,7 @@ const renderChunk = (canvas, blocks) => {
       ctx.fillRect(x * voxelSize + border, y * voxelSize + border, voxelSize - border*2, voxelSize - border*2);
     }
   }
-};
+}; */
 
 /* class Chunk {
   constructor(x, y) {
