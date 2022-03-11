@@ -1,16 +1,12 @@
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
-
-import { AppContext } from '../../app';
-
 import styles from './action-menu.module.css';
 
 //
 
-export const ActionMenu = ({ app }) => {
+export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }) => {
 
-    const { setOpenedPanel } = useContext( AppContext );
     const [ xrSupported, setXrSupported ] = useState( false );
 
     //
@@ -23,13 +19,13 @@ export const ActionMenu = ({ app }) => {
 
     const handleWorldBtnClick = () => {
 
-        setOpenedPanel( 'WorldPanel' );
+        setWorldObjectsListOpened( true );
 
     };
 
     const handleSettingsBtnClick = () => {
 
-        setOpenedPanel( 'SettingsPanel' );
+        setSettingsOpened( true );
 
     };
 

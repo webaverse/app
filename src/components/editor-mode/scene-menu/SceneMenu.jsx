@@ -1,13 +1,11 @@
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 
-import gameManager from '../../../../game';
 import { world } from '../../../../world'
 import universe from '../../../../universe'
 import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
-import { AppContext } from '../../app';
 
 import styles from './scene-menu.module.css';
 
@@ -15,8 +13,10 @@ import styles from './scene-menu.module.css';
 
 export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
-    const { openedPanel, setOpenedPanel } = useContext( AppContext );
+    const componentName = 'SceneMenu';
     const [ rooms, setRooms ] = useState([]);
+    const [ scenesMenuOpened, setScenesMenuOpened ] = useState( false );
+    const [ roomsMenuOpened, setRoomsMenuOpened ] = useState( false );
     const [ micEnabled, setMicEnabled ] = useState( false );
     const [ speechEnabled, setSpeechEnabled ] = useState( false );
 
@@ -48,16 +48,32 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     };
 
+    const closeOtherWindows = () => {
+
+        window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: componentName } } ) );
+
+    };
+
+    const handleOnFocusLost = ( event ) => {
+
+        if ( event.detail && event.detail.dispatcher === componentName ) return;
+        setScenesMenuOpened( false );
+        setRoomsMenuOpened( false );
+
+    };
+
     const handleSceneMenuOpen = ( value ) => {
 
-        value = ( typeof value === 'boolean' ? value : ( openedPanel === 'SceneMenuDropdownPanel' ) );
-        setOpenedPanel( value ? null : 'SceneMenuDropdownPanel' );
+        value = ( typeof value === 'boolean' ? value : ( ! scenesMenuOpened ) );
+        setScenesMenuOpened( value );
+        setRoomsMenuOpened( false );
 
     };
 
     const handleSceneSelect = ( event, sceneName ) => {
 
-        setOpenedPanel( null );
+        setScenesMenuOpened( false );
+        setRoomsMenuOpened( false );
 
         sceneName = sceneName ?? event.target.value;
         setSelectedScene( sceneName );
@@ -67,11 +83,12 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleRoomMenuOpen = ( value ) => {
 
-        value = ( typeof value === 'boolean' ? value : ( openedPanel === 'RoomMenuDropdownPanel' ) );
+        value = ( typeof value === 'boolean' ? value : ( ! roomsMenuOpened ) );
+        setScenesMenuOpened( false );
 
         if ( ! multiplayerConnected ) {
 
-            setOpenedPanel( value ? null : 'RoomMenuDropdownPanel' );
+            setRoomsMenuOpened( value );
 
         } else {
 
@@ -111,7 +128,8 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleRoomSelect = ( room ) => {
 
-        setOpenedPanel( null );
+        setScenesMenuOpened( false );
+        setRoomsMenuOpened( false );
 
         if ( ! world.isConnected() ) {
 
@@ -142,6 +160,29 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
             const text = await res.text();
             console.warn( 'failed to fetch', res.status, text );
+
+        }
+
+    };
+
+    const handleSceneInputKeyDown = ( event ) => {
+
+        switch ( event.which ) {
+
+            case 27: { // escape
+
+                setScenesMenuOpened( false );
+                setRoomsMenuOpened( false );
+                break;
+
+            }
+
+            case 13: { // enter
+
+                universe.pushUrl( `/?src=${ encodeURIComponent( selectedScene ) }` );
+                break;
+
+            }
 
         }
 
@@ -178,35 +219,47 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     useEffect( () => {
 
         refreshRooms();
+        window.addEventListener( 'CloseAllMenus', handleOnFocusLost );
+        window.addEventListener( 'click', handleOnFocusLost );
+
+        return () => {
+
+            window.removeEventListener( 'CloseAllMenus', handleOnFocusLost );
+            window.removeEventListener( 'click', handleOnFocusLost );
+
+        };
 
     }, [] );
 
     useEffect( () => {
 
-        function michange ( event ) {
+        if ( scenesMenuOpened || roomsMenuOpened ) {
 
-            setMicEnabled( event.data.enabled );
+            closeOtherWindows();
 
-        };
+        }
 
-        function speechchange ( event ) {
+    }, [ scenesMenuOpened, roomsMenuOpened ] );
 
-            setSpeechEnabled( event.data.enabled );
+    useEffect( () => {
 
-        };
+        function michange(e) {
+            setMicEnabled(e.data.enabled);
+        }
+
+        function speechchange(e) {
+            setSpeechEnabled(e.data.enabled);
+        }
 
         voiceInput.addEventListener( 'micchange', michange );
         voiceInput.addEventListener( 'speechchange', speechchange );
-
-        //
-
+    
         return () => {
-
+          
             voiceInput.removeEventListener( 'micchange', michange );
             voiceInput.removeEventListener( 'speechchange', speechchange );
-
+            
         };
-
     }, [] );
 
     //
@@ -215,16 +268,16 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
         <div className={ styles.location } onClick={ stopPropagation } >
             <div className={ styles.row }>
                 <div className={ styles.buttonWrap } onClick={ handleSceneMenuOpen.bind( this, null ) } >
-                    <button className={ classnames( styles.button, styles.primary, openedPanel === 'SceneMenuDropdownPanel' ? null : styles.disabled ) } >
+                    <button className={ classnames( styles.button, styles.primary, scenesMenuOpened ? null : styles.disabled ) } >
                         <img src="images/webarrow.svg" />
                     </button>
                 </div>
                 <div className={ styles.inputWrap } >
-                    <input type="text" className={ styles.input } value={ multiplayerConnected ? selectedRoom : selectedScene } onFocus={ handleSceneMenuOpen.bind( this, false ) } onChange={ handleSceneSelect } disabled={ multiplayerConnected } placeholder="Goto..." />
+                    <input type="text" className={ styles.input } value={ multiplayerConnected ? selectedRoom : selectedScene } onFocus={ handleSceneMenuOpen.bind( this, false ) } onChange={ handleSceneSelect } disabled={ multiplayerConnected } onKeyDown={ handleSceneInputKeyDown } placeholder="Goto..." />
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.green ) } />
                 </div>
                 <div className={ styles.buttonWrap  } onClick={ handleRoomMenuOpen.bind( this, null ) } >
-                    <button className={ classnames( styles.button, ( openedPanel === 'RoomMenuDropdownPanel' || multiplayerConnected ) ? null : styles.disabled ) } >
+                    <button className={ classnames( styles.button, ( roomsMenuOpened || multiplayerConnected ) ? null : styles.disabled ) } >
                         <img src="images/wifi.svg" />
                     </button>
                 </div>
@@ -242,7 +295,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
             </div>
 
             {
-                openedPanel === 'SceneMenuDropdownPanel' ? (
+                scenesMenuOpened ? (
                     <div className={ styles.rooms }>
                     {
                         sceneNames.map( ( sceneName, i ) => (
@@ -257,7 +310,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
             }
 
             {
-                openedPanel === 'RoomMenuDropdownPanel' ? (
+                roomsMenuOpened ? (
                     <div className={ styles.rooms } >
                         <div className={ styles.create } >
                             <button className={ styles.button } onClick={ handleRoomCreateBtnClick }>Create room</button>
