@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import classnames from 'classnames';
 
 import {RenderMirror} from './RenderMirror';
+import {RainFx} from './RainFx';
 import styles from './zone-title-card.module.css';
 
 //
@@ -15,65 +16,11 @@ const logoImages = [
 
 export const ZoneTitleCard = ({
     app,
-    // open,
-    // setOpen,
 }) => {
 
     const [ open, setOpen ] = useState( false );
     const [ logoImage, setLogoImage ] = useState( logoImages[Math.floor(Math.random() * logoImages.length)] );
     const [ loadProgress, setLoadProgress ] = useState( false );
-
-    /* useEffect(() => {
-        setOpen(true);
-    }, []); */
-
-    // const [ xrSupported, setXrSupported ] = useState( false );
-
-    //
-
-    /* const stopPropagation = ( event ) => {
-
-        event.stopPropagation();
-
-    };
-
-    const handleWorldBtnClick = () => {
-
-        setWorldObjectsListOpened( true );
-
-    };
-
-    const handleSettingsBtnClick = () => {
-
-        setSettingsOpened( true );
-
-    };
-
-    const handleModeBtnClick = () => {
-
-        // todo
-
-    };
-
-    const handleVRBtnClick = async () => {
-
-        if ( ! xrSupported ) return;
-        await app.enterXr();
-
-    };
-
-    //
-
-    useEffect( async () => {
-
-        const isXrSupported = await app.isXrSupported();
-        setXrSupported( isXrSupported );
-
-    }, [] );
-
-    //
-
-    */
 
     useEffect(() => {
         function titlecardhackchange(e) {
@@ -123,6 +70,8 @@ export const ZoneTitleCard = ({
                     <img src="images/loading-bar.svg" className={ styles.loadProgressImage } />
                 </div>
             </div>
+
+            <RainFx enabled={open} />
         </div>
     );
 
