@@ -5,22 +5,22 @@ import ioManager from '../io-manager.js';
 // import metaversefile from 'metaversefile';
 
 const types = ['keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
-const keyHandlers = {};
+const ioEventHandlers = {};
 for (const type of types.concat([''])) {
-  keyHandlers[type] = [];
+  ioEventHandlers[type] = [];
 }
-function registerKeyHandler(type, fn) {
-  keyHandlers[type].push(fn);
+function registerIoEventHandler(type, fn) {
+  ioEventHandlers[type].push(fn);
 }
-function unregisterKeyHandler(type, fn) {
-  const khs = keyHandlers[type];
-  const index = khs.indexOf(fn);
+function unregisterIoEventHandler(type, fn) {
+  const hs = ioEventHandlers[type];
+  const index = hs.indexOf(fn);
   if (index !== -1) {
-    khs.splice(index, 1);
+    hs.splice(index, 1);
   }
 }
 
-function KeyHandlers() {
+function IoHandler() {
   useEffect(() => {
     const cleanups = types.map(type => {
       const fn = e => {
@@ -29,8 +29,8 @@ function KeyHandlers() {
         let broke = false;
         
         // type
-        for (let i = 0; i < keyHandlers[type].length; i++) {
-          const result = keyHandlers[type][i](e);
+        for (let i = 0; i < ioEventHandlers[type].length; i++) {
+          const result = ioEventHandlers[type][i](e);
           if (result === false) {
             // console.log('handled 1', type);
             broke = true;
@@ -41,8 +41,8 @@ function KeyHandlers() {
         // all
         if (!broke) {
           const type = '';
-          for (let i = 0; i < keyHandlers[type].length; i++) {
-            const result = keyHandlers[type][i](e);
+          for (let i = 0; i < ioEventHandlers[type].length; i++) {
+            const result = ioEventHandlers[type][i](e);
             if (result === false) {
               // console.log('handled 2', type);
               broke = true;
@@ -75,7 +75,7 @@ function KeyHandlers() {
   );
 }
 export {
-  KeyHandlers,
-  registerKeyHandler,
-  unregisterKeyHandler,
+  IoHandler,
+  registerIoEventHandler,
+  unregisterIoEventHandler,
 };
