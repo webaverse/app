@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef, createContext } from 'react';
 // import MagicMenu from '../../MagicMenu.jsx';
 import { defaultAvatarUrl } from '../../../constants';
 // import dropManager from '../../../drop-manager.js';
-import {ZoneTitleCard} from '../general/zone-title-card/ZoneTitleCard.jsx';
+import { ZoneTitleCard } from '../general/zone-title-card/ZoneTitleCard.jsx';
+import { KeyHandlers } from '../../KeyHandlers.jsx';
 
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
@@ -201,17 +202,16 @@ export const App = () => {
 
     return (
         <div className={ styles.App } id="app" >
-            <AppContext.Provider value={{ state, setState }} >
-                <Header app={ app } />
-                <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
-                <Crosshair />
-                <ActionMenu app={ app } />
-                <Settings />
-                <WorldObjectsList />
-                <PlayMode />
-                <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
-                <ZoneTitleCard app={ app } />
-            </AppContext.Provider>
+            <Header app={ app } />
+            <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
+            <Crosshair />
+            <ActionMenu app={ app } setSettingsOpened={ setSettingsOpened } setWorldObjectsListOpened={ setWorldObjectsListOpened } />
+            <Settings opened={ settingsOpened } setOpened={ setSettingsOpened } />
+            <WorldObjectsList opened={ worldObjectsListOpened } setOpened={ setWorldObjectsListOpened } />
+            <PlayMode />
+            <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
+            <KeyHandlers />
+            <ZoneTitleCard app={ app } />
         </div>
     );
 
