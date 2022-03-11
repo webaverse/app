@@ -10,7 +10,7 @@ class PathFinder {
     /* args:
       voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
       heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
-      maxIterDetect: How many steps can one voxel detecing iterate.
+      maxIterDetect: How many steps can one voxel detecing iterate. Currently only `destVoxel` need this arg.
       maxIterStep: How many A* path-finding step can one getPath() iterate. One A* step can create up to 4 voxels, 0 ~ 4.
       ignorePhysicsIds: physicsIds that voxel detect() ignored, usually npc CharacterController's capsule.
       debugRender: Whether show voxel boxes for debugging.
