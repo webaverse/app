@@ -822,7 +822,7 @@ const fragmentShader = `\
   varying vec2 vUv;
 
   void main() {
-    gl_FragColor = texture2D(map, vUv) * 10.;
+    gl_FragColor = texture2D(map, vUv) * 50.;
     gl_FragColor.gb += vUv * 0.2;
     gl_FragColor.a = 1.;
   }
@@ -833,7 +833,14 @@ const _makeChunkMesh = (x, y) => {
   for (let i = 0; i < chunkBlocks.length; i++) {
     data[i] = chunkBlocks[i].toUint8();
   }
-  const dataTexture = new THREE.DataTexture(data, numBlocks, numBlocks);
+  const dataTexture = new THREE.DataTexture(
+    data,
+    numBlocks,
+    numBlocks,
+    THREE.RedFormat,
+    THREE.UnsignedByteType
+  );
+  dataTexture.needsUpdate = true;
   
   const material = new THREE.ShaderMaterial({
     vertexShader,
