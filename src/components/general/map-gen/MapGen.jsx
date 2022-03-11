@@ -1051,9 +1051,9 @@ export const MapGen = ({
           }
         })(); */
 
-        return () => {
+        /* return () => {
           // live = false;
-        };
+        }; */
       }
     }, [canvasRef, open, width, height, offset.x, offset.y]);
     useEffect(() => {
