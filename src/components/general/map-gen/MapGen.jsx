@@ -446,10 +446,13 @@ const voxelSize = chunkSize / numBlocks;
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
+const localArray = [];
 // const localColor = new THREE.Color();
+const localRaycaster = new THREE.Raycaster();
 
 function makeRng() {
   const a = Array.from(arguments);
@@ -1024,6 +1027,9 @@ export const MapGen = ({
     const [mouseState, setMouseState] = useState(null);
     const [scene, setScene] = useState(() => new THREE.Scene());
     const [camera, setCamera] = useState(() => new THREE.OrthographicCamera());
+    const [raycaster, setRaycaster] = useState(() => new THREE.Raycaster());
+    const [chunks, setChunks] = useState([]);
+    const [hoveredObject, setHoveredObject] = useState(null);
     const canvasRef = useRef();
 
     useEffect(() => {
@@ -1056,27 +1062,31 @@ export const MapGen = ({
       };
     }, [width, height]);
 
+    const getChunksInRange = () => {
+      const chunks = [];
+      for (let y = -height/2 - chunkSize; y < height/2 + chunkSize; y += chunkSize) {
+        for (let x = -width/2 - chunkSize; x < width/2 + chunkSize; x += chunkSize) {
+          const ix = Math.round((x - offset.x) / chunkSize);
+          const iy = Math.round((y - offset.y) / chunkSize);
+
+          const key = `${ix}:${iy}`;
+          let chunk = chunkCache.get(key);
+          if (!chunk) {
+            chunk = _makeChunkMesh(ix, iy);
+            scene.add(chunk);
+            chunkCache.set(key, chunk);
+          }
+          chunks.push(chunk);
+        }
+      }
+      return chunks;
+    };
     useEffect(() => {
       const canvas = canvasRef.current;
       if (canvas && open) {
         // const ctx = canvas.getContext('2d');
 
-        const chunks = [];
-        for (let y = -height/2 - chunkSize; y < height/2 + chunkSize; y += chunkSize) {
-          for (let x = -width/2 - chunkSize; x < width/2 + chunkSize; x += chunkSize) {
-            const ix = Math.round((x - offset.x) / chunkSize);
-            const iy = Math.round((y - offset.y) / chunkSize);
-
-            const key = `${ix}:${iy}`;
-            let chunk = chunkCache.get(key);
-            if (!chunk) {
-              chunk = _makeChunkMesh(ix, iy);
-              scene.add(chunk);
-              chunkCache.set(key, chunk);
-            }
-            chunks.push(chunk);
-          }
-        }
+        const newChunks = getChunksInRange();
 
         camera.position.set(-offset.x / voxelSize, 1, -offset.y / voxelSize);
         camera.quaternion.setFromAxisAngle(
@@ -1094,6 +1104,8 @@ export const MapGen = ({
         camera.near = -10;
         camera.far = 10;
         camera.updateProjectionMatrix();
+
+        setChunks(newChunks);
 
         /* function renderChunk(canvas, chunk) {
           const dx = width/2 - chunkSize/2 + chunk.x * chunkSize + offset.x;
@@ -1148,6 +1160,10 @@ export const MapGen = ({
           // push state
           const oldViewport = renderer.getViewport(localVector4D);
 
+          for (const chunk of chunks) {
+            chunk
+          }
+
           renderer.setViewport(0, 0, width, height);
           // renderer.setClearColor(0xFF0000, 1);
           renderer.clear();
@@ -1163,7 +1179,7 @@ export const MapGen = ({
           world.appManager.removeEventListener('frame', render);
         };
       }
-    }, [canvasRef, open, width, height]);
+    }, [canvasRef, open, width, height, chunks, hoveredObject]);
 
     function mouseDown(e) {
       e.preventDefault();
@@ -1189,6 +1205,19 @@ export const MapGen = ({
             x: e.clientX,
             y: e.clientY,
           });
+        } else {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          const mouse = localVector2D.set(
+            (e.clientX / width) * 2 - 1,
+            - (e.clientY / height) * 2 + 1
+          );
+          localRaycaster.setFromCamera(mouse, camera);
+          const intersections = localRaycaster.intersectObjects(scene.children, false, localArray);
+          if (intersections.length > 0) {
+            const {object} = intersections[0];
+            setHoveredObject(object);
+          }
         }
       }
       document.addEventListener('mousemove', mouseMove);
