@@ -132,7 +132,10 @@ export default () => {
     const material = new THREE.MeshNormalMaterial();
     const mesh = new THREE.Mesh(geometry, material);
     app.add(mesh);
-    app.updateMatrixWorld();
+    mesh.updateMatrixWorld();
+
+    const physicsId = physics.addGeometry(mesh);
+    physicsIds.push(physicsId);
   }
 
   useCleanup(() => {
