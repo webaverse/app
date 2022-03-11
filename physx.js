@@ -834,7 +834,6 @@ const physxWorker = (() => {
     );
 
     const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
-    // let tail = head + 1;
     const numWaypointResult = moduleInstance.HEAPF32[head + 0];
     const waypointResultPositions = [];
     for (let i = 0; i < numWaypointResult; i++) {
@@ -844,21 +843,6 @@ const physxWorker = (() => {
       position.z = moduleInstance.HEAPF32[head + i * 3 + 3];
       waypointResultPositions.push(position);
     }
-    // console.log(waypointResultPositions);
-
-    // // test
-    // head += 1 + numWaypointResult * 3;
-    // const numVoxels = moduleInstance.HEAPF32[head];
-    // const voxels = [];
-    // for (let i = 0; i < numVoxels; i++) {
-    //   const voxel = new THREE.Object3D();
-    //   voxel.position.x = moduleInstance.HEAPF32[head + i * 3 + 1];
-    //   voxel.position.y = moduleInstance.HEAPF32[head + i * 3 + 2];
-    //   voxel.position.z = moduleInstance.HEAPF32[head + i * 3 + 3];
-    //   voxels.push(voxel);
-    // }
-    // // console.log('voxels: ', voxels);
-    // window.voxels = voxels;
 
     moduleInstance._doFree(outputBufferOffset);
 
