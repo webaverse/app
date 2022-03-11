@@ -30,8 +30,7 @@ import {chatManager} from './chat-manager.js';
 import loreAI from './ai/lore/lore-ai.js';
 import npcManager from './npc-manager.js';
 import universe from './universe.js';
-// import {PathFinder} from './npc-utils-js.js'; // js version
-import {PathFinder} from './npc-utils.js'; // wasm version
+import {PathFinder} from './npc-utils.js';
 import {localPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
