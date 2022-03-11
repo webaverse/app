@@ -1317,7 +1317,6 @@ cameraManager.addEventListener('modechange', e => {
 });
 
 let lastMouseEvent = null;
-
 class GameManager extends EventTarget {
   constructor() {
     super();
