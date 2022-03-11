@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // import classnames from 'classnames';
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
-import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
+import {registerIoEventHandler, unregisterIoEventHandler} from '../../io-handler/IoHandler.jsx';
 import {getRenderer} from '../../../../renderer.js';
 import game from '../../../../game.js';
 import {world} from '../../../../world.js';
@@ -929,10 +929,15 @@ const _makeChunkMesh = (x, y) => {
   mesh.x = x;
   mesh.y = y;
 
+  const isFirst = x === 0 && y === 0;
+
   {
     const rng = makeRng('name', x, y);
 
     const textMesh = new Text();
+    textMesh.material = new THREE.MeshBasicMaterial({
+      opacity: isFirst ? 1 : 0.3,
+    });
     textMesh.text = names[Math.floor(rng() * names.length)];
     textMesh.font = './fonts/Plaza Regular.ttf';
     textMesh.fontSize = 2;
@@ -941,7 +946,28 @@ const _makeChunkMesh = (x, y) => {
     textMesh.anchorY = 'bottom';
     textMesh.letterSpacing = 0.1;
     // textMesh.frustumCulled = false;
-    textMesh.sync();
+    textMesh.sync(() => {
+      let [x, y, w, h] = textMesh.textRenderInfo.blockBounds;
+      // console.log('got text render info', w, h);
+      // console.log('got sync', x, y, w, h);
+      /* x *= 2;
+      y *= 2;
+      w *= 2;
+      h *= 2; */
+      w += 1;
+      h += 1;
+      // h = 2;
+      // y = -0.1;
+      // y = 0;
+      labelMesh.position.set(
+        x - numBlocks / 2 + w / 2,
+        1,
+        y - numBlocks / 2 - h / 2
+      );
+      labelMesh.scale.set(w, 1, h);
+      labelMesh.updateMatrixWorld();
+      labelMesh.visible = isFirst;
+    });
     /* await new Promise(accept => {
       textMesh.sync(accept);
     }); */
@@ -954,6 +980,27 @@ const _makeChunkMesh = (x, y) => {
     textMesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
     mesh.add(textMesh);
     textMesh.updateWorldMatrix();
+    // window.textMesh = textMesh;
+    // const [x, y, w, h] = textMesh.textRenderInfo.blockBounds;
+
+    const labelGeometry = new THREE.PlaneBufferGeometry(1, 1)
+      .applyMatrix4(
+        new THREE.Matrix4().makeRotationFromQuaternion(
+          new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)
+        )
+      );
+    const labelMaterial = new THREE.MeshBasicMaterial({
+      color: 0x000000,
+    });
+    const labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
+    /* labelMesh.position.set(
+      -numBlocks / 2 + textOffset,
+      1,
+      -numBlocks / 2 - textOffset
+    ); */
+    labelMesh.visible = false;
+    mesh.add(labelMesh);
+    labelMesh.updateMatrixWorld();
   }
 
   return mesh;
