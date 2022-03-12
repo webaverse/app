@@ -1074,7 +1074,7 @@ const _makeChunkMesh = (x, y) => {
     material.uniforms.uHover.value = hovered ? v : 1-v;
     material.uniforms.uHover.needsUpdate = true;
 
-    material.uniforms.uSelect.value = hovered ? v : 1-v;
+    material.uniforms.uSelect.value = selected ? 1 : 0;
     material.uniforms.uSelect.needsUpdate = true;
 
     // console.log('set hovered', t);
