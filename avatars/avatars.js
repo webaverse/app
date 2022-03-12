@@ -1407,7 +1407,7 @@ class Avatar {
 
     let currentSpeed = this.lastSpeed;
     const moveFactors = {...this.lastMoveFactors};
-    currentSpeed = (localVector.set(this.velocity.x, 0, this.velocity.z)).length() / timeDiffS;
+    currentSpeed = (localVector.set(this.velocity.x, 0, this.velocity.z)).length();
 
     moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
@@ -1420,7 +1420,9 @@ class Avatar {
       .divideScalar(timeDiffS)
       .multiplyScalar(0.1);
 
-    if(positionDiff.length() < 0.0000001 && currentSpeed > 0.00000001)
+    if((positionDiff.length() < 0.0000001 && currentSpeed > 0.00000001) || 
+      (positionDiff.length() > 10 && currentSpeed < 10)
+    )
       return // Skip this frame
       
     localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
