@@ -727,6 +727,12 @@ const createPlayerDiorama = ({
 
       canvases.push(canvas);
     },
+    removeCanvas(canvas) {
+      const index = canvases.indexOf(canvas);
+      if (index !== -1) {
+        canvases.splice(index, 1);
+      }
+    },
     toggleShader() {
       const oldValues = {
         grassBackground,
