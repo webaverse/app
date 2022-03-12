@@ -73,6 +73,7 @@ export const App = () => {
 
     const [ settingsOpened, setSettingsOpened ] = useState( false );
     const [ worldObjectsListOpened, setWorldObjectsListOpened ] = useState( false );
+    const [ mapGenOpened, setMapGenOpened ] = useState( false );
 
     //
 
@@ -137,7 +138,7 @@ export const App = () => {
             <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
             <IoHandler />
             <ZoneTitleCard app={ app } />
-            <MapGen app={ app } />
+            <MapGen app={ app } opened={ mapGenOpened } />
         </div>
     );
 

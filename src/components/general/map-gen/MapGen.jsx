@@ -1131,8 +1131,21 @@ export const MapGen = ({
         }
       }
       game.addEventListener('mapopenchange', mapopenchange);
+
+      const handleOnFocusLost = () => {
+
+        if (open) {
+
+          setOpen(false);
+        
+        }
+
+      };
+      window.addEventListener('CloseAllMenus', handleOnFocusLost);
+      
       return () => {
         game.removeEventListener('mapopenchange', mapopenchange);
+        window.removeEventListener('CloseAllMenus', handleOnFocusLost);
       };
     }, [open]);
 
@@ -1326,6 +1339,26 @@ export const MapGen = ({
       };
     }, [mouseState]);
     useEffect(() => {
+      function keydown(e) {
+        switch (e.which) {
+          case 77: { // M
+            const newOpen = !open;
+            
+            newOpen && window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: 'MapGen' } } ) );
+            
+            if (newOpen && cameraManager.pointerLockElement) {
+              cameraManager.exitPointerLock();
+            } else if (!newOpen && !cameraManager.pointerLockElement) {
+              cameraManager.requestPointerLock();
+            }
+            
+            setOpen(newOpen);
+
+            return false;
+          }
+        }
+        return true;
+      }
       function click(e) {
         if (open) {
           return false;
@@ -1351,9 +1384,11 @@ export const MapGen = ({
           return true;
         }
       }
+      registerIoEventHandler('keydown', keydown);
       registerIoEventHandler('click', click);
       registerIoEventHandler('mouseup', mouseUp);
       return () => {
+        unregisterIoEventHandler('keydown', keydown);
         unregisterIoEventHandler('click', click);
         unregisterIoEventHandler('mouseup', mouseUp);
       };
