@@ -1116,6 +1116,23 @@ export const MapGen = ({
     const [chunkCache, setChunkCache] = useState(new Map());
     const canvasRef = useRef();
 
+    const updateCamera = () => {
+      const renderer = getRenderer();
+      const pixelRatio = renderer.getPixelRatio();
+
+      camera.position.set(-position.x / voxelSize, 1, -position.z / voxelSize);
+      camera.quaternion.copy(downQuaternion);
+      camera.scale.setScalar(pixelRatio * scale);
+      camera.updateMatrixWorld();
+      
+      camera.left = -(width / voxelSize) / 2;
+      camera.right = (width / voxelSize) / 2;
+      camera.top = (height / voxelSize) / 2;
+      camera.bottom = -(height / voxelSize) / 2;
+      camera.near = 0;
+      camera.far = 1000;
+      camera.updateProjectionMatrix();
+    };
     const getChunksInRange = (() => {
       const localVector = new THREE.Vector3();
       const localVector2 = new THREE.Vector3();
@@ -1341,23 +1358,8 @@ export const MapGen = ({
 
     // update chunks
     useEffect(() => {
-      const canvas = canvasRef.current;
-      if (canvas && open) {
-        const renderer = getRenderer();
-        const pixelRatio = renderer.getPixelRatio();
-
-        camera.position.set(-position.x / voxelSize, 1, -position.z / voxelSize);
-        camera.quaternion.copy(downQuaternion);
-        camera.scale.setScalar(pixelRatio * scale);
-        camera.updateMatrixWorld();
-        
-        camera.left = -(width / voxelSize) / 2;
-        camera.right = (width / voxelSize) / 2;
-        camera.top = (height / voxelSize) / 2;
-        camera.bottom = -(height / voxelSize) / 2;
-        camera.near = 0;
-        camera.far = 1000;
-        camera.updateProjectionMatrix();
+      if (open) {
+        updateCamera();
 
         const newChunks = getChunksInRange();
         setChunks(newChunks);
@@ -1368,6 +1370,8 @@ export const MapGen = ({
     useEffect(() => {
       const canvas = canvasRef.current;
       if (canvas && open) {
+        updateCamera();
+
         const ctx = canvas.getContext('2d');
 
         async function render(e) {
@@ -1397,7 +1401,7 @@ export const MapGen = ({
           world.appManager.removeEventListener('frame', render);
         };
       }
-    }, [canvasRef, open, width, height, chunks]);
+    }, [canvasRef, open, width, height, chunks, position.x, position.z, scale]);
 
     function mouseDown(e) {
       e.preventDefault();
