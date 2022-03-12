@@ -9,6 +9,7 @@ import gradients from './gradients.json';
 import {planeGeometry} from './background-fx/common.js';
 import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
+import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
 import {
   fullscreenVertexShader,
   animeLightningFragmentShader,
@@ -476,6 +477,7 @@ const grassMesh = (() => {
   return quad;
 })();
 const noiseMesh = new NoiseBgFxMesh();
+const poisonMesh = new PoisonBgFxMesh();
 const glyphMesh = (() => {
   const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
@@ -624,6 +626,7 @@ sideScene.add(lightningMesh);
 sideScene.add(radialMesh);
 sideScene.add(grassMesh);
 sideScene.add(noiseMesh);
+sideScene.add(poisonMesh);
 sideScene.add(glyphMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
@@ -691,6 +694,7 @@ const createPlayerDiorama = ({
   outline = false,
   grassBackground = false,
   noiseBackground = false,
+  poisonBackground = false,
   lightningBackground = false,
   radialBackground = false,
   glyphBackground = false,
@@ -738,15 +742,25 @@ const createPlayerDiorama = ({
       canvases.push(canvas);
     },
     toggleShader() {
-      const oldValues = {grassBackground, noiseBackground, lightningBackground, radialBackground, glyphBackground};
+      const oldValues = {
+        grassBackground,
+        noiseBackground,
+        poisonBackground,
+        lightningBackground,
+        radialBackground,
+        glyphBackground,
+      };
       grassBackground = false;
       noiseBackground = false;
+      poisonBackground = false;
       lightningBackground = false;
       radialBackground = false;
       glyphBackground = false;
       if (oldValues.grassBackground) {
         noiseBackground = true;
       } else if (oldValues.noiseBackground) {
+        poisonBackground = true;
+      } else if (oldValues.poisonBackground) {
         lightningBackground = true;
       } else if (oldValues.lightningBackground) {
         radialBackground = true;
@@ -873,12 +887,6 @@ const createPlayerDiorama = ({
         // sideScene.add(world.lights);
     
         const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
-        if (noiseBackground) {
-          noiseMesh.update(timeOffset, timeDiff, this.width, this.height);
-          noiseMesh.visible = true;
-        } else {
-          noiseMesh.visible = false;
-        }
         if (grassBackground) {
           grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
           grassMesh.material.uniforms.iTime.needsUpdate = true;
@@ -889,6 +897,18 @@ const createPlayerDiorama = ({
           grassMesh.visible = true;
         } else {
           grassMesh.visible = false;
+        }
+        if (noiseBackground) {
+          noiseMesh.update(timeOffset, timeDiff, this.width, this.height);
+          noiseMesh.visible = true;
+        } else {
+          noiseMesh.visible = false;
+        }
+        if (poisonBackground) {
+          poisonMesh.update(timeOffset, timeDiff, this.width, this.height);
+          poisonMesh.visible = true;
+        } else {
+          poisonMesh.visible = false;
         }
         if (lightningBackground) {
           lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
