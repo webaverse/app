@@ -819,26 +819,6 @@ const generateMap = (x, y) => {
     return this.loadPromise;
   }
 } */
-const chunkCache = new Map();
-const getChunksInRange = () => {
-  const chunks = [];
-  for (let y = -height/2 - chunkSize; y < height/2 + chunkSize; y += chunkSize) {
-    for (let x = -width/2 - chunkSize; x < width/2 + chunkSize; x += chunkSize) {
-      const ix = Math.round((x - offset.x) / chunkSize);
-      const iy = Math.round((y - offset.y) / chunkSize);
-
-      const key = `${ix}:${iy}`;
-      let chunk = chunkCache.get(key);
-      if (!chunk) {
-        chunk = _makeChunkMesh(ix, iy);
-        scene.add(chunk);
-        chunkCache.set(key, chunk);
-      }
-      chunks.push(chunk);
-    }
-  }
-  return chunks;
-};
 
 const planeGeometry = new THREE.PlaneBufferGeometry(numBlocks, numBlocks)
   .applyMatrix4(
@@ -1134,7 +1114,28 @@ export const MapGen = ({
     const [chunks, setChunks] = useState([]);
     const [hoveredObject, setHoveredObject] = useState(null);
     const [selectedObject, setSelectedObject] = useState(null);
+    const [chunkCache, setChunkCache] = useState(new Map());
     const canvasRef = useRef();
+
+    const getChunksInRange = () => {
+      const chunks = [];
+      for (let y = -height/2 - chunkSize; y < height/2 + chunkSize; y += chunkSize) {
+        for (let x = -width/2 - chunkSize; x < width/2 + chunkSize; x += chunkSize) {
+          const ix = Math.round((x - offset.x) / chunkSize);
+          const iy = Math.round((y - offset.y) / chunkSize);
+
+          const key = `${ix}:${iy}`;
+          let chunk = chunkCache.get(key);
+          if (!chunk) {
+            chunk = _makeChunkMesh(ix, iy);
+            scene.add(chunk);
+            chunkCache.set(key, chunk);
+          }
+          chunks.push(chunk);
+        }
+      }
+      return chunks;
+    };
 
     // open
     useEffect(() => {
