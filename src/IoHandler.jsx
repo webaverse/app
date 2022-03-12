@@ -4,7 +4,7 @@ import ioManager from '../io-manager.js';
 // import * as codeAi from '../ai/code/code-ai.js';
 // import metaversefile from 'metaversefile';
 
-const types = ['keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
+const types = ['keydown', 'keypress', 'keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
 const ioEventHandlers = {};
 for (const type of types.concat([''])) {
   ioEventHandlers[type] = [];
