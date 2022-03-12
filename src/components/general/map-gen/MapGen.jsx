@@ -890,9 +890,13 @@ const planeFragmentShader = `\
     
     if (uSelect > 0.) {
       gl_FragColor.rgb = mix(
-        mix(color1, color2, vUv.x),
-        mix(color3, color4, vUv.x),
-        vUv.y
+        gl_FragColor.rgb,
+        mix(
+          mix(color1, color2, vUv.x),
+          mix(color3, color4, vUv.x),
+          vUv.y
+        ),
+        0.5
       );
     }
 
