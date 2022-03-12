@@ -1213,10 +1213,12 @@ export const MapGen = ({
           const dx = e.movementX;
           const dy = e.movementY;
 
+          const renderer = getRenderer();
+          const pixelRatio = renderer.getPixelRatio();
           setPosition(new THREE.Vector3(
-            position.x + dx * scale / window.devicePixelRatio,
+            position.x + dx * scale / pixelRatio,
             0,
-            position.z + dy * scale / window.devicePixelRatio
+            position.z + dy * scale / pixelRatio
           ));
 
           setMouseState({
