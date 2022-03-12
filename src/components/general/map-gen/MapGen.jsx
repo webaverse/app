@@ -1317,6 +1317,7 @@ export const MapGen = ({
       
         setPosition(localVector.clone());
         setScale(newScale);
+        setMouseState(null);
       }
       document.addEventListener('wheel', wheel);
       return () => {
