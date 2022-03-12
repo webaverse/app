@@ -50,7 +50,7 @@ class PathFinder {
     const positions = physicsManager.getPath(start, dest, isWalk, this.hy, this.heightTolerance, this.maxIterDetect, this.maxIterStep, this.ignorePhysicsIds);
     const isFound = positions.length > 0;
     positions.forEach(position => {
-      const result = new THREE.Object3D();
+      const result = new THREE.Object3D(); // todo: create Object3D/voxel directly in physics.js.
       result.position.copy(position);
       this.waypointResult.push(result);
     });
