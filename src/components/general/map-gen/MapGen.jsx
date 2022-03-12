@@ -1336,8 +1336,6 @@ export const MapGen = ({
     useEffect(() => {
       const canvas = canvasRef.current;
       if (canvas && open) {
-        const newChunks = getChunksInRange();
-
         const renderer = getRenderer();
         const pixelRatio = renderer.getPixelRatio();
 
@@ -1354,6 +1352,7 @@ export const MapGen = ({
         camera.far = 1000;
         camera.updateProjectionMatrix();
 
+        const newChunks = getChunksInRange();
         setChunks(newChunks);
       }
     }, [canvasRef, open, width, height, position.x, position.z, scale]);
