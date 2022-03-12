@@ -553,14 +553,14 @@ ioManager.keydown = e => {
       game.toggleEditMode();
       break;
     }
-    case 13: { // enter
+    /* case 13: { // enter
       game.enter();
       break;
-    }
-    case 77: { // M
+    } */
+    /* case 77: { // M
       game.toggleMap();
       break;
-    }
+    } */
     case 74: { // J
       game.inventoryHack = !game.inventoryHack;
       break;
