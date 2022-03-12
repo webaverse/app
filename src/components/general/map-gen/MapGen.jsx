@@ -885,12 +885,29 @@ const planeFragmentShader = `\
     }
 
     // chunk border
-    float limit2 = limit/${numBlocks.toFixed(8)};
+    const float limit2 = limit/${numBlocks.toFixed(8)};
     if (
       vUv.x <= limit2 || vUv.x >= (1. - limit2) ||
       vUv.y <= limit2 || vUv.y >= (1. - limit2)
     ) {
-      gl_FragColor.rgb = vec3(${new THREE.Color(0x181818).toArray().map(n => n.toFixed(8)).join(', ')});
+      if (uSelect > 0. && mod(iTime * 0.01, 2.) < 1.) {
+        gl_FragColor.rgb = vec3(1.);
+      } else {
+        gl_FragColor.rgb = vec3(${new THREE.Color(0x181818).toArray().map(n => n.toFixed(8)).join(', ')});
+      }
+    }
+
+    const float limit3 = 0.005;
+    if (
+      (
+        vUv.x <= limit3 || vUv.x >= (1. - limit3) ||
+        vUv.y <= limit3 || vUv.y >= (1. - limit3)
+      ) && (
+        uSelect > 0. &&
+        mod(iTime * 0.01, 2.) < 1.
+      )
+    ) {
+      gl_FragColor.rgb = vec3(1.);
     }
     
     gl_FragColor.gb += vUv * 0.2;
@@ -1072,6 +1089,9 @@ const _makeChunkMesh = (x, y) => {
     labelMesh.visible = selected;
   };
   mesh.update = (timestamp, timeDiff) => {
+    material.uniforms.iTime.value = timestamp;
+    material.uniforms.iTime.needsUpdate = true;
+
     const t = timestamp - (hovered ? lastUnhoveredTime : lastHoveredTime);
     const tS = t / 1000;
     const v = cubicBezier(tS);
