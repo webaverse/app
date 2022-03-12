@@ -1294,19 +1294,21 @@ export const MapGen = ({
       if (canvas && open) {
         const newChunks = getChunksInRange();
 
+        const renderer = getRenderer();
+        const pixelRatio = renderer.getPixelRatio();
+
         camera.position.set(-position.x / voxelSize, 1, -position.z / voxelSize);
         camera.quaternion.setFromAxisAngle(
           new THREE.Vector3(1, 0, 0),
           -Math.PI / 2,
         );
+        camera.scale.setScalar(pixelRatio * scale);
         camera.updateMatrixWorld();
         
-        const renderer = getRenderer();
-        const pixelRatio = renderer.getPixelRatio();
-        camera.left = -(width / voxelSize) / 2 * pixelRatio * scale;
-        camera.right = (width / voxelSize) / 2 * pixelRatio * scale;
-        camera.top = (height / voxelSize) / 2 * pixelRatio * scale;
-        camera.bottom = -(height / voxelSize) / 2 * pixelRatio * scale;
+        camera.left = -(width / voxelSize) / 2;
+        camera.right = (width / voxelSize) / 2;
+        camera.top = (height / voxelSize) / 2;
+        camera.bottom = -(height / voxelSize) / 2;
         camera.near = -10;
         camera.far = 10;
         camera.updateProjectionMatrix();
