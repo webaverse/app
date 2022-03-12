@@ -1232,7 +1232,6 @@ export const MapGen = ({
           localArray.length = 0;
           const intersections = localRaycaster.intersectObjects(scene.children, false, localArray);
           if (intersections.length > 0) {
-            // window.intersections = intersections;
             const {object} = intersections[0];
 
             const chunks = getChunksInRange();
