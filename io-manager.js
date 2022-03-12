@@ -578,6 +578,19 @@ ioManager.keydown = e => {
 ioManager.keypress = e => {
   // nothing
 };
+ioManager.wheel = e => {
+  // window.addEventListener('wheel', e => {
+    // console.log('target', e.target);
+    if (physicsManager.getPhysicsEnabled()) {
+      const renderer = getRenderer();
+      if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
+        cameraManager.handleWheelEvent(e);
+      }
+    }
+  /* }, {
+    passive: false,
+  }); */
+};
 ioManager.keyup = e => {
   if (_inputFocused() || e.repeat) {
     return;
@@ -883,7 +896,7 @@ ioManager.bindInput = () => {
       }
     }
   }); */
-  window.addEventListener('wheel', e => {
+  /* window.addEventListener('wheel', e => {
     // console.log('target', e.target);
     if (physicsManager.getPhysicsEnabled()) {
       const renderer = getRenderer();
@@ -893,7 +906,7 @@ ioManager.bindInput = () => {
     }
   }, {
     passive: false,
-  });
+  }); */
 };
 
 export default ioManager;
