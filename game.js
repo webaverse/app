@@ -554,7 +554,8 @@ const _handleUpload = async (item, transform = null) => {
 
 const _upload = () => {
   const uploadFileInput = document.getElementById('upload-file-input');
-  uploadFileInput.click();
+  uploadFileInput && uploadFileInput.click();
+  console.log('upload file...');
 };
 
 const _grab = object => {
