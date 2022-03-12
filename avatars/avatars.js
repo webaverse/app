@@ -1393,41 +1393,54 @@ class Avatar {
       }
     }
   }
+  lastMoveFactors = {}
+  lastSpeed = 0
+  lastTimestamp = 0
   update(timestamp, timeDiff) {
+    if(this.lastTimestamp > timestamp){
+      console.log("lastTimestamp > timestamp ????????")
+    }
+    this.lastTimestamp = timestamp
+    if(timeDiff === 0) return console.log("update timeDiff === 0")
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
 
-    const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
+    let currentSpeed = this.lastSpeed;
+    const moveFactors = {...this.lastMoveFactors};
+    currentSpeed = (localVector.set(this.velocity.x, 0, this.velocity.z)).length() / timeDiffS;
 
-    const moveFactors = {};
     moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
-    // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
-    const _updateHmdPosition = () => {
-      const currentPosition = this.inputs.hmd.position;
-      const currentQuaternion = this.inputs.hmd.quaternion;
+    const currentPosition = this.inputs.hmd.position;
+
+    const positionDiff = localVector.copy(this.lastPosition)
+      .sub(currentPosition)
+      .divideScalar(timeDiffS)
+      .multiplyScalar(0.1);
+
+    if(positionDiff.length() < 0.0000001 && currentSpeed > 0.00000001)
+      return // Skip this frame
       
-      const positionDiff = localVector.copy(this.lastPosition)
-        .sub(currentPosition)
-        .divideScalar(timeDiffS)
-        .multiplyScalar(0.1);
-      localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      localEuler.y += Math.PI;
-      localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
-      positionDiff.applyEuler(localEuler2);
-      this.velocity.copy(positionDiff);
-      this.lastPosition.copy(currentPosition);
-      this.direction.copy(positionDiff).normalize();
+    localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    localEuler.y += Math.PI;
+    localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
+    positionDiff.applyEuler(localEuler2);
+    // if(this.lastPosition.distanceTo(currentPosition) > 0.0001){
+    this.velocity.copy(positionDiff);
+    this.direction.copy(positionDiff).normalize();
 
-      if (this.velocity.length() > maxIdleVelocity) {
-        this.lastMoveTime = now;
-      }
-    };
-    
+    if (this.velocity.length() > maxIdleVelocity) {
+      this.lastMoveTime = now;
+    }
+   // }
+    this.lastPosition.copy(currentPosition);
+
+    _applyAnimation(this, now, moveFactors);
+
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
       // const noiseAnimation = animations.index['t-pose_rot.fbx'];
@@ -1820,12 +1833,10 @@ class Avatar {
     
     
 
-    _updateHmdPosition();
-    _applyAnimation(this, now, moveFactors);
 
-    if (this.poseAnimation) {
-      _overwritePose(this.poseAnimation);
-    }
+    // if (this.poseAnimation) {
+    //   _overwritePose(this.poseAnimation);
+    // }
 
     // if (!this.getBottomEnabled()) {
     localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');

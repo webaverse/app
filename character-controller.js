@@ -63,7 +63,7 @@ function makeCancelFn() {
 const heightFactor = 1.6;
 const baseRadius = 0.3;
 function loadPhysxCharacterController() {
-  const avatarHeight = this.avatar.height;
+  const avatarHeight = this.avatar?.height ?? 1.6;
   const radius = baseRadius/heightFactor * avatarHeight;
   const height = avatarHeight - radius*2;
 
@@ -744,6 +744,7 @@ class InterpolatedPlayer extends StatePlayer {
     };
   }
   updateInterpolation(timeDiff) {
+    if(timeDiff === 0) return console.log("updateInterpolation timeDiff === 0");
     this.positionTimeStep.update(timeDiff);
     this.quaternionTimeStep.update(timeDiff);
     
@@ -796,6 +797,8 @@ class UninterpolatedPlayer extends StatePlayer {
   updateInterpolation(timeDiff) {
     for (const actionInterpolant of this.actionInterpolantsArray) {
       actionInterpolant.update(timeDiff);
+      if(timeDiff === 0) return console.log("updateInterpolation timeDiff === 0");
+
     }
   }
 }
@@ -970,16 +973,19 @@ class LocalPlayer extends UninterpolatedPlayer {
     return session;
   }
   updatePhysics(timestamp, timeDiff) {
+    if(timeDiff === 0) return console.log("updatePhysics timeDiff === 0");
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
       this.characterPhysics.update(timestamp, timeDiffS);
     }
   }
   updateAvatar(timestamp, timeDiff) {
+    if(timeDiff === 0) return console.log("updateAvatar timeDiff === 0");
+
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
-      this.characterSfx.update(timestamp, timeDiffS);
-      this.characterFx.update(timestamp, timeDiffS);
+      this.characterSfx?.update(timestamp, timeDiffS);
+      this.characterFx?.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
 
@@ -989,7 +995,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       this.avatar.update(timestamp, timeDiff);
 
-      this.characterHups.update(timestamp);
+      this.characterHups?.update(timestamp);
     }
   }
   resetPhysics() {
@@ -1037,13 +1043,31 @@ class LocalPlayer extends UninterpolatedPlayer {
     super.destroy();
   }
 }
-class RemotePlayer extends InterpolatedPlayer {
+class RemotePlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
   
     this.isRemotePlayer = true;
   }
   detachState() {
+    return null;
+  }
+  lastTimestamp;
+  updateAvatar(timestamp, timeDiff) {
+    if(timestamp === this.lastTimestamp){
+      return console.log("update repeat")
+    }
+    this.lastTimestamp = timestamp;
+    if (this.avatar) {
+      this.updateInterpolation(timeDiff);
+
+      applyPlayerToAvatar(this, null, this.avatar, []);
+
+      this.avatar.update(timestamp, timeDiff);
+    }
+  }
+  updatePhysics = () => {} // LocalPlayer.prototype.updatePhysics;
+  getSession() {
     return null;
   }
   attachState(oldState) {
