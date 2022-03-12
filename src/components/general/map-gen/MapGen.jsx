@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import React, { useState, useEffect, useRef } from 'react';
-// import classnames from 'classnames';
+import classnames from 'classnames';
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
@@ -18,6 +18,7 @@ Aurora's Grove
 Aurora's Glade
 Aurora's Gully
 Phantom SpooKs
+Deathdealers Deluxe
 Anima Mundi
 Anima Animae
 Blackglow
@@ -93,6 +94,7 @@ Adventure's Start
 The Spurt
 Imaginarium Herbararium
 Hazy Daze
+Orbie and Marten
 Luminary Middle School
 Robo-Petting Zoo
 Phoenix Fountain
@@ -120,6 +122,7 @@ The Gamer's Gate
 Aquarius Watering Hole
 Artificial Asylum
 Bloodsap
+The Hip House
 Fourth Wall Breaks
 Hollow Moon
 Vault Of The Sumner
@@ -197,6 +200,7 @@ The Junction
 Smoothie's Corner
 Abandoned Home
 Kenichi's Lab
+Downtownmarket
 Tomekeeper's Tower
 Bancore
 The Quiets
@@ -757,76 +761,10 @@ const generateMap = (x, y) => {
     }).sort((a, b) => {
       return a.distanceTo(deepestEntry.block) - b.distanceTo(deepestEntry.block);
     });
-    /* if (unseenPathCandidates.length === 0) {
-      console.warn('no candidate to go to');
-      debugger;
-    } */
     _connectBlocks(deepestEntry.block, unseenPathCandidates[0]);
   }
   return blocks;
 };
-/* const renderChunk = (canvas, blocks) => {
-  const {ctx} = canvas;
-  ctx.fillStyle = '#222';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#111';
-  ctx.fillRect(border, border, canvas.width - 2 * border, canvas.height - 2 * border);
-
-  for (let y = 0; y < numBlocks; y++) {
-    for (let x = 0; x < numBlocks; x++) {
-      const block = blocks[x + y * numBlocks];
-
-      let fillStyle = '#000';
-      if (block.exitTarget) {
-        fillStyle = '#00F';
-      } else if (block.centerTarget) {
-        fillStyle = '#F00';
-      } else if (block.splinePoint) {
-        fillStyle = '#080';
-      } else if (block.path) {
-        fillStyle = '#666';
-      }
-      ctx.fillStyle = fillStyle;
-      ctx.fillRect(x * voxelSize + border, y * voxelSize + border, voxelSize - border*2, voxelSize - border*2);
-    }
-  }
-}; */
-
-/* class Chunk {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-
-    this.imageBitmap = null;
-    this.readyState = 'pending';
-
-    this.loadPromise = (async () => {
-      const chunkBlocks = generateMap(this.x, this.y);
-
-      const {ctx} = Chunk.cachedCanvas;
-      ctx.fillStyle = '#111';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      renderChunk(Chunk.cachedCanvas, chunkBlocks);
-    
-      this.imageBitmap = await createImageBitmap(Chunk.cachedCanvas);
-      this.readyState = 'done';
-    })();
-  }
-  static cachedCanvas = (() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = chunkSize;
-    canvas.height = chunkSize;
-
-    const ctx = canvas.getContext('2d');
-    canvas.ctx = ctx;
-
-    return canvas;
-  })();
-  waitForLoad() {
-    return this.loadPromise;
-  }
-} */
 
 const planeGeometry = new THREE.PlaneBufferGeometry(numBlocks, numBlocks)
   .applyMatrix4(
@@ -885,12 +823,29 @@ const planeFragmentShader = `\
     }
 
     // chunk border
-    float limit2 = limit/${numBlocks.toFixed(8)};
+    const float limit2 = limit/${numBlocks.toFixed(8)};
     if (
       vUv.x <= limit2 || vUv.x >= (1. - limit2) ||
       vUv.y <= limit2 || vUv.y >= (1. - limit2)
     ) {
-      gl_FragColor.rgb = vec3(${new THREE.Color(0x181818).toArray().map(n => n.toFixed(8)).join(', ')});
+      if (uSelect > 0. && mod(iTime * 0.01, 2.) < 1.) {
+        gl_FragColor.rgb = vec3(1.);
+      } else {
+        gl_FragColor.rgb = vec3(${new THREE.Color(0x181818).toArray().map(n => n.toFixed(8)).join(', ')});
+      }
+    }
+
+    const float limit3 = 0.005;
+    if (
+      (
+        vUv.x <= limit3 || vUv.x >= (1. - limit3) ||
+        vUv.y <= limit3 || vUv.y >= (1. - limit3)
+      ) && (
+        uSelect > 0. &&
+        mod(iTime * 0.01, 2.) < 1.
+      )
+    ) {
+      gl_FragColor.rgb = vec3(1.);
     }
     
     gl_FragColor.gb += vUv * 0.2;
@@ -969,6 +924,10 @@ const _makeChunkMesh = (x, y) => {
   const mesh = new THREE.Mesh(planeGeometry, material);
   mesh.position.set(x * numBlocks, 0, y * numBlocks);
   mesh.updateMatrixWorld();
+
+  const rng = makeRng('name', x, y);
+  const name = names[Math.floor(rng() * names.length)];
+  mesh.name = name;
   mesh.x = x;
   mesh.y = y;
 
@@ -990,15 +949,13 @@ const _makeChunkMesh = (x, y) => {
 
   let textMesh;
   {
-    const rng = makeRng('name', x, y);
-
     textMesh = new Text();
     const materials = [
       _makeTextMaterial(false),
       _makeTextMaterial(true),
     ];
     textMesh.material = materials[+false];
-    textMesh.text = names[Math.floor(rng() * names.length)];
+    textMesh.text = name;
     textMesh.font = './fonts/Plaza Regular.ttf';
     textMesh.fontSize = 2;
     textMesh.color = 0xFFFFFF;
@@ -1070,6 +1027,9 @@ const _makeChunkMesh = (x, y) => {
     labelMesh.visible = selected;
   };
   mesh.update = (timestamp, timeDiff) => {
+    material.uniforms.iTime.value = timestamp;
+    material.uniforms.iTime.needsUpdate = true;
+
     const t = timestamp - (hovered ? lastUnhoveredTime : lastHoveredTime);
     const tS = t / 1000;
     const v = cubicBezier(tS);
@@ -1078,8 +1038,6 @@ const _makeChunkMesh = (x, y) => {
 
     material.uniforms.uSelect.value = selected ? 1 : 0;
     material.uniforms.uSelect.needsUpdate = true;
-
-    // console.log('set hovered', t);
 
     if (hovered) {
       lastHoveredTime = timestamp;
@@ -1402,26 +1360,33 @@ export const MapGen = ({
         moved: false,
       });
     }
-    /* function doubleClick(e) {
+    function goClick(e) {
       e.preventDefault();
       e.stopPropagation();
 
-      selectObject();
-    } */
+      // console.log('click go', selectedObjectName);
+    }
 
-    return (
+    const selectedObjectName = selectedObject ? selectedObject.name : '';
+
+    return open ? (
         <div className={styles.mapGen}>
-            {open ? (
-                <canvas
-                  width={width}
-                  height={height}
-                  className={styles.canvas}
-                  onMouseDown={mouseDown}
-                  // onDoubleClick={doubleClick}
-                  ref={canvasRef}
-                />
-            ) : null}
-            
+            <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
+                <h1>{selectedObjectName}</h1>
+                <hr />
+                <div className={styles.buttons}>
+                    <button className={styles.button} onClick={goClick}>
+                      Go
+                    </button>
+                </div>
+            </div>
+            <canvas
+                width={width}
+                height={height}
+                className={styles.canvas}
+                onMouseDown={mouseDown}
+                ref={canvasRef}
+            />
         </div>
-    );
+    ) : null;
 };
