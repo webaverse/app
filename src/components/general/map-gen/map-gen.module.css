@@ -16,15 +16,28 @@
 .mapGen .sidebar {
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
   width: 400px;
   height: 100vh;
+  background-color: #000;
   font-family: 'PlazaRegular';
-  transform: translate3d(0, 0, 0);
+  font-size: 16px;
+  color: #FFF;
+  transform: translate(0, 0);
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
-.mapGen .sidebar:not(open) {
-  transform: translate3d(100%, 0, 0);
+.mapGen .sidebar:not(.open) {
+  transform: translate(100%, 0);
 }
 .mapGen .sidebar h1 {
+  /* display: flex; */
   margin: 0;
+  padding: 15px;
+  /* justify-content: flex-start; */
+}
+.mapGen .sidebar hr {
+  margin: 0 50px;
+  padding: 0;
+  border: 0;
+  border-top: 2px solid #FFFFFF40;
 }
