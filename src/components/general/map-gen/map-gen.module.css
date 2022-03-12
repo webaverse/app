@@ -30,10 +30,8 @@
   transform: translate(100%, 0);
 }
 .mapGen .sidebar h1 {
-  /* display: flex; */
   margin: 0;
   padding: 15px;
-  /* justify-content: flex-start; */
 }
 .mapGen .sidebar hr {
   margin: 0 50px;
