@@ -10,6 +10,7 @@ import {planeGeometry} from './background-fx/common.js';
 import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
+import {SmokeBgFxMesh} from './background-fx/SmokeBgFx.js';
 import {
   fullscreenVertexShader,
   animeLightningFragmentShader,
@@ -478,6 +479,7 @@ const grassMesh = (() => {
 })();
 const noiseMesh = new NoiseBgFxMesh();
 const poisonMesh = new PoisonBgFxMesh();
+const smokeMesh = new SmokeBgFxMesh();
 const glyphMesh = (() => {
   const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
@@ -627,6 +629,7 @@ sideScene.add(radialMesh);
 sideScene.add(grassMesh);
 sideScene.add(noiseMesh);
 sideScene.add(poisonMesh);
+sideScene.add(smokeMesh);
 sideScene.add(glyphMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
@@ -695,6 +698,7 @@ const createPlayerDiorama = ({
   grassBackground = false,
   noiseBackground = false,
   poisonBackground = false,
+  smokeBackground = false,
   lightningBackground = false,
   radialBackground = false,
   glyphBackground = false,
@@ -746,6 +750,7 @@ const createPlayerDiorama = ({
         grassBackground,
         noiseBackground,
         poisonBackground,
+        smokeBackground,
         lightningBackground,
         radialBackground,
         glyphBackground,
@@ -753,6 +758,7 @@ const createPlayerDiorama = ({
       grassBackground = false;
       noiseBackground = false;
       poisonBackground = false;
+      smokeBackground = false;
       lightningBackground = false;
       radialBackground = false;
       glyphBackground = false;
@@ -761,6 +767,8 @@ const createPlayerDiorama = ({
       } else if (oldValues.noiseBackground) {
         poisonBackground = true;
       } else if (oldValues.poisonBackground) {
+        smokeBackground = true;
+      } else if (oldValues.smokeBackground) {
         lightningBackground = true;
       } else if (oldValues.lightningBackground) {
         radialBackground = true;
@@ -909,6 +917,12 @@ const createPlayerDiorama = ({
           poisonMesh.visible = true;
         } else {
           poisonMesh.visible = false;
+        }
+        if (smokeBackground) {
+          smokeMesh.update(timeOffset, timeDiff, this.width, this.height);
+          smokeMesh.visible = true;
+        } else {
+          smokeMesh.visible = false;
         }
         if (lightningBackground) {
           lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
