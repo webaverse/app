@@ -1008,17 +1008,8 @@ const _makeChunkMesh = (x, y) => {
     // textMesh.frustumCulled = false;
     textMesh.sync(() => {
       let [x, y, w, h] = textMesh.textRenderInfo.blockBounds;
-      // console.log('got text render info', w, h);
-      // console.log('got sync', x, y, w, h);
-      /* x *= 2;
-      y *= 2;
-      w *= 2;
-      h *= 2; */
       w += 1;
       h += 1;
-      // h = 2;
-      // y = -0.1;
-      // y = 0;
       labelMesh.position.set(
         x - numBlocks / 2 + w / 2,
         1,
