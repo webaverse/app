@@ -1203,9 +1203,9 @@ export const MapGen = ({
           const dy = e.clientY - mouseState.y;
 
           setPosition(new THREE.Vector3(
-            position.x + dx,
+            position.x + dx * scale,
             0,
-            position.z + dy
+            position.z + dy * scale
           ));
 
           setMouseState({
@@ -1246,7 +1246,7 @@ export const MapGen = ({
       return () => {
         document.removeEventListener('mousemove', mouseMove);
       };
-    }, [mouseState]);
+    }, [mouseState, scale]);
 
     // wheel
     useEffect(() => {
