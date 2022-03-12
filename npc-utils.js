@@ -5,6 +5,14 @@ import {
 } from './renderer.js';
 import physicsManager from './physics-manager.js';
 
+const colorIdle = new THREE.Color('rgb(221,213,213)');
+const colorReached = new THREE.Color('rgb(171,163,163)');
+const colorFrontier = new THREE.Color('rgb(92,133,214)');
+const colorStart = new THREE.Color('rgb(0,255,255)');
+const colorDest = new THREE.Color('rgb(255,255,0)');
+const colorPath = new THREE.Color('rgb(149,64,191)');
+const colorPathSimplified = new THREE.Color('rgb(69,0,98)');
+
 class PathFinder {
   constructor({voxelHeight = 1.65, heightTolerance = 0.5, maxIterDetect = 1000, maxIterStep = 1000, ignorePhysicsIds = [], debugRender = false}) {
     /* args:
@@ -26,8 +34,6 @@ class PathFinder {
     this.debugRender = debugRender;
 
     if (this.debugRender) {
-      this.colorIdle = new THREE.Color('rgb(221,213,213)');
-      this.colorPath = new THREE.Color('rgb(149,64,191)');
       this.geometry = new THREE.BoxGeometry();
       this.geometry.scale(0.3, this.voxelHeight * 0.3, 0.3);
       // this.geometry.scale(0.9, 0.1, 0.9);
@@ -57,15 +63,27 @@ class PathFinder {
 
     if (this.debugRender) {
       for (let i = 0; i < this.maxDebugCount; i++) {
-        this.debugMesh.setColorAt(i, this.colorIdle);
+        this.debugMesh.setColorAt(i, colorIdle);
       }
+
+      //
 
       this.debugMesh.count = this.waypointResult.length;
       this.waypointResult.forEach((result, i) => {
         result.updateMatrixWorld();
         this.debugMesh.setMatrixAt(i, result.matrix);
-        this.debugMesh.setColorAt(i, this.colorPath);
+        this.debugMesh.setColorAt(i, colorPath);
       });
+
+      // this.debugMesh.count += window.voxels.length;
+      // window.voxels.forEach((voxel, i) => {
+      //   voxel.scale.setScalar(0.5);
+      //   voxel.updateMatrixWorld();
+      //   this.debugMesh.setMatrixAt(this.waypointResult.length + i, voxel.matrix);
+      //   this.debugMesh.setColorAt(this.waypointResult.length + i, colorIdle);
+      // });
+
+      //
 
       this.debugMesh.instanceMatrix.needsUpdate = true;
       this.debugMesh.instanceColor.needsUpdate = true;

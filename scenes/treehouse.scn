@@ -53,7 +53,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/street/index.js"
+      "start_url": "http://localhost/lib/webaverse_resource/street/index.js"
     },
     {
       "position": [
@@ -61,87 +61,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/skybox-anime/"
-    },
-    {
-      "position": [
-        4,
-        0,
-        1
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "physics": false,
-      "start_url": "/avatars/gear.vrm",
-      "dynamic": true
-    },
-    {
-      "position": [
-        4,
-        0,
-        3
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "physics": false,
-      "start_url": "https://webaverse.github.io/infinifruit/",
-      "dynamic": true
-    },
-    {
-      "position": [
-        24,
-        0,
-        24
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "physics": false,
-      "start_url": "https://webaverse.github.io/barrier/",
-      "dynamic": true
-    },
-    {
-      "position": [
-        24,
-        0,
-        30
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "physics": false,
-      "start_url": "https://webaverse.github.io/silkworm/",
-      "dynamic": true
-    },
-    {
-      "position": [
-        4,
-        1,
-        4
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "physics": false,
-      "start_url": "https://webaverse.github.io/basiheart/",
-      "dynamic": true
+      "start_url": "http://localhost/lib/webaverse_resource/skybox-anime/"
     },
     {
       "position": [
@@ -155,7 +75,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/treehouse/"
+      "start_url": "http://localhost/lib/webaverse_resource/treehouse/"
     },
     {
       "position": [
@@ -169,13 +89,13 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/ramp/"
+      "start_url": "http://localhost/lib/webaverse_resource/ramp/"
     },
     {
       "position": [
-        27,
         0,
-        16
+        5,
+        5
       ],
       "quaternion": [
         0,
@@ -183,111 +103,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/hovercraft/"
-    },
-    {
-      "position": [
-        35,
-        0,
-        16
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/dragon-mount/"
-    },
-    {
-      "position": [
-        -6,
-        0.16,
-        16
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "https://webaverse.github.io/fox/"
-    },
-    {
-      "position": [
-        -6,
-        1,
-        15
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "scale": [
-        0.5,
-        0.5,
-        0.5
-      ],
-      "start_url": "https://webaverse.github.io/potion/"
-    },
-    {
-      "position": [
-        -6,
-        0.5,
-        13
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/pistol/"
-    },
-    {
-      "position": [
-        -6,
-        0.5,
-        12
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/bow/"
-    },
-    {
-      "position": [
-        -6,
-        0.5,
-        11
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/silsword/"
+      "start_url": "http://localhost/lib/webaverse_resource/npc/"
     }
   ]
 }
