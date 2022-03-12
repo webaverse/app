@@ -10,6 +10,7 @@ import {world} from '../../../../world.js';
 import cameraManager from '../../../../camera-manager.js';
 import {Text} from 'troika-three-text';
 import alea from '../../../../alea.js';
+import easing from '../../../../easing.js';
 import styles from './map-gen.module.css';
 
 const names = `\
@@ -454,6 +455,8 @@ const localArray = [];
 // const localColor = new THREE.Color();
 const localRaycaster = new THREE.Raycaster();
 
+const cubicBezier = easing(0, 1, 0, 1);
+
 function makeRng() {
   const a = Array.from(arguments);
   const seed = a.join(':');
@@ -837,6 +840,7 @@ const fragmentShader = `\
   uniform float iTime;
   uniform sampler2D map;
   uniform vec2 chunkCoords;
+  uniform float uHover;
   varying vec2 vUv;
 
   const vec3 color1 = vec3(${new THREE.Color(0x66bb6a).toArray().join(', ')});
@@ -861,7 +865,7 @@ const fragmentShader = `\
       c = vec3(${new THREE.Color(Block.COLORS.path).toArray().map(n => n.toFixed(8)).join(', ')});
     }
     gl_FragColor.rgb = c;
-    
+
     // voxel border
     vec2 voxelUv = mod(vUv * ${numBlocks.toFixed(8)}, 1.);
     const float limit = 0.075;
@@ -891,6 +895,11 @@ const fragmentShader = `\
       );
     }
 
+    float y = -vUv.x + uHover * 2.;
+    if (vUv.y < y) {
+      gl_FragColor.rgb += 0.3;
+    }
+
     gl_FragColor.a = 1.;
   }
 `;
@@ -914,6 +923,10 @@ const _makeChunkMesh = (x, y) => {
     fragmentShader,
     uniforms: {
       iTime: {
+        value: 0,
+        needsUpdate: false,
+      },
+      uHover: {
         value: 0,
         needsUpdate: false,
       },
@@ -1009,6 +1022,28 @@ const _makeChunkMesh = (x, y) => {
     mesh.add(labelMesh);
     labelMesh.updateMatrixWorld();
   }
+  
+  let hovered = false;
+  let lastHoveredTime = -Infinity;
+  let lastUnhoveredTime = -Infinity;
+  mesh.setHovered = newHovered => {
+    hovered = newHovered;
+  };
+  mesh.update = (timestamp, timeDiff) => {
+    const t = timestamp - (hovered ? lastUnhoveredTime : lastHoveredTime);
+    const tS = t / 1000;
+    const v = cubicBezier(tS);
+    material.uniforms.uHover.value = hovered ? v : 1-v;
+    material.uniforms.uHover.needsUpdate = true;
+
+    // console.log('set hovered', t);
+
+    if (hovered) {
+      lastHoveredTime = timestamp;
+    } else {
+      lastUnhoveredTime = timestamp;
+    }
+  };
 
   return mesh;
 };
@@ -1029,7 +1064,6 @@ export const MapGen = ({
     const [camera, setCamera] = useState(() => new THREE.OrthographicCamera());
     const [raycaster, setRaycaster] = useState(() => new THREE.Raycaster());
     const [chunks, setChunks] = useState([]);
-    const [hoveredObject, setHoveredObject] = useState(null);
     const canvasRef = useRef();
 
     useEffect(() => {
@@ -1161,7 +1195,7 @@ export const MapGen = ({
           const oldViewport = renderer.getViewport(localVector4D);
 
           for (const chunk of chunks) {
-            chunk
+            chunk.update(timestamp, timeDiff);
           }
 
           renderer.setViewport(0, 0, width, height);
@@ -1179,7 +1213,7 @@ export const MapGen = ({
           world.appManager.removeEventListener('frame', render);
         };
       }
-    }, [canvasRef, open, width, height, chunks, hoveredObject]);
+    }, [canvasRef, open, width, height, chunks]);
 
     function mouseDown(e) {
       e.preventDefault();
@@ -1208,15 +1242,23 @@ export const MapGen = ({
         } else {
           const width = window.innerWidth;
           const height = window.innerHeight;
+          const renderer = getRenderer();
+          const pixelRatio = renderer.getPixelRatio();
           const mouse = localVector2D.set(
-            (e.clientX / width) * 2 - 1,
-            - (e.clientY / height) * 2 + 1
+            (e.clientX / pixelRatio / width) * 2 - 1,
+            - (e.clientY / pixelRatio / height) * 2 + 1
           );
           localRaycaster.setFromCamera(mouse, camera);
+          localArray.length = 0;
           const intersections = localRaycaster.intersectObjects(scene.children, false, localArray);
           if (intersections.length > 0) {
+            // window.intersections = intersections;
             const {object} = intersections[0];
-            setHoveredObject(object);
+
+            const chunks = getChunksInRange();
+            for (const chunk of chunks) {
+              chunk.setHovered(chunk === object);
+            }
           }
         }
       }
