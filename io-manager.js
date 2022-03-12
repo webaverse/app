@@ -575,6 +575,9 @@ ioManager.keydown = e => {
     }
   }
 };
+ioManager.keypress = e => {
+  // nothing
+};
 ioManager.keyup = e => {
   if (_inputFocused() || e.repeat) {
     return;
