@@ -18,6 +18,7 @@ Aurora's Grove
 Aurora's Glade
 Aurora's Gully
 Phantom SpooKs
+Deathdealers Deluxe
 Anima Mundi
 Anima Animae
 Blackglow
@@ -93,6 +94,7 @@ Adventure's Start
 The Spurt
 Imaginarium Herbararium
 Hazy Daze
+Orbie and Marten
 Luminary Middle School
 Robo-Petting Zoo
 Phoenix Fountain
@@ -120,6 +122,7 @@ The Gamer's Gate
 Aquarius Watering Hole
 Artificial Asylum
 Bloodsap
+The Hip House
 Fourth Wall Breaks
 Hollow Moon
 Vault Of The Sumner
@@ -197,6 +200,7 @@ The Junction
 Smoothie's Corner
 Abandoned Home
 Kenichi's Lab
+Downtownmarket
 Tomekeeper's Tower
 Bancore
 The Quiets
