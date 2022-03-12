@@ -1031,8 +1031,12 @@ const _makeChunkMesh = (x, y) => {
     textMesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
     mesh.add(textMesh);
     textMesh.updateWorldMatrix();
-    textMesh.setHighlight = highlight => {
-      textMesh.material = materials[+highlight];
+    let highlight = false;
+    textMesh.setHighlight = newHighlight => {
+      if (newHighlight !== highlight) {
+        highlight = newHighlight;
+        textMesh.material = materials[+highlight];
+      }
     };
 
     const labelGeometry = new THREE.PlaneBufferGeometry(1, 1)
