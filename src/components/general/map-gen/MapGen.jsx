@@ -1360,6 +1360,12 @@ export const MapGen = ({
         moved: false,
       });
     }
+    function goClick(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // console.log('click go', selectedObjectName);
+    }
 
     const selectedObjectName = selectedObject ? selectedObject.name : '';
 
@@ -1368,6 +1374,11 @@ export const MapGen = ({
             <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
                 <h1>{selectedObjectName}</h1>
                 <hr />
+                <div className={styles.buttons}>
+                    <button className={styles.button} onClick={goClick}>
+                      Go
+                    </button>
+                </div>
             </div>
             <canvas
                 width={width}
