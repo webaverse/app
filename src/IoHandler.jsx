@@ -32,7 +32,6 @@ function IoHandler() {
         for (let i = 0; i < ioEventHandlers[type].length; i++) {
           const result = ioEventHandlers[type][i](e);
           if (result === false) {
-            // console.log('handled 1', type);
             broke = true;
             break;
           }
@@ -44,7 +43,6 @@ function IoHandler() {
           for (let i = 0; i < ioEventHandlers[type].length; i++) {
             const result = ioEventHandlers[type][i](e);
             if (result === false) {
-              // console.log('handled 2', type);
               broke = true;
               break;
             }
