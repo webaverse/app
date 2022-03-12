@@ -1210,13 +1210,13 @@ export const MapGen = ({
     useEffect(() => {
       function mouseMove(e) {
         if (mouseState) {
-          const dx = e.clientX - mouseState.x;
-          const dy = e.clientY - mouseState.y;
+          const dx = e.movementX;
+          const dy = e.movementY;
 
           setPosition(new THREE.Vector3(
-            position.x + dx * scale,
+            position.x + dx * scale / window.devicePixelRatio,
             0,
-            position.z + dy * scale
+            position.z + dy * scale / window.devicePixelRatio
           ));
 
           setMouseState({
