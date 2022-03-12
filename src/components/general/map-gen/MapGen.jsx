@@ -836,11 +836,12 @@ const vertexShader = `\
     vUv = uv;
   }
 `;
-const fragmentShader = `\
+const planeFragmentShader = `\
   uniform float iTime;
   uniform sampler2D map;
   uniform vec2 chunkCoords;
   uniform float uHover;
+  uniform float uSelect;
   varying vec2 vUv;
 
   const vec3 color1 = vec3(${new THREE.Color(0x66bb6a).toArray().join(', ')});
@@ -887,7 +888,7 @@ const fragmentShader = `\
     
     gl_FragColor.gb += vUv * 0.2;
     
-    if (chunkCoords.x == 0. && chunkCoords.y == 0.) {
+    if (uSelect > 0.) {
       gl_FragColor.rgb = mix(
         mix(color1, color2, vUv.x),
         mix(color3, color4, vUv.x),
@@ -901,6 +902,13 @@ const fragmentShader = `\
     }
 
     gl_FragColor.a = 1.;
+  }
+`;
+const textFragmentShader = `\
+  uniform float opacity;
+
+  void main() {
+    gl_FragColor = vec4(1., 1., 1., opacity);
   }
 `;
 const _makeChunkMesh = (x, y) => {
@@ -920,13 +928,17 @@ const _makeChunkMesh = (x, y) => {
   
   const material = new THREE.ShaderMaterial({
     vertexShader,
-    fragmentShader,
+    fragmentShader: planeFragmentShader,
     uniforms: {
       iTime: {
         value: 0,
         needsUpdate: false,
       },
       uHover: {
+        value: 0,
+        needsUpdate: false,
+      },
+      uSelect: {
         value: 0,
         needsUpdate: false,
       },
@@ -951,13 +963,32 @@ const _makeChunkMesh = (x, y) => {
 
   const isFirst = x === 0 && y === 0;
 
+  const _makeTextMaterial = hovered => {
+    return new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader: textFragmentShader,
+      uniforms: {
+        opacity: {
+          value: hovered ? 1. : 0.3,
+          needsUpdate: true,
+        },
+      },
+      // transparent: true,
+      // opacity: 0.5,
+      // side: THREE.DoubleSide, 
+    });
+  };
+
+  let textMesh;
   {
     const rng = makeRng('name', x, y);
 
-    const textMesh = new Text();
-    textMesh.material = new THREE.MeshBasicMaterial({
-      opacity: isFirst ? 1 : 0.3,
-    });
+    textMesh = new Text();
+    const materials = [
+      _makeTextMaterial(false),
+      _makeTextMaterial(true),
+    ];
+    textMesh.material = materials[+false];
     textMesh.text = names[Math.floor(rng() * names.length)];
     textMesh.font = './fonts/Plaza Regular.ttf';
     textMesh.fontSize = 2;
@@ -1000,8 +1031,9 @@ const _makeChunkMesh = (x, y) => {
     textMesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
     mesh.add(textMesh);
     textMesh.updateWorldMatrix();
-    // window.textMesh = textMesh;
-    // const [x, y, w, h] = textMesh.textRenderInfo.blockBounds;
+    textMesh.setHighlight = highlight => {
+      textMesh.material = materials[+highlight];
+    };
 
     const labelGeometry = new THREE.PlaneBufferGeometry(1, 1)
       .applyMatrix4(
@@ -1028,6 +1060,12 @@ const _makeChunkMesh = (x, y) => {
   let lastUnhoveredTime = -Infinity;
   mesh.setHovered = newHovered => {
     hovered = newHovered;
+    textMesh.setHighlight(hovered || selected);
+  };
+  let selected = false;
+  mesh.setSelected = newSelected => {
+    selected = newSelected;
+    textMesh.setHighlight(hovered || selected);
   };
   mesh.update = (timestamp, timeDiff) => {
     const t = timestamp - (hovered ? lastUnhoveredTime : lastHoveredTime);
@@ -1035,6 +1073,9 @@ const _makeChunkMesh = (x, y) => {
     const v = cubicBezier(tS);
     material.uniforms.uHover.value = hovered ? v : 1-v;
     material.uniforms.uHover.needsUpdate = true;
+
+    material.uniforms.uSelect.value = hovered ? v : 1-v;
+    material.uniforms.uSelect.needsUpdate = true;
 
     // console.log('set hovered', t);
 
@@ -1062,7 +1103,6 @@ export const MapGen = ({
     const [mouseState, setMouseState] = useState(null);
     const [scene, setScene] = useState(() => new THREE.Scene());
     const [camera, setCamera] = useState(() => new THREE.OrthographicCamera());
-    const [raycaster, setRaycaster] = useState(() => new THREE.Raycaster());
     const [chunks, setChunks] = useState([]);
     const canvasRef = useRef();
 
