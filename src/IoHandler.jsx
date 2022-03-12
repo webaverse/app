@@ -4,7 +4,7 @@ import ioManager from '../io-manager.js';
 // import * as codeAi from '../ai/code/code-ai.js';
 // import metaversefile from 'metaversefile';
 
-const types = ['keydown', 'keypress', 'keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
+const types = ['keydown', 'keypress', 'keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'wheel', 'paste'];
 const ioEventHandlers = {};
 for (const type of types.concat([''])) {
   ioEventHandlers[type] = [];
@@ -54,7 +54,9 @@ function IoHandler() {
           ioManager[type](e);
         }
       };
-      window.addEventListener(type, fn);
+      window.addEventListener(type, fn, {
+        passive: type === 'wheel',
+      });
       return () => {
         // console.log('clear event');
         window.removeEventListener(type, fn);
