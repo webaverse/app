@@ -961,8 +961,6 @@ const _makeChunkMesh = (x, y) => {
   mesh.x = x;
   mesh.y = y;
 
-  const isFirst = x === 0 && y === 0;
-
   const _makeTextMaterial = hovered => {
     return new THREE.ShaderMaterial({
       vertexShader,
@@ -1017,7 +1015,6 @@ const _makeChunkMesh = (x, y) => {
       );
       labelMesh.scale.set(w, 1, h);
       labelMesh.updateMatrixWorld();
-      labelMesh.visible = isFirst;
     });
     /* await new Promise(accept => {
       textMesh.sync(accept);
@@ -1038,7 +1035,10 @@ const _makeChunkMesh = (x, y) => {
         textMesh.material = materials[+highlight];
       }
     };
+  }
 
+  let labelMesh;
+  {
     const labelGeometry = new THREE.PlaneBufferGeometry(1, 1)
       .applyMatrix4(
         new THREE.Matrix4().makeRotationFromQuaternion(
@@ -1048,7 +1048,7 @@ const _makeChunkMesh = (x, y) => {
     const labelMaterial = new THREE.MeshBasicMaterial({
       color: 0x000000,
     });
-    const labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
+    labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
     /* labelMesh.position.set(
       -numBlocks / 2 + textOffset,
       1,
@@ -1070,6 +1070,7 @@ const _makeChunkMesh = (x, y) => {
   mesh.setSelected = newSelected => {
     selected = newSelected;
     textMesh.setHighlight(hovered || selected);
+    labelMesh.visible = selected;
   };
   mesh.update = (timestamp, timeDiff) => {
     const t = timestamp - (hovered ? lastUnhoveredTime : lastHoveredTime);
@@ -1108,6 +1109,8 @@ export const MapGen = ({
     const [scene, setScene] = useState(() => new THREE.Scene());
     const [camera, setCamera] = useState(() => new THREE.OrthographicCamera());
     const [chunks, setChunks] = useState([]);
+    const [hoveredObject, setHoveredObject] = useState(null);
+    const [selectedObject, setSelectedObject] = useState(null);
     const canvasRef = useRef();
 
     useEffect(() => {
@@ -1266,6 +1269,7 @@ export const MapGen = ({
       setMouseState({
         x: e.clientX,
         y: e.clientY,
+        moved: false,
       });
     }
     useEffect(() => {
@@ -1282,6 +1286,7 @@ export const MapGen = ({
           setMouseState({
             x: e.clientX,
             y: e.clientY,
+            moved: true,
           });
         } else {
           const width = window.innerWidth;
@@ -1293,6 +1298,7 @@ export const MapGen = ({
             - (e.clientY / pixelRatio / height) * 2 + 1
           );
           localRaycaster.setFromCamera(mouse, camera);
+
           localArray.length = 0;
           const intersections = localRaycaster.intersectObjects(scene.children, false, localArray);
           if (intersections.length > 0) {
@@ -1303,6 +1309,10 @@ export const MapGen = ({
             for (const chunk of chunks) {
               chunk.setHovered(chunk === object);
             }
+
+            setHoveredObject(object);
+          } else {
+            setHoveredObject(null);
           }
         }
       }
@@ -1321,6 +1331,16 @@ export const MapGen = ({
       }
       function mouseUp(e) {
         if (open) {
+          if (mouseState && !mouseState.moved && hoveredObject) {
+            const newSelectedObject = selectedObject === hoveredObject ? null : hoveredObject;
+
+            for (const chunk of chunks) {
+              chunk.setSelected(chunk === newSelectedObject);
+            }
+
+            setSelectedObject(newSelectedObject);
+          }
+          
           setMouseState(null);
           return false;
         } else {
@@ -1333,7 +1353,7 @@ export const MapGen = ({
         unregisterIoEventHandler('click', click);
         unregisterIoEventHandler('mouseup', mouseUp);
       };
-    }, [open]);
+    }, [open, mouseState, hoveredObject]);
 
     return (
         <div className={styles.mapGen}>
