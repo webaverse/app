@@ -1115,7 +1115,6 @@ export const MapGen = ({
     const [chunkCache, setChunkCache] = useState(new Map());
     const canvasRef = useRef();
 
-    // let running = false;
     const getChunksInRange = (() => {
       const localVector = new THREE.Vector3();
       const localVector2 = new THREE.Vector3();
@@ -1124,44 +1123,22 @@ export const MapGen = ({
         const chunks = [];
         const bottomLeft = localVector.set(-1, 1, 0)
           .unproject(camera)
-          // .divideScalar(voxelSize);
         const topRight = localVector2.set(1, -1, 0)
-          .unproject(camera)
-          // .divideScalar(voxelSize);
-
-        // console.log('got bottom left', bottomLeft.toArray().join(','), topRight.toArray().join(','));
+          .unproject(camera);
 
         for (let y = bottomLeft.z; y < topRight.z; y += numBlocks) {
           for (let x = bottomLeft.x; x < topRight.x; x += numBlocks) {
             const ix = Math.round(x / numBlocks);
             const iy = Math.round(y / numBlocks);
 
-            // console.log('first ', ix, iy, topRight.x, topRight.z);
-
-            // try {
-
             const key = `${ix}:${iy}`;
             let chunk = chunkCache.get(key);
             if (!chunk) {
-              // console.log('second', ix, iy);
-              /* Object.defineProperty(topRight, 'x', {
-                set(v) {
-                  debugger;
-                },
-              }); */
-              // localVector = null;
-              // localVector2 = null;
               chunk = _makeChunkMesh(ix, iy);
               scene.add(chunk);
               chunkCache.set(key, chunk);
             }
             chunks.push(chunk);
-
-            // console.log('final', x, y, topRight.x, topRight.z);
-          
-            /* } catch(e) {
-              console.log('got', e);
-            } */
           }
         }
 
