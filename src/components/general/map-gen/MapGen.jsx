@@ -969,6 +969,10 @@ const _makeChunkMesh = (x, y) => {
   const mesh = new THREE.Mesh(planeGeometry, material);
   mesh.position.set(x * numBlocks, 0, y * numBlocks);
   mesh.updateMatrixWorld();
+
+  const rng = makeRng('name', x, y);
+  const name = names[Math.floor(rng() * names.length)];
+  mesh.name = name;
   mesh.x = x;
   mesh.y = y;
 
@@ -990,15 +994,13 @@ const _makeChunkMesh = (x, y) => {
 
   let textMesh;
   {
-    const rng = makeRng('name', x, y);
-
     textMesh = new Text();
     const materials = [
       _makeTextMaterial(false),
       _makeTextMaterial(true),
     ];
     textMesh.material = materials[+false];
-    textMesh.text = names[Math.floor(rng() * names.length)];
+    textMesh.text = name;
     textMesh.font = './fonts/Plaza Regular.ttf';
     textMesh.fontSize = 2;
     textMesh.color = 0xFFFFFF;
@@ -1405,20 +1407,19 @@ export const MapGen = ({
 
     const selectedObjectName = selectedObject ? selectedObject.name : '';
 
-    return (
+    return open ? (
         <div className={styles.mapGen}>
-            {open ? (
-                <canvas
-                  width={width}
-                  height={height}
-                  className={styles.canvas}
-                  onMouseDown={mouseDown}
-                  ref={canvasRef}
-                />
-            ) : null}
             <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
-              <h1>{selectedObjectName}</h1>
+                <h1>{selectedObjectName}</h1>
+                <hr />
             </div>
+            <canvas
+                width={width}
+                height={height}
+                className={styles.canvas}
+                onMouseDown={mouseDown}
+                ref={canvasRef}
+            />
         </div>
-    );
+    ) : null;
 };
