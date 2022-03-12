@@ -714,6 +714,9 @@ const createPlayerDiorama = ({
     setObjects(newObjects) {
       objects = newObjects;
     },
+    getCanvases() {
+      return canvases;
+    },
     resetCanvases() {
       canvases.length = 0;
     },
