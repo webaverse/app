@@ -8,6 +8,7 @@ import {defaultDioramaSize} from './constants.js';
 import gradients from './gradients.json';
 import {planeGeometry} from './background-fx/common.js';
 import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
+import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {
   fullscreenVertexShader,
   animeLightningFragmentShader,
@@ -474,6 +475,7 @@ const grassMesh = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
+const noiseMesh = new NoiseBgFxMesh();
 const glyphMesh = (() => {
   const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
@@ -621,6 +623,7 @@ sideScene.autoUpdate = false;
 sideScene.add(lightningMesh);
 sideScene.add(radialMesh);
 sideScene.add(grassMesh);
+sideScene.add(noiseMesh);
 sideScene.add(glyphMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
@@ -686,10 +689,11 @@ const createPlayerDiorama = ({
   lights = true,
   label = null,
   outline = false,
+  grassBackground = false,
+  noiseBackground = false,
   lightningBackground = false,
   radialBackground = false,
   glyphBackground = false,
-  grassBackground = false,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
@@ -734,19 +738,22 @@ const createPlayerDiorama = ({
       canvases.push(canvas);
     },
     toggleShader() {
-      const oldValues = {lightningBackground, radialBackground, glyphBackground, grassBackground};
+      const oldValues = {grassBackground, noiseBackground, lightningBackground, radialBackground, glyphBackground};
+      grassBackground = false;
+      noiseBackground = false;
       lightningBackground = false;
       radialBackground = false;
       glyphBackground = false;
-      grassBackground = false;
-      if (oldValues.lightningBackground) {
+      if (oldValues.grassBackground) {
+        noiseBackground = true;
+      } else if (oldValues.noiseBackground) {
+        lightningBackground = true;
+      } else if (oldValues.lightningBackground) {
         radialBackground = true;
       } else if (oldValues.radialBackground) {
         glyphBackground = true;
       } else if (oldValues.glyphBackground) {
         grassBackground = true;
-      } else if (oldValues.grassBackground) {
-        lightningBackground = true;
       }
     },
     triggerLoad() {
@@ -866,6 +873,23 @@ const createPlayerDiorama = ({
         // sideScene.add(world.lights);
     
         const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
+        if (noiseBackground) {
+          noiseMesh.update(timeOffset, timeDiff, this.width, this.height);
+          noiseMesh.visible = true;
+        } else {
+          noiseMesh.visible = false;
+        }
+        if (grassBackground) {
+          grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
+          grassMesh.material.uniforms.iTime.needsUpdate = true;
+          grassMesh.material.uniforms.uColor1.value.set(colors[0]);
+          grassMesh.material.uniforms.uColor1.needsUpdate = true;
+          grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+          grassMesh.material.uniforms.uColor2.needsUpdate = true;
+          grassMesh.visible = true;
+        } else {
+          grassMesh.visible = false;
+        }
         if (lightningBackground) {
           lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
           lightningMesh.material.uniforms.iTime.needsUpdate = true;
@@ -887,17 +911,6 @@ const createPlayerDiorama = ({
           radialMesh.visible = true;
         } else {
           radialMesh.visible = false;
-        }
-        if (grassBackground) {
-          grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          grassMesh.material.uniforms.iTime.needsUpdate = true;
-          grassMesh.material.uniforms.uColor1.value.set(colors[0]);
-          grassMesh.material.uniforms.uColor1.needsUpdate = true;
-          grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          grassMesh.material.uniforms.uColor2.needsUpdate = true;
-          grassMesh.visible = true;
-        } else {
-          grassMesh.visible = false;
         }
         if (glyphBackground) {
           glyphMesh.material.uniforms.iTime.value = timeOffset / 1000;
