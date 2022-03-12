@@ -4,8 +4,6 @@ the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
 // import metaversefile from 'metaversefile';
-import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
 import {chatManager} from './chat-manager.js';
 
 const deadTimeoutTime = 2000;
@@ -48,8 +46,8 @@ class Hup extends EventTarget {
         message,
       },
     }));
-    if (this.parent.voicer) {
-      const preloadedMessage = this.parent.voicer.preloadMessage(message);
+    if (this.parent.player.voicer) {
+      const preloadedMessage = this.parent.player.voicer.preloadMessage(message);
       await chatManager.waitForVoiceTurn(() => {
         if (message) {
           if (this.fullText.length > 0) {
@@ -65,7 +63,7 @@ class Hup extends EventTarget {
             fullText: this.fullText,
           },
         }));
-        return this.parent.voicer.start(preloadedMessage);
+        return this.parent.player.voicer.start(preloadedMessage);
       });
     } else {
       await Promise.resolve();
@@ -175,18 +173,6 @@ class CharacterHups extends EventTarget {
         oldHup.unmergeAction(action);
       }
     });
-  }
-  setVoice(voice) {
-    if (voice instanceof VoicePack) {
-      const {syllableFiles, audioBuffer} = voice;
-      this.voicer = new VoicePackVoicer(syllableFiles, audioBuffer, this.player);
-    } else if (voice instanceof VoiceEndpoint) {
-      this.voicer = new VoiceEndpointVoicer(voice, this.player);
-    } else if (voice === null) {
-      this.voicer = null;
-    } else {
-      throw new Error('invalid voice');
-    }
   }
   addChatHupAction(text) {
     this.player.addAction({
