@@ -1369,6 +1369,7 @@ export const MapGen = ({
           renderer.clear();
           renderer.render(scene, camera);
 
+          ctx.clearRect(0, 0, width, height);
           ctx.drawImage(renderer.domElement, 0, 0);
 
           // pop state
