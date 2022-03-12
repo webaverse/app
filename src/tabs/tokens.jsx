@@ -3,97 +3,102 @@
 import React, {useEffect, useState} from 'react';
 import classnames from 'classnames';
 import styles from '../Header.module.css';
-import {Tab} from '../components/tab';
-import metaversefile from '../../metaversefile-api.js';
-import {tokensHost} from '../../constants';
-import {preview} from '../../preview.js';
+import {MetamaskWallet} from '../../blockchain/metamask';
 
-export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
+export const Tokens = ({userOpen, loginFrom, address, chain, setChain}) => {
   const [nftPreviews, setNftPreviews] = useState({});
   const [nfts, setNfts] = useState(null);
   const [fetchPromises, setFetchPromises] = useState([]);
 
   useEffect(() => {
-    if (address && !nfts && loginFrom) {
+    if (address && loginFrom) {
       setNfts([]);
-      (async () => {
-        if (loginFrom === 'metamask') {
-          const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`, {
-            headers: {
-              'X-API-KEY': '6a7ceb45f3c44c84be65779ad2907046',
-            },
-          });
-
-          const j = await res.json();
-          const {assets} = j;
-          setNfts(assets);
-        } else if (loginFrom === 'discord') {
-          let res = await fetch(`${tokensHost}/${address}`);
-          res = await res.json();
-          res = res.map(_nft => {
-            /** Modify the response recieved from the API-Backend to match standardise format */
-            _nft.image_preview_url = _nft.hash;
-            return _nft;
-          });
-          setNfts(res);
-        }
-      })();
+      if (loginFrom === 'metamask') {
+        console.log('fetching tokens');
+        (async () => {
+          const {chainName} = await new MetamaskWallet().getChainInfo();
+          if (chainName && chainName !== 'unknown') {
+            const res = await fetch(
+              `https://nft.webaverse.com/nft?chainName=${chainName}&owner=${address}`,
+            );
+            const nfts = await res.json();
+            setNfts(nfts);
+          } else {
+            console.log('Network not supported: ', chainName);
+          }
+        })();
+      } else if (loginFrom === 'discord') {
+        (async () => {
+          const res = await fetch(
+            `https://nft.webaverse.com/nft?chainName=sidechain&owner=${address}`,
+          );
+          const nfts = await res.json();
+          setNfts(nfts);
+        })();
+      }
     }
-  }, [address, nfts, loginFrom]);
+  }, [address, loginFrom]);
 
   useEffect(() => {
     if (nfts) {
-      for (const nft of nfts) {
-        if (!nftPreviews[nft.image_preview_url]) {
-          nftPreviews[nft.image_preview_url] = 'images/object.jpg';
-          if (loginFrom === 'metamask') {
-            fetch(nft.image_preview_url).then(response => response.blob())
-              .then(imageBlob => {
-                const imageObjectURL = URL.createObjectURL(imageBlob);
-                nftPreviews[nft.image_preview_url] = imageObjectURL;
-                setNftPreviews(nftPreviews);
-              });
-          } else if (loginFrom === 'discord') {
-            /** Will be switched after Previews-Merge */
-            // preview(nft.image_preview_url, nft.ext, 'png', 100, 100).then(res => {
-            //   const imageObjectURL = URL.createObjectURL(res.blob);
-            //   nftPreviews[nft.image_preview_url] = imageObjectURL;
-            //   setNftPreviews(nftPreviews);
-            // });
+      nfts.map(async nft => {
+        try {
+          if (!nft.metadata || !nft.metadata.image) {
+            throw new Error('No image use the default one');
           }
+          const blob = await (await fetch(nft.metadata.image.replace('ipfs://', 'https://ipfs.webaverse.com/'))).blob();
+          nftPreviews[nft.metadata.image] = URL.createObjectURL(blob);
+        } catch (error) {
+          nftPreviews[nft.metadata.image] = 'images/object.jpg';
         }
-      }
+      });
       setNftPreviews(nftPreviews);
     }
-  });
-  return (
-
-    <section className={classnames(styles.sidebar, userOpen ? styles.open : null)}
-
-      onClick={e => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}>
-      {(nfts || []).map((nft, i) => {
-        const {id, asset_contract, hash, name, description} = nft;
-        // const image_preview_url = hacks.getNftImage(nft);
-        /* if (!image_preview_url) {
-                    console.log('got nft', {nft, hacks, image_preview_url});
-                    debugger;
-                  } */
-        // "https://storage.opensea.io/files/099f7815733ba38b897f892a750e11dc.svg"
-        // console.log(nft);
-        return <div className={styles.nft} onDragStart={e => {
-          e.dataTransfer.setData('application/json', JSON.stringify(nft));
-        }} draggable key={i}>
-          <img src={nftPreviews[nft.image_preview_url] || 'images/object.jpg'} className={styles.preview} />
-          <div className={styles.wrap}>
-            <div className={styles.name}>{name}</div>
-            <div className={styles.description}>{description}</div>
-            <div className={styles.tokenid}>{asset_contract ? asset_contract.address : hash} / {id}</div>
-          </div>
-        </div>;
-      })}
-    </section>
-  );
+  }, [nfts]);
+  if (Array.isArray(nfts) && nfts.length > 0) {
+    return (
+      <section
+        className={classnames(styles.sidebar, userOpen ? styles.open : null)}
+        onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
+        {(nfts || []).map((nft, i) => {
+          const {token_id, asset_contract, metadata} = nft;
+          return (
+            <div
+              className={styles.nft}
+              onDragStart={e => {
+                e.dataTransfer.setData('application/json', JSON.stringify(nft));
+              }}
+              draggable
+              key={i}
+            >
+              <img
+                src={nftPreviews[nft.metadata.image] || 'images/object.jpg'}
+                className={styles.preview}
+              />
+              <div className={styles.wrap}>
+                <div className={styles.name}>{metadata.name}</div>
+                <div className={styles.description}>{metadata.description}</div>
+                <div className={styles.tokenid}>
+                  {asset_contract.address} / {token_id}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </section>
+    );
+  } else {
+    return (
+      <section
+        className={classnames(styles.sidebar, userOpen ? styles.open : null)}
+        onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+        } } > <h2>No NFTs found</h2> </section>
+    );
+  }
 };
