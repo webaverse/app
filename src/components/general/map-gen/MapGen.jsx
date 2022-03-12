@@ -1013,7 +1013,7 @@ const _makeChunkMesh = (x, y) => {
       labelMesh.position.set(
         x - numBlocks / 2 + w / 2,
         1,
-        y - numBlocks / 2 - h / 2
+        y + numBlocks / 2 - h / 2
       );
       labelMesh.scale.set(w, 1, h);
       labelMesh.updateMatrixWorld();
@@ -1025,7 +1025,7 @@ const _makeChunkMesh = (x, y) => {
     textMesh.position.set(
       -numBlocks / 2 + textOffset,
       1,
-      -numBlocks / 2 - textOffset
+      numBlocks / 2 - textOffset
     );
     textMesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
     mesh.add(textMesh);
