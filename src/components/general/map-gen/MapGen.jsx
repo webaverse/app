@@ -1052,11 +1052,6 @@ const _makeChunkMesh = (x, y) => {
       color: 0x000000,
     });
     labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
-    /* labelMesh.position.set(
-      -numBlocks / 2 + textOffset,
-      1,
-      -numBlocks / 2 - textOffset
-    ); */
     labelMesh.visible = false;
     mesh.add(labelMesh);
     labelMesh.updateMatrixWorld();
@@ -1103,10 +1098,7 @@ export const MapGen = ({
     const [width, setWidth] = useState(window.innerWidth);
     const [height, setHeight] = useState(window.innerHeight); 
     const [open, setOpen] = useState(false);
-    const [offset, setOffset] = useState({
-      x: 0,
-      y: 0,
-    });
+    const [position, setPosition] = useState(new THREE.Vector3(0, 0, 0));
     const [scale, setScale] = useState(1);
     const [mouseState, setMouseState] = useState(null);
     const [scene, setScene] = useState(() => new THREE.Scene());
@@ -1121,8 +1113,8 @@ export const MapGen = ({
       const chunks = [];
       for (let y = -height/2 - chunkSize; y < height/2 + chunkSize; y += chunkSize) {
         for (let x = -width/2 - chunkSize; x < width/2 + chunkSize; x += chunkSize) {
-          const ix = Math.round((x - offset.x) / chunkSize);
-          const iy = Math.round((y - offset.y) / chunkSize);
+          const ix = Math.round((x - position.x) / chunkSize);
+          const iy = Math.round((y - position.z) / chunkSize);
 
           const key = `${ix}:${iy}`;
           let chunk = chunkCache.get(key);
@@ -1204,10 +1196,11 @@ export const MapGen = ({
           const dx = e.clientX - mouseState.x;
           const dy = e.clientY - mouseState.y;
 
-          setOffset({
-            x: offset.x + dx,
-            y: offset.y + dy,
-          });
+          setPosition(new THREE.Vector3(
+            position.x + dx,
+            0,
+            position.z + dy
+          ));
 
           setMouseState({
             x: e.clientX,
@@ -1242,9 +1235,21 @@ export const MapGen = ({
           }
         }
       }
+      // listen on document to handle mouse move outside of window
       document.addEventListener('mousemove', mouseMove);
       return () => {
         document.removeEventListener('mousemove', mouseMove);
+      };
+    }, [mouseState]);
+
+    // wheel
+    useEffect(() => {
+      function wheel(e) {
+        console.log('wheel', e, e.deltaY, e.deltaX);
+      }
+      document.addEventListener('wheel', wheel);
+      return () => {
+        document.removeEventListener('wheel', wheel);
       };
     }, [mouseState]);
 
@@ -1289,7 +1294,7 @@ export const MapGen = ({
       if (canvas && open) {
         const newChunks = getChunksInRange();
 
-        camera.position.set(-offset.x / voxelSize, 1, -offset.y / voxelSize);
+        camera.position.set(-position.x / voxelSize, 1, -position.z / voxelSize);
         camera.quaternion.setFromAxisAngle(
           new THREE.Vector3(1, 0, 0),
           -Math.PI / 2,
@@ -1308,7 +1313,7 @@ export const MapGen = ({
 
         setChunks(newChunks);
       }
-    }, [canvasRef, open, width, height, offset.x, offset.y]);
+    }, [canvasRef, open, width, height, position.x, position.z, scale]);
 
     // render
     useEffect(() => {
@@ -1363,11 +1368,6 @@ export const MapGen = ({
                   height={height}
                   className={styles.canvas}
                   onMouseDown={mouseDown}
-                  // onMouseMove={mouseMove}
-                  // onClick={click}
-                  // style={{
-                    // transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`,
-                  // }}
                   ref={canvasRef}
                 />
             ) : null}
