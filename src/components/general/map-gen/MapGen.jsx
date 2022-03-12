@@ -761,76 +761,10 @@ const generateMap = (x, y) => {
     }).sort((a, b) => {
       return a.distanceTo(deepestEntry.block) - b.distanceTo(deepestEntry.block);
     });
-    /* if (unseenPathCandidates.length === 0) {
-      console.warn('no candidate to go to');
-      debugger;
-    } */
     _connectBlocks(deepestEntry.block, unseenPathCandidates[0]);
   }
   return blocks;
 };
-/* const renderChunk = (canvas, blocks) => {
-  const {ctx} = canvas;
-  ctx.fillStyle = '#222';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#111';
-  ctx.fillRect(border, border, canvas.width - 2 * border, canvas.height - 2 * border);
-
-  for (let y = 0; y < numBlocks; y++) {
-    for (let x = 0; x < numBlocks; x++) {
-      const block = blocks[x + y * numBlocks];
-
-      let fillStyle = '#000';
-      if (block.exitTarget) {
-        fillStyle = '#00F';
-      } else if (block.centerTarget) {
-        fillStyle = '#F00';
-      } else if (block.splinePoint) {
-        fillStyle = '#080';
-      } else if (block.path) {
-        fillStyle = '#666';
-      }
-      ctx.fillStyle = fillStyle;
-      ctx.fillRect(x * voxelSize + border, y * voxelSize + border, voxelSize - border*2, voxelSize - border*2);
-    }
-  }
-}; */
-
-/* class Chunk {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-
-    this.imageBitmap = null;
-    this.readyState = 'pending';
-
-    this.loadPromise = (async () => {
-      const chunkBlocks = generateMap(this.x, this.y);
-
-      const {ctx} = Chunk.cachedCanvas;
-      ctx.fillStyle = '#111';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      renderChunk(Chunk.cachedCanvas, chunkBlocks);
-    
-      this.imageBitmap = await createImageBitmap(Chunk.cachedCanvas);
-      this.readyState = 'done';
-    })();
-  }
-  static cachedCanvas = (() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = chunkSize;
-    canvas.height = chunkSize;
-
-    const ctx = canvas.getContext('2d');
-    canvas.ctx = ctx;
-
-    return canvas;
-  })();
-  waitForLoad() {
-    return this.loadPromise;
-  }
-} */
 
 const planeGeometry = new THREE.PlaneBufferGeometry(numBlocks, numBlocks)
   .applyMatrix4(
@@ -1104,8 +1038,6 @@ const _makeChunkMesh = (x, y) => {
 
     material.uniforms.uSelect.value = selected ? 1 : 0;
     material.uniforms.uSelect.needsUpdate = true;
-
-    // console.log('set hovered', t);
 
     if (hovered) {
       lastHoveredTime = timestamp;
