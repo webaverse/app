@@ -1356,8 +1356,10 @@ export const MapGen = ({
 
             return false;
           }
+          default: {
+            return true;
+          }
         }
-        return true;
       }
       function click(e) {
         if (open) {
