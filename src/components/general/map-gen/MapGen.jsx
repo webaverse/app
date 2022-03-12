@@ -1340,8 +1340,8 @@ export const MapGen = ({
         camera.right = (width / voxelSize) / 2;
         camera.top = (height / voxelSize) / 2;
         camera.bottom = -(height / voxelSize) / 2;
-        camera.near = -10;
-        camera.far = 10;
+        camera.near = 0;
+        camera.far = 1000;
         camera.updateProjectionMatrix();
 
         setChunks(newChunks);
