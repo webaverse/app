@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import React, { useState, useEffect, useRef } from 'react';
-// import classnames from 'classnames';
+import classnames from 'classnames';
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
@@ -1402,12 +1402,8 @@ export const MapGen = ({
         moved: false,
       });
     }
-    /* function doubleClick(e) {
-      e.preventDefault();
-      e.stopPropagation();
 
-      selectObject();
-    } */
+    const selectedObjectName = selectedObject ? selectedObject.name : '';
 
     return (
         <div className={styles.mapGen}>
@@ -1417,11 +1413,12 @@ export const MapGen = ({
                   height={height}
                   className={styles.canvas}
                   onMouseDown={mouseDown}
-                  // onDoubleClick={doubleClick}
                   ref={canvasRef}
                 />
             ) : null}
-            
+            <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
+              <h1>{selectedObjectName}</h1>
+            </div>
         </div>
     );
 };
