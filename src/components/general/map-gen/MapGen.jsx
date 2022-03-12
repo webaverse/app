@@ -1249,7 +1249,7 @@ export const MapGen = ({
       return () => {
         document.removeEventListener('mousemove', mouseMove);
       };
-    }, [mouseState, scale]);
+    }, [mouseState, position.x, position.z, scale]);
 
     // wheel
     useEffect(() => {
