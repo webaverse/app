@@ -451,9 +451,15 @@ const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 const localArray = [];
 // const localColor = new THREE.Color();
 const localRaycaster = new THREE.Raycaster();
+
+const downQuaternion = new THREE.Quaternion().setFromAxisAngle(
+  new THREE.Vector3(1, 0, 0),
+  -Math.PI / 2,
+);
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -1245,13 +1251,41 @@ export const MapGen = ({
     // wheel
     useEffect(() => {
       function wheel(e) {
-        console.log('wheel', e, e.deltaY, e.deltaX);
+        // const {deltaY} = e;
+        // console.log('wheel', e, e.deltaY, e.deltaX);
+
+        // const dx = e.deltaX / 150;
+        // const dy = e.deltaY / 300;
+        
+        const oldScale = scale;
+        const newScale = Math.min(Math.max(scale * (1 + e.deltaY * 0.001), 0.01), 20);
+        const scaleFactor = newScale / oldScale;
+        // console.log('scale', newScale, oldScale, scaleFactor);
+        
+        localMatrix.compose(
+          position,
+          downQuaternion,
+          localVector2.setScalar(scaleFactor)
+        )
+          .premultiply(
+            localMatrix2.makeTranslation(-position.x, 0, -position.z)
+          )
+          .premultiply(
+            localMatrix2.makeScale(scaleFactor, scaleFactor, scaleFactor)
+          )
+          .premultiply(
+            localMatrix2.makeTranslation(position.x, 0, position.z)
+          )
+          .decompose(localVector, localQuaternion, localVector2);
+      
+        setPosition(localVector.clone());
+        setScale(newScale);
       }
       document.addEventListener('wheel', wheel);
       return () => {
         document.removeEventListener('wheel', wheel);
       };
-    }, [mouseState]);
+    }, [mouseState, position.x, position.z, scale]);
 
     // click
     useEffect(() => {
@@ -1298,10 +1332,7 @@ export const MapGen = ({
         const pixelRatio = renderer.getPixelRatio();
 
         camera.position.set(-position.x / voxelSize, 1, -position.z / voxelSize);
-        camera.quaternion.setFromAxisAngle(
-          new THREE.Vector3(1, 0, 0),
-          -Math.PI / 2,
-        );
+        camera.quaternion.copy(downQuaternion);
         camera.scale.setScalar(pixelRatio * scale);
         camera.updateMatrixWorld();
         
