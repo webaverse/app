@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+export const planeGeometry = new THREE.PlaneGeometry(2, 2);
+
 export const fullscreenGeometry = new THREE.PlaneGeometry(2, 2);
 export const fullscreenVertexShader = `\
   varying vec2 tex_coords;

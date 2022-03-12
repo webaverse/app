@@ -1,15 +1,15 @@
 import * as THREE from 'three';
-import {getRenderer, scene} from './renderer.js';
+import {getRenderer} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 import {defaultDioramaSize} from './constants.js';
-// import postProcessing from './post-processing.js';
 import gradients from './gradients.json';
+import {planeGeometry} from './background-fx/common.js';
+import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {
   fullscreenVertexShader,
-  outlineShader,
   animeLightningFragmentShader,
   animeRadialShader,
   grassFragmentShader,
@@ -231,7 +231,6 @@ const textFragmentShader = `\
     gl_FragColor = vec4(vec3(1.), 1.);
   }
 `;
-const planeGeometry = new THREE.PlaneGeometry(2, 2);
 async function makeTextMesh(
   text = '',
   material = null,
@@ -346,45 +345,7 @@ const radialMesh = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
-const outlineMesh = (() => {
-  const quad = new THREE.Mesh(
-    planeGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        t0: {
-          value: null,
-          needsUpdate: false,
-        },
-        outline_thickness: {
-          value: 0.02,
-          needsUpdate: true,
-        },
-        uColor1: {
-          value: new THREE.Color(0x000000),
-          needsUpdate: true,
-        },
-        uColor2: {
-          value: new THREE.Color(0xFFFFFF),
-          needsUpdate: true,
-        },
-        outline_threshold: {
-          value: .5,
-          needsUpdate: true,
-        },
-      },
-      vertexShader: fullscreenVertexShader,
-      fragmentShader: outlineShader,
-      depthWrite: false,
-      depthTest: false,
-      alphaToCoverage: true,
-    })
-  );
-  /* quad.material.onBeforeCompile = shader => {
-    console.log('got full screen shader', shader);
-  }; */
-  quad.frustumCulled = false;
-  return quad;
-})();
+const outlineMesh = new OutlineBgFxMesh();
 const s1 = 0.4;
 const sk1 = 0.2;
 const speed1 = 1;
