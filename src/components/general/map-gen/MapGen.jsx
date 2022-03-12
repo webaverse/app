@@ -447,6 +447,8 @@ const voxelSize = chunkSize / numBlocks;
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVectorX = new THREE.Vector3();
+const localVectorX2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localVector4D = new THREE.Vector4();
@@ -1133,36 +1135,31 @@ export const MapGen = ({
       camera.far = 1000;
       camera.updateProjectionMatrix();
     };
-    const getChunksInRange = (() => {
-      const localVector = new THREE.Vector3();
-      const localVector2 = new THREE.Vector3();
+    const getChunksInRange = () => {
+      const chunks = [];
+      const bottomLeft = localVectorX.set(-1, 1, 0)
+        .unproject(camera)
+      const topRight = localVectorX2.set(1, -1, 0)
+        .unproject(camera);
 
-      return () => {
-        const chunks = [];
-        const bottomLeft = localVector.set(-1, 1, 0)
-          .unproject(camera)
-        const topRight = localVector2.set(1, -1, 0)
-          .unproject(camera);
+      for (let y = bottomLeft.z; y < topRight.z; y += numBlocks) {
+        for (let x = bottomLeft.x; x < topRight.x; x += numBlocks) {
+          const ix = Math.round(x / numBlocks);
+          const iy = Math.round(y / numBlocks);
 
-        for (let y = bottomLeft.z; y < topRight.z; y += numBlocks) {
-          for (let x = bottomLeft.x; x < topRight.x; x += numBlocks) {
-            const ix = Math.round(x / numBlocks);
-            const iy = Math.round(y / numBlocks);
-
-            const key = `${ix}:${iy}`;
-            let chunk = chunkCache.get(key);
-            if (!chunk) {
-              chunk = _makeChunkMesh(ix, iy);
-              scene.add(chunk);
-              chunkCache.set(key, chunk);
-            }
-            chunks.push(chunk);
+          const key = `${ix}:${iy}`;
+          let chunk = chunkCache.get(key);
+          if (!chunk) {
+            chunk = _makeChunkMesh(ix, iy);
+            scene.add(chunk);
+            chunkCache.set(key, chunk);
           }
+          chunks.push(chunk);
         }
+      }
 
-        return chunks;
-      };
-    })();
+      return chunks;
+    };
     const setRaycasterFromEvent = (raycaster, e) => {
       const width = window.innerWidth;
       const height = window.innerHeight;
