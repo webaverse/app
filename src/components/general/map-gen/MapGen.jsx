@@ -820,6 +820,25 @@ const generateMap = (x, y) => {
   }
 } */
 const chunkCache = new Map();
+const getChunksInRange = () => {
+  const chunks = [];
+  for (let y = -height/2 - chunkSize; y < height/2 + chunkSize; y += chunkSize) {
+    for (let x = -width/2 - chunkSize; x < width/2 + chunkSize; x += chunkSize) {
+      const ix = Math.round((x - offset.x) / chunkSize);
+      const iy = Math.round((y - offset.y) / chunkSize);
+
+      const key = `${ix}:${iy}`;
+      let chunk = chunkCache.get(key);
+      if (!chunk) {
+        chunk = _makeChunkMesh(ix, iy);
+        scene.add(chunk);
+        chunkCache.set(key, chunk);
+      }
+      chunks.push(chunk);
+    }
+  }
+  return chunks;
+};
 
 const planeGeometry = new THREE.PlaneBufferGeometry(numBlocks, numBlocks)
   .applyMatrix4(
@@ -1117,21 +1136,38 @@ export const MapGen = ({
     const [selectedObject, setSelectedObject] = useState(null);
     const canvasRef = useRef();
 
+    // open
     useEffect(() => {
-      function mapopenchange(e) {
-        const {mapOpen} = e.data;
-        setOpen(mapOpen);
+      function keydown(e) {
+        switch (e.which) {
+          case 77: { // M
+            const newOpen = !open;
+            
+            newOpen && window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: 'MapGen' } } ) );
+            
+            if (newOpen && cameraManager.pointerLockElement) {
+              cameraManager.exitPointerLock();
+            } else if (!newOpen && !cameraManager.pointerLockElement) {
+              cameraManager.requestPointerLock();
+            }
+            
+            setOpen(newOpen);
 
-        if (mapOpen) {
-          cameraManager.exitPointerLock();
-        } else {
-          if (cameraManager.pointerLockElement === null) {
-            cameraManager.requestPointerLock();
+            return false;
+          }
+          default: {
+            return true;
           }
         }
       }
-      game.addEventListener('mapopenchange', mapopenchange);
+      registerIoEventHandler('keydown', keydown);
+      return () => {
+        unregisterIoEventHandler('keydown', keydown);
+      };
+    }, [open]);
 
+    // close open conflicts
+    useEffect(() => {
       const handleOnFocusLost = () => {
 
         if (open) {
@@ -1144,11 +1180,11 @@ export const MapGen = ({
       window.addEventListener('CloseAllMenus', handleOnFocusLost);
       
       return () => {
-        game.removeEventListener('mapopenchange', mapopenchange);
         window.removeEventListener('CloseAllMenus', handleOnFocusLost);
       };
     }, [open]);
 
+    // resize
     useEffect(() => {
       function resize(e) {
         setWidth(window.innerWidth);
@@ -1160,135 +1196,7 @@ export const MapGen = ({
       };
     }, [width, height]);
 
-    const getChunksInRange = () => {
-      const chunks = [];
-      for (let y = -height/2 - chunkSize; y < height/2 + chunkSize; y += chunkSize) {
-        for (let x = -width/2 - chunkSize; x < width/2 + chunkSize; x += chunkSize) {
-          const ix = Math.round((x - offset.x) / chunkSize);
-          const iy = Math.round((y - offset.y) / chunkSize);
-
-          const key = `${ix}:${iy}`;
-          let chunk = chunkCache.get(key);
-          if (!chunk) {
-            chunk = _makeChunkMesh(ix, iy);
-            scene.add(chunk);
-            chunkCache.set(key, chunk);
-          }
-          chunks.push(chunk);
-        }
-      }
-      return chunks;
-    };
-    useEffect(() => {
-      const canvas = canvasRef.current;
-      if (canvas && open) {
-        // const ctx = canvas.getContext('2d');
-
-        const newChunks = getChunksInRange();
-
-        camera.position.set(-offset.x / voxelSize, 1, -offset.y / voxelSize);
-        camera.quaternion.setFromAxisAngle(
-          new THREE.Vector3(1, 0, 0),
-          -Math.PI / 2,
-        );
-        camera.updateMatrixWorld();
-        
-        const renderer = getRenderer();
-        const pixelRatio = renderer.getPixelRatio();
-        camera.left = -(width / voxelSize) / 2 * pixelRatio * scale;
-        camera.right = (width / voxelSize) / 2 * pixelRatio * scale;
-        camera.top = (height / voxelSize) / 2 * pixelRatio * scale;
-        camera.bottom = -(height / voxelSize) / 2 * pixelRatio * scale;
-        camera.near = -10;
-        camera.far = 10;
-        camera.updateProjectionMatrix();
-
-        setChunks(newChunks);
-
-        /* function renderChunk(canvas, chunk) {
-          const dx = width/2 - chunkSize/2 + chunk.x * chunkSize + offset.x;
-          const dy = height/2 - chunkSize/2 + chunk.y * chunkSize + offset.y;
-          
-          ctx.drawImage(
-            chunk.imageBitmap,
-            dx,
-            dy,
-          );
-        } */
-
-        /* let live = true;
-        (async () => {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-          // sync render
-          const pendingChunks = [];
-          for (const chunk of chunks) {
-            if (chunk.readyState === 'done') {
-              renderChunk(canvas, chunk);
-            } else {
-              pendingChunks.push(chunk);
-            }
-          }
-
-          // async render
-          for (const chunk of pendingChunks) {
-            if (chunk.readyState !== 'done') {
-              await chunk.waitForLoad();
-              if (!live) return;
-            }
-
-            renderChunk(canvas, chunk);
-          }
-        })(); */
-
-        /* return () => {
-          // live = false;
-        }; */
-      }
-    }, [canvasRef, open, width, height, offset.x, offset.y]);
-    useEffect(() => {
-      const canvas = canvasRef.current;
-      if (canvas && open) {
-        const ctx = canvas.getContext('2d');
-
-        async function render(e) {
-          const {timestamp, timeDiff} = e.data;
-          const renderer = getRenderer();
-          
-          // push state
-          const oldViewport = renderer.getViewport(localVector4D);
-
-          for (const chunk of chunks) {
-            chunk.update(timestamp, timeDiff);
-          }
-
-          renderer.setViewport(0, 0, width, height);
-          // renderer.setClearColor(0xFF0000, 1);
-          renderer.clear();
-          renderer.render(scene, camera);
-
-          ctx.drawImage(renderer.domElement, 0, 0);
-
-          // pop state
-          renderer.setViewport(oldViewport);
-        }
-        world.appManager.addEventListener('frame', render);
-        return () => {
-          world.appManager.removeEventListener('frame', render);
-        };
-      }
-    }, [canvasRef, open, width, height, chunks]);
-
-    function mouseDown(e) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      setMouseState({
-        x: e.clientX,
-        y: e.clientY,
-        moved: false,
-      });
-    }
+    // mousemove
     useEffect(() => {
       function mouseMove(e) {
         if (mouseState) {
@@ -1338,29 +1246,9 @@ export const MapGen = ({
         document.removeEventListener('mousemove', mouseMove);
       };
     }, [mouseState]);
-    useEffect(() => {
-      function keydown(e) {
-        switch (e.which) {
-          case 77: { // M
-            const newOpen = !open;
-            
-            newOpen && window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: 'MapGen' } } ) );
-            
-            if (newOpen && cameraManager.pointerLockElement) {
-              cameraManager.exitPointerLock();
-            } else if (!newOpen && !cameraManager.pointerLockElement) {
-              cameraManager.requestPointerLock();
-            }
-            
-            setOpen(newOpen);
 
-            return false;
-          }
-          default: {
-            return true;
-          }
-        }
-      }
+    // click
+    useEffect(() => {
       function click(e) {
         if (open) {
           return false;
@@ -1386,15 +1274,74 @@ export const MapGen = ({
           return true;
         }
       }
-      registerIoEventHandler('keydown', keydown);
       registerIoEventHandler('click', click);
       registerIoEventHandler('mouseup', mouseUp);
       return () => {
-        unregisterIoEventHandler('keydown', keydown);
         unregisterIoEventHandler('click', click);
         unregisterIoEventHandler('mouseup', mouseUp);
       };
     }, [open, mouseState, hoveredObject]);
+
+    // update chunks
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (canvas && open) {
+        const newChunks = getChunksInRange();
+
+        camera.position.set(-offset.x / voxelSize, 1, -offset.y / voxelSize);
+        camera.quaternion.setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          -Math.PI / 2,
+        );
+        camera.updateMatrixWorld();
+        
+        const renderer = getRenderer();
+        const pixelRatio = renderer.getPixelRatio();
+        camera.left = -(width / voxelSize) / 2 * pixelRatio * scale;
+        camera.right = (width / voxelSize) / 2 * pixelRatio * scale;
+        camera.top = (height / voxelSize) / 2 * pixelRatio * scale;
+        camera.bottom = -(height / voxelSize) / 2 * pixelRatio * scale;
+        camera.near = -10;
+        camera.far = 10;
+        camera.updateProjectionMatrix();
+
+        setChunks(newChunks);
+      }
+    }, [canvasRef, open, width, height, offset.x, offset.y]);
+
+    // render
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (canvas && open) {
+        const ctx = canvas.getContext('2d');
+
+        async function render(e) {
+          const {timestamp, timeDiff} = e.data;
+          const renderer = getRenderer();
+          
+          // push state
+          const oldViewport = renderer.getViewport(localVector4D);
+
+          for (const chunk of chunks) {
+            chunk.update(timestamp, timeDiff);
+          }
+
+          renderer.setViewport(0, 0, width, height);
+          // renderer.setClearColor(0xFF0000, 1);
+          renderer.clear();
+          renderer.render(scene, camera);
+
+          ctx.drawImage(renderer.domElement, 0, 0);
+
+          // pop state
+          renderer.setViewport(oldViewport);
+        }
+        world.appManager.addEventListener('frame', render);
+        return () => {
+          world.appManager.removeEventListener('frame', render);
+        };
+      }
+    }, [canvasRef, open, width, height, chunks]);
 
     return (
         <div className={styles.mapGen}>
