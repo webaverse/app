@@ -110,7 +110,7 @@ class SmokeBgFxMesh extends THREE.Mesh {
       const file = new DataView(arrayBuffer);
 
       let index = 0;
-      let signature = file.getUint32(index, true);
+      const signature = file.getUint32(index, true);
       index += Uint32Array.BYTES_PER_ELEMENT;
       const width = file.getUint32(index, true);
       index += Uint32Array.BYTES_PER_ELEMENT;
@@ -118,43 +118,13 @@ class SmokeBgFxMesh extends THREE.Mesh {
       index += Uint32Array.BYTES_PER_ELEMENT;
       const depth = file.getUint32(index, true);
       index += Uint32Array.BYTES_PER_ELEMENT;
-      let binNumChannels = file.getUint8(index, true);
+      const binNumChannels = file.getUint8(index, true);
       index++;
-      let binLayout = file.getUint8(index, true);
+      const binLayout = file.getUint8(index, true);
       index++;
-      let binFormat = file.getUint16(index, true);
+      const binFormat = file.getUint16(index, true);
       index += Uint16Array.BYTES_PER_ELEMENT;
       
-      // let format = renderer.TEXFMT.C1I8;
-      
-      /* console.log('got', {
-        binLayout,
-        binNumChannels,
-        binFormat,
-        width,
-        height,
-        depth,
-        // format,
-      }); */
-      
-      /* if (binNumChannels === 1 && binFormat === 0)
-          format = renderer.TEXFMT.C1I8;
-      else if (binNumChannels === 2 && binFormat === 0)
-          format = renderer.TEXFMT.C2I8;
-      else if (binNumChannels === 3 && binFormat === 0)
-          format = renderer.TEXFMT.C3I8;
-      else if (binNumChannels === 4 && binFormat === 0)
-          format = renderer.TEXFMT.C4I8;
-      else if (binNumChannels === 1 && binFormat === 10)
-          format = renderer.TEXFMT.C1F32;
-      else if (binNumChannels === 2 && binFormat === 10)
-          format = renderer.TEXFMT.C2F32;
-      else if (binNumChannels === 3 && binFormat === 10)
-          format = renderer.TEXFMT.C3F32;
-      else if (binNumChannels === 4 && binFormat === 10)
-          format = renderer.TEXFMT.C4F32;
-      else
-          return; */
       const data = new Uint8Array(arrayBuffer, 20);
       const noise3DTexture = new THREE.DataTexture3D(data, width, height, depth);
       noise3DTexture.minFilter = THREE.LinearFilter;
@@ -163,8 +133,6 @@ class SmokeBgFxMesh extends THREE.Mesh {
       noise3DTexture.wrapT = THREE.RepeatWrapping;
       noise3DTexture.wrapR = THREE.RepeatWrapping;
       noise3DTexture.needsUpdate = true;
-
-      // console.log('got data', data);
       
       material.uniforms.iChannel0.value = noise3DTexture;
       material.uniforms.iChannel0.needsUpdate = true;
