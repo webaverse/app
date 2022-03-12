@@ -1112,6 +1112,7 @@ export const MapGen = ({
     const [chunks, setChunks] = useState([]);
     const [hoveredObject, setHoveredObject] = useState(null);
     const [selectedObject, setSelectedObject] = useState(null);
+    const [lastSelectTime, setLastSelectTime] = useState(-Infinity);
     const [chunkCache, setChunkCache] = useState(new Map());
     const canvasRef = useRef();
 
@@ -1145,6 +1146,29 @@ export const MapGen = ({
         return chunks;
       };
     })();
+    const setRaycasterFromEvent = (raycaster, e) => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const renderer = getRenderer();
+      const pixelRatio = renderer.getPixelRatio();
+      const mouse = localVector2D.set(
+        (e.clientX / pixelRatio / width) * 2 - 1,
+        -(e.clientY / pixelRatio / height) * 2 + 1
+      );
+      raycaster.setFromCamera(mouse, camera);
+    };
+    const selectObject = () => {
+      const now = performance.now();
+      const timeDiff = now - lastSelectTime;
+      const newSelectedObject = (selectedObject === hoveredObject && timeDiff > 200) ? null : hoveredObject;
+
+      for (const chunk of chunks) {
+        chunk.setSelected(chunk === newSelectedObject);
+      }
+
+      setSelectedObject(newSelectedObject);
+      setLastSelectTime(now);
+    };
 
     // open
     useEffect(() => {
@@ -1207,17 +1231,6 @@ export const MapGen = ({
     }, [width, height]);
 
     // mousemove
-    const setRaycasterFromEvent = (raycaster, e) => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      const renderer = getRenderer();
-      const pixelRatio = renderer.getPixelRatio();
-      const mouse = localVector2D.set(
-        (e.clientX / pixelRatio / width) * 2 - 1,
-        -(e.clientY / pixelRatio / height) * 2 + 1
-      );
-      raycaster.setFromCamera(mouse, camera);
-    };
     useEffect(() => {
       function mouseMove(e) {
         if (mouseState) {
@@ -1309,13 +1322,7 @@ export const MapGen = ({
       function mouseUp(e) {
         if (open) {
           if (mouseState && !mouseState.moved && hoveredObject) {
-            const newSelectedObject = selectedObject === hoveredObject ? null : hoveredObject;
-
-            for (const chunk of chunks) {
-              chunk.setSelected(chunk === newSelectedObject);
-            }
-
-            setSelectedObject(newSelectedObject);
+            selectObject();
           }
           
           setMouseState(null);
@@ -1402,6 +1409,12 @@ export const MapGen = ({
         moved: false,
       });
     }
+    /* function doubleClick(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      selectObject();
+    } */
 
     return (
         <div className={styles.mapGen}>
@@ -1411,6 +1424,7 @@ export const MapGen = ({
                   height={height}
                   className={styles.canvas}
                   onMouseDown={mouseDown}
+                  // onDoubleClick={doubleClick}
                   ref={canvasRef}
                 />
             ) : null}
