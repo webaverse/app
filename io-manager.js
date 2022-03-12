@@ -553,12 +553,12 @@ ioManager.keydown = e => {
       game.toggleEditMode();
       break;
     }
-    case 13: { // enter
+    /* case 13: { // enter
       game.enter();
       break;
-    }
+    } */
     /* case 77: { // M
-      menuActions.setIsOpen(!menuState.isOpen);
+      game.toggleMap();
       break;
     } */
     case 74: { // J
@@ -574,6 +574,22 @@ ioManager.keydown = e => {
       break;
     }
   }
+};
+ioManager.keypress = e => {
+  // nothing
+};
+ioManager.wheel = e => {
+  // window.addEventListener('wheel', e => {
+    // console.log('target', e.target);
+    if (physicsManager.getPhysicsEnabled()) {
+      const renderer = getRenderer();
+      if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
+        cameraManager.handleWheelEvent(e);
+      }
+    }
+  /* }, {
+    passive: false,
+  }); */
 };
 ioManager.keyup = e => {
   if (_inputFocused() || e.repeat) {
@@ -880,7 +896,7 @@ ioManager.bindInput = () => {
       }
     }
   }); */
-  window.addEventListener('wheel', e => {
+  /* window.addEventListener('wheel', e => {
     // console.log('target', e.target);
     if (physicsManager.getPhysicsEnabled()) {
       const renderer = getRenderer();
@@ -890,7 +906,7 @@ ioManager.bindInput = () => {
     }
   }, {
     passive: false,
-  });
+  }); */
 };
 
 export default ioManager;
