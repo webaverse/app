@@ -53,7 +53,6 @@ function IoHandler() {
         
         // default
         if (!broke) {
-          // console.log('default handle e', type);
           ioManager[type](e);
         }
       };
