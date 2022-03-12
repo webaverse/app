@@ -1196,6 +1196,17 @@ export const MapGen = ({
     }, [width, height]);
 
     // mousemove
+    const setRaycasterFromEvent = (raycaster, e) => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const renderer = getRenderer();
+      const pixelRatio = renderer.getPixelRatio();
+      const mouse = localVector2D.set(
+        (e.clientX / pixelRatio / width) * 2 - 1,
+        -(e.clientY / pixelRatio / height) * 2 + 1
+      );
+      raycaster.setFromCamera(mouse, camera);
+    };
     useEffect(() => {
       function mouseMove(e) {
         if (mouseState) {
@@ -1214,15 +1225,7 @@ export const MapGen = ({
             moved: true,
           });
         } else {
-          const width = window.innerWidth;
-          const height = window.innerHeight;
-          const renderer = getRenderer();
-          const pixelRatio = renderer.getPixelRatio();
-          const mouse = localVector2D.set(
-            (e.clientX / pixelRatio / width) * 2 - 1,
-            - (e.clientY / pixelRatio / height) * 2 + 1
-          );
-          localRaycaster.setFromCamera(mouse, camera);
+          setRaycasterFromEvent(localRaycaster, e);
 
           localArray.length = 0;
           const intersections = localRaycaster.intersectObjects(scene.children, false, localArray);
@@ -1251,16 +1254,12 @@ export const MapGen = ({
     // wheel
     useEffect(() => {
       function wheel(e) {
-        // const {deltaY} = e;
-        // console.log('wheel', e, e.deltaY, e.deltaX);
+        setRaycasterFromEvent(localRaycaster, e);
+        localRaycaster.ray.origin.multiplyScalar(voxelSize);
 
-        // const dx = e.deltaX / 150;
-        // const dy = e.deltaY / 300;
-        
         const oldScale = scale;
         const newScale = Math.min(Math.max(scale * (1 + e.deltaY * 0.001), 0.01), 20);
         const scaleFactor = newScale / oldScale;
-        // console.log('scale', newScale, oldScale, scaleFactor);
         
         localMatrix.compose(
           position,
@@ -1268,13 +1267,13 @@ export const MapGen = ({
           localVector2.setScalar(scaleFactor)
         )
           .premultiply(
-            localMatrix2.makeTranslation(-position.x, 0, -position.z)
+            localMatrix2.makeTranslation(localRaycaster.ray.origin.x, 0, localRaycaster.ray.origin.z)
           )
           .premultiply(
             localMatrix2.makeScale(scaleFactor, scaleFactor, scaleFactor)
           )
           .premultiply(
-            localMatrix2.makeTranslation(position.x, 0, position.z)
+            localMatrix2.makeTranslation(-localRaycaster.ray.origin.x, 0, -localRaycaster.ray.origin.z)
           )
           .decompose(localVector, localQuaternion, localVector2);
       
