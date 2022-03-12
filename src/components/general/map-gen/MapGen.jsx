@@ -1268,7 +1268,6 @@ export const MapGen = ({
           if (intersections.length > 0) {
             const {object} = intersections[0];
 
-            const chunks = getChunksInRange();
             for (const chunk of chunks) {
               chunk.setHovered(chunk === object);
             }
@@ -1284,7 +1283,7 @@ export const MapGen = ({
       return () => {
         document.removeEventListener('mousemove', mouseMove);
       };
-    }, [mouseState, position.x, position.z, scale]);
+    }, [mouseState, chunks, position.x, position.z, scale]);
 
     // wheel
     useEffect(() => {
