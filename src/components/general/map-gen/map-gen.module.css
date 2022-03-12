@@ -8,9 +8,23 @@
   justify-content: center;
   align-items: center;
   pointer-events: none;
+  z-index: 2;
 }
 .mapGen .canvas {
-  /* width: 512px;
-  height: 512px; */
   pointer-events: all;
+}
+.mapGen .sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 100vh;
+  font-family: 'PlazaRegular';
+  transform: translate3d(0, 0, 0);
+}
+.mapGen .sidebar:not(open) {
+  transform: translate3d(100%, 0, 0);
+}
+.mapGen .sidebar h1 {
+  margin: 0;
 }
