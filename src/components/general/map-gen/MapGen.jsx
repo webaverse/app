@@ -1343,6 +1343,17 @@ export const MapGen = ({
       }
     }, [canvasRef, open, width, height, chunks]);
 
+    function mouseDown(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      setMouseState({
+        x: e.clientX,
+        y: e.clientY,
+        moved: false,
+      });
+    }
+
     return (
         <div className={styles.mapGen}>
             {open ? (
