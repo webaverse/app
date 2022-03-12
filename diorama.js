@@ -477,8 +477,8 @@ const grassMesh = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
-const noiseMesh = new NoiseBgFxMesh();
 const poisonMesh = new PoisonBgFxMesh();
+const noiseMesh = new NoiseBgFxMesh();
 const smokeMesh = new SmokeBgFxMesh();
 const glyphMesh = (() => {
   const textureLoader = new THREE.TextureLoader();
@@ -609,8 +609,8 @@ sideScene.autoUpdate = false;
 sideScene.add(lightningMesh);
 sideScene.add(radialMesh);
 sideScene.add(grassMesh);
-sideScene.add(noiseMesh);
 sideScene.add(poisonMesh);
+sideScene.add(noiseMesh);
 sideScene.add(smokeMesh);
 sideScene.add(glyphMesh);
 sideScene.add(outlineMesh);
@@ -678,8 +678,8 @@ const createPlayerDiorama = ({
   label = null,
   outline = false,
   grassBackground = false,
-  noiseBackground = false,
   poisonBackground = false,
+  noiseBackground = false,
   smokeBackground = false,
   lightningBackground = false,
   radialBackground = false,
@@ -730,25 +730,25 @@ const createPlayerDiorama = ({
     toggleShader() {
       const oldValues = {
         grassBackground,
-        noiseBackground,
         poisonBackground,
+        noiseBackground,
         smokeBackground,
         lightningBackground,
         radialBackground,
         glyphBackground,
       };
       grassBackground = false;
-      noiseBackground = false;
       poisonBackground = false;
+      noiseBackground = false;
       smokeBackground = false;
       lightningBackground = false;
       radialBackground = false;
       glyphBackground = false;
       if (oldValues.grassBackground) {
-        noiseBackground = true;
-      } else if (oldValues.noiseBackground) {
         poisonBackground = true;
       } else if (oldValues.poisonBackground) {
+        noiseBackground = true;
+      } else if (oldValues.noiseBackground) {
         smokeBackground = true;
       } else if (oldValues.smokeBackground) {
         lightningBackground = true;
@@ -888,17 +888,17 @@ const createPlayerDiorama = ({
         } else {
           grassMesh.visible = false;
         }
-        if (noiseBackground) {
-          noiseMesh.update(timeOffset, timeDiff, this.width, this.height);
-          noiseMesh.visible = true;
-        } else {
-          noiseMesh.visible = false;
-        }
         if (poisonBackground) {
           poisonMesh.update(timeOffset, timeDiff, this.width, this.height);
           poisonMesh.visible = true;
         } else {
           poisonMesh.visible = false;
+        }
+        if (noiseBackground) {
+          noiseMesh.update(timeOffset, timeDiff, this.width, this.height);
+          noiseMesh.visible = true;
+        } else {
+          noiseMesh.visible = false;
         }
         if (smokeBackground) {
           smokeMesh.update(timeOffset, timeDiff, this.width, this.height);
