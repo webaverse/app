@@ -4,7 +4,7 @@ import {
   gradients,
   fullscreenVertexShader,
 } from './common.js';
-import {getRenderer} from '../renderer.js';
+// import {getRenderer} from '../renderer.js';
 
 const animeLightningFragmentShader = `\
   uniform float iTime;
