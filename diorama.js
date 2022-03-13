@@ -649,19 +649,6 @@ const _ensureSideSceneCompiled = () => {
 
 const sideCamera = new THREE.PerspectiveCamera();
 
-const _makeCanvas = (w, h) => {
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  canvas.style.cssText = `\
-    position: absolute;
-    /* width: ${w}px;
-    height: ${h}px; */
-    top: 0px;
-    left: 0px;
-  `;
-  return canvas;
-};
 const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   minFilter: THREE.LinearFilter,
   magFilter: THREE.LinearFilter,
