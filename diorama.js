@@ -4,17 +4,18 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {world} from './world.js';
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
-import {defaultDioramaSize} from './constants.js';
+// import {defaultDioramaSize} from './constants.js';
 import {planeGeometry, gradients} from './background-fx/common.js';
 import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
 import {SmokeBgFxMesh} from './background-fx/SmokeBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
+import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {
   fullscreenVertexShader,
   // animeLightningFragmentShader,
-  animeRadialShader,
+  // animeRadialShader,
   grassFragmentShader,
   glyphFragmentShader,
 } from './diorama-shaders.js';
@@ -262,46 +263,7 @@ async function makeTextMesh(
   return textMesh;
 }
 const lightningMesh = new LightningBgFxMesh();
-const radialMesh = (() => {
-  // const textureLoader = new THREE.TextureLoader();
-  const quad = new THREE.Mesh(
-    planeGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        iTime: {
-          value: 0,
-          needsUpdate: false,
-        },
-        iFrame: {
-          value: 0,
-          needsUpdate: false,
-        },
-        /* iChannel0: {
-          value: textureLoader.load('/textures/pebbles.png'),
-          // needsUpdate: true,
-        },
-        iChannel1: {
-          value: textureLoader.load('/textures/noise.png'),
-          // needsUpdate: true,
-        }, */
-      },
-      vertexShader: fullscreenVertexShader,
-      fragmentShader: animeRadialShader,
-      depthWrite: false,
-      depthTest: false,
-      alphaToCoverage: true,
-    })
-  );
-  /* quad.material.onBeforeCompile = shader => {
-    console.log('got full screen shader', shader);
-  }; */
-  /* quad.material.uniforms.iChannel0.value.wrapS = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel0.value.wrapT = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel1.value.wrapS = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel1.value.wrapT = THREE.RepeatWrapping; */
-  quad.frustumCulled = false;
-  return quad;
-})();
+const radialMesh = new RadialBgFxMesh();
 const outlineMesh = new OutlineBgFxMesh();
 const s1 = 0.4;
 const sk1 = 0.2;
@@ -867,10 +829,7 @@ const createPlayerDiorama = ({
         _renderLightning();
         const _renderRadial = () => {
           if (radialBackground) {
-            radialMesh.material.uniforms.iTime.value = timeOffset / 1000;
-            radialMesh.material.uniforms.iTime.needsUpdate = true;
-            radialMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
-            radialMesh.material.uniforms.iFrame.needsUpdate = true;
+            radialMesh.update(timeOffset, timeDiff, this.width, this.height);
             radialMesh.visible = true;
           } else {
             radialMesh.visible = false;
