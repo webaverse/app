@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {
   planeGeometry,
+  gradients,
   fullscreenVertexShader,
 } from './common.js';
 
