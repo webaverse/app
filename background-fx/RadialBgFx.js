@@ -112,7 +112,7 @@ class RadialBgFxMesh extends THREE.Mesh {
       depthWrite: false,
       depthTest: false,
       alphaToCoverage: true,
-    })
+    });
 
     super(planeGeometry, material);
     
