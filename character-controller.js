@@ -63,7 +63,7 @@ function makeCancelFn() {
 const heightFactor = 1.6;
 const baseRadius = 0.3;
 function loadPhysxCharacterController() {
-  const avatarHeight = this.avatar.height;
+  const avatarHeight = this.avatar?.height ?? 1.6;
   const radius = baseRadius/heightFactor * avatarHeight;
   const height = avatarHeight - radius*2;
 
@@ -978,8 +978,8 @@ class LocalPlayer extends UninterpolatedPlayer {
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
-      this.characterSfx.update(timestamp, timeDiffS);
-      this.characterFx.update(timestamp, timeDiffS);
+      this.characterSfx?.update(timestamp, timeDiffS);
+      this.characterFx?.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
 
@@ -989,7 +989,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       this.avatar.update(timestamp, timeDiff);
 
-      this.characterHups.update(timestamp);
+      this.characterHups?.update(timestamp);
     }
   }
   resetPhysics() {
@@ -1044,6 +1044,10 @@ class RemotePlayer extends InterpolatedPlayer {
     this.isRemotePlayer = true;
   }
   detachState() {
+    return null;
+  }
+  updateAvatar = LocalPlayer.prototype.updateAvatar;
+  getSession() {
     return null;
   }
   attachState(oldState) {
