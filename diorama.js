@@ -799,12 +799,7 @@ const createPlayerDiorama = ({
         _renderRadial();
         const _renderGlyph = () => {
           if (glyphBackground) {
-            glyphMesh.material.uniforms.iTime.value = timeOffset / 1000;
-            glyphMesh.material.uniforms.iTime.needsUpdate = true;
-            glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
-            glyphMesh.material.uniforms.uColor1.needsUpdate = true;
-            glyphMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-            glyphMesh.material.uniforms.uColor2.needsUpdate = true;
+            glyphMesh.update(timeOffset, timeDiff, this.width, this.height);
             glyphMesh.visible = true;
           } else {
             glyphMesh.visible = false;
