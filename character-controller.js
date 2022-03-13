@@ -63,7 +63,7 @@ function makeCancelFn() {
 const heightFactor = 1.6;
 const baseRadius = 0.3;
 function loadPhysxCharacterController() {
-  const avatarHeight = this.avatar?.height ?? 1.6;
+  const avatarHeight = this.avatar?.height || 1;
   const radius = baseRadius/heightFactor * avatarHeight;
   const height = avatarHeight - radius*2;
 
@@ -451,10 +451,10 @@ class StatePlayer extends PlayerBase {
   }
   // serializers
   getPosition() {
-    return this.playerMap.get('position') ?? [0, 0, 0];
+    return this.position.toArray() ?? new Vector3();
   }
   getQuaternion() {
-    return this.playerMap.get('quaternion') ?? [0, 0, 0, 1];
+        return this.quaternion.toArray() ?? new Quaternion();
   }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
@@ -675,12 +675,6 @@ class InterpolatedPlayer extends StatePlayer {
     
     this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
     this.quaternionInterpolant = new QuaternionInterpolant(() => this.getQuaternion(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
-    this.positionTimeStep = new FixedTimeStep(timeDiff => {
-      this.positionInterpolant.snapshot(timeDiff);
-    }, avatarInterpolationFrameRate);
-    this.quaternionTimeStep = new FixedTimeStep(timeDiff => {
-      this.quaternionInterpolant.snapshot(timeDiff);
-    }, avatarInterpolationFrameRate);
     
     this.actionBinaryInterpolants = {
       crouch: new BinaryInterpolant(() => this.hasAction('crouch'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
@@ -744,10 +738,7 @@ class InterpolatedPlayer extends StatePlayer {
     };
   }
   updateInterpolation(timeDiff) {
-    this.positionTimeStep.update(timeDiff);
-    this.quaternionTimeStep.update(timeDiff);
-    
-    this.positionInterpolant.update(timeDiff);
+        this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
     
     for (const actionInterpolantTimeStep of this.actionBinaryTimeStepsArray) {
@@ -857,15 +848,27 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.playerMap = new Z.Map();
       self.playersArray.push([self.playerMap]);
       self.playerMap.set('playerId', self.playerId);
-      self.playerMap.set('position', self.position.toArray(localArray3));
-      self.playerMap.set('quaternion', self.quaternion.toArray(localArray4));
+
+      const packed = new Float32Array(10);
+      const pack = (v, i) => {
+        packed[i] = v.x;
+        packed[i + 1] = v.y;
+        packed[i + 2] = v.z;
+        if(v.w) packed[i + 3] = v.w;
+      };
+      const avatar = self.getAvatarState();
+      console.log(self.position)
+      pack(self.position, 0);
+      pack(self.quaternion, 3);
+      pack(self.scale, 7);
+      
+      self.playerMap.set('transform', packed);
       
       const actions = self.getActionsState();
       for (const oldAction of oldActions) {
         actions.push([oldAction]);
       }
       
-      const avatar = self.getAvatarState();
       const {instanceId} = oldAvatar;
       if (instanceId !== undefined) {
         avatar.set('instanceId', instanceId);
@@ -952,17 +955,30 @@ class LocalPlayer extends UninterpolatedPlayer {
     camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
     camera.updateMatrixWorld();
   } */
-  
+  packed = new Float32Array(10);
+
   pushPlayerUpdates() {
     this.playersArray.doc.transact(() => {
       /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
         debugger;
       } */
-      this.playerMap.set('position', this.position.toArray(localArray3));
-      this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
+
+      const packed = this.packed
+      const pack = (v, i) => {
+        packed[i] = v.x;
+        packed[i + 1] = v.y;
+        packed[i + 2] = v.z;
+        if(v.w) packed[i + 3] = v.w;
+      };
+  
+      pack(this.position, 0);
+      pack(this.quaternion, 3);
+      pack(this.scale, 7);
+
+      this.playerMap.set('transform', packed);
     }, 'push');
 
-    this.appManager.updatePhysics();
+    // this.appManager.updatePhysics();
   }
   getSession() {
     const renderer = getRenderer();
@@ -988,7 +1004,6 @@ class LocalPlayer extends UninterpolatedPlayer {
       applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
       this.avatar.update(timestamp, timeDiff);
-
       this.characterHups?.update(timestamp);
     }
   }
@@ -1046,7 +1061,22 @@ class RemotePlayer extends InterpolatedPlayer {
   detachState() {
     return null;
   }
-  updateAvatar = LocalPlayer.prototype.updateAvatar;
+  updateAvatar(timestamp, timeDiff) {
+
+    if (this.avatar) {
+      const timeDiffS = timeDiff / 1000;
+      this.characterSfx?.update(timestamp, timeDiffS);
+      this.characterFx?.update(timestamp, timeDiffS);
+
+      // this.updateInterpolation(timeDiff);
+
+
+
+      this.avatar.update(timestamp, timeDiff);
+      this.characterHups?.update(timestamp);
+    }
+  }
+  updatePhysics = () => {} // LocalPlayer.prototype.updatePhysics;
   getSession() {
     return null;
   }
@@ -1065,9 +1095,20 @@ class RemotePlayer extends InterpolatedPlayer {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
     
+    let timestamp = 0
     const observePlayerFn = e => {
-      this.position.fromArray(this.playerMap.get('position'));
-      this.quaternion.fromArray(this.playerMap.get('quaternion'));
+      console.log("e is", e)
+      const now = performance.now()
+      const timeDiff = now - timestamp
+      timestamp = now
+      const transform = this.playerMap.get('transform')
+      this.position.fromArray(transform, 0);
+      this.quaternion.fromArray(transform, 3);
+      this.positionInterpolant?.snapshot(timeDiff);
+      this.quaternionInterpolant?.snapshot(timeDiff);
+      this.updateInterpolation(timeDiff);
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, null, this.avatar, mirrors);
     };
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
