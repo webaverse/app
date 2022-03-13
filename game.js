@@ -410,33 +410,33 @@ const _handleUpload = async (item, transform = null) => {
       const s = await new Promise((accept, reject) => {
         item.getAsString(accept);
       });
-      const j = JSON.parse(s);
+      let j = {};
+      try {
+        j = JSON.parse(s);
+      } catch (error) {
+        console.warn(error);
+        return;
+      }
       const {token_id, asset_contract} = j;
       const {address} = asset_contract;
       
       if (contractNames[address]) {
-        u = `/@proxy/` + encodeURI(`eth://${address}/${token_id}`);
+        u = `/@proxy/${encodeURI(`eth://${address}/${token_id}`)}`;
       } else {
         console.log('got j', j);
-        const {traits} = j;
+        const traits = j.traits || [];
         // cryptovoxels wearables
         const voxTrait = traits.find(t => t.trait_type === 'vox'); // XXX move to a loader
         if (voxTrait) {
           const {value} = voxTrait;
           u = _proxifyUrl(value) + '?type=vox';
         } else {
-          const {token_metadata} = j;
-          // console.log('proxify', token_metadata);
-          const res = await fetch(_proxifyUrl(token_metadata), {
-            mode: 'cors',
-          });
-          const j2 = await res.json();
-          // console.log('got metadata', j2);
+          const token_metadata = j.metadata;
           
           // dcl wearables
-          if (j2.id?.startsWith('urn:decentraland:')) {
+          if (token_metadata.id?.startsWith('urn:decentraland:')) {
             // 'urn:decentraland:ethereum:collections-v1:mch_collection:mch_enemy_upper_body'
-            const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${j2.id}`, { // XXX move to a loader
+            const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${token_metadata.id}`, { // XXX move to a loader
               mode: 'cors',
             });
             const j3 = await res.json();
@@ -451,14 +451,14 @@ const _handleUpload = async (item, transform = null) => {
             u = '/@proxy/' + encodeURI(file.url) + (type ? ('?type=' + type) : '');
           } else {
             // avatar
-            const {avatar_url, asset} = j2;
-            const avatarUrl = avatar_url || asset;
-            if (avatarUrl) {
-              u = '/@proxy/' + encodeURI(avatarUrl) + '?type=vrm';
+            const {avatar_url, asset, animation_url, image} = token_metadata;
+            if (avatar_url || asset) {
+              const link = `${(avatar_url || asset)}`.replace('ipfs://', 'https://ipfs.webaverse.com/');
+              u = '/@proxy/' + encodeURI(link) + '?type=vrm';
             } else {
-              // default
-              const {image} = j2;
-              u = '/@proxy/' + encodeURI(image);
+              const link = `${(animation_url || image)}`.replace('ipfs://', 'https://ipfs.webaverse.com/');
+              console.log('image: ', link);
+              u = '/@proxy/' + encodeURI(link);
             }
           }
         }

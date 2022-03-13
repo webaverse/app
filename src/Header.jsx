@@ -12,7 +12,6 @@ import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx'
 import {world} from '../world.js'
 import game from '../game.js'
 // import universe from '../universe.js'
-import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
@@ -21,6 +20,8 @@ import User from './User';
 import {Character} from './tabs/character';
 import {Claims} from './tabs/claims';
 import {Tokens} from './tabs/tokens';
+import { Minting } from './tabs/minting';
+
 
 export default function Header({
   app,
@@ -39,6 +40,7 @@ export default function Header({
   const [claims, setClaims] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [loginFrom, setLoginFrom] = useState('');
+  const [chain, setChain] = useState(false);
 
   const [wearActions, setWearActions] = useState(_getWearActions());
 
@@ -241,6 +243,8 @@ export default function Header({
               setAddress={setAddress}
               open={open}
               setOpen={setOpen}
+              chain={chain}
+              setChain={setChain}
               toggleOpen={toggleOpen}
               setLoginFrom={setLoginFrom}
             />
@@ -268,8 +272,9 @@ export default function Header({
         <Tokens
           userOpen={userOpen}
           nfts={nfts}
-          hacks={hacks}
           address={address}
+          chain={chain}
+          setChain={setChain}
           setNfts={setNfts}
           loginFrom={loginFrom}
         />
