@@ -668,7 +668,6 @@ const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   format: THREE.RGBAFormat,
 });
 const createPlayerDiorama = ({
-  canvas = null,
   objects = [],
   target = new THREE.Object3D(),
   cameraOffset = new THREE.Vector3(0.3, 0, -0.5),
@@ -689,16 +688,6 @@ const createPlayerDiorama = ({
 
   const {devicePixelRatio: pixelRatio} = window;
 
-  // const renderer = getRenderer();
-
-  let locallyOwnedCanvas;
-  if (canvas) {
-    locallyOwnedCanvas = null;
-  } else {
-    canvas = _makeCanvas(defaultDioramaSize, defaultDioramaSize);
-    document.body.appendChild(canvas);
-    locallyOwnedCanvas = canvas;
-  }
   const canvases = [];
   let outlineRenderTarget = null
   let lastDisabledTime = 0;
@@ -706,8 +695,7 @@ const createPlayerDiorama = ({
   const diorama = {
     width: 0,
     height: 0,
-    loaded: false,
-    enabled: true,
+    // loaded: false,
     setTarget(newTarget) {
       target = newTarget;
     },
@@ -778,7 +766,7 @@ const createPlayerDiorama = ({
           await renderer.compileAsync(player.avatar.model, sideScene);
         })(), */
       ]).then(() => {
-        this.loaded = true;
+        // this.loaded = true;
       });
     },
     setCameraOffset(newCameraOffset) {
@@ -789,7 +777,7 @@ const createPlayerDiorama = ({
       clearAlpha = newClearAlpha;
     },
     update(timestamp, timeDiff) {
-      if (!this.loaded || !this.enabled) {
+      if (canvases.length === 0) {
         lastDisabledTime = timestamp;
         return;
       }
@@ -1007,9 +995,6 @@ const createPlayerDiorama = ({
       renderer.setClearColor(oldClearColor, oldClearAlpha);
     },
     destroy() {
-      if (locallyOwnedCanvas) {
-        locallyOwnedCanvas.parentNode.removeChild(locallyOwnedCanvas);
-      }
       dioramas.splice(dioramas.indexOf(diorama), 1);
 
       // postProcessing.removeEventListener('update', recompile);
@@ -1035,11 +1020,7 @@ const createPlayerDiorama = ({
     player.addEventListener('avatarchange', avatarchange);
   } */
 
-  if (canvas) {
-    diorama.addCanvas(canvas);
-  }
   dioramas.push(diorama);
-  diorama.loaded = true; // XXX hack
   return diorama;
 };
 
