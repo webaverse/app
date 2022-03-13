@@ -91,6 +91,7 @@ class CharacterFx {
     // this.lastWalkTime = 0;
 
     this.kiMesh = null;
+    this.sonicBoomMesh = null;
     this.hairMeshes = null;
     this.lastSSS = false;
   }
@@ -231,11 +232,28 @@ class CharacterFx {
     _updateKiMesh();
 
     this.lastSSS = isSSS;
+    const _updateSonicBoomMesh = () => {
+      if (!this.sonicBoom) {
+        this.sonicBoom = metaversefile.createApp();
+        (async () => {
+          await metaverseModules.waitForLoad();
+          const {modules} = metaversefile.useDefaultModules();
+          const m = modules['sonicBoom'];
+          await this.sonicBoom.addModule(m);
+        })();
+        sceneLowPriority.add(this.sonicBoom);
+      }
+    };
+    _updateSonicBoomMesh();
   }
   destroy() {
     if (this.kiMesh) {
       sceneLowPriority.remove(this.kiMesh);
       this.kiMesh = null;
+    }
+    if (this.sonicBoomMesh) {
+      sceneLowPriority.remove(this.sonicBoomMesh);
+      this.sonicBoomMesh = null;
     }
   }
 }

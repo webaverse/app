@@ -20,6 +20,7 @@ const loadPromise = (async () => {
   soundFiles.jump = soundFileSpecs.filter(f => /^jump\//.test(f.name));
   soundFiles.land = soundFileSpecs.filter(f => /^land\//.test(f.name));
   soundFiles.narutoRun = soundFileSpecs.filter(f => /^narutoRun\//.test(f.name));
+  soundFiles.sonicBoom = soundFileSpecs.filter(f => /^sonicBoom\//.test(f.name));
   soundFiles.chomp = soundFileSpecs.filter(f => /^food\/chomp/.test(f.name));
   soundFiles.gulp = soundFileSpecs.filter(f => /^food\/gulp/.test(f.name));
   soundFiles.enemyDeath = soundFileSpecs.filter(f => /enemyDeath/.test(f.name));
@@ -31,19 +32,30 @@ const waitForLoad = () => loadPromise;
 
 const getSoundFiles = () => soundFiles;
 const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
-const playSound = audioSpec => {
-  const {offset, duration} = audioSpec;
 
+let currentNode=null;
+const playSound = (audioSpec, storeNode) => {
+  
+  const {offset, duration} = audioSpec;
   const audioContext = Avatar.getAudioContext();
   const audioBufferSourceNode = audioContext.createBufferSource();
   audioBufferSourceNode.buffer = soundFileAudioBuffer;
   audioBufferSourceNode.connect(audioContext.destination);
   audioBufferSourceNode.start(0, offset, duration);
+  if (storeNode !== undefined){
+    if(storeNode)
+      currentNode=audioBufferSourceNode;
+  }
+    
 };
-
+const stopSound = ()=>{
+  if(currentNode)
+    currentNode.stop(0);
+}
 export {
   waitForLoad,
   getSoundFiles,
   getSoundFileAudioBuffer,
   playSound,
+  stopSound
 };
