@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
+import game from '../../game.js';
 import {defaultPlayerName} from '../../ai/lore/lore-model.js';
 
 const emotions = [
@@ -30,45 +31,61 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
   const localPlayer = metaversefile.useLocalPlayer();
   const sideSize = 400;
 
-    useEffect(() => {
-      function mousemove(e) {
-        const emotionsEl = emotionsRef.current;
-        if (document.pointerLockElement === emotionsEl) {
-          const {/*movementX, */movementY} = e;
-          if (dragEmotionIndex !== -1) {
-            const emotion = emotions[dragEmotionIndex];
-            const emotionState = emotionStates[dragEmotionIndex];
-            const oldValue = emotionState.action ? emotionState.action.value : 0;
-            const value = Math.min(Math.max(oldValue - movementY * 0.01, 0), 1);
-            if (value > 0) {
-              if (emotionState.action === null) {
-                const newAction = localPlayer.addAction({
-                  type: 'emote',
-                  emotion,
-                  value,
-                });
-                emotionState.setAction(newAction);
-                emotionState.setValue(value);
-              } else {
-                emotionState.action.value = value;
-                emotionState.setValue(value);
-              }
+  useEffect(() => {
+    if (game.playerDiorama) {
+      const canvas = dioramaCanvasRef.current;
+      if (canvas && open) {
+        game.playerDiorama.addCanvas(canvas);
+        return () => {
+          game.playerDiorama.removeCanvas(canvas);
+        };
+      }
+    }
+  }, [dioramaCanvasRef, open]);
+
+  useEffect(() => {
+    function mousemove(e) {
+      const emotionsEl = emotionsRef.current;
+      if (document.pointerLockElement === emotionsEl) {
+        const {/*movementX, */movementY} = e;
+        if (dragEmotionIndex !== -1) {
+          const emotion = emotions[dragEmotionIndex];
+          const emotionState = emotionStates[dragEmotionIndex];
+          const oldValue = emotionState.action ? emotionState.action.value : 0;
+          const value = Math.min(Math.max(oldValue - movementY * 0.01, 0), 1);
+          if (value > 0) {
+            if (emotionState.action === null) {
+              const newAction = localPlayer.addAction({
+                type: 'emote',
+                emotion,
+                value,
+              });
+              emotionState.setAction(newAction);
+              emotionState.setValue(value);
             } else {
-              const emoteActionIndex = localPlayer.findActionIndex(a => a.type === 'emote' && a.emotion === emotion);
-              if (emoteActionIndex !== -1) {
-                localPlayer.removeActionIndex(emoteActionIndex);
-                emotionState.setAction(null);
-                emotionState.setValue(0);
-              }
+              emotionState.action.value = value;
+              emotionState.setValue(value);
+            }
+          } else {
+            const emoteActionIndex = localPlayer.findActionIndex(a => a.type === 'emote' && a.emotion === emotion);
+            if (emoteActionIndex !== -1) {
+              localPlayer.removeActionIndex(emoteActionIndex);
+              emotionState.setAction(null);
+              emotionState.setValue(0);
             }
           }
         }
       }
-      document.addEventListener('mousemove', mousemove);
-      return () => {
-        document.removeEventListener('mousemove', mousemove);
-      };
-    }, [emotionsRef, dragEmotionIndex].concat(emotionStates.flatMap(e => [e.action, e.value])));
+    }
+    document.addEventListener('mousemove', mousemove);
+    return () => {
+      document.removeEventListener('mousemove', mousemove);
+    };
+  }, [emotionsRef, dragEmotionIndex].concat(emotionStates.flatMap(e => [e.action, e.value])));
+
+  function onCanvasClick(e) {
+    game.playerDiorama.toggleShader();
+  }
 
   return (
     <Tab
@@ -122,7 +139,7 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
               );
             })}
           </div>
-          <canvas id="previewCanvas" className={styles.avatar} ref={dioramaCanvasRef} width={sideSize} height={sideSize} />
+          <canvas className={styles.avatar} ref={dioramaCanvasRef} width={sideSize} height={sideSize} onClick={onCanvasClick} />
           <div className={styles['panel-header']}>
             <div className={classnames(styles['panel-section'], styles.name)}>
               <h1>{defaultPlayerName}</h1>
