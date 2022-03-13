@@ -5,7 +5,7 @@ import classnames from 'classnames';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
 import {getRenderer} from '../../../../renderer.js';
-import game from '../../../../game.js';
+// import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import cameraManager from '../../../../camera-manager.js';
 import {Text} from 'troika-three-text';
