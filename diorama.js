@@ -874,117 +874,149 @@ const createPlayerDiorama = ({
         // sideScene.add(world.lights);
     
         const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
-        if (grassBackground) {
-          grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          grassMesh.material.uniforms.iTime.needsUpdate = true;
-          grassMesh.material.uniforms.uColor1.value.set(colors[0]);
-          grassMesh.material.uniforms.uColor1.needsUpdate = true;
-          grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          grassMesh.material.uniforms.uColor2.needsUpdate = true;
-          grassMesh.visible = true;
-        } else {
-          grassMesh.visible = false;
-        }
-        if (poisonBackground) {
-          poisonMesh.update(timeOffset, timeDiff, this.width, this.height);
-          poisonMesh.visible = true;
-        } else {
-          poisonMesh.visible = false;
-        }
-        if (noiseBackground) {
-          noiseMesh.update(timeOffset, timeDiff, this.width, this.height);
-          noiseMesh.visible = true;
-        } else {
-          noiseMesh.visible = false;
-        }
-        if (smokeBackground) {
-          smokeMesh.update(timeOffset, timeDiff, this.width, this.height);
-          smokeMesh.visible = true;
-        } else {
-          smokeMesh.visible = false;
-        }
-        if (lightningBackground) {
-          lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          lightningMesh.material.uniforms.iTime.needsUpdate = true;
-          lightningMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
-          lightningMesh.material.uniforms.iFrame.needsUpdate = true;
-          lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
-          lightningMesh.material.uniforms.uColor1.needsUpdate = true;
-          lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          lightningMesh.material.uniforms.uColor2.needsUpdate = true;
-          lightningMesh.visible = true;
-        } else {
-          lightningMesh.visible = false;
-        }
-        if (radialBackground) {
-          radialMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          radialMesh.material.uniforms.iTime.needsUpdate = true;
-          radialMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
-          radialMesh.material.uniforms.iFrame.needsUpdate = true;
-          radialMesh.visible = true;
-        } else {
-          radialMesh.visible = false;
-        }
-        if (glyphBackground) {
-          glyphMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          glyphMesh.material.uniforms.iTime.needsUpdate = true;
-          glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
-          glyphMesh.material.uniforms.uColor1.needsUpdate = true;
-          glyphMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          glyphMesh.material.uniforms.uColor2.needsUpdate = true;
-          glyphMesh.visible = true;
-        } else {
-          glyphMesh.visible = false;
-        }
-        if (outline) {
-          outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-          outlineMesh.material.uniforms.t0.needsUpdate = true;
-          outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-          outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-          outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-          outlineMesh.visible = true;
-        } else {
-          outlineMesh.visible = false;
-        }
-        if (label) {
-          labelMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          labelMesh.material.uniforms.iTime.needsUpdate = true;
-          labelMesh.visible = true;
-          for (const child of textObject.children) {
-            child.material.uniforms.uTroikaOutlineOpacity.value = timeOffset / 1000;
-            child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+        const _renderGrass = () => {
+          if (grassBackground) {
+            grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
+            grassMesh.material.uniforms.iTime.needsUpdate = true;
+            grassMesh.material.uniforms.uColor1.value.set(colors[0]);
+            grassMesh.material.uniforms.uColor1.needsUpdate = true;
+            grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            grassMesh.material.uniforms.uColor2.needsUpdate = true;
+            grassMesh.visible = true;
+          } else {
+            grassMesh.visible = false;
           }
-          textObject.visible = true;
-        } else {
-          labelMesh.visible = false;
-          textObject.visible = false;
-        }
+        };
+        _renderGrass();
+        const _renderPoison = () => {
+          if (poisonBackground) {
+            poisonMesh.update(timeOffset, timeDiff, this.width, this.height);
+            poisonMesh.visible = true;
+          } else {
+            poisonMesh.visible = false;
+          }
+        };
+        _renderPoison();
+        const _renderNoise = () => {
+          if (noiseBackground) {
+            noiseMesh.update(timeOffset, timeDiff, this.width, this.height);
+            noiseMesh.visible = true;
+          } else {
+            noiseMesh.visible = false;
+          }
+        };
+        _renderNoise();
+        const _renderSmoke = () => {
+          if (smokeBackground) {
+            smokeMesh.update(timeOffset, timeDiff, this.width, this.height);
+            smokeMesh.visible = true;
+          } else {
+            smokeMesh.visible = false;
+          }
+        };
+        _renderSmoke();
+        const _renderLightning = () => {
+          if (lightningBackground) {
+            lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
+            lightningMesh.material.uniforms.iTime.needsUpdate = true;
+            lightningMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
+            lightningMesh.material.uniforms.iFrame.needsUpdate = true;
+            lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
+            lightningMesh.material.uniforms.uColor1.needsUpdate = true;
+            lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            lightningMesh.material.uniforms.uColor2.needsUpdate = true;
+            lightningMesh.visible = true;
+          } else {
+            lightningMesh.visible = false;
+          }
+        };
+        _renderLightning();
+        const _renderRadial = () => {
+          if (radialBackground) {
+            radialMesh.material.uniforms.iTime.value = timeOffset / 1000;
+            radialMesh.material.uniforms.iTime.needsUpdate = true;
+            radialMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
+            radialMesh.material.uniforms.iFrame.needsUpdate = true;
+            radialMesh.visible = true;
+          } else {
+            radialMesh.visible = false;
+          }
+        };
+        _renderRadial();
+        const _renderGlyph = () => {
+          if (glyphBackground) {
+            glyphMesh.material.uniforms.iTime.value = timeOffset / 1000;
+            glyphMesh.material.uniforms.iTime.needsUpdate = true;
+            glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
+            glyphMesh.material.uniforms.uColor1.needsUpdate = true;
+            glyphMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            glyphMesh.material.uniforms.uColor2.needsUpdate = true;
+            glyphMesh.visible = true;
+          } else {
+            glyphMesh.visible = false;
+          }
+        };
+        _renderGlyph();
+        const _renderOutline = () => {
+          if (outline) {
+            outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
+            outlineMesh.material.uniforms.t0.needsUpdate = true;
+            outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
+            outlineMesh.material.uniforms.uColor1.needsUpdate = true;
+            outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+            outlineMesh.material.uniforms.uColor2.needsUpdate = true;
+            outlineMesh.visible = true;
+          } else {
+            outlineMesh.visible = false;
+          }
+        };
+        _renderOutline();
+        const _renderLabel = () => {
+          if (label) {
+            labelMesh.material.uniforms.iTime.value = timeOffset / 1000;
+            labelMesh.material.uniforms.iTime.needsUpdate = true;
+            labelMesh.visible = true;
+            for (const child of textObject.children) {
+              child.material.uniforms.uTroikaOutlineOpacity.value = timeOffset / 1000;
+              child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+            }
+            textObject.visible = true;
+          } else {
+            labelMesh.visible = false;
+            textObject.visible = false;
+          }
+        };
+        _renderLabel();
         
         // render side scene
-        renderer.setRenderTarget(oldRenderTarget);
-        renderer.setViewport(0, 0, this.width, this.height);
-        if (clearColor !== null) {
-          renderer.setClearColor(clearColor, clearAlpha);
-        }
-        renderer.clear();
-        renderer.render(sideScene, sideCamera);
-    
-        for (const canvas of canvases) {
-          const {width, height, ctx} = canvas;
-          ctx.clearRect(0, 0, width, height);
-          ctx.drawImage(
-            renderer.domElement,
-            0,
-            size.y * pixelRatio - this.height * pixelRatio,
-            this.width * pixelRatio,
-            this.height * pixelRatio,
-            0,
-            0,
-            width,
-            height
-          );
-        }
+        const _render = () => {
+          renderer.setRenderTarget(oldRenderTarget);
+          renderer.setViewport(0, 0, this.width, this.height);
+          if (clearColor !== null) {
+            renderer.setClearColor(clearColor, clearAlpha);
+          }
+          renderer.clear();
+          renderer.render(sideScene, sideCamera);
+        };
+        _render();
+        const _copyFrame = () => {
+          for (const canvas of canvases) {
+            const {width, height, ctx} = canvas;
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(
+              renderer.domElement,
+              0,
+              size.y * pixelRatio - this.height * pixelRatio,
+              this.width * pixelRatio,
+              this.height * pixelRatio,
+              0,
+              0,
+              width,
+              height
+            );
+          }
+        };
+        _copyFrame();
       };
       _render();
 
