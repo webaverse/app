@@ -1539,7 +1539,7 @@ class GameManager extends EventTarget {
   }
   canGrab() {
     return !!highlightedObject;
-  },
+  }
   canRotate() {
     return !!_getGrabbedObject(0);
     // return !!world.appManager.grabbedObjects[0];
@@ -1718,8 +1718,8 @@ class GameManager extends EventTarget {
         localPlayer.ungrab();
       }
     }
-  },
-  menuUpload: _upload,
+  }
+  menuUpload = _upload
   /* addLocalEmote(index) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (localPlayer.avatar) {
@@ -1788,7 +1788,7 @@ class GameManager extends EventTarget {
 
     // play sound
     // soundManager.play('jump');
-  },
+  }
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();
   }
