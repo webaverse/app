@@ -85,9 +85,6 @@ export default function Header({
     if (open && open !== 'chat') {
       cameraManager.exitPointerLock();
     }
-    if (game.playerDiorama) {
-      game.playerDiorama.enabled = characterOpen;
-    }
   }, [open]);
 
   useEffect(() => {
@@ -105,11 +102,6 @@ export default function Header({
       world.appManager.removeEventListener('pickup', pickup);
     };
   }, [claims]);
-  useEffect(() => {
-    if (dioramaCanvasRef.current && !game.playerDiorama) {
-      app.bindDioramaCanvas(dioramaCanvasRef.current);
-    }
-  }, [dioramaCanvasRef.current]);
   useEffect(() => {
     if (selectedApp && panelsRef.current) {
       panelsRef.current.scrollTo(0, 0);
