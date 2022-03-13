@@ -104,6 +104,20 @@ class OutlineBgFxMesh extends THREE.Mesh {
     super(geometry, material);
     this.frustumCulled = false;
   }
+  update(timestamp, timeDiff, width, height, texture) {
+    const timestampS = timestamp / 1000;
+
+    const {colors} = gradients[Math.floor(timestampS) % gradients.length];
+
+    this.material.uniforms.t0.value = texture;
+    this.material.uniforms.t0.needsUpdate = true;
+
+    this.material.uniforms.uColor1.value.set(colors[0]);
+    this.material.uniforms.uColor1.needsUpdate = true;
+
+    this.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+    this.material.uniforms.uColor2.needsUpdate = true;
+  }
 }
 
 export {
