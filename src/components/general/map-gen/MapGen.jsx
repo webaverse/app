@@ -4,6 +4,7 @@ import classnames from 'classnames';
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
+import {MiniHup} from '../../../MiniHup.jsx';
 import {getRenderer} from '../../../../renderer.js';
 // import game from '../../../../game.js';
 import {world} from '../../../../world.js';
@@ -1387,6 +1388,7 @@ export const MapGen = ({
                 onMouseDown={mouseDown}
                 ref={canvasRef}
             />
+            <MiniHup />
         </div>
     ) : null;
 };
