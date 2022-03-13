@@ -852,12 +852,7 @@ const createPlayerDiorama = ({
         _renderGlyph();
         const _renderOutline = () => {
           if (outline) {
-            outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-            outlineMesh.material.uniforms.t0.needsUpdate = true;
-            outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-            outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-            outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-            outlineMesh.material.uniforms.uColor2.needsUpdate = true;
+            outlineMesh.update(timeOffset, timeDiff, this.width, this.height, outlineRenderTarget.texture);
             outlineMesh.visible = true;
           } else {
             outlineMesh.visible = false;
