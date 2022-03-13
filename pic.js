@@ -177,7 +177,6 @@ export const genPic = async ({
   // debugger;
   const target = new THREE.Object3D();
   const diorama = dioramaManager.createPlayerDiorama({
-    canvas,
     // target: player,
     target,
     objects,
@@ -187,7 +186,7 @@ export const genPic = async ({
     // grassBackground: true,
     // glyphBackground: true,
   });
-  // diorama.enabled = false;
+  diorama.addCanvas(canvas);
   diorama.setClearColor(0xFFFFFF, 1);
 
   const videoWriter = new WebMWriter({
