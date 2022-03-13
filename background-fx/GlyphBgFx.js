@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {
   planeGeometry,
-  // gradients,
+  gradients,
   fullscreenVertexShader,
 } from './common.js';
 // import {getRenderer} from '../renderer.js';
@@ -361,11 +361,16 @@ class GlyphBgFxMesh extends THREE.Mesh {
   update(timestamp, timeDiff, width, height) {
     const timestampS = timestamp / 1000;
 
+    const {colors} = gradients[Math.floor(timestampS) % gradients.length];
+
     this.material.uniforms.iTime.value = timestampS;
     this.material.uniforms.iTime.needsUpdate = true;
 
-    this.material.uniforms.iFrame.value = Math.floor(timestampS * 60);
-    this.material.uniforms.iFrame.needsUpdate = true;
+    this.material.uniforms.uColor1.value.set(colors[0]);
+    this.material.uniforms.uColor1.needsUpdate = true;
+
+    this.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
+    this.material.uniforms.uColor2.needsUpdate = true;
   }
 }
 
