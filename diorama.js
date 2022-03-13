@@ -5,15 +5,15 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 import {defaultDioramaSize} from './constants.js';
-import gradients from './gradients.json';
-import {planeGeometry} from './background-fx/common.js';
+import {planeGeometry, gradients} from './background-fx/common.js';
 import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
 import {SmokeBgFxMesh} from './background-fx/SmokeBgFx.js';
+import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {
   fullscreenVertexShader,
-  animeLightningFragmentShader,
+  // animeLightningFragmentShader,
   animeRadialShader,
   grassFragmentShader,
   glyphFragmentShader,
@@ -261,53 +261,7 @@ async function makeTextMesh(
   });
   return textMesh;
 }
-const lightningMesh = (() => {
-  const textureLoader = new THREE.TextureLoader();
-  const quad = new THREE.Mesh(
-    planeGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        iTime: {
-          value: 0,
-          needsUpdate: false,
-        },
-        iFrame: {
-          value: 0,
-          needsUpdate: false,
-        },
-        iChannel0: {
-          value: textureLoader.load('/textures/pebbles.png'),
-          // needsUpdate: true,
-        },
-        iChannel1: {
-          value: textureLoader.load('/textures/noise.png'),
-          // needsUpdate: true,
-        },
-        uColor1: {
-          value: new THREE.Color(0x000000),
-          needsUpdate: true,
-        },
-        uColor2: {
-          value: new THREE.Color(0xFFFFFF),
-          needsUpdate: true,
-        },
-      },
-      vertexShader: fullscreenVertexShader,
-      fragmentShader: animeLightningFragmentShader,
-      depthWrite: false,
-      depthTest: false,
-    })
-  );
-  /* quad.material.onBeforeCompile = shader => {
-    console.log('got full screen shader', shader);
-  }; */
-  quad.material.uniforms.iChannel0.value.wrapS = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel0.value.wrapT = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel1.value.wrapS = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel1.value.wrapT = THREE.RepeatWrapping;
-  quad.frustumCulled = false;
-  return quad;
-})();
+const lightningMesh = new LightningBgFxMesh();
 const radialMesh = (() => {
   // const textureLoader = new THREE.TextureLoader();
   const quad = new THREE.Mesh(
@@ -904,14 +858,7 @@ const createPlayerDiorama = ({
         _renderSmoke();
         const _renderLightning = () => {
           if (lightningBackground) {
-            lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
-            lightningMesh.material.uniforms.iTime.needsUpdate = true;
-            lightningMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
-            lightningMesh.material.uniforms.iFrame.needsUpdate = true;
-            lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
-            lightningMesh.material.uniforms.uColor1.needsUpdate = true;
-            lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-            lightningMesh.material.uniforms.uColor2.needsUpdate = true;
+            lightningMesh.update(timeOffset, timeDiff, this.width, this.height);
             lightningMesh.visible = true;
           } else {
             lightningMesh.visible = false;
