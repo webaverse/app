@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import gradients from './gradients.json';
+
+export const planeGeometry = new THREE.PlaneGeometry(2, 2);
+export {gradients};
 
 export const fullscreenGeometry = new THREE.PlaneGeometry(2, 2);
 export const fullscreenVertexShader = `\
