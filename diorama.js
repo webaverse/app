@@ -10,6 +10,7 @@ import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
 import {SmokeBgFxMesh} from './background-fx/SmokeBgFx.js';
+import {GlyphBgFxMesh} from './background-fx/GlyphBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {
@@ -17,7 +18,7 @@ import {
   // animeLightningFragmentShader,
   // animeRadialShader,
   grassFragmentShader,
-  glyphFragmentShader,
+  // glyphFragmentShader,
 } from './diorama-shaders.js';
 
 const localVector = new THREE.Vector3();
@@ -396,47 +397,7 @@ const grassMesh = (() => {
 const poisonMesh = new PoisonBgFxMesh();
 const noiseMesh = new NoiseBgFxMesh();
 const smokeMesh = new SmokeBgFxMesh();
-const glyphMesh = (() => {
-  const textureLoader = new THREE.TextureLoader();
-  const quad = new THREE.Mesh(
-    planeGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        iTime: {
-          value: 0,
-          // needsUpdate: true,
-        },
-        iChannel0: {
-          value: textureLoader.load('/textures/lichen.jpg'),
-          // needsUpdate: true,
-        },
-        /* outline_thickness: {
-          value: 0.02,
-          needsUpdate: true,
-        }, */
-        uColor1: {
-          value: new THREE.Color(0x000000),
-          needsUpdate: true,
-        },
-        uColor2: {
-          value: new THREE.Color(0xFFFFFF),
-          needsUpdate: true,
-        },
-        /* outline_threshold: {
-          value: .5,
-          needsUpdate: true,
-        }, */
-      },
-      vertexShader: fullscreenVertexShader,
-      fragmentShader: glyphFragmentShader,
-      depthWrite: false,
-      depthTest: false,
-      alphaToCoverage: true,
-    })
-  );
-  quad.frustumCulled = false;
-  return quad;
-})();
+const glyphMesh = new GlyphBgFxMesh();
 const textObject = (() => {
   const o = new THREE.Object3D();
   
