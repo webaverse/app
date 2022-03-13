@@ -8,6 +8,7 @@ const moduleUrls = {
   errorPlaceholder: `./metaverse_modules/error-placeholder/`,
   damageMesh: `./metaverse_modules/damage-mesh/`,
   ki: `./metaverse_modules/ki/`,
+  sonicBoom: `./metaverse_modules/sonic-boom/`,
 };
 const modules = {};
 const loadPromise = (async () => {
