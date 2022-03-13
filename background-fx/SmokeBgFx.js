@@ -166,6 +166,7 @@ class SmokeBgFxMesh extends THREE.Mesh {
   }
   update(timestamp, timeDiff, width, height) {
     const timestampS = timestamp / 1000;
+    
     this.material.uniforms.iTime.value = timestampS;
     this.material.uniforms.iTime.needsUpdate = true;
 
