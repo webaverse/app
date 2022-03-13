@@ -43,11 +43,13 @@ export const Tokens = ({userOpen, loginFrom, address, chain, setChain}) => {
     if (nfts) {
       nfts.map(async nft => {
         try {
-          if (!nft.metadata || !nft.metadata.image) {
-            throw new Error('No image use the default one');
+          nftPreviews[nft.metadata.image] = 'images/object.jpg';
+          if (nft.metadata) {
+            if (nft.metadata.image) {
+              const blob = await (await fetch(nft.metadata.image.replace('ipfs://', 'https://ipfs.webaverse.com/'))).blob();
+              nftPreviews[nft.metadata.image] = URL.createObjectURL(blob);
+            }
           }
-          const blob = await (await fetch(nft.metadata.image.replace('ipfs://', 'https://ipfs.webaverse.com/'))).blob();
-          nftPreviews[nft.metadata.image] = URL.createObjectURL(blob);
         } catch (error) {
           nftPreviews[nft.metadata.image] = 'images/object.jpg';
         }
