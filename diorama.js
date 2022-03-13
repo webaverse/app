@@ -13,13 +13,7 @@ import {SmokeBgFxMesh} from './background-fx/SmokeBgFx.js';
 import {GlyphBgFxMesh} from './background-fx/GlyphBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
-import {
-  fullscreenVertexShader,
-  // animeLightningFragmentShader,
-  // animeRadialShader,
-  grassFragmentShader,
-  // glyphFragmentShader,
-} from './diorama-shaders.js';
+import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -345,55 +339,7 @@ const labelMesh = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
-const grassMesh = (() => {
-  const textureLoader = new THREE.TextureLoader();
-  const quad = new THREE.Mesh(
-    planeGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        iTime: {
-          value: 0,
-          needsUpdate: false,
-        },
-        iChannel0: {
-          value: textureLoader.load('/textures/pebbles.png'),
-          // needsUpdate: true,
-        },
-        iChannel1: {
-          value: textureLoader.load('/textures/noise.png'),
-          // needsUpdate: true,
-        },
-        /* iFrame: {
-          value: 0,
-          needsUpdate: false,
-        }, */
-        /* outline_thickness: {
-          value: 0.02,
-          needsUpdate: true,
-        }, */
-        uColor1: {
-          value: new THREE.Color(0x000000),
-          needsUpdate: true,
-        },
-        uColor2: {
-          value: new THREE.Color(0xFFFFFF),
-          needsUpdate: true,
-        },
-        /* outline_threshold: {
-          value: .5,
-          needsUpdate: true,
-        }, */
-      },
-      vertexShader: fullscreenVertexShader,
-      fragmentShader: grassFragmentShader,
-      depthWrite: false,
-      depthTest: false,
-      alphaToCoverage: true,
-    })
-  );
-  quad.frustumCulled = false;
-  return quad;
-})();
+const grassMesh = new GrassBgFxMesh();
 const poisonMesh = new PoisonBgFxMesh();
 const noiseMesh = new NoiseBgFxMesh();
 const smokeMesh = new SmokeBgFxMesh();
@@ -737,15 +683,9 @@ const createPlayerDiorama = ({
         _addObjectsToScene(sideScene);
         // sideScene.add(world.lights);
     
-        const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
         const _renderGrass = () => {
           if (grassBackground) {
-            grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
-            grassMesh.material.uniforms.iTime.needsUpdate = true;
-            grassMesh.material.uniforms.uColor1.value.set(colors[0]);
-            grassMesh.material.uniforms.uColor1.needsUpdate = true;
-            grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-            grassMesh.material.uniforms.uColor2.needsUpdate = true;
+            grassMesh.update(timeOffset, timeDiff, this.width, this.height);
             grassMesh.visible = true;
           } else {
             grassMesh.visible = false;
