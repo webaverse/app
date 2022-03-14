@@ -34,6 +34,7 @@ import {PathFinder} from './npc-utils.js';
 import {localPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
+import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -652,6 +653,9 @@ metaversefile.setApi({
     } else {
       throw new Error('usePhysics cannot be called outside of render()');
     }
+  },
+  useProcGen() {
+    return procgen;
   },
   useCameraManager() {
     return cameraManager;
