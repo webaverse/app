@@ -719,15 +719,15 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get()
     };
   }
-  updateInterpolation(timestamp, timeDiff) {
-    this.positionInterpolant.update(timestamp, timeDiff);
-    this.quaternionInterpolant.update(timestamp, timeDiff);
+  updateInterpolation(timeDiff) {
+    this.positionInterpolant.update(timeDiff);
+    this.quaternionInterpolant.update(timeDiff);
 
     for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
-      actionBinaryInterpolant.update(timestamp, timeDiff);
+      actionBinaryInterpolant.update(timeDiff);
     }
     for (const actionInterpolant of this.actionInterpolantsArray) {
-      actionInterpolant.update(timestamp, timeDiff);
+      actionInterpolant.update(timeDiff);
     }
   }
 }
@@ -995,7 +995,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterSfx?.update(timestamp, timeDiffS);
       this.characterFx?.update(timestamp, timeDiffS);
 
-      this.updateInterpolation(timestamp, timeDiff);
+      this.updateInterpolation(timeDiff);
 
       const session = this.getSession();
       const mirrors = metaversefile.getMirrors();
@@ -1066,7 +1066,7 @@ class RemotePlayer extends InterpolatedPlayer {
       this.characterSfx?.update(timestamp, timeDiffS);
       this.characterFx?.update(timestamp, timeDiffS);
 
-      this.updateInterpolation(timestamp, timeDiff);
+      this.updateInterpolation(timeDiff);
       const mirrors = metaversefile.getMirrors();
       applyPlayerToAvatar(this, null, this.avatar, mirrors);
 
@@ -1104,11 +1104,11 @@ class RemotePlayer extends InterpolatedPlayer {
 
         const remoteTimeDiff = transform[10];
         
-        this.positionInterpolant?.snapshot(0, remoteTimeDiff);
-        this.quaternionInterpolant?.snapshot(0, remoteTimeDiff);
+        this.positionInterpolant?.snapshot(remoteTimeDiff);
+        this.quaternionInterpolant?.snapshot(remoteTimeDiff);
 
         for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
-          actionBinaryInterpolant.snapshot(0, remoteTimeDiff);
+          actionBinaryInterpolant.snapshot(remoteTimeDiff);
         }
       }
     };

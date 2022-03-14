@@ -25,10 +25,7 @@ export class BiActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue, maxValue) {
     super(fn, minValue, maxValue);
   }
-  update(timestamp, timeDiff) {
-    if (typeof timestamp !== 'number' || typeof timeDiff !== 'number') {
-      debugger;
-    }
+  update(timeDiff) {
     this.value += (this.fn() ? 1 : -1) * timeDiff;
     this.value = Math.min(Math.max(this.value, this.minValue), this.maxValue);
   }
@@ -39,10 +36,7 @@ export class UniActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue, maxValue) {
     super(fn, minValue, maxValue);
   }
-  update(timestamp, timeDiff) {
-    if (typeof timestamp !== 'number' || typeof timeDiff !== 'number') {
-      debugger;
-    }
+  update(timeDiff) {
     if (this.fn()) {
       this.value += timeDiff;
       this.value = Math.min(Math.max(this.value, this.minValue), this.maxValue);
@@ -57,10 +51,7 @@ export class InfiniteActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue) {
     super(fn, minValue, Infinity);
   }
-  update(timestamp, timeDiff) {
-    if (typeof timestamp !== 'number' || typeof timeDiff !== 'number') {
-      debugger;
-    }
+  update(timeDiff) {
     if (this.fn()) {
       this.value += timeDiff;
     } else {
@@ -98,7 +89,7 @@ export class SnapshotInterpolant {
 
     this.value = constructor();
   }
-  update(timestamp, timeDiff) {
+  update(timeDiff) {
     this.readTime += timeDiff;
     
     let minEndTime = Infinity;
@@ -147,19 +138,14 @@ export class SnapshotInterpolant {
     }
     console.warn('could not seek to time', t, JSON.parse(JSON.stringify(this.snapshots)));
   }
-  snapshot(timestamp, timeDiff) {
-    /* if (typeof timestamp !== 'number' || typeof timeDiff !== 'number') {
-      debugger;
-    } */
+  snapshot(timeDiff) {
     const value = this.fn();
-    // console.log('got value', value.join(','), timeDiff);
     const writeSnapshot = this.snapshots[this.snapshotWriteIndex];
     
     const lastWriteSnapshot = this.snapshots[mod(this.snapshotWriteIndex - 1, this.numFrames)];
     const startTime = lastWriteSnapshot.endTime;
     
     writeSnapshot.startValue = this.readFn(writeSnapshot.startValue, value);
-    // writeSnapshot.startTime = timestamp - timeDiff;
     writeSnapshot.endTime = startTime + timeDiff;
     
     this.snapshotWriteIndex = mod(this.snapshotWriteIndex + 1, this.numFrames);
