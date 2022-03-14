@@ -76,8 +76,8 @@ export class MapBlock extends THREE.Vector3 {
     }
     return map;
   })(); */
-  getWorldPosition(target) {
-    target.set(this.x * numBlocksPerChunk, voxelWorldSize, 0, this.y * numBlocksPerChunk * voxelWorldSize);
+  getLocalPosition(target) {
+    return target.set(this.x * voxelWorldSize, 0, this.y * voxelWorldSize);
   }
   getType() {
     if (this.exitTarget) {
@@ -108,6 +108,9 @@ export class MapChunk {
     this.y = y;
     this.width = width;
     this.height = height;
+  }
+  getWorldPosition(target) {
+    return target.set(this.x * numBlocksPerChunk * voxelWorldSize, 0, this.y * numBlocksPerChunk * voxelWorldSize);
   }
   getExitBlocks() {
     return this.blocks.filter(block => block.exitTarget);
