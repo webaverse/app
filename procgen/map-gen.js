@@ -102,8 +102,10 @@ export class MapBlock extends THREE.Vector3 {
   }
 }
 export class MapChunk {
-  constructor(blocks, width, height) {
+  constructor(blocks, x, y, width, height) {
     this.blocks = blocks;
+    this.x = x;
+    this.y = y;
     this.width = width;
     this.height = height;
   }
@@ -298,6 +300,6 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
     _connectBlocks(deepestEntry.block, unseenPathCandidates[0]);
   }
 
-  const chunk = new MapChunk(blocks, width, height);
+  const chunk = new MapChunk(blocks, x, y, width, height);
   return chunk;
 };
