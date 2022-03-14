@@ -152,10 +152,11 @@ export default () => {
 
     return {
       position: position.clone(),
+      normal: normal.clone(),
       size: size.clone(),
     }
   });
-  console.log('got barrier specs', barrierSpecs);
+  console.log('got barrier specs', exits, barrierSpecs);
 
   const physicsIds = [];
 
@@ -163,6 +164,7 @@ export default () => {
     // const [w, h, d] = app.getComponent('size') ?? [4, 4, 4];
     const {
       position,
+      normal,
       size,
     } = barrierSpec;
     const w = size.x;
@@ -172,9 +174,9 @@ export default () => {
     const barrierGeometry = new THREE.BoxGeometry(size.x, size.y, size.z)
       .applyMatrix4(
         new THREE.Matrix4().makeTranslation(
-          -width/2 + position.x,
+          -width/2 + position.x + (normal.x === -1 ? w : 0),
           position.y,
-          -depth/2 + position.z,
+          -depth/2 + position.z + (normal.z === -1 ? w : 0),
         )
       );
     for (let i = 0; i < barrierGeometry.attributes.position.count; i++) {
@@ -417,10 +419,7 @@ export default () => {
       side: THREE.DoubleSide,
       transparent: true,
     });
-    const m = new THREE.MeshBasicMaterial({
-      color: 0xff0000
-    });
-    const barrierMesh = new THREE.Mesh(barrierGeometry, m);
+    const barrierMesh = new THREE.Mesh(barrierGeometry, barrierMaterial);
     barrierMesh.frustumCulled = false;
     app.add(barrierMesh);
     app.updateMatrixWorld();
