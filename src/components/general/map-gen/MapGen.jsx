@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import React, { useState, useEffect, useRef } from 'react';
 import classnames from 'classnames';
+import metaversefile from 'metaversefile';
+const {useLocalPlayer} = metaversefile;
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
@@ -12,6 +14,7 @@ import cameraManager from '../../../../camera-manager.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
 import easing from '../../../../easing.js';
+import {chatManager} from '../../../../chat-manager.js';
 import {
   makeRng,
   numBlocksPerChunk,
@@ -419,6 +422,15 @@ export const MapGen = ({
       setSelectedObject(newSelectedObject);
       setSelectedChunk(selectedChunk);
       setLastSelectTime(now);
+
+      (async () => {
+        const localPlayer = useLocalPlayer();
+        const message = `${selectedChunk.name}. This looks neat.`;
+        const preloadedMessage = localPlayer.voicer.preloadMessage(message);
+        await chatManager.waitForVoiceTurn(() => {
+          return localPlayer.voicer.start(preloadedMessage);
+        });
+      })();
     };
 
     // open
