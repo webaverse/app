@@ -157,7 +157,7 @@ const textFragmentShader = `\
   }
 `;
 const _makeChunkMesh = (x, y) => {
-  const mapChunk = createMapChunk(x, y);
+  const mapChunk = createMapChunk(undefined, x, y);
   const {blocks} = mapChunk;
   const data = new Uint8Array(blocks.length);
   for (let i = 0; i < blocks.length; i++) {
