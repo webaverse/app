@@ -18,6 +18,8 @@ const oneVector = new THREE.Vector3(1, 1, 1);
 export default () => {
   const app = useApp();
   const physics = usePhysics();
+  const procGen = useProcGen();
+  const {voxelWorldSize} = procGen;
 
   const bounds = app.getComponent('bounds');
   const [min, max] = bounds;
@@ -28,19 +30,19 @@ export default () => {
   const depth = maxZ - minZ;
   // console.log('got bounds', bounds);
   const exits = app.getComponent('exits');
-  // console.log('got bounds exits', bounds, exits, width, height);
+  console.log('got bounds exits', bounds, exits, width, height);
 
   app.name = 'filter';
 
   // const w = 16, h = 8, d = 8;
   const dims = new THREE.Vector3(width, height, depth);
-  const exitSpecs = [
+  /* const exitSpecs = [
     {
       normal: new THREE.Vector3(0, 0, -1),
       position: new THREE.Vector2(0, 0),
       size: new THREE.Vector2(4, 4),
     },
-  ];
+  ]; */
 
   const wallNormals = [
     new THREE.Vector3(0, 0, -1),
@@ -65,7 +67,49 @@ export default () => {
   const physicsIds = [];
   {
     const geometries = wallNormals.map(wallNormal => {
-      const localExitSpecs = exitSpecs.filter(exitSpec => exitSpec.normal.equals(wallNormal));
+      const localExitSpecs = exits.map(exit => {
+        localVector.fromArray(exit);
+        let normal;
+        if (localVector.x === 0) { // XXX blocks should come with an incoming direction so this is well-defined
+          normal = localVector2.set(1, 0, 0);
+        } else if (localVector.x === (width - voxelWorldSize)) {
+          normal = localVector2.set(-1, 0, 0);
+        } else if (localVector.z === 0) {
+          normal = localVector2.set(0, 0, 1);
+        } else if (localVector.z === (depth - voxelWorldSize)) {
+          normal = localVector2.set(0, 0, -1);
+        } else if (localVector.y === 0) {
+          normal = localVector2.set(0, 1, 0);
+        } else if (localVector.y === (height - voxelWorldSize)) {
+          normal = localVector2.set(0, -1, 0);
+        } else {
+          console.warn('invalid exit position', exit, width, height, depth);
+          throw new Error('invalid exit position');
+        }
+
+        if (normal.equals(wallNormal)) {
+          const size = new THREE.Vector2(voxelWorldSize, voxelWorldSize);
+
+          let position;
+          if (wallNormal.x !== 0) {
+            position = new THREE.Vector2(-depth/2 + localVector.z, 0);
+          } else if (wallNormal.z !== 0) {
+            position = new THREE.Vector2(-width/2 + localVector.x, 0);
+          } else if (wallNormal.y !== 0) {
+            position = new THREE.Vector2(-width/2 + localVector.x + size.x/2, -depth/2 + localVector.z);
+          } else {
+            console.warn('invalid wall normal', wallNormal.toArray());
+            throw new Error('invalid wall normal');
+          }
+
+          return {
+            position,
+            size,
+          };
+        } else {
+          return null;
+        }
+      }).filter(exit => exit !== null);
       if (localExitSpecs.length > 0) {
         // const outerWidth = 16;
         // const outerHeight = 8;
