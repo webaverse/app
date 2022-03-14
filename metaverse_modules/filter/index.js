@@ -111,20 +111,11 @@ export default () => {
         }
       }).filter(exit => exit !== null);
       if (localExitSpecs.length > 0) {
-        // const outerWidth = 16;
-        // const outerHeight = 8;
-        // const boxPosition = new THREE.Vector2(outerWidth / 2, outerHeight / 2);
-        // const boxSize = new THREE.Vector2(4, 4);
-        /* const innerBox = new THREE.Box2(
-          boxPosition.clone().sub(localVector2D.copy(boxSize).divideScalar(2)),
-          boxPosition.clone().add(localVector2D.copy(boxSize).divideScalar(2))
-        ); */
-
         const scale = _getScaleFromNormal(wallNormal, localVector);
         const outerWidth = scale.x;
         const outerHeight = scale.y;
-        // console.log('got scale', scale.x, scale.y, localExitSpecs);
 
+        // XXX this needs to be quantized to voxelWorldSize because path drawing is inaccurate
         const wallShape = new THREE.Shape();
 
         wallShape.moveTo(-outerWidth / 2, -outerHeight / 2);
@@ -143,13 +134,6 @@ export default () => {
           wallShape.lineTo(position.x - size.x/2, position.y - size.y/2);
           wallShape.lineTo(-outerWidth / 2, -outerHeight / 2);
         }
-
-        /* wallShape.lineTo(-outerWidth / 2 + innerBox.min.x, -outerHeight / 2 + innerBox.min.y);
-        wallShape.lineTo(-outerWidth / 2 + innerBox.max.x, -outerHeight / 2 + innerBox.min.y);
-        wallShape.lineTo(-outerWidth / 2 + innerBox.max.x, -outerHeight / 2 + innerBox.max.y);
-        wallShape.lineTo(-outerWidth / 2 + innerBox.min.x, -outerHeight / 2 +innerBox.max.y);
-        wallShape.lineTo(-outerWidth / 2 + innerBox.min.x, -outerHeight / 2 +innerBox.min.y);
-        wallShape.lineTo(-outerWidth / 2, -outerHeight / 2); */
 
         const offset = localVector.multiplyVectors(dims, wallNormal)
           .divideScalar(2);
