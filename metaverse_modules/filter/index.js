@@ -84,9 +84,9 @@ export default () => {
 
           let position;
           if (wallNormal.x !== 0) {
-            position = new THREE.Vector2((-depth/2 + localVector.z) * wallNormal.x, 0);
+            position = new THREE.Vector2((-depth/2 + localVector.z) * -wallNormal.x, 0);
           } else if (wallNormal.z !== 0) {
-            position = new THREE.Vector2((-width/2 + localVector.x) * wallNormal.z, 0);
+            position = new THREE.Vector2((-width/2 + localVector.x) * -wallNormal.z, 0);
           } else if (wallNormal.y !== 0) {
             position = new THREE.Vector2(-width/2 + localVector.x + size.x/2, -depth/2 + localVector.z);
           } else {
@@ -119,11 +119,11 @@ export default () => {
         for (const localExitSpec of localExitSpecs) {
           const {position, size} = localExitSpec;
 
-          wallShape.lineTo(position.x - size.x/2, position.y - size.y/2);
-          wallShape.lineTo(position.x + size.x/2, position.y - size.y/2);
-          wallShape.lineTo(position.x + size.x/2, position.y + size.y/2);
-          wallShape.lineTo(position.x - size.x/2, position.y + size.y/2);
-          wallShape.lineTo(position.x - size.x/2, position.y - size.y/2);
+          wallShape.lineTo(position.x - size.x/2 + size.x, position.y - size.y/2);
+          wallShape.lineTo(position.x + size.x/2 + size.x, position.y - size.y/2);
+          wallShape.lineTo(position.x + size.x/2 + size.x, position.y + size.y/2);
+          wallShape.lineTo(position.x - size.x/2 + size.x, position.y + size.y/2);
+          wallShape.lineTo(position.x - size.x/2 + size.x, position.y - size.y/2);
           wallShape.lineTo(-outerWidth / 2, -outerHeight / 2);
         }
 
