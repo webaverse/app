@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useLocalPlayer, useInternals, useGeometries, useMaterials, useFrame, useActivate, useLoaders, usePhysics, useCleanup} = metaversefile;
+const {useApp, useLocalPlayer, useProcGen, useFrame, useActivate, useLoaders, usePhysics, useCleanup} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -15,8 +15,16 @@ const localMatrix = new THREE.Matrix4();
 export default e => {
   const app = useApp();
   const physics = usePhysics();
+  const procGen = useProcGen();
   // const {CapsuleGeometry} = useGeometries();
   // const {WebaverseShaderMaterial} = useMaterials();
+  const {voxelWorldSize} = procGen;
+
+  const chunk = procGen.createMapChunk(undefined, 0, 0);
+  const {blocks, width, height} = chunk;
+  const worldWidth = width * voxelWorldSize;
+  const worldHeight = width * voxelWorldSize;
+  const exitBlocks = chunk.getExitBlocks();
 
   const physicsIds = [];
 
@@ -27,6 +35,13 @@ export default e => {
       (async () => {
         const filter = await metaversefile.createApp({
           start_url: './metaverse_modules/filter/',
+          components: {
+            bounds: [
+              [-worldWidth/2, 0, -worldHeight/2],
+              [worldWidth/2, 16, worldHeight/2],
+            ],
+            exits: exitBlocks.map(b => b.getLocalPosition(localVector).toArray()),
+          },
         });
         app.add(filter);
         subApps.push(filter);
