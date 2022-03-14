@@ -1834,8 +1834,7 @@ class Avatar {
     localEuler.y += Math.PI;
     this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
 
-    this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
-      .sub(localVector.set(0, this.height, 0));
+    // this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
     // }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
       this.modelBoneOutputs.Hips.updateMatrixWorld();
