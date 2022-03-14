@@ -73,6 +73,7 @@ export const App = () => {
 
     const canvasRef = useRef( null );
     const [ app, setApp ] = useState( () => new Webaverse() );
+    const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
 
@@ -150,12 +151,12 @@ export const App = () => {
     return (
         <div className={ styles.App } id="app" >
             <AppContext.Provider value={{ state, setState, app }}>
-                <Header />
+                <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
-                <WorldObjectsList />
+                <WorldObjectsList setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <PlayMode />
                 <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
                 <IoHandler />
