@@ -1,3 +1,3 @@
 
-import { App, AppContext } from './App';
-export { App, AppContext };
+import { App } from './App';
+export { App };

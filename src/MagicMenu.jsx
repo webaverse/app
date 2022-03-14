@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react'
-import {registerIoEventHandler, unregisterIoEventHandler} from './components/io-handler'
+import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx'
 import classes from './MagicMenu.module.css'
 import ioManager from '../io-manager.js';
 import * as codeAi from '../ai/code/code-ai.js';

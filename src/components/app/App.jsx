@@ -1,29 +1,26 @@
 
-import React, { useState, useEffect, useRef, createContext } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-// import MagicMenu from '../../MagicMenu.jsx';
 import { defaultAvatarUrl } from '../../../constants';
-// import dropManager from '../../../drop-manager.js';
 
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
 import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
-import game from '../../../game.js'
 
-import { IoHandler, registerIoEventHandler, unregisterIoEventHandler } from '../io-handler';
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
 import { Settings } from '../general/settings';
 import { WorldObjectsList } from '../general/world-objects-list';
+import { IoHandler } from '../../IoHandler.jsx';
 import { ZoneTitleCard } from '../general/zone-title-card';
+import { MapGen } from '../general/map-gen/MapGen.jsx';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 
 import styles from './App.module.css';
-import cameraManager from '../../../camera-manager';
 
 //
 
@@ -67,16 +64,16 @@ const _getCurrentRoom = () => {
 
 };
 
-export const AppContext = createContext();
-
 export const App = () => {
-
-    const [ openedPanel, setOpenedPanel ] = useState( null );
 
     const canvasRef = useRef( null );
     const [ app, setApp ] = useState( () => new Webaverse() );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
+
+    const [ settingsOpened, setSettingsOpened ] = useState( false );
+    const [ worldObjectsListOpened, setWorldObjectsListOpened ] = useState( false );
+    const [ mapGenOpened, setMapGenOpened ] = useState( false );
 
     //
 
@@ -89,61 +86,6 @@ export const App = () => {
         setSelectedRoom( roomName );
 
     };
-
-    useEffect( () => {
-
-        const handleClick = ( event ) => {
-
-            const hoverObject = game.getMouseHoverObject();
-
-            if ( hoverObject ) {
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                const physicsId = game.getMouseHoverPhysicsId();
-                const position = game.getMouseHoverPosition();
-                selectApp( hoverObject, physicsId, position );
-
-            }
-
-            setOpenedPanel( null );
-
-        };
-
-        registerIoEventHandler( 'click', handleClick );
-
-        return () => {
-
-            unregisterIoEventHandler( 'click', handleClick );
-
-        };
-
-    }, []);
-
-    useEffect( () => {
-
-        const pointerlockchange = ( event ) => {
-
-            const { pointerLockElement } = event.data;
-
-            if ( pointerLockElement && openedPanel !== null ) {
-
-                setOpenedPanel( null );
-
-            }
-
-        };
-
-        cameraManager.addEventListener( 'pointerlockchange', pointerlockchange );
-
-        return () => {
-
-            cameraManager.removeEventListener( 'pointerlockchange', pointerlockchange );
-
-        };
-
-    }, [ openedPanel ] );
 
     useEffect( () => {
 
@@ -160,19 +102,17 @@ export const App = () => {
 
         };
 
-        _loadUrlState();
-
-        window.addEventListener( 'pushstate', pushstate );
-        window.addEventListener( 'popstate', popstate );
+        window.addEventListener('pushstate', pushstate);
+        window.addEventListener('popstate', popstate);
 
         return () => {
-
-            window.removeEventListener( 'pushstate', pushstate );
-            window.removeEventListener( 'popstate', popstate );
-
+            window.removeEventListener('pushstate', pushstate);
+            window.removeEventListener('popstate', popstate);
         };
 
     }, [] );
+
+    useEffect( _loadUrlState, [] );
 
     useEffect( () => {
 
@@ -188,18 +128,17 @@ export const App = () => {
 
     return (
         <div className={ styles.App } id="app" >
-            <AppContext.Provider value={{ openedPanel, setOpenedPanel }} >
-                <Header app={ app } />
-                <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
-                <Crosshair />
-                <ActionMenu app={ app } />
-                <Settings />
-                <WorldObjectsList />
-                <PlayMode />
-                <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
-                <IoHandler />
-                <ZoneTitleCard app={ app } />
-            </AppContext.Provider>
+            <Header app={ app } />
+            <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
+            <Crosshair />
+            <ActionMenu app={ app } setSettingsOpened={ setSettingsOpened } setWorldObjectsListOpened={ setWorldObjectsListOpened } />
+            <Settings opened={ settingsOpened } setOpened={ setSettingsOpened } />
+            <WorldObjectsList opened={ worldObjectsListOpened } setOpened={ setWorldObjectsListOpened } />
+            <PlayMode />
+            <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
+            <IoHandler />
+            <ZoneTitleCard app={ app } />
+            <MapGen app={ app } opened={ mapGenOpened } />
         </div>
     );
 

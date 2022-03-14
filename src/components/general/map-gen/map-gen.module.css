@@ -1,0 +1,80 @@
+.mapGen {
+  position: fixed;
+  display: flex;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  justify-content: center;
+  align-items: center;
+  /* pointer-events: none; */
+  z-index: 2;
+}
+/* .mapGen .canvas {
+  pointer-events: all;
+} */
+.mapGen .sidebar {
+  display: flex;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 400px;
+  height: 100vh;
+  background-color: #000;
+  font-family: 'PlazaRegular';
+  font-size: 16px;
+  color: #FFF;
+  flex-direction: column;
+  transform: translate(0, 0);
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+.mapGen .sidebar:not(.open) {
+  transform: translate(100%, 0);
+}
+.mapGen .sidebar h1 {
+  margin: 0;
+  padding: 15px;
+}
+.mapGen .sidebar hr {
+  margin: 0 50px;
+  margin-bottom: auto;
+  padding: 0;
+  border: 0;
+  border-top: 2px solid #FFFFFF40;
+}
+.mapGen .sidebar .buttons {
+  display: flex;
+  margin: 15px 0;
+  flex-direction: column;
+  align-items: center;;
+}
+
+@keyframes pop {
+  0% {
+    filter: brightness(2);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+.mapGen .sidebar .buttons .button {
+  padding: 10px 30px;
+  /* background-image: linear-gradient(to bottom, #42a5f5, #1e88e5); */
+  background-image: linear-gradient(to bottom, #7e57c2, #4527a0);
+  border: 0;
+  color: #FFF;
+  font-family: inherit;
+  font-size: 26px;
+  text-shadow: 2px 2px 0px #333;
+  cursor: pointer;
+  user-select: none;
+}
+.mapGen .sidebar .buttons .button:not(:hover) {
+  animation: pop 1s linear infinite;
+}
+.mapGen .sidebar .buttons .button:hover {
+  filter: brightness(1);
+}
+.mapGen .sidebar .buttons .button:active {
+  filter: brightness(0.8);
+}
