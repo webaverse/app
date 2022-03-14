@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import React, { useState, useEffect, useRef } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
-const {useLocalPlayer} = metaversefile;
+const {useLocalPlayer, useLoreAIScene} = metaversefile;
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
@@ -423,14 +423,17 @@ export const MapGen = ({
       setSelectedChunk(selectedChunk);
       setLastSelectTime(now);
 
-      (async () => {
-        const localPlayer = useLocalPlayer();
-        const message = `${selectedChunk.name}. This looks neat.`;
-        const preloadedMessage = localPlayer.voicer.preloadMessage(message);
-        await chatManager.waitForVoiceTurn(() => {
-          return localPlayer.voicer.start(preloadedMessage);
-        });
-      })();
+      if (newSelectedObject) {
+        (async () => {
+          const localPlayer = useLocalPlayer();
+          const aiScene = useLoreAIScene();
+          const message = await aiScene.generateComment(selectedChunk.name);
+          const preloadedMessage = localPlayer.voicer.preloadMessage(message);
+          await chatManager.waitForVoiceTurn(() => {
+            return localPlayer.voicer.start(preloadedMessage);
+          });
+        })();
+      }
     };
 
     // open
