@@ -30,19 +30,11 @@ export default () => {
   const depth = maxZ - minZ;
   // console.log('got bounds', bounds);
   const exits = app.getComponent('exits');
-  console.log('got bounds exits', bounds, exits, width, height);
+  // console.log('got bounds exits', bounds, exits, width, height);
 
   app.name = 'filter';
 
-  // const w = 16, h = 8, d = 8;
   const dims = new THREE.Vector3(width, height, depth);
-  /* const exitSpecs = [
-    {
-      normal: new THREE.Vector3(0, 0, -1),
-      position: new THREE.Vector2(0, 0),
-      size: new THREE.Vector2(4, 4),
-    },
-  ]; */
 
   const wallNormals = [
     new THREE.Vector3(0, 0, -1),
@@ -92,9 +84,9 @@ export default () => {
 
           let position;
           if (wallNormal.x !== 0) {
-            position = new THREE.Vector2(-depth/2 + localVector.z, 0);
+            position = new THREE.Vector2((-depth/2 + localVector.z) * wallNormal.x, 0);
           } else if (wallNormal.z !== 0) {
-            position = new THREE.Vector2(-width/2 + localVector.x, 0);
+            position = new THREE.Vector2((-width/2 + localVector.x) * wallNormal.z, 0);
           } else if (wallNormal.y !== 0) {
             position = new THREE.Vector2(-width/2 + localVector.x + size.x/2, -depth/2 + localVector.z);
           } else {

@@ -31,16 +31,19 @@ export default e => {
   let subApps = [];
 
   e.waitUntil((async () => {
+    const bounds = [
+      [-worldWidth/2, 0, -worldHeight/2],
+      [worldWidth/2, 16, worldHeight/2],
+    ];
+    const exits = exitBlocks.map(b => b.getLocalPosition(localVector).toArray());
+
     await Promise.all([
       (async () => {
         const filter = await metaversefile.createApp({
           start_url: './metaverse_modules/filter/',
           components: {
-            bounds: [
-              [-worldWidth/2, 0, -worldHeight/2],
-              [worldWidth/2, 16, worldHeight/2],
-            ],
-            exits: exitBlocks.map(b => b.getLocalPosition(localVector).toArray()),
+            bounds,
+            exits,
           },
         });
         app.add(filter);
@@ -49,6 +52,10 @@ export default e => {
       (async () => {
         const barrier = await metaversefile.createApp({
           start_url: './metaverse_modules/barrier/',
+          components: {
+            bounds,
+            exits,
+          },
         });
         app.add(barrier);
         subApps.push(barrier);
