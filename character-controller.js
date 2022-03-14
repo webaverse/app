@@ -451,10 +451,10 @@ class StatePlayer extends PlayerBase {
   }
   // serializers
   getPosition() {
-    return this.position.toArray() ?? (new Vector3()).toArray();
+    return this.position.toArray() ?? [0, 0, 0];
   }
   getQuaternion() {
-        return this.quaternion.toArray() ?? (new Quaternion()).toArray();
+        return this.quaternion.toArray() ?? [0, 0, 0, 1];
   }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
