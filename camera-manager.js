@@ -350,8 +350,11 @@ class CameraManager extends EventTarget {
           break;
         }
         case 'isometric': {
-          camera.position.copy(localPlayer.position)
-            .sub(
+          let pos = localPlayer.position.clone();
+          pos.x = 0;
+          pos.y = 1;
+          pos.z = 0;
+          camera.position.copy(pos)            .sub(
               localVector.copy(avatarCameraOffset)
                 .applyQuaternion(camera.quaternion)
             );
