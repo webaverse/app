@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
 import { world } from '../../../../world'
@@ -7,16 +7,16 @@ import universe from '../../../../universe'
 import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
 
+import { AppContext } from '../../app';
+
 import styles from './scene-menu.module.css';
 
 //
 
 export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
-    const componentName = 'SceneMenu';
+    const { state, setState } = useContext( AppContext );
     const [ rooms, setRooms ] = useState([]);
-    const [ scenesMenuOpened, setScenesMenuOpened ] = useState( false );
-    const [ roomsMenuOpened, setRoomsMenuOpened ] = useState( false );
     const [ micEnabled, setMicEnabled ] = useState( false );
     const [ speechEnabled, setSpeechEnabled ] = useState( false );
 
@@ -48,32 +48,16 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     };
 
-    const closeOtherWindows = () => {
-
-        window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: componentName } } ) );
-
-    };
-
-    const handleOnFocusLost = ( event ) => {
-
-        if ( event.detail && event.detail.dispatcher === componentName ) return;
-        setScenesMenuOpened( false );
-        setRoomsMenuOpened( false );
-
-    };
-
     const handleSceneMenuOpen = ( value ) => {
 
-        value = ( typeof value === 'boolean' ? value : ( ! scenesMenuOpened ) );
-        setScenesMenuOpened( value );
-        setRoomsMenuOpened( false );
+        value = ( typeof value === 'boolean' ? value : ( state.openedPanel === 'SceneMenuPanel' ) );
+        setState({ openedPanel: value ? null : 'SceneMenuPanel' });
 
     };
 
     const handleSceneSelect = ( event, sceneName ) => {
 
-        setScenesMenuOpened( false );
-        setRoomsMenuOpened( false );
+        setState({ openedPanel: null });
 
         sceneName = sceneName ?? event.target.value;
         setSelectedScene( sceneName );
@@ -83,12 +67,11 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleRoomMenuOpen = ( value ) => {
 
-        value = ( typeof value === 'boolean' ? value : ( ! roomsMenuOpened ) );
-        setScenesMenuOpened( false );
+        value = ( typeof value === 'boolean' ? value : ( state.openedPanel === 'RoomMenuPanel' ) );
 
         if ( ! multiplayerConnected ) {
 
-            setRoomsMenuOpened( value );
+            setState({ openedPanel: value ? null : 'RoomMenuPanel' });
 
         } else {
 
@@ -128,8 +111,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleRoomSelect = ( room ) => {
 
-        setScenesMenuOpened( false );
-        setRoomsMenuOpened( false );
+        setState({ openedPanel: null });
 
         if ( ! world.isConnected() ) {
 
@@ -171,8 +153,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
             case 27: { // escape
 
-                setScenesMenuOpened( false );
-                setRoomsMenuOpened( false );
+                setState({ openedPanel: null });
                 break;
 
             }
@@ -219,47 +200,29 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     useEffect( () => {
 
         refreshRooms();
-        window.addEventListener( 'CloseAllMenus', handleOnFocusLost );
-        window.addEventListener( 'click', handleOnFocusLost );
 
-        return () => {
+        function michange ( event ) {
 
-            window.removeEventListener( 'CloseAllMenus', handleOnFocusLost );
-            window.removeEventListener( 'click', handleOnFocusLost );
+            setMicEnabled( event.data.enabled );
 
         };
 
-    }, [] );
+        function speechchange ( event ) {
 
-    useEffect( () => {
+            setSpeechEnabled( event.data.enabled );
 
-        if ( scenesMenuOpened || roomsMenuOpened ) {
-
-            closeOtherWindows();
-
-        }
-
-    }, [ scenesMenuOpened, roomsMenuOpened ] );
-
-    useEffect( () => {
-
-        function michange(e) {
-            setMicEnabled(e.data.enabled);
-        }
-
-        function speechchange(e) {
-            setSpeechEnabled(e.data.enabled);
-        }
+        };
 
         voiceInput.addEventListener( 'micchange', michange );
         voiceInput.addEventListener( 'speechchange', speechchange );
-    
+
         return () => {
-          
+
             voiceInput.removeEventListener( 'micchange', michange );
             voiceInput.removeEventListener( 'speechchange', speechchange );
-            
+
         };
+
     }, [] );
 
     //
@@ -268,7 +231,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
         <div className={ styles.location } onClick={ stopPropagation } >
             <div className={ styles.row }>
                 <div className={ styles.buttonWrap } onClick={ handleSceneMenuOpen.bind( this, null ) } >
-                    <button className={ classnames( styles.button, styles.primary, scenesMenuOpened ? null : styles.disabled ) } >
+                    <button className={ classnames( styles.button, styles.primary, state.openedPanel === 'SceneMenuPanel' ? null : styles.disabled ) } >
                         <img src="images/webarrow.svg" />
                     </button>
                 </div>
@@ -277,7 +240,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.green ) } />
                 </div>
                 <div className={ styles.buttonWrap  } onClick={ handleRoomMenuOpen.bind( this, null ) } >
-                    <button className={ classnames( styles.button, ( roomsMenuOpened || multiplayerConnected ) ? null : styles.disabled ) } >
+                    <button className={ classnames( styles.button, ( state.openedPanel === 'RoomsMenuPanel' || multiplayerConnected ) ? null : styles.disabled ) } >
                         <img src="images/wifi.svg" />
                     </button>
                 </div>
@@ -295,7 +258,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
             </div>
 
             {
-                scenesMenuOpened ? (
+                state.openedPanel === 'SceneMenuPanel' ? (
                     <div className={ styles.rooms }>
                     {
                         sceneNames.map( ( sceneName, i ) => (
@@ -310,7 +273,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
             }
 
             {
-                roomsMenuOpened ? (
+                state.openedPanel === 'RoomMenuPanel' ? (
                     <div className={ styles.rooms } >
                         <div className={ styles.create } >
                             <button className={ styles.button } onClick={ handleRoomCreateBtnClick }>Create room</button>
