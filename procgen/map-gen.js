@@ -46,12 +46,6 @@ export class MapBlock extends THREE.Vector3 {
   constructor(x, y) {
     super(x, y, 0);
     
-    /* this.walls = {
-      left: false,
-      right: false,
-      up: false,
-      down: false,
-    }; */
     this.exitTarget = false;
     this.centerTarget = false;
     this.path = false;
