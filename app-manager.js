@@ -400,7 +400,7 @@ class AppManager extends EventTarget {
     trackedApp.set('components', JSON.stringify(components));
     return trackedApp;
   }
-  transform = new Float32Array(10);
+  transform = new Float32Array(11);
   addTrackedApp(
     contentId,
     position = new THREE.Vector3(),
@@ -414,16 +414,21 @@ class AppManager extends EventTarget {
 
       const transform = self.transform
 
-      const pack = (v, i) => {
+      const pack3 = (v, i) => {
         transform[i] = v.x;
         transform[i + 1] = v.y;
         transform[i + 2] = v.z;
-        if(v.w) transform[i + 3] = v.w;
+      };
+      const pack4 = (v, i) => {
+        transform[i] = v.x;
+        transform[i + 1] = v.y;
+        transform[i + 2] = v.z;
+        transform[i + 3] = v.w;
       };
   
-      pack(position, 0);
-      pack(quaternion, 3);
-      pack(scale, 7);
+      pack3(position, 0);
+      pack4(quaternion, 3);
+      pack3(scale, 7);
       
       self.addTrackedAppInternal(
         instanceId,
@@ -550,7 +555,7 @@ class AppManager extends EventTarget {
       }, 'push');
     }
   }
-  packed = new Float32Array(10);
+  packed = new Float32Array(11);
   updatePhysics() {
     for (const app of this.apps) {
       if (!app.matrix.equals(app.lastMatrix)) {

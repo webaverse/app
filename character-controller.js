@@ -719,15 +719,15 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get()
     };
   }
-  updateInterpolation(timeDiff) {
-    this.positionInterpolant.update(timeDiff);
-    this.quaternionInterpolant.update(timeDiff);
+  updateInterpolation(timestamp, timeDiff) {
+    this.positionInterpolant.update(timestamp, timeDiff);
+    this.quaternionInterpolant.update(timestamp, timeDiff);
 
     for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
-      actionBinaryInterpolant.update(timeDiff);
+      actionBinaryInterpolant.update(timestamp, timeDiff);
     }
     for (const actionInterpolant of this.actionInterpolantsArray) {
-      actionInterpolant.update(timeDiff);
+      actionInterpolant.update(timestamp, timeDiff);
     }
   }
 }
@@ -764,9 +764,9 @@ class UninterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternion,
     };
   }
-  updateInterpolation(timeDiff) {
+  updateInterpolation(timestamp, timeDiff) {
     for (const actionInterpolant of this.actionInterpolantsArray) {
-      actionInterpolant.update(timeDiff);
+      actionInterpolant.update(timestamp, timeDiff);
     }
   }
 }
@@ -829,20 +829,25 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.playersArray.push([self.playerMap]);
       self.playerMap.set('playerId', self.playerId);
 
-      const packed = new Float32Array(10);
-      const pack = (v, i) => {
+      /* const packed = new Float32Array(11);
+      const pack3 = (v, i) => {
         packed[i] = v.x;
         packed[i + 1] = v.y;
         packed[i + 2] = v.z;
-        if(v.w) packed[i + 3] = v.w;
       };
+      const pack4 = (v, i) => {
+        packed[i] = v.x;
+        packed[i + 1] = v.y;
+        packed[i + 2] = v.z;
+        packed[i + 3] = v.w;
+      }; */
       const avatar = self.getAvatarState();
-      console.log(self.position)
-      pack(self.position, 0);
-      pack(self.quaternion, 3);
-      pack(self.scale, 7);
+      /* // console.log(self.position)
+      pack3(self.position, 0);
+      pack4(self.quaternion, 3);
+      pack3(self.scale, 7);
       
-      self.playerMap.set('transform', packed);
+      self.playerMap.set('transform', packed); */
       
       const actions = self.getActionsState();
       for (const oldAction of oldActions) {
@@ -935,30 +940,43 @@ class LocalPlayer extends UninterpolatedPlayer {
     camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
     camera.updateMatrixWorld();
   } */
-  packed = new Float32Array(10);
+  packed = new Float32Array(11);
+  lastTimestamp = NaN;
 
   pushPlayerUpdates() {
+    const now = performance.now();
+    const first = isNaN(this.lastTimestamp);
+    const timeDiff = first ? 0 : (now - this.lastTimestamp);
+
     this.playersArray.doc.transact(() => {
       /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
         debugger;
       } */
 
-      const packed = this.packed
-      const pack = (v, i) => {
+      const packed = this.packed;
+      const pack3 = (v, i) => {
         packed[i] = v.x;
         packed[i + 1] = v.y;
         packed[i + 2] = v.z;
-        if(v.w) packed[i + 3] = v.w;
+      };
+      const pack4 = (v, i) => {
+        packed[i] = v.x;
+        packed[i + 1] = v.y;
+        packed[i + 2] = v.z;
+        packed[i + 3] = v.w;
       };
   
-      pack(this.position, 0);
-      pack(this.quaternion, 3);
-      pack(this.scale, 7);
+      pack3(this.position, 0);
+      pack4(this.quaternion, 3);
+      pack3(this.scale, 7);
+      packed[10] = timeDiff;
 
       this.playerMap.set('transform', packed);
     }, 'push');
 
     // this.appManager.updatePhysics();
+  
+    this.lastTimestamp = now;
   }
   getSession() {
     const renderer = getRenderer();
@@ -977,7 +995,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterSfx?.update(timestamp, timeDiffS);
       this.characterFx?.update(timestamp, timeDiffS);
 
-      this.updateInterpolation(timeDiff);
+      this.updateInterpolation(timestamp, timeDiff);
 
       const session = this.getSession();
       const mirrors = metaversefile.getMirrors();
@@ -1048,8 +1066,7 @@ class RemotePlayer extends InterpolatedPlayer {
       this.characterSfx?.update(timestamp, timeDiffS);
       this.characterFx?.update(timestamp, timeDiffS);
 
-      // this.updateInterpolation(timeDiff);
-      this.updateInterpolation(timeDiff);
+      this.updateInterpolation(timestamp, timeDiff);
       const mirrors = metaversefile.getMirrors();
       applyPlayerToAvatar(this, null, this.avatar, mirrors);
 
@@ -1076,23 +1093,23 @@ class RemotePlayer extends InterpolatedPlayer {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
     
-    let timestamp = 0
     const observePlayerFn = e => {
-      console.log("e is", e)
-      const now = performance.now()
-      const timeDiff = now - timestamp
-      timestamp = now
-      const transform = this.playerMap.get('transform')
-      this.position.fromArray(transform, 0);
-      this.quaternion.fromArray(transform, 3);
-      this.positionInterpolant?.snapshot(timeDiff);
-      this.quaternionInterpolant?.snapshot(timeDiff);
-      for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
-        actionBinaryInterpolant.snapshot(timeDiff);
-      }
+      // console.log("e is", e)
 
-      for (const actionInterpolant of this.actionInterpolantsArray) {
-        actionInterpolant.update(timeDiff);
+      const transform = this.playerMap.get('transform');
+      
+      if (transform) {
+        this.position.fromArray(transform, 0);
+        this.quaternion.fromArray(transform, 3);
+
+        const remoteTimeDiff = transform[10];
+        
+        this.positionInterpolant?.snapshot(0, remoteTimeDiff);
+        this.quaternionInterpolant?.snapshot(0, remoteTimeDiff);
+
+        for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
+          actionBinaryInterpolant.snapshot(0, remoteTimeDiff);
+        }
       }
     };
 
