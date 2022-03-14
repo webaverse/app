@@ -11,7 +11,7 @@ const {useApp, useFrame, useActivate, useLoaders, usePhysics, addTrackedApp, use
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 const localVector = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
+// const localQuaternion = new THREE.Quaternion();
 
 const _makeBlueSphere = () => {
   const geometry = new THREE.SphereGeometry(0.2, 32, 32);
