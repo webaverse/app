@@ -1,5 +1,5 @@
 
-import React, {useState, Component, useRef, useEffect} from 'react';
+import React, {useState, Component, useRef, useEffect, useContext} from 'react';
 import classnames from 'classnames';
 import styles from './Header.module.css';
 import * as ceramicApi from '../ceramic.js';
@@ -7,9 +7,12 @@ import {discordClientId} from '../constants';
 import {parseQuery} from '../util.js';
 import Modal from './components/modal';
 import WebaWallet from './components/wallet';
+import { AppContext } from './components/app';
 
-const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) => {
-  const [show, setShow] = useState(false);
+const User = ({address, setAddress, toggleOpen, setLoginFrom}) => {
+
+    const { state, setState } = useContext( AppContext );
+    const [show, setShow] = useState(false);
 
   const showModal = async e => {
     e.preventDefault();
@@ -95,8 +98,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
             toggleOpen('user');
           } else {
             setLoginButtons(true);
-            setOpen(null);
-            setOpen('login');
+            setState({ openedPanel: 'LoginPanel' });
           }
         }}>
         <img src="images/soul.png" className={styles.icon} />
@@ -116,7 +118,7 @@ const User = ({address, setAddress, open, setOpen, toggleOpen, setLoginFrom}) =>
         : ''
       }
       {
-        open === 'login'
+        state.openedPanel === 'LoginPanel'
           ? <div className={styles.login_options}>
             {
               loginButtons ? <>
