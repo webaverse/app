@@ -343,6 +343,7 @@ export const MapGen = ({
     const [camera, setCamera] = useState(() => new THREE.OrthographicCamera());
     const [chunks, setChunks] = useState([]);
     const [hoveredObject, setHoveredObject] = useState(null);
+    const [selectedChunk, setSelectedChunk] = useState(null);
     const [selectedObject, setSelectedObject] = useState(null);
     const [lastSelectTime, setLastSelectTime] = useState(-Infinity);
     const [chunkCache, setChunkCache] = useState(new Map());
@@ -406,11 +407,17 @@ export const MapGen = ({
       const timeDiff = now - lastSelectTime;
       const newSelectedObject = (selectedObject === hoveredObject && timeDiff > 200) ? null : hoveredObject;
 
+      let selectedChunk = null;
       for (const chunk of chunks) {
-        chunk.setSelected(chunk === newSelectedObject);
+        const selected = chunk === newSelectedObject;
+        chunk.setSelected(selected);
+        if (selected) {
+          selectedChunk = chunk;
+        }
       }
 
       setSelectedObject(newSelectedObject);
+      setSelectedChunk(selectedChunk);
       setLastSelectTime(now);
     };
 
@@ -655,6 +662,11 @@ export const MapGen = ({
             <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
                 <h1>{selectedObjectName}</h1>
                 <hr />
+                {selectedChunk ? (
+                  <div className={styles.description}>
+                    Location: {selectedChunk.x}:{selectedChunk.y}
+                  </div>
+                ) : null}
                 <div className={styles.buttons}>
                     <button className={styles.button} onClick={goClick}>
                       Go
