@@ -41,11 +41,10 @@ const NumberInput = ({ input }) => {
 
 //
 
-export const WorldObjectsList = () => {
+export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
 
     const { state, setState } = useContext( AppContext );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
-    const [ selectedApp, setSelectedApp ] = useState( null );
 
     let [ px, setPx ] = useState( 0 );
     let [ py, setPy ] = useState( 0 );
@@ -57,7 +56,7 @@ export const WorldObjectsList = () => {
     let [ sy, setSy ] = useState( 1 );
     let [ sz, setSz ] = useState( 1 );
 
-    if ( selectedApp ) {
+    // if ( selectedApp ) {
 
         px = { value: px, onChange: e => { const v = e.target.value; selectedApp.position.x = v; selectedApp.updateMatrixWorld(); setPx( v ); } };
         py = { value: py, onChange: e => { const v = e.target.value; selectedApp.position.y = v; selectedApp.updateMatrixWorld(); setPy( v ); } };
@@ -69,7 +68,7 @@ export const WorldObjectsList = () => {
         sy = { value: sy, onChange: e => { const v = e.target.value; selectedApp.scale.y = v; selectedApp.updateMatrixWorld(); setSy( v ); } };
         sz = { value: sz, onChange: e => { const v = e.target.value; selectedApp.scale.z = v; selectedApp.updateMatrixWorld(); setSz( v ); } };
 
-    }
+    // }
 
     //
 

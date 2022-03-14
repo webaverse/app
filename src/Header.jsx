@@ -24,7 +24,7 @@ import styles from './Header.module.css';
 
 //
 
-export default function Header () {
+export default function Header ({ setSelectedApp, selectedApp }) {
 
     const { state, setState } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
@@ -33,14 +33,12 @@ export default function Header () {
     const dioramaCanvasRef = useRef();
     const panelsRef = useRef();
 
-    const [selectedApp, setSelectedApp] = useState(null);
     const [address, setAddress] = useState(false);
     const [nfts, setNfts] = useState(null);
     const [apps, setApps] = useState(world.appManager.getApps().slice());
     const [claims, setClaims] = useState([]);
     const [dragging, setDragging] = useState(false);
     const [loginFrom, setLoginFrom] = useState('');
-
     const [wearActions, setWearActions] = useState(_getWearActions());
 
     //
@@ -50,6 +48,14 @@ export default function Header () {
         event.stopPropagation();
 
     };
+
+    const selectApp = ( app, physicsId, position ) => {
+
+        game.setMouseSelectedObject( app, physicsId, position );
+
+    };
+
+    //
 
     useEffect( () => {
 
@@ -254,7 +260,7 @@ export default function Header () {
 
         const selectchange = e => {
 
-            //   setSelectedApp(e.data.app);
+            setSelectedApp( e.data.app );
 
         };
 
