@@ -12,9 +12,10 @@ const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
-export const numBlocks = 32;
-export const chunkSize = 512;
-export const voxelSize = chunkSize / numBlocks;
+export const numBlocksPerChunk = 32;
+export const voxelPixelSize = 16;
+export const voxelWorldSize = 4;
+export const chunkScreenSize = numBlocksPerChunk * voxelPixelSize;
 export {placeNames};
 
 const sides = [
@@ -75,6 +76,9 @@ export class MapBlock extends THREE.Vector3 {
     }
     return map;
   })(); */
+  getWorldPosition(target) {
+    target.set(this.x * voxelWorldSize, this.y * voxelWorldSize, 0);
+  }
   getType() {
     if (this.exitTarget) {
       return 'exit';
@@ -97,18 +101,26 @@ export class MapBlock extends THREE.Vector3 {
     return MapBlock.TYPE_INDICES[type];
   }
 }
+export class MapChunk {
+  constructor(blocks) {
+    this.blocks = blocks;
+  }
+  getExitBlocks() {
+    return this.blocks.filter(block => block.exitTarget);
+  }
+}
 
 export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
   // generate blocks
-  const blocks = new Array(numBlocks * numBlocks);
+  const blocks = new Array(numBlocksPerChunk * numBlocksPerChunk);
 
   const rng = makeRng(seed, x, y);
   const r = () => -1 + 2 * rng();
 
   // blocks
-  for (let y = 0; y < numBlocks; y++) {
-    for (let x = 0; x < numBlocks; x++) {
-      const index = x + y * numBlocks;
+  for (let y = 0; y < numBlocksPerChunk; y++) {
+    for (let x = 0; x < numBlocksPerChunk; x++) {
+      const index = x + y * numBlocksPerChunk;
       const block = new MapBlock(x, y);
       blocks[index] = block;
     }
@@ -120,16 +132,16 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
   const localExits = shuffle(sides.slice(), rng).slice(0, numExits);
   for (const side of localExits) {
     let [ox, oy] = sideOffsets[side];
-    ox *= numBlocks - 1;
-    oy *= numBlocks - 1;
+    ox *= numBlocksPerChunk - 1;
+    oy *= numBlocksPerChunk - 1;
 
     const [cx, cy] = sideCrossAxes[side];
-    const v = Math.floor(rng() * numBlocks);
+    const v = Math.floor(rng() * numBlocksPerChunk);
 
     const x = ox + v * cx;
     const y = oy + v * cy;
 
-    const block = blocks[x + y * numBlocks];
+    const block = blocks[x + y * numBlocksPerChunk];
     block.exitTarget = true;
     
     pathCandidates.push(block);
@@ -138,10 +150,10 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
   // centers
   const numCenters = Math.floor(rng() * (2 + 1));
   for (let i = 0; i < numCenters; i++) {
-    const x = 1 + Math.floor(rng() * (numBlocks - 2));
-    const y = 1 + Math.floor(rng() * (numBlocks - 2));
+    const x = 1 + Math.floor(rng() * (numBlocksPerChunk - 2));
+    const y = 1 + Math.floor(rng() * (numBlocksPerChunk - 2));
 
-    const block = blocks[x + y * numBlocks];
+    const block = blocks[x + y * numBlocksPerChunk];
     block.centerTarget = true;
 
     pathCandidates.push(block);
@@ -185,10 +197,10 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
     
       const x = Math.round(point.x);
       const y = Math.round(point.z);
-      if (x >= 0 && x < numBlocks && y >= 0 && y < numBlocks) {
+      if (x >= 0 && x < numBlocksPerChunk && y >= 0 && y < numBlocksPerChunk) {
         splinePoints[i] = point.clone();
 
-        const index = x + y * numBlocks;
+        const index = x + y * numBlocksPerChunk;
         const block = blocks[index];
         block.splinePoint = true;
       } else {
@@ -215,8 +227,8 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
       for (const dx of [-1, 1]) {
         const x = Math.round(point.x);
         const y = Math.round(point.z);
-        if (x >= 0 && x < numBlocks && y >= 0 && y < numBlocks) {
-          const index = x + y * numBlocks;
+        if (x >= 0 && x < numBlocksPerChunk && y >= 0 && y < numBlocksPerChunk) {
+          const index = x + y * numBlocksPerChunk;
           const block = blocks[index];
           block.path = true;
         }
@@ -279,5 +291,6 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
     });
     _connectBlocks(deepestEntry.block, unseenPathCandidates[0]);
   }
-  return blocks;
+  const chunk = new MapChunk(blocks);
+  return chunk;
 };

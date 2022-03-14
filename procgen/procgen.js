@@ -3,19 +3,23 @@ import {
   createMisc,
 } from './misc-gen.js';
 import {
-  numBlocks,
-  voxelSize,
+  numBlocksPerChunk,
+  voxelPixelSize,
+  voxelWorldSize,
   placeNames,
   MapBlock,
+  MapChunk,
   createMapChunk,
 } from './map-gen.js';
 
 export {
   makeRng,
   createMisc,
-  numBlocks,
-  voxelSize,
+  numBlocksPerChunk,
+  voxelPixelSize,
+  voxelWorldSize,
   placeNames,
   MapBlock,
+  MapChunk,
   createMapChunk,
 };
