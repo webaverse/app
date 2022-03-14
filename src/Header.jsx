@@ -13,8 +13,8 @@ import User from './User';
 
 import { MagicMenu } from './MagicMenu.jsx';
 import { Character } from './components/general/character';
-import { Claims } from './tabs/claims';
 import { Tokens } from './tabs/tokens';
+import { Claims } from './tabs/claims';
 import { Inspector } from './Inspector.jsx';
 import { Chat } from './Chat.jsx';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
@@ -296,6 +296,24 @@ export default function Header () {
 
     }, []);
 
+    // tmp code [will be remove in next PRs]
+
+    const claimsOpen = ( state.openedPanel === 'ClaimsPanel' ? 'claims' : false );
+
+    const toggleClaimsOpen = () => {
+
+        if ( claimsOpen ) {
+
+            setState({ openedPanel: null });
+
+        } else {
+
+            setState({ openedPanel: 'ClaimsPanel' });
+
+        }
+
+    };
+
     //
 
 	return (
@@ -326,6 +344,8 @@ export default function Header () {
                             game={game}
                         />
                         <Claims
+                            open={ claimsOpen }
+                            toggleOpen={ toggleClaimsOpen }
                             claims={claims}
                             panelsRef={panelsRef}
                         />
