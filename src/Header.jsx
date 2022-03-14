@@ -150,8 +150,6 @@ export default function Header () {
 
                     if ( ! state.openedPanel === 'MagicPanel' && ! ioManager.inputFocused() ) {
 
-                        event.preventDefault();
-                        event.stopPropagation();
                         setState({ openedPanel: 'MagicPanel' });
 
                     }
@@ -172,8 +170,6 @@ export default function Header () {
 
                 case 9: { // tab
 
-                    event.preventDefault();
-                    event.stopPropagation();
                     setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
                     return true;
 
@@ -202,7 +198,7 @@ export default function Header () {
 
             }
 
-            if ( handled || inputFocused ) {
+            if ( handled ) {
 
                 return false;
 
