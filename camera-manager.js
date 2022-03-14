@@ -176,7 +176,7 @@ class CameraManager extends EventTarget {
     return cameraOffset;
   }
   handleWheelEvent(e) {
-    e.preventDefault();
+    // e.preventDefault();
 
     cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
   }

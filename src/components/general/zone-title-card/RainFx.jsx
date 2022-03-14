@@ -2,12 +2,9 @@ import * as THREE from 'three';
 import React, { useState, useEffect, useRef } from 'react';
 // import classnames from 'classnames';
 import {world} from '../../../../world.js';
-import {RainBgFxMesh} from '../../../../background-fx/rain.js';
+import {RainBgFxMesh} from '../../../../background-fx/RainBgFx.js';
 
 import styles from './zone-title-card.module.css';
-
-const localVector4D = new THREE.Vector4();
-const localColor = new THREE.Color();
 
 //
 
@@ -15,9 +12,6 @@ export const RainFx = ({
   // app,
   enabled,
 }) => {
-    // const [width, setWidth] = useState(window.innerWidth);
-    // const [height, setHeight] = useState(window.innerHeight);
-    // const [pixelRatio, setPixelRatio] = useState(window.devicePixelRatio);
     const [renderer, setRenderer] = useState(null);
     const canvasRef = useRef();
 
@@ -28,18 +22,6 @@ export const RainFx = ({
     rainBgFxMesh.frustumCulled = false;
     scene.add(rainBgFxMesh);
 
-    /* useEffect(() => {
-        function resize(e) {
-            setWidth(window.innerWidth);
-            setHeight(window.innerHeight);
-            setPixelRatio(window.devicePixelRatio);
-        }
-        window.addEventListener('resize', resize);
-        return () => {
-            window.removeEventListener('resize', resize);
-        };
-    }, []); */
-
     const _updateRendererSize = renderer => {
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -47,7 +29,6 @@ export const RainFx = ({
     const _updateAspectRatio = () => {
         rainBgFxMesh.material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight;
         rainBgFxMesh.material.uniforms.aspectRatio.needsUpdate = true;
-        // console.log('set aspect ratio', rainBgFxMesh.material.uniforms.aspectRatio.value);
     };
     _updateAspectRatio();
 
@@ -67,7 +48,6 @@ export const RainFx = ({
     useEffect(() => {
         if (canvasRef.current && enabled) {
                 const canvas = canvasRef.current;
-                // const ctx = canvas.getContext('2d');
 
                 const renderer = new THREE.WebGLRenderer({
                     canvas,

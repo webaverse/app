@@ -39,13 +39,13 @@ const CharacterHup = function(props) {
         diorama.addCanvas(canvas);
       } else {
         diorama = dioramaManager.createPlayerDiorama({
-          canvas,
           target: player,
           objects: [
             player.avatar.model,
           ],
           grassBackground: true,
         });
+        diorama.addCanvas(canvas);
         chatDioramas.set(player, diorama);
         // console.log('no diorama');
       }
