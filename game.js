@@ -554,7 +554,8 @@ const _handleUpload = async (item, transform = null) => {
 
 const _upload = () => {
   const uploadFileInput = document.getElementById('upload-file-input');
-  uploadFileInput.click();
+  uploadFileInput && uploadFileInput.click();
+  console.log('upload file...');
 };
 
 const _grab = object => {
@@ -1317,7 +1318,6 @@ cameraManager.addEventListener('modechange', e => {
 });
 
 let lastMouseEvent = null;
-
 class GameManager extends EventTarget {
   constructor() {
     super();
@@ -1842,26 +1842,21 @@ class GameManager extends EventTarget {
     localPlayer.avatar.setQuality(quality);
   }
   playerDiorama = null;
-  async bindDioramaCanvas(canvas) {
-    await rendererWaitForLoad();
+  bindDioramaCanvas() {
+    // await rendererWaitForLoad();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.addEventListener('avatarchange', e => {
-      this.playerDiorama.setObjects([
-        e.avatar.model,
-      ]);
-    });
     this.playerDiorama = dioramaManager.createPlayerDiorama({
-      canvas,
       target: localPlayer,
       // label: true,
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
     });
-    this.playerDiorama.enabled = false;
-    canvas.addEventListener('click', e => {
-      this.playerDiorama.toggleShader();
+    localPlayer.addEventListener('avatarchange', e => {
+      this.playerDiorama.setObjects([
+        e.avatar.model,
+      ]);
     });
   }
   loadVoicePack(voicePack) {
