@@ -1,106 +1,157 @@
-import * as THREE from 'three';
-import React, {useState, useEffect, useRef} from 'react';
+
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
-import {checkText} from 'smile2emoji';
-import styles from './Chat.module.css';
-/* import * as Y from 'yjs';
-import {Color} from './Color.js';
-import game from '../game.js'
-import metaversefile from '../metaversefile-api.js' */
-import {world} from '../world.js';
-import {chatManager} from '../chat-manager.js';
-import {world2canvas} from './ThreeUtils.js';
-import metaversefile from 'metaversefile';
+
+import { checkText } from 'smile2emoji';
+import { chatManager } from '../chat-manager.js';
 import ioManager from '../io-manager.js';
+import { AppContext } from './components/app';
+import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
+import styles from './Chat.module.css';
 
-function ChatInput({open, setOpen}) {
-  const [value, setValue] = useState('');
-  const inputRef = useRef();
-  
-  const chatOpen = open === 'chat';
+//
 
-  const _handleActiveKey = e => {
-    if (document.activeElement === inputRef.current) {
-      switch (e.which) {
-        case 13: { // enter
-          e.preventDefault();
-          e.stopPropagation();
-          
-          if (value) {
-            const text = checkText(value);
-            chatManager.addMessage(text, {
-              timeout: 3000,
-            });
-          }
-          setValue('');
-          setOpen(null);
-          
-          ioManager.click(new MouseEvent('click'));
-          return true;
+function ChatInput () {
+
+    const { state, setState } = useContext( AppContext );
+    const [ value, setValue ] = useState('');
+    const inputRef = useRef();
+
+    //
+
+    useEffect(() => {
+
+        const handleActiveKey = ( event ) => {
+
+            switch ( event.which ) {
+
+                case 13: { // enter
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    if ( state.openedPanel !== 'ChatPanel' ) {
+
+                        setState({ openedPanel: 'ChatPanel' });
+
+                    } else {
+
+                        if ( document.activeElement !== inputRef.current ) return true;
+
+                        if ( value ) {
+
+                            const text = checkText( value );
+                            chatManager.addMessage( text, { timeout: 3000 });
+
+                        }
+
+                        setValue('');
+                        setState({ openedPanel: null });
+                        ioManager.click( new MouseEvent('click') );
+
+                    }
+
+                    return true;
+
+                }
+
+            }
+
+            return true;
+
+        };
+
+        const handleAnytimeKey = ( event ) => {
+
+            switch ( event.which ) {
+
+                case 186: { // semicolon
+
+                    if ( event.shiftKey ) {
+
+                        if ( state.openedPanel !== 'ChatPanel' ) {
+
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            setValue(':');
+                            setState({ openedPanel: 'ChatPanel' });
+
+                        }
+
+                    }
+
+                    break;
+
+                }
+
+            }
+
+        };
+
+        const handleKeyUp = ( event ) => {
+
+            let handled = handleActiveKey( event );
+
+            if ( ! handled ) {
+
+                handled = handleAnytimeKey( event );
+
+            }
+
+        };
+
+        registerIoEventHandler( 'keyup', handleKeyUp );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keyup', handleKeyUp );
+
+        };
+
+    }, [ value, state.openedPanel ] );
+
+    useEffect(() => {
+
+        if ( inputRef.current ) {
+
+            if ( state.openedPanel === 'ChatPanel' ) {
+
+                inputRef.current.focus();
+
+            } else {
+
+                inputRef.current.blur();
+
+            }
+
         }
-      }
-    }
-    return false;
-  };
-  const _handleAnytimeKey = e => {
-    switch (e.which) {
-      case 186: { // semicolon
-        if (e.shiftKey) {
-          if (!chatOpen) {
-            e.preventDefault();
-            e.stopPropagation();
 
-            setValue(':');
-            setOpen('chat');
-          }
-        }
-        break;
-      }
-    }
-  };
-  useEffect(() => {
-    const keydown = e => {
-      let handled = _handleActiveKey(e);
-      if (!handled) {
-        handled = _handleAnytimeKey(e);
-      }
-    };
-    window.addEventListener('keydown', keydown);
-    return () => {
-      window.removeEventListener('keydown', keydown);
-    };
-  }, [value, chatOpen]);
-  useEffect(() => {
-    if (inputRef.current) {
-      if (chatOpen) {
-        inputRef.current.focus();
-      } else {
-        inputRef.current.blur();
-      }
-    }
-  }, [chatOpen, inputRef.current]);
+    }, [ state.openedPanel, inputRef.current ] );
+
+    //
 
 	return (
-    <div className={classnames(styles.chat, chatOpen ? styles.open : null)}>
-      <img src="images/webpencil.svg" className={styles.background} />
-      <input
-        type="text"
-        className={styles.input}
-        value={value}
-        onClick={e => {
-          e.stopPropagation();
-        }}
-        onChange={e => {
-          setValue(e.target.value);
-        }}
-        ref={inputRef}
-      />
-    </div>
-  )
-}
+        <div className={ classnames( styles.chat, state.openedPanel === 'ChatPanel' ? styles.open : null ) } >
+            <img src="images/webpencil.svg" className={styles.background} />
+            <input
+                type="text"
+                className={styles.input}
+                value={value}
+                onClick={e => {
+                    e.stopPropagation();
+                }}
+                onChange={e => {
+                    setValue(e.target.value);
+                }}
+                ref={inputRef}
+            />
+        </div>
+    );
+
+};
+
 /* function ChatMessages() {
   const [messageGroups, setMessageGroups] = useState([]);
   const [epoch, setEpoch] = useState(0);
@@ -174,11 +225,16 @@ function ChatInput({open, setOpen}) {
     </div>
   );
 } */
-export default function Chat({open, setOpen}) {
-  return (
-    <>
-      <ChatInput open={open} setOpen={setOpen} />
-      {/* <ChatMessages /> */}
-    </>
-  );
+
+//
+
+export const Chat = () => {
+
+    return (
+        <>
+            <ChatInput />
+            {/* <ChatMessages /> */}
+        </>
+    );
+
 };
