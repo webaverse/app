@@ -20,16 +20,13 @@ function ChatInput () {
 
     //
 
-    useEffect(() => {
+    useEffect( () => {
 
         const handleActiveKey = ( event ) => {
 
             switch ( event.which ) {
 
                 case 13: { // enter
-
-                    event.preventDefault();
-                    event.stopPropagation();
 
                     if ( state.openedPanel !== 'ChatPanel' ) {
 
@@ -58,7 +55,7 @@ function ChatInput () {
 
             }
 
-            return true;
+            return false;
 
         };
 
@@ -72,9 +69,6 @@ function ChatInput () {
 
                         if ( state.openedPanel !== 'ChatPanel' ) {
 
-                            event.preventDefault();
-                            event.stopPropagation();
-
                             setValue(':');
                             setState({ openedPanel: 'ChatPanel' });
 
@@ -82,11 +76,13 @@ function ChatInput () {
 
                     }
 
-                    break;
+                    return true;
 
                 }
 
             }
+
+            return false;
 
         };
 
@@ -97,6 +93,16 @@ function ChatInput () {
             if ( ! handled ) {
 
                 handled = handleAnytimeKey( event );
+
+            }
+
+            if ( handled ) {
+
+                return false;
+
+            } else {
+
+                return true;
 
             }
 
