@@ -77,7 +77,7 @@ export class MapBlock extends THREE.Vector3 {
     return map;
   })(); */
   getWorldPosition(target) {
-    target.set(this.x * voxelWorldSize, 0, this.y * voxelWorldSize);
+    target.set(this.x * numBlocksPerChunk, voxelWorldSize, 0, this.y * numBlocksPerChunk * voxelWorldSize);
   }
   getType() {
     if (this.exitTarget) {
