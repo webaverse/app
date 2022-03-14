@@ -19,10 +19,21 @@ export default () => {
   const app = useApp();
   const physics = usePhysics();
 
+  const bounds = app.getComponent('bounds');
+  const [min, max] = bounds;
+  const [minX, minY, minZ] = min;
+  const [maxX, maxY, maxZ] = max;
+  const width = maxX - minX;
+  const height = maxY - minY;
+  const depth = maxZ - minZ;
+  // console.log('got bounds', bounds);
+  const exits = app.getComponent('exits');
+  // console.log('got bounds exits', bounds, exits, width, height);
+
   app.name = 'filter';
 
   // const w = 16, h = 8, d = 8;
-  const dims = new THREE.Vector3(16, 8, 8);
+  const dims = new THREE.Vector3(width, height, depth);
   const exitSpecs = [
     {
       normal: new THREE.Vector3(0, 0, -1),
