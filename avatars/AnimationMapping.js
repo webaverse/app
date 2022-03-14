@@ -12,7 +12,7 @@ class AnimationMapping {
 }
 
 export const animationMappingConfig = [
-  new AnimationMapping('mixamorigHips.position', 'Hips', false, true),
+//   new AnimationMapping('mixamorigHips.position', 'Hips', false, true),
   new AnimationMapping('mixamorigHips.quaternion', 'Hips', false, false),
   new AnimationMapping('mixamorigSpine.quaternion', 'Spine', true, false),
   new AnimationMapping('mixamorigSpine1.quaternion', 'Chest', true, false),
