@@ -734,11 +734,11 @@ class InterpolatedPlayer extends StatePlayer {
     
     this.avatarBinding = {
       position: this.positionInterpolant.get(),
-      quaternion: this.quaternionInterpolant.get(),
+      quaternion: this.quaternionInterpolant.get()
     };
   }
   updateInterpolation(timeDiff) {
-        this.positionInterpolant.update(timeDiff);
+    this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
     
     for (const actionInterpolantTimeStep of this.actionBinaryTimeStepsArray) {
@@ -1069,8 +1069,9 @@ class RemotePlayer extends InterpolatedPlayer {
       this.characterFx?.update(timestamp, timeDiffS);
 
       // this.updateInterpolation(timeDiff);
-
-
+      this.updateInterpolation(timeDiff);
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, null, this.avatar, mirrors);
 
       this.avatar.update(timestamp, timeDiff);
       this.characterHups?.update(timestamp);
@@ -1106,10 +1107,12 @@ class RemotePlayer extends InterpolatedPlayer {
       this.quaternion.fromArray(transform, 3);
       this.positionInterpolant?.snapshot(timeDiff);
       this.quaternionInterpolant?.snapshot(timeDiff);
-      this.updateInterpolation(timeDiff);
-      const mirrors = metaversefile.getMirrors();
-      applyPlayerToAvatar(this, null, this.avatar, mirrors);
+      for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
+        actionBinaryInterpolant.snapshot(timeDiff);
+      }
+
     };
+
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
     
