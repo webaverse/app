@@ -14,8 +14,8 @@ import {Text} from 'troika-three-text';
 import easing from '../../../../easing.js';
 import {
   makeRng,
-  numBlocks,
-  voxelSize,
+  numBlocksPerChunk,
+  voxelPixelSize,
   placeNames,
   MapBlock,
   createMapChunk,
@@ -24,7 +24,7 @@ import styles from './map-gen.module.css';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
+// const localVector3 = new THREE.Vector3();
 const localVectorX = new THREE.Vector3();
 const localVectorX2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
@@ -45,7 +45,7 @@ const cubicBezier = easing(0, 1, 0, 1);
 
 //
 
-const planeGeometry = new THREE.PlaneBufferGeometry(numBlocks, numBlocks)
+const planeGeometry = new THREE.PlaneBufferGeometry(numBlocksPerChunk, numBlocksPerChunk)
   .applyMatrix4(
     new THREE.Matrix4()
       .makeRotationFromQuaternion(
@@ -92,7 +92,7 @@ const planeFragmentShader = `\
     gl_FragColor.rgb = c;
 
     // voxel border
-    vec2 voxelUv = mod(vUv * ${numBlocks.toFixed(8)}, 1.);
+    vec2 voxelUv = mod(vUv * ${numBlocksPerChunk.toFixed(8)}, 1.);
     const float limit = 0.075;
     if (
       voxelUv.x <= limit || voxelUv.x >= (1. - limit) ||
@@ -102,7 +102,7 @@ const planeFragmentShader = `\
     }
 
     // chunk border
-    const float limit2 = limit/${numBlocks.toFixed(8)};
+    const float limit2 = limit/${numBlocksPerChunk.toFixed(8)};
     if (
       vUv.x <= limit2 || vUv.x >= (1. - limit2) ||
       vUv.y <= limit2 || vUv.y >= (1. - limit2)
@@ -157,15 +157,16 @@ const textFragmentShader = `\
   }
 `;
 const _makeChunkMesh = (x, y) => {
-  const chunkBlocks = createMapChunk(x, y);
-  const data = new Uint8Array(chunkBlocks.length);
-  for (let i = 0; i < chunkBlocks.length; i++) {
-    data[i] = chunkBlocks[i].toUint8();
+  const mapChunk = createMapChunk(x, y);
+  const {blocks} = mapChunk;
+  const data = new Uint8Array(blocks.length);
+  for (let i = 0; i < blocks.length; i++) {
+    data[i] = blocks[i].toUint8();
   }
   const dataTexture = new THREE.DataTexture(
     data,
-    numBlocks,
-    numBlocks,
+    numBlocksPerChunk,
+    numBlocksPerChunk,
     THREE.RedFormat,
     THREE.UnsignedByteType
   );
@@ -201,7 +202,7 @@ const _makeChunkMesh = (x, y) => {
     // side: THREE.DoubleSide, 
   });
   const mesh = new THREE.Mesh(planeGeometry, material);
-  mesh.position.set(x * numBlocks, 0, y * numBlocks);
+  mesh.position.set(x * numBlocksPerChunk, 0, y * numBlocksPerChunk);
   mesh.updateMatrixWorld();
 
   const rng = makeRng('name', x, y);
@@ -247,9 +248,9 @@ const _makeChunkMesh = (x, y) => {
       w += 1;
       h += 1;
       labelMesh.position.set(
-        x - numBlocks / 2 + w / 2,
+        x - numBlocksPerChunk / 2 + w / 2,
         1,
-        y + numBlocks / 2 - h / 2
+        y + numBlocksPerChunk / 2 - h / 2
       );
       labelMesh.scale.set(w, 1, h);
       labelMesh.updateMatrixWorld();
@@ -259,9 +260,9 @@ const _makeChunkMesh = (x, y) => {
     }); */
     const textOffset = 0.5;
     textMesh.position.set(
-      -numBlocks / 2 + textOffset,
+      -numBlocksPerChunk / 2 + textOffset,
       1,
-      numBlocks / 2 - textOffset
+      numBlocksPerChunk / 2 - textOffset
     );
     textMesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
     mesh.add(textMesh);
@@ -350,15 +351,15 @@ export const MapGen = ({
       const renderer = getRenderer();
       const pixelRatio = renderer.getPixelRatio();
 
-      camera.position.set(-position.x / voxelSize, 1, -position.z / voxelSize);
+      camera.position.set(-position.x / voxelPixelSize, 1, -position.z / voxelPixelSize);
       camera.quaternion.copy(downQuaternion);
       camera.scale.setScalar(pixelRatio * scale);
       camera.updateMatrixWorld();
       
-      camera.left = -(width / voxelSize) / 2;
-      camera.right = (width / voxelSize) / 2;
-      camera.top = (height / voxelSize) / 2;
-      camera.bottom = -(height / voxelSize) / 2;
+      camera.left = -(width / voxelPixelSize) / 2;
+      camera.right = (width / voxelPixelSize) / 2;
+      camera.top = (height / voxelPixelSize) / 2;
+      camera.bottom = -(height / voxelPixelSize) / 2;
       camera.near = 0;
       camera.far = 1000;
       camera.updateProjectionMatrix();
@@ -370,10 +371,10 @@ export const MapGen = ({
       const topRight = localVectorX2.set(1, -1, 0)
         .unproject(camera);
 
-      for (let y = bottomLeft.z; y < topRight.z; y += numBlocks) {
-        for (let x = bottomLeft.x; x < topRight.x; x += numBlocks) {
-          const ix = Math.round(x / numBlocks);
-          const iy = Math.round(y / numBlocks);
+      for (let y = bottomLeft.z; y < topRight.z; y += numBlocksPerChunk) {
+        for (let x = bottomLeft.x; x < topRight.x; x += numBlocksPerChunk) {
+          const ix = Math.round(x / numBlocksPerChunk);
+          const iy = Math.round(y / numBlocksPerChunk);
 
           const key = `${ix}:${iy}`;
           let chunk = chunkCache.get(key);
@@ -521,7 +522,7 @@ export const MapGen = ({
     useEffect(() => {
       function wheel(e) {
         setRaycasterFromEvent(localRaycaster, e);
-        localRaycaster.ray.origin.multiplyScalar(voxelSize);
+        localRaycaster.ray.origin.multiplyScalar(voxelPixelSize);
 
         const oldScale = scale;
         const newScale = Math.min(Math.max(scale * (1 + e.deltaY * 0.001), 0.01), 20);
