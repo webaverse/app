@@ -730,7 +730,11 @@ metaversefile.setApi({
   getNextInstanceId() {
     return getRandomString();
   },
-  createAppInternal({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}, {onWaitPromise = null} = {}) {
+  createAppInternal({
+    start_url = '',
+    components = {},
+    in_front = false,
+  } = {}, {onWaitPromise = null} = {}) {
     const app = new App();
 
     if (in_front) {
@@ -738,6 +742,10 @@ metaversefile.setApi({
       app.quaternion.copy(localPlayer.quaternion);
       app.updateMatrixWorld();
       app.lastMatrix.copy(app.matrixWorld);
+    }
+    for (const k in components) {
+      const v = components[k];
+      app.setComponent(k, v);
     }
     if (start_url) {
       const p = (async () => {
