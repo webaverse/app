@@ -170,6 +170,7 @@ const _makeChunkMesh = (x, y) => {
     THREE.RedFormat,
     THREE.UnsignedByteType
   );
+  dataTexture.flipY = true;
   dataTexture.needsUpdate = true;
   
   const material = new THREE.ShaderMaterial({
