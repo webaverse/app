@@ -6,7 +6,7 @@ const {MToonMaterial} = ThreeVrm;
 import {StreetGeometry} from './StreetGeometry.js';
 import alea from 'alea';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useActivate, useLoaders, usePhysics, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
+const {useApp, useFrame, useActivate, useLoaders, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -59,6 +59,7 @@ const _makeBlueSphere = () => {
 export default () => {
   const app = useApp();
   const physics = usePhysics();
+  const procGen = useProcGen();
 
   app.name = 'infinistreet';
 
