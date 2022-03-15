@@ -746,7 +746,6 @@ class InterpolatedPlayer extends StatePlayer {
   updateInterpolation(timeDiff) {
     this.positionTimeStep.update(timeDiff);
     this.quaternionTimeStep.update(timeDiff);
-    
     this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
     
@@ -1037,11 +1036,19 @@ class LocalPlayer extends UninterpolatedPlayer {
     super.destroy();
   }
 }
+
+let initialPosition = localVector;
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
   
     this.isRemotePlayer = true;
+
+    
+    this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
   }
   detachState() {
     return null;
@@ -1063,6 +1070,11 @@ class RemotePlayer extends InterpolatedPlayer {
     
     const observePlayerFn = e => {
       this.position.fromArray(this.playerMap.get('position'));
+      
+      console.log(this.position.fromArray(this.playerMap.get('position')).sub(initialPosition));
+      initialPosition = this.position.fromArray(this.playerMap.get('position'))
+      
+      
       this.quaternion.fromArray(this.playerMap.get('quaternion'));
     };
     this.playerMap.observe(observePlayerFn);
@@ -1072,6 +1084,34 @@ class RemotePlayer extends InterpolatedPlayer {
     this.appManager.loadApps();
     
     this.syncAvatar();
+  }
+
+  getSession() {
+    const renderer = getRenderer();
+    const session = renderer.xr.getSession();
+    return session;
+  }
+
+  updateAvatar(timestamp, timeDiff) {
+    if (this.avatar) {
+      const timeDiffS = timeDiff / 1000;
+      let old = this.position.fromArray(this.playerMap.get('position'))
+      let newPosition = old.sub(initialPosition);
+      let newVelocity = newPosition.divideScalar(timeDiffS);
+ 
+      this.characterSfx.update(timestamp, timeDiffS);
+      this.characterFx.update(timestamp, timeDiffS);
+
+      this.updateInterpolation(timeDiff);
+
+      const session = this.getSession();
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, session, this.avatar, mirrors);
+
+      this.avatar.update(timestamp, timeDiff);
+
+      this.characterHups.update(timestamp);
+    }
   }
 }
 class StaticUninterpolatedPlayer extends PlayerBase {
