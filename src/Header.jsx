@@ -9,8 +9,8 @@ import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
-import User from './User';
 
+import { User } from './User';
 import { MagicMenu } from './MagicMenu.jsx';
 import { Character } from './components/general/character';
 import { Tokens } from './tabs/tokens';
