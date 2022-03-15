@@ -554,7 +554,8 @@ const _handleUpload = async (item, transform = null) => {
 
 const _upload = () => {
   const uploadFileInput = document.getElementById('upload-file-input');
-  uploadFileInput.click();
+  uploadFileInput && uploadFileInput.click();
+  console.log('upload file...');
 };
 
 const _grab = object => {
@@ -1317,61 +1318,65 @@ cameraManager.addEventListener('modechange', e => {
 });
 
 let lastMouseEvent = null;
-const gameManager = {
-  menuOpen: 0,
-  gridSnap: 0,
-  editMode: false,
-  dragging: false,
-  draggingRight: false,
-  contextMenu: false,
-  contextMenuObject: null,
-  inventoryHack: false,
-  closestObject: null,
-  usableObject: null,
-  hoverEnabled: false,
+class GameManager extends EventTarget {
+  constructor() {
+    super();
+
+    this.menuOpen = 0;
+    this.gridSnap = 0;
+    this.editMode = false;
+    this.dragging = false;
+    this.draggingRight = false;
+    this.contextMenu = false;
+    this.contextMenuObject = null;
+    this.inventoryHack = false;
+    this.closestObject = null;
+    this.usableObject = null;
+    this.hoverEnabled = false;
+  }
   getMenu() {
     return this.menuOpen;
-  },
+  }
   setMenu(newOpen) {
     this.menuOpen = newOpen;
     if (newOpen) {
       _selectItem(0);
     }
-  },
+  }
   menuVertical(offset) {
     if (this.menuOpen) {
       _selectItemDelta(offset);
     }
-  },
+  }
   menuHorizontal(offset) {
     if (this.menuOpen) {
       _selectTabDelta(offset);
     }
-  },
+  }
   setContextMenu(contextMenu) {
     this.contextMenu = contextMenu;
-  },
+  }
   getContextMenuObject() {
     return this.contextMenuObject;
-  },
+  }
   setContextMenuObject(contextMenuObject) {
     this.contextMenuObject = contextMenuObject;
-  },
+  }
   menuUse() {
     _use();
-  },
+  }
   menuDelete() {
     _delete();
-  },
+  }
   menuClick() {
     _click();
-  },
+  }
   menuMouseDown() {
     _mousedown();
-  },
+  }
   menuMouseUp() {
     _mouseup();
-  },
+  }
   menuAim() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
@@ -1402,14 +1407,14 @@ const gameManager = {
       };
       localPlayer.addAction(aimAction);
     }
-  },
+  }
   menuUnaim() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const aimAction = localPlayer.getAction('aim');
     if (aimAction) {
       localPlayer.removeAction('aim');
     }
-  },
+  }
   menuDragdown(e) {
     this.dragging = true;
     
@@ -1418,7 +1423,7 @@ const gameManager = {
         dragging: this.dragging,
       },
     }));
-  },
+  }
   menuDrag(e) {
     const {movementX, movementY} = e;
     if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
@@ -1433,7 +1438,7 @@ const gameManager = {
 
       camera.updateMatrixWorld();
     }
-  },
+  }
   menuDragup() {
     this.dragging = false;
     
@@ -1442,47 +1447,47 @@ const gameManager = {
         dragging: this.dragging,
       },
     }));
-  },
+  }
   menuDragdownRight(e) {
     this.draggingRight = true;
-  },
+  }
   menuDragRight(e) {
     // this.draggingRight = true;
-  },
+  }
   menuDragupRight() {
     this.draggingRight = false;
-  },
+  }
   menuKey(c) {
     menuMesh.key(c);
-  },
+  }
   menuSelectAll() {
     menuMesh.selectAll();
-  },
+  }
   menuPaste(s) {
     menuMesh.paste(s);
-  },
+  }
   canGrab() {
     return !!highlightedObject /*&& !editedObject*/;
-  },
+  }
   canRotate() {
     return !!_getGrabbedObject(0);
     // return !!world.appManager.grabbedObjects[0];
-  },
+  }
   menuRotate(direction) {
     const object = _getGrabbedObject(0);
     object.savedRotation.y -= direction * rotationSnap;
-  },
+  }
   drop() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const app = loadoutManager.getSelectedApp();
     if (app) {
       localPlayer.unwear(app);
     }
-  },
+  }
   canPush() {
     return !!_getGrabbedObject(0);
     // return !!world.appManager.grabbedObjects[0] /*|| (editedObject && editedObject.isBuild)*/;
-  },
+  }
   menuPush(direction) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const grabAction = localPlayer.findAction(action => action.type === 'grab' && action.hand === 'left');
@@ -1497,7 +1502,7 @@ const gameManager = {
     } else {
       console.warn('trying to push with no grab object');
     }
-  },
+  }
   menuGridSnap() {
     if (this.gridSnap === 0) {
       this.gridSnap = 32;
@@ -1507,14 +1512,14 @@ const gameManager = {
       this.gridSnap = 0;
     }
     // gridSnapEl.innerText = this.gridSnap > 0 ? (this.gridSnap + '') : 'off';
-  },
+  }
   getGridSnap() {
     if (this.gridSnap === 0) {
       return 0;
     } else {
       return 4/this.gridSnap;
     }
-  },
+  }
 
   menuVDown() {
     if (_getGrabbedObject(0)) {
@@ -1530,11 +1535,11 @@ const gameManager = {
       };
       localPlayer.addAction(newAction);
     }
-  },
+  }
   menuVUp(e) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('dance');
-  },
+  }
   menuBDown(e) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     
@@ -1560,13 +1565,13 @@ const gameManager = {
     /* if (e.ctrlKey) {
       universe.reload();
     } */
-  },
+  }
   menuBUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('dance');
     
     // physicsManager.setThrowState(null);
-  },
+  }
   menuDoubleTap() {
     if (!this.isCrouched()) {
       const localPlayer = metaversefileApi.useLocalPlayer();
@@ -1579,17 +1584,17 @@ const gameManager = {
         localPlayer.addAction(newNarutoRunAction);
       }
     }
-  },
+  }
   menuUnDoubleTap() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const narutoRunAction = localPlayer.getAction('narutoRun');
     if (narutoRunAction) {
       localPlayer.removeAction('narutoRun');
     }
-  },
+  }
   isFlying() {
     return metaversefileApi.useLocalPlayer().hasAction('fly');
-  },
+  }
   toggleFly() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const flyAction = localPlayer.getAction('fly');
@@ -1602,10 +1607,10 @@ const gameManager = {
       };
       localPlayer.setControlAction(flyAction);
     }
-  },
+  }
   isCrouched() {
     return metaversefileApi.useLocalPlayer().hasAction('crouch');
-  },
+  }
   toggleCrouch() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     let crouchAction = localPlayer.getAction('crouch');
@@ -1617,16 +1622,16 @@ const gameManager = {
       };
       localPlayer.addAction(crouchAction);
     }
-  },
+  }
   selectLoadout(index) {
     loadoutManager.setSelectedIndex(index);
-  },
+  }
   canToggleAxis() {
     return false; // !!world.appManager.grabbedObjects[0]; // || (editedObject && editedObject.isBuild);
-  },
+  }
   toggleAxis() {
     console.log('toggle axis');
-  },
+  }
   async toggleEditMode() {
     this.editMode = !this.editMode;
     // console.log('got edit mode', this.editMode);
@@ -1642,11 +1647,11 @@ const gameManager = {
         localPlayer.ungrab();
       } 
     }
-  },
-  menuUpload: _upload,
+  }
+  menuUpload = _upload;
   isJumping() {
     return metaversefileApi.useLocalPlayer().hasAction('jump');
-  },
+  }
   ensureJump() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const jumpAction = localPlayer.getAction('jump');
@@ -1668,7 +1673,7 @@ const gameManager = {
       };
       localPlayer.addAction(newJumpAction);
     }
-  },
+  }
   jump() {
     // add jump action
     this.ensureJump();
@@ -1680,28 +1685,28 @@ const gameManager = {
     // play sound
     // soundManager.play('jump');
 
-  },
+  }
   isMovingBackward() {
     return ioManager.keysDirection.z > 0 && this.isAiming();
-  },
+  }
   isAiming() {
     return metaversefileApi.useLocalPlayer().hasAction('aim');
-  },
+  }
   isSitting() {
     return metaversefileApi.useLocalPlayer().hasAction('sit');
-  },
+  }
   getMouseHoverObject() {
     return mouseHoverObject;
-  },
+  }
   getMouseHoverPhysicsId() {
     return mouseHoverPhysicsId;
-  },
+  }
   getMouseHoverPosition() {
     return mouseHoverPosition;
-  },
+  }
   setHoverEnabled(hoverEnabled) {
     this.hoverEnabled = hoverEnabled;
-  },
+  }
   setMouseHoverObject(o, physicsId, position) {
     mouseHoverObject = o;
     mouseHoverPhysicsId = physicsId;
@@ -1719,16 +1724,16 @@ const gameManager = {
         position: mouseHoverPosition,
       },
     }));
-  },
+  }
   getMouseSelectedObject() {
     return mouseSelectedObject;
-  },
+  }
   getMouseSelectedPhysicsId() {
     return mouseSelectedPhysicsId;
-  },
+  }
   getMouseSelectedPosition() {
     return mouseSelectedPosition;
-  },
+  }
   setMouseSelectedObject(o, physicsId, position) {
     mouseSelectedObject = o;
     mouseSelectedPhysicsId = physicsId;
@@ -1745,21 +1750,21 @@ const gameManager = {
         position: mouseSelectedPosition,
       },
     }));
-  },
+  }
   getMouseDomHoverObject() {
     return mouseDomHoverObject;
-  },
+  }
   setMouseDomHoverObject(o, physicsId) {
     mouseDomHoverObject = o;
     mouseDomHoverPhysicsId = physicsId;
-  },
+  }
   getMouseDomEquipmentHoverObject(o, physicsId) {
     return mouseDomEquipmentHoverObject;
-  },
+  }
   setMouseDomEquipmentHoverObject(o, physicsId) {
     mouseDomEquipmentHoverObject = o;
     mouseDomEquipmentHoverPhysicsId = physicsId;
-  },
+  }
   getSpeed() {
     let speed = 0;
     
@@ -1786,16 +1791,16 @@ const gameManager = {
     speed *= backwardMultiplier;
     
     return speed;
-  },
+  }
   getClosestObject() {
     return gameManager.closestObject;
-  },
+  }
   getUsableObject() {
     return gameManager.usableObject;
-  },
+  }
   getLastMouseEvent() {
     return lastMouseEvent;
-  },
+  }
   setLastMouseEvent(e) {
     if (!lastMouseEvent) {
       lastMouseEvent = {
@@ -1811,10 +1816,10 @@ const gameManager = {
     } else {
       lastMouseEvent.inside = false;
     }
-  },
+  }
   getDragRightSpec() {
     return dragRightSpec;
-  },
+  }
   menuActivateDown() {
     if (grabUseMesh.visible) {
       const localPlayer = metaversefileApi.useLocalPlayer();
@@ -1827,48 +1832,44 @@ const gameManager = {
         localPlayer.addAction(newActivateAction);
       }
     }
-  },
+  }
   menuActivateUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('activate');
-  },
+  }
   setAvatarQuality(quality) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.avatar.setQuality(quality);
-  },
-  playerDiorama: null,
-  async bindDioramaCanvas(canvas) {
-    await rendererWaitForLoad();
+  }
+  playerDiorama = null;
+  bindDioramaCanvas() {
+    // await rendererWaitForLoad();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.addEventListener('avatarchange', e => {
-      this.playerDiorama.setObjects([
-        e.avatar.model,
-      ]);
-    });
     this.playerDiorama = dioramaManager.createPlayerDiorama({
-      canvas,
       target: localPlayer,
       // label: true,
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
     });
-    this.playerDiorama.enabled = false;
-    canvas.addEventListener('click', e => {
-      this.playerDiorama.toggleShader();
+    localPlayer.addEventListener('avatarchange', e => {
+      this.playerDiorama.setObjects([
+        e.avatar.model,
+      ]);
     });
-  },
+  }
   loadVoicePack(voicePack) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     return localPlayer.loadVoicePack(voicePack);
-  },
+  }
   setVoiceEndpoint(voiceId) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     return localPlayer.setVoiceEndpoint(voiceId);
-  },
-  update: _gameUpdate,
-  pushAppUpdates: _pushAppUpdates,
-  pushPlayerUpdates: _pushPlayerUpdates,
-};
+  }
+  update = _gameUpdate;
+  pushAppUpdates = _pushAppUpdates;
+  pushPlayerUpdates = _pushPlayerUpdates;
+}
+const gameManager = new GameManager();
 export default gameManager;

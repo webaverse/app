@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react'
+import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx'
 import classes from './MagicMenu.module.css'
 import ioManager from '../io-manager.js';
 import * as codeAi from '../ai/code/code-ai.js';
@@ -72,27 +73,6 @@ function MagicMenu({open, setOpen}) {
     })();
   };
   useEffect(() => {
-    const types = ['keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
-    const cleanups = types.map(type => {
-      const fn = e => {
-        if (window.document.activeElement === inputTextarea.current || e.target === inputTextarea.current) {
-          // nothing
-        } else {
-          ioManager[type](e);
-        }
-      };
-      window.addEventListener(type, fn);
-      return () => {
-        window.removeEventListener(type, fn);
-      };
-    });
-    return () => {
-      for (const fn of cleanups) {
-        fn();
-      }
-    };
-  }, []);
-  useEffect(() => {
     if (magicMenuOpen) {
       if (page === 'input') {
         inputTextarea.current.focus();
@@ -104,6 +84,19 @@ function MagicMenu({open, setOpen}) {
       setNeedsFocus(false);
     }
   }, [magicMenuOpen, inputTextarea.current, needsFocus]);
+  useEffect(() => {
+    function all(e) {
+      if (window.document.activeElement === inputTextarea.current || e.target === inputTextarea.current) {
+        return false;
+      } else {
+        return true;
+      }
+    };
+    registerIoEventHandler('', all);
+    return () => {
+      unregisterIoEventHandler('', all);
+    };
+  }, []);
 
   const click = e => {
     ioManager.click(new MouseEvent('click'));

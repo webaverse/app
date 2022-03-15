@@ -1,20 +1,19 @@
 import * as THREE from 'three';
-import {getRenderer, scene} from './renderer.js';
+import {getRenderer} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
-import {defaultDioramaSize} from './constants.js';
-// import postProcessing from './post-processing.js';
-import gradients from './gradients.json';
-import {
-  fullscreenVertexShader,
-  outlineShader,
-  animeLightningFragmentShader,
-  animeRadialShader,
-  grassFragmentShader,
-  glyphFragmentShader,
-} from './diorama-shaders.js';
+// import {defaultDioramaSize} from './constants.js';
+import {planeGeometry, gradients} from './background-fx/common.js';
+import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
+import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
+import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
+import {SmokeBgFxMesh} from './background-fx/SmokeBgFx.js';
+import {GlyphBgFxMesh} from './background-fx/GlyphBgFx.js';
+import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
+import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
+import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -231,7 +230,6 @@ const textFragmentShader = `\
     gl_FragColor = vec4(vec3(1.), 1.);
   }
 `;
-const planeGeometry = new THREE.PlaneGeometry(2, 2);
 async function makeTextMesh(
   text = '',
   material = null,
@@ -259,132 +257,9 @@ async function makeTextMesh(
   });
   return textMesh;
 }
-const lightningMesh = (() => {
-  const textureLoader = new THREE.TextureLoader();
-  const quad = new THREE.Mesh(
-    planeGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        iTime: {
-          value: 0,
-          needsUpdate: false,
-        },
-        iFrame: {
-          value: 0,
-          needsUpdate: false,
-        },
-        iChannel0: {
-          value: textureLoader.load('/textures/pebbles.png'),
-          // needsUpdate: true,
-        },
-        iChannel1: {
-          value: textureLoader.load('/textures/noise.png'),
-          // needsUpdate: true,
-        },
-        uColor1: {
-          value: new THREE.Color(0x000000),
-          needsUpdate: true,
-        },
-        uColor2: {
-          value: new THREE.Color(0xFFFFFF),
-          needsUpdate: true,
-        },
-      },
-      vertexShader: fullscreenVertexShader,
-      fragmentShader: animeLightningFragmentShader,
-      depthWrite: false,
-      depthTest: false,
-    })
-  );
-  /* quad.material.onBeforeCompile = shader => {
-    console.log('got full screen shader', shader);
-  }; */
-  quad.material.uniforms.iChannel0.value.wrapS = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel0.value.wrapT = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel1.value.wrapS = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel1.value.wrapT = THREE.RepeatWrapping;
-  quad.frustumCulled = false;
-  return quad;
-})();
-const radialMesh = (() => {
-  // const textureLoader = new THREE.TextureLoader();
-  const quad = new THREE.Mesh(
-    planeGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        iTime: {
-          value: 0,
-          needsUpdate: false,
-        },
-        iFrame: {
-          value: 0,
-          needsUpdate: false,
-        },
-        /* iChannel0: {
-          value: textureLoader.load('/textures/pebbles.png'),
-          // needsUpdate: true,
-        },
-        iChannel1: {
-          value: textureLoader.load('/textures/noise.png'),
-          // needsUpdate: true,
-        }, */
-      },
-      vertexShader: fullscreenVertexShader,
-      fragmentShader: animeRadialShader,
-      depthWrite: false,
-      depthTest: false,
-      alphaToCoverage: true,
-    })
-  );
-  /* quad.material.onBeforeCompile = shader => {
-    console.log('got full screen shader', shader);
-  }; */
-  /* quad.material.uniforms.iChannel0.value.wrapS = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel0.value.wrapT = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel1.value.wrapS = THREE.RepeatWrapping;
-  quad.material.uniforms.iChannel1.value.wrapT = THREE.RepeatWrapping; */
-  quad.frustumCulled = false;
-  return quad;
-})();
-const outlineMesh = (() => {
-  const quad = new THREE.Mesh(
-    planeGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        t0: {
-          value: null,
-          needsUpdate: false,
-        },
-        outline_thickness: {
-          value: 0.02,
-          needsUpdate: true,
-        },
-        uColor1: {
-          value: new THREE.Color(0x000000),
-          needsUpdate: true,
-        },
-        uColor2: {
-          value: new THREE.Color(0xFFFFFF),
-          needsUpdate: true,
-        },
-        outline_threshold: {
-          value: .5,
-          needsUpdate: true,
-        },
-      },
-      vertexShader: fullscreenVertexShader,
-      fragmentShader: outlineShader,
-      depthWrite: false,
-      depthTest: false,
-      alphaToCoverage: true,
-    })
-  );
-  /* quad.material.onBeforeCompile = shader => {
-    console.log('got full screen shader', shader);
-  }; */
-  quad.frustumCulled = false;
-  return quad;
-})();
+const lightningMesh = new LightningBgFxMesh();
+const radialMesh = new RadialBgFxMesh();
+const outlineMesh = new OutlineBgFxMesh();
 const s1 = 0.4;
 const sk1 = 0.2;
 const speed1 = 1;
@@ -464,96 +339,11 @@ const labelMesh = (() => {
   quad.frustumCulled = false;
   return quad;
 })();
-const grassMesh = (() => {
-  const textureLoader = new THREE.TextureLoader();
-  const quad = new THREE.Mesh(
-    planeGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        iTime: {
-          value: 0,
-          needsUpdate: false,
-        },
-        iChannel0: {
-          value: textureLoader.load('/textures/pebbles.png'),
-          // needsUpdate: true,
-        },
-        iChannel1: {
-          value: textureLoader.load('/textures/noise.png'),
-          // needsUpdate: true,
-        },
-        /* iFrame: {
-          value: 0,
-          needsUpdate: false,
-        }, */
-        /* outline_thickness: {
-          value: 0.02,
-          needsUpdate: true,
-        }, */
-        uColor1: {
-          value: new THREE.Color(0x000000),
-          needsUpdate: true,
-        },
-        uColor2: {
-          value: new THREE.Color(0xFFFFFF),
-          needsUpdate: true,
-        },
-        /* outline_threshold: {
-          value: .5,
-          needsUpdate: true,
-        }, */
-      },
-      vertexShader: fullscreenVertexShader,
-      fragmentShader: grassFragmentShader,
-      depthWrite: false,
-      depthTest: false,
-      alphaToCoverage: true,
-    })
-  );
-  quad.frustumCulled = false;
-  return quad;
-})();
-const glyphMesh = (() => {
-  const textureLoader = new THREE.TextureLoader();
-  const quad = new THREE.Mesh(
-    planeGeometry,
-    new THREE.ShaderMaterial({
-      uniforms: {
-        iTime: {
-          value: 0,
-          // needsUpdate: true,
-        },
-        iChannel0: {
-          value: textureLoader.load('/textures/lichen.jpg'),
-          // needsUpdate: true,
-        },
-        /* outline_thickness: {
-          value: 0.02,
-          needsUpdate: true,
-        }, */
-        uColor1: {
-          value: new THREE.Color(0x000000),
-          needsUpdate: true,
-        },
-        uColor2: {
-          value: new THREE.Color(0xFFFFFF),
-          needsUpdate: true,
-        },
-        /* outline_threshold: {
-          value: .5,
-          needsUpdate: true,
-        }, */
-      },
-      vertexShader: fullscreenVertexShader,
-      fragmentShader: glyphFragmentShader,
-      depthWrite: false,
-      depthTest: false,
-      alphaToCoverage: true,
-    })
-  );
-  quad.frustumCulled = false;
-  return quad;
-})();
+const grassMesh = new GrassBgFxMesh();
+const poisonMesh = new PoisonBgFxMesh();
+const noiseMesh = new NoiseBgFxMesh();
+const smokeMesh = new SmokeBgFxMesh();
+const glyphMesh = new GlyphBgFxMesh();
 const textObject = (() => {
   const o = new THREE.Object3D();
   
@@ -610,24 +400,6 @@ const skinnedRedMaterial = (() => {
     value: 0,
     needsUpdate: false,
   };
-  /* wVertex = `\
-    attribute vec3 offset;
-    attribute vec4 orientation;
-
-    vec3 applyQuaternionToVector(vec4 q, vec3 v){
-      return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
-    }
-
-  ` + wVertex;
-
-  wVertex = wVertex.replace(`\
-    #include <project_vertex>
-    vec3 vPosition = applyQuaternionToVector(orientation, transformed);
-
-    vec4 mvPosition = modelViewMatrix * vec4(vPosition, 1.0);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(offset + vPosition, 1.0);
-    
-  `); */
   wFragment = `\
     void main() {
       gl_FragColor = vec4(1., 0., 0., 1.);
@@ -660,6 +432,9 @@ sideScene.autoUpdate = false;
 sideScene.add(lightningMesh);
 sideScene.add(radialMesh);
 sideScene.add(grassMesh);
+sideScene.add(poisonMesh);
+sideScene.add(noiseMesh);
+sideScene.add(smokeMesh);
 sideScene.add(glyphMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
@@ -697,26 +472,12 @@ const _ensureSideSceneCompiled = () => {
 
 const sideCamera = new THREE.PerspectiveCamera();
 
-const _makeCanvas = (w, h) => {
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  canvas.style.cssText = `\
-    position: absolute;
-    /* width: ${w}px;
-    height: ${h}px; */
-    top: 0px;
-    left: 0px;
-  `;
-  return canvas;
-};
 const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   minFilter: THREE.LinearFilter,
   magFilter: THREE.LinearFilter,
   format: THREE.RGBAFormat,
 });
 const createPlayerDiorama = ({
-  canvas = null,
   objects = [],
   target = new THREE.Object3D(),
   cameraOffset = new THREE.Vector3(0.3, 0, -0.5),
@@ -725,25 +486,18 @@ const createPlayerDiorama = ({
   lights = true,
   label = null,
   outline = false,
+  grassBackground = false,
+  poisonBackground = false,
+  noiseBackground = false,
+  smokeBackground = false,
   lightningBackground = false,
   radialBackground = false,
   glyphBackground = false,
-  grassBackground = false,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
   const {devicePixelRatio: pixelRatio} = window;
 
-  // const renderer = getRenderer();
-
-  let locallyOwnedCanvas;
-  if (canvas) {
-    locallyOwnedCanvas = null;
-  } else {
-    canvas = _makeCanvas(defaultDioramaSize, defaultDioramaSize);
-    document.body.appendChild(canvas);
-    locallyOwnedCanvas = canvas;
-  }
   const canvases = [];
   let outlineRenderTarget = null
   let lastDisabledTime = 0;
@@ -751,13 +505,15 @@ const createPlayerDiorama = ({
   const diorama = {
     width: 0,
     height: 0,
-    loaded: false,
-    enabled: true,
+    // loaded: false,
     setTarget(newTarget) {
       target = newTarget;
     },
     setObjects(newObjects) {
       objects = newObjects;
+    },
+    getCanvases() {
+      return canvases;
     },
     resetCanvases() {
       canvases.length = 0;
@@ -772,20 +528,43 @@ const createPlayerDiorama = ({
 
       canvases.push(canvas);
     },
+    removeCanvas(canvas) {
+      const index = canvases.indexOf(canvas);
+      if (index !== -1) {
+        canvases.splice(index, 1);
+      }
+    },
     toggleShader() {
-      const oldValues = {lightningBackground, radialBackground, glyphBackground, grassBackground};
+      const oldValues = {
+        grassBackground,
+        poisonBackground,
+        noiseBackground,
+        smokeBackground,
+        lightningBackground,
+        radialBackground,
+        glyphBackground,
+      };
+      grassBackground = false;
+      poisonBackground = false;
+      noiseBackground = false;
+      smokeBackground = false;
       lightningBackground = false;
       radialBackground = false;
       glyphBackground = false;
-      grassBackground = false;
-      if (oldValues.lightningBackground) {
+      if (oldValues.grassBackground) {
+        poisonBackground = true;
+      } else if (oldValues.poisonBackground) {
+        noiseBackground = true;
+      } else if (oldValues.noiseBackground) {
+        smokeBackground = true;
+      } else if (oldValues.smokeBackground) {
+        lightningBackground = true;
+      } else if (oldValues.lightningBackground) {
         radialBackground = true;
       } else if (oldValues.radialBackground) {
         glyphBackground = true;
       } else if (oldValues.glyphBackground) {
         grassBackground = true;
-      } else if (oldValues.grassBackground) {
-        lightningBackground = true;
       }
     },
     triggerLoad() {
@@ -797,7 +576,7 @@ const createPlayerDiorama = ({
           await renderer.compileAsync(player.avatar.model, sideScene);
         })(), */
       ]).then(() => {
-        this.loaded = true;
+        // this.loaded = true;
       });
     },
     setCameraOffset(newCameraOffset) {
@@ -808,7 +587,7 @@ const createPlayerDiorama = ({
       clearAlpha = newClearAlpha;
     },
     update(timestamp, timeDiff) {
-      if (!this.loaded || !this.enabled) {
+      if (canvases.length === 0) {
         lastDisabledTime = timestamp;
         return;
       }
@@ -904,100 +683,124 @@ const createPlayerDiorama = ({
         _addObjectsToScene(sideScene);
         // sideScene.add(world.lights);
     
-        const {colors} = gradients[Math.floor(lightningMesh.material.uniforms.iTime.value) % gradients.length];
-        if (lightningBackground) {
-          lightningMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          lightningMesh.material.uniforms.iTime.needsUpdate = true;
-          lightningMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
-          lightningMesh.material.uniforms.iFrame.needsUpdate = true;
-          lightningMesh.material.uniforms.uColor1.value.set(colors[0]);
-          lightningMesh.material.uniforms.uColor1.needsUpdate = true;
-          lightningMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          lightningMesh.material.uniforms.uColor2.needsUpdate = true;
-          lightningMesh.visible = true;
-        } else {
-          lightningMesh.visible = false;
-        }
-        if (radialBackground) {
-          radialMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          radialMesh.material.uniforms.iTime.needsUpdate = true;
-          radialMesh.material.uniforms.iFrame.value = Math.floor(timeOffset / 1000 * 60);
-          radialMesh.material.uniforms.iFrame.needsUpdate = true;
-          radialMesh.visible = true;
-        } else {
-          radialMesh.visible = false;
-        }
-        if (grassBackground) {
-          grassMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          grassMesh.material.uniforms.iTime.needsUpdate = true;
-          grassMesh.material.uniforms.uColor1.value.set(colors[0]);
-          grassMesh.material.uniforms.uColor1.needsUpdate = true;
-          grassMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          grassMesh.material.uniforms.uColor2.needsUpdate = true;
-          grassMesh.visible = true;
-        } else {
-          grassMesh.visible = false;
-        }
-        if (glyphBackground) {
-          glyphMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          glyphMesh.material.uniforms.iTime.needsUpdate = true;
-          glyphMesh.material.uniforms.uColor1.value.set(colors[0]);
-          glyphMesh.material.uniforms.uColor1.needsUpdate = true;
-          glyphMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          glyphMesh.material.uniforms.uColor2.needsUpdate = true;
-          glyphMesh.visible = true;
-        } else {
-          glyphMesh.visible = false;
-        }
-        if (outline) {
-          outlineMesh.material.uniforms.t0.value = outlineRenderTarget.texture;
-          outlineMesh.material.uniforms.t0.needsUpdate = true;
-          outlineMesh.material.uniforms.uColor1.value.set(colors[0]);
-          outlineMesh.material.uniforms.uColor1.needsUpdate = true;
-          outlineMesh.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
-          outlineMesh.material.uniforms.uColor2.needsUpdate = true;
-          outlineMesh.visible = true;
-        } else {
-          outlineMesh.visible = false;
-        }
-        if (label) {
-          labelMesh.material.uniforms.iTime.value = timeOffset / 1000;
-          labelMesh.material.uniforms.iTime.needsUpdate = true;
-          labelMesh.visible = true;
-          for (const child of textObject.children) {
-            child.material.uniforms.uTroikaOutlineOpacity.value = timeOffset / 1000;
-            child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+        const _renderGrass = () => {
+          if (grassBackground) {
+            grassMesh.update(timeOffset, timeDiff, this.width, this.height);
+            grassMesh.visible = true;
+          } else {
+            grassMesh.visible = false;
           }
-          textObject.visible = true;
-        } else {
-          labelMesh.visible = false;
-          textObject.visible = false;
-        }
+        };
+        _renderGrass();
+        const _renderPoison = () => {
+          if (poisonBackground) {
+            poisonMesh.update(timeOffset, timeDiff, this.width, this.height);
+            poisonMesh.visible = true;
+          } else {
+            poisonMesh.visible = false;
+          }
+        };
+        _renderPoison();
+        const _renderNoise = () => {
+          if (noiseBackground) {
+            noiseMesh.update(timeOffset, timeDiff, this.width, this.height);
+            noiseMesh.visible = true;
+          } else {
+            noiseMesh.visible = false;
+          }
+        };
+        _renderNoise();
+        const _renderSmoke = () => {
+          if (smokeBackground) {
+            smokeMesh.update(timeOffset, timeDiff, this.width, this.height);
+            smokeMesh.visible = true;
+          } else {
+            smokeMesh.visible = false;
+          }
+        };
+        _renderSmoke();
+        const _renderLightning = () => {
+          if (lightningBackground) {
+            lightningMesh.update(timeOffset, timeDiff, this.width, this.height);
+            lightningMesh.visible = true;
+          } else {
+            lightningMesh.visible = false;
+          }
+        };
+        _renderLightning();
+        const _renderRadial = () => {
+          if (radialBackground) {
+            radialMesh.update(timeOffset, timeDiff, this.width, this.height);
+            radialMesh.visible = true;
+          } else {
+            radialMesh.visible = false;
+          }
+        };
+        _renderRadial();
+        const _renderGlyph = () => {
+          if (glyphBackground) {
+            glyphMesh.update(timeOffset, timeDiff, this.width, this.height);
+            glyphMesh.visible = true;
+          } else {
+            glyphMesh.visible = false;
+          }
+        };
+        _renderGlyph();
+        const _renderOutline = () => {
+          if (outline) {
+            outlineMesh.update(timeOffset, timeDiff, this.width, this.height, outlineRenderTarget.texture);
+            outlineMesh.visible = true;
+          } else {
+            outlineMesh.visible = false;
+          }
+        };
+        _renderOutline();
+        const _renderLabel = () => {
+          if (label) {
+            labelMesh.material.uniforms.iTime.value = timeOffset / 1000;
+            labelMesh.material.uniforms.iTime.needsUpdate = true;
+            labelMesh.visible = true;
+            for (const child of textObject.children) {
+              child.material.uniforms.uTroikaOutlineOpacity.value = timeOffset / 1000;
+              child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
+            }
+            textObject.visible = true;
+          } else {
+            labelMesh.visible = false;
+            textObject.visible = false;
+          }
+        };
+        _renderLabel();
         
         // render side scene
-        renderer.setRenderTarget(oldRenderTarget);
-        renderer.setViewport(0, 0, this.width, this.height);
-        if (clearColor !== null) {
-          renderer.setClearColor(clearColor, clearAlpha);
-        }
-        renderer.clear();
-        renderer.render(sideScene, sideCamera);
-    
-        for (const canvas of canvases) {
-          const {width, height, ctx} = canvas;
-          ctx.clearRect(0, 0, width, height);
-          ctx.drawImage(
-            renderer.domElement,
-            0,
-            size.y * pixelRatio - this.height * pixelRatio,
-            this.width * pixelRatio,
-            this.height * pixelRatio,
-            0,
-            0,
-            width,
-            height
-          );
-        }
+        const _render = () => {
+          renderer.setRenderTarget(oldRenderTarget);
+          renderer.setViewport(0, 0, this.width, this.height);
+          if (clearColor !== null) {
+            renderer.setClearColor(clearColor, clearAlpha);
+          }
+          renderer.clear();
+          renderer.render(sideScene, sideCamera);
+        };
+        _render();
+        const _copyFrame = () => {
+          for (const canvas of canvases) {
+            const {width, height, ctx} = canvas;
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(
+              renderer.domElement,
+              0,
+              size.y * pixelRatio - this.height * pixelRatio,
+              this.width * pixelRatio,
+              this.height * pixelRatio,
+              0,
+              0,
+              width,
+              height
+            );
+          }
+        };
+        _copyFrame();
       };
       _render();
 
@@ -1008,9 +811,6 @@ const createPlayerDiorama = ({
       renderer.setClearColor(oldClearColor, oldClearAlpha);
     },
     destroy() {
-      if (locallyOwnedCanvas) {
-        locallyOwnedCanvas.parentNode.removeChild(locallyOwnedCanvas);
-      }
       dioramas.splice(dioramas.indexOf(diorama), 1);
 
       // postProcessing.removeEventListener('update', recompile);
@@ -1036,11 +836,7 @@ const createPlayerDiorama = ({
     player.addEventListener('avatarchange', avatarchange);
   } */
 
-  if (canvas) {
-    diorama.addCanvas(canvas);
-  }
   dioramas.push(diorama);
-  diorama.loaded = true; // XXX hack
   return diorama;
 };
 
