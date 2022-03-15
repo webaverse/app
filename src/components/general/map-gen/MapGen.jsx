@@ -7,6 +7,7 @@ const {useLocalPlayer, useLoreAIScene} = metaversefile;
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
 import {MiniHup} from '../../../MiniHup.jsx';
+// import {RpgText} from '../../../RpgText.jsx';
 import {getRenderer} from '../../../../renderer.js';
 // import game from '../../../../game.js';
 import {world} from '../../../../world.js';
@@ -350,6 +351,7 @@ export const MapGen = ({
     const [selectedObject, setSelectedObject] = useState(null);
     const [lastSelectTime, setLastSelectTime] = useState(-Infinity);
     const [chunkCache, setChunkCache] = useState(new Map());
+    const [text, setText] = useState('');
     const canvasRef = useRef();
 
     const updateCamera = () => {
@@ -431,11 +433,24 @@ export const MapGen = ({
           const message = `${selectedChunk.name}. ${comment}`;
           const preloadedMessage = localPlayer.voicer.preloadMessage(message);
           await chatManager.waitForVoiceTurn(() => {
+            setText(message);
             return localPlayer.voicer.start(preloadedMessage);
           });
+          setText('');
         })();
       }
     };
+
+    /* useEffect(() => {
+      if (text) {
+        const timeout = setTimeout(() => {
+          setText('');
+        }, 5000);
+        return () => {
+          clearTimeout(timeout);
+        };
+      }
+    }, [text]); */
 
     // open
     useEffect(() => {
@@ -696,7 +711,7 @@ export const MapGen = ({
                 onMouseDown={mouseDown}
                 ref={canvasRef}
             />
-            <MiniHup />
+            <MiniHup text={text} />
         </div>
     ) : null;
 };

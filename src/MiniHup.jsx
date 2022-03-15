@@ -4,16 +4,20 @@ import React, {useState, useEffect, useRef} from 'react';
 // import dioramaManager from '../diorama.js';
 import game from '../game.js';
 import styles from './MiniHup.module.css';
+import {RpgText} from './RpgText.jsx';
+import {chatTextSpeed} from '../constants.js';
 // import metaversefile from 'metaversefile';
 // const {useLocalPlayer} = metaversefile;
 // import {chatTextSpeed} from '../constants.js';
 
-const defaultHupSize = 128;
+const defaultHupSize = 150;
 const pixelRatio = window.devicePixelRatio;
 
 // const chatDioramas = new WeakMap();
 
-const MiniHup = function(props) {
+const MiniHup = function({
+  text = '',
+}) {
   // const {hup, index, hups, setHups} = props;
 
   const canvasRef = useRef();
@@ -114,6 +118,7 @@ const MiniHup = function(props) {
 
   return (
     <div className={styles.miniHup}>
+      <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
       <canvas
         className={styles.canvas}
         width={defaultHupSize*pixelRatio}
