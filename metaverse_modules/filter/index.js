@@ -15,6 +15,19 @@ const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 const oneVector = new THREE.Vector3(1, 1, 1);
 
+function quantizeGeometry(g, n) {
+  const positions = g.attributes.position.array;
+  for (let i = 0; i < positions.length; i += 3) {
+    localVector.fromArray(positions, i);
+    localVector.x = Math.round(localVector.x / n) * n;
+    localVector.y = Math.round(localVector.y / n) * n;
+    localVector.z = Math.round(localVector.z / n) * n;
+    localVector.toArray(positions, i);
+  }
+  g.attributes.position.needsUpdate = true;
+  return g;
+}
+
 export default () => {
   const app = useApp();
   const physics = usePhysics();
@@ -59,6 +72,7 @@ export default () => {
   const physicsIds = [];
   {
     const geometries = wallNormals.map(wallNormal => {
+      let g = null;
       const localExitSpecs = exits.map(exit => {
         localVector.fromArray(exit);
         let normal;
@@ -107,7 +121,6 @@ export default () => {
         const outerWidth = scale.x;
         const outerHeight = scale.y;
 
-        // XXX this needs to be quantized to voxelWorldSize because path drawing is inaccurate
         const wallShape = new THREE.Shape();
 
         wallShape.moveTo(-outerWidth / 2, -outerHeight / 2);
@@ -137,7 +150,7 @@ export default () => {
           )
         );
 
-        return new THREE.ShapeGeometry(wallShape)
+        g = new THREE.ShapeGeometry(wallShape)
           .applyMatrix4(
             localMatrix.compose(offset, quaternion, oneVector)
           );
@@ -152,11 +165,12 @@ export default () => {
           )
         );
         const scale = _getScaleFromNormal(wallNormal, localVector2);
-        return new THREE.PlaneBufferGeometry(1, 1, 1)
+        g = new THREE.PlaneBufferGeometry(1, 1, 1)
           .applyMatrix4(
             localMatrix.compose(offset, quaternion, scale)
           );
       }
+      return quantizeGeometry(g, voxelWorldSize);
     });
     const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
 
