@@ -56,19 +56,15 @@ export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
     let [ sy, setSy ] = useState( 1 );
     let [ sz, setSz ] = useState( 1 );
 
-    // if ( selectedApp ) {
-
-        px = { value: px, onChange: e => { const v = e.target.value; selectedApp.position.x = v; selectedApp.updateMatrixWorld(); setPx( v ); } };
-        py = { value: py, onChange: e => { const v = e.target.value; selectedApp.position.y = v; selectedApp.updateMatrixWorld(); setPy( v ); } };
-        pz = { value: pz, onChange: e => { const v = e.target.value; selectedApp.position.z = v; selectedApp.updateMatrixWorld(); setPz( v ); } };
-        rx = { value: rx, onChange: e => { const v = e.target.value; selectedApp.rotation.x = v; selectedApp.updateMatrixWorld(); setRx( v ); } };
-        ry = { value: ry, onChange: e => { const v = e.target.value; selectedApp.rotation.y = v; selectedApp.updateMatrixWorld(); setRy( v ); } };
-        rz = { value: rz, onChange: e => { const v = e.target.value; selectedApp.rotation.z = v; selectedApp.updateMatrixWorld(); setRz( v ); } };
-        sx = { value: sx, onChange: e => { const v = e.target.value; selectedApp.scale.x = v; selectedApp.updateMatrixWorld(); setSx( v ); } };
-        sy = { value: sy, onChange: e => { const v = e.target.value; selectedApp.scale.y = v; selectedApp.updateMatrixWorld(); setSy( v ); } };
-        sz = { value: sz, onChange: e => { const v = e.target.value; selectedApp.scale.z = v; selectedApp.updateMatrixWorld(); setSz( v ); } };
-
-    // }
+    px = { value: px, onChange: e => { const v = e.target.value; selectedApp.position.x = v; selectedApp.updateMatrixWorld(); setPx( v ); } };
+    py = { value: py, onChange: e => { const v = e.target.value; selectedApp.position.y = v; selectedApp.updateMatrixWorld(); setPy( v ); } };
+    pz = { value: pz, onChange: e => { const v = e.target.value; selectedApp.position.z = v; selectedApp.updateMatrixWorld(); setPz( v ); } };
+    rx = { value: rx, onChange: e => { const v = e.target.value; selectedApp.rotation.x = v; selectedApp.updateMatrixWorld(); setRx( v ); } };
+    ry = { value: ry, onChange: e => { const v = e.target.value; selectedApp.rotation.y = v; selectedApp.updateMatrixWorld(); setRy( v ); } };
+    rz = { value: rz, onChange: e => { const v = e.target.value; selectedApp.rotation.z = v; selectedApp.updateMatrixWorld(); setRz( v ); } };
+    sx = { value: sx, onChange: e => { const v = e.target.value; selectedApp.scale.x = v; selectedApp.updateMatrixWorld(); setSx( v ); } };
+    sy = { value: sy, onChange: e => { const v = e.target.value; selectedApp.scale.y = v; selectedApp.updateMatrixWorld(); setSy( v ); } };
+    sz = { value: sz, onChange: e => { const v = e.target.value; selectedApp.scale.z = v; selectedApp.updateMatrixWorld(); setSz( v ); } };
 
     //
 
@@ -79,6 +75,9 @@ export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
     };
 
     const handleKeyUp = ( event ) => {
+
+        const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
+        if ( inputFocused ) return true;
 
         switch ( event.which ) {
 
@@ -97,11 +96,13 @@ export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
 
                 }
 
-                break;
+                return false;
 
             }
 
         }
+
+        return true;
 
     };
 
