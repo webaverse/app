@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import { Switch } from './switch';
 import loreAI from '../../../../ai/lore/lore-ai';
 import preauthenticator from '../../../../preauthenticator';
+import debug from '../../../../debug';
 
 import styles from './settings.module.css';
 
@@ -22,9 +23,23 @@ export const TabAi = ({ active }) => {
     const [ appyingChanges, setAppyingChanges ] = useState( false );
     const [ changesNotSaved, setChangesNotSaved ] = useState( false );
     const [ settingsLoaded, setSettingsLoaded ] = useState( false );
+    const [ debugEnabled, setDebugEnabled ] = useState( debug.enabled );
+    const [ testText, setTestText ] = useState( '' );
 
     const [ apiType, setApiType ] = useState( null );
     const [ apiKey, setApiKey ] = useState( null );
+
+    //
+
+    useEffect(() => {
+        function enabledchange(e) {
+            setDebugEnabled(e.data.enabled);
+        }
+        debug.addEventListener('enabledchange', enabledchange);
+        return () => {
+            debug.removeEventListener('enabledchange', enabledchange);
+        };
+    }, []);
 
     //
 
@@ -156,6 +171,10 @@ export const TabAi = ({ active }) => {
 
     }, [] );
 
+    function testAi(e) {
+
+    }
+
     //
 
     return (
@@ -168,8 +187,25 @@ export const TabAi = ({ active }) => {
                   <input type="text" className={ styles.input } value={ apiKey ?? '' } onChange={e => setApiKey(e.target.value) } placeholder="API Key" />
                 :
                   null}
-                <div className={ styles.clearfix } />
+                <div className={ styles.clearfix } />                
             </div>
+
+            {debugEnabled ? (<>
+                <div className={ styles.blockTitle }>Test</div>
+                <div className={ styles.row }>
+                
+                    <textarea
+                        className={ styles.textarea }
+                        value={testText}
+                        onChange={e => {
+                            console.log('got change', e.target, e.target.innerText);
+                            setTestText(e.target.innerText);
+                        }}
+                    ></textarea>
+                    <div className={ styles.clearfix } />
+                    <input type="button" className={ styles.button } value="Submit" onClick={testAi} />
+                </div>
+            </>) : null}
 
             <div className={ classNames( styles.applyBtn, changesNotSaved ? styles.active : null ) } onClick={ handleApplySettingsBtnClick } >
                 { appyingChanges ? 'APPLYING' : 'APPLY' }
