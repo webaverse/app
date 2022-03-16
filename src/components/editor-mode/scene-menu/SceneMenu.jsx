@@ -171,6 +171,8 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleMicBtnClick = async () => {
 
+        setState({ openedPanel: null });
+
         if ( ! voiceInput.micEnabled() ) {
 
             await voiceInput.enableMic();
@@ -184,6 +186,8 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     };
 
     const handleSpeakBtnClick = async () => {
+
+        setState({ openedPanel: null });
 
         if ( ! voiceInput.speechEnabled() ) {
 
@@ -240,20 +244,20 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.green ) } />
                 </div>
                 <div className={ styles.buttonWrap  } onClick={ handleRoomMenuOpen.bind( this, null ) } >
-                    <button className={ classnames( styles.button, ( state.openedPanel === 'RoomsMenuPanel' || multiplayerConnected ) ? null : styles.disabled ) } >
+                    <div className={ classnames( styles.button, ( state.openedPanel === 'RoomsMenuPanel' || multiplayerConnected ) ? null : styles.disabled ) } >
                         <img src="images/wifi.svg" />
-                    </button>
+                    </div>
                 </div>
                 <div className={styles.buttonWrap } onClick={ handleMicBtnClick } >
-                    <button className={ classnames( styles.button, micEnabled ? null : styles.disabled ) } >
+                    <div className={ classnames( styles.button, micEnabled ? null : styles.disabled ) } >
                         <img src="images/microphone.svg" className={ classnames( micEnabled ? null : styles.hidden ) } />
                         <img src="images/microphone-slash.svg" className={ classnames( micEnabled ? styles.hidden : null ) } />
-                    </button>
+                    </div>
                 </div>
                 <div className={styles.buttonWrap } onClick={ handleSpeakBtnClick } >
-                    <button className={ classnames( styles.button, speechEnabled ? null : styles.disabled ) } >
+                    <div className={ classnames( styles.button, speechEnabled ? null : styles.disabled ) } >
                         <img src="images/speak.svg" />
-                    </button>
+                    </div>
                 </div>
             </div>
 

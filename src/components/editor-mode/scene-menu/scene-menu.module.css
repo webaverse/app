@@ -10,6 +10,10 @@
     z-index: 2;
 }
 
+.location .button {
+    padding: 5px;
+}
+
 .location .row {
     display: flex;
     height: 100%;
