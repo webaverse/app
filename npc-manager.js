@@ -6,7 +6,8 @@ class NpcManager extends EventTarget {
 
     this.npcs = [];
   }
-  async createNpc({
+
+  createNpc({
     name,
     avatarApp,
     position,
@@ -33,7 +34,7 @@ class NpcManager extends EventTarget {
       npcPlayer.updateMatrixWorld();
     }
 
-    await npcPlayer.setAvatarAppAsync(avatarApp);
+    npcPlayer.setAvatarApp(avatarApp);
     this.npcs.push(npcPlayer);
 
     this.dispatchEvent(new MessageEvent('npcadd', {
@@ -41,15 +42,16 @@ class NpcManager extends EventTarget {
         player: npcPlayer,
       },
     }));
-    
+
     return npcPlayer;
   }
+
   destroyNpc(npcPlayer) {
     npcPlayer.destroy();
 
     const removeIndex = this.npcs.indexOf(npcPlayer);
     this.npcs.splice(removeIndex, 1);
-  
+
     this.dispatchEvent(new MessageEvent('npcremove', {
       data: {
         player: npcPlayer,
