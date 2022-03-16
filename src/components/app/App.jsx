@@ -91,7 +91,7 @@ export const App = () => {
 
     useEffect( () => {
 
-        if ( state.openedPanel && state.openedPanel !== 'ChatPanel' ) {
+        if ( state.openedPanel && state.openedPanel !== 'ChatPanel' && cameraManager.pointerLockElement ) {
 
             cameraManager.exitPointerLock();
 

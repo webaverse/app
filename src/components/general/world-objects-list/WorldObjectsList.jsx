@@ -74,38 +74,6 @@ export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
 
     };
 
-    const handleKeyUp = ( event ) => {
-
-        const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
-        if ( inputFocused ) return true;
-
-        switch ( event.which ) {
-
-            case 90: {   // Z
-
-                if ( state.openedPanel === 'WorldPanel' ) {
-
-                    ioManager.click( new MouseEvent('click') );
-                    cameraManager.requestPointerLock();
-                    setState({ openedPanel: null });
-
-                } else if ( state.openedPanel !== 'SettingsPanel' ) {
-
-                    cameraManager.exitPointerLock();
-                    setState({ openedPanel: 'WorldPanel' });
-
-                }
-
-                return false;
-
-            }
-
-        }
-
-        return true;
-
-    };
-
     const selectApp = ( targetApp, physicsId, position ) => {
 
         setSelectedApp( targetApp );
@@ -161,6 +129,47 @@ export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
         const update = () => {
 
             setApps( world.appManager.getApps().slice() );
+
+        };
+
+        const handleKeyUp = ( event ) => {
+
+            const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
+            if ( inputFocused ) return true;
+
+            switch ( event.which ) {
+
+                case 90: {   // Z
+
+                    if ( state.openedPanel === 'WorldPanel' ) {
+
+                        if ( ! cameraManager.pointerLockElement ) {
+
+                            cameraManager.requestPointerLock();
+
+                        }
+
+                        setState({ openedPanel: null });
+
+                    } else if ( state.openedPanel !== 'SettingsPanel' ) {
+
+                        if ( cameraManager.pointerLockElement ) {
+
+                            cameraManager.exitPointerLock();
+
+                        }
+
+                        setState({ openedPanel: 'WorldPanel' });
+
+                    }
+
+                    return false;
+
+                }
+
+            }
+
+            return true;
 
         };
 

@@ -1135,31 +1135,57 @@ export const MapGen = () => {
     };
 
     // open
-    useEffect(() => {
-      function keydown(e) {
-        switch (e.which) {
-          case 77: { // M
-            const newOpen = ( state.openedPanel !== 'MapGenPanel' );
+    useEffect( () => {
 
-            if (newOpen && cameraManager.pointerLockElement) {
-              cameraManager.exitPointerLock();
-            } else if (!newOpen && !cameraManager.pointerLockElement) {
-              cameraManager.requestPointerLock();
+        function handleKeyUp ( event ) {
+
+            const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
+            if ( inputFocused ) return true;
+
+            switch ( event.which ) {
+
+                case 77: { // M
+
+                    if ( state.openedPanel === 'MapGenPanel' ) {
+
+                        setState({ openedPanel: null });
+
+                        if ( ! cameraManager.pointerLockElement ) {
+
+                            cameraManager.requestPointerLock();
+
+                        }
+
+                    } else {
+
+                        if ( cameraManager.pointerLockElement ) {
+
+                            cameraManager.exitPointerLock();
+
+                        }
+
+                        setState({ openedPanel: 'MapGenPanel' });
+
+                    }
+
+                    return false;
+
+                }
+
             }
 
-            setState({ openedPanel: newOpen ? 'MapGenPanel' : null });
-
-            return false;
-          }
-          default: {
             return true;
-          }
+
         }
-      }
-      registerIoEventHandler('keydown', keydown);
-      return () => {
-        unregisterIoEventHandler('keydown', keydown);
-      };
+
+        registerIoEventHandler( 'keyup', handleKeyUp );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keyup', handleKeyUp );
+
+        };
+
     }, [ state.openedPanel ]);
 
     // resize
