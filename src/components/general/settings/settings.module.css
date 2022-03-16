@@ -136,6 +136,13 @@
     font-family: inherit;
 }
 
+.apiKeysTab .textarea {
+    width: 100%;
+    height: 200px;
+    outline: none;
+    resize: vertical;
+}
+
 .audioTab .slider {
     float: left;
     margin-left: 20px;
