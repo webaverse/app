@@ -7,6 +7,7 @@ import {defaultPlayerName} from '../../../../ai/lore/lore-model.js';
 import { AppContext } from '../../app';
 
 import styles from './character.module.css';
+import cameraManager from '../../../../camera-manager.js';
 
 const emotions = [
     'joy',
@@ -18,14 +19,14 @@ const emotions = [
 
 //
 
-export const Character = ({ game, wearActions, panelsRef, dioramaCanvasRef }) => {
+export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
 
     const { state, setState } = useContext( AppContext );
 
     const emotionStates = emotions.map(e => {
 
-        const [action, setAction] = useState(null);
-        const [value, setValue] = useState(0);
+        const [ action, setAction ] = useState(null);
+        const [ value, setValue ] = useState(0);
 
         return {
             action,
@@ -36,22 +37,28 @@ export const Character = ({ game, wearActions, panelsRef, dioramaCanvasRef }) =>
 
     });
 
-    const [dragEmotionIndex, setDragEmotionIndex] = useState(-1);
+    const [ dragEmotionIndex, setDragEmotionIndex ] = useState( -1 );
     const emotionsRef = useRef();
     const localPlayer = metaversefile.useLocalPlayer();
     const sideSize = 400;
 
     //
 
-    const handleCharacterBtnClick = ( event ) => {
+    const handleCharacterBtnClick = () => {
 
         setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+
+        if ( state.openedPanel === 'CharacterPanel' ) {
+
+            cameraManager.requestPointerLock();
+
+        }
 
     };
 
     //
 
-    useEffect(() => {
+    useEffect( () => {
 
         if ( game.playerDiorama ) {
 
@@ -73,47 +80,69 @@ export const Character = ({ game, wearActions, panelsRef, dioramaCanvasRef }) =>
 
     }, [ dioramaCanvasRef, state.openedPanel ] );
 
-  useEffect(() => {
-    function mousemove(e) {
-      const emotionsEl = emotionsRef.current;
-      if (document.pointerLockElement === emotionsEl) {
-        const {/*movementX, */movementY} = e;
-        if (dragEmotionIndex !== -1) {
-          const emotion = emotions[dragEmotionIndex];
-          const emotionState = emotionStates[dragEmotionIndex];
-          const oldValue = emotionState.action ? emotionState.action.value : 0;
-          const value = Math.min(Math.max(oldValue - movementY * 0.01, 0), 1);
-          if (value > 0) {
-            if (emotionState.action === null) {
-              const newAction = localPlayer.addAction({
-                type: 'emote',
-                emotion,
-                value,
-              });
-              emotionState.setAction(newAction);
-              emotionState.setValue(value);
-            } else {
-              emotionState.action.value = value;
-              emotionState.setValue(value);
-            }
-          } else {
-            const emoteActionIndex = localPlayer.findActionIndex(a => a.type === 'emote' && a.emotion === emotion);
-            if (emoteActionIndex !== -1) {
-              localPlayer.removeActionIndex(emoteActionIndex);
-              emotionState.setAction(null);
-              emotionState.setValue(0);
-            }
-          }
-        }
-      }
-    }
-    document.addEventListener('mousemove', mousemove);
-    return () => {
-      document.removeEventListener('mousemove', mousemove);
-    };
-  }, [emotionsRef, dragEmotionIndex].concat(emotionStates.flatMap(e => [e.action, e.value])));
+    useEffect( () => {
 
-    function onCanvasClick(e) {
+        function mousemove ( e ) {
+
+            const emotionsEl = emotionsRef.current;
+
+            if ( document.pointerLockElement === emotionsEl ) {
+
+                const { /*movementX, */movementY } = e;
+
+                if ( dragEmotionIndex !== -1 ) {
+
+                    const emotion = emotions[dragEmotionIndex];
+                    const emotionState = emotionStates[dragEmotionIndex];
+                    const oldValue = emotionState.action ? emotionState.action.value : 0;
+                    const value = Math.min(Math.max(oldValue - movementY * 0.01, 0), 1);
+
+                    if ( value > 0 ) {
+
+                        if ( emotionState.action === null ) {
+
+                            const newAction = localPlayer.addAction({ type: 'emote', emotion, value });
+                            emotionState.setAction( newAction );
+                            emotionState.setValue( value );
+
+                        } else {
+
+                            emotionState.action.value = value;
+                            emotionState.setValue( value );
+
+                        }
+
+                    } else {
+
+                        const emoteActionIndex = localPlayer.findActionIndex( a => a.type === 'emote' && a.emotion === emotion );
+
+                        if ( emoteActionIndex !== -1 ) {
+
+                            localPlayer.removeActionIndex( emoteActionIndex );
+                            emotionState.setAction( null );
+                            emotionState.setValue(0);
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        document.addEventListener( 'mousemove', mousemove );
+
+        return () => {
+
+            document.removeEventListener( 'mousemove', mousemove );
+
+        };
+
+    }, [ emotionsRef, dragEmotionIndex ].concat( emotionStates.flatMap(e => [ e.action, e.value ] ) ) );
+
+    function onCanvasClick () {
 
         game.playerDiorama.toggleShader();
 

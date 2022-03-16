@@ -89,12 +89,6 @@ export const App = () => {
 
     };
 
-    const handleClick = () => {
-
-        cameraManager.requestPointerLock();
-
-    };
-
     useEffect( () => {
 
         if ( state.openedPanel && state.openedPanel !== 'ChatPanel' ) {
@@ -122,13 +116,11 @@ export const App = () => {
 
         window.addEventListener( 'pushstate', pushstate );
         window.addEventListener( 'popstate', popstate );
-        registerIoEventHandler( 'click', handleClick );
 
         return () => {
 
             window.removeEventListener( 'pushstate', pushstate );
             window.removeEventListener( 'popstate', popstate );
-            unregisterIoEventHandler( 'click', handleClick );
 
         };
 

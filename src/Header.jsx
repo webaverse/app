@@ -177,6 +177,13 @@ export default function Header ({ setSelectedApp, selectedApp }) {
                 case 9: { // tab
 
                     setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+
+                    if ( state.openedPanel === 'CharacterPanel' ) {
+
+                        cameraManager.requestPointerLock();
+
+                    }
+
                     return true;
 
                 }
