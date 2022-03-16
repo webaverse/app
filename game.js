@@ -454,7 +454,7 @@ const _handleUpload = async (item, transform = null) => {
             const {avatar_url, asset, animation_url, image} = token_metadata;
             if (avatar_url || asset) {
               const link = `${(avatar_url || asset)}`.replace('ipfs://', 'https://ipfs.webaverse.com/');
-              u = '/@proxy/' + encodeURI(link) + '?type=vrm';
+              u = '/@proxy/' + encodeURI(link) + '/vrm.vrm';
             } else {
               let link = `${(animation_url || image)}`.replace('ipfs://', 'https://ipfs.webaverse.com/');
               console.log('image: ', link);
