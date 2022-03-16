@@ -163,9 +163,9 @@ export default () => {
         (normal.x * voxelWorldSize/2),
     );
 
-    if (normal.z === 1) {
+    /* if (normal.z === 1) {
       console.log('barrier exit', localVector.toArray().join(', '), position.toArray().join(', '));
-    }
+    } */
 
     return {
       position,
@@ -188,24 +188,17 @@ export default () => {
     const h = size.y;
     const d = size.z;
 
-    const barrierGeometry = new THREE.BoxGeometry(size.x, size.y, size.z)
-      .applyMatrix4(
-        new THREE.Matrix4().makeTranslation(
-          position.x,
-          position.y,
-          position.z
-        )
-      );
+    const barrierGeometry = new THREE.BoxGeometry(1, 1, 1);
     for (let i = 0; i < barrierGeometry.attributes.position.count; i++) {
       const position = localVector.fromArray(barrierGeometry.attributes.position.array, i * 3)
       const normal = localVector2.fromArray(barrierGeometry.attributes.normal.array, i * 3)
         // .toArray(barrierGeometry.attributes.position.array, i * 3);
       if (normal.y !== 0) {
-        localVector2D.set(position.x, position.z);
+        localVector2D.set(position.x * size.x, position.z * size.z);
       } else if (normal.x !== 0) {
-        localVector2D.set(position.y, position.z);
+        localVector2D.set(position.y * size.y, position.z * size.z);
       } else {
-        localVector2D.set(position.x, position.y);
+        localVector2D.set(position.x * size.x, position.y * size.y);
       }
       localVector2D.toArray(barrierGeometry.attributes.uv.array, i * 2);
     }
@@ -436,10 +429,12 @@ export default () => {
       side: THREE.DoubleSide,
       transparent: true,
     });
-    const m = new THREE.MeshPhongMaterial({
+    /* const m = new THREE.MeshPhongMaterial({
       color: 0xff0000,
-    });
-    const barrierMesh = new THREE.Mesh(barrierGeometry, m);
+    }); */
+    const barrierMesh = new THREE.Mesh(barrierGeometry, barrierMaterial);
+    barrierMesh.position.copy(position);
+    barrierMesh.scale.set(size.x, size.y, size.z);
     barrierMesh.frustumCulled = false;
     app.add(barrierMesh);
     app.updateMatrixWorld();
