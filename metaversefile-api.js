@@ -34,6 +34,7 @@ import {PathFinder} from './npc-utils.js';
 import {localPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
+import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 
 const localVector = new THREE.Vector3();
@@ -653,6 +654,9 @@ metaversefile.setApi({
       throw new Error('usePhysics cannot be called outside of render()');
     }
   },
+  useProcGen() {
+    return procgen;
+  },
   useCameraManager() {
     return cameraManager;
   },
@@ -726,7 +730,11 @@ metaversefile.setApi({
   getNextInstanceId() {
     return getRandomString();
   },
-  createAppInternal({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}, {onWaitPromise = null} = {}) {
+  createAppInternal({
+    start_url = '',
+    components = {},
+    in_front = false,
+  } = {}, {onWaitPromise = null} = {}) {
     const app = new App();
 
     if (in_front) {
@@ -734,6 +742,10 @@ metaversefile.setApi({
       app.quaternion.copy(localPlayer.quaternion);
       app.updateMatrixWorld();
       app.lastMatrix.copy(app.matrixWorld);
+    }
+    for (const k in components) {
+      const v = components[k];
+      app.setComponent(k, v);
     }
     if (start_url) {
       const p = (async () => {
