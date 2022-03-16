@@ -22,11 +22,20 @@
     font-size: 16px;
     user-select: none;
     overflow: hidden;
-    transition: color 1s cubic-bezier(0, 1, 0, 1);
+    transition: color 1s cubic-bezier(0, 1, 0, 1), transform 300ms ease;
     background-color: #000;
 }
 
+.btn.wpOpened {
+    transform: translate( -350px, 0px );
+}
+
 .btn .text {
+    position: relative;
+    z-index: 2;
+}
+
+.btn .key {
     position: relative;
     z-index: 2;
 }
@@ -50,8 +59,13 @@
 }
 
 .btn:not(.disabled):hover .background,
-.btn.open .background {
+.btn.wpOpened .background {
     transform: translateX(50px);
+}
+
+.btn:not(.disabled):hover .text, .btn:not(.disabled):hover .key, .btn.wpOpened .text, .btn.wpOpened .key {
+    color: #000;
+    border-color: #000;
 }
 
 .key {
