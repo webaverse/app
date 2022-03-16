@@ -95,9 +95,9 @@ world.connectRoom = async u => {
       wsrtc.removeEventListener('init', init);
       
       localPlayer.bindState(state.getArray(playersMapName));
-      if (mediaStream) {
-        wsrtc.enableMic(mediaStream);
-      }
+      // if (mediaStream) {
+      //   wsrtc.enableMic(mediaStream);
+      // }
     };
     wsrtc.addEventListener('init', init);
   };
