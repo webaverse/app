@@ -146,7 +146,9 @@ class PlayerBase extends THREE.Object3D {
       appsMap: null,
     });
     this.appManager.addEventListener('appadd', e => {
+      console.log("e", e)
       const app = e.data;
+      console.log('appadd', app);
       scene.add(app);
     });
     this.appManager.addEventListener('appremove', e => {
@@ -956,15 +958,11 @@ class LocalPlayer extends UninterpolatedPlayer {
   packed = new Float32Array(11);
   lastTimestamp = NaN;
 
-  pushPlayerUpdates() {
-    const now = performance.now();
-    const first = isNaN(this.lastTimestamp);
-    const timeDiff = first ? 0 : (now - this.lastTimestamp);
-
+  pushPlayerUpdates(timeDiff) {
     this.playersArray.doc.transact(() => {
-      /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
+      if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
         debugger;
-      } */
+      }
 
       const packed = this.packed;
       const pack3 = (v, i) => {
@@ -988,9 +986,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     }, 'push');
 
     // this.appManager.updatePhysics();
-  
-    this.lastTimestamp = now;
-  }
+    }
   getSession() {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -1014,7 +1010,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       const mirrors = metaversefile.getMirrors();
       applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
-      this.avatar.update(timestamp, timeDiff);
+      this.avatar.update(timestamp, timeDiff, true);
       this.characterHups?.update(timestamp);
     }
   }
@@ -1083,7 +1079,7 @@ class RemotePlayer extends InterpolatedPlayer {
       const mirrors = metaversefile.getMirrors();
       applyPlayerToAvatar(this, null, this.avatar, mirrors);
 
-      this.avatar.update(timestamp, timeDiff);
+      this.avatar.update(timestamp, timeDiff, false);
       this.characterHups?.update(timestamp);
     }
   }
@@ -1106,12 +1102,15 @@ class RemotePlayer extends InterpolatedPlayer {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
     
+    const lastPosition = new THREE.Vector3();
+
     const observePlayerFn = e => {
       // console.log("e is", e)
 
       const transform = this.playerMap.get('transform');
       
       if (transform) {
+        lastPosition.copy(this.position)
         this.position.fromArray(transform, 0);
         this.quaternion.fromArray(transform, 3);
 
@@ -1122,6 +1121,9 @@ class RemotePlayer extends InterpolatedPlayer {
 
         for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
           actionBinaryInterpolant.snapshot(remoteTimeDiff);
+        }
+        if(this.avatar){  
+          this.avatar.setVelocity(remoteTimeDiff / 1000, lastPosition, this.position, this.quaternion);
         }
       }
     };
