@@ -5,6 +5,9 @@ import {
   defaultObjectDescription,
   makeLorePrompt,
   makeLoreStop,
+  makeCommentPrompt,
+  makeCommentStop,
+  parseCommentResponse,
   postProcessResponse,
   parseLoreResponses,
 } from './lore-model.js'
@@ -190,8 +193,20 @@ class AIScene {
     });
     const stop = makeLoreStop(this.localCharacter, 0);
     let response = await this.generateFn(prompt, stop);
-    console.log('got response', {prompt, response});
+    console.log('got lore', {prompt, response});
     response = postProcessResponse(response, this.characters, dstCharacter);
+    return response;
+  }
+  async generateComment(name, dstCharacter = null) {
+    const prompt = makeCommentPrompt({
+      settings: this.settings,
+      dstCharacter,
+      name,
+    });
+    const stop = makeCommentStop();
+    let response = await this.generateFn(prompt, stop);
+    response = parseCommentResponse(response);
+    console.log('got comment', {prompt, response});
     return response;
   }
 }
