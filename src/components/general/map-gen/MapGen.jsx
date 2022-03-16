@@ -1068,6 +1068,14 @@ export const MapGen = () => {
     const [chunkCache, setChunkCache] = useState(new Map());
     const canvasRef = useRef();
 
+    //
+
+    const stopPropagation = ( event ) => {
+
+        event.stopPropagation();
+
+    };
+
     const updateCamera = () => {
       const renderer = getRenderer();
       const pixelRatio = renderer.getPixelRatio();
@@ -1376,7 +1384,7 @@ export const MapGen = () => {
     const selectedObjectName = selectedObject ? selectedObject.name : '';
 
     return state.openedPanel === 'MapGenPanel' ? (
-        <div className={styles.mapGen}>
+        <div className={styles.mapGen} onClick={ stopPropagation }>
             <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
                 <h1>{selectedObjectName}</h1>
                 <hr />
