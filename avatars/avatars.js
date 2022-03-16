@@ -1755,7 +1755,6 @@ class Avatar {
     };
 
 
-    //_motionControl is currently unused and may end up being deleted
     const _motionControls = () => {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
       this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
@@ -1814,9 +1813,9 @@ class Avatar {
         _processFingerBones(false);
       }
     }
-    /* if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
+    if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
-    } */
+    }
     
     
 
