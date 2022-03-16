@@ -1146,8 +1146,8 @@ export const MapGen = () => {
             } else if (!newOpen && !cameraManager.pointerLockElement) {
               cameraManager.requestPointerLock();
             }
-            
-            setState( newOpen ? 'MapGenPanel' : null );
+
+            setState({ openedPanel: newOpen ? 'MapGenPanel' : null });
 
             return false;
           }
