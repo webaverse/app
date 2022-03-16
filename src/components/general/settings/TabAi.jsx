@@ -171,8 +171,13 @@ export const TabAi = ({ active }) => {
 
     }, [] );
 
-    function testAi(e) {
-
+    async function testAi(e) {
+        const prompt = testText;
+        const response = await loreAI.generate(prompt, {
+            // stop: '\n',
+        });
+        // console.log('prompt', {prompt, response});
+        setTestText(prompt + response);
     }
 
     //
@@ -198,8 +203,7 @@ export const TabAi = ({ active }) => {
                         className={ styles.textarea }
                         value={testText}
                         onChange={e => {
-                            console.log('got change', e.target, e.target.innerText);
-                            setTestText(e.target.innerText);
+                            setTestText(e.target.value);
                         }}
                     ></textarea>
                     <div className={ styles.clearfix } />
