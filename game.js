@@ -18,7 +18,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {waitForLoad as rendererWaitForLoad, getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
-import {snapPosition} from './util.js';
+import {snapPosition, getExt} from './util.js';
 import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
 // import easing from './easing.js';
 // import {VoicePack} from './voice-pack-voicer.js';
@@ -456,8 +456,16 @@ const _handleUpload = async (item, transform = null) => {
               const link = `${(avatar_url || asset)}`.replace('ipfs://', 'https://ipfs.webaverse.com/');
               u = '/@proxy/' + encodeURI(link) + '?type=vrm';
             } else {
-              const link = `${(animation_url || image)}`.replace('ipfs://', 'https://ipfs.webaverse.com/');
+              let link = `${(animation_url || image)}`.replace('ipfs://', 'https://ipfs.webaverse.com/');
               console.log('image: ', link);
+              let ext = getExt(link);
+              if(!ext){
+                const res = await fetch(link, { // XXX move to a loader
+                  mode: 'cors',
+                });
+                ext = res.headers.get('content-type').split('/')[1];
+                link += `/preview.${ext}`;
+              }
               u = '/@proxy/' + encodeURI(link);
             }
           }
