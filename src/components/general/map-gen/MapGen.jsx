@@ -14,7 +14,7 @@ import {world} from '../../../../world.js';
 import cameraManager from '../../../../camera-manager.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
-import easing from '../../../../easing.js';
+// import easing from '../../../../easing.js';
 import {chatManager} from '../../../../chat-manager.js';
 import {
   makeRng,
@@ -46,8 +46,6 @@ const downQuaternion = new THREE.Quaternion().setFromAxisAngle(
   new THREE.Vector3(1, 0, 0),
   -Math.PI / 2,
 );
-
-const cubicBezier = easing(0, 1, 0, 1);
 
 //
 
@@ -166,39 +164,16 @@ const _makeChunkMesh = (x, y) => {
     mesh.add(labelMesh);
     labelMesh.updateMatrixWorld();
   }
-  
-  let hovered = false;
-  let lastHoveredTime = -Infinity;
-  let lastUnhoveredTime = -Infinity;
-  mesh.setHovered = newHovered => {
-    hovered = newHovered;
-    textMesh.setHighlight(hovered || selected);
-  };
-  let selected = false;
-  mesh.setSelected = newSelected => {
-    selected = newSelected;
-    textMesh.setHighlight(hovered || selected);
-    labelMesh.visible = selected;
-  };
-  mesh.update = (timestamp, timeDiff) => {
-    mesh.material.uniforms.iTime.value = timestamp;
-    mesh.material.uniforms.iTime.needsUpdate = true;
 
-    const t = timestamp - (hovered ? lastUnhoveredTime : lastHoveredTime);
-    const tS = t / 1000;
-    const v = cubicBezier(tS);
-    mesh.material.uniforms.uHover.value = hovered ? v : 1-v;
-    mesh.material.uniforms.uHover.needsUpdate = true;
-
-    mesh.material.uniforms.uSelect.value = selected ? 1 : 0;
-    mesh.material.uniforms.uSelect.needsUpdate = true;
-
-    if (hovered) {
-      lastHoveredTime = timestamp;
-    } else {
-      lastUnhoveredTime = timestamp;
-    }
-  };
+  mesh.setHovered = (setHovered => function() {
+    setHovered.apply(this, arguments);
+    textMesh.setHighlight(mesh.hovered || mesh.selected);
+  })(mesh.setHovered);
+  mesh.setSelected = (setSelected => function() {
+    setSelected.apply(this, arguments);
+    textMesh.setHighlight(mesh.hovered || mesh.selected);
+    labelMesh.visible = mesh.selected;
+  })(mesh.setSelected);
 
   return mesh;
 };
