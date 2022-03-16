@@ -13,8 +13,9 @@ const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
 export const numBlocksPerChunk = 32;
-export const voxelPixelSize = 16;
+export const voxelPixelSize = 4;
 export const voxelWorldSize = 4;
+export const chunkWorldSize = numBlocksPerChunk * voxelWorldSize;
 export const chunkScreenSize = numBlocksPerChunk * voxelPixelSize;
 export {placeNames};
 
