@@ -456,7 +456,6 @@ class AppManager extends EventTarget {
     });
   }
   addApp(app) {
-    console.log("Calling addApp on ", this.addApp)
     this.apps.push(app);
     
     this.dispatchEvent(new MessageEvent('appadd', {
