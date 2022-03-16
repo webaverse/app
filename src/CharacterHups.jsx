@@ -2,6 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import dioramaManager from '../diorama.js';
+import {RpgText} from './RpgText.jsx';
 import styles from './CharacterHups.module.css';
 // import metaversefile from 'metaversefile';
 // const {useLocalPlayer} = metaversefile;
@@ -21,7 +22,7 @@ const CharacterHup = function(props) {
   const canvasRef = useRef();
   const hupRef = useRef();
   const [localOpen, setLocalOpen] = useState(false);
-  const [text, setText] = useState('');
+  // const [text, setText] = useState('');
   const [fullText, setFullText] = useState('');
 
   // console.log('render text', text, hup.fullText);
@@ -108,19 +109,6 @@ const CharacterHup = function(props) {
       cancelAnimationFrame(animationFrame);
     };
   }, [hup]);
-  useEffect(() => {
-    // console.log('effect 5', text.length < fullText.length, text.length, fullText.length);
-    if (text.length < fullText.length) {
-      const timeout = setTimeout(() => {
-        // XXX this text slicing should be done with a mathematical factor in the hups code
-        const newText = text + fullText.charAt(text.length);
-        setText(newText);
-      }, chatTextSpeed);
-      return () => {
-        clearTimeout(timeout);
-      };
-    }
-  }, [text, fullText]);
 
   // console.log('render hup', hup);
 
@@ -152,7 +140,7 @@ const CharacterHup = function(props) {
           </div>
         </div> */}
       </div>
-      <div className={styles.message}>{text}</div>
+      <RpgText className={styles.message} styles={styles} textSpeed={chatTextSpeed} text={fullText}></RpgText>
     </div>
   );
 };
