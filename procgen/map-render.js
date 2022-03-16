@@ -3,6 +3,7 @@ import {
   numBlocksPerChunk,
   voxelPixelSize,
   voxelWorldSize,
+  chunkWorldSize,
   placeNames,
   MapBlock,
   MapChunk,
@@ -111,7 +112,7 @@ const planeFragmentShader = `\
   }
 `;
 export const createMapChunkMesh = (x, y, data) => {
-  const planeGeometry = new THREE.PlaneBufferGeometry(numBlocksPerChunk, numBlocksPerChunk)
+  const planeGeometry = new THREE.PlaneBufferGeometry(chunkWorldSize, chunkWorldSize)
     .applyMatrix4(
       new THREE.Matrix4()
         .makeRotationFromQuaternion(

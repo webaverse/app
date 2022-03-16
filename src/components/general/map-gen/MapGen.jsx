@@ -20,6 +20,7 @@ import {
   makeRng,
   numBlocksPerChunk,
   voxelPixelSize,
+  chunkWorldSize,
   placeNames,
   MapBlock,
   createMapChunk,
@@ -74,7 +75,7 @@ const _makeChunkMesh = (x, y) => {
   }
   
   const mesh = createMapChunkMesh(x, y, data);
-  mesh.position.set(x * numBlocksPerChunk, 0, y * numBlocksPerChunk);
+  mesh.position.set(x * chunkWorldSize, 0, y * chunkWorldSize);
   mesh.updateMatrixWorld();
 
   const rng = makeRng('name', x, y);
@@ -120,9 +121,9 @@ const _makeChunkMesh = (x, y) => {
       w += 1;
       h += 1;
       labelMesh.position.set(
-        x - numBlocksPerChunk / 2 + w / 2,
+        x - chunkWorldSize / 2 + w / 2,
         1,
-        y + numBlocksPerChunk / 2 - h / 2
+        y + chunkWorldSize / 2 - h / 2
       );
       labelMesh.scale.set(w, 1, h);
       labelMesh.updateMatrixWorld();
@@ -132,9 +133,9 @@ const _makeChunkMesh = (x, y) => {
     }); */
     const textOffset = 0.5;
     textMesh.position.set(
-      -numBlocksPerChunk / 2 + textOffset,
+      -chunkWorldSize / 2 + textOffset,
       1,
-      numBlocksPerChunk / 2 - textOffset
+      chunkWorldSize / 2 - textOffset
     );
     textMesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
     mesh.add(textMesh);
@@ -222,10 +223,10 @@ export const MapGen = ({
       const topRight = localVectorX2.set(1, -1, 0)
         .unproject(camera);
 
-      for (let y = bottomLeft.z; y < topRight.z; y += numBlocksPerChunk) {
-        for (let x = bottomLeft.x; x < topRight.x; x += numBlocksPerChunk) {
-          const ix = Math.round(x / numBlocksPerChunk);
-          const iy = Math.round(y / numBlocksPerChunk);
+      for (let y = bottomLeft.z; y < topRight.z; y += chunkWorldSize) {
+        for (let x = bottomLeft.x; x < topRight.x; x += chunkWorldSize) {
+          const ix = Math.round(x / chunkWorldSize);
+          const iy = Math.round(y / chunkWorldSize);
 
           const key = `${ix}:${iy}`;
           let chunk = chunkCache.get(key);
