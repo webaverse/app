@@ -15,13 +15,25 @@ const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 const oneVector = new THREE.Vector3(1, 1, 1);
 
-function quantizeGeometry(g, n) {
+function quantizeGeometry(g, n/*, o*/) {
+  // return g;
+  
   const positions = g.attributes.position.array;
   for (let i = 0; i < positions.length; i += 3) {
     localVector.fromArray(positions, i);
+
+    /* localVector.x -= o;
+    localVector.y -= o;
+    localVector.z -= o; */
+
     localVector.x = Math.round(localVector.x / n) * n;
     localVector.y = Math.round(localVector.y / n) * n;
     localVector.z = Math.round(localVector.z / n) * n;
+    
+    /* localVector.x += o;
+    localVector.y += o;
+    localVector.z += o; */
+    
     localVector.toArray(positions, i);
   }
   g.attributes.position.needsUpdate = true;
@@ -41,7 +53,7 @@ export default () => {
   const width = maxX - minX;
   const height = maxY - minY;
   const depth = maxZ - minZ;
-  // console.log('got bounds', bounds);
+  // console.log('got bounds', width, depth);
   const exits = app.getComponent('exits');
   // console.log('got bounds exits', bounds, exits, width, height);
 
@@ -73,7 +85,9 @@ export default () => {
   {
     const geometries = wallNormals.map(wallNormal => {
       let g = null;
-      const localExitSpecs = exits.map(exit => {
+      const localNormalExitSpecs = exits.map(exit => {
+        const size = new THREE.Vector2(voxelWorldSize, voxelWorldSize);
+
         localVector.fromArray(exit);
         let normal;
         if (localVector.x === 0) { // XXX blocks should come with an incoming direction so this is well-defined
@@ -94,32 +108,88 @@ export default () => {
         }
 
         if (normal.equals(wallNormal)) {
-          const size = new THREE.Vector2(voxelWorldSize, voxelWorldSize);
-
-          let position;
-          if (wallNormal.x !== 0) {
-            position = new THREE.Vector2((-depth/2 + localVector.z) * -wallNormal.x, 0);
-          } else if (wallNormal.z !== 0) {
-            position = new THREE.Vector2((-width/2 + localVector.x) * -wallNormal.z, 0);
-          } else if (wallNormal.y !== 0) {
-            position = new THREE.Vector2(-width/2 + localVector.x + size.x/2, -depth/2 + localVector.z);
+          /* let position;
+          if (normal.x !== 0) {
+            position = new THREE.Vector2((-depth/2 + localVector.z) * normal.x, size.y/2);
+          } else if (normal.z !== 0) {
+            position = new THREE.Vector2((-width/2 + localVector.x) * normal.z, size.y/2);
+          } else if (normal.y !== 0) {
+            position = new THREE.Vector2(-width/2 + size.x/2 + localVector.x, -depth/2 + size.y/2 + localVector.z);
           } else {
-            console.warn('invalid wall normal', wallNormal.toArray());
+            console.warn('invalid wall normal', normal.toArray());
             throw new Error('invalid wall normal');
+          } */
+
+          const position = new THREE.Vector3(
+            -width/2 +
+              (0.5 * -normal.x) +
+              localVector.x +
+              (normal.x === -1 ? voxelWorldSize : 0) +
+              (normal.z * voxelWorldSize/2),
+            voxelWorldSize/2 +
+              localVector.y,
+            -depth/2 +
+              (0.5 * -normal.z) +
+              localVector.z +
+              (normal.z === -1 ? voxelWorldSize : 0) +
+              (normal.x * voxelWorldSize/2),
+          );
+
+          const faceQuaternion = new THREE.Quaternion()
+            .setFromRotationMatrix(
+              new THREE.Matrix4().lookAt(
+                zeroVector,
+                normal.clone().multiplyScalar(-1),
+                upVector,
+              )
+            ).invert();
+          position.applyQuaternion(faceQuaternion);
+
+          /* const position = new THREE.Vector3(
+            // -width/2 +
+              // (0.5 * -normal.x) +
+              localVector.x +
+              (normal.x === -1 ? voxelWorldSize : 0) +
+              (normal.z * voxelWorldSize/2),
+            voxelWorldSize/2 +
+              localVector.y,
+            // -depth/2 +
+              // (0.5 * -normal.z) +
+              localVector.z +
+              (normal.z === -1 ? voxelWorldSize : 0) +
+              (normal.x * voxelWorldSize/2),
+          ); */
+
+          /* const position = new THREE.Vector3(
+            -width/2 + (0.5 * -normal.x) + localVector.x + (normal.x === -1 ? voxelWorldSize : 0),
+            voxelWorldSize/2 + localVector.y,
+            -depth/2 + (0.5 * -normal.z) + localVector.z + (normal.z === -1 ? voxelWorldSize : 0)
+          ); */
+
+          if (normal.x === 1) {
+            console.log('filter exit', normal.toArray().join(', '), localVector.toArray().join(', '), position.toArray().join(', '));
           }
 
           return {
             position,
+            normal: normal.clone(),
             size,
           };
         } else {
           return null;
         }
       }).filter(exit => exit !== null);
-      if (localExitSpecs.length > 0) {
+      if (localNormalExitSpecs.length > 0) {
         const scale = _getScaleFromNormal(wallNormal, localVector);
         const outerWidth = scale.x;
         const outerHeight = scale.y;
+
+        /* if (outerWidth !== width) {
+          debugger;
+        }
+        if (outerHeight !== height) {
+          debugger;
+        } */
 
         const wallShape = new THREE.Shape();
 
@@ -129,23 +199,35 @@ export default () => {
         wallShape.lineTo(outerWidth / 2, -outerHeight / 2);
         wallShape.lineTo(-outerWidth / 2, -outerHeight / 2);
 
-        for (const localExitSpec of localExitSpecs) {
-          const {position, size} = localExitSpec;
+        for (const localExitSpec of localNormalExitSpecs) {
+          const {position, normal, size} = localExitSpec;
 
-          wallShape.lineTo(position.x - size.x/2 + size.x, position.y - size.y/2);
-          wallShape.lineTo(position.x + size.x/2 + size.x, position.y - size.y/2);
-          wallShape.lineTo(position.x + size.x/2 + size.x, position.y + size.y/2);
-          wallShape.lineTo(position.x - size.x/2 + size.x, position.y + size.y/2);
-          wallShape.lineTo(position.x - size.x/2 + size.x, position.y - size.y/2);
+          /* const normalQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+            localMatrix.lookAt(
+              normal,
+              localVector.set(0, 0, 0),
+              localVector2.set(0, 1, 0),
+            )
+          );
+          const xOffset = new THREE.Vector3(1, 0, 0)
+            .applyQuaternion(normalQuaternion);
+          const yOffset = new THREE.Vector3(0, 1, 0)
+            .applyQuaternion(normalQuaternion); */
+
+          wallShape.lineTo(position.x - size.x/2, position.y - size.y/2);
+          wallShape.lineTo(position.x + size.x/2, position.y - size.y/2);
+          wallShape.lineTo(position.x + size.x/2, position.y + size.y/2);
+          wallShape.lineTo(position.x - size.x/2, position.y + size.y/2);
+          wallShape.lineTo(position.x - size.x/2, position.y - size.y/2);
           wallShape.lineTo(-outerWidth / 2, -outerHeight / 2);
         }
 
-        const offset = localVector.multiplyVectors(dims, wallNormal)
+        const offset = localVector.multiplyVectors(dims, wallNormal.clone().multiplyScalar(-1))
           .divideScalar(2);
         const quaternion = localQuaternion.setFromRotationMatrix(
           localMatrix.lookAt(
-            zeroVector,
             wallNormal,
+            zeroVector,
             upVector,
           )
         );
@@ -155,12 +237,12 @@ export default () => {
             localMatrix.compose(offset, quaternion, oneVector)
           );
       } else {
-        const offset = localVector.multiplyVectors(dims, wallNormal)
+        const offset = localVector.multiplyVectors(dims, wallNormal.clone().multiplyScalar(-1))
           .divideScalar(2);
         const quaternion = localQuaternion.setFromRotationMatrix(
           localMatrix.lookAt(
-            zeroVector,
             wallNormal,
+            zeroVector,
             upVector,
           )
         );
@@ -170,7 +252,7 @@ export default () => {
             localMatrix.compose(offset, quaternion, scale)
           );
       }
-      return quantizeGeometry(g, voxelWorldSize);
+      return quantizeGeometry(g, voxelWorldSize, 0);
     });
     const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
 

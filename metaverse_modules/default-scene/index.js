@@ -20,7 +20,7 @@ export default e => {
   // const {WebaverseShaderMaterial} = useMaterials();
   const {voxelWorldSize} = procGen;
 
-  const chunk = procGen.createMapChunk(undefined, 0, 0);
+  const chunk = procGen.createMapChunk(undefined, -5, -5);
   const {blocks, width, height} = chunk;
   const worldWidth = width * voxelWorldSize;
   const worldHeight = width * voxelWorldSize;
@@ -36,6 +36,8 @@ export default e => {
       [worldWidth/2, 16, worldHeight/2],
     ];
     const exits = exitBlocks.map(b => b.getLocalPosition(localVector).toArray());
+
+    console.log('generate', exits);
 
     await Promise.all([
       (async () => {
