@@ -148,7 +148,6 @@ class PlayerBase extends THREE.Object3D {
     this.appManager.addEventListener('appadd', e => {
       console.log("e", e)
       const app = e.data;
-      console.log('appadd', app);
       scene.add(app);
     });
     this.appManager.addEventListener('appremove', e => {
@@ -1105,8 +1104,6 @@ class RemotePlayer extends InterpolatedPlayer {
     const lastPosition = new THREE.Vector3();
 
     const observePlayerFn = e => {
-      // console.log("e is", e)
-
       const transform = this.playerMap.get('transform');
       
       if (transform) {
@@ -1122,6 +1119,7 @@ class RemotePlayer extends InterpolatedPlayer {
         for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
           actionBinaryInterpolant.snapshot(remoteTimeDiff);
         }
+        
         if(this.avatar){  
           this.avatar.setVelocity(remoteTimeDiff / 1000, lastPosition, this.position, this.quaternion);
         }
