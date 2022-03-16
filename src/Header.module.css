@@ -134,6 +134,7 @@ body {
 .header .panel-header {
   display: flex;
   position: relative;
+  margin-bottom: 5px;
   /* padding: 0 10px; */
 }
 .header .panel-header > .panel-section {
@@ -152,7 +153,14 @@ body {
   font-size: 16px;
 }
 .header .panel-header > .panel-section.main-stats {
-  font-family: 'PlazaRegular';
+  display: flex;
+  width: 215px;
+  height: 50px;
+  flex: none;
+  font-family: 'WinchesterCaps';
+  font-size: 13px;
+  letter-spacing: 1px;
+  align-items: center;
 }
 .header .panel-header > .panel-section.name::before {
   position: absolute;
@@ -910,4 +918,60 @@ input[type=range]::-webkit-slider-thumb {
 .emotions .emotion:hover .emotionName,
 .emotions .emotion.nonzero .emotionName {
   color: #FFFFFF;
+}
+
+.header .panel-body {
+  display: flex;
+  flex-direction: column;
+  background-image: linear-gradient(to bottom, #333 0%, #111 20%, #000 100%);
+}
+
+.header .stats {
+  display: flex;
+  flex-direction: column; 
+}
+.header .stats .stat {
+  display: flex;
+  font-family: 'PlazaRegular';
+  font-size: 16px;
+  letter-spacing: 1.3px;
+}
+/* .header .stats .stat:nth-child(odd) {
+  background-color: #111;
+}
+.header .stats .stat:nth-child(even) {
+  background-color: #222;
+} */
+.header .stats .stat .icon {
+  width: 50px;
+  height: 60px;
+  margin: 0 10px;
+  /* padding: 10px; */
+  filter: invert(1);
+  opacity: 0.2;
+}
+.header .stats .stat .statName {
+  display: flex;
+  margin: 0 10px;
+  text-align: left;
+  align-items: center;
+}
+.header .xp {
+  position: relative;
+}
+.header .xp .progress {
+  position: absolute;
+  top: 26px;
+  left: 36px;
+  width: 323px;
+  height: 4px;
+  appearance: none;
+}
+.header .xp .progress::-webkit-progress-bar {
+  background-image: linear-gradient(to bottom, #000, #111);
+}
+.header .xp .progress::-webkit-progress-value {
+  background-image: linear-gradient(to right, #1482f8, #79b8fb);
+  /* background-color: #2990ff; */
+  /* background-image: linear-gradient(to bottom, #56ab2f, #a8e063); */
 }

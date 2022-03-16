@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import styles from '../Header.module.css';
 import {Tab} from '../components/tab';
 import metaversefile from '../../metaversefile-api.js';
-import game from '../../game.js';
+// import game from '../../game.js';
 import {defaultPlayerName} from '../../ai/lore/lore-model.js';
 
 const emotions = [
@@ -12,6 +12,46 @@ const emotions = [
   'angry',
   'fun',
   'surprise',
+];
+const statSpecs = [
+  {
+    imgSrc: 'images/stats/noun-support-cure-2360283.svg',
+    name: 'HP',
+    className: 'hp',
+  },
+  {
+    imgSrc: 'images/stats/noun-item-crystal-2360128.svg',
+    name: 'MP',
+    className: 'hp',
+  },
+  {
+    // imgSrc: 'images/noun-abnormal-bleeding-2360001.svg',
+    imgSrc: 'images/stats/noun-skill-sword-swing-2360242.svg',
+    // imgSrc: 'images/noun-effect-circle-strike-2360022.svg',
+    name: 'Attack',
+  },
+  {
+    imgSrc: 'images/stats/noun-abnormal-burned-2359995.svg',
+    name: 'Defense',
+  },
+  {
+    // imgSrc: 'images/stats/noun-skill-magic-shock-2360168.svg',
+    // imgSrc: 'images/noun-classes-magician-2360012.svg',
+    imgSrc: 'images/stats/noun-skill-dna-2360269.svg',
+    name: 'Vitality',
+  },
+  {
+    imgSrc: 'images/stats/noun-skill-magic-chain-lightning-2360268.svg',
+    name: 'Spirit',
+  },
+  {
+    imgSrc: 'images/stats/noun-skill-speed-down-2360205.svg',
+    name: 'Dexterity',
+  },
+  {
+    imgSrc: 'images/stats/noun-effect-circle-strike-2360022.svg',
+    name: 'Luck',
+  },
 ];
 
 export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOpen, dioramaCanvasRef}) => {
@@ -140,53 +180,62 @@ export const Character = ({open, game, wearActions, panelsRef, setOpen, toggleOp
             })}
           </div>
           <canvas className={styles.avatar} ref={dioramaCanvasRef} width={sideSize} height={sideSize} onClick={onCanvasClick} />
-          <div className={styles['panel-header']}>
-            <div className={classnames(styles['panel-section'], styles.name)}>
-              <h1>{defaultPlayerName}</h1>
-            </div>
-            <div className={classnames(styles['panel-section'], styles['name-placeholder'])} />
-            <div className={classnames(styles['panel-section'], styles['main-stats'])}>
-              <div className={styles['panel-row']}>
-                <h2>HP</h2>
-                <progress value={61} />
+          <div className={styles['panel-body']}>
+            <div className={styles['panel-header']}>
+              <div className={classnames(styles['panel-section'], styles.name)}>
+                <h1>{defaultPlayerName}</h1>
               </div>
-              <div className={styles['panel-row']}>
-                <h2>MP</h2>
-                <progress value={83} />
+              <div className={classnames(styles['panel-section'], styles['name-placeholder'])} />
+              <div className={classnames(styles['panel-section'], styles['main-stats'])}>
+                <h2>Lv. {6}</h2>
               </div>
             </div>
-          </div>
-          {/* <div className={styles['panel-header']}>
-            <h1>Equipment</h1>
-          </div> */}
-          {wearActions.map((wearAction, i) => {
-            const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
+            <div className={styles['xp']}>
+              <progress className={styles.progress} value={20} max={100} />
+              <img className={styles.icon} src="images/ui/xp-bar.svg" />
+            </div>
+            <div className={styles.stats}>
+              {statSpecs.map((statSpec, i) => {
+                return (
+                  <div className={styles.stat} key={i}>
+                    <img className={styles.icon} src={statSpec.imgSrc} />
+                    <div className={styles.statName}>{statSpec.name}</div>
+                  </div>
+                );
+              })}
+            </div>
+            {/* <div className={styles['panel-header']}>
+              <h1>Equipment</h1>
+            </div> */}
+            {wearActions.map((wearAction, i) => {
+              const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
 
-            return (
-              <div
-                className={styles.equipment}
-                key={i}
-                onMouseEnter={e => {
-                  game.setMouseHoverObject(null);
-                  const physicsId = app.getPhysicsObjects()[0]?.physicsId;
-                  game.setMouseDomEquipmentHoverObject(app, physicsId);
-                }}
-                onMouseLeave={e => {
-                  game.setMouseDomEquipmentHoverObject(null);
-                }}
-              >
-                <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
-                <img src="images/flower.png" className={styles.icon} />
-                <div className={styles.name}>{app.name}</div>
-                <button className={styles.button} onClick={e => {
-                  localPlayer.unwear(app);
-                }}>
-                  <img src="images/remove.svg" />
-                </button>
-                <div className={styles.background2} />
-              </div>
-            );
-          })}
+              return (
+                <div
+                  className={styles.equipment}
+                  key={i}
+                  onMouseEnter={e => {
+                    game.setMouseHoverObject(null);
+                    const physicsId = app.getPhysicsObjects()[0]?.physicsId;
+                    game.setMouseDomEquipmentHoverObject(app, physicsId);
+                  }}
+                  onMouseLeave={e => {
+                    game.setMouseDomEquipmentHoverObject(null);
+                  }}
+                >
+                  <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
+                  <img src="images/flower.png" className={styles.icon} />
+                  <div className={styles.name}>{app.name}</div>
+                  <button className={styles.button} onClick={e => {
+                    localPlayer.unwear(app);
+                  }}>
+                    <img src="images/remove.svg" />
+                  </button>
+                  <div className={styles.background2} />
+                </div>
+              );
+            })}
+          </div>
         </div>),
       ]}
       open={open}
