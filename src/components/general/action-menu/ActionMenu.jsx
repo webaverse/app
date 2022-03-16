@@ -10,7 +10,7 @@ import styles from './action-menu.module.css';
 
 export const ActionMenu = () => {
 
-    const { setState, app } = useContext( AppContext );
+    const { state, setState, app } = useContext( AppContext );
     const [ xrSupported, setXrSupported ] = useState( false );
 
     //
@@ -23,7 +23,7 @@ export const ActionMenu = () => {
 
     const handleWorldBtnClick = () => {
 
-        setState({ openedPanel: 'WorldPanel' });
+        setState({ openedPanel: ( state.openedPanel === 'WorldPanel' ? null : 'WorldPanel' ) });
 
     };
 
@@ -60,7 +60,7 @@ export const ActionMenu = () => {
     return (
         <div className={ styles.actionMenu } onClick={ stopPropagation } >
 
-            <div className={ classnames( styles.btn, styles.settings ) } onClick={ handleWorldBtnClick } >
+            <div className={ classnames( styles.btn, state.openedPanel === 'WorldPanel' ? styles.wpOpened : null ) } onClick={ handleWorldBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
                 <span className={ styles.text } >世 World</span>
                 <span className={ styles.key } >Z</span>
