@@ -110,7 +110,7 @@ const _makeChunkMesh = (x, y) => {
     textMesh.material = materials[+false];
     textMesh.text = name;
     textMesh.font = './fonts/Plaza Regular.ttf';
-    textMesh.fontSize = 2;
+    textMesh.fontSize = 8;
     textMesh.color = 0xFFFFFF;
     textMesh.anchorX = 'left';
     textMesh.anchorY = 'bottom';
