@@ -115,6 +115,7 @@ export default () => {
 
   const barrierSpecs = exits.map(exit => {
     localVector.fromArray(exit);
+    
     let normal;
     if (localVector.x === 0) { // XXX blocks should come with an incoming direction so this is well-defined
       normal = localVector2.set(1, 0, 0);
@@ -133,11 +134,6 @@ export default () => {
       throw new Error('invalid exit position');
     }
 
-    const position = localVector3.copy(localVector)
-      .add(localVector4.copy(normal).multiplyScalar(-0.5));
-
-    // const size = new THREE.Vector2(voxelWorldSize, voxelWorldSize);
-
     let size;
     if (normal.x !== 0) {
       size = localVector5.set(1, voxelWorldSize, voxelWorldSize);
@@ -150,11 +146,32 @@ export default () => {
       throw new Error('invalid wall normal');
     }
 
+    // console.log('got normal', normal.toArray().join(','));
+
+    const position = new THREE.Vector3(
+      -width/2 +
+        (0.5 * -normal.x) +
+        localVector.x +
+        (normal.x === -1 ? voxelWorldSize : 0) +
+        (normal.z * voxelWorldSize/2),
+      voxelWorldSize/2 +
+        localVector.y,
+      -depth/2 +
+        (0.5 * -normal.z) +
+        localVector.z +
+        (normal.z === -1 ? voxelWorldSize : 0) +
+        (normal.x * voxelWorldSize/2),
+    );
+
+    if (normal.z === 1) {
+      console.log('barrier exit', localVector.toArray().join(', '), position.toArray().join(', '));
+    }
+
     return {
-      position: position.clone(),
+      position,
       normal: normal.clone(),
       size: size.clone(),
-    }
+    };
   });
   console.log('got barrier specs', exits, barrierSpecs);
 
@@ -174,9 +191,9 @@ export default () => {
     const barrierGeometry = new THREE.BoxGeometry(size.x, size.y, size.z)
       .applyMatrix4(
         new THREE.Matrix4().makeTranslation(
-          -width/2 + position.x + (normal.x === -1 ? w : 0),
+          position.x,
           position.y,
-          -depth/2 + position.z + (normal.z === -1 ? w : 0),
+          position.z
         )
       );
     for (let i = 0; i < barrierGeometry.attributes.position.count; i++) {
@@ -419,7 +436,10 @@ export default () => {
       side: THREE.DoubleSide,
       transparent: true,
     });
-    const barrierMesh = new THREE.Mesh(barrierGeometry, barrierMaterial);
+    const m = new THREE.MeshPhongMaterial({
+      color: 0xff0000,
+    });
+    const barrierMesh = new THREE.Mesh(barrierGeometry, m);
     barrierMesh.frustumCulled = false;
     app.add(barrierMesh);
     app.updateMatrixWorld();
