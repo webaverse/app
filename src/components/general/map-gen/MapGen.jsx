@@ -25,6 +25,7 @@ import {
   createMapChunk,
 } from '../../../../procgen/procgen.js';
 import styles from './map-gen.module.css';
+// import {fullscreenVertexShader} from '../../../../background-fx/common.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -49,13 +50,6 @@ const cubicBezier = easing(0, 1, 0, 1);
 
 //
 
-const planeGeometry = new THREE.PlaneBufferGeometry(numBlocksPerChunk, numBlocksPerChunk)
-  .applyMatrix4(
-    new THREE.Matrix4()
-      .makeRotationFromQuaternion(
-        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)
-      )
-  );
 const vertexShader = `\
   varying vec2 vUv;
 
@@ -153,20 +147,14 @@ const planeFragmentShader = `\
     gl_FragColor.a = 1.;
   }
 `;
-const textFragmentShader = `\
-  uniform float opacity;
-
-  void main() {
-    gl_FragColor = vec4(1., 1., 1., opacity);
-  }
-`;
-const _makeChunkMesh = (x, y) => {
-  const mapChunk = createMapChunk(undefined, x, y);
-  const {blocks} = mapChunk;
-  const data = new Uint8Array(blocks.length);
-  for (let i = 0; i < blocks.length; i++) {
-    data[i] = blocks[i].toUint8();
-  }
+const makeChunkPlaneMesh = (x, y, data) => {
+  const planeGeometry = new THREE.PlaneBufferGeometry(numBlocksPerChunk, numBlocksPerChunk)
+    .applyMatrix4(
+      new THREE.Matrix4()
+        .makeRotationFromQuaternion(
+          new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)
+        )
+    );
   const dataTexture = new THREE.DataTexture(
     data,
     numBlocksPerChunk,
@@ -176,7 +164,7 @@ const _makeChunkMesh = (x, y) => {
   );
   dataTexture.flipY = true;
   dataTexture.needsUpdate = true;
-  
+
   const material = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader: planeFragmentShader,
@@ -206,7 +194,26 @@ const _makeChunkMesh = (x, y) => {
     // opacity: 0.5,
     // side: THREE.DoubleSide, 
   });
+
   const mesh = new THREE.Mesh(planeGeometry, material);
+  return mesh;
+};
+const textFragmentShader = `\
+  uniform float opacity;
+
+  void main() {
+    gl_FragColor = vec4(1., 1., 1., opacity);
+  }
+`;
+const _makeChunkMesh = (x, y) => {
+  const mapChunk = createMapChunk(undefined, x, y);
+  const {blocks} = mapChunk;
+  const data = new Uint8Array(blocks.length);
+  for (let i = 0; i < blocks.length; i++) {
+    data[i] = blocks[i].toUint8();
+  }
+  
+  const mesh = makeChunkPlaneMesh(x, y, data);
   mesh.position.set(x * numBlocksPerChunk, 0, y * numBlocksPerChunk);
   mesh.updateMatrixWorld();
 
@@ -312,17 +319,17 @@ const _makeChunkMesh = (x, y) => {
     labelMesh.visible = selected;
   };
   mesh.update = (timestamp, timeDiff) => {
-    material.uniforms.iTime.value = timestamp;
-    material.uniforms.iTime.needsUpdate = true;
+    mesh.material.uniforms.iTime.value = timestamp;
+    mesh.material.uniforms.iTime.needsUpdate = true;
 
     const t = timestamp - (hovered ? lastUnhoveredTime : lastHoveredTime);
     const tS = t / 1000;
     const v = cubicBezier(tS);
-    material.uniforms.uHover.value = hovered ? v : 1-v;
-    material.uniforms.uHover.needsUpdate = true;
+    mesh.material.uniforms.uHover.value = hovered ? v : 1-v;
+    mesh.material.uniforms.uHover.needsUpdate = true;
 
-    material.uniforms.uSelect.value = selected ? 1 : 0;
-    material.uniforms.uSelect.needsUpdate = true;
+    mesh.material.uniforms.uSelect.value = selected ? 1 : 0;
+    mesh.material.uniforms.uSelect.needsUpdate = true;
 
     if (hovered) {
       lastHoveredTime = timestamp;
