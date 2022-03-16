@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
+const {useApp, useFrame, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup, createMapChunk, createMapChunkMesh} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -16,8 +16,6 @@ const upVector = new THREE.Vector3(0, 1, 0);
 const oneVector = new THREE.Vector3(1, 1, 1);
 
 function quantizeGeometry(g, n/*, o*/) {
-  // return g;
-  
   const positions = g.attributes.position.array;
   for (let i = 0; i < positions.length; i += 3) {
     localVector.fromArray(positions, i);
@@ -44,8 +42,15 @@ export default () => {
   const app = useApp();
   const physics = usePhysics();
   const procGen = useProcGen();
-  const {voxelWorldSize} = procGen;
+  const {
+    voxelWorldSize,
+    createMapChunk,
+    createMapChunkMesh,
+  } = procGen;
 
+  const coords = app.getComponent('coords');
+  const [x, y] = coords;
+  
   const bounds = app.getComponent('bounds');
   const [min, max] = bounds;
   const [minX, minY, minZ] = min;
@@ -264,6 +269,27 @@ export default () => {
     const physicsId = physics.addGeometry(mesh);
     physicsIds.push(physicsId);
   }
+
+  let mapChunkMesh = null;
+  {
+    const mapChunk = createMapChunk(undefined, x, y);
+    const {blocks} = mapChunk;
+    const data = new Uint8Array(blocks.length);
+    for (let i = 0; i < blocks.length; i++) {
+      data[i] = blocks[i].toUint8();
+    }
+    
+    const mesh = createMapChunkMesh(x, y, data);
+    // mesh.position.set(x * numBlocksPerChunk, 0, y * numBlocksPerChunk);
+    app.add(mesh);
+    mesh.updateMatrixWorld();
+    mapChunkMesh = mesh;
+  }
+
+  useFrame(e => {
+    const {timestamp, timeDiff} = e;
+    mapChunkMesh.update(timestamp, timeDiff);
+  });
 
   useCleanup(() => {
     for (const physicsId of physicsIds) {

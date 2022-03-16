@@ -8,6 +8,10 @@ import {
   MapChunk,
   createMapChunk,
 } from './map-gen.js';
+import easing from '../easing.js';
+import {WebaverseShaderMaterial} from '../materials.js';
+
+const cubicBezier = easing(0, 1, 0, 1);
 
 const vertexShader = `\
   varying vec2 vUv;
@@ -124,7 +128,7 @@ export const createMapChunkMesh = (x, y, data) => {
   dataTexture.flipY = true;
   dataTexture.needsUpdate = true;
 
-  const material = new THREE.ShaderMaterial({
+  const material = new WebaverseShaderMaterial({
     vertexShader,
     fragmentShader: planeFragmentShader,
     uniforms: {
@@ -154,6 +158,43 @@ export const createMapChunkMesh = (x, y, data) => {
     // side: THREE.DoubleSide, 
   });
 
+  /* const m = new THREE.MeshPhongMaterial({
+    color: 0xff0000,
+  }); */
   const mesh = new THREE.Mesh(planeGeometry, material);
+  
+  mesh.hovered = false;
+  let lastHoveredTime = -Infinity;
+  let lastUnhoveredTime = -Infinity;
+  mesh.setHovered = newHovered => {
+    mesh.hovered = newHovered;
+  };
+  mesh.selected = false;
+  mesh.setSelected = newSelected => {
+    mesh.selected = newSelected;
+  };
+  mesh.update = (timestamp, timeDiff) => {
+    if (mesh.material.uniforms) {
+      mesh.material.uniforms.iTime.value = timestamp;
+      mesh.material.uniforms.iTime.needsUpdate = true;
+
+      const t = timestamp - (mesh.hovered ? lastUnhoveredTime : lastHoveredTime);
+      const tS = t / 1000;
+      const v = cubicBezier(tS);
+      mesh.material.uniforms.uHover.value = mesh.hovered ? v : 1-v;
+      mesh.material.uniforms.uHover.needsUpdate = true;
+
+      mesh.material.uniforms.uSelect.value = mesh.selected ? 1 : 0;
+      mesh.material.uniforms.uSelect.needsUpdate = true;
+
+      if (mesh.hovered) {
+        lastHoveredTime = timestamp;
+      } else {
+        lastUnhoveredTime = timestamp;
+      }
+    }
+  };
+  mesh.frustumCulled = false;
+  
   return mesh;
 };

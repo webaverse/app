@@ -20,7 +20,9 @@ export default e => {
   // const {WebaverseShaderMaterial} = useMaterials();
   const {voxelWorldSize} = procGen;
 
-  const chunk = procGen.createMapChunk(undefined, -5, -5);
+  const x = -5;
+  const y = -5;
+  const chunk = procGen.createMapChunk(undefined, x, y);
   const {blocks, width, height} = chunk;
   const worldWidth = width * voxelWorldSize;
   const worldHeight = width * voxelWorldSize;
@@ -31,19 +33,21 @@ export default e => {
   let subApps = [];
 
   e.waitUntil((async () => {
+    const coords = [x, y];
     const bounds = [
       [-worldWidth/2, 0, -worldHeight/2],
       [worldWidth/2, 16, worldHeight/2],
     ];
     const exits = exitBlocks.map(b => b.getLocalPosition(localVector).toArray());
 
-    console.log('generate', exits);
+    // console.log('generate', exits);
 
     await Promise.all([
       (async () => {
         const filter = await metaversefile.createApp({
           start_url: './metaverse_modules/filter/',
           components: {
+            coords,
             bounds,
             exits,
           },
@@ -55,6 +59,7 @@ export default e => {
         const barrier = await metaversefile.createApp({
           start_url: './metaverse_modules/barrier/',
           components: {
+            coords,
             bounds,
             exits,
           },
