@@ -182,9 +182,6 @@ body {
   /* justify-content: flex-start; */
   align-items: flex-start;
 }
-.header .tab.top.left .panel-header {
-  /* margin-top: 20px; */
-}
 .header .tab.top.right .panel-header {
   margin-top: 60px;
 }
