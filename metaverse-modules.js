@@ -3,13 +3,13 @@ import metaversefile from 'metaversefile';
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 const moduleUrls = {
-  button: `${baseUrl}metaverse_modules/button/`,
-  silk: `${baseUrl}metaverse_modules/silk/`,
-  card: `${baseUrl}metaverse_modules/card/`,
-  arrowLoader: `${baseUrl}metaverse_modules/arrow-loader/`,
-  errorPlaceholder: `${baseUrl}metaverse_modules/error-placeholder/`,
-  damageMesh: `${baseUrl}metaverse_modules/damage-mesh/`,
-  ki: `${baseUrl}metaverse_modules/ki/`,
+  button: `./metaverse_modules/button/`,
+  silk: `./metaverse_modules/silk/`,
+  card: `./metaverse_modules/card/`,
+  arrowLoader: `./metaverse_modules/arrow-loader/`,
+  errorPlaceholder: `./metaverse_modules/error-placeholder/`,
+  damageMesh: `./metaverse_modules/damage-mesh/`,
+  ki: `./metaverse_modules/ki/`,
 };
 const modules = {};
 const loadPromise = (async () => {

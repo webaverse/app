@@ -48,12 +48,11 @@
       }
     },
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "http://localhost/lib/webaverse_resource/street/index.js"
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [0, 35, -70],
+        "quaternion": [0, 1, 0, 0]
+      }
     },
     {
       "position": [
@@ -61,27 +60,13 @@
         0,
         0
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/skybox-anime/"
+      "start_url": "https://webaverse.github.io/skybox-anime/"
     },
     {
       "position": [
-        -13,
-        0,
-        0
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "http://localhost/lib/webaverse_resource/treehouse/"
-    },
-    {
-      "position": [
-        24,
-        0,
-        16
+        -2,
+        35,
+        -70
       ],
       "quaternion": [
         0,
@@ -89,13 +74,31 @@
         0,
         0
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/ramp/"
+      "start_url": "https://webaverse.github.io/npc/",
+      "components": [
+        {
+          "key": "name",
+          "value": "Drake"
+        },
+        {
+          "key": "voice",
+          "value": "Shining Armor"
+        },
+        {
+          "key": "avatarUrl",
+          "value": "/avatars/drake_hacker_v3_vian.vrm"
+        },
+        {
+          "key": "bio",
+          "value": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+        }
+      ]
     },
     {
       "position": [
-        0,
-        5,
-        5
+        2,
+        33.5,
+        -70
       ],
       "quaternion": [
         0,
@@ -103,7 +106,49 @@
         0,
         1
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/npc/"
+      "start_url": "https://webaverse.github.io/hovercraft/"
+    },
+    {
+      "position": [
+        0,
+        33.5,
+        -53
+      ],
+      "quaternion": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/ramp/"
+    },
+    {
+      "position": [30, 0, 4],
+      "start_url": "https://webaverse.github.io/origin-tablet/"
+    },
+    {
+      "position": [
+        0,
+        40.3,
+        24
+      ],
+      "start_url": "https://webaverse.github.io/turret/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        6
+      ],
+      "start_url": "https://webaverse.github.io/dreadnought/"
+    },
+    {
+      "position": [
+        -150,
+        20,
+        300
+      ],
+      "start_url": "https://webaverse.github.io/dreadnought/"
     }
   ]
 }
