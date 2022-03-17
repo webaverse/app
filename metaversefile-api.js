@@ -36,6 +36,7 @@ import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
+import debug from './debug.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -266,13 +267,16 @@ const abis = {
   ERC1155,
 };
 
+debug.addEventListener('enabledchange', e => {
+  document.getElementById('statsBox').style.display = e.data.enabled ? null : 'none';
+});
+
 let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
 let wasDecapitated = false;
 // const apps = [];
 const mirrors = [];
-let debugMode = false;
 metaversefile.setApi({
   // apps,
   async import(s) {
@@ -914,12 +918,8 @@ export default () => {
   async waitForSceneLoaded() {
     await universe.waitForSceneLoaded();
   },
-  toggleDebug(newDebugMode) {
-    debugMode = newDebugMode;
-    document.getElementById('statsBox').style.display = debugMode ? null : 'none';
-  },
-  isDebugMode() {
-    return debugMode;
+  useDebug() {
+    return debug;
   },
   async addModule(app, m) {
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
