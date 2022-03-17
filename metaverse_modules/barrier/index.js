@@ -507,7 +507,7 @@ export default () => {
 
   const localPlayer = useLocalPlayer();
   const lastPosition = localPlayer.position.clone();
-  let animationSpec = null;
+  let animationSpec = null; // XXX make this per-mesh
   const cooldownTime = 2000;
   useFrame(({timestamp, timeDiff}) => {
     const timestampS = timestamp/1000;
@@ -546,11 +546,10 @@ export default () => {
 
           const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
           if (penetrationNormalVector !== null) {
-            // console.log('penetration', clipPlane.normal, penetrationNormalVector);
             if (!animationSpec) {
               const direction = penetrationNormalVector.clone();
               const speed = localLine.start.distanceTo(localLine.end) / timeDiffS;
-              animationSpec = {
+              animationSpec = { // XXX make this animation continue even though this chunk is unloaded
                 type: 'trigger',
                 startValue: 0,
                 endValue: 1,
