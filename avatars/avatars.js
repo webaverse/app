@@ -578,6 +578,7 @@ const _makeCapsuleGeometry = (length = 1) => {
   const height = length - boneRadius*2;
   const halfHeight = height/2;
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    // vismark
     (() => {
       const geometry = new CapsuleGeometry(radius, radius, height)
         /* .applyMatrix4(
@@ -608,7 +609,9 @@ const _makeRagdollMesh = () => {
     object.physicsId = getNextPhysicsId();
     physicsIdToMeshBoneMap.set(object.physicsId, object);
 
+    // vismark
     const physicsMesh = new THREE.Mesh(ragdollMeshGeometry, ragdollMeshMaterial);
+    // console.log({ragdollMeshGeometry})
     // physicsMesh.scale.setScalar(scaleFactor);
     object.add(physicsMesh);
     object.physicsMesh = physicsMesh;
@@ -842,7 +845,9 @@ const _makeRagdollMesh = () => {
       }
 
       // set capsule geometries
+      // vismark
       meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength);
+      // console.log({meshBone})
 
       // memoize
       modelBoneToFlatMeshBoneMap.set(modelBone, meshBone);
@@ -867,6 +872,7 @@ const _makeRagdollMesh = () => {
               .applyQuaternion(localQuaternion)
           );
         }
+        // vismark
         meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
         
         {
@@ -991,9 +997,11 @@ const _makeRagdollMesh = () => {
   };
   // XXX this can be rewritten to use an allocated buffer from the physics manager
   object.serializeSkeleton = () => {
+    // vismark
     const buffers = [];
 
     const _recurse = meshBone => {
+      debugger
       const idBuffer = Uint32Array.from([meshBone.physicsId]);
       buffers.push(idBuffer);
 
@@ -1790,6 +1798,7 @@ class Avatar {
 	  };
 
     this.ragdollMesh = _makeRagdollMesh();
+    window.ragdollMesh = this.ragdollMesh;
     this.ragdollMesh.wrapToAvatar(this);
     this.model.add(this.ragdollMesh);
     this.ragdoll = false;
@@ -3422,11 +3431,13 @@ class Avatar {
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
           const b = this.ragdollMesh.serializeSkeleton();
+          debugger
           this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
         }
       }
       if (!this.ragdoll && this.ragdollMesh.skeleton) {
         const b = this.ragdollMesh.serializeSkeleton();
+        // vismark
         physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, b);
       }
     }
