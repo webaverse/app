@@ -551,7 +551,8 @@ export default () => {
           const positionEnd = localPlayer.position;
           const totalDistance = positionStart.distanceTo(positionEnd);
 
-          for (let d = 0; d < totalDistance; d += 1) {
+          let broke = false;
+          for (let d = 0; d <= totalDistance; d += 1) {
             const f1 = Math.min(d / totalDistance, 1);
             const lineStart = localVector.copy(positionStart)
               .lerp(positionEnd, f1);
@@ -589,12 +590,16 @@ export default () => {
                   speed,
                 });
 
+                broke = true;
                 break;
               } else if (barrierMesh.animationSpec && barrierMesh.animationSpec.type === 'cooldown') {
                 barrierMesh.animationSpec.startTime = timestamp;
                 barrierMesh.animationSpec.endTime = timestamp + cooldownTime;
               }
             }
+          }
+          if (broke) {
+            break;
           }
         }
       }
