@@ -634,133 +634,133 @@ const _makeRagdollMesh = () => {
       Hips: _makeCubeMesh('Hips', false),
 
       Spine: _makeCubeMesh('Spine', true),
-      Chest: _makeCubeMesh('Chest', true),
-      UpperChest: _makeCubeMesh('UpperChest', true),
+      // Chest: _makeCubeMesh('Chest', true),
+      // UpperChest: _makeCubeMesh('UpperChest', true),
 
-      Neck: _makeCubeMesh('Neck', true),
-      Head: _makeCubeMesh('Head', true),
-      Eye_L: _makeCubeMesh('Eye_L', true),
-      Eye_R: _makeCubeMesh('Eye_R', true),
+      // Neck: _makeCubeMesh('Neck', true),
+      // Head: _makeCubeMesh('Head', true),
+      // Eye_L: _makeCubeMesh('Eye_L', true),
+      // Eye_R: _makeCubeMesh('Eye_R', true),
 
-      Left_shoulder: _makeCubeMesh('Left_shoulder', true),
-      Left_arm: _makeCubeMesh('Left_arm', true),
-      Left_elbow: _makeCubeMesh('Left_elbow', true),
-      Left_wrist: _makeCubeMesh('Left_wrist', true),
+      // Left_shoulder: _makeCubeMesh('Left_shoulder', true),
+      // Left_arm: _makeCubeMesh('Left_arm', true),
+      // Left_elbow: _makeCubeMesh('Left_elbow', true),
+      // Left_wrist: _makeCubeMesh('Left_wrist', true),
 
-      Right_shoulder: _makeCubeMesh('Right_shoulder', true),
-      Right_arm: _makeCubeMesh('Right_arm', true),
-      Right_elbow: _makeCubeMesh('Right_elbow', true),
-      Right_wrist: _makeCubeMesh('Right_wrist', true),
+      // Right_shoulder: _makeCubeMesh('Right_shoulder', true),
+      // Right_arm: _makeCubeMesh('Right_arm', true),
+      // Right_elbow: _makeCubeMesh('Right_elbow', true),
+      // Right_wrist: _makeCubeMesh('Right_wrist', true),
       
-      /* Left_thumb0: _makeCubeMesh('Left_thumb0', true, fingerScale),
-      Left_thumb1: _makeCubeMesh('Left_thumb1', true, fingerScale),
-      Left_thumb2: _makeCubeMesh('Left_thumb2', true, fingerScale),
-      Left_indexFinger1: _makeCubeMesh('Left_indexFinger1', true, fingerScale),
-      Left_indexFinger2: _makeCubeMesh('Left_indexFinger2', true, fingerScale),
-      Left_indexFinger3: _makeCubeMesh('Left_indexFinger3', true, fingerScale),
-      Left_middleFinger1: _makeCubeMesh('Left_middleFinger1', true, fingerScale),
-      Left_middleFinger2: _makeCubeMesh('Left_middleFinger2', true, fingerScale),
-      Left_middleFinger3: _makeCubeMesh('Left_middleFinger3', true, fingerScale),
-      Left_ringFinger1: _makeCubeMesh('Left_ringFinger3', true, fingerScale),
-      Left_ringFinger2: _makeCubeMesh('Left_ringFinger2', true, fingerScale),
-      Left_ringFinger3: _makeCubeMesh('Left_ringFinger3', true, fingerScale),
-      Left_littleFinger1: _makeCubeMesh('Left_littleFinger1', true, fingerScale),
-      Left_littleFinger2: _makeCubeMesh('Left_littleFinger2', true, fingerScale),
-      Left_littleFinger3: _makeCubeMesh('Left_littleFinger3', true, fingerScale),
+      // /* Left_thumb0: _makeCubeMesh('Left_thumb0', true, fingerScale),
+      // Left_thumb1: _makeCubeMesh('Left_thumb1', true, fingerScale),
+      // Left_thumb2: _makeCubeMesh('Left_thumb2', true, fingerScale),
+      // Left_indexFinger1: _makeCubeMesh('Left_indexFinger1', true, fingerScale),
+      // Left_indexFinger2: _makeCubeMesh('Left_indexFinger2', true, fingerScale),
+      // Left_indexFinger3: _makeCubeMesh('Left_indexFinger3', true, fingerScale),
+      // Left_middleFinger1: _makeCubeMesh('Left_middleFinger1', true, fingerScale),
+      // Left_middleFinger2: _makeCubeMesh('Left_middleFinger2', true, fingerScale),
+      // Left_middleFinger3: _makeCubeMesh('Left_middleFinger3', true, fingerScale),
+      // Left_ringFinger1: _makeCubeMesh('Left_ringFinger3', true, fingerScale),
+      // Left_ringFinger2: _makeCubeMesh('Left_ringFinger2', true, fingerScale),
+      // Left_ringFinger3: _makeCubeMesh('Left_ringFinger3', true, fingerScale),
+      // Left_littleFinger1: _makeCubeMesh('Left_littleFinger1', true, fingerScale),
+      // Left_littleFinger2: _makeCubeMesh('Left_littleFinger2', true, fingerScale),
+      // Left_littleFinger3: _makeCubeMesh('Left_littleFinger3', true, fingerScale),
 
-      Right_thumb0: _makeCubeMesh('Right_thumb0', true, fingerScale),
-      Right_thumb1: _makeCubeMesh('Right_thumb1', true, fingerScale),
-      Right_thumb2: _makeCubeMesh('Right_thumb2', true, fingerScale),
-      Right_indexFinger1: _makeCubeMesh('Right_indexFinger1', true, fingerScale),
-      Right_indexFinger2: _makeCubeMesh('Right_indexFinger2', true, fingerScale),
-      Right_indexFinger3: _makeCubeMesh('Right_indexFinger3', true, fingerScale),
-      Right_middleFinger1: _makeCubeMesh('Right_middleFinger1', true, fingerScale),
-      Right_middleFinger2: _makeCubeMesh('Right_middleFinger2', true, fingerScale),
-      Right_middleFinger3: _makeCubeMesh('Right_middleFinger3', true, fingerScale),
-      Right_ringFinger1: _makeCubeMesh('Right_ringFinger1', true, fingerScale),
-      Right_ringFinger2: _makeCubeMesh('Right_ringFinger2', true, fingerScale),
-      Right_ringFinger3: _makeCubeMesh('Right_ringFinger3', true, fingerScale),
-      Right_littleFinger1: _makeCubeMesh('Right_littleFinger1', true, fingerScale),
-      Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', true, fingerScale),
-      Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', true, fingerScale), */
+      // Right_thumb0: _makeCubeMesh('Right_thumb0', true, fingerScale),
+      // Right_thumb1: _makeCubeMesh('Right_thumb1', true, fingerScale),
+      // Right_thumb2: _makeCubeMesh('Right_thumb2', true, fingerScale),
+      // Right_indexFinger1: _makeCubeMesh('Right_indexFinger1', true, fingerScale),
+      // Right_indexFinger2: _makeCubeMesh('Right_indexFinger2', true, fingerScale),
+      // Right_indexFinger3: _makeCubeMesh('Right_indexFinger3', true, fingerScale),
+      // Right_middleFinger1: _makeCubeMesh('Right_middleFinger1', true, fingerScale),
+      // Right_middleFinger2: _makeCubeMesh('Right_middleFinger2', true, fingerScale),
+      // Right_middleFinger3: _makeCubeMesh('Right_middleFinger3', true, fingerScale),
+      // Right_ringFinger1: _makeCubeMesh('Right_ringFinger1', true, fingerScale),
+      // Right_ringFinger2: _makeCubeMesh('Right_ringFinger2', true, fingerScale),
+      // Right_ringFinger3: _makeCubeMesh('Right_ringFinger3', true, fingerScale),
+      // Right_littleFinger1: _makeCubeMesh('Right_littleFinger1', true, fingerScale),
+      // Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', true, fingerScale),
+      // Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', true, fingerScale), */
 
-      Left_leg: _makeCubeMesh('Left_leg', false),
-      Left_knee: _makeCubeMesh('Left_knee', false),
-      Left_ankle: _makeCubeMesh('Left_ankle', false),
-      Left_toe: _makeCubeMesh('Left_toe', false),
-      Right_leg: _makeCubeMesh('Right_leg', false),
-      Right_knee: _makeCubeMesh('Right_knee', false),
-      Right_ankle: _makeCubeMesh('Right_ankle', false),
-      Right_toe: _makeCubeMesh('Right_toe', false),
+      // Left_leg: _makeCubeMesh('Left_leg', false),
+      // Left_knee: _makeCubeMesh('Left_knee', false),
+      // Left_ankle: _makeCubeMesh('Left_ankle', false),
+      // Left_toe: _makeCubeMesh('Left_toe', false),
+      // Right_leg: _makeCubeMesh('Right_leg', false),
+      // Right_knee: _makeCubeMesh('Right_knee', false),
+      // Right_ankle: _makeCubeMesh('Right_ankle', false),
+      // Right_toe: _makeCubeMesh('Right_toe', false),
     };
 
     // hips
     // mesh.Root.add2(mesh.Hips);
     mesh.Hips.add2(mesh.Spine);
-    mesh.Spine.add2(mesh.Chest);
-    mesh.Chest.add2(mesh.UpperChest);
+    // mesh.Spine.add2(mesh.Chest);
+    // mesh.Chest.add2(mesh.UpperChest);
 
-    // head
-    mesh.UpperChest.add2(mesh.Neck);
-    mesh.Neck.add2(mesh.Head);
-    mesh.Head.add2(mesh.Eye_L);
-    mesh.Head.add2(mesh.Eye_R);
+    // // head
+    // mesh.UpperChest.add2(mesh.Neck);
+    // mesh.Neck.add2(mesh.Head);
+    // mesh.Head.add2(mesh.Eye_L);
+    // mesh.Head.add2(mesh.Eye_R);
 
-    // shoulders
-    mesh.UpperChest.add2(mesh.Left_shoulder);
-    mesh.UpperChest.add2(mesh.Right_shoulder);
+    // // shoulders
+    // mesh.UpperChest.add2(mesh.Left_shoulder);
+    // mesh.UpperChest.add2(mesh.Right_shoulder);
 
-    // arms
-    mesh.Left_shoulder.add2(mesh.Left_arm);
-    mesh.Left_arm.add2(mesh.Left_elbow);
-    mesh.Left_elbow.add2(mesh.Left_wrist);
-    mesh.Right_shoulder.add2(mesh.Right_arm);
-    mesh.Right_arm.add2(mesh.Right_elbow);
-    mesh.Right_elbow.add2(mesh.Right_wrist);
+    // // arms
+    // mesh.Left_shoulder.add2(mesh.Left_arm);
+    // mesh.Left_arm.add2(mesh.Left_elbow);
+    // mesh.Left_elbow.add2(mesh.Left_wrist);
+    // mesh.Right_shoulder.add2(mesh.Right_arm);
+    // mesh.Right_arm.add2(mesh.Right_elbow);
+    // mesh.Right_elbow.add2(mesh.Right_wrist);
 
-    /* // hands
-    mesh.Left_wrist.add2(mesh.Left_thumb0);
-    mesh.Left_thumb0.add2(mesh.Left_thumb1);
-    mesh.Left_thumb1.add2(mesh.Left_thumb2);
-    mesh.Left_wrist.add2(mesh.Left_indexFinger1);
-    mesh.Left_indexFinger1.add2(mesh.Left_indexFinger2);
-    mesh.Left_indexFinger2.add2(mesh.Left_indexFinger3);
-    mesh.Left_wrist.add2(mesh.Left_middleFinger1);
-    mesh.Left_middleFinger1.add2(mesh.Left_middleFinger2);
-    mesh.Left_middleFinger2.add2(mesh.Left_middleFinger3);
-    mesh.Left_wrist.add2(mesh.Left_ringFinger1);
-    mesh.Left_ringFinger1.add2(mesh.Left_ringFinger2);
-    mesh.Left_ringFinger2.add2(mesh.Left_ringFinger3);
-    mesh.Left_wrist.add2(mesh.Left_littleFinger1);
-    mesh.Left_littleFinger1.add2(mesh.Left_littleFinger2);
-    mesh.Left_littleFinger2.add2(mesh.Left_littleFinger3);
+    // /* // hands
+    // mesh.Left_wrist.add2(mesh.Left_thumb0);
+    // mesh.Left_thumb0.add2(mesh.Left_thumb1);
+    // mesh.Left_thumb1.add2(mesh.Left_thumb2);
+    // mesh.Left_wrist.add2(mesh.Left_indexFinger1);
+    // mesh.Left_indexFinger1.add2(mesh.Left_indexFinger2);
+    // mesh.Left_indexFinger2.add2(mesh.Left_indexFinger3);
+    // mesh.Left_wrist.add2(mesh.Left_middleFinger1);
+    // mesh.Left_middleFinger1.add2(mesh.Left_middleFinger2);
+    // mesh.Left_middleFinger2.add2(mesh.Left_middleFinger3);
+    // mesh.Left_wrist.add2(mesh.Left_ringFinger1);
+    // mesh.Left_ringFinger1.add2(mesh.Left_ringFinger2);
+    // mesh.Left_ringFinger2.add2(mesh.Left_ringFinger3);
+    // mesh.Left_wrist.add2(mesh.Left_littleFinger1);
+    // mesh.Left_littleFinger1.add2(mesh.Left_littleFinger2);
+    // mesh.Left_littleFinger2.add2(mesh.Left_littleFinger3);
 
-    mesh.Right_wrist.add2(mesh.Right_thumb0);
-    mesh.Right_thumb0.add2(mesh.Right_thumb1);
-    mesh.Right_thumb1.add2(mesh.Right_thumb2);
-    mesh.Right_wrist.add2(mesh.Right_indexFinger1);
-    mesh.Right_indexFinger1.add2(mesh.Right_indexFinger2);
-    mesh.Right_indexFinger2.add2(mesh.Right_indexFinger3);
-    mesh.Right_wrist.add2(mesh.Right_middleFinger1);
-    mesh.Right_middleFinger1.add2(mesh.Right_middleFinger2);
-    mesh.Right_middleFinger2.add2(mesh.Right_middleFinger3);
-    mesh.Right_wrist.add2(mesh.Right_ringFinger1);
-    mesh.Right_ringFinger1.add2(mesh.Right_ringFinger2);
-    mesh.Right_ringFinger2.add2(mesh.Right_ringFinger3);
-    mesh.Right_wrist.add2(mesh.Right_littleFinger1);
-    mesh.Right_littleFinger1.add2(mesh.Right_littleFinger2);
-    mesh.Right_littleFinger2.add2(mesh.Right_littleFinger3); */
+    // mesh.Right_wrist.add2(mesh.Right_thumb0);
+    // mesh.Right_thumb0.add2(mesh.Right_thumb1);
+    // mesh.Right_thumb1.add2(mesh.Right_thumb2);
+    // mesh.Right_wrist.add2(mesh.Right_indexFinger1);
+    // mesh.Right_indexFinger1.add2(mesh.Right_indexFinger2);
+    // mesh.Right_indexFinger2.add2(mesh.Right_indexFinger3);
+    // mesh.Right_wrist.add2(mesh.Right_middleFinger1);
+    // mesh.Right_middleFinger1.add2(mesh.Right_middleFinger2);
+    // mesh.Right_middleFinger2.add2(mesh.Right_middleFinger3);
+    // mesh.Right_wrist.add2(mesh.Right_ringFinger1);
+    // mesh.Right_ringFinger1.add2(mesh.Right_ringFinger2);
+    // mesh.Right_ringFinger2.add2(mesh.Right_ringFinger3);
+    // mesh.Right_wrist.add2(mesh.Right_littleFinger1);
+    // mesh.Right_littleFinger1.add2(mesh.Right_littleFinger2);
+    // mesh.Right_littleFinger2.add2(mesh.Right_littleFinger3); */
 
-    // legs
-    mesh.Hips.add2(mesh.Left_leg);
-    mesh.Left_leg.add2(mesh.Left_knee);
-    mesh.Left_knee.add2(mesh.Left_ankle);
-    mesh.Left_ankle.add2(mesh.Left_toe);
+    // // legs
+    // mesh.Hips.add2(mesh.Left_leg);
+    // mesh.Left_leg.add2(mesh.Left_knee);
+    // mesh.Left_knee.add2(mesh.Left_ankle);
+    // mesh.Left_ankle.add2(mesh.Left_toe);
 
-    mesh.Hips.add2(mesh.Right_leg);
-    mesh.Right_leg.add2(mesh.Right_knee);
-    mesh.Right_knee.add2(mesh.Right_ankle);
-    mesh.Right_ankle.add2(mesh.Right_toe);
+    // mesh.Hips.add2(mesh.Right_leg);
+    // mesh.Right_leg.add2(mesh.Right_knee);
+    // mesh.Right_knee.add2(mesh.Right_ankle);
+    // mesh.Right_ankle.add2(mesh.Right_toe);
     
     return mesh;
   };
@@ -1008,6 +1008,7 @@ const _makeRagdollMesh = () => {
 
       // console.log('serialize', meshBone.name);
 
+      console.log(meshBone.name)
       const nameBuffer = textEncoder.encode(meshBone.name);
       const nameBufferLengthBuffer = Uint32Array.from([nameBuffer.length]);
       buffers.push(nameBufferLengthBuffer);
