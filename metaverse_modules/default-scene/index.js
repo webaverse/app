@@ -85,10 +85,7 @@ export default e => {
           // console.log('new components', components);
 
           for (const subApp of subApps) {
-            for (const k in components) {
-              const v = components[k];
-              subApp.setComponent(k, v);
-            }
+            subApp.setComponents(components);
           }
         });
       })(),
