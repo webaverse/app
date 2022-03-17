@@ -143,6 +143,14 @@
     resize: vertical;
 }
 
+.apiKeysTab .input.enabled {
+    background-color: #66bb6a;
+    /* color: #FFF; */
+}
+/* .apiKeysTab .input.enabled::placeholder {
+    color: #FFFFFF80;
+} */
+
 .audioTab .slider {
     float: left;
     margin-left: 20px;
