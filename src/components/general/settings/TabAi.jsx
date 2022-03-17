@@ -28,6 +28,7 @@ export const TabAi = ({ active }) => {
 
     const [ apiType, setApiType ] = useState( null );
     const [ apiKey, setApiKey ] = useState( null );
+    const [ apiKeyEnabled, setApiKeyEnabled ] = useState( false );
 
     //
 
@@ -39,6 +40,19 @@ export const TabAi = ({ active }) => {
         return () => {
             debug.removeEventListener('enabledchange', enabledchange);
         };
+    }, []);
+
+    useEffect(() => {
+        let live = true;
+        (async () => {
+            const hasApiKey = await preauthenticator.hasAuthenticatedApi(authenticatedApiName);
+            // console.log('has api key', hasApiKey);
+            if (!live) return;
+            setApiKeyEnabled( hasApiKey );
+        })();
+        return () => {
+            live = false;
+        }
     }, []);
 
     //
@@ -74,17 +88,30 @@ export const TabAi = ({ active }) => {
             apiKey:         '',
         };
 
-        localStorage.setItem( 'AiSettings', JSON.stringify( settings ) );
-        if (apiKey) {
-            const url = _getApiUrl(apiType);
-            const origin = new URL(url).origin;
-            
-            (async () => {
-                await preauthenticator.setAuthenticatedApi(authenticatedApiName, origin, `Bearer ${apiKey}`);
-            })().catch(err => {
-                console.warn(err);
-            });
+        if (_apiTypeNeedsApiKey(apiType) && apiKeyEnabled && !apiKey) {
+            // keep old api key
+        } else {
+            if (_apiTypeNeedsApiKey(apiType) && apiKey) {
+                const url = _getApiUrl(apiType);
+                const origin = new URL(url).origin;
+                
+                (async () => {
+                    await preauthenticator.setAuthenticatedApi(authenticatedApiName, origin, `Bearer ${apiKey}`);
+                    setApiKeyEnabled(true);
+                })().catch(err => {
+                    console.warn(err);
+                });
+            } else {
+                (async () => {
+                    await preauthenticator.deleteAuthenticatedApi(authenticatedApiName);
+                    setApiKeyEnabled(false);
+                })().catch(err => {
+                    console.warn(err);
+                });
+            }
         }
+
+        localStorage.setItem( 'AiSettings', JSON.stringify( settings ) );
 
         updateLoreEndpoint(apiType);
 
@@ -189,7 +216,13 @@ export const TabAi = ({ active }) => {
                 <div className={ styles.paramName }>Provider</div>
                 <Switch className={ styles.switch } value={ apiType } setValue={ setApiType } values={ ApiTypes } />
                 {_apiTypeNeedsApiKey(apiType) ?
-                  <input type="text" className={ styles.input } value={ apiKey ?? '' } onChange={e => setApiKey(e.target.value) } placeholder="API Key" />
+                    <input
+                        type="text"
+                        className={ classNames(styles.input, apiKeyEnabled ? styles.enabled : null) }
+                        value={ apiKey ?? '' }
+                        onChange={e => setApiKey(e.target.value) }
+                        placeholder={`API Key${apiKeyEnabled ? ' (set)' : ''}`}
+                    />
                 :
                   null}
                 <div className={ styles.clearfix } />                
