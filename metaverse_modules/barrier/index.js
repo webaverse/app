@@ -588,6 +588,8 @@ export default () => {
                   direction: direction.clone(),
                   speed,
                 });
+
+                break;
               } else if (barrierMesh.animationSpec && barrierMesh.animationSpec.type === 'cooldown') {
                 barrierMesh.animationSpec.startTime = timestamp;
                 barrierMesh.animationSpec.endTime = timestamp + cooldownTime;
