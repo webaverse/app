@@ -148,48 +148,37 @@ const funGridMaterial = new THREE.ShaderMaterial({
       vec2 uv = vUv;
       vec2 oUv = uv;
 
-      vec2 uvGridSeed = vec2(floor(oUv.x * cutSize2 + 0.5), floor(oUv.y * cutSize2 + 0.5));
-      vec2 uvGridMod = mod(vec2(oUv.x * cutSize2 + 0.5, oUv.y * cutSize2 + 0.5), 1.);
+      vec2 uvGridSeedX = vec2(floor(oUv.x*0.5 * cutSize2 + 0.5), floor(oUv.y * cutSize2 + 0.5));
+      vec2 uvGridSeedY = vec2(floor(oUv.x * cutSize2 + 0.5), floor(oUv.y*0.5 * cutSize2 + 0.5));
+      vec2 uvGridModX = mod(vec2(oUv.x*0.5 * cutSize2 + 0.5, oUv.y * cutSize2 + 0.5), 1.);
+      vec2 uvGridModY = mod(vec2(oUv.x * cutSize2 + 0.5, oUv.y*0.5 * cutSize2 + 0.5), 1.);
       
-      float xBottomOffset = (rand(uvGridSeed.x * 100. + uvGridSeed.y * 100.)*2.-1.) * 0.1;
-      float xTopOffset = (rand(uvGridSeed.x * 100. + (uvGridSeed.y + 1.) * 100.)*2.-1.) * 0.1;
-      float yLeftOffset = (rand(uvGridSeed.x * 100. + uvGridSeed.y * 100. + 1000.)*2.-1.) * 0.1;
-      float yRightOffset = (rand((uvGridSeed.x + 1.) * 100. + uvGridSeed.y * 100. + 1000.)*2.-1.) * 0.1;
+      const float deltaRange = 0.15;
+      float xBottomOffset = (rand(uvGridSeedX.x * 100. + uvGridSeedX.y * 100.)*2.-1.) * deltaRange;
+      float xTopOffset = (rand(uvGridSeedX.x * 100. + (uvGridSeedX.y + 1.) * 100.)*2.-1.) * deltaRange;
+      float yLeftOffset = (rand(uvGridSeedY.x * 100. + uvGridSeedY.y * 100. + 1000.)*2.-1.) * deltaRange;
+      float yRightOffset = (rand((uvGridSeedY.x + 1.) * 100. + uvGridSeedY.y * 100. + 1000.)*2.-1.) * deltaRange;
       
-      float xOffset = xBottomOffset * (1. - uvGridMod.y) + xTopOffset * uvGridMod.y;
-      float yOffset = yLeftOffset * (1. - uvGridMod.x) + yRightOffset * uvGridMod.x;
-
-      /* float f = min(mod(uv.x, 1.), mod(uv.y, 1.));
-      f = min(f, mod(dUv.x - uv.x, dUv.x));
-      f = min(f, mod(dUv.y - uv.y, dUv.y)); */
-
-      // uv.x += 0.5;
-      // uv.x = mod(uv.x, 1.);
-      // uv.y += 0.5;
-      // uv.y = mod(uv.y, 1.);
+      float xOffset = xBottomOffset * (1. - uvGridModX.y) + xTopOffset * uvGridModX.y;
+      float yOffset = yLeftOffset * (1. - uvGridModY.x) + yRightOffset * uvGridModY.x;
 
       float f = min(
         abs(mod(uv.x + xOffset, 1.)),
         abs(mod(uv.y + yOffset, 1.))
       );
-      /* f = min(f,
-        abs(mod(1. - uv.x, 1.) + xOffset)
-      );
-      f = min(f,
-        abs(mod(1. - uv.y, 1.) + yOffset)
-      ); */
       
       f *= ${uvRange.toFixed(8)};
       float a = max(1. - f, 0.);
       if (a < 0.5) {
-        gl_FragColor.rgb = vec3(0.);
+        // gl_FragColor.rgb = vec3(0.);
+        discard;
       } else {
         gl_FragColor = vec4(c, a);
         gl_FragColor = sRGBToLinear(gl_FragColor);
       }
 
-      gl_FragColor.rb += uvGridMod.xy * 0.1;
-      gl_FragColor.a = 1.;
+      /* gl_FragColor.rb += uvGridModY.xy * 0.1;
+      gl_FragColor.a = 1.; */
 
       ${THREE.ShaderChunk.logdepthbuf_fragment}
     }
