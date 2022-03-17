@@ -545,7 +545,8 @@ export default () => {
     };
     _updateAnimations();
     const _updateCollisions = () => {
-      for (const barrierMesh of children) {
+      const localChildren = children.slice();
+      for (const barrierMesh of localChildren) {
         for (const clipPlane of barrierMesh.clipPlanes) {
           const positionStart = lastPosition;
           const positionEnd = localPlayer.position;
