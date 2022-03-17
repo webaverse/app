@@ -29,6 +29,7 @@ export const TabAi = ({ active }) => {
     const [ apiType, setApiType ] = useState( null );
     const [ apiKey, setApiKey ] = useState( null );
     const [ apiKeyEnabled, setApiKeyEnabled ] = useState( false );
+    const [ testRunning, setTestRunning ] = useState( false );
 
     //
 
@@ -199,12 +200,15 @@ export const TabAi = ({ active }) => {
     }, [] );
 
     async function testAi(e) {
+        setTestRunning(true);
+
         const prompt = testText;
         const response = await loreAI.generate(prompt, {
             // stop: '\n',
         });
-        // console.log('prompt', {prompt, response});
         setTestText(prompt + response);
+
+        setTestRunning(false);
     }
 
     //
@@ -240,7 +244,7 @@ export const TabAi = ({ active }) => {
                         }}
                     ></textarea>
                     <div className={ styles.clearfix } />
-                    <input type="button" className={ styles.button } value="Submit" onClick={testAi} />
+                    <input type="button" className={ styles.button } value={ testRunning ? 'Working...' : 'Submit' } disabled={testRunning} onClick={testAi} />
                 </div>
             </>) : null}
 
