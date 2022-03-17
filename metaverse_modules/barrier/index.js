@@ -552,10 +552,12 @@ export default () => {
           const totalDistance = positionStart.distanceTo(positionEnd);
 
           for (let d = 0; d < totalDistance; d += 1) {
+            const f1 = Math.min(d / totalDistance, 1);
             const lineStart = localVector.copy(positionStart)
-              .lerp(positionEnd, d / totalDistance);
+              .lerp(positionEnd, f1);
+            const f2 = Math.min((d + 1) / totalDistance, 1);
             const lineEnd = localVector2.copy(positionStart)
-              .lerp(positionEnd, (d + 1) / totalDistance);
+              .lerp(positionEnd, f2);
             localLine.set(lineStart, lineEnd)
               .applyMatrix4(
                 localMatrix.copy(barrierMesh.matrixWorld)
