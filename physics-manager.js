@@ -290,8 +290,10 @@ physicsManager.simulatePhysics = timeDiff => {
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
     physicsUpdates.length = 0;
     for (const updateOut of updatesOut) {
+      // vismark
       const {id, position, quaternion, collided, grounded} = updateOut;
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
+      // debugger
       if (physicsObject) {
         // console.log('got position', position.toArray().join(','));
         physicsObject.position.copy(position);

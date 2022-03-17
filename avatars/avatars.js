@@ -766,6 +766,7 @@ const _makeRagdollMesh = () => {
   };
 
   const flatMeshes = _makeMeshes();
+  window.flatMeshes = flatMeshes
   const flatMesh = new THREE.Object3D();
   for (const k in flatMeshes) {
     flatMesh.add(flatMeshes[k]);
@@ -3438,6 +3439,7 @@ class Avatar {
       if (!this.ragdoll && this.ragdollMesh.skeleton) {
         const b = this.ragdollMesh.serializeSkeleton();
         // vismark
+        // console.log('setSkeletonFromBuffer')
         physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, b);
       }
     }

@@ -499,6 +499,7 @@ const physxWorker = (() => {
   }; */
   w.makePhysics = () => moduleInstance._makePhysics();
   w.simulatePhysics = (physics, updates, elapsedTime) => {
+    // vismark
     /* if (updates.length > maxNumUpdates) {
       throw new Error('too many updates to simulate step: ' + updates.length + ' (max: ' + maxNumUpdates + ')');
     } */
@@ -545,6 +546,8 @@ const physxWorker = (() => {
     );
     
     const newUpdates = Array(numNewUpdates);
+    // vismark
+    // console.log({numNewUpdates})
     for (let i = 0; i < numNewUpdates; i++) {
       newUpdates[i] = {
         id: ids[i],
