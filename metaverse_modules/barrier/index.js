@@ -2,7 +2,7 @@ import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
-import { chunkWorldSize } from '../../procgen/map-gen';
+// import {chunkWorldSize} from '../../procgen/map-gen';
 const {useApp, useLocalPlayer, useProcGen, useGeometries, useMaterials, useFrame, useActivate, usePhysics, useCleanup} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
@@ -547,39 +547,49 @@ export default () => {
     const _updateCollisions = () => {
       for (const barrierMesh of children) {
         for (const clipPlane of barrierMesh.clipPlanes) {
-          localLine.set(lastPosition, localPlayer.position)
-            .applyMatrix4(
-              localMatrix.copy(barrierMesh.matrixWorld)
-                .invert()
-            );
+          const positionStart = lastPosition;
+          const positionEnd = localPlayer.position;
+          const totalDistance = positionStart.distanceTo(positionEnd);
 
-          const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
-          if (penetrationNormalVector !== null) {
-            if (!barrierMesh.animationSpec) {
-              const direction = penetrationNormalVector.clone();
-              const speed = localLine.start.distanceTo(localLine.end) / timeDiffS;
-              barrierMesh.animationSpec = {
-                type: 'trigger',
-                startValue: 0,
-                endValue: 1,
-                visible: true,
-                startTime: timestamp,
-                endTime: timestamp + 1000,
-                startTimeS: timestampS,
-                direction,
-                speed,
-              };
+          for (let d = 0; d < totalDistance; d += 1) {
+            const lineStart = localVector.copy(positionStart)
+              .lerp(positionEnd, d / totalDistance);
+            const lineEnd = localVector2.copy(positionStart)
+              .lerp(positionEnd, (d + 1) / totalDistance);
+            localLine.set(lineStart, lineEnd)
+              .applyMatrix4(
+                localMatrix.copy(barrierMesh.matrixWorld)
+                  .invert()
+              );
 
-              children.splice(children.indexOf(barrierMesh), 1);
+            const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
+            if (penetrationNormalVector !== null) {
+              if (!barrierMesh.animationSpec) {
+                const direction = penetrationNormalVector.clone();
+                const speed = localLine.start.distanceTo(localLine.end) / timeDiffS;
+                barrierMesh.animationSpec = {
+                  type: 'trigger',
+                  startValue: 0,
+                  endValue: 1,
+                  visible: true,
+                  startTime: timestamp,
+                  endTime: timestamp + 1000,
+                  startTimeS: timestampS,
+                  direction,
+                  speed,
+                };
 
-              app.dispatchEvent({
-                type: 'collision',
-                direction: direction.clone(),
-                speed,
-              });
-            } else if (barrierMesh.animationSpec && barrierMesh.animationSpec.type === 'cooldown') {
-              barrierMesh.animationSpec.startTime = timestamp;
-              barrierMesh.animationSpec.endTime = timestamp + cooldownTime;
+                children.splice(children.indexOf(barrierMesh), 1);
+
+                app.dispatchEvent({
+                  type: 'collision',
+                  direction: direction.clone(),
+                  speed,
+                });
+              } else if (barrierMesh.animationSpec && barrierMesh.animationSpec.type === 'cooldown') {
+                barrierMesh.animationSpec.startTime = timestamp;
+                barrierMesh.animationSpec.endTime = timestamp + cooldownTime;
+              }
             }
           }
         }

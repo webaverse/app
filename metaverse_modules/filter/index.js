@@ -7,7 +7,6 @@ const {useApp, useFrame, usePhysics, useProcGen, addTrackedApp, useDefaultModule
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-// const localVector2D = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
@@ -60,9 +59,7 @@ export default () => {
     const width = maxX - minX;
     const height = maxY - minY;
     const depth = maxZ - minZ;
-    // console.log('got bounds', width, depth);
     const exits = app.getComponent('exits');
-    // console.log('got bounds exits', bounds, exits, width, height);
 
     const dims = new THREE.Vector3(width, height, depth);
 
@@ -112,18 +109,6 @@ export default () => {
           }
 
           if (normal.equals(wallNormal)) {
-            /* let position;
-            if (normal.x !== 0) {
-              position = new THREE.Vector2((-depth/2 + localVector.z) * normal.x, size.y/2);
-            } else if (normal.z !== 0) {
-              position = new THREE.Vector2((-width/2 + localVector.x) * normal.z, size.y/2);
-            } else if (normal.y !== 0) {
-              position = new THREE.Vector2(-width/2 + size.x/2 + localVector.x, -depth/2 + size.y/2 + localVector.z);
-            } else {
-              console.warn('invalid wall normal', normal.toArray());
-              throw new Error('invalid wall normal');
-            } */
-
             const position = new THREE.Vector3(
               -width/2 +
                 (0.5 * -normal.x) +
@@ -149,30 +134,9 @@ export default () => {
               ).invert();
             position.applyQuaternion(faceQuaternion);
 
-            /* const position = new THREE.Vector3(
-              // -width/2 +
-                // (0.5 * -normal.x) +
-                localVector.x +
-                (normal.x === -1 ? voxelWorldSize : 0) +
-                (normal.z * voxelWorldSize/2),
-              voxelWorldSize/2 +
-                localVector.y,
-              // -depth/2 +
-                // (0.5 * -normal.z) +
-                localVector.z +
-                (normal.z === -1 ? voxelWorldSize : 0) +
-                (normal.x * voxelWorldSize/2),
-            ); */
-
-            /* const position = new THREE.Vector3(
-              -width/2 + (0.5 * -normal.x) + localVector.x + (normal.x === -1 ? voxelWorldSize : 0),
-              voxelWorldSize/2 + localVector.y,
-              -depth/2 + (0.5 * -normal.z) + localVector.z + (normal.z === -1 ? voxelWorldSize : 0)
-            ); */
-
-            if (normal.x === 1) {
+            /* if (normal.x === 1) {
               console.log('filter exit', normal.toArray().join(', '), localVector.toArray().join(', '), position.toArray().join(', '));
-            }
+            } */
 
             return {
               position,
@@ -188,13 +152,6 @@ export default () => {
           const outerWidth = scale.x;
           const outerHeight = scale.y;
 
-          /* if (outerWidth !== width) {
-            debugger;
-          }
-          if (outerHeight !== height) {
-            debugger;
-          } */
-
           const wallShape = new THREE.Shape();
 
           wallShape.moveTo(-outerWidth / 2, -outerHeight / 2);
@@ -205,18 +162,6 @@ export default () => {
 
           for (const localExitSpec of localNormalExitSpecs) {
             const {position, normal, size} = localExitSpec;
-
-            /* const normalQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-              localMatrix.lookAt(
-                normal,
-                localVector.set(0, 0, 0),
-                localVector2.set(0, 1, 0),
-              )
-            );
-            const xOffset = new THREE.Vector3(1, 0, 0)
-              .applyQuaternion(normalQuaternion);
-            const yOffset = new THREE.Vector3(0, 1, 0)
-              .applyQuaternion(normalQuaternion); */
 
             wallShape.lineTo(position.x - size.x/2, position.y - size.y/2);
             wallShape.lineTo(position.x + size.x/2, position.y - size.y/2);
