@@ -62,7 +62,7 @@ export const TabAi = ({ active }) => {
             case 'NONE': return null;
             case 'AI21': return `https://ai.webaverse.com/ai21/v1/engines/j1-large/completions`;
             case 'GOOSEAI': return `https://ai.webaverse.com/gooseai/v1/engines/gpt-neo-20b/completions`;
-            case 'OPENAI': return `https://api.openai.com/v1/engines/text-davinci-001/completions`;
+            case 'OPENAI': return `https://api.openai.com/v1/engines/text-davinci-002/completions`;
             default: return null;
         }
     };
