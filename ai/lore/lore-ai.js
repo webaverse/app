@@ -216,7 +216,7 @@ class LoreAI {
     this.endpointFn = null;
   }
   async generate(prompt, {
-    stop = '\n',
+    stop,
     max_tokens = 100,
     // temperature,
     // top_p,
@@ -225,7 +225,9 @@ class LoreAI {
       const query = {};
       query.prompt = prompt;
       query.max_tokens = max_tokens;
-      query.stop = stop;
+      if (stop !== undefined) {
+        query.stop = stop;
+      }
       
       query.temperature = temperature;
       query.top_p = top_p;
