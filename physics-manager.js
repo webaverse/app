@@ -297,7 +297,7 @@ physicsManager.simulatePhysics = timeDiff => {
       if (physicsObject) {
         // console.log({physicsObject})
         if (physicsObject.name === 'Hips') {
-          console.log(position.x.toFixed(1) + '_' + position.y.toFixed(1) + '_' + position.z.toFixed(1))
+          // console.log(position.x.toFixed(1) + '_' + position.y.toFixed(1) + '_' + position.z.toFixed(1))
         }
         // console.log('got position', position.toArray().join(','));
         physicsObject.position.copy(position);
