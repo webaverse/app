@@ -7,6 +7,7 @@ const {useApp, useFrame, usePhysics, useProcGen, addTrackedApp, useDefaultModule
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
@@ -28,6 +29,136 @@ function quantizeGeometry(g, n) {
   g.attributes.position.needsUpdate = true;
   return g;
 }
+function addPositionUvs(geometry) {
+  const positions = geometry.attributes.position.array;
+  const normals = geometry.attributes.normal.array;
+  const uvs = geometry.attributes.uv.array;
+  for (let i = 0, j = 0; i < positions.length; i += 3, j += 2) {
+    const position = localVector.fromArray(positions, i);
+    const normal = localVector2.fromArray(normals, i);
+    // const uv = localVector2D.fromArray(uvs, j);
+
+    let x;
+    let y;
+    if (Math.abs(normal.x) > 0.5) {
+      x = Math.floor(position.z);
+      y = Math.floor(position.y);
+    } else if (Math.abs(normal.y) > 0.5) {
+      x = Math.floor(position.x);
+      y = Math.floor(position.z);
+    } else if (Math.abs(normal.z) > 0.5) {
+      x = Math.floor(position.x);
+      y = Math.floor(position.y);
+    } else {
+      console.warn('bad normal', normal.clone());
+      throw new Error('bad normal');
+    }
+
+    localVector2D.set(x, y)
+      .toArray(uvs, j);
+  }
+
+  return geometry;
+}
+/* function addBarycentricAttributes(geometry) {
+  geometry = geometry.toNonIndexed();
+
+  const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+  let barycentricIndex = 0;
+  for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+    barycentrics[barycentricIndex++] = 1;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 1;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 1;
+  }
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
+
+  return geometry;
+} */
+
+const funGridMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    /* uBeat: {
+      type: 'f',
+      value: 1,
+    },
+    uBeat2: {
+      type: 'f',
+      value: 0,
+    }, */
+  },
+  vertexShader: `\
+    ${THREE.ShaderChunk.common}
+
+    attribute float y;
+    // attribute vec3 barycentric;
+    // attribute float dynamicPositionY;
+    // uniform float uBeat2;
+    varying vec2 vUv;
+    // varying vec3 vBarycentric;
+    varying vec3 vPosition;
+    ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+
+    void main() {
+      vUv = uv;
+      // vBarycentric = barycentric;
+      vPosition = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position /* + vec3(0., dynamicPositionY * uBeat2, 0.) */, 1.0);
+
+      ${THREE.ShaderChunk.logdepthbuf_vertex}
+    }
+  `,
+  fragmentShader: `\
+    // uniform float uBeat;
+    precision highp float;
+    precision highp int;
+
+    #define PI 3.1415926535897932384626433832795
+
+    // varying vec3 vBarycentric;
+    varying vec3 vPosition;
+    varying vec2 vUv;
+
+    const vec3 lineColor1 = vec3(${new THREE.Color(0x66bb6a).toArray().join(', ')});
+    const vec3 lineColor2 = vec3(${new THREE.Color(0x9575cd).toArray().join(', ')});
+
+    ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+
+    float edgeFactor(vec3 bary, float width) {
+      // vec3 bary = vec3(vBC.x, vBC.y, 1.0 - vBC.x - vBC.y);
+      vec3 d = fwidth(bary);
+      vec3 a3 = smoothstep(d * (width - 0.5), d * (width + 0.5), bary);
+      return min(min(a3.x, a3.y), a3.z);
+    }
+
+    void main() {
+      vec3 c = mix(lineColor1, lineColor2, vPosition.y / 10.);
+      
+      vec2 uv = vUv;
+      // vec3 p = vPosition;
+      float f = min(mod(uv.x, 1.), mod(uv.y, 1.));
+      f = min(f, mod(1.-uv.x, 1.));
+      f = min(f, mod(1.-uv.y, 1.));
+      f *= 10.;
+      float a = max(1. - f, 0.);
+      if (a < 0.5) {
+        discard;
+      } else {
+        gl_FragColor = vec4(c, a);
+        gl_FragColor = sRGBToLinear(gl_FragColor);
+      }
+
+      ${THREE.ShaderChunk.logdepthbuf_fragment}
+    }
+  `,
+  side: THREE.DoubleSide,
+  transparent: true,
+});
 
 export default () => {
   const app = useApp();
@@ -203,10 +334,11 @@ export default () => {
         }
         return quantizeGeometry(g, voxelWorldSize);
       });
-      const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+      let geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+      geometry = addPositionUvs(geometry);
+      // geometry = addBarycentricAttributes(geometry);
 
-      const material = new THREE.MeshNormalMaterial();
-      const mesh = new THREE.Mesh(geometry, material);
+      const mesh = new THREE.Mesh(geometry, funGridMaterial);
       mesh.position.set(dx * chunkWorldSize, 0, dy * chunkWorldSize);
       app.add(mesh);
       mesh.updateMatrixWorld();
