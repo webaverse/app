@@ -586,7 +586,7 @@ const _makeCapsuleGeometry = (length = 1) => {
         ); */
       return geometry;
     })(),
-    new THREE.BoxGeometry(0.005, 0.2, 0.005)
+    new THREE.BoxGeometry(0.05, 2.2, 0.05)
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-height/2, 0.2/2, 0)),
   ]);
   geometry.radius = radius;
@@ -1002,13 +1002,13 @@ const _makeRagdollMesh = () => {
     const buffers = [];
 
     const _recurse = meshBone => {
-      debugger
+      // debugger
       const idBuffer = Uint32Array.from([meshBone.physicsId]);
       buffers.push(idBuffer);
 
       // console.log('serialize', meshBone.name);
 
-      console.log(meshBone.name)
+      // console.log(meshBone.name)
       const nameBuffer = textEncoder.encode(meshBone.name);
       const nameBufferLengthBuffer = Uint32Array.from([nameBuffer.length]);
       buffers.push(nameBufferLengthBuffer);
@@ -3433,7 +3433,7 @@ class Avatar {
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
           const b = this.ragdollMesh.serializeSkeleton();
-          debugger
+          // debugger
           this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
         }
       }
