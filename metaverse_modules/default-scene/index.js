@@ -30,9 +30,9 @@ export default e => {
   const makeComponents = (x, y) => {
     const chunk = procGen.createMapChunk(undefined, x, y);
     const {
-      blocks,
+      // blocks,
       width,
-      height,
+      // height,
     } = chunk;
     const worldWidth = width * voxelWorldSize;
     const worldHeight = width * voxelWorldSize;
@@ -41,6 +41,7 @@ export default e => {
     const coords = [x, y];
     const dx = x - baseX;
     const dy = y - baseY;
+    const delta = [dx, dy];
     const bounds = [
       [dx*worldWidth - worldWidth/2, 0, dy*worldHeight - worldHeight/2],
       [dx*worldWidth + worldWidth/2, 16, dy*worldHeight + worldHeight/2],
@@ -48,6 +49,7 @@ export default e => {
     const exits = exitBlocks.map(b => b.getLocalPosition(localVector).toArray());
     const components = {
       coords,
+      delta,
       bounds,
       exits,
     };
