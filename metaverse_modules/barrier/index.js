@@ -109,6 +109,7 @@ export default () => {
   const {WebaverseShaderMaterial} = useMaterials();
 
   const barrierMeshes = [];
+  let children = [];
   const physicsIds = [];
   const _render = () => {
     const bounds = app.getComponent('bounds');
@@ -449,6 +450,7 @@ export default () => {
       app.add(barrierMesh);
       app.updateMatrixWorld();
       barrierMeshes.push(barrierMesh);
+      children.push(barrierMesh);
 
       barrierMesh.clipPlanes = [
         // top
@@ -494,6 +496,7 @@ export default () => {
           new THREE.Vector3(0, 1, 0), // up
         ),
       ];
+      barrierMesh.animationSpec = null;
     }
   };
   _render();
@@ -507,36 +510,42 @@ export default () => {
 
   const localPlayer = useLocalPlayer();
   const lastPosition = localPlayer.position.clone();
-  let animationSpec = null; // XXX make this per-mesh
   const cooldownTime = 2000;
   useFrame(({timestamp, timeDiff}) => {
     const timestampS = timestamp/1000;
     const timeDiffS = timeDiff/1000;
 
-    const _updateAnimation = () => {
-      if (animationSpec) {
-        if (timestamp >= animationSpec.endTime) {
-          if (animationSpec.type === 'trigger') {
-            animationSpec = {
-              type: 'cooldown',
-              startValue: 0,
-              endValue: 0,
-              visible: false,
-              startTime: timestamp,
-              endTime: timestamp + cooldownTime,
-              startTimeS: timestampS,
-              direction: new THREE.Vector3(0, 0, 0),
-              speed: 0,
-            };
-          } else {
-            animationSpec = null;
+    const _updateAnimations = () => {
+      for (const barrierMesh of barrierMeshes) {
+        if (barrierMesh.animationSpec) {
+          if (timestamp >= barrierMesh.animationSpec.endTime) {
+            if (barrierMesh.animationSpec.type === 'trigger') {
+              barrierMesh.animationSpec = {
+                type: 'cooldown',
+                startValue: 0,
+                endValue: 0,
+                visible: false,
+                startTime: timestamp,
+                endTime: timestamp + cooldownTime,
+                startTimeS: timestampS,
+                direction: new THREE.Vector3(0, 0, 0),
+                speed: 0,
+              };
+            } else if (barrierMesh.animationSpec.type === 'cooldown') {
+              barrierMesh.animationSpec = null;
+              
+              app.remove(barrierMesh);
+              barrierMeshes.splice(barrierMeshes.indexOf(barrierMesh), 1);
+            } else {
+              console.warn('unknown animation type', type);
+            }
           }
         }
       }
     };
-    _updateAnimation();
-    const _updateCollision = () => {
-      for (const barrierMesh of barrierMeshes) {
+    _updateAnimations();
+    const _updateCollisions = () => {
+      for (const barrierMesh of children) {
         for (const clipPlane of barrierMesh.clipPlanes) {
           localLine.set(lastPosition, localPlayer.position)
             .applyMatrix4(
@@ -546,10 +555,10 @@ export default () => {
 
           const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
           if (penetrationNormalVector !== null) {
-            if (!animationSpec) {
+            if (!barrierMesh.animationSpec) {
               const direction = penetrationNormalVector.clone();
               const speed = localLine.start.distanceTo(localLine.end) / timeDiffS;
-              animationSpec = { // XXX make this animation continue even though this chunk is unloaded
+              barrierMesh.animationSpec = {
                 type: 'trigger',
                 startValue: 0,
                 endValue: 1,
@@ -561,52 +570,55 @@ export default () => {
                 speed,
               };
 
+              children.splice(children.indexOf(barrierMesh), 1);
+
               app.dispatchEvent({
                 type: 'collision',
                 direction: direction.clone(),
                 speed,
               });
-            } else if (animationSpec && animationSpec.type === 'cooldown') {
-              animationSpec.startTime = timestamp;
-              animationSpec.endTime = timestamp + cooldownTime;
+            } else if (barrierMesh.animationSpec && barrierMesh.animationSpec.type === 'cooldown') {
+              barrierMesh.animationSpec.startTime = timestamp;
+              barrierMesh.animationSpec.endTime = timestamp + cooldownTime;
             }
-
-            break;
           }
         }
       }
     };
-    _updateCollision();
+    _updateCollisions();
     const _updateMaterials = () => {
       for (const barrierMesh of barrierMeshes) {
         barrierMesh.material.uniforms.iTime.value = timestampS;
         
         let highlight;
-        if (animationSpec) {
-          let f = Math.min(Math.max((timestamp - animationSpec.startTime) / (animationSpec.endTime - animationSpec.startTime), 0), 1);
+        if (barrierMesh.animationSpec) {
+          let f = Math.min(Math.max(
+            (timestamp - barrierMesh.animationSpec.startTime) / (barrierMesh.animationSpec.endTime - barrierMesh.animationSpec.startTime),
+            0),
+          1);
           f = Math.pow(f, 0.1);
-          highlight = (1-f)*animationSpec.startValue + f*animationSpec.endValue;
+          highlight = (1-f)*barrierMesh.animationSpec.startValue + f*barrierMesh.animationSpec.endValue;
         } else {
           highlight = 0;
         }
         barrierMesh.material.uniforms.uHighlight.value = highlight;
         barrierMesh.material.uniforms.uHighlight.needsUpdate = true;
     
-        if (animationSpec) {
-          barrierMesh.material.uniforms.uStartTimeS.value = animationSpec.startTimeS;
+        if (barrierMesh.animationSpec) {
+          barrierMesh.material.uniforms.uStartTimeS.value = barrierMesh.animationSpec.startTimeS;
           barrierMesh.material.uniforms.uStartTimeS.needsUpdate = true;
     
-          barrierMesh.material.uniforms.uDirection.value.copy(animationSpec.direction);
+          barrierMesh.material.uniforms.uDirection.value.copy(barrierMesh.animationSpec.direction);
           barrierMesh.material.uniforms.uDirection.needsUpdate = true;
           
-          barrierMesh.material.uniforms.uSpeed.value = animationSpec.speed;
+          barrierMesh.material.uniforms.uSpeed.value = barrierMesh.animationSpec.speed;
           barrierMesh.material.uniforms.uSpeed.needsUpdate = true;
         } else {
           barrierMesh.material.uniforms.uSpeed.value = 0;
           barrierMesh.material.uniforms.uSpeed.needsUpdate = true;
         }
     
-        barrierMesh.visible = animationSpec ? animationSpec.visible : true;
+        barrierMesh.visible = barrierMesh.animationSpec ? barrierMesh.animationSpec.visible : true;
       }
     };
     _updateMaterials();
@@ -615,10 +627,10 @@ export default () => {
   });
   
   const _cleanup = () => {
-    for (const barrierMesh of barrierMeshes) {
-      app.remove(barrierMesh);
+    for (const child of children) {
+      app.remove(child);
     }
-    barrierMeshes.length = 0;
+    children.length = 0;
 
     for (const physicsId of physicsIds) {
       physics.removeGeometry(physicsId);
