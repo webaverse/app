@@ -59,7 +59,7 @@ class App extends THREE.Object3D {
     const component = this.components.find(component => component.key === key);
     return component ? component.value : null;
   }
-  setComponent(key, value = true) {
+  #setComponentInternal(key, value) {
     let component = this.components.find(component => component.key === key);
     if (!component) {
       component = {key, value};
@@ -71,6 +71,24 @@ class App extends THREE.Object3D {
       type: 'componentupdate',
       key,
       value,
+    });
+  }
+  setComponent(key, value = true) {
+    this.#setComponentInternal(key, value);
+    this.dispatchEvent({
+      type: 'componentsupdate',
+      keys: [key],
+    });
+  }
+  setComponents(o) {
+    const keys = Object.keys(o);
+    for (const k of keys) {
+      const v = o[k];
+      this.#setComponentInternal(k, v);
+    }
+    this.dispatchEvent({
+      type: 'componentsupdate',
+      keys,
     });
   }
   hasComponent(key) {
