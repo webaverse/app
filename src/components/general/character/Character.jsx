@@ -3,11 +3,12 @@ import React, { useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
 
 import metaversefile from '../../../../metaversefile-api.js';
-import {defaultPlayerName} from '../../../../ai/lore/lore-model.js';
+import { defaultPlayerName } from '../../../../ai/lore/lore-model.js';
+import cameraManager from '../../../../camera-manager.js';
+
 import { AppContext } from '../../app';
 
 import styles from './character.module.css';
-import cameraManager from '../../../../camera-manager.js';
 
 const emotions = [
     'joy',

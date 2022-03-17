@@ -4,7 +4,7 @@
     top: 0px;
     left: 0px;
     transform: translate( -400px, 0px );
-    transition: transform 300ms ease;
+    transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
 
 .characterWrapper.opened {
