@@ -11,9 +11,10 @@ import Footer from './Footer.jsx';
 import Webaverse from '../webaverse.js';
 import * as universe from '../universe.js';
 import metaversefileApi from '../metaversefile-api.js';
-const {useLocalPlayer} = metaversefileApi;
+import * as metaverseModules from '../metaverse-modules.js';
 
 import dropManager from '../drop-manager.js';
+const {useLocalPlayer} = metaversefileApi;
 
 const _startApp = async (weba, canvas) => {
   weba.setContentLoaded();
@@ -25,9 +26,21 @@ const _startApp = async (weba, canvas) => {
   await weba.waitForLoad();
   universe.handleUrlUpdate();
   await weba.startLoop();
-  
+
   const localPlayer = metaversefileApi.useLocalPlayer();
   await localPlayer.setAvatarUrl(defaultAvatarUrl);
+
+  // uncomment the below code block to test external sprite module
+
+  // const spriteTestApp = metaversefileApi.createApp();
+  // (async () => {
+  //   await metaverseModules.waitForLoad();
+  //   const {modules} = metaversefileApi.useDefaultModules();
+  //   const m = modules.spriteAvatar;
+  //   await spriteTestApp.addModule(m);
+  // })();
+  // spriteTestApp.updateMatrixWorld();
+  
 };
 
 const Crosshair = () => (
@@ -39,7 +52,7 @@ const Crosshair = () => (
 function RootNode() {
   const canvasRef = useRef();
   const [app, setApp] = useState(() => new Webaverse());
-  
+
   useEffect(() => {
     if (canvasRef.current) {
       _startApp(app, canvasRef.current);
