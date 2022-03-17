@@ -589,6 +589,8 @@ export default () => {
         const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
         if (penetrationNormalVector !== null) {
           if (!animationSpec) {
+            const direction = penetrationNormalVector.clone();
+            const speed = localLine.start.distanceTo(localLine.end) / timeDiffS;
             animationSpec = {
               type: 'trigger',
               startValue: 0,
@@ -597,9 +599,15 @@ export default () => {
               startTime: timestamp,
               endTime: timestamp + 1000,
               startTimeS: timestampS,
-              direction: penetrationNormalVector.clone(),
-              speed: localLine.start.distanceTo(localLine.end) / timeDiffS,
+              direction,
+              speed,
             };
+
+            app.dispatchEvent({
+              type: 'collision',
+              direction: direction.clone(),
+              speed,
+            });
           } else if (animationSpec && animationSpec.type === 'cooldown') {
             animationSpec.startTime = timestamp;
             animationSpec.endTime = timestamp + cooldownTime;
