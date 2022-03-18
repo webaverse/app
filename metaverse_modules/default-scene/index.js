@@ -80,8 +80,6 @@ export default e => {
   const coords = app.getComponent('coords');
   const [baseX, baseY] = coords;
 
-  // const baseX = -5;
-  // const baseY = -5;
   let x = baseX;
   let y = baseY;
   const physicsIds = [];
@@ -171,12 +169,6 @@ export default e => {
         ])
     );
   })());
-
-  /* useFrame(() => {
-    for (const subApp of subApps) {
-      
-    }
-  }); */
   
   useCleanup(() => {
     for (const physicsId of physicsIds) {
