@@ -74,6 +74,8 @@ const localMatrix2 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
 
 const leftQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
+const yToXQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0));
+const xToZQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1));
 
 const textEncoder = new TextEncoder();
 
@@ -1018,7 +1020,11 @@ const _makeRagdollMesh = () => {
       const transformBuffer = new Float32Array(3 + 4 + 3 + 3);
       meshBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.toArray(transformBuffer, 0);
+      // if(meshBone.name === 'Hips') {
+      // } else {}
       localQuaternion.toArray(transformBuffer, 3);
+      // localQuaternion.multiply(yToXQuaternion).toArray(transformBuffer, 3);
+      // localQuaternion.multiply(xToZQuaternion).toArray(transformBuffer, 3);
       localVector2.toArray(transformBuffer, 7);
       transformBuffer[10] = meshBone.physicsMesh.geometry.radius;
       transformBuffer[11] = meshBone.physicsMesh.geometry.halfHeight;
@@ -3433,15 +3439,15 @@ class Avatar {
         this.ragdollMesh.setFromAvatar(this);
       } else {
         console.log('toAvatar', 1) // note: when ragdoll-ing
-        if(this.ragdollMesh.skeleton){
-          // console.log('setSkeletonFromBuffer', 2)
-          this.ragdollMesh.updateMatrixWorld()
-          this.ragdollMesh.traverse(child => {
-            child.matrix.decompose(child.position, child.quaternion, child.scale)
-          })
-          const b = this.ragdollMesh.serializeSkeleton();
-          physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, false, b);
-        }
+        // if(this.ragdollMesh.skeleton){
+        //   // console.log('setSkeletonFromBuffer', 2)
+        //   this.ragdollMesh.updateMatrixWorld()
+        //   this.ragdollMesh.traverse(child => {
+        //     child.matrix.decompose(child.position, child.quaternion, child.scale)
+        //   })
+        //   const b = this.ragdollMesh.serializeSkeleton();
+        //   physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, false, b);
+        // }
         this.ragdollMesh.toAvatar(this);
       }
       if (!this.lastRagdoll && this.ragdoll) {
