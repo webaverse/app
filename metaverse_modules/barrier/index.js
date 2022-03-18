@@ -176,20 +176,14 @@ export default () => {
           (normal.x * voxelWorldSize/2),
       ).add(chunkOffset);
 
-      /* if (normal.z === 1) {
-        console.log('barrier exit', localVector.toArray().join(', '), position.toArray().join(', '));
-      } */
-
       return {
         position,
         normal: normal.clone(),
         size: size.clone(),
       };
     });
-    // console.log('got barrier specs', exits, barrierSpecs);
 
     for (const barrierSpec of barrierSpecs) {
-      // const [w, h, d] = app.getComponent('size') ?? [4, 4, 4];
       const {
         position,
         normal,
@@ -201,9 +195,8 @@ export default () => {
 
       const barrierGeometry = new THREE.BoxGeometry(1, 1, 1);
       for (let i = 0; i < barrierGeometry.attributes.position.count; i++) {
-        const position = localVector.fromArray(barrierGeometry.attributes.position.array, i * 3)
-        const normal = localVector2.fromArray(barrierGeometry.attributes.normal.array, i * 3)
-          // .toArray(barrierGeometry.attributes.position.array, i * 3);
+        const position = localVector.fromArray(barrierGeometry.attributes.position.array, i * 3);
+        const normal = localVector2.fromArray(barrierGeometry.attributes.normal.array, i * 3);
         if (normal.y !== 0) {
           localVector2D.set(position.x * size.x, position.z * size.z);
         } else if (normal.x !== 0) {
@@ -440,9 +433,6 @@ export default () => {
         side: THREE.DoubleSide,
         transparent: true,
       });
-      /* const m = new THREE.MeshPhongMaterial({
-        color: 0xff0000,
-      }); */
       const barrierMesh = new THREE.Mesh(barrierGeometry, barrierMaterial);
       barrierMesh.position.copy(position);
       barrierMesh.scale.set(size.x, size.y, size.z);

@@ -14,6 +14,8 @@ const localMatrix = new THREE.Matrix4();
 const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 const oneVector = new THREE.Vector3(1, 1, 1);
+const worldSize = 2;
+const uvRange = 10 * worldSize;
 
 function quantizeGeometry(g, n) {
   const positions = g.attributes.position.array;
@@ -41,14 +43,14 @@ function addPositionUvs(geometry) {
     let x;
     let y;
     if (Math.abs(normal.x) > 0.5) {
-      x = Math.floor(position.z);
-      y = Math.floor(position.y);
+      x = Math.floor(position.z / worldSize);
+      y = Math.floor(position.y / worldSize);
     } else if (Math.abs(normal.y) > 0.5) {
-      x = Math.floor(position.x);
-      y = Math.floor(position.z);
+      x = Math.floor(position.x / worldSize);
+      y = Math.floor(position.z / worldSize);
     } else if (Math.abs(normal.z) > 0.5) {
-      x = Math.floor(position.x);
-      y = Math.floor(position.y);
+      x = Math.floor(position.x / worldSize);
+      y = Math.floor(position.y / worldSize);
     } else {
       console.warn('bad normal', normal.clone());
       throw new Error('bad normal');
@@ -96,31 +98,24 @@ const funGridMaterial = new THREE.ShaderMaterial({
     ${THREE.ShaderChunk.common}
 
     attribute float y;
-    // attribute vec3 barycentric;
-    // attribute float dynamicPositionY;
-    // uniform float uBeat2;
     varying vec2 vUv;
-    // varying vec3 vBarycentric;
     varying vec3 vPosition;
     ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
 
     void main() {
       vUv = uv;
-      // vBarycentric = barycentric;
       vPosition = position;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position /* + vec3(0., dynamicPositionY * uBeat2, 0.) */, 1.0);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 
       ${THREE.ShaderChunk.logdepthbuf_vertex}
     }
   `,
   fragmentShader: `\
-    // uniform float uBeat;
     precision highp float;
     precision highp int;
 
     #define PI 3.1415926535897932384626433832795
 
-    // varying vec3 vBarycentric;
     varying vec3 vPosition;
     varying vec2 vUv;
 
@@ -129,29 +124,61 @@ const funGridMaterial = new THREE.ShaderMaterial({
 
     ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
 
+    float rand1DBi(float x) {
+      return sin(2. * x) + sin(PI * x);
+    }
+    float rand1D(float x) {
+      return 0.5 + rand1DBi(x)/4.;
+    }
+    float rand(float n){
+      return fract(sin(n) * 43758.5453123);
+    }
     float edgeFactor(vec3 bary, float width) {
-      // vec3 bary = vec3(vBC.x, vBC.y, 1.0 - vBC.x - vBC.y);
       vec3 d = fwidth(bary);
       vec3 a3 = smoothstep(d * (width - 0.5), d * (width + 0.5), bary);
       return min(min(a3.x, a3.y), a3.z);
     }
 
+    const float cutSize = 8.;
+    const float cutSize2 = cutSize * 0.5;
+
     void main() {
       vec3 c = mix(lineColor1, lineColor2, vPosition.y / 10.);
-      
+
       vec2 uv = vUv;
-      // vec3 p = vPosition;
-      float f = min(mod(uv.x, 1.), mod(uv.y, 1.));
-      f = min(f, mod(1.-uv.x, 1.));
-      f = min(f, mod(1.-uv.y, 1.));
-      f *= 10.;
+      vec2 oUv = uv;
+
+      vec2 uvGridSeedX = vec2(floor(oUv.x*0.5 * cutSize2 + 0.5), floor(oUv.y * cutSize2 + 0.5));
+      vec2 uvGridSeedY = vec2(floor(oUv.x * cutSize2 + 0.5), floor(oUv.y*0.5 * cutSize2 + 0.5));
+      vec2 uvGridModX = mod(vec2(oUv.x*0.5 * cutSize2 + 0.5, oUv.y * cutSize2 + 0.5), 1.);
+      vec2 uvGridModY = mod(vec2(oUv.x * cutSize2 + 0.5, oUv.y*0.5 * cutSize2 + 0.5), 1.);
+      
+      const float deltaRange = 0.15;
+      float xBottomOffset = (rand(uvGridSeedX.x * 100. + uvGridSeedX.y * 100.)*2.-1.) * deltaRange;
+      float xTopOffset = (rand(uvGridSeedX.x * 100. + (uvGridSeedX.y + 1.) * 100.)*2.-1.) * deltaRange;
+      float yLeftOffset = (rand(uvGridSeedY.x * 100. + uvGridSeedY.y * 100. + 1000.)*2.-1.) * deltaRange;
+      float yRightOffset = (rand((uvGridSeedY.x + 1.) * 100. + uvGridSeedY.y * 100. + 1000.)*2.-1.) * deltaRange;
+      
+      float xOffset = xBottomOffset * (1. - uvGridModX.y) + xTopOffset * uvGridModX.y;
+      float yOffset = yLeftOffset * (1. - uvGridModY.x) + yRightOffset * uvGridModY.x;
+
+      float f = min(
+        abs(mod(uv.x + xOffset, 1.)),
+        abs(mod(uv.y + yOffset, 1.))
+      );
+      
+      f *= ${uvRange.toFixed(8)};
       float a = max(1. - f, 0.);
       if (a < 0.5) {
+        // gl_FragColor.rgb = vec3(0.);
         discard;
       } else {
         gl_FragColor = vec4(c, a);
         gl_FragColor = sRGBToLinear(gl_FragColor);
       }
+
+      /* gl_FragColor.rb += uvGridModY.xy * 0.1;
+      gl_FragColor.a = 1.; */
 
       ${THREE.ShaderChunk.logdepthbuf_fragment}
     }
