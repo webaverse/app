@@ -1616,7 +1616,7 @@ const _renderSpriteImages = skinnedVrm => {
       // pre-run the animation one cycle first, to stabilize the hair physics
       let now = 0;
       const startAngleIndex = angleIndex;
-      localRig.springBoneManager.reset();
+      // localRig.springBoneManager.reset();
       {
         const startNow = now;
         for (let j = 0; j < numFrames; j++) {
