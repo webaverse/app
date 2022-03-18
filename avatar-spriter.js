@@ -654,7 +654,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
       if (material?.uniforms) {
         const spriteSpec = spriteSpecs.find(s => s.name === spriteSpecName);
         const {duration} = spriteSpec;
-        const uTime = (timestamp/1000 % duration) / duration;
+        const uTime = (timestampDelta/1000 % duration) / duration;
         
         material.uniforms.uTime.value = uTime;
         material.uniforms.uTime.needsUpdate = true;
