@@ -10,6 +10,7 @@ import sceneNames from '../../../../scenes/scenes.json';
 import styles from './scene-menu.module.css';
 
 //
+const _makeName = (N = 8) => (Math.random().toString(36) + '00000000000000000').slice(2, N + 2);
 
 export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
@@ -19,8 +20,9 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     const [ roomsMenuOpened, setRoomsMenuOpened ] = useState( false );
     const [ micEnabled, setMicEnabled ] = useState( false );
     const [ speechEnabled, setSpeechEnabled ] = useState( false );
-
-    //
+    const [roomScene, setRoomScene] = React.useState('Erithor');
+    const [roomName, setRoomName] = React.useState(_makeName);
+    //n 
 
     const refreshRooms = async () => {
 
@@ -99,35 +101,37 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     };
 
     const handleRoomCreateBtnClick = async () => {
+        // TODO
+        // Show dropdown of available scenes
+        // Show textfield with already setup room name
+        // Get the values to these here
 
-        alert( 'todo' );
-        // const roomName = _makeName();
-        // const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
+        const sceneName = roomScene
+        const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
 
-        // const res = await fetch( universe.getWorldsHost() + roomName, { method: 'POST', body: data } );
+        const res = await fetch( universe.getWorldsHost() + roomName, { method: 'POST', body: data } );
 
-        // if ( res.ok ) {
+        if ( res.ok ) {
 
-        //     refreshRooms();
-        //     setSelectedRoom( roomName );
-        //     universe.pushUrl( `/?src=${ encodeURIComponent( sceneName ) }&room=${ roomName }` );
+            refreshRooms();
+            setSelectedRoom( roomName );
+            universe.pushUrl( `/?src=${ encodeURIComponent( sceneName ) }&room=${ roomName }` );
 
-        //     /* this.parent.sendMessage([
-        //         MESSAGE.ROOMSTATE,
-        //         data,
-        //     ]); */
+            /* this.parent.sendMessage([
+                MESSAGE.ROOMSTATE,
+                data,
+            ]); */
 
-        // } else {
+        } else {
 
-        //     const text = await res.text();
-        //     console.warn( 'error creating room', res.status, text );
+            const text = await res.text();
+            console.warn( 'error creating room', res.status, text );
 
-        // }
+        }
 
     };
 
     const handleRoomSelect = ( room ) => {
-
         setScenesMenuOpened( false );
         setRoomsMenuOpened( false );
 
@@ -313,11 +317,18 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                 roomsMenuOpened ? (
                     <div className={ styles.rooms } >
                         <div className={ styles.create } >
+                        <select style={{display: "inline", margin: ".5em", height: "1em"}} id="sceneName" size="large" value={roomScene} onChange={v => setRoomScene(v)}>
+                        {
+                            sceneNames.map( ( sceneName, i ) => (
+                                <option key={sceneName} value={sceneName}>{sceneName}</option>
+                            ))
+                        }
+                        </select>
                             <button className={ styles.button } onClick={ handleRoomCreateBtnClick }>Create room</button>
                         </div>
                         {
                             rooms.map( ( room, i ) => (
-                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( e, room ) } } key={ i } >
+                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( room ) } } key={ i } >
                                     <img className={ styles.image } src="images/world.jpg" />
                                     <div className={ styles.name } >{ room.name }</div>
                                     <div className={ styles.delete } >

@@ -193,10 +193,13 @@ class AppManager extends EventTarget {
     }
   }
   bindEvents() {
+    const trackedApps = []
     this.addEventListener('trackedappadd', async e => {
       const {trackedApp} = e.data;
       const trackedAppJson = trackedApp.toJSON();
       const {instanceId, contentId, transform, position, scale, quaternion, components: componentsString} = trackedAppJson;
+      if(trackedApps.includes(instanceId)) return console.log("Already has this instance id")
+      else trackedApps.push(instanceId)
       const components = JSON.parse(componentsString);
       
       const p = makePromise();
@@ -215,7 +218,7 @@ class AppManager extends EventTarget {
       };
       this.addEventListener('clear', clear);
       const _bailout = app => {
-
+        console.log("BAILOUT")
         // Add Error placeholder
         const errorPH = this.getErrorPlaceholder();
         if (app) {
@@ -238,27 +241,9 @@ class AppManager extends EventTarget {
         const app = metaversefile.createApp({
           // name: contentId,
         });
-
-        if(position) {
-          app.position.fromArray(position)
-          console.log("Set from position")
-        } else {
-          app.position?.fromArray(transform, 0);
-        }
-
-        if(quaternion) {
-          app.quaternion.fromArray(quaternion)
-          console.log("Set from quaternion")
-        } else {
-          app.quaternion?.fromArray(transform, 3);
-        }
-        
-        if(scale) {
-          app.scale.fromArray(scale)
-          console.log("Set from scale")
-        } else {
-          app.scale?.fromArray(transform, 7);
-        }
+        app?.position?.fromArray(position ?? transform)
+        app?.quaternion?.fromArray(quaternion ?? transform, quaternion ? 0 : 3)
+        app?.scale?.fromArray(scale ?? transform, scale ? 0 : 7);
         app.updateMatrixWorld();
         app.lastMatrix.copy(app.matrixWorld);
 

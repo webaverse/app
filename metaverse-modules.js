@@ -8,6 +8,10 @@ const moduleUrls = {
   errorPlaceholder: `./metaverse_modules/error-placeholder/`,
   damageMesh: `./metaverse_modules/damage-mesh/`,
   ki: `./metaverse_modules/ki/`,
+  filter: './metaverse_modules/filter/',
+  barrier: './metaverse_modules/barrier/',
+  infinistreet: './metaverse_modules/infinistreet/',
+  defaultScene: './metaverse_modules/default-scene/',
 };
 const modules = {};
 const loadPromise = (async () => {

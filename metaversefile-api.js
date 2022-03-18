@@ -34,7 +34,9 @@ import {PathFinder} from './npc-utils.js';
 import {localPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
+import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
+import debug from './debug.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -57,7 +59,7 @@ class App extends THREE.Object3D {
     const component = this.components.find(component => component.key === key);
     return component ? component.value : null;
   }
-  setComponent(key, value = true) {
+  #setComponentInternal(key, value) {
     let component = this.components.find(component => component.key === key);
     if (!component) {
       component = {key, value};
@@ -69,6 +71,24 @@ class App extends THREE.Object3D {
       type: 'componentupdate',
       key,
       value,
+    });
+  }
+  setComponent(key, value = true) {
+    this.#setComponentInternal(key, value);
+    this.dispatchEvent({
+      type: 'componentsupdate',
+      keys: [key],
+    });
+  }
+  setComponents(o) {
+    const keys = Object.keys(o);
+    for (const k of keys) {
+      const v = o[k];
+      this.#setComponentInternal(k, v);
+    }
+    this.dispatchEvent({
+      type: 'componentsupdate',
+      keys,
     });
   }
   hasComponent(key) {
@@ -265,13 +285,16 @@ const abis = {
   ERC1155,
 };
 
+debug.addEventListener('enabledchange', e => {
+  document.getElementById('statsBox').style.display = e.data.enabled ? null : 'none';
+});
+
 let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
 let wasDecapitated = false;
 // const apps = [];
 const mirrors = [];
-let debugMode = false;
 metaversefile.setApi({
   // apps,
   async import(s) {
@@ -653,6 +676,9 @@ metaversefile.setApi({
       throw new Error('usePhysics cannot be called outside of render()');
     }
   },
+  useProcGen() {
+    return procgen;
+  },
   useCameraManager() {
     return cameraManager;
   },
@@ -726,7 +752,11 @@ metaversefile.setApi({
   getNextInstanceId() {
     return getRandomString();
   },
-  createAppInternal({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}, {onWaitPromise = null} = {}) {
+  createAppInternal({
+    start_url = '',
+    components = {},
+    in_front = false,
+  } = {}, {onWaitPromise = null} = {}) {
     const app = new App();
 
     if (in_front) {
@@ -734,6 +764,10 @@ metaversefile.setApi({
       app.quaternion.copy(localPlayer.quaternion);
       app.updateMatrixWorld();
       app.lastMatrix.copy(app.matrixWorld);
+    }
+    for (const k in components) {
+      const v = components[k];
+      app.setComponent(k, v);
     }
     if (start_url) {
       const p = (async () => {
@@ -902,12 +936,8 @@ export default () => {
   async waitForSceneLoaded() {
     await universe.waitForSceneLoaded();
   },
-  toggleDebug(newDebugMode) {
-    debugMode = newDebugMode;
-    document.getElementById('statsBox').style.display = debugMode ? null : 'none';
-  },
-  isDebugMode() {
-    return debugMode;
+  useDebug() {
+    return debug;
   },
   async addModule(app, m) {
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');

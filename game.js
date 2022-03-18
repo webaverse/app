@@ -1217,9 +1217,9 @@ const _pushAppUpdates = () => {
     remotePlayer.appManager.pushAppUpdates();
   }
 };
-const _pushPlayerUpdates = () => {
+const _pushPlayerUpdates = (timeDiff) => {
   const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.pushPlayerUpdates();
+  localPlayer.pushPlayerUpdates(timeDiff);
 };
 
 const rotationSnap = Math.PI/6;
