@@ -63,7 +63,7 @@ function makeCancelFn() {
 const heightFactor = 1.6;
 const baseRadius = 0.3;
 function loadPhysxCharacterController() {
-  const avatarHeight = this.avatar.height;
+  const avatarHeight = this.avatar?.height;
   const radius = baseRadius/heightFactor * avatarHeight;
   const height = avatarHeight - radius*2;
 
@@ -1083,11 +1083,6 @@ class RemotePlayer extends InterpolatedPlayer {
     
     const observePlayerFn = e => {
       this.position.fromArray(this.playerMap.get('position'));
-      
-      console.log(this.position.fromArray(this.playerMap.get('position')).sub(initialPosition));
-      initialPosition = this.position.fromArray(this.playerMap.get('position'))
-      
-      
       this.quaternion.fromArray(this.playerMap.get('quaternion'));
     };
     this.playerMap.observe(observePlayerFn);
@@ -1108,9 +1103,6 @@ class RemotePlayer extends InterpolatedPlayer {
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
-      let old = this.position.fromArray(this.playerMap.get('position'))
-      let newPosition = old.sub(initialPosition);
-      let newVelocity = newPosition.divideScalar(timeDiffS);
  
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
