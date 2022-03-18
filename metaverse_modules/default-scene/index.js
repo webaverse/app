@@ -77,7 +77,7 @@ export default e => {
   // const {WebaverseShaderMaterial} = useMaterials();
   const {voxelWorldSize} = procGen;
 
-  const coords = app.getComponent('coords');
+  const coords = app.getComponent('coords') ?? [0, 0];
   const [baseX, baseY] = coords;
 
   let x = baseX;
