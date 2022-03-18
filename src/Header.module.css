@@ -49,6 +49,7 @@ body {
 	width: 100%;
 	height: var(--header-height);
   top: 0;
+  left: 0;
   flex-direction: column;
   user-select: none;
   z-index: 2;
