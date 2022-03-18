@@ -22,7 +22,7 @@
     font-size: 16px;
     user-select: none;
     overflow: hidden;
-    transition: color 1s cubic-bezier(0, 1, 0, 1), transform 1s cubic-bezier(0, 1, 0, 1);
+    transition: color 1s cubic-bezier(0, 1, 0, 1), transform 0.3s cubic-bezier(0, 1, 0, 1);
     background-color: #000;
 }
 
