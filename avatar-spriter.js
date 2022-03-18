@@ -321,6 +321,9 @@ class SpriteAvatarMesh extends THREE.Mesh {
       tex,
     });
     // return spriteAvatarMesh;
+
+    this.lastSpriteSpecName = '';
+    this.lastSpriteSpecTimestamp = 0;
   }
 }
 class SpriteMegaAvatarMesh extends THREE.Mesh {
@@ -636,6 +639,12 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
       }
     })();
     this.setTexture(spriteSpecName);
+
+    if (spriteSpecName !== this.lastSpriteSpecName) {
+      this.lastSpriteSpecName = spriteSpecName;
+      this.lastSpriteSpecTimestamp = timestamp;
+    }
+    const timestampDelta = (spriteSpecName === 'jump' ? 300 : 0) + timestamp - this.lastSpriteSpecTimestamp;
 
     // general uniforms
     [
