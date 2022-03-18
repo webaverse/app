@@ -14,7 +14,6 @@ import { User } from './User';
 import { MagicMenu } from './MagicMenu.jsx';
 import { Character } from './components/general/character';
 import { Tokens } from './tabs/tokens';
-import { Claims } from './tabs/claims';
 import { Inspector } from './Inspector.jsx';
 import { Chat } from './Chat.jsx';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
@@ -36,7 +35,6 @@ export default function Header ({ setSelectedApp, selectedApp }) {
     const [address, setAddress] = useState(false);
     const [nfts, setNfts] = useState(null);
     const [apps, setApps] = useState(world.appManager.getApps().slice());
-    const [claims, setClaims] = useState([]);
     const [dragging, setDragging] = useState(false);
     const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
@@ -112,29 +110,6 @@ export default function Header ({ setSelectedApp, selectedApp }) {
         };
 
     }, [ state.openedPanel ] );
-
-    useEffect(() => {
-
-        const pickup = e => {
-
-            const {app} = e.data;
-            const {contentId} = app;
-            const newClaims = claims.slice();
-
-            newClaims.push({ contentId });
-            setClaims( newClaims );
-
-        };
-
-        world.appManager.addEventListener( 'pickup', pickup );
-
-        return () => {
-
-            world.appManager.removeEventListener( 'pickup', pickup );
-
-        };
-
-    }, [ claims ] );
 
     useEffect(() => {
 
@@ -305,24 +280,6 @@ export default function Header ({ setSelectedApp, selectedApp }) {
 
     }, []);
 
-    // tmp code [will be remove in next PRs]
-
-    const claimsOpen = ( state.openedPanel === 'ClaimsPanel' ? 'claims' : false );
-
-    const toggleClaimsOpen = () => {
-
-        if ( claimsOpen ) {
-
-            setState({ openedPanel: null });
-
-        } else {
-
-            setState({ openedPanel: 'ClaimsPanel' });
-
-        }
-
-    };
-
     //
 
 	return (
@@ -351,12 +308,6 @@ export default function Header ({ setSelectedApp, selectedApp }) {
                             wearActions={wearActions}
                             dioramaCanvasRef={dioramaCanvasRef}
                             game={game}
-                        />
-                        <Claims
-                            open={ claimsOpen }
-                            toggleOpen={ toggleClaimsOpen }
-                            claims={claims}
-                            panelsRef={panelsRef}
                         />
                     </div>
                 </header>

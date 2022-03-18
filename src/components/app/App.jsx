@@ -14,11 +14,12 @@ import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
 import { Settings } from '../general/settings';
 import { WorldObjectsList } from '../general/world-objects-list';
-import { IoHandler, registerIoEventHandler, unregisterIoEventHandler } from '../general/io-handler';
+import { IoHandler } from '../general/io-handler';
 import { ZoneTitleCard } from '../general/zone-title-card';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
+import { Claims } from '../play-mode/claims';
 import Header from '../../Header.jsx';
 
 import styles from './App.module.css';
@@ -150,6 +151,7 @@ export const App = () => {
                 <Settings />
                 <WorldObjectsList setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <PlayMode />
+                <Claims />
                 <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
                 <IoHandler />
                 <ZoneTitleCard />
