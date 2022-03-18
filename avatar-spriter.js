@@ -782,8 +782,8 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            reset() {},
+            update(timestamp, timeDiffMs) {
               // positionOffset -= walkSpeed/1000 * timeDiffMs;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -806,8 +806,8 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            reset() {},
+            update(timestamp, timeDiffMs) {
               positionOffset -= walkSpeed/1000 * timeDiffMs;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -830,8 +830,8 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            reset() {},
+            update(timestamp, timeDiffMs) {
               positionOffset -= walkSpeed/1000 * timeDiffMs;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -854,8 +854,8 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            reset() {},
+            update(timestamp, timeDiffMs) {
               positionOffset += walkSpeed/1000 * timeDiffMs;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -878,8 +878,8 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            reset() {},
+            update(timestamp, timeDiffMs) {
               positionOffset += walkSpeed/1000 * timeDiffMs;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -902,8 +902,8 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            reset() {},
+            update(timestamp, timeDiffMs) {
               positionOffset -= runSpeed/1000 * timeDiffMs;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -926,8 +926,8 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            reset() {},
+            update(timestamp, timeDiffMs) {
               positionOffset -= runSpeed/1000 * timeDiffMs;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -950,8 +950,8 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            reset() {},
+            update(timestamp, timeDiffMs) {
               positionOffset += runSpeed/1000 * timeDiffMs;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -974,8 +974,8 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            reset() {},
+            update(timestamp, timeDiffMs) {
               positionOffset += runSpeed/1000 * timeDiffMs;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -998,8 +998,7 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            update(timestamp, timeDiffMs) {
               // positionOffset -= crouchSpeed/1000 * timeDiffMs;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1015,6 +1014,7 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
+            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1027,8 +1027,7 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            update(timestamp, timeDiffMs) {
               positionOffset -= crouchSpeed/1000 * timeDiffMs;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1044,6 +1043,7 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
+            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1056,8 +1056,7 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            update(timestamp, timeDiffMs) {
               positionOffset -= crouchSpeed/1000 * timeDiffMs;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1073,6 +1072,7 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
+            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1085,8 +1085,7 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            update(timestamp, timeDiffMs) {
               positionOffset += crouchSpeed/1000 * timeDiffMs;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1102,6 +1101,7 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
+            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1114,8 +1114,7 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            update(timestamp, timeDiffMs) {
               positionOffset += crouchSpeed/1000 * timeDiffMs;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1131,6 +1130,7 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
+            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1143,12 +1143,11 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           let narutoRunTime = 0;
-          const narutoRunIncrementSpeed = 1000 * 4;
+          // const narutoRunIncrementSpeed = 1000 * 4;
     
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
-              positionOffset -= narutoRunSpeed/1000 * timeDiffMs;
+            update(timestamp, timeDiffMs) {
+              positionOffset -= narutoRunSpeed/1000 * timeDiffMs * 10;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
@@ -1162,9 +1161,12 @@ const getSpriteSpecs = () => {
               localRig.narutoRunState = true;
               localRig.narutoRunTime = narutoRunTime;
     
-              narutoRunTime += timeDiffMs * narutoRunIncrementSpeed;
+              narutoRunTime += timeDiffMs;
     
               localRig.update(timestamp, timeDiffMs);
+            },
+            reset() {
+              narutoRunTime = 0;
             },
             cleanup() {
               localRig.narutoRunState = false;
@@ -1178,12 +1180,13 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
     
-          let jumpTime = -200;
-          const jumpIncrementSpeed = 250;
+          const defaultJumpTime = 0;
+          let jumpTime = defaultJumpTime;
+          // const jumpIncrementSpeed = 400;
     
           return {
-            update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
+            update(timestamp, timeDiffMs) {
+              // const timeDiffMs = timeDiff/1000;
               // positionOffset -= walkSpeed/1000 * timeDiffMs;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1198,11 +1201,15 @@ const getSpriteSpecs = () => {
               localRig.jumpState = true;
               localRig.jumpTime = jumpTime;
     
-              jumpTime += timeDiffMs * jumpIncrementSpeed;
+              jumpTime += timeDiffMs;
               
               // console.log('got jump time', jumpTime, timeDiffMs, jumpIncrementSpeed);
     
+              // console.log('local rig update', timeDiffMs);
               localRig.update(timestamp, timeDiffMs);
+            },
+            reset() {
+              jumpTime = defaultJumpTime;
             },
             cleanup() {
               localRig.jumpState = false;
@@ -1586,27 +1593,50 @@ const _renderSpriteImages = skinnedVrm => {
     
     // console.log('generate sprite', name);
 
-    const timeDiff = duration * 1000 / numFrames;
+    // const timeDiff = duration * 1000 / numFrames;
+    const timeDiff = 1000/60; // 60 FPS
+    // console.log('compute time diff', timeDiff);
     let angleIndex = 0;
     for (let angle = 0; angle < Math.PI*2; angle += Math.PI*2/numAngles) {
       // console.log('angle', angle/(Math.PI*2)*360);
+      
+      const durationS = duration * 1000;
+      const _getCurrentFrame = timestamp => {
+        const result = Math.min(Math.floor(timestamp / durationS * numFrames), numFrames);
+        // console.log('current frame', name, timestamp, result, numFrames);
+        return result;
+      };
 
+      // initialize sprite generator animation
       const spriteGenerator = spriteSpec.init({
         angle,
         avatar: localRig,
       });
+      
       // pre-run the animation one cycle first, to stabilize the hair physics
       let now = 0;
       const startAngleIndex = angleIndex;
-      for (let j = 0; j < numFrames; j++) {
-        spriteGenerator.update(now, timeDiff);
-        now += timeDiff;
+      localRig.springBoneManager.reset();
+      {
+        const startNow = now;
+        for (let j = 0; j < numFrames; j++) {
+          while (_getCurrentFrame(now - startNow) < j) {
+            spriteGenerator.update(now, timeDiff);
+            now += timeDiff;
+          }
+        }
       }
       const initialPositionOffset = localRig.inputs.hmd.position.z;
+      
+      spriteGenerator.reset();
+
       // now perform the real capture
+      const startNow = now;
       for (let j = 0; j < numFrames; j++, angleIndex++) {
-        spriteGenerator.update(now, timeDiff);
-        now += timeDiff;
+        while (_getCurrentFrame(now - startNow) < j) {
+          spriteGenerator.update(now, timeDiff);
+          now += timeDiff;
+        }
 
         _renderSpriteFrame();
 
