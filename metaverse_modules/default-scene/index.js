@@ -82,7 +82,6 @@ export default e => {
 
   let x = baseX;
   let y = baseY;
-  const physicsIds = [];
   let subApps = [];
 
   const makeComponents = (x, y) => {
@@ -169,12 +168,6 @@ export default e => {
         ])
     );
   })());
-  
-  useCleanup(() => {
-    for (const physicsId of physicsIds) {
-      physics.removeGeometry(physicsId);
-    }
-  });
 
   return app;
 };
