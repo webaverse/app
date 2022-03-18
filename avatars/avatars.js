@@ -1880,17 +1880,18 @@ class Avatar {
     this.options.visemes && _updateVisemes();
     _updateSubAvatars();
 
-    if (metaversefile.isDebugMode() && !this.debugMesh) {
+    const debug = metaversefile.useDebug();
+    if (debug.enabled && !this.debugMesh) {
       this.debugMesh = _makeDebugMesh();
       this.debugMesh.wrapToAvatar(this);
       this.model.add(this.debugMesh);
     }
 
     if (this.debugMesh) {
-      if (metaversefile.isDebugMode()) {
+      if (debug.enabled) {
         this.debugMesh.setFromAvatar(this);
       }
-      this.debugMesh.visible = metaversefile.isDebugMode();
+      this.debugMesh.visible = debug.enabled;
     }
 	}
 

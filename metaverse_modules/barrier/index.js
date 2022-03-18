@@ -2,14 +2,15 @@ import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
+// import {chunkWorldSize} from '../../procgen/map-gen';
 const {useApp, useLocalPlayer, useProcGen, useGeometries, useMaterials, useFrame, useActivate, usePhysics, useCleanup} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
+// const localVector3 = new THREE.Vector3();
+// const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 // const localBox = new THREE.Box3();
@@ -100,539 +101,554 @@ const ClippedPlane = (() => {
 export default () => {
   const app = useApp();
   const physics = usePhysics();
-  const {voxelWorldSize} = useProcGen();
+  const {
+    voxelWorldSize,
+    chunkWorldSize,
+  } = useProcGen();
   // const {CapsuleGeometry} = useGeometries();
   const {WebaverseShaderMaterial} = useMaterials();
 
-  const bounds = app.getComponent('bounds');
-  const [min, max] = bounds;
-  const [minX, minY, minZ] = min;
-  const [maxX, maxY, maxZ] = max;
-  const width = maxX - minX;
-  const height = maxY - minY;
-  const depth = maxZ - minZ;
-  const exits = app.getComponent('exits');
-
-  const barrierSpecs = exits.map(exit => {
-    localVector.fromArray(exit);
-    
-    let normal;
-    if (localVector.x === 0) { // XXX blocks should come with an incoming direction so this is well-defined
-      normal = localVector2.set(1, 0, 0);
-    } else if (localVector.x === (width - voxelWorldSize)) {
-      normal = localVector2.set(-1, 0, 0);
-    } else if (localVector.z === 0) {
-      normal = localVector2.set(0, 0, 1);
-    } else if (localVector.z === (depth - voxelWorldSize)) {
-      normal = localVector2.set(0, 0, -1);
-    } else if (localVector.y === 0) {
-      normal = localVector2.set(0, 1, 0);
-    } else if (localVector.y === (height - voxelWorldSize)) {
-      normal = localVector2.set(0, -1, 0);
-    } else {
-      console.warn('invalid exit position', exit, width, height, depth);
-      throw new Error('invalid exit position');
-    }
-
-    let size;
-    if (normal.x !== 0) {
-      size = localVector5.set(1, voxelWorldSize, voxelWorldSize);
-    } else if (normal.z !== 0) {
-      size = localVector5.set(voxelWorldSize, voxelWorldSize, 1);
-    } else if (normal.y !== 0) {
-      size = localVector5.set(voxelWorldSize, 1, voxelWorldSize);
-    } else {
-      console.warn('invalid wall normal', normal.toArray());
-      throw new Error('invalid wall normal');
-    }
-
-    // console.log('got normal', normal.toArray().join(','));
-
-    const position = new THREE.Vector3(
-      -width/2 +
-        (0.5 * -normal.x) +
-        localVector.x +
-        (normal.x === -1 ? voxelWorldSize : 0) +
-        (normal.z * voxelWorldSize/2),
-      voxelWorldSize/2 +
-        localVector.y,
-      -depth/2 +
-        (0.5 * -normal.z) +
-        localVector.z +
-        (normal.z === -1 ? voxelWorldSize : 0) +
-        (normal.x * voxelWorldSize/2),
-    );
-
-    /* if (normal.z === 1) {
-      console.log('barrier exit', localVector.toArray().join(', '), position.toArray().join(', '));
-    } */
-
-    return {
-      position,
-      normal: normal.clone(),
-      size: size.clone(),
-    };
-  });
-  console.log('got barrier specs', exits, barrierSpecs);
-
+  const barrierMeshes = [];
+  let children = [];
   const physicsIds = [];
+  const _render = () => {
+    const bounds = app.getComponent('bounds');
+    const [min, max] = bounds;
+    const [minX, minY, minZ] = min;
+    const [maxX, maxY, maxZ] = max;
+    const width = maxX - minX;
+    const height = maxY - minY;
+    const depth = maxZ - minZ;
 
-  for (const barrierSpec of barrierSpecs) {
-    // const [w, h, d] = app.getComponent('size') ?? [4, 4, 4];
-    const {
-      position,
-      normal,
-      size,
-    } = barrierSpec;
-    const w = size.x;
-    const h = size.y;
-    const d = size.z;
+    const delta = app.getComponent('delta');
+    const [dx, dy] = delta;
+    const chunkOffset = new THREE.Vector3(dx * chunkWorldSize, 0, dy * chunkWorldSize);
 
-    const barrierGeometry = new THREE.BoxGeometry(1, 1, 1);
-    for (let i = 0; i < barrierGeometry.attributes.position.count; i++) {
-      const position = localVector.fromArray(barrierGeometry.attributes.position.array, i * 3)
-      const normal = localVector2.fromArray(barrierGeometry.attributes.normal.array, i * 3)
-        // .toArray(barrierGeometry.attributes.position.array, i * 3);
-      if (normal.y !== 0) {
-        localVector2D.set(position.x * size.x, position.z * size.z);
-      } else if (normal.x !== 0) {
-        localVector2D.set(position.y * size.y, position.z * size.z);
-      } else {
-        localVector2D.set(position.x * size.x, position.y * size.y);
-      }
-      localVector2D.toArray(barrierGeometry.attributes.uv.array, i * 2);
-    }
-    const barrierMaterial = new WebaverseShaderMaterial({
-      uniforms: {
-        iTime: {
-          value: 0,
-        },
-        /* iResolution: {
-          value: new THREE.Vector2(1024, 1024),
-          needsUpdate: false,
-        }, */
-        uHighlight: {
-          value: 0,
-          needsUpdate: false,
-        },
-        uStartTimeS: {
-          value: 0,
-          needsUpdate: false,
-        },
-        uDirection: {
-          value: new THREE.Vector3(0, 0, 0),
-          needsUpdate: false,
-        },
-        uSpeed: {
-          value: 0,
-          needsUpdate: false,
-        },
-        /* cameraDirection: {
-          value: new THREE.Vector3(),
-          needsUpdate: true,
-        }, */
-      },
-      vertexShader: `\
-        precision highp float;
-        precision highp int;
+    const exits = app.getComponent('exits');
 
-        uniform float iTime;
-        uniform float uStartTimeS;
-        uniform vec3 uDirection;
-        uniform float uSpeed;
-        varying vec3 vPosition;
-        varying vec2 vUv;
-        // varying vec3 vNormal;
-        // varying vec3 vCameraDirection;
-        varying float darkening;
-        varying float dimming;
-
-        float getBezierT(float x, float a, float b, float c, float d) {
-          return float(sqrt(3.) *
-            sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x)
-              + 6. * b - 9. * c + 3. * d)
-              / (6. * (b - 2. * c + d));
-        }
-        float easing(float x) {
-          return getBezierT(x, 0., 1., 0., 1.);
-        }
-        float easing2(float x) {
-          return easing(easing(x));
-        }
-
-        // const float moveDistance = 20.;
-        // const float q = 0.1;
-
-        void main(){
-          vec3 p = position;
-          bool normalAligned = normal == -uDirection;
-          float t = (iTime - uStartTimeS);
-          if (normalAligned) {
-            p += uDirection * uSpeed * t;
-          }
-
-          vec4 view_pos = modelViewMatrix * vec4(p, 1.0);
-
-          vec3 view_dir = normalize(-view_pos.xyz);
-          vec3 view_nv  = normalize(normalMatrix * normal);
-
-          float NdotV   = dot(view_dir, view_nv);
-          darkening     = NdotV;
-
-          if (uSpeed != 0.) {
-            if (normalAligned) {
-              dimming = 1. - t;
-            } else {
-              dimming = 1. - t * 4.;
-            }
-            dimming = max(dimming, 0.);
-          } else {
-            dimming = 1.;
-          }
-
-          gl_Position   = projectionMatrix * view_pos;
-
-          vUv = uv;
-        }
-      `,
-      fragmentShader: `\
-        precision highp float;
-        precision highp int;
-
-        #define PI 3.1415926535897932384626433832795
-
-        uniform float iTime;
-        uniform float uHighlight;
-        varying vec3 vPosition;
-        varying vec2 vUv;
-        varying float darkening;
-        varying float dimming;
-
-        /* const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
-        const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1).toArray().join(', ')});
-        const vec3 lineColor3 = vec3(${new THREE.Color(0xec407a).toArray().join(', ')});
-        const vec3 lineColor4 = vec3(${new THREE.Color(0xc2185b).toArray().join(', ')}); */
-
-        /*
-
-          draw letter shapes after subdividing uv space randomly
-
-        */
-
-        float random2d(vec2 n) { 
-            return fract(sin(dot(n, vec2(129.9898, 4.1414))) * 2398.5453);
-        }
-
-        vec2 getCellIJ(vec2 uv, float gridDims){
-            return floor(uv * gridDims)/ gridDims;
-        }
-
-        vec2 rotate2D(vec2 position, float theta)
-        {
-            mat2 m = mat2( cos(theta), -sin(theta), sin(theta), cos(theta) );
-            return m * position;
-        }
-
-        //from https://github.com/keijiro/ShaderSketches/blob/master/Text.glsl
-        float letter(vec2 coord, float size)
-        {
-            vec2 gp = floor(coord / size * 7.); // global
-            vec2 rp = floor(fract(coord / size) * 7.); // repeated
-            vec2 odd = fract(rp * 0.5) * 2.;
-            float rnd = random2d(gp);
-            float c = max(odd.x, odd.y) * step(0.5, rnd); // random lines
-            c += min(odd.x, odd.y); // fill corner and center points
-            c *= rp.x * (6. - rp.x); // cropping
-            c *= rp.y * (6. - rp.y);
-            return clamp(c, 0., 1.);
-        }
-
-        void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-            vec2 uv = fragCoord;
-            // vec2 uv = fragCoord.xy / iResolution.xy;    
-            //correct aspect ratio
-            // uv.x *= iResolution.x/iResolution.y;
-            /* if (vPosition.y <= 0. || vPosition.y >= iResolution.y - 0.01) {
-              discard;
-            } */
-
-            // vec3 normal = vNormal;
-            /* vec3 normal = normalize(cross(dFdx(vPosition), dFdy(vPosition)));
-            normal.y *= -1.;
-            normal *= -1.; */
-            // vec3 cameraDirection = vCameraDirection;
-            // float normalDotCameraDirection = dot(normal, vCameraDirection);
-            // float normalDotCameraDirection = vNormalCameraDirection;
-            /* if (normalDotCameraDirection < 0.) {
-              discard;
-            } */
-
-            uv /= 2.;
-
-            float t = iTime;
-            float scrollSpeed = 1.;
-            float dims = 3.0;
-            int maxSubdivisions = 1;
-            
-            // uv = rotate2D(uv,PI/12.0);
-            uv.y -= floor(iTime * scrollSpeed);
-            
-            float cellRand;
-            vec2 ij;
-            
-            for(int i = 0; i <= maxSubdivisions; i++) { 
-                ij = getCellIJ(uv, dims);
-                cellRand = random2d(ij);
-                dims *= 2.0;
-                //decide whether to subdivide cells again
-                float cellRand2 = random2d(ij + 454.4543);
-                if (cellRand2 > 0.3){
-                  break; 
-                }
-            }
-          
-            //draw letters    
-            float b = letter(uv, 1.0 / (dims));
-          
-            //fade in
-            /* float scrollPos = iTime*scrollSpeed + 0.5;
-            float showPos = -ij.y + cellRand;
-            float fade = smoothstep(showPos ,showPos + 0.05, scrollPos );
-            b *= fade; */
-            
-            //hide some
-            //if (cellRand < 0.1) b = 0.0;
-
-            b = min(b, 1.);
-            
-            float c = 1.-b;
-            /* if (gl_FrontFacing == false) {
-              c *= 0.2;
-            } */
-            
-            c += uHighlight;
-            fragColor = vec4(vec3(c), b);
-
-            if (darkening <= 0.0) {
-              fragColor.a *= 0.5;
-            }
-            fragColor.a *= dimming;
-        
-            if (fragColor.a < 0.001) {
-              discard;
-            } 
-        }
-        void main() {
-          mainImage(gl_FragColor, vUv);
-        }
-      `,
-      side: THREE.DoubleSide,
-      transparent: true,
-    });
-    /* const m = new THREE.MeshPhongMaterial({
-      color: 0xff0000,
-    }); */
-    const barrierMesh = new THREE.Mesh(barrierGeometry, barrierMaterial);
-    barrierMesh.position.copy(position);
-    barrierMesh.scale.set(size.x, size.y, size.z);
-    barrierMesh.frustumCulled = false;
-    app.add(barrierMesh);
-    app.updateMatrixWorld();
-
-    const _updateBarrierMesh = (now, timeDiff) => {
-      barrierMaterial.uniforms.iTime.value = now/1000;
+    const barrierSpecs = exits.map(exit => {
+      localVector.fromArray(exit);
       
-      let highlight;
-      if (animationSpec) {
-        let f = Math.min(Math.max((now - animationSpec.startTime) / (animationSpec.endTime - animationSpec.startTime), 0), 1);
-        f = Math.pow(f, 0.1);
-        highlight = (1-f)*animationSpec.startValue + f*animationSpec.endValue;
+      let normal;
+      if (localVector.x === 0) { // XXX blocks should come with an incoming direction so this is well-defined
+        normal = localVector2.set(1, 0, 0);
+      } else if (localVector.x === (width - voxelWorldSize)) {
+        normal = localVector2.set(-1, 0, 0);
+      } else if (localVector.z === 0) {
+        normal = localVector2.set(0, 0, 1);
+      } else if (localVector.z === (depth - voxelWorldSize)) {
+        normal = localVector2.set(0, 0, -1);
+      } else if (localVector.y === 0) {
+        normal = localVector2.set(0, 1, 0);
+      } else if (localVector.y === (height - voxelWorldSize)) {
+        normal = localVector2.set(0, -1, 0);
       } else {
-        highlight = 0;
+        console.warn('invalid exit position', exit, width, height, depth);
+        throw new Error('invalid exit position');
       }
-      barrierMaterial.uniforms.uHighlight.value = highlight;
-      barrierMaterial.uniforms.uHighlight.needsUpdate = true;
 
-      if (animationSpec) {
-        barrierMaterial.uniforms.uStartTimeS.value = animationSpec.startTimeS;
-        barrierMaterial.uniforms.uStartTimeS.needsUpdate = true;
-
-        barrierMaterial.uniforms.uDirection.value.copy(animationSpec.direction);
-        barrierMaterial.uniforms.uDirection.needsUpdate = true;
-        
-        barrierMaterial.uniforms.uSpeed.value = animationSpec.speed;
-        barrierMaterial.uniforms.uSpeed.needsUpdate = true;
+      let size;
+      if (normal.x !== 0) {
+        size = localVector5.set(1, voxelWorldSize, voxelWorldSize);
+      } else if (normal.z !== 0) {
+        size = localVector5.set(voxelWorldSize, voxelWorldSize, 1);
+      } else if (normal.y !== 0) {
+        size = localVector5.set(voxelWorldSize, 1, voxelWorldSize);
       } else {
-        barrierMaterial.uniforms.uSpeed.value = 0;
-        barrierMaterial.uniforms.uSpeed.needsUpdate = true;
+        console.warn('invalid wall normal', normal.toArray());
+        throw new Error('invalid wall normal');
       }
 
-      barrierMesh.visible = animationSpec ? animationSpec.visible : true;
-    };
-    /* const material2 = new THREE.MeshPhongMaterial({
-      color: 0x00ff00,
-    }); */
-    // const mesh = new THREE.Mesh(geometry, material);
-    // app.add(mesh);
+      // console.log('got normal', normal.toArray().join(','));
 
-    /* let activateCb = null;
-    let frameCb = null;
-    useActivate(() => {
-      activateCb && activateCb();
-    }); */
+      const position = new THREE.Vector3(
+        -width/2 +
+          (0.5 * -normal.x) +
+          localVector.x +
+          (normal.x === -1 ? voxelWorldSize : 0) +
+          (normal.z * voxelWorldSize/2),
+        voxelWorldSize/2 +
+          localVector.y,
+        -depth/2 +
+          (0.5 * -normal.z) +
+          localVector.z +
+          (normal.z === -1 ? voxelWorldSize : 0) +
+          (normal.x * voxelWorldSize/2),
+      ).add(chunkOffset);
 
-    /* const _getBarrierBox = box => {
-      return box.set(
-        localVector.set(-w/2, 0, -d/2)
-          .applyMatrix4(barrierMesh.matrixWorld),
-        localVector2.set(w/2, h, d/2)
-          .applyMatrix4(barrierMesh.matrixWorld),
-      )
-    }; */
-    // console.log('got h', h);
-    const clipPlanes = [
-      // top
-      new ClippedPlane(
-        new THREE.Vector3(0, 1, 0), // normal
-        new THREE.Vector3(0, h/2, 0), // coplanarPoint
-        new THREE.Vector2(w, d), // size
-        new THREE.Vector3(0, 0, 1), // up
-      ),
-      // bottom
-      new ClippedPlane(
-        new THREE.Vector3(0, -1, 0), // normal
-        new THREE.Vector3(0, -h/2, 0), // coplanarPoint
-        new THREE.Vector2(w, d), // size
-        new THREE.Vector3(0, 0, 1), // up
-      ),
-      // left
-      new ClippedPlane(
-        new THREE.Vector3(-1, 0, 0), // normal
-        new THREE.Vector3(-w/2, 0, 0), // coplanarPoint
-        new THREE.Vector2(d, h), // size
-        new THREE.Vector3(0, 1, 0), // up
-      ),
-      // right
-      new ClippedPlane(
-        new THREE.Vector3(1, 0, 0), // normal
-        new THREE.Vector3(w/2, 0, 0), // coplanarPoint
-        new THREE.Vector2(d, h), // size
-        new THREE.Vector3(0, 1, 0), // up
-      ),
-      // front
-      new ClippedPlane(
-        new THREE.Vector3(0, 0, -1), // normal
-        new THREE.Vector3(0, 0, -d/2), // coplanarPoint
-        new THREE.Vector2(w, h), // size
-        new THREE.Vector3(0, 1, 0), // up
-      ),
-      // back
-      new ClippedPlane(
-        new THREE.Vector3(0, 0, 1), // normal
-        new THREE.Vector3(0, 0, d/2), // coplanarPoint
-        new THREE.Vector2(w, h), // size
-        new THREE.Vector3(0, 1, 0), // up
-      ),
-    ];
-    /* for (const clipPlane of clipPlanes) {
-      const geometry = new THREE.PlaneBufferGeometry(clipPlane.size.x, clipPlane.size.y, 0.1);
-      const material = new THREE.MeshBasicMaterial({
-        color: 0xff0000,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.copy(clipPlane.coplanarPoint);
-      mesh.frustumCulled = false;
-      scene.add(mesh);
-    } */
-
-    const localPlayer = useLocalPlayer();
-    const lastPosition = localPlayer.position.clone();
-    
-    let animationSpec = null;
-    // let lastAnimationFinishTime = 0;
-    const cooldownTime = 2000;
-    // let playing = false;
-    useFrame(({timestamp, timeDiff}) => {
-      const timestampS = timestamp/1000;
-      const timeDiffS = timeDiff/1000;
-
-      if (animationSpec) {
-        if (timestamp >= animationSpec.endTime) {
-          if (animationSpec.type === 'trigger') {
-            animationSpec = {
-              type: 'cooldown',
-              startValue: 0,
-              endValue: 0,
-              visible: false,
-              startTime: timestamp,
-              endTime: timestamp + cooldownTime,
-              startTimeS: timestampS,
-              direction: new THREE.Vector3(0, 0, 0),
-              speed: 0,
-            };
-          } else {
-            animationSpec = null;
-          }
-        }
-      }
-
-      // const barrierBox = _getBarrierBox(localBox);
-      // window.barrierBox = barrierBox;
-      // window.localPlayer = localPlayer;
-      for (const clipPlane of clipPlanes) {
-        localLine.set(lastPosition, localPlayer.position)
-          .applyMatrix4(
-            localMatrix.copy(barrierMesh.matrixWorld)
-              .invert()
-          );
-
-        const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
-        if (penetrationNormalVector !== null) {
-          if (!animationSpec) {
-            animationSpec = {
-              type: 'trigger',
-              startValue: 0,
-              endValue: 1,
-              visible: true,
-              startTime: timestamp,
-              endTime: timestamp + 1000,
-              startTimeS: timestampS,
-              direction: penetrationNormalVector.clone(),
-              speed: localLine.start.distanceTo(localLine.end) / timeDiffS,
-            };
-          } else if (animationSpec && animationSpec.type === 'cooldown') {
-            animationSpec.startTime = timestamp;
-            animationSpec.endTime = timestamp + cooldownTime;
-          }
-
-          break;
-        } else {
-          // console.log('no intersection', localLine.start.toArray().join(','), localLine.end.toArray().join(','), clipPlane);
-        }
-    }
-
-      /* if (!playing) {
-        const audio = new Audio(`${baseUrl}pissbaby.mp3`);
-        audio.oncanplaythrough = () => {
-          console.log('can play');
-          audio.play();
-        };
-        audio.onerror = err => {
-          console.warn(err);
-        };
-        playing = true;
-      } */
-
-      _updateBarrierMesh(timestamp, timeDiff);
-
-      lastPosition.copy(localPlayer.position);
+      return {
+        position,
+        normal: normal.clone(),
+        size: size.clone(),
+      };
     });
-  }
+
+    for (const barrierSpec of barrierSpecs) {
+      const {
+        position,
+        normal,
+        size,
+      } = barrierSpec;
+      const w = size.x;
+      const h = size.y;
+      const d = size.z;
+
+      const barrierGeometry = new THREE.BoxGeometry(1, 1, 1);
+      for (let i = 0; i < barrierGeometry.attributes.position.count; i++) {
+        const position = localVector.fromArray(barrierGeometry.attributes.position.array, i * 3);
+        const normal = localVector2.fromArray(barrierGeometry.attributes.normal.array, i * 3);
+        if (normal.y !== 0) {
+          localVector2D.set(position.x * size.x, position.z * size.z);
+        } else if (normal.x !== 0) {
+          localVector2D.set(position.y * size.y, position.z * size.z);
+        } else {
+          localVector2D.set(position.x * size.x, position.y * size.y);
+        }
+        localVector2D.toArray(barrierGeometry.attributes.uv.array, i * 2);
+      }
+      const barrierMaterial = new WebaverseShaderMaterial({
+        uniforms: {
+          iTime: {
+            value: 0,
+          },
+          /* iResolution: {
+            value: new THREE.Vector2(1024, 1024),
+            needsUpdate: false,
+          }, */
+          uHighlight: {
+            value: 0,
+            needsUpdate: false,
+          },
+          uStartTimeS: {
+            value: 0,
+            needsUpdate: false,
+          },
+          uDirection: {
+            value: new THREE.Vector3(0, 0, 0),
+            needsUpdate: false,
+          },
+          uSpeed: {
+            value: 0,
+            needsUpdate: false,
+          },
+          /* cameraDirection: {
+            value: new THREE.Vector3(),
+            needsUpdate: true,
+          }, */
+        },
+        vertexShader: `\
+          precision highp float;
+          precision highp int;
+
+          uniform float iTime;
+          uniform float uStartTimeS;
+          uniform vec3 uDirection;
+          uniform float uSpeed;
+          varying vec3 vPosition;
+          varying vec2 vUv;
+          // varying vec3 vNormal;
+          // varying vec3 vCameraDirection;
+          varying float darkening;
+          varying float dimming;
+
+          float getBezierT(float x, float a, float b, float c, float d) {
+            return float(sqrt(3.) *
+              sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x)
+                + 6. * b - 9. * c + 3. * d)
+                / (6. * (b - 2. * c + d));
+          }
+          float easing(float x) {
+            return getBezierT(x, 0., 1., 0., 1.);
+          }
+          float easing2(float x) {
+            return easing(easing(x));
+          }
+
+          // const float moveDistance = 20.;
+          // const float q = 0.1;
+
+          void main(){
+            vec3 p = position;
+            bool normalAligned = normal == -uDirection;
+            float t = (iTime - uStartTimeS);
+            if (normalAligned) {
+              p += uDirection * uSpeed * t;
+            }
+
+            vec4 view_pos = modelViewMatrix * vec4(p, 1.0);
+
+            vec3 view_dir = normalize(-view_pos.xyz);
+            vec3 view_nv  = normalize(normalMatrix * normal);
+
+            float NdotV   = dot(view_dir, view_nv);
+            darkening     = NdotV;
+
+            if (uSpeed != 0.) {
+              if (normalAligned) {
+                dimming = 1. - t;
+              } else {
+                dimming = 1. - t * 4.;
+              }
+              dimming = max(dimming, 0.);
+            } else {
+              dimming = 1.;
+            }
+
+            gl_Position   = projectionMatrix * view_pos;
+
+            vUv = uv;
+          }
+        `,
+        fragmentShader: `\
+          precision highp float;
+          precision highp int;
+
+          #define PI 3.1415926535897932384626433832795
+
+          uniform float iTime;
+          uniform float uHighlight;
+          varying vec3 vPosition;
+          varying vec2 vUv;
+          varying float darkening;
+          varying float dimming;
+
+          /* const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
+          const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1).toArray().join(', ')});
+          const vec3 lineColor3 = vec3(${new THREE.Color(0xec407a).toArray().join(', ')});
+          const vec3 lineColor4 = vec3(${new THREE.Color(0xc2185b).toArray().join(', ')}); */
+
+          /*
+
+            draw letter shapes after subdividing uv space randomly
+
+          */
+
+          float random2d(vec2 n) { 
+              return fract(sin(dot(n, vec2(129.9898, 4.1414))) * 2398.5453);
+          }
+
+          vec2 getCellIJ(vec2 uv, float gridDims){
+              return floor(uv * gridDims)/ gridDims;
+          }
+
+          vec2 rotate2D(vec2 position, float theta)
+          {
+              mat2 m = mat2( cos(theta), -sin(theta), sin(theta), cos(theta) );
+              return m * position;
+          }
+
+          //from https://github.com/keijiro/ShaderSketches/blob/master/Text.glsl
+          float letter(vec2 coord, float size)
+          {
+              vec2 gp = floor(coord / size * 7.); // global
+              vec2 rp = floor(fract(coord / size) * 7.); // repeated
+              vec2 odd = fract(rp * 0.5) * 2.;
+              float rnd = random2d(gp);
+              float c = max(odd.x, odd.y) * step(0.5, rnd); // random lines
+              c += min(odd.x, odd.y); // fill corner and center points
+              c *= rp.x * (6. - rp.x); // cropping
+              c *= rp.y * (6. - rp.y);
+              return clamp(c, 0., 1.);
+          }
+
+          void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+              vec2 uv = fragCoord;
+              // vec2 uv = fragCoord.xy / iResolution.xy;    
+              //correct aspect ratio
+              // uv.x *= iResolution.x/iResolution.y;
+              /* if (vPosition.y <= 0. || vPosition.y >= iResolution.y - 0.01) {
+                discard;
+              } */
+
+              // vec3 normal = vNormal;
+              /* vec3 normal = normalize(cross(dFdx(vPosition), dFdy(vPosition)));
+              normal.y *= -1.;
+              normal *= -1.; */
+              // vec3 cameraDirection = vCameraDirection;
+              // float normalDotCameraDirection = dot(normal, vCameraDirection);
+              // float normalDotCameraDirection = vNormalCameraDirection;
+              /* if (normalDotCameraDirection < 0.) {
+                discard;
+              } */
+
+              uv /= 2.;
+
+              float t = iTime;
+              float scrollSpeed = 1.;
+              float dims = 3.0;
+              int maxSubdivisions = 1;
+              
+              // uv = rotate2D(uv,PI/12.0);
+              uv.y -= floor(iTime * scrollSpeed);
+              
+              float cellRand;
+              vec2 ij;
+              
+              for(int i = 0; i <= maxSubdivisions; i++) { 
+                  ij = getCellIJ(uv, dims);
+                  cellRand = random2d(ij);
+                  dims *= 2.0;
+                  //decide whether to subdivide cells again
+                  float cellRand2 = random2d(ij + 454.4543);
+                  if (cellRand2 > 0.3){
+                    break; 
+                  }
+              }
+            
+              //draw letters    
+              float b = letter(uv, 1.0 / (dims));
+            
+              //fade in
+              /* float scrollPos = iTime*scrollSpeed + 0.5;
+              float showPos = -ij.y + cellRand;
+              float fade = smoothstep(showPos ,showPos + 0.05, scrollPos );
+              b *= fade; */
+              
+              //hide some
+              //if (cellRand < 0.1) b = 0.0;
+
+              b = min(b, 1.);
+              
+              float c = 1.-b;
+              /* if (gl_FrontFacing == false) {
+                c *= 0.2;
+              } */
+              
+              c += uHighlight;
+              fragColor = vec4(vec3(c), b);
+
+              if (darkening <= 0.0) {
+                fragColor.a *= 0.5;
+              }
+              fragColor.a *= dimming;
+          
+              if (fragColor.a < 0.001) {
+                discard;
+              } 
+          }
+          void main() {
+            mainImage(gl_FragColor, vUv);
+          }
+        `,
+        side: THREE.DoubleSide,
+        transparent: true,
+      });
+      const barrierMesh = new THREE.Mesh(barrierGeometry, barrierMaterial);
+      barrierMesh.position.copy(position);
+      barrierMesh.scale.set(size.x, size.y, size.z);
+      barrierMesh.frustumCulled = false;
+      app.add(barrierMesh);
+      app.updateMatrixWorld();
+      barrierMeshes.push(barrierMesh);
+      children.push(barrierMesh);
+
+      barrierMesh.clipPlanes = [
+        // top
+        new ClippedPlane(
+          new THREE.Vector3(0, 1, 0), // normal
+          new THREE.Vector3(0, h/2, 0), // coplanarPoint
+          new THREE.Vector2(w, d), // size
+          new THREE.Vector3(0, 0, 1), // up
+        ),
+        // bottom
+        new ClippedPlane(
+          new THREE.Vector3(0, -1, 0), // normal
+          new THREE.Vector3(0, -h/2, 0), // coplanarPoint
+          new THREE.Vector2(w, d), // size
+          new THREE.Vector3(0, 0, 1), // up
+        ),
+        // left
+        new ClippedPlane(
+          new THREE.Vector3(-1, 0, 0), // normal
+          new THREE.Vector3(-w/2, 0, 0), // coplanarPoint
+          new THREE.Vector2(d, h), // size
+          new THREE.Vector3(0, 1, 0), // up
+        ),
+        // right
+        new ClippedPlane(
+          new THREE.Vector3(1, 0, 0), // normal
+          new THREE.Vector3(w/2, 0, 0), // coplanarPoint
+          new THREE.Vector2(d, h), // size
+          new THREE.Vector3(0, 1, 0), // up
+        ),
+        // front
+        new ClippedPlane(
+          new THREE.Vector3(0, 0, -1), // normal
+          new THREE.Vector3(0, 0, -d/2), // coplanarPoint
+          new THREE.Vector2(w, h), // size
+          new THREE.Vector3(0, 1, 0), // up
+        ),
+        // back
+        new ClippedPlane(
+          new THREE.Vector3(0, 0, 1), // normal
+          new THREE.Vector3(0, 0, d/2), // coplanarPoint
+          new THREE.Vector2(w, h), // size
+          new THREE.Vector3(0, 1, 0), // up
+        ),
+      ];
+      barrierMesh.animationSpec = null;
+    }
+  };
+  _render();
+
+  app.addEventListener('componentsupdate', ({keys}) => {
+    if (keys.includes('delta')) {
+      _cleanup();
+      _render();
+    }
+  });
+
+  const localPlayer = useLocalPlayer();
+  const lastPosition = localPlayer.position.clone();
+  const cooldownTime = 2000;
+  useFrame(({timestamp, timeDiff}) => {
+    const timestampS = timestamp/1000;
+    const timeDiffS = timeDiff/1000;
+
+    const _updateAnimations = () => {
+      for (const barrierMesh of barrierMeshes) {
+        if (barrierMesh.animationSpec) {
+          if (timestamp >= barrierMesh.animationSpec.endTime) {
+            if (barrierMesh.animationSpec.type === 'trigger') {
+              barrierMesh.animationSpec = {
+                type: 'cooldown',
+                startValue: 0,
+                endValue: 0,
+                visible: false,
+                startTime: timestamp,
+                endTime: timestamp + cooldownTime,
+                startTimeS: timestampS,
+                direction: new THREE.Vector3(0, 0, 0),
+                speed: 0,
+              };
+            } else if (barrierMesh.animationSpec.type === 'cooldown') {
+              barrierMesh.animationSpec = null;
+              
+              app.remove(barrierMesh);
+              barrierMeshes.splice(barrierMeshes.indexOf(barrierMesh), 1);
+            } else {
+              console.warn('unknown animation type', type);
+            }
+          }
+        }
+      }
+    };
+    _updateAnimations();
+    const _updateCollisions = () => {
+      const localChildren = children.slice();
+      for (const barrierMesh of localChildren) {
+        for (const clipPlane of barrierMesh.clipPlanes) {
+          const positionStart = lastPosition;
+          const positionEnd = localPlayer.position;
+          const totalDistance = positionStart.distanceTo(positionEnd);
+
+          let broke = false;
+          for (let d = 0; d <= totalDistance; d += 1) {
+            const f1 = Math.min(d / totalDistance, 1);
+            const lineStart = localVector.copy(positionStart)
+              .lerp(positionEnd, f1);
+            const f2 = Math.min((d + 1) / totalDistance, 1);
+            const lineEnd = localVector2.copy(positionStart)
+              .lerp(positionEnd, f2);
+            localLine.set(lineStart, lineEnd)
+              .applyMatrix4(
+                localMatrix.copy(barrierMesh.matrixWorld)
+                  .invert()
+              );
+
+            const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
+            if (penetrationNormalVector !== null) {
+              if (!barrierMesh.animationSpec) {
+                const direction = penetrationNormalVector.clone();
+                const speed = localLine.start.distanceTo(localLine.end) / timeDiffS;
+                barrierMesh.animationSpec = {
+                  type: 'trigger',
+                  startValue: 0,
+                  endValue: 1,
+                  visible: true,
+                  startTime: timestamp,
+                  endTime: timestamp + 1000,
+                  startTimeS: timestampS,
+                  direction,
+                  speed,
+                };
+
+                children.splice(children.indexOf(barrierMesh), 1);
+
+                app.dispatchEvent({
+                  type: 'collision',
+                  direction: direction.clone(),
+                  speed,
+                });
+
+                broke = true;
+                break;
+              } else if (barrierMesh.animationSpec && barrierMesh.animationSpec.type === 'cooldown') {
+                barrierMesh.animationSpec.startTime = timestamp;
+                barrierMesh.animationSpec.endTime = timestamp + cooldownTime;
+              }
+            }
+          }
+          if (broke) {
+            break;
+          }
+        }
+      }
+    };
+    _updateCollisions();
+    const _updateMaterials = () => {
+      for (const barrierMesh of barrierMeshes) {
+        barrierMesh.material.uniforms.iTime.value = timestampS;
+        
+        let highlight;
+        if (barrierMesh.animationSpec) {
+          let f = Math.min(Math.max(
+            (timestamp - barrierMesh.animationSpec.startTime) / (barrierMesh.animationSpec.endTime - barrierMesh.animationSpec.startTime),
+            0),
+          1);
+          f = Math.pow(f, 0.1);
+          highlight = (1-f)*barrierMesh.animationSpec.startValue + f*barrierMesh.animationSpec.endValue;
+        } else {
+          highlight = 0;
+        }
+        barrierMesh.material.uniforms.uHighlight.value = highlight;
+        barrierMesh.material.uniforms.uHighlight.needsUpdate = true;
+    
+        if (barrierMesh.animationSpec) {
+          barrierMesh.material.uniforms.uStartTimeS.value = barrierMesh.animationSpec.startTimeS;
+          barrierMesh.material.uniforms.uStartTimeS.needsUpdate = true;
+    
+          barrierMesh.material.uniforms.uDirection.value.copy(barrierMesh.animationSpec.direction);
+          barrierMesh.material.uniforms.uDirection.needsUpdate = true;
+          
+          barrierMesh.material.uniforms.uSpeed.value = barrierMesh.animationSpec.speed;
+          barrierMesh.material.uniforms.uSpeed.needsUpdate = true;
+        } else {
+          barrierMesh.material.uniforms.uSpeed.value = 0;
+          barrierMesh.material.uniforms.uSpeed.needsUpdate = true;
+        }
+    
+        barrierMesh.visible = barrierMesh.animationSpec ? barrierMesh.animationSpec.visible : true;
+      }
+    };
+    _updateMaterials();
+
+    lastPosition.copy(localPlayer.position);
+  });
   
-  useCleanup(() => {
+  const _cleanup = () => {
+    for (const child of children) {
+      app.remove(child);
+    }
+    children.length = 0;
+
     for (const physicsId of physicsIds) {
       physics.removeGeometry(physicsId);
     }
+    physicsIds.length = 0;
+  };
+  useCleanup(() => {
+    _cleanup();
   });
 
   return app;
