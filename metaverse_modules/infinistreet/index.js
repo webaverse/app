@@ -60,6 +60,7 @@ export default () => {
   const app = useApp();
   const physics = usePhysics();
   const procGen = useProcGen();
+  const {chunkWorldSize} = procGen;
 
   app.name = 'infinistreet';
 
@@ -72,26 +73,32 @@ export default () => {
     frameCb && frameCb();
   });
 
+  const [dx, dy] = app.getComponent('delta');
+
+  const children = [];
   let physicsIds = [];
-  {
+  const _render = (dx, dy) => {
     const numPoints = 3;
     // const range = 100;
     const stepRange = 0.2;
     const segmentLength = 30;
     
-    const rng = alea('lol');
+    const rng = alea(['street', dx, dy].join(':'));
     const r = () => -1 + 2 * rng();
 
     const splinePoints = Array(numPoints);
     const point = new THREE.Vector3(0, 0, 0);
-    const direction = new THREE.Vector3(0, 0, -1);
+    const direction = new THREE.Vector3(r(), r(), r()).normalize();
     for (let i = 0; i < numPoints; i++) {
       splinePoints[i] = point.clone();
       direction.x += r() * stepRange;
       direction.y += r() * stepRange;
       direction.z += r() * stepRange;
       direction.normalize();
-      point.add(localVector.copy(direction).multiplyScalar(segmentLength));
+      point.add(
+        localVector.copy(direction)
+          .multiplyScalar(segmentLength)
+      );
       /* splinePoints[i] = new THREE.Vector3(
         rng() * range,
         rng() * range,
@@ -144,7 +151,10 @@ export default () => {
       0.1, // radiusY
       4, // radialSegments
       false, // closed
+    ).applyMatrix4(
+      new THREE.Matrix4().makeTranslation(dx * chunkWorldSize, 0, dy * chunkWorldSize)
     );
+
     // geometry.computeFaceNormals();
     const material = new THREE.MeshNormalMaterial({
       // color: 0xFF0000,
@@ -158,20 +168,42 @@ export default () => {
     mesh.frustumCulled = false;
     // scene.add(mesh);
     // window.mesh = mesh;
+    children.push(mesh);
 
     const physicsId = physics.addGeometry(mesh);
     physicsIds.push(physicsId);
 
     const blueSphere = _makeBlueSphere();
-    blueSphere.position.set(0, 1, -1);
+    blueSphere.position.set(0, 1, -1)
+      .add(localVector.set(dx * chunkWorldSize, 0, dy * chunkWorldSize));
     app.add(blueSphere);
     blueSphere.updateMatrixWorld();
-  }
+    children.push(blueSphere);
+  };
+  _render(dx, dy);
+
+  app.addEventListener('componentupdate', ({key, value}) => {
+    if (key === 'delta') {
+      _cleanup();
+
+      const [dx, dy] = value;
+      _render(dx, dy);
+    }
+  });
   
-  useCleanup(() => {
+  const _cleanup = () => {
+    for (const child of children) {
+      app.remove(child);
+    }
+    children.length = 0;
+
     for (const physicsId of physicsIds) {
       physics.removeGeometry(physicsId);
     }
+    physicsIds.length = 0;
+  };
+  useCleanup(() => {
+    _cleanup();
   });
 
   return app;
