@@ -11,6 +11,7 @@ import {MiniHup} from '../../../MiniHup.jsx';
 import {getRenderer} from '../../../../renderer.js';
 // import game from '../../../../game.js';
 import {world} from '../../../../world.js';
+import universe from '../../../../universe.js';
 import cameraManager from '../../../../camera-manager.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
@@ -533,6 +534,10 @@ export const MapGen = ({
       e.stopPropagation();
 
       // console.log('click go', selectedObjectName);
+      if (selectedChunk) {
+        const webaUrl = `weba://${selectedChunk.x},${selectedChunk.y}`;
+        universe.pushUrl( `/?src=${ encodeURIComponent( webaUrl ) }` );
+      }
     }
 
     const selectedObjectName = selectedObject ? selectedObject.name : '';
