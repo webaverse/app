@@ -567,7 +567,8 @@ ioManager.keydown = e => {
       break;
     }
     case 72: { // H
-      metaversefile.toggleDebug(!metaversefile.isDebugMode());
+      const debug = metaversefile.useDebug();
+      debug.toggle();
       break;
     }
   }

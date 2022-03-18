@@ -94,8 +94,12 @@
   display: flex;
   margin-bottom: 40px;
 }
-.zoneTitleCard .rightSection .title::before,
-.zoneTitleCard .rightSection .description::before {
+.zoneTitleCard .rightSection .title .text,
+.zoneTitleCard .rightSection .description .text {
+  position: relative;
+}
+.zoneTitleCard .rightSection .title .background,
+.zoneTitleCard .rightSection .description .background {
   position: absolute;
   top: 40%;
   bottom: 0;
@@ -103,8 +107,6 @@
   right: -20px;
   background-color: #000;
   transform: skew(22deg);
-  z-index: -1;
-  content: '';
 }
 
 .zoneTitleCard .rightSection .renderMirror {
@@ -143,8 +145,8 @@
   position: absolute;
   left: 51px;
   width: calc(100% - 51px * 2);
-  bottom: 10px;
-  height: 10px;
+  bottom: 12px;
+  height: 4px;
   -webkit-appearance: none;
 }
 .zoneTitleCard .bottomSection .loadingBar .loadProgress::-webkit-progress-bar {

@@ -34,7 +34,7 @@
   text-align: left;
   white-space: pre-wrap;
   overflow: hidden;
-  transform: width 1s cubic-bezier(0, 1, 0, 1);
+  transition: width 1s cubic-bezier(0, 1, 0, 1);
 }
 .miniHup .text:not(.open) {
   padding: 15px;

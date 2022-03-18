@@ -272,7 +272,8 @@ export default class Webaverse extends EventTarget {
     this.dispatchEvent(frameEvent);
 
     getComposer().render();
-    if (metaversefileApi.isDebugMode()) {
+    const debug = metaversefileApi.useDebug();
+    if (debug.enabled) {
       rendererStats.update(renderer);
     }
 

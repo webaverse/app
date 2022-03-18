@@ -417,39 +417,43 @@ export const MapGen = () => {
 
     // wheel
     useEffect(() => {
-      function wheel(e) {
-        setRaycasterFromEvent(localRaycaster, e);
-        localRaycaster.ray.origin.multiplyScalar(voxelPixelSize);
+      if (open) {
+        function wheel(e) {
+          setRaycasterFromEvent(localRaycaster, e);
+          localRaycaster.ray.origin.multiplyScalar(voxelPixelSize);
 
-        const oldScale = scale;
-        const newScale = Math.min(Math.max(scale * (1 + e.deltaY * 0.001), 0.01), 20);
-        const scaleFactor = newScale / oldScale;
+          const oldScale = scale;
+          const newScale = Math.min(Math.max(scale * (1 + e.deltaY * 0.001), 0.01), 20);
+          const scaleFactor = newScale / oldScale;
+          
+          localMatrix.compose(
+            position,
+            downQuaternion,
+            localVector2.setScalar(scaleFactor)
+          )
+            .premultiply(
+              localMatrix2.makeTranslation(localRaycaster.ray.origin.x, 0, localRaycaster.ray.origin.z)
+            )
+            .premultiply(
+              localMatrix2.makeScale(scaleFactor, scaleFactor, scaleFactor)
+            )
+            .premultiply(
+              localMatrix2.makeTranslation(-localRaycaster.ray.origin.x, 0, -localRaycaster.ray.origin.z)
+            )
+            .decompose(localVector, localQuaternion, localVector2);
         
-        localMatrix.compose(
-          position,
-          downQuaternion,
-          localVector2.setScalar(scaleFactor)
-        )
-          .premultiply(
-            localMatrix2.makeTranslation(localRaycaster.ray.origin.x, 0, localRaycaster.ray.origin.z)
-          )
-          .premultiply(
-            localMatrix2.makeScale(scaleFactor, scaleFactor, scaleFactor)
-          )
-          .premultiply(
-            localMatrix2.makeTranslation(-localRaycaster.ray.origin.x, 0, -localRaycaster.ray.origin.z)
-          )
-          .decompose(localVector, localQuaternion, localVector2);
-      
-        setPosition(localVector.clone());
-        setScale(newScale);
-        setMouseState(null);
+          setPosition(localVector.clone());
+          setScale(newScale);
+          setMouseState(null);
+
+          return false;
+        }
+        registerIoEventHandler('wheel', wheel);
+        return () => {
+          unregisterIoEventHandler('wheel', wheel);
+        };
       }
-      document.addEventListener('wheel', wheel);
-      return () => {
-        document.removeEventListener('wheel', wheel);
-      };
-    }, [mouseState, position.x, position.z, scale]);
+    }, [open, mouseState, position.x, position.z, scale]);
 
     // click
     useEffect(() => {
