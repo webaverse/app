@@ -634,23 +634,23 @@ const _makeRagdollMesh = () => {
       Hips: _makeCubeMesh('Hips', false),
 
       Spine: _makeCubeMesh('Spine', true),
-      Chest: _makeCubeMesh('Chest', true),
-      UpperChest: _makeCubeMesh('UpperChest', true),
+      // Chest: _makeCubeMesh('Chest', true),
+      // UpperChest: _makeCubeMesh('UpperChest', true),
 
-      Neck: _makeCubeMesh('Neck', true),
-      Head: _makeCubeMesh('Head', true),
-      Eye_L: _makeCubeMesh('Eye_L', true),
-      Eye_R: _makeCubeMesh('Eye_R', true),
+      // Neck: _makeCubeMesh('Neck', true),
+      // Head: _makeCubeMesh('Head', true),
+      // Eye_L: _makeCubeMesh('Eye_L', true),
+      // Eye_R: _makeCubeMesh('Eye_R', true),
 
-      Left_shoulder: _makeCubeMesh('Left_shoulder', true),
-      Left_arm: _makeCubeMesh('Left_arm', true),
-      Left_elbow: _makeCubeMesh('Left_elbow', true),
-      Left_wrist: _makeCubeMesh('Left_wrist', true),
+      // Left_shoulder: _makeCubeMesh('Left_shoulder', true),
+      // Left_arm: _makeCubeMesh('Left_arm', true),
+      // Left_elbow: _makeCubeMesh('Left_elbow', true),
+      // Left_wrist: _makeCubeMesh('Left_wrist', true),
 
-      Right_shoulder: _makeCubeMesh('Right_shoulder', true),
-      Right_arm: _makeCubeMesh('Right_arm', true),
-      Right_elbow: _makeCubeMesh('Right_elbow', true),
-      Right_wrist: _makeCubeMesh('Right_wrist', true),
+      // Right_shoulder: _makeCubeMesh('Right_shoulder', true),
+      // Right_arm: _makeCubeMesh('Right_arm', true),
+      // Right_elbow: _makeCubeMesh('Right_elbow', true),
+      // Right_wrist: _makeCubeMesh('Right_wrist', true),
       
       /* Left_thumb0: _makeCubeMesh('Left_thumb0', true, fingerScale),
       Left_thumb1: _makeCubeMesh('Left_thumb1', true, fingerScale),
@@ -685,38 +685,38 @@ const _makeRagdollMesh = () => {
       Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', true, fingerScale), */
 
       Left_leg: _makeCubeMesh('Left_leg', false),
-      Left_knee: _makeCubeMesh('Left_knee', false),
-      Left_ankle: _makeCubeMesh('Left_ankle', false),
-      Left_toe: _makeCubeMesh('Left_toe', false),
+      // Left_knee: _makeCubeMesh('Left_knee', false),
+      // Left_ankle: _makeCubeMesh('Left_ankle', false),
+      // Left_toe: _makeCubeMesh('Left_toe', false),
       Right_leg: _makeCubeMesh('Right_leg', false),
-      Right_knee: _makeCubeMesh('Right_knee', false),
-      Right_ankle: _makeCubeMesh('Right_ankle', false),
-      Right_toe: _makeCubeMesh('Right_toe', false),
+      // Right_knee: _makeCubeMesh('Right_knee', false),
+      // Right_ankle: _makeCubeMesh('Right_ankle', false),
+      // Right_toe: _makeCubeMesh('Right_toe', false),
     };
 
     // hips
     // mesh.Root.add2(mesh.Hips);
     mesh.Hips.add2(mesh.Spine);
-    mesh.Spine.add2(mesh.Chest);
-    mesh.Chest.add2(mesh.UpperChest);
+    // mesh.Spine.add2(mesh.Chest);
+    // mesh.Chest.add2(mesh.UpperChest);
 
-    // head
-    mesh.UpperChest.add2(mesh.Neck);
-    mesh.Neck.add2(mesh.Head);
-    mesh.Head.add2(mesh.Eye_L);
-    mesh.Head.add2(mesh.Eye_R);
+    // // head
+    // mesh.UpperChest.add2(mesh.Neck);
+    // mesh.Neck.add2(mesh.Head);
+    // mesh.Head.add2(mesh.Eye_L);
+    // mesh.Head.add2(mesh.Eye_R);
 
-    // shoulders
-    mesh.UpperChest.add2(mesh.Left_shoulder);
-    mesh.UpperChest.add2(mesh.Right_shoulder);
+    // // shoulders
+    // mesh.UpperChest.add2(mesh.Left_shoulder);
+    // mesh.UpperChest.add2(mesh.Right_shoulder);
 
-    // arms
-    mesh.Left_shoulder.add2(mesh.Left_arm);
-    mesh.Left_arm.add2(mesh.Left_elbow);
-    mesh.Left_elbow.add2(mesh.Left_wrist);
-    mesh.Right_shoulder.add2(mesh.Right_arm);
-    mesh.Right_arm.add2(mesh.Right_elbow);
-    mesh.Right_elbow.add2(mesh.Right_wrist);
+    // // arms
+    // mesh.Left_shoulder.add2(mesh.Left_arm);
+    // mesh.Left_arm.add2(mesh.Left_elbow);
+    // mesh.Left_elbow.add2(mesh.Left_wrist);
+    // mesh.Right_shoulder.add2(mesh.Right_arm);
+    // mesh.Right_arm.add2(mesh.Right_elbow);
+    // mesh.Right_elbow.add2(mesh.Right_wrist);
 
     /* // hands
     mesh.Left_wrist.add2(mesh.Left_thumb0);
@@ -753,14 +753,14 @@ const _makeRagdollMesh = () => {
 
     // legs
     mesh.Hips.add2(mesh.Left_leg);
-    mesh.Left_leg.add2(mesh.Left_knee);
-    mesh.Left_knee.add2(mesh.Left_ankle);
-    mesh.Left_ankle.add2(mesh.Left_toe);
+    // mesh.Left_leg.add2(mesh.Left_knee);
+    // mesh.Left_knee.add2(mesh.Left_ankle);
+    // mesh.Left_ankle.add2(mesh.Left_toe);
 
     mesh.Hips.add2(mesh.Right_leg);
-    mesh.Right_leg.add2(mesh.Right_knee);
-    mesh.Right_knee.add2(mesh.Right_ankle);
-    mesh.Right_ankle.add2(mesh.Right_toe);
+    // mesh.Right_leg.add2(mesh.Right_knee);
+    // mesh.Right_knee.add2(mesh.Right_ankle);
+    // mesh.Right_ankle.add2(mesh.Right_toe);
     
     return mesh;
   };
@@ -829,6 +829,10 @@ const _makeRagdollMesh = () => {
       })();
       modelBone.boneLength = boneLength;
       meshBone.boneLength = boneLength;
+      if(meshBone.name !== 'Hips') {
+        modelBone.boneLength = .8;
+        meshBone.boneLength = .8;
+      }
 
       // forward quaternion
       if (k === 'Hips') {
