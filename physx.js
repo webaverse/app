@@ -1481,7 +1481,8 @@ const physxWorker = (() => {
     return skeletonId;
   };
 
-  w.setSkeletonFromBuffer = (physics, skeletonId, skeletonBuffer) => {
+  w.setSkeletonFromBuffer = (physics, skeletonId, isChildren, skeletonBuffer) => {
+    // vismark
     const allocator = new Allocator();
     const skeletonBufferInner = allocator.alloc(Uint8Array, skeletonBuffer.byteLength);
     
@@ -1490,6 +1491,7 @@ const physxWorker = (() => {
     moduleInstance._setSkeletonFromBuffer(
       physics,
       skeletonId,
+      isChildren,
       skeletonBufferInner.byteOffset
     );
     allocator.freeAll();

@@ -297,7 +297,7 @@ physicsManager.simulatePhysics = timeDiff => {
       if (physicsObject) {
         // console.log({physicsObject})
         if (physicsObject.name === 'Hips') {
-          console.log(position.x.toFixed(1) + '_' + position.y.toFixed(1) + '_' + position.z.toFixed(1))
+          // console.log(position.x.toFixed(1) + '_' + position.y.toFixed(1) + '_' + position.z.toFixed(1))
         }
         // console.log('got position', position.toArray().join(','));
         physicsObject.position.copy(position);
@@ -320,7 +320,7 @@ physicsManager.simulatePhysics = timeDiff => {
 physicsManager.marchingCubes = (dims, potential, shift, scale) => physx.physxWorker.marchingCubes(dims, potential, shift, scale);
 
 physicsManager.createSkeleton = (skeletonBuffer, groupId) => physx.physxWorker.createSkeleton(physx.physics, skeletonBuffer, groupId);
-physicsManager.setSkeletonFromBuffer = (skeleton, buffer) => physx.physxWorker.setSkeletonFromBuffer(physx.physics, skeleton, buffer);
+physicsManager.setSkeletonFromBuffer = (skeleton, isChildren, buffer) => physx.physxWorker.setSkeletonFromBuffer(physx.physics, skeleton, isChildren, buffer);
 
 physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;

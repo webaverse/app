@@ -977,6 +977,7 @@ const _makeRagdollMesh = () => {
     // flatMeshes.Left_leg.updateMatrixWorld();
 
     for (const k in avatar.modelBoneOutputs) {
+      // if(k === 'Hips') continue
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = flatMeshes[k];
       if (!meshBone) {
@@ -1369,7 +1370,7 @@ class Emoter {
 class Avatar {
 	constructor(object, options = {}) {
     window.avatar = this;
-    // window.physicsManager = physicsManager;
+    window.physicsManager = physicsManager;
     if (!object) {
       object = {};
     }
@@ -3425,23 +3426,37 @@ class Avatar {
     this.modelBoneOutputs.Root.updateMatrixWorld();
 
     if (game.debugMode) {
+      // vismark
+      // note: this === localPlayer.avatar
       if (!this.ragdoll) {
+        console.log('setFromAvatar', 1) // note: when idle-ing.
         this.ragdollMesh.setFromAvatar(this);
       } else {
+        console.log('toAvatar', 1) // note: when ragdoll-ing
+        if(this.ragdollMesh.skeleton){
+          // console.log('setSkeletonFromBuffer', 2)
+          this.ragdollMesh.updateMatrixWorld()
+          this.ragdollMesh.traverse(child => {
+            child.matrix.decompose(child.position, child.quaternion, child.scale)
+          })
+          const b = this.ragdollMesh.serializeSkeleton();
+          physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, false, b);
+        }
         this.ragdollMesh.toAvatar(this);
       }
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
+          console.log('createSkeleton', 1) // note: when first ragdoll
           const b = this.ragdollMesh.serializeSkeleton();
           // debugger
           this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
         }
       }
       if (!this.ragdoll && this.ragdollMesh.skeleton) {
+        console.log('setSkeletonFromBuffer', 1) // note: when second idle-ing
         const b = this.ragdollMesh.serializeSkeleton();
-        // vismark
         // console.log('setSkeletonFromBuffer')
-        physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, b);
+        physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, true, b);
       }
     }
     /* if (first) {
