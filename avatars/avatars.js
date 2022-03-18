@@ -74,8 +74,9 @@ const localMatrix2 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
 
 const leftQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
-const yToXQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0));
 const xToZQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1));
+// const xToZQuaternionInv = xToZQuaternion.clone().invert()
+const yToXQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0));
 
 const textEncoder = new TextEncoder();
 
@@ -992,9 +993,13 @@ const _makeRagdollMesh = () => {
           .premultiply(localMatrix2.copy(modelBone.parent.matrixWorld).invert())
       }
       if (k === 'Hips') {
-        localMatrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
+        localMatrix.decompose(modelBone.position, localQuaternion, modelBone.scale);
+        localQuaternion.multiply(yToXQuaternion)
+        modelBone.quaternion.copy(localQuaternion)
       } else {
-        localMatrix.decompose(localVector, modelBone.quaternion, localVector2);
+        localMatrix.decompose(localVector, localQuaternion, localVector2);
+        localQuaternion.multiply(yToXQuaternion)
+        modelBone.quaternion.copy(localQuaternion)
       }
       modelBone.updateMatrixWorld();
     }
@@ -1022,9 +1027,9 @@ const _makeRagdollMesh = () => {
       localVector.toArray(transformBuffer, 0);
       // if(meshBone.name === 'Hips') {
       // } else {}
-      localQuaternion.toArray(transformBuffer, 3);
+      // localQuaternion.toArray(transformBuffer, 3);
       // localQuaternion.multiply(yToXQuaternion).toArray(transformBuffer, 3);
-      // localQuaternion.multiply(xToZQuaternion).toArray(transformBuffer, 3);
+      localQuaternion.multiply(xToZQuaternion).toArray(transformBuffer, 3);
       localVector2.toArray(transformBuffer, 7);
       transformBuffer[10] = meshBone.physicsMesh.geometry.radius;
       transformBuffer[11] = meshBone.physicsMesh.geometry.halfHeight;
