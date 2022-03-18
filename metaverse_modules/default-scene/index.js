@@ -77,8 +77,11 @@ export default e => {
   // const {WebaverseShaderMaterial} = useMaterials();
   const {voxelWorldSize} = procGen;
 
-  const baseX = -5;
-  const baseY = -5;
+  const coords = app.getComponent('coords');
+  const [baseX, baseY] = coords;
+
+  // const baseX = -5;
+  // const baseY = -5;
   let x = baseX;
   let y = baseY;
   const physicsIds = [];
