@@ -537,6 +537,8 @@ export const MapGen = ({
       if (selectedChunk) {
         const webaUrl = `weba://${selectedChunk.x},${selectedChunk.y}`;
         universe.pushUrl( `/?src=${ encodeURIComponent( webaUrl ) }` );
+
+        setOpen(false);
       }
     }
 
