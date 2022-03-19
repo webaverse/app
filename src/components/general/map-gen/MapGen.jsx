@@ -533,7 +533,8 @@ export const MapGen = ({
       e.preventDefault();
       e.stopPropagation();
 
-      // console.log('click go', selectedObjectName);
+      console.log('click go');
+      return; // XXX
       if (selectedChunk) {
         const webaUrl = `weba://${selectedChunk.x},${selectedChunk.y}`;
         universe.pushUrl( `/?src=${ encodeURIComponent( webaUrl ) }` );
