@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer, rootScene} from './renderer.js';
+import {getRenderer} from './renderer.js';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const localVector4D = new THREE.Vector4();
@@ -136,7 +136,7 @@ const depthFragmentShader = `\
   }
 `;
 
-export async function snapshotMapChunk(x, y, worldSize, worldResolution, worldDepthResolution) {
+export async function snapshotMapChunk(scene, x, y, worldSize, worldResolution, worldDepthResolution) {
   const worldResolutionP1 = worldResolution + 1;
   const worldDepthResolutionP1 = worldDepthResolution + 1;
 
@@ -184,17 +184,17 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution, worldDe
     // push old state
     const oldViewport = renderer.getViewport(localVector4D);
     const oldRenderTarget = renderer.getRenderTarget();
-    const oldOverrideMaterial = rootScene.overrideMaterial;
-    const oldFog = rootScene.fog;
+    const oldOverrideMaterial = scene.overrideMaterial;
+    const oldFog = scene.fog;
 
     // render
     const _renderOverrideMaterial = (renderTarget, overrideMaterial, wp1) => {
       renderer.setViewport(0, 0, wp1, wp1);
       renderer.setRenderTarget(renderTarget);
       renderer.clear();
-      rootScene.overrideMaterial = overrideMaterial;
-      rootScene.fog = null;
-      renderer.render(rootScene, camera);
+      scene.overrideMaterial = overrideMaterial;
+      scene.fog = null;
+      renderer.render(scene, camera);
 
       const imageData = {
         data: new Uint8Array(wp1 * wp1 * 4),
@@ -208,8 +208,8 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution, worldDe
     // pop old state
     renderer.setViewport(oldViewport.x, oldViewport.y, oldViewport.z, oldViewport.w);
     renderer.setRenderTarget(oldRenderTarget);
-    rootScene.overrideMaterial = oldOverrideMaterial;
-    rootScene.fog = oldFog;
+    scene.overrideMaterial = oldOverrideMaterial;
+    scene.fog = oldFog;
   }
 
   const geometry = new THREE.PlaneBufferGeometry(worldSize, worldSize, worldDepthResolution, worldDepthResolution)
