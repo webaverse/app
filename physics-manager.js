@@ -304,16 +304,22 @@ physicsManager.simulatePhysics = timeDiff => {
       // debugger
       if (physicsObject) {
         // debugger
-        console.log('physicsObject.name', physicsObject.name)
+        // console.log('physicsObject.name', physicsObject.name)
         // console.log('updateOut:', {physicsObject})
         if (physicsObject.name === 'vistest') {
-          debugger
-          console.log(position.x.toFixed(1) + '_' + position.y.toFixed(1) + '_' + position.z.toFixed(1))
+          // debugger
+          // console.log(position.x.toFixed(1) + '_' + position.y.toFixed(1) + '_' + position.z.toFixed(1))
         }
         // console.log('got position', position.toArray().join(','));
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
+
+        if (id === 1) {
+          window.mesh.matrix.copy(window.body.matrix)
+          window.mesh.matrixWorld.copy(window.body.matrixWorld)
+          window.mesh.matrix.decompose(window.mesh.position, window.mesh.quaternion, window.mesh.scale);
+        }
 
         // console.log('set', physicsObject.name, id, physicsObject.position.toArray().join(','));
 
