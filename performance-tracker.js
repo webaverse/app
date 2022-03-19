@@ -31,7 +31,7 @@ class PerformanceTracker extends EventTarget {
     if (!this.enabled) return;
     
     if (this.prefix) {
-      name = [this.prefix, name].join('.');
+      name = [this.prefix, name].join('/');
     }
 
     if (this.currentObject?.name !== name) {
