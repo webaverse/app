@@ -589,7 +589,8 @@ const _makeCapsuleGeometry = (length = 1) => {
         ); */
       return geometry;
     })(),
-    new THREE.BoxGeometry(0.05, 2.2, 0.05)
+    new THREE.BoxGeometry(0.005, 0.2, 0.005)
+    // new THREE.BoxGeometry(0.05, 2.2, 0.05)
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-height/2, 0.2/2, 0)),
   ]);
   geometry.radius = radius;
@@ -687,11 +688,12 @@ const _makeRagdollMesh = () => {
       // Right_littleFinger2: _makeCubeMesh('Right_littleFinger2', true, fingerScale),
       // Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', true, fingerScale), */
 
-      // Left_leg: _makeCubeMesh('Left_leg', false),
+      Left_leg: _makeCubeMesh('Left_leg', false),
       // Left_knee: _makeCubeMesh('Left_knee', false),
       // Left_ankle: _makeCubeMesh('Left_ankle', false),
       // Left_toe: _makeCubeMesh('Left_toe', false),
-      // Right_leg: _makeCubeMesh('Right_leg', false),
+
+      Right_leg: _makeCubeMesh('Right_leg', false),
       // Right_knee: _makeCubeMesh('Right_knee', false),
       // Right_ankle: _makeCubeMesh('Right_ankle', false),
       // Right_toe: _makeCubeMesh('Right_toe', false),
@@ -755,12 +757,12 @@ const _makeRagdollMesh = () => {
     // mesh.Right_littleFinger2.add2(mesh.Right_littleFinger3); */
 
     // // legs
-    // mesh.Hips.add2(mesh.Left_leg);
+    mesh.Hips.add2(mesh.Left_leg);
     // mesh.Left_leg.add2(mesh.Left_knee);
     // mesh.Left_knee.add2(mesh.Left_ankle);
     // mesh.Left_ankle.add2(mesh.Left_toe);
 
-    // mesh.Hips.add2(mesh.Right_leg);
+    mesh.Hips.add2(mesh.Right_leg);
     // mesh.Right_leg.add2(mesh.Right_knee);
     // mesh.Right_knee.add2(mesh.Right_ankle);
     // mesh.Right_ankle.add2(mesh.Right_toe);
@@ -832,6 +834,10 @@ const _makeRagdollMesh = () => {
       })();
       modelBone.boneLength = boneLength;
       meshBone.boneLength = boneLength;
+      if(meshBone.name !== 'Hips') {
+        modelBone.boneLength = .8;
+        meshBone.boneLength = .8;
+      }
 
       // forward quaternion
       if (k === 'Hips') {
@@ -994,11 +1000,11 @@ const _makeRagdollMesh = () => {
       }
       if (k === 'Hips') {
         localMatrix.decompose(modelBone.position, localQuaternion, modelBone.scale);
-        localQuaternion.multiply(yToXQuaternion)
+        // localQuaternion.multiply(yToXQuaternion)
         modelBone.quaternion.copy(localQuaternion)
       } else {
         localMatrix.decompose(localVector, localQuaternion, localVector2);
-        localQuaternion.multiply(yToXQuaternion)
+        // localQuaternion.multiply(yToXQuaternion)
         modelBone.quaternion.copy(localQuaternion)
       }
       modelBone.updateMatrixWorld();
@@ -1027,9 +1033,9 @@ const _makeRagdollMesh = () => {
       localVector.toArray(transformBuffer, 0);
       // if(meshBone.name === 'Hips') {
       // } else {}
-      // localQuaternion.toArray(transformBuffer, 3);
+      localQuaternion.toArray(transformBuffer, 3);
       // localQuaternion.multiply(yToXQuaternion).toArray(transformBuffer, 3);
-      localQuaternion.multiply(xToZQuaternion).toArray(transformBuffer, 3);
+      // localQuaternion.multiply(xToZQuaternion).toArray(transformBuffer, 3);
       localVector2.toArray(transformBuffer, 7);
       transformBuffer[10] = meshBone.physicsMesh.geometry.radius;
       transformBuffer[11] = meshBone.physicsMesh.geometry.halfHeight;
