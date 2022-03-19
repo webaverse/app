@@ -291,17 +291,24 @@ physicsManager.simulatePhysics = timeDiff => {
   if (physicsEnabled) {
     const t = timeDiff/1000;
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
-    console.log(`updatesOut: ${updatesOut.length}, physicsUpdates: ${physicsUpdates.length}`);
+    // console.log(`updatesOut: ${updatesOut.length}, physicsUpdates: ${physicsUpdates.length}`);
     physicsUpdates.length = 0;
     for (const updateOut of updatesOut) {
       // vismark
       const {id, position, quaternion, collided, grounded} = updateOut;
-      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
+      console.log('physicsId', id)
+      // const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
+      let physicsObject;
+      if (id === 1) physicsObject = window.body;
+      else physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       // debugger
       if (physicsObject) {
-        // console.log({physicsObject})
-        if (physicsObject.name === 'Hips') {
-          // console.log(position.x.toFixed(1) + '_' + position.y.toFixed(1) + '_' + position.z.toFixed(1))
+        // debugger
+        console.log('physicsObject.name', physicsObject.name)
+        // console.log('updateOut:', {physicsObject})
+        if (physicsObject.name === 'vistest') {
+          debugger
+          console.log(position.x.toFixed(1) + '_' + position.y.toFixed(1) + '_' + position.z.toFixed(1))
         }
         // console.log('got position', position.toArray().join(','));
         physicsObject.position.copy(position);

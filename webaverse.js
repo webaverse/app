@@ -4,6 +4,7 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
+window.THREE = THREE;
 import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
 // import * as CharacterHupsModule from './character-hups.js';
@@ -450,8 +451,9 @@ const _startHacks = () => {
     mesh.position.set(0, 5, -10);
     mesh.updateMatrixWorld();
 
-    const physicsObject = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5));
-    window.physicsObject = physicsObject;
+    const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
+    window.body = body;
+    body.name = 'vistest'
   }
 
   let playerDiorama = null;
