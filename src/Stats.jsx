@@ -36,15 +36,11 @@ export const Stats = () => {
 		};
 	}, []);
 
-	let lastSnapshotUpdateTime = performance.now();
 	useEffect(() => {
 		const snapshot = e => {
-			const now = performance.now();
-			if (now - lastSnapshotUpdateTime > 1000) {
-				setCpuResults(Array.from(e.data.cpuResults.values()));
-				setGpuResults(Array.from(e.data.gpuResults.values()));
-				lastSnapshotUpdateTime = now;
-			}
+			// console.log('got snapshot', e.data);
+			setCpuResults(e.data.cpuResults);
+			setGpuResults(e.data.gpuResults);
 		};
 		performanceTracker.addEventListener('snapshot', snapshot);
 		return () => {

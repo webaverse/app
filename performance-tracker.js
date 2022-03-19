@@ -13,6 +13,8 @@ const getExt = () => {
 }
 const performanceTrackerFnSymbol = Symbol('performanceTrackerFn');
 
+const numSnapshots = 10;
+
 class PerformanceTracker extends EventTarget {
   constructor () {
     super();
@@ -23,6 +25,10 @@ class PerformanceTracker extends EventTarget {
     this.gpuResults = new Map();
     this.currentGpuObject = null;
     this.prefix = '';
+
+    this.snapshots = Array(numSnapshots).fill(null);
+    this.snapshotIndex = 0;
+    this.lastSnapshotTime = 0;
 
     debug.addEventListener('enabledchange', e => {
       this.enabled = e.data.enabled;
@@ -150,6 +156,58 @@ class PerformanceTracker extends EventTarget {
       this.gpuQueries.delete(object);
     }
   }
+  getSmoothedSnapshot() {
+    const cpu = new Map();
+    const gpu = new Map();
+
+    for (const snapshot of this.snapshots) {
+      if (snapshot) {
+        for (const [name, object] of snapshot.cpuResults) {
+          let current = cpu.get(name);
+          if (!current) {
+            current = {
+              name,
+              time: 0,
+              count: 0,
+            }
+            cpu.set(name, current);
+          }
+          current.time += object.time;
+          current.count++;
+        }
+        for (const [name, object] of snapshot.gpuResults) {
+          let current = gpu.get(name);
+          if (!current) {
+            current = {
+              name,
+              time: 0,
+              count: 0,
+            }
+            gpu.set(name, current);
+          }
+          current.time += object.time;
+          current.count++;
+        }
+      }
+    }
+
+    const cpuResults = Array.from(cpu.values()).map(o => {
+      return {
+        name: o.name,
+        time: o.time / o.count,
+      };
+    }).sort((a, b) => b.time - a.time);
+    const gpuResults = Array.from(gpu.values()).map(o => {
+      return {
+        name: o.name,
+        time: o.time / o.count,
+      };
+    }).sort((a, b) => b.time - a.time);
+    return {
+      cpuResults,
+      gpuResults,
+    };
+  }
   scheduleSnapshot() {
     if (!this.enabled) return;
 
@@ -158,12 +216,22 @@ class PerformanceTracker extends EventTarget {
 
       await this.waitForGpuResults(gpuResults);
 
-      this.dispatchEvent(new MessageEvent('snapshot', {
-        data: {
-          cpuResults,
-          gpuResults,
-        },
-      }));
+      const snapshot = {
+        cpuResults,
+        gpuResults,
+      };
+      this.snapshots[this.snapshotIndex] = snapshot;
+      this.snapshotIndex = (this.snapshotIndex + 1) % numSnapshots;
+
+      const now = performance.now();
+      if ((now - this.lastSnapshotTime) > 1000) {
+        // console.log('get smoothed snapshot');
+        const snapshot = this.getSmoothedSnapshot();
+        this.dispatchEvent(new MessageEvent('snapshot', {
+          data: snapshot,
+        }));
+        this.lastSnapshotTime = now;
+      }
     })();
   }
   endFrame() {
