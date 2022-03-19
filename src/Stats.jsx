@@ -41,15 +41,13 @@ export const Stats = () => {
 				frames++;
 
 				// Update every frame
-				if (localPlayer) {
-					setPosition(localPlayer.position.toArray().map(n => n.toFixed(2)));
-					setVelocity(localPlayer.characterPhysics.velocity.toArray().map(n => n.toFixed(2)));
-					setSpeed(localPlayer.characterPhysics.velocity.length().toFixed(2));
+				setPosition(localPlayer.position.toArray().map(n => n.toFixed(2)));
+				setVelocity(localPlayer.characterPhysics.velocity.toArray().map(n => n.toFixed(2)));
+				setSpeed(localPlayer.characterPhysics.velocity.length().toFixed(2));
 
-					localVector.copy(localPlayer.characterPhysics.velocity);
-					localVector.y = 0;
-					setHspeed(localVector.length().toFixed(2));
-				}
+				localVector.copy(localPlayer.characterPhysics.velocity);
+				localVector.y = 0;
+				setHspeed(localVector.length().toFixed(2));
 
 				const now = performance.now();
 				// Only update once per second
