@@ -125,20 +125,21 @@ class PerformanceTracker extends EventTarget {
     this.gpuPrefix = gpuPrefix;
   }
   decorateApp(app) {
+    const self = this;
     const _makeOnBeforeRender = fn => {
-      const resultFn = () => {
-        this.startGpuObject(app.name);
-        fn && fn();
+      const resultFn = function() {
+        self.startGpuObject(app.name);
+        fn && fn.apply(this, arguments);
       };
       resultFn[performanceTrackerFnSymbol] = true;
       return resultFn;
     };
     const _makeOnAfterRender = fn => {
-      const resultFn = () => {
-        if (this.currentGpuObject?.name === name) {
-          this.endGpuObject();
+      const resultFn = function() {
+        if (self.currentGpuObject?.name === name) {
+          self.endGpuObject();
         }
-        fn && fn();
+        fn && fn.apply(this, arguments);
       };
       resultFn[performanceTrackerFnSymbol] = true;
       return resultFn;
