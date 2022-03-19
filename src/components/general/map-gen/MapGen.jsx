@@ -417,7 +417,7 @@ export const MapGen = () => {
 
     // wheel
     useEffect(() => {
-      if (open) {
+      if ( state.openedPanel === 'MapGen' ) {
         function wheel(e) {
           setRaycasterFromEvent(localRaycaster, e);
           localRaycaster.ray.origin.multiplyScalar(voxelPixelSize);
