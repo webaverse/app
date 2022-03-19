@@ -35,11 +35,15 @@ import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import * as voices from './voices.js';
+import performanceTracker from './performance-tracker.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 
-// const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
-// const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
+// XXX
+performanceTracker.addEventListener('results', e => {
+  const {results} = e.data;
+  window.results = results;
+});
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -294,52 +298,66 @@ export default class Webaverse extends EventTarget {
     }
     
     let lastTimestamp = performance.now();
-
     const animate = (timestamp, frame) => {
-      timestamp = timestamp ?? performance.now();
-      const timeDiff = timestamp - lastTimestamp;
-      const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 
+      performanceTracker.startFrame();
 
-      ioManager.update(timeDiffCapped);
-      // this.injectRigInput();
-      
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
-        //if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
-        physicsManager.simulatePhysics(timeDiffCapped); 
-        localPlayer.updatePhysics(timestamp, timeDiffCapped);
-      }
+      const _frame = () => {
+        timestamp = timestamp ?? performance.now();
+        const timeDiff = timestamp - lastTimestamp;
+        const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
 
-      transformControls.update();
-      game.update(timestamp, timeDiffCapped);
-      
-      localPlayer.updateAvatar(timestamp, timeDiffCapped);
-      playersManager.update(timestamp, timeDiffCapped);
-      
-      world.appManager.tick(timestamp, timeDiffCapped, frame);
+        performanceTracker.setPrefix('pre');
+        const _pre = () => {
+          ioManager.update(timeDiffCapped);
+          // this.injectRigInput();
+          
+          const localPlayer = metaversefileApi.useLocalPlayer();
+          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
+            physicsManager.simulatePhysics(timeDiffCapped);
+            localPlayer.updatePhysics(timestamp, timeDiffCapped);
+          }
 
-      hpManager.update(timestamp, timeDiffCapped);
+          transformControls.update();
+          game.update(timestamp, timeDiffCapped);
+          
+          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+          playersManager.update(timestamp, timeDiffCapped);
+          
+          world.appManager.tick(timestamp, timeDiffCapped, frame);
 
-      cameraManager.updatePost(timestamp, timeDiffCapped);
-      ioManager.updatePost();
+          hpManager.update(timestamp, timeDiffCapped);
 
-      game.pushAppUpdates();
-      game.pushPlayerUpdates();
+          cameraManager.updatePost(timestamp, timeDiffCapped);
+          ioManager.updatePost();
 
-      const session = renderer.xr.getSession();
-      const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-      localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
-      localMatrix2.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix)
-        .decompose(localVector, localQuaternion, localVector2);
-      
-      lastTimestamp = timestamp;
+          game.pushAppUpdates();
+          game.pushPlayerUpdates();
 
-      // render scenes
-      dioramaManager.update(timestamp, timeDiffCapped);
-      minimapManager.update(timestamp, timeDiffCapped);
-      loadoutManager.update(timestamp, timeDiffCapped);
-      this.render(timestamp, timeDiffCapped);
+          const session = renderer.xr.getSession();
+          const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
+          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
+          localMatrix2.copy(xrCamera.matrix)
+            .premultiply(dolly.matrix)
+            .decompose(localVector, localQuaternion, localVector2);
+          
+          lastTimestamp = timestamp;
+        };
+        _pre();
+
+        // render scenes
+        performanceTracker.setPrefix('diorama');
+        dioramaManager.update(timestamp, timeDiffCapped);
+        performanceTracker.setPrefix('minimap');
+        minimapManager.update(timestamp, timeDiffCapped);
+        performanceTracker.setPrefix('loadout');
+        loadoutManager.update(timestamp, timeDiffCapped);
+
+        performanceTracker.setPrefix('');
+        this.render(timestamp, timeDiffCapped);
+      };
+      _frame();
+
+      performanceTracker.endFrame();
     }
     renderer.setAnimationLoop(animate);
 
