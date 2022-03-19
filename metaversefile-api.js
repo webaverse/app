@@ -49,6 +49,7 @@ class App extends THREE.Object3D {
   constructor() {
     super();
 
+    this.isApp = true;
     this.components = [];
     // cleanup tracking
     this.physicsObjects = [];
