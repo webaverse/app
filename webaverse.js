@@ -288,7 +288,7 @@ export default class Webaverse extends EventTarget {
         const timeDiff = timestamp - lastTimestamp;
         const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
 
-        performanceTracker.setPrefix('pre');
+        performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
           ioManager.update(timeDiffCapped);
           // this.injectRigInput();
@@ -327,14 +327,14 @@ export default class Webaverse extends EventTarget {
         _pre();
 
         // render scenes
-        performanceTracker.setPrefix('diorama');
+        performanceTracker.setGpuPrefix('diorama');
         dioramaManager.update(timestamp, timeDiffCapped);
-        performanceTracker.setPrefix('minimap');
+        performanceTracker.setGpuPrefix('minimap');
         minimapManager.update(timestamp, timeDiffCapped);
-        performanceTracker.setPrefix('loadout');
+        performanceTracker.setGpuPrefix('loadout');
         loadoutManager.update(timestamp, timeDiffCapped);
 
-        performanceTracker.setPrefix('');
+        performanceTracker.setGpuPrefix('');
         this.render(timestamp, timeDiffCapped);
       };
       _frame();

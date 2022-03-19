@@ -23,6 +23,7 @@ class PerformanceTracker extends EventTarget {
     this.gpuQueries = new Map();
     this.cpuResults = new Map();
     this.gpuResults = new Map();
+    this.currentCpuObject = null;
     this.currentGpuObject = null;
     this.prefix = '';
 
@@ -33,6 +34,37 @@ class PerformanceTracker extends EventTarget {
     debug.addEventListener('enabledchange', e => {
       this.enabled = e.data.enabled;
     });
+  }
+  startCpuObject(name) {
+    if (!this.enabled) return;
+    
+    if (this.prefix) {
+      name = [this.prefix, name].join('/');
+    }
+
+    if (this.currentCpuObject?.name !== name) {
+      if (this.currentCpuObject) {
+        this.endCpuObject();
+      }
+    
+      let currentCpuObject = this.cpuResults.get(name);
+      if (!currentCpuObject) {
+        const now = performance.now();
+        currentCpuObject = {
+          name,
+          startTime: now,
+          endTime: now,
+        };
+        this.cpuResults.set(name, currentCpuObject);
+      }
+      this.currentCpuObject = currentCpuObject;
+    }
+  }
+  endCpuObject() {
+    if (!this.enabled) return;
+
+    this.currentCpuObject.endTime = performance.now();
+    this.currentCpuObject = null;
   }
   startGpuObject(name) {
     if (!this.enabled) return;
@@ -82,10 +114,15 @@ class PerformanceTracker extends EventTarget {
 
     this.dispatchEvent(new MessageEvent('startframe'));
   }
-  setPrefix(prefix) {
+  setCpuPrefix(cpuPrefix) {
     if (!this.enabled) return;
 
-    this.prefix = prefix;
+    this.cpuPrefix = cpuPrefix;
+  }
+  setGpuPrefix(gpuPrefix) {
+    if (!this.enabled) return;
+
+    this.gpuPrefix = gpuPrefix;
   }
   decorateApp(app) {
     const _makeOnBeforeRender = fn => {
@@ -172,7 +209,7 @@ class PerformanceTracker extends EventTarget {
             }
             cpu.set(name, current);
           }
-          current.time += object.time;
+          current.time += object.endTime - object.startTime;
           current.count++;
         }
         for (const [name, object] of snapshot.gpuResults) {
@@ -191,12 +228,13 @@ class PerformanceTracker extends EventTarget {
       }
     }
 
-    const cpuResults = Array.from(cpu.values()).map(o => {
-      return {
-        name: o.name,
-        time: o.time / o.count,
-      };
-    }).sort((a, b) => b.time - a.time);
+    const cpuResults = Array.from(cpu.values())
+      .map(o => {
+        return {
+          name: o.name,
+          time: o.time / o.count,
+        };
+      }).sort((a, b) => b.time - a.time);
     const gpuResults = Array.from(gpu.values()).map(o => {
       return {
         name: o.name,

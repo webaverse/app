@@ -93,7 +93,7 @@ export const Stats = () => {
 			  {cpuResults.map(result => (
 				  <div className={style.line} key={result.name}>
             <div className={style.label}>{result.name}</div>
-						<div className={style.value}>{(result.time / 1e6).toFixed(2) + 'ms'}</div>
+						<div className={style.value}>{(result.time).toFixed(2) + 'ms'}</div>
 					</div>
 				))}
 			</div>
