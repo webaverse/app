@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 const localVector4D = new THREE.Vector4();
 
 const cameraNear = 0;
@@ -221,11 +223,14 @@ export async function snapshotMapChunk(scene, position, worldSize, worldResoluti
     for (let x = 0; x <= worldDepthResolution; x++) {
       const index = z * worldDepthResolutionP1 + x;
       const index2 = (worldDepthResolutionP1 - 1 - z) * worldDepthResolutionP1 + x;
-      const y = camera.position.y + depthFloatImageData[index2];
+      const y = depthFloatImageData[index2];
 
-      geometry.attributes.position.array[index * 3] += camera.position.x;
-      geometry.attributes.position.array[index * 3 + 1] = y;
-      geometry.attributes.position.array[index * 3 + 2] += camera.position.z;
+      // const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
+      localVector.fromArray(geometry.attributes.position.array, index * 3)
+        // .copy(camera.position)
+        .add(camera.position)
+        .add(localVector2.set(0, 0, y).applyQuaternion(camera.quaternion))
+        .toArray(geometry.attributes.position.array, index * 3);
     }
   }
 
