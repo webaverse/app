@@ -36,6 +36,7 @@ import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
+import performanceTracker from './performance-tracker.js';
 import debug from './debug.js';
 
 const localVector = new THREE.Vector3();
@@ -55,6 +56,14 @@ class App extends THREE.Object3D {
     this.physicsObjects = [];
     this.appType = 'script';
     this.lastMatrix = new THREE.Matrix4();
+
+    const startframe = () => {
+      performanceTracker.decorateApp(this);
+    };
+    performanceTracker.addEventListener('startframe', startframe);
+    this.addEventListener('destroy', () => {
+      performanceTracker.removeEventListener('startframe', startframe);
+    });
   }
   getComponent(key) {
     const component = this.components.find(component => component.key === key);
