@@ -109,6 +109,7 @@ export default e => {
       delta,
       bounds,
       exits,
+      singleUse: true,
     };
     return components;
   };
