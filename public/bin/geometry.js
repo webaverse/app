@@ -4718,6 +4718,11 @@ var _makePhysics = Module["_makePhysics"] = function() {
 };
 
 /** @type {function(...*):?} */
+var _getNumActorsPhysics = Module["_getNumActorsPhysics"] = function() {
+  return (_getNumActorsPhysics = Module["_getNumActorsPhysics"] = Module["asm"]["getNumActorsPhysics"]).apply(null, arguments);
+};
+
+/** @type {function(...*):?} */
 var _simulatePhysics = Module["_simulatePhysics"] = function() {
   return (_simulatePhysics = Module["_simulatePhysics"] = Module["asm"]["simulatePhysics"]).apply(null, arguments);
 };

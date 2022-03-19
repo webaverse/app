@@ -271,6 +271,7 @@ physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
 };
 let done = 0;
 window.lol = 10;
+physicsManager.getNumActors = () => physx.physxWorker.getNumActorsPhysics(physx.physics);
 physicsManager.simulatePhysics = timeDiff => {
   // timeDiff *= 0.0000000001;
   /* {

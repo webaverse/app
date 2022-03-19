@@ -19,6 +19,7 @@ const scratchStackSize = 1024*1024;
 const maxNumUpdates = 256;
 
 const physx = {};
+window.physx = physx;
 
 physx.waitForLoad = Module.waitForLoad;
 
@@ -498,6 +499,7 @@ const physxWorker = (() => {
     return moduleInstance._makeTracker.apply(moduleInstance, arguments);
   }; */
   w.makePhysics = () => moduleInstance._makePhysics();
+  w.getNumActorsPhysics = (physics) => moduleInstance._getNumActorsPhysics(physics);
   w.simulatePhysics = (physics, updates, elapsedTime) => {
     // vismark
     /* if (updates.length > maxNumUpdates) {
