@@ -148,7 +148,7 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     {
       type: THREE.UnsignedByteType,
       format: THREE.RGBAFormat,
-      encoding: THREE.sRGBEncoding,
+      // encoding: THREE.sRGBEncoding,
     }
   );
   const depthRenderTarget = new THREE.WebGLRenderTarget(
