@@ -439,41 +439,94 @@ const _startHacks = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
+  const material = new THREE.MeshStandardMaterial({
+    color: 'red',
+  });
   {
-    const size = new THREE.Vector3(3, 2, 1);
+    const size = new THREE.Vector3(2, 1, 3).multiplyScalar(0.9);
     const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
-    const material = new THREE.MeshStandardMaterial({
-      color: 'red',
-    });
     const mesh = new THREE.Mesh(geometry, material);
-    window.mesh1 = mesh;
+    window.meshRDHips = mesh;
     rootScene.add(mesh);
-    mesh.position.set(-2, 5, -12);
+    mesh.position.set(0, 5, -12);
     mesh.updateMatrixWorld();
 
     const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
-    window.body1 = body;
-    body.name = 'vistest'
+    window.bodyRDHips = body;
   }
   {
-    const size = new THREE.Vector3(3, 2, 1);
+    const size = new THREE.Vector3(2, 1, 3).multiplyScalar(0.9);
     const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
-    const material = new THREE.MeshStandardMaterial({
-      color: 'red',
-    });
     const mesh = new THREE.Mesh(geometry, material);
-    window.mesh2 = mesh;
+    window.meshRDChest = mesh;
     rootScene.add(mesh);
-    mesh.position.set(2, 5, -12);
+    mesh.position.set(0 + 2, 5, -12);
     mesh.updateMatrixWorld();
 
     const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
-    window.body2 = body;
-    body.name = 'vistest2'
+    window.bodyRDChest = body;
   }
-  // physicsManager.addJoint(window.body1, window.body2, window.mesh1.position, window.mesh2.position, window.mesh1.quaternion, window.mesh2.quaternion);
-  const joint = physicsManager.addJoint(window.body1, window.body2, new THREE.Vector3(2, 0, 0), new THREE.Vector3(2, 0, 2), new THREE.Quaternion(), new THREE.Quaternion());
-  console.log({joint});
+  {
+    const size = new THREE.Vector3(1, 1, 1).multiplyScalar(0.9);
+    const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+    const mesh = new THREE.Mesh(geometry, material);
+    window.meshRDHead = mesh;
+    rootScene.add(mesh);
+    mesh.position.set(0 + 3.5, 5, -12);
+    mesh.updateMatrixWorld();
+
+    const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
+    window.bodyRDHead = body;
+  }
+  {
+    const size = new THREE.Vector3(2, 1, 1).multiplyScalar(0.9);
+    const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+    const mesh = new THREE.Mesh(geometry, material);
+    window.meshRDLeftLeg = mesh;
+    rootScene.add(mesh);
+    mesh.position.set(0 - 2, 5, -12 + 1);
+    mesh.updateMatrixWorld();
+
+    const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
+    window.bodyRDLeftLeg = body;
+  }
+  {
+    const size = new THREE.Vector3(2, 1, 1).multiplyScalar(0.9);
+    const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+    const mesh = new THREE.Mesh(geometry, material);
+    window.meshRDRightLeg = mesh;
+    rootScene.add(mesh);
+    mesh.position.set(0 - 2, 5, -12 - 1);
+    mesh.updateMatrixWorld();
+
+    const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
+    window.bodyRDRightLeg = body;
+  }
+  {
+    const size = new THREE.Vector3(2, 1, 1).multiplyScalar(0.9);
+    const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+    const mesh = new THREE.Mesh(geometry, material);
+    window.meshRDLeftCalf = mesh;
+    rootScene.add(mesh);
+    mesh.position.set(0 - 4, 5, -12 + 1);
+    mesh.updateMatrixWorld();
+
+    const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
+    window.bodyRDLeftCalf = body;
+  }
+  {
+    const size = new THREE.Vector3(2, 1, 1).multiplyScalar(0.9);
+    const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+    const mesh = new THREE.Mesh(geometry, material);
+    window.meshRDRightCalf = mesh;
+    rootScene.add(mesh);
+    mesh.position.set(0 - 4, 5, -12 - 1);
+    mesh.updateMatrixWorld();
+
+    const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
+    window.bodyRDRightCalf = body;
+  }
+
   const PxD6Axis = {
     eX: 0, // !< motion along the X axis
     eY: 1, // !< motion along the Y axis
@@ -488,7 +541,16 @@ const _startHacks = () => {
     eLIMITED: 1, // !< The DOF is limited, it only allows motion within a specific range.
     eFREE: 2, // !< The DOF is free and has its full range of motion.
   };
-  physicsManager.setJointMotion(joint, PxD6Axis.eTWIST, PxD6Motion.eFREE);
+
+  const jointHipsChest = physicsManager.addJoint(window.bodyRDHips, window.bodyRDChest, new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
+  const jointChestHead = physicsManager.addJoint(window.bodyRDChest, window.bodyRDHead, new THREE.Vector3(1, 0, 0), new THREE.Vector3(-0.5, 0, 0), new THREE.Quaternion(), new THREE.Quaternion());
+  const jointHipsLeftLeg = physicsManager.addJoint(window.bodyRDHips, window.bodyRDLeftLeg, new THREE.Vector3(-1, 0, 1), new THREE.Vector3(1, 0, 0), new THREE.Quaternion(), new THREE.Quaternion());
+  const jointHipsRightLeg = physicsManager.addJoint(window.bodyRDHips, window.bodyRDRightLeg, new THREE.Vector3(-1, 0, -1), new THREE.Vector3(1, 0, 0), new THREE.Quaternion(), new THREE.Quaternion());
+  const jointHipsLeftCalf = physicsManager.addJoint(window.bodyRDLeftLeg, window.bodyRDLeftCalf, new THREE.Vector3(-1, 0, 0), new THREE.Vector3(1, 0, 0), new THREE.Quaternion(), new THREE.Quaternion());
+  const jointHipsRightCalf = physicsManager.addJoint(window.bodyRDRightLeg, window.bodyRDRightCalf, new THREE.Vector3(-1, 0, 0), new THREE.Vector3(1, 0, 0), new THREE.Quaternion(), new THREE.Quaternion());
+
+  // physicsManager.setJointMotion(jointHipsChest, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointChestHead, PxD6Axis.eSWING2, PxD6Motion.eFREE);
 
   let playerDiorama = null;
   let appDiorama = null;

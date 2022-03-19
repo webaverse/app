@@ -272,8 +272,8 @@ physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
 let done = 0;
 window.lol = 10;
 physicsManager.getNumActors = () => physx.physxWorker.getNumActorsPhysics(physx.physics);
-physicsManager.addJoint = (physicsObject1, physicsObject2, position1, position2, quaternion1, quaternion2) => {
-  const joint = physx.physxWorker.addJointPhysics(physx.physics, physicsObject1.physicsId, physicsObject2.physicsId, position1, position2, quaternion1, quaternion2);
+physicsManager.addJoint = (physicsObject1, physicsObject2, position1, position2, quaternion1, quaternion2, fixBody1 = false) => {
+  const joint = physx.physxWorker.addJointPhysics(physx.physics, physicsObject1.physicsId, physicsObject2.physicsId, position1, position2, quaternion1, quaternion2, fixBody1);
   return joint;
 }
 physicsManager.setJointMotion = (joint, axis, motion) => {
@@ -307,8 +307,13 @@ physicsManager.simulatePhysics = timeDiff => {
       // const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       let physicsObject;
 
-      if (id === 1) physicsObject = window.body1;
-      else if (id === 2) physicsObject = window.body2;
+      if (id === 1) physicsObject = window.bodyRDHips;
+      else if (id === 2) physicsObject = window.bodyRDChest;
+      else if (id === 3) physicsObject = window.bodyRDHead;
+      else if (id === 4) physicsObject = window.bodyRDLeftLeg;
+      else if (id === 5) physicsObject = window.bodyRDRightLeg;
+      else if (id === 6) physicsObject = window.bodyRDLeftCalf;
+      else if (id === 7) physicsObject = window.bodyRDRightCalf;
       else physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
 
       // debugger
@@ -316,24 +321,49 @@ physicsManager.simulatePhysics = timeDiff => {
         // debugger
         // console.log('physicsObject.name', physicsObject.name)
         // console.log('updateOut:', {physicsObject})
-        if (physicsObject.name === 'vistest') {
+        // if (physicsObject.name === 'vistest') {
           // debugger
           // console.log(position.x.toFixed(1) + '_' + position.y.toFixed(1) + '_' + position.z.toFixed(1))
-        }
+        // }
         // console.log('got position', position.toArray().join(','));
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
 
         if (id === 1) {
-          window.mesh1.matrix.copy(window.body1.matrix)
-          window.mesh1.matrixWorld.copy(window.body1.matrixWorld)
-          window.mesh1.matrix.decompose(window.mesh1.position, window.mesh1.quaternion, window.mesh1.scale);
+          window.meshRDHips.matrix.copy(window.bodyRDHips.matrix)
+          window.meshRDHips.matrixWorld.copy(window.bodyRDHips.matrixWorld)
+          window.meshRDHips.matrix.decompose(window.meshRDHips.position, window.meshRDHips.quaternion, window.meshRDHips.scale);
         }
         else if (id === 2) {
-          window.mesh2.matrix.copy(window.body2.matrix)
-          window.mesh2.matrixWorld.copy(window.body2.matrixWorld)
-          window.mesh2.matrix.decompose(window.mesh2.position, window.mesh2.quaternion, window.mesh2.scale);
+          window.meshRDChest.matrix.copy(window.bodyRDChest.matrix)
+          window.meshRDChest.matrixWorld.copy(window.bodyRDChest.matrixWorld)
+          window.meshRDChest.matrix.decompose(window.meshRDChest.position, window.meshRDChest.quaternion, window.meshRDChest.scale);
+        }
+        else if (id === 3) {
+          window.meshRDHead.matrix.copy(window.bodyRDHead.matrix)
+          window.meshRDHead.matrixWorld.copy(window.bodyRDHead.matrixWorld)
+          window.meshRDHead.matrix.decompose(window.meshRDHead.position, window.meshRDHead.quaternion, window.meshRDHead.scale);
+        }
+        else if (id === 4) {
+          window.meshRDLeftLeg.matrix.copy(window.bodyRDLeftLeg.matrix)
+          window.meshRDLeftLeg.matrixWorld.copy(window.bodyRDLeftLeg.matrixWorld)
+          window.meshRDLeftLeg.matrix.decompose(window.meshRDLeftLeg.position, window.meshRDLeftLeg.quaternion, window.meshRDLeftLeg.scale);
+        }
+        else if (id === 5) {
+          window.meshRDRightLeg.matrix.copy(window.bodyRDRightLeg.matrix)
+          window.meshRDRightLeg.matrixWorld.copy(window.bodyRDRightLeg.matrixWorld)
+          window.meshRDRightLeg.matrix.decompose(window.meshRDRightLeg.position, window.meshRDRightLeg.quaternion, window.meshRDRightLeg.scale);
+        }
+        else if (id === 6) {
+          window.meshRDLeftCalf.matrix.copy(window.bodyRDLeftCalf.matrix)
+          window.meshRDLeftCalf.matrixWorld.copy(window.bodyRDLeftCalf.matrixWorld)
+          window.meshRDLeftCalf.matrix.decompose(window.meshRDLeftCalf.position, window.meshRDLeftCalf.quaternion, window.meshRDLeftCalf.scale);
+        }
+        else if (id === 7) {
+          window.meshRDRightCalf.matrix.copy(window.bodyRDRightCalf.matrix)
+          window.meshRDRightCalf.matrixWorld.copy(window.bodyRDRightCalf.matrixWorld)
+          window.meshRDRightCalf.matrix.decompose(window.meshRDRightCalf.position, window.meshRDRightCalf.quaternion, window.meshRDRightCalf.scale);
         }
 
         // console.log('set', physicsObject.name, id, physicsObject.position.toArray().join(','));
