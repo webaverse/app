@@ -132,21 +132,12 @@ const depthFragmentShader = `\
 
 export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
   try {
-  /* const depthTexture = new THREE.DepthTexture(
-    worldResolution, // width
-    worldResolution, // height
-    THREE.FloatType, // type
-    THREE.UVMapping, // mapping
-    THREE.ClampToEdgeWrapping, // wrapS
-    THREE.ClampToEdgeWrapping, // wrapT
-    THREE.NearestFilter, // magFilter
-    THREE.NearestFilter, // minFilter
-    1, // anisotropy
-    THREE.DepthFormat, // format
-  ); */
+  
+  const worldResolutionP1 = worldResolution + 1;
+
   const renderTarget = new THREE.WebGLRenderTarget(
-    worldResolution,
-    worldResolution,
+    worldResolutionP1,
+    worldResolutionP1,
     {
       type: THREE.UnsignedByteType,
       format: THREE.RGBAFormat,
@@ -173,7 +164,7 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
   // render
   // let depthImageBitmapPromise = null;
   let floatImageData = null;
-  try {
+  {
     // console.log('render 1');
     const renderer = getRenderer();
     
@@ -183,17 +174,16 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     const oldOverrideMaterial = rootScene.overrideMaterial;
 
     // render
-    renderer.setViewport(0, 0, worldResolution, worldResolution);
+    renderer.setViewport(0, 0, worldResolutionP1, worldResolutionP1);
     renderer.setRenderTarget(renderTarget);
     renderer.clear();
     rootScene.overrideMaterial = depthMaterial;
     renderer.render(rootScene, camera);
 
-    // const imageData = renderer2ImageData(renderer, worldResolution, worldResolution);
     const imageData = {
-      data: new Uint8Array(worldResolution * worldResolution * 4),
+      data: new Uint8Array(worldResolutionP1 * worldResolutionP1 * 4),
     };
-    renderer.readRenderTargetPixels(renderTarget, 0, 0, worldResolution, worldResolution, imageData.data);
+    renderer.readRenderTargetPixels(renderTarget, 0, 0, worldResolutionP1, worldResolutionP1, imageData.data);
     floatImageData = new Float32Array(
       imageData.data.buffer,
       imageData.data.byteOffset,
@@ -212,8 +202,6 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     renderer.setViewport(oldViewport.x, oldViewport.y, oldViewport.z, oldViewport.w);
     renderer.setRenderTarget(oldRenderTarget);
     rootScene.overrideMaterial = oldOverrideMaterial;
-  } catch (e) {
-    console.warn(e);
   }
 
   /* depthImageBitmapPromise.then(depthImageBitmap => {
@@ -234,11 +222,10 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
 
   const geometries = [];
   const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-  for (let z = 0; z < worldResolution; z++) {
-    for (let x = 0; x < worldResolution; x++) {
-      // console.log('got z x', z, x);
+  for (let z = 0; z <= worldResolution; z++) {
+    for (let x = 0; x <= worldResolution; x++) {
       const geometry = boxGeometry.clone();
-      const index = (worldResolution - z) * worldResolution + x;
+      const index = (worldResolutionP1 - z) * worldResolutionP1 + x;
       const y = floatImageData[index];
       const position = camera.position.clone()
         .add(new THREE.Vector3(
@@ -246,7 +233,6 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
           y,
           (z - worldResolution/2) * worldSize / worldResolution,
         ));
-      // console.log('got position', position.toArray().join(','));
       geometry.translate(position.x, position.y, position.z);
       geometries.push(geometry);
     }
