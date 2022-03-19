@@ -472,7 +472,23 @@ const _startHacks = () => {
     body.name = 'vistest2'
   }
   // physicsManager.addJoint(window.body1, window.body2, window.mesh1.position, window.mesh2.position, window.mesh1.quaternion, window.mesh2.quaternion);
-  physicsManager.addJoint(window.body1, window.body2, new THREE.Vector3(2, 0, 0), new THREE.Vector3(-2, 0, 0), new THREE.Quaternion(), new THREE.Quaternion());
+  const joint = physicsManager.addJoint(window.body1, window.body2, new THREE.Vector3(2, 0, 0), new THREE.Vector3(2, 0, 2), new THREE.Quaternion(), new THREE.Quaternion());
+  console.log({joint});
+  const PxD6Axis = {
+    eX: 0, // !< motion along the X axis
+    eY: 1, // !< motion along the Y axis
+    eZ: 2, // !< motion along the Z axis
+    eTWIST: 3, // !< motion around the X axis
+    eSWING1: 4, // !< motion around the Y axis
+    eSWING2: 5, // !< motion around the Z axis
+    eCOUNT: 6,
+  };
+  const PxD6Motion = {
+    eLOCKED: 0, // !< The DOF is locked, it does not allow relative motion.
+    eLIMITED: 1, // !< The DOF is limited, it only allows motion within a specific range.
+    eFREE: 2, // !< The DOF is free and has its full range of motion.
+  };
+  physicsManager.setJointMotion(joint, PxD6Axis.eTWIST, PxD6Motion.eFREE);
 
   let playerDiorama = null;
   let appDiorama = null;

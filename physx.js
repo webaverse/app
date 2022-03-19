@@ -511,7 +511,11 @@ const physxWorker = (() => {
     const quaternion1Offset = scratchStack.f32.byteOffset + 6 * Float32Array.BYTES_PER_ELEMENT;
     const quaternion2Offset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
 
-    moduleInstance._addJointPhysics(physics, physicsId1, physicsId2, position1Offset, position2Offset, quaternion1Offset, quaternion2Offset);
+    const joint = moduleInstance._addJointPhysics(physics, physicsId1, physicsId2, position1Offset, position2Offset, quaternion1Offset, quaternion2Offset);
+    return joint;
+  }
+  w.setJointMotionPhysics = (physics, joint, axis, motion) => {
+    moduleInstance._setJointMotionPhysics(physics, joint, axis, motion);
   }
   w.simulatePhysics = (physics, updates, elapsedTime) => {
     // vismark

@@ -4728,6 +4728,11 @@ var _addJointPhysics = Module["_addJointPhysics"] = function() {
 };
 
 /** @type {function(...*):?} */
+var _setJointMotionPhysics = Module["_setJointMotionPhysics"] = function() {
+  return (_setJointMotionPhysics = Module["_setJointMotionPhysics"] = Module["asm"]["setJointMotionPhysics"]).apply(null, arguments);
+};
+
+/** @type {function(...*):?} */
 var _simulatePhysics = Module["_simulatePhysics"] = function() {
   return (_simulatePhysics = Module["_simulatePhysics"] = Module["asm"]["simulatePhysics"]).apply(null, arguments);
 };
