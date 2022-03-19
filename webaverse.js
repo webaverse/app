@@ -448,12 +448,28 @@ const _startHacks = () => {
     const mesh = new THREE.Mesh(geometry, material);
     window.mesh = mesh;
     rootScene.add(mesh);
-    mesh.position.set(0, 5, -10);
+    mesh.position.set(-2, 5, -12);
     mesh.updateMatrixWorld();
 
     const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
     window.body = body;
     body.name = 'vistest'
+  }
+  {
+    const size = new THREE.Vector3(3, 2, 1);
+    const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+    const material = new THREE.MeshStandardMaterial({
+      color: 'red',
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    window.mesh2 = mesh;
+    rootScene.add(mesh);
+    mesh.position.set(2, 5, -12);
+    mesh.updateMatrixWorld();
+
+    const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
+    window.body2 = body;
+    body.name = 'vistest2'
   }
 
   let playerDiorama = null;

@@ -296,11 +296,14 @@ physicsManager.simulatePhysics = timeDiff => {
     for (const updateOut of updatesOut) {
       // vismark
       const {id, position, quaternion, collided, grounded} = updateOut;
-      console.log('physicsId', id)
+      // console.log('physicsId', id)
       // const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       let physicsObject;
+
       if (id === 1) physicsObject = window.body;
+      else if (id === 2) physicsObject = window.body2;
       else physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
+
       // debugger
       if (physicsObject) {
         // debugger
@@ -319,6 +322,11 @@ physicsManager.simulatePhysics = timeDiff => {
           window.mesh.matrix.copy(window.body.matrix)
           window.mesh.matrixWorld.copy(window.body.matrixWorld)
           window.mesh.matrix.decompose(window.mesh.position, window.mesh.quaternion, window.mesh.scale);
+        }
+        else if (id === 2) {
+          window.mesh2.matrix.copy(window.body2.matrix)
+          window.mesh2.matrixWorld.copy(window.body2.matrixWorld)
+          window.mesh2.matrix.decompose(window.mesh2.position, window.mesh2.quaternion, window.mesh2.scale);
         }
 
         // console.log('set', physicsObject.name, id, physicsObject.position.toArray().join(','));
