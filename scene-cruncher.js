@@ -1,14 +1,13 @@
 import * as THREE from 'three';
-// import { BufferGeometryUtils } from 'three';
 import {getRenderer, rootScene} from './renderer.js';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const localVector4D = new THREE.Vector4();
 
 const cameraNear = 0;
 const cameraFar = 1000;
 
-const imageBitmap2ImageData = imageBitmap => {
+/* const imageBitmap2ImageData = imageBitmap => {
   const canvas = document.createElement('canvas');
   canvas.width = imageBitmap.width;
   canvas.height = imageBitmap.height;
@@ -23,7 +22,7 @@ const renderer2ImageData = (renderer, width, height) => {
   const context = canvas.getContext('2d');
   context.drawImage(renderer.domElement, 0, 0);
   return context.getImageData(0, 0, width, height);
-};
+}; */
 const floatImageData = imageData => {
   return new Float32Array(
     imageData.data.buffer,
@@ -194,14 +193,12 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution, worldDe
     const _renderOverrideMaterial = (renderTarget, overrideMaterial, wp1) => {
       renderer.setViewport(0, 0, wp1, wp1);
       renderer.setRenderTarget(renderTarget);
-      renderer.setClearColor(0x000000, 0);
+      // renderer.setClearColor(0x000000, 0);
       renderer.clear();
       rootScene.overrideMaterial = overrideMaterial;
       rootScene.fog = null;
       renderer.render(rootScene, camera);
 
-      /* const imageData = renderer2ImageData(renderer, wp1, wp1);
-      console.log('got image data', imageData); */
       const imageData = {
         data: new Uint8Array(wp1 * wp1 * 4),
       };
@@ -210,7 +207,6 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution, worldDe
     };
     colorImageData = _renderOverrideMaterial(colorRenderTarget, null, worldResolutionP1);
     depthFloatImageData = floatImageData(_renderOverrideMaterial(depthRenderTarget, depthMaterial, worldDepthResolutionP1));
-    // console.log('all image datas', colorImageData, depthFloatImageData);
 
     // pop old state
     renderer.setViewport(oldViewport.x, oldViewport.y, oldViewport.z, oldViewport.w);
@@ -245,13 +241,11 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution, worldDe
     THREE.NearestFilter,
     0
   );
-  // const colorTex = new THREE.Texture(colorImageData);
   colorTex.needsUpdate = true;
   const material = new THREE.MeshBasicMaterial({
     // map: colorRenderTarget.texture,
     map: colorTex,
     color: 0xFFFFFF,
-    // color: 0x000000,
   });
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
