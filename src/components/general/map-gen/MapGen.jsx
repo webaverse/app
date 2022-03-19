@@ -8,7 +8,7 @@ const {useLocalPlayer, useLoreAIScene, useSceneCruncher} = metaversefile;
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
 import {MiniHup} from '../../../MiniHup.jsx';
 // import {RpgText} from '../../../RpgText.jsx';
-import {getRenderer, scene} from '../../../../renderer.js';
+import {getRenderer, rootScene, scene} from '../../../../renderer.js';
 // import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
@@ -311,7 +311,14 @@ export const MapGen = ({
               const chunkWorldDepthResolution = 64;
           
               const sceneCruncher = useSceneCruncher();
-              const mesh = await sceneCruncher.snapshotMapChunk(dx, dy, chunkWorldSize, chunkWorldResolution, chunkWorldDepthResolution);
+              const mesh = await sceneCruncher.snapshotMapChunk(
+                rootScene,
+                dx,
+                dy,
+                chunkWorldSize,
+                chunkWorldResolution,
+                chunkWorldDepthResolution
+              );
               scene.add(mesh);
             })();
 
