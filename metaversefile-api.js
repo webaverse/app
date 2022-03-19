@@ -295,9 +295,9 @@ const abis = {
   ERC1155,
 };
 
-debug.addEventListener('enabledchange', e => {
+/* debug.addEventListener('enabledchange', e => {
   document.getElementById('statsBox').style.display = e.data.enabled ? null : 'none';
-});
+}); */
 
 let currentAppRender = null;
 let iframeContainer = null;

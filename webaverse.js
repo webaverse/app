@@ -18,7 +18,6 @@ import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
 import loadoutManager from './loadout-manager.js';
-import {Stats} from './stats.js';
 import {
   getRenderer,
   scene,
@@ -69,17 +68,10 @@ const frameEvent = new MessageEvent('frame', {
     // lastTimestamp: 0,
   },
 });
-const rendererStats = Stats();
 
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
-
-    rendererStats.domElement.style.position = 'absolute';
-    rendererStats.domElement.style.right = '0px';
-    rendererStats.domElement.style.bottom = '0px';
-    rendererStats.domElement.style.display = 'none';
-    document.body.appendChild(rendererStats.domElement);
 
     this.loadPromise = (async () => {
       await Promise.all([
@@ -276,10 +268,6 @@ export default class Webaverse extends EventTarget {
     this.dispatchEvent(frameEvent);
 
     getComposer().render();
-    const debug = metaversefileApi.useDebug();
-    if (debug.enabled) {
-      rendererStats.update(renderer);
-    }
 
     this.dispatchEvent(new MessageEvent('frameend', {
       data: {
