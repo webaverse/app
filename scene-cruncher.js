@@ -136,7 +136,8 @@ const depthFragmentShader = `\
   }
 `;
 
-export async function snapshotMapChunk(scene, x, y, worldSize, worldResolution, worldDepthResolution) {
+const cameraHeight = 30;
+export async function snapshotMapChunk(scene, position, worldSize, worldResolution, worldDepthResolution) {
   const worldResolutionP1 = worldResolution + 1;
   const worldDepthResolutionP1 = worldDepthResolution + 1;
 
@@ -166,7 +167,9 @@ export async function snapshotMapChunk(scene, x, y, worldSize, worldResolution, 
     cameraNear,
     cameraFar,
   );
-  camera.position.set(0, 30, 0);
+  camera.position.copy(position);
+  // camera.position.set(0, 30, 0);
+  camera.position.y += cameraHeight;
   camera.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
   camera.updateMatrixWorld();
 
@@ -220,8 +223,9 @@ export async function snapshotMapChunk(scene, x, y, worldSize, worldResolution, 
       const index2 = (worldDepthResolutionP1 - 1 - z) * worldDepthResolutionP1 + x;
       const y = camera.position.y + depthFloatImageData[index2];
 
-      const indexY = index * 3 + 1;
-      geometry.attributes.position.array[indexY] = y;
+      geometry.attributes.position.array[index * 3] += camera.position.x;
+      geometry.attributes.position.array[index * 3 + 1] = y;
+      geometry.attributes.position.array[index * 3 + 2] += camera.position.z;
     }
   }
 
