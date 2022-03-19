@@ -308,7 +308,7 @@ const mirrors = [];
 metaversefile.setApi({
   // apps,
   async import(s) {
-    if (/^(?:ipfs:\/\/|https?:\/\/|data:)/.test(s)) {
+    if (/^(?:ipfs:\/\/|https?:\/\/|weba:\/\/|data:)/.test(s)) {
       const prefix = location.protocol + '//' + location.host + '/@proxy/';
       if (s.startsWith(prefix)) {
         s = s.slice(prefix.length);

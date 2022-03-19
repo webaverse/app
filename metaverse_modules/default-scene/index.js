@@ -12,6 +12,63 @@ const localVector = new THREE.Vector3();
 // const localLine = new THREE.Line3();
 // const localMatrix = new THREE.Matrix4();
 
+const defaultApps = [
+  {
+    "type": "application/light",
+    "content": {
+      "lightType": "ambient",
+      "args": [[255, 255, 255], 2]
+    }
+  },
+  {
+    "type": "application/light",
+    "content": {
+      "lightType": "directional",
+      "args": [[255, 255, 255], 2],
+      "position": [1, 2, 3]
+    }
+  },
+  {
+    "type": "application/rendersettings",
+    "content": {
+      "fog": {
+        "fogType": "exp",
+        "args": [[255, 255, 255], 0.01]
+      },
+      "ssao": {
+        "kernelRadius": 16,
+        "minDistance": 0.005,
+        "maxDistance": 0.1
+      },
+      "dof": {
+        "focus": 2.0,
+        "aperture": 0.0001,
+        "maxblur": 0.005
+      },
+      "hdr": {
+        "adaptive": true,
+        "resolution": 256,
+        "adaptionRate": 100,
+        "maxLuminance": 10,
+        "minLuminance": 0,
+        "middleGrey": 3
+      },
+      "bloom": {
+        "strength": 0.1,
+        "radius": 0.5,
+        "threshold": 0.9
+      }
+    }
+  },
+  {
+    "type": "application/spawnpoint",
+    "content": {
+      "position": [0, 10, 0],
+      "quaternion": [0, 0, 0, 1]
+    }
+  },
+];
+
 export default e => {
   const app = useApp();
   const physics = usePhysics();
@@ -20,11 +77,11 @@ export default e => {
   // const {WebaverseShaderMaterial} = useMaterials();
   const {voxelWorldSize} = procGen;
 
-  const baseX = -5;
-  const baseY = -5;
+  const coords = app.getComponent('coords') ?? [0, 0];
+  const [baseX, baseY] = coords;
+
   let x = baseX;
   let y = baseY;
-  const physicsIds = [];
   let subApps = [];
 
   const makeComponents = (x, y) => {
@@ -60,57 +117,57 @@ export default e => {
     // console.log('generate', exits);
 
     const components = makeComponents(x, y);
-    await Promise.all([
-      (async () => {
-        const filter = await metaversefile.createApp({
-          start_url: './metaverse_modules/filter/',
-          components,
+    await Promise.all(
+      defaultApps.map(async a => {
+        const {type, content} = a;
+        const dataUrl = `data:${type},${JSON.stringify(content)}`;
+        const subApp = await metaversefile.createApp({
+          start_url: dataUrl,
+          // components,
         });
-        app.add(filter);
-        subApps.push(filter);
-      })(),
-      (async () => {
-        const barrier = await metaversefile.createApp({
-          start_url: './metaverse_modules/barrier/',
-          components,
-        });
-        app.add(barrier);
-        subApps.push(barrier);
+        app.add(subApp);
+        subApps.push(subApp);
+      })
+        .concat([
+          (async () => {
+            const filter = await metaversefile.createApp({
+              start_url: './metaverse_modules/filter/',
+              components,
+            });
+            app.add(filter);
+            subApps.push(filter);
+          })(),
+          (async () => {
+            const barrier = await metaversefile.createApp({
+              start_url: './metaverse_modules/barrier/',
+              components,
+            });
+            app.add(barrier);
+            subApps.push(barrier);
 
-        barrier.addEventListener('collision', e => {
-          const {direction} = e;
-          x += direction.x;
-          y += direction.z;
-          const components = makeComponents(x, y);
-          // console.log('new components', components);
+            barrier.addEventListener('collision', e => {
+              const {direction} = e;
+              x += direction.x;
+              y += direction.z;
+              const components = makeComponents(x, y);
+              // console.log('new components', components);
 
-          for (const subApp of subApps) {
-            subApp.setComponents(components);
-          }
-        });
-      })(),
-      (async () => {
-        const infinistreet = await metaversefile.createApp({
-          start_url: './metaverse_modules/infinistreet/',
-          components,
-        });
-        app.add(infinistreet);
-        subApps.push(infinistreet);
-      })(),
-    ]);
+              for (const subApp of subApps) {
+                subApp.setComponents(components);
+              }
+            });
+          })(),
+          (async () => {
+            const infinistreet = await metaversefile.createApp({
+              start_url: './metaverse_modules/infinistreet/',
+              components,
+            });
+            app.add(infinistreet);
+            subApps.push(infinistreet);
+          })(),
+        ])
+    );
   })());
-
-  /* useFrame(() => {
-    for (const subApp of subApps) {
-      
-    }
-  }); */
-  
-  useCleanup(() => {
-    for (const physicsId of physicsIds) {
-      physics.removeGeometry(physicsId);
-    }
-  });
 
   return app;
 };
