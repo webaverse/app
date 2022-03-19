@@ -143,7 +143,7 @@ class PerformanceTracker extends EventTarget {
           object.time += gl.getQueryParameter(query, gl.QUERY_RESULT);
           
           // cleanup
-          gl.deleteQuery(query);
+          // gl.deleteQuery(query);
         }
 
         // cleanup
