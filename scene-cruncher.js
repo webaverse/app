@@ -148,6 +148,7 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     {
       type: THREE.UnsignedByteType,
       format: THREE.RGBAFormat,
+      encoding: THREE.sRGBEncoding,
     }
   );
   const depthRenderTarget = new THREE.WebGLRenderTarget(
@@ -167,7 +168,7 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     cameraNear,
     cameraFar,
   );
-  camera.position.set(0, 100, 0);
+  camera.position.set(0, 30, 0);
   camera.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
   camera.updateMatrixWorld();
 
@@ -186,15 +187,20 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     const oldViewport = renderer.getViewport(localVector4D);
     const oldRenderTarget = renderer.getRenderTarget();
     const oldOverrideMaterial = rootScene.overrideMaterial;
+    const oldFog = rootScene.fog;
 
     // render
     const _renderOverrideMaterial = (renderTarget, overrideMaterial) => {
       renderer.setViewport(0, 0, worldResolutionP1, worldResolutionP1);
       renderer.setRenderTarget(renderTarget);
+      renderer.setClearColor(0x000000, 0);
       renderer.clear();
       rootScene.overrideMaterial = overrideMaterial;
+      rootScene.fog = null;
       renderer.render(rootScene, camera);
 
+      /* const imageData = renderer2ImageData(renderer, worldResolutionP1, worldResolutionP1);
+      console.log('got image data', imageData); */
       const imageData = {
         data: new Uint8Array(worldResolutionP1 * worldResolutionP1 * 4),
       };
@@ -203,11 +209,13 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     };
     colorImageData = _renderOverrideMaterial(colorRenderTarget, null);
     depthFloatImageData = floatImageData(_renderOverrideMaterial(depthRenderTarget, depthMaterial));
+    // console.log('all image datas', colorImageData, depthFloatImageData);
 
     // pop old state
     renderer.setViewport(oldViewport.x, oldViewport.y, oldViewport.z, oldViewport.w);
     renderer.setRenderTarget(oldRenderTarget);
     rootScene.overrideMaterial = oldOverrideMaterial;
+    rootScene.fog = oldFog;
   }
 
   const geometry = new THREE.PlaneBufferGeometry(worldSize, worldSize, worldResolution, worldResolution)
@@ -241,8 +249,26 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     }
   }
   const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries); */
-  const material = new THREE.MeshPhongMaterial({
-    color: 0xFF0000,
+  const colorTex = new THREE.DataTexture(
+    colorImageData.data,
+    worldResolutionP1,
+    worldResolutionP1,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.NearestFilter,
+    THREE.NearestFilter,
+    0
+  );
+  // const colorTex = new THREE.Texture(colorImageData);
+  colorTex.needsUpdate = true;
+  const material = new THREE.MeshBasicMaterial({
+    // map: colorRenderTarget.texture,
+    map: colorTex,
+    color: 0xFFFFFF,
+    // color: 0x000000,
   });
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
