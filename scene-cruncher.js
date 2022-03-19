@@ -137,10 +137,11 @@ const depthFragmentShader = `\
   }
 `;
 
-export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
+export async function snapshotMapChunk(x, y, worldSize, worldResolution, worldDepthResolution) {
   try {
   
   const worldResolutionP1 = worldResolution + 1;
+  const worldDepthResolutionP1 = worldDepthResolution + 1;
 
   const colorRenderTarget = new THREE.WebGLRenderTarget(
     worldResolutionP1,
@@ -152,8 +153,8 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     }
   );
   const depthRenderTarget = new THREE.WebGLRenderTarget(
-    worldResolutionP1,
-    worldResolutionP1,
+    worldDepthResolutionP1,
+    worldDepthResolutionP1,
     {
       type: THREE.UnsignedByteType,
       format: THREE.RGBAFormat,
@@ -190,8 +191,8 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     const oldFog = rootScene.fog;
 
     // render
-    const _renderOverrideMaterial = (renderTarget, overrideMaterial) => {
-      renderer.setViewport(0, 0, worldResolutionP1, worldResolutionP1);
+    const _renderOverrideMaterial = (renderTarget, overrideMaterial, wp1) => {
+      renderer.setViewport(0, 0, wp1, wp1);
       renderer.setRenderTarget(renderTarget);
       renderer.setClearColor(0x000000, 0);
       renderer.clear();
@@ -199,16 +200,16 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
       rootScene.fog = null;
       renderer.render(rootScene, camera);
 
-      /* const imageData = renderer2ImageData(renderer, worldResolutionP1, worldResolutionP1);
+      /* const imageData = renderer2ImageData(renderer, wp1, wp1);
       console.log('got image data', imageData); */
       const imageData = {
-        data: new Uint8Array(worldResolutionP1 * worldResolutionP1 * 4),
+        data: new Uint8Array(wp1 * wp1 * 4),
       };
-      renderer.readRenderTargetPixels(renderTarget, 0, 0, worldResolutionP1, worldResolutionP1, imageData.data);
+      renderer.readRenderTargetPixels(renderTarget, 0, 0, wp1, wp1, imageData.data);
       return imageData;
     };
-    colorImageData = _renderOverrideMaterial(colorRenderTarget, null);
-    depthFloatImageData = floatImageData(_renderOverrideMaterial(depthRenderTarget, depthMaterial));
+    colorImageData = _renderOverrideMaterial(colorRenderTarget, null, worldResolutionP1);
+    depthFloatImageData = floatImageData(_renderOverrideMaterial(depthRenderTarget, depthMaterial, worldDepthResolutionP1));
     // console.log('all image datas', colorImageData, depthFloatImageData);
 
     // pop old state
@@ -218,12 +219,12 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     rootScene.fog = oldFog;
   }
 
-  const geometry = new THREE.PlaneBufferGeometry(worldSize, worldSize, worldResolution, worldResolution)
+  const geometry = new THREE.PlaneBufferGeometry(worldSize, worldSize, worldDepthResolution, worldDepthResolution)
     .applyMatrix4(new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), -Math.PI/2));
-  for (let z = 0; z <= worldResolution; z++) {
-    for (let x = 0; x <= worldResolution; x++) {
-      const index = z * worldResolutionP1 + x;
-      const index2 = (worldResolutionP1 - 1 - z) * worldResolutionP1 + x;
+  for (let z = 0; z <= worldDepthResolution; z++) {
+    for (let x = 0; x <= worldDepthResolution; x++) {
+      const index = z * worldDepthResolutionP1 + x;
+      const index2 = (worldDepthResolutionP1 - 1 - z) * worldDepthResolutionP1 + x;
       const y = camera.position.y + depthFloatImageData[index2];
 
       const indexY = index * 3 + 1;
@@ -231,24 +232,6 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution) {
     }
   }
 
-  /* const geometries = [];
-  const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-  for (let z = 0; z <= worldResolution; z++) {
-    for (let x = 0; x <= worldResolution; x++) {
-      const geometry = boxGeometry.clone();
-      const index = (worldResolutionP1 - 1 - z) * worldResolutionP1 + x;
-      const y = floatImageData[index];
-      const position = camera.position.clone()
-        .add(new THREE.Vector3(
-          (x - worldResolution/2) * worldSize / worldResolution,
-          y,
-          (z - worldResolution/2) * worldSize / worldResolution,
-        ));
-      geometry.translate(position.x, position.y, position.z);
-      geometries.push(geometry);
-    }
-  }
-  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries); */
   const colorTex = new THREE.DataTexture(
     colorImageData.data,
     worldResolutionP1,
