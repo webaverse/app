@@ -24,6 +24,7 @@ import {
 // import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
+// import * as sceneCruncher from '../scene-cruncher.js';
 import {
   idleFactorSpeed,
   walkFactorSpeed,
