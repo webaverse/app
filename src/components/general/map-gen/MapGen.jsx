@@ -304,17 +304,17 @@ export const MapGen = ({
         switch (e.which) {
           case 76: { // L
             (async () => {
-              const dx = 0;
-              const dy = 0;
+              // const dx = 0;
+              // const dy = 0;
               const chunkWorldSize = 64;
               const chunkWorldResolution = 2048;
               const chunkWorldDepthResolution = 64;
           
               const sceneCruncher = useSceneCruncher();
+              const localPlayer = useLocalPlayer();
               const mesh = await sceneCruncher.snapshotMapChunk(
                 rootScene,
-                dx,
-                dy,
+                localPlayer.position,
                 chunkWorldSize,
                 chunkWorldResolution,
                 chunkWorldDepthResolution
