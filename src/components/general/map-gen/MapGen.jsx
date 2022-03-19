@@ -2,13 +2,13 @@ import * as THREE from 'three';
 import React, { useState, useEffect, useRef } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
-const {useLocalPlayer, useLoreAIScene} = metaversefile;
+const {useLocalPlayer, useLoreAIScene, useSceneCruncher} = metaversefile;
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
 import {MiniHup} from '../../../MiniHup.jsx';
 // import {RpgText} from '../../../RpgText.jsx';
-import {getRenderer} from '../../../../renderer.js';
+import {getRenderer, scene} from '../../../../renderer.js';
 // import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
@@ -189,7 +189,7 @@ export const MapGen = ({
     const [position, setPosition] = useState(new THREE.Vector3(0, 0, 0));
     const [scale, setScale] = useState(1);
     const [mouseState, setMouseState] = useState(null);
-    const [scene, setScene] = useState(() => new THREE.Scene());
+    const [mapScene, setMapScene] = useState(() => new THREE.Scene());
     const [camera, setCamera] = useState(() => new THREE.OrthographicCamera());
     const [chunks, setChunks] = useState([]);
     const [hoveredObject, setHoveredObject] = useState(null);
@@ -233,7 +233,7 @@ export const MapGen = ({
           let chunk = chunkCache.get(key);
           if (!chunk) {
             chunk = _makeChunkMesh(ix, iy);
-            scene.add(chunk);
+            mapScene.add(chunk);
             chunkCache.set(key, chunk);
           }
           chunks.push(chunk);
@@ -302,6 +302,21 @@ export const MapGen = ({
     useEffect(() => {
       function keydown(e) {
         switch (e.which) {
+          case 76: { // L
+            (async () => {
+              const dx = 0;
+              const dy = 0;
+              const chunkWorldSize = 64;
+              const chunkWorldResolution = 2048;
+              const chunkWorldDepthResolution = 64;
+          
+              const sceneCruncher = useSceneCruncher();
+              const mesh = await sceneCruncher.snapshotMapChunk(dx, dy, chunkWorldSize, chunkWorldResolution, chunkWorldDepthResolution);
+              scene.add(mesh);
+            })();
+
+            return false;
+          }
           case 77: { // M
             const newOpen = !open;
             
@@ -382,7 +397,7 @@ export const MapGen = ({
           setRaycasterFromEvent(localRaycaster, e);
 
           localArray.length = 0;
-          const intersections = localRaycaster.intersectObjects(scene.children, false, localArray);
+          const intersections = localRaycaster.intersectObjects(mapScene.children, false, localArray);
           if (intersections.length > 0) {
             const {object} = intersections[0];
 
@@ -504,7 +519,7 @@ export const MapGen = ({
           renderer.setViewport(0, 0, width, height);
           // renderer.setClearColor(0xFF0000, 1);
           renderer.clear();
-          renderer.render(scene, camera);
+          renderer.render(mapScene, camera);
 
           ctx.clearRect(0, 0, width, height);
           ctx.drawImage(renderer.domElement, 0, 0);
