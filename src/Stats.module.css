@@ -1,0 +1,36 @@
+.statsContainer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+}
+.statsContainer:not(.open) {
+  display: none;
+}
+.stats {
+  width: 200px;
+  background-image: linear-gradient(to bottom, #222, #000);
+  color: #FFF;
+  opacity: 0.9;
+  font-family: 'Muli';
+}
+.stats .line,
+.stats h3 {
+  padding: 5px;
+}
+.stats .line {
+  display: flex;
+}
+.stats h3 {
+  margin: 5px 0;
+  background-color: #000;
+  text-align: left;
+}
+.stats .line .label {
+  margin-right: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* .stats .line .value {
+  
+} */

@@ -36,6 +36,7 @@ import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
+import performanceTracker from './performance-tracker.js';
 import debug from './debug.js';
 
 const localVector = new THREE.Vector3();
@@ -49,11 +50,20 @@ class App extends THREE.Object3D {
   constructor() {
     super();
 
+    this.isApp = true;
     this.components = [];
     // cleanup tracking
     this.physicsObjects = [];
     this.appType = 'script';
     this.lastMatrix = new THREE.Matrix4();
+
+    const startframe = () => {
+      performanceTracker.decorateApp(this);
+    };
+    performanceTracker.addEventListener('startframe', startframe);
+    this.addEventListener('destroy', () => {
+      performanceTracker.removeEventListener('startframe', startframe);
+    });
   }
   getComponent(key) {
     const component = this.components.find(component => component.key === key);
@@ -285,9 +295,9 @@ const abis = {
   ERC1155,
 };
 
-debug.addEventListener('enabledchange', e => {
+/* debug.addEventListener('enabledchange', e => {
   document.getElementById('statsBox').style.display = e.data.enabled ? null : 'none';
-});
+}); */
 
 let currentAppRender = null;
 let iframeContainer = null;
@@ -394,7 +404,9 @@ metaversefile.setApi({
     const app = currentAppRender;
     if (app) {
       const frame = e => {
+        performanceTracker.startCpuObject(app.name);
         fn(e.data);
+        performanceTracker.endCpuObject();
       };
       world.appManager.addEventListener('frame', frame);
       const destroy = () => {
