@@ -30,6 +30,7 @@ const localMatrix = new THREE.Matrix4();
 const physicsManager = new EventTarget();
 
 const physicsUpdates = [];
+window.physicsUpdates = physicsUpdates;
 const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
   const physicsObject = new THREE.Object3D();
   physicsObject.position.copy(position);
@@ -72,6 +73,7 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
 };
 
 physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
+  // vismark
   const physicsId = getNextPhysicsId();
   physx.physxWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic);
   
@@ -288,6 +290,7 @@ physicsManager.simulatePhysics = timeDiff => {
   if (physicsEnabled) {
     const t = timeDiff/1000;
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
+    console.log(`updatesOut: ${updatesOut.length}, physicsUpdates: ${physicsUpdates.length}`);
     physicsUpdates.length = 0;
     for (const updateOut of updatesOut) {
       // vismark

@@ -3446,10 +3446,10 @@ class Avatar {
       // vismark
       // note: this === localPlayer.avatar
       if (!this.ragdoll) {
-        console.log('setFromAvatar', 1) // note: when idle-ing.
+        // console.log('setFromAvatar', 1) // note: when idle-ing.
         this.ragdollMesh.setFromAvatar(this);
       } else {
-        console.log('toAvatar', 1) // note: when ragdoll-ing
+        // console.log('toAvatar', 1) // note: when ragdoll-ing
         // if(this.ragdollMesh.skeleton){
         //   // console.log('setSkeletonFromBuffer', 2)
         //   this.ragdollMesh.updateMatrixWorld()
@@ -3463,14 +3463,14 @@ class Avatar {
       }
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
-          console.log('createSkeleton', 1) // note: when first ragdoll
+          // console.log('createSkeleton', 1) // note: when first ragdoll
           const b = this.ragdollMesh.serializeSkeleton();
           // debugger
           this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
         }
       }
       if (!this.ragdoll && this.ragdollMesh.skeleton) {
-        console.log('setSkeletonFromBuffer', 1) // note: when second idle-ing
+        // console.log('setSkeletonFromBuffer', 1) // note: when second idle-ing
         const b = this.ragdollMesh.serializeSkeleton();
         // console.log('setSkeletonFromBuffer')
         physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, true, b);

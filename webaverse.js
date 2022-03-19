@@ -32,6 +32,7 @@ import {
   dolly,
   bindCanvas,
   getComposer,
+  rootScene,
 } from './renderer.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
@@ -435,6 +436,22 @@ export default class Webaverse extends EventTarget {
 const _startHacks = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
+
+  {
+    const size = new THREE.Vector3(3, 2, 1);
+    const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+    const material = new THREE.MeshStandardMaterial({
+      color: 'red',
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    window.mesh = mesh;
+    rootScene.add(mesh);
+    mesh.position.set(0, 5, -10);
+    mesh.updateMatrixWorld();
+
+    const physicsObject = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5));
+    window.physicsObject = physicsObject;
+  }
 
   let playerDiorama = null;
   let appDiorama = null;
