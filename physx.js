@@ -500,6 +500,9 @@ const physxWorker = (() => {
   }; */
   w.makePhysics = () => moduleInstance._makePhysics();
   w.getNumActorsPhysics = (physics) => moduleInstance._getNumActorsPhysics(physics);
+  w.addJointPhysics = (physics, physicsId1, physicsId2) => {
+    moduleInstance._addJointPhysics(physics, physicsId1, physicsId2);
+  }
   w.simulatePhysics = (physics, updates, elapsedTime) => {
     // vismark
     /* if (updates.length > maxNumUpdates) {

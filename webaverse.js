@@ -446,13 +446,13 @@ const _startHacks = () => {
       color: 'red',
     });
     const mesh = new THREE.Mesh(geometry, material);
-    window.mesh = mesh;
+    window.mesh1 = mesh;
     rootScene.add(mesh);
     mesh.position.set(-2, 5, -12);
     mesh.updateMatrixWorld();
 
     const body = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, size.clone().multiplyScalar(0.5), true);
-    window.body = body;
+    window.body1 = body;
     body.name = 'vistest'
   }
   {
@@ -471,6 +471,7 @@ const _startHacks = () => {
     window.body2 = body;
     body.name = 'vistest2'
   }
+  physicsManager.addJoint(window.body1, window.body2);
 
   let playerDiorama = null;
   let appDiorama = null;

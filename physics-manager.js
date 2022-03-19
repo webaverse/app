@@ -272,6 +272,9 @@ physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
 let done = 0;
 window.lol = 10;
 physicsManager.getNumActors = () => physx.physxWorker.getNumActorsPhysics(physx.physics);
+physicsManager.addJoint = (physicsObject1, physicsObject2) => {
+  physx.physxWorker.addJointPhysics(physx.physics, physicsObject1.physicsId, physicsObject2.physicsId);
+}
 physicsManager.simulatePhysics = timeDiff => {
   // timeDiff *= 0.0000000001;
   /* {
@@ -300,7 +303,7 @@ physicsManager.simulatePhysics = timeDiff => {
       // const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       let physicsObject;
 
-      if (id === 1) physicsObject = window.body;
+      if (id === 1) physicsObject = window.body1;
       else if (id === 2) physicsObject = window.body2;
       else physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
 
@@ -319,9 +322,9 @@ physicsManager.simulatePhysics = timeDiff => {
         physicsObject.updateMatrixWorld();
 
         if (id === 1) {
-          window.mesh.matrix.copy(window.body.matrix)
-          window.mesh.matrixWorld.copy(window.body.matrixWorld)
-          window.mesh.matrix.decompose(window.mesh.position, window.mesh.quaternion, window.mesh.scale);
+          window.mesh1.matrix.copy(window.body1.matrix)
+          window.mesh1.matrixWorld.copy(window.body1.matrixWorld)
+          window.mesh1.matrix.decompose(window.mesh1.position, window.mesh1.quaternion, window.mesh1.scale);
         }
         else if (id === 2) {
           window.mesh2.matrix.copy(window.body2.matrix)
