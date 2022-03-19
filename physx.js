@@ -19,6 +19,7 @@ const scratchStackSize = 1024*1024;
 const maxNumUpdates = 256;
 
 const physx = {};
+window.physx = physx;
 
 physx.waitForLoad = Module.waitForLoad;
 
@@ -498,6 +499,24 @@ const physxWorker = (() => {
     return moduleInstance._makeTracker.apply(moduleInstance, arguments);
   }; */
   w.makePhysics = () => moduleInstance._makePhysics();
+  w.getNumActorsPhysics = (physics) => moduleInstance._getNumActorsPhysics(physics);
+  w.addJointPhysics = (physics, physicsId1, physicsId2, position1, position2, quaternion1, quaternion2, fixBody1 = false) => {
+    position1.toArray(scratchStack.f32, 0);
+    position2.toArray(scratchStack.f32, 3);
+    quaternion1.toArray(scratchStack.f32, 6);
+    quaternion2.toArray(scratchStack.f32, 10);
+
+    const position1Offset = scratchStack.f32.byteOffset;
+    const position2Offset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
+    const quaternion1Offset = scratchStack.f32.byteOffset + 6 * Float32Array.BYTES_PER_ELEMENT;
+    const quaternion2Offset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
+
+    const joint = moduleInstance._addJointPhysics(physics, physicsId1, physicsId2, position1Offset, position2Offset, quaternion1Offset, quaternion2Offset, fixBody1);
+    return joint;
+  }
+  w.setJointMotionPhysics = (physics, joint, axis, motion) => {
+    moduleInstance._setJointMotionPhysics(physics, joint, axis, motion);
+  }
   w.simulatePhysics = (physics, updates, elapsedTime) => {
     // vismark
     /* if (updates.length > maxNumUpdates) {
@@ -1481,7 +1500,8 @@ const physxWorker = (() => {
     return skeletonId;
   };
 
-  w.setSkeletonFromBuffer = (physics, skeletonId, skeletonBuffer) => {
+  w.setSkeletonFromBuffer = (physics, skeletonId, isChildren, skeletonBuffer) => {
+    // vismark
     const allocator = new Allocator();
     const skeletonBufferInner = allocator.alloc(Uint8Array, skeletonBuffer.byteLength);
     
@@ -1490,6 +1510,7 @@ const physxWorker = (() => {
     moduleInstance._setSkeletonFromBuffer(
       physics,
       skeletonId,
+      isChildren,
       skeletonBufferInner.byteOffset
     );
     allocator.freeAll();
