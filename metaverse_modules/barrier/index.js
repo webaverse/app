@@ -112,76 +112,95 @@ export default () => {
   let children = [];
   const physicsIds = [];
   const _render = () => {
-    const bounds = app.getComponent('bounds');
+    const bounds = app.getComponent('bounds') ?? [[0, 0, 0], [4, 4, 4]];
     const [min, max] = bounds;
+    // console.log('bounds 1', bounds, min, max);
     const [minX, minY, minZ] = min;
     const [maxX, maxY, maxZ] = max;
     const width = maxX - minX;
     const height = maxY - minY;
     const depth = maxZ - minZ;
 
-    const delta = app.getComponent('delta');
+    console.log('bounds 2',
+      minX, minY, minZ,
+      maxX, maxY, maxZ,
+      width, height, depth,
+    );
+
+    const delta = app.getComponent('delta') ?? [0, 0];
     const [dx, dy] = delta;
     const chunkOffset = new THREE.Vector3(dx * chunkWorldSize, 0, dy * chunkWorldSize);
 
-    const exits = app.getComponent('exits');
+    const exits = app.getComponent('exits') ?? [];
 
-    const barrierSpecs = exits.map(exit => {
-      localVector.fromArray(exit);
-      
-      let normal;
-      if (localVector.x === 0) { // XXX blocks should come with an incoming direction so this is well-defined
-        normal = localVector2.set(1, 0, 0);
-      } else if (localVector.x === (width - voxelWorldSize)) {
-        normal = localVector2.set(-1, 0, 0);
-      } else if (localVector.z === 0) {
-        normal = localVector2.set(0, 0, 1);
-      } else if (localVector.z === (depth - voxelWorldSize)) {
-        normal = localVector2.set(0, 0, -1);
-      } else if (localVector.y === 0) {
-        normal = localVector2.set(0, 1, 0);
-      } else if (localVector.y === (height - voxelWorldSize)) {
-        normal = localVector2.set(0, -1, 0);
-      } else {
-        console.warn('invalid exit position', exit, width, height, depth);
-        throw new Error('invalid exit position');
-      }
+    let barrierSpecs = null;
+    if (exits.length > 0) {
+      barrierSpecs = exits.map(exit => {
+        localVector.fromArray(exit);
+        
+        let normal;
+        if (localVector.x === 0) { // XXX blocks should come with an incoming direction so this is well-defined
+          normal = localVector2.set(1, 0, 0);
+        } else if (localVector.x === (width - voxelWorldSize)) {
+          normal = localVector2.set(-1, 0, 0);
+        } else if (localVector.z === 0) {
+          normal = localVector2.set(0, 0, 1);
+        } else if (localVector.z === (depth - voxelWorldSize)) {
+          normal = localVector2.set(0, 0, -1);
+        } else if (localVector.y === 0) {
+          normal = localVector2.set(0, 1, 0);
+        } else if (localVector.y === (height - voxelWorldSize)) {
+          normal = localVector2.set(0, -1, 0);
+        } else {
+          console.warn('invalid exit position', exit, width, height, depth);
+          throw new Error('invalid exit position');
+        }
 
-      let size;
-      if (normal.x !== 0) {
-        size = localVector5.set(1, voxelWorldSize, voxelWorldSize);
-      } else if (normal.z !== 0) {
-        size = localVector5.set(voxelWorldSize, voxelWorldSize, 1);
-      } else if (normal.y !== 0) {
-        size = localVector5.set(voxelWorldSize, 1, voxelWorldSize);
-      } else {
-        console.warn('invalid wall normal', normal.toArray());
-        throw new Error('invalid wall normal');
-      }
+        let size;
+        if (normal.x !== 0) {
+          size = localVector5.set(1, voxelWorldSize, voxelWorldSize);
+        } else if (normal.z !== 0) {
+          size = localVector5.set(voxelWorldSize, voxelWorldSize, 1);
+        } else if (normal.y !== 0) {
+          size = localVector5.set(voxelWorldSize, 1, voxelWorldSize);
+        } else {
+          console.warn('invalid wall normal', normal.toArray());
+          throw new Error('invalid wall normal');
+        }
 
-      // console.log('got normal', normal.toArray().join(','));
+        // console.log('got normal', normal.toArray().join(','));
 
-      const position = new THREE.Vector3(
-        -width/2 +
-          (0.5 * -normal.x) +
-          localVector.x +
-          (normal.x === -1 ? voxelWorldSize : 0) +
-          (normal.z * voxelWorldSize/2),
-        voxelWorldSize/2 +
-          localVector.y,
-        -depth/2 +
-          (0.5 * -normal.z) +
-          localVector.z +
-          (normal.z === -1 ? voxelWorldSize : 0) +
-          (normal.x * voxelWorldSize/2),
-      ).add(chunkOffset);
+        const position = new THREE.Vector3(
+          -width/2 +
+            (0.5 * -normal.x) +
+            localVector.x +
+            (normal.x === -1 ? voxelWorldSize : 0) +
+            (normal.z * voxelWorldSize/2),
+          voxelWorldSize/2 +
+            localVector.y,
+          -depth/2 +
+            (0.5 * -normal.z) +
+            localVector.z +
+            (normal.z === -1 ? voxelWorldSize : 0) +
+            (normal.x * voxelWorldSize/2),
+        ).add(chunkOffset);
 
-      return {
-        position,
-        normal: normal.clone(),
-        size: size.clone(),
-      };
-    });
+        return {
+          position,
+          normal: normal.clone(),
+          size: size.clone(),
+        };
+      });
+    } else {
+      barrierSpecs = [
+        {
+          position: new THREE.Vector3(maxX + minX, maxY + minY, maxZ + minZ).multiplyScalar(0.5),
+          normal: new THREE.Vector3(0, 0, 1),
+          size: new THREE.Vector3(width, height, depth),
+        },
+      ];
+      console.log('got barrier specs', {barrierSpecs, minZ, maxZ});
+    }
 
     for (const barrierSpec of barrierSpecs) {
       const {
