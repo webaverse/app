@@ -404,7 +404,9 @@ metaversefile.setApi({
     const app = currentAppRender;
     if (app) {
       const frame = e => {
+        performanceTracker.startCpuObject(app.name);
         fn(e.data);
+        performanceTracker.endCpuObject();
       };
       world.appManager.addEventListener('frame', frame);
       const destroy = () => {
