@@ -16,6 +16,7 @@ const localVector2D = new THREE.Vector2();
 // const localBox = new THREE.Box3();
 const localLine = new THREE.Line3();
 const localMatrix = new THREE.Matrix4();
+const oneVector = new THREE.Vector3(1, 1, 1);
 
 const ClippedPlane = (() => {
   const localVector = new THREE.Vector3();
@@ -69,7 +70,7 @@ const ClippedPlane = (() => {
       }
     }
     getPenetrationNormalVector(line, target) {
-      const intersection = this.intersectLine(line, localVector);
+      const intersection = this.intersectLine(line, localVector)
       if (intersection) {
         const uv = this.getUV(intersection, localVector2D);
         if (uv !== null) {
@@ -108,24 +109,19 @@ export default () => {
   // const {CapsuleGeometry} = useGeometries();
   const {WebaverseShaderMaterial} = useMaterials();
 
+  const _getSingleUse = () => app.getComponent('singleUse') ?? false;
+
   const barrierMeshes = [];
   let children = [];
   const physicsIds = [];
   const _render = () => {
     const bounds = app.getComponent('bounds') ?? [[0, 0, 0], [4, 4, 4]];
     const [min, max] = bounds;
-    // console.log('bounds 1', bounds, min, max);
     const [minX, minY, minZ] = min;
     const [maxX, maxY, maxZ] = max;
     const width = maxX - minX;
     const height = maxY - minY;
     const depth = maxZ - minZ;
-
-    console.log('bounds 2',
-      minX, minY, minZ,
-      maxX, maxY, maxZ,
-      width, height, depth,
-    );
 
     const delta = app.getComponent('delta') ?? [0, 0];
     const [dx, dy] = delta;
@@ -225,6 +221,7 @@ export default () => {
         }
         localVector2D.toArray(barrierGeometry.attributes.uv.array, i * 2);
       }
+      barrierGeometry.applyMatrix4(new THREE.Matrix4().makeScale(w, h, d));
       const barrierMaterial = new WebaverseShaderMaterial({
         uniforms: {
           iTime: {
@@ -454,7 +451,7 @@ export default () => {
       });
       const barrierMesh = new THREE.Mesh(barrierGeometry, barrierMaterial);
       barrierMesh.position.copy(position);
-      barrierMesh.scale.set(size.x, size.y, size.z);
+      // barrierMesh.scale.set(size.x, size.y, size.z);
       barrierMesh.frustumCulled = false;
       app.add(barrierMesh);
       app.updateMatrixWorld();
@@ -543,8 +540,11 @@ export default () => {
             } else if (barrierMesh.animationSpec.type === 'cooldown') {
               barrierMesh.animationSpec = null;
               
-              app.remove(barrierMesh);
-              barrierMeshes.splice(barrierMeshes.indexOf(barrierMesh), 1);
+              const singleUse = _getSingleUse();
+              if (singleUse) {
+                app.remove(barrierMesh);
+                barrierMeshes.splice(barrierMeshes.indexOf(barrierMesh), 1);
+              }
             } else {
               console.warn('unknown animation type', type);
             }
@@ -555,7 +555,11 @@ export default () => {
     _updateAnimations();
     const _updateCollisions = () => {
       const localChildren = children.slice();
+
       for (const barrierMesh of localChildren) {
+        localMatrix.compose(barrierMesh.position, barrierMesh.quaternion, oneVector)
+          .invert();
+
         for (const clipPlane of barrierMesh.clipPlanes) {
           const positionStart = lastPosition;
           const positionEnd = localPlayer.position;
@@ -563,7 +567,7 @@ export default () => {
 
           let broke = false;
           for (let d = 0; d <= totalDistance; d += 1) {
-            const f1 = Math.min(d / totalDistance, 1);
+            const f1 = totalDistance > 0 ? Math.min(d / totalDistance, 1) : 1;
             const lineStart = localVector.copy(positionStart)
               .lerp(positionEnd, f1);
             const f2 = Math.min((d + 1) / totalDistance, 1);
@@ -571,8 +575,7 @@ export default () => {
               .lerp(positionEnd, f2);
             localLine.set(lineStart, lineEnd)
               .applyMatrix4(
-                localMatrix.copy(barrierMesh.matrixWorld)
-                  .invert()
+                localMatrix
               );
 
             const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
@@ -592,7 +595,10 @@ export default () => {
                   speed,
                 };
 
-                children.splice(children.indexOf(barrierMesh), 1);
+                const singleUse = _getSingleUse();
+                if (singleUse) {
+                  children.splice(children.indexOf(barrierMesh), 1);
+                }
 
                 app.dispatchEvent({
                   type: 'collision',
