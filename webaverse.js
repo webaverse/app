@@ -471,7 +471,8 @@ const _startHacks = () => {
     window.body2 = body;
     body.name = 'vistest2'
   }
-  physicsManager.addJoint(window.body1, window.body2);
+  // physicsManager.addJoint(window.body1, window.body2, window.mesh1.position, window.mesh2.position, window.mesh1.quaternion, window.mesh2.quaternion);
+  physicsManager.addJoint(window.body1, window.body2, new THREE.Vector3(2, 0, 0), new THREE.Vector3(-2, 0, 0), new THREE.Quaternion(), new THREE.Quaternion());
 
   let playerDiorama = null;
   let appDiorama = null;

@@ -272,8 +272,8 @@ physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
 let done = 0;
 window.lol = 10;
 physicsManager.getNumActors = () => physx.physxWorker.getNumActorsPhysics(physx.physics);
-physicsManager.addJoint = (physicsObject1, physicsObject2) => {
-  physx.physxWorker.addJointPhysics(physx.physics, physicsObject1.physicsId, physicsObject2.physicsId);
+physicsManager.addJoint = (physicsObject1, physicsObject2, position1, position2, quaternion1, quaternion2) => {
+  physx.physxWorker.addJointPhysics(physx.physics, physicsObject1.physicsId, physicsObject2.physicsId, position1, position2, quaternion1, quaternion2);
 }
 physicsManager.simulatePhysics = timeDiff => {
   // timeDiff *= 0.0000000001;
