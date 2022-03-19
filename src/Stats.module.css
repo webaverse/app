@@ -1,0 +1,33 @@
+.stats {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+
+  width: 200px;
+  background-image: linear-gradient(to bottom, #222, #000);
+  color: #FFF;
+  opacity: 0.9;
+  cursor: pointer;
+  font-family: 'Muli';
+}
+.stats:not(.open) {
+  display: none;
+}
+.stats .line,
+.stats h3 {
+  padding: 5px;
+}
+.stats .line {
+  display: flex;
+}
+.stats h3 {
+  margin: 5px 0;
+  background-color: #000;
+  text-align: left;
+}
+.stats .line .label {
+  margin-right: auto;
+}
+.stats .line .value {
+  
+}
