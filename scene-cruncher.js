@@ -137,8 +137,6 @@ const depthFragmentShader = `\
 `;
 
 export async function snapshotMapChunk(x, y, worldSize, worldResolution, worldDepthResolution) {
-  try {
-  
   const worldResolutionP1 = worldResolution + 1;
   const worldDepthResolutionP1 = worldDepthResolution + 1;
 
@@ -193,7 +191,6 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution, worldDe
     const _renderOverrideMaterial = (renderTarget, overrideMaterial, wp1) => {
       renderer.setViewport(0, 0, wp1, wp1);
       renderer.setRenderTarget(renderTarget);
-      // renderer.setClearColor(0x000000, 0);
       renderer.clear();
       rootScene.overrideMaterial = overrideMaterial;
       rootScene.fog = null;
@@ -249,8 +246,4 @@ export async function snapshotMapChunk(x, y, worldSize, worldResolution, worldDe
   });
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
-
-  } catch (e) {
-    console.warn(e);
-  }
 }
