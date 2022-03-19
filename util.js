@@ -784,3 +784,8 @@ export function shuffle(array, rng = Math.random) {
 
   return array;
 }
+export const waitForFrame = () => new Promise(accept => {
+  requestAnimationFrame(() => {
+    accept();
+  });
+});
