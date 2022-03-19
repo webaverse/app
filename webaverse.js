@@ -38,12 +38,6 @@ import performanceTracker from './performance-tracker.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 
-// XXX
-performanceTracker.addEventListener('results', e => {
-  const {results} = e.data;
-  window.results = results;
-});
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();

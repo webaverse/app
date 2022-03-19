@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import classnames from 'classnames';
 import {getRenderer} from '../renderer.js';
 import metaversefile from 'metaversefile';
+import performanceTracker from '../performance-tracker.js';
 import style from './Stats.module.css';
 
 const localVector = new THREE.Vector3();
@@ -18,6 +19,8 @@ export const Stats = () => {
 	const [geometries, setGeometries] = useState(0);
 	const [textures, setTextures] = useState(0);
 	const [calls, setCalls] = useState(0);
+	const [cpuResults, setCpuResults] = useState([]);
+	const [gpuResults, setGpuResults] = useState([]);
 
 	const renderer = getRenderer();
 	const localPlayer = metaversefile.useLocalPlayer();
@@ -30,6 +33,22 @@ export const Stats = () => {
 		debug.addEventListener('enabledchange', enabledchange);
 		return () => {
 			debug.removeEventListener('enabledchange', enabledchange);
+		};
+	}, []);
+
+	let lastSnapshotUpdateTime = performance.now();
+	useEffect(() => {
+		const snapshot = e => {
+			const now = performance.now();
+			if (now - lastSnapshotUpdateTime > 1000) {
+				setCpuResults(Array.from(e.data.cpuResults.values()));
+				setGpuResults(Array.from(e.data.gpuResults.values()));
+				lastSnapshotUpdateTime = now;
+			}
+		};
+		performanceTracker.addEventListener('snapshot', snapshot);
+		return () => {
+			performanceTracker.removeEventListener('snapshot', snapshot);
 		};
 	}, []);
 
@@ -49,8 +68,8 @@ export const Stats = () => {
 				localVector.y = 0;
 				setHspeed(localVector.length().toFixed(2));
 
-				const now = performance.now();
 				// Only update once per second
+				const now = performance.now();
 				if (now > lastTime + 1000) {
 					setFps(Math.round((frames * 1000) / (now - lastTime)));
 					setPrograms(renderer.info.programs.length);
@@ -72,52 +91,72 @@ export const Stats = () => {
 	}, [enabled]);
 
   return (
-		<div className={classnames(style.stats, enabled ? style.open : null)}>
-			<div className={style.line}>
-				<div className={style.label}>FPS: </div>
-				<div className={style.value}>{fps}</div>
+		<div className={classnames(style.statsContainer, enabled ? style.open : null)}>
+			<div className={style.stats}>
+			  <h3>CPU</h3>
+			  {cpuResults.map(result => (
+				  <div className={style.line} key={result.name}>
+            <div className={style.label}>{result.name}</div>
+						<div className={style.value}>{(result.time / 1e6).toFixed(2) + 'ms'}</div>
+					</div>
+				))}
 			</div>
-			<h3>World</h3>
-			<div className={style.line}>
-				<div className={style.label}>X: </div>
-				<div className={style.value}>{position[0]}</div>
+			<div className={classnames(style.stats)}>
+			  <h3>GPU</h3>
+				{gpuResults.map(result => (
+				  <div className={style.line} key={result.name}>
+            <div className={style.label}>{result.name}</div>
+						<div className={style.value}>{(result.time / 1e6).toFixed(2) + 'ms'}</div>
+					</div>
+				))}
 			</div>
-			<div className={style.line}>
-				<div className={style.label}>Y: </div>
-				<div className={style.value}>{position[1]}</div>
-			</div>
-			<div className={style.line}>
-				<div className={style.label}>Z: </div>
-				<div className={style.value}>{position[2]}</div>
-			</div>
-			<div className={style.line}>
-				<div className={style.label}>Velocity: </div>
-				<div className={style.value}>{velocity.join(', ')}</div>
-			</div>
-			<div className={style.line}>
-				<div className={style.label}>Speed: </div>
-				<div className={style.value}>{speed}</div>
-			</div>
-			<div className={style.line}>
-				<div className={style.label}>HSpeed: </div>
-				<div className={style.value}>{hspeed}</div>
-			</div>
-			<h3>Renderer</h3>
-			<div className={style.line}>
-				<div className={style.label}>Programs: </div>
-				<div className={style.value}>{programs}</div>
-			</div>
-			<div className={style.line}>
-				<div className={style.label}>Geometries: </div>
-				<div className={style.value}>{geometries}</div>
-			</div>
-			<div className={style.line}>
-				<div className={style.label}>Textures: </div>
-				<div className={style.value}>{textures}</div>
-			</div>
-			<div className={style.line}>
-				<div className={style.label}>Draw Calls: </div>
-				<div className={style.value}>{calls}</div>
+			<div className={classnames(style.stats)}>
+				<div className={style.line}>
+					<div className={style.label}>FPS: </div>
+					<div className={style.value}>{fps}</div>
+				</div>
+				<h3>World</h3>
+				<div className={style.line}>
+					<div className={style.label}>X: </div>
+					<div className={style.value}>{position[0]}</div>
+				</div>
+				<div className={style.line}>
+					<div className={style.label}>Y: </div>
+					<div className={style.value}>{position[1]}</div>
+				</div>
+				<div className={style.line}>
+					<div className={style.label}>Z: </div>
+					<div className={style.value}>{position[2]}</div>
+				</div>
+				<div className={style.line}>
+					<div className={style.label}>Velocity: </div>
+					<div className={style.value}>{velocity.join(', ')}</div>
+				</div>
+				<div className={style.line}>
+					<div className={style.label}>Speed: </div>
+					<div className={style.value}>{speed}</div>
+				</div>
+				<div className={style.line}>
+					<div className={style.label}>HSpeed: </div>
+					<div className={style.value}>{hspeed}</div>
+				</div>
+				<h3>Renderer</h3>
+				<div className={style.line}>
+					<div className={style.label}>Programs: </div>
+					<div className={style.value}>{programs}</div>
+				</div>
+				<div className={style.line}>
+					<div className={style.label}>Geometries: </div>
+					<div className={style.value}>{geometries}</div>
+				</div>
+				<div className={style.line}>
+					<div className={style.label}>Textures: </div>
+					<div className={style.value}>{textures}</div>
+				</div>
+				<div className={style.line}>
+					<div className={style.label}>Draw Calls: </div>
+					<div className={style.value}>{calls}</div>
+				</div>
 			</div>
 		</div>
 	);

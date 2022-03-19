@@ -18,57 +18,58 @@ class PerformanceTracker extends EventTarget {
     super();
 
     this.enabled = debug.enabled;
-    this.queries = new Map();
-    this.currentObject = null;
-    this.results = new Map();
+    this.gpuQueries = new Map();
+    this.cpuResults = new Map();
+    this.gpuResults = new Map();
+    this.currentGpuObject = null;
     this.prefix = '';
 
     debug.addEventListener('enabledchange', e => {
       this.enabled = e.data.enabled;
     });
   }
-  startObject(name) {
+  startGpuObject(name) {
     if (!this.enabled) return;
     
     if (this.prefix) {
       name = [this.prefix, name].join('/');
     }
 
-    if (this.currentObject?.name !== name) {
+    if (this.currentGpuObject?.name !== name) {
       const gl = getGl();
       const ext = getExt();
 
-      if (this.currentObject) {
-        this.endObject();
+      if (this.currentGpuObject) {
+        this.endGpuObject();
       }
 
       const query = gl.createQuery();
       gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
     
-      let currentObject = this.results.get(name);
-      if (!currentObject) {
-        currentObject = {
+      let currentGpuObject = this.gpuResults.get(name);
+      if (!currentGpuObject) {
+        currentGpuObject = {
           name,
           time: 0,
         };
-        this.results.set(name, currentObject);
+        this.gpuResults.set(name, currentGpuObject);
       }
-      this.currentObject = currentObject;
+      this.currentGpuObject = currentGpuObject;
 
-      let qs = this.queries.get(this.currentObject);
+      let qs = this.gpuQueries.get(this.currentGpuObject);
       if (!qs) {
         qs = [];
-        this.queries.set(this.currentObject, qs);
+        this.gpuQueries.set(this.currentGpuObject, qs);
       }
       qs.push(query);
     }
   }
-  endObject() {
+  endGpuObject() {
     if (!this.enabled) return;
 
     const gl = getGl();
     gl.endQuery(ext.TIME_ELAPSED_EXT);
-    this.currentObject = null;
+    this.currentGpuObject = null;
   }
   startFrame() {
     if (!this.enabled) return;
@@ -83,29 +84,31 @@ class PerformanceTracker extends EventTarget {
   decorateApp(app) {
     const _makeOnBeforeRender = fn => {
       const resultFn = () => {
-        this.startObject(app.name);
+        this.startGpuObject(app.name);
         fn && fn();
       };
       resultFn[performanceTrackerFnSymbol] = true;
       return resultFn;
     };
-    /* const _makeOnAfterRender = fn => {
+    const _makeOnAfterRender = fn => {
       const resultFn = () => {
+        if (this.currentGpuObject?.name === name) {
+          this.endGpuObject();
+        }
         fn && fn();
-        this.started && this.endObject();
       };
       resultFn[performanceTrackerFnSymbol] = true;
       return resultFn;
-    }; */
+    };
 
     const _decorateObject = o => {
       if (o.isMesh) {
         if (!o.onBeforeRender?.[performanceTrackerFnSymbol]) {
           o.onBeforeRender = _makeOnBeforeRender(o.onBeforeRender);
         }
-        /* if (!o.onAfterRender?.[performanceTrackerFnSymbol]) {
+        if (!o.onAfterRender?.[performanceTrackerFnSymbol]) {
           o.onAfterRender = _makeOnAfterRender(o.onAfterRender);
-        } */
+        }
       }
     }
     const _traverse = o => {
@@ -119,41 +122,46 @@ class PerformanceTracker extends EventTarget {
     }
     _traverse(app);
   }
-  scheduleResults(results) {
+  async waitForGpuResults(gpuResults) {
+    const renderer = getRenderer();
+    const gl = renderer.getContext();
+
+    for (const [name, object] of gpuResults) {
+      const qs = this.gpuQueries.get(object);
+      for (const query of qs) {
+        // wait for query result
+        for (;;) {
+          const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+          if (available) {
+            break;
+          } else {
+            await waitForFrame();
+          }
+        }
+
+        // sum query result
+        object.time += gl.getQueryParameter(query, gl.QUERY_RESULT);
+        
+        // cleanup
+        // gl.deleteQuery(query);
+      }
+
+      // cleanup
+      this.gpuQueries.delete(object);
+    }
+  }
+  scheduleSnapshot() {
     if (!this.enabled) return;
 
     (async () => {
-      const renderer = getRenderer();
-      const gl = renderer.getContext();
+      const {cpuResults, gpuResults} = this;
 
-      for (const [name, object] of results) {
-        const qs = this.queries.get(object);
-        for (const query of qs) {
-          // wait for query result
-          for (;;) {
-            const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
-            if (available) {
-              break;
-            } else {
-              await waitForFrame();
-            }
-          }
+      await this.waitForGpuResults(gpuResults);
 
-          // sum query result
-          object.time += gl.getQueryParameter(query, gl.QUERY_RESULT);
-          
-          // cleanup
-          // gl.deleteQuery(query);
-        }
-
-        // cleanup
-        this.queries.delete(object);
-      }
-
-      // emit results
-      this.dispatchEvent(new MessageEvent('results', {
+      this.dispatchEvent(new MessageEvent('snapshot', {
         data: {
-          results,
+          cpuResults,
+          gpuResults,
         },
       }));
     })();
@@ -161,13 +169,16 @@ class PerformanceTracker extends EventTarget {
   endFrame() {
     if (!this.enabled) return;
 
-    if (this.currentObject) {
-      this.endObject();
+    if (this.currentGpuObject) {
+      this.endGpuObject();
     }
-    this.scheduleResults(this.results);
-    this.results = new Map();
 
-    this.dispatchEvent(new MessageEvent('endframe'));
+    this.scheduleSnapshot();
+
+    this.cpuResults = new Map();
+    this.gpuResults = new Map();
+
+    // this.dispatchEvent(new MessageEvent('endframe'));
   }
 }
 const performanceTracker = new PerformanceTracker();
