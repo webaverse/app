@@ -314,6 +314,8 @@ physicsManager.simulatePhysics = timeDiff => {
       else if (id === 5) physicsObject = window.bodyRDRightLeg;
       else if (id === 6) physicsObject = window.bodyRDLeftCalf;
       else if (id === 7) physicsObject = window.bodyRDRightCalf;
+      else if (id === 8) physicsObject = window.bodyRDLeftArm;
+      else if (id === 9) physicsObject = window.bodyRDRightArm;
       else physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
 
       // debugger
@@ -364,6 +366,16 @@ physicsManager.simulatePhysics = timeDiff => {
           window.meshRDRightCalf.matrix.copy(window.bodyRDRightCalf.matrix)
           window.meshRDRightCalf.matrixWorld.copy(window.bodyRDRightCalf.matrixWorld)
           window.meshRDRightCalf.matrix.decompose(window.meshRDRightCalf.position, window.meshRDRightCalf.quaternion, window.meshRDRightCalf.scale);
+        }
+        else if (id === 8) {
+          window.meshRDLeftArm.matrix.copy(window.bodyRDLeftArm.matrix)
+          window.meshRDLeftArm.matrixWorld.copy(window.bodyRDLeftArm.matrixWorld)
+          window.meshRDLeftArm.matrix.decompose(window.meshRDLeftArm.position, window.meshRDLeftArm.quaternion, window.meshRDLeftArm.scale);
+        }
+        else if (id === 9) {
+          window.meshRDRightArm.matrix.copy(window.bodyRDRightArm.matrix)
+          window.meshRDRightArm.matrixWorld.copy(window.bodyRDRightArm.matrixWorld)
+          window.meshRDRightArm.matrix.decompose(window.meshRDRightArm.position, window.meshRDRightArm.quaternion, window.meshRDRightArm.scale);
         }
 
         // console.log('set', physicsObject.name, id, physicsObject.position.toArray().join(','));
