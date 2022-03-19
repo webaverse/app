@@ -18,7 +18,6 @@ import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
 import loadoutManager from './loadout-manager.js';
-import {Stats} from './stats.js';
 import {
   getRenderer,
   scene,
@@ -35,11 +34,9 @@ import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import * as voices from './voices.js';
+import performanceTracker from './performance-tracker.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-
-// const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
-// const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -65,17 +62,10 @@ const frameEvent = new MessageEvent('frame', {
     // lastTimestamp: 0,
   },
 });
-const rendererStats = Stats();
 
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
-
-    rendererStats.domElement.style.position = 'absolute';
-    rendererStats.domElement.style.right = '0px';
-    rendererStats.domElement.style.bottom = '0px';
-    rendererStats.domElement.style.display = 'none';
-    document.body.appendChild(rendererStats.domElement);
 
     this.loadPromise = (async () => {
       await Promise.all([
@@ -272,10 +262,6 @@ export default class Webaverse extends EventTarget {
     this.dispatchEvent(frameEvent);
 
     getComposer().render();
-    const debug = metaversefileApi.useDebug();
-    if (debug.enabled) {
-      rendererStats.update(renderer);
-    }
 
     this.dispatchEvent(new MessageEvent('frameend', {
       data: {
@@ -294,52 +280,66 @@ export default class Webaverse extends EventTarget {
     }
     
     let lastTimestamp = performance.now();
-
     const animate = (timestamp, frame) => {
-      timestamp = timestamp ?? performance.now();
-      const timeDiff = timestamp - lastTimestamp;
-      const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 
+      performanceTracker.startFrame();
 
-      ioManager.update(timeDiffCapped);
-      // this.injectRigInput();
-      
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
-        //if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
-        physicsManager.simulatePhysics(timeDiffCapped); 
-        localPlayer.updatePhysics(timestamp, timeDiffCapped);
-      }
+      const _frame = () => {
+        timestamp = timestamp ?? performance.now();
+        const timeDiff = timestamp - lastTimestamp;
+        const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
 
-      transformControls.update();
-      game.update(timestamp, timeDiffCapped);
-      
-      localPlayer.updateAvatar(timestamp, timeDiffCapped);
-      playersManager.update(timestamp, timeDiffCapped);
-      
-      world.appManager.tick(timestamp, timeDiffCapped, frame);
+        performanceTracker.setGpuPrefix('pre');
+        const _pre = () => {
+          ioManager.update(timeDiffCapped);
+          // this.injectRigInput();
+          
+          const localPlayer = metaversefileApi.useLocalPlayer();
+          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
+            physicsManager.simulatePhysics(timeDiffCapped);
+            localPlayer.updatePhysics(timestamp, timeDiffCapped);
+          }
 
-      hpManager.update(timestamp, timeDiffCapped);
+          transformControls.update();
+          game.update(timestamp, timeDiffCapped);
+          
+          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+          playersManager.update(timestamp, timeDiffCapped);
+          
+          world.appManager.tick(timestamp, timeDiffCapped, frame);
 
-      cameraManager.updatePost(timestamp, timeDiffCapped);
-      ioManager.updatePost();
+          hpManager.update(timestamp, timeDiffCapped);
 
-      game.pushAppUpdates();
-      game.pushPlayerUpdates();
+          cameraManager.updatePost(timestamp, timeDiffCapped);
+          ioManager.updatePost();
 
-      const session = renderer.xr.getSession();
-      const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-      localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
-      localMatrix2.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix)
-        .decompose(localVector, localQuaternion, localVector2);
-      
-      lastTimestamp = timestamp;
+          game.pushAppUpdates();
+          game.pushPlayerUpdates();
 
-      // render scenes
-      dioramaManager.update(timestamp, timeDiffCapped);
-      minimapManager.update(timestamp, timeDiffCapped);
-      loadoutManager.update(timestamp, timeDiffCapped);
-      this.render(timestamp, timeDiffCapped);
+          const session = renderer.xr.getSession();
+          const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
+          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
+          localMatrix2.copy(xrCamera.matrix)
+            .premultiply(dolly.matrix)
+            .decompose(localVector, localQuaternion, localVector2);
+          
+          lastTimestamp = timestamp;
+        };
+        _pre();
+
+        // render scenes
+        performanceTracker.setGpuPrefix('diorama');
+        dioramaManager.update(timestamp, timeDiffCapped);
+        performanceTracker.setGpuPrefix('minimap');
+        minimapManager.update(timestamp, timeDiffCapped);
+        performanceTracker.setGpuPrefix('loadout');
+        loadoutManager.update(timestamp, timeDiffCapped);
+
+        performanceTracker.setGpuPrefix('');
+        this.render(timestamp, timeDiffCapped);
+      };
+      _frame();
+
+      performanceTracker.endFrame();
     }
     renderer.setAnimationLoop(animate);
 
