@@ -3,62 +3,9 @@ import * as THREE from 'three';
 import classnames from 'classnames';
 import {getRenderer} from '../renderer.js';
 import metaversefile from 'metaversefile';
-const {useLocalPlayer, useDebug} = metaversefile;
 import style from './Stats.module.css';
 
 const localVector = new THREE.Vector3();
-
-const StatsOld = function () {
-	// var msMin	= 100;
-	// var msMax	= 0;
-	let frames  = 0;
-	let lastTime = performance.now();
-	const localPlayer = metaversefile.useLocalPlayer();
-
-	/* const rendererStats = this;
-	rendererStats.domElement.style.position = 'absolute';
-	rendererStats.domElement.style.right = '0px';
-	rendererStats.domElement.style.bottom = '0px';
-	rendererStats.domElement.style.display = 'none'; */
-
-	return {
-		domElement: container,
-
-		update: function(webGLRenderer){
-			frames++;
-
-			var i = 0;
-
-			// Update every frame
-			if (localPlayer) {
-				msTexts[i++].textContent = "X: " + localPlayer.position.x.toFixed(2);
-				msTexts[i++].textContent = "Y: " + localPlayer.position.y.toFixed(2);
-				msTexts[i++].textContent = "Z: " + localPlayer.position.z.toFixed(2);
-				msTexts[i++].textContent = "Velocity: " + localPlayer.characterPhysics.velocity.toArray().map(n => n.toFixed(2)).join(', ');
-				msTexts[i++].textContent = "Speed: " + localPlayer.characterPhysics.velocity.length().toFixed(2);
-				localVector.copy(localPlayer.characterPhysics.velocity);
-				localVector.y = 0;
-				msTexts[i++].textContent = "HSpeed: " + localVector.length().toFixed(2);
-			}
-			
-			// Only update once per second
-			if (performance.now() > lastTime + 1000) {
-				const now = performance.now();
-				msTexts[i++].textContent = "FPS: " + Math.round((frames * 1000) / (now - lastTime));
-				msTexts[i++].textContent = "== Memory =====";
-				msTexts[i++].textContent = "Programs: "	+ webGLRenderer.info.programs.length;
-				msTexts[i++].textContent = "Geometries: " +webGLRenderer.info.memory.geometries;
-				msTexts[i++].textContent = "Textures: "	+ webGLRenderer.info.memory.textures;
-
-				msTexts[i++].textContent = "== Render =====";
-				msTexts[i++].textContent = "Draw Calls: " + webGLRenderer.info.render.calls;
-				// msTexts[i++].textContent = "Triangles: "	+ webGLRenderer.info.render.triangles;
-				frames = 0;
-				lastTime	= performance.now();
-			}
-		}
-	}
-};
 
 export const Stats = () => {
 	const [enabled, setEnabled] = useState(false);
@@ -71,30 +18,6 @@ export const Stats = () => {
 	const [geometries, setGeometries] = useState(0);
 	const [textures, setTextures] = useState(0);
 	const [calls, setCalls] = useState(0);
-
-  /* if (localPlayer) {
-		msTexts[i++].textContent = "X: " + localPlayer.position.x.toFixed(2);
-		msTexts[i++].textContent = "Y: " + localPlayer.position.y.toFixed(2);
-		msTexts[i++].textContent = "Z: " + localPlayer.position.z.toFixed(2);
-		msTexts[i++].textContent = "Velocity: " + localPlayer.characterPhysics.velocity.toArray().map(n => n.toFixed(2)).join(', ');
-		msTexts[i++].textContent = "Speed: " + localPlayer.characterPhysics.velocity.length().toFixed(2);
-		localVector.copy(localPlayer.characterPhysics.velocity);
-		localVector.y = 0;
-		msTexts[i++].textContent = "HSpeed: " + localVector.length().toFixed(2);
-	}
-	
-	// Only update once per second
-	// const now = performance.now();
-		msTexts[i++].textContent = "FPS: " + Math.round((frames * 1000) / (now - lastTime));
-		msTexts[i++].textContent = "== Memory =====";
-		msTexts[i++].textContent = "Programs: "	+ webGLRenderer.info.programs.length;
-		msTexts[i++].textContent = "Geometries: " +webGLRenderer.info.memory.geometries;
-		msTexts[i++].textContent = "Textures: "	+ webGLRenderer.info.memory.textures;
-
-		msTexts[i++].textContent = "== Render =====";
-		msTexts[i++].textContent = "Draw Calls: " + webGLRenderer.info.render.calls;
-		// msTexts[i++].textContent = "Triangles: "	+ webGLRenderer.info.render.triangles;
-  */
 
 	const renderer = getRenderer();
 	const localPlayer = metaversefile.useLocalPlayer();
