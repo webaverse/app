@@ -517,6 +517,9 @@ const physxWorker = (() => {
   w.setJointMotionPhysics = (physics, joint, axis, motion) => {
     moduleInstance._setJointMotionPhysics(physics, joint, axis, motion);
   }
+  w.setJointTwistLimitPhysics = (physics, joint, lowerLimit, upperLimit, contactDist = -1) => {
+    moduleInstance._setJointTwistLimitPhysics(physics, joint, lowerLimit, upperLimit, contactDist);
+  }
   w.simulatePhysics = (physics, updates, elapsedTime) => {
     // vismark
     /* if (updates.length > maxNumUpdates) {

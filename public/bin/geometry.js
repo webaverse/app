@@ -1116,9 +1116,9 @@ function updateGlobalBufferAndViews(buf) {
   Module['HEAPF64'] = HEAPF64 = new Float64Array(buf);
 }
 
-var STACK_BASE = 5429312,
+var STACK_BASE = 5429280,
     STACKTOP = STACK_BASE,
-    STACK_MAX = 186432;
+    STACK_MAX = 186400;
 
 
 
@@ -4730,6 +4730,11 @@ var _addJointPhysics = Module["_addJointPhysics"] = function() {
 /** @type {function(...*):?} */
 var _setJointMotionPhysics = Module["_setJointMotionPhysics"] = function() {
   return (_setJointMotionPhysics = Module["_setJointMotionPhysics"] = Module["asm"]["setJointMotionPhysics"]).apply(null, arguments);
+};
+
+/** @type {function(...*):?} */
+var _setJointTwistLimitPhysics = Module["_setJointTwistLimitPhysics"] = function() {
+  return (_setJointTwistLimitPhysics = Module["_setJointTwistLimitPhysics"] = Module["asm"]["setJointTwistLimitPhysics"]).apply(null, arguments);
 };
 
 /** @type {function(...*):?} */

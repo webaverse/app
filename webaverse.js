@@ -566,7 +566,7 @@ const _startHacks = () => {
     eFREE: 2, // !< The DOF is free and has its full range of motion.
   };
 
-  const jointHipsChest = physicsManager.addJoint(window.bodyRDHips, window.bodyRDChest, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1), new THREE.Quaternion(), new THREE.Quaternion(), false);
+  const jointHipsChest = physicsManager.addJoint(window.bodyRDHips, window.bodyRDChest, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1), new THREE.Quaternion(), new THREE.Quaternion(), true);
   const jointChestHead = physicsManager.addJoint(window.bodyRDChest, window.bodyRDHead, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1), new THREE.Quaternion(), new THREE.Quaternion());
   const jointHipsLeftLeg = physicsManager.addJoint(window.bodyRDHips, window.bodyRDLeftLeg, new THREE.Vector3(1, 0, -1), new THREE.Vector3(0, 0, 1), new THREE.Quaternion(), new THREE.Quaternion());
   const jointHipsRightLeg = physicsManager.addJoint(window.bodyRDHips, window.bodyRDRightLeg, new THREE.Vector3(-1, 0, -1), new THREE.Vector3(0, 0, 1), new THREE.Quaternion(), new THREE.Quaternion());
@@ -575,14 +575,41 @@ const _startHacks = () => {
   const jointChestLeftArm = physicsManager.addJoint(window.bodyRDChest, window.bodyRDLeftArm, new THREE.Vector3(1.5, 0, 0.5), new THREE.Vector3(-0.5, 0, 1), new THREE.Quaternion(), new THREE.Quaternion());
   const jointChestRightArm = physicsManager.addJoint(window.bodyRDChest, window.bodyRDRightArm, new THREE.Vector3(-1.5, 0, 0.5), new THREE.Vector3(0.5, 0, 1), new THREE.Quaternion(), new THREE.Quaternion());
 
-  physicsManager.setJointMotion(jointHipsChest, PxD6Axis.eTWIST, PxD6Motion.eFREE);
-  physicsManager.setJointMotion(jointChestHead, PxD6Axis.eTWIST, PxD6Motion.eFREE);
-  physicsManager.setJointMotion(jointHipsLeftLeg, PxD6Axis.eTWIST, PxD6Motion.eFREE);
-  physicsManager.setJointMotion(jointHipsRightLeg, PxD6Axis.eTWIST, PxD6Motion.eFREE);
-  physicsManager.setJointMotion(jointLeftLegLeftCalf, PxD6Axis.eTWIST, PxD6Motion.eFREE);
-  physicsManager.setJointMotion(jointRightLegRightCalf, PxD6Axis.eTWIST, PxD6Motion.eFREE);
-  physicsManager.setJointMotion(jointChestLeftArm, PxD6Axis.eTWIST, PxD6Motion.eFREE);
-  physicsManager.setJointMotion(jointChestRightArm, PxD6Axis.eTWIST, PxD6Motion.eFREE);
+  physicsManager.setJointMotion(jointHipsChest, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+  physicsManager.setJointMotion(jointChestHead, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+  physicsManager.setJointMotion(jointHipsLeftLeg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+  physicsManager.setJointMotion(jointHipsRightLeg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+  physicsManager.setJointMotion(jointLeftLegLeftCalf, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+  physicsManager.setJointMotion(jointRightLegRightCalf, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+  physicsManager.setJointMotion(jointChestLeftArm, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+  physicsManager.setJointMotion(jointChestRightArm, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+
+  physicsManager.setJointTwistLimit(jointHipsChest, 0, Math.PI / 6);
+  physicsManager.setJointTwistLimit(jointChestHead, 0, Math.PI / 6);
+  physicsManager.setJointTwistLimit(jointHipsLeftLeg, -Math.PI / 6, 0);
+  physicsManager.setJointTwistLimit(jointHipsRightLeg, -Math.PI / 6, 0);
+  physicsManager.setJointTwistLimit(jointLeftLegLeftCalf, -Math.PI / 6, 0);
+  physicsManager.setJointTwistLimit(jointRightLegRightCalf, -Math.PI / 6, 0);
+  physicsManager.setJointTwistLimit(jointChestLeftArm, -Math.PI / 6, 0);
+  physicsManager.setJointTwistLimit(jointChestRightArm, -Math.PI / 6, 0);
+
+  // physicsManager.setJointMotion(jointHipsChest, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointChestHead, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointHipsLeftLeg, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointHipsRightLeg, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointLeftLegLeftCalf, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointRightLegRightCalf, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointChestLeftArm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointChestRightArm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+
+  // physicsManager.setJointMotion(jointHipsChest, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointChestHead, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointHipsLeftLeg, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointHipsRightLeg, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointLeftLegLeftCalf, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointRightLegRightCalf, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointChestLeftArm, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+  // physicsManager.setJointMotion(jointChestRightArm, PxD6Axis.eSWING2, PxD6Motion.eFREE);
 
   let playerDiorama = null;
   let appDiorama = null;
