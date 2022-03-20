@@ -572,7 +572,7 @@ const minHeight = 0.02;
 // const baseScale = 0.02;
 // const fingerScale = 0.2;
 const physicsBoneScaleFactor = 0.8;
-const _makeCapsuleGeometry = (length = 1) => {
+const _makeCapsuleGeometry = (length = 1, isTop = false) => {
   length *= physicsBoneScaleFactor;
   const radius = boneRadius;
   const height = length - boneRadius*2;
@@ -581,12 +581,19 @@ const _makeCapsuleGeometry = (length = 1) => {
     // vismark
     (() => {
       const geometry = new CapsuleGeometry(radius, radius, height)
+      geometry.translate(height / 2, 0, 0)
+      if (isTop) {
+        geometry.rotateZ(Math.PI / 2)
+      } else {
+        geometry.rotateZ(- Math.PI / 2)
+      }
         /* .applyMatrix4(
           new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
         ); */
       return geometry;
     })(),
     new THREE.BoxGeometry(0.2, 0.005, 0.005).translate(0.1, 0, 0),
+    new THREE.BoxGeometry(0.003, 0.003, 0.04).translate(0, 0, 0.02),
   ]);
   geometry.radius = radius;
   geometry.halfHeight = halfHeight;
@@ -633,8 +640,8 @@ const _makeRagdollMesh = () => {
       Hips: _makeCubeMesh('Hips', false),
 
       Spine: _makeCubeMesh('Spine', true),
-      // Chest: _makeCubeMesh('Chest', true),
-      // UpperChest: _makeCubeMesh('UpperChest', true),
+      Chest: _makeCubeMesh('Chest', true),
+      UpperChest: _makeCubeMesh('UpperChest', true),
 
       // Neck: _makeCubeMesh('Neck', true),
       // Head: _makeCubeMesh('Head', true),
@@ -684,12 +691,12 @@ const _makeRagdollMesh = () => {
       Right_littleFinger3: _makeCubeMesh('Right_littleFinger3', true, fingerScale), */
 
       Left_leg: _makeCubeMesh('Left_leg', false),
-      // Left_knee: _makeCubeMesh('Left_knee', false),
+      Left_knee: _makeCubeMesh('Left_knee', false),
       // Left_ankle: _makeCubeMesh('Left_ankle', false),
       // Left_toe: _makeCubeMesh('Left_toe', false),
 
       Right_leg: _makeCubeMesh('Right_leg', false),
-      // Right_knee: _makeCubeMesh('Right_knee', false),
+      Right_knee: _makeCubeMesh('Right_knee', false),
       // Right_ankle: _makeCubeMesh('Right_ankle', false),
       // Right_toe: _makeCubeMesh('Right_toe', false),
     };
@@ -697,8 +704,8 @@ const _makeRagdollMesh = () => {
     // hips
     // mesh.Root.add2(mesh.Hips);
     mesh.Hips.add2(mesh.Spine);
-    // mesh.Spine.add2(mesh.Chest);
-    // mesh.Chest.add2(mesh.UpperChest);
+    mesh.Spine.add2(mesh.Chest);
+    mesh.Chest.add2(mesh.UpperChest);
 
     // // head
     // mesh.UpperChest.add2(mesh.Neck);
@@ -753,12 +760,12 @@ const _makeRagdollMesh = () => {
 
     // legs
     mesh.Hips.add2(mesh.Left_leg);
-    // mesh.Left_leg.add2(mesh.Left_knee);
+    mesh.Left_leg.add2(mesh.Left_knee);
     // mesh.Left_knee.add2(mesh.Left_ankle);
     // mesh.Left_ankle.add2(mesh.Left_toe);
 
     mesh.Hips.add2(mesh.Right_leg);
-    // mesh.Right_leg.add2(mesh.Right_knee);
+    mesh.Right_leg.add2(mesh.Right_knee);
     // mesh.Right_knee.add2(mesh.Right_ankle);
     // mesh.Right_ankle.add2(mesh.Right_toe);
     
@@ -847,7 +854,8 @@ const _makeRagdollMesh = () => {
 
       // set capsule geometries
       // vismark
-      meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength);
+      debugger
+      meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength, meshBone.isTop);
       // console.log({meshBone})
 
       // memoize
@@ -978,7 +986,7 @@ const _makeRagdollMesh = () => {
     const buffers = [];
 
     const _recurse = meshBone => {
-      debugger
+      // debugger
       const idBuffer = Uint32Array.from([meshBone.physicsId]);
       buffers.push(idBuffer);
 
@@ -3408,7 +3416,7 @@ class Avatar {
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
           const b = this.ragdollMesh.serializeSkeleton();
-          debugger
+          // debugger
           this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
         }
       }
