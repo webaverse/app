@@ -215,7 +215,6 @@ class AppManager extends EventTarget {
       };
       this.addEventListener('clear', clear);
       const _bailout = app => {
-
         // Add Error placeholder
         const errorPH = this.getErrorPlaceholder();
         if (app) {
@@ -232,17 +231,15 @@ class AppManager extends EventTarget {
         }
         p.reject(new Error('app cleared during load: ' + contentId));
       };
+
+      // attempt to load app
       try {
         const m = await metaversefile.import(contentId);
         if (!live) return _bailout(null);
 
         // create app
         // as an optimization, the app may be reused by calling addApp() before tracking it
-        let app = this.getAppByInstanceId(instanceId);
-        const reusedApp = !!app;
-        if (!app) {
-          app = metaversefile.createApp();
-        }
+        const app = metaversefile.createApp();
 
         // setup
         {
@@ -261,7 +258,8 @@ class AppManager extends EventTarget {
           }
         }
 
-        if (!reusedApp) {
+        // initialize app
+        {
           // console.log('add module', m);
           const mesh = await app.addModule(m);
           if (!live) return _bailout(app);
