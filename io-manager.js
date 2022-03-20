@@ -497,14 +497,6 @@ ioManager.keydown = e => {
       voiceInput.toggleSpeech();
       break;
     }
-    case 85: { // U
-      // if (game.canUpload()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuUpload();
-      // }
-      break;
-    }
     case 80: { // P
       // game.destroyWorld()
       // game.menuPhysics();
