@@ -440,7 +440,12 @@ class AppManager extends EventTarget {
     if (p) {
       return p;
     } else {
-      throw new Error('no pending world add object promise');
+      const app = this.getAppByInstanceId(instanceId);
+      if (app) {
+        return Promise.resolve(app);
+      } else {
+        throw new Error('no pending world add object promise');
+      }
     }
   }
   getTrackedAppIndex(instanceId) {
