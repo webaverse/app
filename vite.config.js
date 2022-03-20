@@ -8,7 +8,6 @@ import {transform} from 'esbuild';
 import glob from 'glob';
 import {dependencies} from './package.json';
 
-
 const esbuildLoaders = ['js', 'jsx', 'mjs', 'cjs'];
 let plugins = [
   // reactRefresh()
@@ -16,7 +15,7 @@ let plugins = [
 
 const baseDirectory = 'assets';
 
-let entryPoints = [
+const entryPoints = [
   {
     path: './avatars/**/*.js',
     exclude: ['./avatars/avatars.js'],
@@ -25,79 +24,87 @@ let entryPoints = [
   },
 ];
 
-//entryPoints = [];
+const copy = [
+
+]
+
+// entryPoints = [];
 
 const build = () => {
   const _entryPoints = [];
   const base = path.resolve('.', 'node_modules');
   const exportPaths = {};
 
-  const resolveEntryOfModule = (_path) =>{
+  const resolveEntryOfModule = _path => {
     console.log(_path);
-    let packageJSON = JSON.parse(fs.readFileSync(path.resolve(base , _path, 'package.json')).toString());
-    let moduleEntryFile = packageJSON.module || packageJSON.main || 'index.js';
-    let entryPoint = `./${path.normalize(`node_modules/${_path}/${moduleEntryFile}`)}` ;
-    let hasBin = (()=>{
-      if(packageJSON.bin){
-        return `./${path.normalize(`node_modules/${_path}/${packageJSON.bin}`)}`
+    const packageJSON = JSON.parse(fs.readFileSync(path.resolve(base, _path, 'package.json')).toString());
+    const moduleEntryFile = packageJSON.module || packageJSON.main || 'index.js';
+    const entryPoint = `./${path.normalize(`node_modules/${_path}/${moduleEntryFile}`)}`;
+    const hasBin = (() => {
+      if (packageJSON.bin) {
+        return `./${path.normalize(`node_modules/${_path}/${packageJSON.bin}`)}`;
       }
       return undefined;
-    })()
-    
+    })();
+
     console.log('-- Resolved entry point at', moduleEntryFile);
 
     entryPoints.push({
-      path:entryPoint,
-      replaceExpression: './node_modules'
+      path: entryPoint,
+      replaceExpression: './node_modules',
     });
 
-    exportPaths[_path] = entryPoint.replace('./node_modules',baseDirectory);
+    exportPaths[_path] = entryPoint.replace('./node_modules', baseDirectory);
     exportPaths[_path + '.meta'] = {
       moduleEntryFile,
-      files: packageJSON.files
-    }
+      files: packageJSON.files,
+    };
 
-
-    if(packageJSON.files){
+    if (packageJSON.files) {
       for (const file of packageJSON.files) {
-
-        const fp = path.join(base,_path,file);
-        let isFile; 
+        const fp = path.join(base, _path, file);
+        let isFile;
         try {
           isFile = fs.statSync(fp).isFile();
-          if(isFile && !esbuildLoaders.includes(path.parse(fp).ext.replace('.',''))){
-            console.log('---- Skipping file ',fp);
+          if (isFile && !esbuildLoaders.includes(path.parse(fp).ext.replace('.', ''))) {
+            console.log('---- Skipping file ', fp);
             continue;
-          }         
+          }
         } catch (error) {
           /** Definitely a blob */
           isFile = false;
         }
         const isEntryPoint = fp === entryPoint;
 
-        if(isFile && !isEntryPoint){
+        if (isFile && !isEntryPoint) {
           entryPoints.push({
             path: `./${path.normalize(`node_modules/${_path}/${file}`)}`,
-            replaceExpression: './node_modules'
-          })
+            replaceExpression: './node_modules',
+          });
           console.log('---- Resolved file at', file);
-        }else{
+        } else {
           entryPoints.push(
             {
               path: `./node_modules/${_path}/${file}/**/*.*`,
               replaceExpression: './node_modules',
               exclude: [entryPoint, hasBin],
               glob: true,
-            }, 
-          )
-          console.log('---- Resolved folder at', file);         
+            },
+          );
+          console.log('---- Resolved folder at', file);
         }
-        
       }
-
+    } else {
+      copy.push(
+        {
+          path: `./node_modules/${_path}/**/*.*`,
+          replaceExpression: './node_modules',
+          exclude: [entryPoint, hasBin],
+          glob: true,
+        },
+      );
     }
-
-  }
+  };
 
   for (const dependency in dependencies) {
     resolveEntryOfModule(dependency);
@@ -133,23 +140,22 @@ const build = () => {
         if (iterator.glob) {
           const files = await resolveGlob(iterator.path);
           for (const file of files) {
-            let parseFile = path.parse(file);
-            if(!iterator.exclude.includes(file) && esbuildLoaders.includes(parseFile.ext.replace('.',''))){
+            const parseFile = path.parse(file);
+            if (!iterator.exclude.includes(file) && esbuildLoaders.includes(parseFile.ext.replace('.', ''))) {
               const replacedPath = `${path.normalize(file.replace(iterator.replaceExpression, baseDirectory))}`;
-              exportPaths[file.replace('./node_modules/','')] = replacedPath;
+              exportPaths[file.replace('./node_modules/', '')] = replacedPath;
               const entry = this.emitFile({
                 type: 'chunk',
                 id: file,
-                fileName:replacedPath,
+                fileName: replacedPath,
               });
-              _entryPoints.push(entry);  
+              _entryPoints.push(entry);
             }
           }
         } else {
-
           let _name = iterator.name;
-          iterator.path = `./${path.normalize(iterator.path)}` 
-          if(iterator.replaceExpression){
+          iterator.path = `./${path.normalize(iterator.path)}`;
+          if (iterator.replaceExpression) {
             _name = iterator.path.replace(iterator.replaceExpression, baseDirectory);
           }
           // console.log('Emitting', iterator);
@@ -184,7 +190,7 @@ const build = () => {
       return null;
     },
     transform: (code, id) => {
-      if(code.startsWith('#!/usr/bin/env node')){
+      if (code.startsWith('#!/usr/bin/env node')) {
         return code.replace(/[\s\n]*#!.*[\s\n]*/, '');
       }
       return null;
@@ -220,18 +226,15 @@ const viteConfigProduction = {
         manualChunks: id => {
           if (id.includes('ceramic')) {
             return 'ceramic';
-          }  
-          else if (id.includes('web3.min.js')) {
+          } else if (id.includes('web3.min.js')) {
             return 'web3';
-          }
-          else if (id.includes('metaverse-modules.js')) {
+          } else if (id.includes('metaverse-modules.js')) {
             return 'metaverse-modules';
-          }
-          else if (id.includes('app/util.js')) {
+          } else if (id.includes('app/util.js')) {
             return 'util';
           }
 
-          //return 'app';
+          // return 'app';
         },
         assetFileNames: 'assets/[name].[ext]',
         chunkFileNames: 'assets/[name].js',
