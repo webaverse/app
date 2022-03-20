@@ -1238,6 +1238,9 @@ class GameManager extends EventTarget {
   menuPaste(s) {
     menuMesh.paste(s);
   }
+  inputFocused() {
+    return !!document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
+  }
   canGrab() {
     return !!highlightedObject /*&& !editedObject*/;
   }
