@@ -2,7 +2,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import {handleUpload} from '../util.js';
-import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx';
+import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
 import {registerLoad} from './LoadingBox.jsx';
 import metaversefile from 'metaversefile';
 
