@@ -7,13 +7,16 @@ import fs from 'fs';
 import {transform} from 'esbuild';
 import glob from 'glob';
 import {dependencies} from './package.json';
+import {copySync} from 'fs-extra';
 
 const esbuildLoaders = ['js', 'jsx', 'mjs', 'cjs'];
 let plugins = [
   // reactRefresh()
 ];
 
+const distDirectory = 'dist';
 const baseDirectory = 'assets';
+const relativeDistAssets = `./${distDirectory}/${baseDirectory}`;
 
 const entryPoints = [
   {
@@ -24,9 +27,9 @@ const entryPoints = [
   },
 ];
 
-const copy = [
+const toCopy = [
 
-]
+];
 
 // entryPoints = [];
 
@@ -95,7 +98,7 @@ const build = () => {
         }
       }
     } else {
-      copy.push(
+      toCopy.push(
         {
           path: `./node_modules/${_path}/**/*.*`,
           replaceExpression: './node_modules',
@@ -168,7 +171,7 @@ const build = () => {
         }
       }
     },
-    generateBundle(options, bundle) {
+    async generateBundle(options, bundle) {
       /** testing exports */
 
       if (process.env.OUTPUT_EXPORTS) {
@@ -186,6 +189,19 @@ const build = () => {
         fs.writeFileSync('dist/dependencies.json', JSON.stringify(exports, null, 4));
         fs.writeFileSync('dist/actualBundle.json', JSON.stringify(bundle, null, 4));
       }
+
+      for (const toc of toCopy) {
+        if (toc.glob) {
+          const files = await resolveGlob(toc.path);
+          for (const file of files) {
+            console.log(`** Copying ${file}`);
+            copySync(file, file.replace(toc.replaceExpression, relativeDistAssets), {
+              overwrite: false,
+            });
+          }
+        }
+      }
+
       fs.writeFileSync('dist/exports.json', JSON.stringify(exportPaths, null, 4));
       return null;
     },
