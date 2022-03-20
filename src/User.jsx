@@ -37,7 +37,7 @@ const User = ({
         setLoggingIn(true);
         try {
           const newAddress = await ceramicApi.login();
-          if (newAddress.address) setAddress(address);
+          if (newAddress.address) setAddress(newAddress.address);
 
           setLoginFrom("metamask");
           setShow(false);
