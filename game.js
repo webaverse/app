@@ -1042,7 +1042,7 @@ const _pushPlayerUpdates = () => {
 
 const rotationSnap = Math.PI/6;
 
-const metaverseUi = {
+/* const metaverseUi = {
   makeArrowLoader() {
     const app = metaversefileApi.createApp();
     (async () => {
@@ -1053,53 +1053,7 @@ const metaverseUi = {
     })();
     return app;
   },
-};
-window.addEventListener('dragover', e => {
-  e.preventDefault();
-});
-window.addEventListener('drop', async e => {
-  e.preventDefault();
-  
-  const renderer = getRenderer();
-  const rect = renderer.domElement.getBoundingClientRect();
-  localVector2D.set(
-    ( e.clientX / rect.width ) * 2 - 1,
-    - ( e.clientY / rect.height ) * 2 + 1
-  );
-  localRaycaster.setFromCamera(localVector2D, camera);
-  const dropZOffset = 2;
-  const position = localRaycaster.ray.origin.clone()
-    .add(
-      localVector2.set(0, 0, -dropZOffset)
-        .applyQuaternion(
-          localQuaternion
-            .setFromRotationMatrix(localMatrix.lookAt(
-              localVector3.set(0, 0, 0),
-              localRaycaster.ray.direction,
-              localVector4.set(0, 1, 0)
-            ))
-        )
-    );
-  const quaternion = camera.quaternion.clone();
-  
-  let arrowLoader = metaverseUi.makeArrowLoader();
-  arrowLoader.position.copy(position);
-  arrowLoader.quaternion.copy(quaternion);
-  scene.add(arrowLoader);
-  arrowLoader.updateMatrixWorld();
-  const items = Array.from(e.dataTransfer.items);
-  await Promise.all(items.map(async item => {
-    await _handleUpload(item, {
-      position,
-      quaternion,
-    });
-  }));
-  
-  if (arrowLoader) {
-    scene.remove(arrowLoader);
-    arrowLoader.destroy();
-  }
-});
+}; */
 
 const _bindPointerLock = () => {
   cameraManager.addEventListener('pointerlockchange', e => {
