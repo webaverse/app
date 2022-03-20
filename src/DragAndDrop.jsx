@@ -1,10 +1,14 @@
+import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
+import {world} from '../world.js';
 import {handleUpload} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
 import {registerLoad} from './LoadingBox.jsx';
 import metaversefile from 'metaversefile';
+
+const oneVector = new THREE.Vector3(1, 1, 1);
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -44,14 +48,14 @@ const canvasHeight = 400;
 
 const DragAndDrop = () => {
   const [queue, setQueue] = useState([]);
-  const [currentFile, setCurrentFile] = useState(null);
+  const [currentApp, setCurrentApp] = useState(null);
   const canvasRef = useRef();
 
   useEffect(() => {
     async function keydown(e) {
       if (e.which === 85) { // U
-        const u = await _upload();
-        setQueue(queue.concat([u]));
+        const app = await _upload();
+        setQueue(queue.concat([app]));
       }
     }
     registerIoEventHandler('keydown', keydown);
@@ -95,13 +99,13 @@ const DragAndDrop = () => {
         const name = 'Loading';
         const description = item.name;
         const load = registerLoad(name, description, 0);
-        const o = await uploadCreateApp(item/*, {
+        const app = await uploadCreateApp(item/*, {
           position,
           quaternion,
         }*/);
         load.end();
-        if (o) {
-          setQueue(queue.concat([o]));
+        if (app) {
+          setQueue(queue.concat([app]));
         }
       }));
     
@@ -124,13 +128,13 @@ const DragAndDrop = () => {
   }, []);
 
   useEffect(() => {
-    if (queue.length > 0 && !currentFile) {
-      const f = queue[0];
-      console.log('set file', f);
-      setCurrentFile(f);
+    if (queue.length > 0 && !currentApp) {
+      const app = queue[0];
+      console.log('set app', app);
+      setCurrentApp(app);
       setQueue(queue.slice(1));
     }
-  }, [queue]);
+  }, [queue, currentApp]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -139,7 +143,7 @@ const DragAndDrop = () => {
     }
   }, [canvasRef]);
 
-  const _currentFileClick = () => {
+  const _currentAppClick = e => {
     e.preventDefault();
     e.stopPropagation();
   };
@@ -147,36 +151,46 @@ const DragAndDrop = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('drop', currentFile);
+    if (currentApp) {
+      const localPlayer = metaversefile.useLocalPlayer();
+      const position = localPlayer.position.clone()
+        .add(new THREE.Vector3(0, 0, -2).applyQuaternion(localPlayer.quaternion));
+      const quaternion = localPlayer.quaternion;
+
+      world.appManager.addApp(currentApp);
+      world.appManager.addTrackedApp(currentApp.contentId, position, quaternion, oneVector);
+      
+      setCurrentApp(null);
+    }
   };
   const _equip = e => {
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('equip', currentFile);
+    console.log('equip', currentApp);
   };
   const _mint = e => {
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('mint', currentFile);
+    console.log('mint', currentApp);
   };
 
   return (
     <div className={style.dragAndDrop}>
-      {currentFile ? (
-        <div className={style.currentFile} onClick={_currentFileClick}>
+      {currentApp ? (
+        <div className={style.currentApp} onClick={_currentAppClick}>
           <h1 className={style.heading}>Upload object</h1>
           <div className={style.body}>
             <canvas className={style.canvas} width={canvasWidth} height={canvasHeight} ref={canvasRef} />
             <div className={style.wrap}>
               <div className={style.row}>
                 <div className={style.label}>Name: </div>
-                <div className={style.value}>{currentFile.name}</div>
+                <div className={style.value}>{currentApp.name}</div>
               </div>
               <div className={style.row}>
                 <div className={style.label}>Type: </div>
-                <div className={style.value}>{currentFile.appType}</div>
+                <div className={style.value}>{currentApp.appType}</div>
               </div>
             </div>
           </div>
