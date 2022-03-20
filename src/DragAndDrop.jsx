@@ -6,6 +6,7 @@ import {world} from '../world.js';
 import {getRandomString, handleUpload} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
 import {registerLoad} from './LoadingBox.jsx';
+import game from '../game.js';
 import metaversefile from 'metaversefile';
 
 const _upload = () => new Promise((accept, reject) => {
@@ -52,10 +53,16 @@ const DragAndDrop = () => {
   const canvasRef = useRef();
 
   useEffect(() => {
-    async function keydown(e) {
+    function keydown(e) {
+      if (game.inputFocused()) return true;
+
       if (e.which === 85) { // U
-        const app = await _upload();
-        setQueue(queue.concat([app]));
+        (async () => {
+          const app = await _upload();
+          setQueue(queue.concat([app]));
+        })();
+
+        return false;
       }
     }
     registerIoEventHandler('keydown', keydown);
