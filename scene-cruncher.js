@@ -316,7 +316,7 @@ export async function snapshotMapChunk(scene, position, worldSize, worldResoluti
       color: 0xFFFFFF,
     });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.depthFloatImageData = depthFloatImageData;
+    mesh.geometry.depthFloatImageData = depthFloatImageData;
     return mesh;
   };
   const topMesh = _makeMesh(
@@ -358,7 +358,7 @@ export async function snapshotMapChunk(scene, position, worldSize, worldResoluti
 
   {
     const clipRange = 3;
-    const _cleanGeometry = geometry => {
+    const _cleanGeometry = (geometry, axis) => {
       let index = 0;
 
       for (let iy = 0; iy < worldDepthResolution; iy++) {
