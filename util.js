@@ -999,3 +999,13 @@ export const handleUpload = async item => {
   world.appManager.addTrackedApp(u, position, quaternion, oneVector); */
   return u;
 };
+
+export const loadImage = u => new Promise((resolve, reject) => {
+  const img = new Image();
+  img.onload = () => {
+    resolve(img);
+  };
+  img.onerror = reject;
+  img.crossOrigin = 'Anonymous';
+  img.src = u;
+});
