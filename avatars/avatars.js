@@ -51,6 +51,7 @@ import {
   // animationBoneToModelBone,
 } from './util.mjs';
 import metaversefile from 'metaversefile';
+import physx from '../physx.js';
 
 let first = true;
 
@@ -605,7 +606,8 @@ const _makeCapsuleGeometry = (length = 1, isTop = false) => {
   geometry.halfHeight = halfHeight;
   return geometry;
 };
-const ragdollMeshGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+const size = new THREE.Vector3(0.03, 0.03, 0.03)
+const ragdollMeshGeometry = new THREE.BoxGeometry(size.x, size.y, size.z);
 const ragdollMeshMaterial = new THREE.MeshNormalMaterial({
   // color: 0xFF0000,
   transparent: true,
@@ -616,8 +618,10 @@ const _makeRagdollMesh = () => {
   const _makeCubeMesh = (name, isTop, scale = 1) => {
     // const scaleFactor = baseScale * scale;
 
-    const object = new THREE.Object3D(); // === flatMeshes.Hips/Spine etc?
+    const object = new THREE.Object3D(); // === flatMeshes.Hips/Spine etc
     object.name = name;
+    object.size = size;
+    object.sizeHalf = size.clone().multiplyScalar(0.5);
     object.physicsId = getNextPhysicsId();
     physicsIdToMeshBoneMap.set(object.physicsId, object);
 
@@ -778,10 +782,15 @@ const _makeRagdollMesh = () => {
     return mesh;
   };
 
-  const flatMeshes = _makeMeshes();
+  const flatMeshes = _makeMeshes(); // type: physicsObject
   window.flatMeshes = flatMeshes
-  // flatMeshes.Hips === ragdollMesh.children[0].children[0] // true
-  // flatMeshes === ragdollMesh.children[0] // false
+  // flatMeshes.Hips.parent === flatMeshes.Spine.parent
+  // flatMeshes.Hips.children2[0] === flatMeshes.Spine
+  // flatMeshes.Hips.children2[2] === flatMeshes.Left_leg
+  // flatMeshes.Hips.children2[2] === flatMeshes.Right_leg
+  // flatMeshes.Hips === ragdollMesh.children[0].children[0]
+  // flatMeshes.Hips.physicsMesh === flatMeshes.Hips.children[0]
+  // flatMeshes !== ragdollMesh.children[0]
   const flatMesh = new THREE.Object3D();
   for (const k in flatMeshes) {
     flatMesh.add(flatMeshes[k]);
@@ -866,7 +875,7 @@ const _makeRagdollMesh = () => {
 
       // set capsule geometries
       // vismark
-      meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength, meshBone.isTop);
+      // meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength, meshBone.isTop);
       // console.log({meshBone})
 
       // memoize
@@ -979,6 +988,11 @@ const _makeRagdollMesh = () => {
       if (!meshBone) {
         continue;
       }
+
+      // if (k !== 'Hips') {
+        // meshBone.rotation.x += 0.003; // vismark // need set every frame
+        // meshBone.updateMatrixWorld();
+      // }
       
       localMatrix.copy(meshBone.fakeBone.matrixWorld);
       if (modelBone.parent) {
@@ -993,6 +1007,7 @@ const _makeRagdollMesh = () => {
         localMatrix.decompose(localVector, localQuaternion, localVector2);
         // localQuaternion.multiply(yToXQuaternion)
         modelBone.quaternion.copy(localQuaternion)
+        // if (window.isTest) modelBone.rotation.x += 1; // need set every frame
       }
       modelBone.updateMatrixWorld();
     }
@@ -3452,17 +3467,23 @@ class Avatar {
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
           // console.log('createSkeleton', 1) // note: when first ragdoll
-          const b = this.ragdollMesh.serializeSkeleton();
+          // const b = this.ragdollMesh.serializeSkeleton();
           // debugger
-          this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
+          // this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
+
+          for (const k in flatMeshes) {
+            const physicsObject = flatMeshes[k]
+            physx.physxWorker.addBoxGeometryPhysics(physx.physics, physicsObject.position, physicsObject.quaternion, physicsObject.sizeHalf, physicsObject.physicsId, true);
+          }
+
         }
       }
-      if (!this.ragdoll && this.ragdollMesh.skeleton) {
-        // console.log('setSkeletonFromBuffer', 1) // note: when second idle-ing
-        const b = this.ragdollMesh.serializeSkeleton();
-        // console.log('setSkeletonFromBuffer')
-        physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, true, b);
-      }
+      // if (!this.ragdoll && this.ragdollMesh.skeleton) {
+      //   // console.log('setSkeletonFromBuffer', 1) // note: when second idle-ing
+      //   const b = this.ragdollMesh.serializeSkeleton();
+      //   // console.log('setSkeletonFromBuffer')
+      //   physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, true, b);
+      // }
     }
     /* if (first) {
       this.ragdollMesh.setFromAvatar(this);
