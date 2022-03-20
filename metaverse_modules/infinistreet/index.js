@@ -4,7 +4,6 @@ const {MToonMaterial} = ThreeVrm;
 // window.ThreeVrm = ThreeVrm;
 // import easing from './easing.js';
 import {StreetGeometry} from './StreetGeometry.js';
-import alea from 'alea';
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useActivate, useLoaders, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
 
@@ -60,7 +59,7 @@ export default () => {
   const app = useApp();
   const physics = usePhysics();
   const procGen = useProcGen();
-  const {chunkWorldSize} = procGen;
+  const {alea, chunkWorldSize} = procGen;
 
   app.name = 'infinistreet';
 
