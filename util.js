@@ -977,8 +977,8 @@ export const handleUpload = async item => {
 
         u = `${storageHost}/${hash}/${name}`;
       }
-      return u;
     }
+    return u;
   };
   const u = await _uploadObject(item);
   
