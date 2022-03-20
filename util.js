@@ -72,7 +72,7 @@ export function readFile(file) {
     fr.readAsArrayBuffer(file);
   });
 }
-export function bindUploadFileButton(inputFileEl, handleUpload) {
+/*  export function bindUploadFileButton(inputFileEl, handleUpload) {
   function change(e) {
     inputFileEl.removeEventListener('change', change);
     
@@ -96,7 +96,7 @@ export function bindUploadFileButton(inputFileEl, handleUpload) {
     bindUploadFileButton(newInputFileEl, handleUpload);
   }
   inputFileEl.addEventListener('change', change);
-}
+} */
 
 export function snapPosition(o, positionSnap) {
   if (positionSnap > 0) {
