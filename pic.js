@@ -117,7 +117,7 @@ export const genPic = async ({
   const position = new THREE.Vector3(0, 1.5, 0);
   const quaternion = new THREE.Quaternion();
   const scale = new THREE.Vector3(1, 1, 1);
-  const player = await npcManager.createNpc({
+  const player = npcManager.createNpc({
     name: 'npc',
     avatarApp: app,
     position,

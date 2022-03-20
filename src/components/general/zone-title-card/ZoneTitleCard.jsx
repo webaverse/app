@@ -59,8 +59,14 @@ export const ZoneTitleCard = ({
             </div>
             <div className={ styles.rightSection }>
                 <RenderMirror app={app} width={128} enabled={app.titleCardHack} />
-                <div className={ styles.title }>{title}</div>
-                <div className={ styles.description }>{description}</div>
+                <div className={ styles.title }>
+                    <div className={ styles.background } />
+                    <div className={ styles.text }>{title}</div>
+                </div>
+                <div className={ styles.description }>
+                    <div className={ styles.background } />
+                    <div className={ styles.text }>{description}</div>
+                </div>
                 <div className={ styles.comment }>{comment}</div>
             </div>
             <div className={ styles.bottomSection }>

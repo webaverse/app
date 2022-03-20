@@ -37,7 +37,7 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     rig.setHandEnabled(i, player.hands[i].enabled);
   }
   rig.setTopEnabled(
-    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
+    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled)),
   );
   rig.setBottomEnabled(
     (
@@ -191,7 +191,7 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
         .setFromNormalAndCoplanarPoint(
           localVector.set(0, 0, 1)
             .applyQuaternion(localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)),
-          mirrorPosition
+          mirrorPosition,
         )
         .projectPoint(eyePosition, rig.eyeballTarget);
       rig.eyeballTargetEnabled = true;
@@ -223,7 +223,24 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerEmotesToAvatar(player, rig);
   applyPlayerPoseToAvatar(player, rig);
 }
-export async function switchAvatar(oldAvatar, newApp) {
+
+export function switchAvatar(oldAvatar, newApp) {
+  let result;
+
+  oldAvatar && oldAvatar[appSymbol].toggleBoneUpdates(true);
+
+  if (newApp) {
+    newApp.toggleBoneUpdates(true);
+    if (!newApp[avatarSymbol]) {
+      newApp[avatarSymbol] = makeAvatar(newApp);
+    }
+    result = newApp[avatarSymbol];
+  } else {
+    result = null;
+  }
+  return result;
+}
+/* export async function switchAvatar(oldAvatar, newApp) {
   let result;
   const promises = [];
   if (oldAvatar) {
@@ -232,17 +249,16 @@ export async function switchAvatar(oldAvatar, newApp) {
     })());
   }
   if (newApp) {
-    promises.push((async () => {
-      await newApp.setSkinning(true);
-      
+    // promises.push((async () => {
+    newApp.toggleBoneUpdates(true);
       if (!newApp[avatarSymbol]) {
         newApp[avatarSymbol] = makeAvatar(newApp);
       }
       result = newApp[avatarSymbol];
-    })());
+    // })());
   } else {
     result = null;
   }
   await Promise.all(promises);
   return result;
-}
+} */
