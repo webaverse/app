@@ -1,3 +1,80 @@
 .dragAndDrop {
-  
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+.dragAndDrop .currentFile {
+  /* width: 600px;
+  height: 300px; */
+  color: #FFF;
+  background-image: linear-gradient(to bottom, #222, #000);
+  pointer-events: all;
+}
+.dragAndDrop .currentFile .heading,
+.dragAndDrop .currentFile .body,
+.dragAndDrop .currentFile .footer
+{
+  padding: 20px;
+}
+.dragAndDrop .currentFile .heading {
+  margin: 0;
+  font-family: 'PlazaRegular';
+  text-align: left;
+  letter-spacing: 2px;
+}
+.dragAndDrop .currentFile .body {
+  display: flex;
+}
+.dragAndDrop .currentFile .body .canvas {
+  margin-right: 20px;
+  background-color: #222;
+}
+.dragAndDrop .currentFile .body .wrap {
+  display: flex;
+  width: 300px;
+  font-size: 16px;
+  flex-direction: column;
+}
+.dragAndDrop .currentFile .row {
+  display: flex;
+}
+.dragAndDrop .currentFile .label {
+  margin-right: 5px;
+}
+.dragAndDrop .currentFile .value {
+}
+.dragAndDrop .currentFile .buttons {
+  display: flex;
+}
+.dragAndDrop .currentFile .buttons .button {
+  display: flex;
+  border: 2px solid #FFF;
+  flex-direction: column;
+  font-size: 30px;
+  font-family: 'PlazaRegular';
+  letter-spacing: 1px;
+  flex: 1;
+  cursor: pointer;
+  user-select: none;
+  transition: all 1s cubic-bezier(0, 1, 0, 1);
+}
+.dragAndDrop .currentFile .buttons .button:not([disabled]):hover {
+  background-color: #FFF;
+  color: #000;
+}
+.dragAndDrop .currentFile .buttons .button[disabled] {
+  opacity: 0.2;
+  cursor: default;
+}
+.dragAndDrop .currentFile .buttons .button > sub {
+  font-size: 16px;
+}
+.dragAndDrop .currentFile .buttons .button + .button {
+  margin-left: 10px;
 }

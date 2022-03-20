@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
+import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import {handleUpload} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx';
@@ -38,9 +39,13 @@ const uploadCreateApp = async item => {
   }
 };
 
+const canvasWidth = 300;
+const canvasHeight = 400;
+
 const DragAndDrop = () => {
   const [queue, setQueue] = useState([]);
   const [currentFile, setCurrentFile] = useState(null);
+  const canvasRef = useRef();
 
   useEffect(() => {
     async function keydown(e) {
@@ -121,15 +126,62 @@ const DragAndDrop = () => {
   useEffect(() => {
     if (queue.length > 0 && !currentFile) {
       const f = queue[0];
+      console.log('set file', f);
       setCurrentFile(f);
       setQueue(queue.slice(1));
     }
   }, [queue]);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      console.log('bind canvas');
+    }
+  }, [canvasRef]);
+
+  const _drop = e => {
+    console.log('drop', currentFile);
+  };
+  const _equip = e => {
+    console.log('equip', currentFile);
+  };
+  const _mint = e => {
+    console.log('mint', currentFile);
+  };
+
   return (
     <div className={style.dragAndDrop}>
       {currentFile ? (
-        <div className={style.currentFile}>{currentFile.name}</div>
+        <div className={style.currentFile}>
+          <h1 className={style.heading}>Upload object</h1>
+          <div className={style.body}>
+            <canvas className={style.canvas} width={canvasWidth} height={canvasHeight} ref={canvasRef} />
+            <div className={style.wrap}>
+              <div className={style.row}>
+                <div className={style.label}>Name: </div>
+                <div className={style.value}>{currentFile.name}</div>
+              </div>
+              <div className={style.row}>
+                <div className={style.label}>Type: </div>
+                <div className={style.value}>{currentFile.appType}</div>
+              </div>
+            </div>
+          </div>
+          <div className={classnames(style.buttons, style.footer)}>
+            <div className={style.button} onClick={_drop}>
+              <span>Drop</span>
+              <sub>to world</sub>
+            </div>
+            <div className={style.button} onClick={_equip}>
+              <span>Equip</span>
+              <sub>to self</sub>
+            </div>
+            <div className={style.button} disabled onClick={_mint}>
+              <span>Mint</span>
+              <sub>on chain</sub>
+            </div>
+          </div>
+        </div>
       ): null}
     </div>
   );
