@@ -196,7 +196,7 @@ export default () => {
           size: new THREE.Vector3(width, height, depth),
         },
       ];
-      console.log('got barrier specs', {barrierSpecs, minZ, maxZ});
+      // console.log('got barrier specs', {barrierSpecs, minZ, maxZ});
     }
 
     for (const barrierSpec of barrierSpecs) {
