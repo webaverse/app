@@ -862,33 +862,9 @@ const _makeRagdollMesh = () => {
         if (!meshBone) {
           continue;
         }
-
-        modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        localQuaternion.multiply(
-          modelBone.forwardQuaternion
-        );
-        if (k !== 'Hips') {
-          localVector.add(
-            localVector3.set(0, 0, -meshBone.boneLength * 0.5)
-              .applyQuaternion(localQuaternion)
-          );
-        }
-        // vismark
-        meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
-        
-        {
-          meshBone.matrix.copy(meshBone.matrixWorld);
-          meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
-          meshBone.quaternion.multiply(leftQuaternion);
-          // XXX this flips bones to all face the same direction;
-          // the top bones are rotated 180 degrees, so the bones direction is from toes to head + fingers
-          // I'm not sure if this is matters; if the simulation can be made stable without it, then we should remove this because it adds complexity
-          if (meshBone.isTop) {
-            meshBone.quaternion.multiply(y180Quaternion);
-          }
-          meshBone.matrix.compose(meshBone.position, meshBone.quaternion, meshBone.scale);
-          meshBone.matrixWorld.copy(meshBone.matrix);
-        }
+        meshBone.matrix.copy(modelBone.matrixWorld);
+        meshBone.matrixWorld.copy(modelBone.matrixWorld);
+        modelBone.matrixWorld.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
       }
       object.updateMatrixWorld();
 
