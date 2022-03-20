@@ -589,9 +589,10 @@ const _makeCapsuleGeometry = (length = 1) => {
         ); */
       return geometry;
     })(),
-    new THREE.BoxGeometry(0.005, 0.2, 0.005)
+    new THREE.BoxGeometry(0.2, 0.005, 0.005)
+      .translate(0.1, 0, 0)
     // new THREE.BoxGeometry(0.05, 2.2, 0.05)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(-height/2, 0.2/2, 0)),
+      // .applyMatrix4(new THREE.Matrix4().makeTranslation(-height/2, 0.2/2, 0)),
   ]);
   geometry.radius = radius;
   geometry.halfHeight = halfHeight;
