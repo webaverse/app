@@ -193,13 +193,10 @@ class AppManager extends EventTarget {
     }
   }
   bindEvents() {
-    const trackedApps = []
     this.addEventListener('trackedappadd', async e => {
       const {trackedApp} = e.data;
       const trackedAppJson = trackedApp.toJSON();
       const {instanceId, contentId, transform, position, scale, quaternion, components: componentsString} = trackedAppJson;
-      if(trackedApps.includes(instanceId)) return console.log("Already has this instance id")
-      else trackedApps.push(instanceId)
       const components = JSON.parse(componentsString);
       
       const p = makePromise();
