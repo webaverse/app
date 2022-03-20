@@ -875,7 +875,7 @@ const _makeRagdollMesh = () => {
 
       // set capsule geometries
       // vismark
-      // meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength, meshBone.isTop);
+      meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength, meshBone.isTop);
       // console.log({meshBone})
 
       // memoize
@@ -3466,7 +3466,7 @@ class Avatar {
       }
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
-          // console.log('createSkeleton', 1) // note: when first ragdoll
+          console.log('createSkeleton', 1) // note: when first ragdoll
           // const b = this.ragdollMesh.serializeSkeleton();
           // debugger
           // this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
@@ -3475,6 +3475,8 @@ class Avatar {
             const physicsObject = flatMeshes[k]
             physx.physxWorker.addBoxGeometryPhysics(physx.physics, physicsObject.position, physicsObject.quaternion, physicsObject.sizeHalf, physicsObject.physicsId, true);
           }
+
+          const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, new THREE.Vector3(0, flatMeshes.Hips.boneLength, 0), new THREE.Vector3(0, 0, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
 
         }
       }
