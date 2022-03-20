@@ -589,8 +589,8 @@ const _makeCapsuleGeometry = (length = 1) => {
         ); */
       return geometry;
     })(),
-    new THREE.BoxGeometry(0.2, 0.005, 0.005)
-      .translate(0.1, 0, 0)
+    new THREE.BoxGeometry(0.2, 0.005, 0.005).translate(0.1, 0, 0),
+    // new THREE.BoxGeometry(0.005, 0.005, 0.1).translate(0, 0, 0.05),
     // new THREE.BoxGeometry(0.05, 2.2, 0.05)
       // .applyMatrix4(new THREE.Matrix4().makeTranslation(-height/2, 0.2/2, 0)),
   ]);
@@ -609,7 +609,7 @@ const _makeRagdollMesh = () => {
   const _makeCubeMesh = (name, isTop, scale = 1) => {
     // const scaleFactor = baseScale * scale;
 
-    const object = new THREE.Object3D();
+    const object = new THREE.Object3D(); // === flatMeshes.Hips/Spine etc?
     object.name = name;
     object.physicsId = getNextPhysicsId();
     physicsIdToMeshBoneMap.set(object.physicsId, object);
@@ -772,13 +772,15 @@ const _makeRagdollMesh = () => {
 
   const flatMeshes = _makeMeshes();
   window.flatMeshes = flatMeshes
+  // flatMeshes.Hips === ragdollMesh.children[0].children[0] // true
+  // flatMeshes === ragdollMesh.children[0] // false
   const flatMesh = new THREE.Object3D();
   for (const k in flatMeshes) {
     flatMesh.add(flatMeshes[k]);
   }
   const modelBoneToFlatMeshBoneMap = new Map();
 
-  const object = new THREE.Object3D();
+  const object = new THREE.Object3D(); // === ragdollMesh
   object.add(flatMesh);
 
   object.wrapToAvatar = avatar => {
@@ -867,37 +869,14 @@ const _makeRagdollMesh = () => {
     // if (first) {
       for (const k in avatar.modelBoneOutputs) {
         const modelBone = avatar.modelBoneOutputs[k];
-        const meshBone = flatMeshes[k];
+        const meshBone = flatMeshes[k]; // ragdollMesh's
         if (!meshBone) {
           continue;
         }
 
-        modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        localQuaternion.multiply(
-          modelBone.forwardQuaternion
-        );
-        if (k !== 'Hips') {
-          localVector.add(
-            localVector3.set(0, 0, -meshBone.boneLength * 0.5)
-              .applyQuaternion(localQuaternion)
-          );
-        }
-        // vismark
-        meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
-        
-        {
-          meshBone.matrix.copy(meshBone.matrixWorld);
-          meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
-          meshBone.quaternion.multiply(leftQuaternion);
-          // XXX this flips bones to all face the same direction;
-          // the top bones are rotated 180 degrees, so the bones direction is from toes to head + fingers
-          // I'm not sure if this is matters; if the simulation can be made stable without it, then we should remove this because it adds complexity
-          if (meshBone.isTop) {
-            meshBone.quaternion.multiply(y180Quaternion);
-          }
-          meshBone.matrix.compose(meshBone.position, meshBone.quaternion, meshBone.scale);
-          meshBone.matrixWorld.copy(meshBone.matrix);
-        }
+        meshBone.matrix.copy(modelBone.matrixWorld);
+        meshBone.matrixWorld.copy(modelBone.matrixWorld);
+        modelBone.matrixWorld.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
       }
       object.updateMatrixWorld();
 
@@ -1816,8 +1795,9 @@ class Avatar {
 	    Right_ankle: this.legsManager.leftLeg.foot,
       Right_toe: this.legsManager.leftLeg.toe,
 	  };
+    window.modelBoneOutputs = this.modelBoneOutputs
 
-    this.ragdollMesh = _makeRagdollMesh();
+    this.ragdollMesh = _makeRagdollMesh(); // the whole ragdoll bones showed after press H
     window.ragdollMesh = this.ragdollMesh;
     this.ragdollMesh.wrapToAvatar(this);
     this.model.add(this.ragdollMesh);
