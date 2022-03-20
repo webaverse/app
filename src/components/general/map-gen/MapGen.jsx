@@ -9,7 +9,7 @@ import {registerIoEventHandler, unregisterIoEventHandler} from '../io-handler';
 import {MiniHup} from '../../../MiniHup.jsx';
 // import {RpgText} from '../../../RpgText.jsx';
 import {getRenderer, rootScene, scene} from '../../../../renderer.js';
-// import game from '../../../../game.js';
+import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
 import cameraManager from '../../../../camera-manager.js';
@@ -310,8 +310,7 @@ export const MapGen = () => {
 
         function handleKeyUp ( event ) {
 
-            const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
-            if ( inputFocused ) return true;
+            if (game.inputFocused()) return true;
 
             switch ( event.which ) {
 
