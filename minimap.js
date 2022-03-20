@@ -9,6 +9,7 @@ import {
   camera,
 } from './renderer.js';
 import universe from './universe.js';
+import {waitForFrame} from './util.js';
 import metaversefileApi from 'metaversefile';
 
 const localVector = new THREE.Vector3();
@@ -24,12 +25,6 @@ const localMatrix = new THREE.Matrix4();
 
 const cameraHeight = 15;
 const cameraSafetyFactor = 1; // 1 is safest (least glitching)
-
-const _waitForFrame = () => new Promise(accept => {
-  requestAnimationFrame(() => {
-    accept();
-  });
-});
 
 // XXX TODO:
 // do not render avatars
@@ -450,7 +445,7 @@ class MiniMap {
                   renderer.setRenderTarget(oldRenderTarget);
                   renderer.setViewport(oldViewport);
                   
-                  await _waitForFrame();
+                  await waitForFrame();
                 }
               }
             }
