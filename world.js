@@ -95,7 +95,6 @@ world.connectRoom = async u => {
       wsrtc.removeEventListener('init', init);
       
       localPlayer.bindState(state.getArray(playersMapName));
-      
     };
     wsrtc.addEventListener('init', init);
   };

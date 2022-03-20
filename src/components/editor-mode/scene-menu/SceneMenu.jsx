@@ -9,48 +9,89 @@ import sceneNames from "../../../../scenes/scenes.json";
 import styles from "./scene-menu.module.css";
 
 //
+const _makeName = (N = 8) => (Math.random().toString(36) + '00000000000000000').slice(2, N + 2);
 
-export const SceneMenu = ({
-  multiplayerConnected,
-  selectedScene,
-  setSelectedScene,
-  selectedRoom,
-  setSelectedRoom,
-}) => {
-  const componentName = "SceneMenu";
-  const [rooms, setRooms] = useState([]);
-  const [scenesMenuOpened, setScenesMenuOpened] = useState(false);
-  const [roomsMenuOpened, setRoomsMenuOpened] = useState(false);
-  const [micEnabled, setMicEnabled] = useState(false);
-  const [speechEnabled, setSpeechEnabled] = useState(false);
+export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
-  //
+    const componentName = 'SceneMenu';
+    const [ rooms, setRooms ] = useState([]);
+    const [ scenesMenuOpened, setScenesMenuOpened ] = useState( false );
+    const [ roomsMenuOpened, setRoomsMenuOpened ] = useState( false );
+    const [ micEnabled, setMicEnabled ] = useState( false );
+    const [ speechEnabled, setSpeechEnabled ] = useState( false );
+    const [roomScene, setRoomScene] = React.useState('Erithor');
+    const [roomName, setRoomName] = React.useState(_makeName);
+    //n 
 
-  const refreshRooms = async () => {
-    const res = await fetch(universe.getWorldsHost());
+    const refreshRooms = async () => {
 
-    if (res.ok) {
-      const rooms = await res.json();
-      setRooms(rooms);
-    } else {
-      const text = await res.text();
-      console.warn("failed to fetch", res.status, text);
-    }
-  };
+        const res = await fetch( universe.getWorldsHost() );
 
-  //
+        if ( res.ok ) {
 
-  const stopPropagation = (event) => {
-    event.stopPropagation();
-  };
+            const rooms = await res.json();
+            setRooms( rooms );
 
-  const closeOtherWindows = () => {
-    window.dispatchEvent(
-      new CustomEvent("CloseAllMenus", {
-        detail: { dispatcher: componentName },
-      })
-    );
-  };
+        } else {
+
+            const text = await res.text();
+            console.warn( 'failed to fetch', res.status, text );
+
+        }
+
+    };
+
+    //
+
+    const stopPropagation = ( event ) => {
+
+        event.stopPropagation();
+
+    };
+
+    const closeOtherWindows = () => {
+
+        window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: componentName } } ) );
+
+    };
+
+    const handleOnFocusLost = ( event ) => {
+
+        if ( event.detail && event.detail.dispatcher === componentName ) return;
+        setScenesMenuOpened( false );
+        setRoomsMenuOpened( false );
+
+    };
+
+    const handleSceneMenuOpen = ( value ) => {
+
+        value = ( typeof value === 'boolean' ? value : ( ! scenesMenuOpened ) );
+        setScenesMenuOpened( value );
+        setRoomsMenuOpened( false );
+
+    };
+
+    const handleSceneSelect = ( event, sceneName ) => {
+
+        setScenesMenuOpened( false );
+        setRoomsMenuOpened( false );
+
+        sceneName = sceneName ?? event.target.value;
+        setSelectedScene( sceneName );
+        universe.pushUrl( `/?src=${ encodeURIComponent( './scenes/' + sceneName ) }` );
+
+    };
+
+    const handleRoomMenuOpen = ( value ) => {
+
+        value = ( typeof value === 'boolean' ? value : ( ! roomsMenuOpened ) );
+        setScenesMenuOpened( false );
+
+        if ( ! multiplayerConnected ) {
+
+            setRoomsMenuOpened( value );
+
+        } else {
 
   const handleOnFocusLost = (event) => {
     if (event.detail && event.detail.dispatcher === componentName) return;
@@ -73,47 +114,34 @@ export const SceneMenu = ({
     universe.pushUrl(`/?src=${encodeURIComponent("./scenes/" + sceneName)}`);
   };
 
-  const handleRoomMenuOpen = (value) => {
-    value = typeof value === "boolean" ? value : !roomsMenuOpened;
-    setScenesMenuOpened(false);
+    const handleRoomCreateBtnClick = async () => {
+        const sceneName = roomScene
+        const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
 
-    if (!multiplayerConnected) {
-      setRoomsMenuOpened(value);
-    } else {
-      universe.pushUrl(`/?src=${encodeURIComponent(selectedScene)}`);
-    }
+        const res = await fetch( universe.getWorldsHost() + roomName, { method: 'POST', body: data } );
+
+        if ( res.ok ) {
+
+            refreshRooms();
+            setSelectedRoom( roomName );
+            universe.pushUrl( `/?src=${ encodeURIComponent( sceneName ) }&room=${ roomName }` );
+
+            /* this.parent.sendMessage([
+                MESSAGE.ROOMSTATE,
+                data,
+            ]); */
+
+        } else {
+
+            const text = await res.text();
+            console.warn( 'error creating room', res.status, text );
+
+        }
   };
 
-  const handleRoomCreateBtnClick = async () => {
-    alert("todo");
-    // const roomName = _makeName();
-    // const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
-
-    // const res = await fetch( universe.getWorldsHost() + roomName, { method: 'POST', body: data } );
-
-    // if ( res.ok ) {
-
-    //     refreshRooms();
-    //     setSelectedRoom( roomName );
-    //     universe.pushUrl( `/?src=${ encodeURIComponent( sceneName ) }&room=${ roomName }` );
-
-    //     /* this.parent.sendMessage([
-    //         MESSAGE.ROOMSTATE,
-    //         data,
-    //     ]); */
-
-    // } else {
-
-    //     const text = await res.text();
-    //     console.warn( 'error creating room', res.status, text );
-
-    // }
-  };
-
-  const handleRoomSelect = (e, room) => {
-    setScenesMenuOpened(false);
-    setRoomsMenuOpened(false);
-
+    const handleRoomSelect = ( room ) => {
+        setScenesMenuOpened( false );
+        setRoomsMenuOpened( false );
     if (!world.isConnected()) {
       universe.pushUrl(
         `/?src=${encodeURIComponent(selectedScene)}&room=${room.name}`
@@ -303,7 +331,50 @@ export const SceneMenu = ({
               <img className={styles.image} src="images/world.jpg" />
               <div className={styles.name}>{sceneName}</div>
             </div>
-          ))}
+
+            {
+                scenesMenuOpened ? (
+                    <div className={ styles.rooms }>
+                    {
+                        sceneNames.map( ( sceneName, i ) => (
+                            <div className={ styles.room } onMouseDown={ ( e ) => { handleSceneSelect( e, sceneName ) } } key={ i } >
+                                <img className={ styles.image } src="images/world.jpg" />
+                                <div className={ styles.name } >{ sceneName }</div>
+                            </div>
+                        ))
+                    }
+                    </div>
+                ) : null
+            }
+
+            {
+                roomsMenuOpened ? (
+                    <div className={ styles.rooms } >
+                        <div className={ styles.create } >
+                        <select style={{display: "inline", margin: ".5em", height: "1em"}} id="sceneName" size="large" value={roomScene} onChange={v => setRoomScene(v)}>
+                        {
+                            sceneNames.map( ( sceneName, i ) => (
+                                <option key={sceneName} value={sceneName}>{sceneName}</option>
+                            ))
+                        }
+                        </select>
+                            <button className={ styles.button } onClick={ handleRoomCreateBtnClick }>Create room</button>
+                        </div>
+                        {
+                            rooms.map( ( room, i ) => (
+                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( room ) } } key={ i } >
+                                    <img className={ styles.image } src="images/world.jpg" />
+                                    <div className={ styles.name } >{ room.name }</div>
+                                    <div className={ styles.delete } >
+                                        <button className={ classnames( styles.button, styles.warning ) } onClick={ handleDeleteRoomBtnClick.bind( this, room ) } >Delete</button>
+                                    </div>
+                                </div>
+                            ))
+                        }
+                    </div>
+                ) : null
+            }
+
         </div>
       ) : null}
 

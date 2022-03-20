@@ -272,7 +272,8 @@ export default class Webaverse extends EventTarget {
     this.dispatchEvent(frameEvent);
 
     getComposer().render();
-    if (metaversefileApi.isDebugMode()) {
+    const debug = metaversefileApi.useDebug();
+    if (debug.enabled) {
       rendererStats.update(renderer);
     }
 
@@ -323,7 +324,7 @@ export default class Webaverse extends EventTarget {
       ioManager.updatePost();
 
       game.pushAppUpdates();
-      game.pushPlayerUpdates();
+      game.pushPlayerUpdates(timeDiffCapped);
 
       const session = renderer.xr.getSession();
       const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
