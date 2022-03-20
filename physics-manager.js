@@ -72,10 +72,10 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
   return physicsObject;
 };
 
-physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
+physicsManager.addBoxGeometry = (position, quaternion, size, dynamic, groupId) => {
   // vismark
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic);
+  physx.physxWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic, groupId);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, localVector2.set(1, 1, 1));
   const physicsMesh = new THREE.Mesh(

@@ -606,7 +606,7 @@ const _makeCapsuleGeometry = (length = 1, isTop = false) => {
   geometry.halfHeight = halfHeight;
   return geometry;
 };
-const size = new THREE.Vector3(0.03, 0.03, 0.03)
+const size = new THREE.Vector3(0.01, 0.01, 0.01)
 const ragdollMeshGeometry = new THREE.BoxGeometry(size.x, size.y, size.z);
 const ragdollMeshMaterial = new THREE.MeshNormalMaterial({
   // color: 0xFF0000,
@@ -875,7 +875,7 @@ const _makeRagdollMesh = () => {
 
       // set capsule geometries
       // vismark
-      meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength, meshBone.isTop);
+      // meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength, meshBone.isTop);
       // console.log({meshBone})
 
       // memoize
@@ -2214,7 +2214,8 @@ class Avatar {
       // retargetedAnimations,
     };
   }
-  static applyModelBoneOutputs(modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
+  static applyModelBoneOutputs() {}
+  static applyModelBoneOutputs2(modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
@@ -3473,10 +3474,13 @@ class Avatar {
 
           for (const k in flatMeshes) {
             const physicsObject = flatMeshes[k]
-            physx.physxWorker.addBoxGeometryPhysics(physx.physics, physicsObject.position, physicsObject.quaternion, physicsObject.sizeHalf, physicsObject.physicsId, true);
+            physx.physxWorker.addBoxGeometryPhysics(physx.physics, physicsObject.position, physicsObject.quaternion, physicsObject.sizeHalf, physicsObject.physicsId, true, this.characterId);
+            // physx.physxWorker.addBoxGeometryPhysics(physx.physics, physicsObject.position, physicsObject.quaternion, physicsObject.sizeHalf, physicsObject.physicsId, true);
           }
 
-          const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, new THREE.Vector3(0, flatMeshes.Hips.boneLength, 0), new THREE.Vector3(0, 0, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
+          // const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Hips.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
+          // const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, flatMeshes.Spine.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
+          // const jointChestUpperChest = physicsManager.addJoint(flatMeshes.Chest, flatMeshes.UpperChest, new THREE.Vector3(0, flatMeshes.Chest.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Chest.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
 
         }
       }
@@ -3498,14 +3502,16 @@ class Avatar {
 
     // this.modelBoneOutputs.Root.updateMatrixWorld();
     
-    Avatar.applyModelBoneOutputs(
-      this.foundModelBones,
-      this.modelBoneOutputs,
-      // this.getTopEnabled(),
-      this.getBottomEnabled(),
-      this.getHandEnabled(0),
-      this.getHandEnabled(1),
-    );
+    if (!this.ragdoll) {
+      Avatar.applyModelBoneOutputs2(
+        this.foundModelBones,
+        this.modelBoneOutputs,
+        // this.getTopEnabled(),
+        this.getBottomEnabled(),
+        this.getHandEnabled(0),
+        this.getHandEnabled(1),
+      );
+    }
     // this.modelBones.Root.updateMatrixWorld();
 
     if (this.springBoneManager) {

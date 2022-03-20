@@ -1357,7 +1357,7 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
-  w.addBoxGeometryPhysics = (physics, position, quaternion, size, id, dynamic) => {
+  w.addBoxGeometryPhysics = (physics, position, quaternion, size, id, dynamic, groupId = -1) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
@@ -1374,6 +1374,7 @@ const physxWorker = (() => {
       s.byteOffset,
       id,
       +dynamic,
+      groupId,
     );
     allocator.freeAll();
   };
