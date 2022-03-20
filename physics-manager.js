@@ -307,19 +307,7 @@ physicsManager.simulatePhysics = timeDiff => {
       // vismark
       const {id, position, quaternion, collided, grounded} = updateOut;
       // console.log('physicsId', id)
-      // const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
-      let physicsObject;
-
-      if (id === 1) physicsObject = window.bodyRDHips;
-      else if (id === 2) physicsObject = window.bodyRDChest;
-      else if (id === 3) physicsObject = window.bodyRDHead;
-      else if (id === 4) physicsObject = window.bodyRDLeftLeg;
-      else if (id === 5) physicsObject = window.bodyRDRightLeg;
-      else if (id === 6) physicsObject = window.bodyRDLeftCalf;
-      else if (id === 7) physicsObject = window.bodyRDRightCalf;
-      else if (id === 8) physicsObject = window.bodyRDLeftArm;
-      else if (id === 9) physicsObject = window.bodyRDRightArm;
-      else physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
 
       // debugger
       if (physicsObject) {
@@ -327,52 +315,6 @@ physicsManager.simulatePhysics = timeDiff => {
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
-
-        if (id === 1) {
-          window.meshRDHips.matrix.copy(window.bodyRDHips.matrix)
-          window.meshRDHips.matrixWorld.copy(window.bodyRDHips.matrixWorld)
-          window.meshRDHips.matrix.decompose(window.meshRDHips.position, window.meshRDHips.quaternion, window.meshRDHips.scale);
-        }
-        else if (id === 2) {
-          window.meshRDChest.matrix.copy(window.bodyRDChest.matrix)
-          window.meshRDChest.matrixWorld.copy(window.bodyRDChest.matrixWorld)
-          window.meshRDChest.matrix.decompose(window.meshRDChest.position, window.meshRDChest.quaternion, window.meshRDChest.scale);
-        }
-        else if (id === 3) {
-          window.meshRDHead.matrix.copy(window.bodyRDHead.matrix)
-          window.meshRDHead.matrixWorld.copy(window.bodyRDHead.matrixWorld)
-          window.meshRDHead.matrix.decompose(window.meshRDHead.position, window.meshRDHead.quaternion, window.meshRDHead.scale);
-        }
-        else if (id === 4) {
-          window.meshRDLeftLeg.matrix.copy(window.bodyRDLeftLeg.matrix)
-          window.meshRDLeftLeg.matrixWorld.copy(window.bodyRDLeftLeg.matrixWorld)
-          window.meshRDLeftLeg.matrix.decompose(window.meshRDLeftLeg.position, window.meshRDLeftLeg.quaternion, window.meshRDLeftLeg.scale);
-        }
-        else if (id === 5) {
-          window.meshRDRightLeg.matrix.copy(window.bodyRDRightLeg.matrix)
-          window.meshRDRightLeg.matrixWorld.copy(window.bodyRDRightLeg.matrixWorld)
-          window.meshRDRightLeg.matrix.decompose(window.meshRDRightLeg.position, window.meshRDRightLeg.quaternion, window.meshRDRightLeg.scale);
-        }
-        else if (id === 6) {
-          window.meshRDLeftCalf.matrix.copy(window.bodyRDLeftCalf.matrix)
-          window.meshRDLeftCalf.matrixWorld.copy(window.bodyRDLeftCalf.matrixWorld)
-          window.meshRDLeftCalf.matrix.decompose(window.meshRDLeftCalf.position, window.meshRDLeftCalf.quaternion, window.meshRDLeftCalf.scale);
-        }
-        else if (id === 7) {
-          window.meshRDRightCalf.matrix.copy(window.bodyRDRightCalf.matrix)
-          window.meshRDRightCalf.matrixWorld.copy(window.bodyRDRightCalf.matrixWorld)
-          window.meshRDRightCalf.matrix.decompose(window.meshRDRightCalf.position, window.meshRDRightCalf.quaternion, window.meshRDRightCalf.scale);
-        }
-        else if (id === 8) {
-          window.meshRDLeftArm.matrix.copy(window.bodyRDLeftArm.matrix)
-          window.meshRDLeftArm.matrixWorld.copy(window.bodyRDLeftArm.matrixWorld)
-          window.meshRDLeftArm.matrix.decompose(window.meshRDLeftArm.position, window.meshRDLeftArm.quaternion, window.meshRDLeftArm.scale);
-        }
-        else if (id === 9) {
-          window.meshRDRightArm.matrix.copy(window.bodyRDRightArm.matrix)
-          window.meshRDRightArm.matrixWorld.copy(window.bodyRDRightArm.matrixWorld)
-          window.meshRDRightArm.matrix.decompose(window.meshRDRightArm.position, window.meshRDRightArm.quaternion, window.meshRDRightArm.scale);
-        }
 
         // console.log('set', physicsObject.name, id, physicsObject.position.toArray().join(','));
 
