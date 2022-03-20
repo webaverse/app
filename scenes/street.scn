@@ -213,6 +213,20 @@
       "position": [-2, 1, 2],
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
       "start_url": "https://webaverse.github.io/helm/"
+    },
+    {
+      "position": [0, 0, 0],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "../metaverse_modules/barrier/",
+      "components": [
+        {
+          "key": "bounds",
+          "value": [
+            [-150, -150, -450],
+            [150, 150, -150]
+          ]
+        }
+      ]
     }
   ]
 }
