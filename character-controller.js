@@ -1058,11 +1058,19 @@ class LocalPlayer extends UninterpolatedPlayer {
     super.destroy();
   }
 }
+
+let initialPosition = localVector;
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
   
     this.isRemotePlayer = true;
+
+    
+    this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
   }
   detachState() {
     return null;
@@ -1133,6 +1141,31 @@ class RemotePlayer extends InterpolatedPlayer {
     this.appManager.loadApps();
     
     this.syncAvatar();
+  }
+
+  getSession() {
+    const renderer = getRenderer();
+    const session = renderer.xr.getSession();
+    return session;
+  }
+
+  updateAvatar(timestamp, timeDiff) {
+    if (this.avatar) {
+      const timeDiffS = timeDiff / 1000;
+ 
+      this.characterSfx.update(timestamp, timeDiffS);
+      this.characterFx.update(timestamp, timeDiffS);
+
+      this.updateInterpolation(timeDiff);
+
+      const session = this.getSession();
+      const mirrors = metaversefile.getMirrors();
+      applyPlayerToAvatar(this, session, this.avatar, mirrors);
+
+      this.avatar.update(timestamp, timeDiff);
+
+      this.characterHups.update(timestamp);
+    }
   }
 }
 class StaticUninterpolatedPlayer extends PlayerBase {
