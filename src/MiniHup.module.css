@@ -1,14 +1,42 @@
 .miniHup {
+  display: flex;
   position: absolute;
   bottom: 30px;
   left: 30px;
   z-index: 10;
 }
-.miniHup .canvas {
-  position: relative;
-  width: 128px;
-  height: 128px;
-  border: 3px solid #444;
+.miniHup .canvas,
+.miniHup .text
+{
   border-radius: 1000px;
+  --canvas-size: 150px;
+}
+.miniHup .canvas {
+  position: absolute;
+  width: var(--canvas-size);
+  height: var(--canvas-size);
+  border: 3px solid #444;
   box-shadow: 3px 3px 0 #000;
+}
+.miniHup .text {
+  display: flex;
+  justify-content: flex-start;
+  position: relative;
+  height: var(--canvas-size);
+  width: 600px;
+  padding: 15px;
+  padding-left: calc(var(--canvas-size) + 15px);
+  padding-right: 100px;
+  background-image: linear-gradient(to bottom, #000, #222);
+  color: #FFF;
+  font-size: 16px;
+  font-family: 'GeoSans';
+  text-align: left;
+  white-space: pre-wrap;
+  overflow: hidden;
+  transition: width 1s cubic-bezier(0, 1, 0, 1);
+}
+.miniHup .text:not(.open) {
+  padding: 15px;
+  width: var(--canvas-size);
 }

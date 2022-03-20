@@ -24,6 +24,7 @@ import {
 // import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
+// import * as sceneCruncher from '../scene-cruncher.js';
 import {
   idleFactorSpeed,
   walkFactorSpeed,
@@ -1755,7 +1756,6 @@ class Avatar {
     };
 
 
-    //_motionControl is currently unused and may end up being deleted
     const _motionControls = () => {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
       this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
@@ -1814,9 +1814,9 @@ class Avatar {
         _processFingerBones(false);
       }
     }
-    /* if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
+    if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
-    } */
+    }
     
     
 
@@ -1870,17 +1870,18 @@ class Avatar {
     this.options.visemes && _updateVisemes();
     _updateSubAvatars();
 
-    if (metaversefile.isDebugMode() && !this.debugMesh) {
+    const debug = metaversefile.useDebug();
+    if (debug.enabled && !this.debugMesh) {
       this.debugMesh = _makeDebugMesh();
       this.debugMesh.wrapToAvatar(this);
       this.model.add(this.debugMesh);
     }
 
     if (this.debugMesh) {
-      if (metaversefile.isDebugMode()) {
+      if (debug.enabled) {
         this.debugMesh.setFromAvatar(this);
       }
-      this.debugMesh.visible = metaversefile.isDebugMode();
+      this.debugMesh.visible = debug.enabled;
     }
 	}
 

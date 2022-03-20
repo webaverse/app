@@ -16,6 +16,7 @@ import { WorldObjectsList } from '../general/world-objects-list';
 import { IoHandler } from '../../IoHandler.jsx';
 import { ZoneTitleCard } from '../general/zone-title-card';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
+import { Stats } from '../../Stats.jsx';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
@@ -139,6 +140,7 @@ export const App = () => {
             <IoHandler />
             <ZoneTitleCard app={ app } />
             <MapGen app={ app } opened={ mapGenOpened } />
+            <Stats app={ app } />
         </div>
     );
 
