@@ -4,10 +4,12 @@ import {getRenderer} from './renderer.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localVector4D = new THREE.Vector4();
 
 const cameraNear = 0;
 const cameraFar = 1000;
+const cameraHeight = 30;
 
 /* const imageBitmap2ImageData = imageBitmap => {
   const canvas = document.createElement('canvas');
@@ -26,11 +28,23 @@ const renderer2ImageData = (renderer, width, height) => {
   return context.getImageData(0, 0, width, height);
 }; */
 const floatImageData = imageData => {
-  return new Float32Array(
+  const result = new Float32Array(
     imageData.data.buffer,
     imageData.data.byteOffset,
     imageData.data.byteLength / Float32Array.BYTES_PER_ELEMENT
   );
+  const {width, height} = imageData;
+  // flip Y
+  for (let y = 0; y < height / 2; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = y * width + x;
+      const j = (height - y - 1) * width + x;
+      const tmp = result[i];
+      result[i] = result[j];
+      result[j] = tmp;
+    }
+  }
+  return result;
 };
 
 const depthVertexShader = `\
@@ -138,121 +152,241 @@ const depthFragmentShader = `\
   }
 `;
 
-const cameraHeight = 30;
-export async function snapshotMapChunk(scene, position, worldSize, worldResolution, worldDepthResolution) {
-  const worldResolutionP1 = worldResolution + 1;
+const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, depthFloatImageData) => {
   const worldDepthResolutionP1 = worldDepthResolution + 1;
-
-  const colorRenderTarget = new THREE.WebGLRenderTarget(
-    worldResolutionP1,
-    worldResolutionP1,
-    {
-      type: THREE.UnsignedByteType,
-      format: THREE.RGBAFormat,
-      // encoding: THREE.sRGBEncoding,
-    }
-  );
-  const depthRenderTarget = new THREE.WebGLRenderTarget(
-    worldDepthResolutionP1,
-    worldDepthResolutionP1,
-    {
-      type: THREE.UnsignedByteType,
-      format: THREE.RGBAFormat,
-    }
-  );
-
-  const camera = new THREE.OrthographicCamera(
-    -worldSize / 2,
-    worldSize / 2,
-    worldSize / 2,
-    -worldSize / 2,
-    cameraNear,
-    cameraFar,
-  );
-  camera.position.copy(position);
-  // camera.position.set(0, 30, 0);
-  camera.position.y += cameraHeight;
-  camera.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
-  camera.updateMatrixWorld();
-
-  const depthMaterial = new THREE.ShaderMaterial({
-    vertexShader: depthVertexShader,
-    fragmentShader: depthFragmentShader,
-  });
-
-  // render
-  let colorImageData = null;
-  let depthFloatImageData = null;
-  {
-    const renderer = getRenderer();
-    
-    // push old state
-    const oldViewport = renderer.getViewport(localVector4D);
-    const oldRenderTarget = renderer.getRenderTarget();
-    const oldOverrideMaterial = scene.overrideMaterial;
-    const oldFog = scene.fog;
-
-    // render
-    const _renderOverrideMaterial = (renderTarget, overrideMaterial, wp1) => {
-      renderer.setViewport(0, 0, wp1, wp1);
-      renderer.setRenderTarget(renderTarget);
-      renderer.clear();
-      scene.overrideMaterial = overrideMaterial;
-      scene.fog = null;
-      renderer.render(scene, camera);
-
-      const imageData = {
-        data: new Uint8Array(wp1 * wp1 * 4),
-      };
-      renderer.readRenderTargetPixels(renderTarget, 0, 0, wp1, wp1, imageData.data);
-      return imageData;
-    };
-    colorImageData = _renderOverrideMaterial(colorRenderTarget, null, worldResolutionP1);
-    depthFloatImageData = floatImageData(_renderOverrideMaterial(depthRenderTarget, depthMaterial, worldDepthResolutionP1));
-
-    // pop old state
-    renderer.setViewport(oldViewport.x, oldViewport.y, oldViewport.z, oldViewport.w);
-    renderer.setRenderTarget(oldRenderTarget);
-    scene.overrideMaterial = oldOverrideMaterial;
-    scene.fog = oldFog;
-  }
-
+  
   const geometry = new THREE.PlaneBufferGeometry(worldSize, worldSize, worldDepthResolution, worldDepthResolution)
-    .applyMatrix4(new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), -Math.PI/2));
+    .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(quaternion));
+  const badIndices = {};
   for (let z = 0; z <= worldDepthResolution; z++) {
     for (let x = 0; x <= worldDepthResolution; x++) {
       const index = z * worldDepthResolutionP1 + x;
       const index2 = (worldDepthResolutionP1 - 1 - z) * worldDepthResolutionP1 + x;
-      const y = depthFloatImageData[index2];
+      let y = depthFloatImageData[index];
+      // window.depthFloatImageData = depthFloatImageData;
+      // console.log('got y', y);
+      // y = Math.max(y, -cameraHeight);
+      /* if (y <= -cameraHeight * 2) {
+        y = -cameraHeight;
+        // badIndices[index] = true;
+        // console.log('bad index', index, x, z);
+      } */
 
-      // const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
-      localVector.fromArray(geometry.attributes.position.array, index * 3)
-        // .copy(camera.position)
-        .add(camera.position)
-        .add(localVector2.set(0, 0, y).applyQuaternion(camera.quaternion))
-        .toArray(geometry.attributes.position.array, index * 3);
+      // if (y > -cameraHeight) {
+        localVector.fromArray(geometry.attributes.position.array, index * 3)
+          .add(position)
+          .add(localVector2.set(0, 0, y).applyQuaternion(quaternion));
+      /* } else {
+        localVector.setScalar(NaN);
+      } */
+      localVector.toArray(geometry.attributes.position.array, index * 3);
+    }
+  }
+  /* for (let z = 0; z <= worldDepthResolution; z++) {
+    for (let x = 0; x <= worldDepthResolution; x++) {
+      const index = z * worldDepthResolutionP1 + x;
+      localVector.fromArray(geometry.attributes.position.array, index * 3);
+    }
+  } */
+  for (let i = 0; i < geometry.index.array.length; i += 3) {
+    const ai = geometry.index.array[i];
+    const bi = geometry.index.array[i + 1];
+    const ci = geometry.index.array[i + 2];
+
+    // console.log('bad indices', !!(badIndices[ai] && badIndices[bi] && badIndices[ci]));
+    if (badIndices[ai] && badIndices[bi] && badIndices[ci]) {
+      geometry.index.array[i] = 0;
+      geometry.index.array[i + 1] = 0;
+      geometry.index.array[i + 2] = 0;
     }
   }
 
-  const colorTex = new THREE.DataTexture(
-    colorImageData.data,
-    worldResolutionP1,
-    worldResolutionP1,
-    THREE.RGBAFormat,
-    THREE.UnsignedByteType,
-    THREE.UVMapping,
-    THREE.ClampToEdgeWrapping,
-    THREE.ClampToEdgeWrapping,
-    THREE.NearestFilter,
-    THREE.NearestFilter,
-    0
+  return geometry;
+};
+export async function snapshotMapChunk(scene, position, worldSize, worldResolution, worldDepthResolution) {
+  const worldResolutionP1 = worldResolution + 1;
+  const worldDepthResolutionP1 = worldDepthResolution + 1;
+
+  const _makeMesh = (position, quaternion, worldSize, worldDepthResolution) => {
+    const colorRenderTarget = new THREE.WebGLRenderTarget(
+      worldResolutionP1,
+      worldResolutionP1,
+      {
+        type: THREE.UnsignedByteType,
+        format: THREE.RGBAFormat,
+        // encoding: THREE.sRGBEncoding,
+      }
+    );
+    const depthRenderTarget = new THREE.WebGLRenderTarget(
+      worldDepthResolutionP1,
+      worldDepthResolutionP1,
+      {
+        type: THREE.UnsignedByteType,
+        format: THREE.RGBAFormat,
+      }
+    );
+
+    const camera = new THREE.OrthographicCamera(
+      -worldSize / 2,
+      worldSize / 2,
+      worldSize / 2,
+      -worldSize / 2,
+      cameraNear,
+      cameraFar,
+    );
+    camera.position.copy(position)
+      .add(
+        localVector.set(0, 0, cameraHeight)
+          .applyQuaternion(quaternion)
+      );
+    camera.quaternion.copy(quaternion);
+    camera.updateMatrixWorld();
+
+    const depthMaterial = new THREE.ShaderMaterial({
+      vertexShader: depthVertexShader,
+      fragmentShader: depthFragmentShader,
+    });
+
+    // render
+    let colorImageData = null;
+    let depthFloatImageData = null;
+    {
+      const renderer = getRenderer();
+      
+      // push old state
+      const oldViewport = renderer.getViewport(localVector4D);
+      const oldRenderTarget = renderer.getRenderTarget();
+      const oldOverrideMaterial = scene.overrideMaterial;
+      const oldFog = scene.fog;
+
+      // render
+      const _renderOverrideMaterial = (renderTarget, overrideMaterial, wp1) => {
+        renderer.setViewport(0, 0, wp1, wp1);
+        renderer.setRenderTarget(renderTarget);
+        renderer.clear();
+        scene.overrideMaterial = overrideMaterial;
+        scene.fog = null;
+        renderer.render(scene, camera);
+
+        const imageData = {
+          data: new Uint8Array(wp1 * wp1 * 4),
+          width: wp1,
+          height: wp1,
+        };
+        renderer.readRenderTargetPixels(renderTarget, 0, 0, wp1, wp1, imageData.data);
+        return imageData;
+      };
+      colorImageData = _renderOverrideMaterial(colorRenderTarget, null, worldResolutionP1);
+      depthFloatImageData = floatImageData(_renderOverrideMaterial(depthRenderTarget, depthMaterial, worldDepthResolutionP1));
+
+      // pop old state
+      renderer.setViewport(oldViewport.x, oldViewport.y, oldViewport.z, oldViewport.w);
+      renderer.setRenderTarget(oldRenderTarget);
+      scene.overrideMaterial = oldOverrideMaterial;
+      scene.fog = oldFog;
+    }
+
+    const geometry = _makeGeometry(
+      camera.position,
+      camera.quaternion,
+      worldSize,
+      worldDepthResolution,
+      depthFloatImageData,
+    );
+
+    const colorTex = new THREE.DataTexture(
+      colorImageData.data,
+      worldResolutionP1,
+      worldResolutionP1,
+      THREE.RGBAFormat,
+      THREE.UnsignedByteType,
+      THREE.UVMapping,
+      THREE.ClampToEdgeWrapping,
+      THREE.ClampToEdgeWrapping,
+      THREE.NearestFilter,
+      THREE.NearestFilter,
+      0
+    );
+    colorTex.needsUpdate = true;
+    const material = new THREE.MeshBasicMaterial({
+      // map: colorRenderTarget.texture,
+      map: colorTex,
+      color: 0xFFFFFF,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.depthFloatImageData = depthFloatImageData;
+    return mesh;
+  };
+  const topMesh = _makeMesh(
+    position,
+    new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2),
+    worldSize,
+    worldDepthResolution,
   );
-  colorTex.needsUpdate = true;
-  const material = new THREE.MeshBasicMaterial({
-    // map: colorRenderTarget.texture,
-    map: colorTex,
-    color: 0xFFFFFF,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
+  const bottomMesh = _makeMesh(
+    position,
+    new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2),
+    worldSize,
+    worldDepthResolution,
+  );
+
+  {
+    // const worldDepthResolutionP1 = worldDepthResolution + 1;
+    const _isIntersectingPoint = (x, z) => {
+      const index = z * worldDepthResolutionP1 + x;
+      // const index2 = (worldDepthResolutionP1 - 1 - z) * worldDepthResolutionP1 + x;
+      let yTop = topMesh.depthFloatImageData[index];
+      let yBottom = bottomMesh.depthFloatImageData[index];
+
+      const yTopPos = position.y + cameraHeight + yTop;
+      const yBottomPos = position.y - cameraHeight - yBottom;
+      
+      return yTopPos < yBottomPos;
+    };
+    const intersectingPoints = {};
+    for (let z = 0; z < worldDepthResolutionP1; z++) {
+      for (let x = 0; x < worldDepthResolutionP1; x++) {
+        intersectingPoints[`${x},${z}`] = _isIntersectingPoint(x, z);
+      }
+    }
+
+    let index = 0;
+    for (let iy = 0; iy < worldDepthResolution; iy++) {
+			for (let ix = 0; ix < worldDepthResolution; ix++) {
+        const a = topMesh.geometry.index.array[index];
+        const b = topMesh.geometry.index.array[index + 1];
+        const d = topMesh.geometry.index.array[index + 2];
+        // const b = topMesh.geometry.index.array[index + 3];
+        const c = topMesh.geometry.index.array[index + 4];
+        // const d = topMesh.geometry.index.array[index + 5];
+
+        if (
+          intersectingPoints[`${ix},${iy}`] ||
+          intersectingPoints[`${ix},${iy + 1}`] ||
+          intersectingPoints[`${ix + 1},${iy}`]
+        ) {
+          topMesh.geometry.index.array[index] = 0;
+          topMesh.geometry.index.array[index + 1] = 0;
+          topMesh.geometry.index.array[index + 2] = 0;
+        }
+        if (
+          intersectingPoints[`${ix},${iy + 1}`] ||
+          intersectingPoints[`${ix + 1},${iy + 1}`] ||
+          intersectingPoints[`${ix + 1},${iy}`]
+        ) {
+          topMesh.geometry.index.array[index + 3] = 0;
+          topMesh.geometry.index.array[index + 4] = 0;
+          topMesh.geometry.index.array[index + 5] = 0;
+        }
+      
+        index += 6;
+      }
+    }
+  }
+
+  const object = new THREE.Object3D();
+  object.add(topMesh);
+  // object.add(bottomMesh);
+  // window.bottomMesh = bottomMesh;
+  return object;
 }
