@@ -69,6 +69,8 @@ class CharacterSfx {
     this.narutoRunTrailSoundStartTime = 0;
     this.currentDirectionState = null;
     this.previousDirectionState = null;
+    
+    this.oldNarutoRunSound = null;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -212,8 +214,15 @@ class CharacterSfx {
 
           if(timeSeconds - this.narutoRunTrailSoundStartTime>soundFiles.sonicBoom[2].duration-0.2 || this.narutoRunTrailSoundStartTime==0){
             if(!this.player.getAction('sit')){
-              sounds.playSound(soundFiles.sonicBoom[2],true);
-              this.narutoRunTrailSoundStartTime=timeSeconds;
+              const localSound = sounds.playSound(soundFiles.sonicBoom[2]);
+              this.oldNarutoRunSound = localSound;
+              localSound.addEventListener('ended', () => {
+                if (this.oldNarutoRunSound === localSound) {
+                  this.oldNarutoRunSound = null;
+                }
+              });
+
+              this.narutoRunTrailSoundStartTime = timeSeconds;
             }
             
           }
@@ -227,8 +236,10 @@ class CharacterSfx {
         this.previousDirectionState=null;
         this.narutoRunTrailSoundStartTime=0;
         sounds.playSound(soundFiles.sonicBoom[1]);
-        sounds.stopSound();
-        
+        if (this.oldNarutoRunSound) {
+          !this.oldNarutoRunSound.paused && this.oldNarutoRunSound.stop();
+          this.oldNarutoRunSound = null;
+        }
       }
   
     };

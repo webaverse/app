@@ -33,29 +33,18 @@ const waitForLoad = () => loadPromise;
 const getSoundFiles = () => soundFiles;
 const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
-let currentNode=null;
-const playSound = (audioSpec, storeNode) => {
-  
+const playSound = (audioSpec) => {
   const {offset, duration} = audioSpec;
   const audioContext = Avatar.getAudioContext();
   const audioBufferSourceNode = audioContext.createBufferSource();
   audioBufferSourceNode.buffer = soundFileAudioBuffer;
   audioBufferSourceNode.connect(audioContext.destination);
   audioBufferSourceNode.start(0, offset, duration);
-  if (storeNode !== undefined){
-    if(storeNode)
-      currentNode=audioBufferSourceNode;
-  }
-    
+  return audioBufferSourceNode;
 };
-const stopSound = ()=>{
-  if(currentNode)
-    currentNode.stop(0);
-}
 export {
   waitForLoad,
   getSoundFiles,
   getSoundFileAudioBuffer,
   playSound,
-  stopSound
 };
