@@ -139,20 +139,33 @@ const DragAndDrop = () => {
     }
   }, [canvasRef]);
 
+  const _currentFileClick = () => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
   const _drop = e => {
+    e.preventDefault();
+    e.stopPropagation();
+
     console.log('drop', currentFile);
   };
   const _equip = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     console.log('equip', currentFile);
   };
   const _mint = e => {
+    e.preventDefault();
+    e.stopPropagation();
+
     console.log('mint', currentFile);
   };
 
   return (
     <div className={style.dragAndDrop}>
       {currentFile ? (
-        <div className={style.currentFile}>
+        <div className={style.currentFile} onClick={_currentFileClick}>
           <h1 className={style.heading}>Upload object</h1>
           <div className={style.body}>
             <canvas className={style.canvas} width={canvasWidth} height={canvasHeight} ref={canvasRef} />
