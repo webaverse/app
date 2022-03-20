@@ -94,9 +94,17 @@ class AppManager extends EventTarget {
 
           const instanceId = appMap.get('instanceId');
           
-          const hadApp = this.apps.some(app => app.instanceId === instanceId);
-          if (hadApp) {
+          const oldApp = this.apps.find(app => app.instanceId === instanceId);
+          if (oldApp) {
             // console.log('accept migration add', instanceId);
+            this.dispatchEvent(new MessageEvent('trackedappimport', {
+              data: {
+                instanceId,
+                app: oldApp,
+                // sourceAppManager: this,
+                // destinationAppManager: peerOwnerAppManager,
+              },
+            }));
           } else {
             const trackedApp = this.getOrCreateTrackedApp(instanceId);
             // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
@@ -118,11 +126,12 @@ class AppManager extends EventTarget {
           if (peerOwnerAppManager) {
             // console.log('detected migrate app 1', instanceId, appManagers.length);
             
-            const e = new MessageEvent('trackedappmigrate', {
+            const e = new MessageEvent('trackedappexport', {
               data: {
+                instanceId,
                 app,
-                sourceAppManager: this,
-                destinationAppManager: peerOwnerAppManager,
+                // sourceAppManager: this,
+                // destinationAppManager: peerOwnerAppManager,
               },
             });
             this.dispatchEvent(e);
@@ -287,23 +296,34 @@ class AppManager extends EventTarget {
       this.removeApp(app);
       app.destroy();
     });
-    this.addEventListener('trackedappmigrate', async e => {
+    this.addEventListener('trackedappimport', async e => {
       const {
+        instanceId,
         app,
-        sourceAppManager,
-        destinationAppManager,
+      } = e.data;
+    
+      if (!this.apps.includes(app)) {
+        this.apps.push(app);
+      }
+    });
+    this.addEventListener('trackedappexport', async e => {
+      const {
+        instanceId,
+        app,
+        // sourceAppManager,
+        // destinationAppManager,
       } = e.data;
       // console.log('handle migrate', sourceAppManager === this, destinationAppManager === this);
-      if (sourceAppManager === this) {
+      // if (sourceAppManager === this) {
         const index = this.apps.indexOf(app);
         if (index !== -1) {
           this.apps.splice(index, 1);
         }
-      } else if (destinationAppManager === this) {
+      /* } else if (destinationAppManager === this) {
         if (!this.apps.includes(app)) {
           this.apps.push(app);
         }
-      }
+      } */
     });
     
     const resize = e => {
