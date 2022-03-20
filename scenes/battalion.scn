@@ -149,6 +149,20 @@
         300
       ],
       "start_url": "https://webaverse.github.io/dreadnought/"
+    },
+    {
+      "position": [
+        -8,
+        34,
+        -67
+      ],
+      "quaternion": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/infinistreet/"
     }
   ]
 }

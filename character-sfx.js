@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import * as sounds from './sounds.js';
+import ioManager from './io-manager';
 import {
   idleFactorSpeed,
   walkFactorSpeed,
@@ -62,6 +63,14 @@ class CharacterSfx {
     this.lastWalkTime = 0;
     this.lastEatFrameIndex = -1;
     this.lastDrinkFrameIndex = -1;
+
+    this.narutoRunStartTime = 0;
+    this.narutoRunFinishTime = 0;
+    this.narutoRunTrailSoundStartTime = 0;
+    this.currentDirectionState = null;
+    this.previousDirectionState = null;
+    
+    this.oldNarutoRunSound = null;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -143,7 +152,7 @@ class CharacterSfx {
         for (let i = startIndex;; i++) {
           i = i % leftStepIndices.length;
           if (i !== endIndex) {
-            if (leftStepIndices[i] && !this.lastStepped[0]) {
+            if (leftStepIndices[i] && !this.lastStepped[0] && !this.player.avatar.narutoRunState && timeSeconds-this.narutoRunFinishTime>0.5) {
               const candidateAudios = localSoundFiles//.filter(a => a.paused);
               if (candidateAudios.length > 0) {
                 /* for (const a of candidateAudios) {
@@ -156,7 +165,7 @@ class CharacterSfx {
             }
             this.lastStepped[0] = leftStepIndices[i];
 
-            if (rightStepIndices[i] && !this.lastStepped[1]) {
+            if (rightStepIndices[i] && !this.lastStepped[1] && !this.player.avatar.narutoRunState && timeSeconds-this.narutoRunFinishTime>0.5) {
               const candidateAudios = localSoundFiles// .filter(a => a.paused);
               if (candidateAudios.length > 0) {
                 /* for (const a of candidateAudios) {
@@ -177,6 +186,64 @@ class CharacterSfx {
       }
     };
     _handleStep();
+
+    const _handleNarutoRun = () => {
+      if(ioManager.keys.right){
+        this.currentDirectionState='right';
+      }   
+      if(ioManager.keys.left){
+        this.currentDirectionState='left';
+      }  
+      if(ioManager.keys.up){
+        this.currentDirectionState='up';
+      }   
+      if(ioManager.keys.down){
+        this.currentDirectionState='down';
+      }
+      
+      if(this.player.avatar.narutoRunState){
+        if(this.narutoRunStartTime===0)
+          this.narutoRunStartTime=timeSeconds;
+
+        if(timeSeconds - this.narutoRunStartTime<=0.1 ){
+          sounds.playSound(soundFiles.sonicBoom[0]);
+        }
+        else {
+          if(this.previousDirectionState!==null && this.previousDirectionState!==this.currentDirectionState )
+            sounds.playSound(soundFiles.sonicBoom[3]);
+
+          if(timeSeconds - this.narutoRunTrailSoundStartTime>soundFiles.sonicBoom[2].duration-0.2 || this.narutoRunTrailSoundStartTime==0){
+            if(!this.player.getAction('sit')){
+              const localSound = sounds.playSound(soundFiles.sonicBoom[2]);
+              this.oldNarutoRunSound = localSound;
+              localSound.addEventListener('ended', () => {
+                if (this.oldNarutoRunSound === localSound) {
+                  this.oldNarutoRunSound = null;
+                }
+              });
+
+              this.narutoRunTrailSoundStartTime = timeSeconds;
+            }
+            
+          }
+          this.previousDirectionState=this.currentDirectionState;
+        }
+
+      }
+      if(!this.player.avatar.narutoRunState && this.narutoRunStartTime!=0 ){
+        this.narutoRunStartTime=0;
+        this.narutoRunFinishTime=timeSeconds;
+        this.previousDirectionState=null;
+        this.narutoRunTrailSoundStartTime=0;
+        sounds.playSound(soundFiles.sonicBoom[1]);
+        if (this.oldNarutoRunSound) {
+          !this.oldNarutoRunSound.paused && this.oldNarutoRunSound.stop();
+          this.oldNarutoRunSound = null;
+        }
+      }
+  
+    };
+    _handleNarutoRun();
 
     const _handleFood = () => {
       const useAction = this.player.getAction('use');

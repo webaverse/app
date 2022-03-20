@@ -30,8 +30,8 @@ import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
 import {CharacterFx} from './character-fx.js';
-import {VoicePack} from './voice-output/voice-pack-voicer.js';
-import {VoiceEndpoint} from './voice-output/voice-endpoint-voicer.js';
+import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
@@ -233,7 +233,7 @@ class PlayerBase extends THREE.Object3D {
       audioUrl,
       indexUrl,
     });
-    this.updateVoice();
+    this.updateVoicer();
   }
   setVoiceEndpoint(voiceId) {
     if (voiceId) {
@@ -242,10 +242,23 @@ class PlayerBase extends THREE.Object3D {
     } else {
       this.voiceEndpoint = null;
     }
-    this.updateVoice();
+    this.updateVoicer();
   }
-  updateVoice() {
-    this.characterHups.setVoice(this.voiceEndpoint || this.voicePack || null);
+  getVoice() {
+    return this.voiceEndpoint || this.voicePack || null;
+  }
+  updateVoicer() {
+    const voice = this.getVoice();
+    if (voice instanceof VoicePack) {
+      const {syllableFiles, audioBuffer} = voice;
+      this.voicer = new VoicePackVoicer(syllableFiles, audioBuffer, this);
+    } else if (voice instanceof VoiceEndpoint) {
+      this.voicer = new VoiceEndpointVoicer(voice, this);
+    } else if (voice === null) {
+      this.voicer = null;
+    } else {
+      throw new Error('invalid voice');
+    }
   }
   getCrouchFactor() {
     return 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
@@ -479,8 +492,8 @@ class StatePlayer extends PlayerBase {
     }
     
     const _setNextAvatarApp = app => {
-      (async () => {
-        const avatar = await switchAvatar(this.avatar, app);
+      (() => {
+        const avatar = switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = avatar;
 
@@ -569,6 +582,7 @@ class StatePlayer extends PlayerBase {
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);
+    return action;
   }
   removeAction(type) {
     const actions = this.getActionsState();
@@ -1131,9 +1145,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   
     this.isNpcPlayer = true;
   }
-  async setAvatarAppAsync(app) {
-    await app.setSkinning(true);
-    
+  setAvatarApp(app) {
+    app.toggleBoneUpdates(true);
     const {skinnedVrm} = app;
     const avatar = new Avatar(skinnedVrm, {
       fingers: true,

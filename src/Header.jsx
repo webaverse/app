@@ -6,6 +6,7 @@ import Inspector from './Inspector.jsx';
 import Chat from './Chat.jsx';
 import CharacterHups from './CharacterHups.jsx';
 import MagicMenu from './MagicMenu.jsx';
+import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx';
 // import * as Z from 'zjs';
 // import {Color} from './Color.js';
 import {world} from '../world.js'
@@ -69,21 +70,19 @@ export default function Header({
   }, []);
   useEffect(() => {
     const pointerlockchange = e => {
-      if (document.pointerLockElement && open !== null) {
+      const {pointerLockElement} = e.data;
+      if (pointerLockElement && open !== null) {
         setOpen(null);
       }
     };
-    window.document.addEventListener('pointerlockchange', pointerlockchange);
+    cameraManager.addEventListener('pointerlockchange', pointerlockchange);
     return () => {
-      window.document.removeEventListener('pointerlockchange', pointerlockchange);
+      cameraManager.removeEventListener('pointerlockchange', pointerlockchange);
     };
   }, [open]);
   useEffect(() => {
-    if (open && document.pointerLockElement && open !== 'chat') {
-      document.exitPointerLock();
-    }
-    if (game.playerDiorama) {
-      game.playerDiorama.enabled = characterOpen;
+    if (open && open !== 'chat') {
+      cameraManager.exitPointerLock();
     }
   }, [open]);
 
@@ -102,11 +101,6 @@ export default function Header({
       world.appManager.removeEventListener('pickup', pickup);
     };
   }, [claims]);
-  useEffect(() => {
-    if (dioramaCanvasRef.current && !game.playerDiorama) {
-      app.bindDioramaCanvas(dioramaCanvasRef.current);
-    }
-  }, [dioramaCanvasRef.current]);
   useEffect(() => {
     if (selectedApp && panelsRef.current) {
       panelsRef.current.scrollTo(0, 0);
@@ -160,7 +154,6 @@ export default function Header({
         setOpen( false );
 
     };
-
     window.addEventListener( 'CloseAllMenus', handleOnFocusLost );
 
     const keydown = e => {
@@ -173,15 +166,16 @@ export default function Header({
         handled = _handleAnytimeKey(e);
       }
       if (handled || inputFocused) {
-        // nothing
+        return false;
       } else {
-        ioManager.keydown(e);
+        return true;
       }
     };
-    window.addEventListener('keydown', keydown);
+    registerIoEventHandler('keydown', keydown);
+
     return () => {
       window.removeEventListener( 'CloseAllMenus', handleOnFocusLost );
-      window.removeEventListener('keydown', keydown);
+      unregisterIoEventHandler('keydown', keydown);
     };
   }, [open, selectedApp]);
   useEffect(async () => {

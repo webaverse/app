@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
-
 import styles from './action-menu.module.css';
 
 //

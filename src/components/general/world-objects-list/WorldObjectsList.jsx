@@ -19,7 +19,7 @@ const NumberInput = ({ input }) => {
 
     const handleInputKeyDown = ( event ) => {
 
-        if ( event.which === 13 ) {
+        if ( event.which === 13 ) { // enter
 
             event.target.blur();
 
@@ -168,7 +168,7 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
 
         if ( opened ) {
 
-            document.exitPointerLock();
+            cameraManager.exitPointerLock();
             closeOtherWindows();
 
         }

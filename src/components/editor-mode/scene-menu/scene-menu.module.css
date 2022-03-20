@@ -7,7 +7,7 @@
     height: 40px;
     flex-direction: column;
     overflow: visible;
-    z-index: 5;
+    z-index: 2;
 }
 
 .location .row {
