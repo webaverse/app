@@ -1,28 +1,52 @@
-import React, {useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import style from './DragAndDrop.module.css';
 import {handleUpload} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx';
 import {registerLoad} from './LoadingBox.jsx';
+import metaversefile from 'metaversefile';
+
+const _upload = () => new Promise((accept, reject) => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  // input.setAttribute('webkitdirectory', '');
+  // input.setAttribute('directory', '');
+  input.setAttribute('multiple', '');
+  input.click();
+  input.addEventListener('change', async e => {
+    const name = 'Loading';
+    const description = e.target.files ? e.target.files[0].name : `${e.target.files.length} files`;
+    const load = registerLoad(name, description, 0);
+    const o = await uploadCreateApp(e.target.files);
+    load.end();
+  });
+});
+const uploadCreateApp = async item => {
+  const u = await handleUpload(item);
+  let o = null;
+  try {
+    o = await metaversefile.createAppAsync({
+      start_url: u,
+    });
+  } catch(err) {
+    console.warn(err);
+  }
+  if (o) {
+    o.contentId = u;
+    return o;
+  } else {
+    return null;
+  }
+};
 
 const DragAndDrop = () => {
-  const _upload = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    // input.setAttribute('webkitdirectory', '');
-    // input.setAttribute('directory', '');
-    input.setAttribute('multiple', '');
-    input.click();
-    input.addEventListener('change', async e => {
-      const load = registerLoad('loading', 'file', 0);
-      const u = await handleUpload(e.target.files);
-      load.update(1);
-    });
-  };
+  const [queue, setQueue] = useState([]);
+  const [currentFile, setCurrentFile] = useState(null);
 
   useEffect(() => {
-    function keydown(e) {
+    async function keydown(e) {
       if (e.which === 85) { // U
-        _upload();
+        const u = await _upload();
+        setQueue(queue.concat([u]));
       }
     }
     registerIoEventHandler('keydown', keydown);
@@ -63,10 +87,17 @@ const DragAndDrop = () => {
 
       const items = Array.from(e.dataTransfer.items);
       await Promise.all(items.map(async item => {
-        await handleUpload(item/*, {
+        const name = 'Loading';
+        const description = item.name;
+        const load = registerLoad(name, description, 0);
+        const o = await uploadCreateApp(item/*, {
           position,
           quaternion,
         }*/);
+        load.end();
+        if (o) {
+          setQueue(queue.concat([o]));
+        }
       }));
     
       /* let arrowLoader = metaverseUi.makeArrowLoader();
@@ -87,9 +118,19 @@ const DragAndDrop = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (queue.length > 0 && !currentFile) {
+      const f = queue[0];
+      setCurrentFile(f);
+      setQueue(queue.slice(1));
+    }
+  }, [queue]);
+
   return (
     <div className={style.dragAndDrop}>
-      
+      {currentFile ? (
+        <div className={style.currentFile}>{currentFile.name}</div>
+      ): null}
     </div>
   );
 };

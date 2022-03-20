@@ -39,6 +39,11 @@ export const registerLoad = (name, description, progress) => {
 
       _updateLoadManager();
     },
+    end() {
+      loads.splice(loads.indexOf(load), 1);
+
+      _updateLoadManager();
+    },
   };
 };
 
@@ -70,7 +75,7 @@ const LoadingBox = () => {
   useEffect(async () => {
     function update(e) {
       const progress = _getCurrentProgress();
-      console.log('got progress', progress);
+      // console.log('got progress', progress);
       setProgress(progress);
       setOpen(progress < 1);
     }
