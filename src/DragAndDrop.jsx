@@ -3,12 +3,10 @@ import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import {world} from '../world.js';
-import {handleUpload} from '../util.js';
+import {getRandomString, handleUpload} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
 import {registerLoad} from './LoadingBox.jsx';
 import metaversefile from 'metaversefile';
-
-const oneVector = new THREE.Vector3(1, 1, 1);
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -37,6 +35,8 @@ const uploadCreateApp = async item => {
   }
   if (o) {
     o.contentId = u;
+    o.instanceId = getRandomString();
+    o.setComponent('physics', true);
     return o;
   } else {
     return null;
@@ -147,7 +147,7 @@ const DragAndDrop = () => {
     e.preventDefault();
     e.stopPropagation();
   };
-  const _drop = e => {
+  const _drop = async e => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -157,8 +157,11 @@ const DragAndDrop = () => {
         .add(new THREE.Vector3(0, 0, -2).applyQuaternion(localPlayer.quaternion));
       const quaternion = localPlayer.quaternion;
 
-      world.appManager.addApp(currentApp);
-      world.appManager.addTrackedApp(currentApp.contentId, position, quaternion, oneVector);
+      currentApp.position.copy(position);
+      currentApp.quaternion.copy(quaternion);
+      currentApp.updateMatrixWorld();
+
+      world.appManager.importApp(currentApp);
       
       setCurrentApp(null);
     }
