@@ -549,6 +549,30 @@ class AppManager extends EventTarget {
     // srcAppManager.setBlindStateMode(false);
     // dstAppManager.setBlindStateMode(false);
   }
+  importApp(app) {
+    let dstTrackedApp = null;
+    this.appsArray.doc.transact(() => {
+      const contentId = app.contentId;
+      const instanceId = app.instanceId;
+      const position = app.position.toArray();
+      const quaternion = app.quaternion.toArray();
+      const scale = app.scale.toArray();
+      const components = app.components.slice();
+      
+      dstTrackedApp = this.addTrackedAppInternal(
+        instanceId,
+        contentId,
+        position,
+        quaternion,
+        scale,
+        components,
+      );
+    });
+    
+    this.bindTrackedApp(dstTrackedApp, app);
+
+    this.addApp(app);
+  }
   hasApp(app) {
     return this.apps.includes(app);
   }
