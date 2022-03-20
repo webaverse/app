@@ -2,20 +2,23 @@ import React, {useEffect} from 'react';
 import style from './DragAndDrop.module.css';
 import {handleUpload} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx';
-
-const _upload = () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  // input.setAttribute('webkitdirectory', '');
-  // input.setAttribute('directory', '');
-  input.setAttribute('multiple', '');
-  input.click();
-  input.addEventListener('change', e => {
-    handleUpload(e.target.files);
-  });
-};
+import {registerLoad} from './LoadingBox.jsx';
 
 const DragAndDrop = () => {
+  const _upload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    // input.setAttribute('webkitdirectory', '');
+    // input.setAttribute('directory', '');
+    input.setAttribute('multiple', '');
+    input.click();
+    input.addEventListener('change', async e => {
+      const load = registerLoad('loading', 'file', 0);
+      const u = await handleUpload(e.target.files);
+      load.update(1);
+    });
+  };
+
   useEffect(() => {
     function keydown(e) {
       if (e.which === 85) { // U
