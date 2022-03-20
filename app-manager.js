@@ -235,31 +235,44 @@ class AppManager extends EventTarget {
       try {
         const m = await metaversefile.import(contentId);
         if (!live) return _bailout(null);
-        const app = metaversefile.createApp({
-          // name: contentId,
-        });
-        
-        app.position.fromArray(position);
-        app.quaternion.fromArray(quaternion);
-        app.scale.fromArray(scale);
-        app.updateMatrixWorld();
-        app.lastMatrix.copy(app.matrixWorld);
 
-        app.instanceId = instanceId;
-        app.setComponent('physics', true);
-        for (const {key, value} of components) {
-          app.setComponent(key, value);
+        // create app
+        // as an optimization, the app may be reused by calling addApp() before tracking it
+        let app = this.getAppByInstanceId(instanceId);
+        const reusedApp = !!app;
+        if (!app) {
+          app = metaversefile.createApp();
         }
-        // console.log('add module', m);
-        const mesh = await app.addModule(m);
-        if (!live) return _bailout(app);
-        if (!mesh) {
-          console.warn('failed to load object', {contentId});
+
+        // setup
+        {
+          // set pose
+          app.position.fromArray(position);
+          app.quaternion.fromArray(quaternion);
+          app.scale.fromArray(scale);
+          app.updateMatrixWorld();
+          app.lastMatrix.copy(app.matrixWorld);
+
+          // set components
+          app.instanceId = instanceId;
+          app.setComponent('physics', true);
+          for (const {key, value} of components) {
+            app.setComponent(key, value);
+          }
         }
-        
+
+        if (!reusedApp) {
+          // console.log('add module', m);
+          const mesh = await app.addModule(m);
+          if (!live) return _bailout(app);
+          if (!mesh) {
+            console.warn('failed to load object', {contentId});
+          }
+
+          this.addApp(app);
+        }
+
         this.bindTrackedApp(trackedApp, app);
-        
-        this.addApp(app);
 
         p.accept(app);
       } catch (err) {
@@ -393,9 +406,9 @@ class AppManager extends EventTarget {
     quaternion = new THREE.Quaternion(),
     scale = new THREE.Vector3(1, 1, 1),
     components = [],
+    instanceId = getRandomString(),
   ) {
     const self = this;
-    const instanceId = getRandomString();
     this.appsArray.doc.transact(function tx() {
       self.addTrackedAppInternal(
         instanceId,
