@@ -1,9 +1,11 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
 import {RenderMirror} from './RenderMirror';
 import {RainFx} from './RainFx';
+import { AppContext } from '../../app';
+
 import styles from './zone-title-card.module.css';
 
 //
@@ -14,10 +16,9 @@ const logoImages = [
   'images/logos/upstreet3.png',
 ];
 
-export const ZoneTitleCard = ({
-    app,
-}) => {
+export const ZoneTitleCard = () => {
 
+    const { app } = useContext( AppContext );
     const [ open, setOpen ] = useState( false );
     const [ logoImage, setLogoImage ] = useState( logoImages[Math.floor(Math.random() * logoImages.length)] );
     const [ loadProgress, setLoadProgress ] = useState( false );
