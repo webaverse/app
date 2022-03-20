@@ -331,97 +331,100 @@ export async function snapshotMapChunk(scene, position, worldSize, worldResoluti
     worldSize,
     worldDepthResolution,
   );
+  const leftMesh = _makeMesh(
+    position,
+    new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
+    worldSize,
+    worldDepthResolution,
+  );
+  const rightMesh = _makeMesh(
+    position,
+    new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2),
+    worldSize,
+    worldDepthResolution,
+  );
+  const frontMesh = _makeMesh(
+    position,
+    new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0),
+    worldSize,
+    worldDepthResolution,
+  );
+  const backMesh = _makeMesh(
+    position,
+    new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI),
+    worldSize,
+    worldDepthResolution,
+  );
 
   {
-    // const worldDepthResolutionP1 = worldDepthResolution + 1;
-    const _isIntersectingPoint = (topMesh, bottomMesh, x, z) => {
-      const index = z * worldDepthResolutionP1 + x;
-      // const index2 = (worldDepthResolutionP1 - 1 - z) * worldDepthResolutionP1 + x;
-      let yTop = topMesh.depthFloatImageData[index];
-      let yBottom = bottomMesh.depthFloatImageData[index];
+    const clipRange = 3;
+    const _cleanGeometry = geometry => {
+      let index = 0;
 
-      const yTopPos = /*position.y + */cameraHeight + yTop;
-      const yBottomPos = /*position.y */- cameraHeight - yBottom;
-      
-      return yTopPos < yBottomPos;
-    };
+      for (let iy = 0; iy < worldDepthResolution; iy++) {
+        for (let ix = 0; ix < worldDepthResolution; ix++) {
+          const a = geometry.index.array[index];
+          const b = geometry.index.array[index + 1];
+          const d = geometry.index.array[index + 2];
+          // const b = geometry.index.array[index + 3];
+          const c = geometry.index.array[index + 4];
+          // const d = geometry.index.array[index + 5];
 
-    const clipRange = 10;
-    [
-      [
-        topMesh,
-        bottomMesh,
-      ],
-    ].forEach(([meshA, meshB]) => {
-      /* const intersectingPoints = {};
-      for (let z = 0; z < worldDepthResolutionP1; z++) {
-        for (let x = 0; x < worldDepthResolutionP1; x++) {
-          intersectingPoints[`${x},${z}`] = _isIntersectingPoint(meshA, meshB, x, z);
-        }
-      } */
-
-      [
-        meshA,
-        meshB,
-      ].forEach(mesh => {
-        let index = 0;
-
-        for (let iy = 0; iy < worldDepthResolution; iy++) {
-          for (let ix = 0; ix < worldDepthResolution; ix++) {
-            const a = mesh.geometry.index.array[index];
-            const b = mesh.geometry.index.array[index + 1];
-            const d = mesh.geometry.index.array[index + 2];
-            // const b = mesh.geometry.index.array[index + 3];
-            const c = mesh.geometry.index.array[index + 4];
-            // const d = mesh.geometry.index.array[index + 5];
-
-            {
-              localTriangle.set(
-                localVector.fromArray(mesh.geometry.attributes.position.array, a * 3),
-                localVector2.fromArray(mesh.geometry.attributes.position.array, b * 3),
-                localVector3.fromArray(mesh.geometry.attributes.position.array, d * 3),
-              );
-              const center = localTriangle.getMidpoint(localVector4);
-              
-              if (
-                localTriangle.a.distanceTo(center) > clipRange ||
-                localTriangle.b.distanceTo(center) > clipRange ||
-                localTriangle.c.distanceTo(center) > clipRange
-              ) {
-                mesh.geometry.index.array[index] = 0;
-                mesh.geometry.index.array[index + 1] = 0;
-                mesh.geometry.index.array[index + 2] = 0;
-              }
+          {
+            localTriangle.set(
+              localVector.fromArray(geometry.attributes.position.array, a * 3),
+              localVector2.fromArray(geometry.attributes.position.array, b * 3),
+              localVector3.fromArray(geometry.attributes.position.array, d * 3),
+            );
+            const center = localTriangle.getMidpoint(localVector4);
+            
+            if (
+              localTriangle.a.distanceTo(center) > clipRange ||
+              localTriangle.b.distanceTo(center) > clipRange ||
+              localTriangle.c.distanceTo(center) > clipRange
+            ) {
+              geometry.index.array[index] = 0;
+              geometry.index.array[index + 1] = 0;
+              geometry.index.array[index + 2] = 0;
             }
-            {
-              localTriangle.set(
-                localVector.fromArray(mesh.geometry.attributes.position.array, b * 3),
-                localVector2.fromArray(mesh.geometry.attributes.position.array, c * 3),
-                localVector3.fromArray(mesh.geometry.attributes.position.array, d * 3),
-              );
-              const center = localTriangle.getMidpoint(localVector4);
-
-              if (
-                localTriangle.a.distanceTo(center) > clipRange ||
-                localTriangle.b.distanceTo(center) > clipRange ||
-                localTriangle.c.distanceTo(center) > clipRange
-              ) {
-                mesh.geometry.index.array[index + 3] = 0;
-                mesh.geometry.index.array[index + 4] = 0;
-                mesh.geometry.index.array[index + 5] = 0;
-              }
-            }
-          
-            index += 6;
           }
+          {
+            localTriangle.set(
+              localVector.fromArray(geometry.attributes.position.array, b * 3),
+              localVector2.fromArray(geometry.attributes.position.array, c * 3),
+              localVector3.fromArray(geometry.attributes.position.array, d * 3),
+            );
+            const center = localTriangle.getMidpoint(localVector4);
+
+            if (
+              localTriangle.a.distanceTo(center) > clipRange ||
+              localTriangle.b.distanceTo(center) > clipRange ||
+              localTriangle.c.distanceTo(center) > clipRange
+            ) {
+              geometry.index.array[index + 3] = 0;
+              geometry.index.array[index + 4] = 0;
+              geometry.index.array[index + 5] = 0;
+            }
+          }
+        
+          index += 6;
         }
-      });
-    });
+      }
+    };
+    _cleanGeometry(topMesh.geometry);
+    _cleanGeometry(bottomMesh.geometry);
+    _cleanGeometry(leftMesh.geometry);
+    _cleanGeometry(rightMesh.geometry);
+    _cleanGeometry(frontMesh.geometry);
+    _cleanGeometry(backMesh.geometry);
   }
 
   const object = new THREE.Object3D();
   object.add(topMesh);
   object.add(bottomMesh);
-  // window.bottomMesh = bottomMesh;
+  object.add(leftMesh);
+  object.add(rightMesh);
+  object.add(frontMesh);
+  object.add(backMesh);
   return object;
 }
