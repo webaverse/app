@@ -17,6 +17,7 @@ import { WorldObjectsList } from '../general/world-objects-list';
 import { IoHandler, registerIoEventHandler, unregisterIoEventHandler } from '../general/io-handler';
 import { ZoneTitleCard } from '../general/zone-title-card';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
+import { LoadingBox } from '../../LoadingBox.jsx';
 import { DragAndDrop } from '../../DragAndDrop.jsx';
 import { Stats } from '../../Stats.jsx';
 import { PlayMode } from '../play-mode';
@@ -156,6 +157,7 @@ export const App = () => {
                 <IoHandler />
                 <ZoneTitleCard />
                 <MapGen />
+                <LoadingBox />
                 <DragAndDrop />
                 <Stats app={ app } />
             </AppContext.Provider>
