@@ -10,6 +10,7 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import hpManager from './hp-manager.js';
 // import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
+// import {chatManager} from './chat-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
 import {scene, postSceneOrthographic, postScenePerspective, sceneHighPriority, sceneLowPriority} from './renderer.js';
@@ -53,38 +54,7 @@ const extra = {
   states: new Float32Array(15),
 }; */
 
-let mediaStream = null;
-world.micEnabled = () => !!mediaStream;
-world.enableMic = async () => {
-  await WSRTC.waitForReady();
-  mediaStream = await WSRTC.getUserMedia();
-  if (wsrtc) {
-    wsrtc.enableMic(mediaStream);
-  }
-  
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.setMicMediaStream(mediaStream);
-};
-world.disableMic = () => {
-  if (mediaStream) {
-    if (wsrtc) {
-      wsrtc.disableMic();
-    } else {
-      WSRTC.destroyUserMedia(mediaStream);
-    }
-    mediaStream = null;
-    
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.setMicMediaStream(null);
-  }
-};
-world.toggleMic = () => {
-  if (mediaStream) {
-    world.disableMic();
-  } else {
-    world.enableMic();
-  }
-};
+world.getConnection = () => wsrtc;
 
 world.connectState = state => {
   state.setResolvePriority(1);

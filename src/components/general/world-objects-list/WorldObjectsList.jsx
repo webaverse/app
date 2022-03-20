@@ -19,7 +19,7 @@ const NumberInput = ({ input }) => {
 
     const handleInputKeyDown = ( event ) => {
 
-        if ( event.which === 13 ) {
+        if ( event.which === 13 ) { // enter
 
             event.target.blur();
 
@@ -168,7 +168,7 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
 
         if ( opened ) {
 
-            document.exitPointerLock();
+            cameraManager.exitPointerLock();
             closeOtherWindows();
 
         }
@@ -233,7 +233,7 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
                                 <img src="images/webpencil.svg" className={ classnames( styles.backgroundInner, styles.lime ) } />
                                 <img src="images/object.jpg" className={ styles.img } />
                                 <div className={ styles.wrap } >
-                                    <div className={ styles.name } >{ app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1') }</div>
+                                    <div className={ styles.name } >{ app.name }</div>
                                 </div>
                             </div>
                         ))

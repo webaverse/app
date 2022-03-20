@@ -207,8 +207,8 @@ const _makeRenderer = (width, height) => {
   `;
 }; */
 
-const dataUrlRegex = /^data:([^;,]+)(?:;(charset=utf-8|base64))?,([\s\S]*)$/;
-const _getType = id => {
+// const dataUrlRegex = /^data:([^;,]+)(?:;(charset=utf-8|base64))?,([\s\S]*)$/;
+/* const _getType = id => {
   id = id.replace(/^\/@proxy\//, '');
 
   const o = new URL(id);
@@ -237,7 +237,7 @@ const _getType = id => {
   } else {
     return '';
   }
-};
+}; */
 
 (async () => {
   await Avatar.waitForLoad();

@@ -1,47 +1,9 @@
 import React, {useState, useEffect, useRef} from 'react'
+import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx'
 import classes from './MagicMenu.module.css'
 import ioManager from '../io-manager.js';
-import {aiHost} from '../constants.js';
+import * as codeAi from '../ai/code/code-ai.js';
 import metaversefile from 'metaversefile';
-
-function parseQueryString(queryString) {
-  const query = {};
-  const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-  for (let i = 0; i < pairs.length; i++) {
-    const pair = pairs[i].split('=');
-    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-  }
-  return query;
-}
-
-// window.metaversefile = metaversefile; // XXX
-const makeAi = prompt => {
-    const es = new EventSource(`${aiHost}/code?p=${encodeURIComponent(prompt)}`);
-    let fullS = '';
-    es.addEventListener('message', e => {
-      const s = e.data;
-      if (s !== '[DONE]') {
-        const j = JSON.parse(s);
-        const {choices} = j;
-        const {text} = choices[0];
-        fullS += text;
-        if (!fullS) {
-          fullS = '// nope';
-        }
-        result.dispatchEvent(new MessageEvent('update', {
-          data: fullS,
-        }));
-      } else {
-        es.close();
-        result.dispatchEvent(new MessageEvent('done'));
-      }
-    });
-    const result = new EventTarget();
-    result.destroy = () => {
-      es.close();
-    };
-    return result;
-};
 
 function MagicMenu({open, setOpen}) {
   const [page, setPage] = useState('input');
@@ -70,7 +32,7 @@ function MagicMenu({open, setOpen}) {
       let newAi = null;
       try {
         const input = inputTextarea.current.value;
-        newAi = makeAi(input);
+        newAi = codeAi.generateStream(input);
         setAi(newAi);
         setPage('output');
         setOutput('');
@@ -111,27 +73,6 @@ function MagicMenu({open, setOpen}) {
     })();
   };
   useEffect(() => {
-    const types = ['keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'paste'];
-    const cleanups = types.map(type => {
-      const fn = e => {
-        if (window.document.activeElement === inputTextarea.current || e.target === inputTextarea.current) {
-          // nothing
-        } else {
-          ioManager[type](e);
-        }
-      };
-      window.addEventListener(type, fn);
-      return () => {
-        window.removeEventListener(type, fn);
-      };
-    });
-    return () => {
-      for (const fn of cleanups) {
-        fn();
-      }
-    };
-  }, []);
-  useEffect(() => {
     if (magicMenuOpen) {
       if (page === 'input') {
         inputTextarea.current.focus();
@@ -143,6 +84,19 @@ function MagicMenu({open, setOpen}) {
       setNeedsFocus(false);
     }
   }, [magicMenuOpen, inputTextarea.current, needsFocus]);
+  useEffect(() => {
+    function all(e) {
+      if (window.document.activeElement === inputTextarea.current || e.target === inputTextarea.current) {
+        return false;
+      } else {
+        return true;
+      }
+    };
+    registerIoEventHandler('', all);
+    return () => {
+      unregisterIoEventHandler('', all);
+    };
+  }, []);
 
   const click = e => {
     ioManager.click(new MouseEvent('click'));

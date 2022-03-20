@@ -6,6 +6,7 @@ import Inspector from './Inspector.jsx';
 import Chat from './Chat.jsx';
 import CharacterHups from './CharacterHups.jsx';
 import MagicMenu from './MagicMenu.jsx';
+import {registerIoEventHandler, unregisterIoEventHandler} from './IoHandler.jsx';
 // import * as Z from 'zjs';
 // import {Color} from './Color.js';
 import {world} from '../world.js'
@@ -27,7 +28,7 @@ export default function Header({
   const localPlayer = metaversefile.useLocalPlayer();
   const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
 
-  const previewCanvasRef = useRef();
+  const dioramaCanvasRef = useRef();
   const panelsRef = useRef();
 
   const [open, setOpen] = useState(null);
@@ -69,22 +70,19 @@ export default function Header({
   }, []);
   useEffect(() => {
     const pointerlockchange = e => {
-      // console.log('pointer lock change', e, document.pointerLockElement);
-      if (document.pointerLockElement) {
+      const {pointerLockElement} = e.data;
+      if (pointerLockElement && open !== null) {
         setOpen(null);
       }
     };
-    window.document.addEventListener('pointerlockchange', pointerlockchange);
+    cameraManager.addEventListener('pointerlockchange', pointerlockchange);
     return () => {
-      window.document.removeEventListener('pointerlockchange', pointerlockchange);
+      cameraManager.removeEventListener('pointerlockchange', pointerlockchange);
     };
-  }, []);
+  }, [open]);
   useEffect(() => {
-    if (open && document.pointerLockElement && open !== 'chat') {
-      document.exitPointerLock();
-    }
-    if (game.playerDiorama) {
-      game.playerDiorama.enabled = !!open;
+    if (open && open !== 'chat') {
+      cameraManager.exitPointerLock();
     }
   }, [open]);
 
@@ -104,11 +102,6 @@ export default function Header({
     };
   }, [claims]);
   useEffect(() => {
-    if (previewCanvasRef.current && !game.playerDiorama) {
-      app.bindPreviewCanvas(previewCanvasRef.current);
-    }
-  }, [previewCanvasRef.current]);
-  useEffect(() => {
     if (selectedApp && panelsRef.current) {
       panelsRef.current.scrollTo(0, 0);
     }
@@ -120,12 +113,6 @@ export default function Header({
         e.preventDefault();
         e.stopPropagation();
         setOpen('chat');
-        return true;
-      }
-      case 84: { // T
-        e.preventDefault();
-        e.stopPropagation();
-        world.toggleMic();
         return true;
       }
       case 191: { // /
@@ -167,7 +154,6 @@ export default function Header({
         setOpen( false );
 
     };
-
     window.addEventListener( 'CloseAllMenus', handleOnFocusLost );
 
     const keydown = e => {
@@ -180,15 +166,16 @@ export default function Header({
         handled = _handleAnytimeKey(e);
       }
       if (handled || inputFocused) {
-        // nothing
+        return false;
       } else {
-        ioManager.keydown(e);
+        return true;
       }
     };
-    window.addEventListener('keydown', keydown);
+    registerIoEventHandler('keydown', keydown);
+
     return () => {
       window.removeEventListener( 'CloseAllMenus', handleOnFocusLost );
-      window.removeEventListener('keydown', keydown);
+      unregisterIoEventHandler('keydown', keydown);
     };
   }, [open, selectedApp]);
   useEffect(async () => {
@@ -267,7 +254,7 @@ export default function Header({
               toggleOpen={toggleOpen}
               panelsRef={panelsRef}
               wearActions={wearActions}
-              previewCanvasRef={previewCanvasRef}
+              dioramaCanvasRef={dioramaCanvasRef}
               game={game}
             />
             <Claims

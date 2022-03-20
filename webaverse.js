@@ -4,11 +4,8 @@ it uses the help of various managers and stores, and executes the render loop.
 */
 
 import * as THREE from 'three';
-import WSRTC from 'wsrtc/wsrtc.js';
 import Avatar from './avatars/avatars.js';
-// import * as CharacterHupsModule from './character-hups.js';
 import * as sounds from './sounds.js';
-import * as CharacterSfxModule from './character-sfx.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
@@ -17,13 +14,10 @@ import * as blockchain from './blockchain.js';
 import cameraManager from './camera-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
-// import equipmentRender from './equipment-render.js';
-// import * as characterController from './character-controller.js';
 import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
 import loadoutManager from './loadout-manager.js';
-import {Stats} from './stats.js';
 import {
   getRenderer,
   scene,
@@ -35,32 +29,20 @@ import {
   bindCanvas,
   getComposer,
 } from './renderer.js';
+import * as audioManager from './audio-manager.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import * as voices from './voices.js';
+import performanceTracker from './performance-tracker.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-// import {defaultVoiceEndpoint, defaultVoicePack} from './constants.js';
-
-// const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
-// const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-// const localVector3 = new THREE.Vector3();
-// const localVector4 = new THREE.Vector3();
-// const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
-// const localQuaternion2 = new THREE.Quaternion();
-// const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
-// const localMatrix2 = new THREE.Matrix4();
-const localMatrix3 = new THREE.Matrix4();
-// const localArray = Array(4);
-// const localArray2 = Array(4);
-// const localArray3 = Array(4);
-// const localArray4 = Array(4);
+const localMatrix2 = new THREE.Matrix4();
 
 const sessionMode = 'immersive-vr';
 const sessionOpts = {
@@ -80,89 +62,21 @@ const frameEvent = new MessageEvent('frame', {
     // lastTimestamp: 0,
   },
 });
-const rendererStats = Stats();
-
-const _loadAudioContext = async () => {
-  const audioContext = WSRTC.getAudioContext();
-  Avatar.setAudioContext(audioContext);
-  await audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
-};
-
-/* const voiceFiles = `\
-B6_somnium_65_01 - Part_1.wav
-B6_somnium_66_01 - Part_1.wav
-D5-begin20_10_09_03 - Part_1.wav
-D5-begin20_10_09_03 - Part_2.wav
-D5-begin20_10_09_09 - Part_1.wav
-D5-begin20_10_09_10 - Part_1.wav
-D5-begin20_10_09_10 - Part_2.wav
-D5-begin20_10_09_10 - Part_3.wav
-D5-begin20_10_09_11 - Part_1.wav
-D5-begin20_10_09_14 - Part_1.wav
-E5-begin40_10_04_05 - Part_1.wav
-E5-begin40_10_04_06 - Part_1.wav
-E5-begin40_10_04_07 - Part_1.wav
-E5-begin40_10_04_07 - Part_2.wav
-E5-begin40_10_04_09 - Part_1.wav
-E5-begin40_10_05_01 - Part_1.wav
-E5-begin40_10_06_02 - Part_1.wav
-E5-begin40_10_06_05 - Part_1.wav
-E5-begin40_10_06_07 - Part_1.wav
-E5-begin40_10_07_24 - Part_1.wav
-E5-begin40_10_08_01 - Part_1.wav
-E5-begin40_10_08_01 - Part_2.wav
-E5-begin40_10_08_02 - Part_1.wav
-E5-begin40_10_08_03 - Part_1.wav
-E5-begin40_10_08_03 - Part_2.wav
-E5-begin40_10_08_04 - Part_1.wav
-E5-begin40_10_08_04 - Part_2.wav
-E5-begin40_10_08_05 - Part_1.wav
-E5-begin40_10_08_06 - Part_1.wav
-E5-begin40_10_08_07 - Part_1.wav
-E5-begin40_10_08_07 - Part_2.wav
-E5-begin40_10_08_10 - Part_1.wav
-E5-begin40_10_08_10 - Part_2.wav
-E5-begin40_10_08_10 - Part_3.wav
-E5-begin40_10_08_10 - Part_4.wav
-E5-begin40_10_08_12 - Part_1.wav
-E5-begin40_10_08_13 - Part_1.wav
-E5-begin40_10_10_02 - Part_1.wav
-E5-begin40_10_12_02 - Part_1.wav
-E5-begin40_10_14_11 - Part_1.wav
-E5-begin40_10_14_15 - Part_1.wav
-E5-begin40_10_14_15 - Part_2.wav
-E6-wrap_74_10_05_02 - Part_1.wav
-E6-wrap_74_10_19_03 - Part_1.wav
-E6-wrap_74_10_19_21 - Part_1.wav
-E6-wrap_74_10_19_29 - Part_1.wav`
-  .split('\n')
-  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/vocalizations/${voiceFile}`); */
-/* const numFiles = 361;
-const voiceFiles = Array(numFiles).fill(0).map((_, i) => `${i + 1}.wav`)
-  .map(voiceFile => `/@proxy/https://webaverse.github.io/shishi-voicepack/syllables/${voiceFile}`); */
 
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
 
-    rendererStats.domElement.style.position = 'absolute';
-    rendererStats.domElement.style.right = '0px';
-    rendererStats.domElement.style.bottom = '0px';
-    rendererStats.domElement.style.display = 'none';
-    document.body.appendChild(rendererStats.domElement);
-
     this.loadPromise = (async () => {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
-        _loadAudioContext(),
+        audioManager.waitForLoad(),
         sounds.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
         WebaWallet.waitForLoad(),
-        // game.loadVoicePack(defaultVoicePack),
-        // game.setVoiceEndpoint(defaultVoice),
       ]);
     })();
     this.contentLoaded = false;
@@ -200,11 +114,9 @@ export default class Webaverse extends EventTarget {
   }
   bindCanvas(c) {
     bindCanvas(c);
+    game.bindDioramaCanvas();
     
     postProcessing.bindCanvas();
-  }
-  bindPreviewCanvas(canvas) {
-    game.bindPreviewCanvas(canvas);
   }
   async isXrSupported() {
     if (navigator.xr) {
@@ -219,9 +131,6 @@ export default class Webaverse extends EventTarget {
       return false;
     }
   }
-  /* toggleMic() {
-    return world.toggleMic();
-  } */
   async enterXr() {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -353,8 +262,14 @@ export default class Webaverse extends EventTarget {
     this.dispatchEvent(frameEvent);
 
     getComposer().render();
-    game.debugMode && rendererStats.update(renderer);
-    
+
+    this.dispatchEvent(new MessageEvent('frameend', {
+      data: {
+        canvas: renderer.domElement,
+        context: renderer.getContext(),
+      }
+    }));
+
     // console.log('frame 2');
   }
   
@@ -365,66 +280,79 @@ export default class Webaverse extends EventTarget {
     }
     
     let lastTimestamp = performance.now();
-
     const animate = (timestamp, frame) => {
-      timestamp = timestamp ?? performance.now();
-      const timeDiff = timestamp - lastTimestamp;
-      const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100); 
+      performanceTracker.startFrame();
 
-      ioManager.update(timeDiffCapped);
-      // this.injectRigInput();
-      
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
-        //if(performance.now() - lastTimestamp < 1000/60) return; // There might be a better solution, we need to limit the simulate time otherwise there will be jitter at different FPS
-        physicsManager.simulatePhysics(timeDiffCapped); 
-        localPlayer.updatePhysics(timestamp, timeDiffCapped);
-      }
+      const _frame = () => {
+        timestamp = timestamp ?? performance.now();
+        const timeDiff = timestamp - lastTimestamp;
+        const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
 
-      transformControls.update();
-      game.update(timestamp, timeDiffCapped);
-      
-      localPlayer.updateAvatar(timestamp, timeDiffCapped);
-      playersManager.update(timestamp, timeDiffCapped);
-      
-      world.appManager.tick(timestamp, timeDiffCapped, frame);
+        performanceTracker.setGpuPrefix('pre');
+        const _pre = () => {
+          ioManager.update(timeDiffCapped);
+          // this.injectRigInput();
+          
+          const localPlayer = metaversefileApi.useLocalPlayer();
+          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
+            physicsManager.simulatePhysics(timeDiffCapped);
+            localPlayer.updatePhysics(timestamp, timeDiffCapped);
+          }
 
-      hpManager.update(timestamp, timeDiffCapped);
+          transformControls.update();
+          game.update(timestamp, timeDiffCapped);
+          
+          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+          playersManager.update(timestamp, timeDiffCapped);
+          
+          world.appManager.tick(timestamp, timeDiffCapped, frame);
 
-      cameraManager.updatePost(timestamp, timeDiffCapped);
-      ioManager.updatePost();
+          hpManager.update(timestamp, timeDiffCapped);
 
-      game.pushAppUpdates();
-      game.pushPlayerUpdates();
+          cameraManager.updatePost(timestamp, timeDiffCapped);
+          ioManager.updatePost();
 
-      const session = renderer.xr.getSession();
-      const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-      localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
-      localMatrix3.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix)
-        .decompose(localVector, localQuaternion, localVector2);
-      
-      lastTimestamp = timestamp;
+          game.pushAppUpdates();
+          game.pushPlayerUpdates();
 
-      // render scenes
-      dioramaManager.update(timestamp, timeDiffCapped);
-      minimapManager.update(timestamp, timeDiffCapped);
-      loadoutManager.update(timestamp, timeDiffCapped);
-      this.render(timestamp, timeDiffCapped);
+          const session = renderer.xr.getSession();
+          const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
+          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
+          localMatrix2.copy(xrCamera.matrix)
+            .premultiply(dolly.matrix)
+            .decompose(localVector, localQuaternion, localVector2);
+          
+          lastTimestamp = timestamp;
+        };
+        _pre();
+
+        // render scenes
+        performanceTracker.setGpuPrefix('diorama');
+        dioramaManager.update(timestamp, timeDiffCapped);
+        performanceTracker.setGpuPrefix('minimap');
+        minimapManager.update(timestamp, timeDiffCapped);
+        performanceTracker.setGpuPrefix('loadout');
+        loadoutManager.update(timestamp, timeDiffCapped);
+
+        performanceTracker.setGpuPrefix('');
+        this.render(timestamp, timeDiffCapped);
+      };
+      _frame();
+
+      performanceTracker.endFrame();
     }
     renderer.setAnimationLoop(animate);
 
-    _startHacks();
+    _startHacks(this);
   }
 }
 
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
-const _startHacks = () => {
+const _startHacks = webaverse => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
-  let playerDiorama = null;
-  let appDiorama = null;
+  // let playerDiorama = null;
   const lastEmoteKey = {
     key: -1,
     timestamp: 0,
@@ -446,11 +374,15 @@ const _startHacks = () => {
     }
   };
   const _updateEmote = () => {
-    localPlayer.removeAction('emote');
+    const oldEmoteActionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && /^emotion-/.test(action.emotion));
+    if (oldEmoteActionIndex !== -1) {
+      localPlayer.removeActionIndex(oldEmoteActionIndex);
+    }
     if (emoteIndex !== -1) {
       const emoteAction = {
         type: 'emote',
-        index: emoteIndex,
+        emotion: `emotion-${emoteIndex}`,
+        value: 1,
       };
       localPlayer.addAction(emoteAction);
     }
@@ -581,103 +513,9 @@ const _startHacks = () => {
       mikuModel.updateMatrixWorld();
     }
   }; */
+  webaverse.titleCardHack = false;
   window.addEventListener('keydown', e => {
-    if (e.which === 219) { // [
-      if (localPlayer.avatar) {
-        (async () => {
-          const audioUrl = '/sounds/pissbaby.mp3';
-          // const audioUrl2 = '/sounds/music.mp3';
-
-          const _loadAudio = u => new Promise((accept, reject) => {
-            const audio = new Audio(u);
-            audio.addEventListener('canplaythrough', async e => {
-              accept(audio);
-            }, {once: true});
-            audio.addEventListener('error', e => {
-              reject(e);
-            });
-            // audio.play();
-            // audioContext.resume();
-          });
-
-          const audios = await Promise.all([
-            _loadAudio(audioUrl),
-            // _loadAudio(audioUrl2),
-          ]);
-          localPlayer.avatar.setAudioEnabled(true);
-
-          const _createMediaStreamSource = o => {
-            if (o instanceof MediaStream) {
-              const audio = document.createElement('audio');
-              audio.srcObject = o;
-              audio.muted = true;
-            }
-
-            const audioContext = Avatar.getAudioContext();
-            if (o instanceof MediaStream) {
-              return audioContext.createMediaStreamSource(o);
-            } else {
-              return audioContext.createMediaElementSource(o);
-            }
-          };
-          const mediaStreamSource = _createMediaStreamSource(audios[0]);
-          mediaStreamSource.connect(localPlayer.avatar.getAudioInput());
-
-          audios[0].play();
-          // audios[1].play();
-          audios[0].addEventListener('ended', e => {
-            mediaStreamSource.disconnect();
-            localPlayer.avatar.setAudioEnabled(false);
-          });
-        })();
-      }
-    } else if (e.which === 221) { // ]
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      if (localPlayer.avatar) {
-        if (!playerDiorama) {
-          playerDiorama = dioramaManager.createPlayerDiorama(localPlayer, {
-            label: true,
-            outline: true,
-            lightningBackground: true,
-          });
-        } else {
-          playerDiorama.destroy();
-          playerDiorama = null;
-        }
-      }
-    } else if (e.which === 220) { // \\
-      const targetApp = (() => {
-        const worldApps = world.appManager.getApps();
-        const swordApp = worldApps.find(a => /sword/i.test(a.contentId));
-        if (swordApp) {
-          return swordApp;
-        } else {
-          const wearAction = localPlayer.getAction('wear');
-          if (wearAction) {
-            const app = localPlayer.appManager.getAppByInstanceId(wearAction.instanceId);
-            return app;
-          } else {
-            return null;
-          }
-        }
-      })();
-
-      if (!appDiorama) {
-        if (targetApp) {
-          appDiorama = dioramaManager.createAppDiorama(targetApp, {
-            // canvas,
-            // label: true,
-            outline: true,
-            radialBackground: true,
-          });
-        } else {
-          console.warn('no target app');
-        }
-      } else {
-        appDiorama.destroy();
-        appDiorama = null;
-      }
-    } else if (e.which === 46) { // .
+    if (e.which === 46) { // .
       emoteIndex = -1;
       _updateEmote();
     } else if (e.which === 107) { // +
@@ -694,6 +532,13 @@ const _startHacks = () => {
 
       // _ensureMikuModel();
       // _updateMikuModel();
+    } else if (e.which === 106) { // *
+      webaverse.titleCardHack = !webaverse.titleCardHack;
+      webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
+        data: {
+          titleCardHack: webaverse.titleCardHack,
+        }
+      }));
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {

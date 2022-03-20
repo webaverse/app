@@ -45,7 +45,7 @@ export const localstorageHost = 'https://localstorage.webaverse.com';
 export const loginEndpoint = 'https://login.webaverse.com';
 export const tokensHost = `https://${chainName}all-tokens.webaverse.com`;
 export const landHost = `https://${chainName}sidechain-land.webaverse.com`;
-export const aiHost = `https://ai.webaverse.com`;
+export const codeAiHost = `https://ai.webaverse.com/code`;
 export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const worldUrl = 'worlds.webaverse.com';
@@ -60,8 +60,6 @@ export const appsMapName = 'apps';
 
 export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;
-
-export const defaultPlayerName = 'Scillia';
 
 export const audioTimeoutTime = 10 * 1000;
 
@@ -88,14 +86,15 @@ export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.j
 
 export const voiceEndpoint = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
-// ['Sweetie Belle', 'Trixie', 'Shining Armor', 'Maud Pie', 'Rapunzel']
 
-export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
-export const chatTextSpeed = 20;
+export const chatTextSpeed = 15;
 export const shakeAnimationSpeed = 30;
 
 export const hotbarSize = 60;
 export const infoboxSize = 100;
 
 export const defaultDioramaSize = 512;
+
 export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';
+// export const defaultAvatarUrl = './avatars/scillia_drophunter_v25_gloria_vian.vrm';
+// export const defaultAvatarUrl = './avatars/ann.vrm';
