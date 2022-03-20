@@ -542,7 +542,7 @@ class AppManager extends EventTarget {
       
       dstAppManager.bindTrackedApp(dstTrackedApp, app);
     } else {
-      throw new Error('cannot transplant apps between app manager with different state');
+      throw new Error('cannot transplant apps between app manager with different state binding');
     }
     
     // srcAppManager.setBlindStateMode(false);
