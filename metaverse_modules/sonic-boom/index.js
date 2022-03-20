@@ -2148,12 +2148,12 @@ export default () => {
     }
     //##################################### front dust ################################################
     {
-        const particleCount = 100;
+        const particleCount = 20;
         const group=new THREE.Group();
         let info = {
             velocity: [particleCount]
         }
-        let acc = new THREE.Vector3(-0.000, 0, 0.0018);
+        let acc = new THREE.Vector3(-0.000, 0.0008, 0.0018);
     
         //##################################################### get Dust geometry #####################################################
         const identityQuaternion = new THREE.Quaternion();
@@ -2291,9 +2291,7 @@ export default () => {
         let previousDirectionState=null;
         let currentDirectionState=null;
         let dum = new THREE.Vector3();
-        let originPoint = new THREE.Vector3(0,0,0);
-        let maxParticle=10;
-        let particleEmmitCount=-1;
+        
         useFrame(({timestamp}) => {
     
             if(ioManager.keys.right){
@@ -2319,15 +2317,8 @@ export default () => {
             group.position.x+=0.3*dum.x;
             group.position.z+=0.3*dum.z;
         
-            if((lastStopSw===1 && narutoRunTime===0 && particleEmmitCount===-1 )){
-                if(localPlayer.hasAction('fly') || localPlayer.hasAction('jump')){
-                    lastStopSw=0;
-                }
-                else{
-                    particleEmmitCount=0;
-                }
-                
-            } 
+            
+            
             if (mesh) {
                 const opacityAttribute = mesh.geometry.getAttribute('opacity');
                 const brokenAttribute = mesh.geometry.getAttribute('broken');
@@ -2336,32 +2327,22 @@ export default () => {
                     mesh.getMatrixAt(i, matrix);
                     matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
                     
-                    if (dummy.position.distanceTo(originPoint)>1.5 /*|| (timestamp-startTimesAttribute.getX(i)>900)*/) {
-                        startTimesAttribute.setX(i,timestamp);
-                        if(particleEmmitCount>maxParticle){
-                            lastStopSw=0;
-                            particleEmmitCount=-1;
-                            //maxParticle=15+Math.random()*10;
-                        }
+                    
+                    if(lastStopSw===1 && narutoRunTime===0 ){
+                        
+                        
                         opacityAttribute.setX(i, 1);
-                        brokenAttribute.setX(i, Math.random()-0.8);
-                        if(particleEmmitCount!==-1 ){
-                            dummy.scale.x = 0.08+Math.random()*0.05;
-                            dummy.scale.y = 0.08+Math.random()*0.05;
-                            dummy.scale.z = 0.08+Math.random()*0.05;
-                            particleEmmitCount++;
-                        }
-                        else{
-                            dummy.scale.x = .00001;
-                            dummy.scale.y = .00001;
-                            dummy.scale.z = .00001;
-                            //opacityAttribute.setX(i, 0.01);
-                        }
+                        brokenAttribute.setX(i, Math.random()-0.6);
+                        
+                        dummy.scale.x = 0.06+Math.random()*0.05;
+                        dummy.scale.y = 0.06+Math.random()*0.05;
+                        dummy.scale.z = 0.06+Math.random()*0.05;
+                        
                         
                         
                         dummy.position.x = (Math.random()-0.5)*0.2;
-                        dummy.position.y = -0.1;
-                        dummy.position.z = 0.;
+                        dummy.position.y = -0.2;
+                        dummy.position.z = (Math.random()-0.5)*0.2;
                         
                         info.velocity[i].x=0;
                         info.velocity[i].y=0;
@@ -2372,35 +2353,43 @@ export default () => {
                         
                     }
                     
-                    opacityAttribute.setX(i, opacityAttribute.getX(i)-0.04);
-                    brokenAttribute.setX(i, brokenAttribute.getX(i)+0.045);
-                        
-                    dummy.rotation.x+=0.1*(Math.random()-0.5);
-                    dummy.rotation.y+=0.1*(Math.random()-0.5);
-                    dummy.rotation.z+=0.1*(Math.random()-0.5);
                     
-                    dummy.scale.x*=1.03;
-                    dummy.scale.y*=1.03;
-                    dummy.scale.z*=1.03;
-                    
-                    
-                    if(narutoRunTime>0){
-                        dummy.scale.x = .00001;
-                        dummy.scale.y = .00001;
-                        dummy.scale.z = .00001;
-                    }
-                    if(previousDirectionState!==currentDirectionState){
-                        dummy.scale.x = .00001;
-                        dummy.scale.y = .00001;
-                        dummy.scale.z = .00001;
-                    }
                     //acc.x=0.005*(Math.random()-0.5);
                     //if(dummy.position.distanceTo(originPoint)>2.5 )
+                    if(dummy.position.z<100){
+                        opacityAttribute.setX(i, opacityAttribute.getX(i)-0.04);
+                        if(brokenAttribute.getX(i)<1)
+                            brokenAttribute.setX(i, brokenAttribute.getX(i)+0.045);
+                        else
+                            brokenAttribute.setX(i, 1);
+                        //dummy.rotation.x=0.1*(Math.random()-0.5);
+                        // dummy.rotation.y=0.1*(Math.random()-0.5);
+                        dummy.rotation.z=timestamp/500.;
+                        
+                        dummy.scale.x*=1.03;
+                        dummy.scale.y*=1.03;
+                        dummy.scale.z*=1.03;
+                        
+                        
+                        if(narutoRunTime>0){
+                            dummy.scale.x = .00001;
+                            dummy.scale.y = .00001;
+                            dummy.scale.z = .00001;
+                        }
+                        if(previousDirectionState!==currentDirectionState){
+                            dummy.scale.x = .00001;
+                            dummy.scale.y = .00001;
+                            dummy.scale.z = .00001;
+                        }
                         info.velocity[i].add(acc);
-                    dummy.position.add(info.velocity[i]);
-                    dummy.updateMatrix();
-                    mesh.setMatrixAt(i, dummy.matrix);
+                        dummy.position.add(info.velocity[i]);
+                        dummy.updateMatrix();
+                        mesh.setMatrixAt(i, dummy.matrix);
+                    } 
     
+                }
+                if(lastStopSw===1  && narutoRunTime===0){
+                    lastStopSw=0;
                 }
                 mesh.instanceMatrix.needsUpdate = true;
                 opacityAttribute.needsUpdate = true;
