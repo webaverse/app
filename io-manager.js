@@ -295,12 +295,9 @@ ioManager.keydown = e => {
   } */
 
   switch (e.which) {
-    /* case 9: { // tab
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('key-tab').click();
+    case 9: { // tab
       break;
-    } */
+    }
     case 49: // 1
     case 50: // 2
     case 51: // 3

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import { TabGeneral } from './TabGeneral';
@@ -7,14 +7,16 @@ import { TabControls } from './TabControls';
 import { TabAudio } from './TabAudio';
 import { TabGraphics } from './TabGraphics';
 import { TabAi } from './TabAi';
+import { AppContext } from '../../app';
+import { registerIoEventHandler, unregisterIoEventHandler } from '../io-handler';
 
 import styles from './settings.module.css';
 
 //
 
-export const Settings = ({ opened, setOpened }) => {
+export const Settings = () => {
 
-    const componentName = 'Settings';
+    const { state, setState } = useContext( AppContext );
     const [ activeTab, setActiveTab ] = useState('general');
 
     //
@@ -25,25 +27,16 @@ export const Settings = ({ opened, setOpened }) => {
 
     };
 
-    const handleCloseBtnClick = ( event ) => {
+    const handleCloseBtnClick = () => {
 
-        event.stopPropagation();
-        setOpened( false );
+        setState({ openedPanel: null });
 
     };
 
     const handleTabClick = ( event ) => {
 
-        event.stopPropagation();
-
         const tabName = event.currentTarget.getAttribute('data-tab-name');
         setActiveTab( tabName );
-
-    };
-
-    const closeOtherWindows = () => {
-
-        window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: componentName } } ) );
 
     };
 
@@ -51,37 +44,31 @@ export const Settings = ({ opened, setOpened }) => {
 
     useEffect( () => {
 
-        if ( opened ) {
+        const handleKeyUp = ( event ) => {
 
-            closeOtherWindows();
+            if ( state.openedPanel === 'SettingsPanel' && event.which === 27 ) { // esc key
 
-        }
-
-        const handleKeyPress = ( event ) => {
-
-            if ( opened && event.key === 'Escape' ) {
-
-                setOpened( false );
+                setState({ openedPanel: null });
 
             }
 
         };
 
-        window.addEventListener( 'keydown', handleKeyPress );
+        registerIoEventHandler( 'keyup', handleKeyUp );
 
         return () => {
 
-            window.removeEventListener( 'keydown', handleKeyPress );
+            unregisterIoEventHandler( 'keyup', handleKeyUp );
 
         };
 
-    }, [ opened ] );
+    }, [ state.openedPanel ] );
 
     //
 
     return (
 
-        <div className={ classNames( styles.settings, opened ? styles.open : null ) } onClick={ stopPropagation } >
+        <div className={ classNames( styles.settings, state.openedPanel === 'SettingsPanel' ? styles.open : null ) } onClick={ stopPropagation } >
 
             <div className={ styles.closeBtn } onClick={ handleCloseBtnClick } >X</div>
 
@@ -98,13 +85,11 @@ export const Settings = ({ opened, setOpened }) => {
                 </div>
 
                 <div className={ styles.tabContentWrapper }>
-
                     <TabGeneral active={ activeTab === 'general' } />
                     <TabControls active={ activeTab === 'controls' } />
                     <TabAudio active={ activeTab === 'audio' } />
                     <TabGraphics active={ activeTab === 'graphics' } />
                     <TabAi active={ activeTab === 'ai' } />
-
                 </div>
 
             </div>

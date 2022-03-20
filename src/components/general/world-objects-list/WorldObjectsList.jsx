@@ -1,6 +1,6 @@
 
 import * as THREE from 'three';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import classnames from 'classnames';
 
 import { world } from '../../../../world.js'
@@ -8,6 +8,8 @@ import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
 import cameraManager from '../../../../camera-manager.js';
 import ioManager from '../../../../io-manager.js';
+import { AppContext } from '../../app';
+import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 
 import styles from './world-objects-list.module.css';
 
@@ -39,11 +41,10 @@ const NumberInput = ({ input }) => {
 
 //
 
-export const WorldObjectsList = ({ opened, setOpened }) => {
+export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
 
-    const componentName = 'WorldObjectsList';
+    const { state, setState } = useContext( AppContext );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
-    const [ selectedApp, setSelectedApp ] = useState( null );
 
     let [ px, setPx ] = useState( 0 );
     let [ py, setPy ] = useState( 0 );
@@ -73,40 +74,10 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
 
     };
 
-    const handleKeyDown = ( event ) => {
-
-        switch ( event.which ) {
-
-            case 90: {   // Z
-
-                if ( opened ) {
-
-                    handleOnFocusLost();
-
-                } else {
-
-                    setOpened( true );
-
-                }
-
-                break;
-
-            }
-
-        }
-
-    };
-
     const selectApp = ( targetApp, physicsId, position ) => {
 
         setSelectedApp( targetApp );
         game.setMouseSelectedObject( targetApp, physicsId, position );
-
-    };
-
-    const closeOtherWindows = () => {
-
-        window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: componentName } } ) );
 
     };
 
@@ -139,26 +110,15 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
 
     };
 
-    const handleOnFocusLost = ( event ) => {
-
-        event = event ?? {};
-
-        if ( event.detail && event.detail.dispatcher === componentName ) return;
-
-        if ( ! event.detail ) {
-
-            ioManager.click( new MouseEvent('click') );
-            cameraManager.requestPointerLock();
-
-        }
-
-        setOpened( false );
-
-    };
-
     const handleBackBtn = () => {
 
         setSelectedApp( null );
+
+    };
+
+    const closePanel = () => {
+
+        setState({ openedPanel: null });
 
     };
 
@@ -166,36 +126,68 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
 
     useEffect( () => {
 
-        if ( opened ) {
-
-            cameraManager.exitPointerLock();
-            closeOtherWindows();
-
-        }
-
         const update = () => {
 
             setApps( world.appManager.getApps().slice() );
 
         };
 
+        const handleKeyUp = ( event ) => {
+
+            const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
+            if ( inputFocused ) return true;
+
+            switch ( event.which ) {
+
+                case 90: {   // Z
+
+                    if ( state.openedPanel === 'WorldPanel' ) {
+
+                        if ( ! cameraManager.pointerLockElement ) {
+
+                            cameraManager.requestPointerLock();
+
+                        }
+
+                        setState({ openedPanel: null });
+
+                    } else if ( state.openedPanel !== 'SettingsPanel' ) {
+
+                        if ( cameraManager.pointerLockElement ) {
+
+                            cameraManager.exitPointerLock();
+
+                        }
+
+                        setState({ openedPanel: 'WorldPanel' });
+
+                    }
+
+                    return false;
+
+                }
+
+            }
+
+            return true;
+
+        };
+
         world.appManager.addEventListener( 'appadd', update );
         world.appManager.addEventListener( 'appremove', update );
-        window.addEventListener( 'click', handleOnFocusLost );
-        window.addEventListener( 'keydown', handleKeyDown );
-        window.addEventListener( 'CloseAllMenus', handleOnFocusLost );
+        registerIoEventHandler( 'click', closePanel );
+        registerIoEventHandler( 'keyup', handleKeyUp );
 
         return () => {
 
             world.appManager.removeEventListener( 'appadd', update );
             world.appManager.removeEventListener( 'appremove', update );
-            window.removeEventListener( 'click', handleOnFocusLost );
-            window.removeEventListener( 'keydown', handleKeyDown );
-            window.removeEventListener( 'CloseAllMenus', handleOnFocusLost );
+            unregisterIoEventHandler( 'click', closePanel );
+            unregisterIoEventHandler( 'keyup', handleKeyUp );
 
         };
 
-    }, [ opened ] );
+    }, [ state.openedPanel ] );
 
     useEffect( () => {
 
@@ -220,8 +212,8 @@ export const WorldObjectsList = ({ opened, setOpened }) => {
     //
 
     return (
-        <div className={ classnames( styles.worldObjectListWrapper, opened ? styles.opened : null ) } onClick={ stopPropagation } >
-            <div className={ classnames( styles.panel, ( ! selectedApp && opened ) ? styles.opened : null ) } >
+        <div className={ classnames( styles.worldObjectListWrapper, state.openedPanel === 'WorldPanel' ? styles.opened : null ) } onClick={ stopPropagation } >
+            <div className={ classnames( styles.panel, ( ! selectedApp && state.openedPanel === 'WorldPanel' ) ? styles.opened : null ) } >
                 <div className={ styles.header } >
                     <h1>Tokens</h1>
                 </div>
