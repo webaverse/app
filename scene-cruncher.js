@@ -5,7 +5,9 @@ import {getRenderer} from './renderer.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localVector4D = new THREE.Vector4();
+const localTriangle = new THREE.Triangle();
 
 const cameraNear = 0;
 const cameraFar = 1000;
@@ -332,61 +334,94 @@ export async function snapshotMapChunk(scene, position, worldSize, worldResoluti
 
   {
     // const worldDepthResolutionP1 = worldDepthResolution + 1;
-    const _isIntersectingPoint = (x, z) => {
+    const _isIntersectingPoint = (topMesh, bottomMesh, x, z) => {
       const index = z * worldDepthResolutionP1 + x;
       // const index2 = (worldDepthResolutionP1 - 1 - z) * worldDepthResolutionP1 + x;
       let yTop = topMesh.depthFloatImageData[index];
       let yBottom = bottomMesh.depthFloatImageData[index];
 
-      const yTopPos = position.y + cameraHeight + yTop;
-      const yBottomPos = position.y - cameraHeight - yBottom;
+      const yTopPos = /*position.y + */cameraHeight + yTop;
+      const yBottomPos = /*position.y */- cameraHeight - yBottom;
       
       return yTopPos < yBottomPos;
     };
-    const intersectingPoints = {};
-    for (let z = 0; z < worldDepthResolutionP1; z++) {
-      for (let x = 0; x < worldDepthResolutionP1; x++) {
-        intersectingPoints[`${x},${z}`] = _isIntersectingPoint(x, z);
-      }
-    }
 
-    let index = 0;
-    for (let iy = 0; iy < worldDepthResolution; iy++) {
-			for (let ix = 0; ix < worldDepthResolution; ix++) {
-        const a = topMesh.geometry.index.array[index];
-        const b = topMesh.geometry.index.array[index + 1];
-        const d = topMesh.geometry.index.array[index + 2];
-        // const b = topMesh.geometry.index.array[index + 3];
-        const c = topMesh.geometry.index.array[index + 4];
-        // const d = topMesh.geometry.index.array[index + 5];
+    const clipRange = 10;
+    [
+      [
+        topMesh,
+        bottomMesh,
+      ],
+    ].forEach(([meshA, meshB]) => {
+      /* const intersectingPoints = {};
+      for (let z = 0; z < worldDepthResolutionP1; z++) {
+        for (let x = 0; x < worldDepthResolutionP1; x++) {
+          intersectingPoints[`${x},${z}`] = _isIntersectingPoint(meshA, meshB, x, z);
+        }
+      } */
 
-        if (
-          intersectingPoints[`${ix},${iy}`] ||
-          intersectingPoints[`${ix},${iy + 1}`] ||
-          intersectingPoints[`${ix + 1},${iy}`]
-        ) {
-          topMesh.geometry.index.array[index] = 0;
-          topMesh.geometry.index.array[index + 1] = 0;
-          topMesh.geometry.index.array[index + 2] = 0;
+      [
+        meshA,
+        meshB,
+      ].forEach(mesh => {
+        let index = 0;
+
+        for (let iy = 0; iy < worldDepthResolution; iy++) {
+          for (let ix = 0; ix < worldDepthResolution; ix++) {
+            const a = mesh.geometry.index.array[index];
+            const b = mesh.geometry.index.array[index + 1];
+            const d = mesh.geometry.index.array[index + 2];
+            // const b = mesh.geometry.index.array[index + 3];
+            const c = mesh.geometry.index.array[index + 4];
+            // const d = mesh.geometry.index.array[index + 5];
+
+            {
+              localTriangle.set(
+                localVector.fromArray(mesh.geometry.attributes.position.array, a * 3),
+                localVector2.fromArray(mesh.geometry.attributes.position.array, b * 3),
+                localVector3.fromArray(mesh.geometry.attributes.position.array, d * 3),
+              );
+              const center = localTriangle.getMidpoint(localVector4);
+              
+              if (
+                localTriangle.a.distanceTo(center) > clipRange ||
+                localTriangle.b.distanceTo(center) > clipRange ||
+                localTriangle.c.distanceTo(center) > clipRange
+              ) {
+                mesh.geometry.index.array[index] = 0;
+                mesh.geometry.index.array[index + 1] = 0;
+                mesh.geometry.index.array[index + 2] = 0;
+              }
+            }
+            {
+              localTriangle.set(
+                localVector.fromArray(mesh.geometry.attributes.position.array, b * 3),
+                localVector2.fromArray(mesh.geometry.attributes.position.array, c * 3),
+                localVector3.fromArray(mesh.geometry.attributes.position.array, d * 3),
+              );
+              const center = localTriangle.getMidpoint(localVector4);
+
+              if (
+                localTriangle.a.distanceTo(center) > clipRange ||
+                localTriangle.b.distanceTo(center) > clipRange ||
+                localTriangle.c.distanceTo(center) > clipRange
+              ) {
+                mesh.geometry.index.array[index + 3] = 0;
+                mesh.geometry.index.array[index + 4] = 0;
+                mesh.geometry.index.array[index + 5] = 0;
+              }
+            }
+          
+            index += 6;
+          }
         }
-        if (
-          intersectingPoints[`${ix},${iy + 1}`] ||
-          intersectingPoints[`${ix + 1},${iy + 1}`] ||
-          intersectingPoints[`${ix + 1},${iy}`]
-        ) {
-          topMesh.geometry.index.array[index + 3] = 0;
-          topMesh.geometry.index.array[index + 4] = 0;
-          topMesh.geometry.index.array[index + 5] = 0;
-        }
-      
-        index += 6;
-      }
-    }
+      });
+    });
   }
 
   const object = new THREE.Object3D();
   object.add(topMesh);
-  // object.add(bottomMesh);
+  object.add(bottomMesh);
   // window.bottomMesh = bottomMesh;
   return object;
 }
