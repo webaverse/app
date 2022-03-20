@@ -3,7 +3,7 @@ import * as THREE from 'three';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
 // import {chunkWorldSize} from '../../procgen/map-gen';
-const {useApp, useLocalPlayer, useProcGen, useGeometries, useMaterials, useFrame, useActivate, usePhysics, useCleanup} = metaversefile;
+const {useApp, useLocalPlayer, useProcGen, useGeometries, useCamera, useMaterials, useFrame, useActivate, usePhysics, useCleanup} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -101,6 +101,7 @@ const ClippedPlane = (() => {
 
 export default () => {
   const app = useApp();
+  const camera = useCamera();
   const physics = usePhysics();
   const {
     voxelWorldSize,
@@ -367,6 +368,10 @@ export default () => {
               return clamp(c, 0., 1.);
           }
 
+          float perspectiveDepthToViewZ( const in float invClipZ, const in float near, const in float far ) {
+            return ( near * far ) / ( ( far - near ) * invClipZ - far );
+          }
+
           void mainImage(out vec4 fragColor, in vec2 fragCoord) {
               vec2 uv = fragCoord;
               // vec2 uv = fragCoord.xy / iResolution.xy;    
@@ -437,6 +442,10 @@ export default () => {
                 fragColor.a *= 0.5;
               }
               fragColor.a *= dimming;
+
+              float d = gl_FragCoord.z/gl_FragCoord.w;
+              // d = perspectiveDepthToViewZ(d, ${camera.near.toFixed(8)}, ${camera.far.toFixed(8)});
+              fragColor.a *= min(max(5. - pow(d, 0.5), 0.), 1.);
           
               if (fragColor.a < 0.001) {
                 discard;
