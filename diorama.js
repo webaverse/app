@@ -499,7 +499,7 @@ const createPlayerDiorama = ({
   const {devicePixelRatio: pixelRatio} = window;
 
   const canvases = [];
-  let outlineRenderTarget = null
+  let outlineRenderTarget = null;
   let lastDisabledTime = 0;
 
   const diorama = {
