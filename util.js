@@ -765,13 +765,41 @@ export const waitForFrame = () => new Promise(accept => {
   });
 });
 
-const doUpload = async (u, f) => {
-  const res = await fetch(u, {
+const doUpload = async (
+  u,
+  f,
+  {
+    onProgress = null,
+  } = {}
+) => {
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', u, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.responseType = 'json';
+  xhr.upload.onprogress = e => {
+    // const {lengthComputable, loaded, total} = e;
+    // console.log();
+    onProgress && onProgress(e);
+  };
+  const j = await new Promise((accept, reject) => {
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        accept(xhr.response);
+      } else {
+        const err = new Error('invalid status code: ' + xhr.status);
+        reject(err);
+      }
+    };
+    xhr.onerror = reject;
+    xhr.send(f);
+  });
+  return j;
+  /* const res = await fetch(u, {
     method: 'POST',
     body: f,
   });
   const hashes = await res.json();
-  return hashes;
+  return hashes; */
 }
 export const proxifyUrl = u => {
   const match = u.match(/^([a-z0-9]+):\/\/([a-z0-9\-\.]+)(.+)$/i);
