@@ -10,6 +10,7 @@ import {makePromise, getRandomString} from './util.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
+import {jsonParse} from './util.js';
 import {worldMapName} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -635,6 +636,40 @@ class AppManager extends EventTarget {
         app.lastMatrix.copy(app.matrix);
       }
     }
+  }
+  exportJSON() {
+    const objects = [];
+
+    // iterate over appsArray
+    for (const trackedApp of this.appsArray) {
+      const position = trackedApp.get('position');
+      const quaternion = trackedApp.get('quaternion');
+      const scale = trackedApp.get('scale');
+      const componentsString = trackedApp.get('components');
+      const components = jsonParse(componentsString) ?? [];
+      const object = {
+        position,
+        quaternion,
+        scale,
+        components,
+      };
+      // console.log('got app object', object);
+    
+      let contentId = trackedApp.get('contentId');
+      const match = contentId.match(/^\/@proxy\/data:([^;,]+),([\s\S]*)$/);
+      if (match) {
+        const type = match[1];
+        const content = decodeURIComponent(match[2]);
+        object.type = type;
+        object.content = jsonParse(content) ?? {};
+      } else {
+        object.contentId = contentId;
+      }
+
+      objects.push(object);
+    }
+
+    return objects;
   }
   destroy() {
     if (!this.isBound()) {
