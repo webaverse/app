@@ -891,9 +891,19 @@ const _makeRagdollMesh = () => {
           continue;
         }
 
-        meshBone.matrix.copy(modelBone.matrixWorld);
-        meshBone.matrixWorld.copy(modelBone.matrixWorld);
-        modelBone.matrixWorld.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+        modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        localQuaternion.multiply(
+          modelBone.forwardQuaternion
+        );
+        if (k !== 'Hips') {
+          localVector.add(
+            localVector3.set(0, 0, -meshBone.boneLength * 0.5)
+              .applyQuaternion(localQuaternion)
+          );
+        }
+        meshBone.matrixWorld.compose(localVector, new THREE.Quaternion(), localVector2);
+        meshBone.matrix.copy(meshBone.matrixWorld);
+        meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
       }
       object.updateMatrixWorld();
 
@@ -3469,7 +3479,7 @@ class Avatar {
         // }
         // this.ragdollMesh.toAvatar(this);
 
-        console.log(2, flatMeshes.Chest.position)
+        // console.log(2, flatMeshes.Chest.position)
       }
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
@@ -3482,7 +3492,7 @@ class Avatar {
           for (const k in flatMeshes) {
             const meshBone = flatMeshes[k]
             if (meshBone.name === 'Chest') console.log(3, meshBone.position)
-            physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, characterId);
+            physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, new THREE.Quaternion(), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
             // physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.getWorldPosition(new THREE.Vector3()), meshBone.getWorldQuaternion(new THREE.Quaternion()), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
           }
 
@@ -3515,7 +3525,7 @@ class Avatar {
           console.log('wake up')
           for (const k in flatMeshes) {
             const meshBone = flatMeshes[k]
-            physicsManager.setVelocity(meshBone, new THREE.Vector3(0, 0, 0), true)
+            physicsManager.setTransform(meshBone, true)
           }
           
           // this.modelBoneOutputs.
