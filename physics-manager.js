@@ -303,6 +303,7 @@ physicsManager.simulatePhysics = timeDiff => {
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
     // console.log(`updatesOut: ${updatesOut.length}, physicsUpdates: ${physicsUpdates.length}`);
     physicsUpdates.length = 0;
+    // console.log('updatesOut', updatesOut.length)
     for (const updateOut of updatesOut) {
       // vismark
       const {id, position, quaternion, collided, grounded} = updateOut;
@@ -311,8 +312,10 @@ physicsManager.simulatePhysics = timeDiff => {
 
       // debugger
       if (physicsObject) {
+        // console.log('update:')
+        if (physicsObject.name === 'Spine') console.log('Spine y', position.y.toFixed(2))
         // console.log('got position', position.toArray().join(','));
-        // physicsObject.position.copy(position);
+        physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
 

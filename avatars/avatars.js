@@ -55,6 +55,8 @@ import physx from '../physx.js';
 
 let first = true;
 
+const characterId = getNextCharacterId();
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -576,38 +578,32 @@ const minHeight = 0.02;
 // const baseScale = 0.02;
 // const fingerScale = 0.2;
 const physicsBoneScaleFactor = 0.8;
-const _makeCapsuleGeometry = (length = 1, isTop = false) => {
-  length *= physicsBoneScaleFactor;
+const _makeCapsuleGeometry = (meshBone) => {
+  console.log('_makeCapsuleGeometry', meshBone.name)
+  meshBone.boneLength *= physicsBoneScaleFactor;
   const radius = boneRadius;
-  const height = length - boneRadius*2;
+  const height = meshBone.boneLength - boneRadius*2;
   const halfHeight = height/2;
+  const size = new THREE.Vector3(radius, height, radius)
+  meshBone.size = size
+  meshBone.sizeHalf = size.clone().multiplyScalar(0.5)
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
     // vismark
     (() => {
-      const geometry = new CapsuleGeometry(radius, radius, height)
-      geometry.translate(height / 2, 0, 0)
-      if (isTop) {
-        geometry.rotateZ(Math.PI / 2)
-      } else {
-        geometry.rotateZ(- Math.PI / 2)
-      }
-        /* .applyMatrix4(
-          new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
-        ); */
+      const geometry = new THREE.BoxGeometry(size.x, size.y, size.z)
       return geometry;
     })(),
-    new THREE.BoxGeometry(0.2, 0.005, 0.005).translate(0.1, 0, 0),
+    new THREE.BoxGeometry(0.3, 0.005, 0.005).translate(0.15, 0, 0),
     // new THREE.BoxGeometry(0.005, 0.005, 0.1).translate(0, 0, 0.05),
     // new THREE.BoxGeometry(0.05, 2.2, 0.05)
       // .applyMatrix4(new THREE.Matrix4().makeTranslation(-height/2, 0.2/2, 0)),
-    new THREE.BoxGeometry(0.003, 0.003, 0.04).translate(0, 0, 0.02),
+    new THREE.BoxGeometry(0.01, 0.01, 0.06).translate(0, 0, 0.03),
   ]);
   geometry.radius = radius;
   geometry.halfHeight = halfHeight;
   return geometry;
 };
-const size = new THREE.Vector3(0.01, 0.01, 0.01)
-const ragdollMeshGeometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+const ragdollMeshGeometry = new THREE.BoxGeometry(1, 1, 1);
 const ragdollMeshMaterial = new THREE.MeshNormalMaterial({
   // color: 0xFF0000,
   transparent: true,
@@ -620,8 +616,6 @@ const _makeRagdollMesh = () => {
 
     const object = new THREE.Object3D(); // === flatMeshes.Hips/Spine etc
     object.name = name;
-    object.size = size;
-    object.sizeHalf = size.clone().multiplyScalar(0.5);
     object.physicsId = getNextPhysicsId();
     physicsIdToMeshBoneMap.set(object.physicsId, object);
 
@@ -782,9 +776,11 @@ const _makeRagdollMesh = () => {
     return mesh;
   };
 
-  const flatMeshes = _makeMeshes(); // type: physicsObject
+  const flatMeshes = _makeMeshes(); // type: physicsObject/meshBone
   window.flatMeshes = flatMeshes
   // note: vismark:
+  // modelBone = avatar.modelBoneOutputs[k];
+  // meshBone = flatMeshes[k]
   // flatMeshes.Hips.parent === flatMeshes.Spine.parent
   // flatMeshes.Hips.children2[0] === flatMeshes.Spine
   // flatMeshes.Hips.children2[2] === flatMeshes.Left_leg
@@ -876,7 +872,7 @@ const _makeRagdollMesh = () => {
 
       // set capsule geometries
       // vismark
-      meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength, meshBone.isTop);
+      meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone);
       // console.log({meshBone})
 
       // memoize
@@ -1827,7 +1823,7 @@ class Avatar {
     this.model.add(this.ragdollMesh);
     this.ragdoll = false;
     this.lastRagdoll = false;
-    this.characterId = getNextCharacterId();
+    this.characterId = characterId;
 
     this.emotes = [];
     if (this.options.visemes) {
@@ -2215,8 +2211,9 @@ class Avatar {
       // retargetedAnimations,
     };
   }
-  static applyModelBoneOutputs() {}
-  static applyModelBoneOutputs2(modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
+  // static applyModelBoneOutputs() {}
+  // vismark
+  static applyModelBoneOutputs(modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
@@ -3465,22 +3462,28 @@ class Avatar {
         //   physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, false, b);
         // }
         // this.ragdollMesh.toAvatar(this);
+
+        // wake up
+        for (const k in flatMeshes) {
+          const meshBone = flatMeshes[k]
+          physicsManager.setVelocity(meshBone, new THREE.Vector3(0, 0, 0), true)
+        }
       }
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
           console.log('createSkeleton', 1) // note: when first ragdoll
           // const b = this.ragdollMesh.serializeSkeleton();
           // debugger
-          // this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, this.characterId);
+          // this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, characterId);
+          this.ragdollMesh.skeleton = true
 
           for (const k in flatMeshes) {
-            const physicsObject = flatMeshes[k]
-            physx.physxWorker.addBoxGeometryPhysics(physx.physics, physicsObject.position, physicsObject.quaternion, physicsObject.sizeHalf, physicsObject.physicsId, true, this.characterId);
-            // physx.physxWorker.addBoxGeometryPhysics(physx.physics, physicsObject.position, physicsObject.quaternion, physicsObject.sizeHalf, physicsObject.physicsId, true);
+            const meshBone = flatMeshes[k]
+            physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, characterId);
           }
 
-          const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Hips.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
-          const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength, 0), new THREE.Quaternion(), new THREE.Quaternion(), false);
+          // const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Hips.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
+          // const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength, 0), new THREE.Quaternion(), new THREE.Quaternion(), false);
           // const jointChestUpperChest = physicsManager.addJoint(flatMeshes.Chest, flatMeshes.UpperChest, new THREE.Vector3(0, flatMeshes.Chest.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Chest.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
 
           const PxD6Axis = {
@@ -3498,8 +3501,8 @@ class Avatar {
             eFREE: 2, // !< The DOF is free and has its full range of motion.
           };
 
-          physicsManager.setJointMotion(jointSpineChest, PxD6Axis.eTWIST, PxD6Motion.eFree);
-          physicsManager.setJointMotion(jointSpineChest, PxD6Axis.eTWIST, PxD6Motion.eFree);
+          // physicsManager.setJointMotion(jointSpineChest, PxD6Axis.eTWIST, PxD6Motion.eFree);
+          // physicsManager.setJointMotion(jointSpineChest, PxD6Axis.eTWIST, PxD6Motion.eFree);
 
           rootScene.children[2].visible = false; // test: hide E tag.
 
@@ -3526,7 +3529,7 @@ class Avatar {
     // this.modelBoneOutputs.Root.updateMatrixWorld();
     
     if (!this.ragdoll) {
-      Avatar.applyModelBoneOutputs2(
+      Avatar.applyModelBoneOutputs(
         this.foundModelBones,
         this.modelBoneOutputs,
         // this.getTopEnabled(),
