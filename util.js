@@ -765,19 +765,14 @@ export const waitForFrame = () => new Promise(accept => {
   });
 });
 
-export const uploadFile = async (u, f) => {
+const doUpload = async (u, f) => {
   const res = await fetch(u, {
     method: 'POST',
     body: f,
   });
-  const j = await res.json();
-  const {hash} = j;
-  const {name} = f;
-  return {
-    name,
-    hash,
-  };
-};
+  const hashes = await res.json();
+  return hashes;
+}
 export const proxifyUrl = u => {
   const match = u.match(/^([a-z0-9]+):\/\/([a-z0-9\-\.]+)(.+)$/i);
   if (match) {
@@ -786,7 +781,13 @@ export const proxifyUrl = u => {
     return u;
   }
 };
-export const handleUpload = async item => {
+export const handleUpload = async (
+  item,
+  {
+    onTotal = null,
+    onProgress = null,
+  } = {}
+) => {
   console.log('uploading...');
   
   const _uploadObject = async item => {
@@ -806,21 +807,10 @@ export const handleUpload = async item => {
       const files = item;
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-
-        /* const file = await new Promise((accept, reject) => {
-          entry.file(accept, reject);
-        }); */
-        const fullPath = file.name;
-        // console.log('file full path', entry.fullPath, rootEntry.fullPath, fullPath);
-
-        formData.append(fullPath, file, fullPath);
+        formData.append(file.name, file, file.name);
       }
 
-      const uploadFilesRes = await fetch(`https://ipfs.webaverse.com/`, {
-        method: 'POST',
-        body: formData,
-      });
-      const hashes = await uploadFilesRes.json();
+      const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData);
 
       const rootDirectory = hashes.find(h => h.name === '');
       const rootDirectoryHash = rootDirectory.hash;
@@ -926,7 +916,6 @@ export const handleUpload = async item => {
                   entry.file(accept, reject);
                 });
                 const fullPath = getFullPath(entry);
-                console.log('file full path', entry.fullPath, rootEntry.fullPath, fullPath);
 
                 formData.append(fullPath, file, fullPath);
               } else if (entry.isDirectory) {
@@ -937,18 +926,16 @@ export const handleUpload = async item => {
         };
         await _recurse(rootEntry);
 
-        const uploadFilesRes = await fetch(`https://ipfs.webaverse.com/`, {
-          method: 'POST',
-          body: formData,
-        });
-        const hashes = await uploadFilesRes.json();
+        const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData);
 
         const rootDirectory = hashes.find(h => h.name === '');
         const rootDirectoryHash = rootDirectory.hash;
         u = `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
         console.log(u);
       } else {
-        const {name, hash} = await uploadFile(`https://ipfs.webaverse.com/`, file);
+        const j = await doUpload(`https://ipfs.webaverse.com/`, file);
+        const {hash} = j;
+        const {name} = file;
 
         u = `${storageHost}/${hash}/${name}`;
       }
@@ -956,22 +943,7 @@ export const handleUpload = async item => {
     return u;
   };
   const u = await _uploadObject(item);
-  
   console.log('upload complete:', u);
-
-  /* if (!transform) {
-    const {leftHand: {position, quaternion}} = metaversefileApi.useLocalPlayer();
-    const position2 = position.clone()
-      .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-    const quaternion2 = quaternion.clone();
-    transform = {
-      position: position2,
-      quaternion: quaternion2,
-    };
-  }
-  const {position, quaternion} = transform;
-  
-  world.appManager.addTrackedApp(u, position, quaternion, oneVector); */
   return u;
 };
 
