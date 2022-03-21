@@ -14,7 +14,18 @@
   height: 300px; */
   color: #FFF;
   background-image: linear-gradient(to bottom, #222, #000);
+  transform-origin: 50% 50%;
   pointer-events: all;
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+.dragAndDrop .currentApp:not(.open) {
+  transform: scale(0.8);
+  visibility: hidden;
+  transition: none;
+}
+/* hack to fix buttons glitching when mint panel is closed */
+.dragAndDrop .currentApp:not(.open) .buttons .button {
+  display: none;
 }
 .dragAndDrop .currentApp .heading,
 .dragAndDrop .currentApp .body,
