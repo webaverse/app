@@ -501,6 +501,7 @@ const createPlayerDiorama = ({
   const canvases = [];
   let outlineRenderTarget = null;
   let lastDisabledTime = 0;
+  let aspect = 1;
 
   const diorama = {
     width: 0,
@@ -533,6 +534,9 @@ const createPlayerDiorama = ({
       if (index !== -1) {
         canvases.splice(index, 1);
       }
+    },
+    setAspect(newAspect) {
+      aspect = newAspect;
     },
     toggleShader() {
       const oldValues = {
@@ -669,6 +673,10 @@ const createPlayerDiorama = ({
           )
         );
         sideCamera.updateMatrixWorld();
+        if (sideCamera.aspect !== aspect) {
+          sideCamera.aspect = aspect;
+          sideCamera.updateProjectionMatrix();
+        }
 
         // set up side avatar scene
         _addObjectsToScene(outlineRenderScene);
