@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useLocalPlayer, useCameraManager, useLoaders, useInternals} = metaversefile;
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
-import ioManager from '../../io-manager';
 
 export default () => {
   const app = useApp();
@@ -2288,24 +2287,16 @@ export default () => {
         }
        
     
-        let previousDirectionState=null;
-        let currentDirectionState=null;
-        let dum = new THREE.Vector3();
         
+        let dum = new THREE.Vector3();
+        let currentRotate=0;
+        let preRotate=0;
+        let prevx=0;
+        let prevz=0;
         useFrame(({timestamp}) => {
     
-            if(ioManager.keys.right){
-                currentDirectionState='right';
-            }   
-            if(ioManager.keys.left){
-                currentDirectionState='left';
-            }  
-            if(ioManager.keys.up){
-                currentDirectionState='up';
-            }   
-            if(ioManager.keys.down){
-                currentDirectionState='down';
-            }
+            
+            
             group.position.copy(localPlayer.position);
             group.rotation.copy(localPlayer.rotation);
             if (localPlayer.avatar) {
@@ -2314,15 +2305,26 @@ export default () => {
             }
             localPlayer.getWorldDirection(dum)
             dum = dum.normalize();
+            
+            if(localPlayer.rotation.x===0)
+                currentRotate=-localPlayer.rotation.y/Math.PI*180.;
+            else{
+                if(localPlayer.rotation.y>0)
+                    currentRotate=(localPlayer.rotation.y-Math.PI)/Math.PI*180.;
+                else
+                    currentRotate=(localPlayer.rotation.y+Math.PI)/Math.PI*180.;
+            }
+            
             group.position.x+=0.3*dum.x;
             group.position.z+=0.3*dum.z;
-        
+            
             
             
             if (mesh) {
                 const opacityAttribute = mesh.geometry.getAttribute('opacity');
                 const brokenAttribute = mesh.geometry.getAttribute('broken');
                 const startTimesAttribute = mesh.geometry.getAttribute('startTimes');
+
                 for (let i = 0; i < particleCount; i++) {
                     mesh.getMatrixAt(i, matrix);
                     matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
@@ -2353,17 +2355,13 @@ export default () => {
                         
                     }
                     
-                    
-                    //acc.x=0.005*(Math.random()-0.5);
-                    //if(dummy.position.distanceTo(originPoint)>2.5 )
                     if(dummy.position.z<100){
                         opacityAttribute.setX(i, opacityAttribute.getX(i)-0.04);
                         if(brokenAttribute.getX(i)<1)
                             brokenAttribute.setX(i, brokenAttribute.getX(i)+0.045);
                         else
                             brokenAttribute.setX(i, 1);
-                        //dummy.rotation.x=0.1*(Math.random()-0.5);
-                        // dummy.rotation.y=0.1*(Math.random()-0.5);
+                       
                         dummy.rotation.z=timestamp/500.;
                         
                         dummy.scale.x*=1.03;
@@ -2376,11 +2374,14 @@ export default () => {
                             dummy.scale.y = .00001;
                             dummy.scale.z = .00001;
                         }
-                        if(previousDirectionState!==currentDirectionState){
+                        
+                        if(Math.abs(currentRotate-preRotate)>=10){
                             dummy.scale.x = .00001;
                             dummy.scale.y = .00001;
                             dummy.scale.z = .00001;
                         }
+                        
+                       
                         info.velocity[i].add(acc);
                         dummy.position.add(info.velocity[i]);
                         dummy.updateMatrix();
@@ -2398,7 +2399,8 @@ export default () => {
     
             }
             group.updateMatrixWorld();
-            previousDirectionState=currentDirectionState;
+            
+            preRotate=currentRotate;
         });
       }
     //##################################### main ball ##################################################
