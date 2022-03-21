@@ -789,12 +789,14 @@ const _makeRagdollMesh = () => {
   // flatMeshes.Hips.physicsMesh === flatMeshes.Hips.children[0]
   // flatMeshes !== ragdollMesh.children[0]
   const flatMesh = new THREE.Object3D();
+  flatMesh.name = 'flatMesh';
   for (const k in flatMeshes) {
     flatMesh.add(flatMeshes[k]);
   }
   const modelBoneToFlatMeshBoneMap = new Map();
 
   const object = new THREE.Object3D(); // === ragdollMesh
+  object.name = 'ragdollMesh';
   object.add(flatMesh);
 
   object.wrapToAvatar = avatar => {
@@ -906,6 +908,7 @@ const _makeRagdollMesh = () => {
             // .premultiply(localMatrix.copy(meshBone.matrixWorld).invert());
 
           const fakeBone = new THREE.Object3D();
+          fakeBone.name = 'fakeBone';
           fakeBone.matrixWorld.copy(modelBone.matrixWorld)
           fakeBone.matrix.copy(fakeBone.matrixWorld)
             .premultiply(localMatrix.copy(meshBone.matrixWorld).invert())
@@ -1679,6 +1682,7 @@ class Avatar {
 
     const _makeInput = () => {
       const result = new THREE.Object3D();
+      result.name = 'result';
       result.pointer = 0;
       result.grip = 0;
       result.enabled = false;
@@ -1953,6 +1957,7 @@ class Avatar {
     this.throwTime = 0;
     this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
+    this.sitTarget.name = 'sitTarget';
     this.fakeSpeechValue = 0;
     this.fakeSpeechSmoothed = 0;
     this.narutoRunState = false;
