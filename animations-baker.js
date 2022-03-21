@@ -348,9 +348,9 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
         } else if (/\.scale$/.test(track.name)) {
           if (allOnes(track.values)) {
             const index = tracks.indexOf(track);
-              tracksToRemove.push(index);
+            tracksToRemove.push(index);
           } else {
-            throw new Error(`Error with the following track.  All scale transforms must be set to 1. Aborting.\n Animation: ${animation.name}, Track: ${track.name}, values: \n ${track.values}`);
+            throw new Error(`This track has invalid values.  All scale transforms must be set to 1. Aborting.\n Animation: ${animation.name}, Track: ${track.name}, values: \n ${track.values}`);
           }
         } else {
           console.warn('unknown track name', animation.name, track);
