@@ -313,7 +313,8 @@ physicsManager.simulatePhysics = timeDiff => {
       // debugger
       if (physicsObject) {
         // console.log('update:')
-        // if (physicsObject.name === 'Spine') console.log('Spine y', position.y.toFixed(2))
+        // if (physicsObject.name === 'Chest') console.log('Chest y', position.y.toFixed(2))
+        if (physicsObject.name === 'Chest') console.log(1, position);
         // console.log('got position', position.toArray().join(','));
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);

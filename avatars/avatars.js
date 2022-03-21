@@ -577,10 +577,10 @@ const boneRadius = 0.02;
 const minHeight = 0.02;
 // const baseScale = 0.02;
 // const fingerScale = 0.2;
-const physicsBoneScaleFactor = 0.8;
+// const physicsBoneScaleFactor = 0.8;
 const _makeCapsuleGeometry = (meshBone) => {
   console.log('_makeCapsuleGeometry', meshBone.name)
-  meshBone.boneLength *= physicsBoneScaleFactor;
+  // meshBone.boneLength *= physicsBoneScaleFactor;
   const radius = boneRadius;
   const height = meshBone.boneLength - boneRadius*2;
   const halfHeight = height/2;
@@ -3462,6 +3462,8 @@ class Avatar {
         //   physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, false, b);
         // }
         // this.ragdollMesh.toAvatar(this);
+
+        console.log(2, flatMeshes.Chest.position)
       }
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
@@ -3473,11 +3475,14 @@ class Avatar {
 
           for (const k in flatMeshes) {
             const meshBone = flatMeshes[k]
+            if (meshBone.name === 'Chest') console.log(3, meshBone.position)
             physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, characterId);
+            // physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.getWorldPosition(new THREE.Vector3()), meshBone.getWorldQuaternion(new THREE.Quaternion()), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
           }
 
           // const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Hips.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
-          // const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength, 0), new THREE.Quaternion(), new THREE.Quaternion(), false);
+          const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, flatMeshes.Spine.boneLength / 2 * 1.2, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength / 2 * 1.2, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
+          // const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
           // const jointChestUpperChest = physicsManager.addJoint(flatMeshes.Chest, flatMeshes.UpperChest, new THREE.Vector3(0, flatMeshes.Chest.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Chest.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
 
           const PxD6Axis = {
