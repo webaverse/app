@@ -85,7 +85,7 @@ const DragAndDrop = () => {
       if (game.inputFocused()) return true;
 
       switch (e.which) {
-        case 85: {
+        case 79: { // O
           (async () => {
             const app = await _upload();
             setQueue(queue.concat([app]));
