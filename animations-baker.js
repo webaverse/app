@@ -329,7 +329,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
       const rootBone = object; // not really a bone
       const leftFootBone = bones.find(b => b.name === 'mixamorigLeftFoot');
       const rightFootBone = bones.find(b => b.name === 'mixamorigRightFoot');
-      const allOnes = arr => arr[0] === 1 && arr.every(v => v === arr[0]);
+      const allOnes = arr => arr.every(v => v === 1);
 
       const bonePositionInterpolants = {};
       const boneQuaternionInterpolants = {};
@@ -348,9 +348,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
         } else if (/\.scale$/.test(track.name)) {
           if (allOnes(track.values)) {
             const index = tracks.indexOf(track);
-            if (index !== -1) {
               tracksToRemove.push(index);
-            }
           } else {
             throw new Error(`Error with the following track.  All scale transforms must be set to 1. Aborting.\n Animation: ${animation.name}, Track: ${track.name}, values: \n ${track.values}`);
           }
