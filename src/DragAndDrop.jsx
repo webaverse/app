@@ -8,6 +8,7 @@ import {registerIoEventHandler, unregisterIoEventHandler} from './components/gen
 import {registerLoad} from './LoadingBox.jsx';
 import {ObjectPreview} from './ObjectPreview.jsx';
 import game from '../game.js';
+import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 
 const _upload = () => new Promise((accept, reject) => {
@@ -140,6 +141,10 @@ const DragAndDrop = () => {
       console.log('set app', app);
       setCurrentApp(app);
       setQueue(queue.slice(1));
+
+      if (cameraManager.pointerLockElement) {
+        cameraManager.exitPointerLock();
+      }
     }
   }, [queue, currentApp]);
 
