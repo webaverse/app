@@ -330,9 +330,11 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
       const rootBone = object; // not really a bone
       const leftFootBone = bones.find(b => b.name === 'mixamorigLeftFoot');
       const rightFootBone = bones.find(b => b.name === 'mixamorigRightFoot');
+      const allOnes = arr => arr[0] === 1 && arr.every(v => v === arr[0]);
 
       const bonePositionInterpolants = {};
       const boneQuaternionInterpolants = {};
+      const tracksToRemove = [];
       for (const track of tracks) {
         if (/\.position$/.test(track.name)) {
           const boneName = track.name.replace(/\.position$/, '');
@@ -344,11 +346,24 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
           // const bone = bones.find(b => b.name === boneName);
           const boneInterpolant = new THREE.QuaternionLinearInterpolant(track.times, track.values, track.getValueSize());
           boneQuaternionInterpolants[boneName] = boneInterpolant;
+        } else if (/\.scale$/.test(track.name)) {
+          if (allOnes(track.values)) {
+            const index = tracks.indexOf(track);
+            if (index !== -1) {
+              tracksToRemove.push(index);
+            }
+          } else {
+            throw new Error(`Error with the following track.  All scale transforms must be set to 1. Aborting.\n Animation: ${animation.name}, Track: ${track.name}, values: \n ${track.values}`);
+          }
         } else {
           console.warn('unknown track name', animation.name, track);
         }
       }
-
+      // remove scale transform tracks as they won't be used;
+      tracksToRemove.forEach(i => {
+        tracks.splice(i, 1);
+      });
+      
       const walkBufferSize = 256;
       const leftFootYDeltas = new Float32Array(walkBufferSize);
       const rightFootYDeltas = new Float32Array(walkBufferSize);
