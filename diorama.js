@@ -470,8 +470,6 @@ const _ensureSideSceneCompiled = () => {
   }
 }; */
 
-const sideCamera = new THREE.PerspectiveCamera();
-
 const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   minFilter: THREE.LinearFilter,
   magFilter: THREE.LinearFilter,
@@ -493,6 +491,7 @@ const createPlayerDiorama = ({
   lightningBackground = false,
   radialBackground = false,
   glyphBackground = false,
+  autoCamera = true,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
@@ -501,11 +500,12 @@ const createPlayerDiorama = ({
   const canvases = [];
   let outlineRenderTarget = null;
   let lastDisabledTime = 0;
-  let aspect = 1;
+  const sideCamera = new THREE.PerspectiveCamera();
 
   const diorama = {
     width: 0,
     height: 0,
+    camera: sideCamera,
     // loaded: false,
     setTarget(newTarget) {
       target = newTarget;
@@ -534,9 +534,6 @@ const createPlayerDiorama = ({
       if (index !== -1) {
         canvases.splice(index, 1);
       }
-    },
-    setAspect(newAspect) {
-      aspect = newAspect;
     },
     toggleShader() {
       const oldValues = {
@@ -655,27 +652,25 @@ const createPlayerDiorama = ({
       const oldClearAlpha = renderer.getClearAlpha();
 
       const _render = () => {
-        // set up side camera
-        target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        const targetPosition = localVector;
-        const targetQuaternion = localQuaternion;
+        if (autoCamera) {
+          // set up side camera
+          target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+          const targetPosition = localVector;
+          const targetQuaternion = localQuaternion;
 
-        sideCamera.position.copy(targetPosition)
-          .add(
-            localVector2.copy(cameraOffset)
-              .applyQuaternion(targetQuaternion)
+          sideCamera.position.copy(targetPosition)
+            .add(
+              localVector2.copy(cameraOffset)
+                .applyQuaternion(targetQuaternion)
+            );
+          sideCamera.quaternion.setFromRotationMatrix(
+            localMatrix.lookAt(
+              sideCamera.position,
+              targetPosition,
+              localVector3.set(0, 1, 0)
+            )
           );
-        sideCamera.quaternion.setFromRotationMatrix(
-          localMatrix.lookAt(
-            sideCamera.position,
-            targetPosition,
-            localVector3.set(0, 1, 0)
-          )
-        );
-        sideCamera.updateMatrixWorld();
-        if (sideCamera.aspect !== aspect) {
-          sideCamera.aspect = aspect;
-          sideCamera.updateProjectionMatrix();
+          sideCamera.updateMatrixWorld();
         }
 
         // set up side avatar scene
