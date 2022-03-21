@@ -204,10 +204,8 @@ class CharacterSfx {
       this.arr.push(this.currentDir.angleTo(this.preDir))
       
       if(this.player.avatar.narutoRunState){
-        if(this.narutoRunStartTime===0)
-          this.narutoRunStartTime=timeSeconds;
-
-        if(timeSeconds - this.narutoRunStartTime<=0.1 ){
+        if(this.narutoRunStartTime===0){
+          this.narutoRunStartTime=timeSeconds; 
           sounds.playSound(soundFiles.sonicBoom[0]);
         }
         else {
