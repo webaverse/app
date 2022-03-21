@@ -3,6 +3,8 @@ import React, {useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import style from './ObjectPreview.module.css';
 import dioramaManager from '../diorama.js';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import {fitCameraToBoundingBox} from '../util.js';
 
 const canvasWidth = 300;
 const canvasHeight = 400;
@@ -33,12 +35,28 @@ const ObjectPreview = ({
         lightningBackground: false,
         radialBackground: false,
         glyphBackground: false, */
+        autoCamera: false,
       });
-      diorama.setAspect(canvasWidth / canvasHeight);
+      const {camera} = diorama;
+      camera.position.set(0, 0, 1);
+      camera.updateMatrixWorld();
+      camera.aspect = canvasWidth / canvasHeight;
+      camera.updateProjectionMatrix();
       diorama.addCanvas(canvas);
+
+      const controls = new OrbitControls(camera, canvas);
+      // controls.update() must be called after any manual changes to the camera's transform
+      // camera.position.set( 0, 20, 100 );
+      
+      const _updateControls = () => {
+        controls.update();
+        frame = requestAnimationFrame(_updateControls);
+      };
+      let frame = requestAnimationFrame(_updateControls);
 
       return () => {
         diorama.destroy();
+        cancelAnimationFrame(frame);
       };
     }
   }, [canvasRef, object]);
