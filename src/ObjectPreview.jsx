@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import style from './ObjectPreview.module.css';
 import dioramaManager from '../diorama.js';
@@ -11,15 +11,11 @@ const ObjectPreview = ({
   object = null,
   className = null,
 }) => {
-  // const [queue, setQueue] = useState([]);
-  // const [currentApp, setCurrentApp] = useState(null);
   const canvasRef = useRef();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas && object) {
-      // console.log('bind canvas');
-    
       const objects = [object];
       const diorama = dioramaManager.createPlayerDiorama({
         objects,
@@ -38,7 +34,6 @@ const ObjectPreview = ({
         radialBackground: false,
         glyphBackground: false, */
       });
-      // diorama.resetCanvases();
       diorama.setAspect(canvasWidth / canvasHeight);
       diorama.addCanvas(canvas);
 
