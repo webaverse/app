@@ -17,19 +17,19 @@ import {world} from './world.js';
 // import * as universe from './universe.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
-import {waitForLoad as rendererWaitForLoad, getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
-import {snapPosition} from './util.js';
+import {getRenderer, sceneLowPriority, camera} from './renderer.js';
+import {downloadFile, snapPosition} from './util.js';
 import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
 // import easing from './easing.js';
 // import {VoicePack} from './voice-pack-voicer.js';
 // import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import metaversefileApi from './metaversefile-api.js';
-import metaversefileConstants from 'metaversefile/constants.module.js';
+// import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
 
-const {contractNames} = metaversefileConstants;
+// const {contractNames} = metaversefileConstants;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -37,7 +37,7 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
+// const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -47,9 +47,9 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
-const localRaycaster = new THREE.Raycaster();
+// const localRaycaster = new THREE.Raycaster();
 
-const oneVector = new THREE.Vector3(1, 1, 1);
+// const oneVector = new THREE.Vector3(1, 1, 1);
 
 // const cubicBezier = easing(0, 1, 0, 1);
 
@@ -1640,6 +1640,15 @@ class GameManager extends EventTarget {
   setVoiceEndpoint(voiceId) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     return localPlayer.setVoiceEndpoint(voiceId);
+  }
+  saveScene() {
+    const scene = world.appManager.exportJSON();
+    const s = JSON.stringify(scene, null, 2);
+    const blob = new Blob([s], {
+      type: 'application/json',
+    });
+    downloadFile(blob, 'scene.json');
+    // console.log('got scene', scene);
   }
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
