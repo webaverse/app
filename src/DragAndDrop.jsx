@@ -78,13 +78,18 @@ const DragAndDrop = () => {
     function keydown(e) {
       if (game.inputFocused()) return true;
 
-      if (e.which === 85) { // U
-        (async () => {
-          const app = await _upload();
-          setQueue(queue.concat([app]));
-        })();
-
-        return false;
+      switch (e.which) {
+        case 85: {
+          (async () => {
+            const app = await _upload();
+            setQueue(queue.concat([app]));
+          })();
+  
+          return false;
+        }
+        case 27: {
+          return false;
+        }
       }
     }
     registerIoEventHandler('keydown', keydown);
@@ -200,6 +205,12 @@ const DragAndDrop = () => {
 
     console.log('mint', currentApp);
   };
+  const _cancel = e => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setCurrentApp(null);
+  };
 
   return (
     <div className={style.dragAndDrop}>
@@ -219,18 +230,26 @@ const DragAndDrop = () => {
               </div>
             </div>
           </div>
-          <div className={classnames(style.buttons, style.footer)}>
-            <div className={style.button} onClick={_drop}>
-              <span>Drop</span>
-              <sub>to world</sub>
+          <div className={style.footer}>
+            <div className={style.buttons}>
+              <div className={style.button} onClick={_drop}>
+                <span>Drop</span>
+                <sub>to world</sub>
+              </div>
+              <div className={style.button} onClick={_equip}>
+                <span>Equip</span>
+                <sub>to self</sub>
+              </div>
+              <div className={style.button} disabled onClick={_mint}>
+                <span>Mint</span>
+                <sub>on chain</sub>
+              </div>
             </div>
-            <div className={style.button} onClick={_equip}>
-              <span>Equip</span>
-              <sub>to self</sub>
-            </div>
-            <div className={style.button} disabled onClick={_mint}>
-              <span>Mint</span>
-              <sub>on chain</sub>
+            <div className={style.buttons}>
+              <div className={classnames(style.button, style.small)} onClick={_cancel}>
+                <span>Cancel</span>
+                <sub>back to game</sub>
+              </div>
             </div>
           </div>
         </div>

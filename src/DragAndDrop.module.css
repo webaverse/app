@@ -40,6 +40,10 @@
   font-size: 16px;
   flex-direction: column;
 }
+.dragAndDrop .currentApp .footer {
+  display: flex;
+  flex-direction: column;
+}
 .dragAndDrop .currentApp .row {
   display: flex;
 }
@@ -51,8 +55,12 @@
 .dragAndDrop .currentApp .buttons {
   display: flex;
 }
+.dragAndDrop .currentApp .buttons + .buttons {
+  margin-top: 10px;
+}
 .dragAndDrop .currentApp .buttons .button {
   display: flex;
+  padding: 5px 10px;
   border: 2px solid #FFF;
   flex-direction: column;
   font-size: 30px;
@@ -76,4 +84,12 @@
 }
 .dragAndDrop .currentApp .buttons .button + .button {
   margin-left: 10px;
+}
+.dragAndDrop .currentApp .buttons .button.small {
+  margin: 0 auto;
+  flex: none;
+  font-size: 20px;
+}
+.dragAndDrop .currentApp .buttons .button.small > sub {
+  font-size: 13px;
 }
