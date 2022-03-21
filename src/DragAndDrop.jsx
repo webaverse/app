@@ -37,7 +37,13 @@ const uploadCreateApp = async item => {
         load = registerLoad(type, name, 0, total);
       },
       onProgress(e) {
-        load.update(e.loaded / e.total);
+        if (load) {
+          load.update(e.loaded, e.total);
+        } else {
+          const type = 'upload';
+          const name = item.name;
+          load = registerLoad(type, name, e.loaded, e.total);
+        }
       },
     });
     if (load) {
