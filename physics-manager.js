@@ -312,7 +312,7 @@ physicsManager.simulatePhysics = timeDiff => {
       // debugger
       if (physicsObject) {
         // console.log('got position', position.toArray().join(','));
-        physicsObject.position.copy(position);
+        // physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
 

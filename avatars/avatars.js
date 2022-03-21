@@ -6,7 +6,7 @@ import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-import {scene, camera} from '../renderer.js';
+import {scene, camera, rootScene} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
 import {
@@ -651,7 +651,7 @@ const _makeRagdollMesh = () => {
 
       Spine: _makeCubeMesh('Spine', true),
       Chest: _makeCubeMesh('Chest', true),
-      UpperChest: _makeCubeMesh('UpperChest', true),
+      // UpperChest: _makeCubeMesh('UpperChest', true),
 
       // Neck: _makeCubeMesh('Neck', true),
       // Head: _makeCubeMesh('Head', true),
@@ -715,7 +715,7 @@ const _makeRagdollMesh = () => {
     // mesh.Root.add2(mesh.Hips);
     mesh.Hips.add2(mesh.Spine);
     mesh.Spine.add2(mesh.Chest);
-    mesh.Chest.add2(mesh.UpperChest);
+    // mesh.Chest.add2(mesh.UpperChest);
 
     // // head
     // mesh.UpperChest.add2(mesh.Neck);
@@ -784,6 +784,7 @@ const _makeRagdollMesh = () => {
 
   const flatMeshes = _makeMeshes(); // type: physicsObject
   window.flatMeshes = flatMeshes
+  // note: vismark:
   // flatMeshes.Hips.parent === flatMeshes.Spine.parent
   // flatMeshes.Hips.children2[0] === flatMeshes.Spine
   // flatMeshes.Hips.children2[2] === flatMeshes.Left_leg
@@ -875,7 +876,7 @@ const _makeRagdollMesh = () => {
 
       // set capsule geometries
       // vismark
-      // meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength, meshBone.isTop);
+      meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone.boneLength, meshBone.isTop);
       // console.log({meshBone})
 
       // memoize
@@ -994,22 +995,22 @@ const _makeRagdollMesh = () => {
         // meshBone.updateMatrixWorld();
       // }
       
-      localMatrix.copy(meshBone.fakeBone.matrixWorld);
-      if (modelBone.parent) {
-        localMatrix
-          .premultiply(localMatrix2.copy(modelBone.parent.matrixWorld).invert())
-      }
-      if (k === 'Hips') {
-        localMatrix.decompose(modelBone.position, localQuaternion, modelBone.scale);
-        // localQuaternion.multiply(yToXQuaternion)
-        modelBone.quaternion.copy(localQuaternion)
-      } else {
-        localMatrix.decompose(localVector, localQuaternion, localVector2);
-        // localQuaternion.multiply(yToXQuaternion)
-        modelBone.quaternion.copy(localQuaternion)
-        // if (window.isTest) modelBone.rotation.x += 1; // need set every frame
-      }
-      modelBone.updateMatrixWorld();
+      // localMatrix.copy(meshBone.fakeBone.matrixWorld);
+      // if (modelBone.parent) {
+      //   localMatrix
+      //     .premultiply(localMatrix2.copy(modelBone.parent.matrixWorld).invert())
+      // }
+      // if (k === 'Hips') {
+      //   localMatrix.decompose(modelBone.position, localQuaternion, modelBone.scale);
+      //   // localQuaternion.multiply(yToXQuaternion)
+      //   modelBone.quaternion.copy(localQuaternion)
+      // } else {
+      //   localMatrix.decompose(localVector, localQuaternion, localVector2);
+      //   // localQuaternion.multiply(yToXQuaternion)
+      //   modelBone.quaternion.copy(localQuaternion)
+      //   // if (window.isTest) modelBone.rotation.x += 1; // need set every frame
+      // }
+      // modelBone.updateMatrixWorld();
     }
   };
   // XXX this can be rewritten to use an allocated buffer from the physics manager
@@ -3463,7 +3464,7 @@ class Avatar {
         //   const b = this.ragdollMesh.serializeSkeleton();
         //   physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, false, b);
         // }
-        this.ragdollMesh.toAvatar(this);
+        // this.ragdollMesh.toAvatar(this);
       }
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
@@ -3478,10 +3479,32 @@ class Avatar {
             // physx.physxWorker.addBoxGeometryPhysics(physx.physics, physicsObject.position, physicsObject.quaternion, physicsObject.sizeHalf, physicsObject.physicsId, true);
           }
 
-          // const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Hips.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
-          // const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, flatMeshes.Spine.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
+          const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Hips.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
+          const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength, 0), new THREE.Quaternion(), new THREE.Quaternion(), false);
           // const jointChestUpperChest = physicsManager.addJoint(flatMeshes.Chest, flatMeshes.UpperChest, new THREE.Vector3(0, flatMeshes.Chest.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Chest.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
 
+          const PxD6Axis = {
+            eX: 0, // !< motion along the X axis
+            eY: 1, // !< motion along the Y axis
+            eZ: 2, // !< motion along the Z axis
+            eTWIST: 3, // !< motion around the X axis
+            eSWING1: 4, // !< motion around the Y axis
+            eSWING2: 5, // !< motion around the Z axis
+            eCOUNT: 6,
+          };
+          const PxD6Motion = {
+            eLOCKED: 0, // !< The DOF is locked, it does not allow relative motion.
+            eLIMITED: 1, // !< The DOF is limited, it only allows motion within a specific range.
+            eFREE: 2, // !< The DOF is free and has its full range of motion.
+          };
+
+          physicsManager.setJointMotion(jointSpineChest, PxD6Axis.eTWIST, PxD6Motion.eFree);
+          physicsManager.setJointMotion(jointSpineChest, PxD6Axis.eTWIST, PxD6Motion.eFree);
+
+          rootScene.children[2].visible = false; // test: hide E tag.
+
+
+          // this.modelBoneOutputs.
         }
       }
       // if (!this.ragdoll && this.ragdollMesh.skeleton) {
