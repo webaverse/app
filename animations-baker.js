@@ -359,9 +359,10 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
         }
       }
       // remove scale transform tracks as they won't be used;
-      tracksToRemove.forEach(i => {
-        tracks.splice(i, 1);
-      });
+      let i = tracksToRemove.length;
+      while (i--) {
+        tracks.splice(tracksToRemove[i], 1);
+      }
 
       const walkBufferSize = 256;
       const leftFootYDeltas = new Float32Array(walkBufferSize);
