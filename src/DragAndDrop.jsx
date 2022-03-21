@@ -19,23 +19,47 @@ const _upload = () => new Promise((accept, reject) => {
   input.setAttribute('multiple', '');
   input.click();
   input.addEventListener('change', async e => {
-    const name = 'Loading';
-    const description = e.target.files ? e.target.files[0].name : `${e.target.files.length} files`;
-    const load = registerLoad(name, description, 0);
+    // const name = 'Loading';
+    // const description = e.target.files ? e.target.files[0].name : `${e.target.files.length} files`;
+    // const load = registerLoad(name, description, 0);
     const o = await uploadCreateApp(e.target.files);
-    load.end();
+    // load.end();
   });
 });
 const uploadCreateApp = async item => {
-  const u = await handleUpload(item);
-  let o = null;
-  try {
-    o = await metaversefile.createAppAsync({
-      start_url: u,
+  let u;
+  {
+    let load = null;
+    u = await handleUpload(item, {
+      onTotal(total) {
+        const type = 'upload';
+        const name = item.name;
+        load = registerLoad(type, name, 0, total);
+      },
+      onProgress(e) {
+        load.update(e.loaded / e.total);
+      },
     });
-  } catch(err) {
-    console.warn(err);
+    if (load) {
+      load.end();
+    }
   }
+
+  let o = null;
+  {
+    const type = 'download';
+    const name = item.name;
+    const load = registerLoad(type, name);
+    try {
+      o = await metaversefile.createAppAsync({
+        start_url: u,
+      });
+    } catch(err) {
+      console.warn(err);
+    }
+    load.end();
+  }
+
   if (o) {
     o.contentId = u;
     o.instanceId = getRandomString();
@@ -101,14 +125,10 @@ const DragAndDrop = () => {
 
       const items = Array.from(e.dataTransfer.items);
       await Promise.all(items.map(async item => {
-        const name = 'Loading';
-        const description = item.name;
-        const load = registerLoad(name, description, 0);
         const app = await uploadCreateApp(item/*, {
           position,
           quaternion,
         }*/);
-        load.end();
         if (app) {
           setQueue(queue.concat([app]));
         }
