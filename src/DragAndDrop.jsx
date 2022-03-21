@@ -180,30 +180,37 @@ const DragAndDrop = () => {
     e.preventDefault();
     e.stopPropagation();
   };
+  const _importApp = app => {
+    const localPlayer = metaversefile.useLocalPlayer();
+    const position = localPlayer.position.clone()
+      .add(new THREE.Vector3(0, 0, -2).applyQuaternion(localPlayer.quaternion));
+    const quaternion = localPlayer.quaternion;
+
+    app.position.copy(position);
+    app.quaternion.copy(quaternion);
+    app.updateMatrixWorld();
+
+    world.appManager.importApp(app);
+  };
   const _drop = async e => {
     e.preventDefault();
     e.stopPropagation();
 
     if (currentApp) {
-      const localPlayer = metaversefile.useLocalPlayer();
-      const position = localPlayer.position.clone()
-        .add(new THREE.Vector3(0, 0, -2).applyQuaternion(localPlayer.quaternion));
-      const quaternion = localPlayer.quaternion;
-
-      currentApp.position.copy(position);
-      currentApp.quaternion.copy(quaternion);
-      currentApp.updateMatrixWorld();
-
-      world.appManager.importApp(currentApp);
-      
+      _importApp(currentApp);
       setCurrentApp(null);
     }
   };
   const _equip = e => {
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log('equip', currentApp);
+
+    if (currentApp) {
+      const app = currentApp;
+      _importApp(app);
+      app.activate();
+      setCurrentApp(null);
+    }
   };
   const _mint = e => {
     e.preventDefault();
