@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import * as sounds from './sounds.js';
-import ioManager from './io-manager';
+
 import {
   idleFactorSpeed,
   walkFactorSpeed,
@@ -19,7 +19,8 @@ import {
   // loadAudioBuffer,
 } from './util.js';
 
-const localVector = new THREE.Vector3();
+let localVector = new THREE.Vector3();
+const localVector2D = new THREE.Vector2()
 
 // HACK: this is used to dynamically control the step offset for a particular animation
 // it is useful during development to adjust sync between animations and sound
@@ -67,8 +68,12 @@ class CharacterSfx {
     this.narutoRunStartTime = 0;
     this.narutoRunFinishTime = 0;
     this.narutoRunTrailSoundStartTime = 0;
-    this.currentDirectionState = null;
-    this.previousDirectionState = null;
+    this.narutoRunTrunSoundStartTime = 0;
+    this.currentDir=new THREE.Vector3();
+    this.preDir=new THREE.Vector3();
+    this.arr = [0, 0, 0, 0];
+
+
     
     this.oldNarutoRunSound = null;
   }
@@ -188,18 +193,15 @@ class CharacterSfx {
     _handleStep();
 
     const _handleNarutoRun = () => {
-      if(ioManager.keys.right){
-        this.currentDirectionState='right';
-      }   
-      if(ioManager.keys.left){
-        this.currentDirectionState='left';
-      }  
-      if(ioManager.keys.up){
-        this.currentDirectionState='up';
-      }   
-      if(ioManager.keys.down){
-        this.currentDirectionState='down';
-      }
+      
+      this.player.getWorldDirection(localVector)
+      localVector = localVector.normalize();
+      this.currentDir.x = localVector.x;
+      this.currentDir.y = localVector.y;
+      this.currentDir.z = localVector.z;
+      
+      this.arr.shift()
+      this.arr.push(this.currentDir.angleTo(this.preDir))
       
       if(this.player.avatar.narutoRunState){
         if(this.narutoRunStartTime===0)
@@ -209,8 +211,21 @@ class CharacterSfx {
           sounds.playSound(soundFiles.sonicBoom[0]);
         }
         else {
-          if(this.previousDirectionState!==null && this.previousDirectionState!==this.currentDirectionState )
-            sounds.playSound(soundFiles.sonicBoom[3]);
+          if(this.arr.reduce((a,b)=>a+b) >= Math.PI/3){
+
+            this.arr.fill(0)
+            if(timeSeconds - this.narutoRunTrunSoundStartTime>soundFiles.sonicBoom[3].duration-0.9 || this.narutoRunTrunSoundStartTime==0){
+              sounds.playSound(soundFiles.sonicBoom[3]);
+              this.narutoRunTrunSoundStartTime = timeSeconds;
+            }
+              
+          }
+          // if(this.previousDirectionState!==null && this.previousDirectionState!==this.currentDirectionState ){
+          //   //console.log(localVector2D.set(this.player.position.x - this.dum1.x, this.player.position.z - this.dum1.z ).angle())
+          //   console.log(this.currentDir.angleTo(this.preDir))
+          //   sounds.playSound(soundFiles.sonicBoom[3]);
+          // }
+            
 
           if(timeSeconds - this.narutoRunTrailSoundStartTime>soundFiles.sonicBoom[2].duration-0.2 || this.narutoRunTrailSoundStartTime==0){
             if(!this.player.getAction('sit')){
@@ -226,21 +241,23 @@ class CharacterSfx {
             }
             
           }
-          this.previousDirectionState=this.currentDirectionState;
         }
 
       }
       if(!this.player.avatar.narutoRunState && this.narutoRunStartTime!=0 ){
         this.narutoRunStartTime=0;
         this.narutoRunFinishTime=timeSeconds;
-        this.previousDirectionState=null;
         this.narutoRunTrailSoundStartTime=0;
+        this.narutoRunTrunSoundStartTime=0;
         sounds.playSound(soundFiles.sonicBoom[1]);
         if (this.oldNarutoRunSound) {
           !this.oldNarutoRunSound.paused && this.oldNarutoRunSound.stop();
           this.oldNarutoRunSound = null;
         }
       }
+      this.preDir.x=this.currentDir.x;
+      this.preDir.y=this.currentDir.y;
+      this.preDir.z=this.currentDir.z;
   
     };
     _handleNarutoRun();
