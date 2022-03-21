@@ -71,6 +71,8 @@ class CharacterSfx {
     this.narutoRunTrunSoundStartTime = 0;
     this.currentDir=new THREE.Vector3();
     this.preDir=new THREE.Vector3();
+    this.currentPos=new THREE.Vector3();
+    this.prePos=new THREE.Vector3();
     this.arr = [0, 0, 0, 0];
 
 
@@ -194,11 +196,18 @@ class CharacterSfx {
 
     const _handleNarutoRun = () => {
       
-      this.player.getWorldDirection(localVector)
+      //this.player.getWorldDirection(localVector)
       //localVector = localVector.normalize();
-      this.currentDir.x = localVector.x;
-      this.currentDir.y = localVector.y;
-      this.currentDir.z = localVector.z;
+      localVector.setFromMatrixPosition(this.player.matrixWorld)
+      
+      
+      this.currentPos.x = localVector.x;
+      this.currentPos.y = localVector.y;
+      this.currentPos.z = localVector.z;
+
+      this.currentDir.x = this.currentPos.x-this.prePos.x;
+      this.currentDir.y = this.currentPos.y-this.prePos.y;
+      this.currentDir.z = this.currentPos.z-this.prePos.z;
       
       
       
@@ -265,6 +274,10 @@ class CharacterSfx {
       this.preDir.x=this.currentDir.x;
       this.preDir.y=this.currentDir.y;
       this.preDir.z=this.currentDir.z;
+
+      this.prePos.x=this.currentPos.x;
+      this.prePos.y=this.currentPos.y;
+      this.prePos.z=this.currentPos.z;
   
     };
     _handleNarutoRun();
