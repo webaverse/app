@@ -127,7 +127,7 @@ const LoadingBox = () => {
         const now = performance.now();
         const f = (now / 1000) % 1
 
-        const _render = f => {
+        // const _render = f => {
           ctx.resetTransform();
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -162,11 +162,11 @@ const LoadingBox = () => {
               ctx.drawImage(upRight, fx, -fx);
             }
           }
-        };
+        // };
         /* _render(f + 0.75);
         _render(f + 0.5);
         _render(f + 0.25); */
-        _render(f);
+        // _render(f);
 
         frame = requestAnimationFrame(_frame);
       };
