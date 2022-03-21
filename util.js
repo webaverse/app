@@ -72,31 +72,6 @@ export function readFile(file) {
     fr.readAsArrayBuffer(file);
   });
 }
-/*  export function bindUploadFileButton(inputFileEl, handleUpload) {
-  function change(e) {
-    inputFileEl.removeEventListener('change', change);
-    
-    const {files} = e.target;
-    if (inputFileEl.multiple) {
-      handleUpload(Array.from(files));
-    } else {
-      const [file = null] = files;
-      handleUpload(file);
-    }
-
-    const {parentNode} = inputFileEl;
-    parentNode.removeChild(inputFileEl);
-    const newInputFileEl = inputFileEl.ownerDocument.createElement('input');
-    newInputFileEl.type = 'file';
-    newInputFileEl.id = inputFileEl.id;
-    // newInputFileEl.id = 'upload-file-button';
-    // newInputFileEl.style.display = 'none';
-    newInputFileEl.classList.add('hidden');
-    parentNode.appendChild(newInputFileEl);
-    bindUploadFileButton(newInputFileEl, handleUpload);
-  }
-  inputFileEl.addEventListener('change', change);
-} */
 
 export function snapPosition(o, positionSnap) {
   if (positionSnap > 0) {
