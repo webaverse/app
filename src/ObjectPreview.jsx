@@ -9,6 +9,8 @@ import {fitCameraToBoundingBox} from '../util.js';
 const canvasWidth = 300;
 const canvasHeight = 400;
 
+const localBox = new THREE.Box3();
+
 const ObjectPreview = ({
   object = null,
   className = null,
@@ -38,10 +40,20 @@ const ObjectPreview = ({
         autoCamera: false,
       });
       const {camera} = diorama;
-      camera.position.set(0, 0, 1);
-      camera.updateMatrixWorld();
-      camera.aspect = canvasWidth / canvasHeight;
-      camera.updateProjectionMatrix();
+      const _initCamera = () => {
+        camera.position.set(0, 0, -1);
+        fitCameraToBoundingBox(
+          camera,
+          localBox.setFromObject(object),
+          1.2
+        );
+        camera.updateMatrixWorld();
+      
+        camera.aspect = canvasWidth / canvasHeight;
+        camera.updateProjectionMatrix();
+      };
+      _initCamera();
+
       diorama.addCanvas(canvas);
 
       const controls = new OrbitControls(camera, canvas);
