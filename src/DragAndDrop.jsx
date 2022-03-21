@@ -225,48 +225,49 @@ const DragAndDrop = () => {
     setCurrentApp(null);
   };
 
+  const name = currentApp ? currentApp.name : '';
+  const appType = currentApp ? currentApp.appType : '';
+
   return (
     <div className={style.dragAndDrop}>
-      {currentApp ? (
-        <div className={style.currentApp} onClick={_currentAppClick}>
-          <h1 className={style.heading}>Upload object</h1>
-          <div className={style.body}>
-            <ObjectPreview object={currentApp} className={style.canvas} />
-            <div className={style.wrap}>
-              <div className={style.row}>
-                <div className={style.label}>Name: </div>
-                <div className={style.value}>{currentApp.name}</div>
-              </div>
-              <div className={style.row}>
-                <div className={style.label}>Type: </div>
-                <div className={style.value}>{currentApp.appType}</div>
-              </div>
+      <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
+        <h1 className={style.heading}>Upload object</h1>
+        <div className={style.body}>
+          <ObjectPreview object={currentApp} className={style.canvas} />
+          <div className={style.wrap}>
+            <div className={style.row}>
+              <div className={style.label}>Name: </div>
+              <div className={style.value}>{name}</div>
             </div>
-          </div>
-          <div className={style.footer}>
-            <div className={style.buttons}>
-              <div className={style.button} onClick={_drop}>
-                <span>Drop</span>
-                <sub>to world</sub>
-              </div>
-              <div className={style.button} onClick={_equip}>
-                <span>Equip</span>
-                <sub>to self</sub>
-              </div>
-              <div className={style.button} disabled onClick={_mint}>
-                <span>Mint</span>
-                <sub>on chain</sub>
-              </div>
-            </div>
-            <div className={style.buttons}>
-              <div className={classnames(style.button, style.small)} onClick={_cancel}>
-                <span>Cancel</span>
-                <sub>back to game</sub>
-              </div>
+            <div className={style.row}>
+              <div className={style.label}>Type: </div>
+              <div className={style.value}>{appType}</div>
             </div>
           </div>
         </div>
-      ): null}
+        <div className={style.footer}>
+          <div className={style.buttons}>
+            <div className={style.button} onClick={_drop}>
+              <span>Drop</span>
+              <sub>to world</sub>
+            </div>
+            <div className={style.button} onClick={_equip}>
+              <span>Equip</span>
+              <sub>to self</sub>
+            </div>
+            <div className={style.button} disabled onClick={_mint}>
+              <span>Mint</span>
+              <sub>on chain</sub>
+            </div>
+          </div>
+          <div className={style.buttons}>
+            <div className={classnames(style.button, style.small)} onClick={_cancel}>
+              <span>Cancel</span>
+              <sub>back to game</sub>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
