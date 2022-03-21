@@ -3445,15 +3445,15 @@ class Avatar {
     this.modelBoneOutputs.Root.updateMatrixWorld();
 
     if (game.debugMode) {
-      // vismark
+      // vismark mark
       // note: this === localPlayer.avatar
       if (!this.ragdoll) {
-        // console.log('setFromAvatar', 1) // note: when idle-ing.
+        console.log('setFromAvatar', 1) // note: when idle-ing.
         this.ragdollMesh.setFromAvatar(this);
       } else {
         // console.log('toAvatar', 1) // note: when ragdoll-ing
         // if(this.ragdollMesh.skeleton){
-        //   // console.log('setSkeletonFromBuffer', 2)
+          // console.log('setSkeletonFromBuffer', 2)
         //   this.ragdollMesh.updateMatrixWorld()
         //   this.ragdollMesh.traverse(child => {
         //     child.matrix.decompose(child.position, child.quaternion, child.scale)
@@ -3462,12 +3462,6 @@ class Avatar {
         //   physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, false, b);
         // }
         // this.ragdollMesh.toAvatar(this);
-
-        // wake up
-        for (const k in flatMeshes) {
-          const meshBone = flatMeshes[k]
-          physicsManager.setVelocity(meshBone, new THREE.Vector3(0, 0, 0), true)
-        }
       }
       if (!this.lastRagdoll && this.ragdoll) {
         if (!this.ragdollMesh.skeleton) {
@@ -3506,7 +3500,13 @@ class Avatar {
 
           rootScene.children[2].visible = false; // test: hide E tag.
 
-
+          // wake up
+          console.log('wake up')
+          for (const k in flatMeshes) {
+            const meshBone = flatMeshes[k]
+            physicsManager.setVelocity(meshBone, new THREE.Vector3(0, 0, 0), true)
+          }
+          
           // this.modelBoneOutputs.
         }
       }
