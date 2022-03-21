@@ -46,9 +46,6 @@ const uploadCreateApp = async item => {
   }
 };
 
-const canvasWidth = 300;
-const canvasHeight = 400;
-
 const DragAndDrop = () => {
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
@@ -190,7 +187,6 @@ const DragAndDrop = () => {
         <div className={style.currentApp} onClick={_currentAppClick}>
           <h1 className={style.heading}>Upload object</h1>
           <div className={style.body}>
-            {/* <canvas className={style.canvas} width={canvasWidth} height={canvasHeight} ref={canvasRef} /> */}
             <ObjectPreview object={currentApp} className={style.canvas} />
             <div className={style.wrap}>
               <div className={style.row}>
