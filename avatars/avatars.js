@@ -787,6 +787,7 @@ const _makeRagdollMesh = () => {
   // flatMeshes.Hips.children2[2] === flatMeshes.Right_leg
   // flatMeshes.Hips === ragdollMesh.children[0].children[0]
   // flatMeshes.Hips.physicsMesh === flatMeshes.Hips.children[0]
+  // localPlayer.avatar.model === ragdollMesh.parent === flatMeshes.Hips.parent.parent.parent
   // flatMeshes !== ragdollMesh.children[0]
   const flatMesh = new THREE.Object3D();
   flatMesh.name = 'flatMesh';
@@ -3453,7 +3454,7 @@ class Avatar {
       // vismark mark
       // note: this === localPlayer.avatar
       if (!this.ragdoll) {
-        console.log('setFromAvatar', 1) // note: when idle-ing.
+        // console.log('setFromAvatar', 1) // note: when idle-ing.
         this.ragdollMesh.setFromAvatar(this);
       } else {
         // console.log('toAvatar', 1) // note: when ragdoll-ing
