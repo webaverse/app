@@ -774,7 +774,7 @@ const doUpload = async (
 ) => {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', u, true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
+  // xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.responseType = 'json';
   xhr.upload.onprogress = e => {
     // const {lengthComputable, loaded, total} = e;
