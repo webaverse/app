@@ -2307,12 +2307,12 @@ export default () => {
             dum = dum.normalize();
             
             if(localPlayer.rotation.x===0)
-                currentRotate=-localPlayer.rotation.y/Math.PI*180.;
+                currentRotate=-localPlayer.rotation.y;
             else{
                 if(localPlayer.rotation.y>0)
-                    currentRotate=(localPlayer.rotation.y-Math.PI)/Math.PI*180.;
+                    currentRotate=(localPlayer.rotation.y-Math.PI);
                 else
-                    currentRotate=(localPlayer.rotation.y+Math.PI)/Math.PI*180.;
+                    currentRotate=(localPlayer.rotation.y+Math.PI);
             }
             
             group.position.x+=0.3*dum.x;
@@ -2375,7 +2375,7 @@ export default () => {
                             dummy.scale.z = .00001;
                         }
                         
-                        if(Math.abs(currentRotate-preRotate)>=10){
+                        if(Math.abs(currentRotate-preRotate)>=0.175){
                             dummy.scale.x = .00001;
                             dummy.scale.y = .00001;
                             dummy.scale.z = .00001;

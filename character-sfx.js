@@ -200,8 +200,17 @@ class CharacterSfx {
       this.currentDir.y = localVector.y;
       this.currentDir.z = localVector.z;
       
-      this.arr.shift()
-      this.arr.push(this.currentDir.angleTo(this.preDir))
+      
+      
+      let temp=this.currentDir.angleTo(this.preDir);
+      for(let i=0;i<4;i++){
+          let temp2=this.arr[i];
+          this.arr[i]=temp;
+          temp=temp2;
+          
+      }
+      //this.arr.shift()
+      //this.arr.push(this.currentDir.angleTo(this.preDir))
       
       if(this.player.avatar.narutoRunState){
         if(this.narutoRunStartTime===0){
