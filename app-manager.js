@@ -130,8 +130,8 @@ class AppManager extends EventTarget {
               data: {
                 instanceId,
                 app,
-                // sourceAppManager: this,
-                // destinationAppManager: peerOwnerAppManager,
+                sourceAppManager: this,
+                destinationAppManager: peerOwnerAppManager,
               },
             });
             this.dispatchEvent(e);
@@ -302,28 +302,28 @@ class AppManager extends EventTarget {
         app,
       } = e.data;
     
-      if (!this.apps.includes(app)) {
+      /* if (!this.apps.includes(app)) {
         this.apps.push(app);
-      }
+      } */
     });
     this.addEventListener('trackedappexport', async e => {
       const {
         instanceId,
         app,
-        // sourceAppManager,
-        // destinationAppManager,
+        sourceAppManager,
+        destinationAppManager,
       } = e.data;
       // console.log('handle migrate', sourceAppManager === this, destinationAppManager === this);
-      // if (sourceAppManager === this) {
+      if (sourceAppManager === this) {
         const index = this.apps.indexOf(app);
         if (index !== -1) {
           this.apps.splice(index, 1);
         }
-      /* } else if (destinationAppManager === this) {
+      } else if (destinationAppManager === this) {
         if (!this.apps.includes(app)) {
           this.apps.push(app);
         }
-      } */
+      }
     });
     
     const resize = e => {
