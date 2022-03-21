@@ -19,8 +19,8 @@ import {
   // loadAudioBuffer,
 } from './util.js';
 
-let localVector = new THREE.Vector3();
-const localVector2D = new THREE.Vector2()
+const localVector = new THREE.Vector3();
+
 
 // HACK: this is used to dynamically control the step offset for a particular animation
 // it is useful during development to adjust sync between animations and sound
@@ -195,7 +195,7 @@ class CharacterSfx {
     const _handleNarutoRun = () => {
       
       this.player.getWorldDirection(localVector)
-      localVector = localVector.normalize();
+      //localVector = localVector.normalize();
       this.currentDir.x = localVector.x;
       this.currentDir.y = localVector.y;
       this.currentDir.z = localVector.z;
