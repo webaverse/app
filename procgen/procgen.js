@@ -1,3 +1,4 @@
+import alea from './alea.js';
 import {
   makeRng,
   createMisc,
@@ -17,6 +18,7 @@ import {
 } from './map-render.js'
 
 export {
+  alea,
   makeRng,
   createMisc,
   numBlocksPerChunk,

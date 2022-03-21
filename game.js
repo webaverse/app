@@ -17,19 +17,19 @@ import {world} from './world.js';
 // import * as universe from './universe.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
-import {waitForLoad as rendererWaitForLoad, getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
-import {snapPosition} from './util.js';
+import {getRenderer, sceneLowPriority, camera} from './renderer.js';
+import {downloadFile, snapPosition} from './util.js';
 import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
 // import easing from './easing.js';
 // import {VoicePack} from './voice-pack-voicer.js';
 // import {VoiceEndpoint} from './voice-endpoint-voicer.js';
 import metaversefileApi from './metaversefile-api.js';
-import metaversefileConstants from 'metaversefile/constants.module.js';
+// import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
 
-const {contractNames} = metaversefileConstants;
+// const {contractNames} = metaversefileConstants;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -37,7 +37,7 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
+// const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -47,9 +47,9 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
-const localRaycaster = new THREE.Raycaster();
+// const localRaycaster = new THREE.Raycaster();
 
-const oneVector = new THREE.Vector3(1, 1, 1);
+// const oneVector = new THREE.Vector3(1, 1, 1);
 
 // const cubicBezier = easing(0, 1, 0, 1);
 
@@ -374,188 +374,6 @@ const _mousedown = () => {
 };
 const _mouseup = () => {
   _endUse();
-};
-
-const _uploadFile = async (u, f) => {
-  const res = await fetch(u, {
-    method: 'POST',
-    body: f,
-  });
-  const j = await res.json();
-  const {hash} = j;
-  const {name} = f;
-  return {
-    name,
-    hash,
-  };
-};
-const _proxifyUrl = u => {
-  const match = u.match(/^([a-z0-9]+):\/\/([a-z0-9\-\.]+)(.+)$/i);
-  if (match) {
-    return 'https://' + match[1] + '-' + match[2].replace(/\-/g, '--').replace(/\./g, '-') + '.proxy.webaverse.com' + match[3];
-  } else {
-    return u;
-  }
-};
-const _handleUpload = async (item, transform = null) => {
-  console.log('uploading...');
-  
-  const _uploadObject = async item => {
-    let u;
-    
-    const file = item.getAsFile();
-    const entry = item.webkitGetAsEntry();
-    
-    if (item.kind === 'string') {
-      const s = await new Promise((accept, reject) => {
-        item.getAsString(accept);
-      });
-      const j = JSON.parse(s);
-      const {token_id, asset_contract} = j;
-      const {address} = asset_contract;
-      
-      if (contractNames[address]) {
-        u = `/@proxy/` + encodeURI(`eth://${address}/${token_id}`);
-      } else {
-        console.log('got j', j);
-        const {traits} = j;
-        // cryptovoxels wearables
-        const voxTrait = traits.find(t => t.trait_type === 'vox'); // XXX move to a loader
-        if (voxTrait) {
-          const {value} = voxTrait;
-          u = _proxifyUrl(value) + '?type=vox';
-        } else {
-          const {token_metadata} = j;
-          // console.log('proxify', token_metadata);
-          const res = await fetch(_proxifyUrl(token_metadata), {
-            mode: 'cors',
-          });
-          const j2 = await res.json();
-          // console.log('got metadata', j2);
-          
-          // dcl wearables
-          if (j2.id?.startsWith('urn:decentraland:')) {
-            // 'urn:decentraland:ethereum:collections-v1:mch_collection:mch_enemy_upper_body'
-            const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${j2.id}`, { // XXX move to a loader
-              mode: 'cors',
-            });
-            const j3 = await res.json();
-            const {wearables} = j3;
-            const wearable = wearables[0];
-            const representation = wearable.data.representations[0];
-            const {mainFile, contents} = representation;
-            const file = contents.find(f => f.key === mainFile);
-            const match = mainFile.match(/\.([a-z0-9]+)$/i);
-            const type = match && match[1];
-            // console.log('got wearable', {mainFile, contents, file, type});
-            u = '/@proxy/' + encodeURI(file.url) + (type ? ('?type=' + type) : '');
-          } else {
-            // avatar
-            const {avatar_url, asset} = j2;
-            const avatarUrl = avatar_url || asset;
-            if (avatarUrl) {
-              u = '/@proxy/' + encodeURI(avatarUrl) + '?type=vrm';
-            } else {
-              // default
-              const {image} = j2;
-              u = '/@proxy/' + encodeURI(image);
-            }
-          }
-        }
-      }
-    } else if (entry.isDirectory) {
-      const formData = new FormData();
-      
-      const rootEntry = entry;
-      const _recurse = async entry => {
-        function getFullPath(entry) {
-          return entry.fullPath.slice(rootEntry.fullPath.length);
-        }
-        const fullPath = getFullPath(entry);
-        console.log('directory full path', entry.fullPath, rootEntry.fullPath, fullPath);
-        formData.append(
-          fullPath,
-          new Blob([], {
-            type: 'application/x-directory',
-          }),
-          fullPath
-        );
-        
-        const reader = entry.createReader();
-        async function readEntries() {
-          const entries = await new Promise((accept, reject) => {
-            reader.readEntries(entries => {
-              if (entries.length > 0) {
-                accept(entries);
-              } else {
-                accept(null);
-              }
-            }, reject);
-          });
-          return entries;
-        }
-        let entriesArray;
-        while (entriesArray = await readEntries()) {
-          for (const entry of entriesArray) {
-            if (entry.isFile) {
-              const file = await new Promise((accept, reject) => {
-                entry.file(accept, reject);
-              });
-              const fullPath = getFullPath(entry);
-              console.log('file full path', entry.fullPath, rootEntry.fullPath, fullPath);
-
-              formData.append(fullPath, file, fullPath);
-            } else if (entry.isDirectory) {
-              await _recurse(entry);
-            }
-          }
-        } 
-      };
-      await _recurse(rootEntry);
-
-      const uploadFilesRes = await fetch(`https://ipfs.webaverse.com/`, {
-        method: 'POST',
-        body: formData,
-      });
-      const hashes = await uploadFilesRes.json();
-
-      const rootDirectory = hashes.find(h => h.name === '');
-      const rootDirectoryHash = rootDirectory.hash;
-      u = `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
-      console.log(u);
-    } else {
-      const {name, hash} = await _uploadFile(`https://ipfs.webaverse.com/`, file);
-
-      u = `${storageHost}/${hash}/${name}`;
-    }
-    return u;
-  };
-  const u = await _uploadObject(item);
-  
-  console.log('upload complete:', u);
-
-  if (!transform) {
-    const {leftHand: {position, quaternion}} = metaversefileApi.useLocalPlayer();
-    const position2 = position.clone()
-      .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-    const quaternion2 = quaternion.clone();
-    transform = {
-      position: position2,
-      quaternion: quaternion2,
-    };
-  }
-  const {position, quaternion} = transform;
-  
-  world.appManager.addTrackedApp(u, position, quaternion, oneVector);
-};
-/* const bindUploadFileInput = uploadFileInput => {
-  bindUploadFileButton(uploadFileInput, _handleUpload);
-}; */
-
-const _upload = () => {
-  const uploadFileInput = document.getElementById('upload-file-input');
-  uploadFileInput && uploadFileInput.click();
-  console.log('upload file...');
 };
 
 const _grab = object => {
@@ -1224,7 +1042,7 @@ const _pushPlayerUpdates = () => {
 
 const rotationSnap = Math.PI/6;
 
-const metaverseUi = {
+/* const metaverseUi = {
   makeArrowLoader() {
     const app = metaversefileApi.createApp();
     (async () => {
@@ -1235,53 +1053,7 @@ const metaverseUi = {
     })();
     return app;
   },
-};
-window.addEventListener('dragover', e => {
-  e.preventDefault();
-});
-window.addEventListener('drop', async e => {
-  e.preventDefault();
-  
-  const renderer = getRenderer();
-  const rect = renderer.domElement.getBoundingClientRect();
-  localVector2D.set(
-    ( e.clientX / rect.width ) * 2 - 1,
-    - ( e.clientY / rect.height ) * 2 + 1
-  );
-  localRaycaster.setFromCamera(localVector2D, camera);
-  const dropZOffset = 2;
-  const position = localRaycaster.ray.origin.clone()
-    .add(
-      localVector2.set(0, 0, -dropZOffset)
-        .applyQuaternion(
-          localQuaternion
-            .setFromRotationMatrix(localMatrix.lookAt(
-              localVector3.set(0, 0, 0),
-              localRaycaster.ray.direction,
-              localVector4.set(0, 1, 0)
-            ))
-        )
-    );
-  const quaternion = camera.quaternion.clone();
-  
-  let arrowLoader = metaverseUi.makeArrowLoader();
-  arrowLoader.position.copy(position);
-  arrowLoader.quaternion.copy(quaternion);
-  scene.add(arrowLoader);
-  arrowLoader.updateMatrixWorld();
-  const items = Array.from(e.dataTransfer.items);
-  await Promise.all(items.map(async item => {
-    await _handleUpload(item, {
-      position,
-      quaternion,
-    });
-  }));
-  
-  if (arrowLoader) {
-    scene.remove(arrowLoader);
-    arrowLoader.destroy();
-  }
-});
+}; */
 
 const _bindPointerLock = () => {
   cameraManager.addEventListener('pointerlockchange', e => {
@@ -1466,6 +1238,9 @@ class GameManager extends EventTarget {
   menuPaste(s) {
     menuMesh.paste(s);
   }
+  inputFocused() {
+    return !!document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
+  }
   canGrab() {
     return !!highlightedObject /*&& !editedObject*/;
   }
@@ -1648,7 +1423,6 @@ class GameManager extends EventTarget {
       } 
     }
   }
-  menuUpload = _upload;
   isJumping() {
     return metaversefileApi.useLocalPlayer().hasAction('jump');
   }
@@ -1866,6 +1640,15 @@ class GameManager extends EventTarget {
   setVoiceEndpoint(voiceId) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     return localPlayer.setVoiceEndpoint(voiceId);
+  }
+  saveScene() {
+    const scene = world.appManager.exportJSON();
+    const s = JSON.stringify(scene, null, 2);
+    const blob = new Blob([s], {
+      type: 'application/json',
+    });
+    downloadFile(blob, 'scene.json');
+    // console.log('got scene', scene);
   }
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;

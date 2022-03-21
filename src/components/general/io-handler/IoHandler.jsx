@@ -87,7 +87,7 @@ function IoHandler () {
 
                     ioManager[ type ]( event );
 
-                } else {
+                } else if ( event.cancelable ) {
 
                     event.stopPropagation();
                     event.preventDefault();

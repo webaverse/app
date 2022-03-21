@@ -17,6 +17,9 @@ import { WorldObjectsList } from '../general/world-objects-list';
 import { IoHandler } from '../general/io-handler';
 import { ZoneTitleCard } from '../general/zone-title-card';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
+import { LoadingBox } from '../../LoadingBox.jsx';
+import { DragAndDrop } from '../../DragAndDrop.jsx';
+import { Stats } from '../../Stats.jsx';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import { Claims } from '../play-mode/claims';
@@ -145,7 +148,7 @@ export const App = () => {
         <div className={ styles.App } id="app" >
             <AppContext.Provider value={{ state, setState, app }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
-                <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
+                <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
@@ -156,6 +159,9 @@ export const App = () => {
                 <IoHandler />
                 <ZoneTitleCard />
                 <MapGen />
+                <LoadingBox />
+                <DragAndDrop />
+                <Stats app={ app } />
             </AppContext.Provider>
         </div>
     );
