@@ -147,7 +147,7 @@ export const App = () => {
         <div className={ styles.App } id="app" >
             <AppContext.Provider value={{ state, setState, app }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
-                <canvas className={ styles.canvas } ref={ canvasRef } id="canvas" />
+                <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
