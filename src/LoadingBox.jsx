@@ -41,9 +41,10 @@ export const registerLoad = (type = 'download', name = '', progress = NaN, total
   _updateLoadManager();
 
   return {
-    update(progress) {
+    update(progress, total) {
       load.progress = progress;
-      if (load.progress >= total) {
+      load.total = total;
+      if (load.progress >= load.total) {
         loads.splice(loads.indexOf(load), 1);
       }
 
