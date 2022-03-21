@@ -784,7 +784,6 @@ export const proxifyUrl = u => {
 export const handleUpload = async (
   item,
   {
-    onTotal = null,
     onProgress = null,
   } = {}
 ) => {
@@ -810,7 +809,9 @@ export const handleUpload = async (
         formData.append(file.name, file, file.name);
       }
 
-      const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData);
+      const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
+        onProgress,
+      });
 
       const rootDirectory = hashes.find(h => h.name === '');
       const rootDirectoryHash = rootDirectory.hash;
@@ -926,14 +927,18 @@ export const handleUpload = async (
         };
         await _recurse(rootEntry);
 
-        const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData);
+        const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
+          onProgress,
+        });
 
         const rootDirectory = hashes.find(h => h.name === '');
         const rootDirectoryHash = rootDirectory.hash;
         u = `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
         console.log(u);
       } else {
-        const j = await doUpload(`https://ipfs.webaverse.com/`, file);
+        const j = await doUpload(`https://ipfs.webaverse.com/`, file, {
+          onProgress,
+        });
         const {hash} = j;
         const {name} = file;
 
