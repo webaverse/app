@@ -93,7 +93,9 @@ const DragAndDrop = () => {
   
           return false;
         }
-        case 27: {
+        case 27: { // esc
+          setCurrentApp(null);
+
           return false;
         }
       }
