@@ -168,7 +168,7 @@ const DragAndDrop = () => {
   useEffect(() => {
     if (queue.length > 0 && !currentApp) {
       const app = queue[0];
-      console.log('set app', app);
+      // console.log('set app', app);
       setCurrentApp(app);
       setQueue(queue.slice(1));
 
