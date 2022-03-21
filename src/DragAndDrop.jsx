@@ -6,6 +6,7 @@ import {world} from '../world.js';
 import {getRandomString, handleUpload} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
 import {registerLoad} from './LoadingBox.jsx';
+import {ObjectPreview} from './ObjectPreview.jsx';
 import game from '../game.js';
 import metaversefile from 'metaversefile';
 
@@ -50,7 +51,6 @@ const canvasHeight = 400;
 const DragAndDrop = () => {
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
-  const canvasRef = useRef();
 
   useEffect(() => {
     function keydown(e) {
@@ -143,13 +143,6 @@ const DragAndDrop = () => {
     }
   }, [queue, currentApp]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      console.log('bind canvas');
-    }
-  }, [canvasRef]);
-
   const _currentAppClick = e => {
     e.preventDefault();
     e.stopPropagation();
@@ -192,7 +185,8 @@ const DragAndDrop = () => {
         <div className={style.currentApp} onClick={_currentAppClick}>
           <h1 className={style.heading}>Upload object</h1>
           <div className={style.body}>
-            <canvas className={style.canvas} width={canvasWidth} height={canvasHeight} ref={canvasRef} />
+            {/* <canvas className={style.canvas} width={canvasWidth} height={canvasHeight} ref={canvasRef} /> */}
+            <ObjectPreview object={currentApp} className={style.canvas} />
             <div className={style.wrap}>
               <div className={style.row}>
                 <div className={style.label}>Name: </div>

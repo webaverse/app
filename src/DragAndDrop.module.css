@@ -33,7 +33,6 @@
 }
 .dragAndDrop .currentApp .body .canvas {
   margin-right: 20px;
-  background-color: #222;
 }
 .dragAndDrop .currentApp .body .wrap {
   display: flex;
