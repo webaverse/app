@@ -1,18 +1,21 @@
 import * as THREE from 'three';
 import {ShaderLib} from 'three/src/renderers/shaders/ShaderLib.js';
 import {UniformsUtils} from 'three/src/renderers/shaders/UniformsUtils.js';
-import * as ThreeVrm from '@pixiv/three-vrm';
-const {MToonMaterial} = ThreeVrm;
+// import * as ThreeVrm from '@pixiv/three-vrm';
+// const {MToonMaterial} = ThreeVrm;
 // window.ThreeVrm = ThreeVrm;
 // import easing from './easing.js';
 // import {StreetGeometry} from './StreetGeometry.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useRenderer, useCleanup} = metaversefile;
+const {useApp, useFrame, useRenderer, useCamera, useMaterials, useCleanup} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 // const localVector = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
+
+const worldSize = 100;
+const near = worldSize;
 
 export default e => {
   const app = useApp();
@@ -20,6 +23,8 @@ export default e => {
   // const procGen = useProcGen();
   // const {alea, chunkWorldSize} = procGen;
   const renderer = useRenderer();
+  const camera = useCamera();
+  const {WebaverseShaderMaterial} = useMaterials();
 
   app.name = 'scene-preview';
 
@@ -35,6 +40,10 @@ export default e => {
   const previewScene = new THREE.Scene();
   previewScene.name = 'previewScene';
   previewScene.autoUpdate = false;
+  const previewContainer = new THREE.Object3D();
+  previewContainer.name = 'previewContainer';
+  previewScene.add(previewContainer);
+
   let subScene = null;
   e.waitUntil((async () => {
     // console.log('create app', sceneUrl);
@@ -61,16 +70,21 @@ export default e => {
   //
 
   const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(
-    2 * 1024,
+    2048,
     {
       generateMipmaps: true,
-      minFilter: THREE.LinearFilter,
-      magFilter: THREE.LinearFilter,
+      minFilter: THREE.LinearMipmapLinearFilter,
+      // magFilter: THREE.LinearMipmapLinearFilter,
     },
   );
-  const cubeCamera = new THREE.CubeCamera(10, 1000, cubeRenderTarget);
-  cubeCamera.position.copy(previewPosition);
-  cubeCamera.updateMatrixWorld();
+  cubeRenderTarget.texture.mapping = THREE.CubeRefractionMapping;
+  const cubeCamera = new THREE.CubeCamera(near, camera.far, cubeRenderTarget);
+  // cubeCamera.position.copy(previewPosition);
+  // cubeCamera.updateMatrixWorld();
+  // cubeCamera.position.copy(previewPosition);
+  // cubeCamera.position.y += 200;
+  // app.add(cubeCamera);
+  // cubeCamera.updateMatrixWorld();
   
   useFrame(() => {
     /* // push old state
@@ -83,26 +97,77 @@ export default e => {
     renderer.setRenderTarget(oldRenderTarget); */
 
     if (subScene) {
+      // push state
+      const oldParent = subScene.parent;
+      // skyboxMesh.visible = false;
+
+      // render
+      previewContainer.matrixWorld.copy(app.matrixWorld);
+      previewContainer.matrix.copy(app.matrixWorld);
+      previewContainer.matrixWorld.decompose(previewContainer.position, previewContainer.quaternion, previewContainer.scale);
+      previewContainer.add(subScene);
+      subScene.updateMatrixWorld();
+
+      cubeCamera.position.setFromMatrixPosition(skyboxMesh.matrixWorld);
+      cubeCamera.updateMatrixWorld();
+      
+      cubeRenderTarget.clear(renderer, true, true, true);
       cubeCamera.update(renderer, previewScene);
+      // window.cubeCamera = cubeCamera;
+      
+      // pop state
+      if (oldParent) {
+        oldParent.add(subScene);
+      } else {
+        app.add(subScene);
+      }
+      subScene.updateMatrixWorld();
+      // skyboxMesh.visible = true;
     }
   });
 
   //
   
-  const skyboxGeometry = new THREE.BoxBufferGeometry(100, 100, 100);
-  skyboxGeometry.deleteAttribute('normal');
-  skyboxGeometry.deleteAttribute('uv');
+  const skyboxGeometry = new THREE.SphereGeometry(worldSize, 64, 32);
+  // skyboxGeometry.deleteAttribute('normal');
+  // skyboxGeometry.deleteAttribute('uv');
 
   const uniforms = UniformsUtils.clone(ShaderLib.cube.uniforms);
   // console.log('got uniforms', uniforms);
   // uniforms.envMap.value = null;
+
+  const vertex = /* glsl */`
+  varying vec3 vWorldDirection;
+  // #include <common>
+  void main() {
+    vWorldDirection = transformDirection( position, modelMatrix );
+    #include <begin_vertex>
+    #include <project_vertex>
+    gl_Position.z = gl_Position.w; // set z to camera.far
+  }
+  `;
+  const fragment = /* glsl */`
+  #include <envmap_common_pars_fragment>
+  uniform float opacity;
+  varying vec3 vWorldDirection;
+  #include <cube_uv_reflection_fragment>
+  void main() {
+    // gl_FragColor = vec4(1., 0., 0., 1.);
+    vec3 vReflect = vWorldDirection;
+    #include <envmap_fragment>
+    gl_FragColor = envColor;
+    gl_FragColor.a *= opacity;
+    #include <tonemapping_fragment>
+    #include <encodings_fragment>
+  }
+  `;
   
-  const skyboxMaterial = new THREE.ShaderMaterial({
+  const skyboxMaterial = new WebaverseShaderMaterial({
     // name: 'BackgroundCubeMaterial',
     uniforms,
-    vertexShader: ShaderLib.cube.vertexShader,
-    fragmentShader: ShaderLib.cube.fragmentShader,
-    side: THREE.BackSide,
+    vertexShader: vertex,
+    fragmentShader: fragment,
+    // side: THREE.BackSide,
     // depthTest: false,
     // depthWrite: false,
     // fog: false,
@@ -113,13 +178,15 @@ export default e => {
     },
   });
   skyboxMaterial.uniforms.envMap.value = cubeRenderTarget.texture;
-  // boxMesh.material.uniforms.flipEnvMap.value
+  // skyboxMaterial.uniforms.flipEnvMap.value = true;
+  // window.cubeRenderTarget = cubeRenderTarget;
 
-  /* const m = new THREE.MeshBasicMaterial({
-    color: 0xFF0000,
+  const m = new THREE.MeshBasicMaterial({
     side: THREE.BackSide,
-  }); */
-  const skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+    envMap: cubeRenderTarget.texture,
+  });
+  const skyboxMesh = new THREE.Mesh(skyboxGeometry, m);
+  skyboxMesh.frustumCulled = false;
   skyboxMesh.position.copy(previewPosition);
   app.add(skyboxMesh);
   skyboxMesh.updateMatrixWorld();
