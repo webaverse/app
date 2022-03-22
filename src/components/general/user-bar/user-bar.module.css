@@ -1,0 +1,82 @@
+
+.userBar {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 10;
+}
+
+.userBar .userAvatar {
+    float: left;
+    width: 50px;
+    height: 50px;
+}
+
+.userBar .loginBtn {
+    float: left;
+    transform: skewX(-20deg);
+    background: rgb(0, 0, 0);
+    color: #fff;
+    padding: 0.5em;
+    text-align: left;
+    cursor: pointer;
+    text-align: center;
+    min-width: 100px;
+    margin-left: 10px;
+    line-height: 35px;
+}
+
+.userBar .userLoginMethodsBar {
+    padding: 10px;
+    background-color: #000;
+    margin-top: 45px;
+    opacity: 0;
+    transform: translate( -100%, 0px );
+    transition: transform 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s ease;
+    width: 152px;
+}
+
+.userBar .userLoginMethodsBar.opened {
+    transform: translate( 0px, 0px );
+    opacity: 1;
+}
+
+.userBar .userLoginMethodsBar .btn {
+    background: rgb(0, 168, 252);
+    margin-top: 5px;
+    margin-bottom: 5px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.userBar .userLoginMethodsBar a {
+    text-decoration: none;
+}
+
+.userBar .userLoginMethodsBar .btn img {
+    float: left;
+    margin: 10px -5px 10px 20px;
+}
+
+.userBar .userLoginMethodsBar .btn .btnText {
+    color: #fff;
+    font-size: 15px;
+    text-decoration: none;
+    line-height: 45px;
+}
+
+.userBar .logoutBtn {
+    position: relative;
+    display: inline-block;
+    margin-left: 12px;
+    background: black;
+    color: white;
+    padding: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.userBar .logoutBtn:hover {
+    background: #ef5350;
+    color: white;
+}

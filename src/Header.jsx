@@ -10,7 +10,6 @@ import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
 
-import { User } from './User';
 import { MagicMenu } from './MagicMenu.jsx';
 import { Character } from './components/general/character';
 import { Tokens } from './tabs/tokens';
@@ -24,7 +23,7 @@ import styles from './Header.module.css';
 
 //
 
-export default function Header ({ setSelectedApp, selectedApp }) {
+export default function Header ({ setSelectedApp, selectedApp, userAddress, loginMethod }) {
 
     const { state, setState } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
@@ -33,12 +32,10 @@ export default function Header ({ setSelectedApp, selectedApp }) {
     const dioramaCanvasRef = useRef();
     const panelsRef = useRef();
 
-    const [address, setAddress] = useState(false);
     const [nfts, setNfts] = useState(null);
     const [apps, setApps] = useState(world.appManager.getApps().slice());
     const [claims, setClaims] = useState([]);
     const [dragging, setDragging] = useState(false);
-    const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
 
     //
@@ -332,18 +329,6 @@ export default function Header ({ setSelectedApp, selectedApp }) {
             <CharacterHups localPlayer={localPlayer} npcs={npcs} />
             <MagicMenu />
             <div className={styles.inner}>
-				<header className={styles.header}>
-                    <div className={styles.row}>
-                        <a href="/" className={styles.logo}>
-                            <img src="images/arrow-logo.svg" className={styles.image} />
-                        </a>
-                        <User
-                            address={address}
-                            setAddress={setAddress}
-                            setLoginFrom={setLoginFrom}
-                        />
-                    </div>
-				</header>
                 <header className={classnames(styles.header, styles.subheader)}>
                     <div className={styles.row}>
                         <Character
@@ -363,9 +348,9 @@ export default function Header ({ setSelectedApp, selectedApp }) {
                 <Tokens
                     nfts={nfts}
                     hacks={hacks}
-                    address={address}
+                    address={ userAddress }
                     setNfts={setNfts}
-                    loginFrom={loginFrom}
+                    loginMethod={ loginMethod }
                 />
             </div>
         </div>

@@ -14,7 +14,7 @@ import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
 import { Settings } from '../general/settings';
 import { WorldObjectsList } from '../general/world-objects-list';
-import { IoHandler, registerIoEventHandler, unregisterIoEventHandler } from '../general/io-handler';
+import { IoHandler } from '../general/io-handler';
 import { ZoneTitleCard } from '../general/zone-title-card';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
 import { LoadingBox } from '../../LoadingBox.jsx';
@@ -25,6 +25,7 @@ import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 
 import styles from './App.module.css';
+import { UserBar } from '../general/user-bar/UserBar';
 
 //
 
@@ -77,6 +78,8 @@ export const App = () => {
     const canvasRef = useRef( null );
     const [ app, setApp ] = useState( () => new Webaverse() );
     const [ selectedApp, setSelectedApp ] = useState( null );
+    const [ userAddress, setUserAddress ] = useState( null );
+    const [ loginMethod, setLoginMethod ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
 
@@ -146,8 +149,9 @@ export const App = () => {
     return (
         <div className={ styles.App } id="app" >
             <AppContext.Provider value={{ state, setState, app }}>
-                <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
+                <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } userAddress={ userAddress } loginMethod={ loginMethod } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
+                <UserBar userAddress={ userAddress } setUserAddress={ setUserAddress } setLoginMethod={ setLoginMethod } />
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
