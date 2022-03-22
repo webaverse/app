@@ -50,7 +50,7 @@
     {
       "type": "application/spawnpoint",
       "content": {
-        "position": [0, 35, -70],
+        "position": [0, 35, -40],
         "quaternion": [0, 1, 0, 0]
       }
     },
@@ -138,7 +138,7 @@
       "position": [
         0,
         0,
-        6
+        150
       ],
       "start_url": "https://webaverse.github.io/dreadnought/"
     },
@@ -146,7 +146,7 @@
       "position": [
         -150,
         20,
-        300
+        320
       ],
       "start_url": "https://webaverse.github.io/dreadnought/"
     },
@@ -154,7 +154,7 @@
       "position": [
         -8,
         34,
-        -67
+        144
       ],
       "quaternion": [
         0,
