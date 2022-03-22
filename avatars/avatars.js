@@ -584,7 +584,7 @@ const _makeCapsuleGeometry = (meshBone) => {
   const radius = boneRadius;
   const height = meshBone.boneLength - boneRadius*2;
   const halfHeight = height/2;
-  const size = new THREE.Vector3(radius, height, radius)
+  const size = new THREE.Vector3(radius * 2, height, radius * 2)
   meshBone.size = size
   meshBone.sizeHalf = size.clone().multiplyScalar(0.5)
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -901,34 +901,35 @@ const _makeRagdollMesh = () => {
               .applyQuaternion(localQuaternion)
           );
         }
+        localVector.z += 1;
         meshBone.matrixWorld.compose(localVector, new THREE.Quaternion(), localVector2);
         meshBone.matrix.copy(meshBone.matrixWorld);
         meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
       }
       object.updateMatrixWorld();
 
-      if (first) {
-        for (const k in avatar.modelBoneOutputs) {
-          const modelBone = avatar.modelBoneOutputs[k];
-          const meshBone = flatMeshes[k];
-          if (!meshBone) {
-            continue;
-          }
+      // if (first) {
+      //   for (const k in avatar.modelBoneOutputs) {
+      //     const modelBone = avatar.modelBoneOutputs[k];
+      //     const meshBone = flatMeshes[k];
+      //     if (!meshBone) {
+      //       continue;
+      //     }
 
-          // const diffMatrix = modelBone.matrixWorld.clone()
-            // .premultiply(localMatrix.copy(meshBone.matrixWorld).invert());
+      //     // const diffMatrix = modelBone.matrixWorld.clone()
+      //       // .premultiply(localMatrix.copy(meshBone.matrixWorld).invert());
 
-          const fakeBone = new THREE.Object3D();
-          fakeBone.name = 'fakeBone';
-          fakeBone.matrixWorld.copy(modelBone.matrixWorld)
-          fakeBone.matrix.copy(fakeBone.matrixWorld)
-            .premultiply(localMatrix.copy(meshBone.matrixWorld).invert())
-            .decompose(fakeBone.position, fakeBone.quaternion, fakeBone.scale);
-          meshBone.add(fakeBone);
-          // meshBone.updateMatrixWorld();
-          meshBone.fakeBone = fakeBone;
-        }
-      }
+      //     const fakeBone = new THREE.Object3D();
+      //     fakeBone.name = 'fakeBone';
+      //     fakeBone.matrixWorld.copy(modelBone.matrixWorld)
+      //     fakeBone.matrix.copy(fakeBone.matrixWorld)
+      //       .premultiply(localMatrix.copy(meshBone.matrixWorld).invert())
+      //       .decompose(fakeBone.position, fakeBone.quaternion, fakeBone.scale);
+      //     meshBone.add(fakeBone);
+      //     // meshBone.updateMatrixWorld();
+      //     meshBone.fakeBone = fakeBone;
+      //   }
+      // }
     /* } else {
       // editing test
       flatMeshes.Left_leg.quaternion.copy(baseQ);
@@ -3496,10 +3497,9 @@ class Avatar {
             // physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.getWorldPosition(new THREE.Vector3()), meshBone.getWorldQuaternion(new THREE.Quaternion()), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
           }
 
-          // const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Hips.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
-          const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, flatMeshes.Spine.boneLength / 2 * 1.2, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength / 2 * 1.2, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
-          // const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
-          // const jointChestUpperChest = physicsManager.addJoint(flatMeshes.Chest, flatMeshes.UpperChest, new THREE.Vector3(0, flatMeshes.Chest.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Chest.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
+          const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2 * 1.2, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength / 2 * 1.2, 0), new THREE.Quaternion(), new THREE.Quaternion(), true);
+          const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, new THREE.Vector3(0, flatMeshes.Spine.boneLength / 2 * 1.2, 0), new THREE.Vector3(0, -flatMeshes.Chest.boneLength / 2 * 1.2, 0), new THREE.Quaternion(), new THREE.Quaternion());
+          const jointHipsLeft_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Left_leg, new THREE.Vector3(0, -flatMeshes.Hips.boneLength / 2 * 1.2, 0), new THREE.Vector3(0, flatMeshes.Left_leg.boneLength / 2 * 1.2, 0), new THREE.Quaternion(), new THREE.Quaternion());
 
           const PxD6Axis = {
             eX: 0, // !< motion along the X axis
