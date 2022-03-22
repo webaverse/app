@@ -28,8 +28,8 @@ export default e => {
   const previewPositionArray = app.getComponent('previewPosition') ?? [0, 0, 0];
   const sceneUrl = app.getComponent('sceneUrl') ?? '';
 
-  const position = new THREE.Vector3().fromArray(positionArray);
-  const quaternion = new THREE.Quaternion().fromArray(quaternionArray);
+  // const position = new THREE.Vector3().fromArray(positionArray);
+  // const quaternion = new THREE.Quaternion().fromArray(quaternionArray);
   const previewPosition = new THREE.Vector3().fromArray(previewPositionArray);
 
   const previewScene = new THREE.Scene();
@@ -37,19 +37,22 @@ export default e => {
   previewScene.autoUpdate = false;
   let subScene = null;
   e.waitUntil((async () => {
-    console.log('create app', sceneUrl);
+    // console.log('create app', sceneUrl);
     subScene = await metaversefile.createAppAsync({
       start_url: sceneUrl,
       components: {
         mode: 'detached',
       },
+      parent: app,
     });
-    console.log('got sub scene', subScene);
-    subScene.position.copy(position);
-    subScene.quaternion.copy(quaternion);
-    app.add(subScene);
-    subScene.updateMatrixWorld();
+    // console.log('got sub scene', subScene, {position, quaternion, previewPosition});
+    // subScene.position.copy(position);
+    // subScene.quaternion.copy(quaternion);
+    // app.add(subScene);
+    // subScene.updateMatrixWorld();
   })());
+
+  //
 
   const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(
     2 * 1024,
@@ -78,20 +81,7 @@ export default e => {
     }
   });
 
-
-
-
-
-
-
-  
-
-
-
-
-
-
-
+  //
   
   const skyboxGeometry = new THREE.BoxBufferGeometry(100, 100, 100);
   skyboxGeometry.deleteAttribute('normal');

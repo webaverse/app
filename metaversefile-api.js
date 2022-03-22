@@ -774,20 +774,38 @@ metaversefile.setApi({
   createAppInternal({
     start_url = '',
     components = {},
+    position = null,
+    quaternion = null,
+    scale = null,
+    parent = null,
     in_front = false,
   } = {}, {onWaitPromise = null} = {}) {
     const app = new App();
 
+    // transform
+    position && app.position.copy(position);
+    quaternion && app.quaternion.copy(quaternion);
+    scale && app.scale.copy(scale);
     if (in_front) {
       app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
       app.quaternion.copy(localPlayer.quaternion);
+      app.scale.setScalar(1);
+    }
+    if (parent) {
+      parent.add(app);
+    }
+    if (position || quaternion || scale || in_front) {
       app.updateMatrixWorld();
       app.lastMatrix.copy(app.matrixWorld);
     }
+
+    // components
     for (const k in components) {
       const v = components[k];
       app.setComponent(k, v);
     }
+
+    // load
     if (start_url) {
       const p = (async () => {
         const m = await metaversefile.import(start_url);
@@ -797,6 +815,7 @@ metaversefile.setApi({
         onWaitPromise(p);
       }
     }
+    
     return app;
   },
   createApp(opts) {
