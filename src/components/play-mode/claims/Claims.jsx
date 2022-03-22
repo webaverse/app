@@ -35,6 +35,7 @@ export const Claims = () => {
 
             const { app } = event.data;
             const { contentId } = app;
+            console.log( app );
             const newClaims = claims.slice();
 
             newClaims.push({ contentId });
@@ -57,8 +58,8 @@ export const Claims = () => {
     return (
         <div className={ classnames( styles.claimsWrapper, ( claims.length ? styles.show : null ) ) } onClick={ stopPropagation } >
             <div className={ styles.claimsBtn } onClick={ handleClaimsBtnClick } >
-                <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
-                <span className={styles.text}>品 Claims ({claims.length})</span>
+                <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
+                <span className={ styles.text }>品 Claims ({ claims.length })</span>
             </div>
             <div className={ classnames( styles.claimsPanel, ( state.openedPanel === 'ClaimsPanel' ? styles.opened : null ) ) } >
                 <div className={ styles.claimsList } >
@@ -73,8 +74,8 @@ export const Claims = () => {
                     }
                 </div>
                 <div className={ styles.buttonsBar }>
-                    <button className={styles.button}>Claim all</button>
-                    <button className={styles.button}>Reject</button>
+                    <button className={ styles.button }>Claim all</button>
+                    <button className={ styles.button }>Reject</button>
                 </div>
             </div>
         </div>
