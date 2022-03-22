@@ -20,8 +20,8 @@
       "start_url": "http://localhost/lib/webaverse_resource/street/index.js"
     },
     {
-      "position": [ 10, 0, -5 ],
-      "quaternion": [ 0, 0, 0, 1 ],
+      "position": [ 0, 0, -2.5 ],
+      "quaternion": [ 0, 1, 0, 0 ],
       "scale": [ 1, 1, 1] ,
       "start_url": "http://localhost/lib/webaverse_resource/ramp/"
     },
