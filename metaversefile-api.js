@@ -120,19 +120,19 @@ class App extends THREE.Object3D {
     return this.getComponent('contentId');
   }
   set contentId(contentId) {
-    this.setComponent('contentId', contentId);
+    this.setComponent('contentId', contentId + '');
   }
   get instanceId() {
     return this.getComponent('instanceId');
   }
   set instanceId(instanceId) {
-    this.setComponent('instanceId', instanceId);
+    this.setComponent('instanceId', instanceId + '');
   }
   get paused() {
     return this.getComponent('paused');
   }
   set paused(paused) {
-    this.setComponent('paused', paused);
+    this.setComponent('paused', !!paused);
   }
   addModule(m) {
     throw new Error('method not bound');
