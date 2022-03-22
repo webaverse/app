@@ -212,6 +212,29 @@
           ]
         }
       ]
+    },
+    {
+      "position": [0, 0, 0],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "../metaverse_modules/scene-preview/",
+      "components": [
+        {
+          "key": "position",
+          "value": [0, 0, -300]
+        },
+        {
+          "key": "quaternion",
+          "value": [0, 1, 0, 0]
+        },
+        {
+          "key": "previewPosition",
+          "value": [0, 0, -150]
+        },
+        {
+           "key": "sceneUrl",
+           "value": "./scenes/battalion.scn"
+        }
+      ]
     }
   ]
 }
