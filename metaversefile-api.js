@@ -128,6 +128,12 @@ class App extends THREE.Object3D {
   set instanceId(instanceId) {
     this.setComponent('instanceId', instanceId);
   }
+  get paused() {
+    return this.getComponent('paused');
+  }
+  set paused(paused) {
+    this.setComponent('paused', paused);
+  }
   addModule(m) {
     throw new Error('method not bound');
   }
