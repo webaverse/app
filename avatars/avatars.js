@@ -75,6 +75,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 // const localMatrix3 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
+const localVectorZero = new THREE.Vector3();
 
 const leftQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const xToZQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1));
@@ -3618,12 +3619,20 @@ class Avatar {
           rootScene.children[2].visible = false; // test: hide E tag.
         }
       }
-      // if (!this.ragdoll && this.ragdollMesh.skeleton) {
-      //   // console.log('setSkeletonFromBuffer', 1) // note: when second idle-ing
-      //   const b = this.ragdollMesh.serializeSkeleton();
-      //   // console.log('setSkeletonFromBuffer')
-      //   physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, true, b);
-      // }
+      if (!this.ragdoll && this.ragdollMesh.skeleton) {
+        // reset meshBone/physicsObject when rerun ragdoll.
+        // todo: state machine
+        // console.log('setSkeletonFromBuffer', 1) // note: when second idle-ing
+        // const b = this.ragdollMesh.serializeSkeleton();
+        // // console.log('setSkeletonFromBuffer')
+        // physicsManager.setSkeletonFromBuffer(this.ragdollMesh.skeleton, true, b);
+        for (const k in flatMeshes) {
+          const meshBone = flatMeshes[k];
+          physicsManager.setTransform(meshBone, true);
+          physicsManager.setVelocity(meshBone, localVectorZero);
+          physicsManager.setAngularVelocity(meshBone, localVectorZero);
+        }
+      }
     }
     /* if (first) {
       this.ragdollMesh.setFromAvatar(this);
