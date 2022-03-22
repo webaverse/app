@@ -158,15 +158,23 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
                     <img src="images/user.png" />
                 </div>
                 <div className={ classnames( styles.userName, styles.btn ) } onClick={ handleCharacterBtnClick } >
-                    <div className={ styles.btnText } >Anon  Lv.0</div>
+                    <div className={ styles.btnText } >{ loggingIn && userAddress ? userAddress : 'Anon  Lv.0' }</div>
                     <div className={ styles.btnBackground } />
                 </div>
-                <div className={ classnames( styles.login, styles.btn ) } onClick={ handleLoginBarClick } >
-                    <div className={ styles.btnText }>{ loggingIn ? 'Logging in... ' : ( userAddress || ( loginError || 'Log in' ) ) }</div>
-                    <div className={ styles.btnBackground } />
-                </div>
+                {
+                    userAddress ? (
+                        <div className={ classnames( styles.btn, styles.shaded ) } onClick={ handleLogoutBtnClick } >
+                            <div className={ styles.btnText }>Logout</div>
+                            <div className={ styles.btnBackground } />
+                        </div>
+                    ) : (
+                        <div className={ classnames( styles.btn, styles.shaded ) } onClick={ handleLoginBarClick } >
+                            <div className={ styles.btnText }>{ loggingIn ? 'Logging in... ' : ( loginError || 'Log in' ) }</div>
+                            <div className={ styles.btnBackground } />
+                        </div>
+                    )
+                }
                 <div className={ styles.tabHint } >TAB</div>
-                { userAddress ? ( <div className={ styles.logoutBtn } onClick={ handleLogoutBtnClick } >Logout</div> ) : '' }
             </div>
 
             <div className={ classnames( styles.userLoginMethodsModal, ( state.openedPanel === 'LoginPanel' ? styles.opened : null ) ) } >

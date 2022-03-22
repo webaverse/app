@@ -44,6 +44,10 @@
     z-index: 1;
 }
 
+.userBar .btn.shaded .btnBackground {
+    background-color: #222;
+}
+
 .userBar .btn .btnBackground {
     position: absolute;
     top: 0px;
@@ -68,10 +72,6 @@
 
 .userBar .login {
     min-width: 70px;
-}
-
-.userBar .login .btnBackground {
-    background-color: #222;
 }
 
 .tabHint {
@@ -127,20 +127,4 @@
     font-size: 15px;
     text-decoration: none;
     line-height: 45px;
-}
-
-.userBar .logoutBtn {
-    position: relative;
-    display: inline-block;
-    margin-left: 12px;
-    background: black;
-    color: white;
-    padding: 6px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.userBar .logoutBtn:hover {
-    background: #ef5350;
-    color: white;
 }
