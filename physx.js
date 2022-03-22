@@ -520,6 +520,12 @@ const physxWorker = (() => {
   w.setJointTwistLimitPhysics = (physics, joint, lowerLimit, upperLimit, contactDist = -1) => {
     moduleInstance._setJointTwistLimitPhysics(physics, joint, lowerLimit, upperLimit, contactDist);
   }
+  w.updateMassAndInertiaPhyscis = (physcis, body, shapeDensities) => {
+    return moduleInstance._updateMassAndInertiaPhyscis(physcis, body, shapeDensities);
+  }
+  w.getBodyMassPhysics = (physcis, body) => {
+    return moduleInstance._getBodyMassPhysics(physcis, body);
+  }
   w.simulatePhysics = (physics, updates, elapsedTime) => {
     // vismark
     /* if (updates.length > maxNumUpdates) {
@@ -1367,7 +1373,7 @@ const physxWorker = (() => {
     quaternion.toArray(q);
     size.toArray(s);
     
-    moduleInstance._addBoxGeometryPhysics(
+    const body = moduleInstance._addBoxGeometryPhysics(
       physics,
       p.byteOffset,
       q.byteOffset,
@@ -1377,6 +1383,7 @@ const physxWorker = (() => {
       groupId,
     );
     allocator.freeAll();
+    return body;
   };
   w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, stepOffset, position, mat, groupId) => {
     const allocator = new Allocator();

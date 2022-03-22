@@ -4738,6 +4738,21 @@ var _setJointTwistLimitPhysics = Module["_setJointTwistLimitPhysics"] = function
 };
 
 /** @type {function(...*):?} */
+var _wakeUpAllPhysics = Module["_wakeUpAllPhysics"] = function() {
+  return (_wakeUpAllPhysics = Module["_wakeUpAllPhysics"] = Module["asm"]["wakeUpAllPhysics"]).apply(null, arguments);
+};
+
+/** @type {function(...*):?} */
+var _updateMassAndInertiaPhyscis = Module["_updateMassAndInertiaPhyscis"] = function() {
+  return (_updateMassAndInertiaPhyscis = Module["_updateMassAndInertiaPhyscis"] = Module["asm"]["updateMassAndInertiaPhyscis"]).apply(null, arguments);
+};
+
+/** @type {function(...*):?} */
+var _getBodyMassPhysics = Module["_getBodyMassPhysics"] = function() {
+  return (_getBodyMassPhysics = Module["_getBodyMassPhysics"] = Module["asm"]["getBodyMassPhysics"]).apply(null, arguments);
+};
+
+/** @type {function(...*):?} */
 var _simulatePhysics = Module["_simulatePhysics"] = function() {
   return (_simulatePhysics = Module["_simulatePhysics"] = Module["asm"]["simulatePhysics"]).apply(null, arguments);
 };

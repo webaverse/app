@@ -830,7 +830,7 @@ const _makeRagdollMesh = () => {
         if (k === 'Hips') {
           modelBoneEnd = modelBoneStart.clone();
           // return baseScale * 0.5;
-          return boneRadius * 2 + minHeight;
+          return Math.max(minHeight, boneRadius * 2);
         } else {
           if (children.length === 0) {
             const diff = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld)
@@ -840,7 +840,7 @@ const _makeRagdollMesh = () => {
               .add(
                 diff
               );
-            return length; // same length as parent
+            return Math.max(minHeight, length); // same length as parent
           } else {
             const acc = new THREE.Vector3();
             for (const child of children) {
@@ -848,7 +848,7 @@ const _makeRagdollMesh = () => {
               acc.add(localVector);
             }
             modelBoneEnd = acc.divideScalar(children.length);
-            return modelBoneStart.distanceTo(modelBoneEnd);
+            return Math.max(minHeight, modelBoneStart.distanceTo(modelBoneEnd));
           }
         }
       })();
@@ -3494,8 +3494,11 @@ class Avatar {
           for (const k in flatMeshes) {
             const meshBone = flatMeshes[k]
             if (meshBone.name === 'Chest') console.log(3, meshBone.position)
-            physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, new THREE.Quaternion(), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
-            // physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.getWorldPosition(new THREE.Vector3()), meshBone.getWorldQuaternion(new THREE.Quaternion()), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
+            const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, new THREE.Quaternion(), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
+            // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.getWorldPosition(new THREE.Vector3()), meshBone.getWorldQuaternion(new THREE.Quaternion()), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
+            // console.log('mass 1: ', physicsManager.getBodyMass(body));
+            // physicsManager.updateMassAndInertia(body, 0.000001);
+            // console.log('mass 2: ', physicsManager.getBodyMass(body));
           }
 
           //
