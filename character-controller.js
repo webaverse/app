@@ -554,7 +554,9 @@ class StatePlayer extends PlayerBase {
     camera.quaternion.copy(quaternion);
     camera.updateMatrixWorld();
 
-    this.characterPhysics.setPosition(position);
+    if (this.characterController) {
+      this.characterPhysics.setPosition(position);
+    }
   }
   getActions() {
     return this.getActionsState();
