@@ -21,21 +21,34 @@ export default () => {
   const textureB = textureLoader.load(`${baseUrl}/textures/b.jpg`);
   const electronicballTexture = textureLoader.load(`${baseUrl}/textures/electronic-ball2.png`);
   const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
+
+    let currentPos=new THREE.Vector3();
+    let currentDir=new THREE.Vector3();
+    let prePos=new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
     {
         useFrame(() => {
             
             //console.log(camera.rotation.y-localPlayer.rotation.y);
             //console.log(localPlayer.actionInterpolants.jump)
+            currentPos.x=localPlayer.position.x;
+            currentPos.y=localPlayer.position.y;
+            currentPos.z=localPlayer.position.z;
+            currentDir.x=currentPos.x-prePos.x;
+            currentDir.y=currentPos.y-prePos.y;
+            currentDir.z=currentPos.z-prePos.z;
+            currentDir.normalize();
             if (localPlayer.hasAction('narutoRun')){
                     narutoRunTime++;
                     lastStopSw=1;
                 }
-                else{
-                    narutoRunTime=0;
-                    
-                }
+            else{
+                narutoRunTime=0;
                 
+            }
+            prePos.x=currentPos.x;
+            prePos.y=currentPos.y;
+            prePos.z=currentPos.z;     
             
         });
     }
@@ -230,7 +243,7 @@ export default () => {
         group.add(frontwave2);
         app.add(group);
 
-        const localVector = new THREE.Vector3();
+        
         
         useFrame(({timestamp}) => {
             
@@ -244,10 +257,9 @@ export default () => {
                 }
                 group.rotation.copy(localPlayer.rotation);
                 
-                localPlayer.getWorldDirection(localVector)
-                localVector.normalize();
-                group.position.x+=0.6*localVector.x;
-                group.position.z+=0.6*localVector.z;
+                group.position.x-=0.6*currentDir.x;
+                group.position.z-=0.6*currentDir.z;
+
                 group.scale.set(1,1,1);
                 material.uniforms.uTime.value = timestamp/5000;
                 material2.uniforms.uTime.value = timestamp/10000;
@@ -262,7 +274,7 @@ export default () => {
         
             
             // material2.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight, 1);
-            app.updateMatrixWorld();
+            //app.updateMatrixWorld();
             
         
         });
@@ -349,7 +361,7 @@ export default () => {
         }
         windEffect();
         
-        const localVector = new THREE.Vector3();
+        
 
         useFrame(({timestamp}) => {
             
@@ -362,10 +374,9 @@ export default () => {
                 }
                 group.rotation.copy(localPlayer.rotation);
 
-                localPlayer.getWorldDirection(localVector);
-                localVector.normalize();
-                group.position.x+=2.2*localVector.x;
-                group.position.z+=2.2*localVector.z;
+                
+                group.position.x-=2.2*currentDir.x;
+                group.position.z-=2.2*currentDir.z;
                 group.scale.set(1,1,1);
                 windMaterial.uniforms.uTime.value=timestamp/10000;
             }
@@ -375,7 +386,7 @@ export default () => {
             
             
             
-            app.updateMatrixWorld();
+            //app.updateMatrixWorld();
 
         });
     }
@@ -493,8 +504,7 @@ export default () => {
         flame();
         
         let playerRotation=[0,0,0,0,0];
-        const localVector = new THREE.Vector3();
-       
+        
         useFrame(({timestamp}) => {
             
 
@@ -514,10 +524,9 @@ export default () => {
                     group.position.y += 0.65;
                 }
                 
-                localPlayer.getWorldDirection(localVector)
-                localVector.normalize();
-                group.position.x+=2.2*localVector.x;
-                group.position.z+=2.2*localVector.z;
+                
+                group.position.x-=2.2*currentDir.x;
+                group.position.z-=2.2*currentDir.z;
                 flameMaterial.uniforms.uTime.value=timestamp/20000;
 
                 if(Math.abs(localPlayer.rotation.x)>0){
@@ -545,7 +554,7 @@ export default () => {
             
             
             
-            app.updateMatrixWorld();
+            //app.updateMatrixWorld();
 
         });
     }
@@ -684,8 +693,7 @@ export default () => {
         
         let playerRotation=[];
         let lightningfreq=0;
-        const localVector = new THREE.Vector3();
-
+        
         useFrame(({timestamp}) => {
             
 
@@ -705,10 +713,9 @@ export default () => {
                     group.position.y += 0.65;
                 }
                 
-                localPlayer.getWorldDirection(localVector);
-                localVector.normalize();
-                group.position.x+=2.2*localVector.x;
-                group.position.z+=2.2*localVector.z;
+               
+                group.position.x-=2.2*currentDir.x;
+                group.position.z-=2.2*currentDir.z;
                 lightningMaterial.uniforms.uTime.value=timestamp/20000;
                 if(Math.abs(localPlayer.rotation.x)>0){
                     let temp=localPlayer.rotation.y+Math.PI;
@@ -737,7 +744,7 @@ export default () => {
             }
             
             
-            app.updateMatrixWorld();
+            //app.updateMatrixWorld();
 
         });
     }
@@ -956,7 +963,7 @@ export default () => {
         }
        
         
-        app.updateMatrixWorld();
+        //app.updateMatrixWorld();
           
       
       });
@@ -1102,7 +1109,6 @@ export default () => {
 
       const point1 =  new THREE.Vector3();
       const point2 =  new THREE.Vector3();
-      const localVector = new THREE.Vector3();
       const localVector2 = new THREE.Vector3();
       let temp=[];
       let temp2=[];
@@ -1124,9 +1130,8 @@ export default () => {
         }
         if(material.uniforms.opacity.value>0){
             //console.log('sonic-boom-horiPlane');
-            localPlayer.getWorldDirection(localVector);
-            localVector.normalize();
-            localVector2.set(localVector.x, localVector.y, localVector.z).applyQuaternion(quaternion);
+            
+            localVector2.set(currentDir.x, currentDir.y, currentDir.z).applyQuaternion(quaternion);
     
             point1.x=localPlayer.position.x;
             point1.y=localPlayer.position.y;
@@ -1200,7 +1205,7 @@ export default () => {
         }
         
         
-        app.updateMatrixWorld();
+        //app.updateMatrixWorld();
           
       
       });
@@ -1305,7 +1310,7 @@ export default () => {
 
         const mainBall = new THREE.Points(particlesGeometry, particlesMaterial);
         app.add(mainBall);
-        app.updateMatrixWorld();
+        //app.updateMatrixWorld();
         
         
         useFrame(({timestamp}) => {
@@ -1352,7 +1357,7 @@ export default () => {
 
            
             
-            app.updateMatrixWorld();
+            //app.updateMatrixWorld();
            
         });
     }
@@ -1478,7 +1483,6 @@ export default () => {
         const group = new THREE.Group();
         group.add(electricity)
         app.add(group);
-        const localVector = new THREE.Vector3();
         let lightningfreq=0;
         useFrame(({timestamp}) => {
 
@@ -1508,10 +1512,9 @@ export default () => {
             if(electricityMaterial.uniforms.opacity.value>0.01){
                 group.rotation.copy(localPlayer.rotation);
                 group.position.copy(localPlayer.position);
-                localPlayer.getWorldDirection(localVector)
-                localVector.normalize();
-                group.position.x-=.1*localVector.x;
-                group.position.z-=.1*localVector.z;
+                
+                group.position.x+=.1*currentDir.x;
+                group.position.z+=.1*currentDir.z;
                 
                 if (localPlayer.avatar) {
                     group.position.y -= localPlayer.avatar.height;
@@ -1527,7 +1530,7 @@ export default () => {
             
             
             
-            app.updateMatrixWorld();
+            //app.updateMatrixWorld();
         
         });
     }
@@ -1652,7 +1655,6 @@ export default () => {
         const group = new THREE.Group();
         group.add(electricity)
         app.add(group);
-        const localVector = new THREE.Vector3();
         let lightningfreq=0;
         useFrame(({timestamp}) => {
 
@@ -1681,10 +1683,10 @@ export default () => {
             if(electricityMaterial.uniforms.opacity.value>0.01){
                 group.rotation.copy(localPlayer.rotation);
                 group.position.copy(localPlayer.position);
-                localPlayer.getWorldDirection(localVector)
-                localVector.normalize();
-                group.position.x-=.1*localVector.x;
-                group.position.z-=.1*localVector.z;
+                // localPlayer.getWorldDirection(localVector)
+                // localVector.normalize();
+                group.position.x+=.1*currentDir.x;
+                group.position.z+=.1*currentDir.z;
     
                 if (localPlayer.avatar) {
                     group.position.y -= localPlayer.avatar.height;
@@ -1698,7 +1700,7 @@ export default () => {
                 lightningfreq++;
             }
 
-            app.updateMatrixWorld();
+            //app.updateMatrixWorld();
         
         });
     }
@@ -1828,7 +1830,7 @@ export default () => {
                 }
                 
             }
-        group.updateMatrixWorld();
+        //group.updateMatrixWorld();
         
         });
       }
@@ -1957,7 +1959,7 @@ export default () => {
                 }
                 
             }
-        group.updateMatrixWorld();
+        //group.updateMatrixWorld();
         
         });
       }
@@ -2082,7 +2084,7 @@ export default () => {
 
         })();
 
-        app.updateMatrixWorld();
+        //app.updateMatrixWorld();
 
         useFrame(({timestamp}) => {
            
@@ -2101,10 +2103,8 @@ export default () => {
                 if (narutoRunTime > 0) {
                     if(narutoRunTime ===1){
                         group.position.copy(localPlayer.position);
-                        localPlayer.getWorldDirection(localVector);
-                        localVector.normalize();
-                        group.position.x-=4.*localVector.x;
-                        group.position.z-=4.*localVector.z;
+                        group.position.x+=4.*currentDir.x;
+                        group.position.z+=4.*currentDir.z;
                         group.rotation.copy(localPlayer.rotation);
                         wave.scene.position.y=0;
                         if (localPlayer.avatar) {
@@ -2123,7 +2123,7 @@ export default () => {
                 } 
             }
             
-            app.updateMatrixWorld();
+            
         });
     }
     //##################################### front dust ################################################
@@ -2269,7 +2269,7 @@ export default () => {
        
     
         
-        let dum = new THREE.Vector3();
+        
         let currentRotate=0;
         let preRotate=0;
         let narutoEndTime=0;
@@ -2282,10 +2282,9 @@ export default () => {
               group.position.y -= localPlayer.avatar.height;
               group.position.y += 0.2;
             }
-            localPlayer.getWorldDirection(dum)
-            dum = dum.normalize();
-            group.position.x+=0.3*dum.x;
-            group.position.z+=0.3*dum.z;
+            
+            group.position.x-=0.3*currentDir.x;
+            group.position.z-=0.3*currentDir.z;
         
             if(localPlayer.rotation.x===0)
                 currentRotate=-localPlayer.rotation.y;
@@ -2371,7 +2370,8 @@ export default () => {
                 lastStopSw=0;
                 //narutoEndTime=timestamp;
             }
-            group.updateMatrixWorld();
+            //group.updateMatrixWorld();
+            app.updateMatrixWorld();
             preRotate=currentRotate;
         });
       }
