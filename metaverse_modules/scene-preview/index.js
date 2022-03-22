@@ -23,27 +23,6 @@ export default e => {
 
   app.name = 'scene-preview';
 
-  /* let activateCb = null;
-  let frameCb = null;
-  useActivate(() => {
-    activateCb && activateCb();
-  });
-  useFrame(() => {
-    frameCb && frameCb();
-  }); */
-
-
-
-
-
-
-
-  
-
-
-
-
-
   const positionArray = app.getComponent('position') ?? [0, 0, 0];
   const quaternionArray = app.getComponent('quaternion') ?? [0, 0, 0, 1];
   const previewPositionArray = app.getComponent('previewPosition') ?? [0, 0, 0];
