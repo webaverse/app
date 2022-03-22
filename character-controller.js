@@ -545,6 +545,17 @@ class StatePlayer extends PlayerBase {
     
     this.syncAvatarCancelFn = null;
   }
+  setSpawnPoint(position, quaternion) {
+    const localPlayer = metaversefile.useLocalPlayer();
+    localPlayer.position.copy(position);
+    localPlayer.quaternion.copy(quaternion);
+
+    camera.position.copy(position);
+    camera.quaternion.copy(quaternion);
+    camera.updateMatrixWorld();
+
+    this.characterPhysics.setPosition(position);
+  }
   getActions() {
     return this.getActionsState();
   }
