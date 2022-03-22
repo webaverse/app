@@ -2272,6 +2272,7 @@ export default () => {
         let dum = new THREE.Vector3();
         let currentRotate=0;
         let preRotate=0;
+        let narutoEndTime=0;
         useFrame(({timestamp}) => {
     
             
@@ -2295,9 +2296,13 @@ export default () => {
                     currentRotate=(localPlayer.rotation.y+Math.PI);
             }
             
-            
-            if (mesh) {
-                
+            if(lastStopSw===1  && narutoRunTime===0){
+                narutoEndTime=timestamp;
+            }
+            if (mesh && timestamp-narutoEndTime<5000) {
+                //console.log('sonic-boom-front-dust');
+                mesh.getMatrixAt(particleCount-1, matrix);
+                matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
                 const opacityAttribute = mesh.geometry.getAttribute('opacity');
                 const brokenAttribute = mesh.geometry.getAttribute('broken');
                 const startTimesAttribute = mesh.geometry.getAttribute('startTimes');
@@ -2355,14 +2360,16 @@ export default () => {
                     } 
     
                 }
-                if(lastStopSw===1  && narutoRunTime===0){
-                    lastStopSw=0;
-                }
+                
                 mesh.instanceMatrix.needsUpdate = true;
                 opacityAttribute.needsUpdate = true;
                 brokenAttribute.needsUpdate = true;
                 startTimesAttribute.needsUpdate = true;
     
+            }
+            if(lastStopSw===1  && narutoRunTime===0){
+                lastStopSw=0;
+                //narutoEndTime=timestamp;
             }
             group.updateMatrixWorld();
             preRotate=currentRotate;
