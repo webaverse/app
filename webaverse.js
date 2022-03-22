@@ -302,19 +302,12 @@ export default class Webaverse extends EventTarget {
         const _pre = () => {
           ioManager.update(timeDiffCapped);
           // this.injectRigInput();
-          
-          const localPlayer = metaversefileApi.useLocalPlayer();
-          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
-            physicsManager.simulatePhysics(timeDiffCapped);
-            localPlayer.updatePhysics(timestamp, timeDiffCapped);
-          }
 
           transformControls.update();
           game.update(timestamp, timeDiffCapped);
-          
-          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+
           playersManager.update(timestamp, timeDiffCapped);
-          
+
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
           hpManager.update(timestamp, timeDiffCapped);
