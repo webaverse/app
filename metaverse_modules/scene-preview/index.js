@@ -15,7 +15,7 @@ const {useApp, useFrame, useRenderer, useCamera, useMaterials, useCleanup} = met
 // const localQuaternion = new THREE.Quaternion();
 
 const worldSize = 100;
-const near = worldSize;
+const near = 10;
 
 export default e => {
   const app = useApp();
