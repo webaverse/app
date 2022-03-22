@@ -573,8 +573,8 @@ const _findBoneDeep = (bones, boneName) => {
   dst.calculateInverses();
 }; */
 
-const boneRadius = 0.02;
-const minHeight = 0.02;
+const boneRadius = 0.03;
+const minHeight = 0.1;
 // const baseScale = 0.02;
 // const fingerScale = 0.2;
 // const physicsBoneScaleFactor = 0.8;
