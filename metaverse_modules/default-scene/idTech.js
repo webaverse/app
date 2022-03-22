@@ -9,8 +9,8 @@ export class IDTech {
         this.ctx = this.canvas.getContext('2d');
         this.data = new Uint8Array(width * width * count * 4);
         this.texture = new THREE.DataTexture2DArray(this.data, width, width, count);
-        this.texture.wrapS = THREE.MirroredRepeatWrapping
-        this.texture.wrapT = THREE.MirroredRepeatWrapping
+        this.texture.wrapS = THREE.RepeatWrapping
+        this.texture.wrapT = THREE.RepeatWrapping
         this.texture.format = THREE.RGBAFormat
         this.texture.type = THREE.UnsignedByteType;
         this.texture.minFilter = THREE.LinearMipMapLinearFilter

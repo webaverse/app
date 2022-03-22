@@ -11,7 +11,7 @@
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[255, 255, 255], 5],
+        "args": [[255, 255, 255], 2.5],
         "position": [1, 2, 3],
         "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }

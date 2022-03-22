@@ -4,44 +4,15 @@ import { IDTech } from './idTech.js';
 
 const textureLoader = new THREE.TextureLoader();
 
-export function generateArrayTexture2D(width, height, cell = 16) {
-  return new Promise((resolve, reject) => {
-    new THREE.ImageLoader().load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/grasslight-big.jpg`, (image) => {
-      // use canvas to get the pixel data array of the image
-      var canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(image, 0, 0);
-
-      var imageData = ctx.getImageData(0, 0, width, height);
-      var pixels = new Uint8Array(imageData.data.buffer);
-      const texture2d = new THREE.DataTexture2DArray(pixels, width, height, height / cell);
-      texture2d.format = THREE.RGBAFormat;
-      texture2d.type = THREE.UnsignedByteType;
-      texture2d.wrapS = THREE.RepeatWrapping;
-      texture2d.wrapT = THREE.RepeatWrapping;
-      texture2d.wrapT = THREE.RepeatWrapping;
-      texture2d.flipY = true;
-      resolve(texture2d);
-    })
-  });
-
-}
-
-
-const grassTexture = textureLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/grasslight-big.jpg`)
-const rockTexture = textureLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/rock_boulder_dry_diff_1k.png`);
 
 const IdtechBasic = new IDTech(512, 64);
 IdtechBasic.loadAll('textures/terrain/terrain ');
 const IdtechNormal = new IDTech(512, 64);
 IdtechNormal.loadAll('textures/terrainnormal/terrain normal ');
 
-grassTexture.wrapS = THREE.RepeatWrapping;
-grassTexture.wrapT = THREE.RepeatWrapping;
-rockTexture.wrapS = THREE.RepeatWrapping;
-rockTexture.wrapT = THREE.RepeatWrapping;
+const noiseTexture = textureLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/noise.png`)
+noiseTexture.wrapS = THREE.RepeatWrapping;
+noiseTexture.wrapT = THREE.RepeatWrapping;
 
 export const terrainMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff/* , normalMap: grassNormalTexture  */ });
 
@@ -151,6 +122,7 @@ uniform float opacity;
     precision highp sampler2DArray;
     uniform sampler2DArray terrainArrayTexture;
     uniform sampler2DArray terrainNormalArrayTexture ;
+    uniform sampler2D  noiseTexture ;
 
     flat in float vbiome0;
     flat in float vbiome1;
@@ -158,26 +130,52 @@ uniform float opacity;
     in float fbiome0;
     in vec3 vtriCoord;
     in vec3 vtriNormal;
+ 
+    float sum( vec4 v ) { return v.x+v.y+v.z; } 
+    vec4 randomTexture(sampler2DArray samp, vec3 uvi)
+    {
+        vec2 uv = uvi.xy;
+        float k = texture( noiseTexture, 0.01 * uv).x; // cheap (cache friendly) lookup
 
+        vec2 duvdx = dFdx( uv );
+        vec2 duvdy = dFdx( uv );
+
+        float l = k*8.0;
+        float f = fract(l);
+
+        float ia = floor(l+0.5); // suslik's method (see comments)
+        float ib = floor(l);
+        f = min(f, 1.0-f)*2.0; 
+
+        vec2 offa = sin(vec2(3.0,7.0)*ia); // can replace with any other hash
+        vec2 offb = sin(vec2(3.0,7.0)*ib); // can replace with any other hash
     
-    vec4 triplanarTexture(vec3 pos, vec3 normal,vec3 blending,  float texId, sampler2DArray tex,float scale) {
-      vec4 tx = texture(tex, vec3(pos.zy / scale, texId));
-      vec4 ty = texture(tex, vec3(pos.xz / scale, texId));
-      vec4 tz = texture(tex, vec3(pos.xy / scale, texId)); 
+        vec4 cola = textureGrad( samp, vec3(uv + offa,uvi.z), duvdx, duvdy );
+        vec4 colb = textureGrad( samp, vec3(uv + offb,uvi.z), duvdx, duvdy );
+
+        return mix( cola, colb, smoothstep(0.2,0.8,f-0.1*sum(cola-colb)));
+    }
+    
+    vec4 triplanarTexture(vec3 pos, vec3 normal,vec3 blending, float texId, sampler2DArray tex,float scale) {
+      vec4 tx = randomTexture(tex, vec3(pos.zy / scale, texId));
+      vec4 ty = randomTexture(tex, vec3(pos.xz / scale, texId));
+      vec4 tz = randomTexture(tex, vec3(pos.xy / scale, texId)); 
       return tx * blending.x + ty * blending.y + tz * blending.z;
     }
   
     vec3 triplanarNormal(vec3 pos, vec3 normal,vec3 blending, float texId, sampler2DArray tex,float scale) {   
       // Tangent space normal maps
-      vec3 tnormalX = texture(tex, vec3(pos.zy/scale, vbiome0)).xyz*2.0-1.0;
-      vec3 tnormalY = texture(tex, vec3(pos.xz/scale, vbiome0)).xyz*2.0-1.0;
-      vec3 tnormalZ = texture(tex, vec3(pos.xy/scale, vbiome0)).xyz*2.0-1.0;
+      vec3 tnormalX = randomTexture(tex, vec3(pos.zy/scale, vbiome0)).xyz*2.0-1.0;
+      vec3 tnormalY = randomTexture(tex, vec3(pos.xz/scale, vbiome0)).xyz*2.0-1.0;
+      vec3 tnormalZ = randomTexture(tex, vec3(pos.xy/scale, vbiome0)).xyz*2.0-1.0;
       vec3 normalX = vec3(0.0, tnormalX.yx);
       vec3 normalY = vec3(tnormalY.x, 0.0, tnormalY.y);
       vec3 normalZ = vec3(tnormalZ.xy, 0.0);  
       vec3 worldNormal =  normalize(normalX * blending.x +normalY * blending.y +normalZ * blending.z+normal);
       return worldNormal;
     }
+    
+
 
 #endif
 void main() {
@@ -237,6 +235,8 @@ void main() {
   shader.defines = shader.defines || {};
   shader.uniforms.terrainArrayTexture = { value: IdtechBasic.texture };
   shader.uniforms.terrainNormalArrayTexture = { value: IdtechNormal.texture };
+  shader.uniforms.noiseTexture = { value: noiseTexture };
+
 
   shader.defines['USE_TRIPLANETEXTURE'] = '';
 }
