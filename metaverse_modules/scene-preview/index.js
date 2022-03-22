@@ -42,6 +42,12 @@ export default e => {
       start_url: sceneUrl,
       components: {
         mode: 'detached',
+        objectComponents: [
+          {
+            key: 'physics',
+            value: true,
+          }
+        ],
       },
       parent: app,
     });
