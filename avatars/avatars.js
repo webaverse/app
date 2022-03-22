@@ -75,7 +75,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 // const localMatrix3 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
-const localVectorZero = new THREE.Vector3();
+const localVectorIdentity = new THREE.Vector3();
+const localQuaternionIdentity = new THREE.Quaternion();
 
 const leftQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const xToZQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1));
@@ -902,9 +903,11 @@ const _makeRagdollMesh = () => {
             localVector3.set(0, 0, -meshBone.boneLength * 0.5)
               .applyQuaternion(localQuaternion)
           );
+          meshBone.matrixWorld.compose(localVector, localQuaternionIdentity, localVector2);
+        } else {
+          // meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
         }
         // localVector.z += 1;
-        meshBone.matrixWorld.compose(localVector, new THREE.Quaternion(), localVector2);
         meshBone.matrix.copy(meshBone.matrixWorld);
         meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
       }
@@ -3467,7 +3470,7 @@ class Avatar {
       // vismark mark
       // note: this === localPlayer.avatar
       if (!this.ragdoll) {
-        // console.log('setFromAvatar', 1) // note: when idle-ing.
+        console.log('setFromAvatar', 1) // note: when idle-ing.
         this.ragdollMesh.setFromAvatar(this);
       } else {
         // console.log('toAvatar', 1) // note: when ragdoll-ing
@@ -3620,6 +3623,7 @@ class Avatar {
         }
       }
       if (!this.ragdoll && this.ragdollMesh.skeleton) {
+        console.log('reset')
         // reset meshBone/physicsObject when rerun ragdoll.
         // todo: state machine
         // console.log('setSkeletonFromBuffer', 1) // note: when second idle-ing
@@ -3629,8 +3633,8 @@ class Avatar {
         for (const k in flatMeshes) {
           const meshBone = flatMeshes[k];
           physicsManager.setTransform(meshBone, true);
-          physicsManager.setVelocity(meshBone, localVectorZero);
-          physicsManager.setAngularVelocity(meshBone, localVectorZero);
+          physicsManager.setVelocity(meshBone, localVectorIdentity);
+          physicsManager.setAngularVelocity(meshBone, localVectorIdentity);
         }
       }
     }
