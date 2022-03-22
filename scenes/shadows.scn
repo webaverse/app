@@ -21,7 +21,7 @@
       "content": {
         "fog": {
           "fogType": "exp",
-          "args": [[255, 255, 255], 0.001]
+          "args": [[255, 255, 255], 0.01]
         },
         "ssao": {
           "kernelRadius": 16,
