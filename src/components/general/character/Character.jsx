@@ -45,20 +45,6 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
 
     //
 
-    const handleCharacterBtnClick = () => {
-
-        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
-
-        if ( state.openedPanel === 'CharacterPanel' ) {
-
-            cameraManager.requestPointerLock();
-
-        }
-
-    };
-
-    //
-
     useEffect( () => {
 
         if ( game.playerDiorama ) {
@@ -153,12 +139,6 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
 
     return (
         <div className={ classnames( styles.characterWrapper, state.openedPanel === 'CharacterPanel' ? styles.opened : null ) } >
-            <div className={ styles.characterBtn } onClick={ handleCharacterBtnClick } >
-                <img src="images/webpencil.svg" className={ styles.background } />
-                <span className={ styles.btnText } >人 Character</span>
-                <span className={ styles.btnShortKey } >Tab</span>
-            </div>
-
             <div className={ styles.characterPanel } >
                 <div
                     className={styles.emotions}

@@ -28,6 +28,12 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
     };
 
+    const handleCharacterBtnClick = () => {
+
+        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+
+    };
+
     const handleLoginBarClick = () => {
 
         if ( userAddress ) {
@@ -146,24 +152,32 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
     //
 
     return (
-        <div className={ styles.userBar } onClick={ stopPropagation } >
+        <div className={ classnames( styles.userBar, ( state.openedPanel === 'CharacterPanel' ? styles.hide : null ) ) } onClick={ stopPropagation } >
             <div className={ classnames( styles.user, loggingIn ? styles.loggingIn : null ) } >
-                <img src="images/soul.png" className={ styles.userAvatar } />
-                <div className={ styles.loginBtn } onClick={ handleLoginBarClick } >
-                    { loggingIn ? 'Logging in... ' : ( userAddress || ( loginError || 'Log in' ) ) }
+                <div className={ styles.userAvatar } onClick={ handleCharacterBtnClick } >
+                    <img src="images/user.png" />
                 </div>
+                <div className={ classnames( styles.userName, styles.btn ) } onClick={ handleCharacterBtnClick } >
+                    <div className={ styles.btnText } >Anon  Lv.0</div>
+                    <div className={ styles.btnBackground } />
+                </div>
+                <div className={ classnames( styles.login, styles.btn ) } onClick={ handleLoginBarClick } >
+                    <div className={ styles.btnText }>{ loggingIn ? 'Logging in... ' : ( userAddress || ( loginError || 'Log in' ) ) }</div>
+                    <div className={ styles.btnBackground } />
+                </div>
+                <div className={ styles.tabHint } >TAB</div>
                 { userAddress ? ( <div className={ styles.logoutBtn } onClick={ handleLogoutBtnClick } >Logout</div> ) : '' }
             </div>
 
-            <div className={ classnames( styles.userLoginMethodsBar, ( state.openedPanel === 'LoginPanel' ? styles.opened : null ) ) } >
-                <div className={ styles.btn } onClick={ handleMaskLoginBtnClick } >
+            <div className={ classnames( styles.userLoginMethodsModal, ( state.openedPanel === 'LoginPanel' ? styles.opened : null ) ) } >
+                <div className={ styles.methodBtn } onClick={ handleMaskLoginBtnClick } >
                     <div className={ styles.btnText } >
                         <img src="images/metamask.png" alt="metamask" width="28px" />
                         <span>MetaMask</span>
                     </div>
                 </div>
                 <a href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` } >
-                    <div className={ styles.btn } >
+                    <div className={ styles.methodBtn } >
                         <div className={ styles.btnText } >
                             <img src="images/discord-dark.png" alt="discord" width="28px" />
                             <span>Discord</span>
