@@ -647,8 +647,8 @@ const _makeRagdollMesh = () => {
       Chest: _makeCubeMesh('Chest', true),
       UpperChest: _makeCubeMesh('UpperChest', true),
 
-      // Neck: _makeCubeMesh('Neck', true),
-      // Head: _makeCubeMesh('Head', true),
+      Neck: _makeCubeMesh('Neck', true),
+      Head: _makeCubeMesh('Head', true),
       // Eye_L: _makeCubeMesh('Eye_L', true),
       // Eye_R: _makeCubeMesh('Eye_R', true),
 
@@ -712,8 +712,8 @@ const _makeRagdollMesh = () => {
     mesh.Chest.add2(mesh.UpperChest);
 
     // // head
-    // mesh.UpperChest.add2(mesh.Neck);
-    // mesh.Neck.add2(mesh.Head);
+    mesh.UpperChest.add2(mesh.Neck);
+    mesh.Neck.add2(mesh.Head);
     // mesh.Head.add2(mesh.Eye_L);
     // mesh.Head.add2(mesh.Eye_R);
 
@@ -3528,6 +3528,16 @@ class Avatar {
             new THREE.Vector3(0, flatMeshes.Chest.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.UpperChest.boneLength / 2, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.05,0,0)), new THREE.Quaternion());
           physicsManager.setJointMotion(jointChestUpperChest, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
           physicsManager.setJointTwistLimit(jointChestUpperChest,       -Math.PI * 0.05,      Math.PI * 0.05);
+
+          // head
+          const jointUpperChestNeck = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Neck, 
+            new THREE.Vector3(0, flatMeshes.UpperChest.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Neck.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
+          physicsManager.setJointMotion(jointUpperChestNeck, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+          physicsManager.setJointTwistLimit(jointUpperChestNeck,             -Math.PI * 0.2,      Math.PI * 0.05);
+          const jointNeckHead = physicsManager.addJoint(flatMeshes.Neck, flatMeshes.Head, 
+            new THREE.Vector3(0, flatMeshes.Neck.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Head.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
+          physicsManager.setJointMotion(jointNeckHead, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+          physicsManager.setJointTwistLimit(jointNeckHead,            -Math.PI * 0.05,      Math.PI * 0.05);
 
           // shoulders
           const jointUpperChestLeft_shoulder = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Left_shoulder, 
