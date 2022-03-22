@@ -59,7 +59,7 @@ export default e => {
   let subScene = null;
   e.waitUntil((async () => {
     console.log('create app', sceneUrl);
-    subScene = await metaversefile.createApp({
+    subScene = await metaversefile.createAppAsync({
       start_url: sceneUrl,
       components: {
         mode: 'detached',
