@@ -68,11 +68,9 @@ class CharacterSfx {
     this.narutoRunStartTime = 0;
     this.narutoRunFinishTime = 0;
     this.narutoRunTrailSoundStartTime = 0;
-    this.narutoRunTrunSoundStartTime = 0;
-    this.currentDir=new THREE.Vector3();
-    this.preDir=new THREE.Vector3();
-    this.currentPos=new THREE.Vector3();
-    this.prePos=new THREE.Vector3();
+    this.narutoRunTurnSoundStartTime = 0;
+    this.currentQ=new THREE.Quaternion();
+    this.preQ=new THREE.Quaternion();
     this.arr = [0, 0, 0, 0];
 
 
@@ -196,30 +194,19 @@ class CharacterSfx {
 
     const _handleNarutoRun = () => {
       
-      //this.player.getWorldDirection(localVector)
-      //localVector = localVector.normalize();
-      localVector.setFromMatrixPosition(this.player.matrixWorld)
-      
-      
-      this.currentPos.x = localVector.x;
-      this.currentPos.y = localVector.y;
-      this.currentPos.z = localVector.z;
-
-      this.currentDir.x = this.currentPos.x-this.prePos.x;
-      this.currentDir.y = this.currentPos.y-this.prePos.y;
-      this.currentDir.z = this.currentPos.z-this.prePos.z;
-      
-      
-      
-      let temp=this.currentDir.angleTo(this.preDir);
+      this.currentQ.x=this.player.characterPhysics.player.quaternion.x;
+      this.currentQ.y=this.player.characterPhysics.player.quaternion.y;
+      this.currentQ.z=this.player.characterPhysics.player.quaternion.z;
+      this.currentQ.w=this.player.characterPhysics.player.quaternion.w;
+     
+      let temp=this.currentQ.angleTo(this.preQ);
       for(let i=0;i<4;i++){
           let temp2=this.arr[i];
           this.arr[i]=temp;
           temp=temp2;
-          
       }
-      //this.arr.shift()
-      //this.arr.push(this.currentDir.angleTo(this.preDir))
+        
+      
       
       if(this.player.avatar.narutoRunState){
         if(this.narutoRunStartTime===0){
@@ -230,19 +217,13 @@ class CharacterSfx {
           if(this.arr.reduce((a,b)=>a+b) >= Math.PI/3){
 
             this.arr.fill(0)
-            if(timeSeconds - this.narutoRunTrunSoundStartTime>soundFiles.sonicBoom[3].duration-0.9 || this.narutoRunTrunSoundStartTime==0){
+            if(timeSeconds - this.narutoRunTurnSoundStartTime>soundFiles.sonicBoom[3].duration-0.9 || this.narutoRunTurnSoundStartTime==0){
               sounds.playSound(soundFiles.sonicBoom[3]);
-              this.narutoRunTrunSoundStartTime = timeSeconds;
+              this.narutoRunTurnSoundStartTime = timeSeconds;
             }
               
           }
-          // if(this.previousDirectionState!==null && this.previousDirectionState!==this.currentDirectionState ){
-          //   //console.log(localVector2D.set(this.player.position.x - this.dum1.x, this.player.position.z - this.dum1.z ).angle())
-          //   console.log(this.currentDir.angleTo(this.preDir))
-          //   sounds.playSound(soundFiles.sonicBoom[3]);
-          // }
-            
-
+         
           if(timeSeconds - this.narutoRunTrailSoundStartTime>soundFiles.sonicBoom[2].duration-0.2 || this.narutoRunTrailSoundStartTime==0){
             if(!this.player.getAction('sit')){
               const localSound = sounds.playSound(soundFiles.sonicBoom[2]);
@@ -264,20 +245,17 @@ class CharacterSfx {
         this.narutoRunStartTime=0;
         this.narutoRunFinishTime=timeSeconds;
         this.narutoRunTrailSoundStartTime=0;
-        this.narutoRunTrunSoundStartTime=0;
+        this.narutoRunTurnSoundStartTime=0;
         sounds.playSound(soundFiles.sonicBoom[1]);
         if (this.oldNarutoRunSound) {
           !this.oldNarutoRunSound.paused && this.oldNarutoRunSound.stop();
           this.oldNarutoRunSound = null;
         }
       }
-      this.preDir.x=this.currentDir.x;
-      this.preDir.y=this.currentDir.y;
-      this.preDir.z=this.currentDir.z;
-
-      this.prePos.x=this.currentPos.x;
-      this.prePos.y=this.currentPos.y;
-      this.prePos.z=this.currentPos.z;
+      this.preQ.x=this.currentQ.x;
+      this.preQ.y=this.currentQ.y;
+      this.preQ.z=this.currentQ.z;
+      this.preQ.w=this.currentQ.w;
   
     };
     _handleNarutoRun();
