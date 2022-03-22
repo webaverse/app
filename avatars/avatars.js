@@ -3496,9 +3496,11 @@ class Avatar {
             if (meshBone.name === 'Chest') console.log(3, meshBone.position)
             const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, new THREE.Quaternion(), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
             // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.getWorldPosition(new THREE.Vector3()), meshBone.getWorldQuaternion(new THREE.Quaternion()), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
-            // console.log('mass 1: ', physicsManager.getBodyMass(body));
+            console.log('mass 1: ', physicsManager.getBodyMass(body));
             // physicsManager.updateMassAndInertia(body, 0.000001);
-            // console.log('mass 2: ', physicsManager.getBodyMass(body));
+            physicsManager.updateMassAndInertia(body, 0); // note: set mass 0 ( ie kinematic? ) will not break joints and get good result, but much slow animation.
+            // physicsManager.updateMassAndInertia(body, 1000);
+            console.log('mass 2: ', physicsManager.getBodyMass(body));
           }
 
           //
@@ -3520,25 +3522,25 @@ class Avatar {
 
           // hips
           const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, 
-            new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion(), false);
+            new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion(), false);
           physicsManager.setJointMotion(jointHipsSpine, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
           physicsManager.setJointTwistLimit(jointHipsSpine,             -Math.PI * 0.05,      Math.PI * 0.05);
           const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, 
-            new THREE.Vector3(0, flatMeshes.Spine.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Chest.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
+            new THREE.Vector3(0, flatMeshes.Spine.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, -flatMeshes.Chest.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
           physicsManager.setJointMotion(jointSpineChest, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
           physicsManager.setJointTwistLimit(jointSpineChest,            -Math.PI * 0.05,      Math.PI * 0.05);
           const jointChestUpperChest = physicsManager.addJoint(flatMeshes.Chest, flatMeshes.UpperChest, 
-            new THREE.Vector3(0, flatMeshes.Chest.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.UpperChest.boneLength / 2, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.05,0,0)), new THREE.Quaternion());
+            new THREE.Vector3(0, flatMeshes.Chest.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, -flatMeshes.UpperChest.boneLength / 2 * 1.1, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.05,0,0)), new THREE.Quaternion());
           physicsManager.setJointMotion(jointChestUpperChest, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
           physicsManager.setJointTwistLimit(jointChestUpperChest,       -Math.PI * 0.05,      Math.PI * 0.05);
 
           // head
           const jointUpperChestNeck = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Neck, 
-            new THREE.Vector3(0, flatMeshes.UpperChest.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Neck.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
+            new THREE.Vector3(0, flatMeshes.UpperChest.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, -flatMeshes.Neck.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
           physicsManager.setJointMotion(jointUpperChestNeck, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
           physicsManager.setJointTwistLimit(jointUpperChestNeck,             -Math.PI * 0.2,      Math.PI * 0.05);
           const jointNeckHead = physicsManager.addJoint(flatMeshes.Neck, flatMeshes.Head, 
-            new THREE.Vector3(0, flatMeshes.Neck.boneLength / 2, 0), new THREE.Vector3(0, -flatMeshes.Head.boneLength / 2, 0), new THREE.Quaternion(), new THREE.Quaternion());
+            new THREE.Vector3(0, flatMeshes.Neck.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, -flatMeshes.Head.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
           physicsManager.setJointMotion(jointNeckHead, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
           physicsManager.setJointTwistLimit(jointNeckHead,            -Math.PI * 0.05,      Math.PI * 0.05);
 
@@ -3573,20 +3575,20 @@ class Avatar {
 
           // legs
           const jointHipsLeft_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Left_leg, 
-            new THREE.Vector3(-0.1, -flatMeshes.Hips.boneLength / 2, 0), new THREE.Vector3(0, flatMeshes.Left_leg.boneLength / 2, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.07,0,0)), new THREE.Quaternion());
+            new THREE.Vector3(-0.1, -flatMeshes.Hips.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Left_leg.boneLength / 2 * 1.1, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.07,0,0)), new THREE.Quaternion());
           physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
           physicsManager.setJointTwistLimit(jointHipsLeft_leg,          -Math.PI * 0,      Math.PI * 0.3);
           const jointLeft_legLeft_knee = physicsManager.addJoint(flatMeshes.Left_leg, flatMeshes.Left_knee, 
-            new THREE.Vector3(0, -flatMeshes.Left_leg.boneLength / 2, 0), new THREE.Vector3(0, flatMeshes.Left_knee.boneLength / 2, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.07,0,0)), new THREE.Quaternion());
+            new THREE.Vector3(0, -flatMeshes.Left_leg.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Left_knee.boneLength / 2 * 1.1, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.07,0,0)), new THREE.Quaternion());
           physicsManager.setJointMotion(jointLeft_legLeft_knee, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
           physicsManager.setJointTwistLimit(jointLeft_legLeft_knee,     -Math.PI * 0.6,      Math.PI * 0);
 
           const jointHipsRight_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Right_leg, 
-            new THREE.Vector3(0.1, -flatMeshes.Hips.boneLength / 2, 0), new THREE.Vector3(0, flatMeshes.Right_leg.boneLength / 2, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.07,0,0)), new THREE.Quaternion());
+            new THREE.Vector3(0.1, -flatMeshes.Hips.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Right_leg.boneLength / 2 * 1.1, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.07,0,0)), new THREE.Quaternion());
           physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
           physicsManager.setJointTwistLimit(jointHipsRight_leg,         -Math.PI * 0,      Math.PI * 0.3);
           const jointRight_legRight_knee = physicsManager.addJoint(flatMeshes.Right_leg, flatMeshes.Right_knee, 
-            new THREE.Vector3(0, -flatMeshes.Right_leg.boneLength / 2, 0), new THREE.Vector3(0, flatMeshes.Right_knee.boneLength / 2, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.07,0,0)), new THREE.Quaternion());
+            new THREE.Vector3(0, -flatMeshes.Right_leg.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Right_knee.boneLength / 2 * 1.1, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.07,0,0)), new THREE.Quaternion());
           physicsManager.setJointMotion(jointRight_legRight_knee, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
           physicsManager.setJointTwistLimit(jointRight_legRight_knee,   -Math.PI * 0.6,      Math.PI * 0);
 
