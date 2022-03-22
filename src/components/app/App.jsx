@@ -23,9 +23,11 @@ import { Stats } from '../../Stats.jsx';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import { Claims } from '../play-mode/claims';
+import { Tokens } from '../play-mode/tokens';
 import Header from '../../Header.jsx';
 
 import styles from './App.module.css';
+import { Login } from '../general/login/Login';
 
 //
 
@@ -80,6 +82,8 @@ export const App = () => {
     const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
+    const [ loginMethod, setLoginMethod ] = useState( null );
+    const [ loginAddress, setLoginAddress ] = useState( null );
 
     //
 
@@ -100,6 +104,26 @@ export const App = () => {
             cameraManager.exitPointerLock();
 
         }
+
+        const pointerlockchange = ( event ) => {
+
+            const { pointerLockElement } = event.data;
+
+            if ( pointerLockElement && state.openedPanel !== null ) {
+
+                setState({ openedPanel: null });
+
+            }
+
+        };
+
+        cameraManager.addEventListener( 'pointerlockchange', pointerlockchange );
+
+        return () => {
+
+            cameraManager.removeEventListener( 'pointerlockchange', pointerlockchange );
+
+        };
 
     }, [ state.openedPanel ] );
 
@@ -146,10 +170,16 @@ export const App = () => {
 
     return (
         <div className={ styles.App } id="app" >
-            <AppContext.Provider value={{ state, setState, app }}>
+            <AppContext.Provider value={{ state, setState, app }} >
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
+                <Login
+                    loginAddress={ loginAddress }
+                    setLoginAddress={ setLoginAddress }
+                    loginMethod={ loginMethod }
+                    setLoginMethod={ setLoginMethod }
+                />
                 <ActionMenu />
                 <Settings />
                 <WorldObjectsList setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
@@ -162,6 +192,13 @@ export const App = () => {
                 <LoadingBox />
                 <DragAndDrop />
                 <Stats app={ app } />
+                <Tokens
+                    nfts={ nfts }
+                    hacks={ hacks }
+                    setNfts={ setNfts }
+                    setLoginMethod={ setLoginMethod }
+                    loginAddress={ loginAddress }
+                />
             </AppContext.Provider>
         </div>
     );

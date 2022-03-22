@@ -5,15 +5,12 @@ import classnames from 'classnames';
 import CharacterHups from './CharacterHups.jsx';
 import { world } from '../world.js'
 import game from '../game.js'
-import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
 
-import { User } from './User';
 import { MagicMenu } from './MagicMenu.jsx';
 import { Character } from './components/general/character';
-import { Tokens } from './tabs/tokens';
 import { Inspector } from './Inspector.jsx';
 import { Chat } from './Chat.jsx';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
@@ -32,11 +29,8 @@ export default function Header ({ setSelectedApp, selectedApp }) {
     const dioramaCanvasRef = useRef();
     const panelsRef = useRef();
 
-    const [address, setAddress] = useState(false);
-    const [nfts, setNfts] = useState(null);
     const [apps, setApps] = useState(world.appManager.getApps().slice());
     const [dragging, setDragging] = useState(false);
-    const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
 
     //
@@ -86,30 +80,6 @@ export default function Header ({ setSelectedApp, selectedApp }) {
         });
 
     }, []);
-
-    useEffect( () => {
-
-        const pointerlockchange = e => {
-
-            const { pointerLockElement } = e.data;
-
-            if ( pointerLockElement && state.openedPanel !== null) {
-
-                setState({ openedPanel: null });
-
-            }
-
-        };
-
-        cameraManager.addEventListener( 'pointerlockchange', pointerlockchange );
-
-        return () => {
-
-            cameraManager.removeEventListener( 'pointerlockchange', pointerlockchange );
-
-        };
-
-    }, [ state.openedPanel ] );
 
     useEffect(() => {
 
@@ -288,37 +258,16 @@ export default function Header ({ setSelectedApp, selectedApp }) {
             <Chat />
             <CharacterHups localPlayer={localPlayer} npcs={npcs} />
             <MagicMenu />
-            <div className={styles.inner}>
-				<header className={styles.header}>
-                    <div className={styles.row}>
-                        <a href="/" className={styles.logo}>
-                            <img src="images/arrow-logo.svg" className={styles.image} />
-                        </a>
-                        <User
-                            address={address}
-                            setAddress={setAddress}
-                            setLoginFrom={setLoginFrom}
-                        />
-                    </div>
-				</header>
-                <header className={classnames(styles.header, styles.subheader)}>
-                    <div className={styles.row}>
-                        <Character
-                            panelsRef={panelsRef}
-                            wearActions={wearActions}
-                            dioramaCanvasRef={dioramaCanvasRef}
-                            game={game}
-                        />
-                    </div>
-                </header>
-                <Tokens
-                    nfts={nfts}
-                    hacks={hacks}
-                    address={address}
-                    setNfts={setNfts}
-                    loginFrom={loginFrom}
-                />
-            </div>
+            <header className={classnames(styles.header, styles.subheader)}>
+                <div className={styles.row}>
+                    <Character
+                        panelsRef={panelsRef}
+                        wearActions={wearActions}
+                        dioramaCanvasRef={dioramaCanvasRef}
+                        game={game}
+                    />
+                </div>
+            </header>
         </div>
     );
 
