@@ -339,11 +339,14 @@ metaversefile.setApi({
       throw new Error('useApp cannot be called outside of render()');
     }
   },
-  useCamera() {
-    return camera;
+  useRenderer() {
+    return getRenderer();
   },
   useScene() {
     return scene;
+  },
+  useCamera() {
+    return camera;
   },
   usePostOrthographicScene() {
     return postSceneOrthographic;
