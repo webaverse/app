@@ -794,7 +794,7 @@ metaversefile.setApi({
     if (parent) {
       parent.add(app);
     }
-    if (position || quaternion || scale || in_front) {
+    if (position || quaternion || scale || in_front || parent) {
       app.updateMatrixWorld();
       app.lastMatrix.copy(app.matrixWorld);
     }
