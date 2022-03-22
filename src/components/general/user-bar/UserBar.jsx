@@ -158,7 +158,7 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
                     <img src="images/user.png" />
                 </div>
                 <div className={ classnames( styles.userName, styles.btn ) } onClick={ handleCharacterBtnClick } >
-                    <div className={ styles.btnText } >{ loggingIn && userAddress ? userAddress : 'Anon  Lv.0' }</div>
+                    <div className={ styles.btnText } >{ ! loggingIn && userAddress ? userAddress : 'Anon  Lv.0' }</div>
                     <div className={ styles.btnBackground } />
                 </div>
                 {
