@@ -50,7 +50,7 @@
     {
       "type": "application/spawnpoint",
       "content": {
-        "position": [0, 35, -40],
+        "position": [0, 35, 74],
         "quaternion": [0, 1, 0, 0]
       }
     },
@@ -65,8 +65,8 @@
     {
       "position": [
         -2,
-        35,
-        -70
+        70,
+        74
       ],
       "quaternion": [
         0,
@@ -98,7 +98,7 @@
       "position": [
         2,
         33.5,
-        -70
+        74
       ],
       "quaternion": [
         0,
@@ -112,7 +112,7 @@
       "position": [
         0,
         33.5,
-        -53
+        91
       ],
       "quaternion": [
         0,
@@ -130,7 +130,7 @@
       "position": [
         0,
         40.3,
-        24
+        168
       ],
       "start_url": "https://webaverse.github.io/turret/"
     },
