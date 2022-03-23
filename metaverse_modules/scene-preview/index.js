@@ -14,6 +14,7 @@ const {useApp, useFrame, useRenderer, useCamera, useMaterials, useCleanup} = met
 // const localVector = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
 
+const resolution = 2048;
 const worldSize = 100;
 const near = 10;
 
@@ -73,7 +74,7 @@ export default e => {
   //
 
   const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(
-    2048,
+    resolution,
     {
       generateMipmaps: true,
       minFilter: THREE.LinearMipmapLinearFilter,
