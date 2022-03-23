@@ -60,8 +60,8 @@ export default e => {
       scene.name = name;
       return scene;
     } else if (type === 'app') {
-      const {start_url, position, quaternion, scale, components} = spec;
-      const app = metaversefile.createAppAsync({
+      const {position, quaternion, scale} = spec;
+      const app = await metaversefile.createAppAsync({
         start_url,
         position,
         quaternion,
