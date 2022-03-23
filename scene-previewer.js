@@ -5,7 +5,7 @@ import {getRenderer, camera} from './renderer.js';
 import metaversefile from 'metaversefile';
 
 const resolution = 2048;
-const worldSize = 100;
+const worldSize = 1000;
 const near = 10;
 
 class ScenePreviewer {
