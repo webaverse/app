@@ -39,8 +39,6 @@ class ScenePreviewer {
         envMap: cubeRenderTarget.texture,
       });
       const skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
-      // skyboxMesh.frustumCulled = false;
-      // skyboxMesh.updateMatrixWorld();
       return skyboxMesh;
     };
     this.mesh = _makeSkyboxMesh();

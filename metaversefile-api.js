@@ -795,33 +795,61 @@ metaversefile.setApi({
     const app = new App();
 
     // transform
-    position && app.position.copy(position);
-    quaternion && app.quaternion.copy(quaternion);
-    scale && app.scale.copy(scale);
-    if (in_front) {
-      app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
-      app.quaternion.copy(localPlayer.quaternion);
-      app.scale.setScalar(1);
-    }
-    if (parent) {
-      parent.add(app);
-    }
-    if (position || quaternion || scale || in_front || parent) {
-      app.updateMatrixWorld();
-      app.lastMatrix.copy(app.matrixWorld);
-    }
+    const _updateTransform = () => {
+      let matrixNeedsUpdate = false;
+      if (Array.isArray(position)) {
+        app.position.fromArray(position);
+        matrixNeedsUpdate = true;
+      } else if (position?.isVector3) {
+        app.position.copy(position);
+        matrixNeedsUpdate = true;
+      }
+      if (Array.isArray(quaternion)) {
+        app.quaternion.fromArray(quaternion);
+        matrixNeedsUpdate = true;
+      } else if (quaternion?.isQuaternion) {
+        app.quaternion.copy(quaternion);
+        matrixNeedsUpdate = true;
+      }
+      if (Array.isArray(scale)) {
+        app.scale.fromArray(scale);
+        matrixNeedsUpdate = true;
+      } else if (scale?.isVector3) {
+        app.scale.copy(scale);
+        matrixNeedsUpdate = true;
+      }
+      if (in_front) {
+        app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
+        app.quaternion.copy(localPlayer.quaternion);
+        app.scale.setScalar(1);
+        matrixNeedsUpdate = true;
+      }
+      if (parent) {
+        parent.add(app);
+        matrixNeedsUpdate = true;
+      }
+
+      if (matrixNeedsUpdate) {
+        app.updateMatrixWorld();
+        app.lastMatrix.copy(app.matrixWorld);
+      }
+    };
+    _updateTransform();
 
     // components
-    if (Array.isArray(components)) {
-      for (const {key, value} of components) {
-        app.setComponent(key, value);
+    const _updateComponents = () => {
+      if (Array.isArray(components)) {
+        for (const {key, value} of components) {
+          app.setComponent(key, value);
+        }
+      } else if (typeof components === 'object' && components !== null) {
+        for (const key in components) {
+          const value = components[key];
+          app.setComponent(key, value);
+        }
       }
-    } else if (typeof components === 'object' && components !== null) {
-      for (const key in components) {
-        const value = components[key];
-        app.setComponent(key, value);
-      }
-    }
+    };
+    _updateComponents();
 
     // load
     if (start_url) {
