@@ -55,7 +55,11 @@ export default e => {
           {
             key: 'physics',
             value: true,
-          }
+          },
+          {
+            key: 'paused',
+            value: true,
+          },
         ],
       },
       parent: app,
@@ -113,7 +117,6 @@ export default e => {
       
       cubeRenderTarget.clear(renderer, true, true, true);
       cubeCamera.update(renderer, previewScene);
-      // window.cubeCamera = cubeCamera;
       
       // pop state
       if (oldParent) {
