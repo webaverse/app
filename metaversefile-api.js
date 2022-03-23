@@ -39,6 +39,7 @@ import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
+import * as scenePreviewer from './scene-previewer.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -403,6 +404,9 @@ metaversefile.setApi({
   },
   useSceneCruncher() {
     return sceneCruncher;
+  },
+  useScenePreviewer() {
+    return scenePreviewer;
   },
   usePostProcessing() {
     return postProcessing;
