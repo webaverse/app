@@ -8,6 +8,7 @@ import { parseQuery } from '../../../../util.js';
 import WebaWallet from '../../wallet';
 
 import { AppContext } from '../../app';
+import { HealthBar } from './HealthBar';
 
 import styles from './user-bar.module.css';
 
@@ -171,7 +172,7 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
                 </div>
                 {
                     userAddress ? (
-                        <div className={ classnames( styles.btn, styles.shaded ) } onClick={ handleLogoutBtnClick } >
+                        <div className={ classnames( styles.loginBtn, styles.btn, styles.shaded ) } onClick={ handleLogoutBtnClick } >
                             <div className={ styles.btnText }>Logout</div>
                             <div className={ styles.btnBackground } />
                         </div>
@@ -183,6 +184,7 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
                     )
                 }
                 <div className={ styles.tabHint } >TAB</div>
+                <HealthBar />
             </div>
 
             <div className={ classnames( styles.userLoginMethodsModal, ( state.openedPanel === 'LoginPanel' ? styles.opened : null ) ) } >

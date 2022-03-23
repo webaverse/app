@@ -1,0 +1,45 @@
+
+.heathBarWrapper {
+    position: absolute;
+    top: 35px;
+    left: 75px;
+    width: 200px;
+    height: 60px;
+    background-size: 100% 100%;
+    background-image: url(./images/health-bar.png);
+}
+
+.healthProgressWrapper {
+    position: absolute;
+    top: 8px;
+    left: 63px;
+    width: 107px;
+    height: 6px;
+}
+
+.healthProgressWrapper .progress {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 0%;
+    height: 100%;
+    background-color: rgb(19, 169, 31);
+}
+
+.healthValueText {
+    position: absolute;
+    right: 30px;
+    bottom: 15px;
+    color: #000;
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+
+.healthBarTitle {
+    position: absolute;
+    top: 5px;
+    left: 35px;
+    color: rgb(231, 253, 29);
+    font-weight: bold;
+    font-weight: 25px;
+}

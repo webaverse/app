@@ -16,8 +16,8 @@
 .userBar .userAvatar {
     position: relative;
     float: left;
-    width: 80px;
-    height: 80px;
+    width: 84px;
+    height: 84px;
     border: 1px solid #000;
     z-index: 2;
     cursor: pointer;
@@ -74,8 +74,12 @@
     padding-left: 10px;
 }
 
-.userBar .login {
-    min-width: 70px;
+.userBar .loginBtn {
+    padding: 0px 10px;
+}
+
+.userBar .login .btnText {
+    padding: 0px 7px;
 }
 
 .tabHint {
