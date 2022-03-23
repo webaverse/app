@@ -90,6 +90,14 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
     };
 
+    const handleCancelBtnClick = () => {
+
+        setState({ openedPanel: null });
+
+    };
+
+    //
+
     useEffect( () => {
 
         const { error, code, id, play, realmId, twitter: arrivingFromTwitter } = parseQuery( window.location.search );
@@ -178,20 +186,23 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
             </div>
 
             <div className={ classnames( styles.userLoginMethodsModal, ( state.openedPanel === 'LoginPanel' ? styles.opened : null ) ) } >
+                <div className={ styles.title } >
+                    <span>Log in</span>
+                    <div className={ styles.background } />
+                </div>
                 <div className={ styles.methodBtn } onClick={ handleMaskLoginBtnClick } >
-                    <div className={ styles.btnText } >
-                        <img src="images/metamask.png" alt="metamask" width="28px" />
-                        <span>MetaMask</span>
-                    </div>
+                    <img src="images/metamask.png" alt="metamask" width="28px" />
+                    <span className={ styles.methodBtnText } >MetaMask</span>
                 </div>
                 <a href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` } >
                     <div className={ styles.methodBtn } >
-                        <div className={ styles.btnText } >
-                            <img src="images/discord-dark.png" alt="discord" width="28px" />
-                            <span>Discord</span>
-                        </div>
+                        <img src="images/discord.png" alt="discord" width="28px" />
+                        <span className={ styles.methodBtnText } >Discord</span>
                     </div>
                 </a>
+                <div className={ styles.methodBtn } onClick={ handleCancelBtnClick } >
+                    <span className={ styles.methodBtnText } >Cancel</span>
+                </div>
             </div>
         </div>
     );

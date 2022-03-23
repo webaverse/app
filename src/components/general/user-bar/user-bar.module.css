@@ -111,12 +111,42 @@
     visibility: visible;
 }
 
+.userBar .userLoginMethodsModal .title {
+    position: relative;
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    color: #fff;
+    font-size: 20px;
+    padding: 10px 50px;
+}
+
+.userBar .userLoginMethodsModal .title .background {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: #222;
+    transform: skewX(-20deg);
+    z-index: -1;
+}
+
 .userBar .userLoginMethodsModal .methodBtn {
-    background: rgb(0, 168, 252);
+    position: relative;
     margin-top: 5px;
     margin-bottom: 5px;
-    text-decoration: none;
     cursor: pointer;
+    background: rgb(0, 0, 0);
+    font-size: 30px;
+    font-family: 'PlazaRegular';
+    letter-spacing: 1px;
+    transition: all 1s cubic-bezier(0, 1, 0, 1);
+    border: 2px solid #fff;
+}
+
+.userBar .userLoginMethodsModal .methodBtn:hover {
+    background: #fff;
 }
 
 .userBar .userLoginMethodsModal a {
@@ -124,13 +154,22 @@
 }
 
 .userBar .userLoginMethodsModal .methodBtn img {
-    float: left;
-    margin: 10px -5px 10px 20px;
+    position: absolute;
+    left: 10px;
+    margin: 10px;
 }
 
-.userBar .userLoginMethodsModal .methodBtn .btnText {
+.userBar .userLoginMethodsModal .methodBtn .methodBtnText {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-align: center;
     color: #fff;
     font-size: 15px;
     text-decoration: none;
     line-height: 45px;
+}
+
+.userBar .userLoginMethodsModal .methodBtn:hover .methodBtnText {
+    color: #000;
 }
