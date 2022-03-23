@@ -20,22 +20,14 @@ const near = 10;
 
 export default e => {
   const app = useApp();
-  // const physics = usePhysics();
-  // const procGen = useProcGen();
-  // const {alea, chunkWorldSize} = procGen;
   const renderer = useRenderer();
   const camera = useCamera();
-  const {WebaverseShaderMaterial} = useMaterials();
 
   app.name = 'scene-preview';
 
-  // const positionArray = app.getComponent('position') ?? [0, 0, 0];
-  // const quaternionArray = app.getComponent('quaternion') ?? [0, 0, 0, 1];
   const previewPositionArray = app.getComponent('previewPosition') ?? [0, 0, 0];
   const sceneUrl = app.getComponent('sceneUrl') ?? '';
 
-  // const position = new THREE.Vector3().fromArray(positionArray);
-  // const quaternion = new THREE.Quaternion().fromArray(quaternionArray);
   const previewPosition = new THREE.Vector3().fromArray(previewPositionArray);
 
   const previewScene = new THREE.Scene();
@@ -64,11 +56,6 @@ export default e => {
       },
       parent: previewContainer,
     });
-    // console.log('got sub scene', subScene, {position, quaternion, previewPosition});
-    // subScene.position.copy(position);
-    // subScene.quaternion.copy(quaternion);
-    // app.add(subScene);
-    // subScene.updateMatrixWorld();
   })());
 
   //
