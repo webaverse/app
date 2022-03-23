@@ -110,6 +110,8 @@ export default () => {
   // const {CapsuleGeometry} = useGeometries();
   const {WebaverseShaderMaterial} = useMaterials();
 
+  app.name = 'barrier';
+
   const _getSingleUse = () => app.getComponent('singleUse') ?? false;
 
   const barrierMeshes = [];
