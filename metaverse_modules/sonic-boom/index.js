@@ -244,16 +244,16 @@ export default () => {
         //app.add(group);
 
         
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
             
         
             if(narutoRunTime>10){
                 //console.log('sonic-boom-frontwave');
-                if(sonicBoomInApp===0){
+                if(!sonicBoomInApp){
                     //console.log('add-frontWave');
                     app.add(group);
-                    sonicBoomInApp=1;
+                    sonicBoomInApp=true;
                 }
                 
                 group.position.copy(localPlayer.position);
@@ -271,10 +271,10 @@ export default () => {
                 material2.uniforms.uTime.value = timestamp/10000;
             }
             else{
-                if(sonicBoomInApp===1){
+                if(sonicBoomInApp){
                     //console.log('remove-frontWave');
                     app.remove(group);
-                    sonicBoomInApp=0;
+                    sonicBoomInApp=false;
                 }
                 //group.scale.set(0,0,0);
             }
@@ -373,15 +373,15 @@ export default () => {
         windEffect();
         
         
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
             
             if(narutoRunTime>10){
                 //console.log('sonic-boom-wind');
-                if(sonicBoomInApp==0){
+                if(!sonicBoomInApp){
                     //console.log('add-wind');
                     app.add(group);
-                    sonicBoomInApp=1;
+                    sonicBoomInApp=true;
                 }
                 group.position.copy(localPlayer.position);
                 if (localPlayer.avatar) {
@@ -397,10 +397,10 @@ export default () => {
                 windMaterial.uniforms.uTime.value=timestamp/10000;
             }
             else{
-                if(sonicBoomInApp===1){
+                if(sonicBoomInApp){
                     //console.log('remove-wind');
                     app.remove(group);
-                    sonicBoomInApp=0;
+                    sonicBoomInApp=false;
                 }
                 //group.scale.set(0,0,0);
             }
@@ -525,15 +525,15 @@ export default () => {
         flame();
         
         let playerRotation=[0,0,0,0,0];
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
             
 
             if(narutoRunTime>10 ){
-                if(sonicBoomInApp==0){
+                if(!sonicBoomInApp){
                     //console.log('add-flame');
                     app.add(group);
-                    sonicBoomInApp=1;
+                    sonicBoomInApp=true;
                 }
                 group.scale.set(1,1,1);
                 flameMaterial.uniforms.strength.value=1.0;
@@ -577,10 +577,10 @@ export default () => {
                 flameMaterial.uniforms.playerRotation.value.set( playerRotation[0],0,playerRotation[4]);
             }
             else{
-                if(sonicBoomInApp===1){
+                if(sonicBoomInApp){
                     //console.log('remove-flame');
                     app.remove(group);
-                    sonicBoomInApp=0;
+                    sonicBoomInApp=false;
                 }
             }
            
@@ -726,15 +726,15 @@ export default () => {
         
         let playerRotation=[];
         let lightningfreq=0;
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
             
 
             if(narutoRunTime>10 ){
-                if(sonicBoomInApp==0){
+                if(!sonicBoomInApp){
                     //console.log('add-lightning');
                     app.add(group);
-                    sonicBoomInApp=1;
+                    sonicBoomInApp=true;
                 }
                 group.scale.set(1,1,1);
                 lightningMaterial.uniforms.strength.value=1.0;
@@ -781,10 +781,10 @@ export default () => {
                 lightningfreq++;
             }
             else{
-                if(sonicBoomInApp===1){
+                if(sonicBoomInApp){
                     //console.log('remove-lightning');
                     app.remove(group);
-                    sonicBoomInApp=0;
+                    sonicBoomInApp=false;
                 }
             }
             
@@ -933,15 +933,15 @@ export default () => {
       plane.frustumCulled = false;
       let temp=[];
       let temp2=[];
-      let sonicBoomInApp=0;
+      let sonicBoomInApp=false;
       useFrame(({timestamp}) => {
         
         
         if(narutoRunTime>=10){
-            if(sonicBoomInApp===0){
+            if(!sonicBoomInApp){
                 //console.log('add-planeTrail1');
                 app.add(plane);
-                sonicBoomInApp=1;
+                sonicBoomInApp=true;
             }
             material.uniforms.opacity.value = 1;
         }
@@ -1013,10 +1013,10 @@ export default () => {
             material.uniforms.uTime.value = timestamp/1000;
         }
         else{
-            if(sonicBoomInApp===1){
+            if(sonicBoomInApp){
                 //console.log('remove-planeTrail1');
                 app.remove(plane);
-                sonicBoomInApp=0;
+                sonicBoomInApp=false;
             }
         }
        
@@ -1172,15 +1172,15 @@ export default () => {
       let temp2=[];
       let quaternion = new THREE.Quaternion();
       quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),-Math.PI/2);
-      let sonicBoomInApp=0;
+      let sonicBoomInApp=false;
       useFrame(({timestamp}) => {
 
 
         if(narutoRunTime>=10){
-            if(sonicBoomInApp===0){
+            if(!sonicBoomInApp){
                 //console.log('add-planeTrail2');
                 app.add(plane);
-                sonicBoomInApp=1;
+                sonicBoomInApp=true;
             }
             material.uniforms.opacity.value = 1;
         }
@@ -1267,10 +1267,10 @@ export default () => {
             material.uniforms.uTime.value = timestamp/1000;
         }
         else{
-            if(sonicBoomInApp===1){
+            if(sonicBoomInApp){
                 //console.log('remove-planeTrail2');
                 app.remove(plane);
-                sonicBoomInApp=0;
+                sonicBoomInApp=false;
             }
         }
         
@@ -1382,15 +1382,15 @@ export default () => {
         //app.add(mainBall);
         //app.updateMatrixWorld();
         
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
             
             
             if(narutoRunTime>0){
-                if(sonicBoomInApp===0){
+                if(!sonicBoomInApp){
                     //console.log('add-mainBall');
                     app.add(mainBall);
-                    sonicBoomInApp=1;
+                    sonicBoomInApp=true;
                 }
                 if(narutoRunTime===1){
                     mainBall.material.uniforms.uSize.value=4.5;
@@ -1429,10 +1429,10 @@ export default () => {
                 mainBall.material.uniforms.uCameraFov.value=Math.pow(60/camera.fov,1.45);
             }
             else{
-                if(sonicBoomInApp===1){
+                if(sonicBoomInApp){
                     //console.log('remove-mainBall');
                     app.remove(mainBall);
-                    sonicBoomInApp=0;
+                    sonicBoomInApp=false;
                 }
             }
             
@@ -1566,7 +1566,7 @@ export default () => {
         group.add(electricity)
         //app.add(group);
         let lightningfreq=0;
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
 
             
@@ -1580,10 +1580,10 @@ export default () => {
                 
             }
             else if(narutoRunTime==1){
-                if(sonicBoomInApp===0){
+                if(!sonicBoomInApp){
                     //console.log('add-electricity1');
                     app.add(group);
-                    sonicBoomInApp=1;
+                    sonicBoomInApp=true;
                 }
                 electricityMaterial.uniforms.opacity.value=1;
                 electricityMaterial.uniforms.size.value=4.5;
@@ -1617,10 +1617,10 @@ export default () => {
                 lightningfreq++;
             }
             else{
-                if(sonicBoomInApp===1){
+                if(sonicBoomInApp){
                     //console.log('remove-electricty1');
                     app.remove(group);
-                    sonicBoomInApp=0;
+                    sonicBoomInApp=false;
                 }
             }
             
@@ -1752,7 +1752,7 @@ export default () => {
         group.add(electricity)
         //app.add(group);
         let lightningfreq=0;
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
 
             
@@ -1764,10 +1764,10 @@ export default () => {
                 }
             }
             else if(narutoRunTime==1){
-                if(sonicBoomInApp===0){
+                if(!sonicBoomInApp){
                     //console.log('add-electricty2');
                     app.add(group);
-                    sonicBoomInApp=1;
+                    sonicBoomInApp=true;
                 }
                 electricityMaterial.uniforms.opacity.value=1;
                 electricityMaterial.uniforms.size.value=4.5;
@@ -1802,10 +1802,10 @@ export default () => {
                 lightningfreq++;
             }
             else{
-                if(sonicBoomInApp===1){
+                if(sonicBoomInApp){
                     //console.log('remove-electricty2');
                     app.remove(group);
-                    sonicBoomInApp=0;
+                    sonicBoomInApp=false;
                 }
             }
 
@@ -1865,7 +1865,7 @@ export default () => {
         addInstancedMesh();
     
         
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         let originPoint = new THREE.Vector3(0,0,0);
         useFrame(({timestamp}) => {
             
@@ -1874,10 +1874,10 @@ export default () => {
             if (mesh) {
                 if(narutoRunTime>0){
                     //console.log('sonic-boom-behind-particle')
-                    if(sonicBoomInApp===0){
+                    if(!sonicBoomInApp){
                         //console.log('add-particle1');
                         app.add(group);
-                        sonicBoomInApp=1;
+                        sonicBoomInApp=true;
                     }
                     group.position.copy(localPlayer.position);
                     group.rotation.copy(localPlayer.rotation);
@@ -1940,10 +1940,10 @@ export default () => {
                     }
                 }
                 else{
-                    if(sonicBoomInApp===1){
+                    if(sonicBoomInApp){
                         //console.log('remove-particle1');
                         app.remove(group);
-                        sonicBoomInApp=0;
+                        sonicBoomInApp=false;
                     }
                     //group.position.y=-50000;
                 }
@@ -2008,7 +2008,7 @@ export default () => {
         
         
         let originPoint = new THREE.Vector3(0,0,0);
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
            
             
@@ -2016,10 +2016,10 @@ export default () => {
             if (mesh) {
                 if(narutoRunTime>0){
                     //console.log('sonic-boom-behind-particle2')
-                    if(sonicBoomInApp===0){
+                    if(!sonicBoomInApp){
                         //console.log('add-particle2');
                         app.add(group);
-                        sonicBoomInApp=1;
+                        sonicBoomInApp=true;
                     }
                     group.position.copy(localPlayer.position);
                     group.rotation.copy(localPlayer.rotation);
@@ -2080,10 +2080,10 @@ export default () => {
                     }
                 }
                 else{
-                    if(sonicBoomInApp===1){
+                    if(sonicBoomInApp){
                         //console.log('remove-particle2');
                         app.remove(group);
-                        sonicBoomInApp=0;
+                        sonicBoomInApp=false;
                     }
                     //group.position.y=-50000;
                 }
@@ -2215,7 +2215,7 @@ export default () => {
         })();
 
         //app.updateMatrixWorld();
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
            
             if (wave) {
@@ -2223,10 +2223,10 @@ export default () => {
                 
                 
                 if (narutoRunTime > 0) {
-                    if(sonicBoomInApp===0){
+                    if(!sonicBoomInApp){
                         //console.log('add-shockWave');
                         app.add(group);
-                        sonicBoomInApp=1;
+                        sonicBoomInApp=true;
                     }
                     if(narutoRunTime ===1){
                         group.position.copy(localPlayer.position);
@@ -2258,10 +2258,10 @@ export default () => {
                     wave.scene.children[0].material.uniforms.avatarPos.z=localPlayer.position.z;
                 }
                 else{
-                    if(sonicBoomInApp===1 && narutoRunTime===0){
+                    if(sonicBoomInApp && narutoRunTime===0){
                         //console.log('remove-shockWave');
                         app.remove(group);
-                        sonicBoomInApp=0;
+                        sonicBoomInApp=false;
                     }
                 }
             }
@@ -2416,7 +2416,7 @@ export default () => {
         let currentRotate=0;
         let preRotate=0;
         let narutoEndTime=0;
-        let sonicBoomInApp=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
     
             
@@ -2425,10 +2425,10 @@ export default () => {
             
             
             if(narutoRunTime===1){
-                if(sonicBoomInApp===0){
+                if(!sonicBoomInApp){
                     //console.log('add-dust');
                     app.add(group);
-                    sonicBoomInApp=1;
+                    sonicBoomInApp=true;
                 }
             }
             if (mesh) {
@@ -2523,13 +2523,13 @@ export default () => {
                 //narutoEndTime=timestamp;
             }
             if(lastStopSw===0){
-                if(sonicBoomInApp===1){
+                if(sonicBoomInApp){
                     mesh.getMatrixAt(particleCount-1, matrix);
                     matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
                     if(dummy.position.z>40){
                         //console.log('remove-dust');
                         app.remove(group);
-                        sonicBoomInApp=0;
+                        sonicBoomInApp=false;
                     }
                     
                 }
