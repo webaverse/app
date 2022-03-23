@@ -112,7 +112,7 @@ class ScenePreviewer {
   }
   async loadScene(sceneUrl) {
     if (this.scene) {
-      const oldScene = this.detachScene();
+      this.detachScene();
     }
     
     this.scene = await metaversefile.createAppAsync({
