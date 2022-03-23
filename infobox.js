@@ -299,7 +299,7 @@ class InfoboxRenderer {
 
     const _render = () => {
       // push old state
-      const oldRenderTarget = renderer.getRenderTarget();
+      // const oldRenderTarget = renderer.getRenderTarget();
       const oldViewport = renderer.getViewport(localVector4D);
 
       {
@@ -318,7 +318,7 @@ class InfoboxRenderer {
       }
 
       // pop old state
-      renderer.setRenderTarget(oldRenderTarget);
+      // renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(oldViewport);
     };
     _render();
