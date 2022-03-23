@@ -9,6 +9,13 @@ const resolution = 2048;
 const worldSize = 10000;
 const near = 10;
 
+const localPlane = new THREE.Plane();
+
+const _planeToVector4 = (plane, target) => {
+  target.copy(plane.normal);
+  target.w = plane.constant;
+};
+
 const vertexShader = `
   varying vec3 vNormal;
   varying vec3 vWorldPosition;
@@ -36,9 +43,15 @@ const fragmentShader = `\
   //
 
   uniform samplerCube envMap;
+  uniform vec4 plane;
   varying vec3 vNormal;
   varying vec3 vWorldPosition;
-  
+
+  float distanceToPoint(vec4 plane, vec3 point) {
+    vec3 normal = plane.xyz;
+    float constant = plane.w;
+    return dot(normal, point) + constant;
+  }
   void main() {
     vec3 normal = normalize(vNormal);
     const float flipEnvMap = 1.;
@@ -55,6 +68,12 @@ const fragmentShader = `\
 
     vec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );
     gl_FragColor = envColor;
+
+    float d = distanceToPoint(plane, cameraPosition);
+    gl_FragColor.a = 1.0 - smoothstep(0.0, 15.0, d);
+    if (gl_FragColor.a <= 0.0) {
+      discard;
+    }
   }
 `;
 
@@ -90,10 +109,15 @@ class ScenePreviewer {
             value: cubeRenderTarget.texture,
             needsUpdate: true,
           },
+          plane: {
+            value: new THREE.Vector4(0, 0, 0, 0),
+            needsUpdate: false,
+          },
         },
         vertexShader,
         fragmentShader,
         side: THREE.BackSide,
+        transparent: true,
       });
       /* const skyboxMaterial = new THREE.MeshBasicMaterial({
         envMap: cubeRenderTarget.texture,
@@ -103,6 +127,18 @@ class ScenePreviewer {
         debugger;
       }; */
       const skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+      skyboxMesh.onBeforeRender = () => {
+        const position = new THREE.Vector3();
+        const quaternion = new THREE.Quaternion();
+        const scale = new THREE.Vector3(1, 1, 1);
+        this.mesh.matrixWorld.decompose(position, quaternion, scale);
+
+        const normal = new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion);
+        localPlane.setFromNormalAndCoplanarPoint(normal, position);
+        
+        _planeToVector4(localPlane, this.mesh.material.uniforms.plane.value);
+        this.mesh.material.uniforms.plane.needsUpdate = true;
+      };
       return skyboxMesh;
     };
     this.mesh = _makeSkyboxMesh();
