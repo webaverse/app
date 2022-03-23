@@ -1,18 +1,6 @@
 import * as THREE from 'three';
-import {ShaderLib} from 'three/src/renderers/shaders/ShaderLib.js';
-import {UniformsUtils} from 'three/src/renderers/shaders/UniformsUtils.js';
-// import * as ThreeVrm from '@pixiv/three-vrm';
-// const {MToonMaterial} = ThreeVrm;
-// window.ThreeVrm = ThreeVrm;
-// import easing from './easing.js';
-// import {StreetGeometry} from './StreetGeometry.js';
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useRenderer, useCamera, useMaterials, useCleanup} = metaversefile;
-
-// const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
-
-// const localVector = new THREE.Vector3();
-// const localQuaternion = new THREE.Quaternion();
 
 const resolution = 2048;
 const worldSize = 100;
