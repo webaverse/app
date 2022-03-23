@@ -132,63 +132,11 @@ export default e => {
   //
   
   const skyboxGeometry = new THREE.SphereGeometry(worldSize, 64, 32);
-  // skyboxGeometry.deleteAttribute('normal');
-  // skyboxGeometry.deleteAttribute('uv');
-
-  const uniforms = UniformsUtils.clone(ShaderLib.cube.uniforms);
-  // console.log('got uniforms', uniforms);
-  // uniforms.envMap.value = null;
-
-  const vertex = /* glsl */`
-  varying vec3 vWorldDirection;
-  // #include <common>
-  void main() {
-    vWorldDirection = transformDirection( position, modelMatrix );
-    #include <begin_vertex>
-    #include <project_vertex>
-    gl_Position.z = gl_Position.w; // set z to camera.far
-  }
-  `;
-  const fragment = /* glsl */`
-  #include <envmap_common_pars_fragment>
-  uniform float opacity;
-  varying vec3 vWorldDirection;
-  #include <cube_uv_reflection_fragment>
-  void main() {
-    // gl_FragColor = vec4(1., 0., 0., 1.);
-    vec3 vReflect = vWorldDirection;
-    #include <envmap_fragment>
-    gl_FragColor = envColor;
-    gl_FragColor.a *= opacity;
-    #include <tonemapping_fragment>
-    #include <encodings_fragment>
-  }
-  `;
-  
-  const skyboxMaterial = new WebaverseShaderMaterial({
-    // name: 'BackgroundCubeMaterial',
-    uniforms,
-    vertexShader: vertex,
-    fragmentShader: fragment,
-    // side: THREE.BackSide,
-    // depthTest: false,
-    // depthWrite: false,
-    // fog: false,
-  });
-  Object.defineProperty(skyboxMaterial, 'envMap', {
-    get: function() {
-      return this.uniforms.envMap.value;
-    },
-  });
-  skyboxMaterial.uniforms.envMap.value = cubeRenderTarget.texture;
-  // skyboxMaterial.uniforms.flipEnvMap.value = true;
-  // window.cubeRenderTarget = cubeRenderTarget;
-
-  const m = new THREE.MeshBasicMaterial({
+  const skyboxMaterial = new THREE.MeshBasicMaterial({
     side: THREE.BackSide,
     envMap: cubeRenderTarget.texture,
   });
-  const skyboxMesh = new THREE.Mesh(skyboxGeometry, m);
+  const skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
   skyboxMesh.frustumCulled = false;
   skyboxMesh.position.copy(previewPosition);
   app.add(skyboxMesh);
