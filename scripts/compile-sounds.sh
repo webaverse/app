@@ -28,5 +28,3 @@ cat sound-files.txt | while read f; do
   echo "$a $f" | tee -a sounds.txt
 done;
 node -e 'offset = 0; a = require("fs").readFileSync("./sounds.txt", "utf8").split("\n").filter(l => !!l).map(s => {m = s.match(/^([0-9\.]+) (.+)$/); duration = parseFloat(m[1]); name = m[2]; r = {name,offset,duration}; offset += duration; return r;}); console.log(JSON.stringify(a, null, 2))' >sound-files.json
-
-find . -name '*-pad.wav' | xargs -d '\n' rm
