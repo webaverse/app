@@ -31,6 +31,7 @@ export default e => {
       ]
     },
     {
+      name: 'battalion',
       type: 'app',
       position: [0, 0, -300],
       quaternion: [0, 1, 0, 0],
