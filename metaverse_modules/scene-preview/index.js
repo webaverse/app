@@ -90,6 +90,7 @@ export default e => {
   // app.add(cubeCamera);
   // cubeCamera.updateMatrixWorld();
   
+  let rendered = false;
   useFrame(() => {
     /* // push old state
     const oldRenderTarget = renderer.getRenderTarget();
@@ -100,7 +101,7 @@ export default e => {
     // pop old state
     renderer.setRenderTarget(oldRenderTarget); */
 
-    if (subScene) {
+    if (subScene && !rendered) {
       // push state
       // const oldParent = subScene.parent;
       // skyboxMesh.visible = false;
