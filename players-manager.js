@@ -80,11 +80,13 @@ class PlayersManager {
       this.unbindStateFn = this.playersArray.unobserve.bind(this.playersArray, playersObserveFn);
     }
   }
-  update(timestamp, timeDiff) {
-    for (const remotePlayer of this.remotePlayers.values()) {
-      remotePlayer.updateAvatar(timestamp, timeDiff);
-    }
-  }
+  
+  // updates now handled by vrm template, will likely remove
+  // update(timestamp, timeDiff) {
+  //   for (const remotePlayer of this.remotePlayers.values()) {
+  //     remotePlayer.updateAvatar(timestamp, timeDiff);
+  //   }
+  // }
 }
 const playersManager = new PlayersManager();
 

@@ -8,13 +8,11 @@ import Avatar from './avatars/avatars.js';
 import * as sounds from './sounds.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
-import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as blockchain from './blockchain.js';
 import cameraManager from './camera-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
-import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
 import loadoutManager from './loadout-manager.js';
@@ -305,8 +303,6 @@ export default class Webaverse extends EventTarget {
 
           transformControls.update();
           game.update(timestamp, timeDiffCapped);
-
-          playersManager.update(timestamp, timeDiffCapped);
 
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
