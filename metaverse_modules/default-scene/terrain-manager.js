@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { terrainMaterial } from './material.js';
+import { terrainMaterial } from './toonMaterial.js';
 
 export class TerrainManager {
 
@@ -24,8 +24,8 @@ export class TerrainManager {
 		this.vertexBufferSizeParam = 20;
 		this.indexBufferSizeParam = 20;
 
-		this.onAddChunk = () => {};
-		this.onRemoveChunks = () => {};
+		this.onAddChunk = () => { };
+		this.onRemoveChunks = () => { };
 
 		this.init();
 	}
@@ -48,25 +48,25 @@ export class TerrainManager {
 		this.indexAttribute.array = this.bufferFactory.indices;
 		this.indexAttribute.itemSize = 1;
 		this.indexAttribute.count = this.bufferFactory.indices.length;
-		this.indexAttribute.setUsage( THREE.DynamicDrawUsage );
+		this.indexAttribute.setUsage(THREE.DynamicDrawUsage);
 
 		this.positionAttribute = new THREE.Float32BufferAttribute();
 		this.positionAttribute.array = this.bufferFactory.positions;
 		this.positionAttribute.itemSize = 3;
 		this.positionAttribute.count = this.bufferFactory.positions.length / 3;
-		this.positionAttribute.setUsage( THREE.DynamicDrawUsage );
+		this.positionAttribute.setUsage(THREE.DynamicDrawUsage);
 
 		this.normalAttribute = new THREE.Float32BufferAttribute();
 		this.normalAttribute.array = this.bufferFactory.normals;
 		this.normalAttribute.itemSize = 3;
 		this.normalAttribute.count = this.bufferFactory.normals.length / 3;
-		this.normalAttribute.setUsage( THREE.DynamicDrawUsage );
+		this.normalAttribute.setUsage(THREE.DynamicDrawUsage);
 
 		this.biomeAttribute = new THREE.Float32BufferAttribute();
 		this.biomeAttribute.array = this.bufferFactory.biomes;
 		this.biomeAttribute.itemSize = 3;
 		this.biomeAttribute.count = this.bufferFactory.biomes.length;
-		this.biomeAttribute.setUsage( THREE.DynamicDrawUsage );
+		this.biomeAttribute.setUsage(THREE.DynamicDrawUsage);
 
 		this.geometry.setIndex(this.indexAttribute);
 		this.geometry.setAttribute('position', this.positionAttribute);

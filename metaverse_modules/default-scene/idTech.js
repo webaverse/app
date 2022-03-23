@@ -15,8 +15,7 @@ export class IDTech {
         this.texture.type = THREE.UnsignedByteType;
         this.texture.minFilter = THREE.LinearMipMapLinearFilter
         this.texture.magFilter = THREE.LinearFilter
-        this.texture.generateMipmaps = true; 
-        // this.texture.encoding = THREE.sRGBEncoding;
+        this.texture.generateMipmaps = true;  
         this.loadDic = {};
     }
 
