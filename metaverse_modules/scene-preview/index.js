@@ -5,7 +5,7 @@ const {useApp, useScenePreviewer, useInternals} = metaversefile;
 export default e => {
   const app = useApp();
   const {ScenePreviewer} = useScenePreviewer();
-  const {sceneHighPriority, sceneLowPriority} = useInternals();
+  // const {sceneHighPriority, sceneLowPriority} = useInternals();
 
   app.name = 'scene-preview';
 
@@ -22,14 +22,15 @@ export default e => {
   previewContainer.matrixWorld.decompose(previewContainer.position, previewContainer.quaternion, previewContainer.scale);
 
   mesh.position.copy(previewPosition);
-  mesh.quaternion.copy(previewQuaternion)
-    .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-  sceneHighPriority.add(mesh);
+  mesh.quaternion.copy(previewQuaternion);
+  app.add(mesh);
   mesh.updateMatrixWorld();
 
   e.waitUntil((async () => {
     await scenePreviewer.loadScene(sceneUrl);
   })());
+
+  // app.setComponent('renderPriority', 'low');
 
   return app;
 };
