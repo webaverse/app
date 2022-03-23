@@ -72,6 +72,21 @@
     },
     {
       "position": [
+        -26,
+        0,
+        -2
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/app/public/avatars/scillia_drophunter_v15_vian.vrm",
+      "dynamic": true
+    },
+    {
+      "position": [
         2,
         1,
         0
@@ -210,29 +225,6 @@
             [-150, -150, -450],
             [150, 150, -150]
           ]
-        }
-      ]
-    },
-    {
-      "position": [0, 0, 0],
-      "quaternion": [0, 0, 0, 1],
-      "start_url": "../metaverse_modules/scene-preview/",
-      "components": [
-        {
-          "key": "position",
-          "value": [0, 0, -300]
-        },
-        {
-          "key": "quaternion",
-          "value": [0, 1, 0, 0]
-        },
-        {
-          "key": "previewPosition",
-          "value": [0, 0, -150]
-        },
-        {
-           "key": "sceneUrl",
-           "value": "./scenes/battalion.scn"
         }
       ]
     }
