@@ -12,6 +12,9 @@ export default e => {
       name: 'street',
       type: 'scene',
       start_url: './scenes/street.scn',
+      components: {
+        mode: 'detached',
+      },
     },
     {
       name: 'barrier',
