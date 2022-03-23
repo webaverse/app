@@ -33,7 +33,8 @@ class ScenePreviewer {
     this.cubeCamera = cubeCamera;
 
     const _makeSkyboxMesh = () => {
-      const skyboxGeometry = new THREE.SphereGeometry(worldSize, 64, 32);
+      // SphereGeometry( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength )
+      const skyboxGeometry = new THREE.SphereGeometry(worldSize, 64, 32, 0, Math.PI);
       const skyboxMaterial = new THREE.MeshBasicMaterial({
         side: THREE.BackSide,
         envMap: cubeRenderTarget.texture,
