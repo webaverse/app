@@ -46,7 +46,6 @@ export default e => {
 
   let subScene = null;
   e.waitUntil((async () => {
-    // console.log('create app', sceneUrl);
     subScene = await metaversefile.createAppAsync({
       start_url: sceneUrl,
       components: {
@@ -62,7 +61,7 @@ export default e => {
           },
         ],
       },
-      parent: app,
+      parent: previewContainer,
     });
     // console.log('got sub scene', subScene, {position, quaternion, previewPosition});
     // subScene.position.copy(position);
@@ -102,14 +101,13 @@ export default e => {
 
     if (subScene) {
       // push state
-      const oldParent = subScene.parent;
+      // const oldParent = subScene.parent;
       // skyboxMesh.visible = false;
 
       // render
       previewContainer.matrixWorld.copy(app.matrixWorld);
       previewContainer.matrix.copy(app.matrixWorld);
       previewContainer.matrixWorld.decompose(previewContainer.position, previewContainer.quaternion, previewContainer.scale);
-      previewContainer.add(subScene);
       subScene.updateMatrixWorld();
 
       cubeCamera.position.setFromMatrixPosition(skyboxMesh.matrixWorld);
@@ -119,12 +117,12 @@ export default e => {
       cubeCamera.update(renderer, previewScene);
       
       // pop state
-      if (oldParent) {
+      /* if (oldParent) {
         oldParent.add(subScene);
       } else {
         app.add(subScene);
-      }
-      subScene.updateMatrixWorld();
+      } */
+      // subScene.updateMatrixWorld();
       // skyboxMesh.visible = true;
     }
   });
