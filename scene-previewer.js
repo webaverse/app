@@ -95,8 +95,6 @@ class ScenePreviewer {
     this.cubeCamera.update(renderer, this.previewScene);
   }
 };
-// const createScenePreviewer = () => new ScenePreviewer();
 export {
   ScenePreviewer,
-  // createScenePreviewer,
 };
