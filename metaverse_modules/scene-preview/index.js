@@ -58,30 +58,10 @@ export default e => {
   );
   cubeRenderTarget.texture.mapping = THREE.CubeRefractionMapping;
   const cubeCamera = new THREE.CubeCamera(near, camera.far, cubeRenderTarget);
-  // cubeCamera.position.copy(previewPosition);
-  // cubeCamera.updateMatrixWorld();
-  // cubeCamera.position.copy(previewPosition);
-  // cubeCamera.position.y += 200;
-  // app.add(cubeCamera);
-  // cubeCamera.updateMatrixWorld();
   
   let rendered = false;
   useFrame(() => {
-    /* // push old state
-    const oldRenderTarget = renderer.getRenderTarget();
-
-    // renderer.setRenderTarget(cubeRenderTarget);
-    renderer.render(previewScene, cubeCamera);
-
-    // pop old state
-    renderer.setRenderTarget(oldRenderTarget); */
-
     if (subScene && !rendered) {
-      // push state
-      // const oldParent = subScene.parent;
-      // skyboxMesh.visible = false;
-
-      // render
       previewContainer.matrixWorld.copy(app.matrixWorld);
       previewContainer.matrix.copy(app.matrixWorld);
       previewContainer.matrixWorld.decompose(previewContainer.position, previewContainer.quaternion, previewContainer.scale);
@@ -92,15 +72,6 @@ export default e => {
       
       cubeRenderTarget.clear(renderer, true, true, true);
       cubeCamera.update(renderer, previewScene);
-      
-      // pop state
-      /* if (oldParent) {
-        oldParent.add(subScene);
-      } else {
-        app.add(subScene);
-      } */
-      // subScene.updateMatrixWorld();
-      // skyboxMesh.visible = true;
     }
   });
 
