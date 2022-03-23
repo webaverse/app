@@ -78,6 +78,11 @@ export default e => {
     const promises = initObjects.map(async spec => {
       const o = await _loadObject(spec);
       app.add(o);
+      app.children.sort((a, b) => {
+        const aIndex = initObjects.findIndex(o => o.name === a.name);
+        const bIndex = initObjects.findIndex(o => o.name === b.name);
+        return aIndex - bIndex;
+      });
       objects.set(spec.name, o);
       return o;
     });
