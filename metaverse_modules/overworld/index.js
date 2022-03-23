@@ -57,6 +57,7 @@ export default e => {
           mode: 'detached',
         },
       });
+      scene.name = name;
       return scene;
     } else if (type === 'app') {
       const {start_url, position, quaternion, scale, components} = spec;
@@ -67,6 +68,7 @@ export default e => {
         scale,
         components,
       });
+      app.name = name;
       return app;
     } else {
       throw new Error(`unknown object type ${type}`);
