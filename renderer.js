@@ -101,7 +101,7 @@ rootScene.add(sceneLowPriority);
 // const orthographicScene = new THREE.Scene();
 // const avatarScene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 camera.name = 'sceneCamera';
