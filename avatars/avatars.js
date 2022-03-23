@@ -75,8 +75,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 // const localMatrix3 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
-const localVectorIdentity = new THREE.Vector3();
-const localQuaternionIdentity = new THREE.Quaternion();
+const identityVector = new THREE.Vector3();
+const identityQuaternion = new THREE.Quaternion();
 
 const leftQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 const xToZQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1));
@@ -887,31 +887,6 @@ const _makeRagdollMesh = () => {
   };
   object.setFromAvatar = avatar => {
     // if (first) {
-      for (const k in avatar.modelBoneOutputs) {
-        const modelBone = avatar.modelBoneOutputs[k];
-        const meshBone = flatMeshes[k]; // ragdollMesh's
-        if (!meshBone) {
-          continue;
-        }
-
-        modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        localQuaternion.multiply(
-          modelBone.forwardQuaternion
-        );
-        if (k !== 'Hips') {
-          localVector.add(
-            localVector3.set(0, 0, -meshBone.boneLength * 0.5)
-              .applyQuaternion(localQuaternion)
-          );
-          meshBone.matrixWorld.compose(localVector, localQuaternionIdentity, localVector2);
-        } else {
-          // meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
-        }
-        // localVector.z += 1;
-        meshBone.matrix.copy(meshBone.matrixWorld);
-        meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
-      }
-      object.updateMatrixWorld();
 
       // if (first) {
       //   for (const k in avatar.modelBoneOutputs) {
@@ -2449,12 +2424,36 @@ class Avatar {
     // this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, characterId);
     this.ragdollMesh.skeleton = true
 
-    this.ragdollMesh.setFromAvatar(this);
+    // this.ragdollMesh.setFromAvatar(this);
+    for (const k in flatMeshes) {
+      const modelBone = avatar.modelBoneOutputs[k];
+      const meshBone = flatMeshes[k]; // ragdollMesh's
+
+      modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localQuaternion.multiply(
+        modelBone.forwardQuaternion
+      );
+      if (k !== 'Hips') {
+        localVector.add(
+          localVector3.set(0, 0, -meshBone.boneLength * 0.5)
+            .applyQuaternion(localQuaternion)
+        );
+        meshBone.matrixWorld.compose(localVector, identityQuaternion, localVector2);
+      } else {
+        // meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
+      }
+      // localVector.z += 1;
+      meshBone.matrix.copy(meshBone.matrixWorld);
+      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+    }
+    // object.updateMatrixWorld();
+
+    // end setFromAvatar()
 
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k];
       // const center = window.bodyRDHips.position.clone();
-      const center = flatMeshes.Hips.position.clone(); // todo: don't need clone;
+      const center = modelBoneOutputs.Hips.getWorldPosition(new THREE.Vector3());
       // const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0));
       const quat = window.localPlayer.quaternion;
       meshBone.position.sub(center).applyQuaternion(quat);
@@ -2596,17 +2595,44 @@ class Avatar {
     rootScene.children[2].visible = false; // test: hide E tag.
   }
   runRagdoll() {
+
+    // this.ragdollMesh.setFromAvatar(this);
+    for (const k in flatMeshes) {
+      const modelBone = avatar.modelBoneOutputs[k];
+      const meshBone = flatMeshes[k]; // ragdollMesh's
+
+      modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localQuaternion.multiply(
+        modelBone.forwardQuaternion
+      );
+      if (k !== 'Hips') {
+        localVector.add(
+          localVector3.set(0, 0, -meshBone.boneLength * 0.5)
+            .applyQuaternion(localQuaternion)
+        );
+        meshBone.matrixWorld.compose(localVector, identityQuaternion, localVector2);
+      } else {
+        // meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
+      }
+      // localVector.z += 1;
+      meshBone.matrix.copy(meshBone.matrixWorld);
+      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+    }
+    // object.updateMatrixWorld();
+
+    // end setFromAvatar()
+
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k];
       // const center = window.bodyRDHips.position.clone();
-      const center = flatMeshes.Hips.position.clone();
+      const center = modelBoneOutputs.Hips.getWorldPosition(new THREE.Vector3());
       // const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0));
-      const quat = localPlayer.quaternion;
+      const quat = window.localPlayer.quaternion;
       meshBone.position.sub(center).applyQuaternion(quat);
       // meshBone.lookAt(new THREE.Vector3().addVectors(meshBone.position, new THREE.Vector3(1, 0, 0)));
       meshBone.quaternion.multiply(quat);
       meshBone.position.add(center);
-      physicsManager.setTransform(meshBone, true);
+      // physicsManager.setTransform(meshBone, true);
       // setTimeout(() => {
       //   physicsManager.setVelocity(meshBone, new THREE.Vector3(0, 0, 0));
       //   physicsManager.setAngularVelocity(meshBone, new THREE.Vector3(0, 0, 0));
@@ -2616,8 +2642,8 @@ class Avatar {
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k];
       physicsManager.setTransform(meshBone, true);
-      physicsManager.setVelocity(meshBone, localVectorIdentity);
-      physicsManager.setAngularVelocity(meshBone, localVectorIdentity);
+      physicsManager.setVelocity(meshBone, identityVector);
+      physicsManager.setAngularVelocity(meshBone, identityVector);
     }
   }
   update(timestamp, timeDiff) {
