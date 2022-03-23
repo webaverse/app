@@ -17,20 +17,6 @@ export default e => {
       },
     },
     {
-      name: 'barrier',
-      type: 'app',
-      start_url: '../metaverse_modules/barrier/',
-      components: [
-        {
-          key: 'bounds',
-          value: [
-            [-150, -150, -450],
-            [150, 150, -150]
-          ]
-        }
-      ]
-    },
-    {
       name: 'battalion',
       type: 'app',
       position: [0, 0, -300],
@@ -46,6 +32,21 @@ export default e => {
             value: "./scenes/battalion.scn"
         },
       ],
+      renderPriority: -1,
+    },
+    {
+      name: 'barrier',
+      type: 'app',
+      start_url: '../metaverse_modules/barrier/',
+      components: [
+        {
+          key: 'bounds',
+          value: [
+            [-150, -150, -450],
+            [150, 150, -150]
+          ]
+        }
+      ]
     },
   ];
 
@@ -58,6 +59,7 @@ export default e => {
         components,
       });
       scene.name = name;
+      scene.spec = spec;
       return scene;
     } else if (type === 'app') {
       const {position, quaternion, scale} = spec;
@@ -69,6 +71,7 @@ export default e => {
         components,
       });
       app.name = name;
+      app.spec = spec;
       return app;
     } else {
       throw new Error(`unknown object type ${type}`);
@@ -79,9 +82,16 @@ export default e => {
       const o = await _loadObject(spec);
       app.add(o);
       app.children.sort((a, b) => {
-        const aIndex = initObjects.findIndex(o => o.name === a.name);
-        const bIndex = initObjects.findIndex(o => o.name === b.name);
-        return aIndex - bIndex;
+        const aPriority = a.spec.renderPriority ?? 0;
+        const bPriority = b.spec.renderPriority ?? 0;
+        const diff = aPriority - bPriority;
+        if (diff !== 0) {
+          return diff;
+        } else {
+          const aIndex = initObjects.findIndex(o => o.name === a.name);
+          const bIndex = initObjects.findIndex(o => o.name === b.name);
+          return aIndex - bIndex;
+        }
       });
       objects.set(spec.name, o);
       return o;
