@@ -781,7 +781,7 @@ metaversefile.setApi({
   },
   createAppInternal({
     start_url = '',
-    components = {},
+    components = [],
     position = null,
     quaternion = null,
     scale = null,
@@ -808,9 +808,15 @@ metaversefile.setApi({
     }
 
     // components
-    for (const k in components) {
-      const v = components[k];
-      app.setComponent(k, v);
+    if (Array.isArray(components)) {
+      for (const {key, value} of components) {
+        app.setComponent(key, value);
+      }
+    } else if (typeof components === 'object' && components !== null) {
+      for (const key in components) {
+        const value = components[key];
+        app.setComponent(key, value);
+      }
     }
 
     // load
