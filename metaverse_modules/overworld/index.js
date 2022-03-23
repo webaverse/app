@@ -51,13 +51,11 @@ export default e => {
 
   const objects = new Map();
   const _loadObject = async spec => {
-    const {name, type, start_url} = spec;
+    const {name, type, start_url, components} = spec;
     if (type === 'scene') {
       const scene = await metaversefile.createAppAsync({
         start_url,
-        components: {
-          mode: 'detached',
-        },
+        components,
       });
       scene.name = name;
       return scene;
