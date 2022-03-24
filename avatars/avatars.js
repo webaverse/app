@@ -85,6 +85,7 @@ const yToXQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vecto
 
 const textEncoder = new TextEncoder();
 
+const x180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI);
 const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
@@ -2684,9 +2685,35 @@ class Avatar {
     // ).invert()
 
     {
+      const matrix = flatMeshes.Hips.matrixWorld.clone()
+      // matrix.multiply(this.modelBoneOutputs.Root.matrixWorld)
+      // matrix.multiply(this.modelBoneOutputs.Root.matrixWorld.clone().invert())
+      // matrix.premultiply(this.modelBoneOutputs.Root.matrixWorld) // ok too?
+      matrix.premultiply(this.modelBoneOutputs.Root.matrixWorld.clone().invert())
+      matrix.decompose(this.modelBoneOutputs.Hips.position, this.modelBoneOutputs.Hips.quaternion, this.modelBoneOutputs.Hips.scale)
+
+      // this.modelBoneOutputs.Hips.position.applyQuaternion(y180Quaternion)
+      // this.modelBoneOutputs.Hips.quaternion.multiply(this.mod)
+
+      // this.modelBoneOutputs.Hips.quaternion.multiply(
+      //   new THREE.Quaternion().setFromUnitVectors(
+      //     flatMeshes.Hips.getWorldDirection(new THREE.Vector3()),
+      //     flatMeshes.Hips.getWorldDirection(new THREE.Vector3()).negate(),
+      //   )
+      // )
+
+      // this.modelBoneOutputs.Hips.rotation.y += Math.PI
+
+      // this.modelBoneOutputs.Hips.updateMatrixWorld()
+
+      // const up = new THREE.Vector3(0,1,0).applyQuaternion(this.modelBoneOutputs.Hips.quaternion)
+      // const mirrorQuaternion = new THREE.Quaternion().setFromAxisAngle(up, Math.PI)
+      // this.modelBoneOutputs.Hips.quaternion.multiply(mirrorQuaternion)
+      this.modelBoneOutputs.Hips.quaternion.multiply(y180Quaternion)
+
+      this.modelBoneOutputs.Hips.updateMatrixWorld()
+      
       // this.modelBoneOutputs.Hips.position.copy(flatMeshes.Hips.position)
-    }
-    {
       // this.modelBoneOutputs.Hips.parent.matrixWorld.copy(flatMeshes.Hips.matrixWorld)
       // // this.modelBoneOutputs.Hips.matrixWorld.multiply(this.modelBoneOutputs.Hips.parent.matrixWorld.clone().invert())
       // this.modelBoneOutputs.Hips.parent.matrix.copy(this.modelBoneOutputs.Hips.parent.matrixWorld)
