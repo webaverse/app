@@ -142,8 +142,21 @@ uniform float opacity;
 #include <alphatest_pars_fragment>
 #include <aomap_pars_fragment>
 #include <lightmap_pars_fragment>
-#include <emissivemap_pars_fragment>
-#include <gradientmap_pars_fragment>
+#include <emissivemap_pars_fragment> 
+#ifdef USE_GRADIENTMAP 
+	uniform sampler2D gradientMap; 
+#endif
+
+vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) { 
+	// dotNL will be from -1.0 to 1.0
+	float dotNL = dot( normal, lightDirection );
+	vec2 coord = vec2( dotNL * 0.57 + 0.43, 0.0 ); 
+	#ifdef USE_GRADIENTMAP 
+		return texture2D( gradientMap, coord ).rgb; 
+	#else 
+		return (  .x < 0.7 ) ? vec3( 0.7 ) : vec3( 1.0 ); 
+	#endif 
+}
 #include <fog_pars_fragment>
 #include <bsdfs>
 #include <lights_pars_begin>
@@ -250,7 +263,7 @@ uniform float opacity;
             x = x * 2.0 + shift;
             a *= 0.5;
         }
-        return v;
+        return  v ;
     }
 #endif
 
@@ -276,9 +289,8 @@ void main() {
         vec4 terrainColor = biomeAmount * biome0Color + (1.0 - biomeAmount) * biome1Color;
         if (abs(fbiome0 - vbiome0) > 0.01) {
             terrainColor = 0.5 * biome0Color+0.5* biome1Color;
-        }  
-        // terrainColor *= max(( ba+ sin(ba)*ba)*2.0,0.8) ; 
-        terrainColor *= max(ba*2.0,0.8) ; 
+        }   
+        terrainColor *= max(ba*1.75,0.8) ;  
         diffuseColor *= terrainColor; 
     #endif
 
@@ -296,7 +308,7 @@ void main() {
         if (abs(fbiome0 - vbiome0) > 0.01) {
             normalmix =normalize(0.5 * normal0+ 0.5 * normal1) ;
         }   
-        normal =normalmix;// normalize(normal + normalmix );
+        normal = normalize(normal + normalmix *0.5);//normalmix;//
     #endif
 
 	#include <emissivemap_fragment>
