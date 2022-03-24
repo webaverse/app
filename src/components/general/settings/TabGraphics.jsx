@@ -9,8 +9,7 @@ import { Switch } from './switch';
 
 import styles from './settings.module.css';
 
-//
-
+// defaults get modified depending on the users detected GPU tier
 const DefaultSettings = {
     resolution:         'HIGH',
     antialias:          'NONE',
@@ -85,7 +84,20 @@ export const TabGraphics = ({ active }) => {
     async function setDefault() {
       const gpuTier = await getGPUTier();
       console.log('GPU INFO', gpuTier);
-      DefaultSettings.character.details = Object.keys(detailsMap).find(key => detailsMap[key] === gpuTier.tier);
+      const defaultDetail = Object.keys(detailsMap).find(key => detailsMap[key] === gpuTier.tier);
+      const defaultEnabled = detailsMap[defaultDetail] > 2 ? 'ON' : 'Off';
+
+      DefaultSettings.resolution = defaultDetail;
+      DefaultSettings.antialias = defaultDetail;
+      DefaultSettings.viewRange = defaultDetail;
+      DefaultSettings.shadowQuality = defaultDetail;
+      DefaultSettings.postprocessing.enabled = defaultEnabled;
+      DefaultSettings.postprocessing.depthOfField = defaultEnabled;
+      DefaultSettings.postprocessing.hdr = defaultEnabled;
+      DefaultSettings.postprocessing.bloom = defaultEnabled;
+      DefaultSettings.character.details = defaultDetail;
+      DefaultSettings.character.hairPhysics = defaultEnabled;
+
       console.log('set default character details to', DefaultSettings.character.details);
     }
     (async () => { await setDefault(); })();
