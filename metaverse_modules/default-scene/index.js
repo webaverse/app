@@ -32,9 +32,9 @@ export default () => {
 
     terrainManager.onRemoveChunks = async (chunkIds) => {
         physicsIdChunkIdPairs.filter(pair => chunkIds.includes(pair.chunkId))
-        .forEach(pair => {
-            physics.removeGeometry(pair.physicsId);
-        });
+            .forEach(pair => {
+                physics.removeGeometry(pair.physicsId);
+            });
 
         physicsIdChunkIdPairs = physicsIdChunkIdPairs.filter(pair => !chunkIds.includes(pair.chunkId));
     };
@@ -58,6 +58,8 @@ export default () => {
 
         terrainManager.updateCenter(player.position);
         terrainManager.updateChunk();
+ 
+        water.material.uniforms['time'].value += 1.0 / 60.0;
     });
 
     rootScene.add(new THREE.AxesHelper(1000))
