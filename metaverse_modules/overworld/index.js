@@ -65,7 +65,7 @@ export default e => {
 
   const objects = new Map();
   const _loadObject = async spec => {
-    const {name, type, start_url, components} = spec;
+    const {name, type, start_url, components, renderPriority} = spec;
     if (type === 'scene') {
       const scene = await metaversefile.createAppAsync({
         start_url,
@@ -84,28 +84,31 @@ export default e => {
         components,
       });
       app.name = name;
-      app.spec = spec;
+      app.renderPriority = renderPriority ?? 0;
       return app;
     } else {
       throw new Error(`unknown object type ${type}`);
     }
   };
+  const _sortApps = () => {
+    app.children.sort((a, b) => {
+      const aPriority = a.renderPriority;
+      const bPriority = b.renderPriority;
+      const diff = aPriority - bPriority;
+      if (diff !== 0) {
+        return diff;
+      } else {
+        const aIndex = initObjects.findIndex(o => o.name === a.name);
+        const bIndex = initObjects.findIndex(o => o.name === b.name);
+        return aIndex - bIndex;
+      }
+    });
+  };
   e.waitUntil((async () => {
     const promises = initObjects.map(async spec => {
       const o = await _loadObject(spec);
       app.add(o);
-      app.children.sort((a, b) => {
-        const aPriority = a.spec.renderPriority ?? 0;
-        const bPriority = b.spec.renderPriority ?? 0;
-        const diff = aPriority - bPriority;
-        if (diff !== 0) {
-          return diff;
-        } else {
-          const aIndex = initObjects.findIndex(o => o.name === a.name);
-          const bIndex = initObjects.findIndex(o => o.name === b.name);
-          return aIndex - bIndex;
-        }
-      });
+      _sortApps();
       objects.set(spec.name, o);
       return o;
     });
@@ -115,6 +118,10 @@ export default e => {
     const battalion = objects.get('battalion');
     const barrier = objects.get('barrier');
     barrier.addEventListener('collision', e => {
+      battalion.renderPriority = 0;
+      street.renderPriority = -1;
+      _sortApps();
+      
       battalion.setFocus(true);
       street.setFocus(false);
     });
