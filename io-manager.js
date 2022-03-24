@@ -567,12 +567,18 @@ ioManager.keydown = e => {
     }
     case 72: { // H
       game.toggleDebug(!game.debugMode);
+      const localPlayer = metaversefile.useLocalPlayer();
+      if (localPlayer.avatar) {
+        localPlayer.avatar.ragdoll = true;
+        localPlayer.avatar.createRagdoll();
+      }
       break;
     }
     case 78: { // N
       const localPlayer = metaversefile.useLocalPlayer();
       if (localPlayer.avatar) {
-        localPlayer.avatar.ragdoll = !localPlayer.avatar.ragdoll;
+        // localPlayer.avatar.ragdoll = !localPlayer.avatar.ragdoll;
+        localPlayer.avatar.runRagdoll();
       }
       break;
     }
