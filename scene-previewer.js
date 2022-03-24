@@ -230,13 +230,27 @@ class ScenePreviewer extends THREE.Object3D {
     this.previewContainer.scale.copy(this.scale);
     this.previewContainer.matrix.copy(this.matrix);
     this.previewContainer.matrixWorld.copy(this.matrixWorld);
-  
+    
+    if (this.scene) {
+      const apps = this.scene.children;
+      for (const app of apps) {
+        app.setComponent('rendering', true);
+      }
+    }
+
     return () => {
       this.previewContainer.position.copy(oldPosition);
       this.previewContainer.quaternion.copy(oldQuaternion);
       this.previewContainer.scale.copy(oldScale);
       this.previewContainer.matrix.copy(oldMatrix);
       this.previewContainer.matrixWorld.copy(oldMatrixWorld);
+    
+      if (this.scene) {
+        const apps = this.scene.children;
+        for (const app of apps) {
+          app.setComponent('rendering', false);
+        }
+      }
     };
   }
   render() {
