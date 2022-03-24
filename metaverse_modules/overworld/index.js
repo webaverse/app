@@ -106,6 +106,14 @@ export default e => {
       return o;
     });
     await Promise.all(promises);
+  
+    const street = objects.get('street');
+    const battalion = objects.get('battalion');
+    const barrier = objects.get('barrier');
+    barrier.addEventListener('collision', e => {
+      battalion.setFocus(true);
+      street.setFocus(false);
+    });
   })());
 
   return app;
