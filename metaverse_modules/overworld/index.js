@@ -16,6 +16,10 @@ export default e => {
       start_url: "../metaverse_modules/scene-preview/",
       components: [
         {
+          key: "previewPosition",
+          value: [0, 1.5, -150]
+        },
+        {
           key: "sceneUrl",
           value: "./scenes/street.scn"
         },
@@ -34,7 +38,7 @@ export default e => {
       components: [
         {
           key: "previewPosition",
-          value: [0, 0, -150]
+          value: [0, 1.5, -150]
         },
         {
           key: "sceneUrl",
