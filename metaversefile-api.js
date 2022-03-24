@@ -10,6 +10,7 @@ import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
+import settingsManager from './settings-manager.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
@@ -705,6 +706,9 @@ metaversefile.setApi({
   },
   useProcGen() {
     return procgen;
+  },
+  useSettingsManager() {
+    return settingsManager;
   },
   useCameraManager() {
     return cameraManager;
