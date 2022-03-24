@@ -190,11 +190,6 @@
       "start_url": "https://avaer.github.io/poster/.metaversefile"
     },
     {
-      "position": [-1, 1, -1],
-      "quaternion": [0, 0, 0, 1],
-      "start_url": "https://webaverse.github.io/arrow-loader/"
-    },
-    {
       "position": [-5, 4, -6],
       "quaternion": [
         0,
