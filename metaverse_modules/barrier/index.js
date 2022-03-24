@@ -528,7 +528,8 @@ export default () => {
 
   const localPlayer = useLocalPlayer();
   const lastPosition = localPlayer.position.clone();
-  const cooldownTime = 2000;
+  // const cooldownTime = 2000;
+  const cooldownTime = 0;
   useFrame(({timestamp, timeDiff}) => {
     const timestampS = timestamp/1000;
     const timeDiffS = timeDiff/1000;
