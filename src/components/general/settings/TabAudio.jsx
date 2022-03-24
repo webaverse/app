@@ -5,6 +5,7 @@ import { voicePacksUrl, voiceEndpointsUrl } from '../../../../constants';
 import game from '../../../../game';
 import { Slider } from './slider';
 import * as voices from '../../../../voices';
+import metaversefileApi from '../../../../metaversefile-api';
 
 import styles from './settings.module.css';
 
@@ -55,13 +56,14 @@ export const TabAudio = ({ active }) => {
             voiceEndpoint:  voiceEndpoint,
         };
 
-        localStorage.setItem( 'AudioSettings', JSON.stringify( settings ) );
+        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('audioSettingsChanged', { data: settings }));
 
     };
 
     function loadSettings () {
 
-        const settingsString = localStorage.getItem( 'AudioSettings' );
+        const settingsString = metaversefileApi.useSettingsManager().getSettings('AudioSettings');
+
         let settings;
 
         try {

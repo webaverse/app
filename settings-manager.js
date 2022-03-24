@@ -17,6 +17,11 @@ class SettingsManager extends EventTarget {
       this.#setSettings('AiSettings', settings);
     });
 
+    this.addEventListener('audioSettingsChanged', e => {
+      const settings = e.data;
+      this.#setSettings('AudioSettings', settings);
+    });
+
 
   }
 
