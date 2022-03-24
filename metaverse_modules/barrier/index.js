@@ -441,7 +441,7 @@ export default () => {
               fragColor = vec4(vec3(c), b);
 
               if (darkening <= 0.0) {
-                fragColor.a *= 0.5;
+                fragColor.a *= 0.2;
               }
               fragColor.a *= dimming;
 
