@@ -76,7 +76,7 @@ const fragmentShader = `\
     gl_FragColor = envColor;
 
     float d = distanceToPoint(plane, cameraPosition);
-    gl_FragColor.a = 1.0 - smoothstep(0.0, 15.0, d);
+    gl_FragColor.a = 1.0 - smoothstep(0.0, 20.0, d);
     if (gl_FragColor.a <= 0.0) {
       discard;
     }
