@@ -1,20 +1,36 @@
 
 .heathBarWrapper {
     position: absolute;
-    top: 35px;
-    left: 75px;
-    width: 200px;
-    height: 60px;
+    top: 10px;
+    left: 40px;
+    width: 250px;
+    height: 80px;
     background-size: 100% 100%;
     background-image: url(./images/health-bar.png);
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+/*  */
+
+.healthBarTitle {
+    position: absolute;
+    top: 20px;
+    left: 32px;
+    width: 25px;
+    padding: 3px 0px;
+    text-align: center;
+    color: rgb(214, 16, 16);
+    font-weight: bold;
+    font-size: 9px;
+    background-color: #000;
 }
 
 .healthProgressWrapper {
     position: absolute;
-    top: 8px;
-    left: 63px;
-    width: 107px;
-    height: 6px;
+    top: 28px;
+    left: 57px;
+    width: 145px;
+    height: 3px;
 }
 
 .healthProgressWrapper .progress {
@@ -23,23 +39,69 @@
     left: 0px;
     width: 0%;
     height: 100%;
-    background-color: rgb(19, 169, 31);
+    background-color: rgb(214, 16, 16);
 }
 
-.healthValueText {
-    position: absolute;
-    right: 30px;
-    bottom: 15px;
-    color: #000;
-    font-size: 20px;
-    letter-spacing: 1px;
-}
+/*  */
 
-.healthBarTitle {
+.manaBarTitle {
     position: absolute;
-    top: 5px;
-    left: 35px;
-    color: rgb(231, 253, 29);
+    top: 33px;
+    left: 32px;
+    width: 25px;
+    padding: 3px 0px;
+    text-align: center;
+    color: rgb(104, 93, 255);
     font-weight: bold;
-    font-weight: 25px;
+    font-size: 9px;
+    background-color: #000;
+}
+
+.manaProgressWrapper {
+    position: absolute;
+    top: 41px;
+    left: 57px;
+    width: 145px;
+    height: 3px;
+}
+
+.manaProgressWrapper .progress {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 0%;
+    height: 100%;
+    background-color: rgb(104, 93, 255);
+}
+
+/*  */
+
+.xpBarTitle {
+    position: absolute;
+    top: 46px;
+    left: 32px;
+    width: 25px;
+    padding: 3px 0px;
+    text-align: center;
+    color: rgb(77 234 85);
+    font-weight: bold;
+    font-size: 9px;
+    background-color: #000;
+}
+
+.xpProgressWrapper {
+    position: absolute;
+    top: 54px;
+    left: 57px;
+    width: 145px;
+    height: 3px;
+}
+
+.xpProgressWrapper .progress {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 0%;
+    height: 100%;
+    background-color: rgb(77 234 85);
 }

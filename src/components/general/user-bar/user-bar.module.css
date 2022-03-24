@@ -16,8 +16,8 @@
 .userBar .userAvatar {
     position: relative;
     float: left;
-    width: 84px;
-    height: 84px;
+    width: 75px;
+    height: 75px;
     border: 1px solid #000;
     z-index: 2;
     cursor: pointer;
