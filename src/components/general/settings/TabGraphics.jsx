@@ -80,7 +80,7 @@ export const TabGraphics = ({active}) => {
     async function setDefault() {
       const gpuTier = await getGPUTier();
       console.log('GPU INFO', gpuTier);
-      const defaultDetail = Object.keys(detailsMap).find(key => detailsMap[key] === gpuTier.tier);
+      const defaultDetail = Object.keys(detailsMap).find(key => detailsMap[key] === gpuTier.tier + 1);
       const defaultEnabled = detailsMap[defaultDetail] > 2 ? 'ON' : 'Off';
 
       DefaultSettings.resolution = defaultDetail;
