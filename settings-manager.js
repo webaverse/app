@@ -6,6 +6,13 @@ class SettingsManager extends EventTarget {
       const settings = e.data;
       this.#setSettings('GfxSettings', settings);
     });
+
+    this.addEventListener('controlSettingsChanged', e => {
+      const settings = e.data;
+      this.#setSettings('ControlsSettings', settings);
+    });
+
+
   }
 
   getSettings(key) {

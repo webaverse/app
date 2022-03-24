@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import classNames from 'classnames';
 
 import { KeyInput } from './key-input';
+import metaversefileApi from '../../../../metaversefile-api';
 
 import styles from './settings.module.css';
 
@@ -55,13 +56,14 @@ export const TabControls = ({ active }) => {
             inventory
         };
 
-        localStorage.setItem( 'ControlsSettings', JSON.stringify( settings ) );
+        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('controlSettingsChanged', { data: settings }));        
 
     };
 
     function loadSettings () {
 
-        const settingsString = localStorage.getItem( 'ControlsSettings' );
+        const settingsString = metaversefileApi.useSettingsManager().getSettings('ControlsSettings');
+
         let settings;
 
         try {
