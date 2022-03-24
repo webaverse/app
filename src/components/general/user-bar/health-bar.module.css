@@ -1,10 +1,13 @@
 
 @keyframes pulse {
-    from {
-        background-position: 0px 0px;
+    0% {
+        background-position: 0% 0%;
     }
-    to {
-        background-position: 0px 100px;
+    50% {
+        background-position: 100% 0%;
+    }
+    100% {
+        background-position: 0% 0%;
     }
 }
 
@@ -48,9 +51,9 @@
     left: 0px;
     width: 0%;
     height: 100%;
-    background: linear-gradient( 90deg, rgb(150, 13, 13) 0%, rgb(230, 16, 16) 100% );
-    animation: pulse 1s infinite;
-    transition: background-position 1s ease;
+    background: linear-gradient( 90deg, rgb(133, 6, 6) 0%, rgb(255, 70, 70) 100% );
+    animation: pulse 3s ease infinite;
+    background-size: 150% 100%;
 }
 
 /*  */
@@ -83,6 +86,8 @@
     width: 0%;
     height: 100%;
     background: linear-gradient( 90deg, rgb(49, 41, 165) 0%, rgb(104, 93, 255) 100% );
+    animation: pulse 3s ease infinite;
+    background-size: 150% 100%;
 }
 
 /*  */
@@ -115,4 +120,6 @@
     width: 0%;
     height: 100%;
     background: linear-gradient( 90deg, rgb(37, 138, 42) 0%, rgb(77 234 85) 100% );
+    animation: pulse 3s ease infinite;
+    background-size: 150% 100%;
 }
