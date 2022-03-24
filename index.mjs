@@ -17,7 +17,7 @@ const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.te
 const _tryReadFile = p => {
   try {
     return fs.readFileSync(p);
-  } catch(err) {
+  } catch (err) {
     // console.warn(err);
     return null;
   }
@@ -61,7 +61,7 @@ const _proxyUrl = (req, res, u) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     const o = url.parse(req.originalUrl, true);
-    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query['import'] === undefined) {
+    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
@@ -85,7 +85,7 @@ const _proxyUrl = (req, res, u) => {
         req.originalUrl = u;
         next();
       }
-    } else if (o.query['noimport'] !== undefined) {
+    } else if (o.query.noimport !== undefined) {
       const p = path.join(cwd, path.resolve(o.pathname));
       const rs = fs.createReadStream(p);
       rs.on('error', err => {
@@ -101,7 +101,7 @@ const _proxyUrl = (req, res, u) => {
       rs.pipe(res);
       // _proxyUrl(req, res, req.originalUrl);
     } else if (/^\/login/.test(o.pathname)) {
-      req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
+      req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
       next();
@@ -117,16 +117,16 @@ const _proxyUrl = (req, res, u) => {
   const viteServer = await vite.createServer({
     server: {
       middlewareMode: 'html',
-      force:true,
+      force: true,
       hmr: {
         server: httpServer,
         port,
         overlay: false,
       },
-    }
+    },
   });
   app.use(viteServer.middlewares);
-  
+
   await new Promise((accept, reject) => {
     httpServer.listen(port, '0.0.0.0', () => {
       accept();
@@ -134,7 +134,7 @@ const _proxyUrl = (req, res, u) => {
     httpServer.on('error', reject);
   });
   console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
-  
+
   const wsServer = (() => {
     if (isHttps) {
       return https.createServer(certs);
@@ -146,7 +146,7 @@ const _proxyUrl = (req, res, u) => {
     const s = fs.readFileSync('./scenes/gunroom.scn', 'utf8');
     const j = JSON.parse(s);
     const {objects} = j;
-    
+
     const appsMapName = 'apps';
     const result = {
       [appsMapName]: [],
