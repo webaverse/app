@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { getGPUTier } from 'detect-gpu';
 import classNames from 'classnames';
 
 import game from '../../../../game.js';
@@ -46,6 +47,13 @@ export const TabGraphics = ({ active }) => {
 
     //
 
+    const detailsMap = {
+        ULTRA: 4,
+        HIGH: 3,
+        MEDIUM: 2,
+        LOW: 1,
+    };
+
     function saveSettings () {
 
         const settings = {
@@ -74,12 +82,21 @@ export const TabGraphics = ({ active }) => {
         const settingsString = localStorage.getItem( 'GfxSettings' );
         let settings;
 
+    async function setDefault() {
+      const gpuTier = await getGPUTier();
+      console.log('GPU INFO', gpuTier);
+      DefaultSettings.character.details = Object.keys(detailsMap).find(key => detailsMap[key] === gpuTier.tier);
+      console.log('set default character details to', DefaultSettings.character.details);
+    }
+    (async () => { await setDefault(); })();
+        
+
         try {
 
             settings = JSON.parse( settingsString );
-
+            
         } catch ( err ) {
-
+            
             settings = DefaultSettings;
 
         }
@@ -103,10 +120,7 @@ export const TabGraphics = ({ active }) => {
 
         // set avatar style
 
-        let avatarStyle = 4;
-        if ( characterDetails === 'HIGH' ) avatarStyle = 3;
-        if ( characterDetails === 'MEDIUM' ) avatarStyle = 2;
-        if ( characterDetails === 'LOW' ) avatarStyle = 1;
+        const avatarStyle = detailsMap[characterDetails];
 
         const localPlayer = metaversefileApi.useLocalPlayer();
 
