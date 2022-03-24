@@ -795,13 +795,13 @@ const _makeRagdollMesh = () => {
   const flatMesh = new THREE.Object3D();
   flatMesh.name = 'flatMesh';
   for (const k in flatMeshes) {
-    flatMesh.add(flatMeshes[k]);
+    flatMesh.add(flatMeshes[k]); // note
   }
   const modelBoneToFlatMeshBoneMap = new Map();
 
   const object = new THREE.Object3D(); // === ragdollMesh
   object.name = 'ragdollMesh';
-  object.add(flatMesh);
+  object.add(flatMesh); // note
 
   object.wrapToAvatar = avatar => {
     // avatar.modelBoneOutputs.Root.updateMatrixWorld();
