@@ -7,7 +7,7 @@ import metaversefile from 'metaversefile';
 
 const resolution = 2048;
 const worldSize = 10000;
-const near = 10;
+const near = 0.1;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
