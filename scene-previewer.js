@@ -168,14 +168,11 @@ class ScenePreviewer extends THREE.Object3D {
       start_url: sceneUrl,
       components: {
         mode: 'detached',
+        paused: !this.focused,
         objectComponents: [
           {
             key: 'physics',
             value: true,
-          },
-          {
-            key: 'paused',
-            value: !this.focused,
           },
         ],
       },
