@@ -143,8 +143,8 @@ export default e => {
       street.renderPriority = -1;
       _sortApps();
       
-      battalion.setFocus(true);
       street.setFocus(false);
+      battalion.setFocus(true);
 
       barrier1backward.peerCooldown();
 
@@ -156,8 +156,8 @@ export default e => {
       street.renderPriority = 0;
       _sortApps();
       
-      street.setFocus(true);
       battalion.setFocus(false);
+      street.setFocus(true);
 
       barrier1forward.peerCooldown();
 
