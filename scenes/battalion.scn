@@ -50,7 +50,7 @@
     {
       "type": "application/spawnpoint",
       "content": {
-        "position": [0, 35, -70],
+        "position": [0, 35, 74],
         "quaternion": [0, 1, 0, 0]
       }
     },
@@ -66,7 +66,7 @@
       "position": [
         -2,
         35,
-        -70
+        74
       ],
       "quaternion": [
         0,
@@ -98,7 +98,7 @@
       "position": [
         2,
         33.5,
-        -70
+        74
       ],
       "quaternion": [
         0,
@@ -112,7 +112,7 @@
       "position": [
         0,
         33.5,
-        -53
+        91
       ],
       "quaternion": [
         0,
@@ -130,7 +130,7 @@
       "position": [
         0,
         40.3,
-        24
+        168
       ],
       "start_url": "https://webaverse.github.io/turret/"
     },
@@ -138,7 +138,7 @@
       "position": [
         0,
         0,
-        6
+        150
       ],
       "start_url": "https://webaverse.github.io/dreadnought/"
     },
@@ -146,23 +146,9 @@
       "position": [
         -150,
         20,
-        300
+        320
       ],
       "start_url": "https://webaverse.github.io/dreadnought/"
-    },
-    {
-      "position": [
-        -8,
-        34,
-        -67
-      ],
-      "quaternion": [
-        0,
-        1,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/infinistreet/"
     }
   ]
 }

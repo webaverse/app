@@ -440,7 +440,7 @@ export const MapGen = () => {
 
     // wheel
     useEffect(() => {
-      if ( state.openedPanel === 'MapGen' ) {
+      if ( state.openedPanel === 'MapGenPanel' ) {
         function wheel(e) {
           setRaycasterFromEvent(localRaycaster, e);
           localRaycaster.ray.origin.multiplyScalar(voxelPixelSize);
@@ -476,7 +476,7 @@ export const MapGen = () => {
           unregisterIoEventHandler('wheel', wheel);
         };
       }
-    }, [open, mouseState, position.x, position.z, scale]);
+    }, [state.openedPanel, mouseState, position.x, position.z, scale]);
 
     // click
     useEffect(() => {
