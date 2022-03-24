@@ -71,7 +71,7 @@ export const TabGraphics = ({ active }) => {
 
     function loadSettings () {
 
-        const settingsString = metaversefileApi.useSettingsManager().getGfxSettings();
+        const settingsString = metaversefileApi.useSettingsManager().getSettings('GfxSettings');
         let settings;
 
         try {

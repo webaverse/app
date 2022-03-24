@@ -4,20 +4,20 @@ class SettingsManager extends EventTarget {
 
     this.addEventListener('gfxSettingsChanged', e => {
       const settings = e.data;
-      this.#setGfxSettings(settings);
+      this.#setSettings('GfxSettings', settings);
     });
   }
 
-  getGfxSettings() {
-    return localStorage.getItem('GfxSettings');
+  getSettings(key) {
+    return localStorage.getItem(key);
   }
 
-  getGfxSettingsJson() {
-    return JSON.parse(localStorage.getItem('GfxSettings'));
+  getSettingsJson(key) {
+    return JSON.parse(localStorage.getItem(key));
   }
 
-  #setGfxSettings(settings) {
-    localStorage.setItem('GfxSettings', JSON.stringify(settings));
+  #setSettings(key, settings) {
+    localStorage.setItem(key, JSON.stringify(settings));
   }
 }
 
