@@ -987,21 +987,24 @@ const _makeRagdollMesh = () => {
       // }
       
       // localMatrix.copy(meshBone.fakeBone.matrixWorld);
-      // if (modelBone.parent) {
-      //   localMatrix
-      //     .premultiply(localMatrix2.copy(modelBone.parent.matrixWorld).invert())
-      // }
-      // if (k === 'Hips') {
-      //   localMatrix.decompose(modelBone.position, localQuaternion, modelBone.scale);
-      //   // localQuaternion.multiply(yToXQuaternion)
-      //   modelBone.quaternion.copy(localQuaternion)
-      // } else {
-      //   localMatrix.decompose(localVector, localQuaternion, localVector2);
-      //   // localQuaternion.multiply(yToXQuaternion)
-      //   modelBone.quaternion.copy(localQuaternion)
-      //   // if (window.isTest) modelBone.rotation.x += 1; // need set every frame
-      // }
-      // modelBone.updateMatrixWorld();
+      localMatrix.copy(meshBone.matrixWorld);
+      if (modelBone.parent) {
+        localMatrix
+          .premultiply(localMatrix2.copy(modelBone.parent.matrixWorld).invert())
+      }
+      if (k === 'Hips') {
+        localMatrix.decompose(modelBone.position, modelBone.quaternion, modelBone.scale);
+        // localMatrix.decompose(modelBone.position, localQuaternion, modelBone.scale);
+        // // localQuaternion.multiply(yToXQuaternion)
+        // modelBone.quaternion.copy(localQuaternion)
+      } else {
+        localMatrix.decompose(localVector, modelBone.quaternion, localVector2);
+        // localMatrix.decompose(localVector, localQuaternion, localVector2);
+        // // localQuaternion.multiply(yToXQuaternion)
+        // modelBone.quaternion.copy(localQuaternion)
+        // if (window.isTest) modelBone.rotation.x += 1; // need set every frame
+      }
+      modelBone.updateMatrixWorld();
     }
   };
   // XXX this can be rewritten to use an allocated buffer from the physics manager
@@ -2646,6 +2649,15 @@ class Avatar {
       physicsManager.setAngularVelocity(meshBone, identityVector);
     }
   }
+  toAvatar() {
+    console.log('toAvatar')
+    for (const k in flatMeshes) {
+      const modelBone = avatar.modelBoneOutputs[k];
+      const meshBone = flatMeshes[k]
+      meshBone.matrix.decompose(modelBone.position, localQuaternion, localVector)
+      modelBone.updateMatrixWorld();
+    }
+  }
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
@@ -3668,6 +3680,10 @@ class Avatar {
     _updateEyeballTarget();
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
+
+    if(this.ragdoll) {
+      // this.ragdollMesh.toAvatar(this)
+    }
 
     if (game.debugMode) {
       // vismark mark
