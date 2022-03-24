@@ -32,7 +32,7 @@ const noiseTexture = textureLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/
 noiseTexture.wrapS = THREE.RepeatWrapping;
 noiseTexture.wrapT = THREE.RepeatWrapping;
 
-export const terrainMaterial = new THREE.MeshToonMaterial({ color: 0xffffff, gradientMap: gradientMaps.fiveTone });;
+export const terrainMaterial = new THREE.MeshToonMaterial({ color: 0xaaccff, gradientMap: gradientMaps.threeTone });;
 
 terrainMaterial.onBeforeCompile = (shader, renderer) => {
     shader.uniforms = shader.uniforms || {};
@@ -276,7 +276,7 @@ void main() {
         vec4 terrainColor = biomeAmount * biome0Color + (1.0 - biomeAmount) * biome1Color;
         if (abs(fbiome0 - vbiome0) > 0.01) {
             terrainColor = 0.5 * biome0Color+0.5* biome1Color;
-        }
+        }  
         // terrainColor *= max(( ba+ sin(ba)*ba)*2.0,0.8) ; 
         terrainColor *= max(ba*2.0,0.8) ; 
         diffuseColor *= terrainColor; 
