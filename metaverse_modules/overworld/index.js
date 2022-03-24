@@ -8,14 +8,6 @@ export default e => {
   app.name = 'overworld';
 
   const initObjects = [
-    /* {
-      name: 'street',
-      type: 'scene',
-      start_url: './scenes/street.scn',
-      components: {
-        mode: 'detached',
-      },
-    }, */
     {
       name: 'street',
       type: 'app',
