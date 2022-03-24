@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import game from '../../../../game.js';
-import metaversefileApi from '../../../../metaversefile-api'
+import metaversefileApi from '../../../../metaversefile-api';
 import { Switch } from './switch';
 
 import styles from './settings.module.css';
@@ -65,13 +65,13 @@ export const TabGraphics = ({ active }) => {
             }
         };
 
-        localStorage.setItem( 'GfxSettings', JSON.stringify( settings ) );
+        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('gfxSettingsChanged', { data: settings }));
 
     };
 
     function loadSettings () {
 
-        const settingsString = localStorage.getItem( 'GfxSettings' );
+        const settingsString = metaversefileApi.useSettingsManager().getGfxSettings();
         let settings;
 
         try {
