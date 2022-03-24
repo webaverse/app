@@ -469,6 +469,7 @@ export default () => {
       barrierMeshes.push(barrierMesh);
       children.push(barrierMesh);
 
+      barrierMesh.boundingBox = new THREE.Box3().setFromObject(barrierMesh);
       barrierMesh.clipPlanes = [
         // top
         new ClippedPlane(
@@ -549,12 +550,14 @@ export default () => {
                 speed: 0,
               };
             } else if (barrierMesh.animationSpec.type === 'cooldown') {
-              barrierMesh.animationSpec = null;
-              
-              const singleUse = _getSingleUse();
-              if (singleUse) {
-                app.remove(barrierMesh);
-                barrierMeshes.splice(barrierMeshes.indexOf(barrierMesh), 1);
+              if (!barrierMesh.boundingBox.containsPoint(localPlayer.position)) {
+                barrierMesh.animationSpec = null;
+                
+                const singleUse = _getSingleUse();
+                if (singleUse) {
+                  app.remove(barrierMesh);
+                  barrierMeshes.splice(barrierMeshes.indexOf(barrierMesh), 1);
+                }
               }
             } else {
               console.warn('unknown animation type', type);
