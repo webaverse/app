@@ -146,6 +146,8 @@ export default e => {
       battalion.setFocus(true);
       street.setFocus(false);
 
+      barrier1backward.peerCooldown();
+
       /* barriersObject.clear();
       barriersObject.add(barrier1backward); */
     });
@@ -156,6 +158,8 @@ export default e => {
       
       street.setFocus(true);
       battalion.setFocus(false);
+
+      barrier1forward.peerCooldown();
 
       /* barriersObject.clear();
       barriersObject.add(barrier1forward); */
