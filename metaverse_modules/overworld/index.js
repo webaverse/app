@@ -133,10 +133,10 @@ export default e => {
     const barrier1forward = objects.get('barrier1forward');
     const barrier1backward = objects.get('barrier1backward');
 
-    const barriersObject = new THREE.Object3D();
-    app.add(barriersObject);
+    // const barriersObject = new THREE.Object3D();
+    // app.add(barriersObject);
 
-    barriersObject.add(barrier1forward);
+    // barriersObject.add(barrier1forward);
 
     barrier1forward.addEventListener('collision', e => {
       battalion.renderPriority = 0;
@@ -146,12 +146,10 @@ export default e => {
       battalion.setFocus(true);
       street.setFocus(false);
 
-      barriersObject.clear();
-      barriersObject.add(barrier1backward);
+      /* barriersObject.clear();
+      barriersObject.add(barrier1backward); */
     });
-    barrier1backward.addEventListener('collision', e => {
-      // console.log('go back');
-      
+    barrier1backward.addEventListener('collision', e => {  
       battalion.renderPriority = -1;
       street.renderPriority = 0;
       _sortApps();
@@ -159,8 +157,8 @@ export default e => {
       street.setFocus(true);
       battalion.setFocus(false);
 
-      barriersObject.clear();
-      barriersObject.add(barrier1forward);
+      /* barriersObject.clear();
+      barriersObject.add(barrier1forward); */
     });
   })());
 
