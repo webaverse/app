@@ -32,6 +32,8 @@ export default e => {
 
   app.add(sceneObject);
 
+  app.setFocus = scenePreviewer.setFocus.bind(scenePreviewer);
+
   e.waitUntil((async () => {
     await scenePreviewer.loadScene(sceneUrl);
   })());
