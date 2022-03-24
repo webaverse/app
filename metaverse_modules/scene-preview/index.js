@@ -10,21 +10,27 @@ export default e => {
   app.name = 'scene-preview';
 
   const sceneUrl = app.getComponent('sceneUrl') ?? '';
+  const focus = app.getComponent('focus') ?? false;
   const previewPositionArray = app.getComponent('previewPosition') ?? [0, 0, 0];
   const previewPosition = new THREE.Vector3().fromArray(previewPositionArray);
   const previewPositionQuaternion = app.getComponent('previewQuaternion') ?? [0, 0, 0, 1];
   const previewQuaternion = new THREE.Quaternion().fromArray(previewPositionQuaternion);
 
   const scenePreviewer = new ScenePreviewer();
-  const {previewContainer, mesh} = scenePreviewer;
-  previewContainer.matrixWorld.copy(app.matrixWorld);
-  previewContainer.matrix.copy(app.matrixWorld);
-  previewContainer.matrixWorld.decompose(previewContainer.position, previewContainer.quaternion, previewContainer.scale);
+  scenePreviewer.setFocus(focus);
+  const {skyboxMesh, sceneObject} = scenePreviewer;
+  scenePreviewer.matrixWorld.copy(app.matrixWorld);
+  scenePreviewer.matrix.copy(app.matrix);
+  scenePreviewer.position.copy(app.position);
+  scenePreviewer.quaternion.copy(app.quaternion);
+  scenePreviewer.scale.copy(app.scale);
 
-  mesh.position.copy(previewPosition);
-  mesh.quaternion.copy(previewQuaternion);
-  app.add(mesh);
-  mesh.updateMatrixWorld();
+  skyboxMesh.position.copy(previewPosition);
+  skyboxMesh.quaternion.copy(previewQuaternion);
+  app.add(skyboxMesh);
+  skyboxMesh.updateMatrixWorld();
+
+  app.add(sceneObject);
 
   e.waitUntil((async () => {
     await scenePreviewer.loadScene(sceneUrl);
