@@ -163,6 +163,7 @@ class ScenePreviewer extends THREE.Object3D {
       this.detachScene();
     }
     
+    const popPreviewContainerTransform = !this.focused ? this.#pushPreviewContainerTransform() : null;
     this.scene = await metaversefile.createAppAsync({
       start_url: sceneUrl,
       components: {
@@ -180,6 +181,7 @@ class ScenePreviewer extends THREE.Object3D {
       },
       parent: this.previewContainer,
     });
+    popPreviewContainerTransform && popPreviewContainerTransform();
     if (!this.focused) {
       this.render();
     }
@@ -214,10 +216,7 @@ class ScenePreviewer extends THREE.Object3D {
       this.scene.setComponent('paused', !this.focused);
     }
   }
-  render() {
-    const renderer = getRenderer();
-
-    // push old state
+  #pushPreviewContainerTransform() {
     const oldPosition = localVector.copy(this.position);
     const oldQuaternion = localQuaternion.copy(this.quaternion);
     const oldScale = localVector2.copy(this.scale);
@@ -230,9 +229,23 @@ class ScenePreviewer extends THREE.Object3D {
     this.previewContainer.scale.copy(this.scale);
     this.previewContainer.matrix.copy(this.matrix);
     this.previewContainer.matrixWorld.copy(this.matrixWorld);
+  
+    return () => {
+      this.previewContainer.position.copy(oldPosition);
+      this.previewContainer.quaternion.copy(oldQuaternion);
+      this.previewContainer.scale.copy(oldScale);
+      this.previewContainer.matrix.copy(oldMatrix);
+      this.previewContainer.matrixWorld.copy(oldMatrixWorld);
+    };
+  }
+  render() {
+    const renderer = getRenderer();
+
+    // push old state
+    const popPreviewContainerTransform = this.#pushPreviewContainerTransform();
 
     this.cubeCamera.position.setFromMatrixPosition(this.skyboxMesh.matrixWorld);
-    this.cubeCamera.quaternion.setFromRotationMatrix(this.skyboxMesh.matrixWorld);
+    // this.cubeCamera.quaternion.setFromRotationMatrix(this.skyboxMesh.matrixWorld);
     this.cubeCamera.updateMatrixWorld();
 
     // render
@@ -240,11 +253,7 @@ class ScenePreviewer extends THREE.Object3D {
     this.cubeCamera.update(renderer, this.previewScene);
   
     // pop old state
-    this.previewContainer.position.copy(oldPosition);
-    this.previewContainer.quaternion.copy(oldQuaternion);
-    this.previewContainer.scale.copy(oldScale);
-    this.previewContainer.matrix.copy(oldMatrix);
-    this.previewContainer.matrixWorld.copy(oldMatrixWorld);
+    popPreviewContainerTransform();
   }
 };
 export {
