@@ -2650,13 +2650,40 @@ class Avatar {
     }
   }
   toAvatar() {
-    console.log('toAvatar')
-    for (const k in flatMeshes) {
-      const modelBone = avatar.modelBoneOutputs[k];
-      const meshBone = flatMeshes[k]
-      meshBone.matrix.decompose(modelBone.position, localQuaternion, localVector)
-      modelBone.updateMatrixWorld();
-    }
+    // console.log('toAvatar')
+
+    // test
+    // const meshToModelQuaternion = new THREE.Quaternion().setFromUnitVectors(
+    //   flatMeshes.Left_leg.getWorldDirection(new THREE.Vector3()),
+    //   modelBoneOutputs.Left_leg.getWorldDirection(new THREE.Vector3()),
+    // )
+    // const Left_legQuaternion = flatMeshes.Left_leg.quaternion.clone().multiply(meshToModelQuaternion);
+    // console.log(Left_legQuaternion)
+    // console.log(modelBoneOutputs.Left_leg.getWorldQuaternion(new THREE.Quaternion()))
+    // debugger
+    // const Left_kneeQuaternion = flatMeshes.Left_knee.quaternion.clone().multiply(meshToModelQuaternion);
+    // modelBoneOutputs.Left_knee.quaternion.setFromUnitVectors(
+    //   new THREE.Vector3(0,0,1).applyQuaternion(Left_legQuaternion),
+    //   new THREE.Vector3(0,0,1).applyQuaternion(Left_kneeQuaternion)
+    // ).invert()
+    // const Left_legMeshDirection = flatMeshes.Left_leg.getWorldDirection(new THREE.Vector3())
+    // const Left_kneeMeshDirection = flatMeshes.Left_knee.getWorldDirection(new THREE.Vector3())
+    // const Left_legModelDirection = Left_legMeshDirection.applyQuaternion(meshToModelQuaternion)
+    // const Left_kneeModelDirection = Left_kneeMeshDirection.applyQuaternion(meshToModelQuaternion)
+    // modelBoneOutputs.Left_knee.quaternion.setFromUnitVectors(
+    //   Left_legModelDirection,
+    //   Left_kneeModelDirection,
+    // ).invert()
+
+    const angle = flatMeshes.Left_leg.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Left_knee.getWorldDirection(new THREE.Vector3()));
+    this.modelBoneOutputs.Left_knee.rotation.x = angle;
+
+    // for (const k in flatMeshes) {
+    //   const modelBone = avatar.modelBoneOutputs[k];
+    //   const meshBone = flatMeshes[k]
+    //   meshBone.matrix.decompose(modelBone.position, localQuaternion, localVector)
+    //   modelBone.updateMatrixWorld();
+    // }
   }
   update(timestamp, timeDiff) {
     const now = timestamp;
@@ -3410,7 +3437,7 @@ class Avatar {
         }
       }
     };
-    _applyAnimation();
+    // _applyAnimation();
     
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
@@ -3683,6 +3710,7 @@ class Avatar {
 
     if(this.ragdoll) {
       // this.ragdollMesh.toAvatar(this)
+      this.toAvatar();
     }
 
     if (game.debugMode) {
@@ -3733,7 +3761,7 @@ class Avatar {
 
     // this.modelBoneOutputs.Root.updateMatrixWorld();
     
-    if (!this.ragdoll) {
+    // if (!this.ragdoll) {
       Avatar.applyModelBoneOutputs(
         this.foundModelBones,
         this.modelBoneOutputs,
@@ -3742,7 +3770,7 @@ class Avatar {
         this.getHandEnabled(0),
         this.getHandEnabled(1),
       );
-    }
+    // }
     // this.modelBones.Root.updateMatrixWorld();
 
     if (this.springBoneManager) {
