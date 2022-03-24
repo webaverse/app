@@ -9,6 +9,12 @@ const resolution = 2048;
 const worldSize = 10000;
 const near = 10;
 
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
 
 const _planeToVector4 = (plane, target) => {
@@ -77,16 +83,19 @@ const fragmentShader = `\
   }
 `;
 
-class ScenePreviewer {
+class ScenePreviewer extends THREE.Object3D {
   constructor() {
+    super();
+
     const previewScene = new THREE.Scene();
     previewScene.name = 'previewScene';
     previewScene.autoUpdate = false;
+    this.previewScene = previewScene
+    
     const previewContainer = new THREE.Object3D();
     previewContainer.name = 'previewContainer';
-    previewScene.add(previewContainer);
-    this.previewScene = previewScene;
     this.previewContainer = previewContainer;
+    this.previewScene.add(previewContainer);
 
     const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(
       resolution,
@@ -128,23 +137,26 @@ class ScenePreviewer {
       }; */
       const skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
       skyboxMesh.onBeforeRender = () => {
-        const position = new THREE.Vector3();
-        const quaternion = new THREE.Quaternion();
-        const scale = new THREE.Vector3(1, 1, 1);
-        this.mesh.matrixWorld.decompose(position, quaternion, scale);
+        const position = localVector;
+        const quaternion = localQuaternion;
+        const scale = localVector2;
+        skyboxMesh.matrixWorld.decompose(position, quaternion, scale);
 
-        const normal = new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion);
+        const normal = localVector3.set(0, 0, -1)
+          .applyQuaternion(quaternion);
         localPlane.setFromNormalAndCoplanarPoint(normal, position);
         
-        _planeToVector4(localPlane, this.mesh.material.uniforms.plane.value);
-        this.mesh.material.uniforms.plane.needsUpdate = true;
+        _planeToVector4(localPlane, skyboxMesh.material.uniforms.plane.value);
+        skyboxMesh.material.uniforms.plane.needsUpdate = true;
       };
       return skyboxMesh;
     };
-    this.mesh = _makeSkyboxMesh();
+    this.skyboxMesh = _makeSkyboxMesh();
+    this.sceneObject = new THREE.Object3D();
 
     this.scene = null;
     this.renderedScene = null;
+    this.focused = false;
   }
   async loadScene(sceneUrl) {
     if (this.scene) {
@@ -162,13 +174,15 @@ class ScenePreviewer {
           },
           {
             key: 'paused',
-            value: true,
+            value: !this.focused,
           },
         ],
       },
       parent: this.previewContainer,
     });
-    this.render();
+    if (!this.focused) {
+      this.render();
+    }
   }
   attachScene(scene) {
     this.scene = scene;
@@ -179,19 +193,58 @@ class ScenePreviewer {
   detachScene() {
     const {scene} = this;
     if (scene) {
-      this.previewContainer.remove(scene);
+      scene.parent.remove(scene);
       this.scene = null;
     }
     return scene;
   }
+  setFocus(focus) {
+    this.focused = focus;
+
+    this.skyboxMesh.visible = !this.focused;
+    if (this.focused) {
+      this.sceneObject.add(this.previewContainer);
+      this.skyboxMesh.visible = false;
+    } else {
+      this.previewScene.add(this.previewContainer);
+      this.skyboxMesh.visible = true;
+    }
+
+    if (this.scene) {
+      this.scene.setComponent('paused', !this.focused);
+    }
+  }
   render() {
     const renderer = getRenderer();
 
-    this.cubeCamera.position.setFromMatrixPosition(this.mesh.matrixWorld);
+    // push old state
+    const oldPosition = localVector.copy(this.position);
+    const oldQuaternion = localQuaternion.copy(this.quaternion);
+    const oldScale = localVector2.copy(this.scale);
+    const oldMatrix = localMatrix.copy(this.matrix);
+    const oldMatrixWorld = localMatrix2.copy(this.matrixWorld);
+
+    // set transforms
+    this.previewContainer.position.copy(this.position);
+    this.previewContainer.quaternion.copy(this.quaternion);
+    this.previewContainer.scale.copy(this.scale);
+    this.previewContainer.matrix.copy(this.matrix);
+    this.previewContainer.matrixWorld.copy(this.matrixWorld);
+
+    this.cubeCamera.position.setFromMatrixPosition(this.skyboxMesh.matrixWorld);
+    this.cubeCamera.quaternion.setFromRotationMatrix(this.skyboxMesh.matrixWorld);
     this.cubeCamera.updateMatrixWorld();
 
+    // render
     this.cubeRenderTarget.clear(renderer, true, true, true);
     this.cubeCamera.update(renderer, this.previewScene);
+  
+    // pop old state
+    this.previewContainer.position.copy(oldPosition);
+    this.previewContainer.quaternion.copy(oldQuaternion);
+    this.previewContainer.scale.copy(oldScale);
+    this.previewContainer.matrix.copy(oldMatrix);
+    this.previewContainer.matrixWorld.copy(oldMatrixWorld);
   }
 };
 export {
