@@ -31,21 +31,21 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
     const handleCharacterBtnClick = () => {
 
-        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+        if ( ! userAddress ) {
+
+            setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+
+        } else {
+
+            setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
+
+        }
 
     };
 
     const handleLoginBarClick = () => {
 
-        if ( userAddress ) {
-
-            setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
-
-        } else {
-
-            setState({ openedPanel: ( state.openedPanel === 'LoginPanel' ? null : 'LoginPanel' ) });
-
-        }
+        setState({ openedPanel: ( state.openedPanel === 'LoginPanel' ? null : 'LoginPanel' ) });
 
     };
 
@@ -56,7 +56,7 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
     };
 
-    const handleMaskLoginBtnClick = async ( event ) => {
+    const handleMaskLoginBtnClick = async () => {
 
         if ( userAddress ) {
 

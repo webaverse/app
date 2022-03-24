@@ -1,4 +1,13 @@
 
+@keyframes pulse {
+    from {
+        background-position: 0px 0px;
+    }
+    to {
+        background-position: 0px 100px;
+    }
+}
+
 .heathBarWrapper {
     position: absolute;
     top: 10px;
@@ -39,7 +48,9 @@
     left: 0px;
     width: 0%;
     height: 100%;
-    background-color: rgb(214, 16, 16);
+    background: linear-gradient( 90deg, rgb(150, 13, 13) 0%, rgb(230, 16, 16) 100% );
+    animation: pulse 1s infinite;
+    transition: background-position 1s ease;
 }
 
 /*  */
@@ -71,7 +82,7 @@
     left: 0px;
     width: 0%;
     height: 100%;
-    background-color: rgb(104, 93, 255);
+    background: linear-gradient( 90deg, rgb(49, 41, 165) 0%, rgb(104, 93, 255) 100% );
 }
 
 /*  */
@@ -103,5 +114,5 @@
     left: 0px;
     width: 0%;
     height: 100%;
-    background-color: rgb(77 234 85);
+    background: linear-gradient( 90deg, rgb(37, 138, 42) 0%, rgb(77 234 85) 100% );
 }
