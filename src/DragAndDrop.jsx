@@ -59,6 +59,9 @@ const uploadCreateApp = async item => {
     try {
       o = await metaversefile.createAppAsync({
         start_url: u,
+        components: {
+          physics: true,
+        },
       });
     } catch(err) {
       console.warn(err);
@@ -69,7 +72,6 @@ const uploadCreateApp = async item => {
   if (o) {
     o.contentId = u;
     o.instanceId = getRandomString();
-    o.setComponent('physics', true);
     return o;
   } else {
     return null;
