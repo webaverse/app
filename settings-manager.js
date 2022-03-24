@@ -12,6 +12,11 @@ class SettingsManager extends EventTarget {
       this.#setSettings('ControlsSettings', settings);
     });
 
+    this.addEventListener('aiSettingsChanged', e => {
+      const settings = e.data;
+      this.#setSettings('AiSettings', settings);
+    });
+
 
   }
 

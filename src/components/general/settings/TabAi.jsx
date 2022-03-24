@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
+import metaversefileApi from '../../../../metaversefile-api';
 import { Switch } from './switch';
 import loreAI from '../../../../ai/lore/lore-ai';
 import preauthenticator from '../../../../preauthenticator';
@@ -112,7 +113,7 @@ export const TabAi = ({ active }) => {
             }
         }
 
-        localStorage.setItem( 'AiSettings', JSON.stringify( settings ) );
+        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('aiSettingsChanged', { data: settings }));        
 
         updateLoreEndpoint(apiType);
 
@@ -120,8 +121,9 @@ export const TabAi = ({ active }) => {
 
     async function loadSettings () {
 
-        // load local storage
-        const settingsString = localStorage.getItem( 'AiSettings' );
+        // load ai settings
+        const settingsString = metaversefileApi.useSettingsManager().getSettings('AiSettings');
+
         let settings;
 
         try {
