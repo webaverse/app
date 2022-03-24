@@ -215,6 +215,10 @@ class ScenePreviewer extends THREE.Object3D {
     if (this.scene) {
       this.scene.setComponent('paused', !this.focused);
     }
+
+    if (!this.focused) {
+      this.render();
+    }
   }
   #pushPreviewContainerTransform() {
     const oldPosition = localVector.copy(this.position);
