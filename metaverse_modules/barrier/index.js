@@ -113,6 +113,7 @@ export default () => {
   app.name = 'barrier';
 
   const _getSingleUse = () => app.getComponent('singleUse') ?? false;
+  // const doubleSide = app.getComponent('doubleSide') ?? false;
 
   const barrierMeshes = [];
   let children = [];
@@ -457,6 +458,7 @@ export default () => {
             mainImage(gl_FragColor, vUv);
           }
         `,
+        // side: doubleSide ? THREE.DoubleSide : THREE.FrontSide,
         side: THREE.DoubleSide,
         transparent: true,
       });
