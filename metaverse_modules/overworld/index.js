@@ -8,13 +8,30 @@ export default e => {
   app.name = 'overworld';
 
   const initObjects = [
-    {
+    /* {
       name: 'street',
       type: 'scene',
       start_url: './scenes/street.scn',
       components: {
         mode: 'detached',
       },
+    }, */
+    {
+      name: 'street',
+      type: 'app',
+      position: [0, 0, 0],
+      quaternion: [0, 0, 0, 1],
+      start_url: "../metaverse_modules/scene-preview/",
+      components: [
+        {
+          key: "sceneUrl",
+          value: "./scenes/street.scn"
+        },
+        {
+          key: "focus",
+          value: true,
+        },
+      ],
     },
     {
       name: 'battalion',
@@ -28,8 +45,8 @@ export default e => {
           value: [0, 0, -150]
         },
         {
-            key: "sceneUrl",
-            value: "./scenes/battalion.scn"
+          key: "sceneUrl",
+          value: "./scenes/battalion.scn"
         },
       ],
       renderPriority: -1,
