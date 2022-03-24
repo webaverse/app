@@ -573,6 +573,7 @@ ioManager.keydown = e => {
       game.toggleDebug(!game.debugMode);
       const localPlayer = metaversefile.useLocalPlayer();
       if (localPlayer.avatar) {
+        // localPlayer.rotation.y = Math.PI;
         localPlayer.avatar.ragdoll = true;
         localPlayer.avatar.createRagdoll();
       }

@@ -2437,6 +2437,7 @@ class Avatar {
         modelBone.forwardQuaternion
       );
       if (k !== 'Hips') {
+        // put bone at center of neighbor joints
         localVector.add(
           localVector3.set(0, 0, -meshBone.boneLength * 0.5)
             .applyQuaternion(localQuaternion)
@@ -2448,27 +2449,31 @@ class Avatar {
       // localVector.z += 1;
       meshBone.matrix.copy(meshBone.matrixWorld);
       meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+
+      // meshBone.rotation.y = Math.PI
+      // meshBone.updateMatrixWorld()
     }
     // object.updateMatrixWorld();
 
     // end setFromAvatar()
 
-    for (const k in flatMeshes) {
-      const meshBone = flatMeshes[k];
-      // const center = window.bodyRDHips.position.clone();
-      const center = modelBoneOutputs.Hips.getWorldPosition(new THREE.Vector3());
-      // const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0));
-      const quat = window.localPlayer.quaternion;
-      meshBone.position.sub(center).applyQuaternion(quat);
-      // meshBone.lookAt(new THREE.Vector3().addVectors(meshBone.position, new THREE.Vector3(1, 0, 0)));
-      meshBone.quaternion.multiply(quat);
-      meshBone.position.add(center);
-      // physicsManager.setTransform(meshBone, true);
-      // setTimeout(() => {
-      //   physicsManager.setVelocity(meshBone, new THREE.Vector3(0, 0, 0));
-      //   physicsManager.setAngularVelocity(meshBone, new THREE.Vector3(0, 0, 0));
-      // }, 10);
-    }
+    // // change whole rig direction
+    // for (const k in flatMeshes) {
+    //   const meshBone = flatMeshes[k];
+    //   // const center = window.bodyRDHips.position.clone();
+    //   const center = modelBoneOutputs.Hips.getWorldPosition(new THREE.Vector3());
+    //   // const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0));
+    //   const quat = window.localPlayer.quaternion;
+    //   meshBone.position.sub(center).applyQuaternion(quat);
+    //   // meshBone.lookAt(new THREE.Vector3().addVectors(meshBone.position, new THREE.Vector3(1, 0, 0)));
+    //   meshBone.quaternion.multiply(quat);
+    //   meshBone.position.add(center);
+    //   // physicsManager.setTransform(meshBone, true);
+    //   // setTimeout(() => {
+    //   //   physicsManager.setVelocity(meshBone, new THREE.Vector3(0, 0, 0));
+    //   //   physicsManager.setAngularVelocity(meshBone, new THREE.Vector3(0, 0, 0));
+    //   // }, 10);
+    // }
 
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k]
@@ -2620,6 +2625,9 @@ class Avatar {
       // localVector.z += 1;
       meshBone.matrix.copy(meshBone.matrixWorld);
       meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+
+      // meshBone.rotation.y = Math.PI
+      // meshBone.updateMatrixWorld()
     }
     // object.updateMatrixWorld();
 
@@ -2675,8 +2683,50 @@ class Avatar {
     //   Left_kneeModelDirection,
     // ).invert()
 
-    const angle = flatMeshes.Left_leg.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Left_knee.getWorldDirection(new THREE.Vector3()));
-    this.modelBoneOutputs.Left_knee.rotation.x = angle;
+    {
+      // this.modelBoneOutputs.Hips.position.copy(flatMeshes.Hips.position)
+    }
+    {
+      // this.modelBoneOutputs.Hips.parent.matrixWorld.copy(flatMeshes.Hips.matrixWorld)
+      // // this.modelBoneOutputs.Hips.matrixWorld.multiply(this.modelBoneOutputs.Hips.parent.matrixWorld.clone().invert())
+      // this.modelBoneOutputs.Hips.parent.matrix.copy(this.modelBoneOutputs.Hips.parent.matrixWorld)
+      // this.modelBoneOutputs.Hips.parent.matrix.decompose(this.modelBoneOutputs.Hips.parent.position, this.modelBoneOutputs.Hips.parent.quaternion, this.modelBoneOutputs.Hips.parent.scale)
+      // this.modelBoneOutputs.Hips.quaternion.copy(flatMeshes.Hips.quaternion)
+      // this.modelBoneOutputs.Hips.quaternion.copy(flatMeshes.Hips.quaternion).invert()
+      // this.modelBoneOutputs.Hips.rotation.z += Math.PI
+      // this.modelBoneOutputs.Hips.rotation.y += Math.PI
+
+      // this.modelBoneOutputs.Hips.up.copy(new THREE.Vector3(0,1,0).applyQuaternion(flatMeshes.Hips.quaternion))
+      // this.modelBoneOutputs.Hips.lookAt(
+      //   flatMeshes.Hips.getWorldDirection(new THREE.Vector3()).negate().add(this.modelBoneOutputs.Hips.position)
+      // )
+    }
+    //
+    {
+      const angle = flatMeshes.Hips.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Left_leg.getWorldDirection(new THREE.Vector3()));
+      this.modelBoneOutputs.Left_leg.rotation.x = -angle;
+    }
+    {
+      const angle = flatMeshes.Hips.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Right_leg.getWorldDirection(new THREE.Vector3()));
+      this.modelBoneOutputs.Right_leg.rotation.x = -angle;
+    }
+    {
+      const angle = flatMeshes.Left_leg.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Left_knee.getWorldDirection(new THREE.Vector3()));
+      this.modelBoneOutputs.Left_knee.rotation.x = angle;
+    }
+    {
+      const angle = flatMeshes.Right_leg.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Right_knee.getWorldDirection(new THREE.Vector3()));
+      this.modelBoneOutputs.Right_knee.rotation.x = angle;
+    }
+    {
+      const angle = flatMeshes.Right_shoulder.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Right_arm.getWorldDirection(new THREE.Vector3()));
+      this.modelBoneOutputs.Right_arm.rotation.x = -angle;
+      this.modelBoneOutputs.Right_arm.rotation.z = Math.PI / 2;
+    }
+    {
+      const angle = flatMeshes.Right_arm.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Right_elbow.getWorldDirection(new THREE.Vector3()));
+      this.modelBoneOutputs.Right_elbow.rotation.y = angle;
+    }
 
     // for (const k in flatMeshes) {
     //   const modelBone = avatar.modelBoneOutputs[k];
