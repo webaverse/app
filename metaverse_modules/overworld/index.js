@@ -48,7 +48,7 @@ export default e => {
       renderPriority: -1,
     },
     {
-      name: 'barrier',
+      name: 'barrier1forward',
       type: 'app',
       start_url: '../metaverse_modules/barrier/',
       components: [
@@ -57,6 +57,20 @@ export default e => {
           value: [
             [-150, -150, -450],
             [150, 150, -150]
+          ]
+        }
+      ]
+    },
+    {
+      name: 'barrier1backward',
+      type: 'app',
+      start_url: '../metaverse_modules/barrier/',
+      components: [
+        {
+          key: 'bounds',
+          value: [
+            [-150, -150, -150],
+            [150, 150, 150]
           ]
         }
       ]
@@ -116,14 +130,37 @@ export default e => {
   
     const street = objects.get('street');
     const battalion = objects.get('battalion');
-    const barrier = objects.get('barrier');
-    barrier.addEventListener('collision', e => {
+    const barrier1forward = objects.get('barrier1forward');
+    const barrier1backward = objects.get('barrier1backward');
+
+    const barriersObject = new THREE.Object3D();
+    app.add(barriersObject);
+
+    barriersObject.add(barrier1forward);
+
+    barrier1forward.addEventListener('collision', e => {
       battalion.renderPriority = 0;
       street.renderPriority = -1;
       _sortApps();
       
       battalion.setFocus(true);
       street.setFocus(false);
+
+      barriersObject.clear();
+      barriersObject.add(barrier1backward);
+    });
+    barrier1backward.addEventListener('collision', e => {
+      // console.log('go back');
+      
+      battalion.renderPriority = -1;
+      street.renderPriority = 0;
+      _sortApps();
+      
+      street.setFocus(true);
+      battalion.setFocus(false);
+
+      barriersObject.clear();
+      barriersObject.add(barrier1forward);
     });
   })());
 
