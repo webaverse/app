@@ -574,8 +574,9 @@ ioManager.keydown = e => {
       const localPlayer = metaversefile.useLocalPlayer();
       if (localPlayer.avatar) {
         // localPlayer.rotation.y = Math.PI;
-        localPlayer.avatar.ragdoll = true;
-        localPlayer.avatar.createRagdoll();
+        // localPlayer.avatar.ragdoll = true;
+        // localPlayer.avatar.createRagdoll();
+        localPlayer.avatar.fsms.send('keyH');
       }
       break;
     }
@@ -583,7 +584,8 @@ ioManager.keydown = e => {
       const localPlayer = metaversefile.useLocalPlayer();
       if (localPlayer.avatar) {
         // localPlayer.avatar.ragdoll = !localPlayer.avatar.ragdoll;
-        localPlayer.avatar.runRagdoll();
+        // localPlayer.avatar.runRagdoll();
+        localPlayer.avatar.fsms.send('keyN');
       }
       break;
     }

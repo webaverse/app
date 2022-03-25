@@ -52,6 +52,7 @@ import {
 } from './util.mjs';
 import metaversefile from 'metaversefile';
 import physx from '../physx.js';
+import { createMachine, actions, interpret, assign } from 'xstate';
 
 const { DEG2RAD } = THREE.MathUtils;
 
@@ -1984,6 +1985,48 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
+
+    this.fsm = createMachine(
+      {
+        id: 'avatar',
+        initial: 'idle',
+        states: {
+          idle: {
+            on: {
+              keyH: {target: 'skeleton'},
+            },
+          },
+          skeleton: {
+            entry: 'entrySkeleton',
+            on: {
+              keyH: {target: 'idle'},
+              keyN: {target: 'ragdoll'},
+            },
+          },
+          ragdoll: {
+            entry: 'entryRagdoll',
+            on: {
+              keyN: {target: 'skeleton'},
+            }
+          }
+        }
+      },
+      {
+        actions: {
+          entrySkeleton: () => {
+            this.createRagdoll()
+          },
+          entryRagdoll: () => {
+            this.runRagdoll();
+          },
+        }
+      }
+    )
+    this.fsms = interpret(this.fsm).onTransition((state) => {
+      if (state.changed) console.log('avatar: state:', state.value)
+      // console.log(state)
+    })
+    this.fsms.start()
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2424,6 +2467,8 @@ class Avatar {
       }
     }
   }
+
+  // ragdoll 
   // todo: put after ragdoll functions in ragdollMesh. `this.ragdollMesh.setFromAvatar()`
   setFromAvatar() {
     for (const k in flatMeshes) {
@@ -2434,24 +2479,24 @@ class Avatar {
       localQuaternion.multiply(
         modelBone.forwardQuaternion
       );
-      if (k !== 'Hips') {
+      if (k === 'Hips') {
+        // meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
+        meshBone.matrixWorld.compose(localVector, identityQuaternion, localVector2);
+      } else {
         // put bone at center of neighbor joints
         localVector.add(
           localVector3.set(0, 0, -meshBone.boneLength * 0.5)
             .applyQuaternion(localQuaternion)
         );
         meshBone.matrixWorld.compose(localVector, identityQuaternion, localVector2);
-      } else {
-        // meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
       }
-      // localVector.z += 1;
       meshBone.matrix.copy(meshBone.matrixWorld);
       meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
 
       // meshBone.rotation.y = Math.PI
       // meshBone.updateMatrixWorld()
     }
-    // object.updateMatrixWorld();
+    this.ragdollMesh.updateMatrixWorld();
   }
   createRagdoll() {
     if(this.isCreatedRagdoll) return;
@@ -2794,6 +2839,8 @@ class Avatar {
     //   modelBone.updateMatrixWorld();
     // }
   }
+  // end ragdoll
+
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
@@ -3546,7 +3593,14 @@ class Avatar {
         }
       }
     };
-    // _applyAnimation();
+    if (this.fsms.state.matches('ragdoll')) {
+      this.toAvatar();
+    } else {
+      _applyAnimation();
+      if (this.fsms.state.matches('skeleton')) {
+        this.setFromAvatar();
+      }
+    }
     
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];

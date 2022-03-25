@@ -44,6 +44,7 @@
     "webm-writer": "^1.0.0",
     "wsrtc": "./packages/wsrtc",
     "xhr2": "^0.2.1",
+    "xstate": "^4.30.6",
     "zjs": "./packages/zjs"
   },
   "repository": {
