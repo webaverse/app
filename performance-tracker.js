@@ -35,14 +35,14 @@ class PerformanceTracker extends EventTarget {
       this.enabled = e.data.enabled;
     });
   }
-  startCpuObject(name) {
+  startCpuObject(id, name = id) {
     if (!this.enabled) return;
     
     if (this.prefix) {
       name = [this.prefix, name].join('/');
     }
 
-    if (this.currentCpuObject?.name !== name) {
+    if (this.currentCpuObject?.id !== id) {
       if (this.currentCpuObject) {
         this.endCpuObject();
       }
@@ -51,6 +51,7 @@ class PerformanceTracker extends EventTarget {
       if (!currentCpuObject) {
         const now = performance.now();
         currentCpuObject = {
+          id,
           name,
           startTime: now,
           endTime: now,
@@ -66,14 +67,14 @@ class PerformanceTracker extends EventTarget {
     this.currentCpuObject.endTime = performance.now();
     this.currentCpuObject = null;
   }
-  startGpuObject(name) {
+  startGpuObject(id, name = id) {
     if (!this.enabled) return;
     
     if (this.prefix) {
       name = [this.prefix, name].join('/');
     }
 
-    if (this.currentGpuObject?.name !== name) {
+    if (this.currentGpuObject?.id !== id) {
       const gl = getGl();
       const ext = getExt();
 
@@ -87,6 +88,7 @@ class PerformanceTracker extends EventTarget {
       let currentGpuObject = this.gpuResults.get(name);
       if (!currentGpuObject) {
         currentGpuObject = {
+          id,
           name,
           time: 0,
         };
@@ -128,7 +130,7 @@ class PerformanceTracker extends EventTarget {
     const self = this;
     const _makeOnBeforeRender = fn => {
       const resultFn = function() {
-        self.startGpuObject(`app-${app.modulesHash}`);
+        self.startGpuObject(app.modulesHash, app.name);
         fn && fn.apply(this, arguments);
       };
       resultFn[performanceTrackerFnSymbol] = true;
