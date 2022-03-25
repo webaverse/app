@@ -4,7 +4,6 @@ const {useApp, useScenePreviewer, useRenderSettings} = metaversefile;
 
 export default e => {
   const app = useApp();
-  const renderSettingsManager = useRenderSettings();
   const {ScenePreviewer} = useScenePreviewer();
 
   app.name = 'scene-preview';
@@ -33,7 +32,7 @@ export default e => {
   app.add(sceneObject);
 
   app.setFocus = scenePreviewer.setFocus.bind(scenePreviewer);
-  app.getRenderSettings = renderSettingsManager.findRenderSettings.bind(null, app);
+  app.hasRenderSettings = true;
 
   e.waitUntil((async () => {
     await scenePreviewer.loadScene(sceneUrl);
