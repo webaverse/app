@@ -4,7 +4,6 @@ const {useApp, useRenderSettings} = metaversefile;
 
 export default e => {
   const app = useApp();
-  const renderSettingsManager = useRenderSettings();
 
   app.name = 'overworld';
 
@@ -167,7 +166,7 @@ export default e => {
     });
   })());
 
-  app.getRenderSettings = renderSettingsManager.findRenderSettings.bind(null, app);
+  app.hasRenderSettings = true;
 
   return app;
 };
