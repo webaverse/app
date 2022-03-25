@@ -35,8 +35,12 @@ class PerformanceTracker extends EventTarget {
       this.enabled = e.data.enabled;
     });
   }
-  startCpuObject(id, name = id) {
+  startCpuObject(id, name) {
     if (!this.enabled) return;
+
+    if (name === undefined) {
+      name = id;
+    }
     
     if (this.prefix) {
       name = [this.prefix, name].join('/');
