@@ -23,7 +23,7 @@ import {
   scene,
   sceneHighPriority,
   sceneLowPriority,
-  // rootScene,
+  rootScene,
   camera,
   dolly,
   bindCanvas,
@@ -35,6 +35,7 @@ import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import * as voices from './voices.js';
 import performanceTracker from './performance-tracker.js';
+import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 
@@ -333,6 +334,12 @@ export default class Webaverse extends EventTarget {
         minimapManager.update(timestamp, timeDiffCapped);
         performanceTracker.setGpuPrefix('loadout');
         loadoutManager.update(timestamp, timeDiffCapped);
+
+        const _applyRenderSettings = () => {
+          const renderSettings = renderSettingsManager.findRenderSettings(rootScene);
+          renderSettingsManager.applyRenderSettingsToSceneAndPostProcessing(renderSettings, rootScene, postProcessing);
+        };
+        _applyRenderSettings();
 
         performanceTracker.setGpuPrefix('');
         this.render(timestamp, timeDiffCapped);
