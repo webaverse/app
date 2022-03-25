@@ -38,6 +38,7 @@ import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
+import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
@@ -55,6 +56,8 @@ class App extends THREE.Object3D {
 
     this.isApp = true;
     this.components = [];
+    this.modules = [];
+    this.modulesHash = 0;
     // cleanup tracking
     this.physicsObjects = [];
     this.appType = 'none';
@@ -139,6 +142,9 @@ class App extends THREE.Object3D {
   }
   addModule(m) {
     throw new Error('method not bound');
+  }
+  updateModulesHash() {
+    this.modulesHash = murmurhash3(this.modules.map(m => m.contentId).join(','));
   }
   getPhysicsObjects() {
     return this.physicsObjects;
@@ -431,7 +437,7 @@ metaversefile.setApi({
     if (app) {
       const frame = e => {
         if (!app.paused) {
-          performanceTracker.startCpuObject(app.name);
+          performanceTracker.startCpuObject(`app-${app.modulesHash}`);
           fn(e.data);
           performanceTracker.endCpuObject();
         }
@@ -1043,6 +1049,8 @@ export default () => {
         }
       }
     }
+    app.modules.push(m);
+    app.updateModulesHash();
 
     currentAppRender = app;
 
