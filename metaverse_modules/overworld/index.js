@@ -85,7 +85,7 @@ export default e => {
         start_url,
         components,
       });
-      scene.name = name;
+      scene.name = `overworld-subscene-${name}`
       scene.spec = spec;
       return scene;
     } else if (type === 'app') {
@@ -97,7 +97,7 @@ export default e => {
         scale,
         components,
       });
-      app.name = name;
+      app.name = `overworld-subapp-${name}`;
       app.renderPriority = renderPriority ?? 0;
       return app;
     } else {
