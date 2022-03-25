@@ -1186,7 +1186,7 @@ export default () => {
         }
         else{
             if(material.uniforms.opacity.value>0)
-                material.uniforms.opacity.value -= 0.02;
+                material.uniforms.opacity.value -= 0.0255;
         }
         if(narutoRunTime>0 && narutoRunTime<10){
             material.uniforms.opacity.value = 0;
