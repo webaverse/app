@@ -594,13 +594,9 @@ const _makeCapsuleGeometry = (meshBone) => {
   switch(meshBone.name) {
     case 'Left_arm':
     case 'Left_elbow':
-    case 'Left_leg':
-    case 'Left_knee':
     case 'Right_arm':
     case 'Right_elbow':
-    case 'Right_leg':
-    case 'Right_knee':
-      size = new THREE.Vector3(radius * 2, radius * 2, height);
+      size = new THREE.Vector3(height, radius * 2, radius * 2);
       break;
     default:
       size = new THREE.Vector3(radius * 2, height, radius * 2);
@@ -862,7 +858,7 @@ const _makeRagdollMesh = () => {
               .add(
                 diff
               );
-            return Math.max(minHeight, length); // same length as parent
+            return Math.max(-Infinity, length); // same length as parent
           } else {
             const acc = new THREE.Vector3();
             for (const child of children) {
@@ -870,7 +866,7 @@ const _makeRagdollMesh = () => {
               acc.add(localVector);
             }
             modelBoneEnd = acc.divideScalar(children.length);
-            return Math.max(minHeight, modelBoneStart.distanceTo(modelBoneEnd));
+            return Math.max(-Infinity, modelBoneStart.distanceTo(modelBoneEnd));
           }
         }
       })();
@@ -2503,7 +2499,7 @@ class Avatar {
       const meshBone = flatMeshes[k]; // ragdollMesh's
 
       modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localQuaternion.multiply(
+      localQuaternion2.copy(localQuaternion).multiply(
         modelBone.forwardQuaternion
       );
       if (k === 'Hips') {
@@ -2513,7 +2509,7 @@ class Avatar {
         // put bone at center of neighbor joints
         localVector.add(
           localVector3.set(0, 0, -meshBone.boneLength * 0.5)
-            .applyQuaternion(localQuaternion)
+            .applyQuaternion(localQuaternion2)
         );
         // meshBone.matrixWorld.compose(localVector, identityQuaternion, localVector2);
         meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
@@ -2642,8 +2638,13 @@ class Avatar {
     // physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     // physicsManager.setJointTwistLimit(jointRight_shoulderRight_arm,       -Math.PI * 0,      Math.PI * 0.8);
 
-    // const jointRight_armRight_elbow = physicsManager.addJoint(flatMeshes.Right_arm, flatMeshes.Right_elbow, 
-    //   new THREE.Vector3(0, -0.10704085846249278, 0), new THREE.Vector3(0, 0.10704085846249278, 0), new THREE.Quaternion(), new THREE.Quaternion());
+    const jointRight_armRight_elbow = physicsManager.addJoint(flatMeshes.Right_arm, flatMeshes.Right_elbow, 
+      this.modelBoneOutputs.Right_elbow.position.clone().multiplyScalar(0.5), 
+      this.modelBoneOutputs.Right_wrist.position.clone().multiplyScalar(0.5).negate(), 
+      new THREE.Quaternion(), new THREE.Quaternion(), true);
+    physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eTWIST, PxD6Motion.eFREE);
+    physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+    physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eSWING2, PxD6Motion.eFREE);
     // physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     // physicsManager.setJointTwistLimit(jointRight_armRight_elbow,       -Math.PI * 0,      Math.PI * 0.8);
 
