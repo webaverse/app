@@ -20,6 +20,7 @@ const loadPromise = (async () => {
   soundFiles.jump = soundFileSpecs.filter(f => /^jump\//.test(f.name));
   soundFiles.land = soundFileSpecs.filter(f => /^land\//.test(f.name));
   soundFiles.narutoRun = soundFileSpecs.filter(f => /^narutoRun\//.test(f.name));
+  soundFiles.combat = soundFileSpecs.filter(f => /^combat\//.test(f.name));
   soundFiles.sonicBoom = soundFileSpecs.filter(f => /^sonicBoom\//.test(f.name));
   soundFiles.chomp = soundFileSpecs.filter(f => /^food\/chomp/.test(f.name));
   soundFiles.gulp = soundFileSpecs.filter(f => /^food\/gulp/.test(f.name));
