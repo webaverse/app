@@ -63,6 +63,14 @@ const frameEvent = new MessageEvent('frame', {
     // lastTimestamp: 0,
   },
 });
+const _pushRenderSettings = () => {
+  const renderSettings = renderSettingsManager.findRenderSettings(rootScene);
+  renderSettingsManager.applyRenderSettingsToSceneAndPostProcessing(renderSettings, rootScene, postProcessing);
+
+  return () => {
+    renderSettingsManager.applyRenderSettingsToSceneAndPostProcessing(null, rootScene, postProcessing);
+  }
+};
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -335,14 +343,14 @@ export default class Webaverse extends EventTarget {
         performanceTracker.setGpuPrefix('loadout');
         loadoutManager.update(timestamp, timeDiffCapped);
 
-        const _applyRenderSettings = () => {
-          const renderSettings = renderSettingsManager.findRenderSettings(rootScene);
-          renderSettingsManager.applyRenderSettingsToSceneAndPostProcessing(renderSettings, rootScene, postProcessing);
-        };
-        _applyRenderSettings();
+        {
+          const popRenderSettings = _pushRenderSettings();
 
-        performanceTracker.setGpuPrefix('');
-        this.render(timestamp, timeDiffCapped);
+          performanceTracker.setGpuPrefix('');
+          this.render(timestamp, timeDiffCapped);
+
+          popRenderSettings();
+        }
       };
       _frame();
 
