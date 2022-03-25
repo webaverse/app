@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useScenePreviewer, useInternals} = metaversefile;
+const {useApp, useScenePreviewer, useRenderSettings} = metaversefile;
 
 export default e => {
   const app = useApp();
+  const renderSettingsManager = useRenderSettings();
   const {ScenePreviewer} = useScenePreviewer();
-  // const {sceneHighPriority, sceneLowPriority} = useInternals();
 
   app.name = 'scene-preview';
 
@@ -33,6 +33,7 @@ export default e => {
   app.add(sceneObject);
 
   app.setFocus = scenePreviewer.setFocus.bind(scenePreviewer);
+  app.getRenderSettings = renderSettingsManager.findRenderSettings.bind(null, app);
 
   e.waitUntil((async () => {
     await scenePreviewer.loadScene(sceneUrl);
