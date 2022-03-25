@@ -146,7 +146,7 @@ class PerformanceTracker extends EventTarget {
     };
     const _makeOnAfterRender = fn => {
       const resultFn = function() {
-        if (self.currentGpuObject?.name === name) {
+        if (self.currentGpuObject?.id === app.modulesHash) {
           self.endGpuObject();
         }
         fn && fn.apply(this, arguments);
