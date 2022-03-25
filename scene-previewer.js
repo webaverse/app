@@ -231,16 +231,6 @@ class ScenePreviewer extends THREE.Object3D {
     this.previewContainer.scale.copy(this.scale);
     this.previewContainer.matrix.copy(this.matrix);
     this.previewContainer.matrixWorld.copy(this.matrixWorld);
-    
-    if (this.scene) {
-      /* const apps = this.scene.children;
-      for (const app of apps) {
-        app.setComponent('rendering', true);
-      } */
-
-      const renderSettings = renderSettingsManager.findRenderSettings(this.previewScene);
-      renderSettingsManager.applyRenderSettingsToScene(renderSettings, this.previewScene);
-    }
 
     return () => {
       this.previewContainer.position.copy(oldPosition);
@@ -248,20 +238,26 @@ class ScenePreviewer extends THREE.Object3D {
       this.previewContainer.scale.copy(oldScale);
       this.previewContainer.matrix.copy(oldMatrix);
       this.previewContainer.matrixWorld.copy(oldMatrixWorld);
-    
-      /* if (this.scene) {
-        const apps = this.scene.children;
-        for (const app of apps) {
-          app.setComponent('rendering', false);
-        }
-      } */
     };
+  }
+  #pushRenderSettings() {
+    if (this.scene) {
+      const renderSettings = renderSettingsManager.findRenderSettings(this.previewScene);
+      renderSettingsManager.applyRenderSettingsToScene(renderSettings, this.previewScene);
+      
+      return () => {
+        renderSettingsManager.applyRenderSettingsToScene(null, this.previewScene);
+      };
+    } else {
+      return () => {};
+    }
   }
   render() {
     const renderer = getRenderer();
 
     // push old state
     const popPreviewContainerTransform = this.#pushPreviewContainerTransform();
+    const popRenderSettings = this.#pushRenderSettings();
 
     this.cubeCamera.position.setFromMatrixPosition(this.skyboxMesh.matrixWorld);
     // this.cubeCamera.quaternion.setFromRotationMatrix(this.skyboxMesh.matrixWorld);
@@ -273,6 +269,7 @@ class ScenePreviewer extends THREE.Object3D {
   
     // pop old state
     popPreviewContainerTransform();
+    popRenderSettings();
   }
 };
 export {
