@@ -3,6 +3,7 @@ import * as THREE from 'three';
 // const {useApp, useFrame, useRenderer, useCamera, useMaterials, useCleanup} = metaversefile;
 import {getRenderer, camera} from './renderer.js';
 import {WebaverseShaderMaterial} from './materials.js';
+import renderSettingsManager from './rendersettings-manager.js';
 import metaversefile from 'metaversefile';
 
 const resolution = 2048;
@@ -232,10 +233,13 @@ class ScenePreviewer extends THREE.Object3D {
     this.previewContainer.matrixWorld.copy(this.matrixWorld);
     
     if (this.scene) {
-      const apps = this.scene.children;
+      /* const apps = this.scene.children;
       for (const app of apps) {
         app.setComponent('rendering', true);
-      }
+      } */
+
+      const renderSettings = renderSettingsManager.findRenderSettings(this.previewScene);
+      renderSettingsManager.applyRenderSettingsToScene(renderSettings, this.previewScene);
     }
 
     return () => {
@@ -245,12 +249,12 @@ class ScenePreviewer extends THREE.Object3D {
       this.previewContainer.matrix.copy(oldMatrix);
       this.previewContainer.matrixWorld.copy(oldMatrixWorld);
     
-      if (this.scene) {
+      /* if (this.scene) {
         const apps = this.scene.children;
         for (const app of apps) {
           app.setComponent('rendering', false);
         }
-      }
+      } */
     };
   }
   render() {
