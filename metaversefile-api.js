@@ -57,7 +57,8 @@ class App extends THREE.Object3D {
     this.components = [];
     // cleanup tracking
     this.physicsObjects = [];
-    this.appType = 'script';
+    this.appType = 'none';
+    this.hasRenderSettings = false;
     this.lastMatrix = new THREE.Matrix4();
 
     const startframe = () => {
@@ -141,6 +142,13 @@ class App extends THREE.Object3D {
   }
   getPhysicsObjects() {
     return this.physicsObjects;
+  }
+  getRenderSettings() {
+    if (this.hasRenderSettings) {
+      return renderSettingsManager.findRenderSettings(this);
+    } else {
+      return null;
+    }
   }
   activate() {
     this.dispatchEvent({
