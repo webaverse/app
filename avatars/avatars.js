@@ -2424,15 +2424,8 @@ class Avatar {
       }
     }
   }
-  createRagdoll() {
-    if(this.isCreatedRagdoll) return;
-    this.isCreatedRagdoll = true
-    // const b = this.ragdollMesh.serializeSkeleton();
-    // debugger
-    // this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, characterId);
-    this.ragdollMesh.skeleton = true
-
-    // this.ragdollMesh.setFromAvatar(this);
+  // todo: put after ragdoll functions in ragdollMesh. `this.ragdollMesh.setFromAvatar()`
+  setFromAvatar() {
     for (const k in flatMeshes) {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = flatMeshes[k]; // ragdollMesh's
@@ -2459,8 +2452,17 @@ class Avatar {
       // meshBone.updateMatrixWorld()
     }
     // object.updateMatrixWorld();
+  }
+  createRagdoll() {
+    if(this.isCreatedRagdoll) return;
+    this.isCreatedRagdoll = true
+    // const b = this.ragdollMesh.serializeSkeleton();
+    // debugger
+    // this.ragdollMesh.skeleton = physicsManager.createSkeleton(b, characterId);
+    this.ragdollMesh.skeleton = true
 
-    // end setFromAvatar()
+    // this.ragdollMesh.setFromAvatar(this);
+    this.setFromAvatar();
 
     // // change whole rig direction
     // for (const k in flatMeshes) {
@@ -2629,33 +2631,7 @@ class Avatar {
   runRagdoll() {
 
     // this.ragdollMesh.setFromAvatar(this);
-    for (const k in flatMeshes) {
-      const modelBone = avatar.modelBoneOutputs[k];
-      const meshBone = flatMeshes[k]; // ragdollMesh's
-
-      modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localQuaternion.multiply(
-        modelBone.forwardQuaternion
-      );
-      if (k !== 'Hips') {
-        localVector.add(
-          localVector3.set(0, 0, -meshBone.boneLength * 0.5)
-            .applyQuaternion(localQuaternion)
-        );
-        meshBone.matrixWorld.compose(localVector, identityQuaternion, localVector2);
-      } else {
-        // meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
-      }
-      // localVector.z += 1;
-      meshBone.matrix.copy(meshBone.matrixWorld);
-      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
-
-      // meshBone.rotation.y = Math.PI
-      // meshBone.updateMatrixWorld()
-    }
-    // object.updateMatrixWorld();
-
-    // end setFromAvatar()
+    this.setFromAvatar();
 
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k];
