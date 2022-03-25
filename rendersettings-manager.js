@@ -43,15 +43,7 @@ class RenderSettingsManager {
   findRenderSettings(scene) {
     const _recurse = o => {
       if (o.isApp) {
-        if (o.getRenderSettings) {
-          const result = o.getRenderSettings();
-          /* if (!result) {
-            console.log('failed to get result', o);
-          } */
-          return result;
-        } /* else {
-          console.log('render settings bail', o);
-        } */
+        return o.getRenderSettings();
       } else {
         for (const child of o.children) {
           const result = _recurse(child);
