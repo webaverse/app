@@ -110,7 +110,10 @@ export default () => {
   // const {CapsuleGeometry} = useGeometries();
   const {WebaverseShaderMaterial} = useMaterials();
 
+  app.name = 'barrier';
+
   const _getSingleUse = () => app.getComponent('singleUse') ?? false;
+  // const doubleSide = app.getComponent('doubleSide') ?? false;
 
   const barrierMeshes = [];
   let children = [];
@@ -248,6 +251,10 @@ export default () => {
             value: 0,
             needsUpdate: false,
           },
+          peerCooldown: {
+            value: 0,
+            needsUpdate: false,
+          },
           /* cameraDirection: {
             value: new THREE.Vector3(),
             needsUpdate: true,
@@ -324,6 +331,7 @@ export default () => {
 
           uniform float iTime;
           uniform float uHighlight;
+          uniform float peerCooldown;
           varying vec3 vPosition;
           varying vec2 vUv;
           varying float darkening;
@@ -439,7 +447,7 @@ export default () => {
               fragColor = vec4(vec3(c), b);
 
               if (darkening <= 0.0) {
-                fragColor.a *= 0.5;
+                fragColor.a *= 0.2;
               }
               fragColor.a *= dimming;
 
@@ -447,14 +455,17 @@ export default () => {
               // d = perspectiveDepthToViewZ(d, ${camera.near.toFixed(8)}, ${camera.far.toFixed(8)});
               fragColor.a *= min(max(5. - pow(d, 0.5), 0.), 1.);
           
+              fragColor.a *= peerCooldown;
+
               if (fragColor.a < 0.001) {
                 discard;
-              } 
+              }
           }
           void main() {
             mainImage(gl_FragColor, vUv);
           }
         `,
+        // side: doubleSide ? THREE.DoubleSide : THREE.FrontSide,
         side: THREE.DoubleSide,
         transparent: true,
       });
@@ -467,6 +478,7 @@ export default () => {
       barrierMeshes.push(barrierMesh);
       children.push(barrierMesh);
 
+      barrierMesh.boundingBox = new THREE.Box3().setFromObject(barrierMesh);
       barrierMesh.clipPlanes = [
         // top
         new ClippedPlane(
@@ -525,7 +537,9 @@ export default () => {
 
   const localPlayer = useLocalPlayer();
   const lastPosition = localPlayer.position.clone();
-  const cooldownTime = 2000;
+  // const cooldownTime = 2000;
+  const cooldownTime = 0;
+  let lastPeerCooldownTime = -Infinity;
   useFrame(({timestamp, timeDiff}) => {
     const timestampS = timestamp/1000;
     const timeDiffS = timeDiff/1000;
@@ -547,12 +561,14 @@ export default () => {
                 speed: 0,
               };
             } else if (barrierMesh.animationSpec.type === 'cooldown') {
-              barrierMesh.animationSpec = null;
-              
-              const singleUse = _getSingleUse();
-              if (singleUse) {
-                app.remove(barrierMesh);
-                barrierMeshes.splice(barrierMeshes.indexOf(barrierMesh), 1);
+              if (!barrierMesh.boundingBox.containsPoint(localPlayer.position)) {
+                barrierMesh.animationSpec = null;
+                
+                const singleUse = _getSingleUse();
+                if (singleUse) {
+                  app.remove(barrierMesh);
+                  barrierMeshes.splice(barrierMeshes.indexOf(barrierMesh), 1);
+                }
               }
             } else {
               console.warn('unknown animation type', type);
@@ -603,6 +619,8 @@ export default () => {
                   direction,
                   speed,
                 };
+
+                lastPeerCooldownTime = -Infinity;
 
                 const singleUse = _getSingleUse();
                 if (singleUse) {
@@ -661,6 +679,13 @@ export default () => {
           barrierMesh.material.uniforms.uSpeed.value = 0;
           barrierMesh.material.uniforms.uSpeed.needsUpdate = true;
         }
+        {
+          const now = performance.now();
+          const timeDiff = now - lastPeerCooldownTime;
+          const v = Math.pow(timeDiff / 1000 / 2, 10);
+          barrierMesh.material.uniforms.peerCooldown.value = Math.min(Math.max(v, 0), 1);
+          barrierMesh.material.uniforms.peerCooldown.needsUpdate = true;
+        }
     
         barrierMesh.visible = barrierMesh.animationSpec ? barrierMesh.animationSpec.visible : true;
       }
@@ -684,6 +709,10 @@ export default () => {
   useCleanup(() => {
     _cleanup();
   });
+
+  app.peerCooldown = () => {
+    lastPeerCooldownTime = performance.now();
+  };
 
   return app;
 };

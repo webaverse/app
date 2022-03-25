@@ -20,8 +20,7 @@ class WebaverseRenderPass extends Pass {
     this.onBeforeRender = null;
     this.onAfterRender = null;
   }
-  setSize( width, height ) {
-    
+  setSize(width, height) {
     if (this.internalDepthPass) {
       this.internalDepthPass.setSize(width, height);
     }
