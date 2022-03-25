@@ -71,8 +71,12 @@ class PerformanceTracker extends EventTarget {
     this.currentCpuObject.endTime = performance.now();
     this.currentCpuObject = null;
   }
-  startGpuObject(id, name = id) {
+  startGpuObject(id, name) {
     if (!this.enabled) return;
+
+    if (name === undefined) {
+      name = id;
+    }
     
     if (this.prefix) {
       name = [this.prefix, name].join('/');
