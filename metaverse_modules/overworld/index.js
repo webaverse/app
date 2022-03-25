@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp} = metaversefile;
+const {useApp, useRenderSettings} = metaversefile;
 
 export default e => {
   const app = useApp();
+  const renderSettingsManager = useRenderSettings();
 
   app.name = 'overworld';
 
@@ -165,6 +166,8 @@ export default e => {
       barriersObject.add(barrier1forward); */
     });
   })());
+
+  app.getRenderSettings = renderSettingsManager.findRenderSettings.bind(null, app);
 
   return app;
 };
