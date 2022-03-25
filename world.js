@@ -31,8 +31,8 @@ const appManager = new AppManager({
 });
 world.appManager = appManager;
 
-world.lights = new THREE.Object3D();
-scene.add(world.lights);
+// world.lights = new THREE.Object3D();
+// scene.add(world.lights);
 
 world.particleSystem = createParticleSystem();
 scene.add(world.particleSystem);
