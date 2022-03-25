@@ -37,6 +37,7 @@ import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
+import renderSettingsManager from './rendersettings-manager.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
@@ -348,6 +349,9 @@ metaversefile.setApi({
   },
   useRenderer() {
     return getRenderer();
+  },
+  useRenderSettings() {
+    return renderSettingsManager;
   },
   useScene() {
     return scene;
