@@ -590,7 +590,22 @@ const _makeCapsuleGeometry = (meshBone) => {
   const radius = boneRadius;
   const height = meshBone.boneLength - boneRadius*2;
   const halfHeight = height/2;
-  const size = new THREE.Vector3(radius * 2, height, radius * 2)
+  let size
+  switch(meshBone.name) {
+    case 'Left_arm':
+    case 'Left_elbow':
+    case 'Left_leg':
+    case 'Left_knee':
+    case 'Right_arm':
+    case 'Right_elbow':
+    case 'Right_leg':
+    case 'Right_knee':
+      size = new THREE.Vector3(radius * 2, radius * 2, height);
+      break;
+    default:
+      size = new THREE.Vector3(radius * 2, height, radius * 2);
+      break;
+  }
   meshBone.size = size
   meshBone.sizeHalf = size.clone().multiplyScalar(0.5)
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -787,6 +802,7 @@ const _makeRagdollMesh = () => {
   window.flatMeshes = flatMeshes
   // note: vismark:
   // modelBone = avatar.modelBoneOutputs[k];
+  // modelBoneOutputs.Hips.parent === modelBoneOutputs.Root
   // meshBone = flatMeshes[k]
   // flatMeshes.Hips.parent === flatMeshes.Spine.parent
   // flatMeshes.Hips.children2[0] === flatMeshes.Spine
@@ -2471,6 +2487,8 @@ class Avatar {
   // ragdoll 
   // todo: put after ragdoll functions in ragdollMesh. `this.ragdollMesh.setFromAvatar()`
   setFromAvatar() {
+    // this.modelBoneOutputs.Root.updateMatrixWorld();
+    // todo: why one frame lag, even with this.modelBoneOutputs.Root.updateMatrixWorld().
     for (const k in flatMeshes) {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = flatMeshes[k]; // ragdollMesh's
@@ -2488,10 +2506,11 @@ class Avatar {
           localVector3.set(0, 0, -meshBone.boneLength * 0.5)
             .applyQuaternion(localQuaternion)
         );
-        meshBone.matrixWorld.compose(localVector, identityQuaternion, localVector2);
+        // meshBone.matrixWorld.compose(localVector, identityQuaternion, localVector2);
+        meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
       }
-      meshBone.matrix.copy(meshBone.matrixWorld);
-      meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
+      // meshBone.matrix.copy(meshBone.matrixWorld);
+      meshBone.matrixWorld.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
 
       // meshBone.rotation.y = Math.PI
       // meshBone.updateMatrixWorld()
@@ -2560,13 +2579,13 @@ class Avatar {
     // hips
     const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, 
       new THREE.Vector3(0, flatMeshes.Hips.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, -flatMeshes.Spine.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion(), false);
-    flatMeshes.Spine.rotation.x = -30 * DEG2RAD;
+    // flatMeshes.Spine.rotation.x = -30 * DEG2RAD;
     physicsManager.setJointMotion(jointHipsSpine, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointHipsSpine,             -Math.PI * 0.2,      Math.PI * 0.05);
 
     const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, 
       new THREE.Vector3(0, flatMeshes.Spine.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, -flatMeshes.Chest.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
-    flatMeshes.Chest.rotation.x = -30 * DEG2RAD
+    // flatMeshes.Chest.rotation.x = -30 * DEG2RAD
     physicsManager.setJointMotion(jointSpineChest, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointSpineChest,            -Math.PI * 0.2,      Math.PI * 0.05);
 
@@ -2583,7 +2602,7 @@ class Avatar {
 
     const jointNeckHead = physicsManager.addJoint(flatMeshes.Neck, flatMeshes.Head, 
       new THREE.Vector3(0, flatMeshes.Neck.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, -flatMeshes.Head.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
-    flatMeshes.Head.rotation.x = -30 * DEG2RAD;
+    // flatMeshes.Head.rotation.x = -30 * DEG2RAD;
     physicsManager.setJointMotion(jointNeckHead, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointNeckHead,            -Math.PI * 0.1,      Math.PI * 0.01);
 
@@ -2622,13 +2641,13 @@ class Avatar {
     // legs
     const jointHipsLeft_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Left_leg, 
       new THREE.Vector3(-0.1, -flatMeshes.Hips.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Left_leg.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
-    flatMeshes.Left_leg.rotation.x = 90 * DEG2RAD;
+    // flatMeshes.Left_leg.rotation.x = 90 * DEG2RAD;
     physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointHipsLeft_leg,          -Math.PI * 0,      90 * DEG2RAD);
 
     const jointLeft_legLeft_knee = physicsManager.addJoint(flatMeshes.Left_leg, flatMeshes.Left_knee, 
       new THREE.Vector3(0, -flatMeshes.Left_leg.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Left_knee.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
-    flatMeshes.Left_knee.rotation.x = -Math.PI * 0.05;
+    // flatMeshes.Left_knee.rotation.x = -Math.PI * 0.05;
     physicsManager.setJointMotion(jointLeft_legLeft_knee, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointLeft_legLeft_knee,     -Math.PI * 0.6,      Math.PI * 0);
 
@@ -2639,7 +2658,7 @@ class Avatar {
 
     const jointRight_legRight_knee = physicsManager.addJoint(flatMeshes.Right_leg, flatMeshes.Right_knee, 
       new THREE.Vector3(0, -flatMeshes.Right_leg.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Right_knee.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
-    flatMeshes.Right_knee.rotation.x = 90 * DEG2RAD;
+    // flatMeshes.Right_knee.rotation.x = 90 * DEG2RAD;
     physicsManager.setJointMotion(jointRight_legRight_knee, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointRight_legRight_knee,   -Math.PI * 0.6,      Math.PI * 0);
 
@@ -3593,14 +3612,25 @@ class Avatar {
         }
       }
     };
+
+    // // formal
+    // if (this.fsms.state.matches('ragdoll')) {
+    //   this.toAvatar();
+    // } else {
+    //   _applyAnimation();
+    //   if (this.fsms.state.matches('skeleton')) {
+    //     this.setFromAvatar();
+    //   }
+    // }
+    //
+    // // test
+    this.setFromAvatar();
     if (this.fsms.state.matches('ragdoll')) {
       this.toAvatar();
-    } else {
+    } else if (this.fsms.state.matches('skeleton')) {
       _applyAnimation();
-      if (this.fsms.state.matches('skeleton')) {
-        this.setFromAvatar();
-      }
     }
+    //
     
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
@@ -3760,7 +3790,7 @@ class Avatar {
         }
       }
     };
-    _updateEyeTarget();
+    // _updateEyeTarget();
 
     const _updateEyeballTarget = () => {
       const leftEye = this.modelBoneOutputs['Eye_L'];
@@ -3867,7 +3897,7 @@ class Avatar {
         }
       }
     };
-    _updateEyeballTarget();
+    // _updateEyeballTarget();
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
 
