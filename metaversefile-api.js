@@ -391,9 +391,6 @@ metaversefile.setApi({
       getApps() {
         return world.appManager.apps;
       },
-      getLights() {
-        return world.lights;
-      },
     };
   },
   useChatManager() {
