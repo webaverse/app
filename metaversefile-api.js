@@ -437,7 +437,7 @@ metaversefile.setApi({
     if (app) {
       const frame = e => {
         if (!app.paused) {
-          performanceTracker.startCpuObject(`app-${app.modulesHash}`);
+          performanceTracker.startCpuObject(app.modulesHash, app.name);
           fn(e.data);
           performanceTracker.endCpuObject();
         }
