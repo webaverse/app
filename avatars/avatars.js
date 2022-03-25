@@ -787,7 +787,7 @@ const _makeRagdollMesh = () => {
   // meshBone = flatMeshes[k]
   // flatMeshes.Hips.parent === flatMeshes.Spine.parent
   // flatMeshes.Hips.children2[0] === flatMeshes.Spine
-  // flatMeshes.Hips.children2[2] === flatMeshes.Left_leg
+  // flatMeshes.Hips.children2[1] === flatMeshes.Left_leg
   // flatMeshes.Hips.children2[2] === flatMeshes.Right_leg
   // flatMeshes.Hips === ragdollMesh.children[0].children[0]
   // flatMeshes.Hips.physicsMesh === flatMeshes.Hips.children[0]
