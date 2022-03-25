@@ -128,7 +128,7 @@ class PerformanceTracker extends EventTarget {
     const self = this;
     const _makeOnBeforeRender = fn => {
       const resultFn = function() {
-        self.startGpuObject(app.name);
+        self.startGpuObject(`app-${app.modulesHash}`);
         fn && fn.apply(this, arguments);
       };
       resultFn[performanceTrackerFnSymbol] = true;
