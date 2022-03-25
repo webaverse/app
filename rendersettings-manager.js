@@ -71,9 +71,6 @@ class RenderSettingsManager {
     scene.fog = fog;
   }
   applyRenderSettingsToSceneAndPostProcessing(renderSettings, scene, localPostProcessing) {
-    window.renderSettings = renderSettings;
-    window.rootScene = rootScene;
-    window.renderSettingsManager = renderSettingsManager;
     this.applyRenderSettingsToScene(renderSettings, scene);
     
     const {
