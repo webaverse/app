@@ -190,11 +190,6 @@
       "start_url": "https://avaer.github.io/poster/.metaversefile"
     },
     {
-      "position": [-1, 1, -1],
-      "quaternion": [0, 0, 0, 1],
-      "start_url": "https://webaverse.github.io/arrow-loader/"
-    },
-    {
       "position": [-5, 4, -6],
       "quaternion": [
         0,
@@ -213,20 +208,6 @@
       "position": [-2, 1, 2],
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
       "start_url": "https://webaverse.github.io/helm/"
-    },
-    {
-      "position": [0, 0, 0],
-      "quaternion": [0, 0, 0, 1],
-      "start_url": "../metaverse_modules/barrier/",
-      "components": [
-        {
-          "key": "bounds",
-          "value": [
-            [-150, -150, -450],
-            [150, 150, -150]
-          ]
-        }
-      ]
     }
   ]
 }
