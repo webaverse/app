@@ -9,7 +9,7 @@ import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
@@ -359,12 +359,12 @@ metaversefile.setApi({
   useCamera() {
     return camera;
   },
-  usePostOrthographicScene() {
+  /* usePostOrthographicScene() {
     return postSceneOrthographic;
   },
   usePostPerspectiveScene() {
     return postScenePerspective;
-  },
+  }, */
   getMirrors() {
     return mirrors;
   },
@@ -989,8 +989,8 @@ export default () => {
       renderer,
       scene,
       rootScene,
-      postSceneOrthographic,
-      postScenePerspective,
+      // postSceneOrthographic,
+      // postScenePerspective,
       camera,
       sceneHighPriority,
       sceneLowPriority,
