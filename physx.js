@@ -520,6 +520,9 @@ const physxWorker = (() => {
   w.setJointTwistLimitPhysics = (physics, joint, lowerLimit, upperLimit, contactDist = -1) => {
     moduleInstance._setJointTwistLimitPhysics(physics, joint, lowerLimit, upperLimit, contactDist);
   }
+  w.setJointSwingLimitPhysics = (physics, joint, yLimitAngle, zLimitAngle, contactDist = -1) => {
+    moduleInstance._setJointSwingLimitPhysics(physics, joint, yLimitAngle, zLimitAngle, contactDist);
+  }
   w.updateMassAndInertiaPhyscis = (physcis, body, shapeDensities) => {
     return moduleInstance._updateMassAndInertiaPhyscis(physcis, body, shapeDensities);
   }

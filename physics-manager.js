@@ -282,6 +282,9 @@ physicsManager.setJointMotion = (joint, axis, motion) => {
 physicsManager.setJointTwistLimit = (joint, lowerLimit, upperLimit, contactDist) => {
   return physx.physxWorker.setJointTwistLimitPhysics(physx.physics, joint, lowerLimit, upperLimit, contactDist);
 }
+physicsManager.setJointSwingLimit = (joint, yLimitAngle, zLimitAngle, contactDist) => {
+  return physx.physxWorker.setJointSwingLimitPhysics(physx.physics, joint, yLimitAngle, zLimitAngle, contactDist);
+}
 physicsManager.updateMassAndInertia = (body, shapeDensities) => {
   return physx.physxWorker.updateMassAndInertiaPhyscis(physx.physics, body, shapeDensities);
 }

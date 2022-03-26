@@ -4738,6 +4738,11 @@ var _setJointTwistLimitPhysics = Module["_setJointTwistLimitPhysics"] = function
 };
 
 /** @type {function(...*):?} */
+var _setJointSwingLimitPhysics = Module["_setJointSwingLimitPhysics"] = function() {
+  return (_setJointSwingLimitPhysics = Module["_setJointSwingLimitPhysics"] = Module["asm"]["setJointSwingLimitPhysics"]).apply(null, arguments);
+};
+
+/** @type {function(...*):?} */
 var _wakeUpAllPhysics = Module["_wakeUpAllPhysics"] = function() {
   return (_wakeUpAllPhysics = Module["_wakeUpAllPhysics"] = Module["asm"]["wakeUpAllPhysics"]).apply(null, arguments);
 };

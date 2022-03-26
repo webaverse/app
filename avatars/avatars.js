@@ -2667,8 +2667,9 @@ class Avatar {
     // physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eTWIST, PxD6Motion.eFREE);
     // physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
     // physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING2, PxD6Motion.eFREE);
-    physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
-    physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+    physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    physicsManager.setJointSwingLimit(jointLeft_shoulderLeft_arm,       90 * DEG2RAD,      90 * DEG2RAD);
     // physicsManager.setJointTwistLimit(jointLeft_shoulderLeft_arm,       -Math.PI * 0.5,      Math.PI * 0.1);
 
     // const jointLeft_armLeft_elbow = physicsManager.addJoint(flatMeshes.Left_arm, flatMeshes.Left_elbow, 
@@ -2689,8 +2690,9 @@ class Avatar {
     // physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eTWIST, PxD6Motion.eFREE);
     // physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
     // physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING2, PxD6Motion.eFREE);
-    physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
-    physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+    physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    physicsManager.setJointSwingLimit(jointRight_shoulderRight_arm,       90 * DEG2RAD,      90 * DEG2RAD);
     // physicsManager.setJointTwistLimit(jointRight_shoulderRight_arm,       -Math.PI * 0.8,      Math.PI * 0.);
 
     const jointRight_armRight_elbow = physicsManager.addJoint(flatMeshes.Right_arm, flatMeshes.Right_elbow, 
@@ -2716,6 +2718,9 @@ class Avatar {
     // physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eSWING2, PxD6Motion.eFREE);
     physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointHipsLeft_leg,          -90 * DEG2RAD,      0);
+    physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    physicsManager.setJointSwingLimit(jointHipsLeft_leg,       45 * DEG2RAD,      45 * DEG2RAD);
 
     // const jointHipsRight_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Right_leg, 
     //   new THREE.Vector3(0.1, -flatMeshes.Hips.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Right_leg.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
@@ -2728,6 +2733,9 @@ class Avatar {
       // physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eSWING2, PxD6Motion.eFREE);
     physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointHipsRight_leg,         -90 * DEG2RAD,      0);
+    physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    physicsManager.setJointSwingLimit(jointHipsRight_leg,       45 * DEG2RAD,      45 * DEG2RAD);
 
     // const jointLeft_legLeft_knee = physicsManager.addJoint(flatMeshes.Left_leg, flatMeshes.Left_knee, 
     //   new THREE.Vector3(0, -flatMeshes.Left_leg.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Left_knee.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
@@ -3859,7 +3867,7 @@ class Avatar {
     if (this.fsms.state.matches('ragdoll')) {
       this.toAvatar();
     } else {
-      // _applyAnimation();
+      _applyAnimation();
       if (this.fsms.state.matches('skeleton')) {
         // this.toAvatar();
       this.setFromAvatar();
