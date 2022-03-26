@@ -17,26 +17,16 @@ const width = 400;
 const height = 800;
 
 const MegaHup = function({
-  character,
+  npcPlayer = null,
 }) {
-  const {vrmSrc = null} = character ?? {};
-
   const canvasRef = useRef();
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas && vrmSrc) {
+    if (canvas && npcPlayer) {
       let live = true;
       let diorama = null;
-      let npcPlayer = null;
-      (async () => {
-        const avatarApp = await metaversefile.createAppAsync({
-          start_url: vrmSrc,
-        });
-        if (!live) return;
-        npcPlayer = new NpcPlayer();
-        npcPlayer.setAvatarApp(avatarApp);
-  
+      {
         diorama = dioramaManager.createPlayerDiorama({
           target: npcPlayer,
           objects: [
@@ -51,13 +41,10 @@ const MegaHup = function({
         });
         diorama.addCanvas(canvas);
         diorama.enabled = true;
-      })();
+      }
 
       const frame = e => {
         const {timestamp, timeDiff} = e.data;
-        if (npcPlayer) {
-          npcPlayer.updateAvatar(timestamp, timeDiff);
-        }
         if (diorama) {
           diorama.update(timestamp, timeDiff);
         }
@@ -73,12 +60,12 @@ const MegaHup = function({
         live = false;
       };
     }
-  }, [canvasRef, vrmSrc]);
+  }, [canvasRef, npcPlayer]);
 
   return (
     <div className={styles.megaHup}>
       {/* <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} /> */}
-      {vrmSrc ? (
+      {npcPlayer ? (
         <canvas
           className={styles.canvas}
           width={width}
