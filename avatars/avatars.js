@@ -2663,47 +2663,36 @@ class Avatar {
     const jointLeft_shoulderLeft_arm = physicsManager.addJoint(flatMeshes.Left_shoulder, flatMeshes.Left_arm, 
       this.modelBoneOutputs.Left_shoulder.modelBoneEnd.clone().multiplyScalar(0.5), 
       this.modelBoneOutputs.Left_arm.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
-      new THREE.Quaternion(), new THREE.Quaternion(), false);
-    // physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eTWIST, PxD6Motion.eFREE);
-    // physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
-    // physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -45 * DEG2RAD, -35 * DEG2RAD)), new THREE.Quaternion(), false);
     physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
     physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
-    physicsManager.setJointSwingLimit(jointLeft_shoulderLeft_arm,       90 * DEG2RAD,      90 * DEG2RAD);
-    // physicsManager.setJointTwistLimit(jointLeft_shoulderLeft_arm,       -Math.PI * 0.5,      Math.PI * 0.1);
+    physicsManager.setJointSwingLimit(jointLeft_shoulderLeft_arm,       50 * DEG2RAD,      40 * DEG2RAD);
 
     // const jointLeft_armLeft_elbow = physicsManager.addJoint(flatMeshes.Left_arm, flatMeshes.Left_elbow, 
     //   new THREE.Vector3(0, -0.10704085846249278, 0), new THREE.Vector3(0, 0.10704085846249278, 0), new THREE.Quaternion(), new THREE.Quaternion());
     const jointLeft_armLeft_elbow = physicsManager.addJoint(flatMeshes.Left_arm, flatMeshes.Left_elbow, 
       this.modelBoneOutputs.Left_arm.modelBoneEnd.clone().multiplyScalar(0.5), 
       this.modelBoneOutputs.Left_elbow.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
-      new THREE.Quaternion(), new THREE.Quaternion(), false);
-    physicsManager.setJointMotion(jointLeft_armLeft_elbow, PxD6Axis.eSWING1, PxD6Motion.eFREE);
-    // physicsManager.setJointTwistLimit(jointLeft_armLeft_elbow,       -Math.PI * 0.5,      Math.PI * 0.1);
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -70 * DEG2RAD, 0)), new THREE.Quaternion(), false);
+    physicsManager.setJointMotion(jointLeft_armLeft_elbow, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    physicsManager.setJointSwingLimit(jointLeft_armLeft_elbow,       71 * DEG2RAD,      0 * DEG2RAD);
 
     // const jointRight_shoulderRight_arm = physicsManager.addJoint(flatMeshes.Right_shoulder, flatMeshes.Right_arm, 
     //   new THREE.Vector3(0.030482252820337598, -0.06009382920090578, 0), new THREE.Vector3(-0.030482252820337598, 0.06009382920090578, 0), new THREE.Quaternion(), new THREE.Quaternion());
     const jointRight_shoulderRight_arm = physicsManager.addJoint(flatMeshes.Right_shoulder, flatMeshes.Right_arm, 
       this.modelBoneOutputs.Right_shoulder.modelBoneEnd.clone().multiplyScalar(0.5), 
       this.modelBoneOutputs.Right_arm.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
-      new THREE.Quaternion(), new THREE.Quaternion(), false);
-    // physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eTWIST, PxD6Motion.eFREE);
-    // physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
-    // physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 45 * DEG2RAD, 35 * DEG2RAD)), new THREE.Quaternion(), false);
     physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
     physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
-    physicsManager.setJointSwingLimit(jointRight_shoulderRight_arm,       90 * DEG2RAD,      90 * DEG2RAD);
-    // physicsManager.setJointTwistLimit(jointRight_shoulderRight_arm,       -Math.PI * 0.8,      Math.PI * 0.);
+    physicsManager.setJointSwingLimit(jointRight_shoulderRight_arm,       50 * DEG2RAD,      40 * DEG2RAD);
 
     const jointRight_armRight_elbow = physicsManager.addJoint(flatMeshes.Right_arm, flatMeshes.Right_elbow, 
       this.modelBoneOutputs.Right_arm.modelBoneEnd.clone().multiplyScalar(0.5), 
       this.modelBoneOutputs.Right_elbow.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
-      new THREE.Quaternion(), new THREE.Quaternion(), false);
-    // physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eTWIST, PxD6Motion.eFREE);
-    // physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eSWING1, PxD6Motion.eFREE);
-    // physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eSWING2, PxD6Motion.eFREE);
-    physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eSWING1, PxD6Motion.eFREE);
-    physicsManager.setJointTwistLimit(jointRight_armRight_elbow,       -Math.PI * 0.8,      Math.PI * 0.);
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 70 * DEG2RAD, 0)), new THREE.Quaternion(), false);
+    physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    physicsManager.setJointSwingLimit(jointRight_armRight_elbow,       71 * DEG2RAD,      0 * DEG2RAD);
 
     // legs
     // const jointHipsLeft_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Left_leg, 
