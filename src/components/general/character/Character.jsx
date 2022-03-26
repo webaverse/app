@@ -149,6 +149,17 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
 
     };
 
+    function onCharacterSelectClick(e) {
+        setState({ openedPanel: ( state.openedPanel === 'CharacterSelect' ? null : 'CharacterSelect' ) });
+
+        /* if ( state.openedPanel === 'CharacterSelect' ) {
+
+            // cameraManager.requestPointerLock();
+
+        } */
+    }
+    const characterSelectOpen = state.openedPanel === 'CharacterSelect';
+
     //
 
     return (
@@ -249,7 +260,12 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
 
                 })}
 
+                <div className={classnames(styles.selectButton, characterSelectOpen ? styles.highlight : null)} onClick={onCharacterSelectClick}>
+                    Character Select
+                </div>
+
             </div>
+
         </div>
     );
 
