@@ -164,7 +164,7 @@ export const CharacterSelect = () => {
                 <div className={styles.subheading}>
                     <h2>Your Tokens</h2>
                 </div>
-                <div className={styles.list}>
+                <ul className={styles.list}>
                     {userTokenCharacters.map((character, i) =>
                         <Character
                             character={character}
@@ -184,7 +184,7 @@ export const CharacterSelect = () => {
                             ref={refsMap.get(character)}
                         />
                     )}
-                </div>
+                </ul>
             </div>
             <div className={styles.section}>
                 <div className={styles.subheading}>
