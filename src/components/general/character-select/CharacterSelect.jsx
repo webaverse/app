@@ -80,6 +80,7 @@ const Character = forwardRef(({
     character,
     highlight,
     animate,
+    disabled,
     onMouseEnter,
     onClick
 }, ref) => {
@@ -88,10 +89,19 @@ const Character = forwardRef(({
             className={classnames(
                 styles.item,
                 highlight ? styles.highlight : null,
-                animate ? styles.animate : null
+                animate ? styles.animate : null,
+                disabled ? styles.disabled : null,
             )}
-            onMouseEnter={onMouseEnter}
-            onClick={onClick}
+            onMouseEnter={e => {
+                if (!disabled) {
+                    onMouseEnter(e);
+                }
+            }}
+            onClick={e => {
+                if (!disabled) {
+                    onClick(e);
+                }
+            }}
             ref={ref}
         >
             {character?.imgSrc ? <img className={styles.img} src={character.imgSrc} /> : null}
@@ -160,6 +170,7 @@ export const CharacterSelect = () => {
                             character={character}
                             highlight={character === targetCharacter}
                             animate={selectCharacter === character}
+                            disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
                             onMouseEnter={() => {
                                 setHighlightCharacter(character);
                             }}
@@ -186,6 +197,7 @@ export const CharacterSelect = () => {
                                 character={character}
                                 highlight={character === targetCharacter}
                                 animate={selectCharacter === character}
+                                disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
                                 onMouseEnter={() => {
                                     setHighlightCharacter(character);
                                 }}
