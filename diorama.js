@@ -528,6 +528,12 @@ const createPlayerDiorama = ({
       canvas.ctx = ctx;
 
       canvases.push(canvas);
+
+      const newAspect = this.width / this.height;
+      if (sideCamera.aspect !== newAspect) {
+        sideCamera.aspect = newAspect;
+        sideCamera.updateProjectionMatrix();
+      }
     },
     removeCanvas(canvas) {
       const index = canvases.indexOf(canvas);
