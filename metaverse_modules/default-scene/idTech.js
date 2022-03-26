@@ -20,6 +20,7 @@ export class IDTech {
     }
 
     loadAll(basicPath) {
+        return
         if (!this.imageLoader)
             this.imageLoader = new THREE.ImageLoader();
         for (let i = 0; i < this.count; i++) {

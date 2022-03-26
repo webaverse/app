@@ -3,6 +3,8 @@ import metaversefile from 'metaversefile'
 import { TerrainManager } from './terrain-manager.js';
 import { Water } from './Water.js'
 import { Sky } from './Sky.js'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+import { treeMaterial } from './treeMaterial.js';
 
 const { useFrame, useLocalPlayer, useLoaders, useUi, usePhysics, useCleanup, useGeometryUtils } = metaversefile;
 
@@ -13,6 +15,31 @@ export default () => {
     const geometryUtils = useGeometryUtils();
 
     const rootScene = new THREE.Object3D();
+
+    /**
+     * 
+     */
+
+    const fbxLoader = new FBXLoader();
+    fbxLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/models/sm_heroTree_low.fbx`, (obj) => {
+        obj.scale.multiplyScalar(0.01);
+        obj.position.y = 80
+        obj.position.x = 10;
+        obj.updateMatrixWorld(true);
+        rootScene.add(obj) 
+
+        const treeTop = obj.getObjectByName("sm_heroTreeTop");
+        treeTop.material = treeMaterial;
+    })
+
+    fbxLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/models/sm_heroTree_low.fbx`, (obj) => {
+        obj.scale.multiplyScalar(0.01);
+        obj.position.y = 80
+        obj.position.x = -10;
+        obj.updateMatrixWorld(true);
+        rootScene.add(obj) 
+ 
+    })
 
 
     const terrainManager = new TerrainManager(128, 2, geometryUtils);
@@ -47,20 +74,20 @@ export default () => {
         }
     };
 
-    rootScene.add(terrain);
+    // rootScene.add(terrain);
 
     const player = useLocalPlayer();
     player.position.y = 100;
-    terrainManager.updateCenter(player.position);
-    terrainManager.updateChunk();
+    // terrainManager.updateCenter(player.position);
+    // terrainManager.updateChunk();
 
-    useFrame(() => {
+    // useFrame(() => {
 
-        terrainManager.updateCenter(player.position);
-        terrainManager.updateChunk();
- 
-        water.material.uniforms['time'].value += 1.0 / 60.0;
-    });
+    //     terrainManager.updateCenter(player.position);
+    //     terrainManager.updateChunk();
+
+    //     water.material.uniforms['time'].value += 1.0 / 60.0;
+    // });
 
     rootScene.add(new THREE.AxesHelper(1000))
 
@@ -90,12 +117,12 @@ export default () => {
     water.position.y = 65;
 
 
-    rootScene.add(water);
+    // rootScene.add(water);
 
 
     const sky = new Sky();
     sky.scale.setScalar(10000);
-    rootScene.add(sky);
+    // rootScene.add(sky);
 
     const skyUniforms = sky.material.uniforms;
     skyUniforms['turbidity'].value = 10;
