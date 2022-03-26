@@ -47,6 +47,7 @@
 
 .characterSelect .list {
   display: flex;
+  flex-wrap: wrap;
 }
 .characterSelect .list .item {
   position: relative;
