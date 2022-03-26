@@ -3,7 +3,15 @@ import React, {useState, useEffect, useRef} from 'react';
 // import classnames from 'classnames';
 // import dioramaManager from '../diorama.js';
 import styles from './LightArrow.module.css';
-import {downloadFile} from '../util.js';
+
+const frameSize = 64;
+const numFrames = 64;
+const numFramesPerRow = Math.sqrt(numFrames);
+const canvasSize = frameSize * numFramesPerRow;
+const arrowTime = 5000;
+const timeDiff = arrowTime / numFrames;
+
+/* import {downloadFile} from '../util.js';
 
 const localColor = new THREE.Color();
 const localColor2 = new THREE.Color();
@@ -79,20 +87,9 @@ const colors = [
   // ],
 ];
 
-const frameSize = 64;
-const numFrames = 64;
-const numFramesPerRow = Math.sqrt(numFrames);
-const canvasSize = frameSize * numFramesPerRow;
-const arrowTime = 5000;
-const timeDiff = arrowTime / numFrames;
 const _renderArrowSpritesheet = async () => {
   const res = await fetch('./images/ui/arrow.svg');
   const svgData = await res.text();
-
-  /* const renderCanvas = document.createElement('canvas');
-  renderCanvas.width = canvasSize;
-  renderCanvas.height = canvasSize;
-  const renderContext = renderCanvas.getContext('2d'); */
 
   const domParser = new DOMParser();
   const doc = domParser.parseFromString(svgData, 'image/svg+xml');
@@ -179,6 +176,18 @@ const _renderCanvasFromFrames = frames => {
     ctx.drawImage(frame, x, y);
   }
   return canvas;
+}; */
+const _downloadArrowImage = async () => {
+   const img = new Image();
+   img.crossOrigin = 'Anonymous';
+   await new Promise((accept, reject) => {
+    img.onload = () => {
+      accept();
+    };
+    img.onerror = reject;
+    img.src = './images/ui/arrows.png';
+  });
+  return img;
 };
 
 export const LightArrow = function(props) {
@@ -192,14 +201,16 @@ export const LightArrow = function(props) {
       let live = true;
       let interval = null;
       (async () => {
-        const renderedCanvas = await _renderArrowSpritesheet();
+        /* const renderedCanvas = await _renderArrowSpritesheet();
         if (!live) return;
         
         const blob = await new Promise((accept, reject) => {
           renderedCanvas.toBlob(accept, 'image/png');
         });
         if (!live) return;
-        downloadFile(blob, 'light-arrow.png');
+        downloadFile(blob, 'light-arrow.png'); */
+
+        const renderedCanvas = await _downloadArrowImage();
 
         let index = 0;
         const _recurse = () => {
