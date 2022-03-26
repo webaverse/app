@@ -202,6 +202,11 @@ const build = () => {
         }
       }
 
+      copySync('./scenes', './dist/scenes');
+      copySync('./metaverse_modules', './dist/metaverse_modules');
+      copySync('./metaverse_modules', './dist/metaverse_modules');
+      copySync('./public', './dist/public');
+
       fs.writeFileSync('dist/exports.json', JSON.stringify(exportPaths, null, 4));
       return null;
     },
