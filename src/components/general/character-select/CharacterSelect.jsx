@@ -1,10 +1,13 @@
 
 import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
+import metaversefile from 'metaversefile';
 import styles from './character-select.module.css';
 import { AppContext } from '../../app';
 import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
+import { world } from '../../../../world.js';
+import { NpcPlayer } from '../../../../character-controller.js';
 
 //
 
@@ -123,7 +126,8 @@ export const CharacterSelect = () => {
     const { state, setState } = useContext( AppContext );
     const [ highlightCharacter, setHighlightCharacter ] = useState(null);
     const [ selectCharacter, setSelectCharacter ] = useState(null);
-    const [ arrowPosition, setArrowPosition ] = useState();
+    const [ arrowPosition, setArrowPosition ] = useState(null);
+    const [ npcPlayer, setNpcPlayer ] = useState(null);
 
     const refsMap = (() => {
         const map = new Map();
@@ -158,8 +162,45 @@ export const CharacterSelect = () => {
             setArrowPosition(null);
         }
     }, [targetCharacter]);
+    useEffect(() => {
+        if (targetCharacter) {
+            const {vrmSrc} = targetCharacter;
+
+            let live = true;
+            let npcPlayer = null;
+            (async () => {
+                // console.log('avatar app', vrmSrc);
+                const avatarApp = await metaversefile.createAppAsync({
+                  start_url: vrmSrc,
+                });
+                // console.log('npoc player', avatarApp);
+                if (!live) return;
+                npcPlayer = new NpcPlayer();
+                npcPlayer.setAvatarApp(avatarApp);
+                setNpcPlayer(npcPlayer);
+            })();
+
+            const frame = e => {
+                const {timestamp, timeDiff} = e.data;
+                if (npcPlayer) {
+                  npcPlayer.updateAvatar(timestamp, timeDiff);
+                }
+            };
+            world.appManager.addEventListener('frame', frame);
+
+            return () => {
+                live = false;
+                world.appManager.removeEventListener('frame', frame);
+            };
+        }
+    }, [targetCharacter]);
 
     const opened = state.openedPanel === 'CharacterSelect';
+    useEffect(() => {
+        if (opened) {
+            setSelectCharacter(null);
+        }
+    }, [opened]);
 
     return (
         <div className={styles.characterSelect}>
@@ -209,10 +250,22 @@ export const CharacterSelect = () => {
                                         setHighlightCharacter(character);
                                     }}
                                     onClick={e => {
-                                        setSelectCharacter(character);
-                                        setTimeout(() => {
-                                            setSelectCharacter(null);
-                                        }, 2000);
+                                        if (character && npcPlayer) {
+                                            setSelectCharacter(character);
+
+                                            (async () => {
+                                                const localPlayer = await metaversefile.useLocalPlayer();
+                                                await localPlayer.setAvatarUrl(character.vrmSrc);
+                                            })()
+                                            // localPlayer.setAvatar(npcPlayer.avatar);
+
+                                            setTimeout(() => {
+                                                // setSelectCharacter(null);
+                                                // localPlayer.setAvatarApp();
+
+                                                setState({ openedPanel: null });
+                                            }, 2000);
+                                        }
                                     }}
                                     key={i}
                                     ref={refsMap.get(character)}
@@ -231,7 +284,7 @@ export const CharacterSelect = () => {
             </div>
 
             <MegaHup
-              character={opened ? targetCharacter : null}
+              npcPlayer={opened ? npcPlayer : null}
             />
         </div>
     );
