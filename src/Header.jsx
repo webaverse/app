@@ -13,6 +13,7 @@ import ioManager from '../io-manager.js'
 import { User } from './User';
 import { MagicMenu } from './MagicMenu.jsx';
 import { Character } from './components/general/character';
+import { CharacterSelect } from './components/general/character-select';
 import { Tokens } from './tabs/tokens';
 import { Claims } from './tabs/claims';
 import { Inspector } from './Inspector.jsx';
@@ -351,6 +352,9 @@ export default function Header ({ setSelectedApp, selectedApp }) {
                             wearActions={wearActions}
                             dioramaCanvasRef={dioramaCanvasRef}
                             game={game}
+                        />
+                        <CharacterSelect
+                            
                         />
                         <Claims
                             open={ claimsOpen }
