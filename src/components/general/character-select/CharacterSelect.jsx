@@ -128,6 +128,7 @@ export const CharacterSelect = () => {
     const [ selectCharacter, setSelectCharacter ] = useState(null);
     const [ arrowPosition, setArrowPosition ] = useState(null);
     const [ npcPlayer, setNpcPlayer ] = useState(null);
+    const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
 
     const refsMap = (() => {
         const map = new Map();
@@ -167,16 +168,20 @@ export const CharacterSelect = () => {
             const {vrmSrc} = targetCharacter;
 
             let live = true;
-            let npcPlayer = null;
+            let npcPlayer = npcPlayerCache.get(vrmSrc);
             (async () => {
-                // console.log('avatar app', vrmSrc);
-                const avatarApp = await metaversefile.createAppAsync({
-                  start_url: vrmSrc,
-                });
-                // console.log('npoc player', avatarApp);
-                if (!live) return;
-                npcPlayer = new NpcPlayer();
-                npcPlayer.setAvatarApp(avatarApp);
+                if (!npcPlayer) {
+                    // console.log('avatar app', vrmSrc);
+                    const avatarApp = await metaversefile.createAppAsync({
+                    start_url: vrmSrc,
+                    });
+                    // console.log('npoc player', avatarApp);
+                    if (!live) return;
+                    npcPlayer = new NpcPlayer();
+                    npcPlayer.setAvatarApp(avatarApp);
+                    npcPlayerCache.set(vrmSrc, npcPlayer);
+                }
+
                 setNpcPlayer(npcPlayer);
             })();
 
@@ -257,7 +262,7 @@ export const CharacterSelect = () => {
                                                 const localPlayer = await metaversefile.useLocalPlayer();
                                                 await localPlayer.setAvatarUrl(character.vrmSrc);
                                             })();
-                                            
+
                                             setTimeout(() => {
                                                 setState({ openedPanel: null });
                                             }, 1000);
