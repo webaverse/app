@@ -764,11 +764,11 @@ const createPlayerDiorama = ({
         };
         _renderGlyph();
         const _renderDots = () => {
-          if (glyphBackground) {
-            glyphMesh.update(timeOffset, timeDiff, this.width, this.height);
-            glyphMesh.visible = true;
+          if (dotsBackground) {
+            dotsMesh.update(timeOffset, timeDiff, this.width, this.height);
+            dotsMesh.visible = true;
           } else {
-            glyphMesh.visible = false;
+            dotsMesh.visible = false;
           }
         };
         _renderDots();
