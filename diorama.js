@@ -11,6 +11,7 @@ import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
 import {SmokeBgFxMesh} from './background-fx/SmokeBgFx.js';
 import {GlyphBgFxMesh} from './background-fx/GlyphBgFx.js';
+import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
@@ -344,6 +345,7 @@ const poisonMesh = new PoisonBgFxMesh();
 const noiseMesh = new NoiseBgFxMesh();
 const smokeMesh = new SmokeBgFxMesh();
 const glyphMesh = new GlyphBgFxMesh();
+const dotsMesh = new DotsBgFxMesh();
 const textObject = (() => {
   const o = new THREE.Object3D();
   
@@ -436,6 +438,7 @@ sideScene.add(poisonMesh);
 sideScene.add(noiseMesh);
 sideScene.add(smokeMesh);
 sideScene.add(glyphMesh);
+sideScene.add(dotsMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
 sideScene.add(textObject);
@@ -491,6 +494,7 @@ const createPlayerDiorama = ({
   lightningBackground = false,
   radialBackground = false,
   glyphBackground = false,
+  dotsBackground = false,
   autoCamera = true,
 } = {}) => {
   // _ensureSideSceneCompiled();
@@ -550,6 +554,7 @@ const createPlayerDiorama = ({
         lightningBackground,
         radialBackground,
         glyphBackground,
+        dotsBackground,
       };
       grassBackground = false;
       poisonBackground = false;
@@ -558,6 +563,7 @@ const createPlayerDiorama = ({
       lightningBackground = false;
       radialBackground = false;
       glyphBackground = false;
+      dotsBackground = false;
       if (oldValues.grassBackground) {
         poisonBackground = true;
       } else if (oldValues.poisonBackground) {
@@ -571,6 +577,8 @@ const createPlayerDiorama = ({
       } else if (oldValues.radialBackground) {
         glyphBackground = true;
       } else if (oldValues.glyphBackground) {
+        dotsBackground = true;
+      } else if (oldValues.dotsBackground) {
         grassBackground = true;
       }
     },
@@ -755,6 +763,15 @@ const createPlayerDiorama = ({
           }
         };
         _renderGlyph();
+        const _renderDots = () => {
+          if (glyphBackground) {
+            glyphMesh.update(timeOffset, timeDiff, this.width, this.height);
+            glyphMesh.visible = true;
+          } else {
+            glyphMesh.visible = false;
+          }
+        };
+        _renderDots();
         const _renderOutline = () => {
           if (outline) {
             outlineMesh.update(timeOffset, timeDiff, this.width, this.height, outlineRenderTarget.texture);
