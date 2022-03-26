@@ -1,4 +1,5 @@
 import alea from './alea.js';
+import {murmurhash3} from './murmurhash3.js';
 import {
   makeRng,
   createMisc,
@@ -19,6 +20,7 @@ import {
 
 export {
   alea,
+  murmurhash3,
   makeRng,
   createMisc,
   numBlocksPerChunk,
