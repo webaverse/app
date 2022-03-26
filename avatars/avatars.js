@@ -1373,26 +1373,20 @@ class Avatar {
         break;
       }
       case 2: {
-        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel( this.model );
         this.crunchedModel.frustumCulled = false;
-        scene.add( this.crunchedModel );
-        this.crunchedModel.visible = true;
         break;
       }
       case 3: {
-        console.log('not implemented'); // XXX
-        this.model.visible = true;
         break;
       }
       case 4: {
-        console.log('not implemented'); // XXX
-        this.model.visible = true;
         break;
       }
       default: {
         throw new Error('unknown avatar quality: ' + quality);
       }
     }
+    this.app.updateQuality();
   }
   update(timestamp, timeDiff) {
     const now = timestamp;
