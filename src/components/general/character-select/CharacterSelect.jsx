@@ -173,7 +173,7 @@ export const CharacterSelect = () => {
                 if (!npcPlayer) {
                     // console.log('avatar app', vrmSrc);
                     const avatarApp = await metaversefile.createAppAsync({
-                    start_url: vrmSrc,
+                        start_url: vrmSrc,
                     });
                     // console.log('npoc player', avatarApp);
                     if (!live) return;
