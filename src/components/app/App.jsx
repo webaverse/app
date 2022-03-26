@@ -3,18 +3,20 @@ import React, { useState, useEffect, useRef, createContext } from 'react';
 
 import { defaultAvatarUrl } from '../../../constants';
 
+import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
 import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
 import cameraManager from '../../../camera-manager';
+import { world } from '../../../world';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
 import { Settings } from '../general/settings';
 import { WorldObjectsList } from '../general/world-objects-list';
-import { IoHandler } from '../general/io-handler';
+import { IoHandler, registerIoEventHandler, unregisterIoEventHandler } from '../general/io-handler';
 import { ZoneTitleCard } from '../general/zone-title-card';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
 import { LoadingBox } from '../../LoadingBox.jsx';
@@ -22,10 +24,10 @@ import { DragAndDrop } from '../../DragAndDrop.jsx';
 import { Stats } from '../../Stats.jsx';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
+import { UserBar } from '../general/user-bar';
 import Header from '../../Header.jsx';
 
 import styles from './App.module.css';
-import { UserBar } from '../general/user-bar/UserBar';
 
 //
 
@@ -82,8 +84,15 @@ export const App = () => {
     const [ loginMethod, setLoginMethod ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
+    const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
 
     //
+
+    const selectApp = ( app, physicsId, position ) => {
+
+        game.setMouseSelectedObject( app, physicsId, position );
+
+    };
 
     const _loadUrlState = () => {
 
@@ -104,6 +113,48 @@ export const App = () => {
         }
 
     }, [ state.openedPanel ] );
+
+    useEffect( () => {
+
+        const handleClick = () => {
+
+            const hoverObject = game.getMouseHoverObject();
+
+            if ( hoverObject ) {
+
+                const physicsId = game.getMouseHoverPhysicsId();
+                const position = game.getMouseHoverPosition();
+                selectApp( hoverObject, physicsId, position );
+                return false;
+
+            }
+
+            return true;
+
+        };
+
+        registerIoEventHandler( 'click', handleClick );
+
+        return () => {
+
+            unregisterIoEventHandler( 'click', handleClick );
+
+        };
+
+    }, [] );
+
+    useEffect( () => {
+
+        const update = e => {
+
+            setApps( world.appManager.getApps().slice() );
+
+        };
+
+        world.appManager.addEventListener( 'appadd', update );
+        world.appManager.addEventListener( 'appremove', update );
+
+    }, [] );
 
     useEffect( () => {
 
@@ -148,16 +199,21 @@ export const App = () => {
 
     return (
         <div className={ styles.App } id="app" >
-            <AppContext.Provider value={{ state, setState, app }}>
-                <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } userAddress={ userAddress } loginMethod={ loginMethod } />
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
+                <Header userAddress={ userAddress } loginMethod={ loginMethod } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
                 <UserBar userAddress={ userAddress } setUserAddress={ setUserAddress } setLoginMethod={ setLoginMethod } />
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
-                <WorldObjectsList setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
+                <WorldObjectsList />
                 <PlayMode />
-                <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
+                <EditorMode
+                    selectedScene={ selectedScene }
+                    setSelectedScene={ setSelectedScene }
+                    selectedRoom={ selectedRoom }
+                    setSelectedRoom={ setSelectedRoom }
+                />
                 <IoHandler />
                 <ZoneTitleCard />
                 <MapGen />
