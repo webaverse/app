@@ -345,6 +345,7 @@ const poisonMesh = new PoisonBgFxMesh();
 const noiseMesh = new NoiseBgFxMesh();
 const smokeMesh = new SmokeBgFxMesh();
 const glyphMesh = new GlyphBgFxMesh();
+const dotsMesh = new DotsBgFxMesh();
 const textObject = (() => {
   const o = new THREE.Object3D();
   
@@ -437,6 +438,7 @@ sideScene.add(poisonMesh);
 sideScene.add(noiseMesh);
 sideScene.add(smokeMesh);
 sideScene.add(glyphMesh);
+sideScene.add(dotsMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
 sideScene.add(textObject);
@@ -575,8 +577,6 @@ const createPlayerDiorama = ({
       } else if (oldValues.radialBackground) {
         glyphBackground = true;
       } else if (oldValues.glyphBackground) {
-        dotsBackground = true;
-      } else if (oldValues.dotsBackground) {
         grassBackground = true;
       }
     },
@@ -761,6 +761,15 @@ const createPlayerDiorama = ({
           }
         };
         _renderGlyph();
+        const _renderDots = () => {
+          if (dotsBackground) {
+            dotsMesh.update(timeOffset, timeDiff, this.width, this.height);
+            dotsMesh.visible = true;
+          } else {
+            dotsMesh.visible = false;
+          }
+        };
+        _renderDots();
         const _renderOutline = () => {
           if (outline) {
             outlineMesh.update(timeOffset, timeDiff, this.width, this.height, outlineRenderTarget.texture);
