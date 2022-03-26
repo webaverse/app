@@ -7,7 +7,7 @@ import { LightArrow } from '../../../LightArrow.jsx';
 
 //
 
-const userTokenCharacters = Array(8);
+const userTokenCharacters = Array(7);
 for (let i = 0; i < userTokenCharacters.length; i++) {
     userTokenCharacters[i] = {
         name: '',
