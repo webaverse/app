@@ -1,6 +1,6 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
-// import classnames from 'classnames';
+import classnames from 'classnames';
 // import dioramaManager from '../diorama.js';
 import styles from './LightArrow.module.css';
 
@@ -190,7 +190,12 @@ const _downloadArrowImage = async () => {
   return img;
 };
 
-export const LightArrow = function(props) {
+export const LightArrow = function({
+  enabled = true,
+  animate = false,
+  x,
+  y,
+}) {
   const canvasRef = useRef();
 
   useEffect(() => {
@@ -232,6 +237,30 @@ export const LightArrow = function(props) {
   }, [canvasRef]);
 
   return (
-    <canvas className={styles.lightArrow} width={frameSize} height={frameSize} ref={canvasRef} />
+    <div
+      className={classnames(
+        styles.lightArrowContainer,
+        enabled ? styles.enabled : null,
+      )}
+      style={{
+        transform: `translate(${x + 50}px, ${y - 170}px)`,
+      }}
+    >
+      <div
+        className={classnames(
+          styles.lightArrow,
+          animate ? styles.animate : null,
+        )}
+      >
+        <div className={styles.perspective}>
+          <canvas
+            className={styles.canvas}
+            width={frameSize}
+            height={frameSize}
+            ref={canvasRef}
+          />
+        </div>
+      </div>
+    </div>
   );
 };
