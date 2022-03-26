@@ -44,9 +44,10 @@ const MegaHup = function({
           ],
           cameraOffset: new THREE.Vector3(-0.5, 0, -0.25),
           // label: true,
-          outline: true,
+          // outline: true,
           // grassBackground: true,
           // glyphBackground: true,
+          dotsBackground: true,
         });
         diorama.addCanvas(canvas);
         diorama.enabled = true;
