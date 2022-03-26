@@ -558,11 +558,11 @@ ioManager.keydown = e => {
       break;
     } */
     case 74: { // J
-      // game.inventoryHack = !game.inventoryHack;
-      const localPlayer = metaversefile.useLocalPlayer();
-      if (localPlayer.avatar) {
-        localPlayer.avatar.toAvatar();
-      }
+      game.inventoryHack = !game.inventoryHack;
+      // const localPlayer = metaversefile.useLocalPlayer();
+      // if (localPlayer.avatar) {
+      //   localPlayer.avatar.toAvatar();
+      // }
       break;
     }
     case 27: { // esc
