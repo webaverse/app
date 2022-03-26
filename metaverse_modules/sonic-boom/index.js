@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useLocalPlayer, useCameraManager, useLoaders, useInternals} = metaversefile;
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
-import ioManager from '../../io-manager';
+
 
 export default () => {
   const app = useApp();
@@ -21,21 +21,34 @@ export default () => {
   const textureB = textureLoader.load(`${baseUrl}/textures/b.jpg`);
   const electronicballTexture = textureLoader.load(`${baseUrl}/textures/electronic-ball2.png`);
   const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
+
+    let currentPos=new THREE.Vector3();
+    let currentDir=new THREE.Vector3();
+    let prePos=new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
     {
         useFrame(() => {
             
             //console.log(camera.rotation.y-localPlayer.rotation.y);
             //console.log(localPlayer.actionInterpolants.jump)
+            currentPos.x=localPlayer.position.x;
+            currentPos.y=localPlayer.position.y;
+            currentPos.z=localPlayer.position.z;
+            currentDir.x=currentPos.x-prePos.x;
+            currentDir.y=currentPos.y-prePos.y;
+            currentDir.z=currentPos.z-prePos.z;
+            currentDir.normalize();
             if (localPlayer.hasAction('narutoRun')){
                     narutoRunTime++;
                     lastStopSw=1;
                 }
-                else{
-                    narutoRunTime=0;
-                    
-                }
+            else{
+                narutoRunTime=0;
                 
+            }
+            prePos.x=currentPos.x;
+            prePos.y=currentPos.y;
+            prePos.z=currentPos.z;     
             
         });
     }
@@ -228,39 +241,51 @@ export default () => {
         const group = new THREE.Group();
         group.add(frontwave);
         group.add(frontwave2);
-        app.add(group);
+        //app.add(group);
 
-        const localVector = new THREE.Vector3();
         
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
-            group.position.copy(localPlayer.position);
-            if (localPlayer.avatar) {
-                group.position.y -= localPlayer.avatar.height;
-                group.position.y += 0.65;
-            }
-            group.rotation.copy(localPlayer.rotation);
             
-            localPlayer.getWorldDirection(localVector)
-            localVector.normalize();
-            group.position.x+=0.6*localVector.x;
-            group.position.z+=0.6*localVector.z;
         
             if(narutoRunTime>10){
+                //console.log('sonic-boom-frontwave');
+                if(!sonicBoomInApp){
+                    //console.log('add-frontWave');
+                    app.add(group);
+                    sonicBoomInApp=true;
+                }
+                
+                group.position.copy(localPlayer.position);
+                if (localPlayer.avatar) {
+                    group.position.y -= localPlayer.avatar.height;
+                    group.position.y += 0.65;
+                }
+                group.rotation.copy(localPlayer.rotation);
+                
+                group.position.x-=0.6*currentDir.x;
+                group.position.z-=0.6*currentDir.z;
+
                 group.scale.set(1,1,1);
-            
+                material.uniforms.uTime.value = timestamp/5000;
+                material2.uniforms.uTime.value = timestamp/10000;
             }
             else{
-                group.scale.set(0,0,0);
+                if(sonicBoomInApp){
+                    //console.log('remove-frontWave');
+                    app.remove(group);
+                    sonicBoomInApp=false;
+                }
+                //group.scale.set(0,0,0);
             }
         
             // material.uniforms.strength.value=Math.sin(timestamp/1000);
             // material2.uniforms.strength.value=Math.sin(timestamp/1000);
         
         
-            material.uniforms.uTime.value = timestamp/5000;
-            material2.uniforms.uTime.value = timestamp/10000;
+            
             // material2.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight, 1);
-            app.updateMatrixWorld();
+            //app.updateMatrixWorld();
             
         
         });
@@ -343,35 +368,46 @@ export default () => {
             group.add(mesh);
            
             // mesh.scale.set(1.5, 1.7, 1.5);
-            app.add(group);
+            //app.add(group);
         }
         windEffect();
         
-        const localVector = new THREE.Vector3();
-
+        
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
-            group.position.copy(localPlayer.position);
-            if (localPlayer.avatar) {
-                group.position.y -= localPlayer.avatar.height;
-                group.position.y += 0.65;
-            }
-            group.rotation.copy(localPlayer.rotation);
-
-            localPlayer.getWorldDirection(localVector);
-            localVector.normalize();
-            group.position.x+=2.2*localVector.x;
-            group.position.z+=2.2*localVector.z;
+            
             if(narutoRunTime>10){
-                group.scale.set(1,1,1);
+                //console.log('sonic-boom-wind');
+                if(!sonicBoomInApp){
+                    //console.log('add-wind');
+                    app.add(group);
+                    sonicBoomInApp=true;
+                }
+                group.position.copy(localPlayer.position);
+                if (localPlayer.avatar) {
+                    group.position.y -= localPlayer.avatar.height;
+                    group.position.y += 0.65;
+                }
+                group.rotation.copy(localPlayer.rotation);
+
                 
+                group.position.x-=2.2*currentDir.x;
+                group.position.z-=2.2*currentDir.z;
+                group.scale.set(1,1,1);
+                windMaterial.uniforms.uTime.value=timestamp/10000;
             }
             else{
-                group.scale.set(0,0,0);
+                if(sonicBoomInApp){
+                    //console.log('remove-wind');
+                    app.remove(group);
+                    sonicBoomInApp=false;
+                }
+                //group.scale.set(0,0,0);
             }
             
-            windMaterial.uniforms.uTime.value=timestamp/10000;
             
-            app.updateMatrixWorld();
+            
+            //app.updateMatrixWorld();
 
         });
     }
@@ -484,69 +520,74 @@ export default () => {
             const mesh = new THREE.Mesh(geometry, flameMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
             group.add(mesh);
-            app.add(group);
+            //app.add(group);
         }
         flame();
         
         let playerRotation=[0,0,0,0,0];
-        const localVector = new THREE.Vector3();
-       
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
-            group.position.copy(localPlayer.position);
-            if (localPlayer.avatar) {
-                group.position.y -= localPlayer.avatar.height;
-                group.position.y += 0.65;
-            }
-            //group.rotation.copy(localPlayer.rotation);
-            //console.log(localPlayer.rotation.x);
-            localPlayer.getWorldDirection(localVector)
-            localVector.normalize();
-            group.position.x+=2.2*localVector.x;
-            group.position.z+=2.2*localVector.z;
+            
 
             if(narutoRunTime>10 ){
+                if(!sonicBoomInApp){
+                    //console.log('add-flame');
+                    app.add(group);
+                    sonicBoomInApp=true;
+                }
                 group.scale.set(1,1,1);
                 flameMaterial.uniforms.strength.value=1.0;
             }
             else{
-                //group.scale.set(0,0,0);
-                flameMaterial.uniforms.strength.value-=0.025;
+                if(flameMaterial.uniforms.strength.value>0)
+                    flameMaterial.uniforms.strength.value-=0.025;
             }
-            // if(narutoRunTime>0 && narutoRunTime<90){
-            //     group.scale.set(0,0,0);
-            // }
-            // if(!localPlayer.hasAction('fly') && !localPlayer.hasAction('jump')){
-                group.scale.set(1,1,1);
-            /* }
-            else{
-                group.scale.set(0,0,0);
-            } */
-            
-            flameMaterial.uniforms.uTime.value=timestamp/20000;
-            
-            
-            if(Math.abs(localPlayer.rotation.x)>0){
-                let temp=localPlayer.rotation.y+Math.PI;
-                for(let i=0;i<5;i++){
-                    let temp2=playerRotation[i];
-                    playerRotation[i]=temp;
-                    temp=temp2;
-                    
+            if(flameMaterial.uniforms.strength.value>0){
+                //console.log('sonic-boom-flame');
+                group.position.copy(localPlayer.position);
+                if (localPlayer.avatar) {
+                    group.position.y -= localPlayer.avatar.height;
+                    group.position.y += 0.65;
                 }
+                
+                
+                group.position.x-=2.2*currentDir.x;
+                group.position.z-=2.2*currentDir.z;
+                flameMaterial.uniforms.uTime.value=timestamp/20000;
+
+                if(Math.abs(localPlayer.rotation.x)>0){
+                    let temp=localPlayer.rotation.y+Math.PI;
+                    for(let i=0;i<5;i++){
+                        let temp2=playerRotation[i];
+                        playerRotation[i]=temp;
+                        temp=temp2;
+                        
+                    }
+                }
+                else{
+                    let temp=-localPlayer.rotation.y;
+                    for(let i=0;i<5;i++){
+                        let temp2=playerRotation[i];
+                        playerRotation[i]=temp;
+                        temp=temp2;
+                        
+                    }
+                }
+               
+                flameMaterial.uniforms.playerRotation.value.set( playerRotation[0],0,playerRotation[4]);
             }
             else{
-                let temp=-localPlayer.rotation.y;
-                for(let i=0;i<5;i++){
-                    let temp2=playerRotation[i];
-                    playerRotation[i]=temp;
-                    temp=temp2;
-                    
+                if(sonicBoomInApp){
+                    //console.log('remove-flame');
+                    app.remove(group);
+                    sonicBoomInApp=false;
                 }
             }
            
-            flameMaterial.uniforms.playerRotation.value.set( playerRotation[0],0,playerRotation[4]);
             
-            app.updateMatrixWorld();
+            
+            
+            //app.updateMatrixWorld();
 
         });
     }
@@ -679,73 +720,76 @@ export default () => {
             const mesh = new THREE.Mesh(geometry, lightningMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
             group.add(mesh);
-            app.add(group);
+            //app.add(group);
         }
         lightning();
         
         let playerRotation=[];
         let lightningfreq=0;
-        const localVector = new THREE.Vector3();
-
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
-            group.position.copy(localPlayer.position);
-            if (localPlayer.avatar) {
-                group.position.y -= localPlayer.avatar.height;
-                group.position.y += 0.65;
-            }
-            //group.rotation.copy(localPlayer.rotation);
-            //console.log(localPlayer.rotation.x);
-            localPlayer.getWorldDirection(localVector);
-            localVector.normalize();
-            group.position.x+=2.2*localVector.x;
-            group.position.z+=2.2*localVector.z;
+            
 
             if(narutoRunTime>10 ){
+                if(!sonicBoomInApp){
+                    //console.log('add-lightning');
+                    app.add(group);
+                    sonicBoomInApp=true;
+                }
                 group.scale.set(1,1,1);
                 lightningMaterial.uniforms.strength.value=1.0;
             }
             else{
-                //group.scale.set(0,0,0);
-                lightningMaterial.uniforms.strength.value-=0.025;
+                if(lightningMaterial.uniforms.strength.value>0)
+                    lightningMaterial.uniforms.strength.value-=0.025;
             }
-            // if(narutoRunTime>0 && narutoRunTime<90){
-            //     group.scale.set(0,0,0);
-            // }
-            // if(!localPlayer.hasAction('fly') && !localPlayer.hasAction('jump')){
-                group.scale.set(1,1,1);
-            /* }
+            if(lightningMaterial.uniforms.strength.value>0){
+                //console.log('sonic-boom-lightning');
+                group.position.copy(localPlayer.position);
+                if (localPlayer.avatar) {
+                    group.position.y -= localPlayer.avatar.height;
+                    group.position.y += 0.65;
+                }
+                
+               
+                group.position.x-=2.2*currentDir.x;
+                group.position.z-=2.2*currentDir.z;
+                lightningMaterial.uniforms.uTime.value=timestamp/20000;
+                if(Math.abs(localPlayer.rotation.x)>0){
+                    let temp=localPlayer.rotation.y+Math.PI;
+                    for(let i=0;i<5;i++){
+                        let temp2=playerRotation[i];
+                        playerRotation[i]=temp;
+                        temp=temp2;
+                    }
+                }
+                else{
+                    let temp=-localPlayer.rotation.y;
+                    for(let i=0;i<5;i++){
+                        let temp2=playerRotation[i];
+                        playerRotation[i]=temp;
+                        temp=temp2;
+                    }
+                }
+                lightningMaterial.uniforms.playerRotation.value.set( playerRotation[0],0,playerRotation[4]);
+                
+                if(lightningfreq%1==0){
+                    lightningMaterial.uniforms.random.value=Math.random()*Math.PI;
+                }
+                
+    
+                lightningfreq++;
+            }
             else{
-                group.scale.set(0,0,0);
-            } */
-            
-            lightningMaterial.uniforms.uTime.value=timestamp/20000;
-            
-            
-            if(Math.abs(localPlayer.rotation.x)>0){
-                let temp=localPlayer.rotation.y+Math.PI;
-                for(let i=0;i<5;i++){
-                    let temp2=playerRotation[i];
-                    playerRotation[i]=temp;
-                    temp=temp2;
+                if(sonicBoomInApp){
+                    //console.log('remove-lightning');
+                    app.remove(group);
+                    sonicBoomInApp=false;
                 }
             }
-            else{
-                let temp=-localPlayer.rotation.y;
-                for(let i=0;i<5;i++){
-                    let temp2=playerRotation[i];
-                    playerRotation[i]=temp;
-                    temp=temp2;
-                }
-            }
-            lightningMaterial.uniforms.playerRotation.value.set( playerRotation[0],0,playerRotation[4]);
             
-            if(lightningfreq%1==0){
-                lightningMaterial.uniforms.random.value=Math.random()*Math.PI;
-            }
-            //lightningMaterial.uniforms.strength.value=Math.abs(Math.cos(timestamp/10000));
-
-            lightningfreq++;
-            app.updateMatrixWorld();
+            
+            //app.updateMatrixWorld();
 
         });
     }
@@ -791,7 +835,7 @@ export default () => {
                     value: 0,
                 },
                 opacity: {
-                    value: 1,
+                    value: 0,
                 },
                 textureR: { type: 't', value: textureR },
                 textureG: { type: 't', value: textureG },
@@ -884,82 +928,100 @@ export default () => {
       });
     
       let plane=new THREE.Mesh(planeGeometry,material);
-      app.add(plane);
+      //app.add(plane);
       plane.position.y=1;
       plane.frustumCulled = false;
       let temp=[];
       let temp2=[];
+      let sonicBoomInApp=false;
       useFrame(({timestamp}) => {
         
-        for(let i=0;i<18;i++){
-            temp[i]=position[i];
-        }
-        for (let i = 0; i < planeNumber; i++){
-            if(i===0){
-                position[0] = localPlayer.position.x;
-                position[1] = localPlayer.position.y-1.;
-                position[2] = localPlayer.position.z;
-                if (localPlayer.avatar) {
-                    position[1] -= localPlayer.avatar.height;
-                    position[1] += 1.18;
-                }
-                position[3] = localPlayer.position.x;
-                position[4] = localPlayer.position.y-2.;
-                position[5] = localPlayer.position.z;
-                if (localPlayer.avatar) {
-                    position[4] -= localPlayer.avatar.height;
-                    position[4] += 1.18;
-                }
-            
-                position[6] = temp[0];
-                position[7] = temp[1];
-                position[8] = temp[2];
-            
-                position[9] = temp[3];
-                position[10] = temp[4];
-                position[11] = temp[5];
-            
-                position[12] = temp[0];
-                position[13] = temp[1];
-                position[14] = temp[2];
-            
-                position[15] = localPlayer.position.x;
-                position[16] = localPlayer.position.y-2.;
-                position[17] = localPlayer.position.z;
-                if (localPlayer.avatar) {
-                    position[16] -= localPlayer.avatar.height;
-                    position[16] += 1.18;
-                }
-            }
-            else{
-                
-                for(let j=0;j<18;j++){
-                    temp2[j]=position[i*18+j];
-                    position[i*18+j]=temp[j];
-                    temp[j]=temp2[j];
-                }
-                
-
-            }
-        }
         
-        plane.geometry.verticesNeedUpdate = true;
-        plane.geometry.dynamic = true;
-        plane.geometry.attributes.position.needsUpdate = true;
-        
-        material.uniforms.uTime.value = timestamp/1000;
         if(narutoRunTime>=10){
+            if(!sonicBoomInApp){
+                //console.log('add-planeTrail1');
+                app.add(plane);
+                sonicBoomInApp=true;
+            }
             material.uniforms.opacity.value = 1;
         }
         else{
-            material.uniforms.opacity.value -= 0.02;
+            if(material.uniforms.opacity.value>0)
+                material.uniforms.opacity.value -= 0.02;
         }
         if(narutoRunTime>0 && narutoRunTime<10){
             material.uniforms.opacity.value = 0;
         }
+        if(material.uniforms.opacity.value>0){
+            //console.log('sonic-boom-verticalPlane');
+            for(let i=0;i<18;i++){
+                temp[i]=position[i];
+            }
+            for (let i = 0; i < planeNumber; i++){
+                if(i===0){
+                    position[0] = localPlayer.position.x;
+                    position[1] = localPlayer.position.y-1.;
+                    position[2] = localPlayer.position.z;
+                    if (localPlayer.avatar) {
+                        position[1] -= localPlayer.avatar.height;
+                        position[1] += 1.18;
+                    }
+                    position[3] = localPlayer.position.x;
+                    position[4] = localPlayer.position.y-2.;
+                    position[5] = localPlayer.position.z;
+                    if (localPlayer.avatar) {
+                        position[4] -= localPlayer.avatar.height;
+                        position[4] += 1.18;
+                    }
+                
+                    position[6] = temp[0];
+                    position[7] = temp[1];
+                    position[8] = temp[2];
+                
+                    position[9] = temp[3];
+                    position[10] = temp[4];
+                    position[11] = temp[5];
+                
+                    position[12] = temp[0];
+                    position[13] = temp[1];
+                    position[14] = temp[2];
+                
+                    position[15] = localPlayer.position.x;
+                    position[16] = localPlayer.position.y-2.;
+                    position[17] = localPlayer.position.z;
+                    if (localPlayer.avatar) {
+                        position[16] -= localPlayer.avatar.height;
+                        position[16] += 1.18;
+                    }
+                }
+                else{
+                    
+                    for(let j=0;j<18;j++){
+                        temp2[j]=position[i*18+j];
+                        position[i*18+j]=temp[j];
+                        temp[j]=temp2[j];
+                    }
+                    
+    
+                }
+            }
+            
+            plane.geometry.verticesNeedUpdate = true;
+            plane.geometry.dynamic = true;
+            plane.geometry.attributes.position.needsUpdate = true;
+            
+            material.uniforms.uTime.value = timestamp/1000;
+        }
+        else{
+            if(sonicBoomInApp){
+                //console.log('remove-planeTrail1');
+                app.remove(plane);
+                sonicBoomInApp=false;
+            }
+        }
        
         
-        app.updateMatrixWorld();
+        //app.updateMatrixWorld();
           
       
       });
@@ -1099,143 +1161,121 @@ export default () => {
       });
     
       let plane=new THREE.Mesh(planeGeometry,material);
-      app.add(plane);
+      //app.add(plane);
       plane.position.y=1;
       plane.frustumCulled = false;
-    
-    
-     
-      const geometryp = new THREE.PlaneGeometry( 0.1, 0.1 );
-      const materialp = new THREE.MeshBasicMaterial( {color: 0xff0000, side: THREE.DoubleSide, transparent:true, opacity:0, depthWrite:false} );
-      const point1 = new THREE.Mesh( geometryp, materialp );
-      app.add( point1 );
-      const point2 = new THREE.Mesh( geometryp, materialp );
-      app.add( point2 );
 
-      const localVector = new THREE.Vector3();
+      const point1 =  new THREE.Vector3();
+      const point2 =  new THREE.Vector3();
+      const localVector2 = new THREE.Vector3();
       let temp=[];
       let temp2=[];
+      let quaternion = new THREE.Quaternion();
+      quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),-Math.PI/2);
+      let sonicBoomInApp=false;
       useFrame(({timestamp}) => {
-        
-        if(localPlayer.rotation.x!==0){
-            point1.position.copy(localPlayer.position);
-            point1.rotation.copy(localPlayer.rotation);
-            
-            point1.rotation.y+=Math.PI/2;
-            
-            
-            point1.getWorldDirection(localVector);
-            localVector.normalize();
-            point1.position.x+=0.6*localVector.x;
-            point1.position.z+=0.6*localVector.z;
-    
-    
-            point2.position.copy(localPlayer.position);
-            point2.rotation.copy(localPlayer.rotation);
-            
-            
-            point2.rotation.y-=Math.PI/2;
-            
-            
-            point2.getWorldDirection(localVector)
-            localVector.normalize();
-            point2.position.x+=0.6*localVector.x;
-            point2.position.z+=0.6*localVector.z;
-        }
-        else{
-            point1.position.copy(localPlayer.position);
-            point1.rotation.copy(localPlayer.rotation);
-            
-            point1.rotation.y-=Math.PI/2;
-            
-            
-            point1.getWorldDirection(localVector)
-            localVector.normalize();
-            point1.position.x+=0.6*localVector.x;
-            point1.position.z+=0.6*localVector.z;
-    
-    
-            point2.position.copy(localPlayer.position);
-            point2.rotation.copy(localPlayer.rotation);
-            
-            
-            point2.rotation.y+=Math.PI/2;
-            
-            
-            point2.getWorldDirection(localVector)
-            localVector.normalize();
-            point2.position.x+=0.6*localVector.x;
-            point2.position.z+=0.6*localVector.z;
-        }
-       
-        for(let i=0;i<18;i++){
-            temp[i]=position[i];
-        }
-        for (let i = 0; i < planeNumber; i++){
-            if(i===0){
-                position[0] = point1.position.x;
-                position[1] = localPlayer.position.y-1.55;
-                position[2] = point1.position.z;
-                if (localPlayer.avatar) {
-                    position[1] -= localPlayer.avatar.height;
-                    position[1] += 1.18;
-                }
-                position[3] = point2.position.x;
-                position[4] = localPlayer.position.y-1.55;
-                position[5] = point2.position.z;
-                if (localPlayer.avatar) {
-                    position[4] -= localPlayer.avatar.height;
-                    position[4] += 1.18;
-                }
-            
-                position[6] = temp[0];
-                position[7] = temp[1];
-                position[8] = temp[2];
-            
-                position[9] = temp[3];
-                position[10] = temp[4];
-                position[11] = temp[5];
-            
-                position[12] = temp[0];
-                position[13] = temp[1];
-                position[14] = temp[2];
-            
-                position[15] = point2.position.x;
-                position[16] = localPlayer.position.y-1.55;
-                position[17] = point2.position.z;
-                if (localPlayer.avatar) {
-                    position[16] -= localPlayer.avatar.height;
-                    position[16] += 1.18;
-                }
-            }
-            else{
-                
-                for(let j=0;j<18;j++){
-                    temp2[j]=position[i*18+j];
-                    position[i*18+j]=temp[j];
-                    temp[j]=temp2[j];
-                }
-                
 
-            }
-        }
-        
-        plane.geometry.verticesNeedUpdate = true;
-        plane.geometry.dynamic = true;
-        plane.geometry.attributes.position.needsUpdate = true;
-        
+
         if(narutoRunTime>=10){
+            if(!sonicBoomInApp){
+                //console.log('add-planeTrail2');
+                app.add(plane);
+                sonicBoomInApp=true;
+            }
             material.uniforms.opacity.value = 1;
         }
         else{
-            material.uniforms.opacity.value -= 0.02;
+            if(material.uniforms.opacity.value>0)
+                material.uniforms.opacity.value -= 0.0255;
         }
         if(narutoRunTime>0 && narutoRunTime<10){
             material.uniforms.opacity.value = 0;
         }
-        material.uniforms.uTime.value = timestamp/1000;
+        if(material.uniforms.opacity.value>0){
+            //console.log('sonic-boom-horiPlane');
+            
+            localVector2.set(currentDir.x, currentDir.y, currentDir.z).applyQuaternion(quaternion);
+    
+            point1.x=localPlayer.position.x;
+            point1.y=localPlayer.position.y;
+            point1.z=localPlayer.position.z;
+            point2.x=localPlayer.position.x;
+            point2.y=localPlayer.position.y;
+            point2.z=localPlayer.position.z;
+            
+            point1.x-=0.6*localVector2.x;
+            point1.z-=0.6*localVector2.z;
+            point2.x+=0.6*localVector2.x;
+            point2.z+=0.6*localVector2.z;
+            
+           
+            for(let i=0;i<18;i++){
+                temp[i]=position[i];
+            }
+            for (let i = 0; i < planeNumber; i++){
+                if(i===0){
+                    position[0] = point1.x;
+                    position[1] = localPlayer.position.y-1.55;
+                    position[2] = point1.z;
+                    if (localPlayer.avatar) {
+                        position[1] -= localPlayer.avatar.height;
+                        position[1] += 1.18;
+                    }
+                    position[3] = point2.x;
+                    position[4] = localPlayer.position.y-1.55;
+                    position[5] = point2.z;
+                    if (localPlayer.avatar) {
+                        position[4] -= localPlayer.avatar.height;
+                        position[4] += 1.18;
+                    }
+                
+                    position[6] = temp[0];
+                    position[7] = temp[1];
+                    position[8] = temp[2];
+                
+                    position[9] = temp[3];
+                    position[10] = temp[4];
+                    position[11] = temp[5];
+                
+                    position[12] = temp[0];
+                    position[13] = temp[1];
+                    position[14] = temp[2];
+                
+                    position[15] = point2.x;
+                    position[16] = localPlayer.position.y-1.55;
+                    position[17] = point2.z;
+                    if (localPlayer.avatar) {
+                        position[16] -= localPlayer.avatar.height;
+                        position[16] += 1.18;
+                    }
+                }
+                else{
+                    
+                    for(let j=0;j<18;j++){
+                        temp2[j]=position[i*18+j];
+                        position[i*18+j]=temp[j];
+                        temp[j]=temp2[j];
+                    }
+                    
+    
+                }
+            }
+            
+            plane.geometry.verticesNeedUpdate = true;
+            plane.geometry.dynamic = true;
+            plane.geometry.attributes.position.needsUpdate = true;
+            material.uniforms.uTime.value = timestamp/1000;
+        }
+        else{
+            if(sonicBoomInApp){
+                //console.log('remove-planeTrail2');
+                app.remove(plane);
+                sonicBoomInApp=false;
+            }
+        }
         
-        app.updateMatrixWorld();
+        
+        //app.updateMatrixWorld();
           
       
       });
@@ -1339,19 +1379,19 @@ export default () => {
         
 
         const mainBall = new THREE.Points(particlesGeometry, particlesMaterial);
-        app.add(mainBall);
-        app.updateMatrixWorld();
+        //app.add(mainBall);
+        //app.updateMatrixWorld();
         
-        
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
-            //console.log(camera.fov)
-            mainBall.position.copy(localPlayer.position);
-            //mainBall.rotation.copy(localPlayer.rotation);
-            if (localPlayer.avatar) {
-                mainBall.position.y -= localPlayer.avatar.height;
-                mainBall.position.y += 0.65;
-            }
+            
+            
             if(narutoRunTime>0){
+                if(!sonicBoomInApp){
+                    //console.log('add-mainBall');
+                    app.add(mainBall);
+                    sonicBoomInApp=true;
+                }
                 if(narutoRunTime===1){
                     mainBall.material.uniforms.uSize.value=4.5;
                 }
@@ -1369,17 +1409,37 @@ export default () => {
                 mainBall.material.uniforms.opacity.value=0;
             }
             else{
-                mainBall.scale.x-=0.1;
-                mainBall.scale.y-=0.1;
-                mainBall.scale.z-=0.1;
-                mainBall.material.uniforms.opacity.value+=0.02;
+                if(mainBall.material.uniforms.opacity.value<1){
+                    mainBall.scale.x-=0.1;
+                    mainBall.scale.y-=0.1;
+                    mainBall.scale.z-=0.1;
+                    mainBall.material.uniforms.opacity.value+=0.02;
+                }
+                
+            }
+            if(mainBall.material.uniforms.opacity.value<1){
+                //console.log('sonic-boom-mainBall');
+                mainBall.position.copy(localPlayer.position);
+            
+                if (localPlayer.avatar) {
+                    mainBall.position.y -= localPlayer.avatar.height;
+                    mainBall.position.y += 0.65;
+                }
+                mainBall.material.uniforms.uAvatarPos.value=mainBall.position;
+                mainBall.material.uniforms.uCameraFov.value=Math.pow(60/camera.fov,1.45);
+            }
+            else{
+                if(sonicBoomInApp){
+                    //console.log('remove-mainBall');
+                    app.remove(mainBall);
+                    sonicBoomInApp=false;
+                }
             }
             
 
            
-            mainBall.material.uniforms.uAvatarPos.value=mainBall.position;
-            mainBall.material.uniforms.uCameraFov.value=Math.pow(60/camera.fov,1.45);
-            app.updateMatrixWorld();
+            
+            //app.updateMatrixWorld();
            
         });
     }
@@ -1504,28 +1564,27 @@ export default () => {
         const electricity = new THREE.Mesh(instGeom, electricityMaterial);
         const group = new THREE.Group();
         group.add(electricity)
-        app.add(group);
-        const localVector = new THREE.Vector3();
+        //app.add(group);
         let lightningfreq=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
 
-            group.rotation.copy(localPlayer.rotation);
-            group.position.copy(localPlayer.position);
-            localPlayer.getWorldDirection(localVector)
-            localVector.normalize();
-            group.position.x-=.1*localVector.x;
-            group.position.z-=.1*localVector.z;
             
-            if (localPlayer.avatar) {
-                group.position.y -= localPlayer.avatar.height;
-                group.position.y += 0.65;
-            }
            
             if(narutoRunTime==0){
-                electricityMaterial.uniforms.opacity.value/=1.08;
-                electricityMaterial.uniforms.size.value/=1.01;
+                
+                if(electricityMaterial.uniforms.opacity.value>0.01){
+                    electricityMaterial.uniforms.opacity.value/=1.08;
+                    electricityMaterial.uniforms.size.value/=1.01;
+                }
+                
             }
             else if(narutoRunTime==1){
+                if(!sonicBoomInApp){
+                    //console.log('add-electricity1');
+                    app.add(group);
+                    sonicBoomInApp=true;
+                }
                 electricityMaterial.uniforms.opacity.value=1;
                 electricityMaterial.uniforms.size.value=4.5;
                 
@@ -1539,15 +1598,35 @@ export default () => {
                 }
                 
             }
-            
-            electricityMaterial.uniforms.uTime.value=timestamp/100;
-            if(lightningfreq%1==0){
-                electricityMaterial.uniforms.glowIndex.value=Math.floor(Math.random()*num);
+            if(electricityMaterial.uniforms.opacity.value>0.01){
+                group.rotation.copy(localPlayer.rotation);
+                group.position.copy(localPlayer.position);
+                
+                group.position.x+=.1*currentDir.x;
+                group.position.z+=.1*currentDir.z;
+                
+                if (localPlayer.avatar) {
+                    group.position.y -= localPlayer.avatar.height;
+                    group.position.y += 0.65;
+                }
+                electricityMaterial.uniforms.uTime.value=timestamp/100;
+                if(lightningfreq%1==0){
+                    electricityMaterial.uniforms.glowIndex.value=Math.floor(Math.random()*num);
+                }
+                
+                lightningfreq++;
+            }
+            else{
+                if(sonicBoomInApp){
+                    //console.log('remove-electricty1');
+                    app.remove(group);
+                    sonicBoomInApp=false;
+                }
             }
             
-            lightningfreq++;
             
-            app.updateMatrixWorld();
+            
+            //app.updateMatrixWorld();
         
         });
     }
@@ -1671,28 +1750,25 @@ export default () => {
         const electricity = new THREE.Mesh(instGeom, electricityMaterial);
         const group = new THREE.Group();
         group.add(electricity)
-        app.add(group);
-        const localVector = new THREE.Vector3();
+        //app.add(group);
         let lightningfreq=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
 
-            group.rotation.copy(localPlayer.rotation);
-            group.position.copy(localPlayer.position);
-            localPlayer.getWorldDirection(localVector)
-            localVector.normalize();
-            group.position.x-=.1*localVector.x;
-            group.position.z-=.1*localVector.z;
-
-            if (localPlayer.avatar) {
-                group.position.y -= localPlayer.avatar.height;
-                group.position.y += 0.65;
-            }
+            
            
             if(narutoRunTime==0){
-                electricityMaterial.uniforms.opacity.value/=1.08;
-                electricityMaterial.uniforms.size.value/=1.01;
+                if(electricityMaterial.uniforms.opacity.value>0.01){
+                    electricityMaterial.uniforms.opacity.value/=1.08;
+                    electricityMaterial.uniforms.size.value/=1.01;
+                }
             }
             else if(narutoRunTime==1){
+                if(!sonicBoomInApp){
+                    //console.log('add-electricty2');
+                    app.add(group);
+                    sonicBoomInApp=true;
+                }
                 electricityMaterial.uniforms.opacity.value=1;
                 electricityMaterial.uniforms.size.value=4.5;
                 
@@ -1706,18 +1782,34 @@ export default () => {
                 }
                 
             }
-
-
-            
-            
-            electricityMaterial.uniforms.uTime.value=timestamp/100;
-            if(lightningfreq%1==0){
-                electricityMaterial.uniforms.glowIndex.value=Math.floor(Math.random()*num);
+            if(electricityMaterial.uniforms.opacity.value>0.01){
+                group.rotation.copy(localPlayer.rotation);
+                group.position.copy(localPlayer.position);
+                // localPlayer.getWorldDirection(localVector)
+                // localVector.normalize();
+                group.position.x+=.1*currentDir.x;
+                group.position.z+=.1*currentDir.z;
+    
+                if (localPlayer.avatar) {
+                    group.position.y -= localPlayer.avatar.height;
+                    group.position.y += 0.65;
+                }
+                electricityMaterial.uniforms.uTime.value=timestamp/100;
+                if(lightningfreq%1==0){
+                    electricityMaterial.uniforms.glowIndex.value=Math.floor(Math.random()*num);
+                }
+                
+                lightningfreq++;
             }
-            
-            lightningfreq++;
-            
-            app.updateMatrixWorld();
+            else{
+                if(sonicBoomInApp){
+                    //console.log('remove-electricty2');
+                    app.remove(group);
+                    sonicBoomInApp=false;
+                }
+            }
+
+            //app.updateMatrixWorld();
         
         });
     }
@@ -1740,7 +1832,7 @@ export default () => {
         function addInstancedMesh() {
             mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), new THREE.MeshBasicMaterial({color:0x2167F2,map:electronicballTexture, transparent:true, depthWrite:false, opacity:0.5, blending:THREE.AdditiveBlending, side:THREE.DoubleSide}), particleCount);
             group.add(mesh);
-            app.add(group);
+            //app.add(group);
             setInstancedMeshPositions(mesh);
         }
         
@@ -1773,76 +1865,91 @@ export default () => {
         addInstancedMesh();
     
         
-        let dum = new THREE.Vector3();
+        let sonicBoomInApp=false;
         let originPoint = new THREE.Vector3(0,0,0);
         useFrame(({timestamp}) => {
-            group.position.copy(localPlayer.position);
-            group.rotation.copy(localPlayer.rotation);
-            if (localPlayer.avatar) {
-              group.position.y -= localPlayer.avatar.height;
-              group.position.y += 0.65;
-            }
-            localPlayer.getWorldDirection(dum)
-            dum = dum.normalize();
+            
+            
         
             if (mesh) {
-                for (let i = 0; i < particleCount; i++) {
-                    mesh.getMatrixAt(i, matrix);
-                    position.setFromMatrixPosition(matrix); 
-                    matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
-                    
-                
-        
-                    if (dummy.position.distanceTo(originPoint)>5) {
-                    
-                        if(narutoRunTime>0){
-                            dummy.scale.x = .5;
-                            dummy.scale.y = .5;
-                            dummy.scale.z = .5;
-                        }
-                        else{
-                            dummy.scale.x = .00001;
-                            dummy.scale.y = .00001;
-                            dummy.scale.z = .00001;
-                        }
-                            
-                        
-                        dummy.position.x = (Math.random()-0.5)*0.2;
-                        dummy.position.y = (Math.random()-0.5)*0.2;
-                        dummy.position.z = 0;
-                        info.velocity[i].x=(Math.random()-0.5)*4;
-                        info.velocity[i].y=(Math.random()-0.5)*4;
-                        info.velocity[i].z=10+Math.random();
-                        info.velocity[i].divideScalar(20);
+                if(narutoRunTime>0){
+                    //console.log('sonic-boom-behind-particle')
+                    if(!sonicBoomInApp){
+                        //console.log('add-particle1');
+                        app.add(group);
+                        sonicBoomInApp=true;
                     }
-                    
-                        dummy.scale.x/=1.04;
-                        dummy.scale.y/=1.04;
-                        dummy.scale.z/=1.04;
+                    group.position.copy(localPlayer.position);
+                    group.rotation.copy(localPlayer.rotation);
+                    if (localPlayer.avatar) {
+                    group.position.y -= localPlayer.avatar.height;
+                    group.position.y += 0.65;
+                    }
+                    for (let i = 0; i < particleCount; i++) {
+                        mesh.getMatrixAt(i, matrix);
+                        position.setFromMatrixPosition(matrix); 
+                        matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
+            
+                        if (dummy.position.distanceTo(originPoint)>5) {
                         
-                        if(narutoRunTime==0){
-                            dummy.scale.x /= 1.1;
-                            dummy.scale.y /= 1.1;
-                            dummy.scale.z /= 1.1;
-                        }
-                        dummy.rotation.copy(camera.rotation);
-                        if(localPlayer.rotation.x==0){
-                            dummy.rotation.y-=localPlayer.rotation.y;
-                        }
-                        else{
-                            dummy.rotation.y+=localPlayer.rotation.y;
+                            if(narutoRunTime>0){
+                                dummy.scale.x = .5;
+                                dummy.scale.y = .5;
+                                dummy.scale.z = .5;
+                            }
+                            else{
+                                dummy.scale.x = .00001;
+                                dummy.scale.y = .00001;
+                                dummy.scale.z = .00001;
+                            }
+                                
+                            
+                            dummy.position.x = (Math.random()-0.5)*0.2;
+                            dummy.position.y = (Math.random()-0.5)*0.2;
+                            dummy.position.z = 0;
+                            info.velocity[i].x=(Math.random()-0.5)*4;
+                            info.velocity[i].y=(Math.random()-0.5)*4;
+                            info.velocity[i].z=10+Math.random();
+                            info.velocity[i].divideScalar(20);
                         }
                         
-                        info.velocity[i].add(acc);
-                        dummy.position.add(info.velocity[i]);
-                        dummy.updateMatrix();
-                        
-                        mesh.setMatrixAt(i, dummy.matrix);
-                        mesh.instanceMatrix.needsUpdate = true;
-        
+                            dummy.scale.x/=1.04;
+                            dummy.scale.y/=1.04;
+                            dummy.scale.z/=1.04;
+                            
+                            if(narutoRunTime==0){
+                                dummy.scale.x /= 1.1;
+                                dummy.scale.y /= 1.1;
+                                dummy.scale.z /= 1.1;
+                            }
+                            dummy.rotation.copy(camera.rotation);
+                            if(localPlayer.rotation.x==0){
+                                dummy.rotation.y-=localPlayer.rotation.y;
+                            }
+                            else{
+                                dummy.rotation.y+=localPlayer.rotation.y;
+                            }
+                            
+                            info.velocity[i].add(acc);
+                            dummy.position.add(info.velocity[i]);
+                            dummy.updateMatrix();
+                            
+                            mesh.setMatrixAt(i, dummy.matrix);
+                            mesh.instanceMatrix.needsUpdate = true;
+            
+                    }
                 }
+                else{
+                    if(sonicBoomInApp){
+                        //console.log('remove-particle1');
+                        app.remove(group);
+                        sonicBoomInApp=false;
+                    }
+                    //group.position.y=-50000;
+                }
+                
             }
-        group.updateMatrixWorld();
+        //group.updateMatrixWorld();
         
         });
       }
@@ -1865,7 +1972,7 @@ export default () => {
         function addInstancedMesh() {
             mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), new THREE.MeshBasicMaterial({map:electronicballTexture, transparent:true, depthWrite:false, opacity:0.5, blending:THREE.AdditiveBlending, side:THREE.DoubleSide}), particleCount);
             group.add(mesh);
-            app.add(group);
+            //app.add(group);
             setInstancedMeshPositions(mesh);
         }
         
@@ -1899,74 +2006,90 @@ export default () => {
         addInstancedMesh();
     
         
-        let dum = new THREE.Vector3();
+        
         let originPoint = new THREE.Vector3(0,0,0);
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
-            group.position.copy(localPlayer.position);
-            group.rotation.copy(localPlayer.rotation);
-            if (localPlayer.avatar) {
-              group.position.y -= localPlayer.avatar.height;
-              group.position.y += 0.65;
-            }
-            localPlayer.getWorldDirection(dum)
-            dum = dum.normalize();
+           
+            
         
             if (mesh) {
-                for (let i = 0; i < particleCount; i++) {
-                    mesh.getMatrixAt(i, matrix);
-                    position.setFromMatrixPosition(matrix);
-                    matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
-                    //dummy.rotation.y = timestamp/1000 * i ;
-                
-        
-                    if (dummy.position.distanceTo(originPoint)>5) {
-                    
-                        if(narutoRunTime>0){
-                            dummy.scale.x = .5;
-                            dummy.scale.y = .5;
-                            dummy.scale.z = .5;
-                        }
-                        else{
-                            dummy.scale.x = .00001;
-                            dummy.scale.y = .00001;
-                            dummy.scale.z = .00001;
-                        }
-                            
-                        
-                        dummy.position.x = (Math.random()-0.5)*0.2;
-                        dummy.position.y = (Math.random()-0.5)*0.2;
-                        dummy.position.z = 0;
-                        info.velocity[i].x=(Math.random()-0.5)*3;
-                        info.velocity[i].y=(Math.random()-0.5)*3;
-                        info.velocity[i].z=8+Math.random();
-                        info.velocity[i].divideScalar(20);
+                if(narutoRunTime>0){
+                    //console.log('sonic-boom-behind-particle2')
+                    if(!sonicBoomInApp){
+                        //console.log('add-particle2');
+                        app.add(group);
+                        sonicBoomInApp=true;
                     }
+                    group.position.copy(localPlayer.position);
+                    group.rotation.copy(localPlayer.rotation);
+                    if (localPlayer.avatar) {
+                      group.position.y -= localPlayer.avatar.height;
+                      group.position.y += 0.65;
+                    }
+                    for (let i = 0; i < particleCount; i++) {
+                        mesh.getMatrixAt(i, matrix);
+                        position.setFromMatrixPosition(matrix);
+                        matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
                     
-                        dummy.scale.x/=1.04;
-                        dummy.scale.y/=1.04;
-                        dummy.scale.z/=1.04;
-                        if(narutoRunTime==0){
-                            dummy.scale.x /= 1.1;
-                            dummy.scale.y /= 1.1;
-                            dummy.scale.z /= 1.1;
-                        }
-                        dummy.rotation.copy(camera.rotation);
-                        if(localPlayer.rotation.x==0){
-                            dummy.rotation.y-=localPlayer.rotation.y;
-                        }
-                        else{
-                            dummy.rotation.y+=localPlayer.rotation.y;
-                        }
-                        info.velocity[i].add(acc);
-                        dummy.position.add(info.velocity[i]);
-                        dummy.updateMatrix();
+                        if (dummy.position.distanceTo(originPoint)>5) {
                         
-                        mesh.setMatrixAt(i, dummy.matrix);
-                        mesh.instanceMatrix.needsUpdate = true;
-        
+                            if(narutoRunTime>0){
+                                dummy.scale.x = .5;
+                                dummy.scale.y = .5;
+                                dummy.scale.z = .5;
+                            }
+                            else{
+                                dummy.scale.x = .00001;
+                                dummy.scale.y = .00001;
+                                dummy.scale.z = .00001;
+                            }
+                                
+                            
+                            dummy.position.x = (Math.random()-0.5)*0.2;
+                            dummy.position.y = (Math.random()-0.5)*0.2;
+                            dummy.position.z = 0;
+                            info.velocity[i].x=(Math.random()-0.5)*3;
+                            info.velocity[i].y=(Math.random()-0.5)*3;
+                            info.velocity[i].z=8+Math.random();
+                            info.velocity[i].divideScalar(20);
+                        }
+                        
+                            dummy.scale.x/=1.04;
+                            dummy.scale.y/=1.04;
+                            dummy.scale.z/=1.04;
+                            if(narutoRunTime==0){
+                                dummy.scale.x /= 1.1;
+                                dummy.scale.y /= 1.1;
+                                dummy.scale.z /= 1.1;
+                            }
+                            dummy.rotation.copy(camera.rotation);
+                            if(localPlayer.rotation.x==0){
+                                dummy.rotation.y-=localPlayer.rotation.y;
+                            }
+                            else{
+                                dummy.rotation.y+=localPlayer.rotation.y;
+                            }
+                            info.velocity[i].add(acc);
+                            dummy.position.add(info.velocity[i]);
+                            dummy.updateMatrix();
+                            
+                            mesh.setMatrixAt(i, dummy.matrix);
+                            mesh.instanceMatrix.needsUpdate = true;
+            
+                    }
                 }
+                else{
+                    if(sonicBoomInApp){
+                        //console.log('remove-particle2');
+                        app.remove(group);
+                        sonicBoomInApp=false;
+                    }
+                    //group.position.y=-50000;
+                }
+                
             }
-        group.updateMatrixWorld();
+        //group.updateMatrixWorld();
         
         });
       }
@@ -1992,7 +2115,7 @@ export default () => {
 
             wave.scene.rotation.x=Math.PI/2;
             group.add(wave.scene);
-            app.add(group);
+            //app.add(group);
             
             wave.scene.children[0].material= new THREE.ShaderMaterial({
                 uniforms: {
@@ -2091,69 +2214,69 @@ export default () => {
 
         })();
 
-        app.updateMatrixWorld();
-
+        //app.updateMatrixWorld();
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
-            /* localPlayer.getWorldDirection(localVector)
-            localVector.normalize(); */
-
+           
             if (wave) {
-                wave.scene.scale.set(wave.scene.scale.x+.15,wave.scene.scale.y+0.001,wave.scene.scale.z+.15);
-                wave.scene.children[0].material.uniforms.opacity.value+=0.003;
-                if (narutoRunTime > 0) {
-                    // if(wave.scene.scale.x>5){
-                    //     // wave.scene.scale.set(10,10,10);
-                    //     // wave.scene.position.y=-5000;
-                    // }
-                    // else{
-                        //wave.scene.scale.set(wave.scene.scale.x+.15,wave.scene.scale.y+0.00075,wave.scene.scale.z+.15);
-                        if(narutoRunTime ===1){
-                            group.position.copy(localPlayer.position);
-                            localPlayer.getWorldDirection(localVector);
-                            localVector.normalize();
-                            group.position.x-=4.*localVector.x;
-                            group.position.z-=4.*localVector.z;
-                            group.rotation.copy(localPlayer.rotation);
-                            wave.scene.position.y=0;
-                            if (localPlayer.avatar) {
-                                group.position.y -= localPlayer.avatar.height;
-                                group.position.y += 0.65;
-                            }
-                            wave.scene.scale.set(1,1,1);
-                            wave.scene.children[0].material.uniforms.opacity.value=0;
-                        }
-                        
-                        if(wave.scene.scale.x<=5){
-                            _shake();
-                            
-                        }
-                        
-                        
-                    //}
-                    
-                    
-                }
                 
-
-                wave.scene.children[0].material.uniforms.uTime.value=timestamp/1000;
-                wave.scene.children[0].material.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight, 1);
-                wave.scene.children[0].material.uniforms.avatarPos.x=localPlayer.position.x;
-                wave.scene.children[0].material.uniforms.avatarPos.y=localPlayer.position.y;
-                wave.scene.children[0].material.uniforms.avatarPos.z=localPlayer.position.z;
+                
+                
+                if (narutoRunTime > 0) {
+                    if(!sonicBoomInApp){
+                        //console.log('add-shockWave');
+                        app.add(group);
+                        sonicBoomInApp=true;
+                    }
+                    if(narutoRunTime ===1){
+                        group.position.copy(localPlayer.position);
+                        group.position.x+=4.*currentDir.x;
+                        group.position.z+=4.*currentDir.z;
+                        group.rotation.copy(localPlayer.rotation);
+                        wave.scene.position.y=0;
+                        if (localPlayer.avatar) {
+                            group.position.y -= localPlayer.avatar.height;
+                            group.position.y += 0.65;
+                        }
+                        wave.scene.scale.set(1,1,1);
+                        wave.scene.children[0].material.uniforms.opacity.value=0;
+                    }
+                    
+                    if(wave.scene.scale.x<=5){
+                        _shake();
+                        
+                    }
+                    
+                } 
+                if(wave.scene.children[0].material.uniforms.opacity.value<1){
+                    wave.scene.scale.set(wave.scene.scale.x+.15,wave.scene.scale.y+0.001,wave.scene.scale.z+.15);
+                    wave.scene.children[0].material.uniforms.opacity.value+=0.003;
+                    wave.scene.children[0].material.uniforms.uTime.value=timestamp/1000;
+                    wave.scene.children[0].material.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight, 1);
+                    wave.scene.children[0].material.uniforms.avatarPos.x=localPlayer.position.x;
+                    wave.scene.children[0].material.uniforms.avatarPos.y=localPlayer.position.y;
+                    wave.scene.children[0].material.uniforms.avatarPos.z=localPlayer.position.z;
+                }
+                else{
+                    if(sonicBoomInApp && narutoRunTime===0){
+                        //console.log('remove-shockWave');
+                        app.remove(group);
+                        sonicBoomInApp=false;
+                    }
+                }
             }
             
             
-            app.updateMatrixWorld();
         });
     }
     //##################################### front dust ################################################
     {
-        const particleCount = 100;
+        const particleCount = 20;
         const group=new THREE.Group();
         let info = {
             velocity: [particleCount]
         }
-        let acc = new THREE.Vector3(-0.000, 0, 0.0018);
+        let acc = new THREE.Vector3(-0.000, 0.0008, 0.0018);
     
         //##################################################### get Dust geometry #####################################################
         const identityQuaternion = new THREE.Quaternion();
@@ -2259,7 +2382,7 @@ export default () => {
             const geometry = _getDustGeometry(dustGeometry);
             mesh = new THREE.InstancedMesh(geometry, dustMaterial, particleCount);
             group.add(mesh);
-            app.add(group);
+            //app.add(group);
             setInstancedMeshPositions(mesh);
             
         }
@@ -2288,47 +2411,48 @@ export default () => {
         }
        
     
-        let previousDirectionState=null;
-        let currentDirectionState=null;
-        let dum = new THREE.Vector3();
-        let originPoint = new THREE.Vector3(0,0,0);
-        let maxParticle=10;
-        let particleEmmitCount=-1;
+        
+        
+        let currentRotate=0;
+        let preRotate=0;
+        let narutoEndTime=0;
+        let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
     
-            if(ioManager.keys.right){
-                currentDirectionState='right';
-            }   
-            if(ioManager.keys.left){
-                currentDirectionState='left';
-            }  
-            if(ioManager.keys.up){
-                currentDirectionState='up';
-            }   
-            if(ioManager.keys.down){
-                currentDirectionState='down';
-            }
-            group.position.copy(localPlayer.position);
-            group.rotation.copy(localPlayer.rotation);
-            if (localPlayer.avatar) {
-              group.position.y -= localPlayer.avatar.height;
-              group.position.y += 0.2;
-            }
-            localPlayer.getWorldDirection(dum)
-            dum = dum.normalize();
-            group.position.x+=0.3*dum.x;
-            group.position.z+=0.3*dum.z;
+            
+            
         
-            if((lastStopSw===1 && narutoRunTime===0 && particleEmmitCount===-1 )){
-                if(localPlayer.hasAction('fly') || localPlayer.hasAction('jump')){
-                    lastStopSw=0;
+            
+            
+            if(narutoRunTime===1){
+                if(!sonicBoomInApp){
+                    //console.log('add-dust');
+                    app.add(group);
+                    sonicBoomInApp=true;
                 }
-                else{
-                    particleEmmitCount=0;
+            }
+            if (mesh) {
+                
+                group.position.copy(localPlayer.position);
+                group.rotation.copy(localPlayer.rotation);
+                if (localPlayer.avatar) {
+                group.position.y -= localPlayer.avatar.height;
+                group.position.y += 0.2;
                 }
                 
-            } 
-            if (mesh) {
+                group.position.x-=0.3*currentDir.x;
+                group.position.z-=0.3*currentDir.z;
+
+                if(localPlayer.rotation.x===0)
+                    currentRotate=-localPlayer.rotation.y;
+                else{
+                    if(localPlayer.rotation.y>0)
+                        currentRotate=(localPlayer.rotation.y-Math.PI);
+                    else
+                        currentRotate=(localPlayer.rotation.y+Math.PI);
+                }
+                //console.log('sonic-boom-front-dust');
+                
                 const opacityAttribute = mesh.geometry.getAttribute('opacity');
                 const brokenAttribute = mesh.geometry.getAttribute('broken');
                 const startTimesAttribute = mesh.geometry.getAttribute('startTimes');
@@ -2336,80 +2460,83 @@ export default () => {
                     mesh.getMatrixAt(i, matrix);
                     matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
                     
-                    if (dummy.position.distanceTo(originPoint)>1.5 /*|| (timestamp-startTimesAttribute.getX(i)>900)*/) {
-                        startTimesAttribute.setX(i,timestamp);
-                        if(particleEmmitCount>maxParticle){
-                            lastStopSw=0;
-                            particleEmmitCount=-1;
-                            //maxParticle=15+Math.random()*10;
-                        }
+                    
+                    if(lastStopSw===1 && narutoRunTime===0 ){
                         opacityAttribute.setX(i, 1);
-                        brokenAttribute.setX(i, Math.random()-0.8);
-                        if(particleEmmitCount!==-1 ){
-                            dummy.scale.x = 0.08+Math.random()*0.05;
-                            dummy.scale.y = 0.08+Math.random()*0.05;
-                            dummy.scale.z = 0.08+Math.random()*0.05;
-                            particleEmmitCount++;
-                        }
-                        else{
-                            dummy.scale.x = .00001;
-                            dummy.scale.y = .00001;
-                            dummy.scale.z = .00001;
-                            //opacityAttribute.setX(i, 0.01);
-                        }
+                        brokenAttribute.setX(i, Math.random()-0.6);
                         
+                        dummy.scale.x = 0.06+Math.random()*0.05;
+                        dummy.scale.y = 0.06+Math.random()*0.05;
+                        dummy.scale.z = 0.06+Math.random()*0.05;
                         
                         dummy.position.x = (Math.random()-0.5)*0.2;
-                        dummy.position.y = -0.1;
-                        dummy.position.z = 0.;
+                        dummy.position.y = -0.2;
+                        dummy.position.z = (Math.random()-0.5)*0.2;
                         
                         info.velocity[i].x=0;
                         info.velocity[i].y=0;
                         info.velocity[i].z=-0.8-Math.random();
                         
-                            
                         info.velocity[i].divideScalar(20);
+                    }
+                    
+                    if(dummy.position.z<50){
+                        opacityAttribute.setX(i, opacityAttribute.getX(i)-0.04);
+                        if(brokenAttribute.getX(i)<1)
+                            brokenAttribute.setX(i, brokenAttribute.getX(i)+0.045);
+                        else
+                            brokenAttribute.setX(i, 1);
+                        dummy.rotation.z=timestamp/500.;
                         
-                    }
-                    
-                    opacityAttribute.setX(i, opacityAttribute.getX(i)-0.04);
-                    brokenAttribute.setX(i, brokenAttribute.getX(i)+0.045);
+                        dummy.scale.x*=1.03;
+                        dummy.scale.y*=1.03;
+                        dummy.scale.z*=1.03;
                         
-                    dummy.rotation.x+=0.1*(Math.random()-0.5);
-                    dummy.rotation.y+=0.1*(Math.random()-0.5);
-                    dummy.rotation.z+=0.1*(Math.random()-0.5);
-                    
-                    dummy.scale.x*=1.03;
-                    dummy.scale.y*=1.03;
-                    dummy.scale.z*=1.03;
-                    
-                    
-                    if(narutoRunTime>0){
-                        dummy.scale.x = .00001;
-                        dummy.scale.y = .00001;
-                        dummy.scale.z = .00001;
-                    }
-                    if(previousDirectionState!==currentDirectionState){
-                        dummy.scale.x = .00001;
-                        dummy.scale.y = .00001;
-                        dummy.scale.z = .00001;
-                    }
-                    //acc.x=0.005*(Math.random()-0.5);
-                    //if(dummy.position.distanceTo(originPoint)>2.5 )
+                        
+                        if(narutoRunTime>0){
+                            dummy.scale.x = .00001;
+                            dummy.scale.y = .00001;
+                            dummy.scale.z = .00001;
+                        }
+                        if(Math.abs(currentRotate-preRotate)>=0.175){
+                            dummy.scale.x = .00001;
+                            dummy.scale.y = .00001;
+                            dummy.scale.z = .00001;
+                        }
                         info.velocity[i].add(acc);
-                    dummy.position.add(info.velocity[i]);
-                    dummy.updateMatrix();
-                    mesh.setMatrixAt(i, dummy.matrix);
+                        dummy.position.add(info.velocity[i]);
+                        dummy.updateMatrix();
+                        mesh.setMatrixAt(i, dummy.matrix);
+                    } 
     
                 }
+                
                 mesh.instanceMatrix.needsUpdate = true;
                 opacityAttribute.needsUpdate = true;
                 brokenAttribute.needsUpdate = true;
                 startTimesAttribute.needsUpdate = true;
     
             }
-            group.updateMatrixWorld();
-            previousDirectionState=currentDirectionState;
+            if(lastStopSw===1  && narutoRunTime===0){
+                lastStopSw=0;
+                
+                //narutoEndTime=timestamp;
+            }
+            if(lastStopSw===0){
+                if(sonicBoomInApp){
+                    mesh.getMatrixAt(particleCount-1, matrix);
+                    matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
+                    if(dummy.position.z>40){
+                        //console.log('remove-dust');
+                        app.remove(group);
+                        sonicBoomInApp=false;
+                    }
+                    
+                }
+            }
+            //group.updateMatrixWorld();
+            app.updateMatrixWorld();
+            preRotate=currentRotate;
         });
       }
     //##################################### main ball ##################################################

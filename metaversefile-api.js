@@ -9,7 +9,7 @@ import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
@@ -37,13 +37,16 @@ import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
+import renderSettingsManager from './rendersettings-manager.js';
+import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
+import * as scenePreviewer from './scene-previewer.js';
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
+// const localVector = new THREE.Vector3();
+// const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-const localQuaternion = new THREE.Quaternion();
+// const localQuaternion = new THREE.Quaternion();
 // const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
 
@@ -53,9 +56,12 @@ class App extends THREE.Object3D {
 
     this.isApp = true;
     this.components = [];
+    this.modules = [];
+    this.modulesHash = 0;
     // cleanup tracking
     this.physicsObjects = [];
-    this.appType = 'script';
+    this.appType = 'none';
+    this.hasRenderSettings = false;
     this.lastMatrix = new THREE.Matrix4();
 
     const startframe = () => {
@@ -117,22 +123,38 @@ class App extends THREE.Object3D {
     }
   }
   get contentId() {
-    return this.getComponent('contentId');
+    return this.getComponent('contentId') + '';
   }
   set contentId(contentId) {
-    this.setComponent('contentId', contentId);
+    this.setComponent('contentId', contentId + '');
   }
   get instanceId() {
-    return this.getComponent('instanceId');
+    return this.getComponent('instanceId') + '';
   }
   set instanceId(instanceId) {
-    this.setComponent('instanceId', instanceId);
+    this.setComponent('instanceId', instanceId + '');
+  }
+  get paused() {
+    return this.getComponent('paused') === true;
+  }
+  set paused(paused) {
+    this.setComponent('paused', !!paused);
   }
   addModule(m) {
     throw new Error('method not bound');
   }
+  updateModulesHash() {
+    this.modulesHash = murmurhash3(this.modules.map(m => m.contentId).join(','));
+  }
   getPhysicsObjects() {
     return this.physicsObjects;
+  }
+  getRenderSettings() {
+    if (this.hasRenderSettings) {
+      return renderSettingsManager.findRenderSettings(this);
+    } else {
+      return null;
+    }
   }
   activate() {
     this.dispatchEvent({
@@ -339,18 +361,24 @@ metaversefile.setApi({
       throw new Error('useApp cannot be called outside of render()');
     }
   },
-  useCamera() {
-    return camera;
+  useRenderer() {
+    return getRenderer();
+  },
+  useRenderSettings() {
+    return renderSettingsManager;
   },
   useScene() {
     return scene;
   },
-  usePostOrthographicScene() {
+  useCamera() {
+    return camera;
+  },
+  /* usePostOrthographicScene() {
     return postSceneOrthographic;
   },
   usePostPerspectiveScene() {
     return postScenePerspective;
-  },
+  }, */
   getMirrors() {
     return mirrors;
   },
@@ -368,9 +396,6 @@ metaversefile.setApi({
       appManager: world.appManager,
       getApps() {
         return world.appManager.apps;
-      },
-      getLights() {
-        return world.lights;
       },
     };
   },
@@ -395,6 +420,9 @@ metaversefile.setApi({
   useSceneCruncher() {
     return sceneCruncher;
   },
+  useScenePreviewer() {
+    return scenePreviewer;
+  },
   usePostProcessing() {
     return postProcessing;
   },
@@ -408,9 +436,11 @@ metaversefile.setApi({
     const app = currentAppRender;
     if (app) {
       const frame = e => {
-        performanceTracker.startCpuObject(app.name);
-        fn(e.data);
-        performanceTracker.endCpuObject();
+        if (!app.paused) {
+          performanceTracker.startCpuObject(app.modulesHash, app.name);
+          fn(e.data);
+          performanceTracker.endCpuObject();
+        }
       };
       world.appManager.addEventListener('frame', frame);
       const destroy = () => {
@@ -770,21 +800,73 @@ metaversefile.setApi({
   },
   createAppInternal({
     start_url = '',
-    components = {},
+    components = [],
+    position = null,
+    quaternion = null,
+    scale = null,
+    parent = null,
     in_front = false,
   } = {}, {onWaitPromise = null} = {}) {
     const app = new App();
 
-    if (in_front) {
-      app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
-      app.quaternion.copy(localPlayer.quaternion);
-      app.updateMatrixWorld();
-      app.lastMatrix.copy(app.matrixWorld);
-    }
-    for (const k in components) {
-      const v = components[k];
-      app.setComponent(k, v);
-    }
+    // transform
+    const _updateTransform = () => {
+      let matrixNeedsUpdate = false;
+      if (Array.isArray(position)) {
+        app.position.fromArray(position);
+        matrixNeedsUpdate = true;
+      } else if (position?.isVector3) {
+        app.position.copy(position);
+        matrixNeedsUpdate = true;
+      }
+      if (Array.isArray(quaternion)) {
+        app.quaternion.fromArray(quaternion);
+        matrixNeedsUpdate = true;
+      } else if (quaternion?.isQuaternion) {
+        app.quaternion.copy(quaternion);
+        matrixNeedsUpdate = true;
+      }
+      if (Array.isArray(scale)) {
+        app.scale.fromArray(scale);
+        matrixNeedsUpdate = true;
+      } else if (scale?.isVector3) {
+        app.scale.copy(scale);
+        matrixNeedsUpdate = true;
+      }
+      if (in_front) {
+        app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
+        app.quaternion.copy(localPlayer.quaternion);
+        app.scale.setScalar(1);
+        matrixNeedsUpdate = true;
+      }
+      if (parent) {
+        parent.add(app);
+        matrixNeedsUpdate = true;
+      }
+
+      if (matrixNeedsUpdate) {
+        app.updateMatrixWorld();
+        app.lastMatrix.copy(app.matrixWorld);
+      }
+    };
+    _updateTransform();
+
+    // components
+    const _updateComponents = () => {
+      if (Array.isArray(components)) {
+        for (const {key, value} of components) {
+          app.setComponent(key, value);
+        }
+      } else if (typeof components === 'object' && components !== null) {
+        for (const key in components) {
+          const value = components[key];
+          app.setComponent(key, value);
+        }
+      }
+    };
+    _updateComponents();
+
+    // load
     if (start_url) {
       const p = (async () => {
         const m = await metaversefile.import(start_url);
@@ -794,14 +876,15 @@ metaversefile.setApi({
         onWaitPromise(p);
       }
     }
+    
     return app;
   },
   createApp(opts) {
-    return this.createAppInternal(opts);
+    return metaversefile.createAppInternal(opts);
   },
   async createAppAsync(opts) {
     let p = null;
-    const app = this.createAppInternal(opts, {
+    const app = metaversefile.createAppInternal(opts, {
       onWaitPromise(newP) {
         p = newP;
       },
@@ -917,8 +1000,8 @@ export default () => {
       renderer,
       scene,
       rootScene,
-      postSceneOrthographic,
-      postScenePerspective,
+      // postSceneOrthographic,
+      // postScenePerspective,
       camera,
       sceneHighPriority,
       sceneLowPriority,
@@ -966,6 +1049,8 @@ export default () => {
         }
       }
     }
+    app.modules.push(m);
+    app.updateModulesHash();
 
     currentAppRender = app;
 
