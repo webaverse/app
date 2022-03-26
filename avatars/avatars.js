@@ -2034,7 +2034,7 @@ class Avatar {
           },
           entrySkeleton: () => {
             this.hipsPosition = this.modelBoneOutputs.Hips.position.clone();
-            // this.createRagdoll();
+            this.createRagdoll();
             this.setFromAvatar();
           },
           entryRagdoll: () => {
@@ -2664,8 +2664,11 @@ class Avatar {
       this.modelBoneOutputs.Left_shoulder.modelBoneEnd.clone().multiplyScalar(0.5), 
       this.modelBoneOutputs.Left_arm.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
       new THREE.Quaternion(), new THREE.Quaternion(), false);
+    physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eTWIST, PxD6Motion.eFREE);
     physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
-    // physicsManager.setJointTwistLimit(jointLeft_shoulderLeft_arm,       -Math.PI * 0.5,      Math.PI * 0.1);
+    physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+    // physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+    // // physicsManager.setJointTwistLimit(jointLeft_shoulderLeft_arm,       -Math.PI * 0.5,      Math.PI * 0.1);
 
     // const jointLeft_armLeft_elbow = physicsManager.addJoint(flatMeshes.Left_arm, flatMeshes.Left_elbow, 
     //   new THREE.Vector3(0, -0.10704085846249278, 0), new THREE.Vector3(0, 0.10704085846249278, 0), new THREE.Quaternion(), new THREE.Quaternion());
@@ -2682,8 +2685,11 @@ class Avatar {
       this.modelBoneOutputs.Right_shoulder.modelBoneEnd.clone().multiplyScalar(0.5), 
       this.modelBoneOutputs.Right_arm.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
       new THREE.Quaternion(), new THREE.Quaternion(), false);
+    physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eTWIST, PxD6Motion.eFREE);
     physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
-    // physicsManager.setJointTwistLimit(jointRight_shoulderRight_arm,       -Math.PI * 0.8,      Math.PI * 0.);
+    physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+    // physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+    // // physicsManager.setJointTwistLimit(jointRight_shoulderRight_arm,       -Math.PI * 0.8,      Math.PI * 0.);
 
     const jointRight_armRight_elbow = physicsManager.addJoint(flatMeshes.Right_arm, flatMeshes.Right_elbow, 
       this.modelBoneOutputs.Right_arm.modelBoneEnd.clone().multiplyScalar(0.5), 
@@ -2703,8 +2709,11 @@ class Avatar {
       this.modelBoneOutputs.Left_leg.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
       new THREE.Quaternion(), new THREE.Quaternion(), false);
     // // flatMeshes.Left_leg.rotation.x = 90 * DEG2RAD;
-    physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointHipsLeft_leg,          -90 * DEG2RAD,      0);
+    physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eTWIST, PxD6Motion.eFREE);
+    physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+    physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+    // physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointHipsLeft_leg,          -90 * DEG2RAD,      0);
 
     // const jointHipsRight_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Right_leg, 
     //   new THREE.Vector3(0.1, -flatMeshes.Hips.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Right_leg.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
@@ -2712,8 +2721,11 @@ class Avatar {
       this.modelBoneOutputs.Right_leg.position.clone(), 
       this.modelBoneOutputs.Right_leg.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
       new THREE.Quaternion(), new THREE.Quaternion(), false);
-    physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointHipsRight_leg,         -90 * DEG2RAD,      0);
+      physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eTWIST, PxD6Motion.eFREE);
+      physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eSWING1, PxD6Motion.eFREE);
+      physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eSWING2, PxD6Motion.eFREE);
+    // physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointHipsRight_leg,         -90 * DEG2RAD,      0);
 
     // const jointLeft_legLeft_knee = physicsManager.addJoint(flatMeshes.Left_leg, flatMeshes.Left_knee, 
     //   new THREE.Vector3(0, -flatMeshes.Left_leg.boneLength / 2 * 1.1, 0), new THREE.Vector3(0, flatMeshes.Left_knee.boneLength / 2 * 1.1, 0), new THREE.Quaternion(), new THREE.Quaternion());
@@ -2873,11 +2885,11 @@ class Avatar {
 
       // const quat = new THREE.Quaternion().setFromUnitVectors(flatMeshes.Hips.getWorldDirection(new THREE.Vector3()), flatMeshes.Left_leg.getWorldDirection(new THREE.Vector3()));
       // this.modelBoneOutputs.Left_leg.quaternion.copy(quat.invert());
-
-      const ib = flatMeshes.Left_leg._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.Hips.quaternion.clone();
       const c = flatMeshes.Left_leg.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Left_leg.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Left_leg.quaternion.copy(b);
     }
     {
       // const angle = flatMeshes.Hips.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Spine.getWorldDirection(new THREE.Vector3()));
@@ -2885,11 +2897,11 @@ class Avatar {
 
       // const quat = new THREE.Quaternion().setFromUnitVectors(flatMeshes.Hips.getWorldDirection(new THREE.Vector3()), flatMeshes.Spine.getWorldDirection(new THREE.Vector3()));
       // this.modelBoneOutputs.Spine.quaternion.copy(quat.invert());
-
-      const ib = flatMeshes.Spine._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.Hips.quaternion.clone();
       const c = flatMeshes.Spine.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Spine.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Spine.quaternion.copy(b);
     }
     {
       // const angle = flatMeshes.Spine.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Chest.getWorldDirection(new THREE.Vector3()));
@@ -2897,11 +2909,11 @@ class Avatar {
 
       // const quat = new THREE.Quaternion().setFromUnitVectors(flatMeshes.Spine.getWorldDirection(new THREE.Vector3()), flatMeshes.Chest.getWorldDirection(new THREE.Vector3()));
       // this.modelBoneOutputs.Chest.quaternion.copy(quat.invert());
-
-      const ib = flatMeshes.Chest._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.Spine.quaternion.clone();
       const c = flatMeshes.Chest.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Chest.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Chest.quaternion.copy(b);
     }
     {
       // const angle = flatMeshes.Chest.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.UpperChest.getWorldDirection(new THREE.Vector3()));
@@ -2909,11 +2921,11 @@ class Avatar {
 
       // const quat = new THREE.Quaternion().setFromUnitVectors(flatMeshes.Chest.getWorldDirection(new THREE.Vector3()), flatMeshes.UpperChest.getWorldDirection(new THREE.Vector3()));
       // this.modelBoneOutputs.UpperChest.quaternion.copy(quat.invert());
-
-      const ib = flatMeshes.UpperChest._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.Chest.quaternion.clone();
       const c = flatMeshes.UpperChest.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.UpperChest.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.UpperChest.quaternion.copy(b);
     }
     {
       // const angle = flatMeshes.Hips.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Right_leg.getWorldDirection(new THREE.Vector3()));
@@ -2921,11 +2933,11 @@ class Avatar {
 
       // const quat = new THREE.Quaternion().setFromUnitVectors(flatMeshes.Hips.getWorldDirection(new THREE.Vector3()), flatMeshes.Right_leg.getWorldDirection(new THREE.Vector3()));
       // this.modelBoneOutputs.Right_leg.quaternion.copy(quat.invert());
-
-      const ib = flatMeshes.Right_leg._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.Hips.quaternion.clone();
       const c = flatMeshes.Right_leg.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Right_leg.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Right_leg.quaternion.copy(b);
     }
     {
       // const angle = flatMeshes.Left_leg.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Left_knee.getWorldDirection(new THREE.Vector3()));
@@ -2933,11 +2945,11 @@ class Avatar {
 
       // const quat = new THREE.Quaternion().setFromUnitVectors(flatMeshes.Left_leg.getWorldDirection(new THREE.Vector3()), flatMeshes.Left_knee.getWorldDirection(new THREE.Vector3()));
       // this.modelBoneOutputs.Left_knee.quaternion.copy(quat.invert());
-
-      const ib = flatMeshes.Left_knee._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.Left_leg.quaternion.clone();
       const c = flatMeshes.Left_knee.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Left_knee.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Left_knee.quaternion.copy(b);
     }
     {
       // const angle = flatMeshes.Right_leg.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Right_knee.getWorldDirection(new THREE.Vector3()));
@@ -2996,11 +3008,11 @@ class Avatar {
         // Quaternion {_x: -0.9134599298108679, _y: -0.35724800890189246, _z: -0.07287151530238078, _w: -0.18070572493170406}
         c.clone().invert().multiply(a).invert()
         // Quaternion {_x: -0.5464220181959302, _y: 0.6759794547751549, _z: -0.4942402810170313, _w: -0.014188001014127503}
-      */
-      const ib = flatMeshes.Left_arm._initialQuaternion.clone().invert();
+      */      
+      const a = flatMeshes.Left_shoulder.quaternion.clone();
       const c = flatMeshes.Left_arm.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Left_arm.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Left_arm.quaternion.copy(b);
     }
     {
       // const angle = flatMeshes.Left_arm.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Left_elbow.getWorldDirection(new THREE.Vector3()));
@@ -3010,10 +3022,11 @@ class Avatar {
       // this.modelBoneOutputs.Left_elbow.rotation.y = flatMeshes.Left_elbow.rotation.y - flatMeshes.Left_arm.rotation.y;
       // this.modelBoneOutputs.Left_elbow.rotation.z = flatMeshes.Left_elbow.rotation.z - flatMeshes.Left_arm.rotation.z;
 
-      const ib = flatMeshes.Left_elbow._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.Left_arm.quaternion.clone();
       const c = flatMeshes.Left_elbow.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Left_elbow.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Left_elbow.quaternion.copy(b);
 
       // this.modelBoneOutputs.Left_elbow.quaternion.copy(flatMeshes.Left_elbow._initialQuaternion).multiply(a);
 
@@ -3025,11 +3038,11 @@ class Avatar {
 
       // const quat = new THREE.Quaternion().setFromUnitVectors(flatMeshes.Right_shoulder.getWorldDirection(new THREE.Vector3()), flatMeshes.Right_arm.getWorldDirection(new THREE.Vector3()));
       // this.modelBoneOutputs.Right_arm.quaternion.copy(quat);
-
-      const ib = flatMeshes.Right_arm._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.Right_shoulder.quaternion.clone();
       const c = flatMeshes.Right_arm.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Right_arm.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Right_arm.quaternion.copy(b);
     }
     {
       // const angle = flatMeshes.Right_arm.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Right_elbow.getWorldDirection(new THREE.Vector3()));
@@ -3037,11 +3050,11 @@ class Avatar {
 
       // const quat = new THREE.Quaternion().setFromUnitVectors(flatMeshes.Right_arm.getWorldDirection(new THREE.Vector3()), flatMeshes.Right_elbow.getWorldDirection(new THREE.Vector3()));
       // this.modelBoneOutputs.Right_elbow.quaternion.copy(quat);
-
-      const ib = flatMeshes.Right_elbow._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.Right_arm.quaternion.clone();
       const c = flatMeshes.Right_elbow.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Right_elbow.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Right_elbow.quaternion.copy(b);
     }
     {
       // const angle = flatMeshes.UpperChest.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Neck.getWorldDirection(new THREE.Vector3()));
@@ -3050,11 +3063,11 @@ class Avatar {
 
       // const quat = new THREE.Quaternion().setFromUnitVectors(flatMeshes.UpperChest.getWorldDirection(new THREE.Vector3()), flatMeshes.Neck.getWorldDirection(new THREE.Vector3()));
       // this.modelBoneOutputs.Neck.quaternion.copy(quat);
-
-      const ib = flatMeshes.Neck._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.UpperChest.quaternion.clone();
       const c = flatMeshes.Neck.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Neck.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Neck.quaternion.copy(b);
     }
     {
       // const angle = flatMeshes.Neck.getWorldDirection(new THREE.Vector3()).angleTo(flatMeshes.Head.getWorldDirection(new THREE.Vector3()));
@@ -3063,11 +3076,11 @@ class Avatar {
 
       // const quat = new THREE.Quaternion().setFromUnitVectors(flatMeshes.Neck.getWorldDirection(new THREE.Vector3()), flatMeshes.Head.getWorldDirection(new THREE.Vector3()));
       // this.modelBoneOutputs.Head.quaternion.copy(quat);
-
-      const ib = flatMeshes.Head._initialQuaternion.clone().invert();
+      
+      const a = flatMeshes.Neck.quaternion.clone();
       const c = flatMeshes.Head.quaternion.clone();
-      const a = c.multiply(ib);
-      this.modelBoneOutputs.Head.quaternion.copy(a);
+      const b = c.clone().invert().multiply(a).invert();
+      this.modelBoneOutputs.Head.quaternion.copy(b);
     }
 
     // for (const k in flatMeshes) {
@@ -3846,8 +3859,8 @@ class Avatar {
     } else {
       // _applyAnimation();
       if (this.fsms.state.matches('skeleton')) {
-        this.toAvatar();
-      // this.setFromAvatar();
+        // this.toAvatar();
+      this.setFromAvatar();
       }
     }
     
