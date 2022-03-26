@@ -256,15 +256,11 @@ export const CharacterSelect = () => {
                                             (async () => {
                                                 const localPlayer = await metaversefile.useLocalPlayer();
                                                 await localPlayer.setAvatarUrl(character.vrmSrc);
-                                            })()
-                                            // localPlayer.setAvatar(npcPlayer.avatar);
-
+                                            })();
+                                            
                                             setTimeout(() => {
-                                                // setSelectCharacter(null);
-                                                // localPlayer.setAvatarApp();
-
                                                 setState({ openedPanel: null });
-                                            }, 2000);
+                                            }, 1000);
                                         }
                                     }}
                                     key={i}
