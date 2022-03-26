@@ -1,4 +1,4 @@
-.characterSelect {
+.characterSelect .menu {
   display: flex;
   position: fixed;
   bottom: calc(-100vh + 200px);
@@ -11,7 +11,7 @@
   /* transform: translateY(100vh); */
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
-.characterSelect.open {
+.characterSelect .menu.open {
   transform: translateY(calc(-100vh + 200px));
 }
 .characterSelect h1,

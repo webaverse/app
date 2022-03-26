@@ -3,6 +3,7 @@ import React, { forwardRef, useEffect, useState, useRef, useContext } from 'reac
 import classnames from 'classnames';
 import styles from './character-select.module.css';
 import { AppContext } from '../../app';
+import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
 
 //
@@ -156,43 +157,17 @@ export const CharacterSelect = () => {
     const opened = state.openedPanel === 'CharacterSelect';
 
     return (
-        <div className={ classnames(styles.characterSelect, opened ? styles.open : null) }>
-            <div className={styles.heading}>
-                <h1>Character select</h1>
-            </div>
-            <div className={styles.section}>
-                <div className={styles.subheading}>
-                    <h2>Your Tokens</h2>
+        <div className={styles.characterSelect}>
+            <div className={classnames(styles.menu, opened ? styles.open : null)}>
+                <div className={styles.heading}>
+                    <h1>Character select</h1>
                 </div>
-                <ul className={styles.list}>
-                    {userTokenCharacters.map((character, i) =>
-                        <Character
-                            character={character}
-                            highlight={character === targetCharacter}
-                            animate={selectCharacter === character}
-                            disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                            onMouseEnter={() => {
-                                setHighlightCharacter(character);
-                            }}
-                            onClick={e => {
-                                setSelectCharacter(character);
-                                setTimeout(() => {
-                                    setSelectCharacter(null);
-                                }, 2000);
-                            }}
-                            key={i}
-                            ref={refsMap.get(character)}
-                        />
-                    )}
-                </ul>
-            </div>
-            <div className={styles.section}>
-                <div className={styles.subheading}>
-                    <h2>From Upstreet</h2>
-                </div>
-                <ul className={styles.list}>
-                     {characters.upstreet.map((character, i) => {
-                        return (
+                <div className={styles.section}>
+                    <div className={styles.subheading}>
+                        <h2>Your Tokens</h2>
+                    </div>
+                    <ul className={styles.list}>
+                        {userTokenCharacters.map((character, i) =>
                             <Character
                                 character={character}
                                 highlight={character === targetCharacter}
@@ -210,16 +185,48 @@ export const CharacterSelect = () => {
                                 key={i}
                                 ref={refsMap.get(character)}
                             />
-                        );
-                    })}
-                </ul>
+                        )}
+                    </ul>
+                </div>
+                <div className={styles.section}>
+                    <div className={styles.subheading}>
+                        <h2>From Upstreet</h2>
+                    </div>
+                    <ul className={styles.list}>
+                        {characters.upstreet.map((character, i) => {
+                            return (
+                                <Character
+                                    character={character}
+                                    highlight={character === targetCharacter}
+                                    animate={selectCharacter === character}
+                                    disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
+                                    onMouseEnter={() => {
+                                        setHighlightCharacter(character);
+                                    }}
+                                    onClick={e => {
+                                        setSelectCharacter(character);
+                                        setTimeout(() => {
+                                            setSelectCharacter(null);
+                                        }, 2000);
+                                    }}
+                                    key={i}
+                                    ref={refsMap.get(character)}
+                                />
+                            );
+                        })}
+                    </ul>
+                </div>
+
+                <LightArrow
+                    enabled={!!arrowPosition}
+                    animate={!!selectCharacter}
+                    x={arrowPosition?.[0] ?? 0}
+                    y={arrowPosition?.[1] ?? 0}
+                />
             </div>
 
-            <LightArrow
-                enabled={!!arrowPosition}
-                animate={!!selectCharacter}
-                x={arrowPosition?.[0] ?? 0}
-                y={arrowPosition?.[1] ?? 0}
+            <MegaHup
+              character={opened ? targetCharacter : null}
             />
         </div>
     );
