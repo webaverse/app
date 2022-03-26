@@ -82,12 +82,14 @@
 /*  */
 
 .characterPanel {
+    display: flex;
     position: absolute;
     top: 0px;
     left: 0px;
     width: 400px;
     height: 100vh;
     background-color: #000;
+    flex-direction: column;
 }
 
 
@@ -332,3 +334,53 @@
     transition: none;
   }
   
+  .characterPanel .selectButton {
+    display: flex;
+    margin: 15px 30px;
+    margin-top: auto;
+    padding: 10px;
+    border: 2px solid #FFF;
+    font-family: 'GeoSans';
+    font-size: 20px;
+    justify-content: center;
+    color: #FFF;
+    cursor: pointer;
+    opacity: 0.3;
+    transition: opacity 0.3s ease-out;
+  }
+  @keyframes highlight {
+    0% {
+      border-color: #FFF;
+    }
+    50% {
+      border-color: #808080;
+    }
+    100% {
+      border-color: #808080;
+    }
+  }
+  @keyframes highlight2 {
+    0% {
+      background-color: #FFF;
+      color: #000;
+    }
+    50% {
+      background-color: #000;
+      color: #FFF;
+    }
+    100% {
+      background-color: #000;
+      color: #FFF;
+    }
+  }
+  .characterPanel .selectButton {
+    animation: highlight 1s step-end infinite;
+  }
+  .characterPanel .selectButton.highlight {
+    animation: highlight2 0.15s step-end infinite;
+  }
+  .characterPanel .selectButton:hover {
+    animation: none;
+    opacity: 1;
+    transition: opacity 1s cubic-bezier(0, 1, 0, 1);
+  }
