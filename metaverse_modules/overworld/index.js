@@ -1,38 +1,54 @@
 import * as THREE from 'three';
-import {ShaderLib} from 'three/src/renderers/shaders/ShaderLib.js';
-import {UniformsUtils} from 'three/src/renderers/shaders/UniformsUtils.js';
-// import * as ThreeVrm from '@pixiv/three-vrm';
-// const {MToonMaterial} = ThreeVrm;
-// window.ThreeVrm = ThreeVrm;
-// import easing from './easing.js';
-// import {StreetGeometry} from './StreetGeometry.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useRenderer, useCamera, useMaterials, useCleanup} = metaversefile;
-
-// const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
-
-// const localVector = new THREE.Vector3();
-// const localQuaternion = new THREE.Quaternion();
+const {useApp, useRenderSettings} = metaversefile;
 
 export default e => {
   const app = useApp();
-  // const physics = usePhysics();
-  // const procGen = useProcGen();
-  // const {alea, chunkWorldSize} = procGen;
-  // const renderer = useRenderer();
-  // const camera = useCamera();
-  // const {WebaverseShaderMaterial} = useMaterials();
 
   app.name = 'overworld';
 
   const initObjects = [
     {
       name: 'street',
-      type: 'scene',
-      start_url: './scenes/street.scn',
+      type: 'app',
+      position: [0, 0, 0],
+      quaternion: [0, 0, 0, 1],
+      start_url: "../metaverse_modules/scene-preview/",
+      components: [
+        {
+          key: "previewPosition",
+          value: [0, 1.5, -150]
+        },
+        {
+          key: "sceneUrl",
+          value: "./scenes/street.scn"
+        },
+        {
+          key: "focus",
+          value: true,
+        },
+      ],
     },
     {
-      name: 'barrier',
+      name: 'battalion',
+      type: 'app',
+      position: [0, 0, -300],
+      quaternion: [0, 1, 0, 0],
+      start_url: "../metaverse_modules/scene-preview/",
+      components: [
+        {
+          key: "previewPosition",
+          value: [0, 1.5, -150]
+        },
+        {
+          key: "sceneUrl",
+          value: "./scenes/battalion.scn"
+        },
+      ],
+      renderPriority: -1,
+    },
+    {
+      name: 'barrier1forward',
       type: 'app',
       start_url: '../metaverse_modules/barrier/',
       components: [
@@ -45,55 +61,112 @@ export default e => {
         }
       ]
     },
+    {
+      name: 'barrier1backward',
+      type: 'app',
+      start_url: '../metaverse_modules/barrier/',
+      components: [
+        {
+          key: 'bounds',
+          value: [
+            [-150, -150, -150],
+            [150, 150, 150]
+          ]
+        }
+      ]
+    },
   ];
 
   const objects = new Map();
   const _loadObject = async spec => {
-    const {name, type, start_url} = spec;
+    const {name, type, start_url, components, renderPriority} = spec;
     if (type === 'scene') {
       const scene = await metaversefile.createAppAsync({
         start_url,
-        components: {
-          mode: 'detached',
-        },
+        components,
       });
+      scene.name = `overworld-subscene-${name}`
+      scene.spec = spec;
       return scene;
     } else if (type === 'app') {
-      const {start_url, position, quaternion, scale, components} = spec;
-      const app = metaversefile.createAppAsync({
+      const {position, quaternion, scale} = spec;
+      const app = await metaversefile.createAppAsync({
         start_url,
         position,
         quaternion,
         scale,
         components,
       });
+      app.name = `overworld-subapp-${name}`;
+      app.renderPriority = renderPriority ?? 0;
       return app;
     } else {
       throw new Error(`unknown object type ${type}`);
     }
   };
+  const _sortApps = () => {
+    app.children.sort((a, b) => {
+      const aPriority = a.renderPriority;
+      const bPriority = b.renderPriority;
+      const diff = aPriority - bPriority;
+      if (diff !== 0) {
+        return diff;
+      } else {
+        const aIndex = initObjects.findIndex(o => o.name === a.name);
+        const bIndex = initObjects.findIndex(o => o.name === b.name);
+        return aIndex - bIndex;
+      }
+    });
+  };
   e.waitUntil((async () => {
     const promises = initObjects.map(async spec => {
       const o = await _loadObject(spec);
       app.add(o);
+      _sortApps();
       objects.set(spec.name, o);
       return o;
     });
     await Promise.all(promises);
+  
+    const street = objects.get('street');
+    const battalion = objects.get('battalion');
+    const barrier1forward = objects.get('barrier1forward');
+    const barrier1backward = objects.get('barrier1backward');
+
+    // const barriersObject = new THREE.Object3D();
+    // app.add(barriersObject);
+
+    // barriersObject.add(barrier1forward);
+
+    barrier1forward.addEventListener('collision', e => {
+      battalion.renderPriority = 0;
+      street.renderPriority = -1;
+      _sortApps();
+      
+      street.setFocus(false);
+      battalion.setFocus(true);
+
+      barrier1backward.peerCooldown();
+
+      /* barriersObject.clear();
+      barriersObject.add(barrier1backward); */
+    });
+    barrier1backward.addEventListener('collision', e => {  
+      battalion.renderPriority = -1;
+      street.renderPriority = 0;
+      _sortApps();
+      
+      battalion.setFocus(false);
+      street.setFocus(true);
+
+      barrier1forward.peerCooldown();
+
+      /* barriersObject.clear();
+      barriersObject.add(barrier1forward); */
+    });
   })());
 
-  //
-
-  /* const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(
-    resolution,
-    {
-      generateMipmaps: true,
-      minFilter: THREE.LinearMipmapLinearFilter,
-      // magFilter: THREE.LinearMipmapLinearFilter,
-    },
-  );
-  cubeRenderTarget.texture.mapping = THREE.CubeRefractionMapping;
-  const cubeCamera = new THREE.CubeCamera(near, camera.far, cubeRenderTarget); */
+  app.hasRenderSettings = true;
 
   return app;
 };
