@@ -20,27 +20,32 @@ const characters = {
     upstreet: [
         {
             name: 'Scillia',
-            imgSrc: 'characters/scillia.png',
+            imgSrc: './characters/scillia.png',
+            vrmSrc: './avatars/scillia_drophunter_v25_gloria_vian.vrm',
             class: 'Drop Hunter',
         },
         {
             name: 'Drake',
-            imgSrc: 'characters/drake.png',
+            imgSrc: './characters/drake.png',
+            vrmSrc: '',
             class: 'Hacker Supreme',
         },
         {
             name: 'Hyacinth',
-            imgSrc: 'characters/hyacinth.png',
+            imgSrc: './characters/hyacinth.png',
+            vrmSrc: '',
             class: 'Beast Painter',
         },
         {
             name: 'Juniper',
-            imgSrc: 'characters/juniper.png',
+            imgSrc: './characters/juniper.png',
+            vrmSrc: '',
             class: 'Academy Engineer',
         },
         {
             name: 'Anemone',
-            imgSrc: 'characters/anemone.png',
+            imgSrc: './characters/anemone.png',
+            vrmSrc: '',
             class: 'Lisk Witch',
         },
     ],
