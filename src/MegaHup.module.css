@@ -8,7 +8,7 @@
   bottom: 30px;
   left: 30px;
   z-index: 10; */
-  background-image: linear-gradient(to right, transparent 0%, #111 50%, #000 100%);
+  /* background-image: linear-gradient(to right, transparent 0%, #111 50%, #000 100%); */
 }
 .megaHup .canvas {
   width: 400px;
