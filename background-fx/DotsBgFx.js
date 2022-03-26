@@ -6,9 +6,10 @@ import {
 } from './common.js';
 // import {getRenderer} from '../renderer.js';
 
-const glyphFragmentShader = `\
+const dotsFragmentShader = `\
 uniform float iTime;
 uniform sampler2D iChannel0;
+uniform vec2 iResolution;
 varying vec2 tex_coords;
 /*
 
@@ -184,33 +185,70 @@ float avg(vec3 c) {
 }
 
 float index = 3000.;
-/* function rand(float x) {
-  x += index;
-  index += 100.;
-  return sin (2 * x) + sin(PI * x);
-} */
+float rand(float x) {
+  return sin(2. * x) + sin(PI * x);
+}
 float rand() {
   float n = index;
   index += 100.;
   return fract(sin(n) * 43758.5453123);
 }
+float randInRange(float min, float max) {
+  return min + rand() * (max - min);
+}
 
 void mainImage( out vec4 fragColor, in vec2 originalUv )
 {
   vec2 uv = originalUv;
+  uv.y -= 0.5;
+  uv.y *= iResolution.y / iResolution.x;
+  uv.y += 0.5;
+
+  const float minX = 0.;
+  const float maxX = 1.;
+
+  float aspectExtra = (iResolution.y / iResolution.x);
+  float minY = - aspectExtra / 2.;
+  float maxY = 1. + aspectExtra / 2.;
+
+  const float maxRadius = 0.15;
+  float radiusExtra = maxRadius;
+  float extendedMinY = minY - radiusExtra;
+  float extendedMaxY = maxY + radiusExtra;
+  float modOffsetY = aspectExtra/2. + radiusExtra;
+  float modRangeY = extendedMaxY - extendedMinY;
+
+  float modOffsetX = radiusExtra;
+  float modRangeX = 1. + radiusExtra*2.;
 
   vec4 col = vec4(0.0);
 
-  int numCircles = 10;
+  int numCircles = 16;
   for (int i = 0; i < numCircles; i++) {
-    vec2 point = vec2(rand(), rand());
-    float radius = rand() * 0.5;
-    float color = 0.2 + rand() * 0.3;
+    vec2 point = vec2(randInRange(minX, maxX), randInRange(minY, maxY));
+    float speed = (0.3 + rand() * 0.7);
+    point.y += iTime * speed;
+    point.y += modOffsetY;
+    point.y = mod(point.y, modRangeY);
+    point.y -= modOffsetY;
+
+    float swayOffset = rand() * PI*2.;
+    float swaySpeed = rand() * 0.2;
+    point.x += rand(swayOffset + iTime * swaySpeed) * 0.3;
+    point.x += modOffsetX;
+    point.x = mod(point.x, modRangeX);
+    point.x -= modOffsetX;
+
+    float radius = (0.3 + pow(rand(), 2.) * 0.7) * maxRadius;
+    // float radius = maxRadius;
+    float brightness = 0.2 + rand() * 0.2;
     float distance = length(uv - point) - radius;
-    if (distance < 0.0) {
-      col += vec4(vec3(c), 1.0);
+    if (distance < 0.0 && brightness > col.a) {
+      col = vec4(vec3(brightness), brightness);
     }
   }
+
+  // col.r += mod(iTime, 1.);
   
   fragColor = col;
 }
@@ -219,7 +257,7 @@ void main() {
 }
 `;
 
-let iChannel0 = null;
+// let iChannel0 = null;
 class DotsBgFxMesh extends THREE.Mesh {
   constructor() {
     /* if (!iChannel0) {
@@ -230,7 +268,11 @@ class DotsBgFxMesh extends THREE.Mesh {
       uniforms: {
         iTime: {
           value: 0,
-          // needsUpdate: true,
+          needsUpdate: true,
+        },
+        iResolution: {
+          value: new THREE.Vector2(0, 0),
+          needsUpdate: true,
         },
         /* iChannel0: {
           value: iChannel0,
@@ -254,7 +296,7 @@ class DotsBgFxMesh extends THREE.Mesh {
         }, */
       },
       vertexShader: fullscreenVertexShader,
-      fragmentShader: glyphFragmentShader,
+      fragmentShader: dotsFragmentShader,
       depthWrite: false,
       depthTest: false,
       alphaToCoverage: true,
@@ -271,6 +313,9 @@ class DotsBgFxMesh extends THREE.Mesh {
 
     this.material.uniforms.iTime.value = timestampS;
     this.material.uniforms.iTime.needsUpdate = true;
+
+    this.material.uniforms.iResolution.value.set(width, height);
+    this.material.uniforms.iResolution.needsUpdate = true;
 
     this.material.uniforms.uColor1.value.set(colors[0]);
     this.material.uniforms.uColor1.needsUpdate = true;
