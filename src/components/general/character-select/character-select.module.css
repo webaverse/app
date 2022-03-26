@@ -71,6 +71,10 @@
   animation-duration: 0.03s;
   animation-timing-function: step-end;
   animation-iteration-count: 5;
+}
+.characterSelect .list .item.animate,
+.characterSelect .list .item.disabled
+{
   cursor: default;
 }
 .characterSelect .list .item .img {
