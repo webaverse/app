@@ -3,7 +3,6 @@
     position: absolute;
     top: 100px;
     right: 0px;
-    z-index: 1;
 }
 
 .btn {
@@ -32,12 +31,11 @@
 
 .btn .text {
     position: relative;
-    z-index: 2;
 }
 
 .btn .key {
     position: relative;
-    z-index: 2;
+    z-index: 1;
 }
 
 .btn .background {
@@ -46,7 +44,6 @@
     bottom: 0;
     height: 100%;
     transition: transform 1s cubic-bezier(0, 1, 0, 1);
-    z-index: 1;
 }
 
 .btn .background {
