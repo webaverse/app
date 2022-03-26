@@ -1,3 +1,53 @@
+.lightArrowContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  user-select: none;
+  transform: translate(0, 0);
+  /* transition: transform 1s cubic-bezier(0, 1, 0, 1); */
+}
+.lightArrowContainer:not(.enabled) {
+  display: none;
+}
+
+@keyframes arrow-animation {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  50% {
+    transform: translate3d(-87px, 30px, 300px) rotateZ(45deg);
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-65px, -50px, -500px) rotateX(90deg) rotateZ(45deg);
+    opacity: 0;
+  }
+}
+
 .lightArrow {
   position: absolute;
+  transform: translate3d(0, 0, 0);
+  perspective: 1000px;
+  perspective-origin: -75px 30px;
+  transition: all 0.1s cubic-bezier(0, 1, 0, 1);
+}
+
+.lightArrow .perspective {
+  transform: translate3d(0, 0, 0);
+  transform-origin: 50% 50%;
+}
+.lightArrow.animate .perspective {
+  animation-name: arrow-animation;
+  animation-duration: 1s;
+  animation-timing-function: cubic-bezier(0, 1, 0, 1);
+  animation-fill-mode: forwards;
+}
+
+.lightArrow .perspective .canvas {
+  
 }
