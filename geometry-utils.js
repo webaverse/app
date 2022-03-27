@@ -39,8 +39,6 @@ const geometryUtils = (() => {
         arrays
     ) => {
 
-        console.log(">>> array 0: ", arrays[0].byteLength);
-
         return new Promise((resolve, reject) => {
 
             try {
