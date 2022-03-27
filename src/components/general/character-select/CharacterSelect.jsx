@@ -295,6 +295,7 @@ export const CharacterSelect = () => {
             </div>
 
             <MegaHup
+              open={opened}
               npcPlayer={opened ? npcPlayer : null}
             />
         </div>
