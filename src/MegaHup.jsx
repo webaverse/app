@@ -14,12 +14,22 @@ import metaversefile from 'metaversefile';
 // import {chatTextSpeed} from '../constants.js';
 
 const width = 400;
-const height = 800;
 
 const MegaHup = function({
   npcPlayer = null,
 }) {
+  const [height, setHeight] = useState(window.innerHeight);
   const canvasRef = useRef();
+
+  useEffect(() => {
+    const resize = e => {
+      setHeight(e.target.innerHeight);
+    };
+    window.addEventListener('resize', resize);
+    return () => {
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -32,7 +42,7 @@ const MegaHup = function({
           objects: [
             npcPlayer.avatar.model,
           ],
-          cameraOffset: new THREE.Vector3(-0.5, 0, -0.25),
+          cameraOffset: new THREE.Vector3(-0.8, 0, -0.4),
           // label: true,
           // outline: true,
           // grassBackground: true,
@@ -50,6 +60,11 @@ const MegaHup = function({
         }
       };
       world.appManager.addEventListener('frame', frame);
+      const resize = e => {
+        // console.log('diorama set size', width, window.innerHeight);
+        diorama.setSize(width, window.innerHeight);
+      };
+      window.addEventListener('resize', resize);
 
       return () => {
         if (diorama) {
@@ -57,6 +72,7 @@ const MegaHup = function({
           diorama.destroy();
         }
         world.appManager.removeEventListener('frame', frame);
+        window.removeEventListener('resize', resize);
         live = false;
       };
     }
