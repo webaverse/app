@@ -558,9 +558,7 @@ const _startHacks = webaverse => {
     } else if (e.which === 111) { // /
       (async () => {
         const offscreenEngine = new OffscreenEngine();
-        // console.log('got offscreen engine 1', offscreenEngine);
         await offscreenEngine.waitForLoad();
-        // console.log('got offscreen engine 2', offscreenEngine);
 
         const fn = offscreenEngine.createFunction(`\
             import * as THREE from 'three';
@@ -570,6 +568,7 @@ const _startHacks = webaverse => {
             .toArray();
         });
         const result = await fn([1, 2, 3], [4, 5, 6]);
+        console.log('final result', result);
       })();
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
