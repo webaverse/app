@@ -2039,6 +2039,10 @@ class Avatar {
           },
           entryRagdoll: () => {
             // this.runRagdoll();
+            setTimeout(() => {
+              console.log(flatMeshes.Hips.getWorldDirection(new THREE.Vector3()))
+              console.log(modelBoneOutputs.Hips.getWorldDirection(new THREE.Vector3()))
+            }, 1000)
           },
           exitRagdoll: () => {
             // this.modelBoneOutputs.Hips.position.copy(this.hipsPosition);
@@ -2841,13 +2845,17 @@ class Avatar {
     // ).invert()
 
     {
+      this.modelBoneOutputs.Hips.quaternion.identity();
+
       const matrix = flatMeshes.Hips.matrixWorld.clone()
       // matrix.multiply(this.modelBoneOutputs.Root.matrixWorld)
       // matrix.multiply(this.modelBoneOutputs.Root.matrixWorld.clone().invert())
       // matrix.premultiply(this.modelBoneOutputs.Root.matrixWorld) // ok too?
       // matrix.premultiply(this.modelBoneOutputs.Root.matrixWorld.clone().invert())
-      matrix.decompose(this.modelBoneOutputs.Root.position, this.modelBoneOutputs.Hips.quaternion, this.modelBoneOutputs.Hips.scale)
-      this.modelBoneOutputs.Hips.quaternion.premultiply(this.modelBoneOutputs.Root.quaternion);
+      matrix.decompose(this.modelBoneOutputs.Root.position, this.modelBoneOutputs.Root.quaternion, this.modelBoneOutputs.Root.scale)
+      // this.modelBoneOutputs.Hips.quaternion.multiply(this.modelBoneOutputs.Root.quaternion);
+
+      this.modelBoneOutputs.Hips.position.y = 0;
 
       // this.modelBoneOutputs.Hips.position.applyQuaternion(y180Quaternion)
       // this.modelBoneOutputs.Hips.quaternion.multiply(this.mod)
