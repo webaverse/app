@@ -76,11 +76,11 @@ class OffscreenEngine {
     const id = getRandomString();
 
     const loadPromise = (async () => {
-      console.log('create function 1');
+      // console.log('create function 1');
       await this.waitForLoad();
-      console.log('create function 2');
+      // console.log('create function 2');
       await this.waitForTurn(async () => {
-        console.log('create function 3');
+        // console.log('create function 3');
         const src = prefix + `
           const _default_export_ = ${fn.toString()};
           export default _default_export_;
