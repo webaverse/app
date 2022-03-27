@@ -5,6 +5,7 @@ import classnames from 'classnames';
 import metaversefile from '../../../../metaversefile-api.js';
 import { defaultPlayerName } from '../../../../ai/lore/lore-model.js';
 import cameraManager from '../../../../camera-manager.js';
+import {OffscreenEngine} from '../../../../offscreen-engine.js';
 
 import { AppContext } from '../../app';
 
