@@ -24,7 +24,7 @@ const characters = {
         {
             name: 'Scillia',
             imgSrc: './characters/scillia.png',
-            vrmSrc: './avatars/scillia_drophunter_v25_gloria_vian.vrm',
+            vrmSrc: './avatars/scillia_drophunter_v15_vian.vrm',
             class: 'Drop Hunter',
         },
         {
