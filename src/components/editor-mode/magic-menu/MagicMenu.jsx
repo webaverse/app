@@ -1,12 +1,13 @@
 
-import React, {useState, useEffect, useRef, useContext} from 'react'
-import classes from './MagicMenu.module.css'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 
-import * as codeAi from '../ai/code/code-ai.js';
+import * as codeAi from '../../../../ai/code/code-ai';
 import metaversefile from 'metaversefile';
 
-import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
-import { AppContext } from './components/app';
+import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
+import { AppContext } from '../../app';
+
+import styles from './magic-menu.module.css';
 
 //
 
@@ -24,6 +25,12 @@ export function MagicMenu () {
     const outputTextarea = useRef();
 
     //
+
+    const stopPropagation = ( event ) => {
+
+        event.stopPropagation();
+
+    };
 
     const _compile = async () => {
 
@@ -108,29 +115,69 @@ export function MagicMenu () {
 
     };
 
+    //
+
     useEffect( () => {
 
-        if ( state.openedPanel === 'MagicMenu' ) {
+        const handleKeyUp = ( event ) => {
 
-            if ( page === 'input' ) {
+            if ( event.which === 13 && window.document.activeElement !== outputTextarea.current ) { // enter
 
-                inputTextarea.current.focus();
+                if ( state.openedPanel === 'MagicPanel' ) {
 
-            } else if ( page === 'output' ) {
+                    if ( page === 'input' ) {
 
-                if ( document.activeElement ) {
+                        _compile();
 
-                    document.activeElement.blur();
+                    } else if ( page === 'output' ) {
+
+                        _run();
+
+                    }
+
+                    return false;
 
                 }
 
             }
 
-            setNeedsFocus( false );
+            if ( event.which === 191 ) { // /
 
-        }
+                setState({ openedPanel: ( state.openedPanel === 'MagicPanel' ? null : 'MagicPanel' ) });
 
-    }, [ state.openedPanel, inputTextarea.current, needsFocus ] );
+                if ( page === 'input' ) {
+
+                    inputTextarea.current.focus();
+
+                } else if ( page === 'output' ) {
+
+                    if ( document.activeElement ) {
+
+                        document.activeElement.blur();
+
+                    }
+
+                }
+
+                return false;
+
+            }
+
+            return true;
+
+        };
+
+        registerIoEventHandler( 'keyup', handleKeyUp );
+
+        //
+
+        return () => {
+
+            unregisterIoEventHandler( 'keyup', handleKeyUp );
+
+        };
+
+    }, [] );
 
     useEffect( () => {
 
@@ -158,46 +205,12 @@ export function MagicMenu () {
 
     }, [] );
 
-    const click = e => {
-
-        ioManager.click(new MouseEvent('click'));
-
-    };
-
-    const keydown = ( event ) => {
-
-        if ( state.openedPanel === 'MagicPanel' ) {
-
-            if ( event.which === 13 && window.document.activeElement !== outputTextarea.current ) { // enter
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                if ( page === 'input' ) {
-
-                    _compile();
-
-                } else if ( page === 'output' ) {
-
-                    _run();
-
-                }
-
-            }
-
-        }
-
-    };
-
     //
 
     return (
-        <div className={ classes.MagicMenu + ' ' + ( state.openedPanel === 'MagicPanel' ? classes.open : '' ) } onClick={ click } >
-            <div className={classes.container} onClick={e => {
-                e.preventDefault();
-                e.stopPropagation();
-            }}>
-                <textarea className={classes.textarea} value={input} rows={1} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onFocus={e => {
+        <div className={ styles.MagicMenu + ' ' + ( state.openedPanel === 'MagicPanel' ? styles.open : '' ) } onClick={ stopPropagation } >
+            <div className={styles.container}>
+                <textarea className={styles.textarea} value={input} rows={1} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onFocus={e => {
                     if (page !== 'input') {
                         setPage('input');
                         const oldAi = ai;
@@ -207,15 +220,15 @@ export function MagicMenu () {
                         }
                         setCompiling(false);
                     }
-                }} onChange={e => { setInput(e.target.value); }} onKeyDown={keydown} placeholder="Ask for it..." ref={inputTextarea} />
+                }} onChange={e => { console.log( e.target.value ); setInput(e.target.value); }} placeholder="Ask for it..." ref={inputTextarea} />
                 {
                     (() => {
                         switch (page) {
                             case 'input': {
                                 return (
                                     <>
-                                        <div className={classes.buttons}>
-                                            <button className={classes.button + ' ' + (compiling ? classes.disabled : '')} onClick={_compile}>Generate</button>
+                                        <div className={styles.buttons}>
+                                            <button className={styles.button + ' ' + (compiling ? styles.disabled : '')} onClick={_compile}>Generate</button>
                                         </div>
                                     </>
                                 );
@@ -223,9 +236,9 @@ export function MagicMenu () {
                             case 'output': {
                                 return (
                                     <>
-                                        <textarea className={classes.output} value={output} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onChange={e => { setOutput(e.target.value); }} placeholder="" ref={outputTextarea} />
-                                        <div className={classes.buttons}>
-                                            <button className={classes.button} onClick={_run}>Run</button>
+                                        <textarea className={styles.output} value={output} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onChange={e => { setOutput(e.target.value); }} placeholder="" ref={outputTextarea} />
+                                        <div className={styles.buttons}>
+                                            <button className={styles.button} onClick={_run}>Run</button>
                                         </div>
                                     </>
                                 );
