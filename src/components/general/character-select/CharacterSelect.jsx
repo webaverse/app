@@ -216,7 +216,7 @@ export const CharacterSelect = () => {
                 clearTimeout(timeout);
             };
         }
-    }, [opened]);
+    }, [opened, targetCharacter]);
 
     return (
         <div className={styles.characterSelect}>
