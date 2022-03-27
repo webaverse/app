@@ -177,15 +177,13 @@ export const CharacterSelect = () => {
             let npcPlayer = npcPlayerCache.get(vrmSrc);
             (async () => {
                 if (!npcPlayer) {
-                    // console.log('avatar app', vrmSrc);
                     const avatarApp = await metaversefile.createAppAsync({
                         start_url: vrmSrc,
                     });
-                    // console.log('npoc player', avatarApp);
-                    if (!live) return;
                     npcPlayer = new NpcPlayer();
                     npcPlayer.setAvatarApp(avatarApp);
                     npcPlayerCache.set(vrmSrc, npcPlayer);
+                    if (!live) return;
                 }
 
                 setNpcPlayer(npcPlayer);
