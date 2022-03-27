@@ -254,17 +254,27 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
 
                 <div className={styles['panel-body']}>
                     <div className={styles['panel-header']}>
-                    <div className={classnames(styles['panel-section'], styles.name)}>
-                        <h1>{defaultPlayerName}</h1>
-                    </div>
-                    <div className={classnames(styles['panel-section'], styles['name-placeholder'])} />
-                    <div className={classnames(styles['panel-section'], styles['main-stats'])}>
-                        <h2>Lv. {6}</h2>
-                    </div>
-                    </div>
-                    <div className={styles['xp']}>
-                    <progress className={styles.progress} value={20} max={100} />
-                    <img className={styles.icon} src="images/ui/xp-bar.svg" />
+                        <div className={styles.row}>
+                            <div className={classnames(styles['panel-section'], styles.name)}>
+                                <h1>{defaultPlayerName}</h1>
+                            </div>
+                            <div className={classnames(styles['panel-section'], styles.level)}>
+                                <h2>Lv. {6}</h2>
+                            </div>
+                        </div>
+                        <div className={styles['xp']}>
+                            <progress className={styles.progress} value={20} max={100} />
+                            <img className={styles.icon} src="images/ui/xp-bar.svg" />
+                        </div>
+                        {/* <div className={classnames(styles['panel-section'], styles['name-placeholder'])} /> */}
+                        <div className={ styles.row } >
+                            <h2>HP</h2>
+                            <progress value={61} />
+                        </div>
+                        <div className={ styles.row } >
+                            <h2>MP</h2>
+                            <progress value={83} />
+                        </div>
                     </div>
                     <div className={styles.stats}>
                         {statSpecs.map((statSpec, i) => {
@@ -276,9 +286,6 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
                             );
                         })}
                     </div>
-                    {/* <div className={styles['panel-header']}>
-                    <h1>Equipment</h1>
-                    </div> */}
                     {wearActions.map((wearAction, i) => {
                         const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
 
@@ -307,23 +314,6 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
                             </div>
                         );
                     })}
-                </div>
-
-                <div className={ styles.header } >
-                    <div className={ classnames( styles.section, styles.name ) } >
-                        <h1>{defaultPlayerName}</h1>
-                    </div>
-                    <div className={ classnames( styles.section, styles.namePlaceholder ) } />
-                    <div className={ classnames( styles.section, styles.mainStats ) } >
-                        <div className={ styles.row } >
-                            <h2>HP</h2>
-                            <progress value={61} />
-                        </div>
-                        <div className={ styles.row } >
-                            <h2>MP</h2>
-                            <progress value={83} />
-                        </div>
-                    </div>
                 </div>
 
                 {wearActions.map((wearAction, i) => {
