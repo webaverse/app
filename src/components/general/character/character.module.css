@@ -1,387 +1,445 @@
 
 .characterWrapper {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    transform: translate( -400px, 0px );
-    transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  transform: translate( -400px, 0px );
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 
 .characterWrapper.opened {
-    transform: translate( 0%, 0px );
+  transform: translate( 0%, 0px );
 }
 
 /*  */
 
 .characterBtn {
-    position: relative;
-    top: 50px;
-    left: 400px;
-    height: 41px;
-    opacity: 1;
-    cursor: pointer;
-    transition: opacity 200ms ease;
-    background-size: 100% 100%;
-    color: #fff;
-    line-height: 41px;
-    padding-left: 10px;
-    padding-right: 9px;
-    text-align: left;
-    font-size: 16px;
-    user-select: none;
-    overflow: hidden;
-    transition: color 1s cubic-bezier(0, 1, 0, 1);
-    background-color: #000;
+  position: relative;
+  top: 50px;
+  left: 400px;
+  height: 41px;
+  opacity: 1;
+  cursor: pointer;
+  transition: opacity 200ms ease;
+  background-size: 100% 100%;
+  color: #fff;
+  line-height: 41px;
+  padding-left: 10px;
+  padding-right: 9px;
+  text-align: left;
+  font-size: 16px;
+  user-select: none;
+  overflow: hidden;
+  transition: color 1s cubic-bezier(0, 1, 0, 1);
+  background-color: #000;
 }
 
 .characterBtn .background {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    height: 100%;
-    transition: transform 1s cubic-bezier(0, 1, 0, 1);
-    filter: invert(50%) sepia(99%) saturate(514%) hue-rotate(177deg) brightness(99%) contrast(94%);
-    z-index: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+  filter: invert(50%) sepia(99%) saturate(514%) hue-rotate(177deg) brightness(99%) contrast(94%);
+  z-index: 0;
 }
 
 .characterBtn .background {
-    left: 0;
-    transform: rotateZ(180deg) translateX(-100%);
+  left: 0;
+  transform: rotateZ(180deg) translateX(-100%);
 }
 
 .characterBtn:hover .background, .characterWrapper.opened .background {
-    transform: rotateZ(180deg) translateX(50px);
+  transform: rotateZ(180deg) translateX(50px);
 }
 
 .characterBtn .btnShortKey {
-    position: relative;
-    z-index: 2;
+  position: relative;
+  z-index: 2;
 }
 
 .characterBtn .btnShortKey {
-    color: #fff;
-    border: 1px solid #fff;
-    border-radius: 3px;
-    font-size: 13px;
-    padding: 2px;
-    margin-left: 4px;
-    z-index: 2;
+  color: #fff;
+  border: 1px solid #fff;
+  border-radius: 3px;
+  font-size: 13px;
+  padding: 2px;
+  margin-left: 4px;
+  z-index: 2;
 }
 
 .characterBtn:hover .btnShortKey, .characterWrapper.opened .btnShortKey {
-    border-color: #000;
-    color: #000;
+  border-color: #000;
+  color: #000;
 }
 
 .characterBtn:hover .btnText, .characterWrapper.opened .btnText {
-    position: relative;
-    color: #000;
-    z-index: 2;
+  position: relative;
+  color: #000;
+  z-index: 2;
 }
 
 /*  */
 
 .characterPanel {
-    display: flex;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    width: 400px;
-    height: 100vh;
-    background-color: #000;
-    flex-direction: column;
+  display: flex;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 400px;
+  height: 100vh;
+  background-color: #000;
+  flex-direction: column;
 }
 
 
 .characterPanel .avatar {
-    position: relative;
+  position: relative;
 }
 
 /*  */
 
 .characterPanel .section {
-    display: flex;
-    flex: 1;
+  display: flex;
+  flex: 1;
 }
 
 .characterPanel .header {
-    position: relative;
-	display: flex;
+  position: relative;
+display: flex;
 }
 
 .characterPanel .section.name {
-    position: absolute;
-    justify-content: center;
-    font-family: 'WinchesterCaps';
-    top: -30px;
-    left: -25px;
-    width: 50%;
-    height: 85px;
-    letter-spacing: 3px;
-    font-size: 16px;
-    color: #fff;
+  position: absolute;
+  justify-content: center;
+  font-family: 'WinchesterCaps';
+  top: -30px;
+  left: -25px;
+  width: 50%;
+  height: 85px;
+  letter-spacing: 3px;
+  font-size: 16px;
+  color: #fff;
 }
 
 .characterPanel .section.main-stats {
-    font-family: 'PlazaRegular';
+  font-family: 'PlazaRegular';
 }
 
 .characterPanel .section.name::before {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-image: linear-gradient(to bottom,#222222, #000000);
-    transform: skew(-30deg);
-    content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-image: linear-gradient(to bottom,#222222, #000000);
+  transform: skew(-30deg);
+  content: '';
 }
 
 .characterPanel .section.name h1 {
-    position: relative;
+  position: relative;
 }
 
 .characterPanel .section .row {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    align-items: flex-start;
-    font-family: 'PlazaRegular';
-    color: #fff;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  align-items: flex-start;
+  font-family: 'PlazaRegular';
+  color: #fff;
 }
 
 /*  */
 
 .emotions {
-    --emotions-width: 140px;
+  --emotions-width: 140px;
 
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 140px;
-    right: 0px;
-    transition: right 1s cubic-bezier(0, 1, 0, 1);
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 140px;
+  right: 0px;
+  transition: right 1s cubic-bezier(0, 1, 0, 1);
 }
 
 .characterWrapper.opened .emotions {
-    transform: translate( 0px, 0px );
-    right: calc(-1 * var(--emotions-width));
+  transform: translate( 0px, 0px );
+  right: calc(-1 * var(--emotions-width));
 }
 
 .header .tab.top.left:not(.open) .emotions {
-    transform: translate3d(calc(-1 * var(--emotions-width)), 0, 0);
+  transform: translate3d(calc(-1 * var(--emotions-width)), 0, 0);
 }
 .emotions .emotion {
-    display: flex;
-    position: relative;
-    background-color: #000;
-    cursor: ns-resize;
-    transition: all 1s cubic-bezier(0, 1, 0, 1);
+  display: flex;
+  position: relative;
+  background-color: #000;
+  cursor: ns-resize;
+  transition: all 1s cubic-bezier(0, 1, 0, 1);
 }
 .emotions .emotion .emotionProgress {
-    position: absolute;
-    width: 50px;
-    height: 140px;
-    left: -50px;
-    -webkit-appearance: none;
-    transform: rotateZ(-90deg);
-    transition: color 1s cubic-bezier(0, 1, 0, 1);
-    transform-origin: 100% 0;
+  position: absolute;
+  width: 50px;
+  height: 140px;
+  left: -50px;
+  -webkit-appearance: none;
+  transform: rotateZ(-90deg);
+  transition: color 1s cubic-bezier(0, 1, 0, 1);
+  transform-origin: 100% 0;
 }
 .emotions .emotion .emotionProgress::-webkit-progress-bar {
-    background: transparent;
+  background: transparent;
 }
 .emotions .emotion .emotionProgress::-webkit-progress-value {
-    background-color: #444;
-    /* background-image: linear-gradient(to bottom, #56ab2f, #a8e063); */
-    transition: background-color 1s cubic-bezier(0, 1, 0, 1);
+  background-color: #444;
+  /* background-image: linear-gradient(to bottom, #56ab2f, #a8e063); */
+  transition: background-color 1s cubic-bezier(0, 1, 0, 1);
 }
 .emotions .emotion.full {
-    filter: invert(1);
+  filter: invert(1);
 }
 .emotions .emotion.full .emotionProgress::-webkit-progress-value {
-    background-color: #000;
+  background-color: #000;
 }
 .emotions .emotion .emotionIcon {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-    filter: brightness(0.3);
-    /* transition: filter 1s cubic-bezier(0, 1, 0, 1); */
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  filter: brightness(0.3);
+  /* transition: filter 1s cubic-bezier(0, 1, 0, 1); */
 }
 
 .emotions .emotion .emotionIconPlaceholder {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50px;
-    height: 50px;
-    /* background-color: #333; */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50px;
+  height: 50px;
+  /* background-color: #333; */
 }
 .emotions .emotion .emotionNamePlaceholder {
-    position: absolute;
-    top: 0;
-    left: 50px;
-    width: calc(140px - 50px);
-    height: 50px;
-    /* background-color: #111; */
+  position: absolute;
+  top: 0;
+  left: 50px;
+  width: calc(140px - 50px);
+  height: 50px;
+  /* background-color: #111; */
 }
 .emotions .emotion:hover .emotionIconPlaceholder {
-    background-color: #222;
+  background-color: #222;
 }
 .emotions .emotion:hover .emotionNamePlaceholder {
-    background-color: #111;
+  background-color: #111;
 }
 
 .emotions .emotion:hover .emotionIcon,
 .emotions .emotion.nonzero .emotionIcon {
-    filter: brightness(0.7);
+  filter: brightness(0.7);
 }
 .emotions .emotion.full .emotionIcon {
-    filter: brightness(1);
+  filter: brightness(1);
 }
 
 .emotions .emotion .emotionName {
-    display: flex;
-    position: relative;
-    align-items: center;
-    width: 90px;
-    padding: 0 10px;
-    text-align: center;
-    color: #666;
-    text-transform: uppercase;
-    /* transition: color 1s cubic-bezier(0, 1, 0, 1); */
+  display: flex;
+  position: relative;
+  align-items: center;
+  width: 90px;
+  padding: 0 10px;
+  text-align: center;
+  color: #666;
+  text-transform: uppercase;
+  /* transition: color 1s cubic-bezier(0, 1, 0, 1); */
 }
 
 .emotions .emotion:hover .emotionName,
 .emotions .emotion.nonzero .emotionName {
-    color: #FFFFFF;
+  color: #FFFFFF;
 }
 
 /*  */
 
 .equipment {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background-color: #222;
-    overflow: hidden;
-    cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #222;
+  overflow: hidden;
+  cursor: pointer;
+}
+.equipment:hover .background {
+  transform: translateX(-220px) !important;
+}
+.equipment .background {
+  position: absolute;
+  height: 70px;
+  transform: translateX(-560px) !important;
+  transition: transform 0.2s cubic-bezier(0, 1, 0, 1);
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 1;
+}
+.equipment .icon {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  padding: 10px;
+  object-fit: contain;
+  z-index: 1;
+}
+.equipment .name {
+  position: relative;
+  margin-right: auto;
+  font-size: 20px;
+  z-index: 1;
+}
+.equipment .button {
+  position: relative;
+  display: flex;
+  width: 70px;
+  height: 70px;
+  background-color: transparent;
+  border: 0;
+  justify-content: center;
+  align-items: center;
+  cursor: inherit;
+  z-index: 1;
+}
+.equipment .button > img {
+  width: 30px;
+  height: 30px;
+  filter: invert(0.3);
+  visibility: hidden;
+}
+.equipment .background2 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+.equipment .button:hover > img {
+  filter: none;
+}
+.equipment:hover .button > img {
+    visibility: visible;
+}
+.equipment .button:hover + .background2 {
+  background-color: #ef5350;
+}
+.equipment .button:active + .background2 {
+  background-color: #b71c1c;
+  transition: none;
+}
+
+.characterPanel .selectButton {
+  display: flex;
+  margin: 15px 30px;
+  margin-top: auto;
+  padding: 10px;
+  border: 2px solid #FFF;
+  font-family: 'GeoSans';
+  font-size: 20px;
+  justify-content: center;
+  color: #FFF;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity 0.3s ease-out;
+}
+@keyframes highlight {
+  0% {
+    border-color: #FFF;
   }
-  .equipment:hover .background {
-    transform: translateX(-220px) !important;
+  50% {
+    border-color: #808080;
   }
-  .equipment .background {
-    position: absolute;
-    height: 70px;
-    transform: translateX(-560px) !important;
-    transition: transform 0.2s cubic-bezier(0, 1, 0, 1);
-    object-fit: cover;
-    pointer-events: none;
-    z-index: 1;
+  100% {
+    border-color: #808080;
   }
-  .equipment .icon {
-    position: relative;
-    width: 70px;
-    height: 70px;
-    padding: 10px;
-    object-fit: contain;
-    z-index: 1;
+}
+@keyframes highlight2 {
+  0% {
+    background-color: #FFF;
+    color: #000;
   }
-  .equipment .name {
-    position: relative;
-    margin-right: auto;
-    font-size: 20px;
-    z-index: 1;
-  }
-  .equipment .button {
-    position: relative;
-    display: flex;
-    width: 70px;
-    height: 70px;
-    background-color: transparent;
-    border: 0;
-    justify-content: center;
-    align-items: center;
-    cursor: inherit;
-    z-index: 1;
-  }
-  .equipment .button > img {
-    width: 30px;
-    height: 30px;
-    filter: invert(0.3);
-    visibility: hidden;
-  }
-  .equipment .background2 {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    pointer-events: none;
-  }
-  .equipment .button:hover > img {
-    filter: none;
-  }
-  .equipment:hover .button > img {
-     visibility: visible;
-  }
-  .equipment .button:hover + .background2 {
-    background-color: #ef5350;
-  }
-  .equipment .button:active + .background2 {
-    background-color: #b71c1c;
-    transition: none;
-  }
-  
-  .characterPanel .selectButton {
-    display: flex;
-    margin: 15px 30px;
-    margin-top: auto;
-    padding: 10px;
-    border: 2px solid #FFF;
-    font-family: 'GeoSans';
-    font-size: 20px;
-    justify-content: center;
+  50% {
+    background-color: #000;
     color: #FFF;
-    cursor: pointer;
-    opacity: 0.3;
-    transition: opacity 0.3s ease-out;
   }
-  @keyframes highlight {
-    0% {
-      border-color: #FFF;
-    }
-    50% {
-      border-color: #808080;
-    }
-    100% {
-      border-color: #808080;
-    }
+  100% {
+    background-color: #000;
+    color: #FFF;
   }
-  @keyframes highlight2 {
-    0% {
-      background-color: #FFF;
-      color: #000;
-    }
-    50% {
-      background-color: #000;
-      color: #FFF;
-    }
-    100% {
-      background-color: #000;
-      color: #FFF;
-    }
-  }
-  .characterPanel .selectButton {
-    animation: highlight 1s step-end infinite;
-  }
-  .characterPanel .selectButton.highlight {
-    animation: highlight2 0.15s step-end infinite;
-    opacity: 1;
-  }
-  .characterPanel .selectButton:hover {
-    animation: none;
-    opacity: 1;
-    transition: opacity 1s cubic-bezier(0, 1, 0, 1);
-  }
+}
+.characterPanel .selectButton {
+  animation: highlight 1s step-end infinite;
+}
+.characterPanel .selectButton.highlight {
+  animation: highlight2 0.15s step-end infinite;
+  opacity: 1;
+}
+.characterPanel .selectButton:hover {
+  animation: none;
+  opacity: 1;
+  transition: opacity 1s cubic-bezier(0, 1, 0, 1);
+}
+
+/* */
+
+.characterPanel .panel-body {
+  display: flex;
+  flex-direction: column;
+  background-image: linear-gradient(to bottom, #333 0%, #111 20%, #000 100%);
+}
+
+.characterPanel .stats {
+  display: flex;
+  flex-direction: column; 
+}
+.characterPanel .stats .stat {
+  display: flex;
+  font-family: 'PlazaRegular';
+  font-size: 16px;
+  letter-spacing: 1.3px;
+}
+/* .characterPanel .stats .stat:nth-child(odd) {
+  background-color: #111;
+}
+.characterPanel .stats .stat:nth-child(even) {
+  background-color: #222;
+} */
+.characterPanel .stats .stat .icon {
+  width: 50px;
+  height: 60px;
+  margin: 0 10px;
+  /* padding: 10px; */
+  filter: invert(1);
+  opacity: 0.2;
+}
+.characterPanel .stats .stat .statName {
+  display: flex;
+  margin: 0 10px;
+  text-align: left;
+  align-items: center;
+}
+.characterPanel .xp {
+  position: relative;
+}
+.characterPanel .xp .progress {
+  position: absolute;
+  top: 26px;
+  left: 36px;
+  width: 323px;
+  height: 4px;
+  appearance: none;
+}
+.characterPanel .xp .progress::-webkit-progress-bar {
+  background-image: linear-gradient(to bottom, #000, #111);
+}
+.characterPanel .xp .progress::-webkit-progress-value {
+  background-image: linear-gradient(to right, #1482f8, #79b8fb);
+  /* background-color: #2990ff; */
+  /* background-image: linear-gradient(to bottom, #56ab2f, #a8e063); */
+}
