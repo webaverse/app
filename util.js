@@ -990,7 +990,7 @@ export const loadImage = u => new Promise((resolve, reject) => {
   img.src = u;
 });
 
-const isTransferable = o => {
+export const isTransferable = o => {
   const ctor = o?.constructor;
   return ctor === MessagePort ||
     ctor === ImageBitmap ||
