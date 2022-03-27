@@ -1,183 +1,84 @@
-import Module from './public/bin/geometry.js';
-
 const geometryUtils = (() => {
 
-    const moduleInstance = Module;
     let scope = {};
 
-    class Allocator {
-        constructor() {
-            this.offsets = [];
-        }
+    scope.worker = new Worker('./geometry-utils.worker.js', { type: 'module' });
 
-        alloc(constructor, size) {
-            if (size > 0) {
-                const offset = moduleInstance._malloc(size * constructor.BYTES_PER_ELEMENT);
-                const b = new constructor(
-                    moduleInstance.HEAP8.buffer, moduleInstance.HEAP8.byteOffset + offset, size
-                );
-                b.offset = offset;
-                this.offsets.push(offset);
-                return b;
-            } else {
-                return new constructor(moduleInstance.HEAP8.buffer, 0, 0);
-            }
-        }
+    scope.worker.onmessage = e => {
 
-        freeAll() {
-            for (let i = 0; i < this.offsets.length; i++) {
-                moduleInstance._doFree(this.offsets[i]);
-            }
-            this.offsets.length = 0;
+        if (e.data.message === 'generateTerrain') {
+            scope.resolve({arrays: e.data.arrays, buffers: e.data.buffers });
+        } else if (e.data.message === 'deallocateChunk') {
+            scope.resolve({ arrays: e.data.arrays });
+        } else if (e.data.message === 'generateChunk') {
+            scope.resolve({ arrays: e.data.arrays, slots: e.data.slots });
         }
     }
 
-    (async () => { await Module.waitForLoad(); })();
-
-    scope.marchingCubes = (dims, potential, shift, scale) => {
-        let allocator = new Allocator();
-
-        const dimsTypedArray = allocator.alloc(Int32Array, 3);
-        dimsTypedArray.set(dims);
-
-        const potentialTypedArray = allocator.alloc(Float32Array, potential.length);
-        potentialTypedArray.set(potential);
-
-        const shiftTypedArray = allocator.alloc(Float32Array, 3);
-        shiftTypedArray.set(shift);
-
-        const scaleTypedArray = allocator.alloc(Float32Array, 3);
-        scaleTypedArray.set(scale);
-
-        const outputBufferOffset = moduleInstance._doMarchingCubes(
-            dimsTypedArray.byteOffset,
-            potentialTypedArray.byteOffset,
-            shiftTypedArray.byteOffset,
-            scaleTypedArray.byteOffset
-        );
-
-        allocator.freeAll();
-
-        const head = outputBufferOffset / 4;
-
-        const positionCount = moduleInstance.HEAP32[head];
-        const faceCount = moduleInstance.HEAP32[head + 1];
-        const positions = moduleInstance.HEAPF32.slice(head + 2, head + 2 + positionCount);
-        const faces = moduleInstance.HEAP32.slice(
-            head + 2 + positionCount, head + 2 + positionCount + faceCount
-        );
-
-        moduleInstance._doFree(outputBufferOffset);
-
-        return {
-            positionCount: positionCount,
-            faceCount: faceCount,
-            positions: positions,
-            faces: faces
-        }
-    }
-
-    scope.generateTerrain = (
-        chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam
+    scope.generateTerrain = async (
+        chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam, arrays
     ) => {
 
-        const outputBuffer = moduleInstance._generateTerrain(
-            chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam
-        );
+        return new Promise((resolve, reject) => {
+            scope.worker.postMessage(
+                {
+                    message: 'generateTerrain',
+                    params: [chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam],
+                    arrays: arrays
+                },
+                arrays.map(a => a.buffer)
+            );
 
-        const ELEMENT_BYTES = moduleInstance.HEAP32.BYTES_PER_ELEMENT;
-
-        const head = outputBuffer / ELEMENT_BYTES;
-
-        const totalChunkCount = chunkCount ** 3;
-
-        const positionCount = totalChunkCount * segment * segment * vertexBufferSizeParam;
-        const indexCount = totalChunkCount * segment * segment * indexBufferSizeParam;
-
-        const positionBuffer = moduleInstance.HEAP32.subarray(head + 0, head + 1)[0];
-        const normalBuffer = moduleInstance.HEAP32.subarray(head + 1, head + 2)[0];
-        const biomeBuffer = moduleInstance.HEAP32.subarray(head + 7, head + 8)[0];
-        const indexBuffer = moduleInstance.HEAP32.subarray(head + 2, head + 3)[0];
-        const chunkVertexRangeBuffer = moduleInstance.HEAP32.subarray(head + 3, head + 4)[0];
-        const vertexFreeRangeBuffer = moduleInstance.HEAP32.subarray(head + 4, head + 5)[0];
-        const chunkIndexRangeBuffer = moduleInstance.HEAP32.subarray(head + 5, head + 6)[0];
-        const indexFreeRangeBuffer = moduleInstance.HEAP32.subarray(head + 6, head + 7)[0];
-
-        const positions = moduleInstance.HEAPF32.subarray(
-            positionBuffer / ELEMENT_BYTES, positionBuffer / ELEMENT_BYTES + positionCount * 3);
-
-        const normals = moduleInstance.HEAPF32.subarray(
-            normalBuffer / ELEMENT_BYTES, normalBuffer / ELEMENT_BYTES + positionCount * 3);
-
-        const biomes = moduleInstance.HEAPF32.subarray(
-            biomeBuffer / ELEMENT_BYTES, biomeBuffer / ELEMENT_BYTES + positionCount * 3);
-
-        const indices = moduleInstance.HEAPU32.subarray(
-            indexBuffer / ELEMENT_BYTES, indexBuffer / ELEMENT_BYTES + indexCount);
-
-        const vertexRanges = moduleInstance.HEAP32.subarray(
-            chunkVertexRangeBuffer / ELEMENT_BYTES,
-            chunkVertexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
-
-        const indexRanges = moduleInstance.HEAP32.subarray(
-            chunkIndexRangeBuffer / ELEMENT_BYTES,
-            chunkIndexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
-
-        moduleInstance._doFree(outputBuffer);
-
-        return {
-            positionCount: positionCount,
-            indexCount: indexCount,
-            positionBuffer: positionBuffer,
-            normalBuffer: normalBuffer,
-            biomeBuffer: biomeBuffer,
-            indexBuffer: indexBuffer,
-            chunkVertexRangeBuffer: chunkVertexRangeBuffer,
-            vertexFreeRangeBuffer: vertexFreeRangeBuffer,
-            chunkIndexRangeBuffer: chunkIndexRangeBuffer,
-            indexFreeRangeBuffer: indexFreeRangeBuffer,
-            positions: positions,
-            normals: normals,
-            biomes: biomes,
-            indices: indices,
-            vertexRanges: vertexRanges,
-            indexRanges: indexRanges
-        }
+            scope.resolve = resolve;
+        });
     }
 
-    scope.deallocateChunk = (
+    scope.deallocateChunk = async (
         vertexSlot, indexSlot, totalChunkCount,
-        chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
+        chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
+        arrays
     ) => {
 
-        moduleInstance._deallocateChunk(
-            vertexSlot, indexSlot, totalChunkCount,
-            chunkVertexRangeBuffer, vertexFreeRangeBuffer,
-            chunkIndexRangeBuffer, indexFreeRangeBuffer
-        );
+        console.log(">>> array 0: ", arrays[0].byteLength);
+
+        return new Promise((resolve, reject) => {
+
+            try {
+                scope.worker.postMessage({
+                    message: 'deallocateChunk',
+                    params: [
+                        vertexSlot, indexSlot, totalChunkCount, chunkVertexRangeBuffer,
+                        vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
+                    ],
+                    arrays: arrays
+                }, arrays.map(a => a.buffer));
+            } catch (e) {
+                debugger
+            }
+
+            scope.resolve = resolve;
+        });
     }
 
-    scope.generateChunk = (
+    scope.generateChunk = async (
         positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
         chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
-        x, y, z, chunkSize, segment, totalChunkCount
+        x, y, z, chunkSize, segment, totalChunkCount, arrays
     ) => {
 
-        let slotsPtr = moduleInstance._generateChunk(
-            positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
-            chunkVertexRangeBuffer, vertexFreeRangeBuffer,
-            chunkIndexRangeBuffer, indexFreeRangeBuffer,
-            x, y, z, chunkSize, segment, totalChunkCount
-        );
+        return new Promise((resolve, reject) => {
+            scope.worker.postMessage({
+                message: 'generateChunk',
+                params: [
+                    positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
+                    chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
+                    x, y, z, chunkSize, segment, totalChunkCount,
+                ],
+                arrays: arrays
+            }, arrays.map(a => a.buffer));
 
-        let slots = moduleInstance.HEAP32.slice(
-            slotsPtr / moduleInstance.HEAP32.BYTES_PER_ELEMENT,
-            slotsPtr / moduleInstance.HEAP32.BYTES_PER_ELEMENT + 2
-        );
-
-        moduleInstance._doFree(slotsPtr);
-
-        return slots;
+            scope.resolve = resolve;
+        });
     }
 
     return scope;
