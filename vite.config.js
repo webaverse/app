@@ -27,16 +27,15 @@ const entryPoints = [
   },
 ];
 
-const toCopy = [
-
-];
-
 // entryPoints = [];
 
 const build = () => {
   const _entryPoints = [];
   const base = path.resolve('.', 'node_modules');
   const exportPaths = {};
+  let toCopy = [
+
+  ];
 
   const resolveEntryOfModule = _path => {
     console.log(_path);
@@ -109,7 +108,6 @@ const build = () => {
     }
   };
 
-
   const resolveGlob = pathToExpand => {
     return new Promise((resolve, reject) => {
       glob(pathToExpand, {}, (err, files) => {
@@ -119,8 +117,7 @@ const build = () => {
     });
   };
 
-
-  const copyfn = () => {
+  const copyfn = async () => {
     for (const toc of toCopy) {
       if (toc.glob) {
         const files = await resolveGlob(toc.path);
@@ -137,43 +134,34 @@ const build = () => {
     copySync('./metaverse_modules', './dist/metaverse_modules');
     copySync('./metaverse_modules', './dist/metaverse_modules');
     copySync('./public', './dist/public');
-  }
+  };
 
-  const createESMTree = (exports)=>{
-    const treePath = path.resolve('.','./esmcache', 'files.json');
-    let oldTree = null;
-    try{
-      const esmFolderExists = fs.existsSync(treePath);
-      if(!esmFolderExists){
-        try{
-          fs.mkdirSync(path.resolve('.','./esmcache'));
-        }catch(e){
-          console.log('Skipping path creation already exists');
-        }
-      }else{
-        try{
-         oldTree =  JSON.parse(fs.readFileSync(treePath).toString());
-        }catch(e){
-          console.warn(e);
-        }
+  const createESMTree = async esmIncludes => {
+    const filesToCopy = [];
+    const allFiles = [...(await resolveGlob('./!(deadcode|node_modules|test|packages|dist|metaverse_modules|public)/**/*.js')).map(file => {
+      return path.resolve(process.cwd(), file);
+    }), ...(await resolveGlob('./!(deadcode|node_modules|test|packages|dist|metaverse_modules|public)**.js')).map(file => {
+      return path.resolve(process.cwd(), file);
+    })];
+
+    for (const file of allFiles) {
+      if (!esmIncludes.has(file)) {
+        filesToCopy.push(
+          {
+            path: `.${file.replace(process.cwd(), '')}`,
+            replaceExpression: '.',
+            glob: true,
+          },
+        );
       }
-    }catch(e){
-      console.warn(e);
     }
 
-    
-
-
-
-  }
+    toCopy = [...filesToCopy, ...toCopy];
+  };
 
   for (const dependency in dependencies) {
     resolveEntryOfModule(dependency);
   }
-
-  // process.exit(0)
-
-
 
   return {
     name: 'build-provider',
@@ -227,30 +215,47 @@ const build = () => {
       const exports = {
       };
 
-      for (const chunk of Object.keys(bundle)) {
-        if (bundle[chunk].exports) {
-          for (const _export of bundle[chunk].exports) {
-            exports[_export] = chunk;
+      /** Refers to set of files included in the build */
+      const esmTree = new Set();
+
+      for (const modulePath of Object.keys(bundle)) {
+        const module = bundle[modulePath];
+        const absoluteModulePath = modulePath.facadeModuleId;
+
+        if (module.exports) {
+          for (const _export of module.exports) {
+            exports[_export] = modulePath;
+          }
+        }
+
+        if (!esmTree.has(absoluteModulePath)) {
+          esmTree.add(absoluteModulePath);
+        }
+
+        if (module.modules) {
+          for (const subModuleAbsolutePath in module.modules) {
+            if (!esmTree.has(subModuleAbsolutePath)) {
+              esmTree.add(subModuleAbsolutePath);
+            }
           }
         }
       }
-
 
       if (process.env.OUTPUT_EXPORTS) {
         fs.writeFileSync('dist/dependencies.json', JSON.stringify(exports, null, 4));
         fs.writeFileSync('dist/actualBundle.json', JSON.stringify(bundle, null, 4));
       }
 
-      /** ESM tree will help the application find the file 
+      /** ESM tree will help the application find the file
        * which are missed by the application in first phase of build
-       * it may restart the build and push all files listed in 
-       * .esmcache/files.json to entry points. This is important for 
-       * workers and non - worker files that might have missed due to 
+       * it may restart the build and push all files listed in
+       * .esmcache/files.json to entry points. This is important for
+       * workers and non - worker files that might have missed due to
        * first phase of build
        *  */
-      createESMTree(exports);
+      await createESMTree(esmTree);
 
-      copyfn();
+      await copyfn();
 
       fs.writeFileSync('dist/exports.json', JSON.stringify(exportPaths, null, 4));
       return null;
@@ -279,6 +284,13 @@ const viteConfigProduction = {
     polyfillModulePreload: false,
     format: 'es',
     target: 'esnext',
+    ...(process.argv.find(a => a === '--watch') ? {
+      watch: {
+        clearScreen: true,
+        include: '**/**',
+        exclude: 'node_modules/**',
+      },
+    } : {}),
     manifest: true,
     minify: false,
     rollupOptions: {
