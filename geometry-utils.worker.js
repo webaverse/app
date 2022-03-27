@@ -5,7 +5,7 @@ const ELEMENT_BYTES = 4;
 
 onmessage = e => {
 
-    if (e.data.message == 'generateTerrain') {
+    if (e.data.message === 'generateTerrain') {
         const output = generateTerrain(...e.data.params);
 
         let arrays = e.data.arrays;
@@ -186,7 +186,7 @@ function generateTerrain(chunkSize, chunkCount, segment, vertexBufferSizeParam, 
 function deallocateChunk(
     vertexSlot, indexSlot, totalChunkCount,
     chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
-){
+) {
 
     moduleInstance._deallocateChunk(
         vertexSlot, indexSlot, totalChunkCount,
