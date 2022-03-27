@@ -558,7 +558,7 @@ const _startHacks = webaverse => {
     } else if (e.which === 111) { // /
       (async () => {
         const offscreenEngine = new OffscreenEngine();
-        await offscreenEngine.waitForLoad();
+        // await offscreenEngine.waitForLoad();
 
         const fn = offscreenEngine.createFunction([
           `import * as THREE from 'three';`,
