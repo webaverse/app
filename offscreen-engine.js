@@ -15,6 +15,7 @@ class OffscreenEngine {
     document.body.appendChild(iframe);
     this.iframe = iframe;
     this.port = null;
+    this.live = true;
 
     this.loadPromise = (async () => {
       await new Promise((resolve, reject) => {
@@ -26,6 +27,7 @@ class OffscreenEngine {
         };
         iframe.onerror = reject;
       });
+      if (!this.live) return;
 
       const port = await new Promise((resolve, reject) => {
         const message = e => {
@@ -119,6 +121,17 @@ export default _default_export_;`;
       return result;
     }
     return callRemoteFn;
+  }
+  destroy() {
+    this.live = false;
+    if (this.iframe) {
+      this.iframe.parentElement.removeChild(this.iframe);
+      this.iframe = null;
+    }
+    if (this.port) {
+      this.port.close();
+      this.port = null;
+    }
   }
 }
 
