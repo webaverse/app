@@ -40,34 +40,19 @@ if (id) {
       switch (method) {
         case 'registerHandler': {
           const {id, src} = e.data;
-          // console.log('register handler', {id, src});
 
           let error = null;
           let result = null;
           try {
-            /* const blob = new Blob([
-              src,
-            ], {
-              type: 'application/javascript',
-            });
-            const u = URL.createObjectURL(blob); */
             const u = `data:application/javascript;charset=utf-8,${encodeURIComponent(src)}`;
-            // console.log('got u', u);
-            try {
-              const module = await import2(u);
-              if (typeof module.default === 'function') {
-                const fn = module.default;
-                handlers.set(id, fn);
-                result = 'ok';
-              } else {
-                console.warn('bad module', module)
-                throw new Error('engine worker module default export is not a function');
-              }
-            } catch(err) {
-              throw err;
-            } finally {
-              // XXX
-              // URL.revokeObjectURL(u);
+            const module = await import2(u);
+            if (typeof module.default === 'function') {
+              const fn = module.default;
+              handlers.set(id, fn);
+              result = 'ok';
+            } else {
+              console.warn('bad module', module)
+              throw new Error('engine worker module default export is not a function');
             }
           } catch(err) {
             error = err?.stack ?? (err + '');
