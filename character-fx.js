@@ -91,7 +91,7 @@ class CharacterFx {
     // this.lastWalkTime = 0;
 
     this.kiMesh = null;
-    this.sonicBoomMesh = null;
+    this.sonicBoom = null;
     this.hairMeshes = null;
     this.lastSSS = false;
   }
@@ -106,6 +106,7 @@ class CharacterFx {
     const isPowerup = !!powerupAction && powerupAction.animation === 'powerup';
     const sssAction = this.player.getAction('sss');
     const isSSS = !!sssAction;
+
 
     const _initHairMeshes = () => {
       this.hairMeshes = [];
@@ -233,7 +234,7 @@ class CharacterFx {
 
     this.lastSSS = isSSS;
     const _updateSonicBoomMesh = () => {
-      if (!this.sonicBoom) {
+      if ( this.player.isLocalPlayer && !this.sonicBoom ) {
         this.sonicBoom = metaversefile.createApp();
         (async () => {
           await metaverseModules.waitForLoad();
@@ -251,9 +252,9 @@ class CharacterFx {
       sceneLowPriority.remove(this.kiMesh);
       this.kiMesh = null;
     }
-    if (this.sonicBoomMesh) {
-      sceneLowPriority.remove(this.sonicBoomMesh);
-      this.sonicBoomMesh = null;
+    if (this.sonicBoom) {
+      sceneLowPriority.remove(this.sonicBoom);
+      this.sonicBoom = null;
     }
   }
 }
