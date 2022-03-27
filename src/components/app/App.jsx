@@ -3,12 +3,14 @@ import React, { useState, useEffect, useRef, createContext } from 'react';
 
 import { defaultAvatarUrl } from '../../../constants';
 
+import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
 import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
 import cameraManager from '../../../camera-manager';
+import { world } from '../../../world';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -79,8 +81,15 @@ export const App = () => {
     const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
+    const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
 
     //
+
+    const selectApp = ( app, physicsId, position ) => {
+
+        game.setMouseSelectedObject( app, physicsId, position );
+
+    };
 
     const _loadUrlState = () => {
 
@@ -101,6 +110,48 @@ export const App = () => {
         }
 
     }, [ state.openedPanel ] );
+
+    useEffect( () => {
+
+        const handleClick = () => {
+
+            const hoverObject = game.getMouseHoverObject();
+
+            if ( hoverObject ) {
+
+                const physicsId = game.getMouseHoverPhysicsId();
+                const position = game.getMouseHoverPosition();
+                selectApp( hoverObject, physicsId, position );
+                return false;
+
+            }
+
+            return true;
+
+        };
+
+        registerIoEventHandler( 'click', handleClick );
+
+        return () => {
+
+            unregisterIoEventHandler( 'click', handleClick );
+
+        };
+
+    }, [] );
+
+    useEffect( () => {
+
+        const update = e => {
+
+            setApps( world.appManager.getApps().slice() );
+
+        };
+
+        world.appManager.addEventListener( 'appadd', update );
+        world.appManager.addEventListener( 'appremove', update );
+
+    }, [] );
 
     useEffect( () => {
 
@@ -145,15 +196,20 @@ export const App = () => {
 
     return (
         <div className={ styles.App } id="app" >
-            <AppContext.Provider value={{ state, setState, app }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
-                <WorldObjectsList setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
+                <WorldObjectsList />
                 <PlayMode />
-                <EditorMode selectedScene={ selectedScene } setSelectedScene={ setSelectedScene } selectedRoom={ selectedRoom } setSelectedRoom={ setSelectedRoom } />
+                <EditorMode
+                    selectedScene={ selectedScene }
+                    setSelectedScene={ setSelectedScene }
+                    selectedRoom={ selectedRoom }
+                    setSelectedRoom={ setSelectedRoom }
+                />
                 <IoHandler />
                 <ZoneTitleCard />
                 <MapGen />
