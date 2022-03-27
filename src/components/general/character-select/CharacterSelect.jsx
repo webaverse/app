@@ -56,35 +56,6 @@ const characters = {
 
 //
 
-/* <div
-        className={
-                styles.character + ' ' +
-                (arrowPosition === i ? styles.selected : '') + ' ' +
-                ((arrowPosition === i && animation) ? styles.animate : '') + ' ' +
-                ((arrowPosition === i && open) ? styles.open : '')
-        }
-        onMouseMove={() => {setArrowPosition2(i);}}
-        onMouseDown={e => {
-                setArrowDown(true);
-                setTimeout(() => {
-                        setArrowDown(false);
-                }, 200);
-        }}
-        key={i}
->
-        <div className={styles.inner}>
-                <div className={styles.background}/>
-                <div className={styles['img-wrap']}>
-                        <img src={character.imgSrc} />
-                </div>
-                {(appScriptLoaded && characterPositions) ? <canvas className={styles.canvas} ref={canvasRef} /> : null}
-                <div className={styles.wrap}>
-                        <div className={styles.name}>{character.name}</div>
-                        <div className={styles.class}>The {character.class}</div>
-                </div>
-        </div>
-</div> */
-
 const Character = forwardRef(({
     character,
     highlight,
