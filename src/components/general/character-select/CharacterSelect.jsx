@@ -226,7 +226,7 @@ export const CharacterSelect = () => {
                 </div>
                 <div className={styles.section}>
                     <div className={styles.subheading}>
-                        <h2>Your Tokens</h2>
+                        <h2>Tokens</h2>
                     </div>
                     <ul className={styles.list}>
                         {userTokenCharacters.map((character, i) =>
