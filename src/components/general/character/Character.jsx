@@ -5,6 +5,7 @@ import classnames from 'classnames';
 import metaversefile from '../../../../metaversefile-api.js';
 import { defaultPlayerName } from '../../../../ai/lore/lore-model.js';
 import cameraManager from '../../../../camera-manager.js';
+import {OffscreenEngine} from '../../../../offscreen-engine.js';
 
 import { AppContext } from '../../app';
 
@@ -80,6 +81,27 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
         }
 
     }, [ dioramaCanvasRef, state.openedPanel ] );
+
+    useEffect(() => {
+        (async () => {
+            const offscreenEngine = new OffscreenEngine();
+            // console.log('got offscreen engine 1', offscreenEngine);
+            await offscreenEngine.waitForLoad();
+            // console.log('got offscreen engine 2', offscreenEngine);
+
+            const fn = offscreenEngine.createFunction(`\
+                import * as THREE from 'three';
+            `, function(a, b) {
+                return [
+                    new THREE.Vector3().fromArray(a)
+                        .add(new THREE.Vector3().fromArray(b))
+                        .toArray(),
+                    [], // transfers
+                ];
+            });
+            const result = await fn([1, 2, 3], [4, 5, 6]);
+        })();
+    }, [])
 
     useEffect( () => {
 
