@@ -142,9 +142,7 @@ class PlayerBase extends THREE.Object3D {
     
     this.avatar = null;
     
-    this.appManager = new AppManager({
-      appsMap: null,
-    });
+    this.appManager = new AppManager();
     this.appManager.addEventListener('appadd', e => {
       console.log("e", e)
       const app = e.data;
@@ -267,13 +265,15 @@ class PlayerBase extends THREE.Object3D {
     factor *= 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
     return factor; */
   }
+  // Equip an item to the player's hand
   wear(app) { 
+    console.log("wear called on", app)
     if (world.appManager.hasTrackedApp(app.instanceId)) {
       world.appManager.transplantApp(app, this.appManager);
-    } else {
-      // console.warn('need to transplant unowned app', app, world.appManager, this.appManager);
-      // debugger;
-    }
+    } // else {
+    //   // console.warn('need to transplant unowned app', app, world.appManager, this.appManager);
+    //   // debugger;
+    // }
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
@@ -282,6 +282,7 @@ class PlayerBase extends THREE.Object3D {
     }
     
     const {instanceId} = app;
+
     this.addAction({
       type: 'wear',
       instanceId,
@@ -392,6 +393,7 @@ class StatePlayer extends PlayerBase {
   bindCommonObservers() {
     const actions = this.getActionsState();
     let lastActions = actions.toJSON();
+    console.log("last actions are", lastActions)
     const observeActionsFn = () => {
       const nextActions = Array.from(this.getActionsState());
       for (const nextAction of nextActions) {
@@ -836,14 +838,16 @@ class LocalPlayer extends UninterpolatedPlayer {
       oldAvatar,
       oldApps,
     } = oldState;
-    
+    console.log("attaching state", oldState, new Error().stack)
     const self = this;
+
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
       self.playersArray.push([self.playerMap]);
       self.playerMap.set('playerId', self.playerId);
 
-      /* const packed = new Float32Array(11);
+      const packed = new Float32Array(11);
+
       const pack3 = (v, i) => {
         packed[i] = v.x;
         packed[i + 1] = v.y;
@@ -854,15 +858,15 @@ class LocalPlayer extends UninterpolatedPlayer {
         packed[i + 1] = v.y;
         packed[i + 2] = v.z;
         packed[i + 3] = v.w;
-      }; */
+      };
       const avatar = self.getAvatarState();
-      /* // console.log(self.position)
-      pack3(self.position, 0);
-      pack4(self.quaternion, 3);
-      pack3(self.scale, 7);
+      console.log(self.position)
+      pack3(self.position.toArray(), 0);
+      pack4(self.quaternion.toArray(), 3);
+      pack3(self.scale.toArray(), 7);
       
-      self.playerMap.set('transform', packed); */
-      
+      self.playerMap.set('transform', packed);
+
       const actions = self.getActionsState();
       for (const oldAction of oldActions) {
         actions.push([oldAction]);
@@ -984,7 +988,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.playerMap.set('transform', packed);
     }, 'push');
 
-    // this.appManager.updatePhysics();
+    this.appManager.updatePhysics();
     }
   getSession() {
     const renderer = getRenderer();
@@ -1066,8 +1070,7 @@ class RemotePlayer extends InterpolatedPlayer {
   
     this.isRemotePlayer = true;
 
-    
-    this.characterPhysics = new CharacterPhysics(this);
+    // this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
@@ -1090,7 +1093,9 @@ class RemotePlayer extends InterpolatedPlayer {
       this.characterHups?.update(timestamp);
     }
   }
-  updatePhysics = () => {} // LocalPlayer.prototype.updatePhysics;
+  updatePhysics = (timestamp, timeDiff) => {
+    this.characterPhysics.update(timestamp, timeDiff);
+  }
   getSession() {
     return null;
   }
@@ -1111,9 +1116,9 @@ class RemotePlayer extends InterpolatedPlayer {
     
     const lastPosition = new THREE.Vector3();
 
+    const self = this;
     const observePlayerFn = e => {
-      const transform = this.playerMap.get('transform');
-      
+      const transform = self.playerMap.get('transform');
       if (transform) {
         lastPosition.copy(this.position)
         this.position.fromArray(transform, 0);
@@ -1254,36 +1259,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   }
   updatePhysics = LocalPlayer.prototype.updatePhysics;
   updateAvatar = LocalPlayer.prototype.updateAvatar;
-  /* detachState() {
-    return null;
-  }
-  attachState(oldState) {
-    let index = -1;
-    for (let i = 0; i < this.playersArray.length; i++) {
-      const player = this.playersArray.get(i, Z.Map);
-      if (player.get('playerId') === this.playerId) {
-        index = i;
-        break;
-      }
-    }
-    if (index !== -1) {
-      this.playerMap = this.playersArray.get(index, Z.Map);
-    } else {
-      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
-    }
-    
-    const observePlayerFn = e => {
-      this.position.fromArray(this.playerMap.get('position'));
-      this.quaternion.fromArray(this.playerMap.get('quaternion'));
-    };
-    this.playerMap.observe(observePlayerFn);
-    this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
-    
-    this.appManager.bindState(this.getAppsState());
-    this.appManager.syncApps();
-    
-    this.syncAvatar();
-  } */
   destroy() {
     /* const npcs = metaversefile.useNpcs();
     const index = npcs.indexOf(this);

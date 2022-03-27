@@ -164,9 +164,34 @@ class CharacterPhysics {
 
         const objInstanceId = sitAction.controllingId;
         const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
-        const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
+      
+        // this is functional, but traversing every frame is horrible
+        // this was moved here because we were trying to send the object itself over the network
+        let rideMesh = null;
+        controlledApp.glb.scene.traverse(o => {
+          if (rideMesh === null && o.isSkinnedMesh) {
+            rideMesh = o;
+          }
+        });
+        const transform = controlledApp.getComponent('transform')
+        console.log("transform is", transform)
+        const position = controlledApp.getComponent('position')
+
+        if(position){
+          console.log("Position")
+        }
+        if(transform){
+          controlledApp.position.fromArray(transform)
+          controlledApp.quaternion.fromArray(transform, 3)
+        } else {
+          console.log("No transform")
+        }
 
         const sitComponent = controlledApp.getComponent('sit');
+
+        const rideBone = sitComponent.sitBone ? rideMesh.skeleton.bones.find(bone => bone.name === sitComponent.sitBone) : null;
+        const sitPos = sitAction.controllingBone ? rideBone : controlledApp;
+
         const {
           sitOffset = [0, 0, 0],
           // damping,
@@ -209,7 +234,7 @@ class CharacterPhysics {
         .decompose(this.player.position, this.player.quaternion, this.player.scale);
       this.player.matrixWorld.copy(this.player.matrix);
 
-      // this.player.updateMatrixWorld();
+      this.player.updateMatrixWorld();
 
       /* if (this.avatar) {
         if (this.player.hasAction('jump')) {

@@ -262,7 +262,7 @@ const _use = () => {
       start_url = URL.createObjectURL(blob);
       start_url += '/' + filename;
     }
-    world.appManager.addTrackedApp(start_url, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
+    world.appManager.addTrackedApp(start_url, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
 
     gameManager.setMenu(0);
     cameraManager.requestPointerLock();
@@ -279,7 +279,7 @@ const _use = () => {
     const inventory = loginManager.getInventory();
     const itemSpec = inventory[selectedItemIndex];
 
-    world.appManager.addTrackedApp(itemSpec.id, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
+    world.appManager.addTrackedApp(itemSpec.id, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
 
     gameManager.setMenu(0);
     cameraManager.requestPointerLock();
@@ -1206,21 +1206,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 };
-const _pushAppUpdates = () => {
-  world.appManager.pushAppUpdates();
-  
-  /*const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.appManager.pushAppUpdates();*/
-  
-  const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
-  for (const remotePlayer of remotePlayers) {
-    remotePlayer.appManager.pushAppUpdates();
-  }
-};
-const _pushPlayerUpdates = (timeDiff) => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.pushPlayerUpdates(timeDiff);
-};
 
 const rotationSnap = Math.PI/6;
 
@@ -1868,8 +1853,6 @@ class GameManager extends EventTarget {
     return localPlayer.setVoiceEndpoint(voiceId);
   }
   update = _gameUpdate;
-  pushAppUpdates = _pushAppUpdates;
-  pushPlayerUpdates = _pushPlayerUpdates;
 }
 const gameManager = new GameManager();
 export default gameManager;

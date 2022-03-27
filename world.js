@@ -26,9 +26,7 @@ const localEuler = new THREE.Euler();
 // world
 export const world = {};
 
-const appManager = new AppManager({
-  appsMap: null,
-});
+const appManager = new AppManager();
 world.appManager = appManager;
 
 world.lights = new THREE.Object3D();

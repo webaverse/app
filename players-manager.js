@@ -60,6 +60,8 @@ class PlayersManager {
             });
             this.remotePlayers.set(playerId, remotePlayer);
           }
+          console.log("this.playersArray", this.playersArray.toJSON());
+
         }
         // console.log('players observe', added, deleted);
         for (const item of deleted.values()) {
@@ -84,6 +86,7 @@ class PlayersManager {
   update(timestamp, timeDiff) {
     for (const remotePlayer of this.remotePlayers?.values()) {
       remotePlayer.updateAvatar(timestamp, timeDiff);
+      
     }
   }
 }

@@ -23,40 +23,38 @@ import Header from '../../Header.jsx';
 
 import styles from './App.module.css';
 
-//
-
+// Called immediately on this page load, assuming canvas set
 const _startApp = async ( weba, canvas ) => {
-
-    weba.setContentLoaded();
-
+    // Bind input to the internal ioManager
     weba.bindInput();
+    // Bind interfaces, handles no-ui mode for iframe and show blockchain network name
     weba.bindInterface();
+    // Set the current main scene canvas, bind diorama and post processing
     weba.bindCanvas( canvas );
-
+    // Parse the URL and join world based on current scene / room
     universe.handleUrlUpdate();
+    // Wait until physics, avatar, audio, etc are ready
     await weba.waitForLoad();
+    // Set content loaded
+    weba.setContentLoaded();
+    // Start the game loop
     await weba.startLoop();
-
+    // Get local player and set
     const localPlayer = metaversefileApi.useLocalPlayer();
     await localPlayer.setAvatarUrl( defaultAvatarUrl );
 
 };
 
+// The current scene the user is in is determined by the URL
 const _getCurrentSceneSrc = () => {
 
-    const q = parseQuery( window.location.search );
-    let { src } = q;
+    let { src } = parseQuery( window.location.search );
 
-    if ( src === undefined ) {
-
-        src = './scenes/' + sceneNames[0];
-
-    }
-
-    return src;
+    return src ?? './scenes/' + sceneNames[0];
 
 };
 
+// The current room the user is in is determined by the URL
 const _getCurrentRoom = () => {
 
     const q = parseQuery( window.location.search );
@@ -65,18 +63,20 @@ const _getCurrentRoom = () => {
 
 };
 
+// Main app entry point for the front end
 export const App = () => {
-
+    // Reference to the main canvas used to render the scene
     const canvasRef = useRef( null );
+    // Reference to the Webaverse app, used everywhere
     const [ app, setApp ] = useState( () => new Webaverse() );
+    // Reference to the current scene, can be changed from scene selection menu
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
+    // Reference to the current room, can be changed from room selection menu
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
 
     const [ settingsOpened, setSettingsOpened ] = useState( false );
     const [ worldObjectsListOpened, setWorldObjectsListOpened ] = useState( false );
     const [ mapGenOpened, setMapGenOpened ] = useState( false );
-
-    //
 
     const _loadUrlState = () => {
 
@@ -87,6 +87,17 @@ export const App = () => {
         setSelectedRoom( roomName );
 
     };
+
+    // Listen for canvas change and start app when it does
+    useEffect( () => {
+
+        if ( canvasRef.current ) {
+
+            _startApp( app, canvasRef.current );
+
+        }
+
+    }, [ canvasRef ] );
 
     useEffect( () => {
 
@@ -112,18 +123,6 @@ export const App = () => {
         };
 
     }, [] );
-
-    useEffect( _loadUrlState, [] );
-
-    useEffect( () => {
-
-        if ( canvasRef.current ) {
-
-            _startApp( app, canvasRef.current );
-
-        }
-
-    }, [ canvasRef ] );
 
     //
 

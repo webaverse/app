@@ -20,10 +20,6 @@ import postProcessing from './post-processing.js';
 import loadoutManager from './loadout-manager.js';
 import {
   getRenderer,
-  scene,
-  sceneHighPriority,
-  sceneLowPriority,
-  // rootScene,
   camera,
   dolly,
   bindCanvas,
@@ -63,6 +59,7 @@ const frameEvent = new MessageEvent('frame', {
   },
 });
 
+// Main application entry point for Webaverse
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
@@ -81,27 +78,9 @@ export default class Webaverse extends EventTarget {
     })();
     this.contentLoaded = false;
   }
-  
   waitForLoad() {
     return this.loadPromise;
   }
-
-  getRenderer() {
-    return getRenderer();
-  }
-  getScene() {
-    return scene;
-  }
-  getSceneHighPriority() {
-    return sceneHighPriority;
-  }
-  getSceneLowPriority() {
-    return sceneLowPriority;
-  }
-  getCamera() {
-    return camera;
-  }
-  
   setContentLoaded() {
     this.contentLoaded = true;
   }
@@ -253,16 +232,20 @@ export default class Webaverse extends EventTarget {
     ]);
   } */
   
+  // Main scene renderer, called from the animation loop
   render(timestamp, timeDiff) {
     // console.log('frame 1');
 
     const renderer = getRenderer();
     frameEvent.data.now = timestamp;
     frameEvent.data.timeDiff = timeDiff;
+
+    // Send a frame event, this is listened to by most other apps/modules that update
     this.dispatchEvent(frameEvent);
 
     getComposer().render();
 
+    // frameend is called after the scene is rendered for mirrors, etc
     this.dispatchEvent(new MessageEvent('frameend', {
       data: {
         canvas: renderer.domElement,
@@ -273,6 +256,7 @@ export default class Webaverse extends EventTarget {
     // console.log('frame 2');
   }
   
+  // Main game loop, most stuff happens here
   startLoop() {
     const renderer = getRenderer();
     if (!renderer) {
@@ -280,6 +264,8 @@ export default class Webaverse extends EventTarget {
     }
     
     let lastTimestamp = performance.now();
+
+    // Called every frame by the WebGL renderer
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
@@ -290,33 +276,56 @@ export default class Webaverse extends EventTarget {
 
         performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
+          // Update inputs
           ioManager.update(timeDiffCapped);
+
           // this.injectRigInput();
           
+          // Simulate local physics for player
           const localPlayer = metaversefileApi.useLocalPlayer();
           if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
             physicsManager.simulatePhysics(timeDiffCapped);
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
 
+          // Update transform controls (move, rotate) of objects
           transformControls.update();
-          game.update(timestamp, timeDiffCapped);
-          
-          localPlayer.updateAvatar(timestamp, timeDiffCapped);
-          playersManager.update(timestamp, timeDiffCapped);
-          
-          world.appManager.tick(timestamp, timeDiffCapped, frame);
 
+          // Handle updates from input to game state (actions, using items, etc)
+          game.update(timestamp, timeDiffCapped);
+
+          // Update local avatar state (animation, action, etc)
+          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+
+          // Update remote avatar state (animation, action, etc)
+          playersManager.update(timestamp, timeDiffCapped);
+
+          // Send 'frame' message event with new timestamp and diff
+          world.appManager.tick(timestamp, timeDiffCapped, frame);
+          localPlayer.appManager.tick(timestamp, timeDiffCapped, frame);
+
+          // If player took damage, update damage animation
           hpManager.update(timestamp, timeDiffCapped);
 
+          // Update camera pose after movement has been computed
           cameraManager.updatePost(timestamp, timeDiffCapped);
+
+          // Track variables for input handler to use next frame
           ioManager.updatePost();
 
-          game.pushAppUpdates();
-          game.pushPlayerUpdates(timeDiffCapped);
+          world.appManager.pushAppUpdates();
 
-          const session = renderer.xr.getSession();
-          const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
+          localPlayer.pushPlayerUpdates(timeDiff);
+
+          localPlayer.appManager.pushAppUpdates();
+
+          const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
+          for (const remotePlayer of remotePlayers) {
+            remotePlayer.appManager.updateRemote();
+          }
+
+          // Get the current camera (XR or regular) and copy final pose to it
+          const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
           localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
           localMatrix2.copy(xrCamera.matrix)
             .premultiply(dolly.matrix)
@@ -335,6 +344,8 @@ export default class Webaverse extends EventTarget {
         loadoutManager.update(timestamp, timeDiffCapped);
 
         performanceTracker.setGpuPrefix('');
+
+        // Call render on the scene renderer
         this.render(timestamp, timeDiffCapped);
       };
       _frame();

@@ -673,7 +673,7 @@ const _blendActivateAction = spec => {
 
     let defaultAnimation = 'grab_forward';
 
-    if (localPlayer.getAction('activate').animationName) {
+    if (localPlayer.getAction('activate')) {
       defaultAnimation = localPlayer.getAction('activate').animationName;
     }
 

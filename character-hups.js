@@ -37,7 +37,7 @@ class Hup extends EventTarget {
 
     this.clearDeadTimeout();
 
-    // this.dispatchEvent(new MessageEvent('update'));
+    this.dispatchEvent(new MessageEvent('update'));
   }
   async updateVoicer(message, emote) {
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice start');

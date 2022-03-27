@@ -27,12 +27,17 @@ const localFrameOpts = {
 };
 
 const appManagers = [];
+
+// Main class to handle metaverse apps
+// Apps are synced with zjs 
+// Docs for yjs, which is similar to zjs, can be helpful
+// https://docs.yjs.dev/
 class AppManager extends EventTarget {
   constructor({
     appsArray = new Z.Doc().getArray(worldMapName),
   } = {}) {
     super();
-    
+    // clear this apps array
     this.appsArray = null;
     this.apps = [];
     
@@ -40,12 +45,14 @@ class AppManager extends EventTarget {
     // this.pushingLocalUpdates = false;
     this.unbindStateFn = null;
     this.trackedAppUnobserveMap = new Map();
-    
-    this.bindState(appsArray);
+    // bind the array to this app
+    // this.bindState(appsArray);
     this.bindEvents();
-  
+    // add this app manager to the array, this is the main reference to this app
     appManagers.push(this);
   }
+  // Update the app and dispatch a frame event to any listeners
+  // this is the primary app update
   tick(timestamp, timeDiff, frame) {
     localData.timestamp = timestamp;
     localData.frame = frame;
@@ -55,6 +62,7 @@ class AppManager extends EventTarget {
   /* setPushingLocalUpdates(pushingLocalUpdates) {
     this.pushingLocalUpdates = pushingLocalUpdates;
   } */
+  // get the app manager for a tracked app with a particular ID
   getPeerOwnerAppManager(instanceId) {
     for (const appManager of appManagers) {
       if (appManager !== this && appManager.appsArray.doc === this.appsArray.doc && appManager.hasTrackedApp(instanceId)) {
@@ -73,13 +81,16 @@ class AppManager extends EventTarget {
       this.unbindStateFn = null;
     }
   }
+  // bind the local app state to the shared zjs map
   bindState(nextAppsArray) {
+    if (!nextAppsArray) return;
     this.unbindState();
   
-    if (nextAppsArray) {
       const observe = e => {
+        console.log("observing e", e)
         const {added, deleted} = e.changes;
         
+        // handle new apps added
         for (const item of added.values()) {
           let appMap = item.content.type;
           if (appMap.constructor === Object) {
@@ -95,11 +106,14 @@ class AppManager extends EventTarget {
           const instanceId = appMap.get('instanceId');
           
           const hadApp = this.apps.some(app => app.instanceId === instanceId);
+          // get the ref or create the app if it doesn't already exist
+          const trackedApp = this.getOrCreateTrackedApp(instanceId);
+          // we already have the app
           if (hadApp) {
-            // console.log('accept migration add', instanceId);
+            console.log('accept migration add', instanceId);
           } else {
-            const trackedApp = this.getOrCreateTrackedApp(instanceId);
-            // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
+            // we don't have the app, so we created it -- notify listeners
+            console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
             this.dispatchEvent(new MessageEvent('trackedappadd', {
               data: {
                 trackedApp,
@@ -107,17 +121,17 @@ class AppManager extends EventTarget {
             }));
           }
         }
+        // handle apps deleted
         for (const item of deleted.values()) {
           const appMap = item.content.type;
           const instanceId = item.content.type._map.get('instanceId').content.arr[0]; // needed to get the old data
 
           const app = this.getAppByInstanceId(instanceId);
-          let migrated = false;
           const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
           
-          if (peerOwnerAppManager) {
-            // console.log('detected migrate app 1', instanceId, appManagers.length);
-            
+          if (app && peerOwnerAppManager) {
+            console.log('detected migrate app 1', instanceId, appManagers.length);
+            console.log(new Error().stack)
             const e = new MessageEvent('trackedappmigrate', {
               data: {
                 app,
@@ -127,15 +141,13 @@ class AppManager extends EventTarget {
             });
             this.dispatchEvent(e);
             peerOwnerAppManager.dispatchEvent(e);
-            migrated = true;
-            break;
           }
           
-          // console.log('detected remove app 2', instanceId, appManagers.length);
           
-          if (!migrated) {
+          else{
+            console.log('detected remove app 2', instanceId, appManagers.length);
+            console.log("Removing app", app)
             // console.log('detected remove app 3', instanceId, appManagers.length);
-            
             this.dispatchEvent(new MessageEvent('trackedappremove', {
               data: {
                 instanceId,
@@ -149,9 +161,9 @@ class AppManager extends EventTarget {
       this.unbindStateFn = () => {
         nextAppsArray.unobserve(observe);
       };
-    }
     this.appsArray = nextAppsArray;
   }
+  // call 'trackedappadd' event which initializes the apps everywhere
   loadApps() {
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
@@ -162,27 +174,30 @@ class AppManager extends EventTarget {
       }));
     }
   }
+  // bind a tracked app so that it's state is synced over the network
+  // this sets up an observer to update whenever the tracked app changes
   bindTrackedApp(trackedApp, app) {
-    // console.log('bind tracked app', trackedApp.get('instanceId'));
+    console.log("bindTrackedApp", trackedApp, app)
     const _observe = (e, origin) => {
-      if (origin !== 'push') {
-        console.log('e.changes.keys', e.changes.keys);
-        if (e.changes.keys.has('transform')) {
-          console.log("updating transform", e, origin)
+      // if (origin !== 'push') {
+        // if (e.changes.keys.has('transform')) {
           const transform = trackedApp.get('transform');
           app.position.fromArray(transform, 0);
           app.quaternion.fromArray(transform, 3);
-          app.scale?.fromArray(transform, 7);
+          app.scale.fromArray(transform, 7);
           app.transform = transform
-        }
-      }
+        // }
+      // }
     };
     trackedApp.observe(_observe);
     
     const instanceId = trackedApp.get('instanceId');
     this.trackedAppUnobserveMap.set(instanceId, trackedApp.unobserve.bind(trackedApp, _observe));
   }
+  // unbind and stop tracking this app
+  // apps are also unbound and rebound when migrated
   unbindTrackedApp(instanceId) {
+    console.log('unbind tracked app', instanceId, new Error().stack);
     const fn = this.trackedAppUnobserveMap.get(instanceId);
     
     if (fn) {
@@ -192,6 +207,7 @@ class AppManager extends EventTarget {
       console.warn('tracked app was not bound:', instanceId);
     }
   }
+  // bind events to this object to start listening for events to create and destroy apps
   bindEvents() {
     this.addEventListener('trackedappadd', async e => {
       const {trackedApp} = e.data;
@@ -215,7 +231,6 @@ class AppManager extends EventTarget {
       };
       this.addEventListener('clear', clear);
       const _bailout = app => {
-        console.log("BAILOUT")
         // Add Error placeholder
         const errorPH = this.getErrorPlaceholder();
         if (app) {
@@ -238,6 +253,9 @@ class AppManager extends EventTarget {
         const app = metaversefile.createApp({
           // name: contentId,
         });
+
+        console.log("trackedappadd, components are, ", components)
+
         app?.position?.fromArray(position ?? transform)
         app?.quaternion?.fromArray(quaternion ?? transform, quaternion ? 0 : 3)
         app?.scale?.fromArray(scale ?? transform, scale ? 0 : 7);
@@ -492,6 +510,7 @@ class AppManager extends EventTarget {
   /* setBlindStateMode(stateBlindMode) {
     this.stateBlindMode = stateBlindMode;
   } */
+  // Replace a tracked app with a new one
   transplantApp(app, dstAppManager) {
     const {instanceId} = app;
     const srcAppManager = this;
@@ -505,10 +524,35 @@ class AppManager extends EventTarget {
       let dstTrackedApp = null;
       srcAppManager.appsArray.doc.transact(() => {
         const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
+        console.log("srcTrackedApp is", srcTrackedApp)
         const contentId = srcTrackedApp.get('contentId');
-        
-        const transform = trackedApp.get('transform');
+
         const components = srcTrackedApp.get('components');
+
+        let transform = srcTrackedApp.get('transform');
+        if(!transform){
+          const position = srcTrackedApp.get('position');
+          const quaternion = srcTrackedApp.get('quaternion');
+          const scale = srcTrackedApp.get('scale') ?? [1, 1, 1];
+  
+          transform = new Float32Array(11);
+   
+              const pack3 = (v, i) => {
+                transform[i] = v[0];
+                transform[i + 1] = v[1];
+                transform[i + 2] = v[2];
+              };
+              const pack4 = (v, i) => {
+                transform[i] = v[0];
+                transform[i + 1] = v[1];
+                transform[i + 2] = v[2];
+                transform[i + 3] = v[3];
+              };
+          
+              pack3(position, 0);
+              pack4(quaternion, 3);
+              pack3(scale, 7);
+        }
         srcAppManager.removeTrackedAppInternal(instanceId);
         
         dstTrackedApp = dstAppManager.addTrackedAppInternal(
@@ -546,20 +590,23 @@ class AppManager extends EventTarget {
           const trackedApp = this.getTrackedApp(app.instanceId);
           if (trackedApp) {
             app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-            // const packed = this.packed
-            // const pack = (v, i) => {
-            //   packed[i] = v.x;
-            //   packed[i + 1] = v.y;
-            //   packed[i + 2] = v.z;
-            //   if(v.w) packed[i + 3] = v.w;
-            // };
-
-            // pack(localVector, 0);
-            // pack(localQuaternion, 3);
-            // pack(localVector2, 7);        
-            // trackedApp.set('transform', packed);
-
             app.updateMatrixWorld();
+            const packed = this.packed
+            const pack3 = (v, i) => {
+              packed[i] = v.x;
+              packed[i + 1] = v.y;
+              packed[i + 2] = v.z;
+            };
+            const pack4 = (v, i) => {
+              packed[i] = v.x;
+              packed[i + 1] = v.y;
+              packed[i + 2] = v.z;
+              packed[i + 3] = v.w;
+            };
+            pack3(localVector, 0);
+            pack4(localQuaternion, 3);
+            pack3(localVector2, 7);        
+            trackedApp.set('transform', packed);
           }
         };
         _updateTrackedApp();
@@ -590,6 +637,52 @@ class AppManager extends EventTarget {
         _updatePhysicsObjects();
 
         app.lastMatrix.copy(app.matrix);
+      }
+    }
+  }
+  updateRemote() {
+    for (const app of this.apps) {
+      if (!app.matrix.equals(app.lastMatrix)) {
+        const _updateTrackedApp = () => {
+          // note: not all apps are tracked in multiplayer. for those that are, we push the transform update here.
+          const trackedApp = this.getTrackedApp(app.instanceId);
+          const transform = trackedApp.get('transform');
+          if(transform){
+            app.position.fromArray(transform, 0);
+            app.quaternion.fromArray(transform, 3);
+            app.scale.fromArray(transform, 7);
+          }
+        };
+        _updateTrackedApp();
+
+        const _updatePhysicsObjects = () => {
+          // update attached physics objects with a relative transform
+          const physicsObjects = app.getPhysicsObjects();
+          if (physicsObjects.length > 0) {
+            const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
+
+            for (const physicsObject of physicsObjects) {
+              if (!physicsObject.detached) {
+                physicsObject.matrix
+                  .premultiply(lastMatrixInverse)
+                  .premultiply(app.matrix)
+                  .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+                physicsObject.matrixWorld.copy(physicsObject.matrix);
+                for (const child of physicsObject.children) {
+                  child.updateMatrixWorld();
+                }
+
+                physicsManager.setTransform(physicsObject);
+                physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
+              }
+            }
+          }
+        };
+        _updatePhysicsObjects();
+
+        app.lastMatrix.copy(app.matrix);
+        app.updateMatrixWorld()
+
       }
     }
   }
