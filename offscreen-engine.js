@@ -15,14 +15,11 @@ class OffscreenEngine {
     document.body.appendChild(iframe);
     this.iframe = iframe;
     this.port = null;
-    
-    this.running = false;
-    this.queue = [];
 
     this.loadPromise = (async () => {
-      const contentWindow = await new Promise((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         iframe.onload = () => {
-          resolve(iframe.contentWindow);
+          resolve();
 
           iframe.onload = null;
           iframe.onerror = null;
@@ -47,61 +44,48 @@ class OffscreenEngine {
   waitForLoad() {
     return this.loadPromise;
   }
-  async waitForTurn(fn) {
-    const _next = () => {
-      if (this.queue.length > 0) {
-        const fn = this.queue.shift();
-        this.waitForTurn(fn);
+  createFunction(o) {
+    if (!Array.isArray(o)) {
+      o = [o];
+    }
+    const _formatElement = e => {
+      if (typeof e === 'string') {
+        return e;
+      } else if (typeof e === 'function') {
+        return `\
+const _default_export_ = ${e.toString()};
+export default _default_export_;`;
+      } else {
+        console.warn('invalid element', e);
+        throw new Error('invalid element');
       }
     };
-    
-    if (!this.running) {
-      this.running = true;
-
-      try {
-        const result = await fn();
-        return result;
-      } catch(err) {
-        throw err;
-      } finally {
-        this.running = false;
-        _next();
-      }
-    } else {
-      this.queue.push(fn);
-    }
-  }
-  createFunction(prefix, fn) {
+    const _formatArray = a => a.map(e => _formatElement(e)).join('\n');
     const id = getRandomString();
 
     const loadPromise = (async () => {
       await this.waitForLoad();
-      await this.waitForTurn(async () => {
-        const src = prefix + `
-          const _default_export_ = ${fn.toString()};
-          export default _default_export_;
-        `;
-        this.port.postMessage({
-          method: 'registerHandler',
-          id,
-          src,
-        });
+      const src = _formatArray(o);
+      this.port.postMessage({
+        method: 'registerHandler',
+        id,
+        src,
+      });
 
-        await new Promise((accept, reject) => {
-          const message = e => {
-            const {method, id: localId} = e.data;
-            if (method === 'response' && localId === id) {
-              const {error, result} = e.data;
-              if (!error) {
-                accept(result);
-              } else {
-                reject(error);
-              }
-              this.port.removeEventListener('message', message);
+      await new Promise((accept, reject) => {
+        const message = e => {
+          const {method, id: localId} = e.data;
+          if (method === 'response' && localId === id) {
+            const {error, result} = e.data;
+            if (!error) {
+              accept(result);
+            } else {
+              reject(error);
             }
-          };
-          this.port.addEventListener('message', message);
-        });
+            this.port.removeEventListener('message', message);
+          }
+        };
+        this.port.addEventListener('message', message);
       });
     })();
     
@@ -111,41 +95,28 @@ class OffscreenEngine {
 
       await loadPromise;
 
-      let result;
-      let error;
-      await self.waitForTurn(async () => {
-        self.port.postMessage({
-          method: 'callHandler',
-          id,
-          args,
-        });
-
-        try {
-          result = await new Promise((accept, reject) => {
-            const message = e => {
-              const {method} = e.data;
-              if (method === 'response') {
-                const {error, result} = e.data;
-                if (!error) {
-                  accept(result);
-                } else {
-                  reject(error);
-                }
-                self.port.removeEventListener('message', message);
-              }
-            };
-            self.port.addEventListener('message', message);
-          });
-        } catch(err) {
-          error = err;
-        }
+      self.port.postMessage({
+        method: 'callHandler',
+        id,
+        args,
       });
 
-      if (!error) {
-        return result;
-      } else {
-        throw error;
-      }
+      const result = await new Promise((accept, reject) => {
+        const message = e => {
+          const {method} = e.data;
+          if (method === 'response') {
+            const {error, result} = e.data;
+            if (!error) {
+              accept(result);
+            } else {
+              reject(error);
+            }
+            self.port.removeEventListener('message', message);
+          }
+        };
+        self.port.addEventListener('message', message);
+      });
+      return result;
     }
     return callRemoteFn;
   }
