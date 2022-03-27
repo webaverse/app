@@ -533,6 +533,15 @@ const createPlayerDiorama = ({
 
       canvases.push(canvas);
 
+      this.updateAspect();
+    },
+    setSize(width, height) {
+      this.width = width;
+      this.height = height;
+
+      this.updateAspect();
+    },
+    updateAspect() {
       const newAspect = this.width / this.height;
       if (sideCamera.aspect !== newAspect) {
         sideCamera.aspect = newAspect;
