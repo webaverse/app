@@ -144,15 +144,18 @@ export const CharacterSelect = () => {
     })();
 
     const targetCharacter = selectCharacter || highlightCharacter;
-    useEffect(() => {
+    const _updateArrowPosition = () => {
         if (targetCharacter) {
             const ref = refsMap.get(targetCharacter);
             const el = ref.current;
             if (el) {
                 const rect = el.getBoundingClientRect();
+                const parentRect = el.offsetParent.getBoundingClientRect();
+                // window.rect = rect;
+                // window.parentRect = parentRect;
                 setArrowPosition([
-                    Math.floor(rect.left + rect.width / 2),
-                    Math.floor(rect.top + rect.height / 2),
+                    Math.floor(rect.left - parentRect.left + rect.width / 2 + 40),
+                    Math.floor(rect.top - parentRect.top + rect.height / 2),
                 ]);
             } else {
                 setArrowPosition(null);
@@ -162,6 +165,9 @@ export const CharacterSelect = () => {
         } else {
             setArrowPosition(null);
         }
+    };
+    useEffect(() => {
+        _updateArrowPosition();
     }, [targetCharacter]);
     useEffect(() => {
         if (targetCharacter) {
@@ -204,6 +210,13 @@ export const CharacterSelect = () => {
     useEffect(() => {
         if (opened) {
             setSelectCharacter(null);
+
+            const timeout = setTimeout(() => {
+                _updateArrowPosition();
+            }, 1000);
+            return () => {
+                clearTimeout(timeout);
+            };
         }
     }, [opened]);
 
@@ -273,15 +286,14 @@ export const CharacterSelect = () => {
                                 />
                             );
                         })}
+                        <LightArrow
+                            enabled={!!arrowPosition}
+                            animate={!!selectCharacter}
+                            x={arrowPosition?.[0] ?? 0}
+                            y={arrowPosition?.[1] ?? 0}
+                        />
                     </ul>
                 </div>
-
-                <LightArrow
-                    enabled={!!arrowPosition}
-                    animate={!!selectCharacter}
-                    x={arrowPosition?.[0] ?? 0}
-                    y={arrowPosition?.[1] ?? 0}
-                />
             </div>
 
             <MegaHup

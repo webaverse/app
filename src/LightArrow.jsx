@@ -243,7 +243,7 @@ export const LightArrow = function({
         enabled ? styles.enabled : null,
       )}
       style={{
-        transform: `translate(${x + 40}px, ${y - 170}px)`,
+        transform: `translate(${x}px, ${y}px)`,
       }}
     >
       <div
