@@ -2033,16 +2033,16 @@ class Avatar {
           entryIdle: () => {
           },
           entrySkeleton: () => {
-            this.hipsPosition = this.modelBoneOutputs.Hips.position.clone();
+            // this.hipsPosition = this.modelBoneOutputs.Hips.position.clone();
             this.createRagdoll();
             this.setFromAvatar();
           },
           entryRagdoll: () => {
-            this.runRagdoll();
+            // this.runRagdoll();
           },
           exitRagdoll: () => {
-            this.modelBoneOutputs.Hips.position.copy(this.hipsPosition);
-            this.resetAvatar();
+            // this.modelBoneOutputs.Hips.position.copy(this.hipsPosition);
+            // this.resetAvatar();
           },
         }
       }
@@ -2503,6 +2503,12 @@ class Avatar {
       const meshBone = flatMeshes[k]; // ragdollMesh's
 
       modelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+
+      // localVector.sub(this.modelBoneOutputs.Root.position)
+      //   .applyQuaternion(this.modelBoneOutputs.Root.quaternion)
+      //   .add(this.modelBoneOutputs.Root.position)
+      // localQuaternion.multiply(this.modelBoneOutputs.Root.quaternion);
+
       localQuaternion2.copy(localQuaternion).multiply(
         modelBone.forwardQuaternion
       );
@@ -2510,6 +2516,7 @@ class Avatar {
         // meshBone.matrixWorld.compose(localVector, modelBone.quaternion, localVector2);
         meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
         // meshBone.matrixWorld.compose(localVector, identityQuaternion, localVector2);
+        meshBone.matrixWorld.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
       } else {
         // put bone at center of neighbor joints
         localVector.add(
@@ -2519,10 +2526,12 @@ class Avatar {
         // meshBone.matrixWorld.compose(localVector, modelBone.quaternion, localVector2);
         meshBone.matrixWorld.compose(localVector, localQuaternion, localVector2);
         // meshBone.matrixWorld.compose(localVector, identityQuaternion, localVector2);
+        meshBone.matrixWorld.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
       }
       // meshBone.matrix.copy(meshBone.matrixWorld);
-      meshBone.matrixWorld.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
       physicsManager.setTransform(meshBone);
+      physicsManager.setVelocity(meshBone, identityVector);
+      physicsManager.setAngularVelocity(meshBone, identityVector);
 
       // meshBone.rotation.y = Math.PI
       // meshBone.updateMatrixWorld()
@@ -2837,7 +2846,8 @@ class Avatar {
       // matrix.multiply(this.modelBoneOutputs.Root.matrixWorld.clone().invert())
       // matrix.premultiply(this.modelBoneOutputs.Root.matrixWorld) // ok too?
       // matrix.premultiply(this.modelBoneOutputs.Root.matrixWorld.clone().invert())
-      matrix.decompose(this.modelBoneOutputs.Hips.position, this.modelBoneOutputs.Hips.quaternion, this.modelBoneOutputs.Hips.scale)
+      matrix.decompose(this.modelBoneOutputs.Root.position, this.modelBoneOutputs.Hips.quaternion, this.modelBoneOutputs.Hips.scale)
+      this.modelBoneOutputs.Hips.quaternion.premultiply(this.modelBoneOutputs.Root.quaternion);
 
       // this.modelBoneOutputs.Hips.position.applyQuaternion(y180Quaternion)
       // this.modelBoneOutputs.Hips.quaternion.multiply(this.mod)
@@ -3957,16 +3967,20 @@ class Avatar {
         _processFingerBones(false);
       }
     }
-    // if (!this.getBottomEnabled()) {
-      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      // localEuler.y += Math.PI;
-      this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
-      
-      this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
-        .sub(localVector.set(0, this.height, 0));
-    // }
+
+    // console.log('input root')
+    if (!this.fsms.state.matches('ragdoll')) {
+      // if (!this.getBottomEnabled()) {
+        localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        // localEuler.y += Math.PI;
+        this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
+        
+        this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
+          .sub(localVector.set(0, this.height, 0));
+        // }
+    }
     /* if (!this.getTopEnabled() && this.ragdollMeshes) {
       this.modelBoneOutputs.Hips.updateMatrixWorld();
     } */
@@ -4132,10 +4146,10 @@ class Avatar {
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
 
-    if(this.ragdoll) {
-      // this.ragdollMesh.toAvatar(this)
-      this.toAvatar();
-    }
+    // if(this.ragdoll) {
+    //   // this.ragdollMesh.toAvatar(this)
+    //   this.toAvatar();
+    // }
 
     if (game.debugMode) {
       // vismark mark
