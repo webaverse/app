@@ -38,6 +38,7 @@ import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
+import {OffscreenEngine} from './offscreen-engine.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -554,6 +555,22 @@ const _startHacks = webaverse => {
           titleCardHack: webaverse.titleCardHack,
         }
       }));
+    } else if (e.which === 111) { // /
+      (async () => {
+        const offscreenEngine = new OffscreenEngine();
+        // console.log('got offscreen engine 1', offscreenEngine);
+        await offscreenEngine.waitForLoad();
+        // console.log('got offscreen engine 2', offscreenEngine);
+
+        const fn = offscreenEngine.createFunction(`\
+            import * as THREE from 'three';
+        `, function(a, b) {
+          return new THREE.Vector3().fromArray(a)
+            .add(new THREE.Vector3().fromArray(b))
+            .toArray();
+        });
+        const result = await fn([1, 2, 3], [4, 5, 6]);
+      })();
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {
