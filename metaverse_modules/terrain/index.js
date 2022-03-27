@@ -4,7 +4,7 @@ import { TerrainManager } from './terrain-manager.js';
 import { Water } from './Water.js'
 import { Sky } from './Sky.js'
 
-const { useFrame, useLocalPlayer, useLoaders, useUi, usePhysics, useCleanup, useGeometryUtils } = metaversefile;
+const { useFrame, useLocalPlayer, useLoaders, useUi, usePhysics, useCleanup, useGeometryUtils, useInternals } = metaversefile;
 
 
 export default () => {
@@ -14,69 +14,74 @@ export default () => {
 
     const rootScene = new THREE.Object3D();
 
-
-    const terrainManager = new TerrainManager(128, 2, geometryUtils);
-    const terrain = terrainManager.mesh;
-
     let physicsIdChunkIdPairs = [];
 
-    let chunkIdMeshPairs = terrainManager.getInitialChunkMeshes();
+    const terrainManager = new TerrainManager(128, 2, geometryUtils, useInternals().renderer);
 
-    chunkIdMeshPairs.forEach(pair => {
+    let player;
 
-        if (!!pair[1]) {
-            const physicsId = physics.addGeometry(pair[1]);
-            physicsIdChunkIdPairs.push({ physicsId: physicsId, chunkId: pair[0] });
-        }
-    });
+    terrainManager.init().then(() => {
 
-    terrainManager.onRemoveChunks = async (chunkIds) => {
-        physicsIdChunkIdPairs.filter(pair => chunkIds.includes(pair.chunkId))
+        const terrain = terrainManager.mesh;
+
+        let chunkIdMeshPairs = terrainManager.getInitialChunkMeshes();
+
+        chunkIdMeshPairs.forEach(pair => {
+            if (!!pair[1]) {
+                const physicsId = physics.addGeometry(pair[1]);
+                physicsIdChunkIdPairs.push({ physicsId: physicsId, chunkId: pair[0] });
+            }
+        });
+
+        rootScene.add(terrain);
+
+        terrainManager.onRemoveChunks = async (chunkIds) => {
+            physicsIdChunkIdPairs.filter(pair => chunkIds.includes(pair.chunkId))
             .forEach(pair => {
                 physics.removeGeometry(pair.physicsId);
             });
 
-        physicsIdChunkIdPairs = physicsIdChunkIdPairs.filter(pair => !chunkIds.includes(pair.chunkId));
-    };
+            physicsIdChunkIdPairs = physicsIdChunkIdPairs.filter(pair => !chunkIds.includes(pair.chunkId));
+        };
 
-    terrainManager.onAddChunk = async (chunkId) => {
-        const mesh = terrainManager.getChunkMesh(chunkId);
-        if (!!mesh) {
-            const physicsId = physics.addGeometry(mesh);
-            physicsIdChunkIdPairs.push({ physicsId: physicsId, chunkId: chunkId });
-        }
-    };
+        terrainManager.onAddChunk = async (chunkId) => {
+            const mesh = terrainManager.getChunkMesh(chunkId);
+            if (!!mesh) {
+                const physicsId = physics.addGeometry(mesh);
+                physicsIdChunkIdPairs.push({ physicsId: physicsId, chunkId: chunkId });
+            }
+        };
+        // terrainManager.updateCenter(player.position);
+        // terrainManager.updateChunk();
 
-    rootScene.add(terrain);
+        player.position.y = 150;
+    });
 
-    const player = useLocalPlayer();
-    player.position.y = 100;
-    terrainManager.updateCenter(player.position);
-    terrainManager.updateChunk();
+    player = useLocalPlayer();
 
     useFrame(() => {
 
-        terrainManager.updateCenter(player.position);
-        terrainManager.updateChunk();
- 
-        water.material.uniforms['time'].value += 1.0 / 60.0;
+        if (!!terrainManager.mesh) {
+            terrainManager.updateCenter(player.position);
+            terrainManager.updateChunk();
+        }
+
     });
 
     rootScene.add(new THREE.AxesHelper(1000))
 
-
-
-    player.position.y = 150;
     const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
-
     const water = new Water(
         waterGeometry,
         {
             textureWidth: 512,
             textureHeight: 512,
-            waterNormals: new THREE.TextureLoader().load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/waternormals.jpg`, function (texture) {
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            }),
+            waterNormals: new THREE.TextureLoader().load(
+                `${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/waternormals.jpg`,
+                function (texture) {
+                    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                }
+            ),
             sunDirection: new THREE.Vector3(),
             sunColor: 0xffffff,
             waterColor: 0x001e0f,
@@ -84,14 +89,12 @@ export default () => {
             // fog: scene.fog !== undefined
         }
     );
-    water.material.uniforms.size.value = 10;
 
+    water.material.uniforms.size.value = 10;
     water.rotation.x = - Math.PI / 2;
     water.position.y = 65;
 
-
     rootScene.add(water);
-
 
     const sky = new Sky();
     sky.scale.setScalar(10000);
