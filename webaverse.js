@@ -560,13 +560,14 @@ const _startHacks = webaverse => {
         const offscreenEngine = new OffscreenEngine();
         await offscreenEngine.waitForLoad();
 
-        const fn = offscreenEngine.createFunction(`\
-            import * as THREE from 'three';
-        `, function(a, b) {
-          return new THREE.Vector3().fromArray(a)
-            .add(new THREE.Vector3().fromArray(b))
-            .toArray();
-        });
+        const fn = offscreenEngine.createFunction([
+          `import * as THREE from 'three';`,
+          function(a, b) {
+            return new THREE.Vector3().fromArray(a)
+              .add(new THREE.Vector3().fromArray(b))
+              .toArray();
+          },
+        ]);
         const result = await fn([1, 2, 3], [4, 5, 6]);
         console.log('final result', result);
       })();
