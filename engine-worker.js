@@ -25,7 +25,7 @@ if (id) {
   const port = messageChannel.port1;
   const handlers = new Map();
   port.addEventListener('message', async e => {
-    console.log('engine worker got port message', e);
+    // console.log('engine worker got port message', e);
     const {method, id} = e.data;
     const respond = (error = null, result = null, transfers = []) => {
       port.postMessage({
