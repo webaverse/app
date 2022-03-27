@@ -81,14 +81,24 @@ if (id) {
           if (handler) {
             let error = null;
             let result = null;
+            let transfers = [];
             try {
-              console.log('call handler 1', {id, args});
-              result = await handler.apply(null, args);
-              console.log('call handler 2', {result});
+              let o = await handler.apply(null, args);
+              if (!(Array.isArray(o) && o.length === 2 && Array.isArray(o[1]))) {
+                o = [o, []]; // fix result shape
+              }
+              if (o.length < 1) {
+                o.push(null); // result
+              }
+              if (o.length < 2) {
+                o.push([]); // transfers
+              }
+              result = o[0];
+              transfers = o[1];
             } catch(err) {
               error = err?.stack ?? (err + '');
             } finally {
-              respond(error, result);
+              respond(error, result, transfers);
             }
           } else {
             respond(new Error('no handler registered: ' + id));
