@@ -570,6 +570,7 @@ const _startHacks = webaverse => {
         ]);
         const result = await fn([1, 2, 3], [4, 5, 6]);
         console.log('final result', result);
+        offscreenEngine.destroy();
       })();
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
