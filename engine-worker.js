@@ -39,7 +39,7 @@ if (id) {
       switch (method) {
         case 'registerHandler': {
           const {id, src} = e.data;
-          console.log('register handler', {id, src});
+          // console.log('register handler', {id, src});
 
           let error = null;
           let result = null;
