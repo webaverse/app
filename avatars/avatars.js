@@ -3497,7 +3497,7 @@ class Avatar {
         localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
         localEuler.x = 0;
         localEuler.z = 0;
-        // localEuler.y += Math.PI;
+        localEuler.y += Math.PI;
         this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
         
         this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
