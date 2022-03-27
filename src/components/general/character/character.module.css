@@ -378,6 +378,7 @@
   }
   .characterPanel .selectButton.highlight {
     animation: highlight2 0.15s step-end infinite;
+    opacity: 1;
   }
   .characterPanel .selectButton:hover {
     animation: none;
