@@ -1,4 +1,5 @@
 // import metaversefile from './metaversefile-api.js';
+import {getTransferables} from './util.js';
 
 async function import2(s) {
   if (/^(?:ipfs:\/\/|https?:\/\/|weba:\/\/|data:)/.test(s)) {
@@ -83,18 +84,8 @@ if (id) {
             let result = null;
             let transfers = [];
             try {
-              let o = await handler.apply(null, args);
-              if (!(Array.isArray(o) && o.length === 2 && Array.isArray(o[1]))) {
-                o = [o, []]; // fix result shape
-              }
-              if (o.length < 1) {
-                o.push(null); // result
-              }
-              if (o.length < 2) {
-                o.push([]); // transfers
-              }
-              result = o[0];
-              transfers = o[1];
+              result = await handler.apply(null, args);
+              transfers = getTransferables(result);
             } catch(err) {
               error = err?.stack ?? (err + '');
             } finally {
