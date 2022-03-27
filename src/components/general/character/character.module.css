@@ -358,18 +358,6 @@
   letter-spacing: 3px;
   font-size: 16px;
 }
-
-.characterPanel .panel-section.level {
-  display: flex;
-  height: 40px;
-  align-items: center;
-  font-family: 'WinchesterCaps';
-}
-
-.characterPanel .panel-section.main-stats {
-  font-family: 'PlazaRegular';
-}
-
 .characterPanel .panel-section.name::before {
   position: absolute;
   top: 0;
@@ -379,6 +367,45 @@
   background-image: linear-gradient(to bottom,#333, #000000);
   transform: skew(-30deg);
   content: '';
+}
+
+.characterPanel .panel-section.level {
+  position: relative;
+  display: flex;
+  height: 40px;
+  align-items: center;
+  font-family: 'WinchesterCaps';
+}
+
+.characterPanel .panel-section.level .progress {
+  position: absolute;
+  top: 36px;
+  left: -24px;
+  width: 210px;
+  height: 4px;
+  appearance: none;
+  transform: skew(-30deg);
+}
+.characterPanel .panel-section.level .progress::-webkit-progress-bar {
+  background-image: linear-gradient(to bottom, #222, #333);
+}
+.characterPanel .panel-section.level .progress::-webkit-progress-value {
+  background-image: linear-gradient(to right, #1482f8, #79b8fb);
+}
+/* .characterPanel .panel-section.level .progress::before {
+  position: absolute;
+  top: -4px;
+  left: -12px;
+  right: 0;
+  width: 17px;
+  height: 10px;
+  background-image: linear-gradient(to bottom, #111, #111);
+  transform: skew(-30deg);
+  content: '';
+} */
+
+.characterPanel .panel-section.main-stats {
+  font-family: 'PlazaRegular';
 }
 
 .characterPanel .panel-section.name h1 {

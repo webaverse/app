@@ -260,12 +260,13 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
                             </div>
                             <div className={classnames(styles['panel-section'], styles.level)}>
                                 <h2>Lv. {6}</h2>
+                                <progress className={styles.progress} value={20} max={100} />
                             </div>
                         </div>
-                        <div className={styles['xp']}>
+                        {/* <div className={styles['xp']}>
                             <progress className={styles.progress} value={20} max={100} />
                             <img className={styles.icon} src="images/ui/xp-bar.svg" />
-                        </div>
+                        </div> */}
                         {/* <div className={classnames(styles['panel-section'], styles['name-placeholder'])} /> */}
                         <div className={ styles.row } >
                             <h2>HP</h2>
