@@ -1,5 +1,40 @@
-// import metaversefile from './metaversefile-api.js';
-import {getTransferables} from './util.js';
+const isTransferable = o => {
+  const ctor = o?.constructor;
+  return ctor === MessagePort ||
+    ctor === ImageBitmap ||
+    ctor === ImageData ||
+    // ctor === AudioData ||
+    // ctor === OffscreenCanvas ||
+    ctor === ArrayBuffer ||
+    ctor === Uint8Array ||
+    ctor === Int8Array ||
+    ctor === Uint16Array ||
+    ctor === Int16Array ||
+    ctor === Uint32Array ||
+    ctor === Int32Array ||
+    ctor === Float32Array ||
+    ctor === Float64Array;
+};
+const getTransferables = o => {
+  const result = [];
+  const _recurse = o => {
+    if (Array.isArray(o)) {
+      for (const e of o) {
+        _recurse(e);
+      }
+    } else if (o && typeof o === 'object') {
+      if (isTransferable(o)) {
+        result.push(o);
+      } else {
+        for (const k in o) {
+          _recurse(o[k]);
+        }
+      }
+    }
+  };
+  _recurse(o);
+  return result;
+};
 
 async function import2(s) {
   if (/^(?:ipfs:\/\/|https?:\/\/|weba:\/\/|data:)/.test(s)) {
