@@ -437,7 +437,7 @@
 }
 .characterPanel .stats.main .stat {
   display: flex;
-  margin: 10px;
+  margin: 10px 15px;
   margin-top: 0;
   background-image: linear-gradient(to bottom, #222, #111);
   border-radius: 10px;
