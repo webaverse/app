@@ -31,6 +31,10 @@ const objects = {
 
 const InventoryObject = forwardRef(({
     object,
+    hovered,
+    selected,
+    onMouseEnter,
+    onMouseDown,
 }, ref) => {
     const [ spritesheet, setSpritesheet ] = useState(null);
     const canvasRef = useRef();
@@ -89,7 +93,16 @@ const InventoryObject = forwardRef(({
     }, [canvasRef, spritesheet]);
 
     return (
-        <div className={styles.inventoryObject} ref={ref}>
+        <div
+            className={classnames(
+                styles.inventoryObject,
+                hovered ? styles.hovered : null,
+                selected ? styles.selected : null,
+            )}
+            onMouseEnter={onMouseEnter}
+            onMouseDown={onMouseDown}
+            ref={ref}
+        >
 
             <div className={styles.background} />
             <div className={styles.highlight} />
@@ -112,7 +125,8 @@ const InventoryObject = forwardRef(({
 
 export const Inventory = () => {
     const { state, setState } = useContext( AppContext );
-    const [ highlightItem, setHighlightItem ] = useState(null);
+    const [ hoverObject, setHoverObject ] = useState(null);
+    const [ selectObject, setSelectObject ] = useState(null);
     const [ spritesheet, setSpritesheet ] = useState(null);
 
     const refsMap = (() => {
@@ -129,7 +143,7 @@ export const Inventory = () => {
     })();
 
     const open = state.openedPanel === 'CharacterPanel';
-    const targetObject = null;
+    const targetObject = selectObject || hoverObject;
 
     return (
         <div className={styles.inventory}>
@@ -145,15 +159,16 @@ export const Inventory = () => {
                         {userTokenObjects.map((object, i) =>
                             <InventoryObject
                                 object={object}
-                                highlight={object === targetObject}
+                                hovered={object === hoverObject}
+                                selected={object === selectObject}
                                 onMouseEnter={() => {
-                                    setHighlightObject(object);
+                                    setHoverObject(object);
                                 }}
-                                onClick={e => {
-                                    setSelectObject(object);
-                                    setTimeout(() => {
+                                onMouseDown={e => {
+                                    setSelectObject(selectObject !== object ? object : null);
+                                    /* setTimeout(() => {
                                         setSelectObject(null);
-                                    }, 2000);
+                                    }, 2000); */
                                 }}
                                 key={i}
                                 ref={refsMap.get(object)}
@@ -170,15 +185,16 @@ export const Inventory = () => {
                             return (
                                 <InventoryObject
                                     object={object}
-                                    highlight={object === targetObject}
+                                    hovered={object === hoverObject}
+                                    selected={object === selectObject}
                                     onMouseEnter={() => {
-                                        setHighlightObject(object);
+                                        setHoverObject(object);
                                     }}
-                                    onClick={e => {
-                                        setSelectObject(object);
-                                        setTimeout(() => {
+                                    onMouseDown={e => {
+                                        setSelectObject(selectObject !== object ? object : null);
+                                        /* setTimeout(() => {
                                             setSelectObject(null);
-                                        }, 2000);
+                                        }, 2000); */
                                     }}
                                     key={i}
                                     ref={refsMap.get(object)}
