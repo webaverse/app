@@ -145,9 +145,9 @@ const _setSizes = () => {
 };
 
 const _setRendererSize = (width, height, pixelRatio) => {
-  // pause XR since it gets in the way of resize
   const renderer = getRenderer();
   if (renderer) {
+    // pause XR since it gets in the way of resize
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = false;
     }
