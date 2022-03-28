@@ -80,7 +80,7 @@ const InventoryObject = forwardRef(({
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(imageBitmap, x, y, frameSize, frameSize, 0, 0, canvas.width, canvas.height);
                 
-                frame = setTimeout(_recurse, frameTime);
+                timeout = setTimeout(_recurse, frameTime);
             };
             let timeout = setTimeout(_recurse, frameTime);
             return () => {
