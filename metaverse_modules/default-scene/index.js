@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile'
 import { TerrainManager } from './terrain-manager.js';
-import { Water } from './Water.js'
-import { Sky } from './Sky.js'
+import { Water } from 'three/examples/jsm/objects/Water'
+import { Sky } from 'three/examples/jsm/objects/Sky'
 
-const { useFrame, useLocalPlayer, useLoaders, useUi, usePhysics, useCleanup, useGeometryUtils } = metaversefile;
+const { useFrame, useLocalPlayer, usePhysics, useGeometryUtils } = metaversefile;
 
 
 export default () => {

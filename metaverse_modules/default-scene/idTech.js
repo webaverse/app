@@ -1,4 +1,9 @@
 import * as THREE from 'three';
+
+/**
+ * use Texture2D Array to load multiply textures;
+ * use Id to index texture
+ */
 export class IDTech {
     constructor(width = 512, count = 64) {
         this.width = width;
@@ -15,10 +20,15 @@ export class IDTech {
         this.texture.type = THREE.UnsignedByteType;
         this.texture.minFilter = THREE.LinearMipMapLinearFilter
         this.texture.magFilter = THREE.LinearFilter
-        this.texture.generateMipmaps = true;  
+        this.texture.generateMipmaps = true;
         this.loadDic = {};
     }
 
+    /**
+     * 加载目录下的所有纹理
+     * @param {*} basicPath   prefix
+     * @returns 
+     */
     loadAll(basicPath) {
         if (!this.imageLoader)
             this.imageLoader = new THREE.ImageLoader();
@@ -43,6 +53,12 @@ export class IDTech {
         }
     }
 
+    /**
+     * 添加相应的id的纹理
+     * @param {*} id 
+     * @param {*} url 
+     * @returns 
+     */
     addImage(id, url) {
         url = url || `${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}textures/terrain/terrain (${id + 1}).png`
         if (this.loadDic[id])
