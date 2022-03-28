@@ -14,6 +14,7 @@ for (let i = 0; i < userTokenObjects.length; i++) {
     userTokenObjects[i] = {
         name: '',
         start_url: '',
+        level: 0,
     };
 }
 const objects = {
@@ -21,6 +22,7 @@ const objects = {
         {
             name: 'Silsword',
             start_url: 'https://webaverse.github.io/silsword/',
+            level: 4,
         },
     ],
 };
@@ -99,6 +101,11 @@ const InventoryObject = forwardRef(({
                 height={frameSize}
                 ref={canvasRef}
             />
+
+            <div className={styles.row}>
+                <div className={styles.name}>{object?.name}</div>
+                <div className={styles.level}>Lv. {object?.level}</div>
+            </div>
 
         </div>
     );
