@@ -5,6 +5,12 @@
     right: 0;
 }
 
+
+.megaHotBox .canvas {
+    width: 400px;
+    height: 100vh;
+}
+
 /* .hotBox {
     position: relative;
     display: flex;

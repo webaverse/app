@@ -68,7 +68,7 @@ export const MegaHotBox = ({
           <div className={ styles.text }>{''}</div>
         </div>
         <canvas
-          className={ styles.hotbox }
+          className={ styles.canvas }
           width={width * pixelRatio}
           height={height * pixelRatio}
           ref={canvasRef}
