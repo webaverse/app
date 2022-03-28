@@ -1,3 +1,7 @@
+import {
+  bindCanvas,
+} from './renderer.js';
+
 const isTransferable = o => {
   const ctor = o?.constructor;
   return ctor === MessagePort ||
@@ -53,6 +57,11 @@ async function import2(s) {
     return null;
   }
 }
+
+const canvas = document.getElementById('canvas');
+window.innerWidth = canvas.width;
+window.innerHeight = canvas.height;
+bindCanvas(canvas);
 
 const match = location.hash.match(/^#id=(.+)$/);
 const id = match ? match[1] : null;
