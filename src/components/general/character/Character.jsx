@@ -117,6 +117,7 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
     });
 
     const [ dragEmotionIndex, setDragEmotionIndex ] = useState( -1 );
+    const [ emotionsOpen, setEmotionsOpen ] = useState( false );
     const emotionsRef = useRef();
     const localPlayer = metaversefile.useLocalPlayer();
     const sideSize = 400;
@@ -250,7 +251,13 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
 
             <div className={ styles.characterPanel } >
                 <div
-                    className={styles.emotions}
+                    className={classnames(styles.emotions, emotionsOpen ? styles.open : null)}
+                    onMouseEnter={e => {
+                        setEmotionsOpen(true);
+                    }}
+                    onMouseLeave={e => {
+                        setEmotionsOpen(false);
+                    }}
                     onMouseUp={e => {
                         document.exitPointerLock();
                         setDragEmotionIndex(-1);

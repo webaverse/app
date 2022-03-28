@@ -105,14 +105,25 @@
   display: flex;
   flex-direction: column;
   position: absolute;
-  top: 140px;
-  right: 0px;
-  transition: right 1s cubic-bezier(0, 1, 0, 1);
+  top: 100px;
+  left: calc(400px - var(--emotions-width));
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+
+.emotions:not(.open) .emotion {
+  display: none;
+}
+.emotions:not(.open) .emotion:first-child {
+  display: flex;
+}
+.emotions:not(.open) .emotion:first-child .emotionName,
+.emotions:not(.open) .emotion:first-child .emotionProgress
+{
+  display: none;
 }
 
 .characterWrapper.opened .emotions {
-  transform: translate( 0px, 0px );
-  right: calc(-1 * var(--emotions-width));
+  transform: translate( var(--emotions-width), 0px );
 }
 
 .header .tab.top.left:not(.open) .emotions {
@@ -124,6 +135,14 @@
   background-color: #000;
   cursor: ns-resize;
   transition: all 1s cubic-bezier(0, 1, 0, 1);
+}
+.emotions .emotion .emotionProgress,
+.emotions .emotion .emotionName,
+.emotions .emotion .emotionIcon,
+.emotions .emotion .emotionNamePlaceholder,
+.emotions .emotion .emotionIconPlaceholder
+{
+  pointer-events: none;  
 }
 .emotions .emotion .emotionProgress {
   position: absolute;
