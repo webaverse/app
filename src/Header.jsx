@@ -12,6 +12,7 @@ import ioManager from '../io-manager.js'
 
 import { Character } from './components/general/character';
 import { CharacterSelect } from './components/general/character-select';
+import { Inventory } from './components/general/inventory';
 import { Tokens } from './tabs/tokens';
 import { Claims } from './tabs/claims';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
@@ -281,6 +282,9 @@ export default function Header () {
                         />
                         <CharacterSelect
                             
+                        />
+                        <Inventory
+                        
                         />
                         <Claims
                             open={ claimsOpen }
