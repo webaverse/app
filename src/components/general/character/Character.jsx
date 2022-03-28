@@ -18,48 +18,82 @@ const emotions = [
     'fun',
     'surprise'
 ];
-const statSpecs = [
+const mainStatSpecs = [
     {
-        imgSrc: 'images/stats/noun-support-cure-2360283.svg',
+        // imgSrc: 'images/stats/noun-support-cure-2360283.svg',
+        // imgSrc: 'images/stats/noun-heart-1014575.svg',
+        // imgSrc: 'images/stats/noun-heart-4690409.svg',
+        imgSrc: 'images/stats/noun-angel-heart-1927972.svg',
         name: 'HP',
         className: 'hp',
+        progress: 61,
     },
     {
-        imgSrc: 'images/stats/noun-item-crystal-2360128.svg',
+        // imgSrc: 'images/stats/noun-item-crystal-2360128.svg',
+        // imgSrc: 'images/stats/noun-lightning-132277.svg',
+        // imgSrc: 'images/stats/noun-lightning-bolt-102450.svg',
+        // imgSrc: 'images/stats/noun-galaxy-1903702.svg',
+        // imgSrc: 'images/stats/noun-vortex-2806401.svg',
+        imgSrc: 'images/stats/noun-vortex-2806369.svg',
         name: 'MP',
-        className: 'hp',
+        className: 'mp',
+        progress: 23,
     },
+];
+const statSpecs = [
     {
         // imgSrc: 'images/noun-abnormal-bleeding-2360001.svg',
         imgSrc: 'images/stats/noun-skill-sword-swing-2360242.svg',
         // imgSrc: 'images/noun-effect-circle-strike-2360022.svg',
-        name: 'Attack',
+        name: 'Atk',
+        value: 23,
     },
     {
         imgSrc: 'images/stats/noun-abnormal-burned-2359995.svg',
-        name: 'Defense',
+        name: 'Def',
+        value: 17,
     },
     {
         // imgSrc: 'images/stats/noun-skill-magic-shock-2360168.svg',
         // imgSrc: 'images/noun-classes-magician-2360012.svg',
         imgSrc: 'images/stats/noun-skill-dna-2360269.svg',
-        name: 'Vitality',
+        name: 'Vit',
+        value: 10,
     },
     {
         imgSrc: 'images/stats/noun-skill-magic-chain-lightning-2360268.svg',
-        name: 'Spirit',
+        name: 'Spr',
+        value: 9,
     },
     {
         imgSrc: 'images/stats/noun-skill-speed-down-2360205.svg',
-        name: 'Dexterity',
+        name: 'Dex',
+        value: 50,
     },
     {
         imgSrc: 'images/stats/noun-effect-circle-strike-2360022.svg',
-        name: 'Luck',
+        name: 'Lck',
+        value: 7,
     },
 ];
 
 //
+
+const Stat = ({
+    statSpec,
+}) => {
+    return (
+        <div className={styles.stat}>
+            <img className={styles.icon} src={statSpec.imgSrc} />
+            <div className={styles.wrap}>
+                <div className={styles.statName}>{statSpec.name}</div>
+                {statSpec.progress ? (
+                    <progress className={styles.progress} value={statSpec.progress} />
+                )  : null}
+            </div>
+        </div>
+    );
+};
 
 export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
 
@@ -269,23 +303,15 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
                             <img className={styles.icon} src="images/ui/xp-bar.svg" />
                         </div> */}
                         {/* <div className={classnames(styles['panel-section'], styles['name-placeholder'])} /> */}
-                        <div className={ styles.row } >
-                            <h2>HP</h2>
-                            <progress value={61} />
-                        </div>
-                        <div className={ styles.row } >
-                            <h2>MP</h2>
-                            <progress value={83} />
-                        </div>
                     </div>
-                    <div className={styles.stats}>
+                    <div className={classnames(styles.stats, styles.main)}>
+                        {mainStatSpecs.map((statSpec, i) => {
+                            return <Stat statSpec={statSpec} key={i} />;
+                        })}
+                    </div>
+                    <div className={classnames(styles.stats, styles.sub)}>
                         {statSpecs.map((statSpec, i) => {
-                            return (
-                            <div className={styles.stat} key={i}>
-                                <img className={styles.icon} src={statSpec.imgSrc} />
-                                <div className={styles.statName}>{statSpec.name}</div>
-                            </div>
-                            );
+                            return <Stat statSpec={statSpec} key={i} />;
                         })}
                     </div>
                     {wearActions.map((wearAction, i) => {
