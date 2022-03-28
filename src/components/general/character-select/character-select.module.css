@@ -14,10 +14,14 @@
 .characterSelect .menu.open {
   transform: translateY(calc(-100vh + 200px));
 }
+.characterSelect .menu .heading,
+.characterSelect .menu .subheading
+{
+  padding: 15px;
+}
 .characterSelect h1,
 .characterSelect h2
 {
-  margin: 15px;
   font-family: 'WinchesterCaps';
   letter-spacing: 1px;
 }
