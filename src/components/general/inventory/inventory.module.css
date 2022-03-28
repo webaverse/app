@@ -63,3 +63,30 @@
   border: 3px solid #282828;
   cursor: pointer;
 }
+
+/* */
+
+.inventoryObject {
+  position: relative;
+  background-color: #00000020;
+  border-radius: 1000px;
+  cursor: pointer;
+}
+.inventoryObject .background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #FFF;
+  border-radius: 1000px;
+  transform: scale(0, 0);
+  transform-origin: 50% 50%;
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+.inventoryObject:hover .background {
+  transform: none;
+}
+.inventoryObject .canvas {
+  position: relative;
+}

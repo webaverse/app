@@ -1,4 +1,3 @@
-
 import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
 // import metaversefile from 'metaversefile';
@@ -35,7 +34,7 @@ const InventoryObject = forwardRef(({
     const canvasRef = useRef();
 
     const size = 2048;
-    const numFrames = 32;
+    const numFrames = 128;
     const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
     const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
     const frameSize = size / numFramesPerRow;
@@ -92,14 +91,12 @@ const InventoryObject = forwardRef(({
     return (
         <div className={styles.inventoryObject} ref={ref}>
 
+            <div className={styles.background} />
+
             <canvas
                 className={styles.canvas}
                 width={frameSize}
                 height={frameSize}
-                style={{
-                    width: `150px`,
-                    height: `150px`,
-                }}
                 ref={canvasRef}
             />
 
