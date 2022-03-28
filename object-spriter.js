@@ -68,7 +68,7 @@ const createObjectSpriteInternal = (app, {
     const requiredWidth = frameSize * numFramesPerRow * pixelRatio;
     const requiredHeight = frameSize * numFramesPerRow * pixelRatio;
     if (requiredWidth > renderer.domElement.width || requiredHeight > renderer.domElement.height) {
-      console.log('resize to', requiredWidth / pixelRatio, requiredHeight / pixelRatio, pixelRatio);
+      // console.log('resize to', requiredWidth / pixelRatio, requiredHeight / pixelRatio, pixelRatio);
       renderer.setSize(requiredWidth / pixelRatio, requiredHeight / pixelRatio);
       renderer.setPixelRatio(pixelRatio);
     }
