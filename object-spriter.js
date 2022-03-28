@@ -10,9 +10,9 @@ import {fitCameraToBoundingBox} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
-const localVector2D2 = new THREE.Vector2();
+// const localVector3 = new THREE.Vector3();
+// const localVector2D = new THREE.Vector2();
+// const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 
@@ -41,10 +41,12 @@ const _makeSpritesheetRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h,
   wrapS: THREE.ClampToEdgeWrapping,
   wrapT: THREE.ClampToEdgeWrapping,
 });
-const createObjectSprite = (app, {
+const createObjectSpriteInternal = (app, {
   // canvas,
   size = defaultSize,
   numFrames = defaultNumFrames,
+} = {}, {
+  type = 'imageBitmap',
 } = {}) => {
   // const {devicePixelRatio: pixelRatio} = window;
 
@@ -59,10 +61,24 @@ const createObjectSprite = (app, {
   const frameSize = size / numFramesPerRow;
 
   // create render target
-  const renderTarget = _makeSpritesheetRenderTarget(size * pixelRatio, size * pixelRatio);
+  let renderTarget;
+  if (type === 'texture') {
+    renderTarget = _makeSpritesheetRenderTarget(size * pixelRatio, size * pixelRatio);
+  } else if (type === 'imageBitmap') {
+    const requiredWidth = frameSize * numFramesPerRow * pixelRatio;
+    const requiredHeight = frameSize * numFramesPerRow * pixelRatio;
+    if (requiredWidth > renderer.domElement.width || requiredHeight > renderer.domElement.height) {
+      console.log('resize to', requiredWidth / pixelRatio, requiredHeight / pixelRatio, pixelRatio);
+      renderer.setSize(requiredWidth / pixelRatio, requiredHeight / pixelRatio);
+      renderer.setPixelRatio(pixelRatio);
+    }
+  }
 
   // push old state
-  const oldRenderTarget = renderer.getRenderTarget();
+  let oldRenderTarget;
+  if (type === 'texture') {
+    oldRenderTarget = renderer.getRenderTarget();
+  }
   const oldViewport = renderer.getViewport(localVector4D);
   
   {
@@ -107,7 +123,9 @@ const createObjectSprite = (app, {
       sideCamera.updateMatrixWorld();
       
       // render side scene
-      renderer.setRenderTarget(renderTarget);
+      if (type === 'texture') {
+        renderer.setRenderTarget(renderTarget);
+      }
       renderer.setViewport(x*frameSize, y*frameSize, frameSize, frameSize);
       // console.log('render', {x, y, frameSize, numFrames, numFramesPerRow});
       // renderer.clear();
@@ -139,17 +157,44 @@ const createObjectSprite = (app, {
   }
 
   // pop old state
-  renderer.setRenderTarget(oldRenderTarget);
+  if (type === 'texture') {
+    renderer.setRenderTarget(oldRenderTarget);
+  }
   renderer.setViewport(oldViewport);
 
-  return {
-    texture: renderTarget.texture,
-    numFrames,
-    frameSize,
-    numFramesPerRow,
-  };
+  if (type === 'texture') {
+    return {
+      result: renderTarget.texture,
+      numFrames,
+      frameSize,
+      numFramesPerRow,
+    };
+  } else if (type === 'imageBitmap') {
+    return (async () => {
+      const imageBitmap = await createImageBitmap(renderer.domElement, 0, 0, size, size);
+      return {
+        result: imageBitmap,
+        numFrames,
+        frameSize,
+        numFramesPerRow,
+      }
+    })();
+  } else {
+    throw new Error('Unknown type');
+  }
+};
+const createObjectSprite = (app, opts) => {
+  return createObjectSpriteInternal(app, opts, {
+    type: 'texture',
+  });
+};
+const createObjectSpriteAsync = (app, opts) => {
+  return createObjectSpriteInternal(app, opts, {
+    type: 'imageBitmap',
+  });
 };
 
 export {
   createObjectSprite,
+  createObjectSpriteAsync,
 };
