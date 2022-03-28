@@ -1,5 +1,5 @@
 import {localPlayer} from './players.js';
-import {createHotbarRenderer} from './hotbar.js';
+import {LoadoutRenderer} from './loadout-renderer.js';
 import {createInfoboxRenderer} from './infobox.js';
 import {createObjectSprite} from './object-spriter.js';
 import {hotbarSize, infoboxSize} from './constants.js';
@@ -59,7 +59,7 @@ class LoadoutManager extends EventTarget {
 
       for (let i = 0; i < numSlots; i++) {
         const selected = i === this.selectedIndex;
-        const hotbarRenderer = createHotbarRenderer(size, size, selected);
+        const hotbarRenderer = new LoadoutRenderer(size, size, selected);
         this.hotbarRenderers.push(hotbarRenderer);
       }
     }
