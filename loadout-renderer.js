@@ -473,12 +473,6 @@ class LoadoutRenderer {
   }
 }
 
-/* const createLoadoutRenderer = (width, height, selected) => {
-  const loutoutRenderer = new LoadoutRenderer(width, height, selected);
-  return loutoutRenderer;
-}; */
-
 export {
   LoadoutRenderer,
-  // createLoadoutRenderer,
 };
