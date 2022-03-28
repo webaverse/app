@@ -439,7 +439,7 @@
   display: flex;
   margin: 10px 15px;
   margin-top: 0;
-  background-image: linear-gradient(to bottom, #222, #111);
+  background-image: linear-gradient(to bottom, #181818, #080808);
   border-radius: 10px;
   box-shadow: 1px 2px 0 #080808;
 }
