@@ -578,7 +578,6 @@ const _findBoneDeep = (bones, boneName) => {
 }; */
 
 const boneRadius = 0.03;
-const minHeight = 0.1;
 // const baseScale = 0.02;
 // const fingerScale = 0.2;
 // const physicsBoneScaleFactor = 0.8;
@@ -670,12 +669,12 @@ const _makeRagdollMesh = () => {
       Left_shoulder: _makeCubeMesh('Left_shoulder', true),
       Left_arm: _makeCubeMesh('Left_arm', true),
       Left_elbow: _makeCubeMesh('Left_elbow', true),
-      // Left_wrist: _makeCubeMesh('Left_wrist', true),
+      Left_wrist: _makeCubeMesh('Left_wrist', true),
 
       Right_shoulder: _makeCubeMesh('Right_shoulder', true),
       Right_arm: _makeCubeMesh('Right_arm', true),
       Right_elbow: _makeCubeMesh('Right_elbow', true),
-      // Right_wrist: _makeCubeMesh('Right_wrist', true),
+      Right_wrist: _makeCubeMesh('Right_wrist', true),
       
       /* Left_thumb0: _makeCubeMesh('Left_thumb0', true, fingerScale),
       Left_thumb1: _makeCubeMesh('Left_thumb1', true, fingerScale),
@@ -711,12 +710,12 @@ const _makeRagdollMesh = () => {
 
       Left_leg: _makeCubeMesh('Left_leg', false),
       Left_knee: _makeCubeMesh('Left_knee', false),
-      // Left_ankle: _makeCubeMesh('Left_ankle', false),
+      Left_ankle: _makeCubeMesh('Left_ankle', false),
       // Left_toe: _makeCubeMesh('Left_toe', false),
 
       Right_leg: _makeCubeMesh('Right_leg', false),
       Right_knee: _makeCubeMesh('Right_knee', false),
-      // Right_ankle: _makeCubeMesh('Right_ankle', false),
+      Right_ankle: _makeCubeMesh('Right_ankle', false),
       // Right_toe: _makeCubeMesh('Right_toe', false),
     };
 
@@ -726,24 +725,24 @@ const _makeRagdollMesh = () => {
     mesh.Spine.add2(mesh.Chest);
     mesh.Chest.add2(mesh.UpperChest);
 
-    // // head
+    // head
     mesh.UpperChest.add2(mesh.Neck);
     mesh.Neck.add2(mesh.Head);
     // mesh.Head.add2(mesh.Eye_L);
     // mesh.Head.add2(mesh.Eye_R);
 
-    // // shoulders
+    // shoulders
     mesh.UpperChest.add2(mesh.Left_shoulder);
     mesh.UpperChest.add2(mesh.Right_shoulder);
 
-    // // arms
+    // arms
     mesh.Left_shoulder.add2(mesh.Left_arm);
     mesh.Left_arm.add2(mesh.Left_elbow);
-    // mesh.Left_elbow.add2(mesh.Left_wrist);
+    mesh.Left_elbow.add2(mesh.Left_wrist);
 
     mesh.Right_shoulder.add2(mesh.Right_arm);
     mesh.Right_arm.add2(mesh.Right_elbow);
-    // mesh.Right_elbow.add2(mesh.Right_wrist);
+    mesh.Right_elbow.add2(mesh.Right_wrist);
 
     /* // hands
     mesh.Left_wrist.add2(mesh.Left_thumb0);
@@ -781,12 +780,12 @@ const _makeRagdollMesh = () => {
     // legs
     mesh.Hips.add2(mesh.Left_leg);
     mesh.Left_leg.add2(mesh.Left_knee);
-    // mesh.Left_knee.add2(mesh.Left_ankle);
+    mesh.Left_knee.add2(mesh.Left_ankle);
     // mesh.Left_ankle.add2(mesh.Left_toe);
 
     mesh.Hips.add2(mesh.Right_leg);
     mesh.Right_leg.add2(mesh.Right_knee);
-    // mesh.Right_knee.add2(mesh.Right_ankle);
+    mesh.Right_knee.add2(mesh.Right_ankle);
     // mesh.Right_ankle.add2(mesh.Right_toe);
     
     return mesh;
@@ -846,7 +845,7 @@ const _makeRagdollMesh = () => {
         if (k === 'Hips') {
           modelBoneEnd = modelBoneStart.clone();
           // return baseScale * 0.5;
-          return Math.max(minHeight, boneRadius * 2);
+          return Math.max(0.1, boneRadius * 2);
         } else {
           if (children.length === 0) {
             const diff = new THREE.Vector3().setFromMatrixPosition(modelBone.matrixWorld)
@@ -856,7 +855,7 @@ const _makeRagdollMesh = () => {
               .add(
                 diff
               );
-            return Math.max(-Infinity, length); // same length as parent
+            return Math.max(0.08, length); // same length as parent
           } else {
             // todo: use real bone end, instead of calculated.
             const acc = new THREE.Vector3();
@@ -865,7 +864,7 @@ const _makeRagdollMesh = () => {
               acc.add(localVector);
             }
             modelBoneEnd = acc.divideScalar(children.length);
-            return Math.max(-Infinity, modelBoneStart.distanceTo(modelBoneEnd));
+            return Math.max(0.08, modelBoneStart.distanceTo(modelBoneEnd));
           }
         }
       })();
@@ -1005,6 +1004,14 @@ const _makeRagdollMesh = () => {
     physicsManager.setJointMotion(jointLeft_armLeft_elbow, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
     physicsManager.setJointSwingLimit(jointLeft_armLeft_elbow,       71 * DEG2RAD,      0 * DEG2RAD);
 
+    const jointLeft_elbowLeft_wrist = physicsManager.addJoint(flatMeshes.Left_elbow, flatMeshes.Left_wrist, 
+      avatar.modelBoneOutputs.Left_elbow.modelBoneEnd.clone().multiplyScalar(0.5), 
+      avatar.modelBoneOutputs.Left_wrist.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 30 * DEG2RAD)), new THREE.Quaternion(), false);
+    physicsManager.setJointMotion(jointLeft_elbowLeft_wrist, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    physicsManager.setJointMotion(jointLeft_elbowLeft_wrist, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    physicsManager.setJointSwingLimit(jointLeft_elbowLeft_wrist,       10 * DEG2RAD,      60 * DEG2RAD);
+
     const jointRight_shoulderRight_arm = physicsManager.addJoint(flatMeshes.Right_shoulder, flatMeshes.Right_arm, 
       avatar.modelBoneOutputs.Right_shoulder.modelBoneEnd.clone().multiplyScalar(0.5), 
       avatar.modelBoneOutputs.Right_arm.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
@@ -1019,6 +1026,14 @@ const _makeRagdollMesh = () => {
       new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 70 * DEG2RAD, 0)), new THREE.Quaternion(), false);
     physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
     physicsManager.setJointSwingLimit(jointRight_armRight_elbow,       71 * DEG2RAD,      0 * DEG2RAD);
+
+    const jointRight_elbowRight_wrist = physicsManager.addJoint(flatMeshes.Right_elbow, flatMeshes.Right_wrist, 
+      avatar.modelBoneOutputs.Right_elbow.modelBoneEnd.clone().multiplyScalar(0.5), 
+      avatar.modelBoneOutputs.Right_wrist.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -30 * DEG2RAD)), new THREE.Quaternion(), false);
+    physicsManager.setJointMotion(jointRight_elbowRight_wrist, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    physicsManager.setJointMotion(jointRight_elbowRight_wrist, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    physicsManager.setJointSwingLimit(jointRight_elbowRight_wrist,       10 * DEG2RAD,      60 * DEG2RAD);
 
     // legs
     const jointHipsLeft_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Left_leg, 
@@ -1048,12 +1063,44 @@ const _makeRagdollMesh = () => {
     physicsManager.setJointMotion(jointLeft_legLeft_knee, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointLeft_legLeft_knee,     -Math.PI * 0.,      Math.PI * 0.6);
 
+    const jointLeft_kneeLeft_ankle = physicsManager.addJoint(flatMeshes.Left_knee, flatMeshes.Left_ankle, 
+      avatar.modelBoneOutputs.Left_knee.modelBoneEnd.clone().multiplyScalar(0.5), 
+      avatar.modelBoneOutputs.Left_ankle.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)), new THREE.Quaternion(), false);
+    physicsManager.setJointMotion(jointLeft_kneeLeft_ankle, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    physicsManager.setJointMotion(jointLeft_kneeLeft_ankle, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    physicsManager.setJointTwistLimit(jointLeft_kneeLeft_ankle,       -10 * DEG2RAD,      30 * DEG2RAD);
+    physicsManager.setJointSwingLimit(jointLeft_kneeLeft_ankle,       30 * DEG2RAD,      0 * DEG2RAD);
+
+    // const jointLeft_ankleLeft_toe = physicsManager.addJoint(flatMeshes.Left_ankle, flatMeshes.Left_toe, 
+    //   avatar.modelBoneOutputs.Left_ankle.modelBoneEnd.clone().multiplyScalar(0.5), 
+    //   avatar.modelBoneOutputs.Left_toe.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
+    //   new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)), new THREE.Quaternion(), false);
+    // physicsManager.setJointMotion(jointLeft_ankleLeft_toe, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointLeft_ankleLeft_toe,       -10 * DEG2RAD,      90 * DEG2RAD);
+
     const jointRight_legRight_knee = physicsManager.addJoint(flatMeshes.Right_leg, flatMeshes.Right_knee, 
       avatar.modelBoneOutputs.Right_leg.modelBoneEnd.clone().multiplyScalar(0.5), 
       avatar.modelBoneOutputs.Right_knee.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
       new THREE.Quaternion(), new THREE.Quaternion(), false);
     physicsManager.setJointMotion(jointRight_legRight_knee, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointRight_legRight_knee,   -Math.PI * 0.,      Math.PI * 0.6);
+
+    const jointRight_kneeRight_ankle = physicsManager.addJoint(flatMeshes.Right_knee, flatMeshes.Right_ankle, 
+      avatar.modelBoneOutputs.Right_knee.modelBoneEnd.clone().multiplyScalar(0.5), 
+      avatar.modelBoneOutputs.Right_ankle.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)), new THREE.Quaternion(), false);
+    physicsManager.setJointMotion(jointRight_kneeRight_ankle, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    physicsManager.setJointMotion(jointRight_kneeRight_ankle, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    physicsManager.setJointTwistLimit(jointRight_kneeRight_ankle,       -10 * DEG2RAD,      30 * DEG2RAD);
+    physicsManager.setJointSwingLimit(jointRight_kneeRight_ankle,       30 * DEG2RAD,      0 * DEG2RAD);
+
+    // const jointRight_ankleRight_toe = physicsManager.addJoint(flatMeshes.Right_ankle, flatMeshes.Right_toe, 
+    //   avatar.modelBoneOutputs.Right_ankle.modelBoneEnd.clone().multiplyScalar(0.5), 
+    //   avatar.modelBoneOutputs.Right_toe.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
+    //   new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)), new THREE.Quaternion(), false);
+    // physicsManager.setJointMotion(jointRight_ankleRight_toe, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointRight_ankleRight_toe,       -10 * DEG2RAD,      90 * DEG2RAD);
 
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k]
@@ -1169,11 +1216,35 @@ const _makeRagdollMesh = () => {
       avatar.modelBoneOutputs.Left_knee.quaternion.copy(b);
     }
     {
+      const a = flatMeshes.Left_knee.quaternion.clone();
+      const c = flatMeshes.Left_ankle.quaternion.clone();
+      const b = c.clone().invert().multiply(a).invert();
+      avatar.modelBoneOutputs.Left_ankle.quaternion.copy(b);
+    }
+    // {
+    //   const a = flatMeshes.Left_ankle.quaternion.clone();
+    //   const c = flatMeshes.Left_toe.quaternion.clone();
+    //   const b = c.clone().invert().multiply(a).invert();
+    //   avatar.modelBoneOutputs.Left_toe.quaternion.copy(b);
+    // }
+    {
       const a = flatMeshes.Right_leg.quaternion.clone();
       const c = flatMeshes.Right_knee.quaternion.clone();
       const b = c.clone().invert().multiply(a).invert();
       avatar.modelBoneOutputs.Right_knee.quaternion.copy(b);
     }
+    {
+      const a = flatMeshes.Right_knee.quaternion.clone();
+      const c = flatMeshes.Right_ankle.quaternion.clone();
+      const b = c.clone().invert().multiply(a).invert();
+      avatar.modelBoneOutputs.Right_ankle.quaternion.copy(b);
+    }
+    // {
+    //   const a = flatMeshes.Right_ankle.quaternion.clone();
+    //   const c = flatMeshes.Right_toe.quaternion.clone();
+    //   const b = c.clone().invert().multiply(a).invert();
+    //   avatar.modelBoneOutputs.Right_toe.quaternion.copy(b);
+    // }
     {
       const a = flatMeshes.Left_shoulder.quaternion.clone();
       const c = flatMeshes.Left_arm.quaternion.clone();
@@ -1187,6 +1258,12 @@ const _makeRagdollMesh = () => {
       avatar.modelBoneOutputs.Left_elbow.quaternion.copy(b);
     }
     {
+      const a = flatMeshes.Left_elbow.quaternion.clone();
+      const c = flatMeshes.Left_wrist.quaternion.clone();
+      const b = c.clone().invert().multiply(a).invert();
+      avatar.modelBoneOutputs.Left_wrist.quaternion.copy(b);
+    }
+    {
       const a = flatMeshes.Right_shoulder.quaternion.clone();
       const c = flatMeshes.Right_arm.quaternion.clone();
       const b = c.clone().invert().multiply(a).invert();
@@ -1197,6 +1274,12 @@ const _makeRagdollMesh = () => {
       const c = flatMeshes.Right_elbow.quaternion.clone();
       const b = c.clone().invert().multiply(a).invert();
       avatar.modelBoneOutputs.Right_elbow.quaternion.copy(b);
+    }
+    {
+      const a = flatMeshes.Right_elbow.quaternion.clone();
+      const c = flatMeshes.Right_wrist.quaternion.clone();
+      const b = c.clone().invert().multiply(a).invert();
+      avatar.modelBoneOutputs.Right_wrist.quaternion.copy(b);
     }
     {
       const a = flatMeshes.UpperChest.quaternion.clone();
