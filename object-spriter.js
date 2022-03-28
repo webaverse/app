@@ -14,6 +14,7 @@ const localVector2 = new THREE.Vector3();
 // const localVector2D = new THREE.Vector2();
 // const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
+const localColor = new THREE.Color();
 const localMatrix = new THREE.Matrix4();
 
 const defaultSize = 2048;
@@ -80,17 +81,19 @@ const createObjectSpriteInternal = (app, {
     oldRenderTarget = renderer.getRenderTarget();
   }
   const oldViewport = renderer.getViewport(localVector4D);
+  const oldClearColor = renderer.getClearColor(localColor);
+  const oldClearAlpha = renderer.getClearAlpha();
   
   {
-    /* const originalPosition = app.position.clone();
-    const originalQuaternion = app.quaternion.clone();
-    const originalScale = app.scale.clone();
-    const originalMatrix = app.matrix.clone();
-    const originalMatrixWorld = app.matrixWorld.clone(); */
-
     const originalParent = app.parent;
     sideScene.add(app);
     sideScene.updateMatrixWorld();
+
+    if (type === 'texture') {
+      renderer.setRenderTarget(renderTarget);
+    }
+    renderer.setClearColor(0xffffff, 0);
+    renderer.clear();
 
     for (let i = 0; i < numFrames; i++) {
       const y = Math.floor(i / numFramesPerRow);
@@ -119,41 +122,18 @@ const createObjectSpriteInternal = (app, {
           )
         );
       }
-      // console.log('render position', sideCamera.position.toArray(), app.position.toArray());
       sideCamera.updateMatrixWorld();
       
       // render side scene
-      if (type === 'texture') {
-        renderer.setRenderTarget(renderTarget);
-      }
       renderer.setViewport(x*frameSize, y*frameSize, frameSize, frameSize);
-      // console.log('render', {x, y, frameSize, numFrames, numFramesPerRow});
-      // renderer.clear();
       renderer.render(sideScene, sideCamera);
-  
-      /* for (const canvas of canvases) {
-        const {width, height, ctx} = canvas;
-        ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(
-          renderer.domElement,
-          0,
-          size.y * pixelRatio - this.height * pixelRatio,
-          this.width * pixelRatio,
-          this.height * pixelRatio,
-          0,
-          0,
-          width,
-          height
-        );
-      } */
     }
 
-    originalParent && originalParent.add(app);
-    /* app.position.copy(originalPosition);
-    app.quaternion.copy(originalQuaternion);
-    app.scale.copy(originalScale);
-    app.matrix.copy(originalMatrix);
-    app.matrixWorld.copy(originalMatrixWorld); */
+    if (originalParent) {
+      originalParent.add(app);
+    } else {
+      sideScene.remove(app);
+    }
   }
 
   // pop old state
@@ -161,7 +141,9 @@ const createObjectSpriteInternal = (app, {
     renderer.setRenderTarget(oldRenderTarget);
   }
   renderer.setViewport(oldViewport);
+  renderer.setClearColor(oldClearColor, oldClearAlpha);
 
+  // return result
   if (type === 'texture') {
     return {
       result: renderTarget.texture,
