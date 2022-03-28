@@ -35,10 +35,12 @@ const InventoryObject = forwardRef(({
     const canvasRef = useRef();
 
     const size = 2048;
-    const numFrames = 128;
+    const numFrames = 32;
     const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
     const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
     const frameSize = size / numFramesPerRow;
+    const frameLoopTime = 2000;
+    const frameTime = frameLoopTime / numFrames;
 
     useEffect(() => {
         if (object?.start_url) {
@@ -66,8 +68,24 @@ const InventoryObject = forwardRef(({
         if (canvas && spritesheet) {
             const ctx = canvas.getContext('2d');
             const imageBitmap = spritesheet.result;
-            console.log('render image bitmap', imageBitmap, size, canvas.width, canvas.height);
-            ctx.drawImage(imageBitmap, 0, 0, size, size, 0, 0, canvas.width, canvas.height);
+            // console.log('render image bitmap', imageBitmap, size, canvas.width, canvas.height);
+            // ctx.drawImage(imageBitmap, 0, 0, size, size, 0, 0, canvas.width, canvas.height);
+
+            let frameIndex = 0;
+            const _recurse = () => {
+                const x = (frameIndex % numFramesPerRow) * frameSize;
+                const y = size - frameSize - Math.floor(frameIndex / numFramesPerRow) * frameSize;
+                frameIndex = (frameIndex + 1) % numFrames;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(imageBitmap, x, y, frameSize, frameSize, 0, 0, canvas.width, canvas.height);
+                
+                frame = setTimeout(_recurse, frameTime);
+            };
+            let timeout = setTimeout(_recurse, frameTime);
+            return () => {
+                clearTimeout(timeout);
+            };
         }
     }, [canvasRef, spritesheet]);
 
@@ -76,11 +94,11 @@ const InventoryObject = forwardRef(({
 
             <canvas
                 className={styles.canvas}
-                width={size}
-                height={size}
+                width={frameSize}
+                height={frameSize}
                 style={{
-                    width: `500px`,
-                    height: `500px`,
+                    width: `150px`,
+                    height: `150px`,
                 }}
                 ref={canvasRef}
             />
