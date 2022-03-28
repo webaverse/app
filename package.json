@@ -11,8 +11,7 @@
     "serve": "vite preview --port 8080",
     "setup:test": "cd test && npm i",
     "test": "cd test && npm run test",
-    "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000",
-    "vercel-install": "./vercel-workaround.sh && yarn --ignore-scripts --production=false"
+    "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000"
   },
   "dependencies": {
     "@3id/connect": "^0.2.5",
