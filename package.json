@@ -8,7 +8,7 @@
     "dev": "node index.mjs",
     "prod": "sudo $(which node) index.mjs -p",
     "build": "vite build",
-    "serve": "vite preview",
+    "serve": "vite preview --port 8080",
     "setup:test": "cd test && npm i",
     "test": "cd test && npm run test",
     "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000",
