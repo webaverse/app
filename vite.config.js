@@ -8,6 +8,7 @@ import {transform} from 'esbuild';
 import glob from 'glob';
 import {dependencies} from './package.json';
 import {copySync} from 'fs-extra';
+import {cacheBuild} from 'rollup-cache';
 
 const esbuildLoaders = ['js', 'jsx', 'mjs', 'cjs'];
 let plugins = [
@@ -277,23 +278,26 @@ const build = () => {
 plugins = process.env.NODE_ENV !== 'production' ? plugins.concat([metaversefilePlugin()]) : plugins.concat([
   build(),
 ]);
-
+const cacheConfig = {
+  name: 'my-app',
+};
 /** Vite config for production */
 const viteConfigProduction = {
   build: {
     polyfillModulePreload: false,
     format: 'es',
     target: 'esnext',
+    sourceMap: false,
     ...(process.argv.find(a => a === '--watch') ? {
       watch: {
         clearScreen: true,
-        include: '**/**',
-        exclude: 'node_modules/**',
+        include: '**/*.js(x)',
+        exclude: '(node_modules/**|dist)',
       },
     } : {}),
     manifest: true,
     minify: false,
-    rollupOptions: {
+    rollupOptions: cacheBuild(cacheConfig, {
       preserveEntrySignatures: 'strict',
       output: {
         // __vite_skip_esbuild__: true,
@@ -318,7 +322,7 @@ const viteConfigProduction = {
         chunkFileNames: 'assets/[name].js',
         entryFileNames: 'assets/[name].js',
       },
-    },
+    }),
   },
 };
 
