@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile'
 import { TerrainManager } from './terrain-manager.js';
-import { Water } from './Water.js'
-import { Sky } from './Sky.js'
+import { Water } from 'three/examples/jsm/objects/Water'
+import { Sky } from 'three/examples/jsm/objects/Sky'
 
 const { useFrame, useLocalPlayer, useLoaders, useUi, usePhysics, useCleanup, useGeometryUtils, useInternals } = metaversefile;
 
@@ -18,7 +18,8 @@ export default () => {
 
     const terrainManager = new TerrainManager(128, 2, geometryUtils, useInternals().renderer);
 
-    let player;
+    let player  = useLocalPlayer();
+    player.position.y = 150;
 
     terrainManager.init().then(() => {
 
@@ -52,12 +53,9 @@ export default () => {
             }
         };
         // terrainManager.updateCenter(player.position);
-        // terrainManager.updateChunk();
-
+        // terrainManager.updateChunk(); 
         player.position.y = 150;
     });
-
-    player = useLocalPlayer();
 
     useFrame(() => {
 

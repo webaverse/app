@@ -10,6 +10,9 @@ IdtechBasic.loadAll('textures/terrain/terrain ');
 const IdtechNormal = new IDTech(512, 64);
 IdtechNormal.loadAll('textures/terrainnormal/terrain normal ');
 
+/**
+ * GradientMap
+ */
 const gradientMaps = (function () {
 
     const threeTone = textureLoader.load('./textures/threeTone.jpg');
@@ -43,10 +46,14 @@ terrainMaterial.onBeforeCompile = (shader, renderer) => {
 
 
     shader.defines = shader.defines || {};
-    shader.defines['USE_TRIPLANETEXTURE'] = '';
+    //USE_TERRAIN  open terrain render
+    shader.defines['USE_TERRAIN'] = '';
 
+    //terrain map
     shader.uniforms.terrainArrayTexture = { value: IdtechBasic.texture };
+    //terrain normal map
     shader.uniforms.terrainNormalArrayTexture = { value: IdtechNormal.texture };
+    //noise map use to random sampler
     shader.uniforms.noiseTexture = { value: noiseTexture };
 }
 
@@ -68,7 +75,7 @@ varying vec3 vViewPosition;
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
 
-#ifdef USE_TRIPLANETEXTURE
+#ifdef USE_TERRAIN
     attribute vec3 biome;
 
     out vec3  vtriCoord;
@@ -104,7 +111,7 @@ void main() {
 
 	#include <worldpos_vertex>
 
-    #if defined(USE_TRIPLANETEXTURE) 
+    #if defined(USE_TERRAIN) 
         vbiome0 = biome.x;
         vbiome1 = biome.y;
         biomeAmount = biome.z;
@@ -168,8 +175,7 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
 
-
-#ifdef USE_TRIPLANETEXTURE
+#ifdef USE_TERRAIN
     precision highp sampler2DArray;
     uniform sampler2DArray terrainArrayTexture;
     uniform sampler2DArray terrainNormalArrayTexture ;
@@ -183,6 +189,9 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
     in vec3 vtriNormal;
  
     float sum( vec4 v ) { return v.x+v.y+v.z; } 
+    /**
+     * texture random sampler
+     */
     vec4 randomTexture(sampler2DArray samp, vec3 uvi)
     {
         vec2 uv = uvi.xy;
@@ -278,7 +287,7 @@ void main() {
 	#include <logdepthbuf_fragment>
 	#include <map_fragment>
 
-    #ifdef USE_TRIPLANETEXTURE 
+    #ifdef USE_TERRAIN 
         vec3 blending = normalize(max(abs(vtriNormal), 0.001)); // Force weights to sum to 1.0
         blending = blending / (blending.x + blending.y + blending.z);  
 
@@ -300,7 +309,7 @@ void main() {
 	#include <normal_fragment_begin>
 	#include <normal_fragment_maps>
 
-    #ifdef USE_TRIPLANETEXTURE
+    #ifdef USE_TERRAIN
         vec3 normal0 = triplanarNormal(vtriCoord,normal,blending, vbiome0, terrainNormalArrayTexture,10.0);
         vec3 normal1 = triplanarNormal(vtriCoord,normal,blending, vbiome1, terrainNormalArrayTexture,10.0);
         
