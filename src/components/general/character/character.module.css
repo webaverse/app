@@ -473,11 +473,17 @@
   justify-content: space-evenly;
   align-items: center;
 }
+.characterPanel .stats.sub {
+  padding: 0 15px;
+}
 .characterPanel .stats.sub .stat {
-  width: calc(50% - 15px);
-  background-color: #111;
+  width: calc(50% - 4px);
+  background-color: #080808;
   border-radius: 7px;
-  margin-bottom: 7px;
+  margin-bottom: 5px;
+}
+.characterPanel .stats.sub .stat:nth-child(odd) {
+  margin-right: 5px;
 }
 .characterPanel .stats.sub .stat .wrap {
   flex: 1;
