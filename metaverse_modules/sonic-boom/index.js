@@ -32,10 +32,10 @@ export default () => {
             //console.log(camera.rotation.y-localPlayer.rotation.y);
             //console.log(localPlayer.actionInterpolants.jump)
             currentPos.x=localPlayer.position.x;
-            currentPos.y=localPlayer.position.y;
+            //currentPos.y=localPlayer.position.y;
             currentPos.z=localPlayer.position.z;
             currentDir.x=currentPos.x-prePos.x;
-            currentDir.y=currentPos.y-prePos.y;
+            //currentDir.y=currentPos.y-prePos.y;
             currentDir.z=currentPos.z-prePos.z;
             currentDir.normalize();
             if (localPlayer.hasAction('narutoRun')){
@@ -47,7 +47,7 @@ export default () => {
                 
             }
             prePos.x=currentPos.x;
-            prePos.y=currentPos.y;
+            //prePos.y=currentPos.y;
             prePos.z=currentPos.z;     
             
         });
