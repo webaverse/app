@@ -48,6 +48,7 @@
   position: relative;
   display: flex;
   flex-wrap: wrap;
+  padding-left: 20px;
 }
 .inventory .list .item {
   position: relative;
@@ -71,6 +72,7 @@
   
   display: flex;
   position: relative;
+  padding: 5px;
   flex-direction: column;
   cursor: pointer;
 }
