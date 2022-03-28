@@ -1,4 +1,4 @@
-.character-hups {
+.characterHups {
   position: absolute;
   top: 100px;
   left: 0;
@@ -6,27 +6,27 @@
   flex-direction: column;
   z-index: 1;
 }
-.character-hups > .character-hup {
+.characterHups > .characterHup {
   display: flex;
   position: absolute;
   transform: translate3d(0, 0, 0);
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
-.character-hups > .character-hup:not(.open) {
+.characterHups > .characterHup:not(.open) {
   transform: translate3d(-100%, 0, 0);
   /* transition: transform 1s ease-out; */
 }
-.character-hups > .character-hup.open {
+.characterHups > .characterHup.open {
   /* transition: transform 1s cubic-bezier(0, 1, 0, 1); */
 }
-.character-hups > .character-hup {
+.characterHups > .characterHup {
   --height: 256px;
   --color: #111;
   --color2: #222;
   height: var(--height);
   color: #FFF;
 }
-.character-hups > .character-hup .message {
+.characterHups > .characterHup .message {
   position: relative;
   display: flex;
   width: 500px;
@@ -42,7 +42,7 @@
   align-items: flex-start;
   float: left; */
 }
-.character-hups > .character-hup .name {
+.characterHups > .characterHup .name {
   position: absolute;
   display: flex;
   top: 0;
@@ -56,37 +56,37 @@
   align-items: center;
   background-image: linear-gradient(to bottom, #222, #111);
 }
-.character-hups > .character-hup .name h1,
-.character-hups > .character-hup .name h2,
-.character-hups > .character-hup .name h3
+.characterHups > .characterHup .name h1,
+.characterHups > .characterHup .name h2,
+.characterHups > .characterHup .name h3
 {
   display: flex;
   margin: 0;
 }
-.character-hups > .character-hup .name > h1 {
+.characterHups > .characterHup .name > h1 {
   margin-right: 5px;
   font-size: 20px;
 }
-.character-hups > .character-hup .name > h2 {
+.characterHups > .characterHup .name > h2 {
   font-size: 13px;
   color: #FFFFFF80;
 }
-.character-hups > .character-hup .stats {
+.characterHups > .characterHup .stats {
   display: flex;
   margin-left: auto;
   margin-right: 15px;
 }
-.character-hups > .character-hup .name .stat {
+.characterHups > .characterHup .name .stat {
   display: flex;
   width: 80px;
   flex-direction: column;
   font-family: 'PlazaRegular';
   font-size: 13px;
 }
-.character-hups > .character-hup .name .stat + .stat {
+.characterHups > .characterHup .name .stat + .stat {
   margin-left: 10px;
 }
-.character-hups > .character-hup .name .bar
+.characterHups > .characterHup .name .bar
 {
   --width: 3px;
   position: absolute;
@@ -96,7 +96,7 @@
   height: var(--width);
   background-color: var(--color2);
 }
-.character-hups > .character-hup .name .bar::before
+.characterHups > .characterHup .name .bar::before
 {
   content: '';
   position: absolute;
@@ -106,7 +106,7 @@
   border-width: 10px;
   border-color: var(--color2) transparent transparent transparent;
 }
-.character-hups > .character-hup .message::after
+.characterHups > .characterHup .message::after
 {
   content: '';
   position: absolute;

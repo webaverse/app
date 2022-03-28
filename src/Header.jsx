@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useContext, useState } from 'react';
 import classnames from 'classnames';
 
-import CharacterHups from './CharacterHups.jsx';
 import { world } from '../world.js'
 import game from '../game.js'
 import * as hacks from '../hacks.js'
@@ -32,9 +31,7 @@ export default function Header () {
 
     const [address, setAddress] = useState(false);
     const [nfts, setNfts] = useState(null);
-    const [apps, setApps] = useState(world.appManager.getApps().slice());
     const [claims, setClaims] = useState([]);
-    const [dragging, setDragging] = useState(false);
     const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
 
@@ -211,29 +208,6 @@ export default function Header () {
 
     }, [ state.openedPanel, selectedApp ] );
 
-    const npcManager = metaversefile.useNpcManager();
-    const [npcs, setNpcs] = useState(npcManager.npcs);
-
-    useEffect( () => {
-
-        npcManager.addEventListener('npcadd', e => {
-
-            const {player} = e.data;
-            const newNpcs = npcs.concat([player]);
-            setNpcs(newNpcs);
-
-        });
-
-        npcManager.addEventListener('npcremove', e => {
-
-            const {player} = e.data;
-            const newNpcs = npcs.slice().splice(npcs.indexOf(player), 1);
-            setNpcs(newNpcs);
-
-        });
-
-    }, []);
-
     // tmp code [will be remove in next PRs]
 
     const claimsOpen = ( state.openedPanel === 'ClaimsPanel' ? 'claims' : false );
@@ -256,7 +230,6 @@ export default function Header () {
 
 	return (
         <div className={styles.container} onClick={ stopPropagation } >
-            <CharacterHups localPlayer={localPlayer} npcs={npcs} />
             <div className={styles.inner}>
                 <header className={styles.header}>
                     <div className={styles.row}>

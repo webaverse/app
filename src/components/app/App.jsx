@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, createContext } from 'react';
 
 import { defaultAvatarUrl } from '../../../constants';
 
+import metaversefile from 'metaversefile';
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
@@ -19,9 +20,9 @@ import { WorldObjectsList } from '../general/world-objects-list';
 import { IoHandler, registerIoEventHandler, unregisterIoEventHandler } from '../general/io-handler';
 import { ZoneTitleCard } from '../general/zone-title-card';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
-import { LoadingBox } from '../../LoadingBox.jsx';
-import { DragAndDrop } from '../../DragAndDrop.jsx';
-import { Stats } from '../../Stats.jsx';
+import { LoadingBox } from '../general/loading-box';
+import { DragAndDrop } from '../general/drag-and-drop';
+import { Stats } from '../general/stats/Stats.jsx';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
@@ -77,11 +78,13 @@ export const App = () => {
     const [ state, setState ] = useState({ openedPanel: null });
 
     const canvasRef = useRef( null );
+    const npcManager = metaversefile.useNpcManager();
     const [ app, setApp ] = useState( () => new Webaverse() );
     const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
+    const [ npcs, setNpcs ] = useState( npcManager.npcs );
 
     //
 
@@ -100,6 +103,27 @@ export const App = () => {
         setSelectedRoom( roomName );
 
     };
+
+    useEffect( () => {
+
+        npcManager.addEventListener( 'npcadd', ( event ) => {
+
+            const { player } = event.data;
+            const newNpcs = npcs.concat([ player ]);
+            setNpcs( newNpcs );
+
+        });
+
+        npcManager.addEventListener('npcremove', ( event ) => {
+
+            const { player } = event.data;
+            const newNpcs = npcs.slice().splice( npcs.indexOf( player ), 1 );
+            setNpcs( newNpcs );
+
+        });
+
+    }, []);
+
 
     useEffect( () => {
 
@@ -196,7 +220,7 @@ export const App = () => {
 
     return (
         <div className={ styles.App } id="app" >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, npcs }} >
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
