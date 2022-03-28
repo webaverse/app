@@ -102,16 +102,16 @@ export function MagicMenu () {
 
     const _run = () => {
 
-        ioManager.click(new MouseEvent('click'));
-
         const output = outputTextarea.current.value;
         const dataUri = metaversefile.createModule(output);
 
         (async () => {
 
-            await metaversefile.load(dataUri);
+            // await metaversefile.load(dataUri);
 
         })();
+
+        setState({ openedPanel: null });
 
     };
 
@@ -121,27 +121,26 @@ export function MagicMenu () {
 
         const handleKeyUp = ( event ) => {
 
-            if ( event.which === 13 && window.document.activeElement !== outputTextarea.current ) { // enter
+            if ( event.which === 13 && window.document.activeElement !== outputTextarea.current && state.openedPanel === 'MagicPanel' ) { // enter
 
-                if ( state.openedPanel === 'MagicPanel' ) {
+                if ( page === 'input' ) {
 
-                    if ( page === 'input' ) {
+                    _compile();
 
-                        _compile();
+                } else if ( page === 'output' ) {
 
-                    } else if ( page === 'output' ) {
-
-                        _run();
-
-                    }
-
-                    return false;
+                    _run();
 
                 }
+
+                return false;
 
             }
 
             if ( event.which === 191 ) { // /
+
+                const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
+                if ( inputFocused ) return true;
 
                 setState({ openedPanel: ( state.openedPanel === 'MagicPanel' ? null : 'MagicPanel' ) });
 
