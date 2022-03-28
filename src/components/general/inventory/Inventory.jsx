@@ -113,10 +113,6 @@ const InventoryObject = forwardRef(({
 export const Inventory = () => {
     const { state, setState } = useContext( AppContext );
     const [ highlightItem, setHighlightItem ] = useState(null);
-    // const [ selectCharacter, setSelectCharacter ] = useState(null);
-    // const [ arrowPosition, setArrowPosition ] = useState(null);
-    // const [ npcPlayer, setNpcPlayer ] = useState(null);
-    // const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
     const [ spritesheet, setSpritesheet ] = useState(null);
 
     const refsMap = (() => {
@@ -150,8 +146,6 @@ export const Inventory = () => {
                             <InventoryObject
                                 object={object}
                                 highlight={object === targetObject}
-                                // animate={selectCharacter === character}
-                                // disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
                                 onMouseEnter={() => {
                                     setHighlightObject(object);
                                 }}
@@ -177,8 +171,6 @@ export const Inventory = () => {
                                 <InventoryObject
                                     object={object}
                                     highlight={object === targetObject}
-                                    // animate={selectCharacter === character}
-                                    // disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
                                     onMouseEnter={() => {
                                         setHighlightObject(object);
                                     }}
