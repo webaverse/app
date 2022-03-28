@@ -44,7 +44,7 @@ export class TerrainManager {
 
 		buf.positions = new Float32Array(maxVertexCount * 3);
 		buf.normals = new Float32Array(maxVertexCount * 3);
-		buf.biomes = new Float32Array(maxVertexCount * 3);
+		buf.biomes = new Float32Array(maxVertexCount * 6);
 		buf.indices = new Uint32Array(maxIndexCount * 3);
 		buf.vertexRanges = new Int32Array(totalChunkCount * 2);
 		buf.indexRanges = new Int32Array(totalChunkCount * 2);
@@ -98,16 +98,35 @@ export class TerrainManager {
 		this.normalAttribute.count = this.bufferFactory.normals.length / 3;
 		this.normalAttribute.setUsage( THREE.DynamicDrawUsage );
 
-		this.biomeAttribute = new THREE.Float32BufferAttribute();
-		this.biomeAttribute.array = this.bufferFactory.biomes;
+		// this.biomeAttribute = new THREE.Float32BufferAttribute();
+		// this.biomeAttribute.array = this.bufferFactory.biomes;
+		// this.biomeAttribute.itemSize = 3;
+		// this.biomeAttribute.count = this.bufferFactory.biomes.length;
+		// this.biomeAttribute.setUsage( THREE.DynamicDrawUsage );
+
+		this.biomeAttributeBuffer = new THREE.InterleavedBuffer();
+		this.biomeAttributeBuffer.array = this.bufferFactory.biomes;
+		this.biomeAttributeBuffer.stride = 6;
+		this.count = this.bufferFactory.biomes.length;
+		this.biomeAttribute = new THREE.InterleavedBufferAttribute();
+		this.biomeAttribute.data = this.biomeAttributeBuffer;
+		this.biomeAttribute.offset = 0;
 		this.biomeAttribute.itemSize = 3;
-		this.biomeAttribute.count = this.bufferFactory.biomes.length;
-		this.biomeAttribute.setUsage( THREE.DynamicDrawUsage );
+
+		this.biomeWeightAttributeBuffer = new THREE.InterleavedBuffer();
+		this.biomeWeightAttributeBuffer.array = this.bufferFactory.biomes;
+		this.biomeWeightAttributeBuffer.stride = 6;
+		this.count = this.bufferFactory.biomes.length;
+		this.biomeWeightAttribute = new THREE.InterleavedBufferAttribute();
+		this.biomeWeightAttribute.data = this.biomeWeightAttributeBuffer;
+		this.biomeWeightAttribute.offset = 3;
+		this.biomeWeightAttribute.itemSize = 3;
 
 		this.geometry.setIndex(this.indexAttribute);
 		this.geometry.setAttribute('position', this.positionAttribute);
 		this.geometry.setAttribute('normal', this.normalAttribute);
 		this.geometry.setAttribute('biome', this.biomeAttribute);
+		this.geometry.setAttribute('biomeWeight', this.biomeWeightAttribute);
 
 		this.geometry.clearGroups();
 
@@ -233,7 +252,8 @@ export class TerrainManager {
 
 				this.positionAttribute.array = buf.positions;
 				this.normalAttribute.array = buf.normals;
-				this.biomeAttribute.array = buf.biomes;
+				this.biomeAttributeBuffer.array = buf.biomes;
+				this.biomeWeightAttributeBuffer.array = buf.biomes;
 				this.indexAttribute.array = buf.indices;
 
 				this.currentChunks.push({ slots: output.slots, chunkId: chunkIdToAdd });
@@ -281,12 +301,19 @@ export class TerrainManager {
 		// this.normalAttribute.needsUpdate = true;
 		this.normalAttribute.version++;
 
-		this.biomeAttribute.updateRange = {
-			offset: buf.vertexRanges[slots[0] * 2] * 3,
-			count: buf.vertexRanges[slots[0] * 2 + 1] * 3,
+		this.biomeAttributeBuffer.updateRange = {
+			offset: buf.vertexRanges[slots[0] * 2] * 6,
+			count: buf.vertexRanges[slots[0] * 2 + 1] * 6,
 		};
 		// this.biomeAttribute.needsUpdate = true;
-		this.biomeAttribute.version++;
+		this.biomeAttributeBuffer.version++;
+
+		this.biomeWeightAttributeBuffer.updateRange = {
+			offset: buf.vertexRanges[slots[0] * 2] * 6,
+			count: buf.vertexRanges[slots[0] * 2 + 1] * 6,
+		};
+		// this.biomeWeightAttribute.needsUpdate = true;
+		this.biomeWeightAttributeBuffer.version++;
 
 		this.geometry.clearGroups();
 
@@ -304,6 +331,7 @@ export class TerrainManager {
 		this.renderer.getWebGLAttributes().update(this.positionAttribute, arrayBufferType);
 		this.renderer.getWebGLAttributes().update(this.normalAttribute, arrayBufferType);
 		this.renderer.getWebGLAttributes().update(this.biomeAttribute, arrayBufferType);
+		this.renderer.getWebGLAttributes().update(this.biomeWeightAttribute, arrayBufferType);
 		this.renderer.getWebGLAttributes().update(this.indexAttribute, elementBufferType);
 	}
 

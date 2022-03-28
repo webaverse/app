@@ -77,13 +77,15 @@ varying vec3 vViewPosition;
 
 #ifdef USE_TERRAIN
     attribute vec3 biome;
+    attribute vec3 biomeWeight;
 
     out vec3  vtriCoord;
     out vec3  vtriNormal;
     flat out float vbiome0;
     flat out float vbiome1;
-    out float biomeAmount;
+    flat out float vbiome2;
     out float fbiome0;
+    out vec3 vbiomeWeight;
 #endif
 
 void main() {
@@ -111,18 +113,19 @@ void main() {
 
 	#include <worldpos_vertex>
 
-    #if defined(USE_TERRAIN) 
+    #if defined(USE_TERRAIN)
         vbiome0 = biome.x;
         vbiome1 = biome.y;
-        biomeAmount = biome.z;
+        vbiome2 = biome.z;
         fbiome0 = biome.x;
+        vbiomeWeight = biomeWeight;
         vec4 triWorldPosition = vec4( transformed, 1.0 );
         #ifdef USE_INSTANCING
             triWorldPosition = instanceMatrix * triWorldPosition;
         #endif
         triWorldPosition = modelMatrix * triWorldPosition;
         vtriCoord = triWorldPosition.xyz;
-        vtriNormal = vec3(normal); 
+        vtriNormal = vec3(normal);
     #endif
 
 	#include <shadowmap_vertex>
@@ -183,8 +186,9 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
 
     flat in float vbiome0;
     flat in float vbiome1;
-    in float biomeAmount;
+    flat in float vbiome2;
     in float fbiome0;
+    in vec3 vbiomeWeight;
     in vec3 vtriCoord;
     in vec3 vtriNormal;
  
@@ -291,14 +295,18 @@ void main() {
         vec3 blending = normalize(max(abs(vtriNormal), 0.001)); // Force weights to sum to 1.0
         blending = blending / (blending.x + blending.y + blending.z);  
 
-        vec4 biome0Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome0, terrainArrayTexture,10.0) ; 
-        vec4 biome1Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome1, terrainArrayTexture,10.0) ;  
+        vec4 biome0Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome0, terrainArrayTexture,10.0) ;
+        vec4 biome1Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome1, terrainArrayTexture,10.0) ;
+        vec4 biome2Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome2, terrainArrayTexture,10.0) ;
 
         float ba = fbm(vtriCoord) ;
-        vec4 terrainColor = biomeAmount * biome0Color + (1.0 - biomeAmount) * biome1Color;
-        if (abs(fbiome0 - vbiome0) > 0.01) {
-            terrainColor = 0.5 * biome0Color+0.5* biome1Color;
-        }   
+        vec4 terrainColor = vbiomeWeight.x * biome0Color + vbiomeWeight.y * biome1Color + vbiomeWeight.z * biome2Color;
+        // if (abs(fbiome0 - vbiome0) > 0.01) {
+        //     if (vbiomeWeight.z < 0.1) {
+        //         terrainColor = 0.5 * (biome0Color + biome1Color);
+        //     }
+        // }
+  
         terrainColor *= max(ba*1.75,0.8) ;  
         diffuseColor *= terrainColor; 
     #endif
@@ -312,11 +320,9 @@ void main() {
     #ifdef USE_TERRAIN
         vec3 normal0 = triplanarNormal(vtriCoord,normal,blending, vbiome0, terrainNormalArrayTexture,10.0);
         vec3 normal1 = triplanarNormal(vtriCoord,normal,blending, vbiome1, terrainNormalArrayTexture,10.0);
-        
-        vec3 normalmix = normalize(biomeAmount * normal0 + (1.0 - biomeAmount) * normal1);
-        if (abs(fbiome0 - vbiome0) > 0.01) {
-            normalmix =normalize(0.5 * normal0+ 0.5 * normal1) ;
-        }   
+        vec3 normal2 = triplanarNormal(vtriCoord,normal,blending, vbiome2, terrainNormalArrayTexture,10.0);
+
+        vec3 normalmix = vbiomeWeight.x * normal0 + vbiomeWeight.y * normal1 + vbiomeWeight.z * normal2;
         normal = normalize(normal + normalmix *0.5);//normalmix;//
     #endif
 
