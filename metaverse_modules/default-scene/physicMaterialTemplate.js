@@ -168,7 +168,6 @@ void main() {
 
 	// accumulation
 	#include <lights_physical_fragment>
-	#include <lights_toon_fragment>
 	#include <lights_fragment_begin>
 	#include <lights_fragment_maps>
 	#include <lights_fragment_end>
