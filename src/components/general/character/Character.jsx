@@ -86,7 +86,10 @@ const Stat = ({
         <div className={styles.stat}>
             <img className={styles.icon} src={statSpec.imgSrc} />
             <div className={styles.wrap}>
-                <div className={styles.statName}>{statSpec.name}</div>
+                <div className={styles.row}>
+                    <div className={styles.statName}>{statSpec.name}</div>
+                    <div className={styles.statValue}>{statSpec.value}</div>
+                </div>
                 {statSpec.progress ? (
                     <progress className={styles.progress} value={statSpec.progress} />
                 )  : null}
