@@ -1,11 +1,11 @@
 .hotbar {
     position: fixed;
     display: flex;
-    margin-left: calc(300px + 10px);
+    margin-left: 410px;
     bottom: 10px;
     transform: none;
     transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 .hotbar.open {
-    transform: translateX(100px);
+    transform: translateY(calc(-100vh + 200px));
 }
