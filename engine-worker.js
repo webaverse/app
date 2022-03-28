@@ -61,6 +61,7 @@ async function import2(s) {
 const canvas = document.getElementById('canvas');
 window.innerWidth = canvas.width;
 window.innerHeight = canvas.height;
+window.devicePixelRatio = 1;
 bindCanvas(canvas);
 
 const match = location.hash.match(/^#id=(.+)$/);
