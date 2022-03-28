@@ -92,6 +92,7 @@ const InventoryObject = forwardRef(({
         <div className={styles.inventoryObject} ref={ref}>
 
             <div className={styles.background} />
+            <div className={styles.highlight} />
 
             <canvas
                 className={styles.canvas}
