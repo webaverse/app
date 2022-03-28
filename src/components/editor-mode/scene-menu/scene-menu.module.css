@@ -3,7 +3,7 @@
     position: absolute;
     display: flex;
     top: 0px;
-    right: 460px;
+    left: 410px;
     height: 40px;
     flex-direction: column;
     overflow: visible;
