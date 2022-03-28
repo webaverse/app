@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import { checkText } from 'smile2emoji';
 
+import game from '../../../../game';
 import { chatManager } from '../../../../chat-manager.js';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 import { AppContext } from '../../app';
@@ -36,6 +37,8 @@ function ChatInput () {
     useEffect( () => {
 
         const handleActiveKey = ( event ) => {
+
+            if ( game.inputFocused() && document.activeElement !== inputRef.current ) return true;
 
             switch ( event.which ) {
 
