@@ -112,6 +112,20 @@ varying vec3 vViewPosition;
 #include <aomap_pars_fragment>
 #include <lightmap_pars_fragment>
 #include <emissivemap_pars_fragment>
+#ifdef USE_GRADIENTMAP 
+	uniform sampler2D gradientMap; 
+#endif
+
+vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) { 
+	// dotNL will be from -1.0 to 1.0
+	float dotNL = dot( normal, lightDirection ); 
+	vec2 coord = vec2( dotNL * 0.57 + 0.43, 0.0 ); 
+	#ifdef USE_GRADIENTMAP 
+		return texture2D( gradientMap, coord ).rgb; 
+	#else 
+		return (  .x < 0.7 ) ? vec3( 0.7 ) : vec3( 1.0 ); 
+	#endif 
+}
 #include <bsdfs>
 #include <cube_uv_reflection_fragment>
 #include <envmap_common_pars_fragment>
@@ -119,6 +133,7 @@ varying vec3 vViewPosition;
 #include <fog_pars_fragment>
 #include <lights_pars_begin>
 #include <normal_pars_fragment>
+#include <lights_toon_pars_fragment>
 #include <lights_physical_pars_fragment>
 #include <transmission_pars_fragment>
 #include <shadowmap_pars_fragment>
@@ -153,6 +168,7 @@ void main() {
 
 	// accumulation
 	#include <lights_physical_fragment>
+	#include <lights_toon_fragment>
 	#include <lights_fragment_begin>
 	#include <lights_fragment_maps>
 	#include <lights_fragment_end>
