@@ -288,7 +288,7 @@ if (sum > 0.) {
 const localVector2D = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 
-const _makeHotbarRendererScene = () => {
+const _makeLoadoutRendererScene = () => {
   const scene = new THREE.Scene();
 
   const fullScreenQuadMesh = new THREE.Mesh(
@@ -340,12 +340,12 @@ const _makeHotbarRendererScene = () => {
   return scene;
 };
 
-class HotbarRenderer {
+class LoadoutRenderer {
   constructor(width, height, selected) {
     this.width = width;
     this.height = height;
 
-    this.scene = _makeHotbarRendererScene();
+    this.scene = _makeLoadoutRendererScene();
     this.camera = new THREE.OrthographicCamera(
       -1,
       1,
@@ -471,19 +471,14 @@ class HotbarRenderer {
       this.needsUpdate = this.selected || this.selectFactor !== lastSelectFactor;
     }
   }
-  destroy() {
-    // hotbarRenderers.splice(hotbarRenderers.indexOf(hotbarRenderer), 1);
-  }
 }
-// const hotbarRenderers = [];
 
-const createHotbarRenderer = (width, height, selected) => {
-  const hotbarRenderer = new HotbarRenderer(width, height, selected);
-  // hotbarRenderers.push(hotbarRenderer);
-  return hotbarRenderer;
-};
+/* const createLoadoutRenderer = (width, height, selected) => {
+  const loutoutRenderer = new LoadoutRenderer(width, height, selected);
+  return loutoutRenderer;
+}; */
 
 export {
-  HotbarRenderer,
-  createHotbarRenderer,
+  LoadoutRenderer,
+  // createLoadoutRenderer,
 };
