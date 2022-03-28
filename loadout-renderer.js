@@ -382,7 +382,6 @@ class LoadoutRenderer {
         // frameSize,
         numFramesPerRow,
       } = spritesheet;
-      // console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
       this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = result;
       this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
       this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
