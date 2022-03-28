@@ -5,13 +5,12 @@ import classnames from 'classnames';
 import styles from './inventory.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
-import { LightArrow } from '../../../LightArrow.jsx';
-// import { world } from '../../../../world.js';
-// import { NpcPlayer } from '../../../../character-controller.js';
+// import { LightArrow } from '../../../LightArrow.jsx';
+import spritesheetManager from '../../../../spritesheet-manager.js';
 
 //
 
-const userTokenObjects = Array(7);
+const userTokenObjects = []; // Array(2);
 for (let i = 0; i < userTokenObjects.length; i++) {
     userTokenObjects[i] = {
         name: '',
@@ -32,8 +31,61 @@ const objects = {
 const InventoryObject = forwardRef(({
     object,
 }, ref) => {
+    const [ spritesheet, setSpritesheet ] = useState(null);
+    const canvasRef = useRef();
+
+    const size = 2048;
+    const numFrames = 128;
+    const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
+    const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
+    const frameSize = size / numFramesPerRow;
+
+    useEffect(() => {
+        if (object?.start_url) {
+            let live = true;
+            (async () => {
+                const {name, start_url} = object;
+                const spritesheet = await spritesheetManager.getSpriteSheetForAppUrl(start_url, {
+                    size,
+                    numFrames,
+                });
+                // console.log('load spritesheet', spritesheet);
+                if (!live) {
+                    return;
+                }
+                setSpritesheet(spritesheet);
+            })();
+            return () => {
+              live = false;
+            };
+        }
+    }, [object]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (canvas && spritesheet) {
+            const ctx = canvas.getContext('2d');
+            const imageBitmap = spritesheet.result;
+            console.log('render image bitmap', imageBitmap, size, canvas.width, canvas.height);
+            ctx.drawImage(imageBitmap, 0, 0, size, size, 0, 0, canvas.width, canvas.height);
+        }
+    }, [canvasRef, spritesheet]);
+
     return (
-        <div className={styles.inventoryObject} ref={ref} />
+        <div className={styles.inventoryObject} ref={ref}>
+
+            <canvas
+                className={styles.canvas}
+                width={size}
+                height={size}
+                style={{
+                    width: `500px`,
+                    height: `500px`,
+                }}
+                ref={canvasRef}
+            />
+
+        </div>
     );
 });
 
@@ -58,85 +110,6 @@ export const Inventory = () => {
         }
         return map;
     })();
-
-    /* const targetCharacter = selectCharacter || highlightCharacter;
-    const _updateArrowPosition = () => {
-        if (targetCharacter) {
-            const ref = refsMap.get(targetCharacter);
-            const el = ref.current;
-            if (el) {
-                const rect = el.getBoundingClientRect();
-                const parentRect = el.offsetParent.getBoundingClientRect();
-                // window.rect = rect;
-                // window.parentRect = parentRect;
-                setArrowPosition([
-                    Math.floor(rect.left - parentRect.left + rect.width / 2 + 40),
-                    Math.floor(rect.top - parentRect.top + rect.height / 2),
-                ]);
-            } else {
-                setArrowPosition(null);
-            }
-            // console.log('got ref', ref);
-            // setArrowPosition([highlightCharacter.x, highlightCharacter.y]);
-        } else {
-            setArrowPosition(null);
-        }
-    };
-    useEffect(() => {
-        _updateArrowPosition();
-    }, [targetCharacter]);
-    useEffect(() => {
-        if (targetCharacter) {
-            const {vrmSrc} = targetCharacter;
-
-            let live = true;
-            let npcPlayer = npcPlayerCache.get(vrmSrc);
-            (async () => {
-                if (!npcPlayer) {
-                    const avatarApp = await metaversefile.createAppAsync({
-                        start_url: vrmSrc,
-                    });
-                    npcPlayer = new NpcPlayer();
-                    npcPlayer.setAvatarApp(avatarApp);
-                    npcPlayerCache.set(vrmSrc, npcPlayer);
-                    if (!live) return;
-                }
-
-                setNpcPlayer(npcPlayer);
-            })();
-
-            const frame = e => {
-                const {timestamp, timeDiff} = e.data;
-                if (npcPlayer) {
-                  npcPlayer.updateAvatar(timestamp, timeDiff);
-                }
-            };
-            world.appManager.addEventListener('frame', frame);
-
-            return () => {
-                live = false;
-                world.appManager.removeEventListener('frame', frame);
-            };
-        }
-    }, [targetCharacter]);
-
-    const opened = state.openedPanel === 'CharacterSelect';
-    useEffect(() => {
-        if (opened) {
-            setSelectCharacter(null);
-
-            const timeout = setTimeout(() => {
-                _updateArrowPosition();
-            }, 1000);
-            return () => {
-                clearTimeout(timeout);
-            };
-        }
-    }, [opened, targetCharacter]); */
-
-    /* useEffect(() => {
-        
-    }, []); */
 
     const open = state.openedPanel === 'CharacterPanel';
     const targetObject = null;
