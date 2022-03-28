@@ -84,7 +84,7 @@ if (id) {
     if (method) {
       switch (method) {
         case 'registerHandler': {
-          const {id, src} = e.data;
+          const {handlerId, src} = e.data;
 
           let error = null;
           let result = null;
@@ -93,7 +93,7 @@ if (id) {
             const module = await import2(u);
             if (typeof module.default === 'function') {
               const fn = module.default;
-              handlers.set(id, fn);
+              handlers.set(handlerId, fn);
               result = 'ok';
             } else {
               console.warn('bad module', module)
@@ -107,8 +107,8 @@ if (id) {
           break;
         }
         case 'callHandler': {
-          const {id, args} = e.data;
-          const handler = handlers.get(id);
+          const {handlerId, args} = e.data;
+          const handler = handlers.get(handlerId);
           if (handler) {
             let error = null;
             let result = null;
@@ -122,7 +122,7 @@ if (id) {
               respond(error, result, transfers);
             }
           } else {
-            respond(new Error('no handler registered: ' + id));
+            respond(new Error('no handler registered: ' + handlerId));
           }
           break;
         }
