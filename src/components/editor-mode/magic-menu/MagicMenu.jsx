@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useContext } from 'react'
 
 import * as codeAi from '../../../../ai/code/code-ai';
 import metaversefile from 'metaversefile';
+import game from '../../../../game';
 
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 import { AppContext } from '../../app';
@@ -139,8 +140,7 @@ export function MagicMenu () {
 
             if ( event.which === 191 ) { // /
 
-                const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
-                if ( inputFocused ) return true;
+                if ( game.inputFocused() ) return true;
 
                 setState({ openedPanel: ( state.openedPanel === 'MagicPanel' ? null : 'MagicPanel' ) });
 
