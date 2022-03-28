@@ -5,7 +5,8 @@ import classnames from 'classnames';
 import metaversefile from '../../../../metaversefile-api.js';
 import { defaultPlayerName } from '../../../../ai/lore/lore-model.js';
 import cameraManager from '../../../../camera-manager.js';
-import {OffscreenEngine} from '../../../../offscreen-engine.js';
+// import { OffscreenEngine } from '../../../../offscreen-engine.js';
+import { Inventory } from '../inventory';
 
 import { AppContext } from '../../app';
 
@@ -385,11 +386,18 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
 
                 })}
 
-                <div className={classnames(styles.selectButton, characterSelectOpen ? styles.highlight : null)} onClick={onCharacterSelectClick}>
+                <div
+                    className={classnames(styles.selectButton, characterSelectOpen ? styles.highlight : null)}
+                    onClick={onCharacterSelectClick}
+                >
                     Character Select
                 </div>
 
             </div>
+
+            <Inventory
+                
+            />
 
         </div>
     );
