@@ -1,6 +1,6 @@
 import {localPlayer} from './players.js';
 import {LoadoutRenderer} from './loadout-renderer.js';
-import {createInfoboxRenderer} from './infobox.js';
+import {InfoboxRenderer} from './infobox.js';
 import {createObjectSprite} from './object-spriter.js';
 import {hotbarSize, infoboxSize} from './constants.js';
 
@@ -64,7 +64,7 @@ class LoadoutManager extends EventTarget {
       }
     }
     if (!this.infoboxRenderer) {
-      this.infoboxRenderer = createInfoboxRenderer(infoboxSize, infoboxSize);
+      this.infoboxRenderer = new InfoboxRenderer(infoboxSize, infoboxSize);
     }
   }
   getHotbarRenderer(index) {
