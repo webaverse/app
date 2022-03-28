@@ -37,6 +37,9 @@ function ChatInput () {
 
         const handleActiveKey = ( event ) => {
 
+            const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
+            if ( inputFocused && document.activeElement !== inputRef.current ) return true;
+
             switch ( event.which ) {
 
                 case 13: { // enter
