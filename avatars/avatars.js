@@ -76,16 +76,13 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 // const localMatrix3 = new THREE.Matrix4();
 const localPlane = new THREE.Plane();
+
 const identityVector = new THREE.Vector3();
 const identityQuaternion = new THREE.Quaternion();
-
 const leftQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
-const xToZQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1));
-const yToXQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0));
 
 const textEncoder = new TextEncoder();
 
-const x180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI);
 const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
@@ -579,10 +576,7 @@ const _findBoneDeep = (bones, boneName) => {
 const boneRadius = 0.03;
 // const baseScale = 0.02;
 // const fingerScale = 0.2;
-// const physicsBoneScaleFactor = 0.8;
 const _makeCapsuleGeometry = (meshBone) => {
-  console.log('_makeCapsuleGeometry', meshBone.name)
-  // meshBone.boneLength *= physicsBoneScaleFactor;
   const radius = boneRadius;
   const height = meshBone.boneLength - boneRadius*2;
   const halfHeight = height/2;
@@ -601,22 +595,18 @@ const _makeCapsuleGeometry = (meshBone) => {
   meshBone.size = size
   meshBone.sizeHalf = size.clone().multiplyScalar(0.5)
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
-    // vismark
     (() => {
       const geometry = new THREE.BoxGeometry(size.x, size.y, size.z)
       return geometry;
     })(),
     new THREE.BoxGeometry(0.3, 0.005, 0.005).translate(0.15, 0, 0),
-    // new THREE.BoxGeometry(0.005, 0.005, 0.1).translate(0, 0, 0.05),
-    // new THREE.BoxGeometry(0.05, 2.2, 0.05)
-      // .applyMatrix4(new THREE.Matrix4().makeTranslation(-height/2, 0.2/2, 0)),
     new THREE.BoxGeometry(0.01, 0.01, 0.06).translate(0, 0, 0.03),
   ]);
   geometry.radius = radius;
   geometry.halfHeight = halfHeight;
   return geometry;
 };
-const ragdollMeshGeometry = new THREE.BoxGeometry(1, 1, 1);
+const ragdollMeshGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
 const ragdollMeshMaterial = new THREE.MeshNormalMaterial({
   // color: 0xFF0000,
   transparent: true,
@@ -632,9 +622,7 @@ const _makeRagdollMesh = () => {
     object.physicsId = getNextPhysicsId();
     physicsIdToMeshBoneMap.set(object.physicsId, object);
 
-    // vismark
     const physicsMesh = new THREE.Mesh(ragdollMeshGeometry, ragdollMeshMaterial);
-    // console.log({ragdollMeshGeometry})
     // physicsMesh.scale.setScalar(scaleFactor);
     object.add(physicsMesh);
     object.physicsMesh = physicsMesh;
@@ -792,7 +780,7 @@ const _makeRagdollMesh = () => {
 
   const flatMeshes = _makeMeshes(); // type: physicsObject/meshBone
   window.flatMeshes = flatMeshes
-  // note: vismark:
+  // note:
   // modelBone = avatar.modelBoneOutputs[k];
   // modelBoneOutputs.Hips.parent === modelBoneOutputs.Root
   // meshBone = flatMeshes[k]
@@ -889,7 +877,6 @@ const _makeRagdollMesh = () => {
 
       // set capsule geometries
       meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone);
-      // console.log({meshBone})
 
       // memoize
       modelBoneToFlatMeshBoneMap.set(modelBone, meshBone);
@@ -902,15 +889,10 @@ const _makeRagdollMesh = () => {
 
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k]
-      // if (!['Hips', 'Left_leg', 'Right_leg'].includes(k)) continue; // test
-      // if (!['Hips', 'Spine'].includes(k)) continue; // test
-      // if (meshBone.name === 'Chest') console.log(3, meshBone.position)
-      // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, new THREE.Quaternion(), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
       const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, characterId);
-      // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.getWorldPosition(new THREE.Vector3()), meshBone.getWorldQuaternion(new THREE.Quaternion()), meshBone.sizeHalf, meshBone.physicsId, true, characterId);
       console.log('mass 1: ', physicsManager.getBodyMass(body));
       // physicsManager.updateMassAndInertia(body, 0.000001);
-      physicsManager.updateMassAndInertia(body, 0); // note: set mass 0 ( ie kinematic? ) will not break joints and get good result, but much slow animation.
+      physicsManager.updateMassAndInertia(body, 0); // note: set mass 0 ( ie kinematic? ) will not break joints and get good result, but got much slow animation.
       // physicsManager.updateMassAndInertia(body, 1000);
       console.log('mass 2: ', physicsManager.getBodyMass(body));
     }
@@ -932,7 +914,7 @@ const _makeRagdollMesh = () => {
       eFREE: 2, // !< The DOF is free and has its full range of motion.
     };
 
-    // // hips
+    // hips
     const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, 
       localVector.copy(avatar.modelBoneOutputs.Spine.position), 
       localVector2.copy(avatar.modelBoneOutputs.Spine.modelBoneEnd).multiplyScalar(0.5).negate(), 
@@ -954,7 +936,7 @@ const _makeRagdollMesh = () => {
     physicsManager.setJointMotion(jointChestUpperChest, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointChestUpperChest,       -5 * DEG2RAD,      10 * DEG2RAD);
 
-    // // head
+    // head
     const jointUpperChestNeck = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Neck, 
       localVector.copy(avatar.modelBoneOutputs.UpperChest.modelBoneEnd).multiplyScalar(0.5), 
       localVector2.copy(avatar.modelBoneOutputs.Neck.modelBoneEnd).multiplyScalar(0.5).negate(), 
@@ -966,11 +948,10 @@ const _makeRagdollMesh = () => {
       localVector.copy(avatar.modelBoneOutputs.Neck.modelBoneEnd).multiplyScalar(0.5), 
       localVector2.copy(avatar.modelBoneOutputs.Head.modelBoneEnd).multiplyScalar(0.5).negate(), 
       localQuaternion.identity(), identityQuaternion, false);
-    // // flatMeshes.Head.rotation.x = -30 * DEG2RAD;
     physicsManager.setJointMotion(jointNeckHead, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointNeckHead,            -5 * DEG2RAD,      10 * DEG2RAD);
 
-    // // shoulders // why shrink? todo: use real bone end, instead of calculated.
+    // shoulders // why shrink? todo: use real bone end, instead of calculated.
     const jointUpperChestLeft_shoulder = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Left_shoulder, 
       localVector.copy(avatar.modelBoneOutputs.Left_shoulder.position).multiplyScalar(0.5), 
       localVector2.copy(avatar.modelBoneOutputs.Left_shoulder.modelBoneEnd).multiplyScalar(0.5).negate(), 
@@ -985,7 +966,7 @@ const _makeRagdollMesh = () => {
     physicsManager.setJointMotion(jointUpperChestRight_shoulder, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointUpperChestRight_shoulder,       -Math.PI * 0,      Math.PI * 0);
 
-    // // arms
+    // arms
     const jointLeft_shoulderLeft_arm = physicsManager.addJoint(flatMeshes.Left_shoulder, flatMeshes.Left_arm, 
       localVector.copy(avatar.modelBoneOutputs.Left_shoulder.modelBoneEnd).multiplyScalar(0.5), 
       localVector2.copy(avatar.modelBoneOutputs.Left_arm.modelBoneEnd).multiplyScalar(0.5).negate(), 
@@ -1099,23 +1080,7 @@ const _makeRagdollMesh = () => {
     // physicsManager.setJointMotion(jointRight_ankleRight_toe, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     // physicsManager.setJointTwistLimit(jointRight_ankleRight_toe,       -10 * DEG2RAD,      90 * DEG2RAD);
 
-    for (const k in flatMeshes) {
-      const meshBone = flatMeshes[k]
-      meshBone.updateMatrixWorld();
-    }
-
-    //
-
-    // wake up
-    console.log('wake up')
-    for (const k in flatMeshes) {
-      const meshBone = flatMeshes[k]
-      physicsManager.setTransform(meshBone, true)
-    }
-
-    //
-    
-    rootScene.children[2].visible = false; // test: hide E tag.
+    // rootScene.children[2].visible = false; // test: hide E tag.
   };
   object.setFromAvatar = avatar => {
     // avatar.modelBoneOutputs.Root.updateMatrixWorld();
@@ -1148,7 +1113,6 @@ const _makeRagdollMesh = () => {
     object.updateMatrixWorld();
   };
   object.toAvatar = avatar => {
-    // console.log('toAvatar')
 
     {
       avatar.modelBoneOutputs.Hips.quaternion.identity();
@@ -1610,7 +1574,6 @@ class Emoter {
 class Avatar {
 	constructor(object, options = {}) {
     window.avatar = this;
-    window.physicsManager = physicsManager;
     if (!object) {
       object = {};
     }
@@ -2040,10 +2003,8 @@ class Avatar {
 	    Right_ankle: this.legsManager.leftLeg.foot,
       Right_toe: this.legsManager.leftLeg.toe,
 	  };
-    window.modelBoneOutputs = this.modelBoneOutputs
 
     this.ragdollMesh = _makeRagdollMesh(); // the whole ragdoll bones showed after press H
-    window.ragdollMesh = this.ragdollMesh;
     this.ragdollMesh.wrapToAvatar(this);
     this.model.add(this.ragdollMesh);
     this.ragdoll = false;
@@ -2469,8 +2430,6 @@ class Avatar {
       // retargetedAnimations,
     };
   }
-  // static applyModelBoneOutputs() {}
-  // vismark
   static applyModelBoneOutputs(modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
@@ -3613,7 +3572,7 @@ class Avatar {
         }
       }
     };
-    // _updateEyeTarget();
+    _updateEyeTarget();
 
     const _updateEyeballTarget = () => {
       const leftEye = this.modelBoneOutputs['Eye_L'];
@@ -3720,7 +3679,7 @@ class Avatar {
         }
       }
     };
-    // _updateEyeballTarget();
+    _updateEyeballTarget();
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
     
