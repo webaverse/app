@@ -42,9 +42,6 @@ class LoadoutManager extends EventTarget {
           if (a === app) {
             const hotbarRenderer = this.hotbarRenderers[i];
             hotbarRenderer.setSpritesheet(null);
-            /* if (i === this.selectedIndex) {
-              this.infoboxRenderer.setSpritesheet(null);
-            } */
 
             this.apps[i] = null;
 
@@ -58,8 +55,6 @@ class LoadoutManager extends EventTarget {
   }
   ensureRenderers() {
     if (this.hotbarRenderers.length === 0) {
-      /* const renderer = getRenderer();
-      const size = hotbarSize * renderer.getPixelRatio(); */
       const size = hotbarSize * window.devicePixelRatio;
 
       for (let i = 0; i < numSlots; i++) {
