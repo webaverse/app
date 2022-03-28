@@ -152,20 +152,20 @@ uniform float opacity;
 #include <alphatest_pars_fragment>
 #include <aomap_pars_fragment>
 #include <lightmap_pars_fragment>
-#include <emissivemap_pars_fragment> 
-#ifdef USE_GRADIENTMAP 
-	uniform sampler2D gradientMap; 
+#include <emissivemap_pars_fragment>
+#ifdef USE_GRADIENTMAP
+	uniform sampler2D gradientMap;
 #endif
 
-vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) { 
+vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
 	// dotNL will be from -1.0 to 1.0
-	float dotNL = dot( normal, lightDirection ); 
-	vec2 coord = vec2( dotNL * 0.57 + 0.43, 0.0 ); 
-	#ifdef USE_GRADIENTMAP 
-		return texture2D( gradientMap, coord ).rgb; 
-	#else 
-		return (  .x < 0.7 ) ? vec3( 0.7 ) : vec3( 1.0 ); 
-	#endif 
+	float dotNL = dot( normal, lightDirection );
+	vec2 coord = vec2( dotNL * 0.57 + 0.43, 0.0 );
+	#ifdef USE_GRADIENTMAP
+		return texture2D( gradientMap, coord ).rgb;
+	#else
+		return (  .x < 0.7 ) ? vec3( 0.7 ) : vec3( 1.0 );
+	#endif
 }
 #include <fog_pars_fragment>
 #include <bsdfs>
@@ -191,8 +191,8 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
     in vec3 vbiomeWeight;
     in vec3 vtriCoord;
     in vec3 vtriNormal;
- 
-    float sum( vec4 v ) { return v.x+v.y+v.z; } 
+
+    float sum( vec4 v ) { return v.x+v.y+v.z; }
     /**
      * texture random sampler
      */
@@ -209,64 +209,64 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
 
         float ia = floor(l+0.5); // suslik's method (see comments)
         float ib = floor(l);
-        f = min(f, 1.0-f)*2.0; 
+        f = min(f, 1.0-f)*2.0;
 
         vec2 offa = sin(vec2(3.0,7.0)*ia); // can replace with any other hash
         vec2 offb = sin(vec2(3.0,7.0)*ib); // can replace with any other hash
-    
+
         vec4 cola = textureGrad( samp, vec3(uv + offa,uvi.z), duvdx, duvdy );
         vec4 colb = textureGrad( samp, vec3(uv + offb,uvi.z), duvdx, duvdy );
 
         return mix( cola, colb, smoothstep(0.2,0.8,f-0.1*sum(cola-colb)));
     }
-    
+
     vec4 triplanarTexture(vec3 pos, vec3 normal,vec3 blending, float texId, sampler2DArray tex,float scale) {
       vec4 tx = randomTexture(tex, vec3(pos.zy / scale, texId));
       vec4 ty = randomTexture(tex, vec3(pos.xz / scale, texId));
-      vec4 tz = randomTexture(tex, vec3(pos.xy / scale, texId)); 
+      vec4 tz = randomTexture(tex, vec3(pos.xy / scale, texId));
       return tx * blending.x + ty * blending.y + tz * blending.z;
     }
-  
-    vec3 triplanarNormal(vec3 pos, vec3 normal,vec3 blending, float texId, sampler2DArray tex,float scale) {   
+
+    vec3 triplanarNormal(vec3 pos, vec3 normal,vec3 blending, float texId, sampler2DArray tex,float scale) {
       // Tangent space normal maps
       vec3 tnormalX = randomTexture(tex, vec3(pos.zy/scale, vbiome0)).xyz*2.0-1.0;
       vec3 tnormalY = randomTexture(tex, vec3(pos.xz/scale, vbiome0)).xyz*2.0-1.0;
       vec3 tnormalZ = randomTexture(tex, vec3(pos.xy/scale, vbiome0)).xyz*2.0-1.0;
       vec3 normalX = vec3(0.0, tnormalX.yx);
       vec3 normalY = vec3(tnormalY.x, 0.0, tnormalY.y);
-      vec3 normalZ = vec3(tnormalZ.xy, 0.0);  
+      vec3 normalZ = vec3(tnormalZ.xy, 0.0);
       vec3 worldNormal =  normalize(normalX * blending.x +normalY * blending.y +normalZ * blending.z+normal);
       return worldNormal;
-    } 
+    }
 
     float mod289(float x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
     vec4 mod289(vec4 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
     vec4 perm(vec4 x){return mod289(((x * 34.0) + 1.0) * x);}
-    
+
     float noise(vec3 p){
         vec3 a = floor(p);
         vec3 d = p - a;
         d = d * d * (3.0 - 2.0 * d);
-    
+
         vec4 b = a.xxyy + vec4(0.0, 1.0, 0.0, 1.0);
         vec4 k1 = perm(b.xyxy);
         vec4 k2 = perm(k1.xyxy + b.zzww);
-    
+
         vec4 c = k2 + a.zzzz;
         vec4 k3 = perm(c);
         vec4 k4 = perm(c + 1.0);
-    
+
         vec4 o1 = fract(k3 * (1.0 / 41.0));
         vec4 o2 = fract(k4 * (1.0 / 41.0));
-    
+
         vec4 o3 = o2 * d.z + o1 * (1.0 - d.z);
         vec2 o4 = o3.yw * d.x + o3.xz * (1.0 - d.x);
-    
+
         return o4.y * d.y + o4.x * (1.0 - d.y);
     }
-    
+
     #define NUM_OCTAVES 5
-    float fbm(vec3 x) { 
+    float fbm(vec3 x) {
         x = x/50.0;
         float v = 0.0;
         float a = 0.5;
@@ -291,9 +291,9 @@ void main() {
 	#include <logdepthbuf_fragment>
 	#include <map_fragment>
 
-    #ifdef USE_TERRAIN 
+    #ifdef USE_TERRAIN
         vec3 blending = normalize(max(abs(vtriNormal), 0.001)); // Force weights to sum to 1.0
-        blending = blending / (blending.x + blending.y + blending.z);  
+        blending = blending / (blending.x + blending.y + blending.z);
 
         vec4 biome0Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome0, terrainArrayTexture,10.0) ;
         vec4 biome1Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome1, terrainArrayTexture,10.0) ;
@@ -306,9 +306,9 @@ void main() {
         //         terrainColor = 0.5 * (biome0Color + biome1Color);
         //     }
         // }
-  
-        terrainColor *= max(ba*1.75,0.8) ;  
-        diffuseColor *= terrainColor; 
+
+        terrainColor *= max(ba*1.75,0.8) ;
+        diffuseColor *= terrainColor;
     #endif
 
 	#include <color_fragment>

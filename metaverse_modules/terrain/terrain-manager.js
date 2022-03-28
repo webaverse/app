@@ -98,12 +98,6 @@ export class TerrainManager {
 		this.normalAttribute.count = this.bufferFactory.normals.length / 3;
 		this.normalAttribute.setUsage( THREE.DynamicDrawUsage );
 
-		// this.biomeAttribute = new THREE.Float32BufferAttribute();
-		// this.biomeAttribute.array = this.bufferFactory.biomes;
-		// this.biomeAttribute.itemSize = 3;
-		// this.biomeAttribute.count = this.bufferFactory.biomes.length;
-		// this.biomeAttribute.setUsage( THREE.DynamicDrawUsage );
-
 		this.biomeAttributeBuffer = new THREE.InterleavedBuffer();
 		this.biomeAttributeBuffer.array = this.bufferFactory.biomes;
 		this.biomeAttributeBuffer.stride = 6;
@@ -198,9 +192,6 @@ export class TerrainManager {
 			return;
 		}
 
-		// console.log(">>> vertex ranges before deallocate: ", buf.vertexRanges);
-		// console.log(">>> free vertex ranges before deallocate: ", buf.freeVertexRanges);
-
 		let chunksToRemove = this.currentChunks.filter(chunk => !this.targetChunkIds.includes(chunk.chunkId));
 
 		for (let chunk of chunksToRemove) {
@@ -220,9 +211,6 @@ export class TerrainManager {
 				this.currentChunks = this.currentChunks.filter(c => c !== chunk);
 			}
 		}
-
-		// // console.log(">>> vertex ranges after deallocate: ", buf.vertexRanges);
-		// // console.log(">>> free vertex ranges after deallocate: ", buf.freeVertexRanges);
 
 		// this.currentChunks = this.currentChunks.filter(chunk => this.targetChunkIds.includes(chunk.chunkId));
 
@@ -263,10 +251,6 @@ export class TerrainManager {
 				this.onAddChunk(chunkIdToAdd);
 			});
 		}
-
-		// console.log(">>> vertex ranges after allocate: ", buf.vertexRanges);
-		// console.log(">>> free vertex ranges after allocate: ", buf.freeVertexRanges);
-		// console.log("=====================================");
 	}
 
 	_updateChunkGeometry(slots) {
