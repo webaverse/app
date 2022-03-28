@@ -81,18 +81,34 @@
   width: var(--size);
   height: var(--size);
   border-radius: 1000px;
+  transform-origin: 50% 50%;
 }
 .inventoryObject .background {
   background-color: #111;
 }
 .inventoryObject .highlight {
   background-color: #FFF;
+  border: 5px solid transparent;
   transform: scale(0, 0);
-  transform-origin: 50% 50%;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
-.inventoryObject:hover .highlight {
+.inventoryObject:hover .highlight,
+.inventoryObject.selected .highlight
+{
   transform: none;
+}
+.inventoryObject:active .highlight,
+.inventoryObject:active .background
+{
+  transform: scale(0.9, 0.9);
+}
+.inventoryObject.selected .highlight {
+  border-color: #66bb6a;
+}
+.inventoryObject .canvas,
+.inventoryObject .name,
+.inventoryObject .level {
+  pointer-events: none;
 }
 .inventoryObject .canvas {
   position: relative;
