@@ -22,7 +22,12 @@ const objects = {
         {
             name: 'Silsword',
             start_url: 'https://webaverse.github.io/silsword/',
-            level: 4,
+            level: 6,
+        },
+        {
+            name: 'Dragon',
+            start_url: 'https://webaverse.github.io/dragon-mount/',
+            level: 5,
         },
     ],
 };
