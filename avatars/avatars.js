@@ -901,8 +901,6 @@ const _makeRagdollMesh = () => {
     object.isCreatedRagdoll = true
     object.skeleton = true
 
-    object.setFromAvatar(avatar);
-
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k]
       // if (!['Hips', 'Left_leg', 'Right_leg'].includes(k)) continue; // test
@@ -2219,46 +2217,23 @@ class Avatar {
         initial: 'idle',
         states: {
           idle: {
-            entry: 'entryIdle',
             on: {
-              keyH: {target: 'skeleton'},
-            },
-          },
-          skeleton: {
-            entry: 'entrySkeleton',
-            on: {
-              keyH: {target: 'idle'},
-              keyN: {target: 'ragdoll'},
+              ragdoll: {target: 'ragdoll'},
             },
           },
           ragdoll: {
             entry: 'entryRagdoll',
-            exit: 'exitRagdoll',
             on: {
-              keyN: {target: 'skeleton'},
+              ragdoll: {target: 'idle'},
             }
           }
         }
       },
       {
         actions: {
-          entryIdle: () => {
-          },
-          entrySkeleton: () => {
-            // this.hipsPosition = this.modelBoneOutputs.Hips.position.clone();
+          entryRagdoll: () => {
             this.ragdollMesh.createRagdoll(this);
             this.ragdollMesh.setFromAvatar(this);
-          },
-          entryRagdoll: () => {
-            // this.runRagdoll();
-            setTimeout(() => {
-              console.log(flatMeshes.Hips.getWorldDirection(new THREE.Vector3()))
-              console.log(modelBoneOutputs.Hips.getWorldDirection(new THREE.Vector3()))
-            }, 1000)
-          },
-          exitRagdoll: () => {
-            // this.modelBoneOutputs.Hips.position.copy(this.hipsPosition);
-            // this.resetAvatar();
           },
         }
       }
@@ -3470,12 +3445,13 @@ class Avatar {
       }
     };
 
+    this.ragdollMesh.visible = game.debugMode
     if (this.fsms.state.matches('ragdoll')) {
       this.ragdollMesh.toAvatar(this);
     } else {
       _applyAnimation();
-      if (this.fsms.state.matches('skeleton')) {
-      this.ragdollMesh.setFromAvatar(this);
+      if (game.debugMode) {
+        this.ragdollMesh.setFromAvatar(this);
       }
     }
     

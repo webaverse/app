@@ -26,6 +26,12 @@
       "start_url": "http://localhost/lib/webaverse_resource/ramp/"
     },
     {
+      "position": [ 10, 2, 3 ],
+      "quaternion": [ 1, 0, 0, 0 ],
+      "scale": [ 1, 1, 1] ,
+      "start_url": "http://localhost/lib/webaverse_resource/ramp/"
+    },
+    {
       "position": [ 0, 5, -5 ],
       "quaternion": [ 0, 0.7071067811865475, 0, 0.7071067811865475 ],
       "physics": false,
