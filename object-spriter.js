@@ -171,7 +171,9 @@ const createObjectSpriteInternal = (app, {
     };
   } else if (type === 'imageBitmap') {
     return (async () => {
-      const imageBitmap = await createImageBitmap(renderer.domElement, 0, 0, size, size);
+      const imageBitmap = await createImageBitmap(renderer.domElement, 0, 0, size, size, {
+        // imageOrientation: 'flipY',
+      });
       return {
         result: imageBitmap,
         numFrames,
