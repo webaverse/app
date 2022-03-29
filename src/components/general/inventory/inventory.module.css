@@ -2,7 +2,7 @@
   display: flex;
   position: fixed;
   top: 100vh;
-  left: 410px;
+  left: 460px;
   width: 600px;
   height: calc(100vh - 200px);
   background-image: linear-gradient(to bottom, #222, #000);
@@ -50,7 +50,7 @@
   flex-wrap: wrap;
   padding-left: 20px;
 }
-.inventory .list .item {
+/* .inventory .list .item {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -63,7 +63,7 @@
   background-image: radial-gradient(#444, #222);
   border: 3px solid #282828;
   cursor: pointer;
-}
+} */
 
 /* */
 
@@ -72,9 +72,10 @@
   
   display: flex;
   position: relative;
-  padding: 5px;
+  padding: 10px;
   flex-direction: column;
   cursor: pointer;
+  user-select: none;
 }
 .inventoryObject .background,
 .inventoryObject .highlight
