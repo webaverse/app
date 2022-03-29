@@ -1,10 +1,12 @@
 import React, {useState, useContext, useRef, useEffect} from 'react';
 import classnames from 'classnames';
+import metaversefile from 'metaversefile';
 import { AppContext } from '../../app';
 import styles from './hotbar.module.css';
 import {HotBox} from '../hotbox/HotBox.jsx';
+import {world} from '../../../../world.js';
 import {hotbarSize} from '../../../../constants.js';
-import {jsonParse} from '../../../../util.js';
+import {jsonParse, handleDrop} from '../../../../util.js';
 
 export const Hotbar = () => {
 
@@ -13,23 +15,26 @@ export const Hotbar = () => {
     const { state, setState } = useContext( AppContext );
     const open =  state.openedPanel === 'CharacterPanel';
 
-    function onDragOver(e) {
+    const onDragOver = index => e => {
         e.preventDefault();
     }
-    function onDrop(e) {
+    const onDrop = index => e => {
         e.preventDefault();
         e.stopPropagation();
         
-        const s = e.dataTransfer.getData('application/json');
-        const j = jsonParse(s);
-        console.log('got drop', e.dataTransfer, j);
-    }
+        (async () => {
+            const u = await handleDrop(e.dataTransfer.items[0]);
+            const app = await metaversefile.createAppAsync({
+                start_url: u,
+            });
+            world.appManager.importApp(app);
+            app.activate();
+        })();
+    };
 
     return (
         <div
             className={ classnames(styles.hotbar, open ? styles.open : null) }
-            onDragOver={onDragOver}
-            onDrop={onDrop}
         >
 
             {
@@ -40,7 +45,13 @@ export const Hotbar = () => {
                     for ( let i = 0; i < itemsNum; i ++ ) {
 
                         items[ i ] = (
-                            <HotBox size={hotbarSize} index={i} key={i} />
+                            <HotBox
+                              size={hotbarSize}
+                              onDragOver={onDragOver(i)}
+                              onDrop={onDrop(i)}
+                              index={i}
+                              key={i}
+                            />
                         );
 
                     }

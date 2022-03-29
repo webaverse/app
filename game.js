@@ -245,7 +245,7 @@ sceneLowPriority.add(mouseDomEquipmentHoverPhysicsMesh);
 let mouseDomEquipmentHoverObject = null;
 let mouseDomEquipmentHoverPhysicsId = 0;
 
-let selectedLoadoutIndex = -1;
+// let selectedLoadoutIndex = -1;
 
 const _use = () => {
   if (gameManager.getMenu() === 3) {
@@ -1398,6 +1398,15 @@ class GameManager extends EventTarget {
       localPlayer.addAction(crouchAction);
     }
   }
+  /* async dropToLoadout(object, index) {
+    const {start_url} = object;
+    if (start_url) {
+
+    } else {
+      console.warn('could not drop object')
+      return null;
+    }
+  } */
   selectLoadout(index) {
     loadoutManager.setSelectedIndex(index);
   }
