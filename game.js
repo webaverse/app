@@ -1398,15 +1398,6 @@ class GameManager extends EventTarget {
       localPlayer.addAction(crouchAction);
     }
   }
-  /* async dropToLoadout(object, index) {
-    const {start_url} = object;
-    if (start_url) {
-
-    } else {
-      console.warn('could not drop object')
-      return null;
-    }
-  } */
   selectLoadout(index) {
     loadoutManager.setSelectedIndex(index);
   }
