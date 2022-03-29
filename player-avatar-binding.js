@@ -33,28 +33,11 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
   }
 } */
 export function applyPlayerModesToAvatar(player, session, rig) {
-  const aimAction = player.getAction('aim');
-  const aimComponent = (() => {
-    for (const action of player.getActions()) {
-      if (action.type === 'wear') {
-        const app = player.appManager.getAppByInstanceId(action.instanceId);
-        if (!app) {
-          return null;
-        }
-        for (const {key, value} of app.components) {
-          if (key === 'aim') {
-            return value;
-          }
-        }
-      }
-    }
-    return null;
-  })();
   for (let i = 0; i < 2; i++) {
-    rig.setHandEnabled(i, !!session || (i === 0 && (!!aimAction && !aimAction.playerAnimation) && !!aimComponent)/* || (useTime === -1 && !!appManager.equippedObjects[i])*/);
+    rig.setHandEnabled(i, player.hands[i].enabled);
   }
   rig.setTopEnabled(
-    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled))
+    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled)),
   );
   rig.setBottomEnabled(
     (
@@ -94,30 +77,57 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const sitAnimation = sitAction ? sitAction.animation : '';
   const danceAction = player.getAction('dance');
   const danceAnimation = danceAction ? danceAction.animation : '';
-  const throwAction = player.getAction('throw');
+  // const throwAction = player.getAction('throw');
   const aimAction = player.getAction('aim');
   const crouchAction = player.getAction('crouch');
   // const chargeJump = player.getAction('chargeJump');
   // const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   // const standCharge = player.getAction('standCharge');
   // const standChargeAnimation = standCharge ? standCharge.animation : '';
-  const fallLoop = player.getAction('fallLoop');
-  const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
+  // const fallLoop = player.getAction('fallLoop');
+  // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
+  const hurtAction = player.getAction('hurt');
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
-  const emoteAction = player.getAction('emote');
-  const poseAction = player.getAction('pose');
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
-  rig.useTime = player.actionInterpolants.use.get();
-  rig.useAnimation = (useAction?.animation) || '';
+  
+  if (useAction?.animation) {
+    rig.useAnimation = useAction.animation;
+  } else {
+    if (rig.useAnimation) {
+      rig.useAnimation = '';
+    }
+  }
+  if (useAction?.animationCombo) {
+    rig.useAnimationCombo = useAction.animationCombo;
+  } else {
+    if (rig.useAnimationCombo.length > 0) {
+      rig.useAnimationCombo = [];
+    }
+  }
+  if (useAction?.animationEnvelope) {
+    rig.useAnimationEnvelope = useAction.animationEnvelope;
+  } else {
+    if (rig.useAnimationEnvelope.length > 0) {
+      rig.useAnimationEnvelope = [];
+    }
+  }
   rig.useAnimationIndex = useAction?.index;
+  rig.useTime = player.actionInterpolants.use.get();
+  rig.unuseTime = player.actionInterpolants.unuse.get();
+  if (rig.unuseTime === 0) { // this means use is active
+    if (useAction?.animationEnvelope) {
+      rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
+    }
+  }
+
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimTime = player.actionInterpolants.aim.get();
@@ -131,8 +141,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   if (danceAction) {
     rig.danceAnimation = danceAnimation;
   }
-  rig.throwState = !!throwAction;
-  rig.throwTime = player.actionInterpolants.throw.get();
+  // rig.throwState = !!throwAction;
+  // rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
   // rig.chargeJumpTime = player.actionInterpolants.chargeJump.get();
   // rig.chargeAnimation = chargeJumpAnimation;
@@ -140,34 +150,17 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.standChargeTime = player.actionInterpolants.standCharge.get();
   // rig.standChargeAnimation = standChargeAnimation;
   // rig.standChargeState = !!standCharge;
-  rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
-  rig.fallLoopAnimation = fallLoopAnimation;
-  rig.fallLoopState = !!fallLoop;
+  // rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
+  // rig.fallLoopAnimation = fallLoopAnimation;
+  // rig.fallLoopState = !!fallLoop;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
   // rig.swordSideSlashAnimation = swordSideSlashAnimation;
   // rig.swordSideSlashState = !!swordSideSlash;
   // rig.swordTopDownSlashTime = player.actionInterpolants.swordTopDownSlash.get();
   // rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
-
-  // emote
-  if (emoteAction) {
-    const {index} = emoteAction;
-    if (!(player.avatar.emotes.length === 1 && player.avatar.emotes[0].index === index)) {
-      player.avatar.emotes.length = 0;
-
-      const newEmote = {
-        index,
-        value: 1,
-      };
-      player.avatar.emotes.push(newEmote);
-    }
-  } else {
-    player.avatar.emotes.length = 0;
-  }
-
-  // pose
-  rig.poseAnimation = poseAction?.animation || null;
+  rig.hurtAnimation = (hurtAction?.animation) || '';
+  rig.hurtTime = player.actionInterpolants.hurt.get();
 }
 // returns whether eyes were applied
 export function applyPlayerEyesToAvatar(player, rig) {
@@ -198,66 +191,56 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
         .setFromNormalAndCoplanarPoint(
           localVector.set(0, 0, 1)
             .applyQuaternion(localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)),
-          mirrorPosition
+          mirrorPosition,
         )
         .projectPoint(eyePosition, rig.eyeballTarget);
       rig.eyeballTargetEnabled = true;
     }
   }
 }
-export function applyPlayerChatToAvatar(player, rig) {
-  const localPlayerChatActions = Array.from(player.getActions()).filter(action => action.type === 'chat');
-  const lastMessage = localPlayerChatActions.length > 0 ? localPlayerChatActions[localPlayerChatActions.length - 1] : null;
-  const _applyChatEmote = message => {
-    const localPlayerEmotion = message?.emotion;
-    if (localPlayerEmotion) {
-      // ensure new emotion and no others
-      let found = false;
-      for (let i = 0; i < rig.emotes.length; i++) {
-        const emote = rig.emotes[i];
-        if (emote.emotion) {
-          if (emote.emotion === localPlayerEmotion) {
-            found = true;
-          } else {
-            rig.emotes.splice(i, 1);
-            i--;
-          }
-        }
-      }
-      if (!found) {
-        const emote = {
-          emotion: localPlayerEmotion,
-          value: 1,
-        };
-        rig.emotes.push(emote);
-      }
-    } else {
-      // ensure no emotions
-      for (let i = 0; i < rig.emotes.length; i++) {
-        const emote = rig.emotes[i];
-        if (emote.emotion) {
-          rig.emotes.splice(i, 1);
-          i--;
-        }
-      }
+export function applyPlayerEmotesToAvatar(player, rig) {
+  const emoteActions = player.getActionsArray().filter(a => a.type === 'emote');
+  if (emoteActions.length > 0) {
+    player.avatar.emotes = emoteActions;
+  } else {
+    if (player.avatar.emotes.length !== 0) {
+      player.avatar.emotes.length = 0;
     }
-  };
-  _applyChatEmote(lastMessage);
-  
-  const _applyFakeSpeech = message => {
-    rig.fakeSpeechValue = message?.fakeSpeech ? 1 : 0;
-  };
-  _applyFakeSpeech(lastMessage);
+  }
+}
+export function applyPlayerPoseToAvatar(player, rig) {
+  const poseAction = player.getAction('pose');
+  rig.poseAnimation = poseAction?.animation || null;
 }
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
+  
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
-  applyPlayerChatToAvatar(player, rig);
+  
+  applyPlayerEmotesToAvatar(player, rig);
+  applyPlayerPoseToAvatar(player, rig);
 }
-export async function switchAvatar(oldAvatar, newApp) {
+
+export function switchAvatar(oldAvatar, newApp) {
+  let result;
+
+  oldAvatar && oldAvatar[appSymbol].toggleBoneUpdates(true);
+
+  if (newApp) {
+    newApp.toggleBoneUpdates(true);
+    if (!newApp[avatarSymbol]) {
+      newApp[avatarSymbol] = makeAvatar(newApp);
+    }
+    result = newApp[avatarSymbol];
+  } else {
+    result = null;
+  }
+  return result;
+}
+/* export async function switchAvatar(oldAvatar, newApp) {
   let result;
   const promises = [];
   if (oldAvatar) {
@@ -266,19 +249,16 @@ export async function switchAvatar(oldAvatar, newApp) {
     })());
   }
   if (newApp) {
-    promises.push((async () => {
-      await newApp.setSkinning(true);
-      
-      // unwear old rig
-      
+    // promises.push((async () => {
+    newApp.toggleBoneUpdates(true);
       if (!newApp[avatarSymbol]) {
         newApp[avatarSymbol] = makeAvatar(newApp);
       }
       result = newApp[avatarSymbol];
-    })());
+    // })());
   } else {
     result = null;
   }
   await Promise.all(promises);
   return result;
-}
+} */

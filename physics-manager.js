@@ -30,7 +30,6 @@ const localMatrix = new THREE.Matrix4();
 const physicsManager = new EventTarget();
 
 const physicsUpdates = [];
-window.physicsUpdates = physicsUpdates;
 const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
   const physicsObject = new THREE.Object3D();
   physicsObject.position.copy(position);
@@ -55,9 +54,9 @@ const _extractPhysicsGeometryForId = physicsId => {
   return geometry;
 };
 
-physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, flags = {}) => {
+physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags = {}) => {
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, flags);
+  physx.physxWorker.addCapsuleGeometryPhysics(physx.physics, position, quaternion, radius, halfHeight, physicsMaterial, physicsId, dynamic, flags);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, localVector2.set(1, 1, 1));
   const physicsMesh = new THREE.Mesh(
@@ -72,10 +71,9 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
   return physicsObject;
 };
 
-physicsManager.addBoxGeometry = (position, quaternion, size, dynamic, groupId) => {
-  // vismark
+physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic, groupId);
+  physx.physxWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, localVector2.set(1, 1, 1));
   const physicsMesh = new THREE.Mesh(
@@ -168,10 +166,16 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion, scale) =
 
 physicsManager.getGeometryForPhysicsId = physicsId => physx.physxWorker.getGeometryPhysics(physx.physics, physicsId);
 physicsManager.getBoundingBoxForPhysicsId = (physicsId, box) => physx.physxWorker.getBoundsPhysics(physx.physics, physicsId, box);
-physicsManager.disablePhysicsObject = physicsObject => {
+physicsManager.enableActor = physicsObject => {
+  physx.physxWorker.enableActorPhysics(physx.physics, physicsObject.physicsId);
+};
+physicsManager.disableActor = physicsObject => {
+  physx.physxWorker.disableActorPhysics(physx.physics, physicsObject.physicsId);
+};
+physicsManager.disableGeometry = physicsObject => {
   physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
-physicsManager.enablePhysicsObject = physicsObject => {
+physicsManager.enableGeometry = physicsObject => {
   physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
 };
 physicsManager.disableGeometryQueries = physicsObject => {
@@ -187,11 +191,11 @@ physicsManager.setGravityEnabled = (physicsObject, enabled) => {
   physx.physxWorker.setGravityEnabledPhysics(physx.physics, physicsObject.physicsId, enabled);
 };
 physicsManager.removeGeometry = physicsObject => {
-  try {
+  // try {
     physx.physxWorker.removeGeometryPhysics(physx.physics, physicsObject.physicsId);
-  } catch(err) {
+  /* } catch(err) {
     console.warn('failed to remove geometry', err.stack);
-  }
+  } */
 };
 /* physicsManager.getVelocity = (physicsObject, velocity) => {
   physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
@@ -208,25 +212,61 @@ physicsManager.setAngularVelocity = (physicsObject, velocity, autoWake) => {
 physicsManager.setTransform = (physicsObject, autoWake) => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale, autoWake);
 };
+physicsManager.getPath = (start, dest, isWalk, hy, heightTolerance, maxIterDetect, maxIterStep, ignorePhysicsIds) => {
+  return physx.physxWorker.getPathPhysics(physx.physics, start, dest, isWalk, hy, heightTolerance, maxIterDetect, maxIterStep, ignorePhysicsIds);
+};
+physicsManager.overlapBox = (hx, hy, hz, p, q) => {
+  return physx.physxWorker.overlapBoxPhysics(physx.physics, hx, hy, hz, p, q);
+};
+physicsManager.overlapCapsule = (radius, halfHeight, p, q) => {
+  return physx.physxWorker.overlapCapsulePhysics(physx.physics, radius, halfHeight, p, q);
+};
 physicsManager.collideBox = (hx, hy, hz, p, q, maxIter) => {
   return physx.physxWorker.collideBoxPhysics(physx.physics, hx, hy, hz, p, q, maxIter);
 };
 physicsManager.collideCapsule = (radius, halfHeight, p, q, maxIter) => {
   return physx.physxWorker.collideCapsulePhysics(physx.physics, radius, halfHeight, p, q, maxIter);
 };
-physicsManager.createCharacterController = (radius, height, contactOffset, stepOffset, position, mat, groupId) => {
-  const characterController = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, stepOffset, position, mat, groupId);
-  return characterController;
+physicsManager.createCharacterController = (radius, height, contactOffset, stepOffset, position, mat) => {
+  const physicsId = getNextPhysicsId();
+  const characterControllerId = physx.physxWorker.createCharacterControllerPhysics(physx.physics, radius, height, contactOffset, stepOffset, position, mat, physicsId);
+  
+  const halfHeight = height / 2;
+  const physicsObject = new THREE.Object3D();
+  const physicsMesh = new THREE.Mesh(
+    new CapsuleGeometry(radius, radius, halfHeight*2)
+  );
+  physicsMesh.visible = false;
+  physicsObject.add(physicsMesh);
+  physicsMesh.updateMatrixWorld();
+  const {bounds} = physicsManager.getGeometryForPhysicsId(physicsId);
+  physicsMesh.geometry.boundingBox = new THREE.Box3(new THREE.Vector3().fromArray(bounds, 0), new THREE.Vector3().fromArray(bounds, 3));
+  // console.log('character controller bounds', physicsId, physicsMesh.geometry.boundingBox);
+  physicsObject.physicsMesh = physicsMesh;
+  physicsObject.characterControllerId = characterControllerId;
+  physicsObject.physicsId = physicsId;
+
+  /* const physicsObject = _makePhysicsObject(physicsId, mesh.position, mesh.quaternion, mesh.scale);
+  physicsObject.add(physicsMesh);
+  physicsMesh.position.set(0, 0, 0);
+  physicsMesh.quaternion.set(0, 0, 0, 1);
+  physicsMesh.scale.set(1, 1, 1);
+  physicsMesh.updateMatrixWorld();
+  physicsObject.physicsMesh = physicsMesh;
+  characterController.physicsObject = physicsObject;
+  console.log('character controller id', physicsObject); */
+
+  return physicsObject;
 };
 physicsManager.destroyCharacterController = characterController => {
-  physx.physxWorker.destroyCharacterControllerPhysics(physx.physics, characterController);
+  physx.physxWorker.destroyCharacterControllerPhysics(physx.physics, characterController.characterControllerId);
 };
 physicsManager.moveCharacterController = (characterController, displacement, minDist, elapsedTime, position) => {
-  const result = physx.physxWorker.moveCharacterControllerPhysics(physx.physics, characterController, displacement, minDist, elapsedTime, position);
+  const result = physx.physxWorker.moveCharacterControllerPhysics(physx.physics, characterController.characterControllerId, displacement, minDist, elapsedTime, position);
   return result;
 };
 physicsManager.setCharacterControllerPosition = (characterController, position) => {
-  const result = physx.physxWorker.setCharacterControllerPositionPhysics(physx.physics, characterController, position);
+  const result = physx.physxWorker.setCharacterControllerPositionPhysics(physx.physics, characterController.characterControllerId, position);
   return result;
 };
 /* physicsManager.getTransforms = physicsObjects => {
@@ -269,83 +309,29 @@ physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z);
 };
-let done = 0;
-window.lol = 10;
-physicsManager.getNumActors = () => physx.physxWorker.getNumActorsPhysics(physx.physics);
-physicsManager.addJoint = (physicsObject1, physicsObject2, position1, position2, quaternion1, quaternion2, fixBody1 = false) => {
-  const joint = physx.physxWorker.addJointPhysics(physx.physics, physicsObject1.physicsId, physicsObject2.physicsId, position1, position2, quaternion1, quaternion2, fixBody1);
-  return joint;
-}
-physicsManager.setJointMotion = (joint, axis, motion) => {
-  return physx.physxWorker.setJointMotionPhysics(physx.physics, joint, axis, motion);
-}
-physicsManager.setJointTwistLimit = (joint, lowerLimit, upperLimit, contactDist) => {
-  return physx.physxWorker.setJointTwistLimitPhysics(physx.physics, joint, lowerLimit, upperLimit, contactDist);
-}
-physicsManager.setJointSwingLimit = (joint, yLimitAngle, zLimitAngle, contactDist) => {
-  return physx.physxWorker.setJointSwingLimitPhysics(physx.physics, joint, yLimitAngle, zLimitAngle, contactDist);
-}
-physicsManager.updateMassAndInertia = (body, shapeDensities) => {
-  return physx.physxWorker.updateMassAndInertiaPhyscis(physx.physics, body, shapeDensities);
-}
-physicsManager.getBodyMass = (body) => {
-  return physx.physxWorker.getBodyMassPhysics(physx.physics, body);
-}
 physicsManager.simulatePhysics = timeDiff => {
-  // timeDiff *= 0.0000000001;
-  /* {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    if (localPlayer.avatar?.ragdoll) {
-      if (done >= window.lol) {
-        return;
-      } else {
-        done++;
-        console.log('done', done);
-      }
-    } else {
-      done = 0;
-    }
-  } */
-
   if (physicsEnabled) {
     const t = timeDiff/1000;
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
-    // console.log(`updatesOut: ${updatesOut.length}, physicsUpdates: ${physicsUpdates.length}`);
     physicsUpdates.length = 0;
-    // console.log('updatesOut', updatesOut.length)
     for (const updateOut of updatesOut) {
-      // vismark
       const {id, position, quaternion, collided, grounded} = updateOut;
-      // console.log('physicsId', id)
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
-
-      // debugger
       if (physicsObject) {
-        // console.log('update:')
-        // if (physicsObject.name === 'Chest') console.log('Chest y', position.y.toFixed(2))
-        // if (physicsObject.name === 'Chest') console.log(1, position);
-        // console.log('got position', position.toArray().join(','));
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
 
-        // console.log('set', physicsObject.name, id, physicsObject.position.toArray().join(','));
-
         physicsObject.collided = collided;
         physicsObject.grounded = grounded;
-      } else {
-        if (id !== 0 && id < 1000) {
-          console.warn('failed to get physics object', id);
-        }
-      }
+      } /* else {
+        console.warn('failed to get physics object', id);
+      } */
     }
   }
 };
 
 physicsManager.marchingCubes = (dims, potential, shift, scale) => physx.physxWorker.marchingCubes(dims, potential, shift, scale);
-
-physicsManager.createSkeleton = (skeletonBuffer, groupId) => physx.physxWorker.createSkeleton(physx.physics, skeletonBuffer, groupId);
-physicsManager.setSkeletonFromBuffer = (skeleton, isChildren, buffer) => physx.physxWorker.setSkeletonFromBuffer(physx.physics, skeleton, isChildren, buffer);
 
 physicsManager.pushUpdate = physicsObject => {
   const {physicsId, physicsMesh} = physicsObject;

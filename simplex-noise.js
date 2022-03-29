@@ -31,6 +31,12 @@ const module = {exports};
 (function() {
   'use strict';
 
+  const MAX_VERTICES = 256;
+  const MAX_VERTICES_MASK = MAX_VERTICES -1;
+  function lerp(a, b, t) {
+    return a * ( 1 - t ) + b * t;
+  }
+
   var F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
   var G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
   var F3 = 1.0 / 3.0;
@@ -56,6 +62,11 @@ const module = {exports};
       this.permMod12[i] = this.perm[i] % 12;
     }
 
+    const r = new Float32Array(MAX_VERTICES);
+    for (let i = 0; i < MAX_VERTICES; i++) {
+      r[i] = random();
+    }
+    this.r = r;
   }
   SimplexNoise.prototype = {
     grad3: new Float32Array([1, 1, 0,
@@ -81,6 +92,23 @@ const module = {exports};
       -1, 1, 0, 1, -1, 1, 0, -1, -1, -1, 0, 1, -1, -1, 0, -1,
       1, 1, 1, 0, 1, 1, -1, 0, 1, -1, 1, 0, 1, -1, -1, 0,
       -1, 1, 1, 0, -1, 1, -1, 0, -1, -1, 1, 0, -1, -1, -1, 0]),
+    noise1D: function(xin) {
+      const amplitude = 1;
+      const scale = 1;
+      const scaledX = xin * scale;
+      const xFloor = Math.floor(scaledX);
+      const t = scaledX - xFloor;
+      const tRemapSmoothstep = t * t * ( 3 - 2 * t );
+
+      /// Modulo using &
+      const xMin = xFloor & MAX_VERTICES_MASK;
+      const xMax = ( xMin + 1 ) & MAX_VERTICES_MASK;
+
+      const {r} = this;
+      const y = lerp( r[ xMin ], r[ xMax ], tRemapSmoothstep );
+
+      return y * amplitude;
+    },
     noise2D: function(xin, yin) {
       var permMod12 = this.permMod12;
       var perm = this.perm;

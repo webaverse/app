@@ -71,7 +71,7 @@ class VolumeProcessor extends AudioWorkletProcessor {
           for (const channels of inputs) {
             for (const samples of channels) {
               for (let j = 0; j < samples.length; j++) {
-                mergedChannel[j] += samples[j];
+                mergedChannel[j] += samples[j] / channels.length;
               }
             }
           }
@@ -98,7 +98,7 @@ class VolumeProcessor extends AudioWorkletProcessor {
         for (const channels of inputs) {
           for (const samples of channels) {
             for (let j = 0; j < samples.length; j++) {
-              mergedSamples[j] += samples[j];
+              mergedSamples[j] += samples[j] / channels.length;
             }
           }
         }

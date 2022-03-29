@@ -1,0 +1,73 @@
+
+.hotbar {
+    position: fixed;
+    display: flex;
+    margin-left: calc( 300px + 10px );
+    bottom: 10px;
+}
+
+.hotbar .item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.hotbar .item .box {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin-right: 2px;
+    /* background: radial-gradient( #222, #000 );
+    border: 2px solid #000; */
+    /* transition: all cubic-bezier( 0, 1, 0, 1 ) 0.3s; */
+}
+
+.hotbar .item .label {
+    position: relative;
+    display: flex;
+    margin: 5px auto;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    background-color: #666;
+    border-radius: 3px;
+    color: #FFFFFF80;
+}
+.hotbar .item:not(.selected) .label {
+    opacity: 0.3;
+}
+.hotbar .item .background {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    bottom: 2px;
+    right: 2px;
+    background-color: #000;
+    border-radius: 2px;
+}
+.hotbar .item .text {
+  position: relative;
+}
+
+/* .hotbar .item .box img {
+    width: 100%;
+    height: 100%;
+}
+
+.hotbar .item.selected .box {
+    top: -3px;
+    border-color: #FFF;
+}
+
+.hotbar .item.selected .label {
+    color: #FFF;
+} */
+
+.hotbar .item .hotbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 60px;
+}

@@ -1,0 +1,15 @@
+
+.button {
+    display: inline-block;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    color: #aaa;
+    padding: 10px;
+    cursor: pointer;
+    transition: color 200ms ease, border 200ms ease;
+}
+
+.button:hover {
+    color: #fff;
+    border: 1px solid #fff;
+}

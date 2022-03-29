@@ -1,0 +1,21 @@
+const types = [
+  'fire',
+  'grass',
+  'water',
+  'electric',
+  'fighting',
+  'psychic',
+  'colorless',
+  'dark',
+  'metal',
+  'fairy',
+  'bug',
+  'rock',
+  'flying',
+  'ground',
+  'ice',
+  'poison',
+  'ghost',
+  'dragon',
+];
+export default types;

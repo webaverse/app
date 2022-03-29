@@ -345,7 +345,7 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
           const boneInterpolant = new THREE.QuaternionLinearInterpolant(track.times, track.values, track.getValueSize());
           boneQuaternionInterpolants[boneName] = boneInterpolant;
         } else {
-          console.warn('unknown track name', track);
+          console.warn('unknown track name', animation.name, track);
         }
       }
 
@@ -554,8 +554,8 @@ const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
     const animationFileNames = fs.readdirSync('public/animations');
     const fbxFileNames = animationFileNames.filter(name => /\.fbx$/.test(name)).map(name => 'animations/' + name);
     const vpdFileNames = findFilesWithExtension('public', 'poses', 'vpd');
-    const animationsCborFileName = 'public/animations/animations.z';
-    await baker('http://localhost:9999/', fbxFileNames, vpdFileNames, animationsCborFileName).catch((e) => {
+    const animationsResultFileName = 'public/animations/animations.z';
+    await baker('http://localhost:9999/', fbxFileNames, vpdFileNames, animationsResultFileName).catch((e) => {
         console.warn('bake error', e);
     })
     process.exit();
