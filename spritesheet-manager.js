@@ -28,10 +28,11 @@ class SpritesheetManager {
     return spritesheet;
   }
   async getSpriteSheetForAppUrl(appUrl, opts) {
-    // console.log('got spritesheet 1', appUrl, opts);
-    const spritesheet = await this.getSpriteSheetForAppUrlInternal(appUrl, opts);
-    // console.log('got spritesheet 2', spritesheet);
-    // XXX cache this
+    let spritesheet = this.spritesheetCache.get(appUrl);
+    if (!spritesheet) {
+      spritesheet = await this.getSpriteSheetForAppUrlInternal(appUrl, opts);
+      this.spritesheetCache.set(appUrl, spritesheet);
+    }
     return spritesheet;
   }
 }
