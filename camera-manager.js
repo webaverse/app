@@ -316,7 +316,7 @@ class CameraManager extends EventTarget {
     }
 
     const _setCameraToAvatar = () => {
-      const avatarCameraOffset = session ? zeroVector : this.getCameraOffset();
+      const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
       const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
       const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
       
