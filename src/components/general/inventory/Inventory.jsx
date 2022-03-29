@@ -38,6 +38,7 @@ const objects = {
 
 const InventoryObject = forwardRef(({
     object,
+    enabled,
     hovered,
     selected,
     onMouseEnter,
@@ -79,7 +80,7 @@ const InventoryObject = forwardRef(({
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        if (canvas && spritesheet) {
+        if (canvas && spritesheet && enabled) {
             const ctx = canvas.getContext('2d');
             const imageBitmap = spritesheet.result;
             // console.log('render image bitmap', imageBitmap, size, canvas.width, canvas.height);
@@ -99,7 +100,7 @@ const InventoryObject = forwardRef(({
                 clearInterval(interval);
             };
         }
-    }, [canvasRef, spritesheet]);
+    }, [canvasRef, spritesheet, enabled]);
 
     return (
         <div
@@ -197,6 +198,7 @@ export const Inventory = () => {
                         {userTokenObjects.map((object, i) =>
                             <InventoryObject
                                 object={object}
+                                enabled={open}
                                 hovered={object === hoverObject}
                                 selected={object === selectObject}
                                 onMouseEnter={onMouseEnter(object)}
@@ -218,6 +220,7 @@ export const Inventory = () => {
                             return (
                                 <InventoryObject
                                     object={object}
+                                    enabled={open}
                                     hovered={object === hoverObject}
                                     selected={object === selectObject}
                                     onMouseEnter={onMouseEnter(object)}
