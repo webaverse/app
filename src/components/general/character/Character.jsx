@@ -236,12 +236,21 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
         } */
     }
+    function onDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        game.handleDrop(e);
+    }
     const characterSelectOpen = state.openedPanel === 'CharacterSelect';
 
     //
 
     return (
-        <div className={ classnames( styles.characterWrapper, state.openedPanel === 'CharacterPanel' ? styles.opened : null ) } >
+        <div
+            className={ classnames( styles.characterWrapper, state.openedPanel === 'CharacterPanel' ? styles.opened : null ) }
+            onDrop={onDrop}
+        >
             <div className={ styles.characterBtn } onClick={ handleCharacterBtnClick } >
                 <img src="images/webpencil.svg" className={ styles.background } />
                 <span className={ styles.btnText } >人 Character</span>
