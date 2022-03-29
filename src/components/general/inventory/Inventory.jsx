@@ -167,6 +167,8 @@ export const Inventory = () => {
     };
     const onDragStart = object => e => {
         e.dataTransfer.setData('application/json', JSON.stringify(object));
+        e.dataTransfer.effectAllowed = 'all';
+        e.dataTransfer.dropEffect = 'move';
 
         const transparentPng = new Image();
         transparentPng.src = transparentPngUrl;

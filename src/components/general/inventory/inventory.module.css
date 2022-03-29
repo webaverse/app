@@ -77,6 +77,11 @@
   cursor: pointer;
   user-select: none;
 }
+/* .inventoryObject:hover,
+.inventoryObject:active
+{
+  cursor: grabbing;
+} */
 .inventoryObject .background,
 .inventoryObject .highlight
 {

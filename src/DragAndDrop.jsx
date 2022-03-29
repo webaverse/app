@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import {world} from '../world.js';
@@ -8,8 +8,10 @@ import {registerIoEventHandler, unregisterIoEventHandler} from './components/gen
 import {registerLoad} from './LoadingBox.jsx';
 import {ObjectPreview} from './ObjectPreview.jsx';
 import game from '../game.js';
+import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
+import { AppContext } from './components/app';
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -79,6 +81,7 @@ const uploadCreateApp = async item => {
 };
 
 const DragAndDrop = () => {
+  const { state, setState, } = useContext( AppContext )
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
 
@@ -115,50 +118,53 @@ const DragAndDrop = () => {
     window.addEventListener('dragover', dragover);
     const drop = async e => {
       e.preventDefault();
-    
-      /* const renderer = getRenderer();
-      const rect = renderer.domElement.getBoundingClientRect();
-      localVector2D.set(
-        ( e.clientX / rect.width ) * 2 - 1,
-        - ( e.clientY / rect.height ) * 2 + 1
-      );
-      localRaycaster.setFromCamera(localVector2D, camera);
-      const dropZOffset = 2;
-      const position = localRaycaster.ray.origin.clone()
-        .add(
-          localVector2.set(0, 0, -dropZOffset)
-            .applyQuaternion(
-              localQuaternion
-                .setFromRotationMatrix(localMatrix.lookAt(
-                  localVector3.set(0, 0, 0),
-                  localRaycaster.ray.direction,
-                  localVector4.set(0, 1, 0)
-                ))
-            )
-        );
-      const quaternion = camera.quaternion.clone(); */
 
-      const items = Array.from(e.dataTransfer.items);
-      await Promise.all(items.map(async item => {
-        const app = await uploadCreateApp(item/*, {
-          position,
-          quaternion,
-        }*/);
-        if (app) {
-          setQueue(queue.concat([app]));
-        }
-      }));
-    
-      /* let arrowLoader = metaverseUi.makeArrowLoader();
-      arrowLoader.position.copy(position);
-      arrowLoader.quaternion.copy(quaternion);
-      scene.add(arrowLoader);
-      arrowLoader.updateMatrixWorld();
-    
-      if (arrowLoader) {
-        scene.remove(arrowLoader);
-        arrowLoader.destroy();
-      } */
+      const renderer = getRenderer();
+      if (e.target === renderer.domElement) {
+        /* const renderer = getRenderer();
+        const rect = renderer.domElement.getBoundingClientRect();
+        localVector2D.set(
+          ( e.clientX / rect.width ) * 2 - 1,
+          - ( e.clientY / rect.height ) * 2 + 1
+        );
+        localRaycaster.setFromCamera(localVector2D, camera);
+        const dropZOffset = 2;
+        const position = localRaycaster.ray.origin.clone()
+          .add(
+            localVector2.set(0, 0, -dropZOffset)
+              .applyQuaternion(
+                localQuaternion
+                  .setFromRotationMatrix(localMatrix.lookAt(
+                    localVector3.set(0, 0, 0),
+                    localRaycaster.ray.direction,
+                    localVector4.set(0, 1, 0)
+                  ))
+              )
+          );
+        const quaternion = camera.quaternion.clone(); */
+
+        const items = Array.from(e.dataTransfer.items);
+        await Promise.all(items.map(async item => {
+          const app = await uploadCreateApp(item/*, {
+            position,
+            quaternion,
+          }*/);
+          if (app) {
+            setQueue(queue.concat([app]));
+          }
+        }));
+      
+        /* let arrowLoader = metaverseUi.makeArrowLoader();
+        arrowLoader.position.copy(position);
+        arrowLoader.quaternion.copy(quaternion);
+        scene.add(arrowLoader);
+        arrowLoader.updateMatrixWorld();
+      
+        if (arrowLoader) {
+          scene.remove(arrowLoader);
+          arrowLoader.destroy();
+        } */
+      }
     };
     window.addEventListener('drop', drop);
     return () => {
@@ -173,6 +179,10 @@ const DragAndDrop = () => {
       // console.log('set app', app);
       setCurrentApp(app);
       setQueue(queue.slice(1));
+
+      if (state.openedPanel) {
+        setState({ openedPanel: null });
+      }
 
       if (cameraManager.pointerLockElement) {
         cameraManager.exitPointerLock();
