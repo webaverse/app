@@ -14,14 +14,17 @@
 .characterSelect .menu.open {
   transform: translateY(calc(-100vh + 200px));
 }
-.characterSelect .menu .heading,
+.characterSelect .menu .heading {
+  padding: 15px 20px;
+}
 .characterSelect .menu .subheading
 {
-  padding: 15px;
+  padding: 10px 20px;
 }
 .characterSelect h1,
 .characterSelect h2
 {
+  margin: 0;
   font-family: 'WinchesterCaps';
   letter-spacing: 1px;
 }
@@ -84,7 +87,13 @@
   cursor: default;
 }
 .characterSelect .list .item .img {
-  width: 150px;
-  height: 150px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
+}
+
+.characterSelect .list .item .name {
+  font-family: 'PlazaRegular';
+  font-size: 20px;
+  letter-spacing: 0.5px;
 }
