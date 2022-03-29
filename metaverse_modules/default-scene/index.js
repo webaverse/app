@@ -82,13 +82,15 @@ export default () => {
     // terrainManager.updateCenter(player.position);
     // terrainManager.updateChunk();
 
-    // useFrame(() => {
+    useFrame(() => {
+        if (treeShaderMaterial.shader)
+            treeShaderMaterial.shader.uniforms.time.value += 1 / 60;
 
-    //     terrainManager.updateCenter(player.position);
-    //     terrainManager.updateChunk();
+        // terrainManager.updateCenter(player.position);
+        // terrainManager.updateChunk();
 
-    //     water.material.uniforms['time'].value += 1.0 / 60.0;
-    // });
+        // water.material.uniforms['time'].value += 1.0 / 60.0;
+    });
 
     rootScene.add(new THREE.AxesHelper(1000))
 

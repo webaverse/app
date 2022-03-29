@@ -40,7 +40,7 @@ varying vec3 vViewPosition;
 	uniform float windWeight;
 
 	mat4 rotationAxis(float angle,vec3 axis){
-	    axis=normalize(axis);3
+	    axis=normalize(axis);
 	    float s=sin(angle);
 	    float c=cos(angle);
 	    float oc=1.-c;
@@ -50,42 +50,44 @@ varying vec3 vViewPosition;
 	    0.,0.,0.,1.);
 	}
 
+	 
 	vec3 rotateOnAxis(vec3 axis,float rotationAngle,vec3 pivotPoint,vec3 position){
 	    position=position-pivotPoint;
 	    mat4 rmy=rotationAxis(rotationAngle,axis);
 	    return(vec4(position,1.)*rmy).xyz+pivotPoint;
 	}
 
-	vec4 wind=vec4(0.,1.,0.,1.);
-	vec4 zblue=vec3(0.,0.,1.);
-	vec3 dpoint=vec3(0.,0.,-10.);
-vec3 simpleGrassWind(vec3 finalPosition,vec3 addtionalWPO,float weight,float intensity,float speed){
-    vec3 nwindrgb=normalize(wind.rgb);
-    vec3 windrgb=cross(nwindrgb,zblue);
-    
-    float speed=wind.a*time*windSpeed*-.5;
-    vec3 windspeed=nwindrgb*speed;
-    
-    vec3 scalePosition=finalPosition/1024.;
-    vec3 scalePosition1=speed+finalPosition/200.;
-    
-    vec3 swindSpeed=abs(frac(scalePosition1+.5)*2.-1.)
-    
-    float winddistance=distance(((3.-swindSpeed*2.)*swindSpeed)*swindSpeed,0.);
-    
-    vec3 windspeed2=windspeed+scalePosition;
-    vec3 absSpeed=abs(frac(windspeed2+.5)*2.-1.);
-    vec3 windspeed3=3.-absSpeed*2.;
-    vec3 windspeed4=windspeed3*absSpeed*absSpeed;
-    
-    float windallDis=dot(nwindrgb,windspeed4)+winddistance;
-    
-    vec3 pivotPoint=addtionalWPO+dpoint;
-    
-    vec3 rotateVec3=rotateOnAxis(windrgb,windallDis,pivotPoint,addtionalWPO);
-    rotateVec3=rotateVec3*weight*intensity;
-    return addtionalWPO+rotateVec3;
-}
+	vec4 wind=vec4(0.1,1.,0.,1.);
+	vec3 zvalue=vec3(0.,0.,1.);
+	vec3 dpoint=vec3(0.,0.,-2.0);
+
+	vec3 simpleGrassWind(vec3 finalPosition,vec3 addtionalWPO,float weight,float intensity,float windSpeed){
+    	vec3 nwindrgb=normalize(wind.rgb);
+    	vec3 windrgb=cross(nwindrgb,zvalue);
+		
+    	float speed=wind.a*time*windSpeed*-.5;
+    	vec3 windspeed=nwindrgb*speed;
+		
+    	vec3 scalePosition=finalPosition/1024.;
+    	vec3 scalePosition1=speed+finalPosition/200.;
+		
+    	vec3 swindSpeed=abs(fract(scalePosition1+.5)*2.-1.);
+		
+    	float winddistance=distance(((3.-swindSpeed*2.)*swindSpeed)*swindSpeed,vec3(0.));
+		
+    	vec3 windspeed2=windspeed+scalePosition;
+    	vec3 absSpeed=abs(fract(windspeed2+.5)*2.-1.);
+    	vec3 windspeed3=3.-absSpeed*2.;
+    	vec3 windspeed4=windspeed3*absSpeed*absSpeed;
+		
+    	float windallDis=dot(nwindrgb,windspeed4)+winddistance;
+		
+    	vec3 pivotPoint=addtionalWPO + dpoint;
+		
+    	vec3 rotateVec3=rotateOnAxis(windrgb,windallDis,pivotPoint,addtionalWPO);
+    	rotateVec3=rotateVec3*weight*intensity;
+    	return addtionalWPO+rotateVec3;
+	}
 
 #endif
 
@@ -114,14 +116,15 @@ void main() {
 		mvPosition = instanceMatrix * mvPosition; 
 	#endif
 
-	mvPosition = modelViewMatrix * mvPosition; 
+	vec3 modelPositon = modelMatrix * mvPosition; 
+	mvPosition = viewMatrix * modelPositon;
 	
 	vec4 finalPos= projectionMatrix * mvPosition;
 	#ifdef USE_TREE
 	 	vec2 remapUv = remap(uv,vec2(0.0),vec2(1.0),vec2(-1.0),vec2(1.0)); 
     	// vec4 offsetv4 = vec4(vertexOffset,0.0,1.0) * viewMatrix;
-    	finalPos.xyz += mix(vec3(0.0), normalize(vec3(remapUv ,0.0)),effectBlend); 
-		finalPos.xyz = simpleGrassWind(1.0,1.0,1.0,finalPos.xyz);
+    	vec3 vertexOffset = mix(vec3(0.0), normalize(vec3(remapUv ,0.0)),effectBlend); 
+		finalPos.xyz += simpleGrassWind(modelPositon,vertexOffset,windWeight,windIntensity,windSpeed);
 	#endif
 	
 	gl_Position = finalPos;
@@ -526,25 +529,32 @@ const maskMap = textureLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1
 
 export const treeShaderMaterial = new THREE.MeshStandardMaterial({
 	color: 0x33be27,
-	roughness: 0.9,
-	metalness: 0.3,
+	roughness: 0.7,
+	metalness: 0.5,
 	alphaMap: maskMap,
-	alphaTest: 0.4,
-	alphaToCoverage: true,
+	alphaTest: 0.5,
+	// alphaToCoverage: true,
 	// transparent: true,
 	// depthTest: false
 })
 
 treeShaderMaterial.onBeforeCompile = (shader) => {
+	treeShaderMaterial.shader = shader;
+
 	shader.vertexShader = vertex;
 	shader.fragmentShader = fragment;
 
 	shader.uniforms.effectBlend = { value: 2.0 };
 	shader.uniforms.maskMap = { value: maskMap };
-	shader.uniforms.gradientMap = { value: gradientMaps.threeTone };
+	shader.uniforms.gradientMap = { value: gradientMaps.fiveTone };
+	shader.uniforms.time = { value: 0 };
+	shader.uniforms.windSpeed = { value: 0.6 };
+	shader.uniforms.windIntensity = { value: 0.8 };
+	shader.uniforms.windWeight = { value: 0.5 };
 
 	shader.defines = shader.defines || {};
 	shader.defines['USE_TOONMAP'] = 'USE_TOONMAP';
 	shader.defines['USE_TREE'] = 'USE_TREE';
 }
+
 
