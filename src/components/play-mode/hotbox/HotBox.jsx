@@ -8,6 +8,8 @@ export const HotBox = ({
   size,
   onDragOver,
   onDrop,
+  onClick,
+  onDoubleClick,
 }) => {
     const canvasRef = useRef();
     const [selected, setSelected] = useState(false);
@@ -46,6 +48,8 @@ export const HotBox = ({
         className={ classnames(styles.hotBox, selected ? styles.selected : null) }
         onDragOver={onDragOver}
         onDrop={onDrop}
+        onClick={onClick}
+        onDoubleClick={onDoubleClick}
       >
         <div className={ styles.box } />
         <div className={ styles.label }>
