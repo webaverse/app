@@ -219,7 +219,10 @@ export const App = () => {
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
-                <WorldObjectsList />
+                <WorldObjectsList
+                    setSelectedApp={ setSelectedApp }
+                    selectedApp={ selectedApp }
+                />
                 <PlayMode />
                 <EditorMode
                     selectedScene={ selectedScene }
