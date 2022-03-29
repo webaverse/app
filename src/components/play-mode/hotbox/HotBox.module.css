@@ -29,6 +29,7 @@
 }
 .hotBox:not(.selected) .label {
     opacity: 0.3;
+    user-select: none;
 }
 .hotBox .background {
     position: absolute;
