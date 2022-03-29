@@ -18,7 +18,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
-import {downloadFile, snapPosition, handleDropJsonItem} from './util.js';
+import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
 import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
 // import easing from './easing.js';
 // import {VoicePack} from './voice-pack-voicer.js';
@@ -1400,6 +1400,13 @@ class GameManager extends EventTarget {
   }
   async handleDropJsonItemToPlayer(item, index) {
     const u = await handleDropJsonItem(item);
+    return await this.handleDropUrlToPlayer(u, index);
+  }
+  async handleDropJsonToPlayer(j, index) {
+    const u = getDropUrl(j);
+    return await this.handleDropUrlToPlayer(u, index);
+  }
+  async handleDropUrlToPlayer(u, index) {
     const app = await metaversefileApi.createAppAsync({
       start_url: u,
     });

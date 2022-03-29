@@ -5,6 +5,7 @@ import styles from './inventory.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
 // import { LightArrow } from '../../../LightArrow.jsx';
+import game from '../../../../game.js';
 import spritesheetManager from '../../../../spritesheet-manager.js';
 import {transparentPngUrl} from '../../../../constants.js';
 
@@ -177,7 +178,8 @@ export const Inventory = () => {
         setSelectObject(object);
     };
     const onDoubleClick = object => () => {
-        console.log('double click');
+        game.handleDropJsonToPlayer(object);
+
         setSelectObject(object);
     };
 
