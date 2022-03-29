@@ -15,41 +15,53 @@ const userTokenCharacters = Array(7);
 for (let i = 0; i < userTokenCharacters.length; i++) {
     userTokenCharacters[i] = {
         name: '',
-        imgSrc: '',
+        previewUrl: '',
+        avatarUrl: '',
+        voice: '',
         class: '',
+        bio: '',
     };
 }
 const characters = {
     upstreet: [
         {
             name: 'Scillia',
-            imgSrc: './characters/scillia.png',
-            vrmSrc: './avatars/scillia_drophunter_v15_vian.vrm',
+            previewUrl: './characters/scillia.png',
+            avatarUrl: './avatars/scillia_drophunter_v15_vian.vrm',
+            voice: `Sweetie Belle`,
             class: 'Drop Hunter',
+            bio: `Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan.`,
         },
         {
             name: 'Drake',
-            imgSrc: './characters/drake.png',
-            vrmSrc: './avatars/Drake_hacker_v8_Guilty.vrm',
+            previewUrl: './characters/drake.png',
+            avatarUrl: './avatars/Drake_hacker_v8_Guilty.vrm',
+            voice: `Shining Armor`,
             class: 'Neural Hacker',
+            bio: `His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight.`,
         },
         {
             name: 'Hyacinth',
-            imgSrc: './characters/hyacinth.png',
-            vrmSrc: './avatars/hya_influencer_v2_vian.vrm',
+            previewUrl: './characters/hyacinth.png',
+            avatarUrl: './avatars/hya_influencer_v2_vian.vrm',
+            voice: `Maud Pie`,
             class: 'Beast Painter',
+            bio: `Scillia's mentor. 15/F beast tamer. She is quite famous. She is known for releasing beasts on her enemies when she get angry.`,
         },
         {
             name: 'Juniper',
-            imgSrc: './characters/juniper.png',
-            vrmSrc: './avatars/jun_engineer_v1_vian.vrm',
+            previewUrl: './characters/juniper.png',
+            avatarUrl: './avatars/jun_engineer_v1_vian.vrm',
+            voice: `Cadance`,
             class: 'Academy Engineer',
+            bio: `She is an engineer. 17/F engineer. She is new on the street. She has a strong moral compass and it the voice of reason in the group.`,
         },
         {
             name: 'Anemone',
-            imgSrc: './characters/anemone.png',
-            vrmSrc: './avatars/ann.vrm',
+            previewUrl: './characters/anemone.png',
+            avatarUrl: './avatars/ann.vrm',
             class: 'Lisk Witch',
+            bio: `A witch studying to make the best potions. 13/F. She is exceptionally skilled and sells her potions on the black market, but she is very shy.`,
         },
     ],
 };
@@ -84,7 +96,7 @@ const Character = forwardRef(({
             }}
             ref={ref}
         >
-            {character?.imgSrc ? <img className={styles.img} src={character.imgSrc} /> : null}
+            {character?.previewUrl ? <img className={styles.img} src={character.previewUrl} /> : null}
             <div className={styles.wrap}>
                 <div className={styles.name}>{character?.name ?? ''}</div>
                 <div className={styles.class}>{character?.class ?? ''}</div>
@@ -142,18 +154,18 @@ export const CharacterSelect = () => {
     }, [targetCharacter]);
     useEffect(() => {
         if (targetCharacter) {
-            const {vrmSrc} = targetCharacter;
+            const {avatarUrl} = targetCharacter;
 
             let live = true;
-            let npcPlayer = npcPlayerCache.get(vrmSrc);
+            let npcPlayer = npcPlayerCache.get(avatarUrl);
             (async () => {
                 if (!npcPlayer) {
                     const avatarApp = await metaversefile.createAppAsync({
-                        start_url: vrmSrc,
+                        start_url: avatarUrl,
                     });
                     npcPlayer = new NpcPlayer();
                     npcPlayer.setAvatarApp(avatarApp);
-                    npcPlayerCache.set(vrmSrc, npcPlayer);
+                    npcPlayerCache.set(avatarUrl, npcPlayer);
                     if (!live) return;
                 }
 
@@ -242,7 +254,7 @@ export const CharacterSelect = () => {
 
                                             (async () => {
                                                 const localPlayer = await metaversefile.useLocalPlayer();
-                                                await localPlayer.setAvatarUrl(character.vrmSrc);
+                                                await localPlayer.setAvatarUrl(character.avatarUrl);
                                             })();
 
                                             setTimeout(() => {
