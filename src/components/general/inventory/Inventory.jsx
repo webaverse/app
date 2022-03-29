@@ -31,6 +31,11 @@ const objects = {
             start_url: 'https://webaverse.github.io/dragon-mount/',
             level: 5,
         },
+        {
+            name: 'Bow',
+            start_url: 'https://webaverse.github.io/bow/',
+            level: 9,
+        },
     ],
 };
 
