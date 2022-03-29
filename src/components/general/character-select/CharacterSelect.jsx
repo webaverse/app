@@ -99,7 +99,7 @@ const Character = forwardRef(({
             {character?.previewUrl ? <img className={styles.img} src={character.previewUrl} /> : null}
             <div className={styles.wrap}>
                 <div className={styles.name}>{character?.name ?? ''}</div>
-                <div className={styles.class}>{character?.class ?? ''}</div>
+                <div className={styles.description}>{character?.class ?? ''}</div>
             </div>
         </li>
     );
