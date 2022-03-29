@@ -199,10 +199,10 @@ export const App = () => {
         e.dataTransfer.dropEffect = 'move';
     };
     const onDragStart = e => {
-        console.log('drag start', e);
+        // console.log('drag start', e);
     };
     const onDragEnd = e => {
-        console.log('drag end', e);
+        // console.log('drag end', e);
     };
 
     return (
