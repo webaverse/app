@@ -709,7 +709,7 @@ input[type=range]::-webkit-slider-thumb {
   bottom: 0;
   height: 100vh;
   width: 100vw;
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
 }
 .tabs > div {

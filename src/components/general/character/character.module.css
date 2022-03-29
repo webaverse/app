@@ -5,6 +5,7 @@
   left: 0px;
   transform: translate( -400px, 0px );
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+  z-index: 1;
 }
 
 .characterWrapper.opened {
