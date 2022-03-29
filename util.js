@@ -869,7 +869,7 @@ export const getDropUrl = o => {
   }
   return u;
 };
-export const handleDropJsonItem = async (item) => {
+export const handleDropJsonItem = async item => {
   if (item?.kind === 'string') {
     const s = await new Promise((accept, reject) => {
       item.getAsString(accept);
