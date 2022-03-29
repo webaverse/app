@@ -26,7 +26,7 @@ const characters = {
     upstreet: [
         {
             name: 'Scillia',
-            previewUrl: './images/characters/upstreet/scillia.png',
+            previewUrl: './images/characters/upstreet/small/scillia.png',
             avatarUrl: './avatars/scillia_drophunter_v15_vian.vrm',
             voice: `Sweetie Belle`,
             class: 'Drop Hunter',
@@ -34,7 +34,7 @@ const characters = {
         },
         {
             name: 'Drake',
-            previewUrl: './images/characters/upstreet/drake.png',
+            previewUrl: './images/characters/upstreet/small/drake.png',
             avatarUrl: './avatars/Drake_hacker_v8_Guilty.vrm',
             voice: `Shining Armor`,
             class: 'Neural Hacker',
@@ -42,7 +42,7 @@ const characters = {
         },
         {
             name: 'Hyacinth',
-            previewUrl: './images/characters/upstreet/hyacinth.png',
+            previewUrl: './images/characters/upstreet/small/hyacinth.png',
             avatarUrl: './avatars/hya_influencer_v2_vian.vrm',
             voice: `Maud Pie`,
             class: 'Beast Painter',
@@ -50,7 +50,7 @@ const characters = {
         },
         {
             name: 'Juniper',
-            previewUrl: './images/characters/upstreet/juniper.png',
+            previewUrl: './images/characters/upstreet/small/juniper.png',
             avatarUrl: './avatars/jun_engineer_v1_vian.vrm',
             voice: `Cadance`,
             class: 'Academy Engineer',
@@ -58,7 +58,7 @@ const characters = {
         },
         {
             name: 'Anemone',
-            previewUrl: './images/characters/upstreet/anemone.png',
+            previewUrl: './images/characters/upstreet/small/anemone.png',
             avatarUrl: './avatars/ann.vrm',
             class: 'Lisk Witch',
             bio: `A witch studying to make the best potions. 13/F. She is exceptionally skilled and sells her potions on the black market, but she is very shy.`,
