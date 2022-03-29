@@ -34,12 +34,59 @@ varying vec3 vViewPosition;
 	    return min + (origin - oldmin) * (max - min) / (oldmax - oldmin) ;
 	} 
 
+	uniform float time;
+	uniform float windSpeed;
 	uniform float windIntensity;
 	uniform float windWeight;
-	uniform float windSpeed; 
-	vec3 simpleGrassWind(float intensity,float weight,float speed,vec3 addtionalWPO){
-		return vec3(addtionalWPO);
+
+	mat4 rotationAxis(float angle,vec3 axis){
+	    axis=normalize(axis);3
+	    float s=sin(angle);
+	    float c=cos(angle);
+	    float oc=1.-c;
+	    return mat4(oc*axis.x*axis.x+c,oc*axis.x*axis.y-axis.z*s,oc*axis.z*axis.x+axis.y*s,0.,
+	        oc*axis.x*axis.y+axis.z*s,oc*axis.y*axis.y+c,oc*axis.y*axis.z-axis.x*s,0.,
+	        oc*axis.z*axis.x-axis.y*s,oc*axis.y*axis.z+axis.x*s,oc*axis.z*axis.z+c,0.,
+	    0.,0.,0.,1.);
 	}
+
+	vec3 rotateOnAxis(vec3 axis,float rotationAngle,vec3 pivotPoint,vec3 position){
+	    position=position-pivotPoint;
+	    mat4 rmy=rotationAxis(rotationAngle,axis);
+	    return(vec4(position,1.)*rmy).xyz+pivotPoint;
+	}
+
+	vec4 wind=vec4(0.,1.,0.,1.);
+	vec4 zblue=vec3(0.,0.,1.);
+	vec3 dpoint=vec3(0.,0.,-10.);
+vec3 simpleGrassWind(vec3 finalPosition,vec3 addtionalWPO,float weight,float intensity,float speed){
+    vec3 nwindrgb=normalize(wind.rgb);
+    vec3 windrgb=cross(nwindrgb,zblue);
+    
+    float speed=wind.a*time*windSpeed*-.5;
+    vec3 windspeed=nwindrgb*speed;
+    
+    vec3 scalePosition=finalPosition/1024.;
+    vec3 scalePosition1=speed+finalPosition/200.;
+    
+    vec3 swindSpeed=abs(frac(scalePosition1+.5)*2.-1.)
+    
+    float winddistance=distance(((3.-swindSpeed*2.)*swindSpeed)*swindSpeed,0.);
+    
+    vec3 windspeed2=windspeed+scalePosition;
+    vec3 absSpeed=abs(frac(windspeed2+.5)*2.-1.);
+    vec3 windspeed3=3.-absSpeed*2.;
+    vec3 windspeed4=windspeed3*absSpeed*absSpeed;
+    
+    float windallDis=dot(nwindrgb,windspeed4)+winddistance;
+    
+    vec3 pivotPoint=addtionalWPO+dpoint;
+    
+    vec3 rotateVec3=rotateOnAxis(windrgb,windallDis,pivotPoint,addtionalWPO);
+    rotateVec3=rotateVec3*weight*intensity;
+    return addtionalWPO+rotateVec3;
+}
+
 #endif
 
 void main() {
