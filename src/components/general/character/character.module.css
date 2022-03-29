@@ -30,8 +30,12 @@
   font-size: 16px;
   user-select: none;
   overflow: hidden;
-  transition: color 1s cubic-bezier(0, 1, 0, 1);
+  transition: color 1s cubic-bezier(0, 1, 0, 1), transform 1s cubic-bezier(0, 1, 0, 1);
   background-color: #000;
+}
+
+.characterWrapper.opened .characterBtn {
+  transform: translate(-100%, 0);
 }
 
 .characterBtn .background {
@@ -105,8 +109,8 @@
   display: flex;
   flex-direction: column;
   position: absolute;
-  top: 100px;
-  left: calc(400px - var(--emotions-width));
+  top: 0;
+  left: 400px;
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
 
@@ -122,13 +126,16 @@
   display: none;
 }
 
-.characterWrapper.opened .emotions {
+.characterWrapper:not(.opened) .emotions {
+  transform: translate(-50px, 0px );
+}
+/* .characterWrapper.opened .emotions {
   transform: translate( var(--emotions-width), 0px );
-}
-
-.header .tab.top.left:not(.open) .emotions {
+} */
+/* .header .tab.top.left:not(.open) .emotions {
   transform: translate3d(calc(-1 * var(--emotions-width)), 0, 0);
-}
+} */
+
 .emotions .emotion {
   display: flex;
   position: relative;
