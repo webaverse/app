@@ -6,6 +6,7 @@ import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
 // import { LightArrow } from '../../../LightArrow.jsx';
 import spritesheetManager from '../../../../spritesheet-manager.js';
+import {transparentPngUrl} from '../../../../constants.js';
 
 //
 
@@ -97,6 +98,15 @@ const InventoryObject = forwardRef(({
         }
     }, [canvasRef, spritesheet]);
 
+    const onDragStart = e => {
+        e.dataTransfer.setData('text/plain', 'lola');
+        e.dataTransfer.setData('application/json', JSON.stringify(object));
+
+        const transparentPng = new Image();
+        transparentPng.src = transparentPngUrl;
+        e.dataTransfer.setDragImage(transparentPng, 0, 0);
+    };
+
     return (
         <div
             className={classnames(
@@ -104,8 +114,10 @@ const InventoryObject = forwardRef(({
                 hovered ? styles.hovered : null,
                 selected ? styles.selected : null,
             )}
+            draggable
             onMouseEnter={onMouseEnter}
             onMouseDown={onMouseDown}
+            onDragStart={onDragStart}
             ref={ref}
         >
 
