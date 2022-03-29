@@ -18,7 +18,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
-import {downloadFile, snapPosition, handleDrop} from './util.js';
+import {downloadFile, snapPosition, handleDropJsonItem} from './util.js';
 import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
 // import easing from './easing.js';
 // import {VoicePack} from './voice-pack-voicer.js';
@@ -1398,10 +1398,10 @@ class GameManager extends EventTarget {
       localPlayer.addAction(crouchAction);
     }
   }
-  async handleDrop(e, index) {
-    const u = await handleDrop(e.dataTransfer.items[0]);
+  async handleDropJsonItemToPlayer(item, index) {
+    const u = await handleDropJsonItem(item);
     const app = await metaversefileApi.createAppAsync({
-        start_url: u,
+      start_url: u,
     });
     world.appManager.importApp(app);
     app.activate();
