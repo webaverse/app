@@ -97,7 +97,7 @@ const Stat = ({
     );
 };
 
-export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
+export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
     const { state, setState } = useContext( AppContext );
 
@@ -323,7 +323,7 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
                             return <Stat statSpec={statSpec} key={i} />;
                         })}
                     </div>
-                    {wearActions.map((wearAction, i) => {
+                    {/* wearActions.map((wearAction, i) => {
                         const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
 
                         return (
@@ -350,10 +350,10 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
                             <div className={styles.background2} />
                             </div>
                         );
-                    })}
+                    }) */}
                 </div>
 
-                {wearActions.map((wearAction, i) => {
+                {/* wearActions.map((wearAction, i) => {
 
                     const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
 
@@ -382,7 +382,7 @@ export const Character = ({ game, wearActions, dioramaCanvasRef }) => {
                         </div>
                     );
 
-                })}
+                }) */}
 
                 <div
                     className={classnames(styles.selectButton, characterSelectOpen ? styles.highlight : null)}
