@@ -10,13 +10,8 @@ body {
 	height: var(--header-height);
   top: 0;
   left: 0;
-  flex-direction: column;
   user-select: none;
   z-index: 2;
-}
-
-.header.subheader {
-  z-index: 1;
 }
 
 .header > .row {
@@ -703,4 +698,20 @@ input[type=range]::-webkit-slider-thumb {
 .discord_text {
   margin-left: 10px;
 
+}
+
+/* */
+
+.tabs {
+  display: flex;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  width: 100vw;
+  z-index: 2;
+  pointer-events: none;
+}
+.tabs > div {
+  pointer-events: all;
 }
