@@ -240,7 +240,7 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
         e.preventDefault();
         e.stopPropagation();
 
-        game.handleDrop(e);
+        game.handleDropJsonItemToPlayer(e.dataTransfer.items[0]);
     }
     const characterSelectOpen = state.openedPanel === 'CharacterSelect';
 

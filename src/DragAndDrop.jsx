@@ -28,7 +28,10 @@ const _upload = () => new Promise((accept, reject) => {
     // load.end();
   });
 });
-const uploadCreateApp = async item => {
+const _isJsonItem = item => item?.kind === 'string';
+const uploadCreateApp = async (item, {
+  drop = false,
+}) => {
   let u;
   {
     let load = null;
@@ -61,6 +64,7 @@ const uploadCreateApp = async item => {
     try {
       o = await metaversefile.createAppAsync({
         start_url: u,
+        in_front: drop,
         components: {
           physics: true,
         },
@@ -145,12 +149,17 @@ const DragAndDrop = () => {
 
         const items = Array.from(e.dataTransfer.items);
         await Promise.all(items.map(async item => {
-          const app = await uploadCreateApp(item/*, {
-            position,
-            quaternion,
-          }*/);
+          const drop = _isJsonItem(item);
+          const app = await uploadCreateApp(item, {
+            drop,
+          });
           if (app) {
-            setQueue(queue.concat([app]));
+            if (drop) {
+              world.appManager.importApp(app);
+              setState({ openedPanel: null });
+            } else {
+              setQueue(queue.concat([app]));
+            }
           }
         }));
       
@@ -179,10 +188,7 @@ const DragAndDrop = () => {
       // console.log('set app', app);
       setCurrentApp(app);
       setQueue(queue.slice(1));
-
-      if (state.openedPanel) {
-        setState({ openedPanel: null });
-      }
+      setState({ openedPanel: null });
 
       if (cameraManager.pointerLockElement) {
         cameraManager.exitPointerLock();
