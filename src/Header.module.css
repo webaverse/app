@@ -1,4 +1,45 @@
 
+.loginDiv {
+    width: 100%;
+    margin: 10px 0;
+    text-align: -webkit-center;
+}
+
+.loginBtnText {
+    display: inline-block;
+    transform: skewX(20deg);
+  }
+
+.loginBtnImg {
+    vertical-align: middle;
+    margin: 0 10px;
+  }
+
+.loginBtn {
+    transform: skewX(-20deg);
+    background: rgb(0, 168, 252);
+    color: rgb(0, 0, 0);
+    padding: 0.5em;
+    width: 10em;
+    text-align: left;
+    cursor: pointer;
+}
+
+.logoutBtn {
+    position: absolute;
+    right: 0;
+    background: black;
+    color: white;
+    padding: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.logoutBtn:hover {
+    background: #ef5350;
+    color: white;
+}
+
 body {
   --header-height: 50px;
 }
