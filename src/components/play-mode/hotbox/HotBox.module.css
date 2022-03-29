@@ -26,10 +26,10 @@
     background-color: #666;
     border-radius: 3px;
     color: #FFFFFF80;
+    user-select: none;
 }
 .hotBox:not(.selected) .label {
     opacity: 0.3;
-    user-select: none;
 }
 .hotBox .background {
     position: absolute;
