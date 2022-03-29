@@ -5,6 +5,7 @@ import { Water } from './Water.js'
 import { Sky } from './Sky.js'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { treeMaterial } from './treeMaterial.js';
+import { treeShaderMaterial } from "./physicTreeMaterial.js";
 
 const { useFrame, useLocalPlayer, useLoaders, useUi, usePhysics, useCleanup, useGeometryUtils } = metaversefile;
 
@@ -26,10 +27,10 @@ export default () => {
         obj.position.y = 80
         obj.position.x = 10;
         obj.updateMatrixWorld(true);
-        rootScene.add(obj) 
+        rootScene.add(obj)
 
         const treeTop = obj.getObjectByName("sm_heroTreeTop");
-        treeTop.material = treeMaterial;
+        treeTop.material = treeShaderMaterial;
     })
 
     fbxLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/models/sm_heroTree_low.fbx`, (obj) => {
@@ -37,8 +38,8 @@ export default () => {
         obj.position.y = 80
         obj.position.x = -10;
         obj.updateMatrixWorld(true);
-        rootScene.add(obj) 
- 
+        rootScene.add(obj)
+
     })
 
 
@@ -77,7 +78,7 @@ export default () => {
     // rootScene.add(terrain);
 
     const player = useLocalPlayer();
-    player.position.y = 100;
+    player.position.y = 95;
     // terrainManager.updateCenter(player.position);
     // terrainManager.updateChunk();
 
@@ -93,7 +94,7 @@ export default () => {
 
 
 
-    player.position.y = 150;
+    player.position.y = 100;
     const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
 
     const water = new Water(

@@ -1,3 +1,8 @@
+import * as THREE from 'three';
+import { LinearFilter, LinearMipmapLinearFilter } from 'three';
+import { terrainMaterial } from './toonMaterial';
+
+
 export const vertex = /* glsl */`
 #define STANDARD
 
@@ -22,6 +27,21 @@ varying vec3 vViewPosition;
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
 
+#ifdef USE_TREE
+	uniform float effectBlend;
+
+	vec2 remap(vec2 origin,vec2 oldmin,vec2 oldmax,vec2 min,vec2 max){
+	    return min + (origin - oldmin) * (max - min) / (oldmax - oldmin) ;
+	} 
+
+	uniform float windIntensity;
+	uniform float windWeight;
+	uniform float windSpeed; 
+	vec3 simpleGrassWind(float intensity,float weight,float speed,vec3 addtionalWPO){
+		return vec3(addtionalWPO);
+	}
+#endif
+
 void main() {
 
 	#include <uv_vertex>
@@ -39,7 +59,26 @@ void main() {
 	#include <morphtarget_vertex>
 	#include <skinning_vertex>
 	#include <displacementmap_vertex>
-	#include <project_vertex>
+	// #include <project_vertex>
+
+	vec4 mvPosition = vec4( transformed, 1.0 );
+
+	#ifdef USE_INSTANCING 
+		mvPosition = instanceMatrix * mvPosition; 
+	#endif
+
+	mvPosition = modelViewMatrix * mvPosition; 
+	
+	vec4 finalPos= projectionMatrix * mvPosition;
+	#ifdef USE_TREE
+	 	vec2 remapUv = remap(uv,vec2(0.0),vec2(1.0),vec2(-1.0),vec2(1.0)); 
+    	// vec4 offsetv4 = vec4(vertexOffset,0.0,1.0) * viewMatrix;
+    	finalPos.xyz += mix(vec3(0.0), normalize(vec3(remapUv ,0.0)),effectBlend); 
+		finalPos.xyz = simpleGrassWind(1.0,1.0,1.0,finalPos.xyz);
+	#endif
+	
+	gl_Position = finalPos;
+	 
 	#include <logdepthbuf_vertex>
 	#include <clipping_planes_vertex>
 
@@ -112,27 +151,31 @@ varying vec3 vViewPosition;
 #include <aomap_pars_fragment>
 #include <lightmap_pars_fragment>
 #include <emissivemap_pars_fragment>
-#ifdef USE_GRADIENTMAP 
+
+#ifdef USE_TREE 
 	uniform sampler2D gradientMap; 
+	
+ 	vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) { 
+ 		// dotNL will be from -1.0 to 1.0
+ 		float dotNL = dot( normal, lightDirection ); 
+ 		vec2 coord = vec2( dotNL * 0.8 + 0.2, 0.0 ); 
+ 		#ifdef USE_TOONMAP 
+ 			return texture2D( gradientMap, coord ).rgb; 
+ 		#else 
+ 		return (  dotNL * 0.8 + 0.2  < 0.7 ) ? vec3( 0.7 ) : vec3( 1.0 ); 
+ 		#endif 
+ 	}
 #endif
 
-vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) { 
-	// dotNL will be from -1.0 to 1.0
-	float dotNL = dot( normal, lightDirection ); 
-	vec2 coord = vec2( dotNL * 0.57 + 0.43, 0.0 ); 
-	#ifdef USE_GRADIENTMAP 
-		return texture2D( gradientMap, coord ).rgb; 
-	#else 
-		return (  .x < 0.7 ) ? vec3( 0.7 ) : vec3( 1.0 ); 
-	#endif 
-}
 #include <bsdfs>
 #include <cube_uv_reflection_fragment>
 #include <envmap_common_pars_fragment>
 #include <envmap_physical_pars_fragment>
 #include <fog_pars_fragment>
 #include <lights_pars_begin>
-#include <normal_pars_fragment> 
+#include <normal_pars_fragment>   
+
+#ifdef USE_TOONMAP  
 struct PhysicalMaterial {
 
 	vec3 diffuseColor;
@@ -251,11 +294,15 @@ void computeMultiscattering( const in vec3 normal, const in vec3 viewDir, const 
 #endif
 
 void RE_Direct_Physical( const in IncidentLight directLight, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {
+
+	// float dotNL = saturate( dot( geometry.normal, directLight.direction ) );
+
+	// vec3 irradiance = dotNL * directLight.color;
+	 
+	float indensity = pow(1.0 - dot(geometry.normal,geometry.viewDir), 5.0);
+	vec3 irradiance = getGradientIrradiance( geometry.normal, directLight.direction ) * directLight.color  + indensity;
+	normalize(irradiance);
  
-	
-	vec3 irradiance = getGradientIrradiance( geometry.normal, directLight.direction ) * directLight.color;
-
-
 	#ifdef USE_CLEARCOAT
 
 		float dotNLcc = saturate( dot( geometry.clearcoatNormal, directLight.direction ) );
@@ -319,7 +366,11 @@ float computeSpecularOcclusion( const in float dotNV, const in float ambientOccl
 
 	return saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );
 
-} 
+}
+#else 
+	#include <lights_physical_pars_fragment>
+#endif
+
 #include <transmission_pars_fragment>
 #include <shadowmap_pars_fragment>
 #include <bumpmap_pars_fragment>
@@ -341,8 +392,15 @@ void main() {
 	#include <logdepthbuf_fragment>
 	#include <map_fragment>
 	#include <color_fragment>
-	#include <alphamap_fragment>
-	#include <alphatest_fragment>
+	// #include <alphamap_fragment>	 
+	// #include <alphatest_fragment>
+	#ifdef USE_ALPHATEST 
+		if (texture2D( alphaMap, vUv ).g < alphaTest )
+			 discard; 
+	#endif
+	// #ifdef USE_ALPHAMAP 
+	// diffuseColor.a *= texture2D( alphaMap, vUv ).g; 
+	// #endif
 	#include <roughnessmap_fragment>
 	#include <metalnessmap_fragment>
 	#include <normal_fragment_begin>
@@ -352,8 +410,7 @@ void main() {
 	#include <emissivemap_fragment>
 
 	// accumulation
-	#include <lights_physical_fragment>
-	#include <lights_toon_fragment>
+	#include <lights_physical_fragment> 
 	#include <lights_fragment_begin>
 	#include <lights_fragment_maps>
 	#include <lights_fragment_end>
@@ -378,7 +435,17 @@ void main() {
 
 	#endif
 
-	#include <output_fragment>
+	// #include <output_fragment>
+	#ifdef OPAQUE
+		diffuseColor.a = 1.0;
+	#endif
+
+	// https://github.com/mrdoob/three.js/pull/22425
+	#ifdef USE_TRANSMISSION
+		diffuseColor.a *= transmissionAlpha + 0.1;
+	#endif
+
+	gl_FragColor = vec4( outgoingLight , diffuseColor.a );
 	#include <tonemapping_fragment>
 	#include <encodings_fragment>
 	#include <fog_fragment>
@@ -387,3 +454,50 @@ void main() {
 
 }
 `;
+
+const textureLoader = new THREE.TextureLoader();
+
+const gradientMaps = (function () {
+
+	const threeTone = textureLoader.load('./textures/threeTone.jpg');
+	threeTone.minFilter = THREE.NearestFilter;
+	threeTone.magFilter = THREE.NearestFilter;
+
+	const fiveTone = textureLoader.load('./textures/fiveTone.jpg');
+	fiveTone.minFilter = THREE.NearestFilter;
+	fiveTone.magFilter = THREE.NearestFilter;
+
+	return {
+		none: null,
+		threeTone: threeTone,
+		fiveTone: fiveTone
+	};
+
+})();
+
+const maskMap = textureLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/tree_Opacity-01.png`)
+
+export const treeShaderMaterial = new THREE.MeshStandardMaterial({
+	color: 0x33be27,
+	roughness: 0.9,
+	metalness: 0.3,
+	alphaMap: maskMap,
+	alphaTest: 0.4,
+	alphaToCoverage: true,
+	// transparent: true,
+	// depthTest: false
+})
+
+treeShaderMaterial.onBeforeCompile = (shader) => {
+	shader.vertexShader = vertex;
+	shader.fragmentShader = fragment;
+
+	shader.uniforms.effectBlend = { value: 2.0 };
+	shader.uniforms.maskMap = { value: maskMap };
+	shader.uniforms.gradientMap = { value: gradientMaps.threeTone };
+
+	shader.defines = shader.defines || {};
+	shader.defines['USE_TOONMAP'] = 'USE_TOONMAP';
+	shader.defines['USE_TREE'] = 'USE_TREE';
+}
+
