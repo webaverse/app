@@ -1,7 +1,5 @@
 import metaversefile from 'metaversefile';
 
-const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
-
 const moduleUrls = {
   button: `./metaverse_modules/button/`,
   silk: `./metaverse_modules/silk/`,

@@ -9,10 +9,10 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
-// const localVector6 = new THREE.Vector3();
-// const localQuaternion = new THREE.Quaternion();
-// const localQuaternion2 = new THREE.Quaternion();
-// const localQuaternion3 = new THREE.Quaternion();
+const localVector6 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
@@ -97,8 +97,8 @@ export function makePromise() {
   return p;
 }
 
-// let nextMeshId = 0;
-// export const getNextMeshId = () => ++nextMeshId;
+let nextMeshId = 0;
+export const getNextMeshId = () => ++nextMeshId;
 
 export function clone(o) {
   return JSON.parse(JSON.stringify(o));
@@ -337,11 +337,6 @@ export function mergeMeshes(meshes, geometries, textures) {
 let nextPhysicsId = 0;
 export function getNextPhysicsId() {
   return ++nextPhysicsId;
-}
-
-let nextCharacterId = 0;
-export function getNextCharacterId() {
-  return ++nextCharacterId;
 }
 
 export function convertMeshToPhysicsMesh(topMesh) {

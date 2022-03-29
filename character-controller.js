@@ -85,8 +85,7 @@ function loadPhysxCharacterController() {
     contactOffset,
     stepOffset,
     position,
-    physicsMaterial,
-    this.avatar.characterId
+    physicsMaterial
   );
   // this.characterControllerObject = new THREE.Object3D();
 }
