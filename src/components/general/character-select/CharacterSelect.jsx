@@ -60,6 +60,7 @@ const characters = {
             name: 'Anemone',
             previewUrl: './images/characters/upstreet/small/anemone.png',
             avatarUrl: './avatars/ann.vrm',
+            voice: `Trixie`,
             class: 'Lisk Witch',
             bio: `A witch studying to make the best potions. 13/F. She is exceptionally skilled and sells her potions on the black market, but she is very shy.`,
         },
