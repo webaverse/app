@@ -9,10 +9,12 @@ import glob from 'glob';
 import {dependencies} from './package.json';
 import {copySync} from 'fs-extra';
 import incremental from '@mprt/rollup-plugin-incremental';
+import autoExternal from 'rollup-plugin-auto-external';
 
 const esbuildLoaders = ['js', 'jsx', 'mjs', 'cjs'];
 let appBuiltOnce = false;
 let plugins = [
+  autoExternal(),
   // reactRefresh()
 ];
 
@@ -40,7 +42,6 @@ const build = () => {
   ];
 
   const resolveEntryOfModule = _path => {
-    console.log(_path);
     const packageJSON = JSON.parse(fs.readFileSync(path.resolve(base, _path, 'package.json')).toString());
     const moduleEntryFile = packageJSON.module || packageJSON.main || 'index.js';
     const entryPoint = `./${path.normalize(`node_modules/${_path}/${moduleEntryFile}`)}`;
@@ -262,8 +263,8 @@ const build = () => {
          * first phase of build
          *  */
 
-        await createESMTree(esmTree);
-        await copyfn();
+        // await createESMTree(esmTree);
+        // await copyfn();
 
         fs.writeFileSync('dist/exports.json', JSON.stringify(exportPaths, null, 4));
       }
@@ -309,10 +310,8 @@ const viteConfigProduction = {
       treeshake: false,
       preserveEntrySignatures: 'strict',
       output: {
-        dir: './dist',
         sourcemap: false,
         exports: 'named',
-        preserveModules: true,
         minifyInternalExports: false,
         format: 'es',
         strict: false,
@@ -329,7 +328,6 @@ const viteConfigProduction = {
 
           // return 'app';
         },
-        manualChunks: undefined,
         assetFileNames: 'assets/[name].[ext]',
         chunkFileNames: 'assets/[name].js',
         entryFileNames: 'assets/[name].js',
