@@ -272,7 +272,7 @@ export default function Header () {
                         />
                     </div>
 				</header>
-                <header className={classnames(styles.header, styles.subheader)}>
+                <header className={styles.header}>
                     <div className={styles.row}>
                         <Character
                             panelsRef={panelsRef}
