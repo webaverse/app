@@ -19,7 +19,7 @@ export const Hotbar = () => {
         e.preventDefault();
         e.stopPropagation();
         
-        game.handleDrop(e, index);
+        game.handleDropJsonItemToPlayer(e.dataTransfer.items[0], index);
     };
     const onTopClick = e => {
         e.preventDefault();

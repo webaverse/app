@@ -869,7 +869,7 @@ export const getDropUrl = o => {
   }
   return u;
 };
-export const handleDrop = async (item) => {
+export const handleDropJsonItem = async (item) => {
   if (item?.kind === 'string') {
     const s = await new Promise((accept, reject) => {
       item.getAsString(accept);
@@ -918,7 +918,7 @@ export const handleUpload = async (
     const rootDirectoryHash = rootDirectory.hash;
     return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
   };
-  const _handleString = item => handleDrop(item);
+  const _handleString = item => handleDropJsonItem(item);
   const _handleDirectory = async entry => {
     const formData = new FormData();
         
