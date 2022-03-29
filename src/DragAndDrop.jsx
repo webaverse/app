@@ -52,7 +52,7 @@ const uploadCreateApp = async item => {
   }
 
   let o = null;
-  {
+  if (u) {
     const type = 'download';
     const name = item.name;
     const load = registerLoad(type, name);
