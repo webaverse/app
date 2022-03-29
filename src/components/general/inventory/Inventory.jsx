@@ -41,6 +41,8 @@ const InventoryObject = forwardRef(({
     selected,
     onMouseEnter,
     onMouseDown,
+    onDragStart,
+    onDoubleClick,
 }, ref) => {
     const [ spritesheet, setSpritesheet ] = useState(null);
     const canvasRef = useRef();
@@ -98,15 +100,6 @@ const InventoryObject = forwardRef(({
         }
     }, [canvasRef, spritesheet]);
 
-    const onDragStart = e => {
-        e.dataTransfer.setData('text/plain', 'lola');
-        e.dataTransfer.setData('application/json', JSON.stringify(object));
-
-        const transparentPng = new Image();
-        transparentPng.src = transparentPngUrl;
-        e.dataTransfer.setDragImage(transparentPng, 0, 0);
-    };
-
     return (
         <div
             className={classnames(
@@ -118,6 +111,7 @@ const InventoryObject = forwardRef(({
             onMouseEnter={onMouseEnter}
             onMouseDown={onMouseDown}
             onDragStart={onDragStart}
+            onDoubleClick={onDoubleClick}
             ref={ref}
         >
 
@@ -160,7 +154,30 @@ export const Inventory = () => {
     })();
 
     const open = state.openedPanel === 'CharacterPanel';
-    const targetObject = selectObject || hoverObject;
+    // const targetObject = selectObject || hoverObject;
+
+    const onMouseEnter = object => () => {
+        setHoverObject(object);
+    };
+    const onMouseDown = object => () => {
+        setSelectObject(selectObject !== object ? object : null);
+        /* setTimeout(() => {
+            setSelectObject(null);
+        }, 2000); */
+    };
+    const onDragStart = object => e => {
+        e.dataTransfer.setData('application/json', JSON.stringify(object));
+
+        const transparentPng = new Image();
+        transparentPng.src = transparentPngUrl;
+        e.dataTransfer.setDragImage(transparentPng, 0, 0);
+
+        setSelectObject(object);
+    };
+    const onDoubleClick = object => () => {
+        console.log('double click');
+        setSelectObject(object);
+    };
 
     return (
         <div className={styles.inventory}>
@@ -178,15 +195,10 @@ export const Inventory = () => {
                                 object={object}
                                 hovered={object === hoverObject}
                                 selected={object === selectObject}
-                                onMouseEnter={() => {
-                                    setHoverObject(object);
-                                }}
-                                onMouseDown={e => {
-                                    setSelectObject(selectObject !== object ? object : null);
-                                    /* setTimeout(() => {
-                                        setSelectObject(null);
-                                    }, 2000); */
-                                }}
+                                onMouseEnter={onMouseEnter(object)}
+                                onMouseDown={onMouseDown(object)}
+                                onDragStart={onDragStart(object)}
+                                onDoubleClick={onDoubleClick(object)}
                                 key={i}
                                 ref={refsMap.get(object)}
                             />
@@ -204,15 +216,10 @@ export const Inventory = () => {
                                     object={object}
                                     hovered={object === hoverObject}
                                     selected={object === selectObject}
-                                    onMouseEnter={() => {
-                                        setHoverObject(object);
-                                    }}
-                                    onMouseDown={e => {
-                                        setSelectObject(selectObject !== object ? object : null);
-                                        /* setTimeout(() => {
-                                            setSelectObject(null);
-                                        }, 2000); */
-                                    }}
+                                    onMouseEnter={onMouseEnter(object)}
+                                    onMouseDown={onMouseDown(object)}
+                                    onDragStart={onDragStart(object)}
+                                    onDoubleClick={onDoubleClick(object)}
                                     key={i}
                                     ref={refsMap.get(object)}
                                 />
