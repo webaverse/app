@@ -125,16 +125,18 @@
 }
 .inventoryObject .row {
   display: flex;
+  align-items: baseline;
 }
 .inventoryObject .name,
 .inventoryObject .level
 {
-  font-family: 'WinchesterCaps';
+  font-family: 'PlazaRegular';
 }
 .inventoryObject .name {
   margin-right: auto;
-  font-size: 20px;
+  font-size: 18px;
 }
 .inventoryObject .level {
-  font-size: 16px;
+  font-size: 13px;
+  color: #666;
 }
