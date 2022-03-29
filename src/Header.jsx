@@ -272,35 +272,33 @@ export default function Header () {
                         />
                     </div>
 				</header>
-                <header className={styles.header}>
-                    <div className={styles.row}>
-                        <Character
-                            panelsRef={panelsRef}
-                            wearActions={wearActions}
-                            dioramaCanvasRef={dioramaCanvasRef}
-                            game={game}
-                        />
-                        <CharacterSelect
-                            
-                        />
-                        <Inventory
+                <div className={styles.tabs}>
+                    <Character
+                        panelsRef={panelsRef}
+                        wearActions={wearActions}
+                        dioramaCanvasRef={dioramaCanvasRef}
+                        game={game}
+                    />
+                    <CharacterSelect
                         
-                        />
-                        <Claims
-                            open={ claimsOpen }
-                            toggleOpen={ toggleClaimsOpen }
-                            claims={claims}
-                            panelsRef={panelsRef}
-                        />
-                    </div>
-                </header>
-                <Tokens
-                    nfts={nfts}
-                    hacks={hacks}
-                    address={address}
-                    setNfts={setNfts}
-                    loginFrom={loginFrom}
-                />
+                    />
+                    <Inventory
+                    
+                    />
+                    <Claims
+                        open={ claimsOpen }
+                        toggleOpen={ toggleClaimsOpen }
+                        claims={claims}
+                        panelsRef={panelsRef}
+                    />
+                    <Tokens
+                        nfts={nfts}
+                        hacks={hacks}
+                        address={address}
+                        setNfts={setNfts}
+                        loginFrom={loginFrom}
+                    />
+                </div>
             </div>
         </div>
     );
