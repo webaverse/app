@@ -1252,11 +1252,22 @@ class GameManager extends EventTarget {
     const object = _getGrabbedObject(0);
     object.savedRotation.y -= direction * rotationSnap;
   }
-  drop() {
+  dropSelectedApp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const app = loadoutManager.getSelectedApp();
     if (app) {
       localPlayer.unwear(app);
+    }
+  }
+  deleteSelectedApp() {
+    if (this.selectedIndex !== -1) {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      const app = loadoutManager.getSelectedApp();
+      if (app) {
+        localPlayer.unwear(app, {
+          destroy: true,
+        });
+      }
     }
   }
   canPush() {
