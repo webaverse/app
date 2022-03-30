@@ -12,7 +12,7 @@ import metaversefile from 'metaversefile';
 
 import { registerIoEventHandler, unregisterIoEventHandler } from '../io-handler';
 import { registerLoad } from '../loading-box';
-import { ObjectPreview } from '../world-objects-list';
+import { ObjectPreview } from '../object-preview';
 import { AppContext } from '../../app';
 
 import styles from './drag-and-drop.module.css';
