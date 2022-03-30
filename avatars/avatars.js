@@ -1187,7 +1187,7 @@ class Avatar {
 
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
-    this.initializeBonePositions({
+    this.setups = {
       hips: _getOffset(modelBones.Hips),
       spine: _getOffset(modelBones.Spine),
       chest: _getOffset(modelBones.Chest),
@@ -1248,7 +1248,8 @@ class Avatar {
 
       leftToe: _getOffset(modelBones.Left_toe),
       rightToe: _getOffset(modelBones.Right_toe),
-    });
+    }
+    this.initializeBonePositions(this.setups);
 
     // height is defined as eyes to root
     this.height = getHeight(object);
@@ -2014,12 +2015,14 @@ class Avatar {
       }
     }
   }
-  resetBonesRotations() {
+  resetBonesToTPose() { // test
     for (const k in this.modelBoneOutputs) {
       const modelBone = this.modelBoneOutputs[k];
       modelBone.rotation.set(0, 0, 0);
     }
     this.modelBoneOutputs.Root.updateMatrixWorld();
+
+    this.initializeBonePositions(this.setups);
   }
   update(timestamp, timeDiff) {
     const now = timestamp;
