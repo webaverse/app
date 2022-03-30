@@ -42,16 +42,16 @@ export const Hotbar = () => {
             {
                 ( () => {
 
-                    const items = Array( itemsNum );
+                    const items = Array( numLoadoutSlots );
 
-                    for ( let i = 0; i < itemsNum; i ++ ) {
+                    for ( let i = 0; i < numLoadoutSlots; i ++ ) {
 
                         items[ i ] = (
                             <HotBox
                               size={hotbarSize}
                               onDragOver={onDragOver(i)}
                               onDrop={onDrop(i)}
-                              onClick={onBottomClick}
+                              onClick={onBottomClick(i)}
                               index={i}
                               key={i}
                             />
