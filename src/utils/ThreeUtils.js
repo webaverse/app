@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {camera} from '../renderer.js';
+import {camera} from '../../renderer.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();

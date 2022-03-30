@@ -1,13 +1,16 @@
 
 import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
+
 import metaversefile from 'metaversefile';
-import styles from './character-select.module.css';
-import { AppContext } from '../../app';
-import { MegaHup } from '../../../MegaHup.jsx';
-import { LightArrow } from '../../../LightArrow.jsx';
 import { world } from '../../../../world.js';
 import { NpcPlayer } from '../../../../character-controller.js';
+
+import { AppContext } from '../../app';
+import { MegaHup } from '../../../MegaHup.jsx';
+import { LightArrow } from '../light-arrow';
+
+import styles from './character-select.module.css';
 
 //
 
