@@ -10,8 +10,10 @@ import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
 
 import { Character } from './components/general/character';
+import { CharacterSelect } from './components/general/character-select';
+import { Inventory } from './components/general/inventory';
 import { Tokens } from './tabs/tokens';
-import { Claims } from './tabs/claims';
+// import { Claims } from './tabs/claims';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
 import { User } from './User';
@@ -31,7 +33,6 @@ export default function Header () {
 
     const [address, setAddress] = useState(false);
     const [nfts, setNfts] = useState(null);
-    const [claims, setClaims] = useState([]);
     const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
 
@@ -88,7 +89,7 @@ export default function Header () {
 
     }, [ state.openedPanel ] );
 
-    useEffect(() => {
+    /* useEffect(() => {
 
         const pickup = e => {
 
@@ -109,7 +110,7 @@ export default function Header () {
 
         };
 
-    }, [ claims ] );
+    }, [ claims ] ); */
 
     useEffect(() => {
 
@@ -243,29 +244,33 @@ export default function Header () {
                         />
                     </div>
 				</header>
-                <header className={classnames(styles.header, styles.subheader)}>
-                    <div className={styles.row}>
-                        <Character
-                            panelsRef={panelsRef}
-                            wearActions={wearActions}
-                            dioramaCanvasRef={dioramaCanvasRef}
-                            game={game}
-                        />
-                        <Claims
-                            open={ claimsOpen }
-                            toggleOpen={ toggleClaimsOpen }
-                            claims={claims}
-                            panelsRef={panelsRef}
-                        />
-                    </div>
-                </header>
-                <Tokens
-                    nfts={nfts}
-                    hacks={hacks}
-                    address={address}
-                    setNfts={setNfts}
-                    loginFrom={loginFrom}
-                />
+                <div className={styles.tabs}>
+                    <Character
+                        panelsRef={panelsRef}
+                        wearActions={wearActions}
+                        dioramaCanvasRef={dioramaCanvasRef}
+                        game={game}
+                    />
+                    <CharacterSelect
+                        
+                    />
+                    <Inventory
+                    
+                    />
+                    {/* <Claims
+                        open={ claimsOpen }
+                        toggleOpen={ toggleClaimsOpen }
+                        claims={claims}
+                        panelsRef={panelsRef}
+                    /> */}
+                    <Tokens
+                        nfts={nfts}
+                        hacks={hacks}
+                        address={address}
+                        setNfts={setNfts}
+                        loginFrom={loginFrom}
+                    />
+                </div>
             </div>
         </div>
     );

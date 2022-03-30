@@ -51,13 +51,8 @@ body {
 	height: var(--header-height);
   top: 0;
   left: 0;
-  flex-direction: column;
   user-select: none;
   z-index: 2;
-}
-
-.header.subheader {
-  z-index: 1;
 }
 
 .header > .row {
@@ -136,6 +131,7 @@ body {
 .header .panel-header {
   display: flex;
   position: relative;
+  margin-bottom: 5px;
   /* padding: 0 10px; */
 }
 .header .panel-header > .panel-section {
@@ -154,7 +150,14 @@ body {
   font-size: 16px;
 }
 .header .panel-header > .panel-section.main-stats {
-  font-family: 'PlazaRegular';
+  display: flex;
+  width: 215px;
+  height: 50px;
+  flex: none;
+  font-family: 'WinchesterCaps';
+  font-size: 13px;
+  letter-spacing: 1px;
+  align-items: center;
 }
 .header .panel-header > .panel-section.name::before {
   position: absolute;
@@ -175,9 +178,6 @@ body {
   flex: 1;
   /* justify-content: flex-start; */
   align-items: flex-start;
-}
-.header .tab.top.left .panel-header {
-  /* margin-top: 20px; */
 }
 .header .tab.top.right .panel-header {
   margin-top: 60px;
@@ -739,4 +739,20 @@ input[type=range]::-webkit-slider-thumb {
 .discord_text {
   margin-left: 10px;
 
+}
+
+/* */
+
+.tabs {
+  display: flex;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  width: 100vw;
+  z-index: 3;
+  pointer-events: none;
+}
+.tabs > div {
+  pointer-events: all;
 }

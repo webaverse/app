@@ -218,15 +218,39 @@ export const App = () => {
 
     //
 
+    const onDragOver = ( event ) => {
+
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+
+    };
+
+    const onDragStart = ( event ) => {
+
+        // console.log( 'drag start', event );
+
+    };
+
+    const onDragEnd = ( event ) => {
+
+        // console.log( 'drag end', event );
+
+    };
+
+    //
+
     return (
-        <div className={ styles.App } id="app" >
+        <div className={ styles.App } id="app" onDragStart={ onDragStart } onDragEnd={ onDragEnd } onDragOver={ onDragOver } >
             <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, npcs }} >
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
-                <WorldObjectsList />
+                <WorldObjectsList
+                    setSelectedApp={ setSelectedApp }
+                    selectedApp={ selectedApp }
+                />
                 <PlayMode />
                 <EditorMode
                     selectedScene={ selectedScene }
