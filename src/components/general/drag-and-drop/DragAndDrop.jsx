@@ -1,17 +1,19 @@
 
 import * as THREE from 'three';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
-import { world } from '../../../../world.js';
+import { world} from '../../../../world.js';
 import { getRandomString, handleUpload } from '../../../../util.js';
 import game from '../../../../game.js';
+import { getRenderer } from '../../../../renderer.js';
 import cameraManager from '../../../../camera-manager.js';
 import metaversefile from 'metaversefile';
 
-import { registerLoad } from '../loading-box';
-import { ObjectPreview } from '../object-preview';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../io-handler';
+import { registerLoad } from '../loading-box';
+import { ObjectPreview } from '../world-objects-list';
+import { AppContext } from '../../app';
 
 import styles from './drag-and-drop.module.css';
 
@@ -38,23 +40,24 @@ const _upload = () => new Promise( ( accept, reject ) => {
 
 });
 
-const uploadCreateApp = async ( item ) => {
+const _isJsonItem = item => item?.kind === 'string';
+
+const uploadCreateApp = async ( item, { drop = false } ) => {
 
     let u;
 
     {
 
         let load = null;
-
         u = await handleUpload( item, {
-            onTotal( total ) {
+            onTotal ( total ) {
 
                 const type = 'upload';
                 const name = item.name;
                 load = registerLoad( type, name, 0, total );
 
             },
-            onProgress( event ) {
+            onProgress ( event ) {
 
                 if ( load ) {
 
@@ -81,7 +84,7 @@ const uploadCreateApp = async ( item ) => {
 
     let o = null;
 
-    {
+    if ( u ) {
 
         const type = 'download';
         const name = item.name;
@@ -91,8 +94,9 @@ const uploadCreateApp = async ( item ) => {
 
             o = await metaversefile.createAppAsync({
                 start_url: u,
+                in_front: drop,
                 components: {
-                    physics: true
+                    physics: true,
                 }
             });
 
@@ -122,28 +126,24 @@ const uploadCreateApp = async ( item ) => {
 
 export const DragAndDrop = () => {
 
+    const { state, setState, } = useContext( AppContext )
     const [ queue, setQueue ] = useState([]);
     const [ currentApp, setCurrentApp ] = useState(null);
 
-    //
+    useEffect( () => {
 
-    useEffect(() => {
-
-        function keydown(e) {
+        function keydown( event ) {
 
             if ( game.inputFocused() ) return true;
 
-            switch ( e.which ) {
+            switch ( event.which ) {
 
                 case 79: { // O
 
                     (async () => {
-
                         const app = await _upload();
                         setQueue( queue.concat([ app ]) );
-
                     })();
-
                     return false;
 
                 }
@@ -167,72 +167,89 @@ export const DragAndDrop = () => {
 
         };
 
-    }, [] );
+    }, []);
 
     useEffect( () => {
 
-        const dragover = ( event ) => {
+        function dragover ( event ) {
 
             event.preventDefault();
 
-        };
+        }
 
         window.addEventListener( 'dragover', dragover );
 
         const drop = async ( event ) => {
 
             event.preventDefault();
+            const renderer = getRenderer();
 
-            /* const renderer = getRenderer();
-            const rect = renderer.domElement.getBoundingClientRect();
-            localVector2D.set(
+            if ( event.target === renderer.domElement ) {
+
+                /* const renderer = getRenderer();
+                const rect = renderer.domElement.getBoundingClientRect();
+                localVector2D.set(
                 ( e.clientX / rect.width ) * 2 - 1,
                 - ( e.clientY / rect.height ) * 2 + 1
-            );
-            localRaycaster.setFromCamera(localVector2D, camera);
-            const dropZOffset = 2;
-            const position = localRaycaster.ray.origin.clone()
+                );
+                localRaycaster.setFromCamera(localVector2D, camera);
+                const dropZOffset = 2;
+                const position = localRaycaster.ray.origin.clone()
                 .add(
-                localVector2.set(0, 0, -dropZOffset)
+                    localVector2.set(0, 0, -dropZOffset)
                     .applyQuaternion(
-                    localQuaternion
+                        localQuaternion
                         .setFromRotationMatrix(localMatrix.lookAt(
-                        localVector3.set(0, 0, 0),
-                        localRaycaster.ray.direction,
-                        localVector4.set(0, 1, 0)
+                            localVector3.set(0, 0, 0),
+                            localRaycaster.ray.direction,
+                            localVector4.set(0, 1, 0)
                         ))
                     )
                 );
-            const quaternion = camera.quaternion.clone(); */
+                const quaternion = camera.quaternion.clone(); */
 
-            const items = Array.from( event.dataTransfer.items );
+                const items = Array.from( event.dataTransfer.items );
 
-            await Promise.all( items.map( async ( item ) => {
+                await Promise.all( items.map( async item => {
 
-                const app = await uploadCreateApp( item/*, { position, quaternion, }*/ );
+                    const drop = _isJsonItem( item );
+                    const app = await uploadCreateApp( item, { drop });
 
-                if ( app ) {
+                    if ( app ) {
 
-                    setQueue( queue.concat([ app ]) );
+                        if ( drop ) {
 
-                }
+                            world.appManager.importApp( app );
+                            setState({ openedPanel: null });
 
-            }));
+                        } else {
 
-            /* let arrowLoader = metaverseUi.makeArrowLoader();
-            arrowLoader.position.copy(position);
-            arrowLoader.quaternion.copy(quaternion);
-            scene.add(arrowLoader);
-            arrowLoader.updateMatrixWorld();
+                            setQueue( queue.concat([ app ]) );
 
-            if (arrowLoader) {
-                scene.remove(arrowLoader);
-                arrowLoader.destroy();
-            } */
+                        }
+
+                    }
+
+                }));
+
+                /* let arrowLoader = metaverseUi.makeArrowLoader();
+                arrowLoader.position.copy(position);
+                arrowLoader.quaternion.copy(quaternion);
+                scene.add(arrowLoader);
+                arrowLoader.updateMatrixWorld();
+
+                if (arrowLoader) {
+                    scene.remove(arrowLoader);
+                    arrowLoader.destroy();
+                } */
+
+            }
 
         };
 
         window.addEventListener( 'drop', drop );
+
+        //
 
         return () => {
 
@@ -250,6 +267,7 @@ export const DragAndDrop = () => {
             const app = queue[0];
             setCurrentApp( app );
             setQueue( queue.slice(1) );
+            setState({ openedPanel: null });
 
             if ( cameraManager.pointerLockElement ) {
 
@@ -271,13 +289,12 @@ export const DragAndDrop = () => {
     const _importApp = ( app ) => {
 
         const localPlayer = metaversefile.useLocalPlayer();
-        const position = localPlayer.position.clone().add( new THREE.Vector3( 0, 0, -2 ).applyQuaternion( localPlayer.quaternion ) );
+        const position = localPlayer.position.clone().add( new THREE.Vector3( 0, 0, - 2 ).applyQuaternion( localPlayer.quaternion ) );
         const quaternion = localPlayer.quaternion;
 
         app.position.copy( position );
         app.quaternion.copy( quaternion );
         app.updateMatrixWorld();
-
         world.appManager.importApp( app );
 
     };
@@ -343,7 +360,7 @@ export const DragAndDrop = () => {
                             <div className={ styles.label } >Name: </div>
                             <div className={ styles.value } >{ name }</div>
                         </div>
-                        <div className={ styles.row }>
+                        <div className={ styles.row } >
                             <div className={ styles.label } >Type: </div>
                             <div className={ styles.value } >{ appType }</div>
                         </div>
