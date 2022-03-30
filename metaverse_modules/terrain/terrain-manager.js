@@ -268,9 +268,6 @@ export class TerrainManager {
 		// this.indexAttribute.needsUpdate = true;
 		this.indexAttribute.version++;
 
-		console.log(">>> update index count: ", buf.indexRanges[slots[1] * 2 + 1]);
-		console.log(">>> update vertex count: ", buf.vertexRanges[slots[0] * 2 + 1]);
-
 		this.positionAttribute.updateRange = {
 			offset: buf.vertexRanges[slots[0] * 2] * 3,
 			count: buf.vertexRanges[slots[0] * 2 + 1] * 3,
