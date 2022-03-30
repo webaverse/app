@@ -3,7 +3,7 @@ import {inappPreviewHost} from './constants.js';
 
 class OffscreenEngine {
   constructor() {
-    this.id = getRandomString();
+    const id = getRandomString();
 
     const iframe = document.createElement('iframe');
     iframe.width = '0px';
@@ -11,7 +11,7 @@ class OffscreenEngine {
     iframe.style.cssText = `\
       border: 0;
     `;
-    iframe.src = `${inappPreviewHost}/engine.html#id=${this.id}`;
+    iframe.src = `${inappPreviewHost}/engine.html#id=${id}`;
     document.body.appendChild(iframe);
     this.iframe = iframe;
     this.port = null;
@@ -31,7 +31,7 @@ class OffscreenEngine {
 
       const port = await new Promise((resolve, reject) => {
         const message = e => {
-          if (e.data?.method === 'engineReady' && e.data.id === this.id && e.data.port instanceof MessagePort) {
+          if (e.data?.method === 'engineReady' && e.data.id === id && e.data.port instanceof MessagePort) {
             resolve(e.data.port);
 
             window.removeEventListener('message', message);
@@ -63,14 +63,16 @@ export default _default_export_;`;
       }
     };
     const _formatArray = a => a.map(e => _formatElement(e)).join('\n');
-    const id = getRandomString();
 
+    const id = getRandomString();
+    const handlerId = getRandomString();
     const loadPromise = (async () => {
       await this.waitForLoad();
       const src = _formatArray(o);
       this.port.postMessage({
         method: 'registerHandler',
         id,
+        handlerId,
         src,
       });
 
@@ -97,16 +99,18 @@ export default _default_export_;`;
 
       await loadPromise;
 
+      const id = getRandomString();
       self.port.postMessage({
         method: 'callHandler',
         id,
+        handlerId,
         args,
       });
 
       const result = await new Promise((accept, reject) => {
         const message = e => {
-          const {method} = e.data;
-          if (method === 'response') {
+          const {method, id: localId} = e.data;
+          if (method === 'response' && localId === id) {
             const {error, result} = e.data;
             if (!error) {
               accept(result);
