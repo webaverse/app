@@ -5,37 +5,51 @@ import spritesheetManager from '../../../../spritesheet-manager.js';
 
 //
 
-const size = 2048;
-const numFrames = 128;
-const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
-const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
-const frameSize = size / numFramesPerRow;
-const frameLoopTime = 2000;
-const frameTime = frameLoopTime / numFrames;
-
-//
-
 export const Spritesheet = ({
     className,
     startUrl,
     enabled,
-    frameSize,
+    size,
     numFrames,
 }) => {
+    // console.log('spritesheet url', startUrl);
     const [ spritesheet, setSpritesheet ] = useState(null);
     const canvasRef = useRef();
 
-    const size = frameSize * numFramesPerRow;
+    const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
+    const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
+    const frameSize = size / numFramesPerRow;
+    const frameLoopTime = 2000;
+    const frameTime = frameLoopTime / numFrames;
 
     useEffect(() => {
         if (startUrl) {
             let live = true;
             (async () => {
+                console.log('got spritesheet 1', {startUrl, frameSize, numFramesPerRow, size, numFrames});
                 const spritesheet = await spritesheetManager.getSpriteSheetForAppUrlAsync(startUrl, {
                     size,
                     numFrames,
                 });
-                // console.log('load spritesheet', spritesheet);
+                
+                /* {
+                    const imageBitmap = spritesheet.result;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = imageBitmap.width;
+                    canvas.height = imageBitmap.height;
+                    canvas.style.cssText = `\
+                        position: fixed;
+                        top: 100px;
+                        left: 100px;
+                        width: ${600}px;
+                        height: ${600}px;
+                        background-color: #F00;
+                    `;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(imageBitmap, 0, 0);
+                    document.body.appendChild(canvas);
+                } */
+
                 if (!live) {
                     return;
                 }
