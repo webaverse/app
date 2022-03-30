@@ -11,6 +11,14 @@ import {transparentPngUrl} from '../../../../constants.js';
 
 //
 
+const size = 2048;
+const numFrames = 128;
+const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
+const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
+const frameSize = size / numFramesPerRow;
+const frameLoopTime = 2000;
+const frameTime = frameLoopTime / numFrames;
+
 const userTokenObjects = []; // Array(2);
 for (let i = 0; i < userTokenObjects.length; i++) {
     userTokenObjects[i] = {
@@ -41,33 +49,22 @@ const objects = {
 
 //
 
-const InventoryObject = forwardRef(({
-    object,
+const Spritesheet = ({
+    startUrl,
     enabled,
-    hovered,
-    selected,
-    onMouseEnter,
-    onMouseDown,
-    onDragStart,
-    onDoubleClick,
-}, ref) => {
+    frameSize,
+    numFrames,
+}) => {
     const [ spritesheet, setSpritesheet ] = useState(null);
     const canvasRef = useRef();
 
-    const size = 2048;
-    const numFrames = 128;
-    const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
-    const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
-    const frameSize = size / numFramesPerRow;
-    const frameLoopTime = 2000;
-    const frameTime = frameLoopTime / numFrames;
+    const size = frameSize * numFramesPerRow;
 
     useEffect(() => {
-        if (object?.start_url) {
+        if (startUrl) {
             let live = true;
             (async () => {
-                const {name, start_url} = object;
-                const spritesheet = await spritesheetManager.getSpriteSheetForAppUrl(start_url, {
+                const spritesheet = await spritesheetManager.getSpriteSheetForAppUrlAsync(startUrl, {
                     size,
                     numFrames,
                 });
@@ -81,7 +78,7 @@ const InventoryObject = forwardRef(({
               live = false;
             };
         }
-    }, [object]);
+    }, [startUrl]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -108,6 +105,26 @@ const InventoryObject = forwardRef(({
     }, [canvasRef, spritesheet, enabled]);
 
     return (
+        <canvas
+            className={styles.canvas}
+            width={frameSize}
+            height={frameSize}
+            ref={canvasRef}
+        />
+    );
+};
+
+const InventoryObject = forwardRef(({
+    object,
+    enabled,
+    hovered,
+    selected,
+    onMouseEnter,
+    onMouseDown,
+    onDragStart,
+    onDoubleClick,
+}, ref) => {
+    return (
         <div
             className={classnames(
                 styles.inventoryObject,
@@ -125,11 +142,11 @@ const InventoryObject = forwardRef(({
             <div className={styles.background} />
             <div className={styles.highlight} />
 
-            <canvas
-                className={styles.canvas}
-                width={frameSize}
-                height={frameSize}
-                ref={canvasRef}
+            <Spritesheet
+                startUrl={object?.start_url}
+                enabled={enabled}
+                frameSize={frameSize}
+                numFrames={numFrames}
             />
 
             <div className={styles.row}>
