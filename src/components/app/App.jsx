@@ -103,6 +103,28 @@ export const App = () => {
 
     useEffect( () => {
 
+        const handleTouchMove = ( event ) => {
+
+            event = event.originalEvent || event;
+            event.preventDefault();
+            event.stopPropagation();
+
+        };
+
+        window.addEventListener( 'wheel', handleTouchMove, { passive: false } );
+
+        //
+
+        return () => {
+
+            window.removeEventListener( 'wheel', handleTouchMove, { passive: false } );
+
+        };
+
+    }, [] );
+
+    useEffect( () => {
+
         if ( state.openedPanel && state.openedPanel !== 'ChatPanel' && cameraManager.pointerLockElement ) {
 
             cameraManager.exitPointerLock();
