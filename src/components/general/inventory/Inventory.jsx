@@ -84,7 +84,7 @@ const InventoryObject = forwardRef(({
                 className={styles.canvas}
                 startUrl={object?.start_url}
                 enabled={enabled}
-                frameSize={frameSize}
+                size={size}
                 numFrames={numFrames}
             />
 
