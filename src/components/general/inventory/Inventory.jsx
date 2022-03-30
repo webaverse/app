@@ -1,12 +1,10 @@
 import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
-// import metaversefile from 'metaversefile';
 import styles from './inventory.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
-// import { LightArrow } from '../../../LightArrow.jsx';
+import { Spritesheet } from '../spritesheet';
 import game from '../../../../game.js';
-import spritesheetManager from '../../../../spritesheet-manager.js';
 import {transparentPngUrl} from '../../../../constants.js';
 
 //
@@ -16,8 +14,8 @@ const numFrames = 128;
 const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
 const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
 const frameSize = size / numFramesPerRow;
-const frameLoopTime = 2000;
-const frameTime = frameLoopTime / numFrames;
+// const frameLoopTime = 2000;
+// const frameTime = frameLoopTime / numFrames;
 
 const userTokenObjects = []; // Array(2);
 for (let i = 0; i < userTokenObjects.length; i++) {
@@ -49,71 +47,6 @@ const objects = {
 
 //
 
-const Spritesheet = ({
-    startUrl,
-    enabled,
-    frameSize,
-    numFrames,
-}) => {
-    const [ spritesheet, setSpritesheet ] = useState(null);
-    const canvasRef = useRef();
-
-    const size = frameSize * numFramesPerRow;
-
-    useEffect(() => {
-        if (startUrl) {
-            let live = true;
-            (async () => {
-                const spritesheet = await spritesheetManager.getSpriteSheetForAppUrlAsync(startUrl, {
-                    size,
-                    numFrames,
-                });
-                // console.log('load spritesheet', spritesheet);
-                if (!live) {
-                    return;
-                }
-                setSpritesheet(spritesheet);
-            })();
-            return () => {
-              live = false;
-            };
-        }
-    }, [startUrl]);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (canvas && spritesheet && enabled) {
-            const ctx = canvas.getContext('2d');
-            const imageBitmap = spritesheet.result;
-            // console.log('render image bitmap', imageBitmap, size, canvas.width, canvas.height);
-            // ctx.drawImage(imageBitmap, 0, 0, size, size, 0, 0, canvas.width, canvas.height);
-
-            let frameIndex = 0;
-            const _recurse = () => {
-                const x = (frameIndex % numFramesPerRow) * frameSize;
-                const y = size - frameSize - Math.floor(frameIndex / numFramesPerRow) * frameSize;
-                frameIndex = (frameIndex + 1) % numFrames;
-
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(imageBitmap, x, y, frameSize, frameSize, 0, 0, canvas.width, canvas.height);
-            };
-            const interval = setInterval(_recurse, frameTime);
-            return () => {
-                clearInterval(interval);
-            };
-        }
-    }, [canvasRef, spritesheet, enabled]);
-
-    return (
-        <canvas
-            className={styles.canvas}
-            width={frameSize}
-            height={frameSize}
-            ref={canvasRef}
-        />
-    );
-};
-
 const InventoryObject = forwardRef(({
     object,
     enabled,
@@ -143,6 +76,7 @@ const InventoryObject = forwardRef(({
             <div className={styles.highlight} />
 
             <Spritesheet
+                className={styles.canvas}
                 startUrl={object?.start_url}
                 enabled={enabled}
                 frameSize={frameSize}
