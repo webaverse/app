@@ -2015,14 +2015,14 @@ class Avatar {
       }
     }
   }
-  resetBonesToTPose() { // test
+  resetBonesToTPose() {
+    this.initializeBonePositions(this.setups);
+
     for (const k in this.modelBoneOutputs) {
       const modelBone = this.modelBoneOutputs[k];
       modelBone.rotation.set(0, 0, 0);
     }
     this.modelBoneOutputs.Root.updateMatrixWorld();
-
-    this.initializeBonePositions(this.setups);
   }
   update(timestamp, timeDiff) {
     const now = timestamp;
@@ -2517,6 +2517,7 @@ class Avatar {
 
     if (this.ragdoll) {
       if (!this.ragdollMesh) {
+        this.resetBonesToTPose();
         this.ragdollMesh = _makeRagdollMesh();
         window.ragdollMesh = this.ragdollMesh;
         this.ragdollMesh.wrapToAvatar(this);
