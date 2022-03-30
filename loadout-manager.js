@@ -26,16 +26,12 @@ class LoadoutManager extends EventTarget {
     this.selectedIndex = -1;
   
     localPlayer.addEventListener('wearupdate', e => {
-      const {app, wear} = e;
+      const {app, wear, loadoutIndex} = e;
 
       this.ensureRenderers();
       if (wear) {
-        const nextIndex = this.getNextFreeIndex();
-        if (nextIndex !== -1) {
-          this.apps[nextIndex] = app;
-
-          this.setSelectedIndex(nextIndex);
-        }
+        this.apps[loadoutIndex] = app;
+        this.setSelectedIndex(loadoutIndex);
       } else {
         for (let i = 0; i < this.apps.length; i++) {
           const a = this.apps[i];
@@ -110,11 +106,11 @@ class LoadoutManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('selectedchange', {
       data: {
         index,
-        app: this.apps[index] || null,
+        app: this.apps[index],
       },
     }));
   }
-  getNextFreeIndex() {
+  /* getNextFreeIndex() {
     this.ensureRenderers();
     for (let i = 0; i < this.hotbarRenderers.length; i++) {
       if (!this.apps[i]) {
@@ -122,7 +118,7 @@ class LoadoutManager extends EventTarget {
       }
     }
     return -1;
-  }
+  } */
   getNextUsedIndex() {
     this.ensureRenderers();
     for (let i = 0; i < this.hotbarRenderers.length; i++) {

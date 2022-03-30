@@ -3,14 +3,37 @@ import classnames from 'classnames';
 import { AppContext } from '../../app';
 import styles from './hotbar.module.css';
 import {HotBox} from '../hotbox/HotBox.jsx';
-import game from '../../../../game.js';
-import {hotbarSize} from '../../../../constants.js';
 
-const itemsNum = 8;
+import game from '../../../../game.js';
+import loadoutManager from '../../../../loadout-manager.js';
+import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler/IoHandler.jsx';
+import {hotbarSize, numLoadoutSlots} from '../../../../constants.js';
 
 export const Hotbar = () => {
     const { state, setState } = useContext( AppContext );
     const open =  state.openedPanel === 'CharacterPanel';
+
+    useEffect(() => {
+        if (open) {
+            const keydown = e => {
+                switch (e.which) {
+                    case 82: { // R
+                        game.dropSelectedApp();
+                        return false;
+                    }
+                    case 46: { // delete
+                        game.deleteSelectedApp();
+                        return false;
+                    }
+                }
+            };
+            registerIoEventHandler('keydown', keydown);
+
+            return () => {
+                unregisterIoEventHandler('keydown', keydown);
+            };
+        }
+    }, [open]);
 
     const onDragOver = index => e => {
         e.preventDefault();
@@ -30,7 +53,7 @@ export const Hotbar = () => {
         });
     };
     const onBottomClick = index => e => {
-       // e.preventDefault();
+        loadoutManager.setSelectedIndex(index);
     };
 
     return (
