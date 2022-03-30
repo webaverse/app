@@ -42,6 +42,11 @@ const objects = {
             start_url: 'https://webaverse.github.io/bow/',
             level: 9,
         },
+        /* {
+            name: 'Silk',
+            start_url: './metaverse_modules/silk/',
+            level: 1,
+        }, */
     ],
 };
 
