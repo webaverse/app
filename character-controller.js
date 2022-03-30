@@ -501,7 +501,7 @@ class StatePlayer extends PlayerBase {
         this.avatar = avatar;
 
         this.dispatchEvent({
-          type: 'avatarchange',
+          type: 'avatarupdate',
           app,
           avatar,
         });
@@ -510,11 +510,6 @@ class StatePlayer extends PlayerBase {
         // console.log('disable actor', this.characterController);
         physicsManager.disableGeometryQueries(this.characterController);
       })();
-      
-      this.dispatchEvent({
-        type: 'avatarupdate',
-        app,
-      });
     };
     
     if (instanceId) {

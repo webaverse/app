@@ -172,6 +172,7 @@ const _bindAppManagerToLoreAIScene = (appManager, loreAIScene) => {
       name: app.name,
       description: app.description,
     });
+    
     bindings.set(app, object);
   });
   appManager.addEventListener('appremove', e => {
@@ -467,14 +468,14 @@ metaversefile.setApi({
     return localPlayer;
   },
   useRemotePlayer(playerId) {
-    let player = remotePlayers.get(playerId);
+    let player = playersmanager.remotePlayers.get(playerId);
     /* if (!player) {
       player = new RemotePlayer();
     } */
     return player;
   },
   useRemotePlayers() {
-    return Array.from(remotePlayers.values());
+    return Array.from(playersmanager.remotePlayers.values());
   },
   useNpcManager() {
     return npcManager;
@@ -851,6 +852,21 @@ export default () => {
         const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
         if (remoteApp) {
           return remoteApp;
+        }
+      }
+      return null;
+    }
+  },
+  getPlayerByInstanceId(instanceId) {
+    let result = localPlayer.appManager.getAppByInstanceId(instanceId);
+    if (result) {
+      return localPlayer;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return remotePlayer;
         }
       }
       return null;

@@ -8,7 +8,7 @@ import Avatar from './avatars/avatars.js';
 import * as sounds from './sounds.js';
 import physx from './physx.js';
 import ioManager from './io-manager.js';
-import physicsManager from './physics-manager.js';
+// import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as blockchain from './blockchain.js';
 import cameraManager from './camera-manager.js';
@@ -77,26 +77,33 @@ export default class Webaverse extends EventTarget {
       ]);
     })();
     this.contentLoaded = false;
+    this.appManager = world.appManager;
   }
+
   waitForLoad() {
     return this.loadPromise;
   }
+
   setContentLoaded() {
     this.contentLoaded = true;
   }
+
   bindInput() {
     ioManager.bindInput();
   }
+
   bindInterface() {
     ioManager.bindInterface();
     blockchain.bindInterface();
   }
+
   bindCanvas(c) {
     bindCanvas(c);
     game.bindDioramaCanvas();
-    
+
     postProcessing.bindCanvas();
   }
+
   async isXrSupported() {
     if (navigator.xr) {
       let ok = false;
@@ -110,6 +117,7 @@ export default class Webaverse extends EventTarget {
       return false;
     }
   }
+
   async enterXr() {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -117,10 +125,10 @@ export default class Webaverse extends EventTarget {
       let session = null;
       try {
         session = await navigator.xr.requestSession(sessionMode, sessionOpts);
-      } catch(err) {
+      } catch (err) {
         try {
           session = await navigator.xr.requestSession(sessionMode);
-        } catch(err) {
+        } catch (err) {
           console.warn(err);
         }
       }
@@ -137,7 +145,7 @@ export default class Webaverse extends EventTarget {
       await session.end();
     }
   }
-  
+
   /* injectRigInput() {
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
@@ -231,7 +239,7 @@ export default class Webaverse extends EventTarget {
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
   } */
-  
+
   // Main scene renderer, called from the animation loop
   render(timestamp, timeDiff) {
     // console.log('frame 1');
@@ -250,19 +258,19 @@ export default class Webaverse extends EventTarget {
       data: {
         canvas: renderer.domElement,
         context: renderer.getContext(),
-      }
+      },
     }));
 
     // console.log('frame 2');
   }
-  
+
   // Main game loop, most stuff happens here
   startLoop() {
     const renderer = getRenderer();
     if (!renderer) {
       throw new Error('must bind canvas first');
     }
-    
+
     let lastTimestamp = performance.now();
 
     // Called every frame by the WebGL renderer
@@ -280,13 +288,13 @@ export default class Webaverse extends EventTarget {
           ioManager.update(timeDiffCapped);
 
           // this.injectRigInput();
-          
-          // Simulate local physics for player
+
+          // // Simulate local physics for player
           const localPlayer = metaversefileApi.useLocalPlayer();
-          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
-            physicsManager.simulatePhysics(timeDiffCapped);
-            localPlayer.updatePhysics(timestamp, timeDiffCapped);
-          }
+          // if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
+          //   physicsManager.simulatePhysics(timeDiffCapped);
+          //   localPlayer.updatePhysics(timestamp, timeDiffCapped);
+          // }
 
           // Update transform controls (move, rotate) of objects
           transformControls.update();
@@ -317,20 +325,21 @@ export default class Webaverse extends EventTarget {
 
           localPlayer.pushPlayerUpdates(timeDiff);
 
-          localPlayer.appManager.pushAppUpdates();
+          // localPlayer.appManager.pushAppUpdates();
 
           const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
           for (const remotePlayer of remotePlayers) {
+            console.log('Updating remotePlayer', remotePlayer);
             remotePlayer.appManager.updateRemote();
           }
 
           // Get the current camera (XR or regular) and copy final pose to it
           const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
+          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /* localMatrix2.multiplyMatrices( */xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld) */);
           localMatrix2.copy(xrCamera.matrix)
             .premultiply(dolly.matrix)
             .decompose(localVector, localQuaternion, localVector2);
-          
+
           lastTimestamp = timestamp;
         };
         _pre();
@@ -351,7 +360,7 @@ export default class Webaverse extends EventTarget {
       _frame();
 
       performanceTracker.endFrame();
-    }
+    };
     renderer.setAnimationLoop(animate);
 
     _startHacks(this);
@@ -376,7 +385,7 @@ const _startHacks = webaverse => {
       const key1 = lastEmoteKey.key;
       const key2 = key;
       emoteIndex = (key1 * 10) + key2;
-      
+
       lastEmoteKey.key = -1;
       lastEmoteKey.timestamp = 0;
     } else {
@@ -533,7 +542,7 @@ const _startHacks = webaverse => {
       poseAnimationIndex++;
       poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
       _updatePoseAnimation();
-    
+
       // _ensureMikuModel();
       // _updateMikuModel();
     } else if (e.which === 109) { // -
@@ -548,7 +557,7 @@ const _startHacks = webaverse => {
       webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
         data: {
           titleCardHack: webaverse.titleCardHack,
-        }
+        },
       }));
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);

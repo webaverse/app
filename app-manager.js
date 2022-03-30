@@ -86,7 +86,7 @@ class AppManager extends EventTarget {
     if (!nextAppsArray) return;
     this.unbindState();
   
-      const observe = e => {
+      const observe = (e, origin) => {
         console.log("observing e", e)
         const {added, deleted} = e.changes;
         
@@ -102,15 +102,32 @@ class AppManager extends EventTarget {
               }
             }
           }
-
           const instanceId = appMap.get('instanceId');
-          
+
+          console.log("appMap is", appMap)
           const hadApp = this.apps.some(app => app.instanceId === instanceId);
           // get the ref or create the app if it doesn't already exist
           const trackedApp = this.getOrCreateTrackedApp(instanceId);
+          console.log("trackedApp is", appMap)
+
           // we already have the app
           if (hadApp) {
             console.log('accept migration add', instanceId);
+            const app = metaversefile.getAppByInstanceId(instanceId)
+            console.log("app is", app)
+            if(app){
+
+              this.bindTrackedApp(trackedApp, app);
+              // this.addApp(app);
+            } else {
+              this.dispatchEvent(new MessageEvent('trackedappadd', {
+                data: {
+                  trackedApp,
+                },
+              }));
+            }
+
+
           } else {
             // we don't have the app, so we created it -- notify listeners
             console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
@@ -120,6 +137,8 @@ class AppManager extends EventTarget {
               },
             }));
           }
+
+
         }
         // handle apps deleted
         for (const item of deleted.values()) {
@@ -177,9 +196,9 @@ class AppManager extends EventTarget {
   // bind a tracked app so that it's state is synced over the network
   // this sets up an observer to update whenever the tracked app changes
   bindTrackedApp(trackedApp, app) {
-    console.log("bindTrackedApp", trackedApp, app)
+    console.log("bindTrackedApp", trackedApp, app, new Error().stack)
     const _observe = (e, origin) => {
-      // if (origin !== 'push') {
+      if (origin !== 'push') {
         // if (e.changes.keys.has('transform')) {
           const transform = trackedApp.get('transform');
           app.position.fromArray(transform, 0);
@@ -187,7 +206,7 @@ class AppManager extends EventTarget {
           app.scale.fromArray(transform, 7);
           app.transform = transform
         // }
-      // }
+      }
     };
     trackedApp.observe(_observe);
     
@@ -214,6 +233,8 @@ class AppManager extends EventTarget {
       const trackedAppJson = trackedApp.toJSON();
       const {instanceId, contentId, transform, position, scale, quaternion, components: componentsString} = trackedAppJson;
       const components = JSON.parse(componentsString);
+      
+
       
       const p = makePromise();
       p.instanceId = instanceId;
@@ -293,6 +314,7 @@ class AppManager extends EventTarget {
       this.removeApp(app);
       app.destroy();
     });
+    
     this.addEventListener('trackedappmigrate', async e => {
       const {
         app,
@@ -308,8 +330,10 @@ class AppManager extends EventTarget {
       } else if (destinationAppManager === this) {
         if (!this.apps.includes(app)) {
           this.apps.push(app);
+
         }
       }
+
     });
     
     const resize = e => {
@@ -561,7 +585,10 @@ class AppManager extends EventTarget {
           transform,
           components,
         );
+
+
       });
+
       
       dstAppManager.bindTrackedApp(dstTrackedApp, app);
     } else {
@@ -641,6 +668,7 @@ class AppManager extends EventTarget {
     }
   }
   updateRemote() {
+    console.log("Remote update")
     for (const app of this.apps) {
       if (!app.matrix.equals(app.lastMatrix)) {
         const _updateTrackedApp = () => {

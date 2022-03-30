@@ -147,13 +147,13 @@ const componentTemplates = {
               }
             }
             
-            // app.wear();
           }
         }
       } else {
         _unwear();
       }
     };
+
     app.addEventListener('wearupdate', wearupdate);
     app.addEventListener('destroy', () => {
       const localPlayer = metaversefile.useLocalPlayer();

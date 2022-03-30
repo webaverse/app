@@ -84,10 +84,6 @@ class PlayersManager {
   }
 
   update(timestamp, timeDiff) {
-    for (const remotePlayer of this.remotePlayers?.values()) {
-      remotePlayer.updateAvatar(timestamp, timeDiff);
-      
-    }
   }
 }
 const playersManager = new PlayersManager();
