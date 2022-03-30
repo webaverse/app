@@ -498,6 +498,35 @@ const physxWorker = (() => {
     return moduleInstance._makeTracker.apply(moduleInstance, arguments);
   }; */
   w.makePhysics = () => moduleInstance._makePhysics();
+  w.addJointPhysics = (physics, physicsId1, physicsId2, position1, position2, quaternion1, quaternion2, fixBody1 = false) => {
+    position1.toArray(scratchStack.f32, 0);
+    position2.toArray(scratchStack.f32, 3);
+    quaternion1.toArray(scratchStack.f32, 6);
+    quaternion2.toArray(scratchStack.f32, 10);
+
+    const position1Offset = scratchStack.f32.byteOffset;
+    const position2Offset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
+    const quaternion1Offset = scratchStack.f32.byteOffset + 6 * Float32Array.BYTES_PER_ELEMENT;
+    const quaternion2Offset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT;
+
+    const joint = moduleInstance._addJointPhysics(physics, physicsId1, physicsId2, position1Offset, position2Offset, quaternion1Offset, quaternion2Offset, fixBody1);
+    return joint;
+  }
+  w.setJointMotionPhysics = (physics, joint, axis, motion) => {
+    moduleInstance._setJointMotionPhysics(physics, joint, axis, motion);
+  }
+  w.setJointTwistLimitPhysics = (physics, joint, lowerLimit, upperLimit, contactDist = -1) => {
+    moduleInstance._setJointTwistLimitPhysics(physics, joint, lowerLimit, upperLimit, contactDist);
+  }
+  w.setJointSwingLimitPhysics = (physics, joint, yLimitAngle, zLimitAngle, contactDist = -1) => {
+    moduleInstance._setJointSwingLimitPhysics(physics, joint, yLimitAngle, zLimitAngle, contactDist);
+  }
+  w.updateMassAndInertiaPhyscis = (physcis, body, shapeDensities) => {
+    return moduleInstance._updateMassAndInertiaPhyscis(physcis, body, shapeDensities);
+  }
+  w.getBodyMassPhysics = (physcis, body) => {
+    return moduleInstance._getBodyMassPhysics(physcis, body);
+  }
   w.simulatePhysics = (physics, updates, elapsedTime) => {
     /* if (updates.length > maxNumUpdates) {
       throw new Error('too many updates to simulate step: ' + updates.length + ' (max: ' + maxNumUpdates + ')');
@@ -1461,7 +1490,7 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
-  w.addBoxGeometryPhysics = (physics, position, quaternion, size, id, dynamic) => {
+  w.addBoxGeometryPhysics = (physics, position, quaternion, size, id, dynamic, groupId = -1) => {
     const allocator = new Allocator();
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
@@ -1471,15 +1500,17 @@ const physxWorker = (() => {
     quaternion.toArray(q);
     size.toArray(s);
     
-    moduleInstance._addBoxGeometryPhysics(
+    const body = moduleInstance._addBoxGeometryPhysics(
       physics,
       p.byteOffset,
       q.byteOffset,
       s.byteOffset,
       id,
       +dynamic,
+      groupId,
     );
     allocator.freeAll();
+    return body;
   };
   w.createCharacterControllerPhysics = (physics, radius, height, contactOffset, stepOffset, position, mat, id) => {
     const allocator = new Allocator();

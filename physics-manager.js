@@ -28,6 +28,7 @@ const localMatrix = new THREE.Matrix4();
 // const upVector = new THREE.Vector3(0, 1, 0);
 
 const physicsManager = new EventTarget();
+window.physicsManager = physicsManager;
 
 const physicsUpdates = [];
 const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
@@ -71,9 +72,9 @@ physicsManager.addCapsuleGeometry = (position, quaternion, radius, halfHeight, p
   return physicsObject;
 };
 
-physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
+physicsManager.addBoxGeometry = (position, quaternion, size, dynamic, groupId) => {
   const physicsId = getNextPhysicsId();
-  physx.physxWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic);
+  physx.physxWorker.addBoxGeometryPhysics(physx.physics, position, quaternion, size, physicsId, dynamic, groupId);
   
   const physicsObject = _makePhysicsObject(physicsId, position, quaternion, localVector2.set(1, 1, 1));
   const physicsMesh = new THREE.Mesh(
@@ -309,15 +310,36 @@ physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z);
 };
+physicsManager.addJoint = (physicsObject1, physicsObject2, position1, position2, quaternion1, quaternion2, fixBody1 = false) => {
+  const joint = physx.physxWorker.addJointPhysics(physx.physics, physicsObject1.physicsId, physicsObject2.physicsId, position1, position2, quaternion1, quaternion2, fixBody1);
+  return joint;
+}
+physicsManager.setJointMotion = (joint, axis, motion) => {
+  return physx.physxWorker.setJointMotionPhysics(physx.physics, joint, axis, motion);
+}
+physicsManager.setJointTwistLimit = (joint, lowerLimit, upperLimit, contactDist) => {
+  return physx.physxWorker.setJointTwistLimitPhysics(physx.physics, joint, lowerLimit, upperLimit, contactDist);
+}
+physicsManager.setJointSwingLimit = (joint, yLimitAngle, zLimitAngle, contactDist) => {
+  return physx.physxWorker.setJointSwingLimitPhysics(physx.physics, joint, yLimitAngle, zLimitAngle, contactDist);
+}
+physicsManager.updateMassAndInertia = (body, shapeDensities) => {
+  return physx.physxWorker.updateMassAndInertiaPhyscis(physx.physics, body, shapeDensities);
+}
+physicsManager.getBodyMass = (body) => {
+  return physx.physxWorker.getBodyMassPhysics(physx.physics, body);
+}
 physicsManager.simulatePhysics = timeDiff => {
   if (physicsEnabled) {
     const t = timeDiff/1000;
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
+    // console.log('updatesOut', updatesOut.length)
     physicsUpdates.length = 0;
     for (const updateOut of updatesOut) {
       const {id, position, quaternion, collided, grounded} = updateOut;
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       if (physicsObject) {
+        // console.log('physicsObject', physicsObject.name)
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();

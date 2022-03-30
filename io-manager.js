@@ -573,7 +573,7 @@ ioManager.keydown = e => {
     case 78: { // N
       const localPlayer = metaversefile.useLocalPlayer();
       if (localPlayer.avatar) {
-        localPlayer.avatar.fsms.send('ragdoll');
+        localPlayer.avatar.ragdoll = !localPlayer.avatar.ragdoll;
       }
       break;
     }

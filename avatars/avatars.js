@@ -636,12 +636,14 @@ const _makeRagdollMesh = () => {
 
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k]
-      const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, characterId);
-      console.log('mass 1: ', physicsManager.getBodyMass(body));
-      // physicsManager.updateMassAndInertia(body, 0.000001);
-      physicsManager.updateMassAndInertia(body, 0); // note: set mass 0 ( ie kinematic? ) will not break joints and get good result, but got much slow animation.
-      // physicsManager.updateMassAndInertia(body, 1000);
-      console.log('mass 2: ', physicsManager.getBodyMass(body));
+      // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, characterId);
+      const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true);
+      avatar.app.physicsObjects.push(meshBone);
+      // console.log('mass 1: ', physicsManager.getBodyMass(body));
+      // // physicsManager.updateMassAndInertia(body, 0.000001);
+      // physicsManager.updateMassAndInertia(body, 0); // note: set mass 0 ( ie kinematic? ) will not break joints and get good result, but got much slow animation.
+      // // physicsManager.updateMassAndInertia(body, 1000);
+      // console.log('mass 2: ', physicsManager.getBodyMass(body));
     }
 
     //
@@ -661,173 +663,173 @@ const _makeRagdollMesh = () => {
       eFREE: 2, // !< The DOF is free and has its full range of motion.
     };
 
-    // hips
-    const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, 
-      localVector.copy(avatar.modelBoneOutputs.Spine.position), 
-      localVector2.copy(avatar.modelBoneOutputs.Spine.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointHipsSpine, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointHipsSpine,             -5 * DEG2RAD,      10 * DEG2RAD);
+    // // hips
+    // const jointHipsSpine = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Spine, 
+    //   localVector.copy(avatar.modelBoneOutputs.Spine.position), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Spine.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointHipsSpine, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointHipsSpine,             -5 * DEG2RAD,      10 * DEG2RAD);
 
-    const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, 
-      localVector.copy(avatar.modelBoneOutputs.Spine.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Chest.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointSpineChest, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointSpineChest,            -5 * DEG2RAD,      10 * DEG2RAD);
+    // const jointSpineChest = physicsManager.addJoint(flatMeshes.Spine, flatMeshes.Chest, 
+    //   localVector.copy(avatar.modelBoneOutputs.Spine.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Chest.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointSpineChest, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointSpineChest,            -5 * DEG2RAD,      10 * DEG2RAD);
 
-    const jointChestUpperChest = physicsManager.addJoint(flatMeshes.Chest, flatMeshes.UpperChest, 
-      localVector.copy(avatar.modelBoneOutputs.Chest.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.UpperChest.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointChestUpperChest, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointChestUpperChest,       -5 * DEG2RAD,      10 * DEG2RAD);
+    // const jointChestUpperChest = physicsManager.addJoint(flatMeshes.Chest, flatMeshes.UpperChest, 
+    //   localVector.copy(avatar.modelBoneOutputs.Chest.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.UpperChest.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointChestUpperChest, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointChestUpperChest,       -5 * DEG2RAD,      10 * DEG2RAD);
 
-    // head
-    const jointUpperChestNeck = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Neck, 
-      localVector.copy(avatar.modelBoneOutputs.UpperChest.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Neck.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointUpperChestNeck, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointUpperChestNeck,             -5 * DEG2RAD,      10 * DEG2RAD);
+    // // head
+    // const jointUpperChestNeck = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Neck, 
+    //   localVector.copy(avatar.modelBoneOutputs.UpperChest.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Neck.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointUpperChestNeck, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointUpperChestNeck,             -5 * DEG2RAD,      10 * DEG2RAD);
 
-    const jointNeckHead = physicsManager.addJoint(flatMeshes.Neck, flatMeshes.Head, 
-      localVector.copy(avatar.modelBoneOutputs.Neck.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Head.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointNeckHead, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointNeckHead,            -5 * DEG2RAD,      10 * DEG2RAD);
+    // const jointNeckHead = physicsManager.addJoint(flatMeshes.Neck, flatMeshes.Head, 
+    //   localVector.copy(avatar.modelBoneOutputs.Neck.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Head.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointNeckHead, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointNeckHead,            -5 * DEG2RAD,      10 * DEG2RAD);
 
-    // shoulders // why shrink? todo: use real bone end, instead of calculated.
-    const jointUpperChestLeft_shoulder = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Left_shoulder, 
-      localVector.copy(avatar.modelBoneOutputs.Left_shoulder.position).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Left_shoulder.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointUpperChestLeft_shoulder, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointUpperChestLeft_shoulder,       -Math.PI * 0,      Math.PI * 0);
+    // // shoulders // why shrink? todo: use real bone end, instead of calculated.
+    // const jointUpperChestLeft_shoulder = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Left_shoulder, 
+    //   localVector.copy(avatar.modelBoneOutputs.Left_shoulder.position).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Left_shoulder.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointUpperChestLeft_shoulder, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointUpperChestLeft_shoulder,       -Math.PI * 0,      Math.PI * 0);
 
-    const jointUpperChestRight_shoulder = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Right_shoulder, 
-      localVector.copy(avatar.modelBoneOutputs.Right_shoulder.position).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Right_shoulder.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointUpperChestRight_shoulder, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointUpperChestRight_shoulder,       -Math.PI * 0,      Math.PI * 0);
+    // const jointUpperChestRight_shoulder = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Right_shoulder, 
+    //   localVector.copy(avatar.modelBoneOutputs.Right_shoulder.position).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Right_shoulder.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointUpperChestRight_shoulder, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointUpperChestRight_shoulder,       -Math.PI * 0,      Math.PI * 0);
 
-    // arms
-    const jointLeft_shoulderLeft_arm = physicsManager.addJoint(flatMeshes.Left_shoulder, flatMeshes.Left_arm, 
-      localVector.copy(avatar.modelBoneOutputs.Left_shoulder.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Left_arm.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity().setFromEuler(localEuler.set(0, -45 * DEG2RAD, -35 * DEG2RAD)), identityQuaternion, false);
-    physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
-    physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
-    physicsManager.setJointSwingLimit(jointLeft_shoulderLeft_arm,       50 * DEG2RAD,      40 * DEG2RAD);
+    // // arms
+    // const jointLeft_shoulderLeft_arm = physicsManager.addJoint(flatMeshes.Left_shoulder, flatMeshes.Left_arm, 
+    //   localVector.copy(avatar.modelBoneOutputs.Left_shoulder.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Left_arm.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity().setFromEuler(localEuler.set(0, -45 * DEG2RAD, -35 * DEG2RAD)), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    // physicsManager.setJointMotion(jointLeft_shoulderLeft_arm, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    // physicsManager.setJointSwingLimit(jointLeft_shoulderLeft_arm,       50 * DEG2RAD,      40 * DEG2RAD);
 
-    const jointLeft_armLeft_elbow = physicsManager.addJoint(flatMeshes.Left_arm, flatMeshes.Left_elbow, 
-      localVector.copy(avatar.modelBoneOutputs.Left_arm.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Left_elbow.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity().setFromEuler(localEuler.set(0, -70 * DEG2RAD, 0)), identityQuaternion, false);
-    physicsManager.setJointMotion(jointLeft_armLeft_elbow, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
-    physicsManager.setJointSwingLimit(jointLeft_armLeft_elbow,       71 * DEG2RAD,      0 * DEG2RAD);
+    // const jointLeft_armLeft_elbow = physicsManager.addJoint(flatMeshes.Left_arm, flatMeshes.Left_elbow, 
+    //   localVector.copy(avatar.modelBoneOutputs.Left_arm.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Left_elbow.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity().setFromEuler(localEuler.set(0, -70 * DEG2RAD, 0)), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointLeft_armLeft_elbow, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    // physicsManager.setJointSwingLimit(jointLeft_armLeft_elbow,       71 * DEG2RAD,      0 * DEG2RAD);
 
-    const jointLeft_elbowLeft_wrist = physicsManager.addJoint(flatMeshes.Left_elbow, flatMeshes.Left_wrist, 
-      localVector.copy(avatar.modelBoneOutputs.Left_elbow.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Left_wrist.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity().setFromEuler(localEuler.set(0, 0, 30 * DEG2RAD)), identityQuaternion, false);
-    physicsManager.setJointMotion(jointLeft_elbowLeft_wrist, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
-    physicsManager.setJointMotion(jointLeft_elbowLeft_wrist, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
-    physicsManager.setJointSwingLimit(jointLeft_elbowLeft_wrist,       10 * DEG2RAD,      60 * DEG2RAD);
+    // const jointLeft_elbowLeft_wrist = physicsManager.addJoint(flatMeshes.Left_elbow, flatMeshes.Left_wrist, 
+    //   localVector.copy(avatar.modelBoneOutputs.Left_elbow.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Left_wrist.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity().setFromEuler(localEuler.set(0, 0, 30 * DEG2RAD)), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointLeft_elbowLeft_wrist, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    // physicsManager.setJointMotion(jointLeft_elbowLeft_wrist, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    // physicsManager.setJointSwingLimit(jointLeft_elbowLeft_wrist,       10 * DEG2RAD,      60 * DEG2RAD);
 
-    const jointRight_shoulderRight_arm = physicsManager.addJoint(flatMeshes.Right_shoulder, flatMeshes.Right_arm, 
-      localVector.copy(avatar.modelBoneOutputs.Right_shoulder.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Right_arm.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity().setFromEuler(localEuler.set(0, 45 * DEG2RAD, 35 * DEG2RAD)), identityQuaternion, false);
-    physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
-    physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
-    physicsManager.setJointSwingLimit(jointRight_shoulderRight_arm,       50 * DEG2RAD,      40 * DEG2RAD);
+    // const jointRight_shoulderRight_arm = physicsManager.addJoint(flatMeshes.Right_shoulder, flatMeshes.Right_arm, 
+    //   localVector.copy(avatar.modelBoneOutputs.Right_shoulder.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Right_arm.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity().setFromEuler(localEuler.set(0, 45 * DEG2RAD, 35 * DEG2RAD)), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    // physicsManager.setJointMotion(jointRight_shoulderRight_arm, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    // physicsManager.setJointSwingLimit(jointRight_shoulderRight_arm,       50 * DEG2RAD,      40 * DEG2RAD);
 
-    const jointRight_armRight_elbow = physicsManager.addJoint(flatMeshes.Right_arm, flatMeshes.Right_elbow, 
-      localVector.copy(avatar.modelBoneOutputs.Right_arm.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Right_elbow.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity().setFromEuler(localEuler.set(0, 70 * DEG2RAD, 0)), identityQuaternion, false);
-    physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
-    physicsManager.setJointSwingLimit(jointRight_armRight_elbow,       71 * DEG2RAD,      0 * DEG2RAD);
+    // const jointRight_armRight_elbow = physicsManager.addJoint(flatMeshes.Right_arm, flatMeshes.Right_elbow, 
+    //   localVector.copy(avatar.modelBoneOutputs.Right_arm.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Right_elbow.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity().setFromEuler(localEuler.set(0, 70 * DEG2RAD, 0)), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointRight_armRight_elbow, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    // physicsManager.setJointSwingLimit(jointRight_armRight_elbow,       71 * DEG2RAD,      0 * DEG2RAD);
 
-    const jointRight_elbowRight_wrist = physicsManager.addJoint(flatMeshes.Right_elbow, flatMeshes.Right_wrist, 
-      localVector.copy(avatar.modelBoneOutputs.Right_elbow.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Right_wrist.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity().setFromEuler(localEuler.set(0, 0, -30 * DEG2RAD)), identityQuaternion, false);
-    physicsManager.setJointMotion(jointRight_elbowRight_wrist, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
-    physicsManager.setJointMotion(jointRight_elbowRight_wrist, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
-    physicsManager.setJointSwingLimit(jointRight_elbowRight_wrist,       10 * DEG2RAD,      60 * DEG2RAD);
+    // const jointRight_elbowRight_wrist = physicsManager.addJoint(flatMeshes.Right_elbow, flatMeshes.Right_wrist, 
+    //   localVector.copy(avatar.modelBoneOutputs.Right_elbow.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Right_wrist.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity().setFromEuler(localEuler.set(0, 0, -30 * DEG2RAD)), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointRight_elbowRight_wrist, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    // physicsManager.setJointMotion(jointRight_elbowRight_wrist, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    // physicsManager.setJointSwingLimit(jointRight_elbowRight_wrist,       10 * DEG2RAD,      60 * DEG2RAD);
 
-    // legs
-    const jointHipsLeft_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Left_leg, 
-      localVector.copy(avatar.modelBoneOutputs.Left_leg.position), 
-      localVector2.copy(avatar.modelBoneOutputs.Left_leg.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointHipsLeft_leg,          -80 * DEG2RAD,      10 * DEG2RAD);
-    physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
-    physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
-    physicsManager.setJointSwingLimit(jointHipsLeft_leg,       45 * DEG2RAD,      45 * DEG2RAD);
+    // // legs
+    // const jointHipsLeft_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Left_leg, 
+    //   localVector.copy(avatar.modelBoneOutputs.Left_leg.position), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Left_leg.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointHipsLeft_leg,          -80 * DEG2RAD,      10 * DEG2RAD);
+    // physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    // physicsManager.setJointMotion(jointHipsLeft_leg, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    // physicsManager.setJointSwingLimit(jointHipsLeft_leg,       45 * DEG2RAD,      45 * DEG2RAD);
 
-    const jointHipsRight_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Right_leg, 
-      localVector.copy(avatar.modelBoneOutputs.Right_leg.position), 
-      localVector2.copy(avatar.modelBoneOutputs.Right_leg.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointHipsRight_leg,         -80 * DEG2RAD,      10 * DEG2RAD);
-    physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
-    physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
-    physicsManager.setJointSwingLimit(jointHipsRight_leg,       45 * DEG2RAD,      45 * DEG2RAD);
+    // const jointHipsRight_leg = physicsManager.addJoint(flatMeshes.Hips, flatMeshes.Right_leg, 
+    //   localVector.copy(avatar.modelBoneOutputs.Right_leg.position), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Right_leg.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointHipsRight_leg,         -80 * DEG2RAD,      10 * DEG2RAD);
+    // physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    // physicsManager.setJointMotion(jointHipsRight_leg, PxD6Axis.eSWING2, PxD6Motion.eLIMITED);
+    // physicsManager.setJointSwingLimit(jointHipsRight_leg,       45 * DEG2RAD,      45 * DEG2RAD);
 
-    const jointLeft_legLeft_knee = physicsManager.addJoint(flatMeshes.Left_leg, flatMeshes.Left_knee, 
-      localVector.copy(avatar.modelBoneOutputs.Left_leg.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Left_knee.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointLeft_legLeft_knee, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointLeft_legLeft_knee,     -Math.PI * 0.,      Math.PI * 0.6);
+    // const jointLeft_legLeft_knee = physicsManager.addJoint(flatMeshes.Left_leg, flatMeshes.Left_knee, 
+    //   localVector.copy(avatar.modelBoneOutputs.Left_leg.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Left_knee.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointLeft_legLeft_knee, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointLeft_legLeft_knee,     -Math.PI * 0.,      Math.PI * 0.6);
 
-    const jointLeft_kneeLeft_ankle = physicsManager.addJoint(flatMeshes.Left_knee, flatMeshes.Left_ankle, 
-      localVector.copy(avatar.modelBoneOutputs.Left_knee.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Left_ankle.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity().setFromEuler(localEuler.set(0, 0, 0)), identityQuaternion, false);
-    physicsManager.setJointMotion(jointLeft_kneeLeft_ankle, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointMotion(jointLeft_kneeLeft_ankle, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointLeft_kneeLeft_ankle,       -10 * DEG2RAD,      30 * DEG2RAD);
-    physicsManager.setJointSwingLimit(jointLeft_kneeLeft_ankle,       30 * DEG2RAD,      0 * DEG2RAD);
+    // const jointLeft_kneeLeft_ankle = physicsManager.addJoint(flatMeshes.Left_knee, flatMeshes.Left_ankle, 
+    //   localVector.copy(avatar.modelBoneOutputs.Left_knee.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Left_ankle.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity().setFromEuler(localEuler.set(0, 0, 0)), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointLeft_kneeLeft_ankle, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointMotion(jointLeft_kneeLeft_ankle, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointLeft_kneeLeft_ankle,       -10 * DEG2RAD,      30 * DEG2RAD);
+    // physicsManager.setJointSwingLimit(jointLeft_kneeLeft_ankle,       30 * DEG2RAD,      0 * DEG2RAD);
 
-    // const jointLeft_ankleLeft_toe = physicsManager.addJoint(flatMeshes.Left_ankle, flatMeshes.Left_toe, 
-    //   avatar.modelBoneOutputs.Left_ankle.modelBoneEnd.clone().multiplyScalar(0.5), 
-    //   avatar.modelBoneOutputs.Left_toe.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
-    //   new THREE.Quaternion().setFromEuler(localEuler.set(0, 0, 0)), new THREE.Quaternion(), false);
-    // physicsManager.setJointMotion(jointLeft_ankleLeft_toe, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    // physicsManager.setJointTwistLimit(jointLeft_ankleLeft_toe,       -10 * DEG2RAD,      90 * DEG2RAD);
+    // // const jointLeft_ankleLeft_toe = physicsManager.addJoint(flatMeshes.Left_ankle, flatMeshes.Left_toe, 
+    // //   avatar.modelBoneOutputs.Left_ankle.modelBoneEnd.clone().multiplyScalar(0.5), 
+    // //   avatar.modelBoneOutputs.Left_toe.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
+    // //   new THREE.Quaternion().setFromEuler(localEuler.set(0, 0, 0)), new THREE.Quaternion(), false);
+    // // physicsManager.setJointMotion(jointLeft_ankleLeft_toe, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // // physicsManager.setJointTwistLimit(jointLeft_ankleLeft_toe,       -10 * DEG2RAD,      90 * DEG2RAD);
 
-    const jointRight_legRight_knee = physicsManager.addJoint(flatMeshes.Right_leg, flatMeshes.Right_knee, 
-      localVector.copy(avatar.modelBoneOutputs.Right_leg.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Right_knee.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity(), identityQuaternion, false);
-    physicsManager.setJointMotion(jointRight_legRight_knee, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointRight_legRight_knee,   -Math.PI * 0.,      Math.PI * 0.6);
+    // const jointRight_legRight_knee = physicsManager.addJoint(flatMeshes.Right_leg, flatMeshes.Right_knee, 
+    //   localVector.copy(avatar.modelBoneOutputs.Right_leg.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Right_knee.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity(), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointRight_legRight_knee, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointRight_legRight_knee,   -Math.PI * 0.,      Math.PI * 0.6);
 
-    const jointRight_kneeRight_ankle = physicsManager.addJoint(flatMeshes.Right_knee, flatMeshes.Right_ankle, 
-      localVector.copy(avatar.modelBoneOutputs.Right_knee.modelBoneEnd).multiplyScalar(0.5), 
-      localVector2.copy(avatar.modelBoneOutputs.Right_ankle.modelBoneEnd).multiplyScalar(0.5).negate(), 
-      localQuaternion.identity().setFromEuler(localEuler.set(0, 0, 0)), identityQuaternion, false);
-    physicsManager.setJointMotion(jointRight_kneeRight_ankle, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    physicsManager.setJointMotion(jointRight_kneeRight_ankle, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
-    physicsManager.setJointTwistLimit(jointRight_kneeRight_ankle,       -10 * DEG2RAD,      30 * DEG2RAD);
-    physicsManager.setJointSwingLimit(jointRight_kneeRight_ankle,       30 * DEG2RAD,      0 * DEG2RAD);
+    // const jointRight_kneeRight_ankle = physicsManager.addJoint(flatMeshes.Right_knee, flatMeshes.Right_ankle, 
+    //   localVector.copy(avatar.modelBoneOutputs.Right_knee.modelBoneEnd).multiplyScalar(0.5), 
+    //   localVector2.copy(avatar.modelBoneOutputs.Right_ankle.modelBoneEnd).multiplyScalar(0.5).negate(), 
+    //   localQuaternion.identity().setFromEuler(localEuler.set(0, 0, 0)), identityQuaternion, false);
+    // physicsManager.setJointMotion(jointRight_kneeRight_ankle, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // physicsManager.setJointMotion(jointRight_kneeRight_ankle, PxD6Axis.eSWING1, PxD6Motion.eLIMITED);
+    // physicsManager.setJointTwistLimit(jointRight_kneeRight_ankle,       -10 * DEG2RAD,      30 * DEG2RAD);
+    // physicsManager.setJointSwingLimit(jointRight_kneeRight_ankle,       30 * DEG2RAD,      0 * DEG2RAD);
 
-    // const jointRight_ankleRight_toe = physicsManager.addJoint(flatMeshes.Right_ankle, flatMeshes.Right_toe, 
-    //   avatar.modelBoneOutputs.Right_ankle.modelBoneEnd.clone().multiplyScalar(0.5), 
-    //   avatar.modelBoneOutputs.Right_toe.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
-    //   new THREE.Quaternion().setFromEuler(localEuler.set(0, 0, 0)), new THREE.Quaternion(), false);
-    // physicsManager.setJointMotion(jointRight_ankleRight_toe, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
-    // physicsManager.setJointTwistLimit(jointRight_ankleRight_toe,       -10 * DEG2RAD,      90 * DEG2RAD);
+    // // const jointRight_ankleRight_toe = physicsManager.addJoint(flatMeshes.Right_ankle, flatMeshes.Right_toe, 
+    // //   avatar.modelBoneOutputs.Right_ankle.modelBoneEnd.clone().multiplyScalar(0.5), 
+    // //   avatar.modelBoneOutputs.Right_toe.modelBoneEnd.clone().multiplyScalar(0.5).negate(), 
+    // //   new THREE.Quaternion().setFromEuler(localEuler.set(0, 0, 0)), new THREE.Quaternion(), false);
+    // // physicsManager.setJointMotion(jointRight_ankleRight_toe, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
+    // // physicsManager.setJointTwistLimit(jointRight_ankleRight_toe,       -10 * DEG2RAD,      90 * DEG2RAD);
 
-    // rootScene.children[2].visible = false; // test: hide E tag.
+    // // rootScene.children[2].visible = false; // test: hide E tag.
   };
   object.setFromAvatar = avatar => {
     // avatar.modelBoneOutputs.Root.updateMatrixWorld();
@@ -1562,6 +1564,7 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
+    this.ragdoll = false;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2489,22 +2492,28 @@ class Avatar {
       this.debugMesh = _makeDebugMesh();
       this.debugMesh.wrapToAvatar(this);
       this.model.add(this.debugMesh);
-
-      this.ragdollMesh = _makeRagdollMesh();
-      this.ragdollMesh.wrapToAvatar(this);
-      this.model.add(this.ragdollMesh);
     }
 
     if (this.debugMesh) {
       if (debug.enabled) {
         this.debugMesh.setFromAvatar(this);
       }
-      // this.debugMesh.visible = debug.enabled;
-      this.debugMesh.visible = false;
+      this.debugMesh.visible = debug.enabled;
     }
 
-    if (this.ragdollMesh) {
-      this.ragdollMesh.setFromAvatar(this);
+    if (this.ragdoll) {
+      if (!this.ragdollMesh) {
+        this.ragdollMesh = _makeRagdollMesh();
+        window.ragdollMesh = this.ragdollMesh;
+        this.ragdollMesh.wrapToAvatar(this);
+        this.ragdollMesh.createRagdoll(this);
+        this.model.add(this.ragdollMesh);
+        this.ragdollMesh.setFromAvatar(this);
+      }
+    } else {
+      if (this.ragdollMesh) {
+        this.ragdollMesh.setFromAvatar(this);
+      }
     }
 	}
 
