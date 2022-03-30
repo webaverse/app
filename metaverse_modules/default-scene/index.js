@@ -4,8 +4,10 @@ import { TerrainManager } from './terrain-manager.js';
 import { Water } from './Water.js'
 import { Sky } from './Sky.js'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { treeMaterial } from './treeMaterial.js';
 import { treeShaderMaterial } from "./physicTreeMaterial.js";
+import { grassShaderMaterial } from "./physicGrassMaterial.js";
 
 const { useFrame, useLocalPlayer, useLoaders, useUi, usePhysics, useCleanup, useGeometryUtils } = metaversefile;
 
@@ -33,13 +35,25 @@ export default () => {
         treeTop.material = treeShaderMaterial;
     })
 
-    fbxLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/models/sm_heroTree_low.fbx`, (obj) => {
-        obj.scale.multiplyScalar(0.01);
-        obj.position.y = 80
-        obj.position.x = -10;
+    // fbxLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/models/sm_heroTree_low.fbx`, (obj) => {
+    //     obj.scale.multiplyScalar(0.01);
+    //     obj.position.y = 80
+    //     obj.position.x = -10;
+    //     obj.updateMatrixWorld(true);
+    //     rootScene.add(obj)
+
+    // })
+
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/models/grass.glb`, (gltf) => {
+        const obj = gltf.scene;
+        // obj.scale.multiplyScalar(0.01);
+        obj.position.y = 84
         obj.updateMatrixWorld(true);
         rootScene.add(obj)
 
+        const grassMesh = obj.children[0].children[0];
+        grassMesh.material = grassShaderMaterial;
     })
 
 
@@ -83,8 +97,11 @@ export default () => {
     // terrainManager.updateChunk();
 
     useFrame(() => {
+        if (grassShaderMaterial.shader)
+            grassShaderMaterial.shader.uniforms.uTime.value += 1 / 60;
+
         if (treeShaderMaterial.shader)
-            treeShaderMaterial.shader.uniforms.time.value += 1 / 60;
+            treeShaderMaterial.shader.uniforms.uTime.value += 1 / 60;
 
         // terrainManager.updateCenter(player.position);
         // terrainManager.updateChunk();

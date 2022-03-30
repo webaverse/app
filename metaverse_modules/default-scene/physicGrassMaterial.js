@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { LinearFilter, LinearMipmapLinearFilter } from 'three';
-import { terrainMaterial } from './toonMaterial';
+import { TGALoader } from 'three/examples/jsm/loaders/TGALoader';
 
 
 export const vertex = /* glsl */`
@@ -57,9 +56,9 @@ varying vec3 vViewPosition;
 	    return(vec4(position,1.)*rmy).xyz+pivotPoint;
 	}
 
-	vec4 wind=vec4(0.1,1.,0.,1.);
+	vec4 wind=vec4(0.,1.,0.,1.);
 	vec3 zvalue=vec3(0.,0.,1.);
-	vec3 dpoint=vec3(0.,0.,-2.0);
+	vec3 dpoint=vec3(0.,0.,-10.0);
 
 	vec3 simpleGrassWind(vec3 finalPosition,vec3 addtionalWPO,float weight,float intensity,float windSpeed){
     	vec3 nwindrgb=normalize(wind.rgb);
@@ -89,6 +88,36 @@ varying vec3 vViewPosition;
     	return addtionalWPO+rotateVec3;
 	}
 
+	
+vec2 panner(vec2 uv,vec2 speed,float time){
+    return time*speed+uv;
+}
+
+vec3 WindLineMask(vec3 WPos,float windlineSize,vec2 speed,sampler2D noise,float wpoAmount){
+    vec2 uv=(WPos/windlineSize).rg;
+    uv=panner(uv,speed,uTime);
+    vec3 rgb=texture2D(noise,uv).rgb*wpoAmount;
+    return rgb;
+}
+
+uniform sampler2D grassNoise;
+vec3 GrassStrandWPOMask(vec3 WPos,float windlineSize,sampler2D noise,vec2 uv,vec2 speed,float wpoAmount,float intensity,float weight,float windSpeed){
+    //WindLineMask start
+    vec2 noiseUv=(WPos/windlineSize).rg;
+    noiseUv=panner(noiseUv,speed,uTime);
+    vec3 addtionalWPO=texture2D(noise,noiseUv).rgb * wpoAmount;
+    //WindLineMask end
+    
+    vec3 sgwPos=simpleGrassWind(WPos,addtionalWPO,intensity,weight,windSpeed);
+    
+	float grassWindGradient=0.6;
+    float alpha=clamp((1.-uv.y)*grassWindGradient,0.,1.);
+    vec3 vertexOffset=mix(normal,sgwPos,alpha);
+    
+    return vertexOffset;
+}
+
+
 #endif
 
 void main() {
@@ -116,15 +145,12 @@ void main() {
 		mvPosition = instanceMatrix * mvPosition; 
 	#endif
 
-	vec4 modelPositon = modelMatrix * mvPosition; 
-	mvPosition = viewMatrix * modelPositon;
-	
-	vec4 finalPos= projectionMatrix * mvPosition;
-	#ifdef USE_TREE
-	 	vec2 remapUv = remap(uv,vec2(0.0),vec2(1.0),vec2(-1.0),vec2(1.0)); 
-    	// vec4 offsetv4 = vec4(vertexOffset,0.0,1.0) * viewMatrix;
-    	vec3 vertexOffset = mix(vec3(0.0), normalize(vec3(remapUv ,0.0)),effectBlend); 
-		finalPos.xyz += simpleGrassWind(transformed.xyz,vertexOffset,windWeight,windIntensity,windSpeed);
+	vec4 mPosition = modelMatrix * mvPosition;   
+	vec4 finalPos= projectionMatrix * viewMatrix * mPosition;
+
+	#ifdef USE_TREE 
+		// vec3 GrassStrandWPOMask(vec3 WPos,float windlineSize,sampler2D noise,vec2 uv,float wpoAmount,float intensity,float weight,float windSpeed){
+		finalPos.xyz += GrassStrandWPOMask(mPosition.xyz,2000.0,grassNoise,uv,vec2(0.001,0.05), 1.0,windWeight,windIntensity,windSpeed);
 	#endif
 	
 	gl_Position = finalPos;
@@ -442,15 +468,9 @@ void main() {
 	#include <logdepthbuf_fragment>
 	#include <map_fragment>
 	#include <color_fragment>
-	// #include <alphamap_fragment>	 
-	// #include <alphatest_fragment>
-	#ifdef USE_ALPHATEST 
-		if (texture2D( alphaMap, vUv ).g < alphaTest )
-			 discard; 
-	#endif
-	// #ifdef USE_ALPHAMAP 
-	// diffuseColor.a *= texture2D( alphaMap, vUv ).g; 
-	// #endif
+	#include <alphamap_fragment>	 
+	#include <alphatest_fragment>
+ 
 	#include <roughnessmap_fragment>
 	#include <metalnessmap_fragment>
 	#include <normal_fragment_begin>
@@ -526,20 +546,20 @@ const gradientMaps = (function () {
 })();
 
 const maskMap = textureLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/tree_Opacity-01.png`)
+const tgaloader = new TGALoader();
+const grassNoise = tgaloader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/GrassWindNoise.TGA`);
 
-export const treeShaderMaterial = new THREE.MeshStandardMaterial({
+export const grassShaderMaterial = new THREE.MeshStandardMaterial({
 	color: 0x33be27,
 	roughness: 0.7,
 	metalness: 0.5,
-	alphaMap: maskMap,
-	alphaTest: 0.5,
 	// alphaToCoverage: true,
 	// transparent: true,
 	// depthTest: false
 })
 
-treeShaderMaterial.onBeforeCompile = (shader) => {
-	treeShaderMaterial.shader = shader;
+grassShaderMaterial.onBeforeCompile = (shader) => {
+	grassShaderMaterial.shader = shader;
 
 	shader.vertexShader = vertex;
 	shader.fragmentShader = fragment;
@@ -548,9 +568,10 @@ treeShaderMaterial.onBeforeCompile = (shader) => {
 	shader.uniforms.maskMap = { value: maskMap };
 	shader.uniforms.gradientMap = { value: gradientMaps.fiveTone };
 	shader.uniforms.uTime = { value: 0 };
-	shader.uniforms.windSpeed = { value: 0.3 };
-	shader.uniforms.windIntensity = { value: 0.6 };
-	shader.uniforms.windWeight = { value: 0.4 };
+	shader.uniforms.windSpeed = { value: 0.2 };
+	shader.uniforms.windIntensity = { value: 0.8 };
+	shader.uniforms.windWeight = { value: 0.5 };
+	shader.uniforms.grassNoise = { value: grassNoise };
 
 	shader.defines = shader.defines || {};
 	shader.defines['USE_TOONMAP'] = 'USE_TOONMAP';
