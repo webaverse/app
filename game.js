@@ -18,7 +18,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
-import {downloadFile, snapPosition} from './util.js';
+import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
 import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
 // import easing from './easing.js';
 // import {VoicePack} from './voice-pack-voicer.js';
@@ -245,7 +245,7 @@ sceneLowPriority.add(mouseDomEquipmentHoverPhysicsMesh);
 let mouseDomEquipmentHoverObject = null;
 let mouseDomEquipmentHoverPhysicsId = 0;
 
-let selectedLoadoutIndex = -1;
+// let selectedLoadoutIndex = -1;
 
 const _use = () => {
   if (gameManager.getMenu() === 3) {
@@ -1252,11 +1252,22 @@ class GameManager extends EventTarget {
     const object = _getGrabbedObject(0);
     object.savedRotation.y -= direction * rotationSnap;
   }
-  drop() {
+  dropSelectedApp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const app = loadoutManager.getSelectedApp();
     if (app) {
       localPlayer.unwear(app);
+    }
+  }
+  deleteSelectedApp() {
+    if (this.selectedIndex !== -1) {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      const app = loadoutManager.getSelectedApp();
+      if (app) {
+        localPlayer.unwear(app, {
+          destroy: true,
+        });
+      }
     }
   }
   canPush() {
@@ -1397,6 +1408,22 @@ class GameManager extends EventTarget {
       };
       localPlayer.addAction(crouchAction);
     }
+  }
+  async handleDropJsonItemToPlayer(item, index) {
+    const u = await handleDropJsonItem(item);
+    return await this.handleDropUrlToPlayer(u, index);
+  }
+  async handleDropJsonToPlayer(j, index) {
+    const u = getDropUrl(j);
+    return await this.handleDropUrlToPlayer(u, index);
+  }
+  async handleDropUrlToPlayer(u, index) {
+    const app = await metaversefileApi.createAppAsync({
+      start_url: u,
+    });
+    world.appManager.importApp(app);
+    app.activate();
+    // XXX set to index
   }
   selectLoadout(index) {
     loadoutManager.setSelectedIndex(index);

@@ -22,21 +22,16 @@ export default () => {
   const electronicballTexture = textureLoader.load(`${baseUrl}/textures/electronic-ball2.png`);
   const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
 
-    let currentPos=new THREE.Vector3();
     let currentDir=new THREE.Vector3();
-    let prePos=new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
     {
+        let localVector = new THREE.Vector3();
         useFrame(() => {
             
-            //console.log(camera.rotation.y-localPlayer.rotation.y);
-            //console.log(localPlayer.actionInterpolants.jump)
-            currentPos.x=localPlayer.position.x;
-            //currentPos.y=localPlayer.position.y;
-            currentPos.z=localPlayer.position.z;
-            currentDir.x=currentPos.x-prePos.x;
-            //currentDir.y=currentPos.y-prePos.y;
-            currentDir.z=currentPos.z-prePos.z;
+            localVector.x=0;
+            localVector.y=0;
+            localVector.z=-1;
+            currentDir = localVector.applyQuaternion( localPlayer.quaternion );
             currentDir.normalize();
             if (localPlayer.hasAction('narutoRun')){
                     narutoRunTime++;
@@ -46,10 +41,7 @@ export default () => {
                 narutoRunTime=0;
                 
             }
-            prePos.x=currentPos.x;
-            //prePos.y=currentPos.y;
-            prePos.z=currentPos.z;     
-            
+           
         });
     }
     
