@@ -2014,6 +2014,13 @@ class Avatar {
       }
     }
   }
+  resetBonesRotations() {
+    for (const k in this.modelBoneOutputs) {
+      const modelBone = this.modelBoneOutputs[k];
+      modelBone.rotation.set(0, 0, 0);
+    }
+    this.modelBoneOutputs.Root.updateMatrixWorld();
+  }
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
