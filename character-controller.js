@@ -24,6 +24,7 @@ import {
   avatarInterpolationNumFrames,
   // groundFriction,
   voiceEndpoint,
+  numLoadoutSlots,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
