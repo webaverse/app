@@ -1,0 +1,96 @@
+import * as THREE from 'three';
+// import Simplex from './simplex-noise.js';
+import metaversefile from 'metaversefile';
+const {useApp, useFrame, usePhysics, useGeometries, useProcGen, waitForSceneLoaded} = metaversefile;
+
+const localVector = new THREE.Vector3();
+// const simplex = new Simplex('lol');
+
+export default () => {
+  const app = useApp();
+  const physics = usePhysics();
+  const {StreetGeometry} = useGeometries();
+  const {alea} = useProcGen();
+
+  const startPoint = new THREE.Vector3(92.5, 0, -33);
+  const endPoint = new THREE.Vector3(19.5, -4, 59.5);
+  const direction = endPoint.clone().sub(startPoint).normalize();
+  const distance = startPoint.distanceTo(endPoint);
+  const segmentLength = 0.5;
+  const numPoints = Math.round(distance / segmentLength);
+  const stepRange = 0.2;
+
+  const _makePathMesh = async () => {
+    await waitForSceneLoaded();
+
+    const rng = alea('path');
+    const r = () => -1 + 2 * rng();
+
+    const splinePoints = Array(numPoints);
+    // const point = new THREE.Vector3(0, 0, 0);
+    // const direction = new THREE.Vector3(r(), r(), r()).normalize();
+    for (let i = 0; i <= numPoints; i++) {
+      const position = startPoint.clone()
+        .add(direction.clone().multiplyScalar(i * distance / numPoints));
+      position.x += r() * stepRange;
+      // point.y += r() * stepRange;
+      position.y += 100;
+      position.z += r() * stepRange;
+      
+      const result = physics.raycast(
+        position,
+        new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          -Math.PI / 2
+        )
+      );
+      if (result) {
+        const {
+          point,
+        } = result;
+
+        /* point: scratchStack.f32.slice(14, 17),
+        normal: scratchStack.f32.slice(17, 20),
+        distance: scratchStack.f32[20],
+        meshId: scratchStack.u32[21],
+        objectId,
+        faceIndex,
+        objectPosition,
+        objectQuaternion, */
+
+        const p = new THREE.Vector3().fromArray(point);
+        p.y += 0.05;
+        splinePoints[i] = p;
+      } else {
+        console.warn('no raycast', position);
+      }
+    }
+    const curve = new THREE.CatmullRomCurve3(splinePoints);
+
+    const geometry = new StreetGeometry(
+      curve, // path
+      numPoints, // tubularSegments
+      0.1, // radiusX
+      0.01, // radiusY
+      4, // radialSegments
+      false, // closed
+    )/* .applyMatrix4(
+      new THREE.Matrix4().makeTranslation(dx * chunkWorldSize, 0, dy * chunkWorldSize)
+    ); */
+
+    const material = new THREE.MeshNormalMaterial({
+      // color: 0xFF0000,
+      flatShading: true,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    // mesh.frustumCulled = false;
+    return mesh;
+  };
+  (async () => {
+    const pathMesh = await _makePathMesh();
+    app.add(pathMesh);
+    pathMesh.updateMatrixWorld();
+  })();
+
+  return app;
+};
