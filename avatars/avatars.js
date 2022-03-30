@@ -637,6 +637,7 @@ const _makeRagdollMesh = () => {
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k]
       // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, characterId);
+      // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true);
       const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, localPlayer.characterController.physicsId);
       avatar.app.physicsObjects.push(meshBone);
       // console.log('mass 1: ', physicsManager.getBodyMass(body));
@@ -2439,17 +2440,14 @@ class Avatar {
     
     
 
-    _updateHmdPosition();
     if (!this.ragdoll) {
+      _updateHmdPosition();
       _applyAnimation(this, now, moveFactors);
-    }
 
-    if (this.poseAnimation) {
-      _overwritePose(this.poseAnimation);
-    }
+      if (this.poseAnimation) {
+        _overwritePose(this.poseAnimation);
+      }
 
-    // console.log('input root')
-    if (!this.ragdoll) {
       // if (!this.getBottomEnabled()) {
       localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
@@ -2463,14 +2461,13 @@ class Avatar {
       /* if (!this.getTopEnabled() && this.debugMeshes) {
         this.modelBoneOutputs.Hips.updateMatrixWorld();
       } */
+
+      this.shoulderTransforms.Update();
+      this.legsManager.Update();
+
+      _updateEyeTarget();
+      _updateEyeballTarget();
     }
-
-
-    this.shoulderTransforms.Update();
-    this.legsManager.Update();
-
-    _updateEyeTarget();
-    _updateEyeballTarget();
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
     Avatar.applyModelBoneOutputs(
