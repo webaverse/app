@@ -74,7 +74,7 @@ const Character = forwardRef(({
     highlight,
     animate,
     disabled,
-    onMouseEnter,
+    onMouseMove,
     onClick
 }, ref) => {
     return (
@@ -85,9 +85,9 @@ const Character = forwardRef(({
                 animate ? styles.animate : null,
                 disabled ? styles.disabled : null,
             )}
-            onMouseEnter={e => {
+            onMouseMove={e => {
                 if (!disabled) {
-                    onMouseEnter(e);
+                    onMouseMove(e);
                 }
             }}
             onClick={e => {
@@ -112,6 +112,7 @@ export const CharacterSelect = () => {
     const [ selectCharacter, setSelectCharacter ] = useState(null);
     const [ arrowPosition, setArrowPosition ] = useState(null);
     const [ npcPlayer, setNpcPlayer ] = useState(null);
+    const [ enabled, setEnabled ] = useState(false);
     const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
 
     const refsMap = (() => {
@@ -201,10 +202,44 @@ export const CharacterSelect = () => {
             };
         }
     }, [opened, targetCharacter]);
+    useEffect(() => {
+        if (opened && !enabled) {
+            const timeout = setTimeout(() => {
+                setEnabled(true);
+            }, 300);
+            return () => {
+                clearTimeout(timeout);
+            };
+        } else if (!opened && enabled) {
+            setEnabled(false);
+        }
+    }, [opened, enabled]);
+    
+    const onMouseMove = character => e => {
+        if (enabled) {
+            setHighlightCharacter(character);
+        }
+    };
+    const onClick = character => e => {
+        if (character && npcPlayer) {
+            setSelectCharacter(character);
+
+            (async () => {
+                const localPlayer = await metaversefile.useLocalPlayer();
+                await localPlayer.setAvatarUrl(character.avatarUrl);
+            })();
+
+            setTimeout(() => {
+                setState({ openedPanel: null });
+            }, 1000);
+        }
+    };
 
     return (
         <div className={styles.characterSelect}>
-            <div className={classnames(styles.menu, opened ? styles.open : null)}>
+            <div
+                className={classnames(styles.menu, opened ? styles.open : null)}
+            >
                 <div className={styles.heading}>
                     <h1>Character select</h1>
                 </div>
@@ -219,15 +254,8 @@ export const CharacterSelect = () => {
                                 highlight={character === targetCharacter}
                                 animate={selectCharacter === character}
                                 disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                onMouseEnter={() => {
-                                    setHighlightCharacter(character);
-                                }}
-                                onClick={e => {
-                                    setSelectCharacter(character);
-                                    setTimeout(() => {
-                                        setSelectCharacter(null);
-                                    }, 2000);
-                                }}
+                                onMouseMove={onMouseMove(character)}
+                                onClick={onClick(character)}
                                 key={i}
                                 ref={refsMap.get(character)}
                             />
@@ -246,23 +274,8 @@ export const CharacterSelect = () => {
                                     highlight={character === targetCharacter}
                                     animate={selectCharacter === character}
                                     disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                    onMouseEnter={() => {
-                                        setHighlightCharacter(character);
-                                    }}
-                                    onClick={e => {
-                                        if (character && npcPlayer) {
-                                            setSelectCharacter(character);
-
-                                            (async () => {
-                                                const localPlayer = await metaversefile.useLocalPlayer();
-                                                await localPlayer.setAvatarUrl(character.avatarUrl);
-                                            })();
-
-                                            setTimeout(() => {
-                                                setState({ openedPanel: null });
-                                            }, 1000);
-                                        }
-                                    }}
+                                    onMouseMove={onMouseMove(character)}
+                                    onClick={onClick(character)}
                                     key={i}
                                     ref={refsMap.get(character)}
                                 />
