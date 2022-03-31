@@ -6,8 +6,8 @@ import metaversefile from 'metaversefile';
 import dioramaManager from '../../../../diorama.js';
 import { chatTextSpeed } from '../../../../constants.js';
 
-import { RpgText } from '../../../RpgText.jsx';
-import { AppContext } from '../../app/App.jsx';
+import { RpgText } from '../rpg-text';
+import { AppContext } from '../../app';
 
 import styles from './character-hups.module.css';
 
