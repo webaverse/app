@@ -12,6 +12,8 @@ export default () => {
   const {StreetGeometry} = useGeometries();
   const {alea} = useProcGen();
 
+  app.name = 'path';
+
   const line = app.getComponent('line') ?? [
     [0, 0, 0],
     [0, 0, -1],
