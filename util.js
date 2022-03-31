@@ -9,10 +9,10 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
-const localVector6 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
-const localQuaternion3 = new THREE.Quaternion();
+// const localVector6 = new THREE.Vector3();
+// const localQuaternion = new THREE.Quaternion();
+// const localQuaternion2 = new THREE.Quaternion();
+// const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
@@ -809,168 +809,198 @@ export const proxifyUrl = u => {
     return u;
   }
 };
+export const getDropUrl = o => {
+  let u = null;
+  if (typeof o?.start_url === 'string') {
+    u = o.start_url;
+  /* } else if (typeof j?.asset_contract?.address === 'string') {
+    const {token_id, asset_contract} = j;
+    const {address} = asset_contract;
+    
+    if (contractNames[address]) {
+      u = `/@proxy/` + encodeURI(`eth://${address}/${token_id}`);
+    } else {
+      console.log('got j', j);
+      const {traits} = j;
+      // cryptovoxels wearables
+      const voxTrait = traits.find(t => t.trait_type === 'vox'); // XXX move to a loader
+      if (voxTrait) {
+        const {value} = voxTrait;
+        u = proxifyUrl(value) + '?type=vox';
+      } else {
+        const {token_metadata} = j;
+        // console.log('proxify', token_metadata);
+        const res = await fetch(proxifyUrl(token_metadata), {
+          mode: 'cors',
+        });
+        const j2 = await res.json();
+        // console.log('got metadata', j2);
+        
+        // dcl wearables
+        if (j2.id?.startsWith('urn:decentraland:')) {
+          // 'urn:decentraland:ethereum:collections-v1:mch_collection:mch_enemy_upper_body'
+          const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${j2.id}`, { // XXX move to a loader
+            mode: 'cors',
+          });
+          const j3 = await res.json();
+          const {wearables} = j3;
+          const wearable = wearables[0];
+          const representation = wearable.data.representations[0];
+          const {mainFile, contents} = representation;
+          const file = contents.find(f => f.key === mainFile);
+          const match = mainFile.match(/\.([a-z0-9]+)$/i);
+          const type = match && match[1];
+          // console.log('got wearable', {mainFile, contents, file, type});
+          u = '/@proxy/' + encodeURI(file.url) + (type ? ('?type=' + type) : '');
+        } else {
+          // avatar
+          const {avatar_url, asset} = j2;
+          const avatarUrl = avatar_url || asset;
+          if (avatarUrl) {
+            u = '/@proxy/' + encodeURI(avatarUrl) + '?type=vrm';
+          } else {
+            // default
+            const {image} = j2;
+            u = '/@proxy/' + encodeURI(image);
+          }
+        }
+      }
+    } */
+  }
+  return u;
+};
+export const handleDropJsonItem = async item => {
+  if (item?.kind === 'string') {
+    const s = await new Promise((accept, reject) => {
+      item.getAsString(accept);
+    });
+    const j = jsonParse(s);
+    if (j) {
+      const u = getDropUrl(j);
+      return u;
+    } /* else {
+      console.warn('not uploading unknown json object', j);
+      // return null;
+    } */
+  }
+  return null;
+};
 export const handleUpload = async (
   item,
   {
     onProgress = null,
   } = {}
 ) => {
-  console.log('uploading...');
+  console.log('uploading...', item);
   
-  const _uploadObject = async item => {
-    let u;
-    
-    if (item instanceof FileList) {
-      const formData = new FormData();
+  const _handleFileList = async item => {
+    const formData = new FormData();
 
+    formData.append(
+      '',
+      new Blob([], {
+        type: 'application/x-directory',
+      }),
+      ''
+    );
+
+    const files = item;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      formData.append(file.name, file, file.name);
+    }
+
+    const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
+      onProgress,
+    });
+
+    const rootDirectory = hashes.find(h => h.name === '');
+    const rootDirectoryHash = rootDirectory.hash;
+    return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+  };
+  const _handleString = item => handleDropJsonItem(item);
+  const _handleDirectory = async entry => {
+    const formData = new FormData();
+        
+    const rootEntry = entry;
+    const _recurse = async entry => {
+      function getFullPath(entry) {
+        return entry.fullPath.slice(rootEntry.fullPath.length);
+      }
+      const fullPath = getFullPath(entry);
+      // console.log('directory full path', entry.fullPath, rootEntry.fullPath, fullPath);
       formData.append(
-        '',
+        fullPath,
         new Blob([], {
           type: 'application/x-directory',
         }),
-        ''
+        fullPath
       );
-
-      const files = item;
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        formData.append(file.name, file, file.name);
-      }
-
-      const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
-        onProgress,
-      });
-
-      const rootDirectory = hashes.find(h => h.name === '');
-      const rootDirectoryHash = rootDirectory.hash;
-      u = `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
-      // console.log(u);
-    } else {
-      const file = item.getAsFile();
-      const entry = item.webkitGetAsEntry();
       
-      if (item.kind === 'string') {
-        const s = await new Promise((accept, reject) => {
-          item.getAsString(accept);
-        });
-        const j = JSON.parse(s);
-        const {token_id, asset_contract} = j;
-        const {address} = asset_contract;
-        
-        if (contractNames[address]) {
-          u = `/@proxy/` + encodeURI(`eth://${address}/${token_id}`);
-        } else {
-          console.log('got j', j);
-          const {traits} = j;
-          // cryptovoxels wearables
-          const voxTrait = traits.find(t => t.trait_type === 'vox'); // XXX move to a loader
-          if (voxTrait) {
-            const {value} = voxTrait;
-            u = proxifyUrl(value) + '?type=vox';
-          } else {
-            const {token_metadata} = j;
-            // console.log('proxify', token_metadata);
-            const res = await fetch(proxifyUrl(token_metadata), {
-              mode: 'cors',
-            });
-            const j2 = await res.json();
-            // console.log('got metadata', j2);
-            
-            // dcl wearables
-            if (j2.id?.startsWith('urn:decentraland:')) {
-              // 'urn:decentraland:ethereum:collections-v1:mch_collection:mch_enemy_upper_body'
-              const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${j2.id}`, { // XXX move to a loader
-                mode: 'cors',
-              });
-              const j3 = await res.json();
-              const {wearables} = j3;
-              const wearable = wearables[0];
-              const representation = wearable.data.representations[0];
-              const {mainFile, contents} = representation;
-              const file = contents.find(f => f.key === mainFile);
-              const match = mainFile.match(/\.([a-z0-9]+)$/i);
-              const type = match && match[1];
-              // console.log('got wearable', {mainFile, contents, file, type});
-              u = '/@proxy/' + encodeURI(file.url) + (type ? ('?type=' + type) : '');
+      const reader = entry.createReader();
+      async function readEntries() {
+        const entries = await new Promise((accept, reject) => {
+          reader.readEntries(entries => {
+            if (entries.length > 0) {
+              accept(entries);
             } else {
-              // avatar
-              const {avatar_url, asset} = j2;
-              const avatarUrl = avatar_url || asset;
-              if (avatarUrl) {
-                u = '/@proxy/' + encodeURI(avatarUrl) + '?type=vrm';
-              } else {
-                // default
-                const {image} = j2;
-                u = '/@proxy/' + encodeURI(image);
-              }
+              accept(null);
             }
+          }, reject);
+        });
+        return entries;
+      }
+      let entriesArray;
+      while (entriesArray = await readEntries()) {
+        for (const entry of entriesArray) {
+          if (entry.isFile) {
+            const file = await new Promise((accept, reject) => {
+              entry.file(accept, reject);
+            });
+            const fullPath = getFullPath(entry);
+
+            formData.append(fullPath, file, fullPath);
+          } else if (entry.isDirectory) {
+            await _recurse(entry);
           }
         }
-      } else if (entry.isDirectory) {
-        const formData = new FormData();
-        
-        const rootEntry = entry;
-        const _recurse = async entry => {
-          function getFullPath(entry) {
-            return entry.fullPath.slice(rootEntry.fullPath.length);
-          }
-          const fullPath = getFullPath(entry);
-          // console.log('directory full path', entry.fullPath, rootEntry.fullPath, fullPath);
-          formData.append(
-            fullPath,
-            new Blob([], {
-              type: 'application/x-directory',
-            }),
-            fullPath
-          );
-          
-          const reader = entry.createReader();
-          async function readEntries() {
-            const entries = await new Promise((accept, reject) => {
-              reader.readEntries(entries => {
-                if (entries.length > 0) {
-                  accept(entries);
-                } else {
-                  accept(null);
-                }
-              }, reject);
-            });
-            return entries;
-          }
-          let entriesArray;
-          while (entriesArray = await readEntries()) {
-            for (const entry of entriesArray) {
-              if (entry.isFile) {
-                const file = await new Promise((accept, reject) => {
-                  entry.file(accept, reject);
-                });
-                const fullPath = getFullPath(entry);
+      } 
+    };
+    await _recurse(rootEntry);
 
-                formData.append(fullPath, file, fullPath);
-              } else if (entry.isDirectory) {
-                await _recurse(entry);
-              }
-            }
-          } 
-        };
-        await _recurse(rootEntry);
+    const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
+      onProgress,
+    });
 
-        const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
-          onProgress,
-        });
+    const rootDirectory = hashes.find(h => h.name === '');
+    const rootDirectoryHash = rootDirectory.hash;
+    return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+  };
+  const _handleFile = async file => {
+    const j = await doUpload(`https://ipfs.webaverse.com/`, file, {
+      onProgress,
+    });
+    const {hash} = j;
+    const {name} = file;
 
-        const rootDirectory = hashes.find(h => h.name === '');
-        const rootDirectoryHash = rootDirectory.hash;
-        u = `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
-        console.log(u);
+    return `${storageHost}/${hash}/${name}`;
+  };
+  const _uploadObject = async item => {
+    let u = null;
+    
+    if (item instanceof FileList) {
+      u = _handleFileList(item);
+    } else {
+      if (item.kind === 'string') {
+        u = await _handleString(item);
       } else {
-        const j = await doUpload(`https://ipfs.webaverse.com/`, file, {
-          onProgress,
-        });
-        const {hash} = j;
-        const {name} = file;
-
-        u = `${storageHost}/${hash}/${name}`;
+        const entry = item.webkitGetAsEntry();
+        if (entry.isDirectory) {
+          u = await _handleDirectory(entry);
+        } else {
+          const file = item.getAsFile();
+          u = await _handleFile(file);
+        }
       }
     }
     return u;
@@ -989,3 +1019,41 @@ export const loadImage = u => new Promise((resolve, reject) => {
   img.crossOrigin = 'Anonymous';
   img.src = u;
 });
+
+export const isTransferable = o => {
+  const ctor = o?.constructor;
+  return ctor === MessagePort ||
+    ctor === ImageBitmap ||
+    ctor === ImageData ||
+    // ctor === AudioData ||
+    // ctor === OffscreenCanvas ||
+    ctor === ArrayBuffer ||
+    ctor === Uint8Array ||
+    ctor === Int8Array ||
+    ctor === Uint16Array ||
+    ctor === Int16Array ||
+    ctor === Uint32Array ||
+    ctor === Int32Array ||
+    ctor === Float32Array ||
+    ctor === Float64Array;
+};
+export const getTransferables = o => {
+  const result = [];
+  const _recurse = o => {
+    if (Array.isArray(o)) {
+      for (const e of o) {
+        _recurse(e);
+      }
+    } else if (o && typeof o === 'object') {
+      if (isTransferable(o)) {
+        result.push(o);
+      } else {
+        for (const k in o) {
+          _recurse(o[k]);
+        }
+      }
+    }
+  };
+  _recurse(o);
+  return result;
+};

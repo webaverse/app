@@ -2,7 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import dioramaManager from '../diorama.js';
-import {RpgText} from './RpgText.jsx';
+import {RpgText} from './components/play-mode/rpg-text';
 import styles from './CharacterHups.module.css';
 // import metaversefile from 'metaversefile';
 // const {useLocalPlayer} = metaversefile;

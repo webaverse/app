@@ -9,7 +9,7 @@ import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
@@ -37,8 +37,11 @@ import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
+import renderSettingsManager from './rendersettings-manager.js';
+import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
+import * as scenePreviewer from './scene-previewer.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -53,9 +56,12 @@ class App extends THREE.Object3D {
 
     this.isApp = true;
     this.components = [];
+    this.modules = [];
+    this.modulesHash = 0;
     // cleanup tracking
     this.physicsObjects = [];
-    this.appType = 'script';
+    this.appType = 'none';
+    this.hasRenderSettings = false;
     this.lastMatrix = new THREE.Matrix4();
 
     const startframe = () => {
@@ -137,8 +143,18 @@ class App extends THREE.Object3D {
   addModule(m) {
     throw new Error('method not bound');
   }
+  updateModulesHash() {
+    this.modulesHash = murmurhash3(this.modules.map(m => m.contentId).join(','));
+  }
   getPhysicsObjects() {
     return this.physicsObjects;
+  }
+  getRenderSettings() {
+    if (this.hasRenderSettings) {
+      return renderSettingsManager.findRenderSettings(this);
+    } else {
+      return null;
+    }
   }
   activate() {
     this.dispatchEvent({
@@ -348,18 +364,21 @@ metaversefile.setApi({
   useRenderer() {
     return getRenderer();
   },
+  useRenderSettings() {
+    return renderSettingsManager;
+  },
   useScene() {
     return scene;
   },
   useCamera() {
     return camera;
   },
-  usePostOrthographicScene() {
+  /* usePostOrthographicScene() {
     return postSceneOrthographic;
   },
   usePostPerspectiveScene() {
     return postScenePerspective;
-  },
+  }, */
   getMirrors() {
     return mirrors;
   },
@@ -377,9 +396,6 @@ metaversefile.setApi({
       appManager: world.appManager,
       getApps() {
         return world.appManager.apps;
-      },
-      getLights() {
-        return world.lights;
       },
     };
   },
@@ -404,6 +420,9 @@ metaversefile.setApi({
   useSceneCruncher() {
     return sceneCruncher;
   },
+  useScenePreviewer() {
+    return scenePreviewer;
+  },
   usePostProcessing() {
     return postProcessing;
   },
@@ -418,7 +437,7 @@ metaversefile.setApi({
     if (app) {
       const frame = e => {
         if (!app.paused) {
-          performanceTracker.startCpuObject(app.name);
+          performanceTracker.startCpuObject(app.modulesHash, app.name);
           fn(e.data);
           performanceTracker.endCpuObject();
         }
@@ -791,33 +810,61 @@ metaversefile.setApi({
     const app = new App();
 
     // transform
-    position && app.position.copy(position);
-    quaternion && app.quaternion.copy(quaternion);
-    scale && app.scale.copy(scale);
-    if (in_front) {
-      app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
-      app.quaternion.copy(localPlayer.quaternion);
-      app.scale.setScalar(1);
-    }
-    if (parent) {
-      parent.add(app);
-    }
-    if (position || quaternion || scale || in_front || parent) {
-      app.updateMatrixWorld();
-      app.lastMatrix.copy(app.matrixWorld);
-    }
+    const _updateTransform = () => {
+      let matrixNeedsUpdate = false;
+      if (Array.isArray(position)) {
+        app.position.fromArray(position);
+        matrixNeedsUpdate = true;
+      } else if (position?.isVector3) {
+        app.position.copy(position);
+        matrixNeedsUpdate = true;
+      }
+      if (Array.isArray(quaternion)) {
+        app.quaternion.fromArray(quaternion);
+        matrixNeedsUpdate = true;
+      } else if (quaternion?.isQuaternion) {
+        app.quaternion.copy(quaternion);
+        matrixNeedsUpdate = true;
+      }
+      if (Array.isArray(scale)) {
+        app.scale.fromArray(scale);
+        matrixNeedsUpdate = true;
+      } else if (scale?.isVector3) {
+        app.scale.copy(scale);
+        matrixNeedsUpdate = true;
+      }
+      if (in_front) {
+        app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
+        app.quaternion.copy(localPlayer.quaternion);
+        app.scale.setScalar(1);
+        matrixNeedsUpdate = true;
+      }
+      if (parent) {
+        parent.add(app);
+        matrixNeedsUpdate = true;
+      }
+
+      if (matrixNeedsUpdate) {
+        app.updateMatrixWorld();
+        app.lastMatrix.copy(app.matrixWorld);
+      }
+    };
+    _updateTransform();
 
     // components
-    if (Array.isArray(components)) {
-      for (const {key, value} of components) {
-        app.setComponent(key, value);
+    const _updateComponents = () => {
+      if (Array.isArray(components)) {
+        for (const {key, value} of components) {
+          app.setComponent(key, value);
+        }
+      } else if (typeof components === 'object' && components !== null) {
+        for (const key in components) {
+          const value = components[key];
+          app.setComponent(key, value);
+        }
       }
-    } else if (typeof components === 'object' && components !== null) {
-      for (const key in components) {
-        const value = components[key];
-        app.setComponent(key, value);
-      }
-    }
+    };
+    _updateComponents();
 
     // load
     if (start_url) {
@@ -953,8 +1000,8 @@ export default () => {
       renderer,
       scene,
       rootScene,
-      postSceneOrthographic,
-      postScenePerspective,
+      // postSceneOrthographic,
+      // postScenePerspective,
       camera,
       sceneHighPriority,
       sceneLowPriority,
@@ -1002,6 +1049,8 @@ export default () => {
         }
       }
     }
+    app.modules.push(m);
+    app.updateModulesHash();
 
     currentAppRender = app;
 

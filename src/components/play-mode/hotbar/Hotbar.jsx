@@ -1,76 +1,83 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useContext, useRef, useEffect} from 'react';
 import classnames from 'classnames';
+import { AppContext } from '../../app';
 import styles from './hotbar.module.css';
-// import metaversefileApi from 'metaversefile';
+import {HotBox} from '../hotbox/HotBox.jsx';
+
+import game from '../../../../game.js';
 import loadoutManager from '../../../../loadout-manager.js';
-import {hotbarSize} from '../../../../constants.js';
-
-const HotbarItem = props => {
-    const canvasRef = useRef();
-    const [selected, setSelected] = useState(false);
-    
-    useEffect(() => {
-      if (canvasRef.current) {
-        const canvas = canvasRef.current;
-
-        const hotbarRenderer = loadoutManager.getHotbarRenderer(props.index);
-        hotbarRenderer.addCanvas(canvas);
-
-        return () => {
-          hotbarRenderer.removeCanvas(canvas);
-        };
-      }
-    }, [canvasRef]);
-    useEffect(() => {
-      function selectedchange(e) {
-        const {index, app} = e.data;
-        if (index === -1 || app) {
-          setSelected(index === props.index);
-        }
-      }
-
-      loadoutManager.addEventListener('selectedchange', selectedchange);
-
-      return () => {
-        loadoutManager.removeEventListener('selectedchange', selectedchange);
-      };
-    }, []);
-    
-    const pixelRatio = window.devicePixelRatio;
-
-    return (
-      <div className={ classnames(styles.item, selected ? styles.selected : null) } >
-        <div className={ styles.box } />
-        <div className={ styles.label }>
-          <div className={ styles.background } />
-          <div className={ styles.text }>{ props.index + 1 }</div>
-        </div>
-        <canvas
-          className={ styles.hotbox }
-          width={props.size * pixelRatio}
-          height={props.size * pixelRatio}
-          ref={canvasRef}
-        />
-      </div>
-    );
-};
+import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler/IoHandler.jsx';
+import {hotbarSize, numLoadoutSlots} from '../../../../constants.js';
 
 export const Hotbar = () => {
+    const { state, setState } = useContext( AppContext );
+    const open =  state.openedPanel === 'CharacterPanel';
 
-    const itemsNum = 8;
+    useEffect(() => {
+        if (open) {
+            const keydown = e => {
+                switch (e.which) {
+                    case 82: { // R
+                        game.dropSelectedApp();
+                        return false;
+                    }
+                    case 46: { // delete
+                        game.deleteSelectedApp();
+                        return false;
+                    }
+                }
+            };
+            registerIoEventHandler('keydown', keydown);
+
+            return () => {
+                unregisterIoEventHandler('keydown', keydown);
+            };
+        }
+    }, [open]);
+
+    const onDragOver = index => e => {
+        e.preventDefault();
+    };
+    const onDrop = index => e => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        game.handleDropJsonItemToPlayer(e.dataTransfer.items[0], index);
+    };
+    const onTopClick = e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setState({
+            openedPanel: 'CharacterPanel',
+        });
+    };
+    const onBottomClick = index => e => {
+        loadoutManager.setSelectedIndex(index);
+    };
 
     return (
-        <div className={ styles.hotbar } >
+        <div
+            className={ classnames(styles.hotbar, open ? styles.open : null) }
+            onClick={onTopClick}
+        >
 
             {
                 ( () => {
 
-                    const items = Array( itemsNum );
+                    const items = Array( numLoadoutSlots );
 
-                    for ( let i = 0; i < itemsNum; i ++ ) {
+                    for ( let i = 0; i < numLoadoutSlots; i ++ ) {
 
                         items[ i ] = (
-                            <HotbarItem size={hotbarSize} index={i} key={i} />
+                            <HotBox
+                              size={hotbarSize}
+                              onDragOver={onDragOver(i)}
+                              onDrop={onDrop(i)}
+                              onClick={onBottomClick(i)}
+                              index={i}
+                              key={i}
+                            />
                         );
 
                     }

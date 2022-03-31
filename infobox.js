@@ -267,13 +267,12 @@ class InfoboxRenderer {
   setSpritesheet(spritesheet) {
     if (spritesheet) {
       const {
-        texture,
+        result,
         numFrames,
         // frameSize,
         numFramesPerRow,
       } = spritesheet;
-      // console.log('got new render target', {texture, numFrames, frameSize, numFramesPerRow});
-      this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = texture;
+      this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = result;
       this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
       this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
       this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
@@ -346,17 +345,8 @@ class InfoboxRenderer {
     };
     _copyToCanvases();
   }
-  destroy() {
-    // XXX
-  }
 }
-
-const createInfoboxRenderer = (width, height) => {
-  const infoboxRenderer = new InfoboxRenderer(width, height);
-  return infoboxRenderer;
-};
 
 export {
   InfoboxRenderer,
-  createInfoboxRenderer,
 };

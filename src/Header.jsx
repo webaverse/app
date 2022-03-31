@@ -10,23 +10,22 @@ import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
 
-import { User } from './User';
-import { MagicMenu } from './MagicMenu.jsx';
 import { Character } from './components/general/character';
+import { CharacterSelect } from './components/general/character-select';
+import { Inventory } from './components/general/inventory';
 import { Tokens } from './tabs/tokens';
-import { Claims } from './tabs/claims';
-import { Inspector } from './Inspector.jsx';
-import { Chat } from './Chat.jsx';
+// import { Claims } from './tabs/claims';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
+import { User } from './User';
 
 import styles from './Header.module.css';
 
 //
 
-export default function Header ({ setSelectedApp, selectedApp }) {
+export default function Header () {
 
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, selectedApp } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
     const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
 
@@ -36,7 +35,7 @@ export default function Header ({ setSelectedApp, selectedApp }) {
     const [address, setAddress] = useState(false);
     const [nfts, setNfts] = useState(null);
     const [apps, setApps] = useState(world.appManager.getApps().slice());
-    const [claims, setClaims] = useState([]);
+    // const [claims, setClaims] = useState([]);
     const [dragging, setDragging] = useState(false);
     const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
@@ -49,26 +48,7 @@ export default function Header ({ setSelectedApp, selectedApp }) {
 
     };
 
-    const selectApp = ( app, physicsId, position ) => {
-
-        game.setMouseSelectedObject( app, physicsId, position );
-
-    };
-
     //
-
-    useEffect( () => {
-
-        const update = e => {
-
-            setApps( world.appManager.getApps().slice() );
-
-        };
-
-        world.appManager.addEventListener( 'appadd', update );
-        world.appManager.addEventListener( 'appremove', update );
-
-    }, []);
 
     useEffect( () => {
 
@@ -113,7 +93,7 @@ export default function Header ({ setSelectedApp, selectedApp }) {
 
     }, [ state.openedPanel ] );
 
-    useEffect(() => {
+    /* useEffect(() => {
 
         const pickup = e => {
 
@@ -134,7 +114,7 @@ export default function Header ({ setSelectedApp, selectedApp }) {
 
         };
 
-    }, [ claims ] );
+    }, [ claims ] ); */
 
     useEffect(() => {
 
@@ -233,55 +213,6 @@ export default function Header ({ setSelectedApp, selectedApp }) {
 
     }, [ state.openedPanel, selectedApp ] );
 
-    useEffect( () => {
-
-        window.addEventListener('click', e => {
-
-            const hoverObject = game.getMouseHoverObject();
-
-            if (hoverObject) {
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                const physicsId = game.getMouseHoverPhysicsId();
-                const position = game.getMouseHoverPosition();
-                selectApp(hoverObject, physicsId, position);
-
-            }
-
-        });
-
-    }, [] );
-
-    useEffect( () => {
-
-        const dragchange = e => {
-
-            const {dragging} = e.data;
-            setDragging(dragging);
-
-        };
-
-        world.appManager.addEventListener('dragchange', dragchange);
-
-        const selectchange = e => {
-
-            setSelectedApp( e.data.app );
-
-        };
-
-        world.appManager.addEventListener('selectchange', selectchange);
-
-        return () => {
-
-            world.appManager.removeEventListener('dragchange', dragchange);
-            world.appManager.removeEventListener('selectchange', selectchange);
-
-        };
-
-    }, [ dragging ] );
-
     const npcManager = metaversefile.useNpcManager();
     const [npcs, setNpcs] = useState(npcManager.npcs);
 
@@ -327,12 +258,9 @@ export default function Header ({ setSelectedApp, selectedApp }) {
 
 	return (
         <div className={styles.container} onClick={ stopPropagation } >
-            <Inspector selectedApp={selectedApp} dragging={dragging} />
-            <Chat />
             <CharacterHups localPlayer={localPlayer} npcs={npcs} />
-            <MagicMenu />
             <div className={styles.inner}>
-				<header className={styles.header}>
+                <header className={styles.header}>
                     <div className={styles.row}>
                         <a href="/" className={styles.logo}>
                             <img src="images/arrow-logo.svg" className={styles.image} />
@@ -344,29 +272,33 @@ export default function Header ({ setSelectedApp, selectedApp }) {
                         />
                     </div>
 				</header>
-                <header className={classnames(styles.header, styles.subheader)}>
-                    <div className={styles.row}>
-                        <Character
-                            panelsRef={panelsRef}
-                            wearActions={wearActions}
-                            dioramaCanvasRef={dioramaCanvasRef}
-                            game={game}
-                        />
-                        <Claims
-                            open={ claimsOpen }
-                            toggleOpen={ toggleClaimsOpen }
-                            claims={claims}
-                            panelsRef={panelsRef}
-                        />
-                    </div>
-                </header>
-                <Tokens
-                    nfts={nfts}
-                    hacks={hacks}
-                    address={address}
-                    setNfts={setNfts}
-                    loginFrom={loginFrom}
-                />
+                <div className={styles.tabs}>
+                    <Character
+                        panelsRef={panelsRef}
+                        wearActions={wearActions}
+                        dioramaCanvasRef={dioramaCanvasRef}
+                        game={game}
+                    />
+                    <CharacterSelect
+                        
+                    />
+                    <Inventory
+                    
+                    />
+                    {/* <Claims
+                        open={ claimsOpen }
+                        toggleOpen={ toggleClaimsOpen }
+                        claims={claims}
+                        panelsRef={panelsRef}
+                    /> */}
+                    <Tokens
+                        nfts={nfts}
+                        hacks={hacks}
+                        address={address}
+                        setNfts={setNfts}
+                        loginFrom={loginFrom}
+                    />
+                </div>
             </div>
         </div>
     );
