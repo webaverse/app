@@ -81,37 +81,6 @@
     },
     {
       "position": [
-        0,
-        0,
-        0
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "components": [
-        {
-          "key": "line",
-          "value": [
-            [92.5, 0, -33],
-            [19.5, -4, 59.5]
-          ]
-        },
-        {
-          "key": "bounds",
-          "value": [
-            [19, -4.5, 57],
-            [20, 0, 58]
-          ]
-        }
-      ],
-      "start_url": "../metaverse_modules/quest/",
-      "dynamic": true
-    },
-    {
-      "position": [
         -13,
         0,
         0
