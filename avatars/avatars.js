@@ -1568,7 +1568,48 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
-    this.ragdoll = false;
+
+    this.fsm = createMachine(
+      {
+        id: 'avatar',
+        initial: 'normal',
+        states: {
+          normal: {
+            on: {
+              ragdoll: {target: 'ragdoll'},
+            },
+          },
+          ragdoll: {
+            entry: 'entryRagdoll',
+            on: {
+              ragdoll: {target: 'normal'},
+            }
+          }
+        }
+      },
+      {
+        actions: {
+          entryRagdoll: () => {
+            if (!this.ragdollMesh) {
+              this.recordCurrentPose();
+              this.resetToTPose();
+              this.ragdollMesh = _makeRagdollMesh();
+              this.ragdollMesh.visible = false;
+              this.ragdollMesh.wrapToAvatar(this);
+              this.ragdollMesh.createRagdoll(this);
+              this.model.add(this.ragdollMesh);
+              this.resetToRecordedPose();
+            }
+            this.ragdollMesh.setFromAvatar(this);
+          },
+        }
+      }
+    )
+    this.fsms = interpret(this.fsm).onTransition((state) => {
+      if (state.changed) console.log('avatar: state:', state.value)
+      // console.log(state)
+    })
+    this.fsms.start()
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2467,7 +2508,7 @@ class Avatar {
     
     
 
-    if (!this.ragdoll) {
+    if (!this.fsms.state.matches('ragdoll')) {
       _updateHmdPosition();
       _applyAnimation(this, now, moveFactors);
 
@@ -2532,23 +2573,8 @@ class Avatar {
       this.debugMesh.visible = debug.enabled;
     }
 
-    if (this.ragdoll) {
-      if (!this.ragdollMesh) {
-        this.recordCurrentPose();
-        this.resetToTPose();
-        this.ragdollMesh = _makeRagdollMesh();
-        window.ragdollMesh = this.ragdollMesh;
-        this.ragdollMesh.wrapToAvatar(this);
-        this.ragdollMesh.createRagdoll(this);
-        this.model.add(this.ragdollMesh);
-        this.resetToRecordedPose();
-        this.ragdollMesh.setFromAvatar(this);
-      }
+    if (this.fsms.state.matches('ragdoll')) {
       this.ragdollMesh.toAvatar(this);
-    } else {
-      if (this.ragdollMesh) {
-        this.ragdollMesh.setFromAvatar(this);
-      }
     }
 	}
 
