@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, usePhysics, useGeometries, useProcGen, waitForSceneLoaded} = metaversefile;
 
-const localVector = new THREE.Vector3();
+// const localVector = new THREE.Vector3();
 // const simplex = new Simplex('lol');
 
 export default () => {
@@ -12,8 +12,13 @@ export default () => {
   const {StreetGeometry} = useGeometries();
   const {alea} = useProcGen();
 
-  const startPoint = new THREE.Vector3(92.5, 0, -33);
-  const endPoint = new THREE.Vector3(19.5, -4, 59.5);
+  const line = app.getComponent('line') ?? [
+    [0, 0, 0],
+    [0, 0, -1],
+  ]
+
+  const startPoint = new THREE.Vector3().fromArray(line[0]);
+  const endPoint = new THREE.Vector3().fromArray(line[1]);
   const direction = endPoint.clone().sub(startPoint).normalize();
   const distance = startPoint.distanceTo(endPoint);
   const segmentLength = 0.5;
@@ -61,9 +66,9 @@ export default () => {
         const p = new THREE.Vector3().fromArray(point);
         p.y += 0.05;
         splinePoints[i] = p;
-      } else {
+      } /* else {
         console.warn('no raycast', position);
-      }
+      } */
     }
     const curve = new THREE.CatmullRomCurve3(splinePoints);
 
