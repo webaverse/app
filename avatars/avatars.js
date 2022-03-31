@@ -225,7 +225,6 @@ const _makeDebugMesh = (avatar) => {
     Right_leg: _makeCubeMesh('Right_leg'),
     Right_toe: _makeCubeMesh('Right_toe'),
   };
-  window.attributes = attributes;
 
   // hips
   attributes.Root.add(attributes.Hips);
@@ -526,7 +525,6 @@ const _makeRagdollMesh = () => {
   };
 
   const flatMeshes = _makeMeshes(); // type: physicsObject/meshBone
-  window.flatMeshes = flatMeshes
   // note:
   // modelBone = avatar.modelBoneOutputs[k];
   // modelBoneOutputs.Hips.parent === modelBoneOutputs.Root
@@ -551,14 +549,9 @@ const _makeRagdollMesh = () => {
   object.add(flatMesh); // note
 
   object.wrapToAvatar = avatar => {
-    // avatar.modelBoneOutputs.Root.updateMatrixWorld();
-
-    for (const k in avatar.modelBoneOutputs) {
+    for (const k in flatMeshes) {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = flatMeshes[k];
-      if (!meshBone) {
-        continue;
-      }
 
       const children = modelBone.children.map(child => {
         let result = null;
@@ -578,7 +571,6 @@ const _makeRagdollMesh = () => {
       const boneLength = (() => {
         if (k === 'Hips') {
           modelBoneEnd = modelBoneStart.clone();
-          // return baseScale * 0.5;
           return Math.max(0.1, boneRadius * 2);
         } else {
           if (children.length === 0) {
@@ -633,11 +625,9 @@ const _makeRagdollMesh = () => {
     if(object.isCreatedRagdoll) return;
     object.isCreatedRagdoll = true
     object.skeleton = true
-
+    const localPlayer = metaversefile.useLocalPlayer();
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k]
-      // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, characterId);
-      // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true);
       const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, localPlayer.characterController.physicsId);
       avatar.app.physicsObjects.push(meshBone);
       // console.log('mass 1: ', physicsManager.getBodyMass(body));
@@ -701,7 +691,7 @@ const _makeRagdollMesh = () => {
     physicsManager.setJointMotion(jointNeckHead, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     physicsManager.setJointTwistLimit(jointNeckHead,            -5 * DEG2RAD,      10 * DEG2RAD);
 
-    // shoulders // why shrink? todo: use real bone end, instead of calculated.
+    // shoulders // why shrink a little? todo: use real bone end, instead of calculated.
     const jointUpperChestLeft_shoulder = physicsManager.addJoint(flatMeshes.UpperChest, flatMeshes.Left_shoulder, 
       localVector.copy(avatar.modelBoneOutputs.Left_shoulder.position).multiplyScalar(0.5), 
       localVector2.copy(avatar.modelBoneOutputs.Left_shoulder.modelBoneEnd).multiplyScalar(0.5).negate(), 
@@ -830,7 +820,7 @@ const _makeRagdollMesh = () => {
     // physicsManager.setJointMotion(jointRight_ankleRight_toe, PxD6Axis.eTWIST, PxD6Motion.eLIMITED);
     // physicsManager.setJointTwistLimit(jointRight_ankleRight_toe,       -10 * DEG2RAD,      90 * DEG2RAD);
 
-    rootScene.children[2].visible = false; // test: hide E tag.  
+    // rootScene.children[2].visible = false; // test: hide E tag.  
   };
   object.setFromAvatar = avatar => {
     // avatar.modelBoneOutputs.Root.updateMatrixWorld();
@@ -870,7 +860,7 @@ const _makeRagdollMesh = () => {
 
       flatMeshes.Hips.matrixWorld.decompose(avatar.modelBoneOutputs.Root.position, avatar.modelBoneOutputs.Root.quaternion, avatar.modelBoneOutputs.Root.scale)
     }
-    //
+  
     // global quaternion diff to locoal quaternion diff formula:
     // https://forum.unity.com/threads/subtracting-quaternions.317649/
     // A * B * iB = A
@@ -1000,8 +990,6 @@ const _makeRagdollMesh = () => {
       const b = c.invert().multiply(a).invert();
       avatar.modelBoneOutputs.Head.quaternion.copy(b);
     }
-
-    // avatar.modelBoneOutputs.Root.updateMatrixWorld();
   };
   object.skeleton = null;
   return object;
@@ -1401,7 +1389,6 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
-    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -2508,7 +2495,9 @@ class Avatar {
     
     
 
-    if (!this.fsms.state.matches('ragdoll')) {
+    if (this.fsms.state.matches('ragdoll')) {
+      this.ragdollMesh.toAvatar(this);
+    } else {
       _updateHmdPosition();
       _applyAnimation(this, now, moveFactors);
 
@@ -2530,11 +2519,14 @@ class Avatar {
         this.modelBoneOutputs.Hips.updateMatrixWorld();
       } */
 
+  
       this.shoulderTransforms.Update();
       this.legsManager.Update();
 
       _updateEyeTarget();
       _updateEyeballTarget();
+
+      // if (this.ragdollMesh?.visible) this.ragdollMesh.setFromAvatar(this);
     }
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
@@ -2571,10 +2563,6 @@ class Avatar {
         this.debugMesh.setFromAvatar(this);
       }
       this.debugMesh.visible = debug.enabled;
-    }
-
-    if (this.fsms.state.matches('ragdoll')) {
-      this.ragdollMesh.toAvatar(this);
     }
 	}
 

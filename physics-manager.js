@@ -28,7 +28,6 @@ const localMatrix = new THREE.Matrix4();
 // const upVector = new THREE.Vector3(0, 1, 0);
 
 const physicsManager = new EventTarget();
-window.physicsManager = physicsManager;
 
 const physicsUpdates = [];
 const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
@@ -333,13 +332,11 @@ physicsManager.simulatePhysics = timeDiff => {
   if (physicsEnabled) {
     const t = timeDiff/1000;
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
-    // console.log('updatesOut', updatesOut.length)
     physicsUpdates.length = 0;
     for (const updateOut of updatesOut) {
       const {id, position, quaternion, collided, grounded} = updateOut;
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       if (physicsObject) {
-        // console.log('physicsObject', physicsObject.name)
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();
