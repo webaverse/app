@@ -38,6 +38,7 @@ import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
+import questManager from './quest-manager.js';
 import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
@@ -401,6 +402,9 @@ metaversefile.setApi({
   },
   useChatManager() {
     return chatManager;
+  },
+  useQuests() {
+    return questManager;
   },
   useLoreAI() {
     return loreAI;
