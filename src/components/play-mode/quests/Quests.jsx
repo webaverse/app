@@ -159,6 +159,7 @@ export const Quests = () => {
         const quest = {
             name: 'Blob destruction',
             description: 'Destroy all blobs in the area',
+            condition: 'clearMobs',
             drops: [
                 {
                     name: 'Silk',
