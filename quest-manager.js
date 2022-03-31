@@ -1,5 +1,18 @@
 import {scene} from './renderer.js';
+import * as metaverseModules from './metaverse-modules.js';
+import metaversefile from 'metaversefile';
 // import {OffscreenEngine} from './offscreen-engine.js';
+
+const _makePathApp = () => {
+  const app = metaversefile.createApp();
+  // console.log('got metaverse modules', metaverseModules.modules, metaverseModules.modules.path);
+  app.setComponent('line', [
+    [92.5, 0, -33],
+    [19.5, -4, 59.5],
+  ]);
+  app.addModule(metaverseModules.modules.path);
+  return app;
+};
 
 class Quest {
   constructor(spec) {
@@ -8,7 +21,41 @@ class Quest {
     this.condition = spec.condition;
     this.drops = spec.drops;
 
-    this.pathApp = null;
+    /* {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "components": [
+        {
+          "key": "line",
+          "value": [
+            [92.5, 0, -33],
+            [19.5, -4, 59.5]
+          ]
+        },
+        {
+          "key": "bounds",
+          "value": [
+            [19, -4.5, 57],
+            [20, 0, 58]
+          ]
+        }
+      ],
+      "start_url": "../metaverse_modules/quest/",
+      "dynamic": true
+    }, */
+
+    this.pathApp = _makePathApp();
+    scene.add(this.pathApp);
+
     this.conditionFn = (() => {
       switch (this.condition) {
         case 'clearMobs': {
@@ -29,7 +76,9 @@ class Quest {
     this.conditionFn && this.conditionFn();
   }
   destroy() {
-
+    scene.remove(this.pathApp);
+    this.pathApp.destroy();
+    this.pathApp = null;
   }
 }
 
