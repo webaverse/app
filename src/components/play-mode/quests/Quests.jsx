@@ -2,11 +2,12 @@ import * as THREE from 'three';
 import React, {useState, useRef, useEffect} from 'react';
 // import classnames from 'classnames';
 import styles from './quests.module.css';
-import {rootScene, scene} from '../../../../renderer.js';
+import {scene} from '../../../../renderer.js';
 import {screenshotScene} from '../../../../scene-screenshotter.js';
 import questManager from '../../../../quest-manager.js';
 import {Spritesheet} from '../../general/spritesheet';
 import metaversefile from 'metaversefile';
+import * as metaverseModules from '../../../../metaverse-modules.js';
 // import spritesheetManager from '../../../../spritesheet-manager.js';
 // import alea from '../../../../procgen/alea.js';
 
@@ -156,19 +157,23 @@ export const Quests = () => {
         };
     }, [quests]);
     useEffect(() => {
-        const quest = {
-            name: 'Blob destruction',
-            description: 'Destroy all blobs in the area',
-            condition: 'clearMobs',
-            drops: [
-                {
-                    name: 'Silk',
-                    quantity: 20,
-                    start_url: '../metaverse_modules/silk/',
-                },
-            ],
-        };
-        questManager.addQuest(quest);
+        (async () => {
+            await metaverseModules.waitForLoad();
+
+            const quest = {
+                name: 'Blob destruction',
+                description: 'Destroy all blobs in the area',
+                condition: 'clearMobs',
+                drops: [
+                    {
+                        name: 'Silk',
+                        quantity: 20,
+                        start_url: '../metaverse_modules/silk/',
+                    },
+                ],
+            };
+            questManager.addQuest(quest);
+        })();
     }, []);
 
     return (
