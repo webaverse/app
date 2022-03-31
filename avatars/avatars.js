@@ -2015,7 +2015,24 @@ class Avatar {
       }
     }
   }
-  resetBonesToTPose() {
+  recordCurrentPose() {
+    for (const k in this.modelBoneOutputs) {
+      const modelBone = this.modelBoneOutputs[k];
+      if (!modelBone._recordedPosition) modelBone._recordedPosition = new THREE.Vector3();
+      modelBone._recordedPosition.copy(modelBone.position);
+      if (!modelBone._recordedQuaternion) modelBone._recordedQuaternion = new THREE.Quaternion();
+      modelBone._recordedQuaternion.copy(modelBone.quaternion);
+    }
+  }
+  resetToRecordedPose() {
+    for (const k in this.modelBoneOutputs) {
+      const modelBone = this.modelBoneOutputs[k];
+      modelBone.position.copy(modelBone._recordedPosition);
+      modelBone.quaternion.copy(modelBone._recordedQuaternion);
+    }
+    this.modelBoneOutputs.Root.updateMatrixWorld();
+  }
+  resetToTPose() {
     this.initializeBonePositions(this.setups);
 
     for (const k in this.modelBoneOutputs) {
@@ -2517,12 +2534,14 @@ class Avatar {
 
     if (this.ragdoll) {
       if (!this.ragdollMesh) {
-        this.resetBonesToTPose();
+        this.recordCurrentPose();
+        this.resetToTPose();
         this.ragdollMesh = _makeRagdollMesh();
         window.ragdollMesh = this.ragdollMesh;
         this.ragdollMesh.wrapToAvatar(this);
         this.ragdollMesh.createRagdoll(this);
         this.model.add(this.ragdollMesh);
+        this.resetToRecordedPose();
         this.ragdollMesh.setFromAvatar(this);
       }
       this.ragdollMesh.toAvatar(this);
