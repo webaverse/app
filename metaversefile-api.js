@@ -76,7 +76,7 @@ class App extends THREE.Object3D {
     const component = this.components.find(component => component.key === key);
     return component ? component.value : null;
   }
-  #setComponentInternal(key, value) {
+  setComponentInternal(key, value) {
     let component = this.components.find(component => component.key === key);
     if (!component) {
       component = {key, value};
@@ -91,7 +91,7 @@ class App extends THREE.Object3D {
     });
   }
   setComponent(key, value = true) {
-    this.#setComponentInternal(key, value);
+    this.setComponentInternal(key, value);
     this.dispatchEvent({
       type: 'componentsupdate',
       keys: [key],
@@ -101,7 +101,7 @@ class App extends THREE.Object3D {
     const keys = Object.keys(o);
     for (const k of keys) {
       const v = o[k];
-      this.#setComponentInternal(k, v);
+      this.setComponentInternal(k, v);
     }
     this.dispatchEvent({
       type: 'componentsupdate',
@@ -940,15 +940,19 @@ export default () => {
     }
   },
   getAppByPhysicsId(physicsId) {
-    let result = world.appManager.getAppByPhysicsId(physicsId) ||
-      localPlayer.appManager.getAppByPhysicsId(physicsId);
+    let result = world.appManager.getAppByPhysicsId(physicsId)
+    if (!result) {
+      result = localPlayer.appManager.getAppByPhysicsId(physicsId);
+    }
     if (result) {
+      console.log('getAppByPhysicsId 1', physicsId);
       return result;
     } else {
       const remotePlayers = metaversefile.useRemotePlayers();
       for (const remotePlayer of remotePlayers) {
         const remoteApp = remotePlayer.appManager.getAppByPhysicsId(physicsId);
         if (remoteApp) {
+          console.log('getAppByPhysicsId 2', physicsId);
           return remoteApp;
         }
       }
@@ -1039,6 +1043,7 @@ export default () => {
     return debug;
   },
   async addModule(app, m) {
+    if (m.name === 'npc') window.npcApp = app;
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
     app.contentId = m.contentId ?? '';

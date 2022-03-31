@@ -1229,6 +1229,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.isNpcPlayer = true;
   }
   setAvatarApp(app) {
+    this.app = app;
     app.toggleBoneUpdates(true);
     const {skinnedVrm} = app;
     const avatar = new Avatar(skinnedVrm, {

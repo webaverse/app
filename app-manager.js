@@ -249,7 +249,15 @@ class AppManager extends EventTarget {
 
         // create app
         // as an optimization, the app may be reused by calling addApp() before tracking it
-        const app = metaversefile.createApp();
+        const app = new Proxy(metaversefile.createApp(), {
+          set: (obj, prop, newVal) => {
+            // if (prop === 'name') debugger
+            obj[prop] = newVal;
+            return true
+          }
+        });
+        console.log({contentId, app})
+        // debugger
 
         // setup
         {
@@ -271,6 +279,7 @@ class AppManager extends EventTarget {
         // initialize app
         {
           // console.log('add module', m);
+          // debugger
           const mesh = await app.addModule(m);
           if (!live) return _bailout(app);
           if (!mesh) {

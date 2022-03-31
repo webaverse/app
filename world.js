@@ -25,6 +25,7 @@ const localEuler = new THREE.Euler();
 
 // world
 export const world = {};
+window.world = world;
 
 const appManager = new AppManager({
   appsMap: null,
@@ -315,6 +316,7 @@ const _bindHitTracker = app => {
   };
   
   app.hit = (_hit => function(damage, opts = {}) {
+    // debugger
     const result = hitTracker.hit(damage);
     const {hit, died} = result;
     if (hit) {
