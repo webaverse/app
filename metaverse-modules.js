@@ -13,6 +13,7 @@ const moduleUrls = {
   barrier: './metaverse_modules/barrier/',
   infinistreet: './metaverse_modules/infinistreet/',
   defaultScene: './metaverse_modules/default-scene/',
+  path: './metaverse_modules/path/',
 };
 const modules = {};
 const loadPromise = (async () => {
