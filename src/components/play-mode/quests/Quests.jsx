@@ -1,9 +1,12 @@
-// import * as THREE from 'three';
+import * as THREE from 'three';
 import React, {useState, useRef, useEffect} from 'react';
 // import classnames from 'classnames';
 import styles from './quests.module.css';
-// import loadoutManager from '../../../../loadout-manager.js';
+import {rootScene, scene} from '../../../../renderer.js';
+import {screenshotScene} from '../../../../scene-screenshotter.js';
+import questManager from '../../../../quest-manager.js';
 import {Spritesheet} from '../../general/spritesheet';
+import metaversefile from 'metaversefile';
 // import spritesheetManager from '../../../../spritesheet-manager.js';
 // import alea from '../../../../procgen/alea.js';
 
@@ -44,7 +47,7 @@ export const Quest = ({
 }) => {
     const canvasRef = useRef();
 
-    const {name, description, drops} = quest;
+    const {name, description} = quest;
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -52,8 +55,54 @@ export const Quest = ({
             /* const infoboxRenderer = loadoutManager.getInfoboxRenderer();
             infoboxRenderer.addCanvas(canvas); */
 
+            const ctx = canvas.getContext('2d');
+
+            /* const canvas2 = document.createElement('canvas');
+            canvas2.style.cssText = `\
+                position: fixed;
+                top: 100px;
+                left: 100px;
+                width: ${300}px;
+                height: ${300}px;
+                background-color: #F00;
+            `;
+            canvas2.width = screenshotSize;
+            canvas2.height = screenshotSize;
+            const ctx2 = canvas2.getContext('2d');
+            // ctx2.drawImage(imageBitmap, 0, 0);
+            document.body.appendChild(canvas2); */
+
+            let live = true;
+            let timeout = null;
+            (async () => {
+                await metaversefile.waitForSceneLoaded();
+                if (!live) return;
+
+                const _recurse = () => {
+                    (async () => {
+                        const position = new THREE.Vector3(0, 30, 0);
+                        const quaternion = new THREE.Quaternion()
+                          .setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 4);
+                        // console.log('screenshot scene 1');
+                        screenshotScene(scene, position, quaternion, screenshotSize, ctx);
+                        // console.log('screenshot scene 2', imageBitmap, live);
+                        // if (!live) return;
+    
+                        // ctx.fillStyle = '#F00';
+                        // ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        // ctx.drawImage(imageBitmap, 0, 0);
+    
+                        // console.log('screenshot scene 3', imageBitmap);
+                    })();
+
+                    timeout = setTimeout(_recurse, 100);
+                };
+                timeout = setTimeout(_recurse, 100);
+            })();
+
             return () => {
-                // infoBoxRenderer.removeCanvas(canvas);
+                live = false;
+                clearTimeout(timeout);
             };
         }
     }, [canvasRef]);
@@ -83,17 +132,43 @@ export const Quest = ({
 };
 export const Quests = () => {
     const [ enabled, setEnabled ] = useState(true);
-    const [ quests, useQuests ] = useState([{
-        name: 'Blob destruction',
-        description: 'Destroy all blobs in the area',
-        drops: [
-            {
-                name: 'Silk',
-                quantity: 20,
-                start_url: '../metaverse_modules/silk/',
-            },
-        ],
-    }]);
+    const [ quests, setQuests ] = useState(() => questManager.quests.slice());
+
+    useEffect(() => {
+        const questadd = e => {
+            const {quest} = e.data;
+            setQuests(quests.concat([quest]));
+        };
+        questManager.addEventListener('questadd', questadd);
+        const questremove = e => {
+            const {quest} = e.data;
+            const index = quests.indexOf(quest);
+            if (index !== -1) {
+                const newQuests = quests.slice();
+                newQuests.splice(index, 1);
+                setQuests(newQuests);
+            }
+        };
+        questManager.addEventListener('questremove', questremove);
+        return () => {
+            questManager.removeEventListener('questadd', questadd);
+            questManager.removeEventListener('questremove', questremove);
+        };
+    }, [quests]);
+    useEffect(() => {
+        const quest = {
+            name: 'Blob destruction',
+            description: 'Destroy all blobs in the area',
+            drops: [
+                {
+                    name: 'Silk',
+                    quantity: 20,
+                    start_url: '../metaverse_modules/silk/',
+                },
+            ],
+        };
+        questManager.addQuest(quest);
+    }, []);
 
     return (
         <div className={styles.quests}>
