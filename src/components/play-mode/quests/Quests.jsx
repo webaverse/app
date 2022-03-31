@@ -156,25 +156,6 @@ export const Quests = () => {
             questManager.removeEventListener('questremove', questremove);
         };
     }, [quests]);
-    useEffect(() => {
-        (async () => {
-            await metaverseModules.waitForLoad();
-
-            const quest = {
-                name: 'Blob destruction',
-                description: 'Destroy all blobs in the area',
-                condition: 'clearMobs',
-                drops: [
-                    {
-                        name: 'Silk',
-                        quantity: 20,
-                        start_url: '../metaverse_modules/silk/',
-                    },
-                ],
-            };
-            questManager.addQuest(quest);
-        })();
-    }, []);
 
     return (
         <div className={styles.quests}>
