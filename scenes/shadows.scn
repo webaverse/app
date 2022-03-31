@@ -49,6 +49,21 @@
       }
     },
     {
+      "type": "application/quest",
+      "content": {
+        "name": "Reaver slay",
+        "description": "Destroy all reavers in the area",
+        "condition": "clearMobs",
+        "drops": [
+            {
+                "name": "Silk",
+                "quantity": 20,
+                "start_url": "../metaverse_modules/silk/"
+            }
+        ]
+      }
+    },
+    {
       "position": [
         0,
         0,
