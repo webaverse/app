@@ -26,7 +26,7 @@ export const Spritesheet = ({
         if (startUrl) {
             let live = true;
             (async () => {
-                console.log('got spritesheet 1', {startUrl, frameSize, numFramesPerRow, size, numFrames});
+                // console.log('got spritesheet 1', {startUrl, frameSize, numFramesPerRow, size, numFrames});
                 const spritesheet = await spritesheetManager.getSpriteSheetForAppUrlAsync(startUrl, {
                     size,
                     numFrames,
