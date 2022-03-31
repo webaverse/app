@@ -3,6 +3,8 @@ import metaversefile from 'metaversefile'
 import { TerrainManager } from './terrain-manager.js';
 import { Water } from 'three/examples/jsm/objects/Water'
 import { Sky } from 'three/examples/jsm/objects/Sky'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+import { treeShaderMaterial } from "./physicTreeMaterial.js";
 
 const { useFrame, useLocalPlayer, useLoaders, useUi, usePhysics, useCleanup, useGeometryUtils, useInternals } = metaversefile;
 
@@ -14,12 +16,26 @@ export default () => {
 
     const rootScene = new THREE.Object3D();
 
+
+    const fbxLoader = new FBXLoader();
+    fbxLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/models/sm_heroTree_low.fbx`, (obj) => {
+        obj.scale.multiplyScalar(0.01);
+        obj.position.y = 80
+        obj.position.x = 10;
+        obj.updateMatrixWorld(true);
+        rootScene.add(obj)
+
+        const treeTop = obj.getObjectByName("sm_heroTreeTop");
+        treeTop.material = treeShaderMaterial;
+    })
+
     let physicsIdChunkIdPairs = [];
 
     const terrainManager = new TerrainManager(128, 2, geometryUtils, useInternals().renderer);
 
-    let player  = useLocalPlayer();
+    let player = useLocalPlayer();
     player.position.y = 150;
+
 
     terrainManager.init().then(() => {
 
@@ -38,9 +54,9 @@ export default () => {
 
         terrainManager.onRemoveChunks = async (chunkIds) => {
             physicsIdChunkIdPairs.filter(pair => chunkIds.includes(pair.chunkId))
-            .forEach(pair => {
-                physics.removeGeometry(pair.physicsId);
-            });
+                .forEach(pair => {
+                    physics.removeGeometry(pair.physicsId);
+                });
 
             physicsIdChunkIdPairs = physicsIdChunkIdPairs.filter(pair => !chunkIds.includes(pair.chunkId));
         };
@@ -58,6 +74,8 @@ export default () => {
     });
 
     useFrame(() => {
+        if (treeShaderMaterial.shader)
+            treeShaderMaterial.shader.uniforms.uTime.value += 1 / 60;
 
         if (!!terrainManager.mesh) {
             terrainManager.updateCenter(player.position);
