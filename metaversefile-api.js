@@ -960,8 +960,9 @@ export default () => {
     }
   },
   getPhysicsObjectByPhysicsId(physicsId) {
-    let result = world.appManager.getPhysicsObjectByPhysicsId(physicsId) ||
-      localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+    const result = world.appManager.getPhysicsObjectByPhysicsId(physicsId) ||
+      localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId) ||
+      window.npcPlayer?.appManager.getPhysicsObjectByPhysicsId(physicsId) // need run console_test: npcPlayer.appManager.apps.push(npcPlayer.avatar.app)
     if (result) {
       return result;
     } else {

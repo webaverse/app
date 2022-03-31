@@ -1229,7 +1229,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.isNpcPlayer = true;
   }
   setAvatarApp(app) {
-    this.app = app;
+    // this.app = app;
     app.toggleBoneUpdates(true);
     const {skinnedVrm} = app;
     const avatar = new Avatar(skinnedVrm, {
@@ -1238,6 +1238,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       visemes: true,
       debug: false,
     });
+    avatar.app = app;
 
     unFrustumCull(app);
     enableShadows(app);

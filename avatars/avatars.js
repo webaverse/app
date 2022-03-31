@@ -225,7 +225,7 @@ const _makeDebugMesh = (avatar) => {
     Right_leg: _makeCubeMesh('Right_leg'),
     Right_toe: _makeCubeMesh('Right_toe'),
   };
-  window.attributes = attributes;
+  // window.attributes = attributes;
 
   // hips
   attributes.Root.add(attributes.Hips);
@@ -526,7 +526,7 @@ const _makeRagdollMesh = () => {
   };
 
   const flatMeshes = _makeMeshes(); // type: physicsObject/meshBone
-  window.flatMeshes = flatMeshes
+  // window.flatMeshes = flatMeshes
   // note:
   // modelBone = avatar.modelBoneOutputs[k];
   // modelBoneOutputs.Hips.parent === modelBoneOutputs.Root
@@ -549,6 +549,7 @@ const _makeRagdollMesh = () => {
   const object = new THREE.Object3D(); // === ragdollMesh
   object.name = 'ragdollMesh';
   object.add(flatMesh); // note
+  object.flatMeshes = flatMeshes;
 
   object.wrapToAvatar = avatar => {
     // avatar.modelBoneOutputs.Root.updateMatrixWorld();
@@ -1401,7 +1402,7 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
-    window.modelBoneOutputs = this.modelBoneOutputs;
+    // window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -1594,7 +1595,7 @@ class Avatar {
               this.recordCurrentPose();
               this.resetToTPose();
               this.ragdollMesh = _makeRagdollMesh();
-              this.ragdollMesh.visible = false;
+              // this.ragdollMesh.visible = false;
               this.ragdollMesh.wrapToAvatar(this);
               this.ragdollMesh.createRagdoll(this);
               this.model.add(this.ragdollMesh);

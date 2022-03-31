@@ -10,6 +10,7 @@ import physx from './physx.js';
 // import ioManager from './io-manager.js';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
+window.metaversefileApi = metaversefileApi;
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 // import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
@@ -334,6 +335,12 @@ physicsManager.simulatePhysics = timeDiff => {
     const t = timeDiff/1000;
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
     // console.log('updatesOut', updatesOut.length)
+    if (!window.isLoggedUpdatesOut) {
+      if (updatesOut.length > 10) {
+        console.log({updatesOut})
+        window.isLoggedUpdatesOut = true;
+      }
+    }
     physicsUpdates.length = 0;
     for (const updateOut of updatesOut) {
       const {id, position, quaternion, collided, grounded} = updateOut;
