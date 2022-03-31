@@ -28,9 +28,9 @@
 .quests .quest .screenshot {
   position: absolute;
   top: -20px;
-  left: -40px;
-  width: 80px;
-  height: 80px;
+  left: -115px;
+  width: 150px;
+  height: calc(150px / 1.5);
   background-color: #FFF;
   border: 2px solid #000;
   border-radius: 5px;
