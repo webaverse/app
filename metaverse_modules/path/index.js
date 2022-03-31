@@ -17,7 +17,7 @@ export default () => {
   const line = app.getComponent('line') ?? [
     [0, 0, 0],
     [0, 0, -1],
-  ]
+  ];
 
   const startPoint = new THREE.Vector3().fromArray(line[0]);
   const endPoint = new THREE.Vector3().fromArray(line[1]);
