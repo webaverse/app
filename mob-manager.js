@@ -1,9 +1,6 @@
 import * as THREE from 'three';
-// import runtime from './runtime.js';
-// import {world} from './world.js';
 import {localPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
-// import {rigManager} from './rig.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -12,22 +9,6 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 function makeCharacterController(app) {
-  /* const avatarHeight = this.avatar.height;
-  const radius = baseRadius/heightFactor * avatarHeight;
-  const height = avatarHeight - radius*2;
-
-  const contactOffset = 0.1/heightFactor * avatarHeight;
-  const stepOffset = 0.5/heightFactor * avatarHeight;
-
-  const position = this.position.clone()
-    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
-  const physicsMaterial = new THREE.Vector3(0, 0, 0);
-
-  if (this.characterController) {
-    physicsManager.destroyCharacterController(this.characterController);
-    this.characterController = null;
-    // this.characterControllerObject = null;
-  } */
   const fullHeight = 0.5;
   const radius = 0.2;
   const height = fullHeight - radius * 2;
@@ -211,9 +192,6 @@ class MobManager {
     if (app.appType !== 'glb') {
       throw new Error('only glb apps can be mobs');
     }
-
-    // const npc = await world.addNpc(o.contentId, null, o.position, o.quaternion);
-    // console.log('add mob', app);
 
     const mob = new Mob(app);
     this.mobs.push(mob);
