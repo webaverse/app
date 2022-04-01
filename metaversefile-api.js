@@ -727,6 +727,9 @@ metaversefile.setApi({
       throw new Error('usePhysics cannot be called outside of render()');
     }
   },
+  useHpManager() {
+    return hpManager;
+  },
   useProcGen() {
     return procgen;
   },
