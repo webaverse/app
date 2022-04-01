@@ -979,6 +979,22 @@ export default () => {
       return null;
     }
   },
+  getPairByPhysicsId(physicsId) {
+    let result = world.appManager.getPairByPhysicsId(physicsId) ||
+      localPlayer.appManager.getPairByPhysicsId(physicsId);
+    if (result) {
+      return result;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remotePair = remotePlayer.appManager.getPairByPhysicsId(physicsId);
+        if (remotePair) {
+          return remotePair;
+        }
+      }
+      return null;
+    }
+  },
   getAvatarHeight(obj) {
     return getHeight(obj);
   },
