@@ -72,21 +72,6 @@
     },
     {
       "position": [
-        -26,
-        0,
-        -2
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "https://webaverse.github.io/app/public/avatars/scillia_drophunter_v15_vian.vrm",
-      "dynamic": true
-    },
-    {
-      "position": [
         2,
         1,
         0
