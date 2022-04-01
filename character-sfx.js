@@ -43,6 +43,21 @@ const offsets = {
   'right strafe walking.fbx': strafeWalkingOffset,
   'running backwards.fbx': runningBackwardOffset,
 };
+
+const jumpGruntIndex={
+  'shishi':3,
+  'bryce':15,
+  'griffin':8,
+  'tiffany':10,
+  'andrew':11,
+}
+const gaspGruntIndex={
+  'shishi':[0,1],
+  'bryce':[0,2,4],
+  'griffin':[0],
+  'tiffany':[0,7,8],
+  'andrew':[0,4,5,8],
+}
 const _getActionFrameIndex = (f, frameTimes) => {
   let i;
   for (i = 0; i < frameTimes.length; i++) {
@@ -73,14 +88,18 @@ class CharacterSfx {
     this.preQ=new THREE.Quaternion();
     this.arr = [0, 0, 0, 0];
 
-
+    this.playGasp=false;
+    this.runStep=0;
+    this.lastRunningTime=0;
     
     this.oldNarutoRunSound = null;
+    this.oldGrunt=null;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
       return;
     }
+    
 
     const timeSeconds = timestamp/1000;
     const currentSpeed = localVector.set(this.player.avatar.velocity.x, 0, this.player.avatar.velocity.z).length();
@@ -97,6 +116,8 @@ class CharacterSfx {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
         const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
         sounds.playSound(audioSpec);
+        if(this.player.voicePack!==null && !this.player.hasAction('fly') && !this.player.hasAction('narutoRun'))
+          this.playGrunt('attack',jumpGruntIndex[this.player.voicePack.voicePackName]);
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
         const audioSpec = soundFiles.land[Math.floor(Math.random() * soundFiles.land.length)];
         sounds.playSound(audioSpec);
@@ -108,6 +129,7 @@ class CharacterSfx {
     // step
     const _handleStep = () => {
       if (idleWalkFactor > 0.7 && !this.player.avatar.jumpState && !this.player.avatar.flyState) {
+        this.playGasp=false;
         const isRunning = walkRunFactor > 0.5;
         const isCrouching = crouchFactor > 0.5;
         const isNarutoRun = this.player.avatar.narutoRunState;
@@ -188,6 +210,22 @@ class CharacterSfx {
         }
 
         this.lastWalkTime = timeSeconds;
+
+        if(isRunning){
+          this.lastRunningTime = timeSeconds;
+          this.runStep++;
+        }
+      }
+      
+      if(idleWalkFactor<=0.1 && this.lastWalkTime>0 && !this.playGasp){
+        
+        if(timeSeconds-this.lastRunningTime<2 && this.runStep>100 && !this.player.hasAction('narutoRun')){
+          const rand = gaspGruntIndex[this.player.voicePack.voicePackName][Math.floor(Math.random()*gaspGruntIndex[this.player.voicePack.voicePackName].length)];
+          this.playGrunt('gasp',rand);
+          this.playGasp=true;
+        }
+        this.runStep=0;
+        
       }
     };
     _handleStep();
@@ -307,6 +345,52 @@ class CharacterSfx {
       }
     };
     _handleFood();
+  }
+  playGrunt(type, index){
+    
+    let fileIndex;
+    let voiceFiles;
+    switch (type) {
+      case 'pain': {
+        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Pain/.test(f.name));
+        break;
+      }
+      case 'scream': {
+        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Scream/.test(f.name));
+        break;
+      }
+      case 'attack': {
+        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Attack/.test(f.name));
+        break;
+      }
+      case 'angry': {
+        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Angry/.test(f.name));
+        break;
+      }
+      case 'gasp': {
+        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Gasp/.test(f.name));
+        break;
+      }
+    }
+    
+
+    if(index===undefined)
+      fileIndex=Math.floor(Math.random()*voiceFiles.length);
+    else 
+      fileIndex=index;
+    
+    const {offset, duration}=voiceFiles[fileIndex];
+    
+    const audioContext = Avatar.getAudioContext();
+    const audioBufferSourceNode = audioContext.createBufferSource();
+    audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
+    
+    if(this.oldGrunt){
+      this.oldGrunt.stop();
+    }
+    this.oldGrunt=audioBufferSourceNode;
+    audioBufferSourceNode.connect(audioContext.destination);
+    audioBufferSourceNode.start(0, offset, duration);
   }
   destroy() {
     // nothing
