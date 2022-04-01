@@ -42,6 +42,7 @@ import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
+import hpManager from './hp-manager.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -60,6 +61,7 @@ class App extends THREE.Object3D {
     this.modulesHash = 0;
     // cleanup tracking
     this.physicsObjects = [];
+    this.hitTracker = null;
     this.appType = 'none';
     this.hasRenderSettings = false;
     this.lastMatrix = new THREE.Matrix4();
@@ -148,6 +150,9 @@ class App extends THREE.Object3D {
   }
   getPhysicsObjects() {
     return this.physicsObjects;
+  }
+  hit(damage, opts) {
+    this.hitTracker && this.hitTracker.hit(damage, opts);
   }
   getRenderSettings() {
     if (this.hasRenderSettings) {
