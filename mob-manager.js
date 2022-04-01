@@ -4,26 +4,46 @@ import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
+const localVector5 = new THREE.Vector3();
+const localVector6 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
-function makeCharacterController(app) {
-  const fullHeight = 0.5;
-  const radius = 0.2;
-  const height = fullHeight - radius * 2;
-  const contactOffset = 0.1 * fullHeight;
-  const stepOffset = 0.2 * fullHeight;
+const upVector = new THREE.Vector3(0, 1, 0);
 
-  const position = app.position.clone();
+const _zeroY = v => {
+  v.y = 0;
+  return v;
+};
+
+function makeCharacterController(app, {
+  radius,
+  height,
+  position,
+}) {
+  // const radius = 0.2;
+  const innerHeight = height - radius * 2;
+  const contactOffset = 0.1 * height;
+  const stepOffset = 0.1 * height;
+
+  app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+  const characterPosition = localVector.setFromMatrixPosition(app.matrixWorld)
+    .add(
+      localVector3.copy(position)
+        .applyQuaternion(localQuaternion)
+    );
   const physicsMaterial = new THREE.Vector3(0, 0, 0);
   
   const characterController = physicsManager.createCharacterController(
     radius - contactOffset,
-    height,
+    innerHeight,
     contactOffset,
     stepOffset,
-    position,
+    characterPosition,
     physicsMaterial
   );
   // this.characterControllerObject = new THREE.Object3D();
@@ -39,6 +59,13 @@ class Mob {
 
     const mobComponent = app.getComponent('mob');
     if (mobComponent) {
+      const {
+        radius = 0.3,
+        height = 1,
+        position = [0, 0, 0],
+      } = mobComponent;
+      const offset = new THREE.Vector3().fromArray(position);
+
       const mesh = app;
       const animations = app.glb.animations;
       let  {idleAnimation = ['idle'], aggroDistance, walkSpeed = 1} = mobComponent;
@@ -50,10 +77,15 @@ class Mob {
         idleAnimation = [];
       }
 
-      const characterController = makeCharacterController(app);
+      const characterController = makeCharacterController(app, {
+        radius,
+        height,
+        position: offset,
+      });
+      const physicsObjects = [characterController];
+      app.getPhysicsObjects = () => physicsObjects;
 
       const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
-      // console.log('got clips', npc, idleAnimationClips);
       if (idleAnimationClips.length > 0) {
         // hacks
         {
@@ -78,6 +110,7 @@ class Mob {
 
       let animation = null;
       this.updateFns.push((timestamp, timeDiff) => {
+        // console.log('update');
         const timeDiffS = timeDiff / 1000;
         // console.log('do update');
 
@@ -96,21 +129,31 @@ class Mob {
           }
 
           physicsManager.setCharacterControllerPosition(characterController, mesh.position);
+
+          mesh.updateMatrixWorld();
           
           // _updatePhysics();
         } else {
           // const head = rigManager.localRig.model.isVrm ? rigManager.localRig.modelBones.Head : rigManager.localRig.model;
-          const position = localVector.copy(localPlayer.position)
-          position.y = 0;
-          const distance = mesh.position.distanceTo(position);
+          // const position = localVector.copy(localPlayer.position)
+
+          mesh.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
+          const meshPosition = localVector2;
+          const meshQuaternion = localQuaternion;
+          const meshScale = localVector3;
+
+          const meshPositionY0 = _zeroY(localVector4.copy(meshPosition));
+          const characterPositionY0 = _zeroY(localVector5.copy(localPlayer.position));
+
+          const distance = meshPositionY0
+            .distanceTo(characterPositionY0);
           if (distance < aggroDistance) {
             const minDistance = 1;
             if (distance > minDistance) {
-              const direction = position.clone().sub(mesh.position).normalize();
+              const direction = characterPositionY0.sub(meshPositionY0).normalize();
               const maxMoveDistance = distance - minDistance;
               const moveDistance = Math.min(walkSpeed * timeDiff * 1000, maxMoveDistance);
-              const moveDelta = direction.clone().multiplyScalar(moveDistance);
-              // mesh.position.add(moveDelta);
+              const moveDelta = localVector6.copy(direction).multiplyScalar(moveDistance);
               const minDist = 0;
 
               const flags = physicsManager.moveCharacterController(
@@ -120,40 +163,38 @@ class Mob {
                 timeDiffS,
                 characterController.position
               );
+              // window.flags = flags;
 
-              mesh.position.copy(characterController.position);
+              meshPosition.copy(characterController.position)
+                .sub(offset);
               
-              /* const closestNpc = this.mobs.sort((a, b) => {
-                return a.app.position.distanceTo(app.position) - b.app.position.distanceTo(app.position);
-              })[0];
-              const moveBufferDistance = 1;
-              if (closestNpc && closestNpc.position.distanceTo(app.position) >= (moveDistance + moveBufferDistance)) {
-                mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
-              } else {
-                mesh.position.sub(moveDelta);
-              } */
-              const targetQuaternion = localQuaternion
+              const targetQuaternion = localQuaternion2
                 .setFromRotationMatrix(
                   localMatrix
                     .lookAt(
-                      mesh.position,
+                      meshPosition,
                       localPlayer.position,
-                      localVector2.set(0, 1, 0)
+                      upVector
                     )
                 );
-              // .setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction);
               localEuler.setFromQuaternion(targetQuaternion, 'YXZ');
               localEuler.x = 0;
               localEuler.y += Math.PI;
               localEuler.z = 0;
-              localQuaternion.setFromEuler(localEuler);
-              mesh.quaternion.slerp(targetQuaternion, 0.1);
+              localQuaternion2.setFromEuler(localEuler);
+              meshQuaternion.slerp(targetQuaternion, 0.1);
+
+              mesh.matrixWorld.compose(meshPosition, meshQuaternion, meshScale);
+              mesh.matrix.copy(mesh.matrixWorld);
+              if (app.parent) {
+                mesh.matrix.premultiply(localMatrix.copy(app.parent.matrixWorld).invert());
+              }
+              mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
               
               // _updatePhysics();
             }
           }
         }
-        mesh.updateMatrixWorld();
       });
       const hit = e => {
         const {hitQuaternion} = e;
