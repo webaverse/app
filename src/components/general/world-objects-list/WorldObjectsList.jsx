@@ -233,33 +233,35 @@ export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
                     </div>
                 }
             </div>
-            <div className={ classnames( styles.objectProperties, styles.panel, selectedApp ? styles.opened : null ) } >
-                <div className={ styles.header } >
-                    <div className={ classnames( styles.button, styles.back ) } onClick={ handleBackBtn } >
-                        <img src="images/webchevron.svg" className={ styles.img } />
+            {selectedApp ? (
+                <div className={ classnames( styles.objectProperties, styles.panel ) } >
+                    <div className={ styles.header } >
+                        <div className={ classnames( styles.button, styles.back ) } onClick={ handleBackBtn } >
+                            <img src="images/webchevron.svg" className={ styles.img } />
+                        </div>
+                        <h1>{ selectedApp ? _formatContentId( selectedApp.contentId ) : null } </h1>
                     </div>
-                    <h1>{ selectedApp ? _formatContentId( selectedApp.contentId ) : null } </h1>
+                    <div className={ styles.clearfix } />
+                    <div className={ styles.subheader } >Position</div>
+                    <div className={ styles.inputs } >
+                        <NumberInput input={ px } />
+                        <NumberInput input={ py } />
+                        <NumberInput input={ pz } />
+                    </div>
+                    <div className={ styles.subheader } >Rotation</div>
+                    <div className={ styles.inputs } >
+                        <NumberInput input={ rx } />
+                        <NumberInput input={ ry } />
+                        <NumberInput input={ rz } />
+                    </div>
+                    <div className={ styles.subheader } >Scale</div>
+                    <div className={ styles.inputs } >
+                        <NumberInput input={ sx } />
+                        <NumberInput input={ sy } />
+                        <NumberInput input={ sz } />
+                    </div>
                 </div>
-                <div className={ styles.clearfix } />
-                <div className={ styles.subheader } >Position</div>
-                <div className={ styles.inputs } >
-                    <NumberInput input={ px } />
-                    <NumberInput input={ py } />
-                    <NumberInput input={ pz } />
-                </div>
-                <div className={ styles.subheader } >Rotation</div>
-                <div className={ styles.inputs } >
-                    <NumberInput input={ rx } />
-                    <NumberInput input={ ry } />
-                    <NumberInput input={ rz } />
-                </div>
-                <div className={ styles.subheader } >Scale</div>
-                <div className={ styles.inputs } >
-                    <NumberInput input={ sx } />
-                    <NumberInput input={ sy } />
-                    <NumberInput input={ sz } />
-                </div>
-            </div>
+            ) : null}
         </div>
     );
 

@@ -392,7 +392,7 @@ ioManager.keydown = e => {
         if (game.canRotate()) {
           game.menuRotate(1);
         } else {
-          game.drop();
+          game.dropSelectedApp();
         }
       } else {
         // if (!game.dragging) {

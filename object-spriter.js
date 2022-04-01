@@ -10,10 +10,11 @@ import {fitCameraToBoundingBox} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
-const localVector2D2 = new THREE.Vector2();
+// const localVector3 = new THREE.Vector3();
+// const localVector2D = new THREE.Vector2();
+// const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
+const localColor = new THREE.Color();
 const localMatrix = new THREE.Matrix4();
 
 const defaultSize = 2048;
@@ -41,10 +42,12 @@ const _makeSpritesheetRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h,
   wrapS: THREE.ClampToEdgeWrapping,
   wrapT: THREE.ClampToEdgeWrapping,
 });
-const createObjectSprite = (app, {
+const createObjectSpriteInternal = (app, {
   // canvas,
   size = defaultSize,
   numFrames = defaultNumFrames,
+} = {}, {
+  type = 'imageBitmap',
 } = {}) => {
   // const {devicePixelRatio: pixelRatio} = window;
 
@@ -59,22 +62,38 @@ const createObjectSprite = (app, {
   const frameSize = size / numFramesPerRow;
 
   // create render target
-  const renderTarget = _makeSpritesheetRenderTarget(size * pixelRatio, size * pixelRatio);
+  let renderTarget;
+  if (type === 'texture') {
+    renderTarget = _makeSpritesheetRenderTarget(size * pixelRatio, size * pixelRatio);
+  } else if (type === 'imageBitmap') {
+    const requiredWidth = frameSize * numFramesPerRow * pixelRatio;
+    const requiredHeight = frameSize * numFramesPerRow * pixelRatio;
+    if (requiredWidth > renderer.domElement.width || requiredHeight > renderer.domElement.height) {
+      // console.log('resize to', requiredWidth / pixelRatio, requiredHeight / pixelRatio, pixelRatio);
+      renderer.setSize(requiredWidth / pixelRatio, requiredHeight / pixelRatio);
+      renderer.setPixelRatio(pixelRatio);
+    }
+  }
 
   // push old state
-  const oldRenderTarget = renderer.getRenderTarget();
+  let oldRenderTarget;
+  if (type === 'texture') {
+    oldRenderTarget = renderer.getRenderTarget();
+  }
   const oldViewport = renderer.getViewport(localVector4D);
+  const oldClearColor = renderer.getClearColor(localColor);
+  const oldClearAlpha = renderer.getClearAlpha();
   
   {
-    /* const originalPosition = app.position.clone();
-    const originalQuaternion = app.quaternion.clone();
-    const originalScale = app.scale.clone();
-    const originalMatrix = app.matrix.clone();
-    const originalMatrixWorld = app.matrixWorld.clone(); */
-
     const originalParent = app.parent;
     sideScene.add(app);
     sideScene.updateMatrixWorld();
+
+    if (type === 'texture') {
+      renderer.setRenderTarget(renderTarget);
+    }
+    renderer.setClearColor(0xffffff, 0);
+    renderer.clear();
 
     for (let i = 0; i < numFrames; i++) {
       const y = Math.floor(i / numFramesPerRow);
@@ -103,53 +122,63 @@ const createObjectSprite = (app, {
           )
         );
       }
-      // console.log('render position', sideCamera.position.toArray(), app.position.toArray());
       sideCamera.updateMatrixWorld();
       
       // render side scene
-      renderer.setRenderTarget(renderTarget);
       renderer.setViewport(x*frameSize, y*frameSize, frameSize, frameSize);
-      // console.log('render', {x, y, frameSize, numFrames, numFramesPerRow});
-      // renderer.clear();
       renderer.render(sideScene, sideCamera);
-  
-      /* for (const canvas of canvases) {
-        const {width, height, ctx} = canvas;
-        ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(
-          renderer.domElement,
-          0,
-          size.y * pixelRatio - this.height * pixelRatio,
-          this.width * pixelRatio,
-          this.height * pixelRatio,
-          0,
-          0,
-          width,
-          height
-        );
-      } */
     }
 
-    originalParent && originalParent.add(app);
-    /* app.position.copy(originalPosition);
-    app.quaternion.copy(originalQuaternion);
-    app.scale.copy(originalScale);
-    app.matrix.copy(originalMatrix);
-    app.matrixWorld.copy(originalMatrixWorld); */
+    if (originalParent) {
+      originalParent.add(app);
+    } else {
+      sideScene.remove(app);
+    }
   }
 
   // pop old state
-  renderer.setRenderTarget(oldRenderTarget);
+  if (type === 'texture') {
+    renderer.setRenderTarget(oldRenderTarget);
+  }
   renderer.setViewport(oldViewport);
+  renderer.setClearColor(oldClearColor, oldClearAlpha);
 
-  return {
-    texture: renderTarget.texture,
-    numFrames,
-    frameSize,
-    numFramesPerRow,
-  };
+  // return result
+  if (type === 'texture') {
+    return {
+      result: renderTarget.texture,
+      numFrames,
+      frameSize,
+      numFramesPerRow,
+    };
+  } else if (type === 'imageBitmap') {
+    return (async () => {
+      const imageBitmap = await createImageBitmap(renderer.domElement, 0, 0, size, size, {
+        // imageOrientation: 'flipY',
+      });
+      return {
+        result: imageBitmap,
+        numFrames,
+        frameSize,
+        numFramesPerRow,
+      }
+    })();
+  } else {
+    throw new Error('Unknown type');
+  }
+};
+const createObjectSprite = (app, opts) => {
+  return createObjectSpriteInternal(app, opts, {
+    type: 'texture',
+  });
+};
+const createObjectSpriteAsync = (app, opts) => {
+  return createObjectSpriteInternal(app, opts, {
+    type: 'imageBitmap',
+  });
 };
 
 export {
   createObjectSprite,
+  createObjectSpriteAsync,
 };
