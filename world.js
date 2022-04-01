@@ -304,7 +304,10 @@ const _bindHitTracker = app => {
   };
   world.appManager.addEventListener('frame', frame);
   const die = () => {
-    world.appManager.removeTrackedApp(app.instanceId);
+    window.npcPlayer.avatar.fsms.send('ragdoll')
+    setTimeout(() => {
+      world.appManager.removeTrackedApp(app.instanceId);
+    }, 5000);
   };
   app.addEventListener('die', die); 
   

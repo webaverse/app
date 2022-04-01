@@ -146,6 +146,19 @@ class PlayerBase extends THREE.Object3D {
     this.appManager = new AppManager({
       appsMap: null,
     });
+    this.appManager.apps = new Proxy(this.appManager.apps, {
+      set: (obj, prop, newVal) => {
+        // if (prop === 'length') debugger
+        // console.log('proxy:', this, this.appManager, obj, prop, newVal)
+        // console.log(this)
+        // console.log(this.appManager)
+        // console.log({obj})
+        // console.log({prop})
+        // console.log({newVal})
+        obj[prop] = newVal
+        return true;
+      }
+    })
     this.appManager.addEventListener('appadd', e => {
       const app = e.data;
       scene.add(app);
@@ -910,6 +923,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
+    // vismark
     const avatarApp = await this.appManager.addTrackedApp(u);
     if (this.avatarEpoch !== localAvatarEpoch) {
       this.appManager.removeTrackedApp(avatarApp.instanceId);
@@ -1239,6 +1253,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       debug: false,
     });
     avatar.app = app;
+    this.appManager.apps.push(app)
 
     unFrustumCull(app);
     enableShadows(app);

@@ -109,6 +109,7 @@ class AppManager extends EventTarget {
           } else {
             const trackedApp = this.getOrCreateTrackedApp(instanceId);
             // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
+            // debugger
             this.dispatchEvent(new MessageEvent('trackedappadd', {
               data: {
                 trackedApp,
@@ -165,6 +166,7 @@ class AppManager extends EventTarget {
   loadApps() {
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
+      // debugger
       this.dispatchEvent(new MessageEvent('trackedappadd', {
         data: {
           trackedApp,
@@ -286,6 +288,7 @@ class AppManager extends EventTarget {
             console.warn('failed to load object', {contentId});
           }
 
+          // debugger
           this.addApp(app);
         }
 
