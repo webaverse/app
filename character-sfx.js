@@ -308,7 +308,10 @@ class CharacterSfx {
           // console.log('chomp', v, eatFrameIndex, this.lastEatFrameIndex);
           if (eatFrameIndex !== 0 && eatFrameIndex !== this.lastEatFrameIndex) {
             const audioSpec = soundFiles.chomp[Math.floor(Math.random() * soundFiles.chomp.length)];
-            sounds.playSound(audioSpec);
+            if (!this.player.avatar.isAudioEnabled()) {
+              this.player.avatar.setAudioEnabled(true);
+            }
+            sounds.playSound(audioSpec).connect(this.player.avatar.getAudioInput());
           }
 
           this.lastEatFrameIndex = eatFrameIndex;
@@ -322,7 +325,10 @@ class CharacterSfx {
           // console.log('gulp', v, drinkFrameIndex, this.lastDrinkFrameIndex);
           if (drinkFrameIndex !== 0 && drinkFrameIndex !== this.lastDrinkFrameIndex) {
             const audioSpec = soundFiles.gulp[Math.floor(Math.random() * soundFiles.gulp.length)];
-            sounds.playSound(audioSpec);
+            if (!this.player.avatar.isAudioEnabled()) {
+              this.player.avatar.setAudioEnabled(true);
+            }
+            sounds.playSound(audioSpec).connect(this.player.avatar.getAudioInput());
           }
 
           this.lastDrinkFrameIndex = drinkFrameIndex;
@@ -384,13 +390,16 @@ class CharacterSfx {
     const audioContext = Avatar.getAudioContext();
     const audioBufferSourceNode = audioContext.createBufferSource();
     audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
-    
+    if (!this.player.avatar.isAudioEnabled()) {
+      this.player.avatar.setAudioEnabled(true);
+    }
+    audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
     if(this.oldGrunt){
       this.oldGrunt.stop();
     }
     this.oldGrunt=audioBufferSourceNode;
     
-    audioBufferSourceNode.connect(audioContext.destination);
+    //audioBufferSourceNode.connect(audioContext.destination);
     audioBufferSourceNode.start(0, offset, duration);
   }
   destroy() {
