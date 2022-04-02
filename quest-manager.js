@@ -18,8 +18,8 @@ class Quest {
   constructor(spec) {
     this.name = spec.name;
     this.description = spec.description;
-    this.condition = spec.condition;
-    this.drops = spec.drops;
+    this.conditions = spec.conditions;
+    this.completeActions = spec.completeActions;
 
     /* {
       "position": [
@@ -56,24 +56,27 @@ class Quest {
     this.pathApp = _makePathApp();
     scene.add(this.pathApp);
 
-    this.conditionFn = (() => {
-      switch (this.condition) {
-        case 'clearMobs': {
-          return () => {
-            // XXX
-          };
+    this.conditionsFn = (() => {
+      for (const condition of this.conditions) {
+        const {key, value} = condition;
+        switch (key) {
+          case 'clearMobs': {
+            return () => {
+              // XXX
+            };
+          }
+          case 'enter': {
+            return () => {
+              // XXX
+            };
+          }
+          return null;
         }
-        case 'enter': {
-          return () => {
-            // XXX
-          };
-        }
-        return null;
       }
     })();
   }
   update(timestamp, timeDiff) {
-    this.conditionFn && this.conditionFn();
+    this.conditionsFn && this.conditionsFn();
   }
   destroy() {
     scene.remove(this.pathApp);
