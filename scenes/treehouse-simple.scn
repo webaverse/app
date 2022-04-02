@@ -20,11 +20,6 @@
       "start_url": "http://localhost/lib/webaverse_resource/street/index.js"
     },
     {
-      "position": [ 12, 0, -6 ],
-      "quaternion": [ 0, 1, 0, 0 ],
-      "start_url": "http://localhost/lib/webaverse_resource/ramp/"
-    },
-    {
       "position": [
         0,
         5,
@@ -37,11 +32,6 @@
         1
       ],
       "start_url": "http://localhost/lib/webaverse_resource/npc/"
-    },
-    {
-      "position": [-2, 1, 1],
-      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
-      "start_url": "http://localhost/lib/webaverse_resource/sword/"
     }
   ]
 }

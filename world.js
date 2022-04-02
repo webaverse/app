@@ -304,10 +304,12 @@ const _bindHitTracker = app => {
   };
   world.appManager.addEventListener('frame', frame);
   const die = () => {
-    window.npcPlayer.avatar.fsms.send('ragdoll')
-    setTimeout(() => {
+    // debugger
+    // window.npcPlayer.avatar.fsms.send('ragdoll')
+    // setTimeout(() => {
+      // console.log('die', app === window.npcApp) // true
       world.appManager.removeTrackedApp(app.instanceId);
-    }, 5000);
+    // }, 5000);
   };
   app.addEventListener('die', die); 
   
@@ -379,6 +381,7 @@ const _bindHitTracker = app => {
 };
 appManager.addEventListener('appadd', e => {
   const app = e.data;
+  // debugger
   _bindHitTracker(app);
 });
 appManager.addEventListener('trackedappmigrate', async e => {
@@ -387,6 +390,7 @@ appManager.addEventListener('trackedappmigrate', async e => {
     app.unbindHitTracker();
     app.unbindHitTracker = null;
   } else if (this === destinationAppManager) {
+    // debugger
     _bindHitTracker(app);
   }
 });

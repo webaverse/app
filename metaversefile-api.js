@@ -53,6 +53,7 @@ const localVector2D = new THREE.Vector2();
 class App extends THREE.Object3D {
   constructor() {
     super();
+    // console.log('new App') // only called by createAppInternal()
 
     this.isApp = true;
     this.components = [];
@@ -807,6 +808,7 @@ metaversefile.setApi({
     parent = null,
     in_front = false,
   } = {}, {onWaitPromise = null} = {}) {
+    // console.log('createAppInternal', arguments);
     const app = new App();
 
     // transform
@@ -880,9 +882,11 @@ metaversefile.setApi({
     return app;
   },
   createApp(opts) {
+    console.log('createApp', opts) // npcApp and vrmApp all created here
     return metaversefile.createAppInternal(opts);
   },
   async createAppAsync(opts) {
+    console.log('createAppAsync', opts)
     let p = null;
     const app = metaversefile.createAppInternal(opts, {
       onWaitPromise(newP) {
@@ -1044,7 +1048,11 @@ export default () => {
     return debug;
   },
   async addModule(app, m) {
-    if (m.name === 'npc') window.npcApp = app;
+    // vismark
+    if (m.name === 'npc') {
+      window.npcApp = app;
+      // window.npcPlayer.appManager.apps.push(app)
+    }
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
     app.contentId = m.contentId ?? '';

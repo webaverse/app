@@ -146,19 +146,19 @@ class PlayerBase extends THREE.Object3D {
     this.appManager = new AppManager({
       appsMap: null,
     });
-    this.appManager.apps = new Proxy(this.appManager.apps, {
-      set: (obj, prop, newVal) => {
-        // if (prop === 'length') debugger
-        // console.log('proxy:', this, this.appManager, obj, prop, newVal)
-        // console.log(this)
-        // console.log(this.appManager)
-        // console.log({obj})
-        // console.log({prop})
-        // console.log({newVal})
-        obj[prop] = newVal
-        return true;
-      }
-    })
+    // this.appManager.apps = new Proxy(this.appManager.apps, {
+    //   set: (obj, prop, newVal) => {
+    //     // if (prop === 'length') debugger
+    //     // console.log('proxy:', this, this.appManager, obj, prop, newVal)
+    //     // console.log(this)
+    //     // console.log(this.appManager)
+    //     // console.log({obj})
+    //     // console.log({prop})
+    //     // console.log({newVal})
+    //     obj[prop] = newVal
+    //     return true;
+    //   }
+    // })
     this.appManager.addEventListener('appadd', e => {
       const app = e.data;
       scene.add(app);
@@ -1253,7 +1253,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       debug: false,
     });
     avatar.app = app;
-    this.appManager.apps.push(app)
+    // this.appManager.apps.push(app)
 
     unFrustumCull(app);
     enableShadows(app);

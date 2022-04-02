@@ -34,6 +34,7 @@ class NpcManager extends EventTarget {
       npcPlayer.updateMatrixWorld();
     }
 
+    // vismark
     npcPlayer.setAvatarApp(avatarApp);
     this.npcs.push(npcPlayer);
 
