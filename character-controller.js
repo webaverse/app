@@ -1237,6 +1237,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       visemes: true,
       debug: false,
     });
+    avatar.app = app;
+    this.appManager.apps.push(app)
 
     unFrustumCull(app);
     enableShadows(app);

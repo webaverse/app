@@ -956,8 +956,17 @@ export default () => {
     }
   },
   getPhysicsObjectByPhysicsId(physicsId) {
-    let result = world.appManager.getPhysicsObjectByPhysicsId(physicsId) ||
-      localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+    let result = world.appManager.getPhysicsObjectByPhysicsId(physicsId);
+    if (!result) result = localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+    if (!result) {
+      const {npcs} = npcManager;
+      for (let i = 0; i < npcs.length; i++) {
+        const npcPlayer = npcs[i];
+        result = npcPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+        if (result) break;
+      }
+    }
+
     if (result) {
       return result;
     } else {

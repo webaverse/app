@@ -1581,7 +1581,7 @@ class Avatar {
               this.recordCurrentPose();
               this.resetToTPose();
               this.ragdollMesh = _makeRagdollMesh();
-              this.ragdollMesh.visible = false;
+              // this.ragdollMesh.visible = false;
               this.ragdollMesh.wrapToAvatar(this);
               this.ragdollMesh.createRagdoll(this);
               this.model.add(this.ragdollMesh);
