@@ -53,13 +53,21 @@
       "content": {
         "name": "Reaver slay",
         "description": "Destroy all reavers in the area",
-        "condition": "clearMobs",
-        "drops": [
-            {
+        "conditions": [
+          {
+            "key": "clearMobs",
+            "value": null
+          }
+        ],
+        "completeActions": [
+          {
+            "key": "drop",
+            "value": {
                 "name": "Silk",
                 "quantity": 20,
                 "start_url": "../metaverse_modules/silk/"
             }
+          }
         ]
       }
     },
