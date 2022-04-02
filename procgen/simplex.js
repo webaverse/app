@@ -26,9 +26,9 @@ Better rank ordering method by Stefan Gustavson in 2012.
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const exports = {};
-const module = {exports};
-(function() {
+// const exports = {};
+// const module = {exports};
+const Simplex = (function() {
   'use strict';
 
   var F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
@@ -464,7 +464,7 @@ const module = {exports};
     };
   }
 
-  // amd
+  /* // amd
   if (typeof define !== 'undefined' && define.amd) define(function() {return SimplexNoise;});
   // common js
   if (typeof exports !== 'undefined') exports.SimplexNoise = SimplexNoise;
@@ -473,7 +473,30 @@ const module = {exports};
   // nodejs
   if (typeof module !== 'undefined') {
     module.exports = SimplexNoise;
-  }
-
+  } */
+  return SimplexNoise;
 })();
-export default module.exports;
+
+class MultiSimplex {
+  constructor(seed, octaves) {
+    const simplexes = Array(octaves);
+    for (let i = 0; i < octaves; i++) {
+      simplexes[i] = new Simplex(seed + i);
+    }
+    this.simplexes = simplexes;
+  }
+  noise2D(x, z) {
+    let result = 0;
+    for (let i = 0; i < this.simplexes.length; i++) {
+      const simplex = this.simplexes[i];
+      result += simplex.noise2D(x * (2**i), z * (2**i));
+    }
+    // result /= this.simplexes.length;
+    return result;
+  }
+}
+
+export {
+  Simplex,
+  MultiSimplex,
+};
