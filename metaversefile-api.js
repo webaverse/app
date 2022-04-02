@@ -53,7 +53,6 @@ const localVector2D = new THREE.Vector2();
 class App extends THREE.Object3D {
   constructor() {
     super();
-    // console.log('new App') // only called by createAppInternal()
 
     this.isApp = true;
     this.components = [];
@@ -77,7 +76,7 @@ class App extends THREE.Object3D {
     const component = this.components.find(component => component.key === key);
     return component ? component.value : null;
   }
-  setComponentInternal(key, value) {
+  #setComponentInternal(key, value) {
     let component = this.components.find(component => component.key === key);
     if (!component) {
       component = {key, value};
@@ -92,7 +91,7 @@ class App extends THREE.Object3D {
     });
   }
   setComponent(key, value = true) {
-    this.setComponentInternal(key, value);
+    this.#setComponentInternal(key, value);
     this.dispatchEvent({
       type: 'componentsupdate',
       keys: [key],
@@ -102,7 +101,7 @@ class App extends THREE.Object3D {
     const keys = Object.keys(o);
     for (const k of keys) {
       const v = o[k];
-      this.setComponentInternal(k, v);
+      this.#setComponentInternal(k, v);
     }
     this.dispatchEvent({
       type: 'componentsupdate',
@@ -808,7 +807,6 @@ metaversefile.setApi({
     parent = null,
     in_front = false,
   } = {}, {onWaitPromise = null} = {}) {
-    // console.log('createAppInternal', arguments);
     const app = new App();
 
     // transform
@@ -882,11 +880,9 @@ metaversefile.setApi({
     return app;
   },
   createApp(opts) {
-    console.log('createApp', opts) // npcApp and vrmApp all created here
     return metaversefile.createAppInternal(opts);
   },
   async createAppAsync(opts) {
-    console.log('createAppAsync', opts)
     let p = null;
     const app = metaversefile.createAppInternal(opts, {
       onWaitPromise(newP) {
@@ -944,19 +940,15 @@ export default () => {
     }
   },
   getAppByPhysicsId(physicsId) {
-    let result = world.appManager.getAppByPhysicsId(physicsId)
-    if (!result) {
-      result = localPlayer.appManager.getAppByPhysicsId(physicsId);
-    }
+    let result = world.appManager.getAppByPhysicsId(physicsId) ||
+      localPlayer.appManager.getAppByPhysicsId(physicsId);
     if (result) {
-      console.log('getAppByPhysicsId 1', physicsId);
       return result;
     } else {
       const remotePlayers = metaversefile.useRemotePlayers();
       for (const remotePlayer of remotePlayers) {
         const remoteApp = remotePlayer.appManager.getAppByPhysicsId(physicsId);
         if (remoteApp) {
-          console.log('getAppByPhysicsId 2', physicsId);
           return remoteApp;
         }
       }
@@ -964,9 +956,8 @@ export default () => {
     }
   },
   getPhysicsObjectByPhysicsId(physicsId) {
-    const result = world.appManager.getPhysicsObjectByPhysicsId(physicsId) ||
-      localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId) ||
-      window.npcPlayer?.appManager.getPhysicsObjectByPhysicsId(physicsId) // need run console_test: npcPlayer.appManager.apps.push(npcPlayer.avatar.app)
+    let result = world.appManager.getPhysicsObjectByPhysicsId(physicsId) ||
+      localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
     if (result) {
       return result;
     } else {
@@ -1048,11 +1039,6 @@ export default () => {
     return debug;
   },
   async addModule(app, m) {
-    // vismark
-    if (m.name === 'npc') {
-      window.npcApp = app;
-      // window.npcPlayer.appManager.apps.push(app)
-    }
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
     app.contentId = m.contentId ?? '';

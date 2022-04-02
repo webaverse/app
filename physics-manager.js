@@ -10,7 +10,6 @@ import physx from './physx.js';
 // import ioManager from './io-manager.js';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
-window.metaversefileApi = metaversefileApi;
 import {getNextPhysicsId, convertMeshToPhysicsMesh} from './util.js';
 // import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
@@ -29,7 +28,6 @@ const localMatrix = new THREE.Matrix4();
 // const upVector = new THREE.Vector3(0, 1, 0);
 
 const physicsManager = new EventTarget();
-window.physicsManager = physicsManager;
 
 const physicsUpdates = [];
 const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
@@ -334,19 +332,11 @@ physicsManager.simulatePhysics = timeDiff => {
   if (physicsEnabled) {
     const t = timeDiff/1000;
     const updatesOut = physx.physxWorker.simulatePhysics(physx.physics, physicsUpdates, t);
-    // console.log('updatesOut', updatesOut.length)
-    if (!window.isLoggedUpdatesOut) {
-      if (updatesOut.length > 10) {
-        console.log({updatesOut})
-        window.isLoggedUpdatesOut = true;
-      }
-    }
     physicsUpdates.length = 0;
     for (const updateOut of updatesOut) {
       const {id, position, quaternion, collided, grounded} = updateOut;
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id);
       if (physicsObject) {
-        // console.log('physicsObject', physicsObject.name)
         physicsObject.position.copy(position);
         physicsObject.quaternion.copy(quaternion);
         physicsObject.updateMatrixWorld();

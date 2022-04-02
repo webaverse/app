@@ -12,8 +12,6 @@ import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
 import {jsonParse} from './util.js';
 import {worldMapName} from './constants.js';
-import { world } from './world.js';
-import { NpcPlayer } from './character-controller.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -111,8 +109,6 @@ class AppManager extends EventTarget {
           } else {
             const trackedApp = this.getOrCreateTrackedApp(instanceId);
             // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
-            // debugger
-            // vismark: npc hitTracker creating
             this.dispatchEvent(new MessageEvent('trackedappadd', {
               data: {
                 trackedApp,
@@ -169,7 +165,6 @@ class AppManager extends EventTarget {
   loadApps() {
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
-      // debugger
       this.dispatchEvent(new MessageEvent('trackedappadd', {
         data: {
           trackedApp,
@@ -254,16 +249,7 @@ class AppManager extends EventTarget {
 
         // create app
         // as an optimization, the app may be reused by calling addApp() before tracking it
-        let app = metaversefile.createApp();
-        // app = new Proxy(app, {
-        //   set: (obj, prop, newVal) => {
-        //     // if (prop === 'name') debugger
-        //     obj[prop] = newVal;
-        //     return true
-        //   }
-        // });
-        // console.log({contentId, app})
-        // debugger
+        const app = metaversefile.createApp();
 
         // setup
         {
@@ -285,19 +271,12 @@ class AppManager extends EventTarget {
         // initialize app
         {
           // console.log('add module', m);
-          // debugger
           const mesh = await app.addModule(m);
           if (!live) return _bailout(app);
           if (!mesh) {
             console.warn('failed to load object', {contentId});
           }
 
-          // debugger
-          console.log({contentId})
-          // console.log('this === world.appManager', this === world.appManager) // most true
-          // console.log('this === localPlayer.appManager', this === localPlayer.appManager) // one true
-          // // console.log('this === world.appManager', this === window.npcPlayer.appManager) // error
-          if (contentId === 'http://localhost/lib/webaverse_resource/npc/') debugger
           this.addApp(app);
         }
 
@@ -493,7 +472,6 @@ class AppManager extends EventTarget {
   removeTrackedApp(removeInstanceId) {
     const self = this;
     this.appsArray.doc.transact(function tx() {
-      console.log('removeInstanceId', removeInstanceId)
       self.removeTrackedAppInternal(removeInstanceId);
     });
   }
