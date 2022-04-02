@@ -316,4 +316,5 @@ appManager.addEventListener('trackedappmigrate', async e => {
 appManager.addEventListener('appremove', async e => {
   const app = e.data;
   app.hitTracker.unbind();
+  app.parent.remove(app);
 });
