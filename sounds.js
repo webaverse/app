@@ -1,33 +1,35 @@
 import Avatar from './avatars/avatars.js';
-import {loadJson, loadAudioBuffer} from './util.js';
+import {/*loadJson, */loadAudioBuffer} from './util.js';
+import soundFileSpecs from './public/sounds/sound-files.json';
+
+const _getSoundFiles = regex => soundFileSpecs.filter(f => regex.test(f.name));
+const soundFiles = {
+  walk: _getSoundFiles(/^walk\//),
+  run: _getSoundFiles(/^run\//),
+  jump: _getSoundFiles(/^jump\//),
+  land: _getSoundFiles(/^land\//),
+  narutoRun: _getSoundFiles(/^narutoRun\//),
+  sonicBoom: _getSoundFiles(/^sonicBoom\//),
+  chomp: _getSoundFiles(/^food\/chomp/),
+  combat: _getSoundFiles(/^combat\//),
+  gulp: _getSoundFiles(/^food\/gulp/),
+  enemyDeath: _getSoundFiles(/enemyDeath/),
+};
 
 let soundFileAudioBuffer;
-const soundFiles = {};
 const loadPromise = (async () => {
   await Avatar.waitForLoad();
 
   const audioContext = Avatar.getAudioContext();
-  const [
-    soundFileSpecs,
+  /* const [
+    // soundFileSpecs,
     _soundFileAudioBuffer,
   ] = await Promise.all([
-    loadJson(`/sounds/sound-files.json`),
+    // loadJson(`/sounds/sound-files.json`),
     loadAudioBuffer(audioContext, '/sounds/sounds.mp3'),
-  ]);
+  ]); */
 
-  soundFiles.walk = soundFileSpecs.filter(f => /^walk\//.test(f.name));
-  soundFiles.run = soundFileSpecs.filter(f => /^run\//.test(f.name));
-  soundFiles.jump = soundFileSpecs.filter(f => /^jump\//.test(f.name));
-  soundFiles.land = soundFileSpecs.filter(f => /^land\//.test(f.name));
-  soundFiles.narutoRun = soundFileSpecs.filter(f => /^narutoRun\//.test(f.name));
-  soundFiles.sonicBoom = soundFileSpecs.filter(f => /^sonicBoom\//.test(f.name));
-  soundFiles.chomp = soundFileSpecs.filter(f => /^food\/chomp/.test(f.name));
-  soundFiles.combat = soundFileSpecs.filter(f => /^combat\//.test(f.name));
-  soundFiles.gulp = soundFileSpecs.filter(f => /^food\/gulp/.test(f.name));
-  soundFiles.enemyDeath = soundFileSpecs.filter(f => /enemyDeath/.test(f.name));
-  soundFileAudioBuffer = _soundFileAudioBuffer;
-
-  // console.log('loaded audio', soundFileSpecs, soundFileAudioBuffer);
+  soundFileAudioBuffer = await loadAudioBuffer(audioContext, '/sounds/sounds.mp3');
 })();
 const waitForLoad = () => loadPromise;
 
