@@ -110,8 +110,7 @@ const makeHitTracker = ({
     if (hit) {
       const {collisionId, hitPosition, hitDirection, hitQuaternion} = opts;
 
-      const willDie = hitTracker.willDieFrom(damage);
-      if (willDie) {
+      if (died) {
         triggerDamageAnimation(collisionId);
         
         const soundFiles = sounds.getSoundFiles();
@@ -142,17 +141,17 @@ const makeHitTracker = ({
         hitPosition,
         hitDirection,
         hitQuaternion,
-        willDie,
+        // willDie,
         hp: hitTracker.hp,
         totalHp: hitTracker.totalHp,
       });
-    }
-    if (died) {
-      hitTracker.dispatchEvent({
-        type: 'die',
-        // position: cylinderMesh.position,
-        // quaternion: cylinderMesh.quaternion,
-      });
+      if (died) {
+        hitTracker.dispatchEvent({
+          type: 'die',
+          // position: cylinderMesh.position,
+          // quaternion: cylinderMesh.quaternion,
+        });
+      }
     }
     return result;
   };
