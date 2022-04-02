@@ -56,15 +56,6 @@ export default () => {
           point,
         } = result;
 
-        /* point: scratchStack.f32.slice(14, 17),
-        normal: scratchStack.f32.slice(17, 20),
-        distance: scratchStack.f32[20],
-        meshId: scratchStack.u32[21],
-        objectId,
-        faceIndex,
-        objectPosition,
-        objectQuaternion, */
-
         const p = new THREE.Vector3().fromArray(point);
         p.y += 0.05;
         splinePoints[i] = p;
@@ -79,11 +70,7 @@ export default () => {
       numPoints, // tubularSegments
       0.1, // radiusX
       0.01, // radiusY
-      4, // radialSegments
-      false, // closed
-    )/* .applyMatrix4(
-      new THREE.Matrix4().makeTranslation(dx * chunkWorldSize, 0, dy * chunkWorldSize)
-    ); */
+    );
 
     const material = new THREE.MeshNormalMaterial({
       // color: 0xFF0000,
