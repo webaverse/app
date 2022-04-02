@@ -1238,7 +1238,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       debug: false,
     });
     avatar.app = app;
-    this.appManager.apps.push(app)
+    this.appManager.apps.push(app); // note: for `physicsManager.simulatePhysics` can correctly update ragdoll's bones from physx result.
 
     unFrustumCull(app);
     enableShadows(app);
