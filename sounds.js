@@ -1,5 +1,5 @@
 import Avatar from './avatars/avatars.js';
-import {/*loadJson, */loadAudioBuffer} from './util.js';
+import {loadAudioBuffer} from './util.js';
 import soundFileSpecs from './public/sounds/sound-files.json';
 
 const _getSoundFiles = regex => soundFileSpecs.filter(f => regex.test(f.name));
@@ -21,14 +21,6 @@ const loadPromise = (async () => {
   await Avatar.waitForLoad();
 
   const audioContext = Avatar.getAudioContext();
-  /* const [
-    // soundFileSpecs,
-    _soundFileAudioBuffer,
-  ] = await Promise.all([
-    // loadJson(`/sounds/sound-files.json`),
-    loadAudioBuffer(audioContext, '/sounds/sounds.mp3'),
-  ]); */
-
   soundFileAudioBuffer = await loadAudioBuffer(audioContext, '/sounds/sounds.mp3');
 })();
 const waitForLoad = () => loadPromise;
