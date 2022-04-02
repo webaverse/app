@@ -88,21 +88,7 @@ class Quest {
 class QuestManager extends EventTarget {
   constructor() {
     super();
-    /* this.spritesheetCache = new Map();
-    this.offscreenEngine = new OffscreenEngine();
-    this.getSpriteSheetForAppUrlInternal = this.offscreenEngine.createFunction([
-      `\
-      import {createObjectSpriteAsync} from './object-spriter.js';
-      import metaversefile from './metaversefile-api.js';
-      `,
-      async function(appUrl, opts) {
-        const app = await metaversefile.createAppAsync({
-          start_url: appUrl,
-        });
-        const spritesheet = await createObjectSpriteAsync(app, opts);
-        return spritesheet;
-      }
-    ]); */
+
     this.quests = [];
   }
   addQuest(spec) {
