@@ -116,14 +116,22 @@ export const Quest = ({
                 <h1 className={ styles.heading }>{name}</h1>
                 <div className={ styles.description }>{description}</div>
                 <div className={ styles.drops }>
-                    {quest.drops.map((drop, i) => {
-                        return (
-                            <Drop
-                                drop={drop}
-                                enabled={enabled}
-                                key={i}
-                            />
-                        );
+                    {quest.completeActions.map((completeAction, i) => {
+                        const {key, value} = completeAction;
+                        switch (key) {
+                            case 'drop': {
+                                return (
+                                    <Drop
+                                        drop={value}
+                                        enabled={enabled}
+                                        key={i}
+                                    />
+                                );
+                            }
+                            default: {
+                                return null;
+                            }
+                        }
                     })}
                 </div>
             </div>
