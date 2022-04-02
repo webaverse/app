@@ -42,6 +42,7 @@ import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
+import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
 
 // const localVector = new THREE.Vector3();
@@ -374,6 +375,9 @@ metaversefile.setApi({
   },
   useScene() {
     return scene;
+  },
+  useSound() {
+    return sounds;
   },
   useCamera() {
     return camera;
