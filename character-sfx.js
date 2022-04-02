@@ -389,6 +389,7 @@ class CharacterSfx {
       this.oldGrunt.stop();
     }
     this.oldGrunt=audioBufferSourceNode;
+    
     audioBufferSourceNode.connect(audioContext.destination);
     audioBufferSourceNode.start(0, offset, duration);
   }
