@@ -179,7 +179,7 @@ const makeHitTracker = ({
       };
     }
   };
-  hitTracker.willDieFrom = damage => (hitTracker.hp - damage) <= 0;
+  // hitTracker.willDieFrom = damage => (hitTracker.hp - damage) <= 0;
   hitTracker.update = timeDiff => {
     if (hitTime !== -1) {
       hitTime += timeDiff;
