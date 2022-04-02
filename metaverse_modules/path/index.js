@@ -9,7 +9,7 @@ const {useApp, useFrame, usePhysics, useGeometries, useProcGen, waitForSceneLoad
 export default () => {
   const app = useApp();
   const physics = usePhysics();
-  const {StreetGeometry} = useGeometries();
+  const {StreetLineGeometry} = useGeometries();
   const {alea} = useProcGen();
 
   app.name = 'path';
@@ -74,7 +74,7 @@ export default () => {
     }
     const curve = new THREE.CatmullRomCurve3(splinePoints);
 
-    const geometry = new StreetGeometry(
+    const geometry = new StreetLineGeometry(
       curve, // path
       numPoints, // tubularSegments
       0.1, // radiusX
