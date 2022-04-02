@@ -87,8 +87,16 @@ const makeHitTracker = ({
   };
   hitTracker.unbind = () => {
     if (currentApp) {
-      hitTracker.parent.add(currentApp);
+      if (hitTracker.parent) {
+        hitTracker.parent.add(currentApp);
+      } else {
+        hitTracker.remove(currentApp);
+      }
       currentApp.updateMatrixWorld();
+      if (hitTracker.parent) {
+        hitTracker.parent.remove(hitTracker);
+      }
+
       currentApp = null;
 
       world.appManager.removeEventListener('frame', frame);
