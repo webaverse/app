@@ -113,8 +113,14 @@ export const TabAi = ({ active }) => {
             }
         }
 
-        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('aiSettingsChanged', { data: settings }));        
 
+        const data = {
+            settings,
+            category: 'AiSettings'
+        }
+
+
+        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('settingschanged', { data }));
         updateLoreEndpoint(apiType);
 
     };

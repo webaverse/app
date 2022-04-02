@@ -56,8 +56,14 @@ export const TabAudio = ({ active }) => {
             voiceEndpoint:  voiceEndpoint,
         };
 
-        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('audioSettingsChanged', { data: settings }));
 
+        const data = {
+            settings,
+            category: 'AudioSettings'
+        }
+
+
+        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('settingschanged', { data }));
     };
 
     function loadSettings () {

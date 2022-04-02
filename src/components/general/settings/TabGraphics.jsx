@@ -65,7 +65,13 @@ export const TabGraphics = ({ active }) => {
             }
         };
 
-        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('gfxSettingsChanged', { data: settings }));
+        const data = {
+            settings,
+            category:'GfxSettings'
+        }
+        
+
+        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('settingschanged', { data }));
 
     };
 

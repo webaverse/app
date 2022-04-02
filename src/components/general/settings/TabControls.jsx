@@ -56,8 +56,14 @@ export const TabControls = ({ active }) => {
             inventory
         };
 
-        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('controlSettingsChanged', { data: settings }));        
 
+        const data = {
+            settings,
+            category: 'ControlsSettings'
+        }
+
+
+        metaversefileApi.useSettingsManager().dispatchEvent(new MessageEvent('settingschanged', { data }));
     };
 
     function loadSettings () {
