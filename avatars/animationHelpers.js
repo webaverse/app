@@ -694,6 +694,7 @@ const _blendActivateAction = spec => {
 };
 
 export const _applyAnimation = (avatar, now, moveFactors) => {
+  debugger
   activeMoveFactors = moveFactors;
   // const runSpeed = 0.5;
   activeAvatar = avatar;
