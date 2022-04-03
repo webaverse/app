@@ -889,12 +889,12 @@ metaversefile.setApi({
     
     return app;
   },
-  createApp(opts) {
-    return metaversefile.createAppInternal(opts);
+  createApp(spec) {
+    return metaversefile.createAppInternal(spec);
   },
-  async createAppAsync(opts) {
+  async createAppAsync(spec, opts) {
     let p = null;
-    const app = metaversefile.createAppInternal(opts, {
+    const app = metaversefile.createAppInternal(spec, {
       onWaitPromise(newP) {
         p = newP;
       },
