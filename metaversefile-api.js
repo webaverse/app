@@ -904,6 +904,15 @@ metaversefile.setApi({
     }
     return app;
   },
+  createAppPair(spec) {
+    let promise = null;
+    const app = metaversefile.createAppInternal(spec, {
+      onWaitPromise(newPromise) {
+        promise = newPromise;
+      },
+    });
+    return [app, promise];
+  },
   createModule: (() => {
     const dataUrlPrefix = `data:application/javascript;charset=utf-8,`;
     const jsPrefix = `\
