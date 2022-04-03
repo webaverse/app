@@ -43,6 +43,7 @@ import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
+import hpManager from './hp-manager.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -61,6 +62,7 @@ class App extends THREE.Object3D {
     this.modulesHash = 0;
     // cleanup tracking
     this.physicsObjects = [];
+    this.hitTracker = null;
     this.appType = 'none';
     this.hasRenderSettings = false;
     this.lastMatrix = new THREE.Matrix4();
@@ -149,6 +151,9 @@ class App extends THREE.Object3D {
   }
   getPhysicsObjects() {
     return this.physicsObjects;
+  }
+  hit(damage, opts) {
+    this.hitTracker && this.hitTracker.hit(damage, opts);
   }
   getRenderSettings() {
     if (this.hasRenderSettings) {
@@ -726,6 +731,9 @@ metaversefile.setApi({
       throw new Error('usePhysics cannot be called outside of render()');
     }
   },
+  useHpManager() {
+    return hpManager;
+  },
   useProcGen() {
     return procgen;
   },
@@ -970,6 +978,22 @@ export default () => {
         const remotePhysicsObject = remotePlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
         if (remotePhysicsObject) {
           return remotePhysicsObject;
+        }
+      }
+      return null;
+    }
+  },
+  getPairByPhysicsId(physicsId) {
+    let result = world.appManager.getPairByPhysicsId(physicsId) ||
+      localPlayer.appManager.getPairByPhysicsId(physicsId);
+    if (result) {
+      return result;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remotePair = remotePlayer.appManager.getPairByPhysicsId(physicsId);
+        if (remotePair) {
+          return remotePair;
         }
       }
       return null;
