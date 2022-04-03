@@ -1228,6 +1228,10 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   
     this.isNpcPlayer = true;
   }
+  async setAvatarUrl(u) {
+    const avatarApp = await this.appManager.addTrackedApp(u);
+    this.setAvatarApp(avatarApp);
+  }
   setAvatarApp(app) {
     app.toggleBoneUpdates(true);
     const {skinnedVrm} = app;
@@ -1238,7 +1242,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       debug: false,
     });
     avatar.app = app;
-    this.appManager.apps.push(app); // note: for `physicsManager.simulatePhysics` can correctly update ragdoll's bones from physx result.
 
     unFrustumCull(app);
     enableShadows(app);
