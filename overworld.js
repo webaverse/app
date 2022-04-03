@@ -17,13 +17,11 @@ scene.add(overworldObject);
 
 class OverworldApp {
   constructor(chunk) {
-    let {name, start_url, position, quaternion, scale, size, focus} = chunk;
+    let {name, start_url, position, quaternion, scale, size, focus, chunkPriority} = chunk;
     size = new THREE.Vector3().fromArray(size);
 
     this.name = name;
     this.size = size;
-    // const enterNormals = [];
-    // this.enterNormals = enterNormals;
 
     const previewer = new ScenePreviewer({
       size,
@@ -46,89 +44,22 @@ class OverworldApp {
   
     overworldObject.add(sceneObject);
   
-    // this.previewer = previewer;
-    // app.hasSubApps = true;
-  
     this.position = previewer.position;
     this.quaternion = previewer.quaternion;
     this.scale = previewer.scale;
+    this.chunkPriority = chunkPriority;
+
+    this.setFocus = previewer.setFocus.bind(previewer);
 
     this.loadPromise = previewer.loadScene(start_url)
       .then(() => {});
-
-
-
-
-
-
-
-
-    
-    /* position = position && localVector.fromArray(position);
-    quaternion = quaternion && localQuaternion.fromArray(quaternion);
-    scale = scale && localVector2.fromArray(scale);
-    const [chunkApp, chunkAppPromise] = metaversefile.createAppPair({
-      start_url,
-      position,
-      quaternion,
-      scale,
-      components,
-    }); */
-
-
-
-
-    
-  
-    // return app;
   }
   waitForLoad() {
     return this.loadPromise;
   }
 }
-/* export default e => {
-  const sceneUrl = app.getComponent('sceneUrl') ?? '';
-  const focus = app.getComponent('focus') ?? false;
-  const sizeArray = app.getComponent('size') ?? [100, 100, 100];
-  const size = new THREE.Vector3().fromArray(sizeArray);
-  const enterNormalsArray = app.getComponent('enterNormals') ?? [];
-  const enterNormals = enterNormalsArray.map(a => new THREE.Vector3().fromArray(a));
-
-  const previewer = new ScenePreviewer({
-    size,
-    enterNormals,
-  });
-  previewer.setFocus(focus);
-
-  previewer.matrixWorld.copy(app.matrixWorld);
-  previewer.matrix.copy(app.matrix);
-  previewer.position.copy(app.position);
-  previewer.quaternion.copy(app.quaternion);
-  previewer.scale.copy(app.scale);
-
-  const {skyboxMeshes, sceneObject} = previewer;
-  for (const skyboxMesh of skyboxMeshes) {
-    app.add(skyboxMesh);
-    skyboxMesh.updateMatrixWorld();
-  }
-
-  app.add(sceneObject);
-
-  app.previewer = previewer;
-  app.hasSubApps = true;
-
-  e.waitUntil((async () => {
-    await previewer.loadScene(sceneUrl);
-  })());
-
-  return app;
-}; */
-
 
 const loadOverworld = async () => {
-  // const {useLocalPlayer, useFrame} = metaversefile;
-  // const localPlayer = useLocalPlayer();
-
   const chunks = [
     {
       name: 'street',
@@ -209,14 +140,14 @@ const loadOverworld = async () => {
   const _setChunkAppFocus = focusChunkApp => {
     for (const chunkApp of chunkApps) {
       const focus = chunkApp === focusChunkApp;
-      chunkApp.setComponent('focus', focus);
+      chunkApp.setFocus(focus);
       chunkApp.chunkPriority = focus ? 0 : -1;
     }
   };
   const _findChunkAppByPosition = position => {
     for (const chunkApp of chunkApps) {
       const chunkAppPosition = chunkApp.position;
-      const chunkAppSize = localVector.fromArray(chunkApp.size);
+      const chunkAppSize = chunkApp.size;
       if (
         position.x >= chunkAppPosition.x - chunkAppSize.x/2 &&
         position.x <= chunkAppPosition.x + chunkAppSize.x/2 &&
@@ -228,7 +159,7 @@ const loadOverworld = async () => {
     }
     return null;
   };
-  const _setChunkAppFocusFromPosition = position => {
+  /* const _setChunkAppFocusFromPosition = position => {
     const chunkApp = _findChunkAppByPosition(position);
     if (chunkApp !== lastChunkApp) {
       _setChunkAppFocus(chunkApp);
@@ -250,7 +181,7 @@ const loadOverworld = async () => {
       }
     }
     return result;
-  };
+  }; */
 
   //
 
@@ -307,22 +238,27 @@ const loadOverworld = async () => {
       if (!currentChunks.includes(newChunk)) {
         currentChunks.push(newChunk);
 
-        const {
+        const [
           chunkApp,
           chunkAppPromise,
-        } = _reifyChunk(newChunk);
+        ] = _reifyChunk(newChunk);
         chunkApps.push(chunkApp);
         chunkAppPromises.push(chunkAppPromise);
         _sortApps();
       }
+    }
+
+    const currentChunkApp = _findChunkAppByPosition(localPlayer.position);
+    if (currentChunkApp !== lastChunkApp) {
+      // console.log('chunk app changed', currentChunkApp);
+      _setChunkAppFocus(currentChunkApp);
+      lastChunkApp = currentChunkApp;
     }
   });
 
   overworldObject.hasSubApps = true;
 
   await Promise.all(chunkAppPromises);
-  
-  console.log('all chunk apps loaded');
 };
 export {
   loadOverworld,
