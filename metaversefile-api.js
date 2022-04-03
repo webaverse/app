@@ -65,7 +65,7 @@ class App extends THREE.Object3D {
     this.physicsObjects = [];
     this.hitTracker = null;
     this.appType = 'none';
-    this.hasRenderSettings = false;
+    this.hasSubApps = false;
     this.lastMatrix = new THREE.Matrix4();
 
     const startframe = () => {
@@ -157,7 +157,7 @@ class App extends THREE.Object3D {
     this.hitTracker && this.hitTracker.hit(damage, opts);
   }
   getRenderSettings() {
-    if (this.hasRenderSettings) {
+    if (this.hasSubApps) {
       return renderSettingsManager.findRenderSettings(this);
     } else {
       return null;
