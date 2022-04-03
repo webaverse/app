@@ -74,23 +74,15 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/npc/",
+      "start_url": "/avatars/drake_hacker_v3_vian.vrm",
       "components": [
         {
-          "key": "name",
-          "value": "Drake"
-        },
-        {
-          "key": "voice",
-          "value": "Shining Armor"
-        },
-        {
-          "key": "avatarUrl",
-          "value": "/avatars/drake_hacker_v3_vian.vrm"
-        },
-        {
-          "key": "bio",
-          "value": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+          "key": "npc",
+          "value": {
+            "name": "Drake",
+            "voice": "Shining Armor",
+            "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+          }
         }
       ]
     },
