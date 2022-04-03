@@ -51,17 +51,19 @@ export default () => {
           -Math.PI / 2
         )
       );
+      const p = position.clone();
       if (result) {
         const {
           point,
         } = result;
 
-        const p = new THREE.Vector3().fromArray(point);
+        p.fromArray(point);
         p.y += 0.05;
-        splinePoints[i] = p;
-      } /* else {
-        console.warn('no raycast', position);
-      } */
+      } else {
+        // console.warn('no raycast', position);
+        p.y = 0;
+      }
+      splinePoints[i] = p;
     }
     const curve = new THREE.CatmullRomCurve3(splinePoints);
 
