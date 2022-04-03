@@ -292,13 +292,20 @@ class PlayerBase extends THREE.Object3D {
 
     if (loadoutIndex >= 0 && loadoutIndex < numLoadoutSlots) {
       const _removeOldApp = () => {
-        const action = this.getActionsState().get(loadoutIndex);
-        if (action) {
-          const app = this.appManager.getAppByInstanceId(action.instanceId);
+        const actions = this.getActionsState();
+        let oldLoadoutAction = null;
+        for (let i = 0; i < actions.length; i++) {
+          const action = actions.get(i);
+          if (action.type === 'wear' && action.loadoutIndex === loadoutIndex) {
+            oldLoadoutAction = action;
+            break;
+          }
+        }
+        if (oldLoadoutAction) {
+          const app = this.appManager.getAppByInstanceId(oldLoadoutAction.instanceId);
           this.unwear(app, {
             destroy: true,
           });
-          // this.removeActionIndex(loadoutIndex);
         }
       };
       _removeOldApp();
