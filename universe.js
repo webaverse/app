@@ -60,9 +60,10 @@ class Universe extends EventTarget {
           const p = loadOverworld(x1, y1);
           promises.push(p);
         } else {
-          promises.push(metaversefile.createAppAsync({
+          const p = metaversefile.createAppAsync({
             start_url: src,
-          }));
+          });
+          promises.push(p);
         }
       } else {
         const p = (async () => {
