@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import metaversefile from 'metaversefile';
+// import metaversefile from 'metaversefile';
 import {localPlayer} from './players.js';
 import {world} from './world.js';
 import {scene} from './renderer.js';
