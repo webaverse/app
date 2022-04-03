@@ -10,32 +10,43 @@ export default e => {
 
   const sceneUrl = app.getComponent('sceneUrl') ?? '';
   const focus = app.getComponent('focus') ?? false;
-  const previewPositionArray = app.getComponent('previewPosition') ?? [0, 0, 0];
+  /* const previewPositionArray = app.getComponent('previewPosition') ?? [0, 0, 0];
   const previewPosition = new THREE.Vector3().fromArray(previewPositionArray);
   const previewPositionQuaternion = app.getComponent('previewQuaternion') ?? [0, 0, 0, 1];
-  const previewQuaternion = new THREE.Quaternion().fromArray(previewPositionQuaternion);
+  const previewQuaternion = new THREE.Quaternion().fromArray(previewPositionQuaternion); */
+  const sizeArray = app.getComponent('size') ?? [100, 100, 100];
+  const size = new THREE.Vector3().fromArray(sizeArray);
+  const enterNormalsArray = app.getComponent('enterNormals') ?? [];
+  const enterNormals = enterNormalsArray.map(a => new THREE.Vector3().fromArray(a));
 
-  const scenePreviewer = new ScenePreviewer();
-  scenePreviewer.setFocus(focus);
-  const {skyboxMesh, sceneObject} = scenePreviewer;
-  scenePreviewer.matrixWorld.copy(app.matrixWorld);
-  scenePreviewer.matrix.copy(app.matrix);
-  scenePreviewer.position.copy(app.position);
-  scenePreviewer.quaternion.copy(app.quaternion);
-  scenePreviewer.scale.copy(app.scale);
+  const previewer = new ScenePreviewer({
+    size,
+    enterNormals,
+  });
+  console.log('previewer set focus', focus, sceneUrl);
+  previewer.setFocus(focus);
 
-  skyboxMesh.position.copy(previewPosition);
-  skyboxMesh.quaternion.copy(previewQuaternion);
-  app.add(skyboxMesh);
-  skyboxMesh.updateMatrixWorld();
+  previewer.matrixWorld.copy(app.matrixWorld);
+  previewer.matrix.copy(app.matrix);
+  previewer.position.copy(app.position);
+  previewer.quaternion.copy(app.quaternion);
+  previewer.scale.copy(app.scale);
+
+  const {skyboxMeshes, sceneObject} = previewer;
+  for (const skyboxMesh of skyboxMeshes) {
+    // skyboxMesh.position.copy(previewPosition);
+    // skyboxMesh.quaternion.copy(previewQuaternion);
+    app.add(skyboxMesh);
+    skyboxMesh.updateMatrixWorld();
+  }
 
   app.add(sceneObject);
 
-  app.setFocus = scenePreviewer.setFocus.bind(scenePreviewer);
-  app.hasRenderSettings = true;
+  app.previewer = previewer;
+  app.hasSubApps = true;
 
   e.waitUntil((async () => {
-    await scenePreviewer.loadScene(sceneUrl);
+    await previewer.loadScene(sceneUrl);
   })());
 
   // app.setComponent('renderPriority', 'low');
