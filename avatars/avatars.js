@@ -56,6 +56,7 @@ import Blinker from './Blinker.js'
 import Nodder from './Nodder.js'
 import Looker from './Looker.js'
 import physx from '../physx.js';
+import { getDiffQuaternion } from '../util.js';
 import { createMachine, actions, interpret, assign } from 'xstate';
 
 const { DEG2RAD } = THREE.MathUtils;
@@ -854,142 +855,27 @@ const _makeRagdollMesh = () => {
   };
   object.toAvatar = avatar => {
 
-    {
-      avatar.modelBoneOutputs.Hips.position.set(0, 0, 0);
-      avatar.modelBoneOutputs.Hips.quaternion.identity();
-
-      flatMeshes.Hips.matrixWorld.decompose(avatar.modelBoneOutputs.Root.position, avatar.modelBoneOutputs.Root.quaternion, avatar.modelBoneOutputs.Root.scale)
-    }
-  
-    // global quaternion diff to locoal quaternion diff formula:
-    // https://forum.unity.com/threads/subtracting-quaternions.317649/
-    // A * B * iB = A
-    // A * B = C
-    // C * iB = A
-    // A = C * iB
-    // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/functions/index.htm
-    // // qa' * qb' = (qb*qa)' 
-    // (A * B)' = B' * A'
-    // (A * B)' = C'
-    // B' * A' = C'
-    // B' * A' * A = B'
-    // C' * A = B'
-    // B' = C' * A
-    // B = (C' * A)'   !!! 
-    {
-      const a = localQuaternion.copy(flatMeshes.Hips.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Left_leg.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Left_leg.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Hips.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Spine.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Spine.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Spine.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Chest.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Chest.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Chest.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.UpperChest.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.UpperChest.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Hips.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Right_leg.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Right_leg.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Left_leg.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Left_knee.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Left_knee.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Left_knee.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Left_ankle.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Left_ankle.quaternion.copy(b);
-    }
-    // {
-    //   const a = localQuaternion.copy(flatMeshes.Left_ankle.quaternion);
-    //   const c = localQuaternion2.copy(flatMeshes.Left_toe.quaternion);
-    //   const b = c.invert().multiply(a).invert();
-    //   avatar.modelBoneOutputs.Left_toe.quaternion.copy(b);
-    // }
-    {
-      const a = localQuaternion.copy(flatMeshes.Right_leg.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Right_knee.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Right_knee.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Right_knee.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Right_ankle.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Right_ankle.quaternion.copy(b);
-    }
-    // {
-    //   const a = localQuaternion.copy(flatMeshes.Right_ankle.quaternion);
-    //   const c = localQuaternion2.copy(flatMeshes.Right_toe.quaternion);
-    //   const b = c.invert().multiply(a).invert();
-    //   avatar.modelBoneOutputs.Right_toe.quaternion.copy(b);
-    // }
-    {
-      const a = localQuaternion.copy(flatMeshes.Left_shoulder.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Left_arm.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Left_arm.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Left_arm.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Left_elbow.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Left_elbow.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Left_elbow.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Left_wrist.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Left_wrist.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Right_shoulder.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Right_arm.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Right_arm.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Right_arm.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Right_elbow.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Right_elbow.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Right_elbow.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Right_wrist.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Right_wrist.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.UpperChest.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Neck.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Neck.quaternion.copy(b);
-    }
-    {
-      const a = localQuaternion.copy(flatMeshes.Neck.quaternion);
-      const c = localQuaternion2.copy(flatMeshes.Head.quaternion);
-      const b = c.invert().multiply(a).invert();
-      avatar.modelBoneOutputs.Head.quaternion.copy(b);
-    }
+    avatar.modelBoneOutputs.Hips.position.set(0, 0, 0);
+    avatar.modelBoneOutputs.Hips.quaternion.identity();
+    flatMeshes.Hips.matrixWorld.decompose(avatar.modelBoneOutputs.Root.position, avatar.modelBoneOutputs.Root.quaternion, avatar.modelBoneOutputs.Root.scale)
+    
+    avatar.modelBoneOutputs.Left_leg.quaternion.copy( getDiffQuaternion(flatMeshes.Hips.quaternion, flatMeshes.Left_leg.quaternion) );
+    avatar.modelBoneOutputs.Spine.quaternion.copy( getDiffQuaternion(flatMeshes.Hips.quaternion, flatMeshes.Spine.quaternion) );
+    avatar.modelBoneOutputs.Chest.quaternion.copy( getDiffQuaternion(flatMeshes.Spine.quaternion, flatMeshes.Chest.quaternion) );
+    avatar.modelBoneOutputs.UpperChest.quaternion.copy( getDiffQuaternion(flatMeshes.Chest.quaternion, flatMeshes.UpperChest.quaternion) );
+    avatar.modelBoneOutputs.Right_leg.quaternion.copy( getDiffQuaternion(flatMeshes.Hips.quaternion, flatMeshes.Right_leg.quaternion) );
+    avatar.modelBoneOutputs.Left_knee.quaternion.copy( getDiffQuaternion(flatMeshes.Left_leg.quaternion, flatMeshes.Left_knee.quaternion) );
+    avatar.modelBoneOutputs.Left_ankle.quaternion.copy( getDiffQuaternion(flatMeshes.Left_knee.quaternion, flatMeshes.Left_ankle.quaternion) );
+    avatar.modelBoneOutputs.Right_knee.quaternion.copy( getDiffQuaternion(flatMeshes.Right_leg.quaternion, flatMeshes.Right_knee.quaternion) );
+    avatar.modelBoneOutputs.Right_ankle.quaternion.copy( getDiffQuaternion(flatMeshes.Right_knee.quaternion, flatMeshes.Right_ankle.quaternion) );
+    avatar.modelBoneOutputs.Left_arm.quaternion.copy( getDiffQuaternion(flatMeshes.Left_shoulder.quaternion, flatMeshes.Left_arm.quaternion) );
+    avatar.modelBoneOutputs.Left_elbow.quaternion.copy( getDiffQuaternion(flatMeshes.Left_arm.quaternion, flatMeshes.Left_elbow.quaternion) );
+    avatar.modelBoneOutputs.Left_wrist.quaternion.copy( getDiffQuaternion(flatMeshes.Left_elbow.quaternion, flatMeshes.Left_wrist.quaternion) );
+    avatar.modelBoneOutputs.Right_arm.quaternion.copy( getDiffQuaternion(flatMeshes.Right_shoulder.quaternion, flatMeshes.Right_arm.quaternion) );
+    avatar.modelBoneOutputs.Right_elbow.quaternion.copy( getDiffQuaternion(flatMeshes.Right_arm.quaternion, flatMeshes.Right_elbow.quaternion) );
+    avatar.modelBoneOutputs.Right_wrist.quaternion.copy( getDiffQuaternion(flatMeshes.Right_elbow.quaternion, flatMeshes.Right_wrist.quaternion) );
+    avatar.modelBoneOutputs.Neck.quaternion.copy( getDiffQuaternion(flatMeshes.UpperChest.quaternion, flatMeshes.Neck.quaternion) );
+    avatar.modelBoneOutputs.Head.quaternion.copy( getDiffQuaternion(flatMeshes.Neck.quaternion, flatMeshes.Head.quaternion) );
   };
   object.skeleton = null;
   return object;
