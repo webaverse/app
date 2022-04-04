@@ -156,7 +156,7 @@ export default () => {
   app.add(mesh);
   mesh.updateMatrixWorld();
 
-  window.areaMesh = mesh;
+  // window.areaMesh = mesh;
 
   // const localPlayer = useLocalPlayer();
   useFrame(({timestamp, timeDiff}) => {
