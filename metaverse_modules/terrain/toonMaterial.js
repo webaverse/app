@@ -76,16 +76,14 @@ varying vec3 vViewPosition;
 #include <clipping_planes_pars_vertex>
 
 #ifdef USE_TERRAIN
-    attribute vec3 biome;
-    attribute vec3 biomeWeight;
+    attribute vec4 biome;
+    attribute vec4 biomeWeight;
 
     out vec3  vtriCoord;
     out vec3  vtriNormal;
-    flat out float vbiome0;
-    flat out float vbiome1;
-    flat out float vbiome2;
+    flat out vec4 vbiome;
     out float fbiome0;
-    out vec3 vbiomeWeight;
+    out vec4 vbiomeWeight;
 #endif
 
 void main() {
@@ -114,9 +112,7 @@ void main() {
 	#include <worldpos_vertex>
 
     #if defined(USE_TERRAIN)
-        vbiome0 = biome.x;
-        vbiome1 = biome.y;
-        vbiome2 = biome.z;
+        vbiome = biome;
         fbiome0 = biome.x;
         vbiomeWeight = biomeWeight;
         vec4 triWorldPosition = vec4( transformed, 1.0 );
@@ -184,11 +180,9 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
     uniform sampler2DArray terrainNormalArrayTexture ;
     uniform sampler2D  noiseTexture ;
 
-    flat in float vbiome0;
-    flat in float vbiome1;
-    flat in float vbiome2;
+    flat in vec4 vbiome;
     in float fbiome0;
-    in vec3 vbiomeWeight;
+    in vec4 vbiomeWeight;
     in vec3 vtriCoord;
     in vec3 vtriNormal;
 
@@ -229,9 +223,9 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
 
     vec3 triplanarNormal(vec3 pos, vec3 normal,vec3 blending, float texId, sampler2DArray tex,float scale) {
       // Tangent space normal maps
-      vec3 tnormalX = randomTexture(tex, vec3(pos.zy/scale, vbiome0)).xyz*2.0-1.0;
-      vec3 tnormalY = randomTexture(tex, vec3(pos.xz/scale, vbiome0)).xyz*2.0-1.0;
-      vec3 tnormalZ = randomTexture(tex, vec3(pos.xy/scale, vbiome0)).xyz*2.0-1.0;
+      vec3 tnormalX = randomTexture(tex, vec3(pos.zy/scale, vbiome.x)).xyz*2.0-1.0;
+      vec3 tnormalY = randomTexture(tex, vec3(pos.xz/scale, vbiome.x)).xyz*2.0-1.0;
+      vec3 tnormalZ = randomTexture(tex, vec3(pos.xy/scale, vbiome.x)).xyz*2.0-1.0;
       vec3 normalX = vec3(0.0, tnormalX.yx);
       vec3 normalY = vec3(tnormalY.x, 0.0, tnormalY.y);
       vec3 normalZ = vec3(tnormalZ.xy, 0.0);
@@ -295,13 +289,15 @@ void main() {
         vec3 blending = normalize(max(abs(vtriNormal), 0.001)); // Force weights to sum to 1.0
         blending = blending / (blending.x + blending.y + blending.z);
 
-        vec4 biome0Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome0, terrainArrayTexture,10.0) ;
-        vec4 biome1Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome1, terrainArrayTexture,10.0) ;
-        vec4 biome2Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome2, terrainArrayTexture,10.0) ;
+        vec4 biome0Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome.x, terrainArrayTexture,10.0) ;
+        vec4 biome1Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome.y, terrainArrayTexture,10.0) ;
+        vec4 biome2Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome.z, terrainArrayTexture,10.0) ;
+        vec4 biome3Color= triplanarTexture(vtriCoord, vtriNormal.xyz,blending, vbiome.w, terrainArrayTexture,10.0) ;
 
         float ba = fbm(vtriCoord) ;
-        vec4 terrainColor = vbiomeWeight.x * biome0Color + vbiomeWeight.y * biome1Color + vbiomeWeight.z * biome2Color;
-        // if (abs(fbiome0 - vbiome0) > 0.01) {
+        vec4 terrainColor = vbiomeWeight.x * biome0Color + vbiomeWeight.y * biome1Color +
+            vbiomeWeight.z * biome2Color + vbiomeWeight.w * biome3Color;
+        // if (abs(fbiome0 - vbiome.x) > 0.01) {
         //     if (vbiomeWeight.z < 0.1) {
         //         terrainColor = 0.5 * (biome0Color + biome1Color);
         //     }
@@ -318,11 +314,12 @@ void main() {
 	#include <normal_fragment_maps>
 
     #ifdef USE_TERRAIN
-        vec3 normal0 = triplanarNormal(vtriCoord,normal,blending, vbiome0, terrainNormalArrayTexture,10.0);
-        vec3 normal1 = triplanarNormal(vtriCoord,normal,blending, vbiome1, terrainNormalArrayTexture,10.0);
-        vec3 normal2 = triplanarNormal(vtriCoord,normal,blending, vbiome2, terrainNormalArrayTexture,10.0);
+        vec3 normal0 = triplanarNormal(vtriCoord,normal,blending, vbiome.x, terrainNormalArrayTexture,10.0);
+        vec3 normal1 = triplanarNormal(vtriCoord,normal,blending, vbiome.y, terrainNormalArrayTexture,10.0);
+        vec3 normal2 = triplanarNormal(vtriCoord,normal,blending, vbiome.z, terrainNormalArrayTexture,10.0);
+        vec3 normal3 = triplanarNormal(vtriCoord,normal,blending, vbiome.w, terrainNormalArrayTexture,10.0);
 
-        vec3 normalmix = vbiomeWeight.x * normal0 + vbiomeWeight.y * normal1 + vbiomeWeight.z * normal2;
+        vec3 normalmix = vbiomeWeight.x * normal0 + vbiomeWeight.y * normal1 + vbiomeWeight.z * normal2 + vbiomeWeight.w * normal3;
         normal = normalize(normal + normalmix *0.5);//normalmix;//
     #endif
 

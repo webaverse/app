@@ -44,7 +44,7 @@ export class TerrainManager {
 
 		buf.positions = new Float32Array(maxVertexCount * 3);
 		buf.normals = new Float32Array(maxVertexCount * 3);
-		buf.biomes = new Float32Array(maxVertexCount * 6);
+		buf.biomes = new Float32Array(maxVertexCount * 8);
 		buf.indices = new Uint32Array(maxIndexCount * 3);
 		buf.vertexRanges = new Int32Array(totalChunkCount * 2);
 		buf.indexRanges = new Int32Array(totalChunkCount * 2);
@@ -100,21 +100,21 @@ export class TerrainManager {
 
 		this.biomeAttributeBuffer = new THREE.InterleavedBuffer();
 		this.biomeAttributeBuffer.array = this.bufferFactory.biomes;
-		this.biomeAttributeBuffer.stride = 6;
+		this.biomeAttributeBuffer.stride = 8;
 		this.count = this.bufferFactory.biomes.length;
 		this.biomeAttribute = new THREE.InterleavedBufferAttribute();
 		this.biomeAttribute.data = this.biomeAttributeBuffer;
 		this.biomeAttribute.offset = 0;
-		this.biomeAttribute.itemSize = 3;
+		this.biomeAttribute.itemSize = 4;
 
 		this.biomeWeightAttributeBuffer = new THREE.InterleavedBuffer();
 		this.biomeWeightAttributeBuffer.array = this.bufferFactory.biomes;
-		this.biomeWeightAttributeBuffer.stride = 6;
+		this.biomeWeightAttributeBuffer.stride = 8;
 		this.count = this.bufferFactory.biomes.length;
 		this.biomeWeightAttribute = new THREE.InterleavedBufferAttribute();
 		this.biomeWeightAttribute.data = this.biomeWeightAttributeBuffer;
-		this.biomeWeightAttribute.offset = 3;
-		this.biomeWeightAttribute.itemSize = 3;
+		this.biomeWeightAttribute.offset = 4;
+		this.biomeWeightAttribute.itemSize = 4;
 
 		this.geometry.setIndex(this.indexAttribute);
 		this.geometry.setAttribute('position', this.positionAttribute);
@@ -283,15 +283,15 @@ export class TerrainManager {
 		this.normalAttribute.version++;
 
 		this.biomeAttributeBuffer.updateRange = {
-			offset: buf.vertexRanges[slots[0] * 2] * 6,
-			count: buf.vertexRanges[slots[0] * 2 + 1] * 6,
+			offset: buf.vertexRanges[slots[0] * 2] * 8,
+			count: buf.vertexRanges[slots[0] * 2 + 1] * 8,
 		};
 		// this.biomeAttribute.needsUpdate = true;
 		this.biomeAttributeBuffer.version++;
 
 		this.biomeWeightAttributeBuffer.updateRange = {
-			offset: buf.vertexRanges[slots[0] * 2] * 6,
-			count: buf.vertexRanges[slots[0] * 2 + 1] * 6,
+			offset: buf.vertexRanges[slots[0] * 2] * 8,
+			count: buf.vertexRanges[slots[0] * 2 + 1] * 8,
 		};
 		// this.biomeWeightAttribute.needsUpdate = true;
 		this.biomeWeightAttributeBuffer.version++;

@@ -93,8 +93,8 @@ onmessage = e => {
         );
 
         const biomes = moduleInstance.HEAPF32.subarray(
-            biomeBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 6,
-            biomeBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 6 + vertexRanges[2 * slots[0] + 1] * 6
+            biomeBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 8,
+            biomeBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 8 + vertexRanges[2 * slots[0] + 1] * 8
         );
 
         const indices = moduleInstance.HEAPU32.subarray(
@@ -104,7 +104,7 @@ onmessage = e => {
 
         arrays[0].set(positions, vertexRanges[2 * slots[0]] * 3);
         arrays[1].set(normals, vertexRanges[2 * slots[0]] * 3);
-        arrays[2].set(biomes, vertexRanges[2 * slots[0]] * 6);
+        arrays[2].set(biomes, vertexRanges[2 * slots[0]] * 8);
         arrays[3].set(indices, indexRanges[2 * slots[1]]);
         arrays[4].set(vertexRanges);
         arrays[5].set(indexRanges);
@@ -148,7 +148,7 @@ function generateTerrain(chunkSize, chunkCount, segment, vertexBufferSizeParam, 
         normalBuffer / ELEMENT_BYTES, normalBuffer / ELEMENT_BYTES + positionCount * 3);
 
     const biomes = moduleInstance.HEAPF32.subarray(
-        biomeBuffer / ELEMENT_BYTES, biomeBuffer / ELEMENT_BYTES + positionCount * 6);
+        biomeBuffer / ELEMENT_BYTES, biomeBuffer / ELEMENT_BYTES + positionCount * 8);
 
     const indices = moduleInstance.HEAPU32.subarray(
         indexBuffer / ELEMENT_BYTES, indexBuffer / ELEMENT_BYTES + indexCount);
