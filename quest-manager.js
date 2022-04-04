@@ -1,60 +1,19 @@
-import {scene} from './renderer.js';
-import * as metaverseModules from './metaverse-modules.js';
-import metaversefile from 'metaversefile';
-// import {OffscreenEngine} from './offscreen-engine.js';
-
-const _makePathApp = () => {
-  const app = metaversefile.createApp();
-  // console.log('got metaverse modules', metaverseModules.modules, metaverseModules.modules.path);
-  app.setComponent('line', [
-    [92.5, 0, -33],
-    [19.5, -4, 59.5],
-  ]);
-  app.addModule(metaverseModules.modules.path);
-  return app;
-};
+// import {scene} from './renderer.js';
+// import * as metaverseModules from './metaverse-modules.js';
+// import metaversefile from 'metaversefile';
 
 class Quest {
-  constructor(spec) {
-    this.name = spec.name;
-    this.description = spec.description;
-    this.conditions = spec.conditions;
-    this.completeActions = spec.completeActions;
+  constructor(app) {
+    // this.app = app;
 
-    /* {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "components": [
-        {
-          "key": "line",
-          "value": [
-            [92.5, 0, -33],
-            [19.5, -4, 59.5]
-          ]
-        },
-        {
-          "key": "bounds",
-          "value": [
-            [19, -4.5, 57],
-            [20, 0, 58]
-          ]
-        }
-      ],
-      "start_url": "../metaverse_modules/quest/",
-      "dynamic": true
-    }, */
+    const {name, description, conditions, completeActions} = app.json;
 
-    this.pathApp = _makePathApp();
-    scene.add(this.pathApp);
+    this.name = name;
+    this.description = description;
+    this.conditions = conditions;
+    this.completeActions = completeActions;
+
+    this.camera = app.camera;
 
     this.conditionsFn = (() => {
       for (const condition of this.conditions) {
@@ -70,7 +29,9 @@ class Quest {
               // XXX
             };
           }
-          return null;
+          default: {
+            return null;
+          }
         }
       }
     })();
@@ -79,9 +40,7 @@ class Quest {
     this.conditionsFn && this.conditionsFn();
   }
   destroy() {
-    scene.remove(this.pathApp);
-    this.pathApp.destroy();
-    this.pathApp = null;
+    // nothing
   }
 }
 
@@ -91,20 +50,20 @@ class QuestManager extends EventTarget {
 
     this.quests = [];
   }
-  addQuest(spec) {
-    const quest = new Quest(spec);
-    this.quests.push(quest);
-
+  addQuest(questApp) {
+    const quest = new Quest(questApp);
     this.dispatchEvent(new MessageEvent('questadd', {
       data: {
         quest,
       },
     }));
   }
-  removeQuest(quest) {
-    const index = this.quests.indexOf(quest);
+  removeQuest(questApp) {
+    const index = this.quests.findIndex(quest => quest.app === questApp);
     if (index !== -1) {
+      const quest = this.quests[index];
       this.quests.splice(index, 1);
+      quest.destroy();
 
       this.dispatchEvent(new MessageEvent('questremove', {
         data: {
@@ -118,22 +77,6 @@ class QuestManager extends EventTarget {
       quest.update(timestamp, timeDiff);
     }
   }
-  /* getSpriteSheetForApp(app) {
-    let spritesheet = this.spritesheetCache.get(app.contentId);
-    if (!spritesheet) {
-      spritesheet = createObjectSprite(app);
-      this.spritesheetCache.set(app.contentId, spritesheet);
-    }
-    return spritesheet;
-  }
-  async getSpriteSheetForAppUrlAsync(appUrl, opts) {
-    let spritesheet = this.spritesheetCache.get(appUrl);
-    if (!spritesheet) {
-      spritesheet = await this.getSpriteSheetForAppUrlInternal(appUrl, opts);
-      this.spritesheetCache.set(appUrl, spritesheet);
-    }
-    return spritesheet;
-  } */
 }
 const questManager = new QuestManager();
 
