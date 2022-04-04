@@ -816,6 +816,7 @@ metaversefile.setApi({
   },
   createAppInternal({
     start_url = '',
+    module = null,
     components = [],
     position = null,
     quaternion = null,
@@ -883,9 +884,14 @@ metaversefile.setApi({
     _updateComponents();
 
     // load
-    if (start_url) {
+    if (start_url || module) {
       const p = (async () => {
-        const m = await metaversefile.import(start_url);
+        let m;
+        if (start_url) {
+          m = await metaversefile.import(start_url);
+        } else {
+          m = module;
+        }
         await metaversefile.addModule(app, m);
       })();
       if (onWaitPromise) {
