@@ -5,9 +5,9 @@ import {world} from './world.js';
 import {scene} from './renderer.js';
 import {ScenePreviewer} from './scene-previewer.js';
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
+// const localVector = new THREE.Vector3();
+// const localVector2 = new THREE.Vector3();
+// const localQuaternion = new THREE.Quaternion();
 
 const range = 30;
 
@@ -28,13 +28,16 @@ class OverworldApp {
       enterNormals: [],
     });
     previewer.setFocus(focus);
-    const {skyboxMeshes, sceneObject} = previewer;
+    const {lodMesh, skyboxMeshes, sceneObject} = previewer;
   
     position && previewer.position.fromArray(position);
     quaternion && previewer.quaternion.fromArray(quaternion);
     scale && previewer.scale.fromArray(scale);
     previewer.updateMatrixWorld();
     
+    overworldObject.add(lodMesh);
+    lodMesh.updateMatrixWorld();
+
     for (const skyboxMesh of skyboxMeshes) {
       skyboxMesh.position.copy(previewPosition);
       skyboxMesh.quaternion.copy(previewQuaternion);
