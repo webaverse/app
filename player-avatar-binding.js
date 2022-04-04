@@ -121,6 +121,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   }
   rig.useAnimationIndex = useAction?.index;
   rig.useTime = player.actionInterpolants.use.get();
+  // console.log('useTime', rig.useTime);
   rig.unuseTime = player.actionInterpolants.unuse.get();
   if (rig.unuseTime === 0) { // this means use is active
     if (useAction?.animationEnvelope) {

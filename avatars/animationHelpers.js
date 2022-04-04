@@ -694,7 +694,7 @@ const _blendActivateAction = spec => {
 };
 
 export const _applyAnimation = (avatar, now, moveFactors) => {
-  debugger
+  // debugger
   activeMoveFactors = moveFactors;
   // const runSpeed = 0.5;
   activeAvatar = avatar;
@@ -786,6 +786,26 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst, now);
   };
   const _getApplyFn = () => {
+    window.domInfo.innerHTML = `
+      <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
+      <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
+      <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
+      <div>chargeJumpState: --- ${activeAvatar.chargeJumpState}</div>
+      <div>danceState: --- ${activeAvatar.danceState}</div>
+      <div>fallLoopState: --- ${activeAvatar.fallLoopState}</div>
+      <div>flyState: --- ${activeAvatar.flyState}</div>
+      <div>jumpState: --- ${activeAvatar.jumpState}</div>
+      <div>narutoRunState: --- ${activeAvatar.narutoRunState}</div>
+      <div>sitState: --- ${activeAvatar.sitState}</div>
+      <div>useAnimation: --- ${activeAvatar.useAnimation}</div>
+      <div>useAnimationCombo: --- ${activeAvatar.useAnimationCombo}</div>
+      <div>useAnimationEnvelope: --- ${activeAvatar.useAnimationEnvelope}</div>
+      <div>useAnimationIndex: --- ${activeAvatar.useAnimationIndex}</div>
+      <div>useTime: --- ${Math.floor(activeAvatar.useTime)}</div>
+      <div>unuseAnimation: --- ${activeAvatar.unuseAnimation}</div>
+      <div>unuseTime: --- ${Math.floor(activeAvatar.unuseTime)}</div>
+    `
+
     if (activeAvatar.jumpState) {
       return spec => {
         const {
@@ -886,7 +906,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             activeAvatar.useAnimationCombo.length > 0 ||
             activeAvatar.useAnimationEnvelope.length > 0
     ) {
-      return spec => {
+      // vismark
+      return spec => { // todo: performance: generate new function every frame?
         const {
           animationTrackName: k,
           dst,
@@ -896,6 +917,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         let useAnimation;
         let t2;
+        // console.log(activeAvatar.useAnimation, activeAvatar.useAnimationCombo.length, activeAvatar.useAnimationEnvelope.length, activeAvatar.useTime); 
         const useTimeS = activeAvatar.useTime / 1000;
         if (activeAvatar.useAnimation) {
           const useAnimationName = activeAvatar.useAnimation;
