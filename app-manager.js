@@ -360,6 +360,17 @@ class AppManager extends EventTarget {
     }
     return null;
   }
+  getPairByPhysicsId(physicsId) {
+    for (const app of this.apps) {
+      const physicsObjects = app.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        if (physicsObject.physicsId === physicsId) {
+          return [app, physicsObject];
+        }
+      }
+    }
+    return null;
+  }
   getOrCreateTrackedApp(instanceId) {
     for (let i = 0; this.appsArray.length > i; i++) {
       const app = this.appsArray.get(i, Z.Map);
