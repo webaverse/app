@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import {getRenderer, camera} from './renderer.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import renderSettingsManager from './rendersettings-manager.js';
+import {snapshotMapChunk} from './scene-cruncher.js';
 import metaversefile from 'metaversefile';
 
 const resolution = 2048;
@@ -127,10 +128,13 @@ class ScenePreviewer extends THREE.Object3D {
   } = {}) {
     super();
 
+    this.size = size;
+    this.enterNormals = enterNormals;
+
     const previewScene = new THREE.Scene();
     previewScene.name = 'previewScene';
     previewScene.autoUpdate = false;
-    this.previewScene = previewScene
+    this.previewScene = previewScene;
     
     const previewContainer = new THREE.Object3D();
     previewContainer.name = 'previewContainer';
@@ -150,6 +154,7 @@ class ScenePreviewer extends THREE.Object3D {
     const cubeCamera = new THREE.CubeCamera(near, camera.far, cubeRenderTarget);
     this.cubeCamera = cubeCamera;
 
+    this.lodMesh = this.#makeLodMesh();
     this.skyboxMeshes = this.#makeSkyboxMeshes(size, enterNormals);
     this.sceneObject = new THREE.Object3D();
 
@@ -217,6 +222,11 @@ class ScenePreviewer extends THREE.Object3D {
       this.render();
     }
   }
+  #makeLodMesh() {
+    const mesh = new THREE.Mesh();
+    mesh.visible = false;
+    return mesh;
+  }
   #makeSkyboxMeshes(size, normals) {
     const result = [];
     for (const normal of normals) {
@@ -272,24 +282,49 @@ class ScenePreviewer extends THREE.Object3D {
     }
   }
   render() {
-    const renderer = getRenderer();
+    {
+      const renderer = getRenderer();
 
-    // push old state
-    const popPreviewContainerTransform = this.#pushPreviewContainerTransform();
-    const popRenderSettings = this.#pushRenderSettings();
+      // push old state
+      const popPreviewContainerTransform = this.#pushPreviewContainerTransform();
+      const popRenderSettings = this.#pushRenderSettings();
 
-    for (const skyboxMesh of this.skyboxMeshes) {
-      this.cubeCamera.position.setFromMatrixPosition(skyboxMesh.matrixWorld);
-      this.cubeCamera.updateMatrixWorld();
+      for (const skyboxMesh of this.skyboxMeshes) {
+        this.cubeCamera.position.setFromMatrixPosition(skyboxMesh.matrixWorld);
+        this.cubeCamera.updateMatrixWorld();
 
-      // render
-      this.cubeRenderTarget.clear(renderer, true, true, true);
-      this.cubeCamera.update(renderer, this.previewScene);
+        // render
+        this.cubeRenderTarget.clear(renderer, true, true, true);
+        this.cubeCamera.update(renderer, this.previewScene);
+      }
+
+      // pop old state
+      popPreviewContainerTransform();
+      popRenderSettings();
     }
 
-    // pop old state
-    popPreviewContainerTransform();
-    popRenderSettings();
+    {
+      console.log('render lod mesh 1');
+      const worldResolution = new THREE.Vector2(2048, 2048);
+      const worldDepthResolution = new THREE.Vector2(512, 512);
+
+      const lodMesh = snapshotMapChunk(
+        this.previewScene,
+        this.position,
+        this.size,
+        worldResolution,
+        worldDepthResolution
+      );
+      console.log('got lod mesh', lodMesh);
+      const oldParent = this.lodMesh.parent;
+      this.lodMesh = lodMesh;
+      if (oldParent) {
+        oldParent.add(lodMesh);
+        lodMesh.updateMatrixWorld();
+      }
+
+      console.log('render lod mesh 2');
+    }
   }
 };
 export {
