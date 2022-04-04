@@ -18,6 +18,8 @@ import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
 import loadoutManager from './loadout-manager.js';
+import questManager from './quest-manager.js';
+import mobManager from './mob-manager.js';
 import {
   getRenderer,
   scene,
@@ -39,7 +41,6 @@ import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 import {OffscreenEngine} from './offscreen-engine.js';
-import mobManager from './mob-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -318,8 +319,9 @@ export default class Webaverse extends EventTarget {
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
-          hpManager.update(timestamp, timeDiffCapped);
           mobManager.update(timestamp, timeDiffCapped);
+          hpManager.update(timestamp, timeDiffCapped);
+          questManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();

@@ -38,6 +38,7 @@ import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
+import questManager from './quest-manager.js';
 import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
@@ -410,6 +411,9 @@ metaversefile.setApi({
   },
   useChatManager() {
     return chatManager;
+  },
+  useQuests() {
+    return questManager;
   },
   useLoreAI() {
     return loreAI;
@@ -812,6 +816,7 @@ metaversefile.setApi({
   },
   createAppInternal({
     start_url = '',
+    module = null,
     components = [],
     position = null,
     quaternion = null,
@@ -879,9 +884,14 @@ metaversefile.setApi({
     _updateComponents();
 
     // load
-    if (start_url) {
+    if (start_url || module) {
       const p = (async () => {
-        const m = await metaversefile.import(start_url);
+        let m;
+        if (start_url) {
+          m = await metaversefile.import(start_url);
+        } else {
+          m = module;
+        }
         await metaversefile.addModule(app, m);
       })();
       if (onWaitPromise) {
@@ -1067,6 +1077,10 @@ export default () => {
     return debug;
   },
   async addModule(app, m) {
+    // wait to make sure module initialization happens in a clean tick loop,
+    // even when adding a module from inside of another module's initialization
+    await Promise.resolve();
+
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
     app.contentId = m.contentId ?? '';
@@ -1080,11 +1094,11 @@ export default () => {
     app.modules.push(m);
     app.updateModulesHash();
 
-    currentAppRender = app;
-
     let renderSpec = null;
     let waitUntilPromise = null;
-    const _tickModule = () => {
+    const _initModule = () => {
+      currentAppRender = app;
+
       try {
         const fn = m.default;
         if (typeof fn === 'function') {
@@ -1100,11 +1114,11 @@ export default () => {
       } catch(err) {
         console.warn(err);
         return null;
+      } finally {
+        currentAppRender = null;
       }
     };
-    _tickModule();
-
-    currentAppRender = null;
+    _initModule();
 
     if (waitUntilPromise) {
       await waitUntilPromise;
