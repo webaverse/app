@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import React, {useState, useRef, useEffect} from 'react';
 // import classnames from 'classnames';
 import styles from './quests.module.css';
@@ -11,7 +11,8 @@ import * as metaverseModules from '../../../../metaverse-modules.js';
 // import spritesheetManager from '../../../../spritesheet-manager.js';
 // import alea from '../../../../procgen/alea.js';
 
-const screenshotSize = 150;
+const screenshotWidth = 150;
+const screenshotHeight = 100;
 
 const size = 2048;
 const numFrames = 128;
@@ -81,11 +82,11 @@ export const Quest = ({
 
                 const _recurse = () => {
                     (async () => {
-                        const position = new THREE.Vector3(0, 30, 0);
+                        /* const position = new THREE.Vector3(0, 30, 0);
                         const quaternion = new THREE.Quaternion()
-                          .setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 4);
+                          .setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 4); */
                         // console.log('screenshot scene 1');
-                        screenshotScene(scene, position, quaternion, screenshotSize, ctx);
+                        screenshotScene(scene, quest.camera, screenshotWidth, screenshotHeight, ctx);
                         // console.log('screenshot scene 2', imageBitmap, live);
                         // if (!live) return;
     
@@ -111,7 +112,12 @@ export const Quest = ({
     return (
         <div className={ styles.quest } >
             <div className={ styles.background } />
-            <canvas className={ styles.screenshot } width={screenshotSize} height={screenshotSize} ref={canvasRef} />
+            <canvas
+              className={ styles.screenshot }
+              width={ screenshotWidth }
+              height={ screenshotHeight }
+              ref={ canvasRef }
+            />
             <div className={ styles.content }>
                 <h1 className={ styles.heading }>{name}</h1>
                 <div className={ styles.description }>{description}</div>
