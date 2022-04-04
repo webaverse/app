@@ -1094,11 +1094,11 @@ export default () => {
     app.modules.push(m);
     app.updateModulesHash();
 
-    currentAppRender = app;
-
     let renderSpec = null;
     let waitUntilPromise = null;
-    const _tickModule = () => {
+    const _initModule = () => {
+      currentAppRender = app;
+
       try {
         const fn = m.default;
         if (typeof fn === 'function') {
@@ -1114,11 +1114,11 @@ export default () => {
       } catch(err) {
         console.warn(err);
         return null;
+      } finally {
+        currentAppRender = null;
       }
     };
-    _tickModule();
-
-    currentAppRender = null;
+    _initModule();
 
     if (waitUntilPromise) {
       await waitUntilPromise;
