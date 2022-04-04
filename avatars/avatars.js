@@ -2413,6 +2413,7 @@ class Avatar {
           animationsIdleArrays.walk.animation.interpolants[animationMapping.animationTrackName].evaluate((this.unuseTime / 1000) % animationsIdleArrays.walk.animation.duration)
         )
       })
+      this.modelBoneOutputs.Hips.position.set(0, .8, 0); // todo: calc from CCT height.
 
       if (this.poseAnimation) {
         _overwritePose(this.poseAnimation);

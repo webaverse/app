@@ -154,10 +154,10 @@ const animationsAngleArraysMirror = {
 };
 const animationsIdleArrays = {
   reset: {name: 'reset.fbx'},
-  walk: {name: 'idle.fbx'},
-  run: {name: 'idle.fbx'},
+  walk: {name: 'walking.fbx'},
+  run: {name: 'running.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
-};
+}; 
 window.animationsIdleArrays = animationsIdleArrays;
 
 const cubicBezier = easing(0, 1, 0, 1);
@@ -191,6 +191,7 @@ async function loadAnimations() {
   const animationsJson = zbdecode(uint8Array);
   animations = animationsJson.animations
     .map(a => AnimationClip.parse(a));
+  window.animations = animations;
   animationStepIndices = animationsJson.animationStepIndices;
   animations.index = {};
   for (const animation of animations) {
