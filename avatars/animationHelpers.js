@@ -158,6 +158,7 @@ const animationsIdleArrays = {
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
+window.animationsIdleArrays = animationsIdleArrays;
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -486,6 +487,7 @@ const _get7wayBlend = (
   target,
   now,
 ) => {
+  // debugger
   const timeSeconds = now / 1000;
 
   const {
@@ -786,26 +788,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst, now);
   };
   const _getApplyFn = () => {
-    window.domInfo.innerHTML = `
-      <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
-      <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
-      <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
-      <div>chargeJumpState: --- ${activeAvatar.chargeJumpState}</div>
-      <div>danceState: --- ${activeAvatar.danceState}</div>
-      <div>fallLoopState: --- ${activeAvatar.fallLoopState}</div>
-      <div>flyState: --- ${activeAvatar.flyState}</div>
-      <div>jumpState: --- ${activeAvatar.jumpState}</div>
-      <div>narutoRunState: --- ${activeAvatar.narutoRunState}</div>
-      <div>sitState: --- ${activeAvatar.sitState}</div>
-      <div>useAnimation: --- ${activeAvatar.useAnimation}</div>
-      <div>useAnimationCombo: --- ${activeAvatar.useAnimationCombo}</div>
-      <div>useAnimationEnvelope: --- ${activeAvatar.useAnimationEnvelope}</div>
-      <div>useAnimationIndex: --- ${activeAvatar.useAnimationIndex}</div>
-      <div>useTime: --- ${Math.floor(activeAvatar.useTime)}</div>
-      <div>unuseAnimation: --- ${activeAvatar.unuseAnimation}</div>
-      <div>unuseTime: --- ${Math.floor(activeAvatar.unuseTime)}</div>
-    `
-
     if (activeAvatar.jumpState) {
       return spec => {
         const {
@@ -1140,6 +1122,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   const applyFn = _getApplyFn();
 
   for (const spec of activeAvatar.animationMappings) {
+    // if (spec.boneName === 'Spine') debugger;
     const {
       animationTrackName: k,
       dst,

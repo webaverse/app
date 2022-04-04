@@ -1275,6 +1275,7 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
+    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -1373,6 +1374,7 @@ class Avatar {
       this.setBottomEnabled(!!options.bottom);
     }
 
+    console.log('animationMappingConfig.map(animationMapping =>')
     this.animationMappings = animationMappingConfig.map(animationMapping => {
       animationMapping = animationMapping.clone();
       const isPosition = /\.position$/.test(animationMapping.animationTrackName);
@@ -1380,6 +1382,7 @@ class Avatar {
       animationMapping.lerpFn = _getLerpFn(isPosition);
       return animationMapping;
     });
+    window.animationMappings = this.animationMappings;
 
     this.blinker = new Blinker();
     this.nodder = new Nodder();
@@ -2385,7 +2388,31 @@ class Avatar {
       this.ragdollMesh.toAvatar(this);
     } else {
       _updateHmdPosition();
-      _applyAnimation(this, now, moveFactors);
+      // _applyAnimation(this, now, moveFactors);
+      window.domInfo.innerHTML = `
+        <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
+        <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
+        <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
+        <div>chargeJumpState: --- ${this.chargeJumpState}</div>
+        <div>danceState: --- ${this.danceState}</div>
+        <div>fallLoopState: --- ${this.fallLoopState}</div>
+        <div>flyState: --- ${this.flyState}</div>
+        <div>jumpState: --- ${this.jumpState}</div>
+        <div>narutoRunState: --- ${this.narutoRunState}</div>
+        <div>sitState: --- ${this.sitState}</div>
+        <div>useAnimation: --- ${this.useAnimation}</div>
+        <div>useAnimationCombo: --- ${this.useAnimationCombo}</div>
+        <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
+        <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
+        <div>useTime: --- ${Math.floor(this.useTime)}</div>
+        <div>unuseAnimation: --- ${this.unuseAnimation}</div>
+        <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
+      `
+      animationMappings.forEach(animationMapping=>{
+        animationMapping.dst.fromArray(
+          animationsIdleArrays.walk.animation.interpolants[animationMapping.animationTrackName].evaluate((this.unuseTime / 1000) % animationsIdleArrays.walk.animation.duration)
+        )
+      })
 
       if (this.poseAnimation) {
         _overwritePose(this.poseAnimation);
