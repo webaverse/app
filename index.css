@@ -3,6 +3,12 @@
 }
 body {
   margin: 0;
+  -webkit-text-size-adjust: none;
+  touch-action: manipulation;
+  touch-action: pan-x pan-y;
+}
+html {
+    transform: scale(1);
 }
 #root {
   width: 100vw;
