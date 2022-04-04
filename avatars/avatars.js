@@ -1454,6 +1454,20 @@ class Avatar {
             on: {
               ragdoll: {target: 'ragdoll'},
             },
+            initial: 'walk',
+            states: {
+              walk: {
+                on: {
+                  attack: {target: 'combo'},
+                }
+              },
+              combo: {
+                entry: 'entryCombo',
+                on: {
+                  finish: {target: 'walk'},
+                }
+              }
+            }
           },
           ragdoll: {
             entry: 'entryRagdoll',
@@ -1465,6 +1479,11 @@ class Avatar {
       },
       {
         actions: {
+          entryCombo: () => {
+            setTimeout(() => {
+              this.fsms.send('finish');
+            }, 1000);
+          },
           entryRagdoll: () => {
             if (!this.ragdollMesh) {
               this.recordCurrentPose();
@@ -2410,7 +2429,7 @@ class Avatar {
       `
       animationMappings.forEach(animationMapping=>{
         animationMapping.dst.fromArray(
-          animationsIdleArrays.walk.animation.interpolants[animationMapping.animationTrackName].evaluate((this.unuseTime / 1000) % animationsIdleArrays.walk.animation.duration)
+          animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate((this.unuseTime / 1000) % animationsIdleArrays[this.fsms.state.value.normal].animation.duration)
         )
       })
       this.modelBoneOutputs.Hips.position.set(0, .8, 0); // todo: calc from CCT height.

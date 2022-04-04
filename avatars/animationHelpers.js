@@ -153,10 +153,14 @@ const animationsAngleArraysMirror = {
   ],
 };
 const animationsIdleArrays = {
+  test: {name: 'One Hand Sword Combo.fbx'},
+  // test: {name: 'standing melee attack downward.fbx'},
+  // test: {name: 'sword and shield attack (4).fbx'},
   reset: {name: 'reset.fbx'},
   walk: {name: 'walking.fbx'},
   run: {name: 'running.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
+  combo: {name: 'One Hand Sword Combo.fbx'},
 }; 
 window.animationsIdleArrays = animationsIdleArrays;
 

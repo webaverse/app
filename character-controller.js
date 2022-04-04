@@ -669,6 +669,7 @@ class StatePlayer extends PlayerBase {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
   }
   addAction(action) {
+    // debugger
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);

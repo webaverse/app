@@ -22,6 +22,7 @@ import physx from './physx.js';
 // import {airFriction, flyFriction} from './constants.js';
 import transformControls from './transform-controls.js';
 import metaversefile from 'metaversefile';
+import { localPlayer } from './players.js';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -540,7 +541,7 @@ ioManager.keydown = e => {
         if (game.canRotate()) {
           game.menuRotate(-1);
         } else {
-          game.menuActivateDown();
+          game.menuActivateDown(); // activate/wear sword
         }
       // }
       break;
@@ -824,7 +825,23 @@ ioManager.mousedown = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
   if (cameraManager.pointerLockElement) {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
-      game.menuMouseDown();
+      // game.menuMouseDown(); // attack,
+      localPlayer.avatar.fsms.send('attack');
+      /*
+        localPlayer.getAction('use')
+        {
+          actionId: "EVgfU"
+          animation: "combo"
+          behavior: "sword"
+          boneAttachment: "leftHand"
+          index: 0
+          instanceId: "qo28r8"
+          position: (3) [-0.07, -0.03, 0]
+          quaternion: (4) [0.7071067811865475, 0, 0, 0.7071067811865476]
+          scale: (3) [1, 1, 1]
+          type: "use"
+        }
+      */
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right
       game.menuAim();
