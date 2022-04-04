@@ -11,6 +11,7 @@ import vite from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 import metaversefile from 'metaversefile/plugins/rollup.js';
 import glob from 'glob';
+import Babel from '@babel/core';
 
 Error.stackTraceLimit = 300;
 const cwd = process.cwd();
@@ -109,6 +110,25 @@ const _proxyUrl = (req, res, u) => {
 
 (async () => {
   const app = express();
+
+  /** JS engine */
+
+  app.engine('js', (filePath, options, callback) => { // define the template engine
+    fs.readFile(filePath, (err, content) => {
+      if (err) return callback(err);
+      // this is an extremely simple template engine
+      const {code} = Babel.transform(content.toString(), {
+        plugins: [
+          ['babel-plugin-custom-import-path-transform',
+            {
+              transformImportPath: './build/moduleRewrite.js',
+            }],
+        ],
+      });
+      return callback(null, code);
+    });
+  });
+
   app.use('*', async (req, res, next) => {
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
