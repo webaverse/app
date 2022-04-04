@@ -50,6 +50,21 @@
     },
     {
       "type": "application/quest",
+      "position": [19.5, -4, 59.5],
+      "components": [
+        {
+          "key": "size",
+          "value": [10, 2, 4]
+        },
+        {
+          "key": "cameraPosition",
+          "value": [0, 5, 10]
+        },
+        {
+          "key": "cameraQuaternion",
+          "value": [-0.19509032201612825, -0, -0, 0.9807852804032304]
+        }
+      ],
       "content": {
         "name": "Reaver slay",
         "description": "Destroy all reavers in the area",
