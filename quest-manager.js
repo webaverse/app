@@ -70,7 +70,9 @@ class Quest {
               // XXX
             };
           }
-          return null;
+          default: {
+            return null;
+          }
         }
       }
     })();
