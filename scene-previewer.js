@@ -161,6 +161,7 @@ class ScenePreviewer extends THREE.Object3D {
     this.scene = null;
     this.renderedScene = null;
     this.focused = false;
+    this.rendered = false;
   }
   async loadScene(sceneUrl) {
     if (this.scene) {
@@ -183,7 +184,7 @@ class ScenePreviewer extends THREE.Object3D {
       parent: this.previewContainer,
     });
     popPreviewContainerTransform && popPreviewContainerTransform();
-    if (!this.focused) {
+    if (this.#canRender()) {
       this.render();
     }
   }
@@ -191,7 +192,7 @@ class ScenePreviewer extends THREE.Object3D {
     this.scene = scene;
     this.previewContainer.add(scene);
 
-    if (!this.focused) {
+    if (this.#canRender()) {
       this.render();
     }
   }
@@ -211,16 +212,18 @@ class ScenePreviewer extends THREE.Object3D {
     } else {
       this.previewScene.add(this.previewContainer);
     }
-    const skyboxVisible = !this.focused;
+
+    const previewVisible = !this.focused;
+    this.lodMesh.visible = previewVisible;
     for (const skyboxMesh of this.skyboxMeshes) {
-      skyboxMesh.visible = skyboxVisible;
+      skyboxMesh.visible = previewVisible;
     }
 
     if (this.scene) {
       this.scene.setComponent('paused', !this.focused);
     }
 
-    if (!this.focused) {
+    if (this.#canRender()) {
       this.render();
     }
   }
@@ -283,6 +286,9 @@ class ScenePreviewer extends THREE.Object3D {
       return () => {};
     }
   }
+  #canRender() {
+    return !!this.scene && !this.focused && !this.rendered;
+  }
   render() {
     {
       const renderer = getRenderer();
@@ -306,7 +312,6 @@ class ScenePreviewer extends THREE.Object3D {
     }
 
     {
-      console.log('render lod mesh 1');
       const worldResolution = new THREE.Vector2(2048, 2048);
       const worldDepthResolution = new THREE.Vector2(512, 512);
 
@@ -317,16 +322,21 @@ class ScenePreviewer extends THREE.Object3D {
         worldResolution,
         worldDepthResolution
       );
-      console.log('got lod mesh', lodMesh);
+
       const oldParent = this.lodMesh.parent;
-      this.lodMesh = lodMesh;
+      const oldVisible = this.lodMesh.visible;
+
       if (oldParent) {
+        oldParent.remove(this.lodMesh);
         oldParent.add(lodMesh);
         lodMesh.updateMatrixWorld();
       }
+      lodMesh.visible = oldVisible;
 
-      console.log('render lod mesh 2');
+      this.lodMesh = lodMesh;
     }
+
+    this.rendered = true;
   }
 };
 export {
