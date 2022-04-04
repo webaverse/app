@@ -1,4 +1,5 @@
 import alea from './alea.js';
+import {Simplex, MultiSimplex} from './simplex.js';
 import {murmurhash3} from './murmurhash3.js';
 import {
   makeRng,
@@ -20,6 +21,8 @@ import {
 
 export {
   alea,
+  Simplex,
+  MultiSimplex,
   murmurhash3,
   makeRng,
   createMisc,

@@ -134,23 +134,15 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/npc/",
+      "start_url": "/avatars/scillia_drophunter_v15_vian.vrm",
       "components": [
         {
-          "key": "name",
-          "value": "Scillia"
-        },
-        {
-          "key": "voice",
-          "value": "Sweetie Belle"
-        },
-        {
-          "key": "avatarUrl",
-          "value": "/avatars/scillia_drophunter_v15_vian.vrm"
-        },
-        {
-          "key": "bio",
-          "value": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+          "key": "npc",
+          "value": {
+            "name": "Scillia",
+            "voice": "Sweetie Belle",
+            "bio": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+          }
         }
       ]
     },
@@ -166,23 +158,15 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/npc/",
+      "start_url": "/avatars/drake_hacker_v3_vian.vrm",
       "components": [
         {
-          "key": "name",
-          "value": "Drake"
-        },
-        {
-          "key": "voice",
-          "value": "Shining Armor"
-        },
-        {
-          "key": "avatarUrl",
-          "value": "/avatars/drake_hacker_v3_vian.vrm"
-        },
-        {
-          "key": "bio",
-          "value": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+          "key": "npc",
+          "value": {
+            "name": "Drake",
+            "voice": "Shining Armor",
+            "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+          }
         }
       ]
     },
@@ -198,23 +182,15 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/npc/",
+      "start_url": "/avatars/hya_influencer_v2_vian.vrm",
       "components": [
         {
-          "key": "name",
-          "value": "Hyacinth"
-        },
-        {
-          "key": "voice",
-          "value": "Maud Pie"
-        },
-        {
-          "key": "avatarUrl",
-          "value": "/avatars/hya_influencer_v2_vian.vrm"
-        },
-        {
-          "key": "bio",
-          "value": "Scillia's mentor. 15/F beast tamer. She is quite famous."
+          "key": "npc",
+          "value": {
+            "name": "Hyacinth",
+            "voice": "Maud Pie",
+            "bio": "Scillia's mentor. 15/F beast tamer. She is quite famous."
+          }
         }
       ]
     },
@@ -230,23 +206,15 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/npc/",
+      "start_url": "/avatars/jun_engineer_v1_vian.vrm",
       "components": [
         {
-          "key": "name",
-          "value": "Juniper"
-        },
-        {
-          "key": "voice",
-          "value": "Cadance"
-        },
-        {
-          "key": "avatarUrl",
-          "value": "/avatars/jun_engineer_v1_vian.vrm"
-        },
-        {
-          "key": "bio",
-          "value": "She is an engineer. 17/F engineer. She is new on the street."
+          "key": "npc",
+          "value": {
+            "name": "Juniper",
+            "voice": "Cadance",
+            "bio": "She is an engineer. 17/F engineer. She is new on the street."
+          }
         }
       ]
     },
