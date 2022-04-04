@@ -150,7 +150,7 @@ export default () => {
   const sizeArray = app.getComponent('size') ?? [4, 2, 4];
   const [width, height, depth] = sizeArray;
 
-  console.log('got area size', sizeArray);
+  // console.log('got area size', sizeArray);
 
   const mesh = _makeAreaMesh(width, height, depth);
   app.add(mesh);
