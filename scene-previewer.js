@@ -191,7 +191,9 @@ class ScenePreviewer extends THREE.Object3D {
     this.scene = scene;
     this.previewContainer.add(scene);
 
-    this.render();
+    if (!this.focused) {
+      this.render();
+    }
   }
   detachScene() {
     const oldScene = this.scene;
