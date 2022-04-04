@@ -1077,6 +1077,10 @@ export default () => {
     return debug;
   },
   async addModule(app, m) {
+    // wait to make sure module initialization happens in a clean tick loop,
+    // even when adding a module from inside of another module's initialization
+    await Promise.resolve();
+
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
     app.contentId = m.contentId ?? '';
