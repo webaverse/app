@@ -107,7 +107,6 @@ export const App = () => {
 
             event = event.originalEvent || event;
             event.preventDefault();
-            event.stopPropagation();
 
         };
 
