@@ -785,6 +785,7 @@ metaversefile.setApi({
     const app = currentAppRender;
     if (app) {
       app.addEventListener('use', e => {
+        // debugger
         fn(e);
       });
       app.addEventListener('destroy', () => {

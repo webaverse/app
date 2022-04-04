@@ -1433,6 +1433,7 @@ class Avatar {
     // this.aimDirection = new THREE.Vector3();
     this.hurtTime = NaN;
     this.hurtAnimation = null;
+    this.actionTime = 0;
 
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -1480,6 +1481,7 @@ class Avatar {
       {
         actions: {
           entryCombo: () => {
+            this.actionTime = 0;
             setTimeout(() => {
               this.fsms.send('finish');
             }, 1000);
@@ -1978,6 +1980,7 @@ class Avatar {
     this.modelBoneOutputs.Root.updateMatrixWorld();
   }
   update(timestamp, timeDiff) {
+    // console.log(timestamp, timeDiff)
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
 
@@ -2427,9 +2430,10 @@ class Avatar {
         <div>unuseAnimation: --- ${this.unuseAnimation}</div>
         <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
       `
+      this.actionTime += timeDiff
       animationMappings.forEach(animationMapping=>{
         animationMapping.dst.fromArray(
-          animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate((this.unuseTime / 1000) % animationsIdleArrays[this.fsms.state.value.normal].animation.duration)
+          animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate((this.actionTime / 1000) % animationsIdleArrays[this.fsms.state.value.normal].animation.duration)
         )
       })
       this.modelBoneOutputs.Hips.position.set(0, .8, 0); // todo: calc from CCT height.

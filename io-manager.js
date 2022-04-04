@@ -825,7 +825,7 @@ ioManager.mousedown = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
   if (cameraManager.pointerLockElement) {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
-      // game.menuMouseDown(); // attack,
+      game.menuMouseDown(); // attack,
       localPlayer.avatar.fsms.send('attack');
       /*
         localPlayer.getAction('use')
@@ -871,7 +871,7 @@ ioManager.mouseup = e => {
   // if (mouseDown) {
     if (cameraManager.pointerLockElement) {
       if ((changedButtons & 1) && !(e.buttons & 1)) { // left
-        game.menuMouseUp();
+        // game.menuMouseUp();
       }
       if ((changedButtons & 2) && !(e.buttons & 2)) { // right
         game.menuUnaim();
