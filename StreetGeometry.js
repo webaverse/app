@@ -1,32 +1,21 @@
-import { BufferGeometry } from 'three';
+import { BufferGeometry, Vector2, Vector3, Float32BufferAttribute } from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Float32BufferAttribute } from 'three';
 import * as Curves from 'three/src/extras/curves/Curves.js';
-import { Vector2 } from 'three';
-import { Vector3 } from 'three';
-// import { Quaternion } from 'three';
-// import { Matrix4 } from 'three';
-
-const octagonRadiusFactor = Math.sqrt( 1 + 1 / Math.SQRT2 );
-
-// const localQuaternion = new Quaternion();
-// const localMatrix = new Matrix4();
 
 class StreetLineGeometry extends BufferGeometry {
 
-	constructor( path = new Curves[ 'QuadraticBezierCurve3' ]( new Vector3( - 1, - 1, 0 ), new Vector3( - 1, 1, 0 ), new Vector3( 1, 1, 0 ) ), tubularSegments = 64, radiusX = 1, radiusY = 1 ) {
+	constructor( path = new Curves[ 'QuadraticBezierCurve3' ]( new Vector3( - 1, - 1, 0 ), new Vector3( - 1, 1, 0 ), new Vector3( 1, 1, 0 ) ), tubularSegments = 64, radiusX = 1, radiusY = 1, radialSegments = 2, closed = false ) {
 
 		super();
-		this.type = 'StreetGeometry';
+		this.type = 'StreetLineGeometry';
 
-		const radialSegments = 2;
-		const closed = false;
-		
 		this.parameters = {
 			path: path,
 			tubularSegments: tubularSegments,
 			radiusX: radiusX,
 			radiusY: radiusY,
+			radialSegments: radialSegments,
+			closed: closed
 		};
 
 		const frames = path.computeFrenetFrames( tubularSegments, closed );
@@ -66,7 +55,7 @@ class StreetLineGeometry extends BufferGeometry {
 
 		function generateBufferData() {
 
-			for ( let i = 0; i < tubularSegments; i ++ ) {
+			for ( let i = 0; i <= tubularSegments; i ++ ) {
 
 				generateSegment( i );
 
@@ -88,7 +77,7 @@ class StreetLineGeometry extends BufferGeometry {
 
 			generateIndices();
 
-			generateEnds();
+			// generateEnds();
 
 		}
 
@@ -115,10 +104,9 @@ class StreetLineGeometry extends BufferGeometry {
 			// generate normals and vertices for the current segment
 
 			const radius = radiusX;
-
-			for ( let j = 0; j <= radialSegments; j ++ ) {
-				let v = j / radialSegments * Math.PI * 2;
-				v -= Math.PI / 4;
+			for ( let j = 0; j < radialSegments; j ++ ) {
+				let v = j * Math.PI;
+				v -= Math.PI / 2;
 				
 				const sin = Math.sin( v );
 				const cos = - Math.cos( v );
@@ -130,7 +118,7 @@ class StreetLineGeometry extends BufferGeometry {
 				normal.z = ( cos * N.z + sin * B.z );
 				normal.normalize();
 
-				normals.push( normal.x, normal.y, normal.z );
+				normals.push( N.x, N.y, N.z );
 
 				// vertex
 
@@ -148,19 +136,20 @@ class StreetLineGeometry extends BufferGeometry {
 
 			for ( let j = 1; j <= tubularSegments; j ++ ) {
 
-				for ( let i = 1; i <= radialSegments; i ++ ) {
+				// for ( let i = 1; i <= radialSegments; i ++ ) {
+					const i = 1;
 
-					const a = ( radialSegments + 1 ) * ( j - 1 ) + ( i - 1 );
-					const b = ( radialSegments + 1 ) * j + ( i - 1 );
-					const c = ( radialSegments + 1 ) * j + i;
-					const d = ( radialSegments + 1 ) * ( j - 1 ) + i;
+					const a = ( radialSegments ) * ( j - 1 ) + ( i - 1 );
+					const b = ( radialSegments ) * j + ( i - 1 );
+					const c = ( radialSegments ) * j + i;
+					const d = ( radialSegments ) * ( j - 1 ) + i;
 
 					// faces
 
-					indices.push( a, b, d );
-					indices.push( b, c, d );
+					indices.push( a, d, b );
+					indices.push( b, d, c );
 
-				}
+				// }
 
 			}
 
@@ -170,10 +159,10 @@ class StreetLineGeometry extends BufferGeometry {
 
 			for ( let i = 0; i <= tubularSegments; i ++ ) {
 
-				for ( let j = 0; j <= radialSegments; j ++ ) {
+				for ( let j = 0; j < radialSegments; j ++ ) {
 
-					uv.x = i / tubularSegments;
-					uv.y = j / radialSegments;
+					uv.x = j / radialSegments;
+					uv.y = i / tubularSegments;
 
 					uvs.push( uv.x, uv.y );
 
@@ -183,7 +172,7 @@ class StreetLineGeometry extends BufferGeometry {
 
 		}
 
-		function generateEnds() {
+		/* function generateEnds() {
 			// const offset = vertices.length / 3 / 2;
 
 			const ts = [
@@ -209,7 +198,7 @@ class StreetLineGeometry extends BufferGeometry {
 				}
 
 			}
-		}
+		} */
 
 	}
 
@@ -227,11 +216,13 @@ class StreetLineGeometry extends BufferGeometry {
 
 		// This only works for built-in curves (e.g. CatmullRomCurve3).
 		// User defined curves or instances of CurvePath will not be deserialized.
-		return new StreetLineGeometry(
+		return new StreetFlatGeometry(
 			new Curves[ data.path.type ]().fromJSON( data.path ),
 			data.tubularSegments,
 			data.radiusX,
 			data.radiusY,
+			data.radialSegments,
+			data.closed
 		);
 
 	}
@@ -243,7 +234,7 @@ class StreetFlatGeometry extends BufferGeometry {
 	constructor( path = new Curves[ 'QuadraticBezierCurve3' ]( new Vector3( - 1, - 1, 0 ), new Vector3( - 1, 1, 0 ), new Vector3( 1, 1, 0 ) ), tubularSegments = 64, radiusX = 1, radiusY = 1, radialSegments = 8, closed = false ) {
 
 		super();
-		this.type = 'StreetGeometry';
+		this.type = 'StreetFlatGeometry';
 
 		this.parameters = {
 			path: path,
@@ -483,7 +474,7 @@ class StreetOctagonGeometry extends BufferGeometry {
 	constructor( path = new Curves[ 'QuadraticBezierCurve3' ]( new Vector3( - 1, - 1, 0 ), new Vector3( - 1, 1, 0 ), new Vector3( 1, 1, 0 ) ), tubularSegments = 64, radiusX = 1, radiusY = 1, radialSegments = 8, closed = false ) {
 
 		super();
-		this.type = 'StreetGeometry';
+		this.type = 'StreetOctagonGeometry';
 
 		this.parameters = {
 			path: path,
@@ -736,7 +727,7 @@ class StreetHalfpipeGeometry extends BufferGeometry {
 	constructor( path = new Curves[ 'QuadraticBezierCurve3' ]( new Vector3( - 1, - 1, 0 ), new Vector3( - 1, 1, 0 ), new Vector3( 1, 1, 0 ) ), tubularSegments = 64, radiusX = 1, radiusY = 1, radialSegments = 8, closed = false ) {
 
 		super();
-		this.type = 'StreetGeometry';
+		this.type = 'StreetHalfpipeGeometry';
 
 		this.parameters = {
 			path: path,
@@ -1032,7 +1023,7 @@ class StreetGeometry extends BufferGeometry {
 			closed: closed,
 		};
 
-		const radiusX2 = radiusX * octagonRadiusFactor;
+		// const radiusX2 = radiusX * octagonRadiusFactor;
 		const geometries = [
 			new StreetFlatGeometry( path, tubularSegments, radiusX, radiusY, 4, closed ),
 			// new StreetOctagonGeometry( path, tubularSegments, radiusX2, radiusY, 8, closed ),
