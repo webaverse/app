@@ -272,6 +272,7 @@ export default class Webaverse extends EventTarget {
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
 
+    renderer.info.reset();
     getComposer().render();
 
     this.dispatchEvent(new MessageEvent('frameend', {

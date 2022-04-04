@@ -479,6 +479,7 @@ metaversefile.setApi({
       if (localPlayer.avatar) {
         wasDecapitated = localPlayer.avatar.decapitated;
         localPlayer.avatar.undecapitate();
+        localPlayer.avatar.skeleton.update();
       }
     }
   },

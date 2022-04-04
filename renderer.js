@@ -33,7 +33,8 @@ function bindCanvas(c) {
     rendererExtensionFragDepth: true,
     logarithmicDepthBuffer: true,
   });
-  
+  renderer.info.autoReset = false;
+
   const {
     width,
     height,
