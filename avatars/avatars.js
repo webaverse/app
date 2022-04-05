@@ -891,6 +891,8 @@ const _makeRagdollMesh = () => {
 
 class Avatar {
 	constructor(object, options = {}) {
+    window.avatar = this; // test
+
     if (!object) {
       object = {};
     }
@@ -1435,6 +1437,7 @@ class Avatar {
     this.hurtTime = NaN;
     this.hurtAnimation = null;
     this.actionTime = 0;
+    this.actiono = {};
 
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -2417,55 +2420,66 @@ class Avatar {
     } else {
       _updateHmdPosition();
 
-      // new _applyAnimation()
-
       // _applyAnimation(this, now, moveFactors);
-      window.domInfo.innerHTML = `
-        <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
-        <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
-        <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
-        <div>chargeJumpState: --- ${this.chargeJumpState}</div>
-        <div>danceState: --- ${this.danceState}</div>
-        <div>fallLoopState: --- ${this.fallLoopState}</div>
-        <div>flyState: --- ${this.flyState}</div>
-        <div>jumpState: --- ${this.jumpState}</div>
-        <div>narutoRunState: --- ${this.narutoRunState}</div>
-        <div>sitState: --- ${this.sitState}</div>
-        <div>useAnimation: --- ${this.useAnimation}</div>
-        <div>useAnimationCombo: --- ${this.useAnimationCombo}</div>
-        <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
-        <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
-        <div>useTime: --- ${Math.floor(this.useTime)}</div>
-        <div>unuseAnimation: --- ${this.unuseAnimation}</div>
-        <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
-      `
+      if (false) { // new _applyAnimation() using custom codes/classes.
+        window.domInfo.innerHTML = `
+          <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
+          <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
+          <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
+          <div>chargeJumpState: --- ${this.chargeJumpState}</div>
+          <div>danceState: --- ${this.danceState}</div>
+          <div>fallLoopState: --- ${this.fallLoopState}</div>
+          <div>flyState: --- ${this.flyState}</div>
+          <div>jumpState: --- ${this.jumpState}</div>
+          <div>narutoRunState: --- ${this.narutoRunState}</div>
+          <div>sitState: --- ${this.sitState}</div>
+          <div>useAnimation: --- ${this.useAnimation}</div>
+          <div>useAnimationCombo: --- ${this.useAnimationCombo}</div>
+          <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
+          <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
+          <div>useTime: --- ${Math.floor(this.useTime)}</div>
+          <div>unuseAnimation: --- ${this.unuseAnimation}</div>
+          <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
+        `
 
-      animationMappings.forEach(animationMapping => {
-        if (['normal.idle', 'normal.walk', 'normal.run'].some(this.fsms.state.matches)) {
-          // todo: perforamnce: Check if factor is 0, not perform evaluate?
-          const idleArray = animationsIdleArrays.idle.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.idle.animation.duration);
-          const walkArray = animationsIdleArrays.walk.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.walk.animation.duration);
-          const runArray = animationsIdleArrays.run.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.run.animation.duration);
-          const mixedArray = []; // todo: performance: May can reuse idleArray.
-          idleArray.forEach((n,i) => { // todo: Should can use existing threejs mix function.
-            const mix = walkArray[i] * (1 - moveFactors.walkRunFactor) + runArray[i] * moveFactors.walkRunFactor;
-            mixedArray[i] = mix;
-          });
-          idleArray.forEach((n,i) => {
-            const mix = idleArray[i] * (1 - moveFactors.idleWalkFactor) + mixedArray[i] * moveFactors.idleWalkFactor;
-            mixedArray[i] = mix;
-          });
-          animationMapping.dst.fromArray(mixedArray);
-        } else {
-          animationMapping.dst.fromArray(
-            animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate((this.actionTime) % animationsIdleArrays[this.fsms.state.value.normal].animation.duration)
-          );
+        animationMappings.forEach(animationMapping => {
+          if (['normal.idle', 'normal.walk', 'normal.run'].some(this.fsms.state.matches)) {
+            // todo: perforamnce: Check if factor is 0, not perform evaluate?
+            const idleArray = animationsIdleArrays.idle.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.idle.animation.duration);
+            const walkArray = animationsIdleArrays.walk.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.walk.animation.duration);
+            const runArray = animationsIdleArrays.run.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.run.animation.duration);
+            const mixedArray = []; // todo: performance: May can reuse idleArray.
+            idleArray.forEach((n,i) => { // todo: Should can use existing threejs mix function.
+              const mix = walkArray[i] * (1 - moveFactors.walkRunFactor) + runArray[i] * moveFactors.walkRunFactor;
+              mixedArray[i] = mix;
+            });
+            idleArray.forEach((n,i) => {
+              const mix = idleArray[i] * (1 - moveFactors.idleWalkFactor) + mixedArray[i] * moveFactors.idleWalkFactor;
+              mixedArray[i] = mix;
+            });
+            animationMapping.dst.fromArray(mixedArray);
+          } else {
+            animationMapping.dst.fromArray(
+              animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate((this.actionTime) % animationsIdleArrays[this.fsms.state.value.normal].animation.duration)
+            );
+          }
+        })
+        this.modelBoneOutputs.Hips.position.set(0, .8, 0); // todo: calc from CCT height.
+        this.actionTime += timeDiff / 1000;
+      }
+
+      if (true) { // new _applyAnimation() using threejs' animation classes. // not work.
+        if (!this.mixer) {
+          this.mixer = new THREE.AnimationMixer(this.app);
+          animations.forEach(animation => {
+            let name = animation.name;
+            let action = this.mixer.clipAction(animation);
+            this.actiono[name] = action;
+          })
+          this.actiono["walking.fbx"].play() // not work.
         }
-      })
-      this.modelBoneOutputs.Hips.position.set(0, .8, 0); // todo: calc from CCT height.
-      this.actionTime += timeDiff / 1000;
-
-      // end new _applyAnimation()
+        this.mixer.update(timeDiff);
+      }
 
       if (this.poseAnimation) {
         _overwritePose(this.poseAnimation);
