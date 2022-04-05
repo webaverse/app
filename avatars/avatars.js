@@ -1377,15 +1377,35 @@ class Avatar {
       this.setBottomEnabled(!!options.bottom);
     }
 
-    console.log('animationMappingConfig.map(animationMapping =>')
-    this.animationMappings = animationMappingConfig.map(animationMapping => {
-      animationMapping = animationMapping.clone();
-      const isPosition = /\.position$/.test(animationMapping.animationTrackName);
-      animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
-      animationMapping.lerpFn = _getLerpFn(isPosition);
-      return animationMapping;
-    });
-    window.animationMappings = this.animationMappings;
+    // console.log('animationMappingConfig.map(animationMapping =>')
+    // window.animationMappingConfig = animationMappingConfig;
+    // this.animationMappings = animationMappingConfig.map(animationMapping => {
+    //   debugger
+    //   animationMapping = animationMapping.clone();
+    //   const isPosition = /\.position$/.test(animationMapping.animationTrackName);
+    //   animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
+    //   animationMapping.lerpFn = _getLerpFn(isPosition);
+    //   return animationMapping;
+    // });
+    // window.animationMappings = this.animationMappings;
+
+    debugger
+    animationMappingConfig.forEach((animationMapping, i) => {
+      animations.forEach(animation => {
+        // delete animation.interpolants;
+        animation.tracks.forEach(track => {
+          if (track.name === animationMapping.animationTrackName) {
+            const oldName = animationMapping.animationTrackName;
+            const newName = 'ik' + animationMapping.boneName + '.' + oldName.split('.')[1];
+            track.name = newName;
+            // const tempInterpolant = animation.interpolants[oldName];
+            // tempInterpolant.name = newName;
+            // delete animation.interpolants[oldName];
+            // animation.interpolants[newName] = tempInterpolant;
+          }
+        })
+      })
+    })
 
     this.blinker = new Blinker();
     this.nodder = new Nodder();
@@ -2421,7 +2441,7 @@ class Avatar {
       _updateHmdPosition();
 
       // _applyAnimation(this, now, moveFactors);
-      if (false) { // new _applyAnimation() using custom codes/classes.
+      if (0) { // new _applyAnimation() using custom codes/classes.
         window.domInfo.innerHTML = `
           <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
           <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
@@ -2460,7 +2480,7 @@ class Avatar {
             animationMapping.dst.fromArray(mixedArray);
           } else {
             animationMapping.dst.fromArray(
-              animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate((this.actionTime) % animationsIdleArrays[this.fsms.state.value.normal].animation.duration)
+              animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime)
             );
           }
         })
@@ -2468,17 +2488,20 @@ class Avatar {
         this.actionTime += timeDiff / 1000;
       }
 
-      if (true) { // new _applyAnimation() using threejs' animation classes. // not work.
+      if (1) { // new _applyAnimation() using threejs' animation classes. // not work.
         if (!this.mixer) {
-          this.mixer = new THREE.AnimationMixer(this.app);
+          // this.mixer = new THREE.AnimationMixer(this.app);
+          this.mixer = new THREE.AnimationMixer(this.modelBoneOutputs.Root);
+          window.mixer = this.mixer;
           animations.forEach(animation => {
             let name = animation.name;
             let action = this.mixer.clipAction(animation);
             this.actiono[name] = action;
           })
+          debugger 
           this.actiono["walking.fbx"].play() // not work.
         }
-        this.mixer.update(timeDiff);
+        this.mixer.update(timeDiff / 1000);
       }
 
       if (this.poseAnimation) {
