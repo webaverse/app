@@ -1441,48 +1441,8 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
-
-    this.fsm = createMachine(
-      {
-        id: 'avatar',
-        initial: 'normal',
-        states: {
-          normal: {
-            on: {
-              ragdoll: {target: 'ragdoll'},
-            },
-          },
-          ragdoll: {
-            entry: 'entryRagdoll',
-            on: {
-              ragdoll: {target: 'normal'},
-            }
-          }
-        }
-      },
-      {
-        actions: {
-          entryRagdoll: () => {
-            if (!this.ragdollMesh) {
-              this.recordCurrentPose();
-              this.resetToTPose();
-              this.ragdollMesh = _makeRagdollMesh();
-              this.ragdollMesh.visible = false;
-              this.ragdollMesh.wrapToAvatar(this);
-              this.ragdollMesh.createRagdoll(this);
-              this.model.add(this.ragdollMesh);
-              this.resetToRecordedPose();
-            }
-            this.ragdollMesh.setFromAvatar(this);
-          },
-        }
-      }
-    )
-    this.fsms = interpret(this.fsm).onTransition((state) => {
-      if (state.changed) console.log('avatar: state:', state.value)
-      // console.log(state)
-    })
-    this.fsms.start()
+    this.ragdoll = false;
+    this.prevRagdoll = false;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2381,7 +2341,21 @@ class Avatar {
     
     
 
-    if (this.fsms.state.matches('ragdoll')) {
+    if (this.ragdoll) {
+      if (this.ragdoll !== this.prevRagdoll) {
+        // console.log('switch to ragdoll');
+        if (!this.ragdollMesh) {
+          this.recordCurrentPose();
+          this.resetToTPose();
+          this.ragdollMesh = _makeRagdollMesh();
+          this.ragdollMesh.visible = false;
+          this.ragdollMesh.wrapToAvatar(this);
+          this.ragdollMesh.createRagdoll(this);
+          this.model.add(this.ragdollMesh);
+          this.resetToRecordedPose();
+        }
+        this.ragdollMesh.setFromAvatar(this);
+      }
       this.ragdollMesh.toAvatar(this);
     } else {
       _updateHmdPosition();
@@ -2414,6 +2388,7 @@ class Avatar {
 
       // if (this.ragdollMesh?.visible) this.ragdollMesh.setFromAvatar(this);
     }
+    this.prevRagdoll = this.ragdoll;
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
     Avatar.applyModelBoneOutputs(
