@@ -58,6 +58,7 @@ import Looker from './Looker.js'
 import physx from '../physx.js';
 import { getDiffQuaternion } from '../util.js';
 import { createMachine, actions, interpret, assign } from 'xstate';
+import game from '../game.js';
 
 const { DEG2RAD } = THREE.MathUtils;
 
@@ -1464,6 +1465,7 @@ class Avatar {
               },
               combo: {
                 entry: 'entryCombo',
+                exit: 'exitCombo',
                 on: {
                   finish: {target: 'walk'},
                 }
@@ -1481,10 +1483,14 @@ class Avatar {
       {
         actions: {
           entryCombo: () => {
+            game.startUse();
             this.actionTime = 0;
             setTimeout(() => {
               this.fsms.send('finish');
             }, 1000);
+          },
+          exitCombo: () => {
+            game.endUse();
           },
           entryRagdoll: () => {
             if (!this.ragdollMesh) {

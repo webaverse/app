@@ -1136,6 +1136,12 @@ class GameManager extends EventTarget {
   setContextMenuObject(contextMenuObject) {
     this.contextMenuObject = contextMenuObject;
   }
+  startUse() {
+    _startUse();
+  }
+  endUse() {
+    _endUse();
+  }
   menuUse() {
     _use();
   }
