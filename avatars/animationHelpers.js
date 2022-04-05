@@ -194,11 +194,11 @@ async function loadAnimations() {
   const arrayBuffer = await res.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
   const animationsJson = zbdecode(uint8Array);
-  debugger
+  // debugger
   animations = animationsJson.animations
     .map(a => AnimationClip.parse(a));
   window.animations = animations;
-  return;
+  // return;
   animationStepIndices = animationsJson.animationStepIndices;
   animations.index = {};
   for (const animation of animations) {

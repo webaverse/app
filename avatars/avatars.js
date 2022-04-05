@@ -1389,7 +1389,7 @@ class Avatar {
     // });
     // window.animationMappings = this.animationMappings;
 
-    debugger
+    // debugger
     animationMappingConfig.forEach((animationMapping, i) => {
       animations.forEach(animation => {
         // delete animation.interpolants;
@@ -1398,6 +1398,7 @@ class Avatar {
             const oldName = animationMapping.animationTrackName;
             const newName = 'ik' + animationMapping.boneName + '.' + oldName.split('.')[1];
             track.name = newName;
+            this.modelBoneOutputs[animationMapping.boneName].name = 'ik' + animationMapping.boneName;
             // const tempInterpolant = animation.interpolants[oldName];
             // tempInterpolant.name = newName;
             // delete animation.interpolants[oldName];
@@ -2488,7 +2489,7 @@ class Avatar {
         this.actionTime += timeDiff / 1000;
       }
 
-      if (1) { // new _applyAnimation() using threejs' animation classes. // not work.
+      if (1) { // new _applyAnimation() using threejs' animation classes.
         if (!this.mixer) {
           // this.mixer = new THREE.AnimationMixer(this.app);
           this.mixer = new THREE.AnimationMixer(this.modelBoneOutputs.Root);
@@ -2498,8 +2499,9 @@ class Avatar {
             let action = this.mixer.clipAction(animation);
             this.actiono[name] = action;
           })
-          debugger 
-          this.actiono["walking.fbx"].play() // not work.
+          // debugger 
+          // this.actiono["walking.fbx"].play();
+          this.actiono["One Hand Sword Combo.fbx"].play();
         }
         this.mixer.update(timeDiff / 1000);
       }
