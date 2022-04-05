@@ -2430,11 +2430,20 @@ class Avatar {
         <div>unuseAnimation: --- ${this.unuseAnimation}</div>
         <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
       `
-      this.actionTime += timeDiff
+      
+      this.actionTime += timeDiff / 1000;
       animationMappings.forEach(animationMapping=>{
-        animationMapping.dst.fromArray(
-          animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate((this.actionTime / 1000) % animationsIdleArrays[this.fsms.state.value.normal].animation.duration)
-        )
+        const idleArray = animationsIdleArrays.idle.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.idle.animation.duration);
+        const walkArray = animationsIdleArrays.walk.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.walk.animation.duration);
+        const mixedArray = []; // todo: performance: May can reuse idleArray.
+        idleArray.forEach((n,i) => { // todo: Should can use existing threejs mix function.
+          const mix = idleArray[i] * (1 - moveFactors.idleWalkFactor) + walkArray[i] * moveFactors.idleWalkFactor;
+          mixedArray.push(mix);
+        })
+        animationMapping.dst.fromArray(mixedArray);
+        // animationMapping.dst.fromArray(
+        //   animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate((this.actionTime) % animationsIdleArrays[this.fsms.state.value.normal].animation.duration)
+        // )
       })
       this.modelBoneOutputs.Hips.position.set(0, .8, 0); // todo: calc from CCT height.
 

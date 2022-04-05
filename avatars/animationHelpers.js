@@ -157,11 +157,12 @@ const animationsIdleArrays = {
   // test: {name: 'standing melee attack downward.fbx'},
   // test: {name: 'sword and shield attack (4).fbx'},
   reset: {name: 'reset.fbx'},
+  idle: {name: 'idle.fbx'},
   walk: {name: 'walking.fbx'},
   run: {name: 'running.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
   combo: {name: 'One Hand Sword Combo.fbx'},
-}; 
+};
 window.animationsIdleArrays = animationsIdleArrays;
 
 const cubicBezier = easing(0, 1, 0, 1);
