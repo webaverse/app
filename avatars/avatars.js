@@ -58,6 +58,7 @@ import Looker from './Looker.js'
 import physx from '../physx.js';
 import { getDiffQuaternion } from '../util.js';
 import { createMachine, actions, interpret, assign } from 'xstate';
+// import game from '../game.js';
 
 const { DEG2RAD } = THREE.MathUtils;
 
@@ -547,6 +548,7 @@ const _makeRagdollMesh = () => {
 
   const object = new THREE.Object3D(); // === ragdollMesh
   object.name = 'ragdollMesh';
+  object.flatMeshes = flatMeshes;
   object.add(flatMesh); // note
 
   object.wrapToAvatar = avatar => {
@@ -2356,6 +2358,13 @@ class Avatar {
         }
         this.ragdollMesh.setFromAvatar(this);
       }
+
+      // // test: drag Left_elbow move to mouse position.
+      // const lastMouseEvent = game.getLastMouseEvent()
+      // localVector.set((-window.innerWidth / 2 + lastMouseEvent.clientX) / 50, (window.innerHeight / 2 - lastMouseEvent.clientY) / 50, 0); // target
+      // localVector.sub(this.ragdollMesh.flatMeshes.Left_elbow.position);
+      // physicsManager.setVelocity(this.ragdollMesh.flatMeshes.Left_elbow, localVector);
+
       this.ragdollMesh.toAvatar(this);
     } else {
       _updateHmdPosition();
