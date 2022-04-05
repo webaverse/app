@@ -2435,23 +2435,26 @@ class Avatar {
       `
 
       animationMappings.forEach(animationMapping => {
-        // todo: perforamnce: Check if factor is 0, not perform evaluate?
-        const idleArray = animationsIdleArrays.idle.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.idle.animation.duration);
-        const walkArray = animationsIdleArrays.walk.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.walk.animation.duration);
-        const runArray = animationsIdleArrays.run.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.run.animation.duration);
-        const mixedArray = []; // todo: performance: May can reuse idleArray.
-        idleArray.forEach((n,i) => { // todo: Should can use existing threejs mix function.
-          const mix = walkArray[i] * (1 - moveFactors.walkRunFactor) + runArray[i] * moveFactors.walkRunFactor;
-          mixedArray[i] = mix;
-        })
-        idleArray.forEach((n,i) => { // todo: Should can use existing threejs mix function.
-          const mix = idleArray[i] * (1 - moveFactors.idleWalkFactor) + mixedArray[i] * moveFactors.idleWalkFactor;
-          mixedArray[i] = mix;
-        })
-        animationMapping.dst.fromArray(mixedArray);
-        // animationMapping.dst.fromArray(
-        //   animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate((this.actionTime) % animationsIdleArrays[this.fsms.state.value.normal].animation.duration)
-        // )
+        if (['normal.idle', 'normal.walk', 'normal.run'].some(this.fsms.state.matches)) {
+          // todo: perforamnce: Check if factor is 0, not perform evaluate?
+          const idleArray = animationsIdleArrays.idle.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.idle.animation.duration);
+          const walkArray = animationsIdleArrays.walk.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.walk.animation.duration);
+          const runArray = animationsIdleArrays.run.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.run.animation.duration);
+          const mixedArray = []; // todo: performance: May can reuse idleArray.
+          idleArray.forEach((n,i) => { // todo: Should can use existing threejs mix function.
+            const mix = walkArray[i] * (1 - moveFactors.walkRunFactor) + runArray[i] * moveFactors.walkRunFactor;
+            mixedArray[i] = mix;
+          });
+          idleArray.forEach((n,i) => {
+            const mix = idleArray[i] * (1 - moveFactors.idleWalkFactor) + mixedArray[i] * moveFactors.idleWalkFactor;
+            mixedArray[i] = mix;
+          });
+          animationMapping.dst.fromArray(mixedArray);
+        } else {
+          animationMapping.dst.fromArray(
+            animationsIdleArrays[this.fsms.state.value.normal].animation.interpolants[animationMapping.animationTrackName].evaluate((this.actionTime) % animationsIdleArrays[this.fsms.state.value.normal].animation.duration)
+          );
+        }
       })
       this.modelBoneOutputs.Hips.position.set(0, .8, 0); // todo: calc from CCT height.
       this.actionTime += timeDiff / 1000;
