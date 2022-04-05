@@ -17,6 +17,7 @@ let plugins = [
 const distDirectory = 'dist';
 const baseDirectory = 'assets';
 const relativeDistAssets = `./${distDirectory}/${baseDirectory}`;
+let appBuiltOnce = false;
 
 const entryPoints = [
   {
@@ -159,8 +160,10 @@ const build = () => {
     toCopy = [...filesToCopy, ...toCopy];
   };
 
-  for (const dependency in dependencies) {
-    resolveEntryOfModule(dependency);
+  if (!appBuiltOnce) {
+    for (const dependency in dependencies) {
+      resolveEntryOfModule(dependency);
+    }
   }
 
   return {
@@ -176,89 +179,94 @@ const build = () => {
     },
 
     async buildStart() {
-      for (const iterator of entryPoints) {
-        iterator.exclude = iterator.exclude || [];
-        if (iterator.glob) {
-          const files = await resolveGlob(iterator.path);
-          for (const file of files) {
-            const parseFile = path.parse(file);
-            if (!iterator.exclude.includes(file) && esbuildLoaders.includes(parseFile.ext.replace('.', ''))) {
-              const replacedPath = `${path.normalize(file.replace(iterator.replaceExpression, baseDirectory))}`;
-              exportPaths[file.replace('./node_modules/', '')] = replacedPath;
-              const entry = this.emitFile({
-                type: 'chunk',
-                id: file,
-                fileName: replacedPath,
-              });
-              _entryPoints.push(entry);
+      if (!appBuiltOnce) {
+        for (const iterator of entryPoints) {
+          iterator.exclude = iterator.exclude || [];
+          if (iterator.glob) {
+            const files = await resolveGlob(iterator.path);
+            for (const file of files) {
+              const parseFile = path.parse(file);
+              if (!iterator.exclude.includes(file) && esbuildLoaders.includes(parseFile.ext.replace('.', ''))) {
+                const replacedPath = `${path.normalize(file.replace(iterator.replaceExpression, baseDirectory))}`;
+                exportPaths[file.replace('./node_modules/', '')] = replacedPath;
+                const entry = this.emitFile({
+                  type: 'chunk',
+                  id: file,
+                  fileName: replacedPath,
+                });
+                _entryPoints.push(entry);
+              }
             }
+          } else {
+            let _name = iterator.name;
+            iterator.path = `./${path.normalize(iterator.path)}`;
+            if (iterator.replaceExpression) {
+              _name = iterator.path.replace(iterator.replaceExpression, baseDirectory);
+            }
+            // console.log('Emitting', iterator);
+            const entry = this.emitFile({
+              type: 'chunk',
+              id: iterator.path,
+              fileName: _name,
+            });
+            _entryPoints.push(entry);
           }
-        } else {
-          let _name = iterator.name;
-          iterator.path = `./${path.normalize(iterator.path)}`;
-          if (iterator.replaceExpression) {
-            _name = iterator.path.replace(iterator.replaceExpression, baseDirectory);
-          }
-          // console.log('Emitting', iterator);
-          const entry = this.emitFile({
-            type: 'chunk',
-            id: iterator.path,
-            fileName: _name,
-          });
-          _entryPoints.push(entry);
         }
       }
     },
     async generateBundle(options, bundle) {
       /** testing exports */
 
-      const exports = {
-      };
+      if (!appBuiltOnce) {
+        const exports = {
+        };
 
-      /** Refers to set of files included in the build */
-      const esmTree = new Set();
+        /** Refers to set of files included in the build */
+        const esmTree = new Set();
 
-      for (const modulePath of Object.keys(bundle)) {
-        const module = bundle[modulePath];
-        const absoluteModulePath = modulePath.facadeModuleId;
+        for (const modulePath of Object.keys(bundle)) {
+          const module = bundle[modulePath];
+          const absoluteModulePath = modulePath.facadeModuleId;
 
-        if (module.exports) {
-          for (const _export of module.exports) {
-            exports[_export] = modulePath;
+          if (module.exports) {
+            for (const _export of module.exports) {
+              exports[_export] = modulePath;
+            }
           }
-        }
 
-        if (!esmTree.has(absoluteModulePath)) {
-          esmTree.add(absoluteModulePath);
-        }
+          if (!esmTree.has(absoluteModulePath)) {
+            esmTree.add(absoluteModulePath);
+          }
 
-        if (module.modules) {
-          for (const subModuleAbsolutePath in module.modules) {
-            if (!esmTree.has(subModuleAbsolutePath)) {
-              esmTree.add(subModuleAbsolutePath);
+          if (module.modules) {
+            for (const subModuleAbsolutePath in module.modules) {
+              if (!esmTree.has(subModuleAbsolutePath)) {
+                esmTree.add(subModuleAbsolutePath);
+              }
             }
           }
         }
-      }
 
-      if (process.env.OUTPUT_EXPORTS) {
-        fs.writeFileSync('dist/dependencies.json', JSON.stringify(exports, null, 4));
-        fs.writeFileSync('dist/actualBundle.json', JSON.stringify(bundle, null, 4));
-      }
+        if (process.env.OUTPUT_EXPORTS) {
+          fs.writeFileSync('dist/dependencies.json', JSON.stringify(exports, null, 4));
+          fs.writeFileSync('dist/actualBundle.json', JSON.stringify(bundle, null, 4));
+        }
 
-      /** ESM tree will help the application find the file
+        /** ESM tree will help the application find the file
        * which are missed by the application in first phase of build
        * it may restart the build and push all files listed in
        * .esmcache/files.json to entry points. This is important for
        * workers and non - worker files that might have missed due to
        * first phase of build
        *  */
-      await createESMTree(esmTree);
+        await createESMTree(esmTree);
 
-      await copyfn();
+        await copyfn();
 
-      fs.writeFileSync('dist/exports.json', JSON.stringify(exportPaths, null, 4));
-      return null;
+        fs.writeFileSync('dist/exports.json', JSON.stringify(exportPaths, null, 4));
+        appBuiltOnce = true;
+        return null;
+      }
     },
     transform: (code, id) => {
       if (code.startsWith('#!/usr/bin/env node')) {
@@ -301,19 +309,7 @@ const viteConfigProduction = {
         minifyInternalExports: false,
         format: 'es',
         strict: false,
-        manualChunks: id => {
-          if (id.includes('ceramic')) {
-            return 'ceramic';
-          } else if (id.includes('web3.min.js')) {
-            return 'web3';
-          } else if (id.includes('metaverse-modules.js')) {
-            return 'metaverse-modules';
-          } else if (id.includes('app/util.js')) {
-            return 'util';
-          }
-
-          // return 'app';
-        },
+        manualChunks: undefined,
         assetFileNames: 'assets/[name].[ext]',
         chunkFileNames: 'assets/[name].js',
         entryFileNames: 'assets/[name].js',
