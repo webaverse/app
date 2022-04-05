@@ -12,6 +12,7 @@ import {parseQuery, parseCoord} from './util.js';
 import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
 
+const a = 123;
 class Universe extends EventTarget {
   constructor() {
     super();

@@ -41,6 +41,14 @@ const build = () => {
 
   ];
 
+  const makeFakeEntry = () => {
+    const dir = path.resolve('.', '.esmcache');
+    const file = path.resolve(dir, 'index.js');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
+  };
+
   const resolveEntryOfModule = _path => {
     const packageJSON = JSON.parse(fs.readFileSync(path.resolve(base, _path, 'package.json')).toString());
     const moduleEntryFile = packageJSON.module || packageJSON.main || 'index.js';
