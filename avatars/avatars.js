@@ -2410,6 +2410,9 @@ class Avatar {
       this.ragdollMesh.toAvatar(this);
     } else {
       _updateHmdPosition();
+
+      // new _applyAnimation()
+
       // _applyAnimation(this, now, moveFactors);
       window.domInfo.innerHTML = `
         <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
@@ -2430,15 +2433,20 @@ class Avatar {
         <div>unuseAnimation: --- ${this.unuseAnimation}</div>
         <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
       `
-      
-      this.actionTime += timeDiff / 1000;
-      animationMappings.forEach(animationMapping=>{
+
+      animationMappings.forEach(animationMapping => {
+        // todo: perforamnce: Check if factor is 0, not perform evaluate?
         const idleArray = animationsIdleArrays.idle.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.idle.animation.duration);
         const walkArray = animationsIdleArrays.walk.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.walk.animation.duration);
+        const runArray = animationsIdleArrays.run.animation.interpolants[animationMapping.animationTrackName].evaluate(this.actionTime % animationsIdleArrays.run.animation.duration);
         const mixedArray = []; // todo: performance: May can reuse idleArray.
         idleArray.forEach((n,i) => { // todo: Should can use existing threejs mix function.
-          const mix = idleArray[i] * (1 - moveFactors.idleWalkFactor) + walkArray[i] * moveFactors.idleWalkFactor;
-          mixedArray.push(mix);
+          const mix = walkArray[i] * (1 - moveFactors.walkRunFactor) + runArray[i] * moveFactors.walkRunFactor;
+          mixedArray[i] = mix;
+        })
+        idleArray.forEach((n,i) => { // todo: Should can use existing threejs mix function.
+          const mix = idleArray[i] * (1 - moveFactors.idleWalkFactor) + mixedArray[i] * moveFactors.idleWalkFactor;
+          mixedArray[i] = mix;
         })
         animationMapping.dst.fromArray(mixedArray);
         // animationMapping.dst.fromArray(
@@ -2446,6 +2454,9 @@ class Avatar {
         // )
       })
       this.modelBoneOutputs.Hips.position.set(0, .8, 0); // todo: calc from CCT height.
+      this.actionTime += timeDiff / 1000;
+
+      // end new _applyAnimation()
 
       if (this.poseAnimation) {
         _overwritePose(this.poseAnimation);
