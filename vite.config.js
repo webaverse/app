@@ -47,6 +47,12 @@ const build = () => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
     }
+    let content = '';
+    for (const dependency in dependencies) {
+      content += `export * from ${dependency}\n`;
+    }
+
+    fs.writeFileSync(file, content);
   };
 
   const resolveEntryOfModule = _path => {

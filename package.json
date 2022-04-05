@@ -9,6 +9,7 @@
     "startX": "npm run build && NODE_ENV=production node index.mjs -p",
     "devX": "NODE_ENV=production node index.mjs -p",
     "prod": "sudo $(which node) index.mjs -p",
+    "build:modules": "rimraf dist && NODE_OPTIONS=--max_old_space_size=8096 OUTPUT_EXPORTS=true node --experimental-json-modules compile.mjs",
     "build": "rimraf dist && NODE_OPTIONS=--max_old_space_size=8096 OUTPUT_EXPORTS=true vite build",
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
