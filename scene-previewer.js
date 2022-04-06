@@ -297,7 +297,7 @@ class ScenePreviewer extends THREE.Object3D {
       // pop old state
       popPreviewContainerTransform();
       popRenderSettings();
-    } */
+    }
 
     {
       const popRenderSettings = this.#pushRenderSettings();
