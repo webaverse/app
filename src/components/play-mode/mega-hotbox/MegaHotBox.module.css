@@ -1,0 +1,18 @@
+
+.megaHotBox {
+  position: fixed;
+  top: 0;
+  right: 0;
+  transform: none;
+  transition: 1s transform cubic-bezier(0, 1, 0, 1);
+  pointer-events: none;
+}
+
+.megaHotBox:not(.open) {
+  transform: translateX(100%);
+}
+
+.megaHotBox .canvas {
+  width: 400px;
+  height: 100vh;
+}

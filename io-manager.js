@@ -295,12 +295,9 @@ ioManager.keydown = e => {
   } */
 
   switch (e.which) {
-    /* case 9: { // tab
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('key-tab').click();
+    case 9: { // tab
       break;
-    } */
+    }
     case 49: // 1
     case 50: // 2
     case 51: // 3
@@ -346,25 +343,32 @@ ioManager.keydown = e => {
       break;
     }
     case 83: { // S
-      ioManager.keys.down = true;
-      if (!cameraManager.pointerLockElement) {
-        if (game.menuOpen) {
-          game.menuVertical(1);
-        } else {
-          // if (!game.dragging) {
-            // _setTransformMode('scale');
-          // }
-        }
-      }
+      if (e.ctrlKey) {
+        e.preventDefault();
+        e.stopPropagation();
 
-      const now = performance.now();
-      const timeDiff = now - lastWASDDownTime.keyS;
-      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
-        ioManager.keys.doubleTap = true;
-        game.menuDoubleTap();
+        game.saveScene();
+      } else {
+        ioManager.keys.down = true;
+        if (!cameraManager.pointerLockElement) {
+          if (game.menuOpen) {
+            game.menuVertical(1);
+          } else {
+            // if (!game.dragging) {
+              // _setTransformMode('scale');
+            // }
+          }
+        }
+
+        const now = performance.now();
+        const timeDiff = now - lastWASDDownTime.keyS;
+        if (timeDiff < doubleTapTime && ioManager.keys.shift) {
+          ioManager.keys.doubleTap = true;
+          game.menuDoubleTap();
+        }
+        lastWASDDownTime.keyS = now;
+        lastWASDDownTime.keyW = 0;
       }
-      lastWASDDownTime.keyS = now;
-      lastWASDDownTime.keyW = 0;
       break;
     }
     case 68: { // D
@@ -388,7 +392,7 @@ ioManager.keydown = e => {
         if (game.canRotate()) {
           game.menuRotate(1);
         } else {
-          game.drop();
+          game.dropSelectedApp();
         }
       } else {
         // if (!game.dragging) {
@@ -498,14 +502,6 @@ ioManager.keydown = e => {
       e.preventDefault();
       e.stopPropagation();
       voiceInput.toggleSpeech();
-      break;
-    }
-    case 85: { // U
-      // if (game.canUpload()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuUpload();
-      // }
       break;
     }
     case 80: { // P

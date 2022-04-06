@@ -10,6 +10,7 @@ import {makePromise, getRandomString} from './util.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
+import {jsonParse} from './util.js';
 import {worldMapName} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -94,9 +95,17 @@ class AppManager extends EventTarget {
 
           const instanceId = appMap.get('instanceId');
           
-          const hadApp = this.apps.some(app => app.instanceId === instanceId);
-          if (hadApp) {
+          const oldApp = this.apps.find(app => app.instanceId === instanceId);
+          if (oldApp) {
             // console.log('accept migration add', instanceId);
+            this.dispatchEvent(new MessageEvent('trackedappimport', {
+              data: {
+                instanceId,
+                app: oldApp,
+                // sourceAppManager: this,
+                // destinationAppManager: peerOwnerAppManager,
+              },
+            }));
           } else {
             const trackedApp = this.getOrCreateTrackedApp(instanceId);
             // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
@@ -118,8 +127,9 @@ class AppManager extends EventTarget {
           if (peerOwnerAppManager) {
             // console.log('detected migrate app 1', instanceId, appManagers.length);
             
-            const e = new MessageEvent('trackedappmigrate', {
+            const e = new MessageEvent('trackedappexport', {
               data: {
+                instanceId,
                 app,
                 sourceAppManager: this,
                 destinationAppManager: peerOwnerAppManager,
@@ -215,7 +225,6 @@ class AppManager extends EventTarget {
       };
       this.addEventListener('clear', clear);
       const _bailout = app => {
-
         // Add Error placeholder
         const errorPH = this.getErrorPlaceholder();
         if (app) {
@@ -232,34 +241,46 @@ class AppManager extends EventTarget {
         }
         p.reject(new Error('app cleared during load: ' + contentId));
       };
+
+      // attempt to load app
       try {
         const m = await metaversefile.import(contentId);
         if (!live) return _bailout(null);
-        const app = metaversefile.createApp({
-          // name: contentId,
-        });
-        
-        app.position.fromArray(position);
-        app.quaternion.fromArray(quaternion);
-        app.scale.fromArray(scale);
-        app.updateMatrixWorld();
-        app.lastMatrix.copy(app.matrixWorld);
 
-        app.instanceId = instanceId;
-        app.setComponent('physics', true);
-        for (const {key, value} of components) {
-          app.setComponent(key, value);
+        // create app
+        // as an optimization, the app may be reused by calling addApp() before tracking it
+        const app = metaversefile.createApp();
+
+        // setup
+        {
+          // set pose
+          app.position.fromArray(position);
+          app.quaternion.fromArray(quaternion);
+          app.scale.fromArray(scale);
+          app.updateMatrixWorld();
+          app.lastMatrix.copy(app.matrixWorld);
+
+          // set components
+          app.instanceId = instanceId;
+          app.setComponent('physics', true);
+          for (const {key, value} of components) {
+            app.setComponent(key, value);
+          }
         }
-        // console.log('add module', m);
-        const mesh = await app.addModule(m);
-        if (!live) return _bailout(app);
-        if (!mesh) {
-          console.warn('failed to load object', {contentId});
+
+        // initialize app
+        {
+          // console.log('add module', m);
+          const mesh = await app.addModule(m);
+          if (!live) return _bailout(app);
+          if (!mesh) {
+            console.warn('failed to load object', {contentId});
+          }
+
+          this.addApp(app);
         }
-        
+
         this.bindTrackedApp(trackedApp, app);
-        
-        this.addApp(app);
 
         p.accept(app);
       } catch (err) {
@@ -276,8 +297,19 @@ class AppManager extends EventTarget {
       this.removeApp(app);
       app.destroy();
     });
-    this.addEventListener('trackedappmigrate', async e => {
+    this.addEventListener('trackedappimport', async e => {
       const {
+        instanceId,
+        app,
+      } = e.data;
+    
+      /* if (!this.apps.includes(app)) {
+        this.apps.push(app);
+      } */
+    });
+    this.addEventListener('trackedappexport', async e => {
+      const {
+        instanceId,
         app,
         sourceAppManager,
         destinationAppManager,
@@ -328,9 +360,19 @@ class AppManager extends EventTarget {
     }
     return null;
   }
+  getPairByPhysicsId(physicsId) {
+    for (const app of this.apps) {
+      const physicsObjects = app.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        if (physicsObject.physicsId === physicsId) {
+          return [app, physicsObject];
+        }
+      }
+    }
+    return null;
+  }
   getOrCreateTrackedApp(instanceId) {
     for (let i = 0; this.appsArray.length > i; i++) {
-    // for (const app of this.appsArray) {
       const app = this.appsArray.get(i, Z.Map);
       if (app.get('instanceId') === instanceId) {
         return app;
@@ -393,9 +435,9 @@ class AppManager extends EventTarget {
     quaternion = new THREE.Quaternion(),
     scale = new THREE.Vector3(1, 1, 1),
     components = [],
+    instanceId = getRandomString(),
   ) {
     const self = this;
-    const instanceId = getRandomString();
     this.appsArray.doc.transact(function tx() {
       self.addTrackedAppInternal(
         instanceId,
@@ -410,7 +452,12 @@ class AppManager extends EventTarget {
     if (p) {
       return p;
     } else {
-      throw new Error('no pending world add object promise');
+      const app = this.getAppByInstanceId(instanceId);
+      if (app) {
+        return Promise.resolve(app);
+      } else {
+        throw new Error('no pending world add object promise');
+      }
     }
   }
   getTrackedAppIndex(instanceId) {
@@ -512,11 +559,37 @@ class AppManager extends EventTarget {
       
       dstAppManager.bindTrackedApp(dstTrackedApp, app);
     } else {
-      throw new Error('cannot transplant apps between app manager with different state');
+      throw new Error('cannot transplant apps between app manager with different state binding');
     }
     
     // srcAppManager.setBlindStateMode(false);
     // dstAppManager.setBlindStateMode(false);
+  }
+  importApp(app) {
+    let dstTrackedApp = null;
+    this.appsArray.doc.transact(() => {
+      const contentId = app.contentId;
+      const instanceId = app.instanceId;
+      const position = app.position.toArray();
+      const quaternion = app.quaternion.toArray();
+      const scale = app.scale.toArray();
+      const components = app.components.slice();
+      
+      dstTrackedApp = this.addTrackedAppInternal(
+        instanceId,
+        contentId,
+        position,
+        quaternion,
+        scale,
+        components,
+      );
+
+      this.addApp(app);
+    });
+    
+    this.bindTrackedApp(dstTrackedApp, app);
+
+    this.addApp(app);
   }
   hasApp(app) {
     return this.apps.includes(app);
@@ -574,6 +647,40 @@ class AppManager extends EventTarget {
         app.lastMatrix.copy(app.matrix);
       }
     }
+  }
+  exportJSON() {
+    const objects = [];
+
+    // iterate over appsArray
+    for (const trackedApp of this.appsArray) {
+      const position = trackedApp.get('position');
+      const quaternion = trackedApp.get('quaternion');
+      const scale = trackedApp.get('scale');
+      const componentsString = trackedApp.get('components');
+      const components = jsonParse(componentsString) ?? [];
+      const object = {
+        position,
+        quaternion,
+        scale,
+        components,
+      };
+      // console.log('got app object', object);
+    
+      let contentId = trackedApp.get('contentId');
+      const match = contentId.match(/^\/@proxy\/data:([^;,]+),([\s\S]*)$/);
+      if (match) {
+        const type = match[1];
+        const content = decodeURIComponent(match[2]);
+        object.type = type;
+        object.content = jsonParse(content) ?? {};
+      } else {
+        object.contentId = contentId;
+      }
+
+      objects.push(object);
+    }
+
+    return objects;
   }
   destroy() {
     if (!this.isBound()) {
