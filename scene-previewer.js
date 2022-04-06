@@ -274,13 +274,6 @@ class ScenePreviewer extends THREE.Object3D {
       this.previewContainer.matrixWorld.copy(oldMatrixWorld);
     };
   }
-  #pushRenderSettings() {
-    if (this.scene) {
-      return renderSettingsManager.push(this.previewScene);
-    } else {
-      return () => {};
-    }
-  }
   #canRender() {
     return !!this.scene && !this.focused && !this.rendered;
   }
