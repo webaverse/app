@@ -283,7 +283,7 @@ export function snapshotMapChunk(
       const oldViewport = renderer.getViewport(localVector4D);
       const oldRenderTarget = renderer.getRenderTarget();
       const oldOverrideMaterial = scene.overrideMaterial;
-      const oldFog = scene.fog;
+      // const oldFog = scene.fog;
 
       // render
       const _renderOverrideMaterial = (renderTarget, overrideMaterial, wp1) => {
@@ -291,8 +291,11 @@ export function snapshotMapChunk(
         renderer.setRenderTarget(renderTarget);
         renderer.clear();
         scene.overrideMaterial = overrideMaterial;
-        scene.fog = null;
+
+        const pop = renderSettingsManager.push(scene);
+        // scene.fog = null;
         renderer.render(scene, camera);
+        pop();
 
         const imageData = {
           data: new Uint8Array(wp1.x * wp1.y * 4),
@@ -309,7 +312,7 @@ export function snapshotMapChunk(
       renderer.setViewport(oldViewport.x, oldViewport.y, oldViewport.z, oldViewport.w);
       renderer.setRenderTarget(oldRenderTarget);
       scene.overrideMaterial = oldOverrideMaterial;
-      scene.fog = oldFog;
+      // scene.fog = oldFog;
     }
 
     const geometry = _makeGeometry(
