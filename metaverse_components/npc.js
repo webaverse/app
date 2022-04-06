@@ -53,7 +53,7 @@ try {
       const position = vrmApp.position.clone()
         .add(new THREE.Vector3(0, 1, 0));
       const {quaternion, scale} = vrmApp;
-      const newNpcPlayer = npcManager.createNpc({
+      const newNpcPlayer = await npcManager.createNpc({
         name: npcName,
         avatarApp: vrmApp,
         position,
