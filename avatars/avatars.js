@@ -50,7 +50,7 @@ import metaversefile from 'metaversefile';
 
 import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
 
-import { animationMappingConfig } from './AnimationMapping.js';
+import { animationMappingConfig, animationNameMapping } from './AnimationMapping.js';
 import Emoter from './Emoter.js'
 import Blinker from './Blinker.js'
 import Nodder from './Nodder.js'
@@ -1407,6 +1407,12 @@ class Avatar {
         })
       })
     })
+    animations.forEach(animation => {
+      animation.oldName = animation.name;
+      if (animationNameMapping[animation.name]) {
+        animation.name = animationNameMapping[animation.name];
+      }
+    })
 
     this.blinker = new Blinker();
     this.nodder = new Nodder();
@@ -2516,11 +2522,13 @@ class Avatar {
             this.actiono[name] = action;
           })
           // debugger 
-          // this.actiono["walking.fbx"].play();
-          this.currentAction = this.actiono["One Hand Sword Combo.fbx"];
+          this.currentAction = this.actiono.walk;
+          // this.currentAction = this.actiono.combo;
           this.currentAction.play();
         }
         this.mixer.update(timeDiff / 1000);
+        this.modelBoneOutputs.Hips.position.x = 0;
+        this.modelBoneOutputs.Hips.position.z = 0;
       }
 
       if (this.poseAnimation) {

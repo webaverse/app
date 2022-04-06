@@ -70,3 +70,8 @@ export const animationMappingConfig = [
   new AnimationMapping('mixamorigLeftFoot.quaternion', 'Left_ankle', false, false),
   new AnimationMapping('mixamorigLeftToeBase.quaternion', 'Left_toe', false, false),
 ];
+
+export const animationNameMapping = {
+  'One Hand Sword Combo.fbx': 'combo',
+  'walking.fbx': 'walk',
+}
