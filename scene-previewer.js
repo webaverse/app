@@ -276,12 +276,7 @@ class ScenePreviewer extends THREE.Object3D {
   }
   #pushRenderSettings() {
     if (this.scene) {
-      const renderSettings = renderSettingsManager.findRenderSettings(this.previewScene);
-      renderSettingsManager.applyRenderSettingsToScene(renderSettings, this.previewScene);
-      
-      return () => {
-        renderSettingsManager.applyRenderSettingsToScene(null, this.previewScene);
-      };
+      return renderSettingsManager.push(this.previewScene);
     } else {
       return () => {};
     }
