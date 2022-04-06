@@ -1,14 +1,19 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import * as THREE from 'three';
 import classnames from 'classnames';
 import {getRenderer} from '../renderer.js';
 import metaversefile from 'metaversefile';
 import performanceTracker from '../performance-tracker.js';
+import { AppContext } from './components/app';
 import style from './Stats.module.css';
+
+//
 
 const localVector = new THREE.Vector3();
 
 export const Stats = () => {
+
+    const { app } = useContext( AppContext );
 	const [enabled, setEnabled] = useState(false);
 	const [fps, setFps] = useState(0);
 	const [position, setPosition] = useState([0, 0, 0]);
@@ -67,11 +72,15 @@ export const Stats = () => {
 				// Only update once per second
 				const now = performance.now();
 				if (now > lastTime + 1000) {
-					setFps(Math.round((frames * 1000) / (now - lastTime)));
+
+                    setFps( 'Render ' + Math.round( 1000 * app.renderFrame / ( now - lastTime ) ) + ' Loop ' + Math.round( 1000 * app.loopFrame / ( now - lastTime ) )  );
 					setPrograms(renderer.info.programs.length);
 					setGeometries(renderer.info.memory.geometries);
 					setTextures(renderer.info.memory.textures);
 					setCalls(renderer.info.render.calls);
+
+                    app.renderFrame = 0;
+                    app.loopFrame = 0;
 
 					frames = 0;
 					lastTime = now;

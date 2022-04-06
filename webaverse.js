@@ -79,6 +79,11 @@ export default class Webaverse extends EventTarget {
   constructor() {
     super();
 
+    this.renderLimitMs = 0; // not limited by default
+    this.lastRenderTime = 0;
+    this.renderFrame = 0;
+    this.loopFrame = 0;
+
     this.loadPromise = (async () => {
       await Promise.all([
         physx.waitForLoad(),
@@ -340,22 +345,29 @@ export default class Webaverse extends EventTarget {
         };
         _pre();
 
-        // render scenes
-        performanceTracker.setGpuPrefix('diorama');
-        dioramaManager.update(timestamp, timeDiffCapped);
-        performanceTracker.setGpuPrefix('minimap');
-        minimapManager.update(timestamp, timeDiffCapped);
-        performanceTracker.setGpuPrefix('loadout');
-        loadoutManager.update(timestamp, timeDiffCapped);
+        const timeSinceLastRender = timestamp - this.lastRenderTime;
+        this.loopFrame ++;
 
-        {
+        if ( timeSinceLastRender >= this.renderLimitMs )  {
+
+          this.lastRenderTime = timestamp;
+          this.renderFrame ++;
+
+          // render scenes
+          performanceTracker.setGpuPrefix('diorama');
+          dioramaManager.update(timestamp, timeDiffCapped);
+          performanceTracker.setGpuPrefix('minimap');
+          minimapManager.update(timestamp, timeDiffCapped);
+          performanceTracker.setGpuPrefix('loadout');
+          loadoutManager.update(timestamp, timeDiffCapped);
+
           const popRenderSettings = _pushRenderSettings();
-
           performanceTracker.setGpuPrefix('');
           this.render(timestamp, timeDiffCapped);
-
           popRenderSettings();
+
         }
+
       };
       _frame();
 
