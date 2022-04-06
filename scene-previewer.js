@@ -304,9 +304,11 @@ class ScenePreviewer extends THREE.Object3D {
       // pop old state
       popPreviewContainerTransform();
       popRenderSettings();
-    }
+    } */
 
     {
+      const popRenderSettings = this.#pushRenderSettings();
+
       const worldResolution = new THREE.Vector2(2048, 2048);
       const worldDepthResolution = new THREE.Vector2(512, 512);
 
@@ -329,6 +331,8 @@ class ScenePreviewer extends THREE.Object3D {
       lodMesh.visible = oldVisible;
 
       this.lodMesh = lodMesh;
+
+      popRenderSettings();
     }
 
     this.rendered = true;
