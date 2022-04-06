@@ -1459,6 +1459,7 @@ class Avatar {
     this.hurtAnimation = null;
     this.actionTime = 0;
     this.actiono = {};
+    this.currentAction = null;
 
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -1537,6 +1538,21 @@ class Avatar {
       // console.log(state)
     })
     this.fsms.start()
+  }
+  fadeToAction(name, duration = 0.1) {
+    let nextAction = this.actiono[name]
+    if (duration > 0) {
+      // fade
+      nextAction.reset()
+      nextAction.play()
+      this.currentAction.crossFadeTo(nextAction, duration)
+      this.currentAction = nextAction
+    } else {
+      // not fade
+      this.currentAction.stop()
+      nextAction.reset().play()
+      this.currentAction = nextAction
+    }
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2501,7 +2517,8 @@ class Avatar {
           })
           // debugger 
           // this.actiono["walking.fbx"].play();
-          this.actiono["One Hand Sword Combo.fbx"].play();
+          this.currentAction = this.actiono["One Hand Sword Combo.fbx"];
+          this.currentAction.play();
         }
         this.mixer.update(timeDiff / 1000);
       }
