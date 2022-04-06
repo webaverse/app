@@ -1,15 +1,21 @@
 import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
-// import metaversefile from 'metaversefile';
 import styles from './inventory.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
-// import { LightArrow } from '../../../LightArrow.jsx';
+import { Spritesheet } from '../spritesheet';
 import game from '../../../../game.js';
-import spritesheetManager from '../../../../spritesheet-manager.js';
 import {transparentPngUrl} from '../../../../constants.js';
 
 //
+
+const size = 2048;
+const numFrames = 128;
+const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
+const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
+const frameSize = size / numFramesPerRow;
+// const frameLoopTime = 2000;
+// const frameTime = frameLoopTime / numFrames;
 
 const userTokenObjects = []; // Array(2);
 for (let i = 0; i < userTokenObjects.length; i++) {
@@ -36,6 +42,11 @@ const objects = {
             start_url: 'https://webaverse.github.io/bow/',
             level: 9,
         },
+        /* {
+            name: 'Silk',
+            start_url: './metaverse_modules/silk/',
+            level: 1,
+        }, */
     ],
 };
 
@@ -51,62 +62,6 @@ const InventoryObject = forwardRef(({
     onDragStart,
     onDoubleClick,
 }, ref) => {
-    const [ spritesheet, setSpritesheet ] = useState(null);
-    const canvasRef = useRef();
-
-    const size = 2048;
-    const numFrames = 128;
-    const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
-    const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
-    const frameSize = size / numFramesPerRow;
-    const frameLoopTime = 2000;
-    const frameTime = frameLoopTime / numFrames;
-
-    useEffect(() => {
-        if (object?.start_url) {
-            let live = true;
-            (async () => {
-                const {name, start_url} = object;
-                const spritesheet = await spritesheetManager.getSpriteSheetForAppUrl(start_url, {
-                    size,
-                    numFrames,
-                });
-                // console.log('load spritesheet', spritesheet);
-                if (!live) {
-                    return;
-                }
-                setSpritesheet(spritesheet);
-            })();
-            return () => {
-              live = false;
-            };
-        }
-    }, [object]);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (canvas && spritesheet && enabled) {
-            const ctx = canvas.getContext('2d');
-            const imageBitmap = spritesheet.result;
-            // console.log('render image bitmap', imageBitmap, size, canvas.width, canvas.height);
-            // ctx.drawImage(imageBitmap, 0, 0, size, size, 0, 0, canvas.width, canvas.height);
-
-            let frameIndex = 0;
-            const _recurse = () => {
-                const x = (frameIndex % numFramesPerRow) * frameSize;
-                const y = size - frameSize - Math.floor(frameIndex / numFramesPerRow) * frameSize;
-                frameIndex = (frameIndex + 1) % numFrames;
-
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(imageBitmap, x, y, frameSize, frameSize, 0, 0, canvas.width, canvas.height);
-            };
-            const interval = setInterval(_recurse, frameTime);
-            return () => {
-                clearInterval(interval);
-            };
-        }
-    }, [canvasRef, spritesheet, enabled]);
-
     return (
         <div
             className={classnames(
@@ -125,11 +80,12 @@ const InventoryObject = forwardRef(({
             <div className={styles.background} />
             <div className={styles.highlight} />
 
-            <canvas
+            <Spritesheet
                 className={styles.canvas}
-                width={frameSize}
-                height={frameSize}
-                ref={canvasRef}
+                startUrl={object?.start_url}
+                enabled={enabled}
+                size={size}
+                numFrames={numFrames}
             />
 
             <div className={styles.row}>

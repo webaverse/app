@@ -3,7 +3,7 @@ this file contains the universe/meta-world/scenes/multiplayer code.
 responsibilities include loading the world on url change.
 */
 
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import * as Z from 'zjs';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
@@ -100,6 +100,16 @@ class Universe extends EventTarget {
   async waitForSceneLoaded() {
     if (this.sceneLoadedPromise) {
       await this.sceneLoadedPromise;
+    } else {
+      if (this.currentWorld) {
+        // nothing
+      } else {
+        await new Promise((accept, reject) => {
+          this.addEventListener('worldload', e => {
+            accept();
+          }, {once: true});
+        });
+      }
     }
   }
 }
