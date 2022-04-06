@@ -283,7 +283,7 @@ class ScenePreviewer extends THREE.Object3D {
 
       // push old state
       const popPreviewContainerTransform = this.#pushPreviewContainerTransform();
-      const popRenderSettings = this.#pushRenderSettings();
+      const popRenderSettings = renderSettingsManager.push(this.scene, this.previewScene);
 
       for (const skyboxMesh of this.skyboxMeshes) {
         this.cubeCamera.position.setFromMatrixPosition(skyboxMesh.matrixWorld);
