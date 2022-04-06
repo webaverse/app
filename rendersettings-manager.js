@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import postProcessing from './post-processing.js';
-import {rootScene} from './renderer.js';
+// import {rootScene} from './renderer.js';
 
 class RenderSettings {
   constructor(json) {
