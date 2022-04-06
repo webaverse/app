@@ -1,79 +1,45 @@
-import * as THREE from 'three';
-import { IDTech } from './idTech.js';
+import * as THREE from 'three'
+import { IDTech } from './idTech.js'
 
+const textureLoader = new THREE.TextureLoader()
 
-const textureLoader = new THREE.TextureLoader();
-
-
-const IdtechBasic = new IDTech(512, 64);
-IdtechBasic.loadAll('textures/terrain/terrain ');
-const IdtechNormal = new IDTech(512, 64);
-IdtechNormal.loadAll('textures/terrainnormal/terrain normal ');
+const IdtechBasic = new IDTech(512, 64)
+IdtechBasic.loadAll('textures/terrain/terrain ')
+const IdtechNormal = new IDTech(512, 64)
+IdtechNormal.loadAll('textures/terrainnormal/terrain normal ')
 
 /**
  * GradientMap
  */
 const gradientMaps = (function () {
+  const threeTone = textureLoader.load('./textures/threeTone.jpg')
+  threeTone.minFilter = THREE.NearestFilter
+  threeTone.magFilter = THREE.NearestFilter
 
-    const threeTone = textureLoader.load('./textures/threeTone.jpg');
-    threeTone.minFilter = THREE.NearestFilter;
-    threeTone.magFilter = THREE.NearestFilter;
+  const fiveTone = textureLoader.load('./textures/fiveTone.jpg')
+  fiveTone.minFilter = THREE.NearestFilter
+  fiveTone.magFilter = THREE.NearestFilter
 
-    const fiveTone = textureLoader.load('./textures/fiveTone.jpg');
-    fiveTone.minFilter = THREE.NearestFilter;
-    fiveTone.magFilter = THREE.NearestFilter;
+  return {
+    none: null,
+    threeTone: threeTone,
+    fiveTone: fiveTone,
+  }
+})()
 
-    return {
-        none: null,
-        threeTone: threeTone,
-        fiveTone: fiveTone
-    };
+const noiseTexture = textureLoader.load(
+  `${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/noise.png`
+)
+noiseTexture.wrapS = THREE.RepeatWrapping
+noiseTexture.wrapT = THREE.RepeatWrapping
 
-})();
+export const vertex = /* glsl */ `
 
-const noiseTexture = textureLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/noise.png`)
-noiseTexture.wrapS = THREE.RepeatWrapping;
-noiseTexture.wrapT = THREE.RepeatWrapping;
+varying vec2 vUv;
+varying vec3 vNormal;
 
-export const terrainMaterial = new THREE.MeshToonMaterial({ color: 0xaaccff, gradientMap: gradientMaps.threeTone });;
-
-terrainMaterial.onBeforeCompile = (shader, renderer) => {
-    shader.uniforms = shader.uniforms || {};
-    terrainMaterial.uniforms = shader.uniforms;
-    console.log('onBeforeCompile');
-    shader.vertexShader = vertex;
-    shader.fragmentShader = fragment;
-
-
-    shader.defines = shader.defines || {};
-    //USE_TERRAIN  open terrain render
-    shader.defines['USE_TERRAIN'] = '';
-
-    //terrain map
-    shader.uniforms.terrainArrayTexture = { value: IdtechBasic.texture };
-    //terrain normal map
-    shader.uniforms.terrainNormalArrayTexture = { value: IdtechNormal.texture };
-    //noise map use to random sampler
-    shader.uniforms.noiseTexture = { value: noiseTexture };
-}
-
-export const vertex = /* glsl */`
-#define TOON
-
-varying vec3 vViewPosition;
-
-#include <common>
-#include <uv_pars_vertex>
-#include <uv2_pars_vertex>
-#include <displacementmap_pars_vertex>
-#include <color_pars_vertex>
-#include <fog_pars_vertex>
-#include <normal_pars_vertex>
-#include <morphtarget_pars_vertex>
-#include <skinning_pars_vertex>
-#include <shadowmap_pars_vertex>
-#include <logdepthbuf_pars_vertex>
-#include <clipping_planes_pars_vertex>
+uniform vec2 uResolution;
+uniform float uTime;
 
 #ifdef USE_TERRAIN
     attribute vec4 biome;
@@ -88,29 +54,6 @@ varying vec3 vViewPosition;
 
 void main() {
 
-	#include <uv_vertex>
-	#include <uv2_vertex>
-	#include <color_vertex>
-
-	#include <beginnormal_vertex>
-	#include <morphnormal_vertex>
-	#include <skinbase_vertex>
-	#include <skinnormal_vertex>
-	#include <defaultnormal_vertex>
-	#include <normal_vertex>
-
-	#include <begin_vertex>
-	#include <morphtarget_vertex>
-	#include <skinning_vertex>
-	#include <displacementmap_vertex>
-	#include <project_vertex>
-	#include <logdepthbuf_vertex>
-	#include <clipping_planes_vertex>
-
-	vViewPosition = - mvPosition.xyz;
-
-	#include <worldpos_vertex>
-
     #if defined(USE_TERRAIN)
         vbiome = biome;
         fbiome0 = biome.x;
@@ -124,55 +67,18 @@ void main() {
         vtriNormal = vec3(normal);
     #endif
 
-	#include <shadowmap_vertex>
-	#include <fog_vertex>
+  vNormal = normal;
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 
 }
-`;
+`
 
-export const fragment = /* glsl */`
-#define TOON
+export const fragment = /* glsl */ `
 
 uniform vec3 diffuse;
 uniform vec3 emissive;
 uniform float opacity;
-
-#include <common>
-#include <packing>
-#include <dithering_pars_fragment>
-#include <color_pars_fragment>
-#include <uv_pars_fragment>
-#include <uv2_pars_fragment>
-#include <map_pars_fragment>
-#include <alphamap_pars_fragment>
-#include <alphatest_pars_fragment>
-#include <aomap_pars_fragment>
-#include <lightmap_pars_fragment>
-#include <emissivemap_pars_fragment>
-#ifdef USE_GRADIENTMAP
-	uniform sampler2D gradientMap;
-#endif
-
-vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
-	// dotNL will be from -1.0 to 1.0
-	float dotNL = dot( normal, lightDirection );
-	vec2 coord = vec2( dotNL * 0.57 + 0.43, 0.0 );
-	#ifdef USE_GRADIENTMAP
-		return texture2D( gradientMap, coord ).rgb;
-	#else
-		return (  .x < 0.7 ) ? vec3( 0.7 ) : vec3( 1.0 );
-	#endif
-}
-#include <fog_pars_fragment>
-#include <bsdfs>
-#include <lights_pars_begin>
-#include <normal_pars_fragment>
-#include <lights_toon_pars_fragment>
-#include <shadowmap_pars_fragment>
-#include <bumpmap_pars_fragment>
-#include <normalmap_pars_fragment>
-#include <logdepthbuf_pars_fragment>
-#include <clipping_planes_pars_fragment>
 
 #ifdef USE_TERRAIN
     precision highp sampler2DArray;
@@ -276,15 +182,6 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
 
 void main() {
 
-	#include <clipping_planes_fragment>
-
-	vec4 diffuseColor = vec4( diffuse, opacity );
-	ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
-	vec3 totalEmissiveRadiance = emissive;
-
-	#include <logdepthbuf_fragment>
-	#include <map_fragment>
-
     #ifdef USE_TERRAIN
         vec3 blending = normalize(max(abs(vtriNormal), 0.001)); // Force weights to sum to 1.0
         blending = blending / (blending.x + blending.y + blending.z);
@@ -306,13 +203,6 @@ void main() {
         terrainColor *= max(ba*1.75,0.8) ;
         diffuseColor *= terrainColor;
     #endif
-
-	#include <color_fragment>
-	#include <alphamap_fragment>
-	#include <alphatest_fragment>
-	#include <normal_fragment_begin>
-	#include <normal_fragment_maps>
-
     #ifdef USE_TERRAIN
         vec3 normal0 = triplanarNormal(vtriCoord,normal,blending, vbiome.x, terrainNormalArrayTexture,10.0);
         vec3 normal1 = triplanarNormal(vtriCoord,normal,blending, vbiome.y, terrainNormalArrayTexture,10.0);
@@ -322,27 +212,41 @@ void main() {
         vec3 normalmix = vbiomeWeight.x * normal0 + vbiomeWeight.y * normal1 + vbiomeWeight.z * normal2 + vbiomeWeight.w * normal3;
         normal = normalize(normal + normalmix *0.5);//normalmix;//
     #endif
-
-	#include <emissivemap_fragment>
-
-	// accumulation
-	#include <lights_toon_fragment>
-	#include <lights_fragment_begin>
-	#include <lights_fragment_maps>
-	#include <lights_fragment_end>
-
-	// modulation
-	#include <aomap_fragment>
-
-	vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;
-
-	#include <output_fragment>
-	#include <tonemapping_fragment>
-	#include <encodings_fragment>
-	#include <fog_fragment>
-	#include <premultiplied_alpha_fragment>
-	#include <dithering_fragment>
-
+    gl_FragColor = vec4(1. , 0. , 0. , 1. );
 }
-`;
+`
+
+
+// export const terrainMaterial = new THREE.MeshToonMaterial({ color: 0xaaccff, gradientMap: gradientMaps.threeTone });;
+export const terrainMaterial = new THREE.ShaderMaterial({
+  fragmentShader: fragment,
+  vertexShader: vertex,
+  uniforms: {
+    terrainArrayTexture: { value: IdtechBasic.texture },
+    terrainNormalArrayTexture: { value: IdtechBasic.texture },
+    noiseTexture: { value: noiseTexture },
+  },
+  defines: {
+    USE_TERRAIN: '',
+  },
+})
+
+// terrainMaterial.onBeforeCompile = (shader, renderer) => {
+//   shader.uniforms = shader.uniforms || {}
+//   terrainMaterial.uniforms = shader.uniforms
+//   console.log('onBeforeCompile')
+//   shader.vertexShader = vertex
+//   shader.fragmentShader = fragment
+
+//   shader.defines = shader.defines || {}
+//   //USE_TERRAIN  open terrain render
+//   shader.defines['USE_TERRAIN'] = ''
+
+//   //terrain map
+//   shader.uniforms.terrainArrayTexture = { value: IdtechBasic.texture }
+//   //terrain normal map
+//   shader.uniforms.terrainNormalArrayTexture = { value: IdtechNormal.texture }
+//   //noise map use to random sampler
+//   shader.uniforms.noiseTexture = { value: noiseTexture }
+// }
 
