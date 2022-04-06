@@ -1514,6 +1514,7 @@ class Avatar {
       {
         actions: {
           entryCombo: () => {
+            this.fadeToAction('combo');
             game.startUse();
             this.actionTime = 0;
             setTimeout(() => {
