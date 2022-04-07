@@ -7,9 +7,9 @@ class NpcManager extends EventTarget {
     this.npcs = [];
   }
 
-  async createNpc({
+  createNpc({
     name,
-    url,
+    avatarApp,
     position,
     quaternion,
     scale,
@@ -34,7 +34,7 @@ class NpcManager extends EventTarget {
       npcPlayer.updateMatrixWorld();
     }
 
-    await npcPlayer.setAvatarUrl(url);
+    npcPlayer.setAvatarApp(avatarApp);
     this.npcs.push(npcPlayer);
 
     this.dispatchEvent(new MessageEvent('npcadd', {

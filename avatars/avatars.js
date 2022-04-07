@@ -57,7 +57,6 @@ import Nodder from './Nodder.js'
 import Looker from './Looker.js'
 import physx from '../physx.js';
 import { getDiffQuaternion } from '../util.js';
-import { createMachine, actions, interpret, assign } from 'xstate';
 // import game from '../game.js';
 
 const { DEG2RAD } = THREE.MathUtils;
