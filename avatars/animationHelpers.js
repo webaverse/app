@@ -893,6 +893,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
+        debugger
         let useAnimation;
         let t2;
         const useTimeS = activeAvatar.useTime / 1000;
