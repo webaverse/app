@@ -1507,7 +1507,8 @@ class Avatar {
                       walk: {target: 'walk'},
                       run: {target: 'run'},
                       attack: {target: 'combo'},
-                    }
+                    },
+                    tags: ['canMove'],
                   },
                   walk: {
                     entry: 'entryWalk',
@@ -1515,7 +1516,8 @@ class Avatar {
                       idle: {target: 'idle'},
                       run: {target: 'run'},
                       attack: {target: 'combo'},
-                    }
+                    },
+                    tags: ['canMove'],
                   },
                   run: {
                     entry: 'entryRun',
@@ -1523,7 +1525,8 @@ class Avatar {
                       idle: {target: 'idle'},
                       walk: {target: 'walk'},
                       attack: {target: 'combo'},
-                    }
+                    },
+                    tags: ['canMove'],
                   },
                   combo: {
                     entry: 'entryCombo',
@@ -1538,7 +1541,8 @@ class Avatar {
                 entry: 'entryFly',
                 on: {
                   stopFly: {target: 'ground'},
-                }
+                },
+                tags: ['canMove'],
               }
             }
           },
@@ -2597,6 +2601,9 @@ class Avatar {
         }
         if (this.flyState) this.fsms.send('fly');
         else this.fsms.send('stopFly');
+        // console.log(window.localPlayer.characterPhysics.velocity.z)
+        // if (['normal.ground.combo'].some(this.fsms.state.matches)) window.localPlayer.characterPhysics.velocity.set(0, 0, 0);
+        // console.log(window.localPlayer.characterPhysics.velocity.z)
 
         this.mixer.update(timeDiff / 1000);
         this.modelBoneOutputs.Hips.position.x = 0;

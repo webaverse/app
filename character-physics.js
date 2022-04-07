@@ -80,8 +80,13 @@ class CharacterPhysics {
       // console.log('apply avatar physics', this.player);
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.velocity)
-        .multiplyScalar(timeDiffS);
+      // if (['normal.ground.combo'].some(window.localPlayer.avatar.fsms.state.matches)) {
+      if (window.localPlayer.avatar.fsms.state.hasTag('canMove')) {
+        localVector3.copy(this.velocity)
+          .multiplyScalar(timeDiffS);
+      } else {
+        localVector3.set(0, 0, 0);
+      }
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
       const flags = physicsManager.moveCharacterController(
         this.player.characterController,
