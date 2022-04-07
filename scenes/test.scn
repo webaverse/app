@@ -21,7 +21,7 @@
     },
     {
       "position": [ 0, 1, -5 ],
-      "start_url": "http://localhost/lib/webaverse_resource/bow/index.js"
+      "start_url": "http://localhost/lib/webaverse_resource/bow/"
     },
     {
       "position": [ 5, 0, 0 ],

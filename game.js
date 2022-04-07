@@ -325,6 +325,7 @@ const _getNextUseIndex = animationCombo => {
   }
 }
 const _startUse = () => {
+  // debugger
   const localPlayer = metaversefileApi.useLocalPlayer();
   const wearApp = loadoutManager.getSelectedApp();
   if (wearApp) {
