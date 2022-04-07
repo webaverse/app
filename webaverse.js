@@ -18,6 +18,8 @@ import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
 import loadoutManager from './loadout-manager.js';
+import questManager from './quest-manager.js';
+import mobManager from './mob-manager.js';
 import {
   getRenderer,
   scene,
@@ -317,7 +319,9 @@ export default class Webaverse extends EventTarget {
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
+          mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
+          questManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
@@ -367,6 +371,14 @@ export default class Webaverse extends EventTarget {
 const _startHacks = webaverse => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
+
+  if (!window.s) window.s = {};
+  window.s.localPlayer = localPlayer;
+  window.s.THREE = THREE;
+  window.s.physicsManager = physicsManager;
+  window.s.physx = physx;
+  window.s.metaversefileApi = metaversefileApi;
+  window.s.rootScene = rootScene;
 
   // let playerDiorama = null;
   const lastEmoteKey = {

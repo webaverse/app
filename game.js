@@ -923,9 +923,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
         );
         if (collision) {
           const collisionId = collision.objectId;
-          const object = metaversefileApi.getAppByPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
-          if (object) {
-            const lastHitTime = lastHitTimes.get(object) ?? 0;
+          const result = metaversefileApi.getPairByPhysicsId(collisionId);
+          if (result) {
+            const [app, physicsObject] = result;
+            const lastHitTime = lastHitTimes.get(app) ?? 0;
             const timeDiff = now - lastHitTime;
             if (timeDiff > 1000) {
               const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
@@ -942,17 +943,17 @@ const _gameUpdate = (timestamp, timeDiff) => {
               localEuler.z = 0;
               const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
 
-              const willDie = object.willDieFrom(damage);
-              object.hit(damage, {
+              // const willDie = app.willDieFrom(damage);
+              app.hit(damage, {
                 collisionId,
-                // collisionId,
+                physicsObject,
                 hitPosition,
                 hitQuaternion,
                 hitDirection,
-                willDie,
+                // willDie,
               });
             
-              lastHitTimes.set(object, now);
+              lastHitTimes.set(app, now);
             }
           }
         }
