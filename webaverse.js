@@ -379,6 +379,7 @@ const _startHacks = webaverse => {
   window.s.physx = physx;
   window.s.metaversefileApi = metaversefileApi;
   window.s.rootScene = rootScene;
+  window.s.loadoutManager = loadoutManager;
 
   // let playerDiorama = null;
   const lastEmoteKey = {
