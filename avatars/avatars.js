@@ -1408,9 +1408,9 @@ class Avatar {
       })
     })
     animations.forEach(animation => {
-      animation.oldName = animation.name;
+      animation.name2 = animation.name;
       if (animationNameMapping[animation.name]) {
-        animation.name = animationNameMapping[animation.name];
+        animation.name2 = animationNameMapping[animation.name];
       }
     })
 
@@ -1481,8 +1481,13 @@ class Avatar {
     this.fsm = createMachine(
       {
         id: 'avatar',
-        initial: 'normal',
+        initial: 'loading',
         states: {
+          loading: {
+            on: {
+              loaded: {target: 'normal'},
+            }
+          },
           normal: {
             on: {
               ragdoll: {target: 'ragdoll'},
@@ -1490,6 +1495,7 @@ class Avatar {
             initial: 'walk',
             states: {
               walk: {
+                entry: 'entryWalk',
                 on: {
                   attack: {target: 'combo'},
                 }
@@ -1513,13 +1519,16 @@ class Avatar {
       },
       {
         actions: {
+          entryWalk: () => {
+            this.fadeToAction('walk');
+          },
           entryCombo: () => {
             this.fadeToAction('combo');
             game.startUse();
-            this.actionTime = 0;
-            setTimeout(() => {
-              this.fsms.send('finish');
-            }, 1000);
+            // this.actionTime = 0;
+            // setTimeout(() => {
+            //   this.fsms.send('finish');
+            // }, 1000);
           },
           exitCombo: () => {
             game.endUse();
@@ -2518,14 +2527,23 @@ class Avatar {
           this.mixer = new THREE.AnimationMixer(this.modelBoneOutputs.Root);
           window.mixer = this.mixer;
           animations.forEach(animation => {
-            let name = animation.name;
+            let name2 = animation.name2;
             let action = this.mixer.clipAction(animation);
-            this.actiono[name] = action;
+            this.actiono[name2] = action;
+
+            if (['combo'].includes(name2)) {
+              action.loop = THREE.LoopOnce
+              action.clampWhenFinished = true
+            }
           })
           // debugger 
           this.currentAction = this.actiono.walk;
           // this.currentAction = this.actiono.combo;
-          this.currentAction.play();
+          // this.currentAction.play();
+          this.mixer.addEventListener('finished', (event) => {
+            this.fsms.send('finish')
+          })
+          this.fsms.send('loaded');
         }
         this.mixer.update(timeDiff / 1000);
         this.modelBoneOutputs.Hips.position.x = 0;
