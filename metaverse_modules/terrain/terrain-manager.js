@@ -131,7 +131,7 @@ export class TerrainManager {
 		}
 
 		this.mesh = new THREE.Mesh(
-			this.geometry, [terrainMaterial]
+			this.geometry, [new THREE.MeshPhongMaterial({ color: 0x00ff00 })] //[terrainMaterial]
 		);
 
 		this.mesh.frustumCulled = false;
