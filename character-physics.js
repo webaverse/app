@@ -85,7 +85,9 @@ class CharacterPhysics {
         localVector3.copy(this.velocity)
           .multiplyScalar(timeDiffS);
       } else {
-        localVector3.set(0, 0, 0);
+        // localVector3.set(0, 0, 0);
+        localVector3.set(0, this.velocity.y, 0)
+          .multiplyScalar(timeDiffS);
       }
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
       const flags = physicsManager.moveCharacterController(
