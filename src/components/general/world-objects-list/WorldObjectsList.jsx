@@ -41,10 +41,11 @@ const NumberInput = ({ input }) => {
 
 //
 
-export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
+export const WorldObjectsList = () => {
 
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, setSelectedApp, selectedApp } = useContext( AppContext );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
+    const [ rotationMode, setRotationMode ] = useState( 'Euler' );
 
     let [ px, setPx ] = useState( 0 );
     let [ py, setPy ] = useState( 0 );
@@ -71,6 +72,12 @@ export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
     const stopPropagation = ( event ) => {
 
         event.stopPropagation();
+
+    };
+
+    const handleSetRotationMode = ( event ) => {
+
+        setRotationMode( event.target.value );
 
     };
 
@@ -233,35 +240,54 @@ export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
                     </div>
                 }
             </div>
-            {selectedApp ? (
-                <div className={ classnames( styles.objectProperties, styles.panel ) } >
-                    <div className={ styles.header } >
-                        <div className={ classnames( styles.button, styles.back ) } onClick={ handleBackBtn } >
-                            <img src="images/webchevron.svg" className={ styles.img } />
-                        </div>
-                        <h1>{ selectedApp ? _formatContentId( selectedApp.contentId ) : null } </h1>
-                    </div>
-                    <div className={ styles.clearfix } />
-                    <div className={ styles.subheader } >Position</div>
-                    <div className={ styles.inputs } >
-                        <NumberInput input={ px } />
-                        <NumberInput input={ py } />
-                        <NumberInput input={ pz } />
-                    </div>
-                    <div className={ styles.subheader } >Rotation</div>
-                    <div className={ styles.inputs } >
-                        <NumberInput input={ rx } />
-                        <NumberInput input={ ry } />
-                        <NumberInput input={ rz } />
-                    </div>
-                    <div className={ styles.subheader } >Scale</div>
-                    <div className={ styles.inputs } >
-                        <NumberInput input={ sx } />
-                        <NumberInput input={ sy } />
-                        <NumberInput input={ sz } />
-                    </div>
+                <div className={ classnames( styles.objectProperties, styles.panel, selectedApp ? styles.opened : null ) } >
+                    {
+                        selectedApp ? (
+                            <>
+                                <div className={ styles.header } >
+                                    <div className={ classnames( styles.button, styles.back ) } onClick={ handleBackBtn } >
+                                        <img src="images/webchevron.svg" className={ styles.img } />
+                                    </div>
+                                    <h1>{ selectedApp ? _formatContentId( selectedApp.contentId ) : null } </h1>
+                                </div>
+                                <div className={ styles.clearfix } />
+                                <div className={ styles.subheader } >Position</div>
+                                <div className={ styles.inputs } >
+                                    <NumberInput input={ px } />
+                                    <NumberInput input={ py } />
+                                    <NumberInput input={ pz } />
+                                </div>
+                                <div className={ styles.subheader } >Rotation</div>
+                                <select value={ rotationMode } onChange={ handleSetRotationMode } className={ styles.rotationModeSelect } >
+                                    <option value="euler">Euler</option>
+                                    <option value="quaternion">Quaternion</option>
+                                </select>
+                                {
+                                    rotationMode === 'Euler' ? (
+                                        <div className={ styles.inputs } >
+                                            <NumberInput input={ rx } />
+                                            <NumberInput input={ ry } />
+                                            <NumberInput input={ rz } />
+                                        </div>
+                                    ) : (
+                                        <div className={ styles.inputs } >
+                                            <NumberInput input={ rx } />
+                                            <NumberInput input={ ry } />
+                                            <NumberInput input={ rz } />
+                                            <NumberInput input={ 1 } />
+                                        </div>
+                                    )
+                                }
+                                <div className={ styles.subheader } >Scale</div>
+                                <div className={ styles.inputs } >
+                                    <NumberInput input={ sx } />
+                                    <NumberInput input={ sy } />
+                                    <NumberInput input={ sz } />
+                                </div>
+                            </>
+                        ) : null
+                    }
                 </div>
-            ) : null}
         </div>
     );
 
