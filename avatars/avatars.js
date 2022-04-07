@@ -1511,7 +1511,7 @@ class Avatar {
                       attack: {target: 'combo1'},
                       jump: {target: '#normal.jump'},
                     },
-                    tags: ['canMove', 'canJump'],
+                    tags: ['canMove', 'canJump', 'canFly'],
                   },
                   walk: {
                     entry: 'entryWalk',
@@ -1521,7 +1521,7 @@ class Avatar {
                       attack: {target: 'combo1'},
                       jump: {target: '#normal.jump'},
                     },
-                    tags: ['canMove', 'canJump'],
+                    tags: ['canMove', 'canJump', 'canFly'],
                   },
                   run: {
                     entry: 'entryRun',
@@ -1531,7 +1531,7 @@ class Avatar {
                       attack: {target: 'combo1'},
                       jump: {target: '#normal.jump'},
                     },
-                    tags: ['canMove', 'canJump'],
+                    tags: ['canMove', 'canJump', 'canFly'],
                   },
                   combo1: {
                     entry: 'entryCombo1',
@@ -1582,15 +1582,24 @@ class Avatar {
                 entry: 'entryJump',
                 on: {
                   stopJump: {target: 'ground'},
+                  fly: {target: 'fly'},
                 },
-                tags: ['canMove'],
+                tags: ['canMove', 'canFly'],
               },
               fly: {
                 entry: 'entryFly',
                 on: {
-                  stopFly: {target: 'ground'},
+                  stopFly: {target: 'drop'},
                 },
-                tags: ['canMove'],
+                tags: ['canMove', 'canFly'],
+              },
+              drop: {
+                entry: 'entryDrop',
+                on: {
+                  fly: {target: 'fly'},
+                  stopJump: {target: 'ground'},
+                },
+                tags: ['canMove', 'canFly'],
               },
             }
           },
@@ -1618,6 +1627,9 @@ class Avatar {
           },
           entryFly: () => {
             this.fadeToAction('fly');
+          },
+          entryDrop: () => {
+            this.fadeToAction('idle');
           },
           entryCombo1: () => {
             this.actiono.combo1.timeScale = 1.5;
