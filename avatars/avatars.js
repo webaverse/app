@@ -1493,37 +1493,51 @@ class Avatar {
             on: {
               ragdoll: {target: 'ragdoll'},
             },
-            initial: 'idle',
+            initial: 'ground',
             states: {
-              idle: {
-                entry: 'entryIdle',
+              ground: {
                 on: {
-                  walk: {target: 'walk'},
-                  run: {target: 'run'},
-                  attack: {target: 'combo'},
+                  fly: {target: 'fly'},
+                },
+                initial: 'idle',
+                states: {
+                  idle: {
+                    entry: 'entryIdle',
+                    on: {
+                      walk: {target: 'walk'},
+                      run: {target: 'run'},
+                      attack: {target: 'combo'},
+                    }
+                  },
+                  walk: {
+                    entry: 'entryWalk',
+                    on: {
+                      idle: {target: 'idle'},
+                      run: {target: 'run'},
+                      attack: {target: 'combo'},
+                    }
+                  },
+                  run: {
+                    entry: 'entryRun',
+                    on: {
+                      idle: {target: 'idle'},
+                      walk: {target: 'walk'},
+                      attack: {target: 'combo'},
+                    }
+                  },
+                  combo: {
+                    entry: 'entryCombo',
+                    exit: 'exitCombo',
+                    on: {
+                      finish: {target: 'idle'},
+                    }
+                  }
                 }
               },
-              walk: {
-                entry: 'entryWalk',
+              fly: {
+                entry: 'entryFly',
                 on: {
-                  idle: {target: 'idle'},
-                  run: {target: 'run'},
-                  attack: {target: 'combo'},
-                }
-              },
-              run: {
-                entry: 'entryRun',
-                on: {
-                  idle: {target: 'idle'},
-                  walk: {target: 'walk'},
-                  attack: {target: 'combo'},
-                }
-              },
-              combo: {
-                entry: 'entryCombo',
-                exit: 'exitCombo',
-                on: {
-                  finish: {target: 'idle'},
+                  stopFly: {target: 'ground'},
                 }
               }
             }
@@ -1546,6 +1560,9 @@ class Avatar {
           },
           entryRun: () => {
             this.fadeToAction('run');
+          },
+          entryFly: () => {
+            this.fadeToAction('fly');
           },
           entryCombo: () => {
             this.fadeToAction('combo');
@@ -1575,7 +1592,7 @@ class Avatar {
       }
     )
     this.fsms = interpret(this.fsm).onTransition((state) => {
-      if (state.changed) console.log('avatar: state:', state.value)
+      if (state.changed) console.log('avatar: state:', JSON.stringify(state.value))
       // console.log(state)
     })
     this.fsms.start()
@@ -2570,6 +2587,7 @@ class Avatar {
           })
           this.fsms.send('loaded');
         }
+
         if (moveFactors.walkRunFactor > 0.5) {
           this.fsms.send('run');
         } else if (moveFactors.idleWalkFactor > 0.5) {
@@ -2577,6 +2595,9 @@ class Avatar {
         } else {
           this.fsms.send('idle');
         }
+        if (this.flyState) this.fsms.send('fly');
+        else this.fsms.send('stopFly');
+
         this.mixer.update(timeDiff / 1000);
         this.modelBoneOutputs.Hips.position.x = 0;
         this.modelBoneOutputs.Hips.position.z = 0;

@@ -76,4 +76,5 @@ export const animationNameMapping = {
   'idle.fbx': 'idle',
   'walking.fbx': 'walk',
   'running.fbx': 'run',
+  'treading water.fbx': 'fly',
 }
