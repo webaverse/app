@@ -53,7 +53,7 @@ try {
       const position = vrmApp.position.clone()
         .add(new THREE.Vector3(0, 1, 0));
       const {quaternion, scale} = vrmApp;
-      const newNpcPlayer = await npcManager.createNpc({
+      const newNpcPlayer = npcManager.createNpc({
         name: npcName,
         avatarApp: vrmApp,
         position,
@@ -61,6 +61,9 @@ try {
         scale,
       });
       // if (!live) return;
+      newNpcPlayer.appManager.apps.push(app);
+      newNpcPlayer.avatar.app = app;
+      app.npcPlayer = newNpcPlayer;
 
       const _setVoice = () => {
         const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
@@ -92,7 +95,16 @@ try {
       npcPlayer = newNpcPlayer;
     })()// );
 
-    app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterController] : [];
+    app.getPhysicsObjects = () => {
+      const physicsObjects = [];
+      if (npcPlayer) {
+        physicsObjects.push(npcPlayer.characterController);
+        npcPlayer.appManager.apps.forEach(app => {
+          physicsObjects.push(...app.physicsObjects);
+        })
+      }
+      return physicsObjects;
+    }
 
     app.addEventListener('hit', e => {
       if (!npcPlayer.hasAction('hurt')) {

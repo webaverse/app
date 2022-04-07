@@ -1239,10 +1239,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     if (!window.s.npcPlayers) window.s.npcPlayers = []
     window.s.npcPlayers.push(this);
   }
-  async setAvatarUrl(u) {
-    const avatarApp = await this.appManager.addTrackedApp(u);
-    this.setAvatarApp(avatarApp);
-  }
   setAvatarApp(app) {
     app.toggleBoneUpdates(true);
     const {skinnedVrm} = app;
@@ -1252,7 +1248,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       visemes: true,
       debug: false,
     });
-    avatar.app = app;
 
     unFrustumCull(app);
     enableShadows(app);
