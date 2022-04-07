@@ -1217,6 +1217,17 @@ export function getFirstPersonCurves(vrmExtension) {
   }
 }
 
+export function trimClip(clip, startTime, endTime) {
+  for (let i = 0; i < clip.tracks.length; i++) {
+    clip.tracks[i].trim(startTime, endTime);
+    for (let j = 0; j < clip.tracks[i].times.length; j++) {
+      clip.tracks[i].times[j] -= startTime;
+    }
+  }
+  clip.resetDuration();
+  return clip;
+}
+
 /* const _localizeMatrixWorld = bone => {
   bone.matrix.copy(bone.matrixWorld);
   if (bone.parent) {

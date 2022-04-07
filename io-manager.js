@@ -518,7 +518,9 @@ ioManager.keydown = e => {
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
-          game.jump();
+          if (window.localPlayer.avatar.fsms.state.hasTag('canJump')) {
+            game.jump();
+          }
         } /* else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
         } */

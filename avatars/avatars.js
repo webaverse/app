@@ -48,7 +48,7 @@ import {
 } from './util.mjs';
 import metaversefile from 'metaversefile';
 
-import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
+import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation, trimClip } from './animationHelpers.js'
 
 import { animationMappingConfig, animationNameMapping } from './AnimationMapping.js';
 import Emoter from './Emoter.js'
@@ -1490,6 +1490,7 @@ class Avatar {
             }
           },
           normal: {
+            id: 'normal',
             on: {
               ragdoll: {target: 'ragdoll'},
             },
@@ -1508,8 +1509,9 @@ class Avatar {
                       walk: {target: 'walk'},
                       run: {target: 'run'},
                       attack: {target: 'combo1'},
+                      jump: {target: '#normal.jump'},
                     },
-                    tags: ['canMove'],
+                    tags: ['canMove', 'canJump'],
                   },
                   walk: {
                     entry: 'entryWalk',
@@ -1517,8 +1519,9 @@ class Avatar {
                       idle: {target: 'idle'},
                       run: {target: 'run'},
                       attack: {target: 'combo1'},
+                      jump: {target: '#normal.jump'},
                     },
-                    tags: ['canMove'],
+                    tags: ['canMove', 'canJump'],
                   },
                   run: {
                     entry: 'entryRun',
@@ -1526,8 +1529,9 @@ class Avatar {
                       idle: {target: 'idle'},
                       walk: {target: 'walk'},
                       attack: {target: 'combo1'},
+                      jump: {target: '#normal.jump'},
                     },
-                    tags: ['canMove'],
+                    tags: ['canMove', 'canJump'],
                   },
                   combo1: {
                     entry: 'entryCombo1',
@@ -1574,13 +1578,20 @@ class Avatar {
                   },
                 }
               },
+              jump: {
+                entry: 'entryJump',
+                on: {
+                  stopJump: {target: 'ground'},
+                },
+                tags: ['canMove'],
+              },
               fly: {
                 entry: 'entryFly',
                 on: {
                   stopFly: {target: 'ground'},
                 },
                 tags: ['canMove'],
-              }
+              },
             }
           },
           ragdoll: {
@@ -1601,6 +1612,9 @@ class Avatar {
           },
           entryRun: () => {
             this.fadeToAction('run');
+          },
+          entryJump: () => {
+            this.fadeToAction('jump');
           },
           entryFly: () => {
             this.fadeToAction('fly');
@@ -2629,41 +2643,26 @@ class Avatar {
           comboClip = this.actiono.combo.getClip().clone();
           startTime = 0;
           endTime = 39 / 137 * this.actiono.combo.getClip().duration;
-          for ( let i = 0; i < comboClip.tracks.length; i ++ ) {
-            comboClip.tracks[ i ].trim( startTime, endTime );
-            for ( let j = 0; j < comboClip.tracks[i].times.length; j++ ) {
-              comboClip.tracks[ i ].times[ j ] -= startTime
-            }
-          }
-          comboClip.resetDuration()
+          trimClip(comboClip, startTime, endTime);
           this.actiono.combo1 = this.mixer.clipAction(comboClip);
 
           comboClip = this.actiono.combo.getClip().clone();
           startTime = 39 / 137 * this.actiono.combo.getClip().duration;
           endTime = 69 / 137 * this.actiono.combo.getClip().duration;
-          for ( let i = 0; i < comboClip.tracks.length; i ++ ) {
-            comboClip.tracks[ i ].trim( startTime, endTime );
-            for ( let j = 0; j < comboClip.tracks[i].times.length; j++ ) {
-              debugger
-              comboClip.tracks[ i ].times[ j ] -= startTime
-            }
-          }
-          comboClip.resetDuration()
+          trimClip(comboClip, startTime, endTime);
           this.actiono.combo2 = this.mixer.clipAction(comboClip);
 
           comboClip = this.actiono.combo.getClip().clone();
           startTime = 69 / 137 * this.actiono.combo.getClip().duration;
           endTime = Infinity;
-          for ( let i = 0; i < comboClip.tracks.length; i ++ ) {
-            comboClip.tracks[ i ].trim( startTime, endTime );
-            for ( let j = 0; j < comboClip.tracks[i].times.length; j++ ) {
-              comboClip.tracks[ i ].times[ j ] -= startTime
-            }
-          }
-          comboClip.resetDuration()
+          trimClip(comboClip, startTime, endTime);
           this.actiono.combo3 = this.mixer.clipAction(comboClip);
 
-          ['combo', 'combo1', 'combo2', 'combo3'].forEach(name2 => {
+          this.actiono.jump = this.mixer.clipAction(
+            trimClip(this.actiono.jump.getClip().clone(), 0.7, Infinity)
+          ); // need clone(), because threejs cached old infos.
+
+          ['combo', 'combo1', 'combo2', 'combo3', 'jump'].forEach(name2 => {
             this.actiono[name2].loop = THREE.LoopOnce
             this.actiono[name2].clampWhenFinished = true
           })
@@ -2686,6 +2685,8 @@ class Avatar {
         } else {
           this.fsms.send('idle');
         }
+        if (this.jumpState) this.fsms.send('jump');
+        else this.fsms.send('stopJump');
         if (this.flyState) this.fsms.send('fly');
         else this.fsms.send('stopFly');
         // console.log(window.localPlayer.characterPhysics.velocity.z)
@@ -2694,6 +2695,9 @@ class Avatar {
 
         this.mixer.update(timeDiff / 1000);
         this.modelBoneOutputs.Hips.position.x = 0;
+        if (['normal.jump'].some(this.fsms.state.matches)) {
+          this.modelBoneOutputs.Hips.position.y = 0.623502254486084;
+        }
         this.modelBoneOutputs.Hips.position.z = 0;
       }
 
