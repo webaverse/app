@@ -1465,6 +1465,7 @@ class Avatar {
     this.hurtAnimation = null;
     this.actionTime = 0;
     this.actiono = {};
+    window.actiono = this.actiono;
     this.currentAction = null;
 
     // internal state
@@ -1492,11 +1493,29 @@ class Avatar {
             on: {
               ragdoll: {target: 'ragdoll'},
             },
-            initial: 'walk',
+            initial: 'idle',
             states: {
+              idle: {
+                entry: 'entryIdle',
+                on: {
+                  walk: {target: 'walk'},
+                  run: {target: 'run'},
+                  attack: {target: 'combo'},
+                }
+              },
               walk: {
                 entry: 'entryWalk',
                 on: {
+                  idle: {target: 'idle'},
+                  run: {target: 'run'},
+                  attack: {target: 'combo'},
+                }
+              },
+              run: {
+                entry: 'entryRun',
+                on: {
+                  idle: {target: 'idle'},
+                  walk: {target: 'walk'},
                   attack: {target: 'combo'},
                 }
               },
@@ -1504,7 +1523,7 @@ class Avatar {
                 entry: 'entryCombo',
                 exit: 'exitCombo',
                 on: {
-                  finish: {target: 'walk'},
+                  finish: {target: 'idle'},
                 }
               }
             }
@@ -1519,8 +1538,14 @@ class Avatar {
       },
       {
         actions: {
+          entryIdle: () => {
+            this.fadeToAction('idle');
+          },
           entryWalk: () => {
             this.fadeToAction('walk');
+          },
+          entryRun: () => {
+            this.fadeToAction('run');
           },
           entryCombo: () => {
             this.fadeToAction('combo');
@@ -2474,26 +2499,26 @@ class Avatar {
       _updateHmdPosition();
 
       // _applyAnimation(this, now, moveFactors);
+      window.domInfo.innerHTML = `
+        <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
+        <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
+        <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
+        <div>chargeJumpState: --- ${this.chargeJumpState}</div>
+        <div>danceState: --- ${this.danceState}</div>
+        <div>fallLoopState: --- ${this.fallLoopState}</div>
+        <div>flyState: --- ${this.flyState}</div>
+        <div>jumpState: --- ${this.jumpState}</div>
+        <div>narutoRunState: --- ${this.narutoRunState}</div>
+        <div>sitState: --- ${this.sitState}</div>
+        <div>useAnimation: --- ${this.useAnimation}</div>
+        <div>useAnimationCombo: --- ${this.useAnimationCombo}</div>
+        <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
+        <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
+        <div>useTime: --- ${Math.floor(this.useTime)}</div>
+        <div>unuseAnimation: --- ${this.unuseAnimation}</div>
+        <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
+      `
       if (0) { // new _applyAnimation() using custom codes/classes.
-        window.domInfo.innerHTML = `
-          <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
-          <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
-          <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
-          <div>chargeJumpState: --- ${this.chargeJumpState}</div>
-          <div>danceState: --- ${this.danceState}</div>
-          <div>fallLoopState: --- ${this.fallLoopState}</div>
-          <div>flyState: --- ${this.flyState}</div>
-          <div>jumpState: --- ${this.jumpState}</div>
-          <div>narutoRunState: --- ${this.narutoRunState}</div>
-          <div>sitState: --- ${this.sitState}</div>
-          <div>useAnimation: --- ${this.useAnimation}</div>
-          <div>useAnimationCombo: --- ${this.useAnimationCombo}</div>
-          <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
-          <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
-          <div>useTime: --- ${Math.floor(this.useTime)}</div>
-          <div>unuseAnimation: --- ${this.unuseAnimation}</div>
-          <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
-        `
 
         animationMappings.forEach(animationMapping => {
           if (['normal.idle', 'normal.walk', 'normal.run'].some(this.fsms.state.matches)) {
@@ -2544,6 +2569,13 @@ class Avatar {
             this.fsms.send('finish')
           })
           this.fsms.send('loaded');
+        }
+        if (moveFactors.walkRunFactor > 0.5) {
+          this.fsms.send('run');
+        } else if (moveFactors.idleWalkFactor > 0.5) {
+          this.fsms.send('walk');
+        } else {
+          this.fsms.send('idle');
         }
         this.mixer.update(timeDiff / 1000);
         this.modelBoneOutputs.Hips.position.x = 0;

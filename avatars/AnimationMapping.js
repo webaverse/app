@@ -73,5 +73,7 @@ export const animationMappingConfig = [
 
 export const animationNameMapping = {
   'One Hand Sword Combo.fbx': 'combo',
+  'idle.fbx': 'idle',
   'walking.fbx': 'walk',
+  'running.fbx': 'run',
 }
