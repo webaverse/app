@@ -1496,6 +1496,7 @@ class Avatar {
             initial: 'ground',
             states: {
               ground: {
+                id: 'ground',
                 on: {
                   fly: {target: 'fly'},
                 },
@@ -1506,7 +1507,7 @@ class Avatar {
                     on: {
                       walk: {target: 'walk'},
                       run: {target: 'run'},
-                      attack: {target: 'combo'},
+                      attack: {target: 'combo1'},
                     },
                     tags: ['canMove'],
                   },
@@ -1515,7 +1516,7 @@ class Avatar {
                     on: {
                       idle: {target: 'idle'},
                       run: {target: 'run'},
-                      attack: {target: 'combo'},
+                      attack: {target: 'combo1'},
                     },
                     tags: ['canMove'],
                   },
@@ -1524,17 +1525,53 @@ class Avatar {
                     on: {
                       idle: {target: 'idle'},
                       walk: {target: 'walk'},
-                      attack: {target: 'combo'},
+                      attack: {target: 'combo1'},
                     },
                     tags: ['canMove'],
                   },
-                  combo: {
-                    entry: 'entryCombo',
+                  combo1: {
+                    entry: 'entryCombo1',
+                    exit: 'exitCombo',
+                    initial: 'main',
+                    states: {
+                      main: {
+                        on: {
+                          finish: {target: '#ground.idle'},
+                          attack: {target: 'prepareNext'},
+                        }
+                      },
+                      prepareNext: {
+                        on: {
+                          finish: { target: '#ground.combo2' },
+                        },
+                      },
+                    }
+                  },
+                  combo2: {
+                    entry: 'entryCombo2',
+                    exit: 'exitCombo',
+                    initial: 'main',
+                    states: {
+                      main: {
+                        on: {
+                          finish: {target: '#ground.idle'},
+                          attack: {target: 'prepareNext'},
+                        }
+                      },
+                      prepareNext: {
+                        on: {
+                          finish: { target: '#ground.combo3' },
+                        },
+                      },
+                    }
+                  },
+                  combo3: {
+                    entry: 'entryCombo3',
                     exit: 'exitCombo',
                     on: {
                       finish: {target: 'idle'},
                     }
-                  }
+                  },
                 }
               },
               fly: {
@@ -1568,13 +1605,20 @@ class Avatar {
           entryFly: () => {
             this.fadeToAction('fly');
           },
-          entryCombo: () => {
-            this.fadeToAction('combo');
+          entryCombo1: () => {
+            this.actiono.combo1.timeScale = 1.5;
+            this.fadeToAction('combo1');
             game.startUse();
-            // this.actionTime = 0;
-            // setTimeout(() => {
-            //   this.fsms.send('finish');
-            // }, 1000);
+          },
+          entryCombo2: () => {
+            this.actiono.combo2.timeScale = 1.5;
+            this.fadeToAction('combo2');
+            game.startUse();
+          },
+          entryCombo3: () => {
+            this.actiono.combo3.timeScale = 1.5;
+            this.fadeToAction('combo3');
+            game.startUse();
           },
           exitCombo: () => {
             game.endUse();
@@ -1602,6 +1646,7 @@ class Avatar {
     this.fsms.start()
   }
   fadeToAction(name, duration = 0.1) {
+    // return;
     let nextAction = this.actiono[name]
     if (duration > 0) {
       // fade
@@ -2572,21 +2617,63 @@ class Avatar {
           // this.mixer = new THREE.AnimationMixer(this.app);
           this.mixer = new THREE.AnimationMixer(this.modelBoneOutputs.Root);
           window.mixer = this.mixer;
+
           animations.forEach(animation => {
             let name2 = animation.name2;
             let action = this.mixer.clipAction(animation);
             this.actiono[name2] = action;
+          });
 
-            if (['combo'].includes(name2)) {
-              action.loop = THREE.LoopOnce
-              action.clampWhenFinished = true
+          let comboClip, startTime, endTime;
+
+          comboClip = this.actiono.combo.getClip().clone();
+          startTime = 0;
+          endTime = 39 / 137 * this.actiono.combo.getClip().duration;
+          for ( let i = 0; i < comboClip.tracks.length; i ++ ) {
+            comboClip.tracks[ i ].trim( startTime, endTime );
+            for ( let j = 0; j < comboClip.tracks[i].times.length; j++ ) {
+              comboClip.tracks[ i ].times[ j ] -= startTime
             }
+          }
+          comboClip.resetDuration()
+          this.actiono.combo1 = this.mixer.clipAction(comboClip);
+
+          comboClip = this.actiono.combo.getClip().clone();
+          startTime = 39 / 137 * this.actiono.combo.getClip().duration;
+          endTime = 69 / 137 * this.actiono.combo.getClip().duration;
+          for ( let i = 0; i < comboClip.tracks.length; i ++ ) {
+            comboClip.tracks[ i ].trim( startTime, endTime );
+            for ( let j = 0; j < comboClip.tracks[i].times.length; j++ ) {
+              debugger
+              comboClip.tracks[ i ].times[ j ] -= startTime
+            }
+          }
+          comboClip.resetDuration()
+          this.actiono.combo2 = this.mixer.clipAction(comboClip);
+
+          comboClip = this.actiono.combo.getClip().clone();
+          startTime = 69 / 137 * this.actiono.combo.getClip().duration;
+          endTime = Infinity;
+          for ( let i = 0; i < comboClip.tracks.length; i ++ ) {
+            comboClip.tracks[ i ].trim( startTime, endTime );
+            for ( let j = 0; j < comboClip.tracks[i].times.length; j++ ) {
+              comboClip.tracks[ i ].times[ j ] -= startTime
+            }
+          }
+          comboClip.resetDuration()
+          this.actiono.combo3 = this.mixer.clipAction(comboClip);
+
+          ['combo', 'combo1', 'combo2', 'combo3'].forEach(name2 => {
+            this.actiono[name2].loop = THREE.LoopOnce
+            this.actiono[name2].clampWhenFinished = true
           })
+          
           // debugger 
           this.currentAction = this.actiono.walk;
           // this.currentAction = this.actiono.combo;
           // this.currentAction.play();
           this.mixer.addEventListener('finished', (event) => {
+            console.log('finish');
             this.fsms.send('finish')
           })
           this.fsms.send('loaded');
