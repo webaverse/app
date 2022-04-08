@@ -145,13 +145,26 @@
 .rotationModeSelect {
     padding: 5px;
     margin-left: 20px;
-    width: 170px;
+    width: 260px;
     margin-bottom: 10px;
 }
 
 .objectProperties .inputs {
     display: flex;
     padding-left: 20px;
+}
+
+.objectProperties .inputs input {
+    padding: 5px;
+    border: 1px;
+}
+
+.objectProperties .inputs.pos input, .objectProperties .inputs.rote input, .objectProperties .inputs.scale input {
+    width: 80px;
+}
+
+.objectProperties .inputs.rotq input {
+    width: 57px;
 }
 
 .objectProperties .inputs .input {

@@ -17,7 +17,7 @@ import styles from './world-objects-list.module.css';
 
 const _formatContentId = contentId => contentId.replace( /^[\s\S]*\/([^\/]+)$/, '$1' );
 
-const NumberInput = ({ input }) => {
+const NumberInput = ({ value, onChange }) => {
 
     const handleInputKeyDown = ( event ) => {
 
@@ -33,7 +33,7 @@ const NumberInput = ({ input }) => {
 
     return (
 
-        <input type="number" className={ styles.input } value={ input.value } onChange={ input.onChange } onKeyDown={ handleInputKeyDown } />
+        <input type="number" className={ styles.input } value={ value } onChange={ onChange } onKeyDown={ handleInputKeyDown } />
 
     );
 
@@ -45,29 +45,79 @@ export const WorldObjectsList = () => {
 
     const { state, setState, setSelectedApp, selectedApp } = useContext( AppContext );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
-    const [ rotationMode, setRotationMode ] = useState( 'Euler' );
+    const [ rotationMode, setRotationMode ] = useState( 'euler' );
+    const [ needsUpdate, setNeedsUpdate ] = useState( false );
 
     let [ px, setPx ] = useState( 0 );
     let [ py, setPy ] = useState( 0 );
     let [ pz, setPz ] = useState( 0 );
-    let [ rx, setRx ] = useState( 0 );
-    let [ ry, setRy ] = useState( 0 );
-    let [ rz, setRz ] = useState( 0 );
+    let [ rex, setREx ] = useState( 0 );
+    let [ rey, setREy ] = useState( 0 );
+    let [ rez, setREz ] = useState( 0 );
+    let [ rqx, setRQx ] = useState( 0 );
+    let [ rqy, setRQy ] = useState( 0 );
+    let [ rqz, setRQz ] = useState( 0 );
+    let [ rqw, setRQw ] = useState( 0 );
     let [ sx, setSx ] = useState( 1 );
     let [ sy, setSy ] = useState( 1 );
     let [ sz, setSz ] = useState( 1 );
 
-    px = { value: px, onChange: e => { const v = e.target.value; selectedApp.position.x = v; selectedApp.updateMatrixWorld(); setPx( v ); } };
-    py = { value: py, onChange: e => { const v = e.target.value; selectedApp.position.y = v; selectedApp.updateMatrixWorld(); setPy( v ); } };
-    pz = { value: pz, onChange: e => { const v = e.target.value; selectedApp.position.z = v; selectedApp.updateMatrixWorld(); setPz( v ); } };
-    rx = { value: rx, onChange: e => { const v = e.target.value; selectedApp.rotation.x = v; selectedApp.updateMatrixWorld(); setRx( v ); } };
-    ry = { value: ry, onChange: e => { const v = e.target.value; selectedApp.rotation.y = v; selectedApp.updateMatrixWorld(); setRy( v ); } };
-    rz = { value: rz, onChange: e => { const v = e.target.value; selectedApp.rotation.z = v; selectedApp.updateMatrixWorld(); setRz( v ); } };
-    sx = { value: sx, onChange: e => { const v = e.target.value; selectedApp.scale.x = v; selectedApp.updateMatrixWorld(); setSx( v ); } };
-    sy = { value: sy, onChange: e => { const v = e.target.value; selectedApp.scale.y = v; selectedApp.updateMatrixWorld(); setSy( v ); } };
-    sz = { value: sz, onChange: e => { const v = e.target.value; selectedApp.scale.z = v; selectedApp.updateMatrixWorld(); setSz( v ); } };
-
     //
+
+    const handleAppTransformChange = ( paramName, event ) => {
+
+        const value = + event.target.value;
+
+        switch ( paramName ) {
+
+            case 'px':
+                setPx( value );
+                break;
+            case 'py':
+                setPy( value );
+                break;
+            case 'pz':
+                setPz( value );
+                break;
+
+            case 'rex':
+                setREx( value );
+                break;
+            case 'rey':
+                setREy( value );
+                break;
+            case 'rez':
+                setREz( value );
+                break;
+
+            case 'rqx':
+                setRQx( value );
+                break;
+            case 'rqy':
+                setRQy( value );
+                break;
+            case 'rqz':
+                setRQz( value );
+                break;
+            case 'rqw':
+                setRQw( value );
+                break;
+
+            case 'sx':
+                setSx( value );
+                break;
+            case 'sy':
+                setSy( value );
+                break;
+            case 'sz':
+                setSz( value );
+                break;
+
+        }
+
+        setNeedsUpdate( true );
+
+    };
 
     const stopPropagation = ( event ) => {
 
@@ -130,6 +180,40 @@ export const WorldObjectsList = () => {
     };
 
     //
+
+    useEffect( () => {
+
+        if ( ! selectedApp ) return;
+
+        selectedApp.position.set( px, py, pz );
+        selectedApp.scale.set( sx, sy, sz );
+
+        if ( rotationMode === 'euler' ) {
+
+            selectedApp.rotation.set( rex, rey, rez, 'XYZ' );
+
+        } else {
+
+            selectedApp.quaternion.set( rqx, rqy, rqz, rqw );
+
+        }
+
+        selectedApp.updateMatrixWorld();
+
+        //
+
+        setREx( selectedApp.rotation.x );
+        setREy( selectedApp.rotation.y );
+        setREz( selectedApp.rotation.z );
+
+        setRQx( selectedApp.quaternion.x );
+        setRQy( selectedApp.quaternion.y );
+        setRQz( selectedApp.quaternion.z );
+        setRQw( selectedApp.quaternion.w );
+
+        setNeedsUpdate( false );
+
+    }, [ needsUpdate ] );
 
     useEffect( () => {
 
@@ -200,16 +284,21 @@ export const WorldObjectsList = () => {
 
         if ( ! selectedApp ) return;
 
-        const localEuler = new THREE.Euler();
-        const { position, quaternion, scale } = selectedApp;
-        const rotation = localEuler.setFromQuaternion( quaternion, 'YXZ' );
+        const { position, quaternion, scale, rotation } = selectedApp;
 
         setPx( position.x );
         setPy( position.y );
         setPz( position.z );
-        setRx( rotation.x );
-        setRy( rotation.y );
-        setRz( rotation.z );
+
+        setREx( rotation.x );
+        setREy( rotation.y );
+        setREz( rotation.z );
+
+        setRQx( quaternion.x );
+        setRQy( quaternion.y );
+        setRQz( quaternion.z );
+        setRQw( quaternion.w );
+
         setSx( scale.x );
         setSy( scale.y );
         setSz( scale.z );
@@ -219,7 +308,7 @@ export const WorldObjectsList = () => {
     //
 
     return (
-        <div className={ classnames( styles.worldObjectListWrapper, state.openedPanel === 'WorldPanel' ? styles.opened : null ) } onClick={ stopPropagation } >
+        <div className={ classnames( styles.worldObjectListWrapper, state.openedPanel === 'WorldPanel' ? styles.opened : null ) } onClick={ stopPropagation } onMouseMove={ stopPropagation } >
             <div className={ classnames( styles.panel, ( ! selectedApp && state.openedPanel === 'WorldPanel' ) ? styles.opened : null ) } >
                 <div className={ styles.header } >
                     <h1>Tokens</h1>
@@ -252,10 +341,10 @@ export const WorldObjectsList = () => {
                                 </div>
                                 <div className={ styles.clearfix } />
                                 <div className={ styles.subheader } >Position</div>
-                                <div className={ styles.inputs } >
-                                    <NumberInput input={ px } />
-                                    <NumberInput input={ py } />
-                                    <NumberInput input={ pz } />
+                                <div className={ classnames( styles.inputs, styles.pos ) } >
+                                    <NumberInput value={ px } onChange={ handleAppTransformChange.bind( this, 'px' ) } />
+                                    <NumberInput value={ py } onChange={ handleAppTransformChange.bind( this, 'py' ) } />
+                                    <NumberInput value={ pz } onChange={ handleAppTransformChange.bind( this, 'pz' ) } />
                                 </div>
                                 <div className={ styles.subheader } >Rotation</div>
                                 <select value={ rotationMode } onChange={ handleSetRotationMode } className={ styles.rotationModeSelect } >
@@ -263,26 +352,26 @@ export const WorldObjectsList = () => {
                                     <option value="quaternion">Quaternion</option>
                                 </select>
                                 {
-                                    rotationMode === 'Euler' ? (
-                                        <div className={ styles.inputs } >
-                                            <NumberInput input={ rx } />
-                                            <NumberInput input={ ry } />
-                                            <NumberInput input={ rz } />
+                                    rotationMode === 'euler' ? (
+                                        <div className={ classnames( styles.inputs, styles.rote ) } >
+                                            <NumberInput value={ rex } onChange={ handleAppTransformChange.bind( this, 'rex' ) } />
+                                            <NumberInput value={ rey } onChange={ handleAppTransformChange.bind( this, 'rey' ) } />
+                                            <NumberInput value={ rez } onChange={ handleAppTransformChange.bind( this, 'rez' ) } />
                                         </div>
                                     ) : (
-                                        <div className={ styles.inputs } >
-                                            <NumberInput input={ rx } />
-                                            <NumberInput input={ ry } />
-                                            <NumberInput input={ rz } />
-                                            <NumberInput input={ 1 } />
+                                        <div className={ classnames( styles.inputs, styles.rotq ) } >
+                                            <NumberInput value={ rqx } onChange={ handleAppTransformChange.bind( this, 'rqx' ) } />
+                                            <NumberInput value={ rqy } onChange={ handleAppTransformChange.bind( this, 'rqy' ) } />
+                                            <NumberInput value={ rqz } onChange={ handleAppTransformChange.bind( this, 'rqz' ) } />
+                                            <NumberInput value={ rqw } onChange={ handleAppTransformChange.bind( this, 'rqw' ) } />
                                         </div>
                                     )
                                 }
                                 <div className={ styles.subheader } >Scale</div>
-                                <div className={ styles.inputs } >
-                                    <NumberInput input={ sx } />
-                                    <NumberInput input={ sy } />
-                                    <NumberInput input={ sz } />
+                                <div className={ classnames( styles.inputs, styles.scale ) } >
+                                    <NumberInput value={ sx } onChange={ handleAppTransformChange.bind( this, 'sx' ) } />
+                                    <NumberInput value={ sy } onChange={ handleAppTransformChange.bind( this, 'sy' ) } />
+                                    <NumberInput value={ sz } onChange={ handleAppTransformChange.bind( this, 'sz' ) } />
                                 </div>
                             </>
                         ) : null
