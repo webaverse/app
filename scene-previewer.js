@@ -275,7 +275,7 @@ class ScenePreviewer extends THREE.Object3D {
     };
   }
   #canRender() {
-    return !!this.scene && !this.focused && !this.rendered;
+    return !!this.scene && !this.rendered;
   }
   render() {
     {
