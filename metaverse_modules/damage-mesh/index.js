@@ -30,13 +30,117 @@ const localVector4D = new THREE.Vector4();
   a.needsUpdate = true;
 } */
 
+let multiText = null;
+// window.texts = [];
+
 export default e => {
   const app = useApp();
   const {renderer, scene, camera} = useInternals();
   const physics = usePhysics();
-  // const {CapsuleGeometry} = useGeometries();
   const {WebaverseShaderMaterial} = useMaterials();
   const Text = useText();
+
+  const _makeMultiText = () => {
+    class MultiText {
+      constructor(material) {
+        const text = new Text();
+        text.material = material;
+        const derivedMaterial = text.material;
+        // text._derivedMaterial = createTextDerivedMaterial(material);
+        this.text = text;
+      }
+      makeText() {
+        // return this.text.clone();
+        const text = new Text();
+        text.material = this.text.material;
+        text._derivedMaterial = this.text._derivedMaterial;
+        return text;
+      }
+    }
+
+    const redMaterial = new WebaverseShaderMaterial({
+      uniforms: {
+        uTime: {
+          value: 0,
+        },
+        uWidth: {
+          value: 0,
+          needsUpdate: true,
+        },
+        uCharacters: {
+          value: 0,
+          needsUpdate: true,
+        },
+      },
+      vertexShader: `\
+        uniform float uTime;
+        uniform float uCharacters;
+        uniform float uWidth;
+        attribute vec3 color;
+        attribute float characterIndex;
+        // attribute vec4 aTroikaGlyphBounds;
+        varying vec3 vPosition;
+        varying vec3 vColor;
+        varying vec2 vUv;
+    
+        void main() {
+          vPosition = vPosition;
+          vUv = uv;
+          // vColor = color;
+          
+          const float rate = 1.5;
+          const float range = 1.;
+    
+          float characterIndex2 = characterIndex;
+          if (characterIndex2 >= uCharacters) {
+            characterIndex2 -= uCharacters;
+          }
+          float t = min(max(mod(uTime, 1.) - characterIndex2*0.08, 0.), 1.);
+          t = pow(t, 0.75);
+          const float a = -20.;
+          const float v = 4.;
+          float y = max(0.5 * a * pow(t, 2.) + v * t, 0.);
+          y *= 0.5;
+    
+          vec3 p = position;
+          if (characterIndex < uCharacters) {
+            // p -= center;
+            p.x += 0.02;
+            p.y += 0.02;
+            // p *= 1.3;// * vec3(1.2, 1., 1.);
+            // p += center;
+            p.z += -0.01;
+            vColor = vec3(0.);
+          } else {
+            vColor = vec3(1.);
+          }
+          /* } else {
+            p = (position + vec3(-uWidth, 0., 0.)) + vec3(0., 0., -0.1);
+          } */
+          p.y += y;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        }
+      `,
+      fragmentShader: `\
+        varying vec3 vPosition;
+        varying vec2 vUv;
+        varying vec3 vColor;
+    
+        vec3 color1 = vec3(${new THREE.Color(0xffca28).toArray().map(n => n.toFixed(8)).join(', ')});
+        vec3 color2 = vec3(${new THREE.Color(0xff6f00).toArray().map(n => n.toFixed(8)).join(', ')});
+    
+        void main() {
+          vec3 c = (color1*(1. - vUv.y) + color2*vUv.y);
+          gl_FragColor = vec4(c * vColor, 1.0);
+        }
+      `,
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+    });
+    return new MultiText(redMaterial);
+  };
 
   const frameHandlers = [];
 
@@ -91,87 +195,6 @@ export default e => {
       side: THREE.DoubleSide,
       transparent: true,
     }); */
-    const redMaterial = new WebaverseShaderMaterial({
-      uniforms: {
-        uTime: {
-          value: 0,
-        },
-        uWidth: {
-          value: 0,
-          needsUpdate: true,
-        },
-        uCharacters: {
-          value: 0,
-          needsUpdate: true,
-        },
-      },
-      vertexShader: `\
-        uniform float uTime;
-        uniform float uCharacters;
-        uniform float uWidth;
-        attribute vec3 color;
-        attribute float characterIndex;
-        // attribute vec4 aTroikaGlyphBounds;
-        varying vec3 vPosition;
-        varying vec3 vColor;
-        varying vec2 vUv;
-
-        void main() {
-          vPosition = vPosition;
-          vUv = uv;
-          // vColor = color;
-          
-          const float rate = 1.5;
-          const float range = 1.;
-
-          float characterIndex2 = characterIndex;
-          if (characterIndex2 >= uCharacters) {
-            characterIndex2 -= uCharacters;
-          }
-          float t = min(max(mod(uTime, 1.) - characterIndex2*0.08, 0.), 1.);
-          t = pow(t, 0.75);
-          const float a = -20.;
-          const float v = 4.;
-          float y = max(0.5 * a * pow(t, 2.) + v * t, 0.);
-          y *= 0.5;
-
-          vec3 p = position;
-          if (characterIndex < uCharacters) {
-            // p -= center;
-            p.x += 0.02;
-            p.y += 0.02;
-            // p *= 1.3;// * vec3(1.2, 1., 1.);
-            // p += center;
-            p.z += -0.01;
-            vColor = vec3(0.);
-          } else {
-            vColor = vec3(1.);
-          }
-          /* } else {
-            p = (position + vec3(-uWidth, 0., 0.)) + vec3(0., 0., -0.1);
-          } */
-          p.y += y;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-        }
-      `,
-      fragmentShader: `\
-        varying vec3 vPosition;
-        varying vec2 vUv;
-        varying vec3 vColor;
-
-        vec3 color1 = vec3(${new THREE.Color(0xffca28).toArray().map(n => n.toFixed(8)).join(', ')});
-        vec3 color2 = vec3(${new THREE.Color(0xff6f00).toArray().map(n => n.toFixed(8)).join(', ')});
-
-        void main() {
-          vec3 c = (color1*(1. - vUv.y) + color2*vUv.y);
-          gl_FragColor = vec4(c * vColor, 1.0);
-        }
-      `,
-      side: THREE.DoubleSide,
-      transparent: true,
-      depthTest: false,
-      depthWrite: false,
-    });
     async function makeTextMesh(
       text = '',
       // font = '/fonts/Plaza Regular.ttf',
@@ -182,8 +205,11 @@ export default e => {
       anchorY = 'middle',
       color = 0x000000,
     ) {
-      const textMesh = new Text();
-      textMesh.material = redMaterial;
+      if (!multiText) {
+        multiText = _makeMultiText();
+      }
+      const textMesh = multiText.makeText();
+      // textMesh.material = redMaterial;
       textMesh.text = text + text;
       textMesh.font = font;
       textMesh.fontSize = fontSize;
