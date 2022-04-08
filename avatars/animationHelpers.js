@@ -954,6 +954,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             debugger
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
+            localQuaternion2.fromArray(v2);
 
             // const idleAnimation = _getIdleAnimation('walk');
             // const t3 = 0;
@@ -965,10 +966,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             //   .premultiply(localQuaternion2.fromArray(v2));
 
             if (isTop) {
-              dst.fromArray(v2);
-            } else {
-              dst.slerp(localQuaternion2.fromArray(v2), (1 - moveFactors.idleWalkFactor));
+              // do nothing: localQuaternion2 already pure combo animation
+            } else { // lerp legs between sword and walk/run by idleWalkFactor.
+              localQuaternion2.slerp(dst, moveFactors.idleWalkFactor);
             }
+
+            // lerp full combo animation ( which already processed legs ) when start combo.
+            dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
           } else {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
@@ -986,10 +990,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             //   .add(localVector2);
 
             if (isTop) {
-              dst.copy(localVector2);
-            } else {
-              dst.lerp(localVector2, (1 - moveFactors.idleWalkFactor));
+              // do nothing: localVector2 already pure combo animation
+            } else { // lerp legs between sword and walk/run by idleWalkFactor.
+              localVector2.lerp(dst, moveFactors.idleWalkFactor);
             }
+
+            // lerp full combo animation ( which already processed legs ) when start combo.
+            dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
           }
         }
       };
