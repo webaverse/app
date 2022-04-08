@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip} from 'three';
+import {Vector3, Quaternion, AnimationClip, DepthStencilFormat} from 'three';
 import metaversefile from 'metaversefile';
 import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import easing from '../easing.js';
@@ -158,6 +158,12 @@ const animationsIdleArrays = {
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
+// {
+//   reset: {name: 'reset.fbx', animation: AnimationClip}
+//   walk: {name: 'idle.fbx', animation: AnimationClip}
+//   run: {name: 'idle.fbx', animation: AnimationClip}
+//   crouch: {name: 'Crouch Idle.fbx', animation: AnimationClip}
+// }
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -641,7 +647,7 @@ const _blendFly = spec => {
   const {
     animationTrackName: k,
     dst,
-    // isTop,
+    isTop,
     lerpFn,
   } = spec;
 
@@ -664,7 +670,7 @@ const _blendActivateAction = spec => {
   const {
     animationTrackName: k,
     dst,
-    // isTop,
+    isTop,
     lerpFn,
   } = spec;
 
@@ -777,7 +783,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     const {
       animationTrackName: k,
       dst,
-      // isTop,
+      isTop,
       lerpFn,
       isPosition,
     } = spec;
@@ -790,7 +796,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          // isTop,
+          isTop,
         } = spec;
 
         const t2 = activeAvatar.jumpTime / 1000 * 0.6 + 0.7;
@@ -805,7 +811,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          // isTop,
+          isTop,
         } = spec;
 
         const sitAnimation = sitAnimations[activeAvatar.sitAnimation || defaultSitAnimation];
@@ -820,7 +826,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -841,7 +847,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           lerpFn,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -870,7 +876,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const {
               animationTrackName: k,
               dst,
-              // isTop,
+              isTop,
             } = spec;
 
             const t2 = (activeAvatar.fallLoopTime/1000) ;
@@ -886,10 +892,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             activeAvatar.useAnimationEnvelope.length > 0
     ) {
       return spec => {
+        debugger
         const {
           animationTrackName: k,
           dst,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -943,32 +950,41 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         if (useAnimation) {
           if (!isPosition) {
+            debugger
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
+            // const idleAnimation = _getIdleAnimation('walk');
+            // const t3 = 0;
+            // const src3 = idleAnimation.interpolants[k];
+            // const v3 = src3.evaluate(t3);
 
-            dst
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
+            // dst
+            //   .premultiply(localQuaternion2.fromArray(v3).invert())
+            //   .premultiply(localQuaternion2.fromArray(v2));
+
+            if (!(!isTop && moveFactors.idleWalkFactor === 1)) {
+              dst.fromArray(v2);
+            }
           } else {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localVector2.fromArray(v2);
             _clearXZ(localVector2, isPosition);
 
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-            localVector3.fromArray(v3);
+            // const idleAnimation = _getIdleAnimation('walk');
+            // const t3 = 0;
+            // const src3 = idleAnimation.interpolants[k];
+            // const v3 = src3.evaluate(t3);
+            // localVector3.fromArray(v3);
 
-            dst
-              .sub(localVector3)
-              .add(localVector2);
+            // dst
+            //   .sub(localVector3)
+            //   .add(localVector2);
+
+            if (!(!isTop && moveFactors.idleWalkFactor === 1)) {
+              dst.copy(localVector2);
+            }
           }
         }
       };
@@ -978,7 +994,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -1021,7 +1037,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -1063,7 +1079,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           lerpFn,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -1130,7 +1146,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     const {
       animationTrackName: k,
       dst,
-      // isTop,
+      isTop,
       isPosition,
     } = spec;
 
