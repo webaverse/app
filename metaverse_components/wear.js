@@ -13,6 +13,8 @@ const localVector = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 
 export default (app, component) => {
+  const {useActivate} = metaversefile;
+  
   let wearSpec = null;
   let modelBones = null;
   let appAimAnimationMixers = null;
@@ -278,6 +280,10 @@ export default (app, component) => {
         }
       }
     }
+  });
+
+  useActivate(() => {
+    app.wear();
   });
 
   return {
