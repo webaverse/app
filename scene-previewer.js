@@ -302,7 +302,10 @@ class ScenePreviewer extends THREE.Object3D {
     {
       const worldResolution = new THREE.Vector2(2048, 2048);
       const worldDepthResolution = new THREE.Vector2(512, 512);
+      const oldPreviewContainerParent = this.previewContainer.parent;
 
+      this.previewScene.add(this.previewContainer);
+      const popPreviewContainerTransform = this.#pushPreviewContainerTransform();
       const lodMesh = snapshotMapChunk(
         this.previewScene,
         this.position,
@@ -310,17 +313,20 @@ class ScenePreviewer extends THREE.Object3D {
         worldResolution,
         worldDepthResolution
       );
+      popPreviewContainerTransform();
+      oldPreviewContainerParent.add(this.previewContainer);
 
-      const oldParent = this.lodMesh.parent;
-      const oldVisible = this.lodMesh.visible;
+      {
+        const oldParent = this.lodMesh.parent;
+        const oldVisible = this.lodMesh.visible;
 
-      if (oldParent) {
-        oldParent.remove(this.lodMesh);
-        oldParent.add(lodMesh);
-        lodMesh.updateMatrixWorld();
+        if (oldParent) {
+          oldParent.remove(this.lodMesh);
+          oldParent.add(lodMesh);
+          lodMesh.updateMatrixWorld();
+        }
+        lodMesh.visible = oldVisible;
       }
-      lodMesh.visible = oldVisible;
-
       this.lodMesh = lodMesh;
     }
 
