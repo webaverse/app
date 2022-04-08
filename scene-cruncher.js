@@ -189,8 +189,8 @@ const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolu
   const geometries = [];
   const baseGeometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
 
-  const forwardDirection = _snap(new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion));
-  const upDirection = _snap(new THREE.Vector3(0, -1, 0).applyQuaternion(quaternion));
+  const forwardDirection = _snap(new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion));
+  const upDirection = _snap(new THREE.Vector3(0, 1, 0).applyQuaternion(quaternion));
   const rightDirection = _snap(new THREE.Vector3(1, 0, 0).applyQuaternion(quaternion));
   // const backPlanePosition = new THREE.Vector3(0, 0, worldDepthResolution.x / 2).applyQuaternion(quaternion);
   const baseWorldPosition = position.clone()
@@ -235,10 +235,12 @@ const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolu
         // const worldBottomLeft = position.clone()
 
         const z2 = z * worldDepthResolution.x / worldSize.x;
-        const localLocation = localVector.set(0, 0, 0)
-          .add(rightDirection.clone().multiplyScalar(x))
-          .add(upDirection.clone().multiplyScalar(y))
-          .add(forwardDirection.clone().multiplyScalar(-worldDepthResolution.x - z2))
+        const localLocation = _snap(
+          localVector.set(0, 0, 0)
+            .add(rightDirection.clone().multiplyScalar(x))
+            .add(upDirection.clone().multiplyScalar(-y))
+        )
+          .add(forwardDirection.clone().multiplyScalar(worldDepthResolution.x + z2))
           .multiplyScalar(worldSize.x/worldDepthResolution.x)
           .add(baseWorldPosition);
         const g = baseGeometry.clone(); 
