@@ -77,7 +77,7 @@ const loadOverworld = async () => {
       name: 'shadows',
       position: [0, 0, 0],
       quaternion: [0, 1, 0, 0],
-      start_url: "./scenes/shadows.scn",
+      start_url: "./scenes/shadows2.scn",
       size: [200, 200, 200],
       focus: false,
       chunkPriority: -1,
