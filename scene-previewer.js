@@ -164,9 +164,9 @@ class ScenePreviewer extends THREE.Object3D {
     this.rendered = false;
   }
   async loadScene(sceneUrl) {
-    if (this.scene) {
+    /* if (this.scene) {
       this.detachScene();
-    }
+    } */
     
     const popPreviewContainerTransform = !this.focused ? this.#pushPreviewContainerTransform() : null;
     this.scene = await metaversefile.createAppAsync({
@@ -188,7 +188,7 @@ class ScenePreviewer extends THREE.Object3D {
       this.render();
     }
   }
-  attachScene(scene) {
+  /* attachScene(scene) {
     this.scene = scene;
     this.previewContainer.add(scene);
 
@@ -203,7 +203,7 @@ class ScenePreviewer extends THREE.Object3D {
       this.scene = null;
     }
     return oldScene;
-  }
+  } */
   setFocus(focus) {
     this.focused = focus;
 
