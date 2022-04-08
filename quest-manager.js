@@ -52,11 +52,13 @@ class QuestManager extends EventTarget {
   }
   addQuest(questApp) {
     const quest = new Quest(questApp);
+    this.quests.push(quest);
     this.dispatchEvent(new MessageEvent('questadd', {
       data: {
         quest,
       },
     }));
+    return quest;
   }
   removeQuest(questApp) {
     const index = this.quests.findIndex(quest => quest.app === questApp);
