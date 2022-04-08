@@ -507,7 +507,7 @@ class AppManager extends EventTarget {
         const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
         const contentId = srcTrackedApp.get('contentId');
         
-        const transform = trackedApp.get('transform');
+        const transform = srcTrackedApp.get('transform');
         const components = srcTrackedApp.get('components');
         srcAppManager.removeTrackedAppInternal(instanceId);
         
