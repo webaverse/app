@@ -260,6 +260,7 @@ class CharacterPhysics {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
     const aimAction = this.player.getAction('aim');
+    // if (aimAction) debugger
     const aimComponent = (() => {
       for (const action of this.player.getActions()) {
         if (action.type === 'wear') {

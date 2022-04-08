@@ -893,22 +893,25 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        debugger
+        // debugger
         let useAnimation;
         let t2;
         const useTimeS = activeAvatar.useTime / 1000;
         if (activeAvatar.useAnimation) {
           const useAnimationName = activeAvatar.useAnimation;
+          // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (activeAvatar.useAnimationCombo.length > 0) {
           const useAnimationName = activeAvatar.useAnimationCombo[activeAvatar.useAnimationIndex];
+          // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (activeAvatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
           for (let i = 0; i < activeAvatar.useAnimationEnvelope.length - 1; i++) {
             const animationName = activeAvatar.useAnimationEnvelope[i];
+            // if (animationName.indexOf('pistol') >= 0) debugger;
             const animation = useAnimations[animationName];
             totalTime += animation.duration;
           }
@@ -917,6 +920,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             let animationTimeBase = 0;
             for (let i = 0; i < activeAvatar.useAnimationEnvelope.length - 1; i++) {
               const animationName = activeAvatar.useAnimationEnvelope[i];
+              // if (animationName.indexOf('pistol') >= 0) debugger;
               const animation = useAnimations[animationName];
               if (useTimeS < (animationTimeBase + animation.duration)) {
                 useAnimation = animation;
@@ -928,6 +932,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
             } else { // loop
               const secondLastAnimationName = activeAvatar.useAnimationEnvelope[activeAvatar.useAnimationEnvelope.length - 2];
+              // if (secondLastAnimationName.indexOf('pistol') >= 0) debugger;
               useAnimation = useAnimations[secondLastAnimationName];
               t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
             }
@@ -968,6 +973,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.hurtAnimation) {
+      // debugger
       return spec => {
         const {
           animationTrackName: k,
@@ -1010,6 +1016,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.aimAnimation) {
+      // debugger
       return spec => {
         const {
           animationTrackName: k,
@@ -1050,6 +1057,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
+      // debugger
       return spec => {
         const {
           animationTrackName: k,
@@ -1063,6 +1071,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const unuseTimeS = activeAvatar.unuseTime / 1000;
         const unuseAnimationName = activeAvatar.unuseAnimation;
+        // if (unuseAnimationName.indexOf('pistol') >= 0) debugger;
         const unuseAnimation = useAnimations[unuseAnimationName];
         const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
         const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);

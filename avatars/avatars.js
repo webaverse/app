@@ -1832,6 +1832,11 @@ class Avatar {
       <div>jumpState: --- ${this.jumpState}</div>
       <div>narutoRunState: --- ${this.narutoRunState}</div>
       <div>sitState: --- ${this.sitState}</div>
+      <div>aimAnimation: --- ${this.aimAnimation}</div>
+      <div>danceAnimation: --- ${this.danceAnimation}</div>
+      <div>hurtAnimation: --- ${this.hurtAnimation}</div>
+      <div>poseAnimation: --- ${this.poseAnimation}</div>
+      <div>sitAnimation: --- ${this.sitAnimation}</div>
       <div>useAnimation: --- ${this.useAnimation}</div>
       <div>useAnimationCombo: --- ${this.useAnimationCombo}</div>
       <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
