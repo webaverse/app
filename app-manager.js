@@ -264,7 +264,7 @@ class AppManager extends EventTarget {
           app.updateMatrixWorld();
           app.lastMatrix.copy(app.matrixWorld);
 
-          // set 
+          // set components
           // if (contentId.indexOf('sword') >= 0) debugger;
           // if (contentId.indexOf('bow') >= 0) debugger;
           app.instanceId = instanceId;
