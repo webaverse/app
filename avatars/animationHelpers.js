@@ -195,7 +195,14 @@ async function loadAnimations() {
   const uint8Array = new Uint8Array(arrayBuffer);
   const animationsJson = zbdecode(uint8Array);
   animations = animationsJson.animations
-    .map(a => AnimationClip.parse(a));
+    .map(a => {
+      const animationClip = AnimationClip.parse(a)
+      if (animationClip.name === 'One Hand Sword Combo.fbx') {
+        trimClip(animationClip, 0.4, Infinity);
+      }
+      return animationClip;
+    });
+
   animationStepIndices = animationsJson.animationStepIndices;
   animations.index = {};
   for (const animation of animations) {
@@ -1239,6 +1246,17 @@ export function getFirstPersonCurves(vrmExtension) {
   } else {
     return null;
   }
+}
+
+export function trimClip(clip, startTime, endTime) {
+  for (let i = 0; i < clip.tracks.length; i++) {
+    clip.tracks[i].trim(startTime, endTime);
+    for (let j = 0; j < clip.tracks[i].times.length; j++) {
+      clip.tracks[i].times[j] -= startTime;
+    }
+  }
+  clip.resetDuration();
+  return clip;
 }
 
 /* const _localizeMatrixWorld = bone => {
