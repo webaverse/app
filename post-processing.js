@@ -29,6 +29,7 @@ import {
 // import {getRandomString} from './util.js';
 import cameraManager from './camera-manager.js';
 import {WebaverseRenderPass} from './webaverse-render-pass.js';
+import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 // import {parseQuery} from './util.js';
 
@@ -50,6 +51,9 @@ function makeDepthPass({ssao, hdr}) {
   const depthPass = new DepthPass(regularScenes, camera, {
     width: size.x,
     height: size.y,
+    onBeforeRenderScene(scene) {
+      return renderSettingsManager.push(rootScene, scene);
+    },
   });
   depthPass.needsSwap = false;
   // depthPass.enabled = hqDefault;
