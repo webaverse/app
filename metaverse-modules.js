@@ -27,6 +27,8 @@ const loadPromise = (async () => {
     const p = metaversefile.import(moduleUrl)
       .then(m => {
         modules[moduleName] = m;
+      }, err => {
+        console.warn(err);
       });
     promises.push(p);
   }

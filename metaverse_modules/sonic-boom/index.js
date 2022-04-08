@@ -120,6 +120,7 @@ export default () => {
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         });
+        material.freeze();
     
         const material2 = new THREE.ShaderMaterial({
           uniforms: {
@@ -220,6 +221,7 @@ export default () => {
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         });
+        material2.freeze();
       
     
         let frontwave=new THREE.Mesh(geometry,material);
@@ -234,7 +236,6 @@ export default () => {
         group.add(frontwave);
         group.add(frontwave2);
         //app.add(group);
-
         
         let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
@@ -353,6 +354,7 @@ export default () => {
                 blending: THREE.AdditiveBlending,
                 side: THREE.DoubleSide
             });
+            windMaterial.freeze();
             // const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
             const mesh = new THREE.Mesh(geometry, windMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
@@ -508,6 +510,7 @@ export default () => {
                 blending: THREE.AdditiveBlending,
                 side: THREE.DoubleSide,
             });
+            flameMaterial.freeze();
         
             const mesh = new THREE.Mesh(geometry, flameMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
@@ -708,6 +711,7 @@ export default () => {
                 blending: THREE.AdditiveBlending,
                 side: THREE.DoubleSide,
             });
+            lightningMaterial.freeze();
         
             const mesh = new THREE.Mesh(geometry, lightningMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
@@ -918,6 +922,7 @@ export default () => {
           depthWrite: false,
           blending: THREE.AdditiveBlending,
       });
+      material.freeze();
     
       let plane=new THREE.Mesh(planeGeometry,material);
       //app.add(plane);
@@ -1151,6 +1156,7 @@ export default () => {
           depthWrite: false,
           blending: THREE.AdditiveBlending,
       });
+      material.freeze();
     
       let plane=new THREE.Mesh(planeGeometry,material);
       //app.add(plane);
@@ -1368,6 +1374,7 @@ export default () => {
             depthWrite: false,
             blending: THREE.AdditiveBlending,
         });
+        particlesMaterial.freeze();
         
 
         const mainBall = new THREE.Points(particlesGeometry, particlesMaterial);
@@ -1553,6 +1560,8 @@ export default () => {
             depthWrite: false,
             blending: THREE.AdditiveBlending,
         });
+        electricityMaterial.freeze();
+
         const electricity = new THREE.Mesh(instGeom, electricityMaterial);
         const group = new THREE.Group();
         group.add(electricity)
@@ -1738,6 +1747,7 @@ export default () => {
             depthWrite: false,
             blending: THREE.AdditiveBlending,
         });
+        electricityMaterial.freeze();
 
         const electricity = new THREE.Mesh(instGeom, electricityMaterial);
         const group = new THREE.Group();
@@ -1820,9 +1830,18 @@ export default () => {
         let mesh = null;
         let dummy = new THREE.Object3D();
     
-    
+        const particleMaterial = new THREE.MeshBasicMaterial({
+            color: 0x2167F2,
+            map: electronicballTexture,
+            transparent: true,
+            depthWrite: false,
+            opacity: 0.5,
+            blending: THREE.AdditiveBlending,
+            side: THREE.DoubleSide,
+        });
+        particleMaterial.freeze();
         function addInstancedMesh() {
-            mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), new THREE.MeshBasicMaterial({color:0x2167F2,map:electronicballTexture, transparent:true, depthWrite:false, opacity:0.5, blending:THREE.AdditiveBlending, side:THREE.DoubleSide}), particleCount);
+            mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), particleMaterial, particleCount);
             group.add(mesh);
             //app.add(group);
             setInstancedMeshPositions(mesh);
@@ -1961,8 +1980,17 @@ export default () => {
         let dummy = new THREE.Object3D();
     
     
+        const particleMaterial = new THREE.MeshBasicMaterial({
+            map: electronicballTexture,
+            transparent: true,
+            depthWrite: false,
+            opacity: 0.5,
+            blending: THREE.AdditiveBlending,
+            side:THREE.DoubleSide,
+        });
+        particleMaterial.freeze();
         function addInstancedMesh() {
-            mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), new THREE.MeshBasicMaterial({map:electronicballTexture, transparent:true, depthWrite:false, opacity:0.5, blending:THREE.AdditiveBlending, side:THREE.DoubleSide}), particleCount);
+            mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), particleMaterial, particleCount);
             group.add(mesh);
             //app.add(group);
             setInstancedMeshPositions(mesh);
@@ -2202,6 +2230,7 @@ export default () => {
                 depthWrite: false,
                 blending: THREE.AdditiveBlending,
             });
+            wave.scene.children[0].material.freeze();
 
 
         })();
@@ -2313,6 +2342,7 @@ export default () => {
         //dustMaterial.blending= THREE.AdditiveBlending;
         //dustMaterial.side=THREE.DoubleSide;
         //dustMaterial.opacity=0.2;
+        dustMaterial.freeze();
     
         const uniforms = {
             uTime: {
