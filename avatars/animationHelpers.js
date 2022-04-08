@@ -626,7 +626,6 @@ const _get7wayBlend = (
 };
 
 const prepAngles = angle => {
-  debugger
   angles.horizontalWalkAnimationAngles = getClosest2AnimationAngles('walk', angle);
   angles.horizontalWalkAnimationAnglesMirror = _getMirrorAnimationAngles(angles.horizontalWalkAnimationAngles, 'walk');
 
@@ -898,6 +897,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           isTop,
+          isCombo,
           isPosition,
         } = spec;
 
@@ -965,7 +965,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             //   .premultiply(localQuaternion2.fromArray(v3).invert())
             //   .premultiply(localQuaternion2.fromArray(v2));
 
-            if (isTop) {
+            if (isCombo) {
               // do nothing: localQuaternion2 already pure combo animation
             } else { // lerp legs between sword and walk/run by idleWalkFactor.
               localQuaternion2.slerp(dst, moveFactors.idleWalkFactor);
@@ -989,7 +989,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             //   .sub(localVector3)
             //   .add(localVector2);
 
-            if (isTop) {
+            if (isCombo) {
               // do nothing: localVector2 already pure combo animation
             } else { // lerp legs between sword and walk/run by idleWalkFactor.
               localVector2.lerp(dst, moveFactors.idleWalkFactor);
