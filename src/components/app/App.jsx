@@ -145,19 +145,26 @@ export const App = () => {
 
         const handleKeyUp = ( event ) => {
 
-            if ( event.which === 187 && event.shiftKey ) {
+            const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
+            if ( inputFocused ) return true;
+
+            if ( event.which === 187 && event.shiftKey ) { // + & shift [plus - not on num-pad]
 
                 app.renderLimitMs = app.renderLimitMs || 16 * 2; // if not set then set to 30fps
                 app.renderLimitMs = Math.floor( 1000 / ( 1000 / app.renderLimitMs + 5 ) ); // +5fps, can be not 100% accurate cause of update/render frame shifted [loop time too long]
                 console.log( `Render limit increased to ${ app.renderLimitMs }ms (${ Math.floor( 1000 / app.renderLimitMs ) }fps)` );
+                return false;
 
-            } else if ( event.which === 189 && event.shiftKey ) {
+            } else if ( event.which === 189 && event.shiftKey ) { // - & shift [minus - not on num-pad]
 
                 app.renderLimitMs = app.renderLimitMs || 16 * 2; // if not set then set to 30fps
                 app.renderLimitMs = Math.floor( 1000 / ( 1000 / app.renderLimitMs - 5 ) ); // -5fps, can be not 100% accurate cause of update/render frame shifted [loop time too long]
                 console.log( `Render limit decreased to ${ app.renderLimitMs }ms (${ Math.floor( 1000 / app.renderLimitMs ) }fps)` );
+                return false;
 
             }
+
+            return true;
 
         };
 
