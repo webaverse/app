@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import renderSettingsManager from './rendersettings-manager.js';
+import {localPlayer} from './players.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -156,6 +157,20 @@ const depthFragmentShader = `\
     ${THREE.ShaderChunk.logdepthbuf_fragment}
   }
 `;
+const depthMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    cameraNear: {
+      value: 0,
+      needsUpdate: true,
+    },
+    cameraFar: {
+      value: 1,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: depthVertexShader,
+  fragmentShader: depthFragmentShader,
+});
 
 const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, depthFloatImageData) => {
   const worldDepthResolutionP1 = worldDepthResolution.clone().add(new THREE.Vector3(1, 1, 1));
@@ -208,6 +223,12 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
 
   return geometry;
 };
+const baseMaterial = new THREE.MeshBasicMaterial({
+  map: null,
+  color: 0xFFFFFF,
+  // fog: false,
+});
+baseMaterial.freeze();
 export function snapshotMapChunk(
   scene,
   position,
@@ -237,10 +258,7 @@ export function snapshotMapChunk(
       }
     );
 
-    /* const worldSizeRotated = new THREE.Vector3(0, 0, worldSize.z)
-      .applyQuaternion(quaternion); */
     const cameraFar = worldSize.z;
-    // console.log('camera far', cameraFar);
 
     const camera = new THREE.OrthographicCamera(
       -worldSize.x / 2,
@@ -258,32 +276,44 @@ export function snapshotMapChunk(
     camera.quaternion.copy(quaternion);
     camera.updateMatrixWorld();
 
-    const depthMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        cameraNear: {
-          value: cameraNear,
-          needsUpdate: true,
-        },
-        cameraFar: {
-          value: cameraFar,
-          needsUpdate: true,
-        },
-      },
-      vertexShader: depthVertexShader,
-      fragmentShader: depthFragmentShader,
-    });
-
     // render
     let colorImageData = null;
     let depthFloatImageData = null;
     {
       const renderer = getRenderer();
       
-      // push old state
-      const oldViewport = renderer.getViewport(localVector4D);
-      const oldRenderTarget = renderer.getRenderTarget();
-      const oldOverrideMaterial = scene.overrideMaterial;
-      // const oldFog = scene.fog;
+      const _pushState = () => {
+        // renderer state
+        const oldViewport = renderer.getViewport(localVector4D);
+        const oldRenderTarget = renderer.getRenderTarget();
+        const oldOverrideMaterial = scene.overrideMaterial;
+        // const oldFog = scene.fog;
+
+        // avatar state
+        const oldAvatarModel = localPlayer.avatar?.model;
+        const oldAvatarModelParent = oldAvatarModel?.parent;
+        if (oldAvatarModel) {
+          scene.add(oldAvatarModel);
+        }
+
+        return () => {
+          // renderer state
+          renderer.setViewport(oldViewport.x, oldViewport.y, oldViewport.z, oldViewport.w);
+          renderer.setRenderTarget(oldRenderTarget);
+          scene.overrideMaterial = oldOverrideMaterial;
+          // scene.fog = oldFog;
+
+          // avatar state
+          if (oldAvatarModel) {
+            if (oldAvatarModelParent) {
+              oldAvatarModelParent.add(oldAvatarModel);
+            }
+          } else {
+            scene.remove(oldAvatarModel);
+          }
+        };
+      }
+      const popState = _pushState();
 
       // render
       const _renderOverrideMaterial = (renderTarget, overrideMaterial, wp1) => {
@@ -305,14 +335,16 @@ export function snapshotMapChunk(
         renderer.readRenderTargetPixels(renderTarget, 0, 0, wp1.x, wp1.y, imageData.data);
         return imageData;
       };
+      // color
       colorImageData = _renderOverrideMaterial(colorRenderTarget, null, worldResolutionP1);
+      // depth
+      depthMaterial.uniforms.cameraNear.value = cameraNear;
+      depthMaterial.uniforms.cameraNear.needsUpdate = true;
+      depthMaterial.uniforms.cameraFar.value = cameraFar;
+      depthMaterial.uniforms.cameraFar.needsUpdate = true;
       depthFloatImageData = floatImageData(_renderOverrideMaterial(depthRenderTarget, depthMaterial, worldDepthResolutionP1));
 
-      // pop old state
-      renderer.setViewport(oldViewport.x, oldViewport.y, oldViewport.z, oldViewport.w);
-      renderer.setRenderTarget(oldRenderTarget);
-      scene.overrideMaterial = oldOverrideMaterial;
-      // scene.fog = oldFog;
+      popState();
     }
 
     const geometry = _makeGeometry(
@@ -337,11 +369,11 @@ export function snapshotMapChunk(
       0
     );
     colorTex.needsUpdate = true;
-    const material = new THREE.MeshBasicMaterial({
-      // map: colorRenderTarget.texture,
-      map: colorTex,
-      color: 0xFFFFFF,
-    });
+    
+    const material = baseMaterial.clone();
+    material.map = colorTex;
+    material.freeze(baseMaterial.programCacheKey.bind(baseMaterial));
+    // material.needsUpdate = true;
     const mesh = new THREE.Mesh(geometry, material);
     mesh.geometry.depthFloatImageData = depthFloatImageData;
     return mesh;
