@@ -324,7 +324,7 @@ export default e => {
         if (textMeshSpec && timestamp >= textMeshSpec.endTime) {
           for (const textMesh of textMeshSpec.textMeshes) {
             textMesh.geometry.dispose();
-            textMesh.material.dispose();
+            // textMesh.material.dispose();
             // scene.remove(textMesh);
           }
           textMeshSpec = null;
