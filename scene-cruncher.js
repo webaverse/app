@@ -195,7 +195,7 @@ const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolu
   // const backPlanePosition = new THREE.Vector3(0, 0, worldDepthResolution.x / 2).applyQuaternion(quaternion);
   const baseWorldPosition = position.clone()
     .add(new THREE.Vector3(-worldSize.x/2, worldSize.y/2, -worldSize.z).applyQuaternion(quaternion));
-  console.log('got position world size', {position, worldSize, baseWorldPosition});
+  // console.log('got position world size', {position, worldSize, baseWorldPosition});
   /* _snap(new THREE.Vector3(
     -worldDepthResolution.x/2,
     -worldDepthResolution.y/2,
@@ -234,12 +234,12 @@ const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolu
       {
         // const worldBottomLeft = position.clone()
 
-        // const z2 = Math.min(Math.max(z, 0), worldDepthResolution.x);
+        const z2 = z * worldDepthResolution.x / worldSize.x;
         const localLocation = localVector.set(0, 0, 0)
           .add(rightDirection.clone().multiplyScalar(x))
           .add(upDirection.clone().multiplyScalar(y))
+          .add(forwardDirection.clone().multiplyScalar(-worldDepthResolution.x - z2))
           .multiplyScalar(worldSize.x/worldDepthResolution.x)
-          .add(forwardDirection.clone().multiplyScalar(-worldSize.x - z))
           .add(baseWorldPosition);
         const g = baseGeometry.clone(); 
         g.translate(localLocation.x, localLocation.y, localLocation.z);
@@ -634,7 +634,7 @@ export function snapshotMapChunk(
   object.add(topMesh[0]);
   object.add(topMesh[1]);
   object.updateMatrixWorld();
-  console.log('got top mesh', topMesh);
+  // console.log('got top mesh', topMesh);
   window.topMesh = topMesh;
   // object.add(bottomMesh);
   // object.add(leftMesh);
