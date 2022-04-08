@@ -1,5 +1,4 @@
 
-import * as THREE from 'three';
 import React, { useContext, useEffect, useState } from 'react';
 import classnames from 'classnames';
 
@@ -7,7 +6,7 @@ import { world } from '../../../../world.js'
 import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
 import cameraManager from '../../../../camera-manager.js';
-import ioManager from '../../../../io-manager.js';
+
 import { AppContext } from '../../app';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 
