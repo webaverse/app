@@ -6,10 +6,10 @@ import {localPlayer} from './players.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
+// const localVector3 = new THREE.Vector3();
+// const localVector4 = new THREE.Vector3();
 const localVector4D = new THREE.Vector4();
-const localTriangle = new THREE.Triangle();
+// const localTriangle = new THREE.Triangle();
 
 const cameraNear = 0;
 // const cameraFar = 1000;
