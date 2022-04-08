@@ -1,8 +1,12 @@
 import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import {localPlayer} from './players.js';
+import physicsManager from './physics-manager.js';
+
+window.lol = true;
+window.positionOffsetsScaled = [];
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -172,9 +176,12 @@ const depthMaterial = new THREE.ShaderMaterial({
   fragmentShader: depthFragmentShader,
 });
 
-const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, depthFloatImageData) => {
+const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, depthFloatImageData, ethers) => {
   const worldDepthResolutionP1 = worldDepthResolution.clone().add(new THREE.Vector3(1, 1, 1));
   
+  const geometries = [];
+  const baseGeometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
+
   const geometry = new THREE.PlaneBufferGeometry(worldSize.x, worldSize.z, worldDepthResolution.x, worldDepthResolution.y)
     .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(quaternion));
   const badIndices = {};
@@ -192,16 +199,89 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
         // console.log('bad index', index, x, z);
       } */
 
-      // if (y > -cameraHeight) {
-        localVector.fromArray(geometry.attributes.position.array, index * 3)
-          .add(position)
-          .add(localVector2.set(0, 0, y).applyQuaternion(quaternion));
-      /* } else {
-        localVector.setScalar(NaN);
-      } */
+      localVector.fromArray(geometry.attributes.position.array, index * 3)
+        .add(position)
+        .add(localVector2.set(0, 0, y).applyQuaternion(quaternion));
       localVector.toArray(geometry.attributes.position.array, index * 3);
+
+      {
+        const localLocation = localVector;
+        /* const localLocation = localVector3.set(
+          x * worldSize.x / worldDepthResolutionP1.x,
+          y * worldSize.y / worldDepthResolutionP1.y,
+          -y
+        )
+          .applyQuaternion(quaternion); */
+        const g = baseGeometry.clone(); 
+        g.translate(localLocation.x, localLocation.y, localLocation.z);
+        geometries.push(g);
+
+        const basePosition = position.clone()
+          .sub(new THREE.Vector3(worldSize.x / 2, worldSize.y / 2, worldSize.z / 2));
+        const positionOffset = localLocation.clone().sub(basePosition);
+        const positionOffsetScaled = positionOffset.clone().multiply(
+          new THREE.Vector3(worldDepthResolutionP1.x/worldSize.x, worldDepthResolutionP1.y/worldSize.y, worldDepthResolutionP1.x/worldSize.z)
+        );
+
+        /* localLocation
+          .add(
+            localVector2.set(worldDepthResolutionP1.x/2, worldDepthResolutionP1.y/2, 0)
+              .applyQuaternion(quaternion)
+          )
+          .multiply(
+            localVector2.set(worldDepthResolutionP1.x)
+          ); */
+        window.positionOffsetsScaled.push(positionOffsetScaled);
+
+        // ethers is a flattened 3d array of size worldDepthResolutionP1
+        // here we compute the index into ethers based on localLocation
+        const ethersIndex = Math.floor(localLocation.x / worldSize.x * worldDepthResolutionP1.x) +
+          Math.floor(localLocation.z / worldSize.z * worldDepthResolutionP1.y) * worldDepthResolutionP1.x;
+        // ethers
+      }
     }
   }
+  /* {
+    let allocator = new Allocator();
+
+    const dimsTypedArray = allocator.alloc(Int32Array, 3);
+    dimsTypedArray.set(dims);
+
+    const potentialTypedArray = allocator.alloc(Float32Array, potential.length);
+    potentialTypedArray.set(potential);
+
+    const shiftTypedArray = allocator.alloc(Float32Array, 3);
+    shiftTypedArray.set(shift);
+
+    const scaleTypedArray = allocator.alloc(Float32Array, 3);
+    scaleTypedArray.set(scale);
+
+    const outputBufferOffset = moduleInstance._doMarchingCubes(
+      dimsTypedArray.byteOffset,
+      potentialTypedArray.byteOffset,
+      shiftTypedArray.byteOffset,
+      scaleTypedArray.byteOffset
+    );
+
+    allocator.freeAll();
+
+    const head = outputBufferOffset / 4;
+
+    const positionCount = moduleInstance.HEAP32[head];
+    const faceCount = moduleInstance.HEAP32[head + 1];
+    const positions = moduleInstance.HEAPF32.slice(head + 2, head + 2 + positionCount);
+    const faces = moduleInstance.HEAP32.slice(head + 2 + positionCount, head + 2 + positionCount + faceCount);
+
+    moduleInstance._doFree(outputBufferOffset);
+
+    return {
+      positionCount: positionCount,
+      faceCount: faceCount,
+      positions: positions,
+      faces: faces
+    }
+  } */
+
   /* for (let z = 0; z <= worldDepthResolution.y; z++) {
     for (let x = 0; x <= worldDepthResolution.x; x++) {
       const index = z * worldDepthResolutionP1.x + x;
@@ -221,12 +301,17 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
     }
   }
 
-  return geometry;
+  const geometry2 = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  return [geometry, geometry2];
 };
+const normalMaterial = new THREE.MeshNormalMaterial();
 const baseMaterial = new THREE.MeshBasicMaterial({
   map: null,
   color: 0xFFFFFF,
-  // fog: false,
+
+  clipping: false,
+  fog: false,
+  lights: false,
 });
 baseMaterial.freeze();
 export function snapshotMapChunk(
@@ -239,7 +324,7 @@ export function snapshotMapChunk(
   const worldResolutionP1 = worldResolution.clone().add(new THREE.Vector3(1, 1, 1));
   const worldDepthResolutionP1 = worldDepthResolution.clone().add(new THREE.Vector3(1, 1, 1));
 
-  const _makeMesh = (position, quaternion, worldSize, worldDepthResolution) => {
+  const _makeMesh = (position, quaternion, worldSize, worldDepthResolution, ethers) => {
     const colorRenderTarget = new THREE.WebGLRenderTarget(
       worldResolutionP1.x,
       worldResolutionP1.y,
@@ -312,7 +397,7 @@ export function snapshotMapChunk(
             scene.remove(oldAvatarModel);
           }
         };
-      }
+      };
       const popState = _pushState();
 
       // render
@@ -347,12 +432,16 @@ export function snapshotMapChunk(
       popState();
     }
 
-    const geometry = _makeGeometry(
+    const [
+      geometry,
+      geometry2,
+    ] = _makeGeometry(
       camera.position,
       camera.quaternion,
       worldSize,
       worldDepthResolution,
       depthFloatImageData,
+      ethers,
     );
 
     const colorTex = new THREE.DataTexture(
@@ -376,7 +465,14 @@ export function snapshotMapChunk(
     // material.needsUpdate = true;
     const mesh = new THREE.Mesh(geometry, material);
     mesh.geometry.depthFloatImageData = depthFloatImageData;
-    return mesh;
+
+    const mesh2 = new THREE.Mesh(geometry2, normalMaterial);
+    mesh2.frustumCulled = false;
+
+    return [
+      mesh,
+      mesh2,
+    ];
   };
 
   if (
@@ -386,7 +482,8 @@ export function snapshotMapChunk(
     debugger;
     throw new Error('non-cube dimensions not supported');
   }
-  const ethers = new Float32Array(worldDepthResolutionP1.x * worldDepthResolutionP1.x * worldDepthResolutionP1.x).fill(1);
+  const ethers = new Float32Array(worldDepthResolutionP1.x * worldDepthResolutionP1.x * worldDepthResolutionP1.x)
+    .fill(1);
 
   const topMesh = _makeMesh(
     position,
@@ -494,8 +591,18 @@ export function snapshotMapChunk(
     // _cleanGeometry(backMesh.geometry);
   } */
 
+  const dims = worldDepthResolutionP1.toArray();
+  const shift = [0, 0, 0];
+  const scale = [1, 1, 1];
+  const mc = physicsManager.marchingCubes(dims, ethers, shift, scale)
+  console.log('got marching cubes', mc);
+
   const object = new THREE.Object3D();
-  object.add(topMesh);
+  object.add(topMesh[0]);
+  object.add(topMesh[1]);
+  object.updateMatrixWorld();
+  console.log('got top mesh', topMesh);
+  window.topMesh = topMesh;
   // object.add(bottomMesh);
   // object.add(leftMesh);
   // object.add(rightMesh);
