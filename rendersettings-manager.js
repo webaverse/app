@@ -78,6 +78,16 @@ class RenderSettingsManager {
     } = (renderSettings ?? {});
     localPostProcessing.setPasses(passes);
   }
+  push(srcScene, dstScene = srcScene) {
+    const renderSettings = this.findRenderSettings(srcScene);
+    // console.log('push render settings', renderSettings);
+    this.applyRenderSettingsToScene(renderSettings, dstScene);
+    
+    return () => {
+      // console.log('pop render settings');
+      this.applyRenderSettingsToScene(null, dstScene);
+    };
+  }
 }
 const renderSettingsManager = new RenderSettingsManager();
 export default renderSettingsManager;
