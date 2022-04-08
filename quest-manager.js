@@ -60,10 +60,9 @@ class QuestManager extends EventTarget {
     }));
     return quest;
   }
-  removeQuest(questApp) {
-    const index = this.quests.findIndex(quest => quest.app === questApp);
+  removeQuest(quest) {
+    const index = this.quests.indexOf(quest);
     if (index !== -1) {
-      const quest = this.quests[index];
       this.quests.splice(index, 1);
       quest.destroy();
 
