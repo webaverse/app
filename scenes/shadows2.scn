@@ -143,20 +143,6 @@
         0.7071067811865475
       ],
       "start_url": "https://webaverse.github.io/fox/"
-    },
-    {
-      "position": [
-        20,
-        -1,
-        -4
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/pistol/"
     }
   ]
 }
