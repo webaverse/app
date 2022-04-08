@@ -198,7 +198,9 @@ async function loadAnimations() {
     .map(a => {
       const animationClip = AnimationClip.parse(a)
       if (animationClip.name === 'One Hand Sword Combo.fbx') {
-        trimClip(animationClip, 0.4, Infinity);
+        trimClip(animationClip, 0.4, animationClip.duration - 0.5);
+        // trim start to make attack fast.
+        // trim end to prevent sword cross player's head.
       }
       return animationClip;
     });
