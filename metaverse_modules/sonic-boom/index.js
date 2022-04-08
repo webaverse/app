@@ -9,7 +9,7 @@ export default () => {
   const app = useApp();
   const localPlayer = useLocalPlayer();
   const cameraManager = useCameraManager();
-  const {renderer, camera} = useInternals();
+  const {camera} = useInternals();
   let narutoRunTime=0; 
   let lastStopSw=0;
   const textureLoader = new THREE.TextureLoader()
@@ -21,6 +21,10 @@ export default () => {
   const textureB = textureLoader.load(`${baseUrl}/textures/b.jpg`);
   const electronicballTexture = textureLoader.load(`${baseUrl}/textures/electronic-ball2.png`);
   const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
+
+  const basicMaterial = new THREE.MeshBasicMaterial();
+  const shaderMaterial = new THREE.ShaderMaterial();
+  
 
     let currentDir=new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
@@ -34,12 +38,11 @@ export default () => {
             currentDir = localVector.applyQuaternion( localPlayer.quaternion );
             currentDir.normalize();
             if (localPlayer.hasAction('narutoRun')){
-                    narutoRunTime++;
-                    lastStopSw=1;
-                }
+                narutoRunTime++;
+                lastStopSw=1;
+            }
             else{
-                narutoRunTime=0;
-                
+                narutoRunTime=0; 
             }
             
         });
@@ -48,25 +51,24 @@ export default () => {
     //################################################# front wave #################################################
     {
         const geometry = new THREE.SphereBufferGeometry(1.4, 32, 32, 0, Math.PI * 2, 0, Math.PI / 1.4);
-        const material = new THREE.ShaderMaterial({
-          uniforms: {
+        const material = shaderMaterial.clone();
+        material.uniforms = {
             uTime: {
-              type: "f",
-              value: 0.0
-            },
-            color: {
-              value: new THREE.Vector3(0.400, 0.723, 0.910)
-            },
-            strength: {
-              value: 0.01
-            },
-            perlinnoise: {
-              type: "t",
-              value: wave2
-            },
-            
-          },
-          vertexShader: `\
+                type: "f",
+                value: 0.0
+              },
+              color: {
+                value: new THREE.Vector3(0.400, 0.723, 0.910)
+              },
+              strength: {
+                value: 0.01
+              },
+              perlinnoise: {
+                type: "t",
+                value: wave2
+              },
+        };
+        material.vertexShader= `\
               
             ${THREE.ShaderChunk.common}
             ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
@@ -84,8 +86,9 @@ export default () => {
                 }
                 gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 ); 
                 ${THREE.ShaderChunk.logdepthbuf_vertex}
-            }`,
-          fragmentShader: `\
+            }
+        `;
+        material.fragmentShader= `\
             
             
             ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
@@ -114,15 +117,15 @@ export default () => {
                 gl_FragColor.a*=20.;
                 ${THREE.ShaderChunk.logdepthbuf_fragment}
             }
-          `,
-          side: THREE.DoubleSide,
-          transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-        });
-    
-        const material2 = new THREE.ShaderMaterial({
-          uniforms: {
+        `;
+        material.side= THREE.DoubleSide;
+        material.transparent= true;
+        material.depthWrite= false;
+        material.blending= THREE.AdditiveBlending;
+
+
+        const material2 = shaderMaterial.clone();
+        material2.uniforms= {
             uTime: {
               type: "f",
               value: 0.0
@@ -138,8 +141,8 @@ export default () => {
                 value: new THREE.Vector3(0.25,0.45,1.25)
             },
             
-          },
-          vertexShader: `\
+        };
+        material2.vertexShader= `\
               
             ${THREE.ShaderChunk.common}
             ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
@@ -159,8 +162,9 @@ export default () => {
                 }
                 gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 ); 
                 ${THREE.ShaderChunk.logdepthbuf_vertex}
-            }`,
-          fragmentShader: `\
+            }
+        `;
+        material2.fragmentShader= `\
             
             ${THREE.ShaderChunk.emissivemap_pars_fragment}
             ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
@@ -214,12 +218,13 @@ export default () => {
                 
                 ${THREE.ShaderChunk.logdepthbuf_fragment}
                 ${THREE.ShaderChunk.emissivemap_fragment}
-            }`,
-          side: THREE.DoubleSide,
-          transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-        });
+            }
+        `;
+        material2.side = THREE.DoubleSide;
+        material2.transparent = true;
+        material2.depthWrite = false;
+        material2.blending = THREE.AdditiveBlending;
+       
       
     
         let frontwave=new THREE.Mesh(geometry,material);
@@ -328,32 +333,30 @@ export default () => {
                 
             }
         `;
-        let windMaterial;
+        let windMaterial = shaderMaterial.clone();
         function windEffect() {
             const geometry = new THREE.CylinderBufferGeometry(0.5, 0.9, 5.3, 50, 50, true);
-            windMaterial = new THREE.ShaderMaterial({
-                uniforms: {
-                    perlinnoise: {
-                        type: "t",
-                        value:wave2
-                    },
-                    color4: {
-                        value: new THREE.Vector3(200, 200, 200)
-                    },
-                    uTime: {
-                        type: "f",
-                        value: 0.0
-                    },
+            windMaterial.uniforms= {
+                perlinnoise: {
+                    type: "t",
+                    value:wave2
                 },
-                // wireframe:true,
-                vertexShader: vertrun,
-                fragmentShader: fragrun,
-                transparent: true,
-                depthWrite: false,
-                blending: THREE.AdditiveBlending,
-                side: THREE.DoubleSide
-            });
-            // const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+                color4: {
+                    value: new THREE.Vector3(200, 200, 200)
+                },
+                uTime: {
+                    type: "f",
+                    value: 0.0
+                },
+            };
+               
+            windMaterial.vertexShader = vertrun;
+            windMaterial.fragmentShader = fragrun;
+            windMaterial.transparent = true;
+            windMaterial.depthWrite = false;
+            windMaterial.blending = THREE.AdditiveBlending;
+            windMaterial.side = THREE.DoubleSide;
+
             const mesh = new THREE.Mesh(geometry, windMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
             
@@ -475,39 +478,37 @@ export default () => {
         `;
 
 
-
-        let flameMaterial;
+        let flameMaterial = shaderMaterial.clone();
         function flame() {
             const geometry = new THREE.CylinderBufferGeometry(0.5, 0.1, 4.5, 50, 50, true);
-            flameMaterial = new THREE.ShaderMaterial({
-                uniforms: {
-                    perlinnoise: {
-                        type: "t",
-                        value: wave9
-                    },
-                    color: {
-                        value: new THREE.Vector3(0.120, 0.280, 1.920)
-                    },
-                    uTime: {
-                        type: "f",
-                        value: 0.0
-                    },
-                    playerRotation: {
-                        value: new THREE.Vector3(localPlayer.rotation.y, localPlayer.rotation.y, localPlayer.rotation.y)
-                    },
-                    strength: {
-                        type: "f",
-                        value: 0.0
-                    },
+            flameMaterial.uniforms={
+                perlinnoise: {
+                    type: "t",
+                    value: wave9
                 },
-                // wireframe:true,
-                vertexShader: vertflame,
-                fragmentShader: fragflame,
-                transparent: true,
-                depthWrite: false,
-                blending: THREE.AdditiveBlending,
-                side: THREE.DoubleSide,
-            });
+                color: {
+                    value: new THREE.Vector3(0.120, 0.280, 1.920)
+                },
+                uTime: {
+                    type: "f",
+                    value: 0.0
+                },
+                playerRotation: {
+                    value: new THREE.Vector3(localPlayer.rotation.y, localPlayer.rotation.y, localPlayer.rotation.y)
+                },
+                strength: {
+                    type: "f",
+                    value: 0.0
+                },
+            };
+                
+            flameMaterial.vertexShader = vertflame;
+            flameMaterial.fragmentShader = fragflame;
+            flameMaterial.transparent = true;
+            flameMaterial.depthWrite = false;
+            flameMaterial.blending = THREE.AdditiveBlending;
+            flameMaterial.side = THREE.DoubleSide;
+            
         
             const mesh = new THREE.Mesh(geometry, flameMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
@@ -576,9 +577,6 @@ export default () => {
                 }
             }
            
-            
-            
-            
             //app.updateMatrixWorld();
 
         });
@@ -670,44 +668,42 @@ export default () => {
             }
         `;
 
-
-
-        let lightningMaterial;
+        let lightningMaterial = shaderMaterial.clone();
         function lightning() {
             const geometry = new THREE.CylinderBufferGeometry(0.65, 0.15, 4.5, 50, 50, true);
-            lightningMaterial = new THREE.ShaderMaterial({
-                uniforms: {
-                    perlinnoise: {
-                        type: "t",
-                        value: wave9
-                    },
-                    color: {
-                        value: new THREE.Vector3(0.120, 0.280, 1.920)
-                    },
-                    uTime: {
-                        type: "f",
-                        value: 0.0
-                    },
-                    random: {
-                        type: "f",
-                        value: 0.0
-                    },
-                    playerRotation: {
-                        value: new THREE.Vector3(localPlayer.rotation.y, localPlayer.rotation.y, localPlayer.rotation.y)
-                    },
-                    strength: {
-                        type: "f",
-                        value: 0.0
-                    },
+            
+            lightningMaterial.uniforms = {
+                perlinnoise: {
+                    type: "t",
+                    value: wave9
                 },
-                // wireframe:true,
-                vertexShader: vertlightning,
-                fragmentShader: fraglightning,
-                transparent: true,
-                depthWrite: false,
-                blending: THREE.AdditiveBlending,
-                side: THREE.DoubleSide,
-            });
+                color: {
+                    value: new THREE.Vector3(0.120, 0.280, 1.920)
+                },
+                uTime: {
+                    type: "f",
+                    value: 0.0
+                },
+                random: {
+                    type: "f",
+                    value: 0.0
+                },
+                playerRotation: {
+                    value: new THREE.Vector3(localPlayer.rotation.y, localPlayer.rotation.y, localPlayer.rotation.y)
+                },
+                strength: {
+                    type: "f",
+                    value: 0.0
+                },
+            };
+               
+            lightningMaterial.vertexShader = vertlightning;
+            lightningMaterial.fragmentShader = fraglightning;
+            lightningMaterial.transparent = true;
+            lightningMaterial.depthWrite = false;
+            lightningMaterial.blending = THREE.AdditiveBlending;
+            lightningMaterial.side = THREE.DoubleSide;
+            
         
             const mesh = new THREE.Mesh(geometry, lightningMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
@@ -820,203 +816,202 @@ export default () => {
         planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     
         
+        const material = shaderMaterial.clone();
         
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: {
-                    value: 0,
-                },
-                opacity: {
-                    value: 0,
-                },
-                textureR: { type: 't', value: textureR },
-                textureG: { type: 't', value: textureG },
-                textureB: { type: 't', value: textureB },
-                t: { value: 0.9 }
+        material.uniforms = {
+            uTime: {
+                value: 0,
             },
-            vertexShader: `\
+            opacity: {
+                value: 0,
+            },
+            textureR: { type: 't', value: textureR },
+            textureG: { type: 't', value: textureG },
+            textureB: { type: 't', value: textureB },
+            t: { value: 0.9 }
+        };
+        material.vertexShader= `\
                  
-                ${THREE.ShaderChunk.common}
-                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-               
-             
-                uniform float uTime;
-        
-                varying vec2 vUv;
-               
-                void main() {
-                  vUv=uv;
-                  vUv.y*=1.0;
-                  //vUv.x=1.-vUv.x;
-                  vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-                  vec4 viewPosition = viewMatrix * modelPosition;
-                  vec4 projectionPosition = projectionMatrix * viewPosition;
-        
-                  gl_Position = projectionPosition;
-                  ${THREE.ShaderChunk.logdepthbuf_vertex}
-                }
-              `,
-              fragmentShader: `\
-              ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-              uniform sampler2D textureR;
-              uniform sampler2D textureG;
-              uniform sampler2D textureB;
-              uniform float uTime;
-              uniform float opacity;
-              varying vec2 vUv;
-              void main() {
-                  
-      
-                  vec3 texColorR = texture2D(
-                      textureR,
-                      vec2(
-                          mod(1.*vUv.x+uTime*5.,1.),
-                          mod(2.*vUv.y+uTime*5.,1.)
-                          
-                      )
-                  ).rgb;  
-                  vec3 texColorG = texture2D(
-                      textureG,
-                      vec2(
-                          mod(1.*vUv.x+uTime*5.,1.),
-                          mod(2.*vUv.y+uTime*5.,1.)
-                          
-                      )
-                  ).rgb;  
-                  vec3 texColorB = texture2D(
-                      textureB,
-                      vec2(
-                          mod(1.*vUv.x,1.),
-                          mod(2.5*vUv.y+uTime*2.5,1.)
-                          
-                      )
-                  ).rgb;  
-                  gl_FragColor = vec4(texColorB.b)*((vec4(texColorR.r)+vec4(texColorG.g))/2.);
-                  
-    
-                  if( gl_FragColor.b >= 0.1 ){
-                      gl_FragColor = vec4(mix(vec3(0.020, 0.180, 1.920),vec3(0.284, 0.922, 0.980),gl_FragColor.b),gl_FragColor.b);
-                  }else{
-                      gl_FragColor = vec4(0.);
-                  }
-                   gl_FragColor *= vec4(sin(vUv.y) - 0.1);
-                   gl_FragColor *= vec4(smoothstep(0.3,0.628,vUv.y));
-                   if(abs(vUv.x)>0.9 || abs(vUv.x)<0.1)
-                        gl_FragColor.a=0.;
-                    
-                    gl_FragColor.a*=3.;
-                    gl_FragColor.a*=opacity;
-                    //gl_FragColor.a*=(1.-vUv.y)*5.;
-                    //gl_FragColor = vec4(vec3(texColor), texColor.b);
-                    //gl_FragColor.a*=(vUv.x)*5.;
-                    //gl_FragColor = vec4(vUv, 1.0, 1.0);
-                ${THREE.ShaderChunk.logdepthbuf_fragment}
-              }
-            `,
-          side: THREE.DoubleSide,
-          transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-      });
-    
-      let plane=new THREE.Mesh(planeGeometry,material);
-      //app.add(plane);
-      plane.position.y=1;
-      plane.frustumCulled = false;
-      let temp=[];
-      let temp2=[];
-      let sonicBoomInApp=false;
-      useFrame(({timestamp}) => {
-        
-        
-        if(narutoRunTime>=10){
-            if(!sonicBoomInApp){
-                //console.log('add-planeTrail1');
-                app.add(plane);
-                sonicBoomInApp=true;
-            }
-            material.uniforms.opacity.value = 1;
-        }
-        else{
-            if(material.uniforms.opacity.value>0)
-                material.uniforms.opacity.value -= 0.02;
-        }
-        if(narutoRunTime>0 && narutoRunTime<10){
-            material.uniforms.opacity.value = 0;
-        }
-        if(material.uniforms.opacity.value>0){
-            //console.log('sonic-boom-verticalPlane');
-            for(let i=0;i<18;i++){
-                temp[i]=position[i];
-            }
-            for (let i = 0; i < planeNumber; i++){
-                if(i===0){
-                    position[0] = localPlayer.position.x;
-                    position[1] = localPlayer.position.y-1.;
-                    position[2] = localPlayer.position.z;
-                    if (localPlayer.avatar) {
-                        position[1] -= localPlayer.avatar.height;
-                        position[1] += 1.18;
-                    }
-                    position[3] = localPlayer.position.x;
-                    position[4] = localPlayer.position.y-2.;
-                    position[5] = localPlayer.position.z;
-                    if (localPlayer.avatar) {
-                        position[4] -= localPlayer.avatar.height;
-                        position[4] += 1.18;
-                    }
-                
-                    position[6] = temp[0];
-                    position[7] = temp[1];
-                    position[8] = temp[2];
-                
-                    position[9] = temp[3];
-                    position[10] = temp[4];
-                    position[11] = temp[5];
-                
-                    position[12] = temp[0];
-                    position[13] = temp[1];
-                    position[14] = temp[2];
-                
-                    position[15] = localPlayer.position.x;
-                    position[16] = localPlayer.position.y-2.;
-                    position[17] = localPlayer.position.z;
-                    if (localPlayer.avatar) {
-                        position[16] -= localPlayer.avatar.height;
-                        position[16] += 1.18;
-                    }
-                }
-                else{
-                    
-                    for(let j=0;j<18;j++){
-                        temp2[j]=position[i*18+j];
-                        position[i*18+j]=temp[j];
-                        temp[j]=temp2[j];
-                    }
-                    
-    
-                }
-            }
+            ${THREE.ShaderChunk.common}
+            ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
             
-            plane.geometry.verticesNeedUpdate = true;
-            plane.geometry.dynamic = true;
-            plane.geometry.attributes.position.needsUpdate = true;
             
-            material.uniforms.uTime.value = timestamp/1000;
-        }
-        else{
-            if(sonicBoomInApp){
-                //console.log('remove-planeTrail1');
-                app.remove(plane);
-                sonicBoomInApp=false;
+            uniform float uTime;
+    
+            varying vec2 vUv;
+            
+            void main() {
+                vUv=uv;
+                vUv.y*=1.0;
+                //vUv.x=1.-vUv.x;
+                vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                vec4 viewPosition = viewMatrix * modelPosition;
+                vec4 projectionPosition = projectionMatrix * viewPosition;
+    
+                gl_Position = projectionPosition;
+                ${THREE.ShaderChunk.logdepthbuf_vertex}
             }
-        }
-       
-        
-        //app.updateMatrixWorld();
-          
+        `;
+        material.fragmentShader = `\
+            ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+            uniform sampler2D textureR;
+            uniform sampler2D textureG;
+            uniform sampler2D textureB;
+            uniform float uTime;
+            uniform float opacity;
+            varying vec2 vUv;
+            void main() {
+                
+    
+                vec3 texColorR = texture2D(
+                    textureR,
+                    vec2(
+                        mod(1.*vUv.x+uTime*5.,1.),
+                        mod(2.*vUv.y+uTime*5.,1.)
+                        
+                    )
+                ).rgb;  
+                vec3 texColorG = texture2D(
+                    textureG,
+                    vec2(
+                        mod(1.*vUv.x+uTime*5.,1.),
+                        mod(2.*vUv.y+uTime*5.,1.)
+                        
+                    )
+                ).rgb;  
+                vec3 texColorB = texture2D(
+                    textureB,
+                    vec2(
+                        mod(1.*vUv.x,1.),
+                        mod(2.5*vUv.y+uTime*2.5,1.)
+                        
+                    )
+                ).rgb;  
+                gl_FragColor = vec4(texColorB.b)*((vec4(texColorR.r)+vec4(texColorG.g))/2.);
+                
+
+                if( gl_FragColor.b >= 0.1 ){
+                    gl_FragColor = vec4(mix(vec3(0.020, 0.180, 1.920),vec3(0.284, 0.922, 0.980),gl_FragColor.b),gl_FragColor.b);
+                }else{
+                    gl_FragColor = vec4(0.);
+                }
+                gl_FragColor *= vec4(sin(vUv.y) - 0.1);
+                gl_FragColor *= vec4(smoothstep(0.3,0.628,vUv.y));
+                if(abs(vUv.x)>0.9 || abs(vUv.x)<0.1)
+                    gl_FragColor.a=0.;
+                
+                gl_FragColor.a*=3.;
+                gl_FragColor.a*=opacity;
+                //gl_FragColor.a*=(1.-vUv.y)*5.;
+                //gl_FragColor = vec4(vec3(texColor), texColor.b);
+                //gl_FragColor.a*=(vUv.x)*5.;
+                //gl_FragColor = vec4(vUv, 1.0, 1.0);
+            ${THREE.ShaderChunk.logdepthbuf_fragment}
+            }
+        `;
+        material.side = THREE.DoubleSide;
+        material.transparent = true;
+        material.depthWrite = false;
+        material.blending = THREE.AdditiveBlending;
       
-      });
+    
+        let plane=new THREE.Mesh(planeGeometry,material);
+        //app.add(plane);
+        plane.position.y=1;
+        plane.frustumCulled = false;
+        let temp=[];
+        let temp2=[];
+        let sonicBoomInApp=false;
+        useFrame(({timestamp}) => {
+        
+            if(narutoRunTime>=10){
+                if(!sonicBoomInApp){
+                    //console.log('add-planeTrail1');
+                    app.add(plane);
+                    sonicBoomInApp=true;
+                }
+                material.uniforms.opacity.value = 1;
+            }
+            else{
+                if(material.uniforms.opacity.value>0)
+                    material.uniforms.opacity.value -= 0.02;
+            }
+            if(narutoRunTime>0 && narutoRunTime<10){
+                material.uniforms.opacity.value = 0;
+            }
+            if(material.uniforms.opacity.value>0){
+                //console.log('sonic-boom-verticalPlane');
+                for(let i=0;i<18;i++){
+                    temp[i]=position[i];
+                }
+                for (let i = 0; i < planeNumber; i++){
+                    if(i===0){
+                        position[0] = localPlayer.position.x;
+                        position[1] = localPlayer.position.y-1.;
+                        position[2] = localPlayer.position.z;
+                        if (localPlayer.avatar) {
+                            position[1] -= localPlayer.avatar.height;
+                            position[1] += 1.18;
+                        }
+                        position[3] = localPlayer.position.x;
+                        position[4] = localPlayer.position.y-2.;
+                        position[5] = localPlayer.position.z;
+                        if (localPlayer.avatar) {
+                            position[4] -= localPlayer.avatar.height;
+                            position[4] += 1.18;
+                        }
+                    
+                        position[6] = temp[0];
+                        position[7] = temp[1];
+                        position[8] = temp[2];
+                    
+                        position[9] = temp[3];
+                        position[10] = temp[4];
+                        position[11] = temp[5];
+                    
+                        position[12] = temp[0];
+                        position[13] = temp[1];
+                        position[14] = temp[2];
+                    
+                        position[15] = localPlayer.position.x;
+                        position[16] = localPlayer.position.y-2.;
+                        position[17] = localPlayer.position.z;
+                        if (localPlayer.avatar) {
+                            position[16] -= localPlayer.avatar.height;
+                            position[16] += 1.18;
+                        }
+                    }
+                    else{
+                        
+                        for(let j=0;j<18;j++){
+                            temp2[j]=position[i*18+j];
+                            position[i*18+j]=temp[j];
+                            temp[j]=temp2[j];
+                        }
+                        
+        
+                    }
+                }
+                
+                plane.geometry.verticesNeedUpdate = true;
+                plane.geometry.dynamic = true;
+                plane.geometry.attributes.position.needsUpdate = true;
+                
+                material.uniforms.uTime.value = timestamp/1000;
+            }
+            else{
+                if(sonicBoomInApp){
+                    //console.log('remove-planeTrail1');
+                    app.remove(plane);
+                    sonicBoomInApp=false;
+                }
+            }
+        
+            
+            //app.updateMatrixWorld();
+            
+        
+        });
     }
     //########################################## horizontal trail ######################################
     {
@@ -1053,104 +1048,104 @@ export default () => {
         planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
        
         
+        const material = shaderMaterial.clone();
         
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: {
-                    value: 0,
-                },
-                opacity: {
-                    value: 0,
-                },
-                textureR: { type: 't', value: textureR },
-                textureG: { type: 't', value: textureG },
-                textureB: { type: 't', value: textureB },
-                t: { value: 0.9 }
+        material.uniforms = {
+            uTime: {
+                value: 0,
             },
-            vertexShader: `\
+            opacity: {
+                value: 0,
+            },
+            textureR: { type: 't', value: textureR },
+            textureG: { type: 't', value: textureG },
+            textureB: { type: 't', value: textureB },
+            t: { value: 0.9 }
+        };
+        material.vertexShader =`\
                  
-                ${THREE.ShaderChunk.common}
-                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-               
-             
-                uniform float uTime;
-        
-                varying vec2 vUv;
-               
-                void main() {
-                  vUv=uv;
-                  vUv.y*=1.0;
-                  //vUv.x=1.-vUv.x;
-                  vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-                  vec4 viewPosition = viewMatrix * modelPosition;
-                  vec4 projectionPosition = projectionMatrix * viewPosition;
-        
-                  gl_Position = projectionPosition;
-                  ${THREE.ShaderChunk.logdepthbuf_vertex}
-                }
-              `,
-              fragmentShader: `\
-              ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-              uniform sampler2D textureR;
-              uniform sampler2D textureG;
-              uniform sampler2D textureB;
-              uniform float uTime;
-              uniform float opacity;
-              varying vec2 vUv;
-              void main() {
-                  
-      
-                  vec3 texColorR = texture2D(
-                      textureR,
-                      vec2(
-                          mod(1.*vUv.x+uTime*5.,1.),
-                          mod(2.*vUv.y+uTime*5.,1.)
-                          
-                      )
-                  ).rgb;  
-                  vec3 texColorG = texture2D(
-                      textureG,
-                      vec2(
-                          mod(1.*vUv.x+uTime*5.,1.),
-                          mod(2.*vUv.y+uTime*5.,1.)
-                          
-                      )
-                  ).rgb;  
-                  vec3 texColorB = texture2D(
-                      textureB,
-                      vec2(
-                          mod(1.*vUv.x,1.),
-                          mod(2.5*vUv.y+uTime*2.5,1.)
-                          
-                      )
-                  ).rgb;  
-                  gl_FragColor = vec4(texColorB.b)*((vec4(texColorR.r)+vec4(texColorG.g))/2.);
-                  
+            ${THREE.ShaderChunk.common}
+            ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+            
+            
+            uniform float uTime;
     
-                  if( gl_FragColor.b >= 0.1 ){
-                      gl_FragColor = vec4(mix(vec3(0.020, 0.180, 1.920),vec3(0.284, 0.922, 0.980),gl_FragColor.b),gl_FragColor.b);
-                  }else{
-                      gl_FragColor = vec4(0.);
-                  }
-                   gl_FragColor *= vec4(sin(vUv.y) - 0.1);
-                   gl_FragColor *= vec4(smoothstep(0.3,0.628,vUv.y));
-                   if(abs(vUv.x)>0.9 || abs(vUv.x)<0.1)
-                        gl_FragColor.a=0.;
-                    
-                    gl_FragColor.a*=3.;
-                    gl_FragColor.a*=opacity;
-                    
-                  //gl_FragColor = vec4(vec3(texColor), texColor.b);
-                  //gl_FragColor.a*=(vUv.x)*5.;
-                  //gl_FragColor = vec4(vUv, 1.0, 1.0);
-                ${THREE.ShaderChunk.logdepthbuf_fragment}
-              }
-            `,
-          side: THREE.DoubleSide,
-          transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-      });
+            varying vec2 vUv;
+            
+            void main() {
+                vUv=uv;
+                vUv.y*=1.0;
+                //vUv.x=1.-vUv.x;
+                vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                vec4 viewPosition = viewMatrix * modelPosition;
+                vec4 projectionPosition = projectionMatrix * viewPosition;
+    
+                gl_Position = projectionPosition;
+                ${THREE.ShaderChunk.logdepthbuf_vertex}
+            }
+        `;
+        material.fragmentShader = `\
+            ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+            uniform sampler2D textureR;
+            uniform sampler2D textureG;
+            uniform sampler2D textureB;
+            uniform float uTime;
+            uniform float opacity;
+            varying vec2 vUv;
+            void main() {
+                
+    
+                vec3 texColorR = texture2D(
+                    textureR,
+                    vec2(
+                        mod(1.*vUv.x+uTime*5.,1.),
+                        mod(2.*vUv.y+uTime*5.,1.)
+                        
+                    )
+                ).rgb;  
+                vec3 texColorG = texture2D(
+                    textureG,
+                    vec2(
+                        mod(1.*vUv.x+uTime*5.,1.),
+                        mod(2.*vUv.y+uTime*5.,1.)
+                        
+                    )
+                ).rgb;  
+                vec3 texColorB = texture2D(
+                    textureB,
+                    vec2(
+                        mod(1.*vUv.x,1.),
+                        mod(2.5*vUv.y+uTime*2.5,1.)
+                        
+                    )
+                ).rgb;  
+                gl_FragColor = vec4(texColorB.b)*((vec4(texColorR.r)+vec4(texColorG.g))/2.);
+                
+
+                if( gl_FragColor.b >= 0.1 ){
+                    gl_FragColor = vec4(mix(vec3(0.020, 0.180, 1.920),vec3(0.284, 0.922, 0.980),gl_FragColor.b),gl_FragColor.b);
+                }else{
+                    gl_FragColor = vec4(0.);
+                }
+                gl_FragColor *= vec4(sin(vUv.y) - 0.1);
+                gl_FragColor *= vec4(smoothstep(0.3,0.628,vUv.y));
+                if(abs(vUv.x)>0.9 || abs(vUv.x)<0.1)
+                    gl_FragColor.a=0.;
+                
+                gl_FragColor.a*=3.;
+                gl_FragColor.a*=opacity;
+                
+                //gl_FragColor = vec4(vec3(texColor), texColor.b);
+                //gl_FragColor.a*=(vUv.x)*5.;
+                //gl_FragColor = vec4(vUv, 1.0, 1.0);
+            ${THREE.ShaderChunk.logdepthbuf_fragment}
+            }
+        `;
+        material.side = THREE.DoubleSide;
+        material.transparent = true;
+        material.depthWrite = false;
+        material.blending = THREE.AdditiveBlending;
+      
     
       let plane=new THREE.Mesh(planeGeometry,material);
       //app.add(plane);
@@ -1290,84 +1285,84 @@ export default () => {
 
         }
         particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-
-        const particlesMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                opacity: {
-                    value: 1,
-                },
-                uPixelRatio: { 
-                    value: Math.min(window.devicePixelRatio, 2) 
-                },
-                uSize: { 
-                    value: 1 
-                },
-                uAvatarPos:{
-                    value: new THREE.Vector3(0,0,0)
-                },
-                uCameraFov:{
-                    value: 1
-                }
-
+        const particlesMaterial = shaderMaterial.clone();
+        
+        particlesMaterial.uniforms = {
+            opacity: {
+                value: 1,
             },
-            vertexShader: `\
-                
-                ${THREE.ShaderChunk.common}
-                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-                
-                uniform float uPixelRatio;
-                uniform float uSize;
-                uniform float uCameraFov;
-                
-                varying vec2 vUv;
-                varying vec3 vPos;
-                
-                void main() { 
-                gl_PointSize = (1000.)*uSize;
-                gl_PointSize *= (uCameraFov);
-                vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-                vPos=modelPosition.xyz;
-                vec4 viewPosition = viewMatrix * modelPosition;
-                vec4 projectionPosition = projectionMatrix * viewPosition;
-                gl_Position = projectionPosition;
+            uPixelRatio: { 
+                value: Math.min(window.devicePixelRatio, 2) 
+            },
+            uSize: { 
+                value: 1 
+            },
+            uAvatarPos:{
+                value: new THREE.Vector3(0,0,0)
+            },
+            uCameraFov:{
+                value: 1
+            }
 
-                vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-                bool isPerspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 );
-                    if ( isPerspective ) gl_PointSize *= (1.0 / - viewPosition.z);
+        };
+        particlesMaterial.vertexShader = `\
+                
+            ${THREE.ShaderChunk.common}
+            ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+            
+            uniform float uPixelRatio;
+            uniform float uSize;
+            uniform float uCameraFov;
+            
+            varying vec2 vUv;
+            varying vec3 vPos;
+            
+            void main() { 
+            gl_PointSize = (1000.)*uSize;
+            gl_PointSize *= (uCameraFov);
+            vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+            vPos=modelPosition.xyz;
+            vec4 viewPosition = viewMatrix * modelPosition;
+            vec4 projectionPosition = projectionMatrix * viewPosition;
+            gl_Position = projectionPosition;
 
-                ${THREE.ShaderChunk.logdepthbuf_vertex}
-                }
-            `,
-            fragmentShader: `\
+            vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+            bool isPerspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 );
+                if ( isPerspective ) gl_PointSize *= (1.0 / - viewPosition.z);
+
+            ${THREE.ShaderChunk.logdepthbuf_vertex}
+            }
+        `;
+        particlesMaterial.fragmentShader = `\
                 
                 
-                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-                
-                varying vec3 vPos;
-                uniform vec3 uAvatarPos;
-                uniform float opacity;
-                
-                void main() {
-                
-                    float distanceToCenter = distance(gl_PointCoord, vec2(0.5));
-                    float light = 0.05 / distanceToCenter - 0.1;
-                    if(opacity<=0.)
-                        gl_FragColor = vec4(0.3984,0.4921,0.765625, light);
-                    else
-                        gl_FragColor = vec4(0.3984,0.3921,0.465625, light);
-                    if(opacity<=0.)
-                        gl_FragColor.a*=1.-(distance(uAvatarPos,vPos)+.5);
-                    gl_FragColor.a-=opacity*0.5*distanceToCenter;
-                    gl_FragColor.xyz-=opacity*.8;
-                
-                    ${THREE.ShaderChunk.logdepthbuf_fragment}
-                }
-            `,
-            side: THREE.DoubleSide,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
-        });
+            ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+            
+            varying vec3 vPos;
+            uniform vec3 uAvatarPos;
+            uniform float opacity;
+            
+            void main() {
+            
+                float distanceToCenter = distance(gl_PointCoord, vec2(0.5));
+                float light = 0.05 / distanceToCenter - 0.1;
+                if(opacity<=0.)
+                    gl_FragColor = vec4(0.3984,0.4921,0.765625, light);
+                else
+                    gl_FragColor = vec4(0.3984,0.3921,0.465625, light);
+                if(opacity<=0.)
+                    gl_FragColor.a*=1.-(distance(uAvatarPos,vPos)+.5);
+                gl_FragColor.a-=opacity*0.5*distanceToCenter;
+                gl_FragColor.xyz-=opacity*.8;
+            
+                ${THREE.ShaderChunk.logdepthbuf_fragment}
+            }
+        `;
+        particlesMaterial.side = THREE.DoubleSide;
+        particlesMaterial.transparent = true;
+        particlesMaterial.depthWrite = false;
+        particlesMaterial.blending = THREE.AdditiveBlending;
+        
         
 
         const mainBall = new THREE.Points(particlesGeometry, particlesMaterial);
@@ -1456,103 +1451,103 @@ export default () => {
         instGeom.setAttribute("instAngle", new THREE.InstancedBufferAttribute(new Float32Array(instAngle), 3));
         instGeom.instanceCount = num;
 
-        const textureLoader = new THREE.TextureLoader()
-        const texture = textureLoader.load(`${baseUrl}/textures/texture8.png`)
-        const electricityMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                sphereNum: { value: num },
-                uTime: { value: 0 },
-                opacity: { value: 0 },
-                size: { value: 0 },
-                random: { value: 0 },
-                glowIndex: { value: 0 },
-                uTexture: {
-                    type: "t",
-                    value: texture
-                },
-
+        const texture = textureLoader.load(`${baseUrl}/textures/texture8.png`);
+        const electricityMaterial = shaderMaterial.clone();
+        
+        electricityMaterial.uniforms = {
+            sphereNum: { value: num },
+            uTime: { value: 0 },
+            opacity: { value: 0 },
+            size: { value: 0 },
+            random: { value: 0 },
+            glowIndex: { value: 0 },
+            uTexture: {
+                type: "t",
+                value: texture
             },
-            vertexShader: `
-                ${THREE.ShaderChunk.common}
-                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-                uniform float uTime;
-                uniform float sphereNum;
-                uniform float size;
 
-                attribute vec3 instPos;
-                attribute vec3 instAngle;
-                attribute float instId;
+        };
+        electricityMaterial.vertexShader = `
+            ${THREE.ShaderChunk.common}
+            ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+            uniform float uTime;
+            uniform float sphereNum;
+            uniform float size;
+
+            attribute vec3 instPos;
+            attribute vec3 instAngle;
+            attribute float instId;
+        
+            varying vec2 vUv;
+            varying float vId;
             
-                varying vec2 vUv;
-                varying float vId;
-                
-                
-                void main() {
-                    mat3 rotX =
-                            mat3(1.0, 0.0, 0.0, 0.0, cos(instAngle.x), sin(instAngle.x), 0.0, -sin(instAngle.x), cos(instAngle.x));
-                    mat3 rotY =
-                            mat3(cos(instAngle.y), 0.0, -sin(instAngle.y), 0.0, 1.0, 0.0, sin(instAngle.y), 0.0, cos(instAngle.y));
-                    mat3 rotZ =
-                            mat3(
-                                cos(instAngle.z), sin(instAngle.z), 0.0,
-                                -sin(instAngle.z), cos(instAngle.z), 0.0, 
-                                0.0, 0.0 , 1.0
-                            );
-                        
-                    vUv=uv;
-                    vId=instId;
-                    vec3 pos = vec3(position);
-                    pos += instPos;
-                    pos*=rotX;
-                    pos*=rotY;
-                    pos*=rotZ;
-                    pos*=0.8*cos(uTime*100.);
-                    pos*=size;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos,1.0);
-                    ${THREE.ShaderChunk.logdepthbuf_vertex}
-                }
-            `,
-            fragmentShader: `
-                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-                uniform float uTime;
-                uniform float random;
-                uniform float sphereNum;
-                uniform float glowIndex;
-                uniform float opacity;
-
-                uniform sampler2D uTexture;
-                
-                varying vec2 vUv;
-                varying float vId;
-                
-                void main() {
-                    vec4 tex = texture2D(uTexture,vUv).rgba;   
-                    if( tex.a < 0.01  )
-                    {
-                        discard;    
-                    } 
-                           
-                    gl_FragColor=vec4(1.0,1.0,1.,tex.a);
-                    gl_FragColor.a/=2.;
-                    if(vId>=glowIndex-0.01 && vId<=glowIndex+0.09)
-                        gl_FragColor.a*=1.;
-                    else
-                        gl_FragColor.a*=0.;
-                    gl_FragColor.r=abs(sin(uTime));
-                    gl_FragColor.g=abs(sin(uTime));
-                    gl_FragColor.b=abs(cos(uTime));
-                    if(glowIndex>sphereNum/2.)
-                        gl_FragColor.a*=5.;
-                    gl_FragColor.a*=opacity;
-                    ${THREE.ShaderChunk.logdepthbuf_fragment}
+            
+            void main() {
+                mat3 rotX =
+                        mat3(1.0, 0.0, 0.0, 0.0, cos(instAngle.x), sin(instAngle.x), 0.0, -sin(instAngle.x), cos(instAngle.x));
+                mat3 rotY =
+                        mat3(cos(instAngle.y), 0.0, -sin(instAngle.y), 0.0, 1.0, 0.0, sin(instAngle.y), 0.0, cos(instAngle.y));
+                mat3 rotZ =
+                        mat3(
+                            cos(instAngle.z), sin(instAngle.z), 0.0,
+                            -sin(instAngle.z), cos(instAngle.z), 0.0, 
+                            0.0, 0.0 , 1.0
+                        );
                     
-                }
-            `,
-            side: THREE.DoubleSide,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
-        });
+                vUv=uv;
+                vId=instId;
+                vec3 pos = vec3(position);
+                pos += instPos;
+                pos*=rotX;
+                pos*=rotY;
+                pos*=rotZ;
+                pos*=0.8*cos(uTime*100.);
+                pos*=size;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos,1.0);
+                ${THREE.ShaderChunk.logdepthbuf_vertex}
+            }
+        `;
+        electricityMaterial.fragmentShader = `
+            ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+            uniform float uTime;
+            uniform float random;
+            uniform float sphereNum;
+            uniform float glowIndex;
+            uniform float opacity;
+
+            uniform sampler2D uTexture;
+            
+            varying vec2 vUv;
+            varying float vId;
+            
+            void main() {
+                vec4 tex = texture2D(uTexture,vUv).rgba;   
+                if( tex.a < 0.01  )
+                {
+                    discard;    
+                } 
+                        
+                gl_FragColor=vec4(1.0,1.0,1.,tex.a);
+                gl_FragColor.a/=2.;
+                if(vId>=glowIndex-0.01 && vId<=glowIndex+0.09)
+                    gl_FragColor.a*=1.;
+                else
+                    gl_FragColor.a*=0.;
+                gl_FragColor.r=abs(sin(uTime));
+                gl_FragColor.g=abs(sin(uTime));
+                gl_FragColor.b=abs(cos(uTime));
+                if(glowIndex>sphereNum/2.)
+                    gl_FragColor.a*=5.;
+                gl_FragColor.a*=opacity;
+                ${THREE.ShaderChunk.logdepthbuf_fragment}
+                
+            }
+        `;
+        electricityMaterial.side = THREE.DoubleSide;
+        electricityMaterial.transparent = true;
+        electricityMaterial.depthWrite = false;
+        electricityMaterial.blending = THREE.AdditiveBlending;
+        
         const electricity = new THREE.Mesh(instGeom, electricityMaterial);
         const group = new THREE.Group();
         group.add(electricity)
@@ -1616,8 +1611,6 @@ export default () => {
                 }
             }
             
-            
-            
             //app.updateMatrixWorld();
         
         });
@@ -1641,103 +1634,103 @@ export default () => {
         instGeom.setAttribute("instAngle", new THREE.InstancedBufferAttribute(new Float32Array(instAngle), 3));
         instGeom.instanceCount = num;
 
-        const textureLoader = new THREE.TextureLoader()
-        const texture = textureLoader.load(`${baseUrl}/textures/texture11.png`)
-        const electricityMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                sphereNum: { value: num },
-                uTime: { value: 0 },
-                opacity: { value: 0 },
-                size: { value: 0 },
-                random: { value: 0 },
-                glowIndex: { value: 0 },
-                uTexture: {
-                    type: "t",
-                    value: texture
-                },
-
+        const texture = textureLoader.load(`${baseUrl}/textures/texture11.png`);
+        const electricityMaterial = shaderMaterial.clone();
+        
+        electricityMaterial.uniforms = {
+            sphereNum: { value: num },
+            uTime: { value: 0 },
+            opacity: { value: 0 },
+            size: { value: 0 },
+            random: { value: 0 },
+            glowIndex: { value: 0 },
+            uTexture: {
+                type: "t",
+                value: texture
             },
-            vertexShader: `
-                ${THREE.ShaderChunk.common}
-                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-                uniform float uTime;
-                uniform float sphereNum;
-                uniform float size;
 
-                attribute vec3 instPos;
-                attribute vec3 instAngle;
-                attribute float instId;
+        };
+        electricityMaterial.vertexShader = `
+            ${THREE.ShaderChunk.common}
+            ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+            uniform float uTime;
+            uniform float sphereNum;
+            uniform float size;
+
+            attribute vec3 instPos;
+            attribute vec3 instAngle;
+            attribute float instId;
+        
+            varying vec2 vUv;
+            varying float vId;
             
-                varying vec2 vUv;
-                varying float vId;
-                
-                
-                void main() {
-                    mat3 rotX =
-                            mat3(1.0, 0.0, 0.0, 0.0, cos(instAngle.x), sin(instAngle.x), 0.0, -sin(instAngle.x), cos(instAngle.x));
-                    mat3 rotY =
-                            mat3(cos(instAngle.y), 0.0, -sin(instAngle.y), 0.0, 1.0, 0.0, sin(instAngle.y), 0.0, cos(instAngle.y));
-                    mat3 rotZ =
-                            mat3(
-                                cos(instAngle.z), sin(instAngle.z), 0.0,
-                                -sin(instAngle.z), cos(instAngle.z), 0.0, 
-                                0.0, 0.0 , 1.0
-                            );
-                        
-                    vUv=uv;
-                    vId=instId;
-                    vec3 pos = vec3(position);
-                    pos += instPos;
-                    pos*=rotX;
-                    pos*=rotY;
-                    pos*=rotZ;
-                    //pos*=0.8*cos(uTime*100.);
-                    pos*=size;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos,1.0);
-                    ${THREE.ShaderChunk.logdepthbuf_vertex}
-                }
-            `,
-            fragmentShader: `
-                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-                uniform float uTime;
-                uniform float opacity;
-                uniform float random;
-                uniform float sphereNum;
-                uniform float glowIndex;
-
-                uniform sampler2D uTexture;
-                
-                varying vec2 vUv;
-                varying float vId;
-                
-                void main() {
-                    vec4 tex = texture2D(uTexture,vUv).rgba;   
-                    if( tex.a < 0.01  )
-                    {
-                        discard;    
-                    } 
-                           
-                    gl_FragColor=vec4(1.0,1.0,1.,tex.a);
-                    gl_FragColor.a/=2.;
-                    if(vId>=glowIndex-0.01 && vId<=glowIndex+0.09)
-                        gl_FragColor.a*=1.;
-                    else
-                        gl_FragColor.a*=0.;
-                    gl_FragColor.r=abs(sin(uTime));
-                    gl_FragColor.g=abs(sin(uTime));
-                    gl_FragColor.b=abs(cos(uTime));
-                    if(glowIndex>sphereNum/2.)
-                        gl_FragColor.a*=5.;
-                    gl_FragColor.a*=opacity;
-                    ${THREE.ShaderChunk.logdepthbuf_fragment}
+            
+            void main() {
+                mat3 rotX =
+                        mat3(1.0, 0.0, 0.0, 0.0, cos(instAngle.x), sin(instAngle.x), 0.0, -sin(instAngle.x), cos(instAngle.x));
+                mat3 rotY =
+                        mat3(cos(instAngle.y), 0.0, -sin(instAngle.y), 0.0, 1.0, 0.0, sin(instAngle.y), 0.0, cos(instAngle.y));
+                mat3 rotZ =
+                        mat3(
+                            cos(instAngle.z), sin(instAngle.z), 0.0,
+                            -sin(instAngle.z), cos(instAngle.z), 0.0, 
+                            0.0, 0.0 , 1.0
+                        );
                     
-                }
-            `,
-            side: THREE.DoubleSide,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
-        });
+                vUv=uv;
+                vId=instId;
+                vec3 pos = vec3(position);
+                pos += instPos;
+                pos*=rotX;
+                pos*=rotY;
+                pos*=rotZ;
+                //pos*=0.8*cos(uTime*100.);
+                pos*=size;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos,1.0);
+                ${THREE.ShaderChunk.logdepthbuf_vertex}
+            }
+        `;
+        electricityMaterial.fragmentShader = `
+            ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+            uniform float uTime;
+            uniform float opacity;
+            uniform float random;
+            uniform float sphereNum;
+            uniform float glowIndex;
+
+            uniform sampler2D uTexture;
+            
+            varying vec2 vUv;
+            varying float vId;
+            
+            void main() {
+                vec4 tex = texture2D(uTexture,vUv).rgba;   
+                if( tex.a < 0.01  )
+                {
+                    discard;    
+                } 
+                        
+                gl_FragColor=vec4(1.0,1.0,1.,tex.a);
+                gl_FragColor.a/=2.;
+                if(vId>=glowIndex-0.01 && vId<=glowIndex+0.09)
+                    gl_FragColor.a*=1.;
+                else
+                    gl_FragColor.a*=0.;
+                gl_FragColor.r=abs(sin(uTime));
+                gl_FragColor.g=abs(sin(uTime));
+                gl_FragColor.b=abs(cos(uTime));
+                if(glowIndex>sphereNum/2.)
+                    gl_FragColor.a*=5.;
+                gl_FragColor.a*=opacity;
+                ${THREE.ShaderChunk.logdepthbuf_fragment}
+                
+            }
+        `;
+        electricityMaterial.side = THREE.DoubleSide;
+        electricityMaterial.transparent = true;
+        electricityMaterial.depthWrite = false;
+        electricityMaterial.blending = THREE.AdditiveBlending;
+        
 
         const electricity = new THREE.Mesh(instGeom, electricityMaterial);
         const group = new THREE.Group();
@@ -1811,18 +1804,25 @@ export default () => {
         const group=new THREE.Group();
         const particleCount = 2;
         let info = {
-            velocity: [particleCount],
-            rotate: [particleCount]
+            velocity: [particleCount]
         }
-        const acc = new THREE.Vector3(0, -0, 0);
     
         //######## object #########
         let mesh = null;
         let dummy = new THREE.Object3D();
-    
+
+        let material = basicMaterial.clone();
+        material.color=new THREE.Color( 0x2167F2 );
+        material.map=electronicballTexture; 
+        material.transparent=true; 
+        material.depthWrite=false; 
+        material.opacity=0.5; 
+        material.blending=THREE.AdditiveBlending; 
+        material.side=THREE.DoubleSide;
+        
     
         function addInstancedMesh() {
-            mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), new THREE.MeshBasicMaterial({color:0x2167F2,map:electronicballTexture, transparent:true, depthWrite:false, opacity:0.5, blending:THREE.AdditiveBlending, side:THREE.DoubleSide}), particleCount);
+            mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), material, particleCount);
             group.add(mesh);
             //app.add(group);
             setInstancedMeshPositions(mesh);
@@ -1845,10 +1845,6 @@ export default () => {
                     0,
                     1));
                 info.velocity[i].divideScalar(20);
-                info.rotate[i] = new THREE.Vector3(
-                    Math.random() - 0.5,
-                    Math.random() - 0.5,
-                    Math.random() - 0.5);
                 dummy.updateMatrix();
                 mesh1.setMatrixAt(i, dummy.matrix);
             }
@@ -1860,9 +1856,6 @@ export default () => {
         let sonicBoomInApp=false;
         let originPoint = new THREE.Vector3(0,0,0);
         useFrame(({timestamp}) => {
-            
-            
-        
             if (mesh) {
                 if(narutoRunTime>0){
                     //console.log('sonic-boom-behind-particle')
@@ -1905,29 +1898,27 @@ export default () => {
                             info.velocity[i].divideScalar(20);
                         }
                         
-                            dummy.scale.x/=1.04;
-                            dummy.scale.y/=1.04;
-                            dummy.scale.z/=1.04;
-                            
-                            if(narutoRunTime==0){
-                                dummy.scale.x /= 1.1;
-                                dummy.scale.y /= 1.1;
-                                dummy.scale.z /= 1.1;
-                            }
-                            dummy.rotation.copy(camera.rotation);
-                            if(localPlayer.rotation.x==0){
-                                dummy.rotation.y-=localPlayer.rotation.y;
-                            }
-                            else{
-                                dummy.rotation.y+=localPlayer.rotation.y;
-                            }
-                            
-                            info.velocity[i].add(acc);
-                            dummy.position.add(info.velocity[i]);
-                            dummy.updateMatrix();
-                            
-                            mesh.setMatrixAt(i, dummy.matrix);
-                            mesh.instanceMatrix.needsUpdate = true;
+                        dummy.scale.x/=1.04;
+                        dummy.scale.y/=1.04;
+                        dummy.scale.z/=1.04;
+                        
+                        if(narutoRunTime==0){
+                            dummy.scale.x /= 1.1;
+                            dummy.scale.y /= 1.1;
+                            dummy.scale.z /= 1.1;
+                        }
+                        dummy.rotation.copy(camera.rotation);
+                        if(localPlayer.rotation.x==0){
+                            dummy.rotation.y-=localPlayer.rotation.y;
+                        }
+                        else{
+                            dummy.rotation.y+=localPlayer.rotation.y;
+                        }
+                        dummy.position.add(info.velocity[i]);
+                        dummy.updateMatrix();
+                        
+                        mesh.setMatrixAt(i, dummy.matrix);
+                        mesh.instanceMatrix.needsUpdate = true;
             
                     }
                 }
@@ -1951,18 +1942,25 @@ export default () => {
         const group=new THREE.Group();
         const particleCount = 2;
         let info = {
-            velocity: [particleCount],
-            rotate: [particleCount]
+            velocity: [particleCount]
         }
         const acc = new THREE.Vector3(0, -0, 0);
     
         //######## object #########
         let mesh = null;
         let dummy = new THREE.Object3D();
-    
+
+        let material = basicMaterial.clone();
+        material.color=new THREE.Color( 0xffffff );
+        material.map=electronicballTexture; 
+        material.transparent=true; 
+        material.depthWrite=false; 
+        material.opacity=0.5; 
+        material.blending=THREE.AdditiveBlending; 
+        material.side=THREE.DoubleSide;
     
         function addInstancedMesh() {
-            mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), new THREE.MeshBasicMaterial({map:electronicballTexture, transparent:true, depthWrite:false, opacity:0.5, blending:THREE.AdditiveBlending, side:THREE.DoubleSide}), particleCount);
+            mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), material, particleCount);
             group.add(mesh);
             //app.add(group);
             setInstancedMeshPositions(mesh);
@@ -1986,25 +1984,17 @@ export default () => {
                     0,
                     1));
                 info.velocity[i].divideScalar(20);
-                info.rotate[i] = new THREE.Vector3(
-                    Math.random() - 0.5,
-                    Math.random() - 0.5,
-                    Math.random() - 0.5);
                 dummy.updateMatrix();
                 mesh1.setMatrixAt(i, dummy.matrix);
             }
             mesh1.instanceMatrix.needsUpdate = true;
         }
         addInstancedMesh();
-    
-        
         
         let originPoint = new THREE.Vector3(0,0,0);
         let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
            
-            
-        
             if (mesh) {
                 if(narutoRunTime>0){
                     //console.log('sonic-boom-behind-particle2')
@@ -2047,27 +2037,27 @@ export default () => {
                             info.velocity[i].divideScalar(20);
                         }
                         
-                            dummy.scale.x/=1.04;
-                            dummy.scale.y/=1.04;
-                            dummy.scale.z/=1.04;
-                            if(narutoRunTime==0){
-                                dummy.scale.x /= 1.1;
-                                dummy.scale.y /= 1.1;
-                                dummy.scale.z /= 1.1;
-                            }
-                            dummy.rotation.copy(camera.rotation);
-                            if(localPlayer.rotation.x==0){
-                                dummy.rotation.y-=localPlayer.rotation.y;
-                            }
-                            else{
-                                dummy.rotation.y+=localPlayer.rotation.y;
-                            }
-                            info.velocity[i].add(acc);
-                            dummy.position.add(info.velocity[i]);
-                            dummy.updateMatrix();
-                            
-                            mesh.setMatrixAt(i, dummy.matrix);
-                            mesh.instanceMatrix.needsUpdate = true;
+                        dummy.scale.x/=1.04;
+                        dummy.scale.y/=1.04;
+                        dummy.scale.z/=1.04;
+                        if(narutoRunTime==0){
+                            dummy.scale.x /= 1.1;
+                            dummy.scale.y /= 1.1;
+                            dummy.scale.z /= 1.1;
+                        }
+                        dummy.rotation.copy(camera.rotation);
+                        if(localPlayer.rotation.x==0){
+                            dummy.rotation.y-=localPlayer.rotation.y;
+                        }
+                        else{
+                            dummy.rotation.y+=localPlayer.rotation.y;
+                        }
+                        info.velocity[i].add(acc);
+                        dummy.position.add(info.velocity[i]);
+                        dummy.updateMatrix();
+                        
+                        mesh.setMatrixAt(i, dummy.matrix);
+                        mesh.instanceMatrix.needsUpdate = true;
             
                     }
                 }
@@ -2108,100 +2098,99 @@ export default () => {
             wave.scene.rotation.x=Math.PI/2;
             group.add(wave.scene);
             //app.add(group);
+            wave.scene.children[0].material = shaderMaterial.clone();
             
-            wave.scene.children[0].material= new THREE.ShaderMaterial({
-                uniforms: {
-                    uTime: {
-                        value: 0,
-                    },
-                    opacity: {
-                        value: 0,
-                    },
-                    avatarPos:{
-                        value: new THREE.Vector3(0,0,0)
-                    },
-                    iResolution: { value: new THREE.Vector3() },
+            wave.scene.children[0].material.uniforms = {
+                uTime: {
+                    value: 0,
                 },
-                vertexShader: `\
-                    
-                    ${THREE.ShaderChunk.common}
-                    ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+                opacity: {
+                    value: 0,
+                },
+                avatarPos:{
+                    value: new THREE.Vector3(0,0,0)
+                },
+                iResolution: { value: new THREE.Vector3() },
+            };
+            wave.scene.children[0].material.vertexShader = `\
                 
-                
-                    uniform float uTime;
+                ${THREE.ShaderChunk.common}
+                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
             
-                    varying vec2 vUv;
-                    varying vec3 vPos;
-
-                
-                    void main() {
-                    vUv=uv;
-                    vPos=position;
-                    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-                    vec4 viewPosition = viewMatrix * modelPosition;
-                    vec4 projectionPosition = projectionMatrix * viewPosition;
             
-                    gl_Position = projectionPosition;
-                    ${THREE.ShaderChunk.logdepthbuf_vertex}
-                    }
-                `,
-                fragmentShader: `\
-                    ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-                    uniform float uTime;
-                    uniform float opacity;
-                    uniform vec3 iResolution;
-                    uniform vec3 avatarPos;
-                    varying vec2 vUv;
-                    varying vec3 vPos;
-
-                    float noise(vec3 point) { 
-                        float r = 0.; 
-                        for (int i=0;i<16;i++) {
-                            vec3 D, p = point + mod(vec3(i,i/4,i/8) , vec3(4.0,2.0,2.0)) +
-                            1.7*sin(vec3(i,5*i,8*i)), C=floor(p), P=p-C-.5, A=abs(P);
-                            C += mod(C.x+C.y+C.z,2.) * step(max(A.yzx,A.zxy),A) * sign(P);
-                            D=34.*sin(987.*float(i)+876.*C+76.*C.yzx+765.*C.zxy);P=p-C-.5;
-                            r+=sin(6.3*dot(P,fract(D)-.5))*pow(max(0.,1.-2.*dot(P,P)),4.);
-                        } 
-                        return .5 * sin(r); 
-                    }
-                    
-                    void mainImage( out vec4 fragColor, in vec2 fragCoord ){
-                        
-                        fragColor = vec4(
-                            mix(vec3(0.205, 0.350, 0.930),vec3(0.205, 0.550, 0.530),vUv.x)
-                            +vec3(
-                                noise(5.6*vec3(vPos.z*sin(mod(uTime*1.,1.)/0.9),vPos.z,vPos.x*cos(mod(uTime*1.,1.)/0.9)))
-                            )
-                            , distance(avatarPos,vPos)-.95);
-                            //pow(distance(avatarPos,vPos)-.95,1.)
-
-                            // vec2 u = vPos.xz*10.;
+                uniform float uTime;
         
-                            // vec2 s = vec2(1.,1.732);
-                            // vec2 a = mod(u     ,s)*2.-s;
-                            // vec2 b = mod(u+s*.5,s)*2.-s;
-                            
-                            // fragColor = vec4(.2*min(dot(a,a),dot(b,b)));
+                varying vec2 vUv;
+                varying vec3 vPos;
 
+            
+                void main() {
+                vUv=uv;
+                vPos=position;
+                vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                vec4 viewPosition = viewMatrix * modelPosition;
+                vec4 projectionPosition = projectionMatrix * viewPosition;
+        
+                gl_Position = projectionPosition;
+                ${THREE.ShaderChunk.logdepthbuf_vertex}
+                }
+            `;
+            wave.scene.children[0].material.fragmentShader = `\
+                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+                uniform float uTime;
+                uniform float opacity;
+                uniform vec3 iResolution;
+                uniform vec3 avatarPos;
+                varying vec2 vUv;
+                varying vec3 vPos;
 
-                            
-                        
-                    }
+                float noise(vec3 point) { 
+                    float r = 0.; 
+                    for (int i=0;i<16;i++) {
+                        vec3 D, p = point + mod(vec3(i,i/4,i/8) , vec3(4.0,2.0,2.0)) +
+                        1.7*sin(vec3(i,5*i,8*i)), C=floor(p), P=p-C-.5, A=abs(P);
+                        C += mod(C.x+C.y+C.z,2.) * step(max(A.yzx,A.zxy),A) * sign(P);
+                        D=34.*sin(987.*float(i)+876.*C+76.*C.yzx+765.*C.zxy);P=p-C-.5;
+                        r+=sin(6.3*dot(P,fract(D)-.5))*pow(max(0.,1.-2.*dot(P,P)),4.);
+                    } 
+                    return .5 * sin(r); 
+                }
+                
+                void mainImage( out vec4 fragColor, in vec2 fragCoord ){
                     
-                    void main() {
-                        mainImage(gl_FragColor, vUv * iResolution.xy);
-                        gl_FragColor.a*=1.5;
-                        gl_FragColor.a-=opacity;
-                        //gl_FragColor.xyz*=10.;
-                    ${THREE.ShaderChunk.logdepthbuf_fragment}
-                    }
-                `,
-                //side: THREE.DoubleSide,
-                transparent: true,
-                depthWrite: false,
-                blending: THREE.AdditiveBlending,
-            });
+                    fragColor = vec4(
+                        mix(vec3(0.205, 0.350, 0.930),vec3(0.205, 0.550, 0.530),vUv.x)
+                        +vec3(
+                            noise(5.6*vec3(vPos.z*sin(mod(uTime*1.,1.)/0.9),vPos.z,vPos.x*cos(mod(uTime*1.,1.)/0.9)))
+                        )
+                        , distance(avatarPos,vPos)-.95);
+                        //pow(distance(avatarPos,vPos)-.95,1.)
+
+                        // vec2 u = vPos.xz*10.;
+    
+                        // vec2 s = vec2(1.,1.732);
+                        // vec2 a = mod(u     ,s)*2.-s;
+                        // vec2 b = mod(u+s*.5,s)*2.-s;
+                        
+                        // fragColor = vec4(.2*min(dot(a,a),dot(b,b)));
+
+
+                        
+                    
+                }
+                
+                void main() {
+                    mainImage(gl_FragColor, vUv * iResolution.xy);
+                    gl_FragColor.a*=1.5;
+                    gl_FragColor.a-=opacity;
+                    //gl_FragColor.xyz*=10.;
+                ${THREE.ShaderChunk.logdepthbuf_fragment}
+                }
+            `;
+            wave.scene.children[0].material.transparent = true;
+            wave.scene.children[0].material.depthWrite = false;
+            wave.scene.children[0].material.blending = THREE.AdditiveBlending;
+            
 
 
         })();
@@ -2306,7 +2295,7 @@ export default () => {
         };
     
         //##################################################### material #####################################################
-        let dustMaterial= new THREE.MeshBasicMaterial();
+        let dustMaterial = basicMaterial.clone();
         dustMaterial.transparent=true; 
         dustMaterial.depthWrite=false;
         dustMaterial.alphaMap=noiseMap;
@@ -2411,11 +2400,6 @@ export default () => {
         let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
     
-            
-            
-        
-            
-            
             if(narutoRunTime===1){
                 if(!sonicBoomInApp){
                     //console.log('add-dust');
@@ -2530,8 +2514,16 @@ export default () => {
             app.updateMatrixWorld();
             preRotate=currentRotate;
         });
-      }
-    //##################################### main ball ##################################################
+    }
+    
+  app.setComponent('renderPriority', 'low');
+  
+  return app;
+};
+
+
+
+//##################################### main ball ##################################################
     // {
         
     //     const mainBallGeometry = new THREE.SphereBufferGeometry(1.9, 32,32);
@@ -3176,13 +3168,5 @@ export default () => {
 //         app.updateMatrixWorld();
 //     });
 //   }
-
-  
-
-  
-  app.setComponent('renderPriority', 'low');
-  
-  return app;
-};
 
 
