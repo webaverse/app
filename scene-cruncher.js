@@ -6,6 +6,7 @@ import {localPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
 
 window.lol = true;
+window.backBottomLefts = [];
 window.positionOffsetsScaled = [];
 
 const localVector = new THREE.Vector3();
@@ -176,20 +177,46 @@ const depthMaterial = new THREE.ShaderMaterial({
   fragmentShader: depthFragmentShader,
 });
 
-const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, depthFloatImageData, ethers) => {
+const _snap = v => {
+  v.x = Math.round(v.x);
+  v.y = Math.round(v.y);
+  v.z = Math.round(v.z);
+  return v;
+};
+const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolution, depthFloatImageData, ethers) => {
   const worldDepthResolutionP1 = worldDepthResolution.clone().add(new THREE.Vector3(1, 1, 1));
   
   const geometries = [];
   const baseGeometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
 
+  const forwardDirection = _snap(new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion));
+  const upDirection = _snap(new THREE.Vector3(0, -1, 0).applyQuaternion(quaternion));
+  const rightDirection = _snap(new THREE.Vector3(1, 0, 0).applyQuaternion(quaternion));
+  // const backPlanePosition = new THREE.Vector3(0, 0, worldDepthResolution.x / 2).applyQuaternion(quaternion);
+  const baseWorldPosition = position.clone()
+    .add(new THREE.Vector3(-worldSize.x/2, worldSize.y/2, -worldSize.z).applyQuaternion(quaternion));
+  console.log('got position world size', {position, worldSize, baseWorldPosition});
+  /* _snap(new THREE.Vector3(
+    -worldDepthResolution.x/2,
+    -worldDepthResolution.y/2,
+    worldDepthResolution.x
+  ).add(
+    new THREE.Vector3(
+      worldDepthResolution.x/2,
+      worldDepthResolution.y/2,
+      worldDepthResolution.x/2
+    ).applyQuaternion(quaternion)
+  )); */
+  // window.backBottomLefts.push(backBottomLeft);
+
   const geometry = new THREE.PlaneBufferGeometry(worldSize.x, worldSize.z, worldDepthResolution.x, worldDepthResolution.y)
     .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(quaternion));
-  const badIndices = {};
-  for (let z = 0; z <= worldDepthResolution.y; z++) {
+  // const badIndices = {};
+  for (let y = 0; y <= worldDepthResolution.y; y++) {
     for (let x = 0; x <= worldDepthResolution.x; x++) {
-      const index = z * worldDepthResolutionP1.x + x;
+      const index = y * worldDepthResolutionP1.x + x;
       // const index2 = (worldDepthResolutionP1.y - 1 - z) * worldDepthResolutionP1.x + x;
-      let y = depthFloatImageData[index];
+      let z = depthFloatImageData[index];
       // window.depthFloatImageData = depthFloatImageData;
       // console.log('got y', y);
       // y = Math.max(y, -cameraHeight);
@@ -201,20 +228,24 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
 
       localVector.fromArray(geometry.attributes.position.array, index * 3)
         .add(position)
-        .add(localVector2.set(0, 0, y).applyQuaternion(quaternion));
+        .add(localVector2.set(0, 0, z).applyQuaternion(quaternion));
       localVector.toArray(geometry.attributes.position.array, index * 3);
 
       {
-        const localLocation = localVector;
-        /* const localLocation = localVector3.set(
-          x * worldSize.x / worldDepthResolutionP1.x,
-          y * worldSize.y / worldDepthResolutionP1.y,
-          -y
-        )
-          .applyQuaternion(quaternion); */
+        // const worldBottomLeft = position.clone()
+
+        // const z2 = Math.min(Math.max(z, 0), worldDepthResolution.x);
+        const localLocation = localVector.set(0, 0, 0)
+          .add(rightDirection.clone().multiplyScalar(x))
+          .add(upDirection.clone().multiplyScalar(y))
+          .multiplyScalar(worldSize.x/worldDepthResolution.x)
+          .add(forwardDirection.clone().multiplyScalar(-worldSize.x - z))
+          .add(baseWorldPosition);
         const g = baseGeometry.clone(); 
         g.translate(localLocation.x, localLocation.y, localLocation.z);
         geometries.push(g);
+
+        // console.log('position offset', position.toArray());
 
         const basePosition = position.clone()
           .sub(new THREE.Vector3(worldSize.x / 2, worldSize.y / 2, worldSize.z / 2));
@@ -288,7 +319,7 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
       localVector.fromArray(geofmetry.attributes.position.array, index * 3);
     }
   } */
-  for (let i = 0; i < geometry.index.array.length; i += 3) {
+  /* for (let i = 0; i < geometry.index.array.length; i += 3) {
     const ai = geometry.index.array[i];
     const bi = geometry.index.array[i + 1];
     const ci = geometry.index.array[i + 2];
@@ -299,9 +330,10 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
       geometry.index.array[i + 1] = 0;
       geometry.index.array[i + 2] = 0;
     }
-  }
+  } */
 
   const geometry2 = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  window.geometries = geometries;
   return [geometry, geometry2];
 };
 const normalMaterial = new THREE.MeshNormalMaterial();
@@ -438,6 +470,7 @@ export function snapshotMapChunk(
     ] = _makeGeometry(
       camera.position,
       camera.quaternion,
+      position,
       worldSize,
       worldDepthResolution,
       depthFloatImageData,
