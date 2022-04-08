@@ -626,6 +626,7 @@ const _get7wayBlend = (
 };
 
 const prepAngles = angle => {
+  debugger
   angles.horizontalWalkAnimationAngles = getClosest2AnimationAngles('walk', angle);
   angles.horizontalWalkAnimationAnglesMirror = _getMirrorAnimationAngles(angles.horizontalWalkAnimationAngles, 'walk');
 
@@ -963,8 +964,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             //   .premultiply(localQuaternion2.fromArray(v3).invert())
             //   .premultiply(localQuaternion2.fromArray(v2));
 
-            if (!(!isTop && moveFactors.idleWalkFactor === 1)) {
+            if (isTop) {
               dst.fromArray(v2);
+            } else {
+              dst.slerp(localQuaternion2.fromArray(v2), (1 - moveFactors.idleWalkFactor));
             }
           } else {
             const src2 = useAnimation.interpolants[k];
@@ -982,8 +985,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             //   .sub(localVector3)
             //   .add(localVector2);
 
-            if (!(!isTop && moveFactors.idleWalkFactor === 1)) {
+            if (isTop) {
               dst.copy(localVector2);
+            } else {
+              dst.lerp(localVector2, (1 - moveFactors.idleWalkFactor));
             }
           }
         }
@@ -1073,7 +1078,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
-      // debugger
+      debugger
       return spec => {
         const {
           animationTrackName: k,
