@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import {localPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
 
+window.THREE = THREE;
 window.lol = true;
 window.backBottomLefts = [];
 window.positionOffsetsScaled = [];
@@ -257,9 +258,10 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
             _isGez(p.x) && _isGez(p.y) && _isGez(p.z)
           ) {
             const index = p.x +
-              (worldDepthResolutionP1.x * p.y) +
-              (worldDepthResolutionP1.x * worldDepthResolutionP1.x * p.z);
+              (worldDepthResolutionP1.x * p.z) +
+              (worldDepthResolutionP1.x * worldDepthResolutionP1.x * p.y);
             if (index >= 0 && index < ethers.length) {
+              // console.log('got index', index, p.x, p.y, p.z);
               ethers[index] = v;
             } else {
               debugger;
@@ -268,19 +270,21 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
             debugger;
           }
         };
+        const localLocation2 = localVector2.copy(localLocation)
+          .add(forwardDirection.clone().multiplyScalar(z2));
+        const absoluteLocation = localVector3.copy(localLocation2)
+          .multiplyScalar(worldSize.x / worldDepthResolution.x)
+          .add(baseWorldPosition);
+        cubePositions.push(absoluteLocation.clone());
         for (let dz = worldDepthResolution.x; dz >= 0; dz--) {
-          // console.log('check dz', dz, z2, forwardDirection.toArray());
+          const localLocation2 = localVector2.copy(localLocation)
+            .add(forwardDirection.clone().multiplyScalar(dz));
           if (dz > z2) {
-            const localLocation2 = localVector2.copy(localLocation)
-              .add(forwardDirection.clone().multiplyScalar(dz));
-            const absoluteLocation = localVector3.copy(localLocation2)
-              .multiplyScalar(worldSize.x/worldDepthResolution.x)
-              .add(baseWorldPosition);
-            cubePositions.push(absoluteLocation.clone());
+            
             // const g = baseGeometry.clone(); 
             // g.translate(absolutelocation.x, absolutelocation.y, absolutelocation.z);
             // geometries.push(g);
-            _setEther(_snap(localLocation2), -1);
+            _setEther(_snap(localLocation2), 1);
           } else {
             break;
           }
@@ -374,11 +378,12 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
     }
   } */
 
-  const dims = worldDepthResolutionP1.toArray();
+  const dims = [worldDepthResolutionP1.x, worldDepthResolutionP1.x, worldDepthResolutionP1.x];
   const shift = [0, 0, 0];
   const scale = new THREE.Vector3().setScalar(worldSize.x / worldDepthResolution.x).toArray();
+  // const scale = [1, 1, 1];
   const mc = physicsManager.marchingCubes(dims, ethers, shift, scale)
-  console.log('got marching cubes 1', mc);
+  console.log('got marching cubes 1', mc, dims, ethers.filter(n => n === 1).length, ethers.filter(n => n !== 1).length, {dims, shift, scale, worldDepthResolutionP1});
   const {faces, positions} = mc;
   const geometry2 = new THREE.BufferGeometry();
   geometry2.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -582,7 +587,7 @@ export function snapshotMapChunk(
     throw new Error('non-cube dimensions not supported');
   }
   const ethers = new Float32Array(worldDepthResolutionP1.x * worldDepthResolutionP1.x * worldDepthResolutionP1.x)
-    .fill(1);
+    .fill(-1);
 
   const topMesh = _makeMesh(
     position,
