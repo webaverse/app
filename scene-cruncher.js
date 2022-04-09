@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import renderSettingsManager from './rendersettings-manager.js';
+import {WebaverseShaderMaterial} from './materials.js';
 import {localPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
 
@@ -59,8 +60,6 @@ const floatImageData = imageData => {
 };
 
 const depthVertexShader = `\
-  ${THREE.ShaderChunk.common}
-
   precision highp float;
   precision highp int;
   /* uniform float uVertexOffset;
@@ -70,14 +69,10 @@ const depthVertexShader = `\
   varying vec3 vPos;
   varying vec3 vNormal; */
 
-  ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-
   void main() {
     // vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
     // vec3 newPosition = position + normal * vec3( uVertexOffset, uVertexOffset, uVertexOffset );
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-
-    ${THREE.ShaderChunk.logdepthbuf_vertex}
 
     // vViewPosition = -mvPosition.xyz;
     // vUv = uv;
@@ -96,8 +91,6 @@ const depthFragmentShader = `\
 
   // varying vec3 vPos;
   // varying vec3 vNormal;
-
-  ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
 
   #define FLOAT_MAX  1.70141184e38
   #define FLOAT_MIN  1.17549435e-38
@@ -160,11 +153,9 @@ const depthFragmentShader = `\
     float d = gl_FragCoord.z/gl_FragCoord.w;
     float viewZ = orthographicDepthToViewZ(d, cameraNear, cameraFar);
     gl_FragColor = encode_float(viewZ).abgr;
-
-    ${THREE.ShaderChunk.logdepthbuf_fragment}
   }
 `;
-const depthMaterial = new THREE.ShaderMaterial({
+const depthMaterial = new WebaverseShaderMaterial({
   uniforms: {
     cameraNear: {
       value: 0,
@@ -195,22 +186,8 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
   const forwardDirection = _snap(new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion));
   const upDirection = _snap(new THREE.Vector3(0, 1, 0).applyQuaternion(quaternion));
   const rightDirection = _snap(new THREE.Vector3(1, 0, 0).applyQuaternion(quaternion));
-  // const backPlanePosition = new THREE.Vector3(0, 0, worldDepthResolution.x / 2).applyQuaternion(quaternion);
   const baseWorldPosition = position.clone()
     .add(new THREE.Vector3(-worldSize.x/2, worldSize.y/2, -worldSize.z).applyQuaternion(quaternion));
-  // console.log('got position world size', {position, worldSize, baseWorldPosition});
-  /* _snap(new THREE.Vector3(
-    -worldDepthResolution.x/2,
-    -worldDepthResolution.y/2,
-    worldDepthResolution.x
-  ).add(
-    new THREE.Vector3(
-      worldDepthResolution.x/2,
-      worldDepthResolution.y/2,
-      worldDepthResolution.x/2
-    ).applyQuaternion(quaternion)
-  )); */
-  // window.backBottomLefts.push(backBottomLeft);
 
   const geometry = new THREE.PlaneBufferGeometry(worldSize.x, worldSize.z, worldDepthResolution.x, worldDepthResolution.y)
     .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(quaternion));
@@ -280,7 +257,6 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
           const localLocation2 = localVector2.copy(localLocation)
             .add(forwardDirection.clone().multiplyScalar(dz));
           if (dz > z2) {
-            
             // const g = baseGeometry.clone(); 
             // g.translate(absolutelocation.x, absolutelocation.y, absolutelocation.z);
             // geometries.push(g);
@@ -383,13 +359,13 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
   const scale = new THREE.Vector3().setScalar(worldSize.x / worldDepthResolution.x).toArray();
   // const scale = [1, 1, 1];
   const mc = physicsManager.marchingCubes(dims, ethers, shift, scale)
-  console.log('got marching cubes 1', mc, dims, ethers.filter(n => n === 1).length, ethers.filter(n => n !== 1).length, {dims, shift, scale, worldDepthResolutionP1});
+  // console.log('got marching cubes 1', mc, dims, ethers.filter(n => n === 1).length, ethers.filter(n => n !== 1).length, {dims, shift, scale, worldDepthResolutionP1});
   const {faces, positions} = mc;
   const geometry2 = new THREE.BufferGeometry();
   geometry2.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry2.setIndex(new THREE.BufferAttribute(faces, 1));
   geometry2.computeVertexNormals();
-  console.log('got marching cubes 2', geometry2);
+  // console.log('got marching cubes 2', geometry2);
 
   // const geometry2 = geometries.length > 0 ? BufferGeometryUtils.mergeBufferGeometries(geometries) : new THREE.BufferGeometry();
   // window.geometries = geometries;
@@ -405,6 +381,36 @@ const baseMaterial = new THREE.MeshBasicMaterial({
   lights: false,
 });
 baseMaterial.freeze();
+const triplanarVertexShader = `\
+  precision highp float;
+  precision highp int;
+
+  void main() {
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+const triplanarFragmentShader = `\
+  uniform sampler2D uColor;
+  uniform vec3 uSize;
+
+  void main() {
+    gl_FragColor = vec4(1., 0., 0., 1.);
+  }
+`;
+const triplanarMaterial = new WebaverseShaderMaterial({
+  uniforms: {
+    uColor: {
+      value: null,
+      needsUpdate: false,
+    },
+    uSize: {
+      value: new THREE.Vector3(1, 1, 1),
+      needsUpdate: true,
+    },
+  },
+  vertexShader: triplanarVertexShader,
+  fragmentShader: triplanarFragmentShader,
+});
 export function snapshotMapChunk(
   scene,
   position,
@@ -412,8 +418,8 @@ export function snapshotMapChunk(
   worldResolution,
   worldDepthResolution
 ) {
-  const worldResolutionP1 = worldResolution.clone().add(new THREE.Vector3(1, 1, 1));
-  const worldDepthResolutionP1 = worldDepthResolution.clone().add(new THREE.Vector3(1, 1, 1));
+  const worldResolutionP1 = worldResolution.clone().add(new THREE.Vector2(1, 1));
+  const worldDepthResolutionP1 = worldDepthResolution.clone().add(new THREE.Vector2(1, 1));
 
   const _makeMesh = (position, quaternion, worldSize, worldDepthResolution, ethers) => {
     const colorRenderTarget = new THREE.WebGLRenderTarget(
@@ -558,10 +564,19 @@ export function snapshotMapChunk(
     const mesh = new THREE.Mesh(geometry, material);
     mesh.geometry.depthFloatImageData = depthFloatImageData;
 
-    const mesh2 = new THREE.Mesh(geometry2, new THREE.MeshBasicMaterial({
-      color: 0xFF0000,
-    }));
+    const material2 = triplanarMaterial.clone();
+    material2.uniforms.uColor.value = colorTex;
+    material2.uniforms.uColor.needsUpdate = true;
+    material2.uniforms.uSize.value.set(worldDepthResolution.x, worldDepthResolution.y, worldDepthResolution.x);
+    material2.uniforms.uSize.needsUpdate = true;
+    const mesh2 = new THREE.Mesh(geometry2, material2);
+    const baseWorldPosition = position.clone()
+      .add(new THREE.Vector3(-worldSize.x/2, -worldSize.y/2, -worldSize.z/2));
+    console.log('base world position', baseWorldPosition.toArray());
+    mesh2.position.copy(baseWorldPosition);
+    // mesh2.scale.setScalar(worldSize.x / worldDepthResolution.x);
     mesh2.frustumCulled = false;
+    mesh2.updateMatrixWorld();
 
     const cubeGeometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
     const mesh3 = new THREE.InstancedMesh(cubeGeometry, normalMaterial, cubePositions.length);
