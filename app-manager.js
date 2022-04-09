@@ -582,9 +582,35 @@ class AppManager extends EventTarget {
         const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
         const contentId = srcTrackedApp.get('contentId');
 
-        const transform = srcTrackedApp.get('transform');
+        let transform = srcTrackedApp.get('transform');
         const components = srcTrackedApp.get('components');
         srcAppManager.removeTrackedAppInternal(instanceId);
+        
+        if(!transform){
+          const position = srcTrackedApp.get('position');
+          transform = new Float32Array(11);
+          const quaternion = srcTrackedApp.get('quaternion');
+          const scale = srcTrackedApp.get('scale');
+
+          const pack3 = (v, i) => {
+            transform[i] = v[0];
+            transform[i + 1] = v[1];
+            transform[i + 2] = v[2];
+          };
+          const pack4 = (v, i) => {
+            transform[i] = v[0];
+            transform[i + 1] = v[1];
+            transform[i + 2] = v[2];
+            transform[i + 3] = v[3];
+          };
+
+          pack3(position, 0);
+          pack4(quaternion, 3);
+          pack3(scale, 7);
+        }
+
+        console.log("srcTrackedApp", srcTrackedApp)
+        console.log("transform", transform)
 
         dstTrackedApp = dstAppManager.addTrackedAppInternal(
           instanceId,
