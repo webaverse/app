@@ -948,6 +948,14 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
+
+    this.setEnvelope=false;
+    this.envelopeState=null;
+    this.startEnvelopeTime=0;
+    this.EnvelopeAttackTime=0;
+    this.EnvelopeDecayTime=0;
+    this.EnvelopeSustainTime=0;
+    this.EnvelopeReleaseTime=0;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1649,16 +1657,16 @@ class Avatar {
           if (aIndex !== -1) {
             morphTargetInfluences[aIndex] = volumeValue;
           }
-          if (eIndex !== -1) {
+          if (eIndex !== -1 && !this.setEnvelope) {
             morphTargetInfluences[eIndex] = volumeValue * this.vowels[1];
           }
-          if (iIndex !== -1) {
+          if (iIndex !== -1 && !this.setEnvelope) {
             morphTargetInfluences[iIndex] = volumeValue * this.vowels[2];
           }
-          if (oIndex !== -1) {
+          if (oIndex !== -1 && !this.setEnvelope) {
             morphTargetInfluences[oIndex] = volumeValue * this.vowels[3];
           }
-          if (uIndex !== -1) {
+          if (uIndex !== -1 && !this.setEnvelope) {
             morphTargetInfluences[uIndex] = volumeValue * this.vowels[4];
           }
           /* } else { // fake speech
@@ -1883,7 +1891,73 @@ class Avatar {
       }
       this.debugMesh.visible = debug.enabled;
     }
+
+    //#################################### Envelope ##########################################
+
+    const _handleEnvelopeAttack=()=>{
+      this.volume = ((timestamp/1000 - this.startEnvelopeTime) / this.EnvelopeAttackTime)/12;
+      if(timestamp/1000 - this.startEnvelopeTime >= this.EnvelopeAttackTime){
+        this.envelopeState = 'decay';
+        this.startEnvelopeTime = timestamp/1000;
+      }
+    }
+    const _handleEnvelopeDecay=()=>{
+      this.volume = (1 - ((timestamp/1000 - this.startEnvelopeTime) / this.EnvelopeDecayTime) * 0.8)/12;
+      if(timestamp/1000 - this.startEnvelopeTime >= this.EnvelopeDecayTime){
+        this.envelopeState='sustain';
+        this.startEnvelopeTime = timestamp/1000;
+      }
+    }
+    const _handleEnvelopeSustain=()=>{
+      if(timestamp/1000 - this.startEnvelopeTime >= this.EnvelopeSustainTime){
+        this.envelopeState='release';
+        this.startEnvelopeTime = timestamp/1000;
+      } 
+    }
+    const _handleEnvelopeRelease=()=>{
+      this.volume = (0.2 - ((timestamp/1000 - this.startEnvelopeTime) / this.EnvelopeReleaseTime) * 0.2)/12;
+      if(timestamp/1000 - this.startEnvelopeTime >= this.EnvelopeReleaseTime){
+        this.envelopeState=null;
+        this.setEnvelope=false;
+        this.startEnvelopeTime = -1;
+      }
+    }
+    const _handleEnvelopeNull=()=>{
+      this.envelopeState = this.setEnvelope ? 'attack' : null;
+      this.startEnvelopeTime = timestamp/1000;
+    }
+    switch (this.envelopeState) {
+      case 'attack': {
+        _handleEnvelopeAttack();
+        break;
+      }
+      case 'decay': {
+        _handleEnvelopeDecay();
+        break;
+      }
+      case 'sustain': {
+        _handleEnvelopeSustain();
+        break;
+      }
+      case 'release': {
+        _handleEnvelopeRelease();
+        break;
+      }
+      case null: {
+        _handleEnvelopeNull();
+        break;
+      }
+    }
+
 	}
+  envelope(attack, decay, sustain, release){
+    this.envelopeState=null;
+    this.setEnvelope=true;
+    this.EnvelopeAttackTime=attack;
+    this.EnvelopeDecayTime=decay;
+    this.EnvelopeSustainTime=sustain;
+    this.EnvelopeReleaseTime=release;
+  }
 
   isAudioEnabled() {
     return !!this.microphoneWorker;
@@ -1916,7 +1990,9 @@ class Avatar {
         emitBuffer: true,
       });
       this.microphoneWorker.addEventListener('volume', e => {
-        this.volume = this.volume*0.8 + e.data*0.2;
+        if(!this.setEnvelope){
+          this.volume = this.volume*0.8 + e.data*0.2;
+        }
       });
       this.microphoneWorker.addEventListener('buffer', e => {
         this.audioRecognizer.send(e.data);

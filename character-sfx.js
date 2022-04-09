@@ -54,6 +54,37 @@ const _getActionFrameIndex = (f, frameTimes) => {
   }
   return i;
 };
+const jumpGruntIndex={
+  'shishi':[{index:2,nonce:0},{index:3,nonce:0},{index:4,nonce:0},{index:5,nonce:0},{index:6,nonce:0},{index:7,nonce:0}],
+  'bryce':[{index:0,nonce:0},{index:5,nonce:0},{index:9,nonce:0},{index:12,nonce:0},{index:13,nonce:0},{index:15,nonce:0}],
+  'griffin':[{index:0,nonce:0}],
+  'tiffany':[{index:0,nonce:0},{index:3,nonce:0},{index:9,nonce:0},{index:10,nonce:0},{index:11,nonce:0},{index:12,nonce:0}],
+  'andrew':[{index:0,nonce:0},{index:2,nonce:0},{index:11,nonce:0},{index:12,nonce:0},{index:13,nonce:0},{index:15,nonce:0}],
+}
+const gaspGruntIndex={
+  'shishi':[{index:0,nonce:0},{index:1,nonce:0}],
+  'bryce':[{index:0,nonce:0},{index:2,nonce:0},{index:3,nonce:0},{index:4,nonce:0},{index:5,nonce:0},{index:6,nonce:0},{index:7,nonce:0},],
+  'griffin':[{index:0,nonce:0}],
+  'tiffany':[{index:9,nonce:0},{index:10,nonce:0},{index:11,nonce:0},{index:0,nonce:0},{index:5,nonce:0},{index:7,nonce:0},{index:8,nonce:0},],
+  'andrew':[{index:3,nonce:0},{index:10,nonce:0},{index:1,nonce:0},{index:4,nonce:0},{index:5,nonce:0},{index:8,nonce:0},],
+}
+
+function weightedRandom(weights) {
+	let totalWeight = 0;
+	for (let i = 0; i < weights.length; i++) {
+		totalWeight += weights[i];
+	}
+
+	let random = Math.random() * totalWeight;
+	for (let i = 0; i < weights.length; i++) {
+		if (random < weights[i]) {
+			return i;
+		}
+		random -= weights[i];
+	}
+
+	return -1;
+}
 
 class CharacterSfx {
   constructor(player) {
@@ -77,6 +108,22 @@ class CharacterSfx {
     
     this.oldNarutoRunSound = null;
   }
+  selectVoice(voicer) {
+    // the weight of each voice is proportional to the inverse of the number of times it has been used
+    const maxNonce = voicer.reduce((max, voice) => Math.max(max, voice.nonce), 0);
+    const weights = voicer.map(({nonce}) => {
+      return 1 - (nonce / (maxNonce + 1));
+    });
+    const selectionIndex = weightedRandom(weights);
+    const voiceSpec = voicer[selectionIndex];
+    voiceSpec.nonce++;
+    while (voicer.every(voice => voice.nonce > 0)) {
+      for (const voiceSpec of voicer) {
+        voiceSpec.nonce--;
+      }
+    }
+    return voiceSpec;
+  }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
       return;
@@ -97,6 +144,10 @@ class CharacterSfx {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
         const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
         sounds.playSound(audioSpec);
+        if(this.player.voicePack!==null && !this.player.hasAction('fly') && !this.player.hasAction('narutoRun') && this.player.avatar.velocity.y<0){
+          let voice = this.selectVoice(jumpGruntIndex[this.player.voicePack.voicePackName]);
+          this.playGrunt('attack',voice.index);
+        }
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
         const audioSpec = soundFiles.land[Math.floor(Math.random() * soundFiles.land.length)];
         sounds.playSound(audioSpec);
@@ -108,6 +159,7 @@ class CharacterSfx {
     // step
     const _handleStep = () => {
       if (idleWalkFactor > 0.7 && !this.player.avatar.jumpState && !this.player.avatar.flyState) {
+        this.playGasp=false;
         const isRunning = walkRunFactor > 0.5;
         const isCrouching = crouchFactor > 0.5;
         const isNarutoRun = this.player.avatar.narutoRunState;
@@ -186,8 +238,22 @@ class CharacterSfx {
             break;
           }
         }
-
         this.lastWalkTime = timeSeconds;
+
+        if(isRunning){
+          this.lastRunningTime = timeSeconds;
+          this.runStep++;
+        }
+      }
+      if(idleWalkFactor<=0.1 && this.lastWalkTime>0 && !this.playGasp){
+        
+        if(timeSeconds-this.lastRunningTime<2 && this.runStep>100 && !this.player.hasAction('narutoRun')){
+          let voice = this.selectVoice(gaspGruntIndex[this.player.voicePack.voicePackName]);
+          this.playGrunt('gasp',voice.index);
+          this.playGasp=true;
+        }
+        this.runStep=0;
+        
       }
     };
     _handleStep();
@@ -205,9 +271,6 @@ class CharacterSfx {
           this.arr[i]=temp;
           temp=temp2;
       }
-        
-      
-      
       if(this.player.avatar.narutoRunState){
         if(this.narutoRunStartTime===0){
           this.narutoRunStartTime=timeSeconds; 
@@ -270,7 +333,11 @@ class CharacterSfx {
           // console.log('chomp', v, eatFrameIndex, this.lastEatFrameIndex);
           if (eatFrameIndex !== 0 && eatFrameIndex !== this.lastEatFrameIndex) {
             const audioSpec = soundFiles.chomp[Math.floor(Math.random() * soundFiles.chomp.length)];
+            if (!this.player.avatar.isAudioEnabled()) {
+              this.player.avatar.setAudioEnabled(true);
+            }
             sounds.playSound(audioSpec);
+            this.player.avatar.envelope(0.075,0.075,0.125,0.125);
           }
 
           this.lastEatFrameIndex = eatFrameIndex;
@@ -284,7 +351,11 @@ class CharacterSfx {
           // console.log('gulp', v, drinkFrameIndex, this.lastDrinkFrameIndex);
           if (drinkFrameIndex !== 0 && drinkFrameIndex !== this.lastDrinkFrameIndex) {
             const audioSpec = soundFiles.gulp[Math.floor(Math.random() * soundFiles.gulp.length)];
+            if (!this.player.avatar.isAudioEnabled()) {
+              this.player.avatar.setAudioEnabled(true);
+            }
             sounds.playSound(audioSpec);
+            this.player.avatar.envelope(0.1,0.1,0.1,0.1);
           }
 
           this.lastDrinkFrameIndex = drinkFrameIndex;
@@ -307,6 +378,56 @@ class CharacterSfx {
       }
     };
     _handleFood();
+  }
+  playGrunt(type, index){
+    
+    let fileIndex;
+    let voiceFiles;
+    switch (type) {
+      case 'pain': {
+        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Pain/.test(f.name));
+        break;
+      }
+      case 'scream': {
+        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Scream/.test(f.name));
+        break;
+      }
+      case 'attack': {
+        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Attack/.test(f.name));
+        break;
+      }
+      case 'angry': {
+        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Angry/.test(f.name));
+        break;
+      }
+      case 'gasp': {
+        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Gasp/.test(f.name));
+        break;
+      }
+    }
+    
+
+    if(index===undefined)
+      fileIndex=Math.floor(Math.random()*voiceFiles.length);
+    else 
+      fileIndex=index;
+    
+    const {offset, duration}=voiceFiles[fileIndex];
+    
+    const audioContext = Avatar.getAudioContext();
+    const audioBufferSourceNode = audioContext.createBufferSource();
+    audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
+    if (!this.player.avatar.isAudioEnabled()) {
+      this.player.avatar.setAudioEnabled(true);
+    }
+    audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+    if(this.oldGrunt){
+      this.oldGrunt.stop();
+    }
+    this.oldGrunt=audioBufferSourceNode;
+    
+    //audioBufferSourceNode.connect(audioContext.destination);
+    audioBufferSourceNode.start(0, offset, duration);
   }
   destroy() {
     // nothing
