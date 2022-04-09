@@ -3,11 +3,15 @@
     position: absolute;
     display: flex;
     top: 0px;
-    right: 460px;
+    left: 460px;
     height: 40px;
     flex-direction: column;
     overflow: visible;
     z-index: 2;
+}
+
+.location .button {
+    padding: 5px;
 }
 
 .location .row {
