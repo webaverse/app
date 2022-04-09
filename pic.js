@@ -32,8 +32,6 @@ function angleDifference(angle1, angle2) {
   return a;
 } */
 
-// I can take all of you motherfuckers on at once!
-
 /* const _makeRenderer = (width, height) => {
   const canvas = document.createElement('canvas');
   canvas.width = width;

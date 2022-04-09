@@ -3,12 +3,13 @@ this file contains the universe/meta-world/scenes/multiplayer code.
 responsibilities include loading the world on url change.
 */
 
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import * as Z from 'zjs';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
+import {loadOverworld} from './overworld.js';
 import {initialPosY} from './constants.js';
-import {parseQuery, parseCoord} from './util.js';
+import {parseQuery} from './util.js';
 import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
 
@@ -46,16 +47,23 @@ class Universe extends EventTarget {
         const state = new Z.Doc();
         world.connectState(state);
         
+        let match;
         if (src === undefined) {
           promises.push(metaversefile.createAppAsync({
             start_url: './scenes/' + sceneNames[0],
           }));
         } else if (src === '') {
           // nothing
+        } else if (match = src.match(/^weba:\/\/(-?[0-9\.]+),(-?[0-9\.]+)(?:\/|$)/i)) {
+          const [, x, y] = match;
+          const [x1, y1] = [parseFloat(x), parseFloat(y)];
+          const p = loadOverworld(x1, y1);
+          promises.push(p);
         } else {
-          promises.push(metaversefile.createAppAsync({
+          const p = metaversefile.createAppAsync({
             start_url: src,
-          }));
+          });
+          promises.push(p);
         }
       } else {
         const p = (async () => {
@@ -100,6 +108,16 @@ class Universe extends EventTarget {
   async waitForSceneLoaded() {
     if (this.sceneLoadedPromise) {
       await this.sceneLoadedPromise;
+    } else {
+      if (this.currentWorld) {
+        // nothing
+      } else {
+        await new Promise((accept, reject) => {
+          this.addEventListener('worldload', e => {
+            accept();
+          }, {once: true});
+        });
+      }
     }
   }
 }

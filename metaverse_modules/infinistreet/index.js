@@ -3,10 +3,9 @@ import * as ThreeVrm from '@pixiv/three-vrm';
 const {MToonMaterial} = ThreeVrm;
 // window.ThreeVrm = ThreeVrm;
 // import easing from './easing.js';
-import {StreetGeometry} from './StreetGeometry.js';
-import alea from 'alea';
+// import {StreetGeometry} from './StreetGeometry.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useActivate, useLoaders, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
+const {useApp, useFrame, useActivate, useGeometries, useLoaders, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -59,8 +58,9 @@ const _makeBlueSphere = () => {
 export default () => {
   const app = useApp();
   const physics = usePhysics();
+  const {StreetGeometry} = useGeometries();
   const procGen = useProcGen();
-  const {chunkWorldSize} = procGen;
+  const {alea, chunkWorldSize} = procGen;
 
   app.name = 'infinistreet';
 
