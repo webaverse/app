@@ -132,6 +132,7 @@ import {
   animationStepIndices,
   cubicBezier
 } from './animationHelpers.js';
+import { localPlayer } from '../players.js';
 
 
 
@@ -1825,6 +1826,7 @@ class Avatar {
     _updateHmdPosition();
     window.domInfo.innerHTML = `
       <div>avatar.direction: --- ${window.logVector3(avatar.direction)}</div>
+      <div>velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>
       <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
       <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
       <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
