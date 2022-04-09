@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
-import styles from './Header.module.css';
+
 import * as ceramicApi from '../ceramic.js';
 import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
@@ -10,6 +10,7 @@ import WebaWallet from './components/wallet';
 
 import { AppContext } from './components/app';
 
+import styles from './Header.module.css';
 
 //
 

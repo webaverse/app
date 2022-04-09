@@ -296,24 +296,11 @@ export const SceneMenu = ({
       {state.openedPanel === 'RoomMenuPanel' ? (
         <div className={styles.rooms}>
           <div className={styles.create}>
-            <select
-              style={{ display: 'inline', margin: '.5em', height: '1em' }}
-              id='sceneName'
-              size='large'
-              value={roomScene}
-              onChange={(v) => setRoomScene(v)}
-            >
-              {sceneNames.map((sceneName, i) => (
-                <option key={sceneName} value={sceneName}>
-                  {sceneName}
-                </option>
-              ))}
-            </select>
             <button
               className={styles.button}
               onClick={handleRoomCreateBtnClick}
             >
-              Create room
+              Create Room
             </button>
           </div>
           {rooms.map((room, i) => (
