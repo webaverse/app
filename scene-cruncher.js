@@ -385,16 +385,25 @@ const triplanarVertexShader = `\
   precision highp float;
   precision highp int;
 
+  varying vec3 vPosition;
+
   void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vPosition = position;
   }
 `;
 const triplanarFragmentShader = `\
   uniform sampler2D uColor;
   uniform vec3 uSize;
 
+  varying vec3 vPosition;
+
   void main() {
-    gl_FragColor = vec4(1., 0., 0., 1.);
+    vec2 uv = vPosition.xz / uSize.xz;
+    uv.y = 1.- uv.y;
+    vec4 c = texture2D(uColor, uv);
+    gl_FragColor = vec4(c.rgb, 1.);
+    // gl_FragColor = vec4(uv, 0., 1.);
   }
 `;
 const triplanarMaterial = new WebaverseShaderMaterial({
@@ -567,12 +576,13 @@ export function snapshotMapChunk(
     const material2 = triplanarMaterial.clone();
     material2.uniforms.uColor.value = colorTex;
     material2.uniforms.uColor.needsUpdate = true;
-    material2.uniforms.uSize.value.set(worldDepthResolution.x, worldDepthResolution.y, worldDepthResolution.x);
+    material2.uniforms.uSize.value.setScalar(worldSize.x);
     material2.uniforms.uSize.needsUpdate = true;
+    // window.uSize = material2.uniforms.uSize;
     const mesh2 = new THREE.Mesh(geometry2, material2);
     const baseWorldPosition = position.clone()
       .add(new THREE.Vector3(-worldSize.x/2, -worldSize.y/2, -worldSize.z/2));
-    console.log('base world position', baseWorldPosition.toArray());
+    // console.log('base world position', baseWorldPosition.toArray());
     mesh2.position.copy(baseWorldPosition);
     // mesh2.scale.setScalar(worldSize.x / worldDepthResolution.x);
     mesh2.frustumCulled = false;
