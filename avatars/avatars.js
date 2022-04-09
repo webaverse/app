@@ -1843,9 +1843,21 @@ class Avatar {
       <div>useAnimationCombo: --- ${this.useAnimationCombo}</div>
       <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
       <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
-      <div>useTime: --- ${Math.floor(this.useTime)}</div>
       <div>unuseAnimation: --- ${this.unuseAnimation}</div>
+      <div>activateTime: --- ${Math.floor(this.activateTime)}</div>
+      <div>aimTime: --- ${Math.floor(this.aimTime)}</div>
+      <div>chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>
+      <div>crouchTime: --- ${Math.floor(this.crouchTime)}</div>
+      <div>danceTime: --- ${Math.floor(this.danceTime)}</div>
+      <div>fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>
+      <div>flyTime: --- ${Math.floor(this.flyTime)}</div>
+      <div>hurtTime: --- ${Math.floor(this.hurtTime)}</div>
+      <div>jumpTime: --- ${Math.floor(this.jumpTime)}</div>
+      <div>lastEyeTargetTime: --- ${Math.floor(this.lastEyeTargetTime)}</div>
+      <div>lastMoveTime: --- ${Math.floor(this.lastMoveTime)}</div>
+      <div>narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>
       <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
+      <div>useTime: --- ${Math.floor(this.useTime)}</div>
     `
     _applyAnimation(this, now, moveFactors);
 
