@@ -28,7 +28,7 @@ const oldMaterialCache = new WeakMap();
 
 class DepthPass extends Pass {
 
-	constructor( scenes, camera, {width, height} ) {
+	constructor( scenes, camera, {width, height, onBeforeRenderScene} ) {
 
 		super();
 
@@ -103,11 +103,23 @@ class DepthPass extends Pass {
 				o.material = o.customPostMaterial;
 				this.customScene.add(o);
 			}
-			renderer.render( this.customScene, this.camera );
+			{
+				const pop = onBeforeRenderScene(this.scene);
+			  
+				renderer.render( this.customScene, this.camera );
+				
+				pop();
+			}
 
-			scene.overrideMaterial = overrideMaterial;
-			renderer.render( scene, this.camera );
-			scene.overrideMaterial = null;
+			{
+				const pop = onBeforeRenderScene(this.scene);
+				
+				scene.overrideMaterial = overrideMaterial;
+				renderer.render( scene, this.camera );
+				scene.overrideMaterial = null;
+				
+				pop();
+			}
 
 			for (const child of cachedNodes) {
 				oldParentCache.get(child).add(child);

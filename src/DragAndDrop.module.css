@@ -1,0 +1,106 @@
+.dragAndDrop {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+.dragAndDrop .currentApp {
+  /* width: 600px;
+  height: 300px; */
+  color: #FFF;
+  background-image: linear-gradient(to bottom, #222, #000);
+  transform-origin: 50% 50%;
+  pointer-events: all;
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+.dragAndDrop .currentApp:not(.open) {
+  transform: scale(0.8);
+  visibility: hidden;
+  transition: none;
+}
+/* hack to fix buttons glitching when mint panel is closed */
+.dragAndDrop .currentApp:not(.open) .buttons .button {
+  display: none;
+}
+.dragAndDrop .currentApp .heading,
+.dragAndDrop .currentApp .body,
+.dragAndDrop .currentApp .footer
+{
+  padding: 20px;
+}
+.dragAndDrop .currentApp .heading {
+  margin: 0;
+  font-family: 'PlazaRegular';
+  text-align: left;
+  letter-spacing: 2px;
+}
+.dragAndDrop .currentApp .body {
+  display: flex;
+}
+.dragAndDrop .currentApp .body .canvas {
+  margin-right: 20px;
+}
+.dragAndDrop .currentApp .body .wrap {
+  display: flex;
+  width: 300px;
+  font-size: 16px;
+  flex-direction: column;
+}
+.dragAndDrop .currentApp .footer {
+  display: flex;
+  flex-direction: column;
+}
+.dragAndDrop .currentApp .row {
+  display: flex;
+}
+.dragAndDrop .currentApp .label {
+  margin-right: 5px;
+}
+.dragAndDrop .currentApp .value {
+}
+.dragAndDrop .currentApp .buttons {
+  display: flex;
+}
+.dragAndDrop .currentApp .buttons + .buttons {
+  margin-top: 10px;
+}
+.dragAndDrop .currentApp .buttons .button {
+  display: flex;
+  padding: 5px 10px;
+  border: 2px solid #FFF;
+  flex-direction: column;
+  font-size: 30px;
+  font-family: 'PlazaRegular';
+  letter-spacing: 1px;
+  flex: 1;
+  cursor: pointer;
+  user-select: none;
+  transition: all 1s cubic-bezier(0, 1, 0, 1);
+}
+.dragAndDrop .currentApp .buttons .button:not([disabled]):hover {
+  background-color: #FFF;
+  color: #000;
+}
+.dragAndDrop .currentApp .buttons .button[disabled] {
+  opacity: 0.2;
+  cursor: default;
+}
+.dragAndDrop .currentApp .buttons .button > sub {
+  font-size: 16px;
+}
+.dragAndDrop .currentApp .buttons .button + .button {
+  margin-left: 10px;
+}
+.dragAndDrop .currentApp .buttons .button.small {
+  margin: 0 auto;
+  flex: none;
+  font-size: 20px;
+}
+.dragAndDrop .currentApp .buttons .button.small > sub {
+  font-size: 13px;
+}

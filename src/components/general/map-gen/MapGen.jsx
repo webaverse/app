@@ -1,18 +1,19 @@
 import * as THREE from 'three';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
 const {useLocalPlayer, useLoreAIScene, useSceneCruncher} = metaversefile;
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
-import {registerIoEventHandler, unregisterIoEventHandler} from '../../../IoHandler.jsx';
+import {registerIoEventHandler, unregisterIoEventHandler} from '../io-handler';
 import {MiniHup} from '../../../MiniHup.jsx';
 // import {RpgText} from '../../../RpgText.jsx';
 import {getRenderer, rootScene, scene} from '../../../../renderer.js';
-// import game from '../../../../game.js';
+import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
 import cameraManager from '../../../../camera-manager.js';
+import {snapshotMapChunk} from '../../../../scene-cruncher.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
 // import easing from '../../../../easing.js';
@@ -28,7 +29,7 @@ import {
   createMapChunkMesh,
 } from '../../../../procgen/procgen.js';
 import styles from './map-gen.module.css';
-// import {fullscreenVertexShader} from '../../../../background-fx/common.js';
+import { AppContext } from '../../app';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -180,12 +181,11 @@ const _makeChunkMesh = (x, y) => {
   return mesh;
 };
 
-export const MapGen = ({
-  app,
-}) => {
+export const MapGen = () => {
+
+    const { state, setState } = useContext( AppContext );
     const [width, setWidth] = useState(window.innerWidth);
     const [height, setHeight] = useState(window.innerHeight); 
-    const [open, setOpen] = useState(false);
     const [position, setPosition] = useState(new THREE.Vector3(0, 0, 0));
     const [scale, setScale] = useState(1);
     const [mouseState, setMouseState] = useState(null);
@@ -199,6 +199,14 @@ export const MapGen = ({
     const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
     const canvasRef = useRef();
+
+    //
+
+    const stopPropagation = ( event ) => {
+
+        event.stopPropagation();
+
+    };
 
     const updateCamera = () => {
       const renderer = getRenderer();
@@ -299,74 +307,79 @@ export const MapGen = ({
     }, [text]); */
 
     // open
-    useEffect(() => {
-      function keydown(e) {
-        switch (e.which) {
-          case 76: { // L
-            (async () => {
-              // const dx = 0;
-              // const dy = 0;
-              const chunkWorldSize = 64;
-              const chunkWorldResolution = 2048;
-              const chunkWorldDepthResolution = 64;
-          
-              const sceneCruncher = useSceneCruncher();
-              const localPlayer = useLocalPlayer();
-              const mesh = await sceneCruncher.snapshotMapChunk(
-                rootScene,
-                localPlayer.position,
-                chunkWorldSize,
-                chunkWorldResolution,
-                chunkWorldDepthResolution
-              );
-              scene.add(mesh);
-            })();
+    useEffect( () => {
 
-            return false;
-          }
-          case 77: { // M
-            const newOpen = !open;
-            
-            newOpen && window.dispatchEvent( new CustomEvent( 'CloseAllMenus', { detail: { dispatcher: 'MapGen' } } ) );
-            
-            if (newOpen && cameraManager.pointerLockElement) {
-              cameraManager.exitPointerLock();
-            } else if (!newOpen && !cameraManager.pointerLockElement) {
-              cameraManager.requestPointerLock();
-            }
-            
-            setOpen(newOpen);
+        function handleKeyUp ( event ) {
 
-            return false;
-          }
-          default: {
-            return true;
-          }
-        }
-      }
-      registerIoEventHandler('keydown', keydown);
-      return () => {
-        unregisterIoEventHandler('keydown', keydown);
-      };
-    }, [open]);
+            if (game.inputFocused()) return true;
 
-    // close open conflicts
-    useEffect(() => {
-      const handleOnFocusLost = () => {
+            switch ( event.which ) {
 
-        if (open) {
-
-          setOpen(false);
+                case 76: { // L
+                
+                    (async () => {
+                      const chunkWorldSize = new THREE.Vector3(64, 64, 64);
+                      const chunkWorldResolution = new THREE.Vector2(2048, 2048);
+                      const chunkWorldDepthResolution = new THREE.Vector2(256, 256);
+                  
+                      const localPlayer = useLocalPlayer();
+                      const mesh = snapshotMapChunk(
+                        rootScene,
+                        localPlayer.position,
+                        chunkWorldSize,
+                        chunkWorldResolution,
+                        chunkWorldDepthResolution
+                      );
+                      scene.add(mesh);
+                    })();
         
+                    return false;
+
+                }
+
+                case 77: { // M
+
+                    if ( state.openedPanel === 'MapGenPanel' ) {
+
+                        setState({ openedPanel: null });
+
+                        if ( ! cameraManager.pointerLockElement ) {
+
+                            cameraManager.requestPointerLock();
+
+                        }
+
+                    } else {
+
+                        if ( cameraManager.pointerLockElement ) {
+
+                            cameraManager.exitPointerLock();
+
+                        }
+
+                        setState({ openedPanel: 'MapGenPanel' });
+
+                    }
+
+                    return false;
+
+                }
+
+            }
+
+            return true;
+
         }
 
-      };
-      window.addEventListener('CloseAllMenus', handleOnFocusLost);
-      
-      return () => {
-        window.removeEventListener('CloseAllMenus', handleOnFocusLost);
-      };
-    }, [open]);
+        registerIoEventHandler( 'keyup', handleKeyUp );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keyup', handleKeyUp );
+
+        };
+
+    }, [ state.openedPanel ]);
 
     // resize
     useEffect(() => {
@@ -427,7 +440,7 @@ export const MapGen = ({
 
     // wheel
     useEffect(() => {
-      if (open) {
+      if ( state.openedPanel === 'MapGenPanel' ) {
         function wheel(e) {
           setRaycasterFromEvent(localRaycaster, e);
           localRaycaster.ray.origin.multiplyScalar(voxelPixelSize);
@@ -463,23 +476,22 @@ export const MapGen = ({
           unregisterIoEventHandler('wheel', wheel);
         };
       }
-    }, [open, mouseState, position.x, position.z, scale]);
+    }, [state.openedPanel, mouseState, position.x, position.z, scale]);
 
     // click
     useEffect(() => {
       function click(e) {
-        if (open) {
+        if ( state.openedPanel === 'MapGenPanel' ) {
           return false;
         } else {
           return true;
         }
       }
       function mouseUp(e) {
-        if (open) {
+        if ( state.openedPanel === 'MapGenPanel') {
           if (mouseState && !mouseState.moved && hoveredObject) {
             selectObject();
           }
-          
           setMouseState(null);
           return false;
         } else {
@@ -492,22 +504,22 @@ export const MapGen = ({
         unregisterIoEventHandler('click', click);
         unregisterIoEventHandler('mouseup', mouseUp);
       };
-    }, [open, mouseState, hoveredObject]);
+    }, [ state.openedPanel, mouseState, hoveredObject ] );
 
     // update chunks
     useEffect(() => {
-      if (open) {
+      if ( state.openedPanel === 'MapGenPanel' ) {
         updateCamera();
 
         const newChunks = getChunksInRange();
         setChunks(newChunks);
       }
-    }, [canvasRef, open, width, height, position.x, position.z, scale]);
+    }, [canvasRef, state.openedPanel, width, height, position.x, position.z, scale]);
 
     // render
     useEffect(() => {
       const canvas = canvasRef.current;
-      if (canvas && open) {
+      if (canvas && state.openedPanel === 'MapGenPanel') {
         updateCamera();
 
         const ctx = canvas.getContext('2d');
@@ -539,7 +551,7 @@ export const MapGen = ({
           world.appManager.removeEventListener('frame', render);
         };
       }
-    }, [canvasRef, open, width, height, chunks, position.x, position.z, scale]);
+    }, [canvasRef, state.openedPanel, width, height, chunks, position.x, position.z, scale]);
 
     function mouseDown(e) {
       e.preventDefault();
@@ -567,8 +579,8 @@ export const MapGen = ({
 
     const selectedObjectName = selectedObject ? selectedObject.name : '';
 
-    return open ? (
-        <div className={styles.mapGen}>
+    return state.openedPanel === 'MapGenPanel' ? (
+        <div className={styles.mapGen} onClick={ stopPropagation }>
             <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
                 <h1>{selectedObjectName}</h1>
                 <hr />
