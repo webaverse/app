@@ -18,12 +18,14 @@ import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
 import loadoutManager from './loadout-manager.js';
+import questManager from './quest-manager.js';
+import mobManager from './mob-manager.js';
 import {
   getRenderer,
   scene,
   sceneHighPriority,
   sceneLowPriority,
-  // rootScene,
+  rootScene,
   camera,
   dolly,
   bindCanvas,
@@ -35,8 +37,10 @@ import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import * as voices from './voices.js';
 import performanceTracker from './performance-tracker.js';
+import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
+import {OffscreenEngine} from './offscreen-engine.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -303,11 +307,13 @@ export default class Webaverse extends EventTarget {
           game.update(timestamp, timeDiffCapped);
           
           localPlayer.updateAvatar(timestamp, timeDiffCapped);
-          playersManager.update(timestamp, timeDiffCapped);
+          playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
+          mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
+          questManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
@@ -334,8 +340,14 @@ export default class Webaverse extends EventTarget {
         performanceTracker.setGpuPrefix('loadout');
         loadoutManager.update(timestamp, timeDiffCapped);
 
-        performanceTracker.setGpuPrefix('');
-        this.render(timestamp, timeDiffCapped);
+        {
+          const popRenderSettings = renderSettingsManager.push(rootScene);
+
+          performanceTracker.setGpuPrefix('');
+          this.render(timestamp, timeDiffCapped);
+
+          popRenderSettings();
+        }
       };
       _frame();
 
@@ -539,6 +551,23 @@ const _startHacks = webaverse => {
           titleCardHack: webaverse.titleCardHack,
         }
       }));
+    } else if (e.which === 111) { // /
+      (async () => {
+        const offscreenEngine = new OffscreenEngine();
+        // await offscreenEngine.waitForLoad();
+
+        const fn = offscreenEngine.createFunction([
+          `import * as THREE from 'three';`,
+          function(a, b) {
+            return new THREE.Vector3().fromArray(a)
+              .add(new THREE.Vector3().fromArray(b))
+              .toArray();
+          },
+        ]);
+        const result = await fn([1, 2, 3], [4, 5, 6]);
+        console.log('final result', result);
+        offscreenEngine.destroy();
+      })();
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {

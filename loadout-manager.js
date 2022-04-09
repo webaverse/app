@@ -1,6 +1,6 @@
 import {localPlayer} from './players.js';
-import {createHotbarRenderer} from './hotbar.js';
-import {createInfoboxRenderer} from './infobox.js';
+import {LoadoutRenderer} from './loadout-renderer.js';
+import {InfoboxRenderer} from './infobox.js';
 import {createObjectSprite} from './object-spriter.js';
 import {hotbarSize, infoboxSize} from './constants.js';
 
@@ -26,25 +26,18 @@ class LoadoutManager extends EventTarget {
     this.selectedIndex = -1;
   
     localPlayer.addEventListener('wearupdate', e => {
-      const {app, wear} = e;
+      const {app, wear, loadoutIndex} = e;
 
       this.ensureRenderers();
       if (wear) {
-        const nextIndex = this.getNextFreeIndex();
-        if (nextIndex !== -1) {
-          this.apps[nextIndex] = app;
-
-          this.setSelectedIndex(nextIndex);
-        }
+        this.apps[loadoutIndex] = app;
+        this.setSelectedIndex(loadoutIndex);
       } else {
         for (let i = 0; i < this.apps.length; i++) {
           const a = this.apps[i];
           if (a === app) {
             const hotbarRenderer = this.hotbarRenderers[i];
             hotbarRenderer.setSpritesheet(null);
-            /* if (i === this.selectedIndex) {
-              this.infoboxRenderer.setSpritesheet(null);
-            } */
 
             this.apps[i] = null;
 
@@ -58,18 +51,16 @@ class LoadoutManager extends EventTarget {
   }
   ensureRenderers() {
     if (this.hotbarRenderers.length === 0) {
-      /* const renderer = getRenderer();
-      const size = hotbarSize * renderer.getPixelRatio(); */
       const size = hotbarSize * window.devicePixelRatio;
 
       for (let i = 0; i < numSlots; i++) {
         const selected = i === this.selectedIndex;
-        const hotbarRenderer = createHotbarRenderer(size, size, selected);
+        const hotbarRenderer = new LoadoutRenderer(size, size, selected);
         this.hotbarRenderers.push(hotbarRenderer);
       }
     }
     if (!this.infoboxRenderer) {
-      this.infoboxRenderer = createInfoboxRenderer(infoboxSize, infoboxSize);
+      this.infoboxRenderer = new InfoboxRenderer(infoboxSize, infoboxSize);
     }
   }
   getHotbarRenderer(index) {
@@ -115,11 +106,11 @@ class LoadoutManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('selectedchange', {
       data: {
         index,
-        app: this.apps[index] || null,
+        app: this.apps[index],
       },
     }));
   }
-  getNextFreeIndex() {
+  /* getNextFreeIndex() {
     this.ensureRenderers();
     for (let i = 0; i < this.hotbarRenderers.length; i++) {
       if (!this.apps[i]) {
@@ -127,7 +118,7 @@ class LoadoutManager extends EventTarget {
       }
     }
     return -1;
-  }
+  } */
   getNextUsedIndex() {
     this.ensureRenderers();
     for (let i = 0; i < this.hotbarRenderers.length; i++) {

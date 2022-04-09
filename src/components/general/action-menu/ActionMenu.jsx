@@ -1,12 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import classnames from 'classnames';
+
+import { AppContext } from '../../app';
+
 import styles from './action-menu.module.css';
 
 //
 
-export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }) => {
+export const ActionMenu = () => {
 
+    const { state, setState, app } = useContext( AppContext );
     const [ xrSupported, setXrSupported ] = useState( false );
 
     //
@@ -19,13 +23,13 @@ export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }
 
     const handleWorldBtnClick = () => {
 
-        setWorldObjectsListOpened( true );
+        setState({ openedPanel: ( state.openedPanel === 'WorldPanel' ? null : 'WorldPanel' ) });
 
     };
 
     const handleSettingsBtnClick = () => {
 
-        setSettingsOpened( true );
+        setState({ openedPanel: 'SettingsPanel' });
 
     };
 
@@ -56,7 +60,7 @@ export const ActionMenu = ({ app, setSettingsOpened, setWorldObjectsListOpened }
     return (
         <div className={ styles.actionMenu } onClick={ stopPropagation } >
 
-            <div className={ classnames( styles.btn, styles.settings ) } onClick={ handleWorldBtnClick } >
+            <div className={ classnames( styles.btn, state.openedPanel === 'WorldPanel' ? styles.wpOpened : null ) } onClick={ handleWorldBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
                 <span className={ styles.text } >世 World</span>
                 <span className={ styles.key } >Z</span>
