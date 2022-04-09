@@ -65,7 +65,7 @@ class App extends THREE.Object3D {
     this.physicsObjects = [];
     this.hitTracker = null;
     this.appType = 'none';
-    this.hasRenderSettings = false;
+    this.hasSubApps = false;
     this.lastMatrix = new THREE.Matrix4();
 
     const startframe = () => {
@@ -157,7 +157,7 @@ class App extends THREE.Object3D {
     this.hitTracker && this.hitTracker.hit(damage, opts);
   }
   getRenderSettings() {
-    if (this.hasRenderSettings) {
+    if (this.hasSubApps) {
       return renderSettingsManager.findRenderSettings(this);
     } else {
       return null;
@@ -184,6 +184,15 @@ class App extends THREE.Object3D {
     this.dispatchEvent({
       type: 'destroy',
     });
+  }
+}
+class Redirect {
+  constructor({
+    src,
+    room,
+  } = {}) {
+    this.src = src;
+    this.room = room;
   }
 }
 
@@ -354,12 +363,6 @@ metaversefile.setApi({
       return null;
     }
   },
-  /* async load(u) {
-    const m = await metaversefile.import(u);
-    const app = metaversefile.createApp();
-    await metaversefile.addModule(app, m);
-    return app;
-  }, */
   useApp() {
     const app = currentAppRender;
     if (app) {
@@ -901,12 +904,12 @@ metaversefile.setApi({
     
     return app;
   },
-  createApp(opts) {
-    return metaversefile.createAppInternal(opts);
+  createApp(spec) {
+    return metaversefile.createAppInternal(spec);
   },
-  async createAppAsync(opts) {
+  async createAppAsync(spec, opts) {
     let p = null;
-    const app = metaversefile.createAppInternal(opts, {
+    const app = metaversefile.createAppInternal(spec, {
       onWaitPromise(newP) {
         p = newP;
       },
@@ -915,6 +918,15 @@ metaversefile.setApi({
       await p;
     }
     return app;
+  },
+  createAppPair(spec) {
+    let promise = null;
+    const app = metaversefile.createAppInternal(spec, {
+      onWaitPromise(newPromise) {
+        promise = newPromise;
+      },
+    });
+    return [app, promise];
   },
   createModule: (() => {
     const dataUrlPrefix = `data:application/javascript;charset=utf-8,`;
@@ -1008,6 +1020,9 @@ export default () => {
       }
       return null;
     }
+  },
+  createRedirect(opts) {
+    return new Redirect(opts);
   },
   getAvatarHeight(obj) {
     return getHeight(obj);
@@ -1175,6 +1190,9 @@ export default () => {
       _bindDefaultComponents(app);
       
       return app;
+    } else if (renderSpec instanceof Redirect) {
+      console.log('got redirect', renderSpec);
+      debugger;
     } else if (React.isValidElement(renderSpec)) {
       const o = new THREE.Object3D();
       // o.contentId = contentId;
