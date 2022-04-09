@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 import styles from './Header.module.css';
@@ -7,18 +8,8 @@ import { parseQuery } from '../util.js';
 import Modal from './components/modal';
 import WebaWallet from './components/wallet';
 
-import React, { useState, useEffect, useContext } from 'react';
-import classnames from 'classnames';
-
-import * as ceramicApi from '../ceramic.js';
-import { discordClientId } from '../constants';
-import { parseQuery } from '../util.js';
-import Modal from './components/modal';
-import WebaWallet from './components/wallet';
-
 import { AppContext } from './components/app';
 
-import styles from './Header.module.css';
 
 //
 
