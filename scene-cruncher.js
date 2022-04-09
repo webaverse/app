@@ -11,10 +11,11 @@ window.positionOffsetsScaled = [];
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-// const localVector3 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 const localVector4D = new THREE.Vector4();
 // const localTriangle = new THREE.Triangle();
+const localMatrix = new THREE.Matrix4();
 
 const cameraNear = 0;
 // const cameraFar = 1000;
@@ -183,11 +184,12 @@ const _snap = v => {
   v.z = Math.round(v.z);
   return v;
 };
-const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolution, depthFloatImageData, ethers) => {
+const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, depthFloatImageData, ethers) => {
   const worldDepthResolutionP1 = worldDepthResolution.clone().add(new THREE.Vector3(1, 1, 1));
   
-  const geometries = [];
-  const baseGeometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
+  // const geometries = [];
+  // const geometry2 = new THREE.InstancedMesh( geometry, material, count );
+  const cubePositions = [];
 
   const forwardDirection = _snap(new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion));
   const upDirection = _snap(new THREE.Vector3(0, 1, 0).applyQuaternion(quaternion));
@@ -242,13 +244,47 @@ const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolu
             .add(rightDirection.clone().multiplyScalar(x2))
             .add(upDirection.clone().multiplyScalar(y2))
         );
-        const absolutelocation = localVector2.copy(localLocation)
+        /* const absolutelocation = localVector2.copy(localLocation)
           .add(forwardDirection.clone().multiplyScalar(z2))
           .multiplyScalar(worldSize.x/worldDepthResolution.x)
-          .add(baseWorldPosition);
-        const g = baseGeometry.clone(); 
-        g.translate(absolutelocation.x, absolutelocation.y, absolutelocation.z);
-        geometries.push(g);
+          .add(baseWorldPosition); */
+
+        const _isWhole = n => n % 1 === 0;
+        const _isGez = n => n >= 0;
+        const _setEther = (p, v) => {
+          if (
+            _isWhole(p.x) && _isWhole(p.y) && _isWhole(p.z) &&
+            _isGez(p.x) && _isGez(p.y) && _isGez(p.z)
+          ) {
+            const index = p.x +
+              (worldDepthResolutionP1.x * p.y) +
+              (worldDepthResolutionP1.x * worldDepthResolutionP1.x * p.z);
+            if (index >= 0 && index < ethers.length) {
+              ethers[index] = v;
+            } else {
+              debugger;
+            }
+          } else {
+            debugger;
+          }
+        };
+        for (let dz = worldDepthResolution.x; dz >= 0; dz--) {
+          // console.log('check dz', dz, z2, forwardDirection.toArray());
+          if (dz > z2) {
+            const localLocation2 = localVector2.copy(localLocation)
+              .add(forwardDirection.clone().multiplyScalar(dz));
+            const absoluteLocation = localVector3.copy(localLocation2)
+              .multiplyScalar(worldSize.x/worldDepthResolution.x)
+              .add(baseWorldPosition);
+            cubePositions.push(absoluteLocation.clone());
+            // const g = baseGeometry.clone(); 
+            // g.translate(absolutelocation.x, absolutelocation.y, absolutelocation.z);
+            // geometries.push(g);
+            _setEther(_snap(localLocation2), -1);
+          } else {
+            break;
+          }
+        }
 
         // console.log('position offset', position.toArray());
 
@@ -273,6 +309,7 @@ const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolu
         // here we compute the index into ethers based on localLocation
         // const ethersIndex = Math.floor(localLocation.x / worldSize.x * worldDepthResolutionP1.x) +
           // Math.floor(localLocation.z / worldSize.z * worldDepthResolutionP1.y) * worldDepthResolutionP1.x;
+        
         // ethers
       }
     }
@@ -337,9 +374,21 @@ const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolu
     }
   } */
 
-  const geometry2 = BufferGeometryUtils.mergeBufferGeometries(geometries);
-  window.geometries = geometries;
-  return [geometry, geometry2];
+  const dims = worldDepthResolutionP1.toArray();
+  const shift = [0, 0, 0];
+  const scale = new THREE.Vector3().setScalar(worldSize.x / worldDepthResolution.x).toArray();
+  const mc = physicsManager.marchingCubes(dims, ethers, shift, scale)
+  console.log('got marching cubes 1', mc);
+  const {faces, positions} = mc;
+  const geometry2 = new THREE.BufferGeometry();
+  geometry2.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry2.setIndex(new THREE.BufferAttribute(faces, 1));
+  geometry2.computeVertexNormals();
+  console.log('got marching cubes 2', geometry2);
+
+  // const geometry2 = geometries.length > 0 ? BufferGeometryUtils.mergeBufferGeometries(geometries) : new THREE.BufferGeometry();
+  // window.geometries = geometries;
+  return [geometry, geometry2, cubePositions];
 };
 const normalMaterial = new THREE.MeshNormalMaterial();
 const baseMaterial = new THREE.MeshBasicMaterial({
@@ -472,10 +521,10 @@ export function snapshotMapChunk(
     const [
       geometry,
       geometry2,
+      cubePositions,
     ] = _makeGeometry(
       camera.position,
       camera.quaternion,
-      position,
       worldSize,
       worldDepthResolution,
       depthFloatImageData,
@@ -504,12 +553,24 @@ export function snapshotMapChunk(
     const mesh = new THREE.Mesh(geometry, material);
     mesh.geometry.depthFloatImageData = depthFloatImageData;
 
-    const mesh2 = new THREE.Mesh(geometry2, normalMaterial);
+    const mesh2 = new THREE.Mesh(geometry2, new THREE.MeshBasicMaterial({
+      color: 0xFF0000,
+    }));
     mesh2.frustumCulled = false;
+
+    const cubeGeometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
+    const mesh3 = new THREE.InstancedMesh(cubeGeometry, normalMaterial, cubePositions.length);
+    for (let i = 0; i < cubePositions.length; i++) {
+      const position = cubePositions[i];
+      mesh3.setMatrixAt(i, localMatrix.makeTranslation(position.x, position.y, position.z));
+    }
+    mesh3.instanceMatrix.needsUpdate = true;
+    mesh3.frustumCulled = false;
 
     return [
       mesh,
       mesh2,
+      mesh3,
     ];
   };
 
@@ -629,15 +690,10 @@ export function snapshotMapChunk(
     // _cleanGeometry(backMesh.geometry);
   } */
 
-  const dims = worldDepthResolutionP1.toArray();
-  const shift = [0, 0, 0];
-  const scale = [1, 1, 1];
-  const mc = physicsManager.marchingCubes(dims, ethers, shift, scale)
-  console.log('got marching cubes', mc);
-
   const object = new THREE.Object3D();
-  object.add(topMesh[0]);
+  // object.add(topMesh[0]);
   object.add(topMesh[1]);
+  object.add(topMesh[2]);
   object.updateMatrixWorld();
   // console.log('got top mesh', topMesh);
   window.topMesh = topMesh;
