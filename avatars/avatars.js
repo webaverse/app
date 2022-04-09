@@ -1990,9 +1990,7 @@ class Avatar {
         emitBuffer: true,
       });
       this.microphoneWorker.addEventListener('volume', e => {
-        if(!this.setEnvelope){
           this.volume = this.volume*0.8 + e.data*0.2;
-        }
       });
       this.microphoneWorker.addEventListener('buffer', e => {
         this.audioRecognizer.send(e.data);

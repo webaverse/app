@@ -333,9 +333,6 @@ class CharacterSfx {
           // console.log('chomp', v, eatFrameIndex, this.lastEatFrameIndex);
           if (eatFrameIndex !== 0 && eatFrameIndex !== this.lastEatFrameIndex) {
             const audioSpec = soundFiles.chomp[Math.floor(Math.random() * soundFiles.chomp.length)];
-            if (!this.player.avatar.isAudioEnabled()) {
-              this.player.avatar.setAudioEnabled(true);
-            }
             sounds.playSound(audioSpec);
             this.player.avatar.envelope(0.075,0.075,0.125,0.125);
           }
@@ -351,9 +348,6 @@ class CharacterSfx {
           // console.log('gulp', v, drinkFrameIndex, this.lastDrinkFrameIndex);
           if (drinkFrameIndex !== 0 && drinkFrameIndex !== this.lastDrinkFrameIndex) {
             const audioSpec = soundFiles.gulp[Math.floor(Math.random() * soundFiles.gulp.length)];
-            if (!this.player.avatar.isAudioEnabled()) {
-              this.player.avatar.setAudioEnabled(true);
-            }
             sounds.playSound(audioSpec);
             this.player.avatar.envelope(0.1,0.1,0.1,0.1);
           }
