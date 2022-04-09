@@ -334,7 +334,7 @@ class CharacterSfx {
           if (eatFrameIndex !== 0 && eatFrameIndex !== this.lastEatFrameIndex) {
             const audioSpec = soundFiles.chomp[Math.floor(Math.random() * soundFiles.chomp.length)];
             sounds.playSound(audioSpec);
-            this.player.avatar.envelope(0.075,0.075,0.125,0.125);
+            this.player.avatar.envelope(0.04,0.04,0.1,0.02);
           }
 
           this.lastEatFrameIndex = eatFrameIndex;
