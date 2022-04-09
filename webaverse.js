@@ -66,14 +66,6 @@ const frameEvent = new MessageEvent('frame', {
     // lastTimestamp: 0,
   },
 });
-const _pushRenderSettings = () => {
-  const renderSettings = renderSettingsManager.findRenderSettings(rootScene);
-  renderSettingsManager.applyRenderSettingsToSceneAndPostProcessing(renderSettings, rootScene, postProcessing);
-
-  return () => {
-    renderSettingsManager.applyRenderSettingsToSceneAndPostProcessing(null, rootScene, postProcessing);
-  }
-};
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -315,7 +307,7 @@ export default class Webaverse extends EventTarget {
           game.update(timestamp, timeDiffCapped);
           
           localPlayer.updateAvatar(timestamp, timeDiffCapped);
-          playersManager.update(timestamp, timeDiffCapped);
+          playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
@@ -349,7 +341,7 @@ export default class Webaverse extends EventTarget {
         loadoutManager.update(timestamp, timeDiffCapped);
 
         {
-          const popRenderSettings = _pushRenderSettings();
+          const popRenderSettings = renderSettingsManager.push(rootScene);
 
           performanceTracker.setGpuPrefix('');
           this.render(timestamp, timeDiffCapped);

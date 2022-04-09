@@ -1,0 +1,65 @@
+{
+  "objects": [
+
+  {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3],
+        "shadow": [150, 5120, 0.1, 10000, -0.0001]
+      }
+    },
+    
+{
+      
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        100,
+        100,
+        100
+      ],
+      
+      "start_url": "https://webaverse.github.io/sky-milkyway/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        10,
+       10,
+        10
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/sci-fi_neon_model/",
+      "dynamic": true
+    }
+
+]
+}
