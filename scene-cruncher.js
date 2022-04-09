@@ -234,27 +234,30 @@ const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolu
       {
         // const worldBottomLeft = position.clone()
 
-        const z2 = z * worldDepthResolution.x / worldSize.x;
+        const x2 = x;
+        const y2 = -y;
+        const z2 = worldDepthResolution.x + z * worldDepthResolution.x / worldSize.x;
         const localLocation = _snap(
           localVector.set(0, 0, 0)
-            .add(rightDirection.clone().multiplyScalar(x))
-            .add(upDirection.clone().multiplyScalar(-y))
-        )
-          .add(forwardDirection.clone().multiplyScalar(worldDepthResolution.x + z2))
+            .add(rightDirection.clone().multiplyScalar(x2))
+            .add(upDirection.clone().multiplyScalar(y2))
+        );
+        const absolutelocation = localVector2.copy(localLocation)
+          .add(forwardDirection.clone().multiplyScalar(z2))
           .multiplyScalar(worldSize.x/worldDepthResolution.x)
           .add(baseWorldPosition);
         const g = baseGeometry.clone(); 
-        g.translate(localLocation.x, localLocation.y, localLocation.z);
+        g.translate(absolutelocation.x, absolutelocation.y, absolutelocation.z);
         geometries.push(g);
 
         // console.log('position offset', position.toArray());
 
-        const basePosition = position.clone()
+        /* const basePosition = position.clone()
           .sub(new THREE.Vector3(worldSize.x / 2, worldSize.y / 2, worldSize.z / 2));
         const positionOffset = localLocation.clone().sub(basePosition);
         const positionOffsetScaled = positionOffset.clone().multiply(
           new THREE.Vector3(worldDepthResolutionP1.x/worldSize.x, worldDepthResolutionP1.y/worldSize.y, worldDepthResolutionP1.x/worldSize.z)
-        );
+        ); */
 
         /* localLocation
           .add(
@@ -264,12 +267,12 @@ const _makeGeometry = (position, quaternion, center, worldSize, worldDepthResolu
           .multiply(
             localVector2.set(worldDepthResolutionP1.x)
           ); */
-        window.positionOffsetsScaled.push(positionOffsetScaled);
+        // window.positionOffsetsScaled.push(positionOffsetScaled);
 
         // ethers is a flattened 3d array of size worldDepthResolutionP1
         // here we compute the index into ethers based on localLocation
-        const ethersIndex = Math.floor(localLocation.x / worldSize.x * worldDepthResolutionP1.x) +
-          Math.floor(localLocation.z / worldSize.z * worldDepthResolutionP1.y) * worldDepthResolutionP1.x;
+        // const ethersIndex = Math.floor(localLocation.x / worldSize.x * worldDepthResolutionP1.x) +
+          // Math.floor(localLocation.z / worldSize.z * worldDepthResolutionP1.y) * worldDepthResolutionP1.x;
         // ethers
       }
     }
