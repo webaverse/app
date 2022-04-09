@@ -974,14 +974,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             //   .premultiply(localQuaternion2.fromArray(v3).invert())
             //   .premultiply(localQuaternion2.fromArray(v2));
 
-            if (isCombo) {
-              // do nothing: localQuaternion2 already pure combo animation
-            } else { // lerp legs between sword and walk/run by idleWalkFactor.
-              localQuaternion2.slerp(dst, moveFactors.idleWalkFactor);
-            }
+            if (moveFactors.crouchFactor === 0) {
+              if (isCombo) {
+                // do nothing: localQuaternion2 already pure combo animation
+              } else { // lerp legs between sword and walk/run by idleWalkFactor.
+                localQuaternion2.slerp(dst, moveFactors.idleWalkFactor);
+              }
+              // now localQuaternion2 is full combo animation ( which already processed legs )
 
-            // lerp full combo animation ( which already processed legs ) when start combo.
-            dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
+              // lerp default animation and combo animation when start combo.
+              dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
+            } else { // when crouch, only apply combo to isCombo bones ( arms with a little upper spines ).
+              if (isCombo) {
+                dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
+              }
+            }
           } else {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
@@ -998,14 +1005,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             //   .sub(localVector3)
             //   .add(localVector2);
 
-            if (isCombo) {
-              // do nothing: localVector2 already pure combo animation
-            } else { // lerp legs between sword and walk/run by idleWalkFactor.
-              localVector2.lerp(dst, moveFactors.idleWalkFactor);
-            }
+            if (moveFactors.crouchFactor === 0) {
+              if (isCombo) {
+                // do nothing: localVector2 already pure combo animation
+              } else { // lerp legs between sword and walk/run by idleWalkFactor.
+                localVector2.lerp(dst, moveFactors.idleWalkFactor);
+              }
+              // now localVector2 is full combo animation ( which already processed legs )
 
-            // lerp full combo animation ( which already processed legs ) when start combo.
-            dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
+              // lerp default animation and combo animation when start combo.
+              dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
+            } else { // when crouch, only apply combo to isCombo bones ( arms with a little upper spines ).
+              if (isCombo) {
+                dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
+              }
+            }
           }
         }
       };
