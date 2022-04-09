@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip, DepthStencilFormat} from 'three';
+import {Vector3, Quaternion, AnimationClip} from 'three';
 import metaversefile from 'metaversefile';
 import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import easing from '../easing.js';
@@ -158,12 +158,6 @@ const animationsIdleArrays = {
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
-// {
-//   reset: {name: 'reset.fbx', animation: AnimationClip}
-//   walk: {name: 'idle.fbx', animation: AnimationClip}
-//   run: {name: 'idle.fbx', animation: AnimationClip}
-//   crouch: {name: 'Crouch Idle.fbx', animation: AnimationClip}
-// }
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -656,7 +650,7 @@ const _blendFly = spec => {
   const {
     animationTrackName: k,
     dst,
-    isTop,
+    // isTop,
     lerpFn,
   } = spec;
 
@@ -679,7 +673,7 @@ const _blendActivateAction = spec => {
   const {
     animationTrackName: k,
     dst,
-    isTop,
+    // isTop,
     lerpFn,
   } = spec;
 
@@ -792,7 +786,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     const {
       animationTrackName: k,
       dst,
-      isTop,
+      // isTop,
       lerpFn,
       isPosition,
     } = spec;
@@ -805,7 +799,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
         } = spec;
 
         const t2 = activeAvatar.jumpTime / 1000 * 0.6 + 0.7;
@@ -820,7 +814,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
         } = spec;
 
         const sitAnimation = sitAnimations[activeAvatar.sitAnimation || defaultSitAnimation];
@@ -835,7 +829,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
 
@@ -856,7 +850,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           lerpFn,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
 
@@ -885,7 +879,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const {
               animationTrackName: k,
               dst,
-              isTop,
+              // isTop,
             } = spec;
 
             const t2 = (activeAvatar.fallLoopTime/1000) ;
@@ -901,34 +895,29 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             activeAvatar.useAnimationEnvelope.length > 0
     ) {
       return spec => {
-        debugger
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           isCombo,
           isPosition,
         } = spec;
 
-        // debugger
         let useAnimation;
         let t2;
         const useTimeS = activeAvatar.useTime / 1000;
         if (activeAvatar.useAnimation) {
           const useAnimationName = activeAvatar.useAnimation;
-          // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (activeAvatar.useAnimationCombo.length > 0) {
           const useAnimationName = activeAvatar.useAnimationCombo[activeAvatar.useAnimationIndex];
-          // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (activeAvatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
           for (let i = 0; i < activeAvatar.useAnimationEnvelope.length - 1; i++) {
             const animationName = activeAvatar.useAnimationEnvelope[i];
-            // if (animationName.indexOf('pistol') >= 0) debugger;
             const animation = useAnimations[animationName];
             totalTime += animation.duration;
           }
@@ -937,7 +926,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             let animationTimeBase = 0;
             for (let i = 0; i < activeAvatar.useAnimationEnvelope.length - 1; i++) {
               const animationName = activeAvatar.useAnimationEnvelope[i];
-              // if (animationName.indexOf('pistol') >= 0) debugger;
               const animation = useAnimations[animationName];
               if (useTimeS < (animationTimeBase + animation.duration)) {
                 useAnimation = animation;
@@ -949,7 +937,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
             } else { // loop
               const secondLastAnimationName = activeAvatar.useAnimationEnvelope[activeAvatar.useAnimationEnvelope.length - 2];
-              // if (secondLastAnimationName.indexOf('pistol') >= 0) debugger;
               useAnimation = useAnimations[secondLastAnimationName];
               t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
             }
@@ -960,19 +947,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         if (useAnimation) {
           if (!isPosition) {
-            debugger
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localQuaternion2.fromArray(v2);
-
-            // const idleAnimation = _getIdleAnimation('walk');
-            // const t3 = 0;
-            // const src3 = idleAnimation.interpolants[k];
-            // const v3 = src3.evaluate(t3);
-
-            // dst
-            //   .premultiply(localQuaternion2.fromArray(v3).invert())
-            //   .premultiply(localQuaternion2.fromArray(v2));
 
             if (moveFactors.crouchFactor === 0) {
               if (isCombo) {
@@ -995,16 +972,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             localVector2.fromArray(v2);
             _clearXZ(localVector2, isPosition);
 
-            // const idleAnimation = _getIdleAnimation('walk');
-            // const t3 = 0;
-            // const src3 = idleAnimation.interpolants[k];
-            // const v3 = src3.evaluate(t3);
-            // localVector3.fromArray(v3);
-
-            // dst
-            //   .sub(localVector3)
-            //   .add(localVector2);
-
             if (moveFactors.crouchFactor === 0) {
               if (isCombo) {
                 // do nothing: localVector2 already pure combo animation
@@ -1024,12 +991,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.hurtAnimation) {
-      // debugger
       return spec => {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
 
@@ -1067,12 +1033,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.aimAnimation) {
-      // debugger
       return spec => {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
 
@@ -1108,13 +1073,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
-      debugger
       return spec => {
         const {
           animationTrackName: k,
           dst,
           lerpFn,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
 
@@ -1122,7 +1086,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const unuseTimeS = activeAvatar.unuseTime / 1000;
         const unuseAnimationName = activeAvatar.unuseAnimation;
-        // if (unuseAnimationName.indexOf('pistol') >= 0) debugger;
         const unuseAnimation = useAnimations[unuseAnimationName];
         const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
         const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
@@ -1181,7 +1144,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     const {
       animationTrackName: k,
       dst,
-      isTop,
+      // isTop,
       isPosition,
     } = spec;
 

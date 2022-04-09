@@ -398,7 +398,6 @@ const _makeDebugMesh = (avatar) => {
 
 class Avatar {
 	constructor(object, options = {}) {
-    window.avatar = this;
     if (!object) {
       object = {};
     }
@@ -783,7 +782,6 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
-    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -1823,30 +1821,6 @@ class Avatar {
     
 
     _updateHmdPosition();
-    window.domInfo.innerHTML = `
-      <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
-      <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
-      <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
-      <div>chargeJumpState: --- ${this.chargeJumpState}</div>
-      <div>danceState: --- ${this.danceState}</div>
-      <div>fallLoopState: --- ${this.fallLoopState}</div>
-      <div>flyState: --- ${this.flyState}</div>
-      <div>jumpState: --- ${this.jumpState}</div>
-      <div>narutoRunState: --- ${this.narutoRunState}</div>
-      <div>sitState: --- ${this.sitState}</div>
-      <div>aimAnimation: --- ${this.aimAnimation}</div>
-      <div>danceAnimation: --- ${this.danceAnimation}</div>
-      <div>hurtAnimation: --- ${this.hurtAnimation}</div>
-      <div>poseAnimation: --- ${this.poseAnimation}</div>
-      <div>sitAnimation: --- ${this.sitAnimation}</div>
-      <div>useAnimation: --- ${this.useAnimation}</div>
-      <div>useAnimationCombo: --- ${this.useAnimationCombo}</div>
-      <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
-      <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
-      <div>useTime: --- ${Math.floor(this.useTime)}</div>
-      <div>unuseAnimation: --- ${this.unuseAnimation}</div>
-      <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
-    `
     _applyAnimation(this, now, moveFactors);
 
     if (this.poseAnimation) {

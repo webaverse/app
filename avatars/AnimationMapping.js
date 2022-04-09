@@ -3,7 +3,7 @@ class AnimationMapping {
     this.animationTrackName = animationTrackName;
     this.boneName = boneName;
     this.isTop = isTop;
-    this.isCombo = isCombo;
+    this.isCombo = isCombo; // arms with a little upper spines
     this.isPosition = isPosition;
   }
 
