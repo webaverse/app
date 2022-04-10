@@ -176,6 +176,10 @@ const _snap = v => {
   v.z = Math.round(v.z);
   return v;
 };
+const _getEtherIndex = worldDepthResolutionP1 => p =>
+  p.x +
+    (worldDepthResolutionP1.x * p.z) +
+    (worldDepthResolutionP1.x * worldDepthResolutionP1.x * p.y);
 const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, depthFloatImageData, ethers) => {
   const worldDepthResolutionP1 = worldDepthResolution.clone().add(new THREE.Vector3(1, 1, 1));
   
@@ -192,6 +196,26 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
   const geometry = new THREE.PlaneBufferGeometry(worldSize.x, worldSize.z, worldDepthResolution.x, worldDepthResolution.y)
     .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(quaternion));
   // const badIndices = {};
+
+  const _isWhole = n => n % 1 === 0;
+  const _isGez = n => n >= 0;
+  const _etherIndex = _getEtherIndex(worldDepthResolutionP1);
+  const _setEther = (p, v) => {
+    if (
+      _isWhole(p.x) && _isWhole(p.y) && _isWhole(p.z) &&
+      _isGez(p.x) && _isGez(p.y) && _isGez(p.z)
+    ) {
+      const index = _etherIndex(p);
+      if (index >= 0 && index < ethers.length) {
+        // console.log('got index', index, p.x, p.y, p.z);
+        ethers[index] = v;
+      } else {
+        debugger;
+      }
+    } else {
+      debugger;
+    }
+  };
   for (let y = 0; y <= worldDepthResolution.y; y++) {
     for (let x = 0; x <= worldDepthResolution.x; x++) {
       const index = y * worldDepthResolutionP1.x + x;
@@ -227,26 +251,6 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
           .multiplyScalar(worldSize.x/worldDepthResolution.x)
           .add(baseWorldPosition); */
 
-        const _isWhole = n => n % 1 === 0;
-        const _isGez = n => n >= 0;
-        const _setEther = (p, v) => {
-          if (
-            _isWhole(p.x) && _isWhole(p.y) && _isWhole(p.z) &&
-            _isGez(p.x) && _isGez(p.y) && _isGez(p.z)
-          ) {
-            const index = p.x +
-              (worldDepthResolutionP1.x * p.z) +
-              (worldDepthResolutionP1.x * worldDepthResolutionP1.x * p.y);
-            if (index >= 0 && index < ethers.length) {
-              // console.log('got index', index, p.x, p.y, p.z);
-              ethers[index] = v;
-            } else {
-              debugger;
-            }
-          } else {
-            debugger;
-          }
-        };
         const localLocation2 = localVector2.copy(localLocation)
           .add(forwardDirection.clone().multiplyScalar(z2));
         const absoluteLocation = localVector3.copy(localLocation2)
