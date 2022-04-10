@@ -39,8 +39,8 @@ class AppManager extends EventTarget {
     // this.pushingLocalUpdates = false;
     this.unbindStateFn = null;
     this.trackedAppUnobserveMap = new Map();
-
-    this.bindState(appsArray);
+    // we were binding state here, but we don't want that since it causes remote player isomorphism problems
+    // this.bindState(appsArray);
     this.bindEvents();
 
     appManagers.push(this);
@@ -79,7 +79,7 @@ class AppManager extends EventTarget {
   bindState(nextAppsArray) {
     this.unbindState();
 
-    if (nextAppsArray) {
+    if (!nextAppsArray) return
       const observe = (e) => {
         const { added, deleted } = e.changes;
 
@@ -165,7 +165,6 @@ class AppManager extends EventTarget {
       this.unbindStateFn = () => {
         nextAppsArray.unobserve(observe);
       };
-    }
     this.appsArray = nextAppsArray;
   }
   loadApps() {
@@ -673,20 +672,24 @@ class AppManager extends EventTarget {
               localQuaternion,
               localVector2
             );
-            // const packed = this.packed
-            // const pack = (v, i) => {
-            //   packed[i] = v.x;
-            //   packed[i + 1] = v.y;
-            //   packed[i + 2] = v.z;
-            //   if(v.w) packed[i + 3] = v.w;
-            // };
-
-            // pack(localVector, 0);
-            // pack(localQuaternion, 3);
-            // pack(localVector2, 7);
-            // trackedApp.set('transform', packed);
 
             app.updateMatrixWorld();
+            const packed = this.packed
+            const pack3 = (v, i) => {
+              packed[i] = v.x;
+              packed[i + 1] = v.y;
+              packed[i + 2] = v.z;
+            };
+            const pack4 = (v, i) => {
+              packed[i] = v.x;
+              packed[i + 1] = v.y;
+              packed[i + 2] = v.z;
+              packed[i + 3] = v.w;
+            };
+            pack3(localVector, 0);
+            pack4(localQuaternion, 3);
+            pack3(localVector2, 7);        
+            trackedApp.set('transform', packed);
           }
         };
         _updateTrackedApp();
@@ -725,6 +728,51 @@ class AppManager extends EventTarget {
 
         app.lastMatrix.copy(app.matrix);
       }
+    }
+  }
+  updateRemote() {
+    for (const app of this.apps) {
+        const _updateTrackedApp = () => {
+          console.log("updating tracked app", app)
+          // note: not all apps are tracked in multiplayer. for those that are, we push the transform update here.
+          const trackedApp = this.getTrackedApp(app.instanceId);
+          const transform = trackedApp.get('transform');
+          if(transform){
+            app.position.fromArray(transform, 0);
+            app.quaternion.fromArray(transform, 3);
+            app.scale.fromArray(transform, 7);
+          }
+        };
+        _updateTrackedApp();
+
+        const _updatePhysicsObjects = () => {
+          // update attached physics objects with a relative transform
+          const physicsObjects = app.getPhysicsObjects();
+          if (physicsObjects.length > 0) {
+            const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
+
+            for (const physicsObject of physicsObjects) {
+              if (!physicsObject.detached) {
+                physicsObject.matrix
+                  .premultiply(lastMatrixInverse)
+                  .premultiply(app.matrix)
+                  .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
+                physicsObject.matrixWorld.copy(physicsObject.matrix);
+                for (const child of physicsObject.children) {
+                  child.updateMatrixWorld();
+                }
+
+                physicsManager.setTransform(physicsObject);
+                physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
+              }
+            }
+          }
+        };
+        _updatePhysicsObjects();
+
+        app.lastMatrix.copy(app.matrix);
+        app.updateMatrixWorld()
+
     }
   }
   exportJSON() {
