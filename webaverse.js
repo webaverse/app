@@ -84,6 +84,7 @@ export default class Webaverse extends EventTarget {
       ]);
     })();
     this.contentLoaded = false;
+    this.appManager = world.appManager;
   }
   
   waitForLoad() {
@@ -294,11 +295,12 @@ export default class Webaverse extends EventTarget {
 
         performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
+          if(!this.contentLoaded) return
           ioManager.update(timeDiffCapped);
           // this.injectRigInput();
           
           const localPlayer = metaversefileApi.useLocalPlayer();
-          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
+          if (physicsManager.getPhysicsEnabled()) {
             physicsManager.simulatePhysics(timeDiffCapped);
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
@@ -310,6 +312,7 @@ export default class Webaverse extends EventTarget {
           playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
+          localPlayer.appManager.tick(timestamp, timeDiffCapped, frame);
 
           mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
@@ -318,8 +321,19 @@ export default class Webaverse extends EventTarget {
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
 
-          game.pushAppUpdates();
-          game.pushPlayerUpdates(timeDiffCapped);
+          // game.pushAppUpdates();
+          // game.pushPlayerUpdates(timeDiffCapped);
+
+          // TODO: This is brought in from multiplayer fixes-- verify that it's still needed
+          // We commented out above too
+          world.appManager.pushAppUpdates();
+          localPlayer.pushPlayerUpdates(timeDiff);
+          // localPlayer.appManager.updateRemote();
+
+          // const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
+          // for (const remotePlayer of remotePlayers) {
+          //   remotePlayer.appManager.updateRemote();
+          // }
 
           const session = renderer.xr.getSession();
           const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
