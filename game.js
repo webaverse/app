@@ -1489,7 +1489,9 @@ class GameManager extends EventTarget {
 
   }
   isMovingBackward() {
-    return ioManager.keysDirection.z > 0 && this.isAiming();
+    // return ioManager.keysDirection.z > 0 && this.isAiming();
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    return localPlayer.avatar.direction.z > 0;
   }
   isAiming() {
     return metaversefileApi.useLocalPlayer().hasAction('aim');
