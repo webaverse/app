@@ -495,6 +495,10 @@ const triplanarMaterial = new WebaverseShaderMaterial({
   },
   vertexShader: triplanarVertexShader,
   fragmentShader: triplanarFragmentShader,
+
+  clipping: false,
+  fog: false,
+  lights: false,
 });
 export function snapshotMapChunk(
   scene,
