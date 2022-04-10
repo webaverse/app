@@ -370,6 +370,66 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
     }
   } */
 
+  const _initializeSides = () => {
+    const v = 1;
+
+    // left
+    {
+      const x = 0;
+      for (let z = 0; z < worldDepthResolutionP1.x; z++) {
+        for (let y = 0; y < worldDepthResolutionP1.x; y++) {
+          _setEther(localVector.set(x, y, z), v);
+        }
+      }
+    }
+    // right
+    {
+      const x = worldDepthResolution.x;
+      for (let z = 0; z < worldDepthResolutionP1.x; z++) {
+        for (let y = 0; y < worldDepthResolutionP1.x; y++) {
+          _setEther(localVector.set(x, y, z), v);
+        }
+      }
+    }
+    // down
+    {
+      const y = 0;
+      for (let x = 0; x < worldDepthResolutionP1.x; x++) {
+        for (let z = 0; z < worldDepthResolutionP1.x; z++) {
+          _setEther(localVector.set(x, y, z), v);
+        }
+      }
+    }
+    // up
+    {
+      const y = worldDepthResolution.x;
+      for (let x = 0; x < worldDepthResolutionP1.x; x++) {
+        for (let z = 0; z < worldDepthResolutionP1.x; z++) {
+          _setEther(localVector.set(x, y, z), v);
+        }
+      }
+    }
+    // forward
+    {
+      const z = 0;
+      for (let x = 0; x < worldDepthResolutionP1.x; x++) {
+        for (let y = 0; y < worldDepthResolutionP1.x; y++) {
+          _setEther(localVector.set(x, y, z), v);
+        }
+      }
+    }
+    // backward
+    {
+      const z = worldDepthResolution.x;
+      for (let x = 0; x < worldDepthResolutionP1.x; x++) {
+        for (let y = 0; y < worldDepthResolutionP1.x; y++) {
+          _setEther(localVector.set(x, y, z), v);
+        }
+      }
+    }
+  };
+  _initializeSides();
+
   const dims = [worldDepthResolutionP1.x, worldDepthResolutionP1.x, worldDepthResolutionP1.x];
   const shift = [0, 0, 0];
   const scale = new THREE.Vector3().setScalar(worldSize.x / worldDepthResolution.x).toArray();
