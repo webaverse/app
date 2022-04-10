@@ -517,7 +517,9 @@ export function snapshotMapChunk(
         renderer.clear();
         scene.overrideMaterial = overrideMaterial;
 
-        const pop = renderSettingsManager.push(scene);
+        const pop = renderSettingsManager.push(scene, undefined, {
+          fog: false,
+        });
         // scene.fog = null;
         renderer.render(scene, camera);
         pop();
