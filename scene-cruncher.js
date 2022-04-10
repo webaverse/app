@@ -615,6 +615,11 @@ export function snapshotMapChunk(
       depthMaterial.uniforms.cameraFar.value = cameraFar;
       depthMaterial.uniforms.cameraFar.needsUpdate = true;
       depthFloatImageData = floatImageData(_renderOverrideMaterial(depthRenderTarget, depthMaterial, worldDepthResolutionP1));
+      for (let i = 0; i < depthFloatImageData.length; i++) {
+        if (depthFloatImageData[i] === cameraNear) {
+          depthFloatImageData[i] = -cameraFar;
+        }
+      }
 
       popState();
     }
