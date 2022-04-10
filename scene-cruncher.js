@@ -664,6 +664,7 @@ export function snapshotMapChunk(
     mesh.geometry.depthFloatImageData = depthFloatImageData;
 
     const material2 = triplanarMaterial.clone();
+    material2.freeze(triplanarMaterial.programCacheKey.bind(triplanarMaterial));
     material2.uniforms.uColor.value = colorTex;
     material2.uniforms.uColor.needsUpdate = true;
     material2.uniforms.uSize.value.setScalar(worldSize.x);
