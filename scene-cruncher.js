@@ -814,7 +814,7 @@ export function snapshotMapChunk(
   const object = new THREE.Object3D();
   // object.add(topMesh[0]);
   object.add(topMesh[1]);
-  object.add(topMesh[2]);
+  // object.add(topMesh[2]);
   object.updateMatrixWorld();
   // console.log('got top mesh', topMesh);
   window.topMesh = topMesh;
