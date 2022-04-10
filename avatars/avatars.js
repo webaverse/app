@@ -1846,7 +1846,8 @@ class Avatar {
       <div>poseAnimation: --- ${this.poseAnimation}</div>
       <div>sitAnimation: --- ${this.sitAnimation}</div>
       <div>useAnimation: --- ${this.useAnimation}</div>
-      <div>useAnimationCombo: --- ${this.useAnimationCombo}</div>
+      <div>useAnimationCombo: --- </div>
+      <div>${this.useAnimationCombo}&nbsp;</div>
       <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
       <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
       <div>unuseAnimation: --- ${this.unuseAnimation}</div>

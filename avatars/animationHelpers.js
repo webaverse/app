@@ -901,7 +901,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             activeAvatar.useAnimationEnvelope.length > 0
     ) {
       return spec => {
-        debugger
+        // debugger
         const {
           animationTrackName: k,
           dst,
@@ -960,7 +960,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         if (useAnimation) {
           if (!isPosition) {
-            debugger
+            // debugger
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localQuaternion2.fromArray(v2);
@@ -1126,7 +1126,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
-      debugger
+      // debugger
       return spec => {
         const {
           animationTrackName: k,
