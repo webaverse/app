@@ -124,9 +124,8 @@ export const Inventory = () => {
     };
     const onMouseDown = object => () => {
         setSelectObject(selectObject !== object ? object : null);
-        /* setTimeout(() => {
-            setSelectObject(null);
-        }, 2000); */
+
+        game.renderCard(object);
     };
     const onDragStart = object => e => {
         e.dataTransfer.setData('application/json', JSON.stringify(object));
