@@ -905,7 +905,7 @@ metaversefile.setApi({
         onWaitPromise(p);
       }
     }
-    
+
     return app;
   },
   createApp(spec) {
