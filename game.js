@@ -27,6 +27,7 @@ import metaversefileApi from './metaversefile-api.js';
 // import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
+import { localPlayer } from './players.js';
 // import soundManager from './sound-manager.js';
 
 // const {contractNames} = metaversefileConstants;
@@ -1491,7 +1492,8 @@ class GameManager extends EventTarget {
 
   }
   isMovingBackward() {
-    return ioManager.keysDirection.z > 0 && this.isAiming();
+    // return ioManager.keysDirection.z > 0 && this.isAiming();
+    return localPlayer.avatar.direction.z > 0;
   }
   isAiming() {
     return metaversefileApi.useLocalPlayer().hasAction('aim');
