@@ -457,4 +457,6 @@ const crunchAvatarModel = (model, options = {}) => {
   return crunchedModel;
 };
 
-export {crunchAvatarModel};
+export {
+  crunchAvatarModel,
+};
