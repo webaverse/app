@@ -26,6 +26,7 @@ import JSON6 from 'json-6';
 import * as geometries from './geometries.js';
 import * as materials from './materials.js';
 import meshLodManager from './mesh-lodder.js';
+import * as avatarOptimizer from './avatar-optimizer.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
@@ -447,6 +448,9 @@ metaversefile.setApi({
   },
   useVoices() {
     return voices;
+  },
+  useAvatarOptimizer() {
+    return avatarOptimizer;
   },
   useAvatarCruncher() {
     return avatarCruncher;
