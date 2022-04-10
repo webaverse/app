@@ -1878,12 +1878,8 @@ export default () => {
             opacity: 0.5,
             blending: THREE.AdditiveBlending,
             side: THREE.DoubleSide,
-
-            clipping: false,
-            fog: false,
-            lights: false,
         });
-        particleMaterial.freeze();
+        // particleMaterial.freeze();
         function addInstancedMesh() {
             mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), particleMaterial, particleCount);
             group.add(mesh);
@@ -2031,12 +2027,8 @@ export default () => {
             opacity: 0.5,
             blending: THREE.AdditiveBlending,
             side: THREE.DoubleSide,
-
-            clipping: false,
-            fog: false,
-            lights: false,
         });
-        particleMaterial.freeze();
+        // particleMaterial.freeze();
         function addInstancedMesh() {
             mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), particleMaterial, particleCount);
             group.add(mesh);
