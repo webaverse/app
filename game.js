@@ -1493,7 +1493,7 @@ class GameManager extends EventTarget {
   }
   isMovingBackward() {
     // return ioManager.keysDirection.z > 0 && this.isAiming();
-    return localPlayer.avatar.direction.z > 0;
+    return localPlayer.avatar.direction.z > 0.1; // check > 0 will cause glitch when move left/right;
   }
   isAiming() {
     return metaversefileApi.useLocalPlayer().hasAction('aim');

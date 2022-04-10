@@ -1825,6 +1825,7 @@ class Avatar {
     
 
     _updateHmdPosition();
+    // console.log(avatar.direction)
     window.domInfo.innerHTML = `
       <div>keysDirection: --- ${window.logVector3(ioManager.keysDirection)}</div>
       <div>avatar.direction: --- ${window.logVector3(avatar.direction)}</div>
