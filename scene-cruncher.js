@@ -257,15 +257,27 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
           .multiplyScalar(worldSize.x / worldDepthResolution.x)
           .add(baseWorldPosition);
         cubePositions.push(absoluteLocation.clone());
+        
         for (let dz = worldDepthResolution.x; dz >= 0; dz--) {
-          const localLocation2 = localVector2.copy(localLocation)
-            .add(forwardDirection.clone().multiplyScalar(dz));
-          if (dz > z2) {
-            // const g = baseGeometry.clone(); 
-            // g.translate(absolutelocation.x, absolutelocation.y, absolutelocation.z);
-            // geometries.push(g);
-            _setEther(_snap(localLocation2), 1);
+          if (dz > z2) { // empty
+            const localLocation2 = localVector2.copy(localLocation)
+              .add(forwardDirection.clone().multiplyScalar(dz));
+            _setEther(localLocation2, 1);
           } else {
+            const lastDz = dz + 1;
+            if (lastDz >= 0) {
+              const factor = lastDz - z2;
+              if (factor <= 0.5) { // first half of the cube; adjust from
+                const localLocation2 = localVector2.copy(localLocation)
+                  .add(forwardDirection.clone().multiplyScalar(lastDz));
+                _setEther(localLocation2, factor/0.5);
+              } else { // second half of the cube; adjust to
+                const factor2 = 1 - factor;
+                const localLocation2 = localVector2.copy(localLocation)
+                  .add(forwardDirection.clone().multiplyScalar(dz));
+                _setEther(localLocation2, -factor2/0.5);
+              }
+            }
             break;
           }
         }
