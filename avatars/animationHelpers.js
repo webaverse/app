@@ -40,6 +40,7 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
+import gameManager from '../game.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -901,7 +902,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             activeAvatar.useAnimationEnvelope.length > 0
     ) {
       return spec => {
-        // debugger
+        debugger
         const {
           animationTrackName: k,
           dst,
@@ -918,11 +919,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const useAnimationName = activeAvatar.useAnimation;
           // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
+          if (useTimeS > useAnimation.duration) gameManager.menuEndUse();
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (activeAvatar.useAnimationCombo.length > 0) {
           const useAnimationName = activeAvatar.useAnimationCombo[activeAvatar.useAnimationIndex];
           // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
+          if (useTimeS > useAnimation.duration) gameManager.menuEndUse();
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (activeAvatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
@@ -946,6 +949,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               animationTimeBase += animation.duration;
             }
             if (useAnimation !== undefined) { // first iteration
+              if (useTimeS > useAnimation.duration) gameManager.menuEndUse();
               t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
             } else { // loop
               const secondLastAnimationName = activeAvatar.useAnimationEnvelope[activeAvatar.useAnimationEnvelope.length - 2];
