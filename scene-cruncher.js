@@ -586,7 +586,10 @@ export function snapshotMapChunk(
       const _renderOverrideMaterial = (renderTarget, overrideMaterial, wp1) => {
         renderer.setViewport(0, 0, wp1.x, wp1.y);
         renderer.setRenderTarget(renderTarget);
+        // const oldClear = renderer.state.buffers.depth.getClear();
+        // renderer.state.buffers.depth.setClear(1);
         renderer.clear();
+        // renderer.state.buffers.depth.setClear(oldClear);
         scene.overrideMaterial = overrideMaterial;
 
         const pop = renderSettingsManager.push(scene, undefined, {
