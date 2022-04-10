@@ -496,6 +496,7 @@ const createPlayerDiorama = ({
   glyphBackground = false,
   dotsBackground = false,
   autoCamera = true,
+  detached = false,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
@@ -844,9 +845,10 @@ const createPlayerDiorama = ({
       renderer.setClearColor(oldClearColor, oldClearAlpha);
     },
     destroy() {
-      dioramas.splice(dioramas.indexOf(diorama), 1);
-
-      // postProcessing.removeEventListener('update', recompile);
+      const index = dioramas.indexOf(diorama);
+      if (index !== -1) {
+        dioramas.splice(index, 1);
+      }
     },
   };
 
@@ -869,7 +871,9 @@ const createPlayerDiorama = ({
     player.addEventListener('avatarchange', avatarchange);
   } */
 
-  dioramas.push(diorama);
+  if (!detached) {
+    dioramas.push(diorama);
+  }
   return diorama;
 };
 
