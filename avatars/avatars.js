@@ -24,6 +24,7 @@ import {
   // avatarInterpolationNumFrames,
 } from '../constants.js';
 // import {FixedTimeStep} from '../interpolants.js';
+import * as avatarOptimizer from '../avatar-optimizer.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
@@ -1429,7 +1430,9 @@ class Avatar {
         break;
       }
       case 3: {
-        console.log('not implemented'); // XXX
+        const optimizedModel = avatarOptimizer.optimizeAvatarModel(this.model);
+        console.log('optimized model', optimizedModel); // XXX
+        
         this.model.visible = true;
         break;
       }
