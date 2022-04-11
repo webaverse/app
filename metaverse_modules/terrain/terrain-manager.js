@@ -81,6 +81,8 @@ export class TerrainManager {
 		buf.indexFreeRanges = [{ offset: totalIndexCount, size: maxIndexCount - totalIndexCount }];
 
 		this._generateBuffers();
+
+		this.chunkGenerated = true;
 	}
 
 	_makeRanges(buffer) {
@@ -259,9 +261,14 @@ export class TerrainManager {
 		// this.currentChunks = this.currentChunks.filter(chunk => this.targetChunkIds.includes(chunk.chunkId));
 
 		if (!!chunkIdToAdd) {
-			if (buf.vertexRanges.byteLength === 0) {
+
+			if (!this.chunkGenerated) {
 				return;
 			}
+
+			// if (buf.vertexRanges.byteLength === 0) {
+			// 	return;
+			// }
 
 			let gridId = chunkIdToAdd.split(':');
 
@@ -294,6 +301,8 @@ export class TerrainManager {
 
 			// 	this.onAddChunk(chunkIdToAdd);
 			// });
+
+			this.chunkGenerated = false;
 
 			this.geometryUtils.generateChunk(
 				gridId[0] * this.chunkSize, gridId[1] * this.chunkSize, gridId[2] * this.chunkSize,
@@ -329,8 +338,8 @@ export class TerrainManager {
 
 				this.currentChunks.push({ slots: [vertexSlot, indexSlot], chunkId: chunkIdToAdd });
 				this._updateChunkGeometry([vertexSlot, indexSlot]);
+				this.chunkGenerated = true;
 				// this.onAddChunk(chunkIdToAdd);
-				console.log(">>> chunk geometry in main: ", output);
 			});
 		}
 	}
