@@ -83,7 +83,14 @@ export const generateObjectCard = async ({
   height = 300,
 }) => {
   const stats = generateStats(app.contentId);
-  const {name, description} = app;
+  const {
+    name,
+    description,
+    contentId,
+    appType,
+  } = app;
+  const url = contentId;
+  const type = appType;
 
   let objectImage = await screenshotObjectApp({
     app,
@@ -111,6 +118,8 @@ export const generateObjectCard = async ({
     width,
     name,
     description,
+    url,
+    type,
     objectImage,
     minterUsername,
     minterAvatarPreview,
@@ -124,6 +133,8 @@ export const generateCard = async ({
   width: cardWidth,
   name,
   description,
+  url,
+  type,
   objectImage,
   minterUsername,
   minterAvatarPreview,
@@ -150,6 +161,13 @@ export const generateCard = async ({
     {
       const nameEl = el.querySelector('#name');
       nameEl.innerHTML = name;
+    }
+
+    // type
+    {
+      const typeEl = el.querySelector('#type');
+      // typeEl.innerHTML = `${type}の形式`;
+      typeEl.innerHTML = type.toUpperCase();
     }
 
     // illustrator name
@@ -191,6 +209,12 @@ export const generateCard = async ({
     {
       const illustartorImageEl = el.querySelector('#illustrator-image');
       illustartorImageEl.setAttribute('xlink:href', minterAvatarPreview);
+    }
+
+    // url
+    {
+      const urlEl = el.querySelector('#url');
+      urlEl.innerHTML = url;
     }
 
     /* {
