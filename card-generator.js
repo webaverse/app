@@ -137,30 +137,39 @@ export const generateCard = async ({
   svg.setAttribute('height', cardHeight);
   svg.innerHTML = cardSvgSource;
 
+  // window.svg = svg;
+
   {
     const el = svg;
 
-    const titleTextEl = el.querySelector('#title-text');
-    titleTextEl.innerHTML = name;
+    // name
+    const nameEl = el.querySelector('#name');
+    nameEl.innerHTML = name;
+    
+    // type icon
     for (let i = 0; i < types.length; i++) {
       const type = types[i];
       const typeEl = el.querySelector('#type-' + type);
       typeEl.style.display = type === spec.stats.type ? 'block' : 'none';
     }
+
+    // stat values
     [
+      'level',
       'hp',
       'mp',
-      'attack',
-      'defense',
-      'speed',
-      'luck',
+      'atk',
+      'def',
+      'mag',
+      'spr',
+      'dex',
+      'lck',
     ].forEach(statName => {
-      const statEl = el.querySelector('#' + statName);
-      const texts = statEl.querySelectorAll('text');
-      const textEl = texts[texts.length - 1];
-      textEl.innerHTML = escape(spec.stats[statName] + '');
+      const statEl = el.querySelector('#' + statName + '-value');
+      statEl.innerHTML = escape(spec.stats[statName] + '');
     });
-    {
+
+    /* {
       const imageEl = el.querySelector('#Image image');
       imageEl.setAttribute('xlink:href', objectImage);
     }
@@ -190,7 +199,7 @@ export const generateCard = async ({
       g.id = 'background-' + id;
       const p = g.nextElementSibling;
       p.style = `fill:url(#${g.id});`;
-    }
+    } */
   }
 
   const image = await new Promise((accept, reject) => {
