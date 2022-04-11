@@ -902,7 +902,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             activeAvatar.useAnimationEnvelope.length > 0
     ) {
       return spec => {
-        debugger
+        // debugger
         const {
           animationTrackName: k,
           dst,
@@ -925,7 +925,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const useAnimationName = activeAvatar.useAnimationCombo[activeAvatar.useAnimationIndex];
           // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
-          if (useTimeS > useAnimation.duration) gameManager.menuEndUse();
+          if (useTimeS >= useAnimation.duration) {
+            // debugger 
+            gameManager.menuEndUse();
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                gameManager.menuStartUse();
+              });
+            });
+          }
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (activeAvatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
