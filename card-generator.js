@@ -5,7 +5,7 @@ import {screenshotAvatarUrl} from './avatar-screenshotter.js';
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 // const cardsSvgUrl = `${baseUrl}cards.svg`;
-const cardsSvgUrl = `./images/cards.svg`;
+const cardsSvgUrl = `./images/cards-01.svg`;
 
 let cardSvgSource = null;
 const _loadCachedSvgSource = async () => {
