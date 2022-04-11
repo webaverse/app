@@ -180,18 +180,15 @@ class AppManager extends EventTarget {
     }
   }
   bindTrackedApp(trackedApp, app) {
-    // console.log('bind tracked app', trackedApp.get('instanceId'));
     const _observe = (e, origin) => {
-      if (origin !== 'push') {
-        console.log('e.changes.keys', e.changes.keys);
+      if(origin == 'push') return console.log("push")
+
         if (e.changes.keys.has('transform')) {
-          console.log('updating transform', e, origin);
           const transform = trackedApp.get('transform');
           app.position.fromArray(transform, 0);
           app.quaternion.fromArray(transform, 3);
           app.scale?.fromArray(transform, 7);
           app.transform = transform;
-        }
       }
     };
     trackedApp.observe(_observe);
@@ -225,7 +222,7 @@ class AppManager extends EventTarget {
         scale,
         components: componentsString,
       } = trackedAppJson;
-      console.log("trackedAppJson is", trackedAppJson)
+      // console.log("trackedAppJson is", trackedAppJson)
       const components = JSON.parse(componentsString);
 
       const p = makePromise();
@@ -304,7 +301,7 @@ class AppManager extends EventTarget {
           this.addApp(app);
         }
 
-        this.bindTrackedApp(trackedApp, app);
+       // this.bindTrackedApp(trackedApp, app);
 
         p.accept(app);
       } catch (err) {
@@ -322,11 +319,17 @@ class AppManager extends EventTarget {
       app.destroy();
     });
     this.addEventListener('trackedappimport', async e => {
-      console.log("trackedappimport is", e)
+      // console.log("trackedappimport is", e)
       const {
         instanceId,
         app,
       } = e.data;
+
+      const trackedApp = this.getTrackedApp(instanceId);
+
+      const wear = trackedApp.get('wear')
+
+      this.bindTrackedApp(trackedApp, app);
     
       /* if (!this.apps.includes(app)) {
         this.apps.push(app);
@@ -476,9 +479,6 @@ class AppManager extends EventTarget {
       pack4(quaternion, 3);
       pack3(scale, 7);
 
-      console.log("Position, quaternion", position, quaternion)
-      if(position.x === -95) { console.log("-95")}
-
       self.addTrackedAppInternal(instanceId, contentId, transform, components);
     });
     const p = this.pendingAddPromises.get(instanceId);
@@ -608,9 +608,6 @@ class AppManager extends EventTarget {
           pack3(scale, 7);
         }
 
-        console.log("srcTrackedApp", srcTrackedApp)
-        console.log("transform", transform)
-
         dstTrackedApp = dstAppManager.addTrackedAppInternal(
           instanceId,
           contentId,
@@ -619,7 +616,7 @@ class AppManager extends EventTarget {
         );
       });
 
-      dstAppManager.bindTrackedApp(dstTrackedApp, app);
+      // dstAppManager.bindTrackedApp(dstTrackedApp, app);
     } else {
       throw new Error('cannot transplant apps between app manager with different state binding');
     }
@@ -632,7 +629,7 @@ class AppManager extends EventTarget {
     this.appsArray.doc.transact(() => {
       const contentId = app.contentId;
       const instanceId = app.instanceId;
-      const transform = app.transform.toArray();
+      const transform = app.transform?.toArray();
       const components = app.components.slice();
       
       dstTrackedApp = this.addTrackedAppInternal(
@@ -730,51 +727,7 @@ class AppManager extends EventTarget {
       }
     }
   }
-  updateRemote() {
-    for (const app of this.apps) {
-        const _updateTrackedApp = () => {
-          console.log("updating tracked app", app)
-          // note: not all apps are tracked in multiplayer. for those that are, we push the transform update here.
-          const trackedApp = this.getTrackedApp(app.instanceId);
-          const transform = trackedApp.get('transform');
-          if(transform){
-            app.position.fromArray(transform, 0);
-            app.quaternion.fromArray(transform, 3);
-            app.scale.fromArray(transform, 7);
-          }
-        };
-        _updateTrackedApp();
 
-        const _updatePhysicsObjects = () => {
-          // update attached physics objects with a relative transform
-          const physicsObjects = app.getPhysicsObjects();
-          if (physicsObjects.length > 0) {
-            const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
-
-            for (const physicsObject of physicsObjects) {
-              if (!physicsObject.detached) {
-                physicsObject.matrix
-                  .premultiply(lastMatrixInverse)
-                  .premultiply(app.matrix)
-                  .decompose(physicsObject.position, physicsObject.quaternion, physicsObject.scale);
-                physicsObject.matrixWorld.copy(physicsObject.matrix);
-                for (const child of physicsObject.children) {
-                  child.updateMatrixWorld();
-                }
-
-                physicsManager.setTransform(physicsObject);
-                physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
-              }
-            }
-          }
-        };
-        _updatePhysicsObjects();
-
-        app.lastMatrix.copy(app.matrix);
-        app.updateMatrixWorld()
-
-    }
-  }
   exportJSON() {
     const objects = [];
 
