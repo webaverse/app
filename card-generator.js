@@ -159,8 +159,6 @@ export const generateCard = async ({
   svg.setAttribute('height', cardHeight);
   svg.innerHTML = cardSvgSource;
 
-  // window.svg = svg;
-
   {
     const el = svg;
 
@@ -173,7 +171,6 @@ export const generateCard = async ({
     // type
     {
       const typeEl = el.querySelector('#type');
-      // typeEl.innerHTML = `${type}の形式`;
       typeEl.innerHTML = type.toUpperCase();
     }
 
@@ -227,8 +224,6 @@ export const generateCard = async ({
     // glyph image
     {
       const glyphImageEl = el.querySelector('#glyph-image');
-      // window.glyphImageEl = glyphImageEl;
-      // glyphImageEl.innerHTML = glyphImage;
       glyphImageEl.setAttribute('image-rendering', 'pixelated');
       glyphImageEl.setAttribute('xlink:href', glyphImage);
     }
