@@ -928,11 +928,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           if (useTimeS >= useAnimation.duration) {
             // debugger 
             gameManager.menuEndUse();
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                gameManager.menuStartUse();
-              });
-            });
+            // requestAnimationFrame(() => {
+            //   requestAnimationFrame(() => {
+            //     gameManager.menuStartUse();
+            //   });
+            // });
           }
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (activeAvatar.useAnimationEnvelope.length > 0) {
@@ -1138,6 +1138,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
+      debugger
       // debugger
       return spec => {
         const {

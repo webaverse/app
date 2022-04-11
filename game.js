@@ -384,7 +384,7 @@ const _mousedown = () => {
 };
 const _mouseup = () => {
   const useAction = localPlayer.getAction('use');
-  debugger
+  // debugger
   if (useAction?.animationEnvelope?.length > 0) {
     _endUse();
   }
