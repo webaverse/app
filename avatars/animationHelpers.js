@@ -1085,6 +1085,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _handleDefault(spec);
 
+        if (!activeAvatar.unuseAnimation) return;
+        // Though already checked outter, the codes here will run multiple times equal to bones number.
+        // So will cause error after first bone set `activeAvatar.unuseAnimation = null;` if not check here.
+        // todo: May can extract `activeAvatar.unuseAnimation = null;` and related codes to outter.
+
         const unuseTimeS = activeAvatar.unuseTime / 1000;
         const unuseAnimationName = activeAvatar.unuseAnimation;
         const unuseAnimation = useAnimations[unuseAnimationName];
@@ -1133,7 +1138,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
 
         if (f >= 1) {
-          activeAvatar.useAnimation = '';
+          activeAvatar.unuseAnimation = null;
         }
       };
     }
