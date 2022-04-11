@@ -236,8 +236,6 @@ export class TerrainManager {
     if (chunkIdToAdd) {
       const gridId = chunkIdToAdd.split(':');
 
-      console.log('>>> chunk id: ', chunkIdToAdd);
-
       this.stagedChunkIds.push(chunkIdToAdd);
 
       this.geometryUtils.generateChunk(

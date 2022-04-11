@@ -20,7 +20,6 @@ const geometryUtils = (() => {
         });
         scope.workingFlags[e.data.workerIndex] = false;
       } else if (e.data.message === 'generateChunk') {
-        console.log('>>> done worker: ', e.data.workerIndex);
         scope.resolves[e.data.workerIndex](e.data.output);
         scope.workingFlags[e.data.workerIndex] = false;
       }
@@ -55,8 +54,6 @@ const geometryUtils = (() => {
         reject('no idle worker');
         return;
       }
-
-      console.log('>>> worker index:', idleWorkerIndex);
 
       scope.workingFlags[idleWorkerIndex] = true;
 
