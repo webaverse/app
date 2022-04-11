@@ -79,8 +79,8 @@ export const generateObjectUrlCard = async ({
 };
 export const generateObjectCard = async ({
   app,
-  width,
-  height,
+  width = 300,
+  height = 300,
 }) => {
   const stats = generateStats(app.contentId);
   const {name, description} = app;
