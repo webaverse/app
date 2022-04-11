@@ -806,6 +806,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           isTop,
         } = spec;
 
@@ -817,6 +818,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
+
+        lastDst.copy(dst);
       };
     }
     if (activeAvatar.sitState) {
@@ -824,6 +827,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           isTop,
         } = spec;
 
@@ -842,6 +846,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           isTop,
           isPosition,
         } = spec;
@@ -857,6 +862,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.fromArray(v2);
 
         _clearXZ(dst, isPosition);
+
+        lastDst.copy(dst);
       };
     }
 
@@ -865,6 +872,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           lerpFn,
           isTop,
           isPosition,
@@ -890,6 +898,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           );
 
         _clearXZ(dst, isPosition);
+
+        lastDst.copy(dst);
       };
     }
 
@@ -917,6 +927,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           isTop,
           isCombo,
           isPosition,
@@ -1036,12 +1047,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             }
           }
         }
+
+        lastDst.copy(dst);
       };
     } else if (activeAvatar.hurtAnimation) {
       return spec => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           isTop,
           isPosition,
         } = spec;
@@ -1081,12 +1095,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .sub(localVector2.fromArray(v3))
             .add(localVector2.fromArray(v2));
         }
+
+        lastDst.copy(dst);
       };
     } else if (activeAvatar.aimAnimation) {
       return spec => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           // isTop,
           isArm,
           isPosition,
@@ -1125,12 +1142,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             }
           }
         }
+
+        lastDst.copy(dst);
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
       return spec => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           lerpFn,
           isTop,
           isPosition,
@@ -1196,6 +1216,30 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         if (f >= 1) {
           activeAvatar.unuseAnimation = null;
+        }
+
+        lastDst.copy(dst);
+      };
+    } else if (activeAvatar.unuseTime <= 100) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          lastDst,
+          lerpFn,
+          isTop,
+          isPosition,
+        } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('restoreAnimation');
+        // debugger
+
+        _handleDefault(spec);
+
+        if (!isPosition) {
+          dst.slerp(lastDst, 1 - Math.min(1, activeAvatar.unuseTime / 100));
+        } else {
+          dst.lerp(lastDst, 1 - Math.min(1, activeAvatar.unuseTime / 100));
         }
       };
     }
