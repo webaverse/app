@@ -1687,11 +1687,11 @@ class GameManager extends EventTarget {
   async renderCard(object) { // HACK: this should be moved to a UI component
     const start_url = object?.start_url;
     if (start_url) {
-      console.log('render card 1', start_url);
+      // console.log('render card 1', start_url);
       const cardImg = await generateObjectUrlCard({
         start_url,
       });
-      console.log('render card 2', start_url, cardImg);
+      // console.log('render card 2', start_url, cardImg);
       // const stats = procgen.generateStats();
       /* console.log('render start url', {
         start_url,
