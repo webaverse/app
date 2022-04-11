@@ -19,15 +19,6 @@ const geometryUtils = (() => {
           buffers: e.data.buffers
         });
         scope.workingFlags[e.data.workerIndex] = false;
-      // } else if (e.data.message === 'deallocateChunk') {
-      //   scope.resolves[i]({
-      //     arrays: e.data.arrays
-      //   });
-      // } else if (e.data.message === 'generateAndAllocateChunk') {
-      //   scope.resolves[i]({
-      //     arrays: e.data.arrays,
-      //     slots: e.data.slots
-      //   });
       } else if (e.data.message === 'generateChunk') {
         console.log('>>> done worker: ', e.data.workerIndex);
         scope.resolves[e.data.workerIndex](e.data.output);
@@ -35,7 +26,6 @@ const geometryUtils = (() => {
       }
     }
   }
-  // scope.worker = new Worker('./geometry-utils.worker.js', {type: 'module'});
 
   scope.generateTerrain = async (
     chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam, arrays
@@ -57,49 +47,6 @@ const geometryUtils = (() => {
       scope.resolves[idleWorkerIndex] = resolve;
     });
   }
-
-  // scope.deallocateChunk = async (
-  //   vertexSlot, indexSlot, totalChunkCount,
-  //   chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
-  //   arrays
-  // ) => {
-  //   return new Promise((resolve, reject) => {
-  //     try {
-  //       scope.worker.postMessage({
-  //         message: 'deallocateChunk',
-  //         params: [
-  //           vertexSlot, indexSlot, totalChunkCount, chunkVertexRangeBuffer,
-  //           vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
-  //         ],
-  //         arrays: arrays
-  //       }, arrays.map(a => a.buffer));
-  //     } catch (e) {
-  //       // debugger
-  //     }
-
-  //     scope.resolve = resolve;
-  //   });
-  // }
-
-  // scope.generateAndAllocateChunk = async (
-  //   positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
-  //   chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
-  //   x, y, z, chunkSize, segment, totalChunkCount, arrays
-  // ) => {
-  //   return new Promise((resolve, reject) => {
-  //     scope.worker.postMessage({
-  //       message: 'generateAndAllocateChunk',
-  //       params: [
-  //         positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
-  //         chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
-  //         x, y, z, chunkSize, segment, totalChunkCount,
-  //       ],
-  //       arrays: arrays
-  //     }, arrays.map(a => a.buffer));
-
-  //     scope.resolve = resolve;
-  //   });
-  // }
 
   scope.generateChunk = async (x, y, z, chunkSize, segment) => {
     return new Promise((resolve, reject) => {

@@ -272,7 +272,7 @@ export class TerrainManager {
         this.currentChunks.push({slots: [vertexSlot, indexSlot], chunkId: chunkIdToAdd});
         this.stagedChunkIds = this.stagedChunkIds.filter(id => id !== chunkIdToAdd);
         this._updateChunkGeometry([vertexSlot, indexSlot]);
-        // this.onAddChunk(chunkIdToAdd);
+        this.onAddChunk(chunkIdToAdd);
 
       }, error => {
         console.log(">>> error: ", error);
