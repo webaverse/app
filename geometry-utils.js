@@ -58,7 +58,7 @@ const geometryUtils = (() => {
         });
     }
 
-    scope.generateChunk = async (
+    scope.generateAndAllocateChunk = async (
         positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
         chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
         x, y, z, chunkSize, segment, totalChunkCount, arrays
@@ -66,7 +66,7 @@ const geometryUtils = (() => {
 
         return new Promise((resolve, reject) => {
             scope.worker.postMessage({
-                message: 'generateChunk',
+                message: 'generateAndAllocateChunk',
                 params: [
                     positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
                     chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,

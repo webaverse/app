@@ -221,7 +221,7 @@ export class TerrainManager {
 
 			let gridId = chunkIdToAdd.split(':');
 
-			this.geometryUtils.generateChunk(
+			this.geometryUtils.generateAndAllocateChunk(
 				buf.positionBuffer, buf.normalBuffer, buf.biomeBuffer, buf.indexBuffer,
 				buf.chunkVertexRangeBuffer,
 				buf.vertexFreeRangeBuffer,

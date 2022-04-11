@@ -61,8 +61,8 @@ onmessage = e => {
             arrays: arrays
         }, arrays.map(a => a.buffer));
 
-    } else if (e.data.message === 'generateChunk') {
-        const slots = generateChunk(...e.data.params);
+    } else if (e.data.message === 'generateAndAllocateChunk') {
+        const slots = generateAndAllocateChunk(...e.data.params);
 
         let [
             positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
@@ -194,13 +194,13 @@ function deallocateChunk(
     );
 }
 
-function generateChunk(
+function generateAndAllocateChunk(
     positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
     chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
     x, y, z, chunkSize, segment, totalChunkCount
 ) {
 
-    let slotsPtr = moduleInstance._generateChunk(
+    let slotsPtr = moduleInstance._generateAndAllocateChunk(
         positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
         chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
         x, y, z, chunkSize, segment, totalChunkCount
