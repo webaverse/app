@@ -27,7 +27,9 @@ const _waitForAllCardFonts = () => Promise.all([
   'FuturaLT-Book',
 ]
 .map(fontFamily => document.fonts.load(`16px "${fontFamily}"`)))
-.then(() => {});
+.catch(err => {
+  console.warn(err);
+});
 
 const _getCanvasBlob = canvas => new Promise(function(resolve, reject) {
   canvas.toBlob(blob => {
