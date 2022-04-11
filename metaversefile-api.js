@@ -59,12 +59,13 @@ class App extends THREE.Object3D {
 
     this.isApp = true;
     this.components = [];
+    this.description = '';
+    this.appType = '';
     this.modules = [];
     this.modulesHash = 0;
     // cleanup tracking
     this.physicsObjects = [];
     this.hitTracker = null;
-    this.appType = 'none';
     this.hasSubApps = false;
     this.lastMatrix = new THREE.Matrix4();
 
