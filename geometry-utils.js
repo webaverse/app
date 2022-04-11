@@ -7,11 +7,13 @@ const geometryUtils = (() => {
     scope.worker.onmessage = e => {
 
         if (e.data.message === 'generateTerrain') {
-            scope.resolve({arrays: e.data.arrays, buffers: e.data.buffers });
+            scope.resolve({positionCount: e.data.positionCount, indexCount: e.data.indexCount, arrays: e.data.arrays, buffers: e.data.buffers });
         } else if (e.data.message === 'deallocateChunk') {
             scope.resolve({ arrays: e.data.arrays });
-        } else if (e.data.message === 'generateChunk') {
+        } else if (e.data.message === 'generateAndAllocateChunk') {
             scope.resolve({ arrays: e.data.arrays, slots: e.data.slots });
+        } else if (e.data.message === 'generateChunk') {
+            scope.resolve(e.data.output);
         }
     }
 
@@ -77,6 +79,16 @@ const geometryUtils = (() => {
 
             scope.resolve = resolve;
         });
+    }
+
+    scope.generateChunk = async (x, y, z, chunkSize, segment) => {
+        return new Promise((resolve, reject) => {
+            scope.worker.postMessage({
+                message: 'generateChunk',
+                params: [x, y, z, chunkSize, segment]
+            });
+            scope.resolve = resolve;
+        })
     }
 
     return scope;

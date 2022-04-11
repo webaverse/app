@@ -53,7 +53,7 @@ export default () => {
             }
         };
         // terrainManager.updateCenter(player.position);
-        // terrainManager.updateChunk(); 
+        // terrainManager.updateChunk();
         player.position.y = 150;
     });
 
