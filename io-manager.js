@@ -478,6 +478,16 @@ ioManager.keydown = e => {
       // }
       break;
     }
+    case 69: { // E
+      // if (cameraManager.pointerLockElement) {
+        if (game.canRotate()) {
+          game.menuRotate(-1);
+        } else {
+          game.menuActivateDown();
+        }
+      // }
+      break;
+    }
     case 84: { // T
       e.preventDefault();
       e.stopPropagation();
@@ -493,6 +503,20 @@ ioManager.keydown = e => {
     case 80: { // P
       // game.destroyWorld()
       // game.menuPhysics();
+      break;
+    }
+    case 82: { // R
+      if (cameraManager.pointerLockElement) {
+        if (game.canRotate()) {
+          game.menuRotate(1);
+        } else {
+          game.dropSelectedApp();
+        }
+      } else {
+        // if (!game.dragging) {
+          // _setTransformMode('rotate');
+        // }
+      }
       break;
     }
     case 16: { // shift
@@ -540,6 +564,10 @@ ioManager.keydown = e => {
     case 72: { // H
       const debug = metaversefile.useDebug();
       debug.toggle();
+      break;
+    }
+    case 192: { // tilde
+      game.toggleEditMode();
       break;
     }
   }
