@@ -147,7 +147,7 @@ export const generateCard = async ({
   // console.log('card procgen', {name, description});
 
   const svg = document.createElement('svg');
-  svg.setAttribute('xmlns', "http://www.w3.org/2000/svg");
+  svg.setAttribute('xmlns', `http://www.w3.org/2000/svg`);
   svg.setAttribute('width', cardWidth);
   svg.setAttribute('height', cardHeight);
   svg.innerHTML = cardSvgSource;
