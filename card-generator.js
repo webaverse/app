@@ -225,14 +225,6 @@ export const generateCard = async ({
       descriptionBodyTextEl.innerHTML = lines.slice(1).join('\n');
     }
     {
-      const avatarImageEl = el.querySelector('#avatar-image image');
-      avatarImageEl.setAttribute('xlink:href', minterAvatarPreview);
-    }
-    {
-      const ilustratorTextEl = el.querySelector('#illustrator-text');
-      ilustratorTextEl.innerHTML = minterUsername;
-    }
-    {
       const stopEls = el.querySelectorAll('#Background linearGradient > stop');
       // const c = `stop-color:${spec.art.colors[0]}`;
       stopEls[1].style.cssText = `stop-color:${spec.art.colors[0]}`;
