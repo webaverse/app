@@ -62,6 +62,8 @@ export const screenshotObjectApp = async ({
   app,
   width = 300,
   height = 300,
+  clearColor = 0xFFFFFF,
+  clearAlpha = 1,
 } = {}) => {
   // const {devicePixelRatio: pixelRatio} = window;
 
@@ -92,7 +94,7 @@ export const screenshotObjectApp = async ({
     sideScene.updateMatrixWorld();
 
     // clear
-    renderer.setClearColor(0xffffff, 0);
+    renderer.setClearColor(clearColor, clearAlpha);
     renderer.clear();
 
     // render
