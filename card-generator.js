@@ -31,14 +31,22 @@ const _waitForAllCardFonts = () => Promise.all([
   console.warn(err);
 });
 
-const _getCanvasBlob = canvas => new Promise(function(resolve, reject) {
+const _getCanvasBlob = canvas => new Promise((resolve, reject) => {
   canvas.toBlob(blob => {
     resolve(blob);
   });
 });
-const _getCanvasUrl = async canvas => {
+const _getBlobDataUrl = async blob => new Promise((resolve, reject) => {
+  const fileReader = new FileReader();
+  fileReader.onload = () => {
+    resolve(fileReader.result);
+  };
+  fileReader.onerror = reject;
+  fileReader.readAsDataURL(blob);
+});
+const _getCanvasDataUrl = async canvas => {
   const blob = await _getCanvasBlob(canvas);
-  const url = URL.createObjectURL(blob);
+  const url = await _getBlobDataUrl(blob);
   return url;
 };
 
@@ -80,12 +88,12 @@ export const generateObjectCard = async ({
   let objectImage = await screenshotObjectApp({
     app,
   });
-  objectImage = await _getCanvasUrl(objectImage);
+  objectImage = await _getCanvasDataUrl(objectImage);
 
   let minterAvatarPreview = await screenshotAvatarUrl({
     start_url: `./avatars/4205786437846038737.vrm`,
   });
-  minterAvatarPreview = await _getCanvasUrl(minterAvatarPreview);
+  minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
 
   // _previewImage(minterAvatarPreview, width, height);
   const minterUsername = 'Scillia';
@@ -98,21 +106,17 @@ export const generateObjectCard = async ({
     minterUsername,
     minterAvatarPreview,
   });
-  // try {
-    const cardImg = await generateCard({
-      stats,
-      width,
-      name,
-      description,
-      objectImage,
-      minterUsername,
-      minterAvatarPreview,
-    });
-    _previewImage(cardImg, width, height);
-    return cardImg;
-  /* } catch (err) {
-    console.warn(err);
-  } */
+  const cardImg = await generateCard({
+    stats,
+    width,
+    name,
+    description,
+    objectImage,
+    minterUsername,
+    minterAvatarPreview,
+  });
+  _previewImage(cardImg, width, height);
+  return cardImg;
 };
 
 export const generateCard = async ({
@@ -143,9 +147,17 @@ export const generateCard = async ({
     const el = svg;
 
     // name
-    const nameEl = el.querySelector('#name');
-    nameEl.innerHTML = name;
-    
+    {
+      const nameEl = el.querySelector('#name');
+      nameEl.innerHTML = name;
+    }
+
+    // illustrator name
+    {
+      const illustratorNameEl = el.querySelector('#illustrator-name');
+      illustratorNameEl.innerHTML = minterUsername;
+    }
+
     // type icon
     for (let i = 0; i < types.length; i++) {
       const type = types[i];
@@ -169,11 +181,19 @@ export const generateCard = async ({
       statEl.innerHTML = escape(spec.stats[statName] + '');
     });
 
-    /* {
-      const imageEl = el.querySelector('#Image image');
-      imageEl.setAttribute('xlink:href', objectImage);
-    }
+    // main image
     {
+      const mainImageEl = el.querySelector('#main-image');
+      mainImageEl.setAttribute('xlink:href', objectImage);
+    }
+
+    // illustrator image
+    {
+      const illustartorImageEl = el.querySelector('#illustrator-image');
+      illustartorImageEl.setAttribute('xlink:href', minterAvatarPreview);
+    }
+
+    /* {
       const lines = description.split('\n');
       const descriptionHeaderTextEl = el.querySelector('#description-header-text');
       descriptionHeaderTextEl.innerHTML = lines[0];
