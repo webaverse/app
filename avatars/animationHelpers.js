@@ -808,6 +808,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isTop,
         } = spec;
 
+        if (k === 'mixamorigHips.quaternion') console.log('jumpAnimation');
+        // debugger
+
         const t2 = activeAvatar.jumpTime / 1000 * 0.6 + 0.7;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
@@ -822,6 +825,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           dst,
           isTop,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('sitAnimation');
+        // debugger
 
         const sitAnimation = sitAnimations[activeAvatar.sitAnimation || defaultSitAnimation];
         const src2 = sitAnimation.interpolants[k];
@@ -838,6 +844,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isTop,
           isPosition,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('narutoRunAnimation');
+        // debugger
 
         const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
         const src2 = narutoRunAnimation.interpolants[k];
@@ -859,6 +868,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isTop,
           isPosition,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('danceAnimation');
+        // debugger
 
         _handleDefault(spec);
 
@@ -901,7 +913,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             activeAvatar.useAnimationEnvelope.length > 0
     ) {
       return spec => {
-        // debugger
         const {
           animationTrackName: k,
           dst,
@@ -910,7 +921,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
+        if (k === 'mixamorigHips.quaternion') console.log('useAnimation');
         // debugger
+
         let useAnimation;
         let t2;
         const useTimeS = activeAvatar.useTime / 1000;
@@ -1024,7 +1037,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.hurtAnimation) {
-      // debugger
       return spec => {
         const {
           animationTrackName: k,
@@ -1032,6 +1044,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isTop,
           isPosition,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('hurtAnimation');
+        // debugger
 
         const hurtAnimation = (activeAvatar.hurtAnimation && hurtAnimations[activeAvatar.hurtAnimation]);
         _handleDefault(spec);
@@ -1067,7 +1082,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.aimAnimation) {
-      // debugger
       return spec => {
         const {
           animationTrackName: k,
@@ -1076,6 +1090,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isArm,
           isPosition,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('aimAnimation');
+        // debugger
 
         _handleDefault(spec);
 
@@ -1109,7 +1126,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
-      // debugger
       return spec => {
         const {
           animationTrackName: k,
@@ -1118,6 +1134,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isTop,
           isPosition,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('unuseAnimation');
+        // debugger
 
         _handleDefault(spec);
 
