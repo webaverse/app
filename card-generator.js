@@ -82,7 +82,7 @@ export const generateObjectCard = async ({
   width,
   height,
 }) => {
-  const stats = generateStats(app.id);
+  const stats = generateStats(app.contentId);
   const {name, description} = app;
 
   let objectImage = await screenshotObjectApp({
