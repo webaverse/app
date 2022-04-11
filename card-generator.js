@@ -2,6 +2,7 @@ import metaversefile from 'metaversefile';
 import {generateStats, types} from './procgen/procgen.js';
 import {screenshotObjectApp} from './object-screenshotter.js';
 import {screenshotAvatarUrl} from './avatar-screenshotter.js';
+import {generateGlyph} from './glyph-generator.js';
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 // const cardsSvgUrl = `${baseUrl}cards.svg`;
@@ -102,6 +103,9 @@ export const generateObjectCard = async ({
   });
   minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
 
+  let glyphImage = generateGlyph(url);
+  glyphImage = await _getCanvasDataUrl(glyphImage);
+
   // _previewImage(minterAvatarPreview, width, height);
   const minterUsername = 'Scillia';
   console.log('call generate card', {
@@ -112,6 +116,7 @@ export const generateObjectCard = async ({
     objectImage,
     minterUsername,
     minterAvatarPreview,
+    glyphImage,
   });
   const cardImg = await generateCard({
     stats,
@@ -123,6 +128,7 @@ export const generateObjectCard = async ({
     objectImage,
     minterUsername,
     minterAvatarPreview,
+    glyphImage,
   });
   _previewImage(cardImg, width, height);
   return cardImg;
@@ -138,6 +144,7 @@ export const generateCard = async ({
   objectImage,
   minterUsername,
   minterAvatarPreview,
+  glyphImage,
 } = {}) => {
   const cardSvgSource = await _loadCachedSvgSource();
   await _waitForAllCardFonts();
@@ -215,6 +222,15 @@ export const generateCard = async ({
     {
       const urlEl = el.querySelector('#url');
       urlEl.innerHTML = url;
+    }
+
+    // glyph image
+    {
+      const glyphImageEl = el.querySelector('#glyph-image');
+      // window.glyphImageEl = glyphImageEl;
+      // glyphImageEl.innerHTML = glyphImage;
+      glyphImageEl.setAttribute('image-rendering', 'pixelated');
+      glyphImageEl.setAttribute('xlink:href', glyphImage);
     }
 
     /* {
