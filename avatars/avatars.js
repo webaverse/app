@@ -1866,6 +1866,11 @@ class Avatar {
       <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
       <div>useTime: --- ${Math.floor(this.useTime)}</div>
     `
+    window.domInfo.innerHTML += `<div>localPlayer actions: --- </div>`;
+    localPlayer.getActionsArray().forEach(action => {
+      window.domInfo.innerHTML += `<div>${JSON.stringify(action)}</div>`;
+    })
+
     _applyAnimation(this, now, moveFactors);
 
     if (this.poseAnimation) {

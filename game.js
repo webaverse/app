@@ -422,6 +422,7 @@ const damageMeshOffsetDistance = 1.5;
 let grabUseMesh = null;
 const _gameInit = () => {
   grabUseMesh = metaversefileApi.createApp();
+  window.grabUseMesh = grabUseMesh;
   (async () => {
     await metaverseModules.waitForLoad();
     const {modules} = metaversefileApi.useDefaultModules();

@@ -270,6 +270,7 @@ class PlayerBase extends THREE.Object3D {
   wear(app, {
     loadoutIndex = -1,
   } = {}) {
+    debugger
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -669,6 +670,7 @@ class StatePlayer extends PlayerBase {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
   }
   addAction(action) {
+    if (this === window.s?.localPlayer) debugger;
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);
@@ -889,7 +891,25 @@ class UninterpolatedPlayer extends StatePlayer {
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
     };
+
+    // test
+    // this.actionInterpolants.activate = new Proxy(this.actionInterpolants.activate, {
+    //   set: (obj, prop, newVal) => {
+    //     if (prop === 'fn') debugger;
+    //     obj[prop] = newVal;
+    //     return true;
+    //   }
+    // })
+    // this.actionInterpolants.activate = new Proxy(this.actionInterpolants.activate, {
+    //   set: (obj, prop, newVal) => {
+    //     if (prop === 'value' && newVal !== 0) debugger;
+    //     obj[prop] = newVal;
+    //     return true;
+    //   }
+    // })
+
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
+
 
     this.avatarBinding = {
       position: this.position,
