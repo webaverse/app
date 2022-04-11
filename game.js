@@ -1095,6 +1095,7 @@ class GameManager extends EventTarget {
   constructor() {
     super();
 
+    this.renderLimitMs = 0; // 0 - limit is not set
     this.menuOpen = 0;
     this.gridSnap = 0;
     this.editMode = false;

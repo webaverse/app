@@ -71,7 +71,6 @@ export default class Webaverse extends EventTarget {
   constructor() {
     super();
 
-    this.renderLimitMs = 0; // not limited by default
     this.lastRenderTime = 0;
     this.renderFrame = 0;
     this.loopFrame = 0;
@@ -340,7 +339,7 @@ export default class Webaverse extends EventTarget {
         const timeSinceLastRender = timestamp - this.lastRenderTime;
         this.loopFrame ++;
 
-        if ( timeSinceLastRender >= this.renderLimitMs )  {
+        if ( timeSinceLastRender >= game.renderLimitMs )  {
 
           this.lastRenderTime = timestamp;
           this.renderFrame ++;

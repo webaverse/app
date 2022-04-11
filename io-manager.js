@@ -570,6 +570,30 @@ ioManager.keydown = e => {
       debug.toggle();
       break;
     }
+    case 187: { // + & shift [plus - not on num-pad]
+
+      if ( e.shiftKey ) {
+
+        game.renderLimitMs = game.renderLimitMs || 16.6 * 2; // if not set then set to 30fps
+        game.renderLimitMs = Math.round( 1000 / ( 1000 / game.renderLimitMs + 5 ) ); // +5fps, can be not 100% accurate cause of update/render frame shifted [loop time too long]
+        console.log( `Render limit increased to ${ game.renderLimitMs }ms (${ Math.round( 1000 / game.renderLimitMs ) }fps)` );
+
+      }
+      break;
+
+    }
+    case 189: { // - & shift [minus - not on num-pad]
+
+      if ( e.shiftKey ) {
+
+        game.renderLimitMs = game.renderLimitMs || 16.6 * 2; // if not set then set to 30fps
+        game.renderLimitMs = Math.round( 1000 / ( 1000 / game.renderLimitMs - 5 ) ); // -5fps, can be not 100% accurate cause of update/render frame shifted [loop time too long]
+        console.log( `Render limit decreased to ${ game.renderLimitMs }ms (${ Math.round( 1000 / game.renderLimitMs ) }fps)` );
+
+      }
+      break;
+
+    }
   }
 };
 ioManager.keypress = e => {
