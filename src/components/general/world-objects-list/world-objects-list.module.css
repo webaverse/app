@@ -163,12 +163,15 @@
     width: 80px;
 }
 
-.objectProperties .inputs.rotq input {
-    width: 57px;
-}
-
 .objectProperties .inputs .input {
     width: 50px;
+}
+
+.objectProperties .inputs .rotationEulerOrderSelect {
+    padding: 5px;
+    width: 60px;
+    margin-left: 10px;
+    border: 1px;
 }
 
 .objectProperties .inputs .input + .input {
