@@ -1067,6 +1067,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
+        if (k === 'mixamorigHips.quaternion') console.log('unuseAnimation');
+        // debugger
+
         _handleDefault(spec);
 
         const unuseTimeS = activeAvatar.unuseTime / 1000;
