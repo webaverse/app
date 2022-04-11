@@ -30,6 +30,7 @@ export class TerrainManager {
     this.onRemoveChunks = () => {};
 
     this.renderer = renderer;
+    this.stagedChunkIds = [];
     // this.init();
   }
 
@@ -63,16 +64,6 @@ export class TerrainManager {
     buf.vertexRanges = this._makeRanges(output.arrays[4]);
     buf.indexRanges = this._makeRanges(output.arrays[5]);
 
-    // buf.positionBuffer = output.buffers.positionBuffer,
-    //   buf.normalBuffer = output.buffers.normalBuffer,
-    //   buf.biomeBuffer = output.buffers.biomeBuffer,
-    //   buf.indexBuffer = output.buffers.indexBuffer,
-
-    //   buf.chunkVertexRangeBuffer = this._makeRanges(output.buffers.chunkVertexRangeBuffer);
-    // buf.vertexFreeRangeBuffer = this._makeRanges(output.buffers.vertexFreeRangeBuffer);
-    // buf.chunkIndexRangeBuffer = this._makeRanges(output.buffers.chunkIndexRangeBuffer);
-    // buf.indexFreeRangeBuffer = this._makeRanges(output.buffers.indexFreeRangeBuffer);
-
     let totalVertexCount = 0;
     let totalIndexCount = 0;
     buf.vertexRanges.forEach(r => { totalVertexCount += r.size; });
@@ -88,8 +79,6 @@ export class TerrainManager {
     }];
 
     this._generateBuffers();
-
-    this.chunkGenerated = true;
   }
 
   _makeRanges(buffer) {
@@ -171,8 +160,7 @@ export class TerrainManager {
   }
 
   getInitialChunkMeshes() {
-    return [];
-    // return this.currentChunks.map(chunk => [chunk.chunkId, this.getChunkMesh(chunk.chunkId)]);
+    return this.currentChunks.map(chunk => [chunk.chunkId, this.getChunkMesh(chunk.chunkId)]);
   }
 
   _calculateTargetChunks() {
@@ -225,31 +213,16 @@ export class TerrainManager {
 
     const chunkIdToAdd = this.targetChunkIds.filter(
       id => !this.currentChunks.map(v => v.chunkId).includes(id)
-    ).at(0);
+    ).filter(id => !this.stagedChunkIds.includes(id)).at(0);
 
     if (chunkIdToAdd === undefined) {
       return;
     }
 
-    // if (buf.positions.byteLength === 0) {
-    //   return;
-    // }
-
     const chunksToRemove = this.currentChunks.filter(chunk => !this.targetChunkIds.includes(chunk.chunkId));
 
     for (const chunk of chunksToRemove) {
       if (buf.vertexRanges.byteLength !== 0) {
-        // const output = await this.geometryUtils.deallocateChunk(
-        //  chunk.slots[0], chunk.slots[1], this.chunkCount ** 3,
-        //  buf.chunkVertexRangeBuffer,
-        //  buf.vertexFreeRangeBuffer,
-        //  buf.chunkIndexRangeBuffer,
-        //  buf.indexFreeRangeBuffer,
-        //  [buf.vertexRanges, buf.indexRanges]
-        // );
-
-        // buf.vertexRanges = output.arrays[0];
-        // buf.indexRanges = output.arrays[1];
         buf.vertexFreeRanges = this._freeRangeBuffer(buf.vertexFreeRanges, buf.vertexRanges[chunk.slots[0]]);
         buf.indexFreeRanges = this._freeRangeBuffer(buf.indexFreeRanges, buf.indexRanges[chunk.slots[1]]);
         buf.vertexRanges[chunk.slots[0]] = {offset: -1, size: -1};
@@ -261,47 +234,11 @@ export class TerrainManager {
     // this.currentChunks = this.currentChunks.filter(chunk => this.targetChunkIds.includes(chunk.chunkId));
 
     if (chunkIdToAdd) {
-      if (!this.chunkGenerated) {
-        return;
-      }
-
-      // if (buf.vertexRanges.byteLength === 0) {
-      //  return;
-      // }
-
       const gridId = chunkIdToAdd.split(':');
 
-      // this.geometryUtils.generateAndAllocateChunk(
-      //  buf.positionBuffer, buf.normalBuffer, buf.biomeBuffer, buf.indexBuffer,
-      //  buf.chunkVertexRangeBuffer,
-      //  buf.vertexFreeRangeBuffer,
-      //  buf.chunkIndexRangeBuffer,
-      //  buf.indexFreeRangeBuffer,
-      //  gridId[0] * this.chunkSize, gridId[1] * this.chunkSize, gridId[2] * this.chunkSize,
-      //  this.chunkSize, this.segment, this.chunkCount ** 3,
-      //  [buf.positions, buf.normals, buf.biomes, buf.indices, buf.vertexRanges, buf.indexRanges]
-      // ).then(output => {
-      //  buf.positions = output.arrays[0];
-      //  buf.normals = output.arrays[1];
-      //  buf.biomes = output.arrays[2];
-      //  buf.indices = output.arrays[3];
-      //  buf.vertexRanges = output.arrays[4];
-      //  buf.indexRanges = output.arrays[5];
+      console.log('>>> chunk id: ', chunkIdToAdd);
 
-      //  this.positionAttribute.array = buf.positions;
-      //  this.normalAttribute.array = buf.normals;
-      //  this.biomeAttributeBuffer.array = buf.biomes;
-      //  this.biomeWeightAttributeBuffer.array = buf.biomes;
-      //  this.indexAttribute.array = buf.indices;
-
-      //  this.currentChunks.push({ slots: output.slots, chunkId: chunkIdToAdd });
-
-      //  this._updateChunkGeometry(output.slots);
-
-      //  this.onAddChunk(chunkIdToAdd);
-      // });
-
-      this.chunkGenerated = false;
+      this.stagedChunkIds.push(chunkIdToAdd);
 
       this.geometryUtils.generateChunk(
         gridId[0] * this.chunkSize, gridId[1] * this.chunkSize, gridId[2] * this.chunkSize,
@@ -313,9 +250,6 @@ export class TerrainManager {
         const vertexOffset = buf.vertexFreeRanges[vertexFreeRangeIndex].offset;
         const indexFreeRangeIndex = buf.indexFreeRanges.findIndex(r => r.size > output.indices.length);
         const indexOffset = buf.indexFreeRanges[indexFreeRangeIndex].offset;
-        if (vertexFreeRangeIndex === -1 || indexFreeRangeIndex === -1) {
-          // debugger
-        }
 
         // shift vertex indices
         for (let i = 0; i < output.indices.length; i++) {
@@ -336,9 +270,12 @@ export class TerrainManager {
         buf.indexFreeRanges[indexFreeRangeIndex].size -= output.indexCount;
 
         this.currentChunks.push({slots: [vertexSlot, indexSlot], chunkId: chunkIdToAdd});
+        this.stagedChunkIds = this.stagedChunkIds.filter(id => id !== chunkIdToAdd);
         this._updateChunkGeometry([vertexSlot, indexSlot]);
-        this.chunkGenerated = true;
         // this.onAddChunk(chunkIdToAdd);
+
+      }, error => {
+        console.log(">>> error: ", error);
       });
     }
   }
@@ -354,35 +291,30 @@ export class TerrainManager {
       offset: buf.indexRanges[slots[1]].offset,
       count: buf.indexRanges[slots[1]].size,
     };
-    // this.indexAttribute.needsUpdate = true;
     this.indexAttribute.version++;
 
     this.positionAttribute.updateRange = {
       offset: buf.vertexRanges[slots[0]].offset * 3,
       count: buf.vertexRanges[slots[0]].size * 3,
     };
-    // this.positionAttribute.needsUpdate = true;
     this.positionAttribute.version++;
 
     this.normalAttribute.updateRange = {
       offset: buf.vertexRanges[slots[0]].offset * 3,
       count: buf.vertexRanges[slots[0]].size * 3,
     };
-    // this.normalAttribute.needsUpdate = true;
     this.normalAttribute.version++;
 
     this.biomeAttributeBuffer.updateRange = {
       offset: buf.vertexRanges[slots[0]].offset * 8,
       count: buf.vertexRanges[slots[0]].size * 8,
     };
-    // this.biomeAttribute.needsUpdate = true;
     this.biomeAttributeBuffer.version++;
 
     this.biomeWeightAttributeBuffer.updateRange = {
       offset: buf.vertexRanges[slots[0]].offset * 8,
       count: buf.vertexRanges[slots[0]].size * 8,
     };
-    // this.biomeWeightAttribute.needsUpdate = true;
     this.biomeWeightAttributeBuffer.version++;
 
     this.geometry.clearGroups();

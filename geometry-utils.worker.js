@@ -17,6 +17,7 @@ onmessage = e => {
     arrays[5].set(output.indexRanges);
 
     postMessage({
+      workerIndex: e.data.workerIndex,
       message: 'generateTerrain',
       positionCount: output.positionCount,
       indexCount: output.indexCount,
@@ -32,88 +33,88 @@ onmessage = e => {
         indexFreeRangeBuffer: output.indexFreeRangeBuffer,
       },
     }, arrays.map(a => a.buffer));
-  } else if (e.data.message === 'deallocateChunk') {
-    deallocateChunk(...e.data.params);
+  // } else if (e.data.message === 'deallocateChunk') {
+  //   deallocateChunk(...e.data.params);
 
-    const [
-      vertexSlot, indexSlot, totalChunkCount, chunkVertexRangeBuffer,
-      vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
-    ] = e.data.params;
+  //   const [
+  //     vertexSlot, indexSlot, totalChunkCount, chunkVertexRangeBuffer,
+  //     vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
+  //   ] = e.data.params;
 
-    const arrays = e.data.arrays;
+  //   const arrays = e.data.arrays;
 
-    const vertexRanges = moduleInstance.HEAP32.subarray(
-      chunkVertexRangeBuffer / ELEMENT_BYTES,
-      chunkVertexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
+  //   const vertexRanges = moduleInstance.HEAP32.subarray(
+  //     chunkVertexRangeBuffer / ELEMENT_BYTES,
+  //     chunkVertexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
 
-    const indexRanges = moduleInstance.HEAP32.subarray(
-      chunkIndexRangeBuffer / ELEMENT_BYTES,
-      chunkIndexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
+  //   const indexRanges = moduleInstance.HEAP32.subarray(
+  //     chunkIndexRangeBuffer / ELEMENT_BYTES,
+  //     chunkIndexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
 
-    arrays[0].set(vertexRanges);
-    arrays[1].set(indexRanges);
+  //   arrays[0].set(vertexRanges);
+  //   arrays[1].set(indexRanges);
 
-    postMessage({
-      message: 'deallocateChunk',
-      arrays: arrays
-    }, arrays.map(a => a.buffer));
-  } else if (e.data.message === 'generateAndAllocateChunk') {
-    const slots = generateAndAllocateChunk(...e.data.params);
+  //   postMessage({
+  //     message: 'deallocateChunk',
+  //     arrays: arrays
+  //   }, arrays.map(a => a.buffer));
+  // } else if (e.data.message === 'generateAndAllocateChunk') {
+  //   const slots = generateAndAllocateChunk(...e.data.params);
 
-    const [
-      positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
-      chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
-      x, y, z, chunkSize, segment, totalChunkCount
-    ] = e.data.params;
+  //   const [
+  //     positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
+  //     chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
+  //     x, y, z, chunkSize, segment, totalChunkCount
+  //   ] = e.data.params;
 
-    const arrays = e.data.arrays;
+  //   const arrays = e.data.arrays;
 
-    // copy data from wasm memory
+  //   // copy data from wasm memory
 
-    const vertexRanges = moduleInstance.HEAP32.subarray(
-      chunkVertexRangeBuffer / ELEMENT_BYTES,
-      chunkVertexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
+  //   const vertexRanges = moduleInstance.HEAP32.subarray(
+  //     chunkVertexRangeBuffer / ELEMENT_BYTES,
+  //     chunkVertexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
 
-    const indexRanges = moduleInstance.HEAP32.subarray(
-      chunkIndexRangeBuffer / ELEMENT_BYTES,
-      chunkIndexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
+  //   const indexRanges = moduleInstance.HEAP32.subarray(
+  //     chunkIndexRangeBuffer / ELEMENT_BYTES,
+  //     chunkIndexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
 
-    const positions = moduleInstance.HEAPF32.subarray(
-      positionBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 3,
-      positionBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 3 + vertexRanges[2 * slots[0] + 1] * 3
-    );
+  //   const positions = moduleInstance.HEAPF32.subarray(
+  //     positionBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 3,
+  //     positionBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 3 + vertexRanges[2 * slots[0] + 1] * 3
+  //   );
 
-    const normals = moduleInstance.HEAPF32.subarray(
-      normalBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 3,
-      normalBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 3 + vertexRanges[2 * slots[0] + 1] * 3
-    );
+  //   const normals = moduleInstance.HEAPF32.subarray(
+  //     normalBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 3,
+  //     normalBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 3 + vertexRanges[2 * slots[0] + 1] * 3
+  //   );
 
-    const biomes = moduleInstance.HEAPF32.subarray(
-      biomeBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 8,
-      biomeBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 8 + vertexRanges[2 * slots[0] + 1] * 8
-    );
+  //   const biomes = moduleInstance.HEAPF32.subarray(
+  //     biomeBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 8,
+  //     biomeBuffer / ELEMENT_BYTES + vertexRanges[2 * slots[0]] * 8 + vertexRanges[2 * slots[0] + 1] * 8
+  //   );
 
-    const indices = moduleInstance.HEAPU32.subarray(
-      indexBuffer / ELEMENT_BYTES + indexRanges[2 * slots[1]],
-      indexBuffer / ELEMENT_BYTES + indexRanges[2 * slots[1]] + indexRanges[2 * slots[1] + 1]
-    );
+  //   const indices = moduleInstance.HEAPU32.subarray(
+  //     indexBuffer / ELEMENT_BYTES + indexRanges[2 * slots[1]],
+  //     indexBuffer / ELEMENT_BYTES + indexRanges[2 * slots[1]] + indexRanges[2 * slots[1] + 1]
+  //   );
 
-    arrays[0].set(positions, vertexRanges[2 * slots[0]] * 3);
-    arrays[1].set(normals, vertexRanges[2 * slots[0]] * 3);
-    arrays[2].set(biomes, vertexRanges[2 * slots[0]] * 8);
-    arrays[3].set(indices, indexRanges[2 * slots[1]]);
-    arrays[4].set(vertexRanges);
-    arrays[5].set(indexRanges);
+  //   arrays[0].set(positions, vertexRanges[2 * slots[0]] * 3);
+  //   arrays[1].set(normals, vertexRanges[2 * slots[0]] * 3);
+  //   arrays[2].set(biomes, vertexRanges[2 * slots[0]] * 8);
+  //   arrays[3].set(indices, indexRanges[2 * slots[1]]);
+  //   arrays[4].set(vertexRanges);
+  //   arrays[5].set(indexRanges);
 
-    postMessage({
-      message: 'generateAndAllocateChunk',
-      slots: slots,
-      arrays: arrays
-    }, arrays.map(a => a.buffer));
+  //   postMessage({
+  //     message: 'generateAndAllocateChunk',
+  //     slots: slots,
+  //     arrays: arrays
+  //   }, arrays.map(a => a.buffer));
   } else if (e.data.message === 'generateChunk') {
     const output = generateChunk(...e.data.params);
     postMessage(
-      {message: 'generateChunk', output: output},
+      {workerIndex: e.data.workerIndex, message: 'generateChunk', output: output},
       [output.positions.buffer, output.normals.buffer, output.biomes.buffer, output.indices.buffer]
     );
   }
