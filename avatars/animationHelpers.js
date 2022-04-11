@@ -1042,49 +1042,32 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        const aimAnimation = (activeAvatar.aimAnimation && aimAnimations[activeAvatar.aimAnimation]);
         _handleDefault(spec);
-        const t2 = (activeAvatar.aimTime / aimMaxTime) % aimAnimation.duration;
-        if (!isPosition) {
-          if (aimAnimation) {
+
+        const aimAnimation = (activeAvatar.aimAnimation && aimAnimations[activeAvatar.aimAnimation]);
+        if (aimAnimation) {
+          const t2 = (activeAvatar.aimTime / aimMaxTime) % aimAnimation.duration;
+          if (!isPosition) {
             const src2 = aimAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localQuaternion2.fromArray(v2);
 
-            if (moveFactors.crouchFactor === 0) {
-              if (isArm) {
-                // do nothing: localQuaternion2 already pure aim animation
-              } else { // lerp legs between aim and walk/run by idleWalkFactor.
-                localQuaternion2.slerp(dst, moveFactors.idleWalkFactor);
-              }
-              // now localQuaternion2 is full aim animation ( which already processed legs ).
-
-              // lerp default animation and aim animation when start aim.
+            if (isArm) {
+              dst.slerp(localQuaternion2, Math.min(0.5, activeAvatar.aimTime / 50));
+            } else {
+              localQuaternion2.slerp(dst, 0.5 + moveFactors.idleWalkFactor * 0.5);
               dst.slerp(localQuaternion2, Math.min(1, activeAvatar.aimTime / 100));
-            } else { // when crouch, only apply aim to isArm bones.
-              if (isArm) {
-                dst.slerp(localQuaternion2, Math.min(1, activeAvatar.aimTime / 100));
-              }
             }
-          }
-        } else {
-          const src2 = aimAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-          localVector2.fromArray(v2);
-          _clearXZ(localVector2, isPosition);
+          } else {
+            const src2 = aimAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            localVector2.fromArray(v2);
+            _clearXZ(localVector2, isPosition);
 
-          if (moveFactors.crouchFactor === 0) {
             if (isArm) {
-              // do nothing: localVector2 already pure aim animation
-            } else { // lerp legs between aim and walk/run by idleWalkFactor.
-              localVector2.lerp(dst, moveFactors.idleWalkFactor);
-            }
-            // now localVector2 is full aim animation ( which already processed legs ).
-
-            // lerp default animation and aim animation when start aim.
-            dst.lerp(localVector2, Math.min(1, activeAvatar.aimTime / 100));
-          } else { // when crouch, only apply aim to isArm bones.
-            if (isArm) {
+              dst.lerp(localVector2, Math.min(0.5, activeAvatar.aimTime / 50));
+            } else {
+              localVector2.lerp(dst, 0.5 + moveFactors.idleWalkFactor * 0.5);
               dst.lerp(localVector2, Math.min(1, activeAvatar.aimTime / 100));
             }
           }
