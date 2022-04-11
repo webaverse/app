@@ -143,13 +143,13 @@ class PlayerBase extends THREE.Object3D {
     
     this.avatar = null;
     
-    this.appManager = new AppManager({
-      appsMap: null,
-    });
+    this.appManager = new AppManager();
+    
     this.appManager.addEventListener('appadd', e => {
-      console.log("e", e)
+      // console.log("e", e)
       const app = e.data;
       scene.add(app);
+      // console.log("appadd called")
     });
     this.appManager.addEventListener('appremove', e => {
       const app = e.data;
@@ -315,8 +315,8 @@ class PlayerBase extends THREE.Object3D {
         if (world.appManager.hasTrackedApp(app.instanceId)) {
           world.appManager.transplantApp(app, this.appManager);
         } else {
-          // console.warn('need to transplant unowned app', app, world.appManager, this.appManager);
-          // debugger;
+          console.warn('need to transplant unowned app', app, world.appManager, this.appManager);
+          debugger;
         }
       };
       _transplantNewApp();
@@ -1049,10 +1049,6 @@ class LocalPlayer extends UninterpolatedPlayer {
 
   pushPlayerUpdates(timeDiff) {
     this.playersArray.doc.transact(() => {
-      if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
-        debugger;
-      }
-
       const packed = this.packed;
       const pack3 = (v, i) => {
         packed[i] = v.x;

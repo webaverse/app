@@ -321,19 +321,10 @@ export default class Webaverse extends EventTarget {
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
 
-          // game.pushAppUpdates();
-          // game.pushPlayerUpdates(timeDiffCapped);
-
           // TODO: This is brought in from multiplayer fixes-- verify that it's still needed
-          // We commented out above too
           world.appManager.pushAppUpdates();
           localPlayer.pushPlayerUpdates(timeDiff);
-          // localPlayer.appManager.updateRemote();
-
-          // const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
-          // for (const remotePlayer of remotePlayers) {
-          //   remotePlayer.appManager.updateRemote();
-          // }
+          localPlayer.appManager.pushAppUpdates();
 
           const session = renderer.xr.getSession();
           const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
