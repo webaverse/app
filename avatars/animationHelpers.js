@@ -208,6 +208,7 @@ async function loadAnimations() {
 
   animationStepIndices = animationsJson.animationStepIndices;
   animations.index = {};
+  window.animations = animations;
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
