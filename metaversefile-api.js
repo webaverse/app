@@ -186,7 +186,7 @@ class App extends THREE.Object3D {
     });
   }
 }
-class Redirect {
+/* class Redirect {
   constructor({
     src,
     room,
@@ -194,7 +194,7 @@ class Redirect {
     this.src = src;
     this.room = room;
   }
-}
+} */
 
 const defaultModules = {
   moduleUrls,
@@ -1021,9 +1021,9 @@ export default () => {
       return null;
     }
   },
-  createRedirect(opts) {
+  /* createRedirect(opts) {
     return new Redirect(opts);
-  },
+  }, */
   getAvatarHeight(obj) {
     return getHeight(obj);
   },
@@ -1190,9 +1190,8 @@ export default () => {
       _bindDefaultComponents(app);
       
       return app;
-    } else if (renderSpec instanceof Redirect) {
-      console.log('got redirect', renderSpec);
-      debugger;
+    /* } else if (renderSpec instanceof Redirect) {
+      console.log('got redirect', renderSpec); */
     } else if (React.isValidElement(renderSpec)) {
       const o = new THREE.Object3D();
       // o.contentId = contentId;
