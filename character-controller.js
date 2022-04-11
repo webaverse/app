@@ -1235,9 +1235,8 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   
     this.isNpcPlayer = true;
 
-    if (!window.s) window.s = {};
-    if (!window.s.npcPlayers) window.s.npcPlayers = []
-    window.s.npcPlayers.push(this);
+    if (!window.npcPlayers) window.npcPlayers = []
+    window.npcPlayers.push(this);
   }
   setAvatarApp(app) {
     app.toggleBoneUpdates(true);
