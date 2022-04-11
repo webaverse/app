@@ -60,7 +60,7 @@ class App extends THREE.Object3D {
     this.isApp = true;
     this.components = [];
     this.description = '';
-    this.appType = '';
+    this.appType = 'none';
     this.modules = [];
     this.modulesHash = 0;
     // cleanup tracking
@@ -185,15 +185,6 @@ class App extends THREE.Object3D {
     this.dispatchEvent({
       type: 'destroy',
     });
-  }
-}
-class Redirect {
-  constructor({
-    src,
-    room,
-  } = {}) {
-    this.src = src;
-    this.room = room;
   }
 }
 
@@ -1022,9 +1013,6 @@ export default () => {
       return null;
     }
   },
-  createRedirect(opts) {
-    return new Redirect(opts);
-  },
   getAvatarHeight(obj) {
     return getHeight(obj);
   },
@@ -1099,6 +1087,7 @@ export default () => {
 
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
+    app.appType = m.type ?? '';
     app.contentId = m.contentId ?? '';
     if (Array.isArray(m.components)) {
       for (const {key, value} of m.components) {
@@ -1191,9 +1180,6 @@ export default () => {
       _bindDefaultComponents(app);
       
       return app;
-    } else if (renderSpec instanceof Redirect) {
-      console.log('got redirect', renderSpec);
-      debugger;
     } else if (React.isValidElement(renderSpec)) {
       const o = new THREE.Object3D();
       // o.contentId = contentId;
