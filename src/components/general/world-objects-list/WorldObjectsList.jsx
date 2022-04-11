@@ -45,6 +45,7 @@ export const WorldObjectsList = () => {
     const { state, setState, setSelectedApp, selectedApp } = useContext( AppContext );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
     const [ rotationMode, setRotationMode ] = useState( 'euler' );
+    const [ rotationEulerOrder, setRotationEulerOrder ] = useState( 'YXZ' );
     const [ needsUpdate, setNeedsUpdate ] = useState( false );
 
     let [ px, setPx ] = useState( 0 );
@@ -130,6 +131,12 @@ export const WorldObjectsList = () => {
 
     };
 
+    const handleSetRotationEulerOrder = ( event ) => {
+
+        setRotationEulerOrder( event.target.value );
+
+    };
+
     const selectApp = ( targetApp, physicsId, position ) => {
 
         setSelectedApp( targetApp );
@@ -189,7 +196,7 @@ export const WorldObjectsList = () => {
 
         if ( rotationMode === 'euler' ) {
 
-            selectedApp.rotation.set( rex, rey, rez, 'XYZ' );
+            selectedApp.rotation.set( rex, rey, rez, rotationEulerOrder );
 
         } else {
 
@@ -352,13 +359,17 @@ export const WorldObjectsList = () => {
                                 </select>
                                 {
                                     rotationMode === 'euler' ? (
-                                        <div className={ classnames( styles.inputs, styles.rote ) } >
+                                        <div className={ classnames( styles.inputs ) } >
                                             <NumberInput value={ rex } onChange={ handleAppTransformChange.bind( this, 'rex' ) } />
                                             <NumberInput value={ rey } onChange={ handleAppTransformChange.bind( this, 'rey' ) } />
                                             <NumberInput value={ rez } onChange={ handleAppTransformChange.bind( this, 'rez' ) } />
+                                            <select value={ rotationEulerOrder } onChange={ handleSetRotationEulerOrder } className={ styles.rotationEulerOrderSelect } >
+                                                <option value="YXZ">YXZ</option>
+                                                <option value="XYZ">XYZ</option>
+                                            </select>
                                         </div>
                                     ) : (
-                                        <div className={ classnames( styles.inputs, styles.rotq ) } >
+                                        <div className={ classnames( styles.inputs ) } >
                                             <NumberInput value={ rqx } onChange={ handleAppTransformChange.bind( this, 'rqx' ) } />
                                             <NumberInput value={ rqy } onChange={ handleAppTransformChange.bind( this, 'rqy' ) } />
                                             <NumberInput value={ rqz } onChange={ handleAppTransformChange.bind( this, 'rqz' ) } />
