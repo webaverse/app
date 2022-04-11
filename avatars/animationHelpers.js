@@ -1088,7 +1088,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             localQuaternion2.fromArray(v2);
 
             if (isArm) {
-              dst.slerp(localQuaternion2, Math.min(0.5, activeAvatar.aimTime / 50));
+              dst.slerp(localQuaternion2, Math.min(0.5, activeAvatar.aimTime / 100 * 0.5));
             } else {
               localQuaternion2.slerp(dst, 0.5 + moveFactors.idleWalkFactor * 0.5);
               dst.slerp(localQuaternion2, Math.min(1, activeAvatar.aimTime / 100));
@@ -1100,7 +1100,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             _clearXZ(localVector2, isPosition);
 
             if (isArm) {
-              dst.lerp(localVector2, Math.min(0.5, activeAvatar.aimTime / 50));
+              dst.lerp(localVector2, Math.min(0.5, activeAvatar.aimTime / 100 * 0.5));
             } else {
               localVector2.lerp(dst, 0.5 + moveFactors.idleWalkFactor * 0.5);
               dst.lerp(localVector2, Math.min(1, activeAvatar.aimTime / 100));
