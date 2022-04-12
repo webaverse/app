@@ -111,7 +111,8 @@ const animationsAngleArrays = {
     {name: 'left strafe walking.fbx', angle: Math.PI / 2},
     {name: 'right strafe walking.fbx', angle: -Math.PI / 2},
 
-    {name: 'walking.fbx', angle: 0},
+    // {name: 'walking.fbx', angle: 0},
+    {name: 'Standing Aim Walk Forward.fbx', angle: 0},
     {name: 'walking backwards.fbx', angle: Math.PI},
 
     // {name: 'left strafe walking reverse.fbx', angle: Math.PI*3/4},
@@ -204,6 +205,7 @@ async function loadAnimations() {
       }
       return animationClip;
     });
+  window.animations = animations;
 
   animationStepIndices = animationsJson.animationStepIndices;
   animations.index = {};
@@ -270,7 +272,8 @@ export const loadPromise = (async () => {
   }
 
   const walkingAnimations = [
-    'walking.fbx',
+    // 'walking.fbx',
+    'Standing Aim Walk Forward.fbx',
     'left strafe walking.fbx',
     'right strafe walking.fbx',
   ].map(name => animations.index[name]);
