@@ -123,6 +123,8 @@ export class TerrainManager {
   }
 
   _calculateTargetChunks() {
+    // chunk id will be ox:oy:oz format
+
     const centerChunkGridX = Math.floor(this.center.x / this.chunkSize);
     const centerChunkGridY = Math.floor(this.center.y / this.chunkSize);
     const centerChunkGridZ = Math.floor(this.center.z / this.chunkSize);
@@ -164,6 +166,7 @@ export class TerrainManager {
 
   updateCenter(pos) {
     this.center = pos;
+    // when the center is changed, we need to update the target chunks around the center
     this.targetChunkIds = this._calculateTargetChunks();
   }
 
@@ -190,13 +193,12 @@ export class TerrainManager {
     // this.currentChunks = this.currentChunks.filter(chunk => this.targetChunkIds.includes(chunk.chunkId));
 
     if (chunkIdToAdd) {
-      const gridId = chunkIdToAdd.split(':');
+      const [ox, oy, oz] = chunkIdToAdd.split(':');
 
       this.stagedChunkIds.push(chunkIdToAdd);
 
       this.geometryUtils.generateChunk(
-        gridId[0] * this.chunkSize, gridId[1] * this.chunkSize, gridId[2] * this.chunkSize,
-        this.chunkSize, this.segment
+        ox * this.chunkSize, oy * this.chunkSize, oz * this.chunkSize, this.chunkSize, this.segment
       ).then(output => {
         const rangeIndex = this.chunkVertexRanges.findIndex(r => r.size === -1);
         // const indexSlot = this.chunkIndexRanges.findIndex(r => r.size === -1);
