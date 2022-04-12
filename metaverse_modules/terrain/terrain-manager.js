@@ -165,8 +165,6 @@ export class TerrainManager {
   }
 
   async updateChunk() {
-    const buf = this.bufferFactory;
-
     const chunkIdToAdd = this.targetChunkIds
       .filter(id => !this.currentChunks.map(v => v.chunkId).includes(id))
       .filter(id => !this.stagedChunkIds.includes(id))
@@ -209,10 +207,10 @@ export class TerrainManager {
           output.indices[i] += vertexOffset;
         }
 
-        buf.positions.set(output.positions, vertexOffset * 3);
-        buf.normals.set(output.normals, vertexOffset * 3);
-        buf.biomes.set(output.biomes, vertexOffset * 8);
-        buf.indices.set(output.indices, indexOffset);
+        this.bufferFactory.positions.set(output.positions, vertexOffset * 3);
+        this.bufferFactory.normals.set(output.normals, vertexOffset * 3);
+        this.bufferFactory.biomes.set(output.biomes, vertexOffset * 8);
+        this.bufferFactory.indices.set(output.indices, indexOffset);
 
         this.chunkVertexRanges[rangeIndex] = {offset: vertexOffset, size: output.positionCount};
         this.chunkIndexRanges[rangeIndex] = {offset: indexOffset, size: output.indexCount};
