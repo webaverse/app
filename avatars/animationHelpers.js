@@ -72,6 +72,7 @@ let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
+let lastActionTime;
 
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
@@ -820,6 +821,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.fromArray(v2);
 
         lastDst.copy(dst);
+        lastActionTime = now;
       };
     }
     if (activeAvatar.sitState) {
@@ -864,6 +866,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         _clearXZ(dst, isPosition);
 
         lastDst.copy(dst);
+        lastActionTime = now;
       };
     }
 
@@ -900,6 +903,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         _clearXZ(dst, isPosition);
 
         lastDst.copy(dst);
+        lastActionTime = now;
       };
     }
 
@@ -1049,6 +1053,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
 
         lastDst.copy(dst);
+        lastActionTime = now;
       };
     } else if (activeAvatar.hurtAnimation) {
       return spec => {
@@ -1097,6 +1102,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
 
         lastDst.copy(dst);
+        lastActionTime = now;
       };
     } else if (activeAvatar.aimAnimation) {
       return spec => {
@@ -1144,6 +1150,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
 
         lastDst.copy(dst);
+        lastActionTime = now;
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
       return spec => {
@@ -1219,8 +1226,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
 
         lastDst.copy(dst);
+        lastActionTime = now;
       };
-    } else if (activeAvatar.unuseTime <= 100) {
+    }
+
+    const unactionTime = now - lastActionTime;
+    if (unactionTime <= 100) {
       return spec => {
         const {
           animationTrackName: k,
@@ -1237,9 +1248,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         _handleDefault(spec);
 
         if (!isPosition) {
-          dst.slerp(lastDst, 1 - Math.min(1, activeAvatar.unuseTime / 100));
+          dst.slerp(lastDst, 1 - Math.min(1, unactionTime / 100));
         } else {
-          dst.lerp(lastDst, 1 - Math.min(1, activeAvatar.unuseTime / 100));
+          dst.lerp(lastDst, 1 - Math.min(1, unactionTime / 100));
         }
       };
     }
