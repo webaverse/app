@@ -483,7 +483,11 @@ const optimizeAvatarModel = (model, options = {}) => {
   };
   _remapGeometryUvs(); */
 
-  return mergedMeshes;
+  const object = new THREE.Object3D();
+  for (const mesh of mergedMeshes) {
+    object.add(mesh);
+  }
+  return object;
 
   const _collectObjects = () => {
     const meshes = [];
