@@ -4,36 +4,7 @@ const moduleInstance = Module;
 const ELEMENT_BYTES = 4;
 
 onmessage = e => {
-  if (e.data.message === 'generateTerrain') {
-    const output = generateTerrain(...e.data.params);
-
-    const arrays = e.data.arrays;
-
-    arrays[0].set(output.positions);
-    arrays[1].set(output.normals);
-    arrays[2].set(output.biomes);
-    arrays[3].set(output.indices);
-    arrays[4].set(output.vertexRanges);
-    arrays[5].set(output.indexRanges);
-
-    postMessage({
-      workerIndex: e.data.workerIndex,
-      message: 'generateTerrain',
-      positionCount: output.positionCount,
-      indexCount: output.indexCount,
-      arrays: arrays,
-      buffers: {
-        positionBuffer: output.positionBuffer,
-        normalBuffer: output.normalBuffer,
-        biomeBuffer: output.biomeBuffer,
-        indexBuffer: output.indexBuffer,
-        chunkVertexRangeBuffer: output.chunkVertexRangeBuffer,
-        vertexFreeRangeBuffer: output.vertexFreeRangeBuffer,
-        chunkIndexRangeBuffer: output.chunkIndexRangeBuffer,
-        indexFreeRangeBuffer: output.indexFreeRangeBuffer,
-      },
-    }, arrays.map(a => a.buffer));
-  } else if (e.data.message === 'generateChunk') {
+  if (e.data.message === 'generateChunk') {
     const output = generateChunk(...e.data.params);
     postMessage(
       {workerIndex: e.data.workerIndex, message: 'generateChunk', output: output},
@@ -42,99 +13,7 @@ onmessage = e => {
   }
 }
 
-function generateTerrain(chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam) {
-  const outputBuffer = moduleInstance._generateTerrain(
-    chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam
-  );
-
-  const ELEMENT_BYTES = moduleInstance.HEAP32.BYTES_PER_ELEMENT;
-
-  const head = outputBuffer / ELEMENT_BYTES;
-
-  const totalChunkCount = chunkCount ** 3;
-
-  const positionCount = totalChunkCount * segment * segment * vertexBufferSizeParam;
-  const indexCount = totalChunkCount * segment * segment * indexBufferSizeParam;
-
-  const positionBuffer = moduleInstance.HEAP32.subarray(head + 0, head + 1)[0];
-  const normalBuffer = moduleInstance.HEAP32.subarray(head + 1, head + 2)[0];
-  const biomeBuffer = moduleInstance.HEAP32.subarray(head + 7, head + 8)[0];
-  const indexBuffer = moduleInstance.HEAP32.subarray(head + 2, head + 3)[0];
-  const chunkVertexRangeBuffer = moduleInstance.HEAP32.subarray(head + 3, head + 4)[0];
-  const vertexFreeRangeBuffer = moduleInstance.HEAP32.subarray(head + 4, head + 5)[0];
-  const chunkIndexRangeBuffer = moduleInstance.HEAP32.subarray(head + 5, head + 6)[0];
-  const indexFreeRangeBuffer = moduleInstance.HEAP32.subarray(head + 6, head + 7)[0];
-
-  const positions = moduleInstance.HEAPF32.subarray(
-    positionBuffer / ELEMENT_BYTES, positionBuffer / ELEMENT_BYTES + positionCount * 3);
-
-  const normals = moduleInstance.HEAPF32.subarray(
-    normalBuffer / ELEMENT_BYTES, normalBuffer / ELEMENT_BYTES + positionCount * 3);
-
-  const biomes = moduleInstance.HEAPF32.subarray(
-    biomeBuffer / ELEMENT_BYTES, biomeBuffer / ELEMENT_BYTES + positionCount * 8);
-
-  const indices = moduleInstance.HEAPU32.subarray(
-    indexBuffer / ELEMENT_BYTES, indexBuffer / ELEMENT_BYTES + indexCount);
-
-  const vertexRanges = moduleInstance.HEAP32.subarray(
-    chunkVertexRangeBuffer / ELEMENT_BYTES,
-    chunkVertexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
-
-  const indexRanges = moduleInstance.HEAP32.subarray(
-    chunkIndexRangeBuffer / ELEMENT_BYTES,
-    chunkIndexRangeBuffer / ELEMENT_BYTES + totalChunkCount * 2);
-
-  moduleInstance._doFree(outputBuffer);
-
-  return {
-    positionCount: positionCount,
-    indexCount: indexCount,
-    positionBuffer: positionBuffer,
-    normalBuffer: normalBuffer,
-    biomeBuffer: biomeBuffer,
-    indexBuffer: indexBuffer,
-    chunkVertexRangeBuffer: chunkVertexRangeBuffer,
-    vertexFreeRangeBuffer: vertexFreeRangeBuffer,
-    chunkIndexRangeBuffer: chunkIndexRangeBuffer,
-    indexFreeRangeBuffer: indexFreeRangeBuffer,
-    positions: positions,
-    normals: normals,
-    biomes: biomes,
-    indices: indices,
-    vertexRanges: vertexRanges,
-    indexRanges: indexRanges
-  }
-}
-
-function deallocateChunk(
-  vertexSlot, indexSlot, totalChunkCount,
-  chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
-) {
-  moduleInstance._deallocateChunk(
-    vertexSlot, indexSlot, totalChunkCount,
-    chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer
-  );
-}
-
-function generateAndAllocateChunk(
-  positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
-  chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
-  x, y, z, chunkSize, segment, totalChunkCount
-) {
-  const slotsPtr = moduleInstance._generateAndAllocateChunk(
-    positionBuffer, normalBuffer, biomeBuffer, indexBuffer,
-    chunkVertexRangeBuffer, vertexFreeRangeBuffer, chunkIndexRangeBuffer, indexFreeRangeBuffer,
-    x, y, z, chunkSize, segment, totalChunkCount
-  );
-
-  const slots = moduleInstance.HEAP32.slice(slotsPtr / 4, slotsPtr / 4 + 2);
-  moduleInstance._doFree(slotsPtr);
-
-  return slots;
-}
-
-function generateChunk(x, y, z, chunkSize, segment, totalChunkCount) {
+function generateChunk(x, y, z, chunkSize, segment) {
   const outputBuffer = moduleInstance._generateChunk(x, y, z, chunkSize, segment);
   const offset = outputBuffer / ELEMENT_BYTES;
   const positionCount = moduleInstance.HEAP32.subarray(offset, offset + 1)[0];

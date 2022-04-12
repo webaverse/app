@@ -26,27 +26,6 @@ const geometryUtils = (() => {
     }
   }
 
-  scope.generateTerrain = async (
-    chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam, arrays
-  ) => {
-    return new Promise((resolve, reject) => {
-      const idleWorkerIndex = scope.workingFlags.findIndex(e => e === false);
-      if (idleWorkerIndex === -1) {
-        reject('no idle worker');
-      }
-
-      scope.workingFlags[idleWorkerIndex] = true;
-      scope.workers[idleWorkerIndex].postMessage({
-        workerIndex: idleWorkerIndex,
-        message: 'generateTerrain',
-        params: [chunkSize, chunkCount, segment, vertexBufferSizeParam, indexBufferSizeParam],
-        arrays: arrays
-      }, arrays.map(a => a.buffer));
-
-      scope.resolves[idleWorkerIndex] = resolve;
-    });
-  }
-
   scope.generateChunk = async (x, y, z, chunkSize, segment) => {
     return new Promise((resolve, reject) => {
       const idleWorkerIndex = scope.workingFlags.findIndex(e => e === false);
