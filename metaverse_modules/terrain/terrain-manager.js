@@ -226,7 +226,7 @@ export class TerrainManager {
         this.stagedChunkIds = this.stagedChunkIds.filter(id => id !== chunkIdToAdd);
         this._updateChunkGeometry(rangeIndex);
         this.onAddChunk(chunkIdToAdd);
-      }, error => {
+      }).catch(error => {
         this.stagedChunkIds = this.stagedChunkIds.filter(id => id !== chunkIdToAdd);
         console.log('>>> error: ', error);
       });
