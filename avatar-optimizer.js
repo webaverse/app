@@ -107,6 +107,7 @@ const optimizeAvatarModel = (model, options = {}) => {
   const _mergeMesh = (mergeable, mergeableIndex) => {
     const {
       type,
+      material,
       geometries,
       maps,
       emissiveMaps,
@@ -382,22 +383,22 @@ const optimizeAvatarModel = (model, options = {}) => {
     const geometry = _mergeGeometryies(geometries);
     console.log('got geometry', geometry);
 
-    const _makeMaterial = () => {
-      // XXX use the original material, but set the new textures
-      const material = new THREE.MeshBasicMaterial();
+    const _updateMaterial = () => {
       if (atlasTextures) {
         for (const textureType of textureTypes) {
-          const t = new THREE.Texture(atlasImages[textureType].image);
+          const image = atlasImages[textureType];
+          const t = new THREE.Texture(image);
           t.flipY = false;
           t.needsUpdate = true;
           material[textureType] = t;
         }
       }
-      material.roughness = 1;
+      /* material.roughness = 1;
       material.alphaTest = 0.1;
-      material.transparent = true;
+      material.transparent = true; */
     };
-    const material = _makeMaterial();
+    _updateMaterial();
+    // const material = _makeMaterial();
     console.log('got material', material);
 
     const _makeMesh = () => {
