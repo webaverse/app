@@ -10,6 +10,12 @@ const localVector2D2 = new THREE.Vector2();
 // const localVector4D = new THREE.Vector4();
 // const localVector4D2 = new THREE.Vector4();
 
+const textureTypes = [
+  'map',
+  'emissiveMap',
+  'normalMap',
+];
+
 const _getMergeableObjects = model => {
   const renderer = getRenderer();
 
@@ -30,7 +36,7 @@ const _getMergeableObjects = model => {
           map = null,
           emissiveMap = null,
           normalMap = null,
-          shadeTexture = null,
+          // shadeTexture = null,
         } = objectMaterial;
         // console.log('got material', objectMaterial);
 
@@ -48,7 +54,7 @@ const _getMergeableObjects = model => {
             maps: [],
             emissiveMaps: [],
             normalMaps: [],
-            shadeTextures: [],
+            // shadeTextures: [],
           };
           mergeables.set(key, m);
         }
@@ -57,7 +63,7 @@ const _getMergeableObjects = model => {
         m.maps.push(map);
         m.emissiveMaps.push(emissiveMap);
         m.normalMaps.push(normalMap);
-        m.shadeTextures.push(shadeTexture);
+        // m.shadeTextures.push(shadeTexture);
       }
     }
   });
@@ -75,18 +81,216 @@ class AttributeLayout {
   }
 }
 const optimizeAvatarModel = (model, options = {}) => {
-  const mergeables = _getMergeableObjects(model);
-  console.log('got mergeables', mergeables);
-  return mergeables;
-
   const atlasTextures = !!(options.textures ?? true);
   const textureSize = options.textureSize ?? defaultTextureSize;
 
-  const textureTypes = [
-    'map',
-    'emissiveMap',
-    'normalMap',
-  ];
+  const mergeables = _getMergeableObjects(model);
+  console.log('got mergeables', mergeables);
+
+  const _mergeMesh = (mergeable, mergeableIndex) => {
+    const {
+      type,
+      geometries,
+      maps,
+      emissiveMaps,
+      normalMaps,
+    } = mergeable;
+
+    // compute texture sizes
+    const textureSizes = maps.map((map, i) => {
+      const emissiveMap = emissiveMaps[i];
+      const normalMap = normalMaps[i];
+      
+      const maxSize = new THREE.Vector2(0, 0);
+      if (map) {
+        maxSize.x = Math.max(maxSize.x, map.image.width);
+        maxSize.y = Math.max(maxSize.y, map.image.height);
+      }
+      if (emissiveMap) {
+        maxSize.x = Math.max(maxSize.x, emissiveMap.image.width);
+        maxSize.y = Math.max(maxSize.y, emissiveMap.image.height);
+      }
+      if (normalMap) {
+        maxSize.x = Math.max(maxSize.x, normalMap.image.width);
+        maxSize.y = Math.max(maxSize.y, normalMap.image.height);
+      }
+      return maxSize;
+    });
+
+    // generate atlas layouts
+    const _packAtlases = () => {
+      const _attemptPack = (textureSizes, atlasSize) => {
+        const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 1);
+        const rects = textureSizes.map((textureSize, index) => {
+          // const w = t.image.width;
+          // const h = t.image.height;
+          // const image = t.image;
+          const {x: width, y: height} = textureSize;
+          return {
+            width,
+            height,
+            data: {
+              index,
+            },
+          };
+        });
+        maxRectsPacker.addArray(rects);
+        let oversized = maxRectsPacker.bins.length > 1;
+        maxRectsPacker.bins.forEach(bin => {
+          bin.rects.forEach(rect => {
+            if (rect.oversized) {
+              oversized = true;
+            }
+          });
+        });
+        if (!oversized) {
+          return maxRectsPacker;
+        } else {
+          return null;
+        }
+      };
+      const _makeEmptyAtlas = () => new MaxRectsPacker(0, 0, 1);
+      
+      const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
+      if (hasTextures) {
+        let atlas;
+        let atlasSize = startAtlasSize;
+        while (!(atlas = _attemptPack(textureSizes, atlasSize))) {
+          atlasSize *= 2;
+        }
+        return atlas;
+      } else {
+        return _makeEmptyAtlas();
+      }
+    };
+    const atlas = atlasTextures ? _packAtlases() : null;
+
+    // draw atlas images
+    const _drawAtlasImages = atlas => {
+      const _drawAtlasImage = textureType => {
+        const canvas = document.createElement('canvas');
+        const canvasSize = Math.min(atlas.width, textureSize);
+        const canvasScale = canvasSize / atlas.width;
+        canvas.width = canvasSize;
+        canvas.height = canvasSize;
+        const ctx = canvas.getContext('2d');
+
+        atlas.bins.forEach(bin => {
+          bin.rects.forEach(rect => {
+            const {x, y, width: w, height: h, data: {index}} = rect;
+            const textures = mergeable[`${textureType}s`];
+            const texture = textures[index];
+            if (texture) {
+              const image = texture.image;
+
+              // draw the image in the correct box on the canvas
+              const tx = x * canvasScale;
+              const ty = y * canvasScale;
+              const tw = w * canvasScale;
+              const th = h * canvasScale;
+              ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
+            }
+          });
+        });
+
+        return canvas;
+      };
+
+      const atlasImages = {};
+      for (const textureType of textureTypes) {
+        const atlasImage = _drawAtlasImage(textureType);
+        atlasImages[textureType] = atlasImage;
+      }
+      return atlasImages;
+    };
+    const atlasImages = atlasTextures ? _drawAtlasImages(atlas) : null;
+
+    // XXX debug
+    {
+      const debugWidth = 300;
+      let textureTypeIndex = 0;
+      for (const textureType of textureTypes) {
+        const atlasImage = atlasImages[textureType];
+        atlasImage.style.cssText = `\
+          position: fixed;
+          top: ${mergeableIndex * debugWidth}px;
+          left: ${textureTypeIndex * debugWidth}px;
+          min-width: ${debugWidth}px;
+          max-width: ${debugWidth}px;
+          min-height: ${debugWidth}px;
+          z-index: 100;
+        `;
+        document.body.appendChild(atlasImage);
+        textureTypeIndex++;
+      }
+    }
+
+    return new THREE.Mesh();
+  };
+  const mergedMeshes = mergeables.map((mergeable, i) => _mergeMesh(mergeable, i));
+
+  /* // draw atlas textures
+  const _drawAtlases = atlases => {
+    const seenUvIndexes = new Map();
+    const _drawAtlas = atlas => {
+      const canvas = document.createElement('canvas');
+      const canvasSize = Math.min(atlas.width, textureSize);
+      const canvasScale = canvasSize / atlas.width;
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
+      const ctx = canvas.getContext('2d');
+
+      atlas.bins.forEach(bin => {
+        bin.rects.forEach(rect => {
+          const {x, y, width: w, height: h, data: {image, groups}} = rect;
+          // draw the image in the correct box on the canvas
+          const tx = x * canvasScale;
+          const ty = y * canvasScale;
+          const tw = w * canvasScale;
+          const th = h * canvasScale;
+          ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
+
+          // const testUv = new THREE.Vector2(Math.random(), Math.random());
+          for (const group of groups) {
+            const {startIndex, count} = group;
+            for (let i = 0; i < count; i++) {
+              const uvIndex = geometry.index.array[startIndex + i];
+
+              // XXX NOTE: this code is slightly wrong. it will generate a unified uv map (first come first served to the uv index)
+              // that means that the different maps might get the wrong uv.
+              // the diffuse map takes priority so it looks ok.
+              // the right way to do this is to have a separate uv map for each map.
+              if (!seenUvIndexes.get(uvIndex)) {
+                seenUvIndexes.set(uvIndex, true);
+
+                localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
+                localVector2D.multiply(
+                  localVector2D2.set(tw/canvasSize, th/canvasSize)
+                ).add(
+                  localVector2D2.set(tx/canvasSize, ty/canvasSize)
+                );
+                localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
+              }
+            }
+          }
+        });
+      });
+      atlas.image = canvas;
+      
+      return atlas;
+    };
+
+    const atlasImages = {};
+    for (const textureType of textureTypes) {
+      const atlas = atlases[textureType];
+      const atlasImage = _drawAtlas(atlas);
+      atlasImages[textureType] = atlasImage;
+    }
+    return atlasImages;
+  };
+  _remapGeometryUvs(); */
+
+  return mergedMeshes;
 
   const _collectObjects = () => {
     const meshes = [];
@@ -169,53 +373,6 @@ const optimizeAvatarModel = (model, options = {}) => {
     textureGroupsMap,
     skeletons,
   } = _collectObjects();
-
-  // generate atlas layouts
-  const _packAtlases = () => {
-    const _attempt = (k, atlasSize) => {
-      const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 1);
-      const rects = textures[k].map(t => {
-        const w = t.image.width;
-        const h = t.image.height;
-        const image = t.image;
-        const groups = textureGroupsMap.get(t);
-        return {
-          width: w,
-          height: h,
-          data: {
-            image,
-            groups,
-          },
-        };
-      });
-      maxRectsPacker.addArray(rects);
-      let oversized = maxRectsPacker.bins.length > 1;
-      maxRectsPacker.bins.forEach(bin => {
-        bin.rects.forEach(rect => {
-          if (rect.oversized) {
-            oversized = true;
-          }
-        });
-      });
-      if (!oversized) {
-        return maxRectsPacker;
-      } else {
-        return null;
-      }
-    };
-
-    const atlases = {};
-    for (const k of textureTypes) {
-      let atlas;
-      let atlasSize = startAtlasSize;
-      while (!(atlas = _attempt(k, atlasSize))) {
-        atlasSize *= 2;
-      }
-      atlases[k] = atlas;
-    }
-    return atlases;
-  };
-  const atlases = atlasTextures ? _packAtlases() : null;
 
   // build attribute layouts
   const _makeAttributeLayoutsFromGeometries = geometries => {
@@ -357,15 +514,6 @@ const optimizeAvatarModel = (model, options = {}) => {
   geometry.setIndex(new THREE.BufferAttribute(indexData, 1));
   geometry.morphTargetsRelative = true;
 
-  /* const uv3Data = new Float32Array(geometry.attributes.uv.count * 4);
-  const uv3 = new THREE.BufferAttribute(uv3Data, 4);
-  geometry.setAttribute('uv3', uv3); */
-
-  /* // these uvs can be used to color code the mesh by material or texture
-  const uv4Data = new Float32Array(geometry.attributes.uv.count * 4);
-  const uv4 = new THREE.BufferAttribute(uv4Data, 4);
-  geometry.setAttribute('uv4', uv4); */
-
   // verify
   for (const layout of attributeLayouts) {
     if (layout.index !== layout.count) {
@@ -375,90 +523,6 @@ const optimizeAvatarModel = (model, options = {}) => {
   if (indexOffset !== indexCount) {
     console.log('bad final index', indexOffset, indexCount);
   }
-
-  // draw the atlas
-  const _drawAtlases = () => {
-    const seenUvIndexes = new Map();
-    const _drawAtlas = atlas => {
-      const canvas = document.createElement('canvas');
-      const canvasSize = Math.min(atlas.width, textureSize);
-      const canvasScale = canvasSize / atlas.width;
-      canvas.width = canvasSize;
-      canvas.height = canvasSize;
-      const ctx = canvas.getContext('2d');
-
-      atlas.bins.forEach(bin => {
-        bin.rects.forEach(rect => {
-          const {x, y, width: w, height: h, data: {image, groups}} = rect;
-          // draw the image in the correct box on the canvas
-          const tx = x * canvasScale;
-          const ty = y * canvasScale;
-          const tw = w * canvasScale;
-          const th = h * canvasScale;
-          ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
-
-          // const testUv = new THREE.Vector2(Math.random(), Math.random());
-          for (const group of groups) {
-            const {startIndex, count} = group;
-            for (let i = 0; i < count; i++) {
-              const uvIndex = geometry.index.array[startIndex + i];
-
-              // XXX NOTE: this code is slightly wrong. it will generate a unified uv map (first come first served to the uv index)
-              // that means that the different maps might get the wrong uv.
-              // the diffuse map takes priority so it looks ok.
-              // the right way to do this is to have a separate uv map for each map.
-              if (!seenUvIndexes.get(uvIndex)) {
-                seenUvIndexes.set(uvIndex, true);
-
-                localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
-                localVector2D.multiply(
-                  localVector2D2.set(tw/canvasSize, th/canvasSize)
-                ).add(
-                  localVector2D2.set(tx/canvasSize, ty/canvasSize)
-                );
-                localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
-
-                /* localVector4D.set(x/atlas.width, y/atlas.height, w/atlas.width, h/atlas.height);
-                localVector4D.toArray(geometry.attributes.uv3.array, uvIndex * 4); */
-                /* localVector4D.set(testUv.x, testUv.y, testUv.x, testUv.y);
-                localVector4D.toArray(geometry.attributes.uv4.array, uvIndex * 4); */
-              }
-            }
-          }
-        });
-      });
-      atlas.image = canvas;
-      
-      return atlas;
-    };
-
-    // generate atlas for each map; they are all separate
-    const result = {};
-    {
-      let canvasIndex = 0;
-      for (const k of textureTypes) {
-        const atlas = atlases[k];
-        const atlas2 = _drawAtlas(atlas);
-        
-        /* const displaySize = 256;
-        atlas2.image.style.cssText = `\
-          position: fixed;
-          top: 0;
-          left: ${canvasIndex * displaySize}px;
-          width: ${displaySize}px;
-          height: ${displaySize}px;
-          z-index: 10;
-        `;
-        document.body.appendChild(atlas2.image); */
-
-        result[k] = atlas2;
-
-        canvasIndex++;
-      }
-    }
-    return result;
-  };
-  const textureAtlases = atlasTextures ? _drawAtlases() : null;
 
   // create material
   // const material = new THREE.MeshStandardMaterial();
