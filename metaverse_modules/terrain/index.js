@@ -11,7 +11,7 @@ export default () => {
   const geometryUtils = useGeometryUtils();
   const rootScene = new THREE.Object3D();
   let physicsIdChunkIdPairs = [];
-  const terrainManager = new TerrainManager(128, 2, geometryUtils, useInternals().renderer);
+  const terrainManager = new TerrainManager(128, 9, 3, geometryUtils, useInternals().renderer);
   const player = useLocalPlayer();
   player.position.y = 150;
 

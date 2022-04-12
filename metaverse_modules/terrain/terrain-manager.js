@@ -4,15 +4,14 @@ import {
 } from './toonMaterial.js';
 
 export class TerrainManager {
-  constructor(chunkSize, range, geometryUtils, renderer) {
-    this.chunkRange = range;
+  constructor(chunkSize, chunkCount, chunkCountHeight, geometryUtils, renderer) {
     this.chunkSize = chunkSize;
     this.geometryUtils = geometryUtils;
-
     this.center = new THREE.Vector3();
-    this.chunkCount = this.chunkRange * 2 + 1;
-    this.chunkRangeHeight = 1;
-    this.chunkCountHeight = this.chunkRangeHeight * 2 + 1;
+    this.halfChunkCountMinusOne = Number.parseInt(chunkCount / 2);
+    this.chunkCount = this.halfChunkCountMinusOne * 2 + 1; // chunk count should be odd
+    this.halfChunkCountMinusOneHeight = Number.parseInt(chunkCountHeight / 2);
+    this.chunkCountHeight = this.halfChunkCountMinusOneHeight * 2 + 1; // chunk count should be odd
     this.totalChunkCount = (this.chunkCount ** 2) * this.chunkCountHeight;
     this.segment = 16;
 
@@ -128,9 +127,9 @@ export class TerrainManager {
 
     const targetChunks = [];
 
-    for (let i = centerChunkGridX - this.chunkRange; i < centerChunkGridX + this.chunkRange + 1; i++) {
-      for (let j = centerChunkGridY - this.chunkRangeHeight; j < centerChunkGridY + this.chunkRangeHeight + 1; j++) {
-        for (let k = centerChunkGridZ - this.chunkRange; k < centerChunkGridZ + this.chunkRange + 1; k++) {
+    for (let i = centerChunkGridX - this.halfChunkCountMinusOne; i < centerChunkGridX + this.halfChunkCountMinusOne + 1; i++) {
+      for (let j = centerChunkGridY - this.halfChunkCountMinusOneHeight; j < centerChunkGridY + this.halfChunkCountMinusOneHeight + 1; j++) {
+        for (let k = centerChunkGridZ - this.halfChunkCountMinusOne; k < centerChunkGridZ + this.halfChunkCountMinusOne + 1; k++) {
           targetChunks.push(i + ':' + j + ':' + k);
         }
       }
