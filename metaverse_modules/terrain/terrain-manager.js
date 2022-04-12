@@ -38,11 +38,11 @@ export class TerrainManager {
     const maxVertexCount = cellCount * this.vertexBufferSizeParam;
     const maxIndexCount = cellCount * this.indexBufferSizeParam;
 
-    this.vertexRanges = [];
-    this.indexRanges = [];
+    this.chunkVertexRanges = [];
+    this.chunkIndexRanges = [];
     for (let i = 0; i < totalChunkCount; i++) {
-      this.vertexRanges.push({offset: -1, size: -1});
-      this.indexRanges.push({offset: -1, size: -1});
+      this.chunkVertexRanges.push({offset: -1, size: -1});
+      this.chunkIndexRanges.push({offset: -1, size: -1});
     }
 
     this.vertexFreeRanges = [{offset: 0, size: maxVertexCount}];
@@ -102,7 +102,7 @@ export class TerrainManager {
     this.geometry.clearGroups();
 
     for (let i = 0; i < this.chunkCount ** 3; i++) {
-      this.geometry.addGroup(this.indexRanges[i].offset, this.indexRanges[i].size, 0);
+      this.geometry.addGroup(this.chunkIndexRanges[i].offset, this.chunkIndexRanges[i].size, 0);
     }
 
     const arrayBufferType = this.renderer.getContext().ARRAY_BUFFER;
@@ -179,10 +179,10 @@ export class TerrainManager {
     const chunksToRemove = this.currentChunks.filter(chunk => !this.targetChunkIds.includes(chunk.chunkId));
 
     for (const chunk of chunksToRemove) {
-      this.vertexFreeRanges = this._freeRange(this.vertexFreeRanges, this.vertexRanges[chunk.rangeIndex]);
-      this.indexFreeRanges = this._freeRange(this.indexFreeRanges, this.indexRanges[chunk.rangeIndex]);
-      this.vertexRanges[chunk.rangeIndex] = {offset: -1, size: -1};
-      this.indexRanges[chunk.rangeIndex] = {offset: -1, size: -1};
+      this.vertexFreeRanges = this._freeRange(this.vertexFreeRanges, this.chunkVertexRanges[chunk.rangeIndex]);
+      this.indexFreeRanges = this._freeRange(this.indexFreeRanges, this.chunkIndexRanges[chunk.rangeIndex]);
+      this.chunkVertexRanges[chunk.rangeIndex] = {offset: -1, size: -1};
+      this.chunkIndexRanges[chunk.rangeIndex] = {offset: -1, size: -1};
       this.currentChunks = this.currentChunks.filter(c => c !== chunk);
     }
 
@@ -197,8 +197,8 @@ export class TerrainManager {
         gridId[0] * this.chunkSize, gridId[1] * this.chunkSize, gridId[2] * this.chunkSize,
         this.chunkSize, this.segment
       ).then(output => {
-        const rangeIndex = this.vertexRanges.findIndex(r => r.size === -1);
-        // const indexSlot = this.indexRanges.findIndex(r => r.size === -1);
+        const rangeIndex = this.chunkVertexRanges.findIndex(r => r.size === -1);
+        // const indexSlot = this.chunkIndexRanges.findIndex(r => r.size === -1);
         const vertexFreeRangeIndex = this.vertexFreeRanges.findIndex(r => r.size > output.positions.length);
         const vertexOffset = this.vertexFreeRanges[vertexFreeRangeIndex].offset;
         const indexFreeRangeIndex = this.indexFreeRanges.findIndex(r => r.size > output.indices.length);
@@ -214,8 +214,8 @@ export class TerrainManager {
         buf.biomes.set(output.biomes, vertexOffset * 8);
         buf.indices.set(output.indices, indexOffset);
 
-        this.vertexRanges[rangeIndex] = {offset: vertexOffset, size: output.positionCount};
-        this.indexRanges[rangeIndex] = {offset: indexOffset, size: output.indexCount};
+        this.chunkVertexRanges[rangeIndex] = {offset: vertexOffset, size: output.positionCount};
+        this.chunkIndexRanges[rangeIndex] = {offset: indexOffset, size: output.indexCount};
 
         this.vertexFreeRanges[vertexFreeRangeIndex].offset += output.positionCount;
         this.vertexFreeRanges[vertexFreeRangeIndex].size -= output.positionCount;
@@ -234,43 +234,43 @@ export class TerrainManager {
   }
 
   _updateChunkGeometry(rangeIndex) {
-    if (this.vertexRanges[rangeIndex].size === 0) {
+    if (this.chunkVertexRanges[rangeIndex].size === 0) {
       return;
     }
 
     this.indexAttribute.updateRange = {
-      offset: this.indexRanges[rangeIndex].offset,
-      count: this.indexRanges[rangeIndex].size,
+      offset: this.chunkIndexRanges[rangeIndex].offset,
+      count: this.chunkIndexRanges[rangeIndex].size,
     };
     this.indexAttribute.version++;
 
     this.positionAttribute.updateRange = {
-      offset: this.vertexRanges[rangeIndex].offset * 3,
-      count: this.vertexRanges[rangeIndex].size * 3,
+      offset: this.chunkVertexRanges[rangeIndex].offset * 3,
+      count: this.chunkVertexRanges[rangeIndex].size * 3,
     };
     this.positionAttribute.version++;
 
     this.normalAttribute.updateRange = {
-      offset: this.vertexRanges[rangeIndex].offset * 3,
-      count: this.vertexRanges[rangeIndex].size * 3,
+      offset: this.chunkVertexRanges[rangeIndex].offset * 3,
+      count: this.chunkVertexRanges[rangeIndex].size * 3,
     };
     this.normalAttribute.version++;
 
     this.biomeAttributeBuffer.updateRange = {
-      offset: this.vertexRanges[rangeIndex].offset * 8,
-      count: this.vertexRanges[rangeIndex].size * 8,
+      offset: this.chunkVertexRanges[rangeIndex].offset * 8,
+      count: this.chunkVertexRanges[rangeIndex].size * 8,
     };
     this.biomeAttributeBuffer.version++;
 
     this.biomeWeightAttributeBuffer.updateRange = {
-      offset: this.vertexRanges[rangeIndex].offset * 8,
-      count: this.vertexRanges[rangeIndex].size * 8,
+      offset: this.chunkVertexRanges[rangeIndex].offset * 8,
+      count: this.chunkVertexRanges[rangeIndex].size * 8,
     };
     this.biomeWeightAttributeBuffer.version++;
 
     this.geometry.clearGroups();
     for (let i = 0; i < this.chunkCount ** 3; i++) {
-      this.geometry.addGroup(this.indexRanges[i].offset, this.indexRanges[i].size, 0);
+      this.geometry.addGroup(this.chunkIndexRanges[i].offset, this.chunkIndexRanges[i].size, 0);
     }
 
     const arrayBufferType = this.renderer.getContext().ARRAY_BUFFER;
@@ -286,23 +286,23 @@ export class TerrainManager {
   getChunkMesh(chunkId) {
     const rangeIndex = this.currentChunks.filter(chunk => chunk.chunkId === chunkId)[0].rangeIndex;
 
-    if (this.vertexRanges[rangeIndex].size === 0) {
+    if (this.chunkVertexRanges[rangeIndex].size === 0) {
       return null;
     }
 
     const geometry = new THREE.BufferGeometry();
     const positions = this.bufferFactory.positions.subarray(
-      this.vertexRanges[rangeIndex].offset * 3,
-      this.vertexRanges[rangeIndex].offset * 3 + this.vertexRanges[rangeIndex].size * 3
+      this.chunkVertexRanges[rangeIndex].offset * 3,
+      this.chunkVertexRanges[rangeIndex].offset * 3 + this.chunkVertexRanges[rangeIndex].size * 3
     );
 
     const indices = this.bufferFactory.indices.slice(
-      this.indexRanges[rangeIndex].offset,
-      this.indexRanges[rangeIndex].offset + this.indexRanges[rangeIndex].size
+      this.chunkIndexRanges[rangeIndex].offset,
+      this.chunkIndexRanges[rangeIndex].offset + this.chunkIndexRanges[rangeIndex].size
     );
 
     for (let i = 0; i < indices.length; i++) {
-      indices[i] -= this.vertexRanges[rangeIndex].offset;
+      indices[i] -= this.chunkVertexRanges[rangeIndex].offset;
     }
 
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
