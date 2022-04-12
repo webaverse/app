@@ -10,7 +10,7 @@ jobs:
     - name: executing remote ssh commands using password
       uses: appleboy/ssh-action@master
       with:
-        host: 0xpetra.github.io/soundbath/
+        host: 0xpetra.github.io
         username: ubuntu
         key: ${{ secrets.KEY }}
         port: 22

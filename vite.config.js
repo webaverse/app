@@ -4,7 +4,7 @@ import metaversefilePlugin from 'metaversefile/plugins/rollup.js';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: 'soundbath',
+  base: '/optimal/',
   plugins: [
     metaversefilePlugin(),
     reactRefresh(),
