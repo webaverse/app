@@ -12,6 +12,7 @@ import {minFov} from './constants.js';
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
 
 let canvas = null, context = null, renderer = null, composer = null;
+let resolution = 1;
 
 let waitPromise = makePromise();
 const waitForLoad = () => waitPromise;
@@ -33,7 +34,7 @@ function bindCanvas(c) {
     rendererExtensionFragDepth: true,
     logarithmicDepthBuffer: true,
   });
-  
+
   const {
     width,
     height,
@@ -66,20 +67,21 @@ function bindCanvas(c) {
 
   // resolve promise
   waitPromise.accept();
-}
+};
 
 function getRenderer() {
   return renderer;
-}
+};
+
 function getContainerElement() {
   const canvas = renderer.domElement;
   const container = canvas.parentNode;
   return container;
-}
+};
 
 function getComposer() {
   return composer;
-}
+};
 
 const scene = new THREE.Object3D();
 scene.name = 'scene';
@@ -101,7 +103,8 @@ rootScene.add(sceneLowPriority);
 // const orthographicScene = new THREE.Scene();
 // const avatarScene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
+const maxViewRange = 30000;
+const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, maxViewRange);
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 camera.name = 'sceneCamera';
@@ -125,7 +128,7 @@ const _getCanvasDimensions = () => {
   width = window.innerWidth;
   height = window.innerHeight;
   pixelRatio = window.devicePixelRatio;
-  
+
   return {
     width,
     height,
@@ -139,9 +142,10 @@ const _setSizes = () => {
     height,
     pixelRatio,
   } = _getCanvasDimensions();
-  _setRendererSize(width, height, pixelRatio);
-  _setComposerSize(width, height, pixelRatio);
-  _setCameraSize(width, height, pixelRatio);
+  const finalPixelRatio = pixelRatio * resolution;
+  _setRendererSize(width, height, finalPixelRatio);
+  _setComposerSize(width, height, finalPixelRatio);
+  _setCameraSize(width, height, finalPixelRatio);
 };
 
 const _setRendererSize = (width, height, pixelRatio) => {
@@ -166,6 +170,7 @@ const _setRendererSize = (width, height, pixelRatio) => {
     }
   }
 };
+
 const _setComposerSize = (width, height, pixelRatio) => {
   const composer = getComposer();
   if (composer) {
@@ -173,15 +178,28 @@ const _setComposerSize = (width, height, pixelRatio) => {
     composer.setPixelRatio(pixelRatio);
   }
 };
-const _setCameraSize = (width, height, pixelRatio) => {
+
+const _setCameraSize = (width, height) => {
   const aspect = width / height;
   camera.aspect = aspect;
   camera.updateProjectionMatrix();
 };
 
-window.addEventListener('resize', e => {
+const setResolutionQuality = (quality) => {
+
+  resolution = quality;
   _setSizes();
-});
+
+};
+
+const setCameraViewRange = (range) => {
+
+  camera.far = range;
+  camera.updateProjectionMatrix();
+
+};
+
+window.addEventListener('resize', _setSizes );
 
 /* addDefaultLights(scene, {
   shadowMap: true,
@@ -205,6 +223,8 @@ if (canvas.parentNode) {
 } */
 
 export {
+  setResolutionQuality,
+  setCameraViewRange,
   waitForLoad,
   // AppManager,
   bindCanvas,

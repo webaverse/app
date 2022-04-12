@@ -3,7 +3,10 @@ import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import game from '../../../../game.js';
-import metaversefileApi from '../../../../metaversefile-api'
+import metaversefileApi from '../../../../metaversefile-api';
+import { setResolutionQuality, setCameraViewRange } from '../../../../renderer';
+import postporocessing from '../../../../post-processing';
+
 import { Switch } from './switch';
 
 import styles from './settings.module.css';
@@ -19,7 +22,8 @@ const DefaultSettings = {
         enabled:        'ON',
         depthOfField:   'ON',
         hdr:            'ON',
-        bloom:          'ON'
+        bloom:          'ON',
+        ssao:           'ON'
     },
     character: {
         details:        'HIGH',
@@ -41,6 +45,7 @@ export const TabGraphics = ({ active }) => {
     const [ depthOfField, setDepthOfField ] = useState( null );
     const [ hdr, setHdr ] = useState( null );
     const [ bloom, setBloom ] = useState( null );
+    const [ ssao, setSsao ] = useState( null );
     const [ characterDetails, setCharacterDetails ] = useState( null );
     const [ hairPhysics, setHairPhysics ] = useState( null );
 
@@ -57,7 +62,8 @@ export const TabGraphics = ({ active }) => {
                 enabled:        postprocessing,
                 depthOfField:   depthOfField,
                 hdr:            hdr,
-                bloom:          bloom
+                bloom:          bloom,
+                ssao:           ssao
             },
             character: {
                 details:        characterDetails,
@@ -126,6 +132,31 @@ export const TabGraphics = ({ active }) => {
             setAvatarQuality();
 
         }
+
+        // set rendering resolution
+
+        let resolutionQuality = 1;
+        if ( resolution === 'HIGH' ) resolutionQuality = 1;
+        if ( resolution === 'MEDIUM' ) resolutionQuality = 0.85;
+        if ( resolution === 'LOW' ) resolutionQuality = 0.7;
+        setResolutionQuality( resolutionQuality );
+
+        // set camera ViewRange
+
+        let viewRangeValue = 30000;
+        if ( viewRange === 'HIGH' ) viewRangeValue = 30000;
+        if ( viewRange === 'MEDIUM' ) viewRangeValue = 300;
+        if ( viewRange === 'LOW' ) viewRangeValue = 30;
+        setCameraViewRange( viewRangeValue );
+
+        // set postprocessing
+
+        postporocessing.makePasses({
+            ssao:       postprocessing ? ssao : false,
+            dof:        postprocessing ? depthOfField : false,
+            hdr:        postprocessing ? hdr : false,
+            bloom:      postprocessing ? bloom : false
+        });
 
         //
 
