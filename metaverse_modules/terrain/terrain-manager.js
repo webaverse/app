@@ -11,15 +11,10 @@ export class TerrainManager {
 
     this.center = new THREE.Vector3();
     this.chunkCount = this.chunkRange * 2 + 1;
+    this.segment = 16;
 
     this.targetChunkIds = this._calculateTargetChunks();
-    // this.currentChunks = this.targetChunkIds.map((v, i) => {
-    //   return {rangeIndex: [i, i], chunkId: v};
-    // });
-
     this.currentChunks = [];
-
-    this.segment = 16;
 
     /*
      * if following parameters are too small, memory areas of chunks can be overlaid
@@ -121,35 +116,6 @@ export class TerrainManager {
       this.geometry, [new THREE.MeshPhongMaterial({color: 0x00ff00})] // [terrainMaterial]
     );
     this.mesh.frustumCulled = false;
-
-    // const output = await this.geometryUtils.generateTerrain(
-    //   this.chunkSize, this.chunkCount, this.segment,
-    //   this.vertexBufferSizeParam, this.indexBufferSizeParam,
-    //   [buf.positions, buf.normals, buf.biomes, buf.indices, buf.vertexRanges, buf.indexRanges]
-    // );
-
-    // buf.positions = output.arrays[0];
-    // buf.normals = output.arrays[1];
-    // buf.biomes = output.arrays[2];
-    // buf.indices = output.arrays[3];
-    // buf.vertexRanges = this._makeRanges(output.arrays[4]);
-    // buf.indexRanges = this._makeRanges(output.arrays[5]);
-
-    // let totalVertexCount = 0;
-    // let totalIndexCount = 0;
-    // buf.vertexRanges.forEach(r => { totalVertexCount += r.size; });
-    // buf.indexRanges.forEach(r => { totalIndexCount += r.size; });
-
-    // buf.vertexFreeRanges = [{
-    //   offset: totalVertexCount,
-    //   size: maxVertexCount - totalVertexCount
-    // }];
-    // buf.indexFreeRanges = [{
-    //   offset: totalIndexCount,
-    //   size: maxIndexCount - totalIndexCount
-    // }];
-
-    // this._initGeometry();
   }
 
   getInitialChunkMeshes() {
@@ -265,6 +231,7 @@ export class TerrainManager {
         this._updateChunkGeometry(rangeIndex);
         this.onAddChunk(chunkIdToAdd);
       }, error => {
+        this.stagedChunkIds = this.stagedChunkIds.filter(id => id !== chunkIdToAdd);
         console.log('>>> error: ', error);
       });
     }
