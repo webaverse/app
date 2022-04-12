@@ -250,6 +250,7 @@ class AppManager extends EventTarget {
         // if (contentId.indexOf('bow') >= 0) debugger;
         const m = await metaversefile.import(contentId);
         if (!live) return _bailout(null);
+        // console.log({contentId})
 
         // create app
         // as an optimization, the app may be reused by calling addApp() before tracking it
