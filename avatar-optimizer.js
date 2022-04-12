@@ -48,6 +48,8 @@ const _getMergeableObjects = model => {
       }
       
       const objectGeometry = o.geometry;
+      const morphTargetDictionary = o.morphTargetDictionary;
+      const morphTargetInfluences = o.morphTargetInfluences;
       const objectMaterials = Array.isArray(o.material) ? o.material : [o.material];
       for (const objectMaterial of objectMaterials) {
         const {
@@ -75,6 +77,8 @@ const _getMergeableObjects = model => {
             normalMaps: [],
             // shadeTextures: [],
             skeletons: [],
+            morphTargetDictionaryArray: [],
+            morphTargetInfluencesArray: [],
           };
           mergeables.set(key, m);
         }
@@ -85,6 +89,8 @@ const _getMergeableObjects = model => {
         m.normalMaps.push(normalMap);
         // m.shadeTextures.push(shadeTexture);
         m.skeletons.push(skeleton);
+        m.morphTargetDictionaryArray.push(morphTargetDictionary);
+        m.morphTargetInfluencesArray.push(morphTargetInfluences);
       }
     }
   });
@@ -106,6 +112,8 @@ const optimizeAvatarModel = (model, options = {}) => {
       emissiveMaps,
       normalMaps,
       skeletons,
+      morphTargetDictionaryArray,
+      morphTargetInfluencesArray,
     } = mergeable;
 
     // compute texture sizes
@@ -399,10 +407,8 @@ const optimizeAvatarModel = (model, options = {}) => {
       } else if (type === 'skinnedMesh') {
         const skinnedMesh = new THREE.SkinnedMesh(geometry, material);
         skinnedMesh.skeleton = skeletons[0];
-        // XXX get this from the list accumulated during the initial scan
-        const deepestMorphMesh = meshes.find(m => (m.morphTargetInfluences ? m.morphTargetInfluences.length : 0) === morphAttributeLayouts[0].depth);
-        skinnedMesh.morphTargetDictionary = deepestMorphMesh.morphTargetDictionary;
-        skinnedMesh.morphTargetInfluences = deepestMorphMesh.morphTargetInfluences;
+        skinnedMesh.morphTargetDictionary = morphTargetDictionaryArray[0];
+        skinnedMesh.morphTargetInfluences = morphTargetInfluencesArray[0];
         return skinnedMesh;
       } else {
         throw new Error(`unknown type ${type}`);
