@@ -234,7 +234,7 @@ export const generateCard = async ({
       descriptionHeaderTextEl.innerHTML = lines[0];
       const descriptionBodyTextEl = el.querySelector('#description-body-text');
       descriptionBodyTextEl.innerHTML = lines.slice(1).join('\n');
-    }
+    } */
     {
       const stopEls = el.querySelectorAll('#Background linearGradient > stop');
       // const c = `stop-color:${spec.art.colors[0]}`;
