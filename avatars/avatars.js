@@ -1430,10 +1430,14 @@ class Avatar {
         break;
       }
       case 3: {
-        const optimizedModel = avatarOptimizer.optimizeAvatarModel(this.model);
-        console.log('optimized model', optimizedModel); // XXX
-        
-        this.model.visible = true;
+        this.optimizedModel = avatarOptimizer.optimizeAvatarModel(this.model);
+        this.optimizedModel.traverse(o => {
+          if (o.isMesh) {
+            o.frustumCulled = false;
+          }
+        });
+        scene.add(this.optimizedModel);
+        this.optimizedModel.visible = true;
         break;
       }
       case 4: {
