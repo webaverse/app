@@ -28,10 +28,11 @@ export class TerrainManager {
 
     this.renderer = renderer;
     this.stagedChunkIds = [];
-    // this.init();
+
+    this.init();
   }
 
-  async init() {
+  init() {
     const totalChunkCount = this.chunkCount ** 3;
     const cellCount = totalChunkCount * (this.segment ** 2);
     const maxVertexCount = cellCount * this.vertexBufferSizeParam;
@@ -116,11 +117,6 @@ export class TerrainManager {
       this.geometry, [new THREE.MeshPhongMaterial({color: 0x00ff00})] // [terrainMaterial]
     );
     this.mesh.frustumCulled = false;
-  }
-
-  getInitialChunkMeshes() {
-    return [];
-    // return this.currentChunks.map(chunk => [chunk.chunkId, this.getChunkMesh(chunk.chunkId)]);
   }
 
   _calculateTargetChunks() {

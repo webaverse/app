@@ -15,39 +15,25 @@ export default () => {
   const player = useLocalPlayer();
   player.position.y = 150;
 
-  terrainManager.init().then(() => {
-    const terrain = terrainManager.mesh;
-    const chunkIdMeshPairs = terrainManager.getInitialChunkMeshes();
+  const terrain = terrainManager.mesh;
+  rootScene.add(terrain);
 
-    chunkIdMeshPairs.forEach(pair => {
-      if (pair[1]) {
-        const physicsId = physics.addGeometry(pair[1]);
-        physicsIdChunkIdPairs.push({physicsId: physicsId, chunkId: pair[0]});
-      }
-    });
+  terrainManager.onRemoveChunks = async chunkIds => {
+    physicsIdChunkIdPairs.filter(pair => chunkIds.includes(pair.chunkId))
+      .forEach(pair => {
+        physics.removeGeometry(pair.physicsId);
+      });
 
-    rootScene.add(terrain);
+    physicsIdChunkIdPairs = physicsIdChunkIdPairs.filter(pair => !chunkIds.includes(pair.chunkId));
+  };
 
-    terrainManager.onRemoveChunks = async chunkIds => {
-      physicsIdChunkIdPairs.filter(pair => chunkIds.includes(pair.chunkId))
-        .forEach(pair => {
-          physics.removeGeometry(pair.physicsId);
-        });
-
-      physicsIdChunkIdPairs = physicsIdChunkIdPairs.filter(pair => !chunkIds.includes(pair.chunkId));
-    };
-
-    terrainManager.onAddChunk = async chunkId => {
-      const mesh = terrainManager.getChunkMesh(chunkId);
-      if (mesh) {
-        const physicsId = physics.addGeometry(mesh);
-        physicsIdChunkIdPairs.push({physicsId: physicsId, chunkId: chunkId});
-      }
-    };
-    // terrainManager.updateCenter(player.position);
-    // terrainManager.updateChunk();
-    player.position.y = 150;
-  });
+  terrainManager.onAddChunk = async chunkId => {
+    const mesh = terrainManager.getChunkMesh(chunkId);
+    if (mesh) {
+      const physicsId = physics.addGeometry(mesh);
+      physicsIdChunkIdPairs.push({physicsId: physicsId, chunkId: chunkId});
+    }
+  };
 
   useFrame(() => {
     if (terrainManager.mesh) {
