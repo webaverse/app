@@ -11,15 +11,7 @@ const geometryUtils = (() => {
     scope.resolves.push(() => {});
 
     scope.workers[i].onmessage = e => {
-      if (e.data.message === 'generateTerrain') {
-        scope.resolves[e.data.workerIndex]({
-          positionCount: e.data.positionCount,
-          indexCount: e.data.indexCount,
-          arrays: e.data.arrays,
-          buffers: e.data.buffers
-        });
-        scope.workingFlags[e.data.workerIndex] = false;
-      } else if (e.data.message === 'generateChunk') {
+      if (e.data.message === 'generateChunk') {
         scope.resolves[e.data.workerIndex](e.data.output);
         scope.workingFlags[e.data.workerIndex] = false;
       }

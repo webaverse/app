@@ -3,6 +3,8 @@ import {
   terrainMaterial
 } from './toonMaterial.js';
 
+const VERTEX_BIOME_SIZE = 8; // using 8 values for verterx biomes, 4 biomes and their weights
+
 export class TerrainManager {
   constructor(chunkSize, chunkCount, chunkCountHeight, geometryUtils, renderer) {
     this.chunkSize = chunkSize;
@@ -53,7 +55,7 @@ export class TerrainManager {
 
     this.bufferFactory.positions = new Float32Array(maxVertexCount * 3);
     this.bufferFactory.normals = new Float32Array(maxVertexCount * 3);
-    this.bufferFactory.biomes = new Float32Array(maxVertexCount * 8);
+    this.bufferFactory.biomes = new Float32Array(maxVertexCount * VERTEX_BIOME_SIZE);
     this.bufferFactory.indices = new Uint32Array(maxIndexCount);
 
     this.geometry = new THREE.BufferGeometry();
@@ -78,7 +80,7 @@ export class TerrainManager {
 
     this.biomeAttributeBuffer = new THREE.InterleavedBuffer();
     this.biomeAttributeBuffer.array = this.bufferFactory.biomes;
-    this.biomeAttributeBuffer.stride = 8;
+    this.biomeAttributeBuffer.stride = VERTEX_BIOME_SIZE;
     this.count = this.bufferFactory.biomes.length;
     this.biomeAttribute = new THREE.InterleavedBufferAttribute();
     this.biomeAttribute.data = this.biomeAttributeBuffer;
@@ -87,7 +89,7 @@ export class TerrainManager {
 
     this.biomeWeightAttributeBuffer = new THREE.InterleavedBuffer();
     this.biomeWeightAttributeBuffer.array = this.bufferFactory.biomes;
-    this.biomeWeightAttributeBuffer.stride = 8;
+    this.biomeWeightAttributeBuffer.stride = VERTEX_BIOME_SIZE;
     this.count = this.bufferFactory.biomes.length;
     this.biomeWeightAttribute = new THREE.InterleavedBufferAttribute();
     this.biomeWeightAttribute.data = this.biomeWeightAttributeBuffer;
@@ -210,14 +212,14 @@ export class TerrainManager {
 
         this.bufferFactory.positions.set(output.positions, vertexOffset * 3);
         this.bufferFactory.normals.set(output.normals, vertexOffset * 3);
-        this.bufferFactory.biomes.set(output.biomes, vertexOffset * 8);
+        this.bufferFactory.biomes.set(output.biomes, vertexOffset * VERTEX_BIOME_SIZE);
         this.bufferFactory.indices.set(output.indices, indexOffset);
 
-        this.chunkVertexRanges[rangeIndex] = {offset: vertexOffset, size: output.positionCount};
+        this.chunkVertexRanges[rangeIndex] = {offset: vertexOffset, size: output.vertexCount};
         this.chunkIndexRanges[rangeIndex] = {offset: indexOffset, size: output.indexCount};
 
-        this.vertexFreeRanges[vertexFreeRangeIndex].offset += output.positionCount;
-        this.vertexFreeRanges[vertexFreeRangeIndex].size -= output.positionCount;
+        this.vertexFreeRanges[vertexFreeRangeIndex].offset += output.vertexCount;
+        this.vertexFreeRanges[vertexFreeRangeIndex].size -= output.vertexCount;
         this.indexFreeRanges[indexFreeRangeIndex].offset += output.indexCount;
         this.indexFreeRanges[indexFreeRangeIndex].size -= output.indexCount;
 
@@ -256,14 +258,14 @@ export class TerrainManager {
     this.normalAttribute.version++;
 
     this.biomeAttributeBuffer.updateRange = {
-      offset: this.chunkVertexRanges[rangeIndex].offset * 8,
-      count: this.chunkVertexRanges[rangeIndex].size * 8,
+      offset: this.chunkVertexRanges[rangeIndex].offset * VERTEX_BIOME_SIZE,
+      count: this.chunkVertexRanges[rangeIndex].size * VERTEX_BIOME_SIZE,
     };
     this.biomeAttributeBuffer.version++;
 
     this.biomeWeightAttributeBuffer.updateRange = {
-      offset: this.chunkVertexRanges[rangeIndex].offset * 8,
-      count: this.chunkVertexRanges[rangeIndex].size * 8,
+      offset: this.chunkVertexRanges[rangeIndex].offset * VERTEX_BIOME_SIZE,
+      count: this.chunkVertexRanges[rangeIndex].size * VERTEX_BIOME_SIZE,
     };
     this.biomeWeightAttributeBuffer.version++;
 
