@@ -1117,6 +1117,9 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       if (window.needEndUse) {
         window.needEndUse = false;
+        if (!window.needStartUse) {
+          window.needResetUseIndex = true;
+        }
         gameManager.menuEndUse();
       }
 
