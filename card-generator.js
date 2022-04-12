@@ -236,17 +236,12 @@ export const generateCard = async ({
       descriptionBodyTextEl.innerHTML = lines.slice(1).join('\n');
     } */
     {
-      const stopEls = el.querySelectorAll('#Background linearGradient > stop');
+      const linearGradientName = 'linear-gradient-120';
+      const stopEls = el.querySelectorAll(`#${linearGradientName} > stop`);
       // const c = `stop-color:${spec.art.colors[0]}`;
       stopEls[1].style.cssText = `stop-color:${spec.art.colors[0]}`;
       stopEls[3].style.cssText = `stop-color:${spec.art.colors[1]}`;
-      
-      const g = el.querySelector('#Background linearGradient');
-      const id = 1;
-      g.id = 'background-' + id;
-      const p = g.nextElementSibling;
-      p.style = `fill:url(#${g.id});`;
-    } */
+    }
   }
 
   const image = await new Promise((accept, reject) => {
