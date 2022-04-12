@@ -8,29 +8,40 @@ import {generateGlyph} from './glyph-generator.js';
 // const cardsSvgUrl = `${baseUrl}cards.svg`;
 const cardsSvgUrl = `./images/cards-01.svg`;
 
-let cardSvgSource = null;
-const _loadCachedSvgSource = async () => {
-  if (cardSvgSource === null) {
-    const res = await fetch(cardsSvgUrl);
-    cardSvgSource = await res.text();
-  }
+const _loadSvg = async () => {
+  const res = await fetch(cardsSvgUrl);
+  const cardSvgSource = await res.text();
   return cardSvgSource;
 };
-const _waitForAllCardFonts = () => Promise.all([
-  'FuturaLT',
-  'MS-Gothic',
-  'FuturaStd-BoldOblique',
-  'GillSans',
+let svgLoadPromise = null;
+const _waitForSvgLoad = () => {
+  if (svgLoadPromise === null) {
+    svgLoadPromise = _loadSvg();
+  }
+  return svgLoadPromise;
+};
+
+const _loadFonts = () => Promise.all([
+  'FuturaLT-Condensed',
   'GillSans-CondensedBold',
   'FuturaStd-Heavy',
-  'FuturaLT-CondensedLight',
-  'SanvitoPro-LtCapt',
-  'FuturaLT-Book',
-]
-.map(fontFamily => document.fonts.load(`16px "${fontFamily}"`)))
+  'PlazaITC-Normal',
+  'MS-Gothic',
+  'GillSans',
+  'GillSans-ExtraBoldDisplay',
+  'FuturaLT-CondensedBold',
+  'SanvitoPro-Regular',
+].map(fontFamily => document.fonts.load(`16px "${fontFamily}"`)))
 .catch(err => {
   console.warn(err);
 });
+let fontsLoadPromise = null;
+const _waitForFontsLoad = () => {
+  if (fontsLoadPromise === null) {
+    fontsLoadPromise = _loadFonts();
+  }
+  return fontsLoadPromise;
+};
 
 const _getCanvasBlob = canvas => new Promise((resolve, reject) => {
   canvas.toBlob(blob => {
@@ -146,8 +157,8 @@ export const generateCard = async ({
   minterAvatarPreview,
   glyphImage,
 } = {}) => {
-  const cardSvgSource = await _loadCachedSvgSource();
-  await _waitForAllCardFonts();
+  const cardSvgSource = await _waitForSvgLoad();
+  await _waitForFontsLoad();
 
   const cardHeight = cardWidth / 2.5 * 3.5;
 
