@@ -1,3 +1,4 @@
+/* ui */
 @font-face {
   font-family: 'Muli';
   src: url('../public/fonts/Muli.ttf');
@@ -14,7 +15,6 @@
   font-family: 'WinchesterCaps';
   src:  url('../public/fonts/WinchesterCaps.ttf');
 }
-
 
 /* cards */
 @font-face {
