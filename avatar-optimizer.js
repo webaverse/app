@@ -21,20 +21,21 @@ class AttributeLayout {
     this.name = name;
     this.TypedArrayConstructor = TypedArrayConstructor;
     this.itemSize = itemSize;
-    this.index = 0;
+
     this.count = 0;
-    this.depth = 0;
   }
 }
 class MorphAttributeLayout extends AttributeLayout {
-  constructor(name, TypedArrayConstructor, itemSize, depth) {
+  constructor(name, TypedArrayConstructor, itemSize, arraySize) {
     super(name, TypedArrayConstructor, itemSize);
-    this.depth = depth;
+    this.arraySize = arraySize;
   }
 }
 
 const _getMergeableObjects = model => {
   const renderer = getRenderer();
+
+  console.log('got model', model);
 
   const mergeables = new Map();
   model.traverse(o => {
@@ -56,6 +57,7 @@ const _getMergeableObjects = model => {
           // shadeTexture = null,
         } = objectMaterial;
         // console.log('got material', objectMaterial);
+        const skeleton = o.skeleton ?? null;
 
         const key = [
           type,
@@ -72,6 +74,7 @@ const _getMergeableObjects = model => {
             emissiveMaps: [],
             normalMaps: [],
             // shadeTextures: [],
+            skeletons: [],
           };
           mergeables.set(key, m);
         }
@@ -81,6 +84,7 @@ const _getMergeableObjects = model => {
         m.emissiveMaps.push(emissiveMap);
         m.normalMaps.push(normalMap);
         // m.shadeTextures.push(shadeTexture);
+        m.skeletons.push(skeleton);
       }
     }
   });
@@ -101,6 +105,7 @@ const optimizeAvatarModel = (model, options = {}) => {
       maps,
       emissiveMaps,
       normalMaps,
+      skeletons,
     } = mergeable;
 
     // compute texture sizes
@@ -287,7 +292,126 @@ const optimizeAvatarModel = (model, options = {}) => {
     const morphAttributeLayouts = _makeMorphAttributeLayoutsFromGeometries(geometries);
     console.log('got attribute layouts', attributeLayouts, morphAttributeLayouts);
 
-    return new THREE.Mesh();
+    const _forceGeometriesAttributeLayouts = (attributeLayouts, geometries) => {
+      for (const layout of attributeLayouts) {
+        for (const g of geometries) {
+          let gAttribute = g.attributes[layout.name];
+          if (!gAttribute) {
+            if (layout.name === 'skinIndex' || layout.name === 'skinWeight') {
+              gAttribute = new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * layout.itemSize), layout.itemSize);
+              g.setAttribute(layout.name, gAttribute);
+            } else {
+              throw new Error(`unknown layout ${layout.name}`);
+            }
+          }
+        }
+      }
+    };
+    const _mergeGeometryies = geometries => {
+      const geometry = new THREE.BufferGeometry();
+
+      // attributes
+      _forceGeometriesAttributeLayouts(attributeLayouts, geometries);
+      for (const layout of attributeLayouts) {
+        const attributeData = new layout.TypedArrayConstructor(layout.count);
+        const attribute = new THREE.BufferAttribute(attributeData, layout.itemSize);
+        let attributeDataIndex = 0;
+        for (const g of geometries) {
+          const gAttribute = g.attributes[layout.name];
+          attributeData.set(gAttribute.array, layout.index);
+          attributeDataIndex += gAttribute.count * gAttribute.itemSize;
+        }
+        geometry.setAttribute(layout.name, attribute);
+      }
+
+      // morph attributes
+      for (const morphLayout of morphAttributeLayouts) {
+        const morphsArray = Array(morphLayout.arraySize);
+        for (let i = 0; i < morphLayout.arraySize; i++) {
+          const morphData = new morphLayout.TypedArrayConstructor(morphLayout.count);
+          const morphAttribute = new THREE.BufferAttribute(morphData, morphLayout.itemSize);
+          morphsArray[i] = morphAttribute;
+          let morphDataIndex = 0;
+          for (const g of geometries) {
+            let gMorphAttribute = g.morphAttributes[morphLayout.name];
+            gMorphAttribute = gMorphAttribute?.[i];
+            if (gMorphAttribute) {
+              morphData.set(gMorphAttribute.array, morphDataIndex);
+              morphDataIndex += gMorphAttribute.count * gMorphAttribute.itemSize;
+            } else {
+              const matchingAttribute = g.attributes[morphLayout.name];
+              morphDataIndex += matchingAttribute.count * matchingAttribute.itemSize;
+            }
+          }
+          if (morphDataIndex !== morphLayout.count) {
+            console.warn('desynced morph data', morphLayout.name, morphDataIndex, morphLayout.count);
+          }
+        }
+        geometry.morphAttributes[morphLayout.name] = morphsArray;
+      }
+
+      // index
+      let indexCount = 0;
+      for (const g of geometries) {
+        indexCount += g.index.count;
+      }
+      const indexData = new Uint32Array(indexCount);
+
+      let positionOffset = 0;
+      let indexOffset = 0;
+      for (const g of geometries) {
+        const srcIndexData = g.index.array;
+        for (let i = 0; i < srcIndexData.length; i++) {
+          indexData[indexOffset++] = srcIndexData[i] + positionOffset;
+        }
+        positionOffset += g.attributes.position.count;
+      }
+      geometry.setIndex(new THREE.BufferAttribute(indexData, 1));
+      geometry.morphTargetsRelative = true;
+
+      return geometry;
+    };
+    const geometry = _mergeGeometryies(geometries);
+    console.log('got geometry', geometry);
+
+    const _makeMaterial = () => {
+      // XXX use the original material, but set the new textures
+      const material = new THREE.MeshBasicMaterial();
+      if (atlasTextures) {
+        for (const textureType of textureTypes) {
+          const t = new THREE.Texture(atlasImages[textureType].image);
+          t.flipY = false;
+          t.needsUpdate = true;
+          material[textureType] = t;
+        }
+      }
+      material.roughness = 1;
+      material.alphaTest = 0.1;
+      material.transparent = true;
+    };
+    const material = _makeMaterial();
+    console.log('got material', material);
+
+    const _makeMesh = () => {
+      if (type === 'mesh') {
+        const mesh = new THREE.Mesh(geometry, material);
+        return mesh;
+      } else if (type === 'skinnedMesh') {
+        const skinnedMesh = new THREE.SkinnedMesh(geometry, material);
+        skinnedMesh.skeleton = skeletons[0];
+        // XXX get this from the list accumulated during the initial scan
+        const deepestMorphMesh = meshes.find(m => (m.morphTargetInfluences ? m.morphTargetInfluences.length : 0) === morphAttributeLayouts[0].depth);
+        skinnedMesh.morphTargetDictionary = deepestMorphMesh.morphTargetDictionary;
+        skinnedMesh.morphTargetInfluences = deepestMorphMesh.morphTargetInfluences;
+        return skinnedMesh;
+      } else {
+        throw new Error(`unknown type ${type}`);
+      }
+    };
+    const mesh = _makeMesh();
+    console.log('got mesh', mesh);
+
+    return mesh;
   };
   const mergedMeshes = mergeables.map((mergeable, i) => _mergeMesh(mergeable, i));
 
@@ -436,21 +560,6 @@ const optimizeAvatarModel = (model, options = {}) => {
     skeletons,
   } = _collectObjects();
 
-  const _forceGeometriesAttributeLayouts = (attributeLayouts, geometries) => {
-    for (const layout of attributeLayouts) {
-      for (const g of geometries) {
-        let gAttribute = g.attributes[layout.name];
-        if (!gAttribute) {
-          if (layout.name === 'skinIndex' || layout.name === 'skinWeight') {
-            gAttribute = new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * layout.itemSize), layout.itemSize);
-            g.setAttribute(layout.name, gAttribute);
-          } else {
-            throw new Error('unknown layout');
-          }
-        }
-      }
-    }
-  };
   const attributeLayouts = _makeAttributeLayoutsFromGeometries(geometries);
   const morphAttributeLayouts = _makeMorphAttributeLayoutsFromGeometries(geometries);
 
@@ -466,64 +575,7 @@ const optimizeAvatarModel = (model, options = {}) => {
     console.log('did not have single skeleton', skeletons);
   }
   
-  // build geometry
-  const geometry = new THREE.BufferGeometry();
-  // attributes
-  _forceGeometriesAttributeLayouts(attributeLayouts, geometries);
-  for (const layout of attributeLayouts) {
-    const attributeData = new layout.TypedArrayConstructor(layout.count);
-    const attribute = new THREE.BufferAttribute(attributeData, layout.itemSize);
-    for (const g of geometries) {
-      const gAttribute = g.attributes[layout.name];
-      attributeData.set(gAttribute.array, layout.index);
-      layout.index += gAttribute.count * gAttribute.itemSize;
-    }
-    geometry.setAttribute(layout.name, attribute);
-  }
-  // morph attributes
-  for (const morphLayout of morphAttributeLayouts) {
-    const morphsArray = Array(morphLayout.depth);
-    for (let i = 0; i < morphLayout.depth; i++) {
-      const morphData = new morphLayout.TypedArrayConstructor(morphLayout.count);
-      let morphDataIndex = 0;
-      const morphAttribute = new THREE.BufferAttribute(morphData, morphLayout.itemSize);
-      morphsArray[i] = morphAttribute;
-      for (const g of geometries) {
-        let gMorphAttribute = g.morphAttributes[morphLayout.name];
-        gMorphAttribute = gMorphAttribute && gMorphAttribute[i];
-        if (gMorphAttribute) {
-          morphData.set(gMorphAttribute.array, morphDataIndex);
-          morphDataIndex += gMorphAttribute.count * gMorphAttribute.itemSize;
-          // console.log('new index 1', morphLayout.name, gMorphAttribute.array.some(n => n !== 0), morphDataIndex, gMorphAttribute.count, gMorphAttribute.itemSize);
-        } else {
-          const matchingAttribute = g.attributes[morphLayout.name];
-          morphDataIndex += matchingAttribute.count * matchingAttribute.itemSize;
-          // console.log('new index 2', g, morphDataIndex, matchingAttribute.count, matchingAttribute.itemSize);
-        }
-      }
-      if (morphDataIndex !== morphLayout.count) {
-        console.warn('desynced morph data', morphLayout.name, morphDataIndex, morphLayout.count);
-      }
-    }
-    geometry.morphAttributes[morphLayout.name] = morphsArray;
-  }
-  // index
-  let indexCount = 0;
-  for (const g of geometries) {
-    indexCount += g.index.count;
-  }
-  const indexData = new Uint32Array(indexCount);
-  let positionOffset = 0;
-  let indexOffset = 0;
-  for (const g of geometries) {
-    const srcIndexData = g.index.array;
-    for (let i = 0; i < srcIndexData.length; i++) {
-      indexData[indexOffset++] = srcIndexData[i] + positionOffset;
-    }
-    positionOffset += g.attributes.position.count;
-  }
-  geometry.setIndex(new THREE.BufferAttribute(indexData, 1));
-  geometry.morphTargetsRelative = true;
+  
 
   // verify
   for (const layout of attributeLayouts) {
