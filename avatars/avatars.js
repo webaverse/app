@@ -1411,21 +1411,21 @@ class Avatar {
   async setQuality(quality) {
 
     this.model.visible = false;
-    if ( this.crunchedModel ) this.crunchedModel.visible = false;
-    if ( this.spriteMegaAvatarMesh ) this.spriteMegaAvatarMesh.visible = false;
+    if (this.crunchedModel) this.crunchedModel.visible = false;
+    if (this.spriteMegaAvatarMesh) this.spriteMegaAvatarMesh.visible = false;
 
     switch (quality) {
       case 1: {
         const skinnedMesh = await this.object.cloneVrm();
-        this.spriteMegaAvatarMesh = this.spriteMegaAvatarMesh ?? avatarSpriter.createSpriteMegaMesh( skinnedMesh );
-        scene.add( this.spriteMegaAvatarMesh );
+        this.spriteMegaAvatarMesh = this.spriteMegaAvatarMesh ?? avatarSpriter.createSpriteMegaMesh(skinnedMesh);
+        scene.add(this.spriteMegaAvatarMesh);
         this.spriteMegaAvatarMesh.visible = true;
         break;
       }
       case 2: {
-        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel( this.model );
+        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel(this.model);
         this.crunchedModel.frustumCulled = false;
-        scene.add( this.crunchedModel );
+        scene.add(this.crunchedModel);
         this.crunchedModel.visible = true;
         break;
       }
