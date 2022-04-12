@@ -11,6 +11,7 @@ export class TerrainManager {
 
     this.center = new THREE.Vector3();
     this.chunkCount = this.chunkRange * 2 + 1;
+    this.totalChunkCount = this.chunkCount ** 3;
     this.segment = 16;
 
     this.targetChunkIds = this._calculateTargetChunks();
@@ -20,8 +21,8 @@ export class TerrainManager {
      * if following parameters are too small, memory areas of chunks can be overlaid
      * if too big, memory will be over allocated;
      */
-    this.vertexBufferSizeParam = 20;
-    this.indexBufferSizeParam = 20;
+    this.vertexBufferSizeParam = 5;
+    this.indexBufferSizeParam = 10;
 
     this.onAddChunk = () => {};
     this.onRemoveChunks = () => {};
@@ -33,14 +34,13 @@ export class TerrainManager {
   }
 
   init() {
-    const totalChunkCount = this.chunkCount ** 3;
-    const cellCount = totalChunkCount * (this.segment ** 2);
+    const cellCount = this.totalChunkCount * (this.segment ** 3);
     const maxVertexCount = cellCount * this.vertexBufferSizeParam;
     const maxIndexCount = cellCount * this.indexBufferSizeParam;
 
     this.chunkVertexRanges = [];
     this.chunkIndexRanges = [];
-    for (let i = 0; i < totalChunkCount; i++) {
+    for (let i = 0; i < this.totalChunkCount; i++) {
       this.chunkVertexRanges.push({offset: -1, size: -1});
       this.chunkIndexRanges.push({offset: -1, size: -1});
     }
@@ -101,7 +101,7 @@ export class TerrainManager {
 
     this.geometry.clearGroups();
 
-    for (let i = 0; i < this.chunkCount ** 3; i++) {
+    for (let i = 0; i < this.totalChunkCount; i++) {
       this.geometry.addGroup(this.chunkIndexRanges[i].offset, this.chunkIndexRanges[i].size, 0);
     }
 
@@ -267,7 +267,7 @@ export class TerrainManager {
     this.biomeWeightAttributeBuffer.version++;
 
     this.geometry.clearGroups();
-    for (let i = 0; i < this.chunkCount ** 3; i++) {
+    for (let i = 0; i < this.totalChunkCount; i++) {
       this.geometry.addGroup(this.chunkIndexRanges[i].offset, this.chunkIndexRanges[i].size, 0);
     }
 
