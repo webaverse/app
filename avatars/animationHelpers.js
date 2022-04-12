@@ -73,6 +73,7 @@ let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
+let lastActionTime;
 
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
@@ -362,6 +363,7 @@ export const loadPromise = (async () => {
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
   }, aimAnimations);
+  window.useAnimations = useAnimations;
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
     saddle: animations.find(a => a.isSitting),
@@ -807,14 +809,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           isTop,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('jumpAnimation');
+        // debugger
 
         const t2 = activeAvatar.jumpTime / 1000 * 0.6 + 0.7;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
+
+        lastDst.copy(dst);
+        lastActionTime = now;
       };
     }
     if (activeAvatar.sitState) {
@@ -822,8 +831,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           isTop,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('sitAnimation');
+        // debugger
 
         const sitAnimation = sitAnimations[activeAvatar.sitAnimation || defaultSitAnimation];
         const src2 = sitAnimation.interpolants[k];
@@ -837,9 +850,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           isTop,
           isPosition,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('narutoRunAnimation');
+        // debugger
 
         const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
         const src2 = narutoRunAnimation.interpolants[k];
@@ -849,6 +866,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.fromArray(v2);
 
         _clearXZ(dst, isPosition);
+
+        lastDst.copy(dst);
+        lastActionTime = now;
       };
     }
 
@@ -857,10 +877,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           lerpFn,
           isTop,
           isPosition,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('danceAnimation');
+        // debugger
 
         _handleDefault(spec);
 
@@ -879,6 +903,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           );
 
         _clearXZ(dst, isPosition);
+
+        lastDst.copy(dst);
+        lastActionTime = now;
       };
     }
 
@@ -903,16 +930,18 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             activeAvatar.useAnimationEnvelope.length > 0
     ) {
       return spec => {
-        // debugger
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           isTop,
           isCombo,
           isPosition,
         } = spec;
 
+        if (k === 'mixamorigHips.quaternion') console.log('useAnimation');
         // debugger
+
         let useAnimation;
         let t2;
         const useTimeS = activeAvatar.useTime / 1000;
@@ -1035,16 +1064,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             }
           }
         }
+
+        lastDst.copy(dst);
+        lastActionTime = now;
       };
     } else if (activeAvatar.hurtAnimation) {
-      // debugger
       return spec => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           isTop,
           isPosition,
         } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('hurtAnimation');
+        // debugger
 
         const hurtAnimation = (activeAvatar.hurtAnimation && hurtAnimations[activeAvatar.hurtAnimation]);
         _handleDefault(spec);
@@ -1078,79 +1113,78 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .sub(localVector2.fromArray(v3))
             .add(localVector2.fromArray(v2));
         }
+
+        lastDst.copy(dst);
+        lastActionTime = now;
       };
     } else if (activeAvatar.aimAnimation) {
-      // debugger
       return spec => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           // isTop,
           isArm,
           isPosition,
         } = spec;
 
-        const aimAnimation = (activeAvatar.aimAnimation && aimAnimations[activeAvatar.aimAnimation]);
+        if (k === 'mixamorigHips.quaternion') console.log('aimAnimation');
+        // debugger
+
         _handleDefault(spec);
-        const t2 = (activeAvatar.aimTime / aimMaxTime) % aimAnimation.duration;
-        if (!isPosition) {
-          if (aimAnimation) {
+
+        const aimAnimation = (activeAvatar.aimAnimation && aimAnimations[activeAvatar.aimAnimation]);
+        if (aimAnimation) {
+          const t2 = (activeAvatar.aimTime / aimMaxTime) % aimAnimation.duration;
+          if (!isPosition) {
             const src2 = aimAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localQuaternion2.fromArray(v2);
 
-            if (moveFactors.crouchFactor === 0) {
-              if (isArm) {
-                // do nothing: localQuaternion2 already pure aim animation
-              } else { // lerp legs between aim and walk/run by idleWalkFactor.
-                localQuaternion2.slerp(dst, moveFactors.idleWalkFactor);
-              }
-              // now localQuaternion2 is full aim animation ( which already processed legs ).
-
-              // lerp default animation and aim animation when start aim.
+            if (isArm) {
+              dst.slerp(localQuaternion2, Math.min(0.5, activeAvatar.aimTime / 100 * 0.5));
+            } else {
+              localQuaternion2.slerp(dst, 0.5 + moveFactors.idleWalkFactor * 0.5);
               dst.slerp(localQuaternion2, Math.min(1, activeAvatar.aimTime / 100));
-            } else { // when crouch, only apply aim to isArm bones.
-              if (isArm) {
-                dst.slerp(localQuaternion2, Math.min(1, activeAvatar.aimTime / 100));
-              }
             }
-          }
-        } else {
-          const src2 = aimAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-          localVector2.fromArray(v2);
-          _clearXZ(localVector2, isPosition);
+          } else {
+            const src2 = aimAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            localVector2.fromArray(v2);
+            _clearXZ(localVector2, isPosition);
 
-          if (moveFactors.crouchFactor === 0) {
             if (isArm) {
-              // do nothing: localVector2 already pure aim animation
-            } else { // lerp legs between aim and walk/run by idleWalkFactor.
-              localVector2.lerp(dst, moveFactors.idleWalkFactor);
-            }
-            // now localVector2 is full aim animation ( which already processed legs ).
-
-            // lerp default animation and aim animation when start aim.
-            dst.lerp(localVector2, Math.min(1, activeAvatar.aimTime / 100));
-          } else { // when crouch, only apply aim to isArm bones.
-            if (isArm) {
+              dst.lerp(localVector2, Math.min(0.5, activeAvatar.aimTime / 100 * 0.5));
+            } else {
+              localVector2.lerp(dst, 0.5 + moveFactors.idleWalkFactor * 0.5);
               dst.lerp(localVector2, Math.min(1, activeAvatar.aimTime / 100));
             }
           }
         }
+
+        lastDst.copy(dst);
+        lastActionTime = now;
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
-      debugger
-      // debugger
       return spec => {
         const {
           animationTrackName: k,
           dst,
+          lastDst,
           lerpFn,
           isTop,
           isPosition,
         } = spec;
 
+        if (k === 'mixamorigHips.quaternion') console.log('unuseAnimation');
+        // debugger
+
         _handleDefault(spec);
+
+        if (!activeAvatar.unuseAnimation) return;
+        // Though already checked outter, the codes here will run multiple times equal to bones number.
+        // So will cause error after first bone set `activeAvatar.unuseAnimation = null;` if not check here.
+        // todo: May can extract `activeAvatar.unuseAnimation = null;` and related codes to outter.
 
         const unuseTimeS = activeAvatar.unuseTime / 1000;
         const unuseAnimationName = activeAvatar.unuseAnimation;
@@ -1201,7 +1235,35 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
 
         if (f >= 1) {
-          activeAvatar.useAnimation = '';
+          activeAvatar.unuseAnimation = null;
+        }
+
+        lastDst.copy(dst);
+        lastActionTime = now;
+      };
+    }
+
+    const unactionTime = now - lastActionTime;
+    if (unactionTime <= 100) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          lastDst,
+          lerpFn,
+          isTop,
+          isPosition,
+        } = spec;
+
+        if (k === 'mixamorigHips.quaternion') console.log('restoreAnimation');
+        // debugger
+
+        _handleDefault(spec);
+
+        if (!isPosition) {
+          dst.slerp(lastDst, 1 - Math.min(1, unactionTime / 100));
+        } else {
+          dst.lerp(lastDst, 1 - Math.min(1, unactionTime / 100));
         }
       };
     }
