@@ -959,6 +959,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           // if (k === 'mixamorigHips.quaternion' && useTimeS >= useAnimation.duration) {
           if (useTimeS >= useAnimation.duration) {
             window.needEndUse = true;
+            // debugger
+            if (activeAvatar.useAnimationIndex < activeAvatar.useAnimationCombo.length - 1) {
+              window.needStartUse = true;
+            }
+
             //   window.isDebugger = true
             //   window.isContinueCombo = true
             //   debugger 

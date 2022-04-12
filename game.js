@@ -386,7 +386,10 @@ const _mousedown = () => {
 const _mouseup = () => {
   const useAction = localPlayer.getAction('use');
   // debugger
-  if (useAction?.animationEnvelope?.length > 0) {
+  if (
+    // useAction.animationCombo?.length > 0 ||
+    useAction?.animationEnvelope?.length > 0
+  ) {
     _endUse();
   }
 };

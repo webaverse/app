@@ -1111,17 +1111,19 @@ class LocalPlayer extends UninterpolatedPlayer {
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
+
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
 
       if (window.needEndUse) {
+        window.needEndUse = false;
         gameManager.menuEndUse();
       }
 
       this.updateInterpolation(timeDiff);
 
-      if (window.needEndUse) {
-        window.needEndUse = false;
+      if (window.needStartUse) {
+        window.needStartUse = false;
         gameManager.menuStartUse();
       }
 
