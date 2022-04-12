@@ -373,8 +373,12 @@ const _endUse = () => {
 };
 const _mousedown = () => {
   // debugger
+  let useAction = localPlayer.getAction('use');
+  if (useAction?.animationCombo?.length > 0) {
+    window.needContinuCombo = true;
+  }
   _startUse();
-  const useAction = localPlayer.getAction('use');
+  useAction = localPlayer.getAction('use');
   if (!(
     useAction.animation ||
     useAction.animationCombo?.length > 0 ||

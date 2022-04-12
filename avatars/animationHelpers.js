@@ -960,7 +960,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           if (useTimeS >= useAnimation.duration) {
             window.needEndUse = true;
             // debugger
-            if (activeAvatar.useAnimationIndex < activeAvatar.useAnimationCombo.length - 1) {
+            if (window.needContinuCombo && activeAvatar.useAnimationIndex < activeAvatar.useAnimationCombo.length - 1) {
+              window.needContinuCombo = false;
               window.needStartUse = true;
             }
 
