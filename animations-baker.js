@@ -346,21 +346,21 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
           const boneInterpolant = new THREE.QuaternionLinearInterpolant(track.times, track.values, track.getValueSize());
           boneQuaternionInterpolants[boneName] = boneInterpolant;
         } else if (/\.scale$/.test(track.name)) {
-          if (allOnes(track.values)) {
-            const index = tracks.indexOf(track);
-            tracksToRemove.push(index);
-          } else {
-            throw new Error(`This track has invalid values.  All scale transforms must be set to 1. Aborting.\n Animation: ${animation.name}, Track: ${track.name}, values: \n ${track.values}`);
-          }
+          // if (allOnes(track.values)) {
+          //   const index = tracks.indexOf(track);
+          //   tracksToRemove.push(index);
+          // } else {
+          //   throw new Error(`This track has invalid values.  All scale transforms must be set to 1. Aborting.\n Animation: ${animation.name}, Track: ${track.name}, values: \n ${track.values}`);
+          // }
         } else {
           console.warn('unknown track name', animation.name, track);
         }
       }
-      // remove scale transform tracks as they won't be used;
-      let i = tracksToRemove.length;
-      while (i--) {
-        tracks.splice(tracksToRemove[i], 1);
-      }
+      // // remove scale transform tracks as they won't be used;
+      // let i = tracksToRemove.length;
+      // while (i--) {
+      //   tracks.splice(tracksToRemove[i], 1);
+      // }
 
       const walkBufferSize = 256;
       const leftFootYDeltas = new Float32Array(walkBufferSize);
