@@ -11,7 +11,9 @@ export class TerrainManager {
 
     this.center = new THREE.Vector3();
     this.chunkCount = this.chunkRange * 2 + 1;
-    this.totalChunkCount = this.chunkCount ** 3;
+    this.chunkRangeHeight = 1;
+    this.chunkCountHeight = this.chunkRangeHeight * 2 + 1;
+    this.totalChunkCount = (this.chunkCount ** 2) * this.chunkCountHeight;
     this.segment = 16;
 
     this.targetChunkIds = this._calculateTargetChunks();
@@ -127,7 +129,7 @@ export class TerrainManager {
     const targetChunks = [];
 
     for (let i = centerChunkGridX - this.chunkRange; i < centerChunkGridX + this.chunkRange + 1; i++) {
-      for (let j = centerChunkGridY - this.chunkRange; j < centerChunkGridY + this.chunkRange + 1; j++) {
+      for (let j = centerChunkGridY - this.chunkRangeHeight; j < centerChunkGridY + this.chunkRangeHeight + 1; j++) {
         for (let k = centerChunkGridZ - this.chunkRange; k < centerChunkGridZ + this.chunkRange + 1; k++) {
           targetChunks.push(i + ':' + j + ':' + k);
         }
