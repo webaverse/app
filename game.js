@@ -361,6 +361,7 @@ const _startUse = () => {
 const _endUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const useAction = localPlayer.getAction('use');
+  // if (window.isDebugger) debugger
   if (useAction) {
     const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
     app.dispatchEvent({

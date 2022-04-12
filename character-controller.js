@@ -40,6 +40,7 @@ import {
   defaultPlayerBio,
 } from './ai/lore/lore-model.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
+import gameManager from './game.js';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -893,6 +894,15 @@ class UninterpolatedPlayer extends StatePlayer {
     };
 
     // test
+    this.actionInterpolants.use = new Proxy(this.actionInterpolants.use, {
+      set: (obj, prop, newVal) => {
+        const oldVal = obj[prop];
+        // if (prop === 'value' && oldVal !== 0 && newVal === 0) debugger;
+        if (window.isDebugger && prop === 'value') debugger
+        obj[prop] = newVal;
+        return true;
+      }
+    })
     // this.actionInterpolants.activate = new Proxy(this.actionInterpolants.activate, {
     //   set: (obj, prop, newVal) => {
     //     if (prop === 'fn') debugger;
@@ -1113,6 +1123,12 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.avatar.update(timestamp, timeDiff);
 
       this.characterHups.update(timestamp);
+
+      if (window.isContinueCombo) {
+        window.isContinueCombo = false;
+        this.updateInterpolation(timeDiff);
+        gameManager.menuStartUse();
+      }
     }
   }
   resetPhysics() {
