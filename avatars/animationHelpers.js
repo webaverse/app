@@ -955,18 +955,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const useAnimationName = activeAvatar.useAnimationCombo[activeAvatar.useAnimationIndex];
           // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
-          if (k === 'mixamorigHips.quaternion' && useTimeS >= useAnimation.duration) {
-            window.isDebugger = true
-            window.isContinueCombo = true
-            debugger 
-            gameManager.menuEndUse();
-            // requestAnimationFrame(() => {
+
+          // if (k === 'mixamorigHips.quaternion' && useTimeS >= useAnimation.duration) {
+          if (useTimeS >= useAnimation.duration) {
+            window.needEndUse = true;
+            //   window.isDebugger = true
+            //   window.isContinueCombo = true
+            //   debugger 
+            //   gameManager.menuEndUse();
             //   // requestAnimationFrame(() => {
-            //     debugger
-            //     gameManager.menuStartUse();
+            //   //   // requestAnimationFrame(() => {
+            //   //     debugger
+            //   //     gameManager.menuStartUse();
+            //   //   // });
             //   // });
-            // });
           }
+
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (activeAvatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;

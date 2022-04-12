@@ -1114,7 +1114,16 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
 
+      if (window.needEndUse) {
+        gameManager.menuEndUse();
+      }
+
       this.updateInterpolation(timeDiff);
+
+      if (window.needEndUse) {
+        window.needEndUse = false;
+        gameManager.menuStartUse();
+      }
 
       const session = this.getSession();
       const mirrors = metaversefile.getMirrors();
@@ -1123,12 +1132,6 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.avatar.update(timestamp, timeDiff);
 
       this.characterHups.update(timestamp);
-
-      if (window.isContinueCombo) {
-        window.isContinueCombo = false;
-        this.updateInterpolation(timeDiff);
-        gameManager.menuStartUse();
-      }
     }
   }
   resetPhysics() {
