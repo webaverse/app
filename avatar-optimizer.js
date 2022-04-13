@@ -500,6 +500,9 @@ const optimizeAvatarModel = (model, options = {}) => {
     const geometry = _mergeGeometries(geometries);
     console.log('got geometry', geometry);
 
+    const m = new THREE.MeshPhongMaterial({
+      color: 0xFF0000,
+    });
     const _updateMaterial = () => {
       if (atlasTextures) {
         for (const textureType of textureTypes) {
@@ -507,22 +510,18 @@ const optimizeAvatarModel = (model, options = {}) => {
           const t = new THREE.Texture(image);
           t.flipY = false;
           t.needsUpdate = true;
-          material[textureType] = t;
+          m[textureType] = t;
         }
       }
-      /* material.roughness = 1;
-      material.alphaTest = 0.1;
-      material.transparent = true; */
+      // m.roughness = 1;
+      m.alphaTest = 0.1;
+      m.transparent = true;
+      m.needsUpdate = true;
     };
     _updateMaterial();
-    console.log('got material', material);
+    console.log('got material', m);
 
     const _makeMesh = () => {
-      const m = new THREE.MeshPhongMaterial({
-        color: 0xFF0000,
-      });
-      /* const mesh = new THREE.Mesh(geometry, m);
-      return mesh; */
       if (type === 'mesh') {
         const mesh = new THREE.Mesh(geometry, m);
         return mesh;
