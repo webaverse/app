@@ -34,8 +34,6 @@ class MorphAttributeLayout extends AttributeLayout {
 const _getMergeableObjects = model => {
   const renderer = getRenderer();
 
-  console.log('got model', model);
-
   const mergeables = new Map();
   model.traverse(o => {
     if (o.isMesh && o.geometry.type === 'BufferGeometry') {
@@ -99,8 +97,9 @@ const optimizeAvatarModel = (model, options = {}) => {
   const atlasTextures = !!(options.textures ?? true);
   const textureSize = options.textureSize ?? defaultTextureSize;
 
+  console.log('got model', model);
   const mergeables = _getMergeableObjects(model);
-  // console.log('got mergeables', mergeables);
+  console.log('got mergeables', mergeables);
 
   const _mergeMesh = (mergeable, mergeableIndex) => {
     const {
