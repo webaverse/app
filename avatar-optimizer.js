@@ -228,14 +228,17 @@ const optimizeAvatarModel = (model, options = {}) => {
       };
 
       const atlasImages = {};
-      const atlasImagesMap = new Map();
+      const atlasImagesMap = new Map(); // cache to alias identical textures
       for (const textureType of textureTypes) {
         const textures = mergeable[`${textureType}s`];
         const key = _getTexturesKey(textures);
 
         let atlasImage = atlasImagesMap.get(key);
-        if (!atlasImage) {
+        if (atlasImage === undefined) { // cache miss
           atlasImage = _drawAtlasImage(textures);
+          if (atlasImage !== null) {
+            atlasImage.key = key;
+          }
           atlasImagesMap.set(key, atlasImage);
         }
         atlasImages[textureType] = atlasImage;
@@ -462,31 +465,37 @@ const optimizeAvatarModel = (model, options = {}) => {
 
     const _makeAtlasTextures = atlasImages => {
       const _makeAtlasTexture = atlasImage => {
-        if (atlasImage) {
-          const originalTexture = originalTextures.get(atlasImage);
-          
-          const t = new THREE.Texture(atlasImage);
-          t.minFilter = originalTexture.minFilter;
-          t.magFilter = originalTexture.magFilter;
-          t.wrapS = originalTexture.wrapS;
-          t.wrapT = originalTexture.wrapT;
-          t.mapping = originalTexture.mapping;
-          // t.encoding = originalTexture.encoding;
+        const originalTexture = originalTextures.get(atlasImage);
+        
+        const t = new THREE.Texture(atlasImage);
+        t.minFilter = originalTexture.minFilter;
+        t.magFilter = originalTexture.magFilter;
+        t.wrapS = originalTexture.wrapS;
+        t.wrapT = originalTexture.wrapT;
+        t.mapping = originalTexture.mapping;
+        // t.encoding = originalTexture.encoding;
 
-          t.flipY = false;
-          t.needsUpdate = true;
-          
-          return t;
-        } else {
-          return null;
-        }
+        t.flipY = false;
+        t.needsUpdate = true;
+        
+        return t;
       };
 
       const result = {};
+      const textureMap = new Map(); // cache to alias identical textures
       for (const textureType of textureTypes) {
         const atlasImage = atlasImages[textureType];
-        const atlasTexture = _makeAtlasTexture(atlasImage);
-        result[textureType] = atlasTexture;
+
+        if (atlasImage) {
+          let atlasTexture = textureMap.get(atlasImage.key);
+          if (atlasTexture === undefined) { // cache miss
+            atlasTexture = _makeAtlasTexture(atlasImage);
+            textureMap.set(atlasImage.key, atlasTexture);
+          }
+          result[textureType] = atlasTexture;
+        } else {
+          result[textureType] = null;
+        }
       }
       return result;
     };
