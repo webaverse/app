@@ -103,9 +103,9 @@ const optimizeAvatarModel = (model, options = {}) => {
   const atlasTextures = !!(options.textures ?? true);
   const textureSize = options.textureSize ?? defaultTextureSize;
 
-  console.log('got model', model);
+  // console.log('got model', model);
   const mergeables = _getMergeableObjects(model);
-  console.log('got mergeables', mergeables);
+  // console.log('got mergeables', mergeables);
 
   const _mergeMesh = (mergeable, mergeableIndex) => {
     const {
@@ -492,7 +492,7 @@ const optimizeAvatarModel = (model, options = {}) => {
       m.needsUpdate = true;
     };
     _updateMaterial();
-    console.log('got material', m);
+    // console.log('got material', m);
 
     const _makeMesh = () => {
       if (type === 'mesh') {
