@@ -12,6 +12,7 @@ const textureTypes = [
   'map',
   'emissiveMap',
   'normalMap',
+  'shadeTexture',
 ];
 
 class AttributeLayout {
@@ -54,9 +55,8 @@ const _getMergeableObjects = model => {
           map = null,
           emissiveMap = null,
           normalMap = null,
-          // shadeTexture = null,
+          shadeTexture = null,
         } = objectMaterial;
-        // console.log('got material', objectMaterial);
         const skeleton = o.skeleton ?? null;
 
         const key = [
@@ -73,7 +73,7 @@ const _getMergeableObjects = model => {
             maps: [],
             emissiveMaps: [],
             normalMaps: [],
-            // shadeTextures: [],
+            shadeTextures: [],
             skeletons: [],
             morphTargetDictionaryArray: [],
             morphTargetInfluencesArray: [],
@@ -85,7 +85,7 @@ const _getMergeableObjects = model => {
         m.maps.push(map);
         m.emissiveMaps.push(emissiveMap);
         m.normalMaps.push(normalMap);
-        // m.shadeTextures.push(shadeTexture);
+        m.shadeTextures.push(shadeTexture);
         m.skeletons.push(skeleton);
         m.morphTargetDictionaryArray.push(morphTargetDictionary);
         m.morphTargetInfluencesArray.push(morphTargetInfluences);
