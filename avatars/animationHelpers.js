@@ -959,19 +959,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        if (k === 'mixamorigHips.quaternion') console.log('useAnimation');
-        // debugger
-
         let useAnimation;
         let t2;
         const useTimeS = activeAvatar.useTime / 1000;
         if (activeAvatar.useAnimation) {
+          if (k === 'mixamorigHips.quaternion') console.log('useAnimation');
+          // debugger
+
           const useAnimationName = activeAvatar.useAnimation;
           // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
           if (useTimeS > useAnimation.duration) gameManager.menuEndUse();
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (activeAvatar.useAnimationCombo.length > 0) {
+          if (k === 'mixamorigHips.quaternion') console.log('useAnimationCombo');
+          // debugger
+
           const useAnimationName = activeAvatar.useAnimationCombo[activeAvatar.useAnimationIndex];
           // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
@@ -998,7 +1001,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           }
 
           t2 = Math.min(useTimeS, useAnimation.duration);
+          // console.log(t2 / useAnimation.duration)
         } else if (activeAvatar.useAnimationEnvelope.length > 0) {
+          if (k === 'mixamorigHips.quaternion') console.log('useAnimationEnvelope');
+          // debugger
+
           let totalTime = 0;
           for (let i = 0; i < activeAvatar.useAnimationEnvelope.length - 1; i++) {
             const animationName = activeAvatar.useAnimationEnvelope[i];
@@ -1057,8 +1064,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               }
               // now localQuaternion2 is full combo animation ( which already processed legs )
 
-              // lerp default animation and combo animation when start combo.
-              dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
+              if (activeAvatar.useAnimationCombo.length > 0 && activeAvatar.useAnimationIndex !== 0) {
+                // todo: do not endUse() nad reset useTime in between combo attacks.
+                dst.copy(localQuaternion2);
+              } else {
+                // lerp default animation and combo animation when start combo.
+                dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
+              }
             } else { // when crouch, only apply combo to isCombo bones ( arms with a little upper spines ).
               if (isCombo) {
                 dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
@@ -1088,13 +1100,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               }
               // now localVector2 is full combo animation ( which already processed legs )
 
-              // lerp default animation and combo animation when start combo.
-              dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
+              if (activeAvatar.useAnimationCombo.length > 0 && activeAvatar.useAnimationIndex !== 0) {
+                // todo: do not endUse() nad reset useTime in between combo attacks.
+                dst.copy(localVector2);
+              } else {
+                // lerp default animation and combo animation when start combo.
+                dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
+              }
             } else { // when crouch, only apply combo to isCombo bones ( arms with a little upper spines ).
               if (isCombo) {
                 dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
               }
             }
+            // if (k === 'mixamorigHips.position') console.log(dst, t2 / useAnimation.duration);
           }
         }
 
@@ -1420,6 +1438,7 @@ export function trimClip(clip, startTime, endTime) {
 
     for (let j = 0; j < newTrack.times.length; j++) {
       newTrack.times[j] -= startTime;
+      newTrack.times[j] = Math.max(0, newTrack.times[j]);
     }
 
     clip.tracks[i] = newTrack;
