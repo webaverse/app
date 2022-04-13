@@ -453,32 +453,49 @@ const optimizeAvatarModel = (model, options = {}) => {
     const geometry = _mergeGeometries(geometries);
     // console.log('got geometry', geometry);
 
+    const _makeAtlasTextures = atlasImages => {
+      const _makeAtlasTexture = atlasImage => {
+        if (atlasImage) {
+          const originalTexture = originalTextures.get(atlasImage);
+          
+          const t = new THREE.Texture(atlasImage);
+          t.minFilter = originalTexture.minFilter;
+          t.magFilter = originalTexture.magFilter;
+          t.wrapS = originalTexture.wrapS;
+          t.wrapT = originalTexture.wrapT;
+          t.mapping = originalTexture.mapping;
+          // t.encoding = originalTexture.encoding;
+
+          t.flipY = false;
+          t.needsUpdate = true;
+          
+          return t;
+        } else {
+          return null;
+        }
+      };
+
+      const result = {};
+      for (const textureType of textureTypes) {
+        const atlasImage = atlasImages[textureType];
+        const atlasTexture = _makeAtlasTexture(atlasImage);
+        result[textureType] = atlasTexture;
+      }
+      return result;
+    };
+    const ts = atlasImages ? _makeAtlasTextures(atlasImages) : null;
+
     /* const m = new THREE.MeshPhongMaterial({
       color: 0xFF0000,
     }); */
     const m = material;
     const _updateMaterial = () => {
-      if (atlasTextures) {
+      if (ts) {
         for (const textureType of textureTypes) {
-          const image = atlasImages[textureType];
+          const t = ts[textureType];
 
-          if (image) {
-            const originalTexture = originalTextures.get(image);
-            
-            const t = new THREE.Texture(image);
-            t.minFilter = originalTexture.minFilter;
-            t.magFilter = originalTexture.magFilter;
-            t.wrapS = originalTexture.wrapS;
-            t.wrapT = originalTexture.wrapT;
-            t.mapping = originalTexture.mapping;
-            // t.encoding = originalTexture.encoding;
-
-            t.flipY = false;
-            t.needsUpdate = true;
+          if (t) {
             m[textureType] = t;
-            /* if (m[textureType] !== t) {
-              throw new Error('texture update failed');
-            } */
             if (m.uniforms) {
               m.uniforms[textureType].value = t;
               m.uniforms[textureType].needsUpdate = true;
@@ -486,9 +503,6 @@ const optimizeAvatarModel = (model, options = {}) => {
           }
         }
       }
-      // m.roughness = 1;
-      // m.alphaTest = 0.1;
-      // m.transparent = true;
       m.needsUpdate = true;
     };
     _updateMaterial();
