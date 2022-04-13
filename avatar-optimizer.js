@@ -5,10 +5,8 @@ import {getRenderer} from './renderer.js';
 const defaultTextureSize = 4096;
 const startAtlasSize = 512;
 
-// const localVector2D = new THREE.Vector2();
-// const localVector2D2 = new THREE.Vector2();
-// const localVector4D = new THREE.Vector4();
-// const localVector4D2 = new THREE.Vector4();
+const localVector2D = new THREE.Vector2();
+const localVector2D2 = new THREE.Vector2();
 
 const textureTypes = [
   'map',
@@ -175,10 +173,11 @@ const optimizeAvatarModel = (model, options = {}) => {
       const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
       if (hasTextures) {
         let atlas;
-        let atlasSize = startAtlasSize;
-        while (!(atlas = _attemptPack(textureSizes, atlasSize))) {
-          atlasSize *= 2;
+        let atlasScale = 1;
+        while (!(atlas = _attemptPack(textureSizes, startAtlasSize * atlasScale))) {
+          atlasScale *= 2;
         }
+        // atlas.scale = atlasScale;
         return atlas;
       } else {
         return _makeEmptyAtlas();
@@ -249,8 +248,8 @@ const optimizeAvatarModel = (model, options = {}) => {
     // build attribute layouts
     const _makeAttributeLayoutsFromGeometries = geometries => {
       const attributeLayouts = [];
-      for (const geometry of geometries) {
-        const attributes = geometry.attributes;
+      for (const g of geometries) {
+        const attributes = g.attributes;
         for (const attributeName in attributes) {
           const attribute = attributes[attributeName];
           let layout = attributeLayouts.find(layout => layout.name === attributeName);
@@ -278,8 +277,8 @@ const optimizeAvatarModel = (model, options = {}) => {
     const _makeMorphAttributeLayoutsFromGeometries = geometries => {
       // create morph layouts
       const morphAttributeLayouts = [];
-      for (const geometry of geometries) {
-        const morphAttributes = geometry.morphAttributes;
+      for (const g of geometries) {
+        const morphAttributes = g.morphAttributes;
         for (const morphAttributeName in morphAttributes) {
           const morphAttribute = morphAttributes[morphAttributeName];
           let morphLayout = morphAttributeLayouts.find(l => l.name === morphAttributeName);
@@ -316,24 +315,24 @@ const optimizeAvatarModel = (model, options = {}) => {
         }
       }
     };
-    const _mergeGeometryies = geometries => {
-      const geometry = new THREE.BufferGeometry();
-
-      // attributes
-      _forceGeometriesAttributeLayouts(attributeLayouts, geometries);
+    const _mergeAttributes = (geometry, geometries, attributeLayouts) => {
       for (const layout of attributeLayouts) {
         const attributeData = new layout.TypedArrayConstructor(layout.count);
         const attribute = new THREE.BufferAttribute(attributeData, layout.itemSize);
         let attributeDataIndex = 0;
         for (const g of geometries) {
           const gAttribute = g.attributes[layout.name];
-          attributeData.set(gAttribute.array, layout.index);
+          attributeData.set(gAttribute.array, attributeDataIndex);
           attributeDataIndex += gAttribute.count * gAttribute.itemSize;
+        }
+        // sanity check
+        if (attributeDataIndex !== layout.count) {
+          console.warn('desynced morph data', layout.name, attributeDataIndex, layout.count);
         }
         geometry.setAttribute(layout.name, attribute);
       }
-
-      // morph attributes
+    };
+    const _mergeMorphAttributes = (geometry, geometries, morphAttributeLayouts) => {
       for (const morphLayout of morphAttributeLayouts) {
         const morphsArray = Array(morphLayout.arraySize);
         for (let i = 0; i < morphLayout.arraySize; i++) {
@@ -352,14 +351,15 @@ const optimizeAvatarModel = (model, options = {}) => {
               morphDataIndex += matchingAttribute.count * matchingAttribute.itemSize;
             }
           }
+          // sanity check
           if (morphDataIndex !== morphLayout.count) {
             console.warn('desynced morph data', morphLayout.name, morphDataIndex, morphLayout.count);
           }
         }
         geometry.morphAttributes[morphLayout.name] = morphsArray;
       }
-
-      // index
+    };
+    const _mergeIndices = (geometry, geometries) => {
       let indexCount = 0;
       for (const g of geometries) {
         indexCount += g.index.count;
@@ -376,11 +376,126 @@ const optimizeAvatarModel = (model, options = {}) => {
         positionOffset += g.attributes.position.count;
       }
       geometry.setIndex(new THREE.BufferAttribute(indexData, 1));
+    };
+    /* const _drawAtlases = () => {
+      const seenUvIndexes = new Map();
+      const _drawAtlas = atlas => {
+        const canvas = document.createElement('canvas');
+        const canvasSize = Math.min(atlas.width, textureSize);
+        const canvasScale = canvasSize / atlas.width;
+        canvas.width = canvasSize;
+        canvas.height = canvasSize;
+        const ctx = canvas.getContext('2d');
+
+        atlas.bins.forEach(bin => {
+          bin.rects.forEach(rect => {
+            const {x, y, width: w, height: h, data: {image, groups}} = rect;
+            // draw the image in the correct box on the canvas
+            const tx = x * canvasScale;
+            const ty = y * canvasScale;
+            const tw = w * canvasScale;
+            const th = h * canvasScale;
+            ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
+
+            // const testUv = new THREE.Vector2(Math.random(), Math.random());
+            for (const group of groups) {
+              const {startIndex, count} = group;
+              for (let i = 0; i < count; i++) {
+                const uvIndex = geometry.index.array[startIndex + i];
+
+                // XXX NOTE: this code is slightly wrong. it will generate a unified uv map (first come first served to the uv index)
+                // that means that the different maps might get the wrong uv.
+                // the diffuse map takes priority so it looks ok.
+                // the right way to do this is to have a separate uv map for each map.
+                if (!seenUvIndexes.get(uvIndex)) {
+                  seenUvIndexes.set(uvIndex, true);
+
+                  localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
+                  localVector2D.multiply(
+                    localVector2D2.set(tw/canvasSize, th/canvasSize)
+                  ).add(
+                    localVector2D2.set(tx/canvasSize, ty/canvasSize)
+                  );
+                  localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
+                }
+              }
+            }
+          });
+        });
+        atlas.image = canvas;
+        
+        return atlas;
+      };
+
+      // generate atlas for each map; they are all separate
+      const result = {};
+      {
+        let canvasIndex = 0;
+        for (const k of textureTypes) {
+          const atlas = atlases[k];
+          const atlas2 = _drawAtlas(atlas);
+
+          result[k] = atlas2;
+
+          canvasIndex++;
+        }
+      }
+      return result;
+    }; */
+    const _remapGeometryUvs = (geometry, geometries) => {
+      let indexIndex = 0;
+      const geometryOffsets = geometries.map(g => {
+        const start = indexIndex;
+        const count = g.index.count;
+        indexIndex += count;
+        return {
+          start,
+          count,
+        };
+      });
+
+      const canvasSize = Math.min(atlas.width, textureSize);
+      const canvasScale = canvasSize / atlas.width;
+      atlas.bins.forEach(bin => {
+        bin.rects.forEach(rect => {
+          const {x, y, width: w, height: h, data: {index}} = rect;
+
+          if (w > 0 && h > 0) {
+            const {start, count} = geometryOffsets[index];
+
+            const tx = x * canvasScale;
+            const ty = y * canvasScale;
+            const tw = w * canvasScale;
+            const th = h * canvasScale;
+
+            for (let i = 0; i < count; i++) {
+              const uvIndex = geometry.index.array[start + i];
+
+              localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
+              localVector2D.multiply(
+                localVector2D2.set(tw/canvasSize, th/canvasSize)
+              ).add(
+                localVector2D2.set(tx/canvasSize, ty/canvasSize)
+              );
+              localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
+            }
+          }
+        });
+      });
+    };
+    const _mergeGeometries = geometries => {
+      const geometry = new THREE.BufferGeometry();
       geometry.morphTargetsRelative = true;
+
+      _forceGeometriesAttributeLayouts(attributeLayouts, geometries);
+      _mergeAttributes(geometry, geometries, attributeLayouts);
+      _mergeMorphAttributes(geometry, geometries, morphAttributeLayouts);
+      _mergeIndices(geometry, geometries);
+      _remapGeometryUvs(geometry, geometries);
 
       return geometry;
     };
-    const geometry = _mergeGeometryies(geometries);
+    const geometry = _mergeGeometries(geometries);
     console.log('got geometry', geometry);
 
     const _updateMaterial = () => {
@@ -398,15 +513,19 @@ const optimizeAvatarModel = (model, options = {}) => {
       material.transparent = true; */
     };
     _updateMaterial();
-    // const material = _makeMaterial();
     console.log('got material', material);
 
     const _makeMesh = () => {
+      const m = new THREE.MeshPhongMaterial({
+        color: 0xFF0000,
+      });
+      /* const mesh = new THREE.Mesh(geometry, m);
+      return mesh; */
       if (type === 'mesh') {
-        const mesh = new THREE.Mesh(geometry, material);
+        const mesh = new THREE.Mesh(geometry, m);
         return mesh;
       } else if (type === 'skinnedMesh') {
-        const skinnedMesh = new THREE.SkinnedMesh(geometry, material);
+        const skinnedMesh = new THREE.SkinnedMesh(geometry, m);
         skinnedMesh.skeleton = skeletons[0];
         skinnedMesh.morphTargetDictionary = morphTargetDictionaryArray[0];
         skinnedMesh.morphTargetInfluences = morphTargetInfluencesArray[0];
@@ -421,67 +540,6 @@ const optimizeAvatarModel = (model, options = {}) => {
     return mesh;
   };
   const mergedMeshes = mergeables.map((mergeable, i) => _mergeMesh(mergeable, i));
-
-  /* // draw atlas textures
-  const _remapGeometryUvs = atlases => {
-    const seenUvIndexes = new Map();
-    const _drawAtlas = atlas => {
-      const canvas = document.createElement('canvas');
-      const canvasSize = Math.min(atlas.width, textureSize);
-      const canvasScale = canvasSize / atlas.width;
-      canvas.width = canvasSize;
-      canvas.height = canvasSize;
-      const ctx = canvas.getContext('2d');
-
-      atlas.bins.forEach(bin => {
-        bin.rects.forEach(rect => {
-          const {x, y, width: w, height: h, data: {image, groups}} = rect;
-          // draw the image in the correct box on the canvas
-          const tx = x * canvasScale;
-          const ty = y * canvasScale;
-          const tw = w * canvasScale;
-          const th = h * canvasScale;
-          ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
-
-          // const testUv = new THREE.Vector2(Math.random(), Math.random());
-          for (const group of groups) {
-            const {startIndex, count} = group;
-            for (let i = 0; i < count; i++) {
-              const uvIndex = geometry.index.array[startIndex + i];
-
-              // XXX NOTE: this code is slightly wrong. it will generate a unified uv map (first come first served to the uv index)
-              // that means that the different maps might get the wrong uv.
-              // the diffuse map takes priority so it looks ok.
-              // the right way to do this is to have a separate uv map for each map.
-              if (!seenUvIndexes.get(uvIndex)) {
-                seenUvIndexes.set(uvIndex, true);
-
-                localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
-                localVector2D.multiply(
-                  localVector2D2.set(tw/canvasSize, th/canvasSize)
-                ).add(
-                  localVector2D2.set(tx/canvasSize, ty/canvasSize)
-                );
-                localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
-              }
-            }
-          }
-        });
-      });
-      atlas.image = canvas;
-      
-      return atlas;
-    };
-
-    const atlasImages = {};
-    for (const textureType of textureTypes) {
-      const atlas = atlases[textureType];
-      const atlasImage = _drawAtlas(atlas);
-      atlasImages[textureType] = atlasImage;
-    }
-    return atlasImages;
-  };
-  _remapGeometryUvs(); */
 
   const object = new THREE.Object3D();
   for (const mesh of mergedMeshes) {
