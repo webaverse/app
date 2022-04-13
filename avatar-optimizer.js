@@ -237,25 +237,28 @@ const optimizeAvatarModel = (model, options = {}) => {
     };
     const atlasImages = atlasTextures ? _drawAtlasImages(atlas) : null;
 
-    /* // XXX debug
+    // XXX debug
     {
       const debugWidth = 300;
       let textureTypeIndex = 0;
       for (const textureType of textureTypes) {
         const atlasImage = atlasImages[textureType];
-        atlasImage.style.cssText = `\
-          position: fixed;
-          top: ${mergeableIndex * debugWidth}px;
-          left: ${textureTypeIndex * debugWidth}px;
-          min-width: ${debugWidth}px;
-          max-width: ${debugWidth}px;
-          min-height: ${debugWidth}px;
-          z-index: 100;
-        `;
-        document.body.appendChild(atlasImage);
-        textureTypeIndex++;
+        if (atlasImage) {
+          atlasImage.style.cssText = `\
+            position: fixed;
+            top: ${mergeableIndex * debugWidth}px;
+            left: ${textureTypeIndex * debugWidth}px;
+            min-width: ${debugWidth}px;
+            max-width: ${debugWidth}px;
+            min-height: ${debugWidth}px;
+            z-index: 100;
+          `;
+          atlasImage.setAttribute('type', textureType);
+          document.body.appendChild(atlasImage);
+          textureTypeIndex++;
+        }
       }
-    } */
+    }
 
     // build attribute layouts
     const _makeAttributeLayoutsFromGeometries = geometries => {
