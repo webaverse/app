@@ -1393,34 +1393,36 @@ export function getFirstPersonCurves(vrmExtension) {
 
 export function trimClip(clip, startTime, endTime) {
   for (let i = 0; i < clip.tracks.length; i++) {
-    clip.tracks[i].trim(startTime, endTime);
+    const oldTrack = clip.tracks[i];
+    const interpolant = oldTrack.createInterpolant(); // todo: performance.
 
-    if (clip.tracks[i].times[0] !== startTime) {
-      const interpolant = clip.tracks[i].createInterpolant(); // todo: performance.
+    const newTrack = oldTrack.clone();
+    newTrack.trim(startTime, endTime);
 
-      const timesArr = Array.from(clip.tracks[i].times);
+    if (newTrack.times[0] !== startTime) {
+      const timesArr = Array.from(newTrack.times);
       timesArr.unshift(startTime);
-      clip.tracks[i].times = new Float32Array(timesArr);
+      newTrack.times = new Float32Array(timesArr);
 
-      const valuesArr = Array.from(clip.tracks[i].values);
+      const valuesArr = Array.from(newTrack.values);
       valuesArr.unshift(...interpolant.evaluate(startTime));
-      clip.tracks[i].values = new Float32Array(valuesArr);
+      newTrack.values = new Float32Array(valuesArr);
     }
-    if (clip.tracks[i].times[clip.tracks[i].times.length - 1] !== endTime) {
-      const interpolant = clip.tracks[i].createInterpolant(); // todo: performance.
-
-      const timesArr = Array.from(clip.tracks[i].times);
+    if (newTrack.times[newTrack.times.length - 1] !== endTime) {
+      const timesArr = Array.from(newTrack.times);
       timesArr.push(endTime);
-      clip.tracks[i].times = new Float32Array(timesArr);
+      newTrack.times = new Float32Array(timesArr);
 
-      const valuesArr = Array.from(clip.tracks[i].values);
+      const valuesArr = Array.from(newTrack.values);
       valuesArr.push(...interpolant.evaluate(endTime));
-      clip.tracks[i].values = new Float32Array(valuesArr);
+      newTrack.values = new Float32Array(valuesArr);
     }
 
-    for (let j = 0; j < clip.tracks[i].times.length; j++) {
-      clip.tracks[i].times[j] -= startTime;
+    for (let j = 0; j < newTrack.times.length; j++) {
+      newTrack.times[j] -= startTime;
     }
+
+    clip.tracks[i] = newTrack;
   }
   clip.resetDuration();
   return clip;
