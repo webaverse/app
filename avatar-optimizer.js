@@ -173,11 +173,10 @@ const optimizeAvatarModel = (model, options = {}) => {
       const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
       if (hasTextures) {
         let atlas;
-        let atlasScale = 1;
-        while (!(atlas = _attemptPack(textureSizes, startAtlasSize * atlasScale))) {
-          atlasScale *= 2;
+        let atlasSize = startAtlasSize;
+        while (!(atlas = _attemptPack(textureSizes, atlasSize))) {
+          atlasSize *= 2;
         }
-        // atlas.scale = atlasScale;
         return atlas;
       } else {
         return _makeEmptyAtlas();
