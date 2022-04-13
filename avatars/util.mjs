@@ -509,6 +509,7 @@ export const cloneModelBones = modelBones => {
 };
 
 export const decorateAnimation = animation => {
+  debugger
   animation.isIdle = /idle/i.test(animation.name);
   animation.isJump = /^jump/i.test(animation.name);
   animation.isSitting = /sitting/i.test(animation.name);

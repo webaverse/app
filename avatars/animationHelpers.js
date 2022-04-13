@@ -196,16 +196,36 @@ async function loadAnimations() {
   const arrayBuffer = await res.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
   const animationsJson = zbdecode(uint8Array);
-  animations = animationsJson.animations
-    .map(a => {
-      const animationClip = AnimationClip.parse(a)
-      if (animationClip.name === 'One Hand Sword Combo.fbx') {
-        trimClip(animationClip, 0.4, animationClip.duration - 0.5);
-        // trim start to make attack fast.
-        // trim end to prevent sword cross player's head.
-      }
-      return animationClip;
-    });
+  animations = animationsJson.animations.map(a => {
+    const animationClip = AnimationClip.parse(a);
+    return animationClip;
+  });
+
+  const swordStrikeContinuousAnimation = animations.filter(a => a.name === 'sword_strike_continuous.fbx')[0];
+  animations = animations.map(animationClip => {
+    if (animationClip.name === 'One Hand Sword Combo.fbx') {
+      trimClip(animationClip, 0.4, animationClip.duration - 0.5);
+      // trim start to make attack fast.
+      // trim end to prevent sword cross player's head.
+    } else if (animationClip.name === 'sword_side_slash.fbx') {
+      const bakName = animationClip.name;
+      animationClip = trimClip(swordStrikeContinuousAnimation.clone(), 0, 20 / 30);
+      animationClip.name = bakName;
+    } else if (animationClip.name === 'sword_side_slash_step.fbx') {
+      const bakName = animationClip.name;
+      animationClip = trimClip(swordStrikeContinuousAnimation.clone(), 20 / 30, 45 / 30);
+      animationClip.name = bakName;
+    } else if (animationClip.name === 'sword_topdown_slash.fbx') {
+      const bakName = animationClip.name;
+      animationClip = trimClip(swordStrikeContinuousAnimation.clone(), 45 / 30, 62 / 30);
+      animationClip.name = bakName;
+    } else if (animationClip.name === 'sword_topdown_slash_step.fbx') {
+      const bakName = animationClip.name;
+      animationClip = trimClip(swordStrikeContinuousAnimation.clone(), 62 / 30, 80 / 30);
+      animationClip.name = bakName;
+    }
+    return animationClip;
+  });
 
   animationStepIndices = animationsJson.animationStepIndices;
   animations.index = {};
@@ -1374,6 +1394,30 @@ export function getFirstPersonCurves(vrmExtension) {
 export function trimClip(clip, startTime, endTime) {
   for (let i = 0; i < clip.tracks.length; i++) {
     clip.tracks[i].trim(startTime, endTime);
+
+    if (clip.tracks[i].times[0] !== startTime) {
+      const interpolant = clip.tracks[i].createInterpolant(); // todo: performance.
+
+      const timesArr = Array.from(clip.tracks[i].times);
+      timesArr.unshift(startTime);
+      clip.tracks[i].times = new Float32Array(timesArr);
+
+      const valuesArr = Array.from(clip.tracks[i].values);
+      valuesArr.unshift(...interpolant.evaluate(startTime));
+      clip.tracks[i].values = new Float32Array(valuesArr);
+    }
+    if (clip.tracks[i].times[clip.tracks[i].times.length - 1] !== endTime) {
+      const interpolant = clip.tracks[i].createInterpolant(); // todo: performance.
+
+      const timesArr = Array.from(clip.tracks[i].times);
+      timesArr.push(endTime);
+      clip.tracks[i].times = new Float32Array(timesArr);
+
+      const valuesArr = Array.from(clip.tracks[i].values);
+      valuesArr.push(...interpolant.evaluate(endTime));
+      clip.tracks[i].values = new Float32Array(valuesArr);
+    }
+
     for (let j = 0; j < clip.tracks[i].times.length; j++) {
       clip.tracks[i].times[j] -= startTime;
     }
