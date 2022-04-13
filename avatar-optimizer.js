@@ -146,7 +146,6 @@ const optimizeAvatarModel = (model, options = {}) => {
       const _attemptPack = (textureSizes, atlasSize) => {
         const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 1);
         const rects = textureSizes.map((textureSize, index) => {
-          // const image = t.image;
           const {x: width, y: height} = textureSize;
           return {
             width,
