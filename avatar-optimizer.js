@@ -454,33 +454,44 @@ const optimizeAvatarModel = (model, options = {}) => {
       });
 
       const canvasSize = Math.min(atlas.width, textureSize);
-      const canvasScale = canvasSize / atlas.width;
-      atlas.bins.forEach(bin => {
-        bin.rects.forEach(rect => {
-          const {x, y, width: w, height: h, data: {index}} = rect;
+      if (canvasSize > 0) {
+        const canvasScale = canvasSize / atlas.width;
+        const seenUvIndexes = new Int32Array(geometry.attributes.uv.count).fill(-1);
+        atlas.bins.forEach(bin => {
+          bin.rects.forEach(rect => {
+            const {x, y, width: w, height: h, data: {index}} = rect;
 
-          if (w > 0 && h > 0) {
-            const {start, count} = geometryOffsets[index];
+            if (w > 0 && h > 0) {
+              const {start, count} = geometryOffsets[index];
 
-            const tx = x * canvasScale;
-            const ty = y * canvasScale;
-            const tw = w * canvasScale;
-            const th = h * canvasScale;
+              const tx = x * canvasScale;
+              const ty = y * canvasScale;
+              const tw = w * canvasScale;
+              const th = h * canvasScale;
 
-            for (let i = 0; i < count; i++) {
-              const uvIndex = geometry.index.array[start + i];
+              for (let i = 0; i < count; i++) {
+                const indexIndex = start + i;
+                const uvIndex = geometry.index.array[indexIndex];
+                if (seenUvIndexes[uvIndex] === -1) {
+                  seenUvIndexes[uvIndex] = index;
 
-              localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
-              localVector2D.multiply(
-                localVector2D2.set(tw/canvasSize, th/canvasSize)
-              ).add(
-                localVector2D2.set(tx/canvasSize, ty/canvasSize)
-              );
-              localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
+                  localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
+                  localVector2D.multiply(
+                    localVector2D2.set(tw/canvasSize, th/canvasSize)
+                  ).add(
+                    localVector2D2.set(tx/canvasSize, ty/canvasSize)
+                  );
+                  localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
+                } else {
+                  if (seenUvIndexes[uvIndex] !== index) {
+                    debugger;
+                  }
+                }
+              }
             }
-          }
+          });
         });
-      });
+      }
     };
     const _mergeGeometries = geometries => {
       const geometry = new THREE.BufferGeometry();
