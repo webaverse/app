@@ -237,7 +237,7 @@ const optimizeAvatarModel = (model, options = {}) => {
     };
     const atlasImages = atlasTextures ? _drawAtlasImages(atlas) : null;
 
-    // XXX debug
+    /* // XXX debug
     {
       const debugWidth = 300;
       let textureTypeIndex = 0;
@@ -258,7 +258,7 @@ const optimizeAvatarModel = (model, options = {}) => {
           textureTypeIndex++;
         }
       }
-    }
+    } */
 
     // build attribute layouts
     const _makeAttributeLayoutsFromGeometries = geometries => {
