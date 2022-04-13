@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {MaxRectsPacker} from 'maxrects-packer';
 import {getRenderer} from './renderer.js';
+import {mod} from './util.js';
 
 const defaultTextureSize = 4096;
 const startAtlasSize = 512;
@@ -31,10 +32,9 @@ class MorphAttributeLayout extends AttributeLayout {
   }
 }
 
-const clampUvEpsilon = 0.02;
 const _clampUv = uv => {
-  uv.x = Math.max(clampUvEpsilon, Math.min(1 - clampUvEpsilon, uv.x));
-  uv.y = Math.max(clampUvEpsilon, Math.min(1 - clampUvEpsilon, uv.y));
+  uv.x = mod(uv.x, 1);
+  uv.y = mod(uv.y, 1);
   return uv;
 };
 const _getMergeableObjects = model => {
