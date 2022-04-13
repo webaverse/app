@@ -187,11 +187,10 @@ const optimizeAvatarModel = (model, options = {}) => {
     const atlas = atlasTextures ? _packAtlases() : null;
 
     // draw atlas images
-    const originalTextures = new WeakMap(); // map of canvas to the texture that generated it
+    const originalTextures = new Map(); // map of canvas to the texture that generated it
     const _drawAtlasImages = atlas => {
-      const _drawAtlasImage = textureType => {
-        const textures = mergeable[`${textureType}s`];
-
+      const _getTexturesKey = textures => textures.map(t => t ? t.uuid : '').join(',');
+      const _drawAtlasImage = textures => {
         if (atlas && textures.some(t => t !== null)) {
           const canvasSize = Math.min(atlas.width, textureSize);
           const canvasScale = canvasSize / atlas.width;
@@ -229,8 +228,16 @@ const optimizeAvatarModel = (model, options = {}) => {
       };
 
       const atlasImages = {};
+      const atlasImagesMap = new Map();
       for (const textureType of textureTypes) {
-        const atlasImage = _drawAtlasImage(textureType);
+        const textures = mergeable[`${textureType}s`];
+        const key = _getTexturesKey(textures);
+
+        let atlasImage = atlasImagesMap.get(key);
+        if (!atlasImage) {
+          atlasImage = _drawAtlasImage(textures);
+          atlasImagesMap.set(key, atlasImage);
+        }
         atlasImages[textureType] = atlasImage;
       }
       return atlasImages;
