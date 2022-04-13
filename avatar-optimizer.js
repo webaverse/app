@@ -38,7 +38,7 @@ const _getMergeableObjects = model => {
 
   const mergeables = new Map();
   model.traverse(o => {
-    if (o.isMesh) {
+    if (o.isMesh && o.geometry.type === 'BufferGeometry') {
       let type;
       if (o.isSkinnedMesh) {
         type = 'skinnedMesh';
