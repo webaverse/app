@@ -442,11 +442,11 @@ const optimizeAvatarModel = (model, options = {}) => {
       return result;
     }; */
     const _remapGeometryUvs = (geometry, geometries) => {
-      let indexIndex = 0;
-      const geometryOffsets = geometries.map(g => {
-        const start = indexIndex;
-        const count = g.index.count;
-        indexIndex += count;
+      let uvIndex = 0;
+      const geometryUvOffsets = geometries.map(g => {
+        const start = uvIndex;
+        const count = g.attributes.uv.count;
+        uvIndex += count;
         return {
           start,
           count,
@@ -456,13 +456,13 @@ const optimizeAvatarModel = (model, options = {}) => {
       const canvasSize = Math.min(atlas.width, textureSize);
       if (canvasSize > 0) {
         const canvasScale = canvasSize / atlas.width;
-        const seenUvIndexes = new Int32Array(geometry.attributes.uv.count).fill(-1);
+        // const seenUvIndexes = new Int32Array(geometry.attributes.uv.count).fill(-1);
         atlas.bins.forEach(bin => {
           bin.rects.forEach(rect => {
             const {x, y, width: w, height: h, data: {index}} = rect;
 
             if (w > 0 && h > 0) {
-              const {start, count} = geometryOffsets[index];
+              const {start, count} = geometryUvOffsets[index];
 
               const tx = x * canvasScale;
               const ty = y * canvasScale;
@@ -470,23 +470,15 @@ const optimizeAvatarModel = (model, options = {}) => {
               const th = h * canvasScale;
 
               for (let i = 0; i < count; i++) {
-                const indexIndex = start + i;
-                const uvIndex = geometry.index.array[indexIndex];
-                if (seenUvIndexes[uvIndex] === -1) {
-                  seenUvIndexes[uvIndex] = index;
+                const uvIndex = start + i;
 
-                  localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
-                  localVector2D.multiply(
-                    localVector2D2.set(tw/canvasSize, th/canvasSize)
-                  ).add(
-                    localVector2D2.set(tx/canvasSize, ty/canvasSize)
-                  );
-                  localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
-                } else {
-                  if (seenUvIndexes[uvIndex] !== index) {
-                    debugger;
-                  }
-                }
+                localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
+                localVector2D.multiply(
+                  localVector2D2.set(tw/canvasSize, th/canvasSize)
+                ).add(
+                  localVector2D2.set(tx/canvasSize, ty/canvasSize)
+                );
+                localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
               }
             }
           });
