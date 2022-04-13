@@ -31,6 +31,12 @@ class MorphAttributeLayout extends AttributeLayout {
   }
 }
 
+const clampUvEpsilon = 0.02;
+const _clampUv = uv => {
+  uv.x = Math.max(clampUvEpsilon, Math.min(1 - clampUvEpsilon, uv.x));
+  uv.y = Math.max(clampUvEpsilon, Math.min(1 - clampUvEpsilon, uv.y));
+  return uv;
+};
 const _getMergeableObjects = model => {
   const renderer = getRenderer();
 
@@ -414,11 +420,14 @@ const optimizeAvatarModel = (model, options = {}) => {
                 const uvIndex = start + i;
 
                 localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
-                localVector2D.multiply(
-                  localVector2D2.set(tw/canvasSize, th/canvasSize)
-                ).add(
-                  localVector2D2.set(tx/canvasSize, ty/canvasSize)
-                );
+                _clampUv(localVector2D);
+                localVector2D
+                  .multiply(
+                    localVector2D2.set(tw/canvasSize, th/canvasSize)
+                  )
+                  .add(
+                    localVector2D2.set(tx/canvasSize, ty/canvasSize)
+                  );
                 localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
               }
             }
