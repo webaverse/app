@@ -100,7 +100,7 @@ const optimizeAvatarModel = (model, options = {}) => {
   const textureSize = options.textureSize ?? defaultTextureSize;
 
   const mergeables = _getMergeableObjects(model);
-  console.log('got mergeables', mergeables);
+  // console.log('got mergeables', mergeables);
 
   const _mergeMesh = (mergeable, mergeableIndex) => {
     const {
@@ -166,7 +166,6 @@ const optimizeAvatarModel = (model, options = {}) => {
           return null;
         }
       };
-      const _makeEmptyAtlas = () => new MaxRectsPacker(0, 0, 1);
       
       const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
       if (hasTextures) {
@@ -177,40 +176,51 @@ const optimizeAvatarModel = (model, options = {}) => {
         }
         return atlas;
       } else {
-        return _makeEmptyAtlas();
+        return null;
       }
     };
     const atlas = atlasTextures ? _packAtlases() : null;
 
     // draw atlas images
+    const originalTextures = new WeakMap(); // map of canvas to the texture that generated it
     const _drawAtlasImages = atlas => {
       const _drawAtlasImage = textureType => {
-        const canvas = document.createElement('canvas');
-        const canvasSize = Math.min(atlas.width, textureSize);
-        const canvasScale = canvasSize / atlas.width;
-        canvas.width = canvasSize;
-        canvas.height = canvasSize;
-        const ctx = canvas.getContext('2d');
+        const textures = mergeable[`${textureType}s`];
 
-        atlas.bins.forEach(bin => {
-          bin.rects.forEach(rect => {
-            const {x, y, width: w, height: h, data: {index}} = rect;
-            const textures = mergeable[`${textureType}s`];
-            const texture = textures[index];
-            if (texture) {
-              const image = texture.image;
+        if (atlas && textures.some(t => t !== null)) {
+          const canvasSize = Math.min(atlas.width, textureSize);
+          const canvasScale = canvasSize / atlas.width;
 
-              // draw the image in the correct box on the canvas
-              const tx = x * canvasScale;
-              const ty = y * canvasScale;
-              const tw = w * canvasScale;
-              const th = h * canvasScale;
-              ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
-            }
+          const canvas = document.createElement('canvas');
+          canvas.width = canvasSize;
+          canvas.height = canvasSize;
+          const ctx = canvas.getContext('2d');
+
+          atlas.bins.forEach(bin => {
+            bin.rects.forEach(rect => {
+              const {x, y, width: w, height: h, data: {index}} = rect;
+              const texture = textures[index];
+              if (texture) {
+                const image = texture.image;
+
+                // draw the image in the correct box on the canvas
+                const tx = x * canvasScale;
+                const ty = y * canvasScale;
+                const tw = w * canvasScale;
+                const th = h * canvasScale;
+                ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
+
+                if (!originalTextures.has(canvas)) {
+                  originalTextures.set(canvas, texture);
+                }
+              }
+            });
           });
-        });
 
-        return canvas;
+          return canvas;
+        } else {
+          return null;
+        }
       };
 
       const atlasImages = {};
@@ -222,7 +232,7 @@ const optimizeAvatarModel = (model, options = {}) => {
     };
     const atlasImages = atlasTextures ? _drawAtlasImages(atlas) : null;
 
-    // XXX debug
+    /* // XXX debug
     {
       const debugWidth = 300;
       let textureTypeIndex = 0;
@@ -240,7 +250,7 @@ const optimizeAvatarModel = (model, options = {}) => {
         document.body.appendChild(atlasImage);
         textureTypeIndex++;
       }
-    }
+    } */
 
     // build attribute layouts
     const _makeAttributeLayoutsFromGeometries = geometries => {
@@ -295,7 +305,7 @@ const optimizeAvatarModel = (model, options = {}) => {
       return morphAttributeLayouts;
     };
     const morphAttributeLayouts = _makeMorphAttributeLayoutsFromGeometries(geometries);
-    console.log('got attribute layouts', attributeLayouts, morphAttributeLayouts);
+    // console.log('got attribute layouts', attributeLayouts, morphAttributeLayouts);
 
     const _forceGeometriesAttributeLayouts = (attributeLayouts, geometries) => {
       for (const layout of attributeLayouts) {
@@ -374,87 +384,21 @@ const optimizeAvatarModel = (model, options = {}) => {
       }
       geometry.setIndex(new THREE.BufferAttribute(indexData, 1));
     };
-    /* const _drawAtlases = () => {
-      const seenUvIndexes = new Map();
-      const _drawAtlas = atlas => {
-        const canvas = document.createElement('canvas');
+    const _remapGeometryUvs = (geometry, geometries) => {
+      if (atlas) {
+        let uvIndex = 0;
+        const geometryUvOffsets = geometries.map(g => {
+          const start = uvIndex;
+          const count = g.attributes.uv.count;
+          uvIndex += count;
+          return {
+            start,
+            count,
+          };
+        });
+
         const canvasSize = Math.min(atlas.width, textureSize);
         const canvasScale = canvasSize / atlas.width;
-        canvas.width = canvasSize;
-        canvas.height = canvasSize;
-        const ctx = canvas.getContext('2d');
-
-        atlas.bins.forEach(bin => {
-          bin.rects.forEach(rect => {
-            const {x, y, width: w, height: h, data: {image, groups}} = rect;
-            // draw the image in the correct box on the canvas
-            const tx = x * canvasScale;
-            const ty = y * canvasScale;
-            const tw = w * canvasScale;
-            const th = h * canvasScale;
-            ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
-
-            // const testUv = new THREE.Vector2(Math.random(), Math.random());
-            for (const group of groups) {
-              const {startIndex, count} = group;
-              for (let i = 0; i < count; i++) {
-                const uvIndex = geometry.index.array[startIndex + i];
-
-                // XXX NOTE: this code is slightly wrong. it will generate a unified uv map (first come first served to the uv index)
-                // that means that the different maps might get the wrong uv.
-                // the diffuse map takes priority so it looks ok.
-                // the right way to do this is to have a separate uv map for each map.
-                if (!seenUvIndexes.get(uvIndex)) {
-                  seenUvIndexes.set(uvIndex, true);
-
-                  localVector2D.fromArray(geometry.attributes.uv.array, uvIndex * 2);
-                  localVector2D.multiply(
-                    localVector2D2.set(tw/canvasSize, th/canvasSize)
-                  ).add(
-                    localVector2D2.set(tx/canvasSize, ty/canvasSize)
-                  );
-                  localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
-                }
-              }
-            }
-          });
-        });
-        atlas.image = canvas;
-        
-        return atlas;
-      };
-
-      // generate atlas for each map; they are all separate
-      const result = {};
-      {
-        let canvasIndex = 0;
-        for (const k of textureTypes) {
-          const atlas = atlases[k];
-          const atlas2 = _drawAtlas(atlas);
-
-          result[k] = atlas2;
-
-          canvasIndex++;
-        }
-      }
-      return result;
-    }; */
-    const _remapGeometryUvs = (geometry, geometries) => {
-      let uvIndex = 0;
-      const geometryUvOffsets = geometries.map(g => {
-        const start = uvIndex;
-        const count = g.attributes.uv.count;
-        uvIndex += count;
-        return {
-          start,
-          count,
-        };
-      });
-
-      const canvasSize = Math.min(atlas.width, textureSize);
-      if (canvasSize > 0) {
-        const canvasScale = canvasSize / atlas.width;
-        // const seenUvIndexes = new Int32Array(geometry.attributes.uv.count).fill(-1);
         atlas.bins.forEach(bin => {
           bin.rects.forEach(rect => {
             const {x, y, width: w, height: h, data: {index}} = rect;
@@ -496,7 +440,7 @@ const optimizeAvatarModel = (model, options = {}) => {
       return geometry;
     };
     const geometry = _mergeGeometries(geometries);
-    console.log('got geometry', geometry);
+    // console.log('got geometry', geometry);
 
     /* const m = new THREE.MeshPhongMaterial({
       color: 0xFF0000,
@@ -506,16 +450,28 @@ const optimizeAvatarModel = (model, options = {}) => {
       if (atlasTextures) {
         for (const textureType of textureTypes) {
           const image = atlasImages[textureType];
-          const t = new THREE.Texture(image);
-          t.flipY = false;
-          t.needsUpdate = true;
-          m[textureType] = t;
-          /* if (m[textureType] !== t) {
-            throw new Error('texture update failed');
-          } */
-          if (m.uniforms) {
-            m.uniforms[textureType].value = t;
-            m.uniforms[textureType].needsUpdate = true;
+
+          if (image) {
+            const originalTexture = originalTextures.get(image);
+            
+            const t = new THREE.Texture(image);
+            t.minFilter = originalTexture.minFilter;
+            t.magFilter = originalTexture.magFilter;
+            t.wrapS = originalTexture.wrapS;
+            t.wrapT = originalTexture.wrapT;
+            t.mapping = originalTexture.mapping;
+            // t.encoding = originalTexture.encoding;
+
+            t.flipY = false;
+            t.needsUpdate = true;
+            m[textureType] = t;
+            /* if (m[textureType] !== t) {
+              throw new Error('texture update failed');
+            } */
+            if (m.uniforms) {
+              m.uniforms[textureType].value = t;
+              m.uniforms[textureType].needsUpdate = true;
+            }
           }
         }
       }
@@ -542,7 +498,7 @@ const optimizeAvatarModel = (model, options = {}) => {
       }
     };
     const mesh = _makeMesh();
-    console.log('got mesh', mesh);
+    // console.log('got mesh', mesh);
 
     return mesh;
   };
