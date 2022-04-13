@@ -979,25 +979,33 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           // if (useAnimationName.indexOf('pistol') >= 0) debugger;
           useAnimation = useAnimations[useAnimationName];
 
-          // if (k === 'mixamorigHips.quaternion' && useTimeS >= useAnimation.duration) {
-          if (useTimeS >= useAnimation.duration) {
-            window.needEndUse = true;
-            // debugger
-            if (window.needContinuCombo && activeAvatar.useAnimationIndex < activeAvatar.useAnimationCombo.length - 1) {
-              window.needContinuCombo = false;
-              window.needStartUse = true;
-            }
+          if (k === 'mixamorigHips.quaternion') {
+            // if (useTimeS >= useAnimation.duration && (!window.comboState.needContinuCombo || activeAvatar.useAnimationIndex < activeAvatar.useAnimationCombo.length - 1)) {
+            //   window.comboState.needEndUse = true;
+            // } else {
+            //   window.comboState.needEndUse = false;
+            // }
 
-            //   window.isDebugger = true
-            //   window.isContinueCombo = true
-            //   debugger 
-            //   gameManager.menuEndUse();
-            //   // requestAnimationFrame(() => {
-            //   //   // requestAnimationFrame(() => {
-            //   //     debugger
-            //   //     gameManager.menuStartUse();
-            //   //   // });
-            //   // });
+            // if (k === 'mixamorigHips.quaternion' && useTimeS >= useAnimation.duration) {
+            if (useTimeS >= useAnimation.duration) {
+              window.comboState.needEndUse = true;
+              // debugger
+              if (window.comboState.needContinuCombo && activeAvatar.useAnimationIndex < activeAvatar.useAnimationCombo.length - 1) {
+                window.comboState.needContinuCombo = false;
+                window.comboState.needStartUse = true;
+              }
+
+              //   window.isDebugger = true
+              //   window.comboState.isContinueCombo = true
+              //   debugger 
+              //   gameManager.menuEndUse();
+              //   // requestAnimationFrame(() => {
+              //   //   // requestAnimationFrame(() => {
+              //   //     debugger
+              //   //     gameManager.menuStartUse();
+              //   //   // });
+              //   // });
+            }
           }
 
           t2 = Math.min(useTimeS, useAnimation.duration);
