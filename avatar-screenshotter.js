@@ -1,27 +1,10 @@
 import * as THREE from 'three';
 import metaversefile from './metaversefile-api.js';
-// import {getExt, makePromise, parseQuery, fitCameraToBoundingBox} from './util.js';
 import Avatar from './avatars/avatars.js';
-// import * as audioManager from './audio-manager.js';
 import npcManager from './npc-manager.js';
 import dioramaManager from './diorama.js';
-// import {getRenderer, scene, camera} from './renderer.js';
 
-// import GIF from './gif.js';
-// import * as WebMWriter from 'webm-writer';
-// const defaultWidth = 512;
-// const defaultHeight = 512;
 const FPS = 60;
-// const videoQuality = 0.99999;
-// const videoQuality = 0.95;
-const narutoRunSpeed = 59;
-
-// const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
-// const localVector3 = new THREE.Vector3();
-// const localQuaternion = new THREE.Quaternion();
-// const localEuler = new THREE.Euler();
-// const localMatrix = new THREE.Matrix4();
 
 const _makeLights = () => {
   const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 5);
@@ -53,18 +36,6 @@ export const screenshotAvatarApp = async ({
   height = 300,
 }) => {
   await Avatar.waitForLoad();
-  // await audioManager.waitForLoad();
-
-  const animations = metaversefile.useAvatarAnimations();
-  const idleAnimation = animations.find(a => a.name === 'idle.fbx');
-  const idleAnimationDuration = idleAnimation.duration;
-  const narutoRunAnimation = animations.find(a => a.isNarutoRun);
-  const narutoRunAnimationDuration = narutoRunAnimation.duration;
-
-  // load app
-  /* const app = await metaversefile.createAppAsync({
-    start_url: url,
-  }); */
 
   const position = new THREE.Vector3(0, 1.5, 0);
   const quaternion = new THREE.Quaternion();
@@ -125,8 +96,6 @@ export const screenshotAvatarApp = async ({
   const objects = localLights.concat([
     player.avatar.model,
   ]);
-  // console.log('got model bones', player.avatar.modelBones);
-  // debugger;
   const target = new THREE.Object3D();
   const diorama = dioramaManager.createPlayerDiorama({
     // target: player,
