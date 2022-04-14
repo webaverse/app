@@ -117,7 +117,6 @@ export const Inventory = () => {
     })();
 
     const open = state.openedPanel === 'CharacterPanel';
-    // const targetObject = selectObject || hoverObject;
 
     const onMouseEnter = object => () => {
         setHoverObject(object);
@@ -125,7 +124,7 @@ export const Inventory = () => {
     const onMouseDown = object => () => {
         setSelectObject(selectObject !== object ? object : null);
 
-        game.renderCard(object);
+        // game.renderCard(object);
     };
     const onDragStart = object => e => {
         e.dataTransfer.setData('application/json', JSON.stringify(object));
@@ -192,12 +191,6 @@ export const Inventory = () => {
                                 />
                             );
                         })}
-                        {/* <LightArrow
-                            enabled={!!arrowPosition}
-                            animate={!!selectCharacter}
-                            x={arrowPosition?.[0] ?? 0}
-                            y={arrowPosition?.[1] ?? 0}
-                        /> */}
                     </ul>
                 </div>
             </div>
