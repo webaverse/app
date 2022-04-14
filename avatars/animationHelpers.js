@@ -1055,7 +1055,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
-      return spec => {
+      return (spec, isLastBone) => {
         const {
           animationTrackName: k,
           dst,
@@ -1065,11 +1065,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } = spec;
 
         _handleDefault(spec);
-
-        if (!activeAvatar.unuseAnimation) return;
-        // Though already checked outter, the codes here will run multiple times equal to bones number.
-        // So will cause error after first bone set `activeAvatar.unuseAnimation = null;` if not check here.
-        // todo: May can extract `activeAvatar.unuseAnimation = null;` and related codes to outter.
 
         const unuseTimeS = activeAvatar.unuseTime / 1000;
         const unuseAnimationName = activeAvatar.unuseAnimation;
@@ -1118,7 +1113,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             );
         }
 
-        if (f >= 1) {
+        if (isLastBone && f >= 1) {
           activeAvatar.unuseAnimation = null;
         }
       };
@@ -1127,7 +1122,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   };
   const applyFn = _getApplyFn();
 
-  for (const spec of activeAvatar.animationMappings) {
+  for (let i = 0; i < activeAvatar.animationMappings.length; i++) {
+    const spec = activeAvatar.animationMappings[i];
+    let isLastBone = false;
+    if (i === activeAvatar.animationMappings.length - 1) isLastBone = true;
+
     const {
       animationTrackName: k,
       dst,
@@ -1135,7 +1134,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    applyFn(spec);
+    applyFn(spec, isLastBone);
     _blendFly(spec);
     _blendActivateAction(spec);
 
