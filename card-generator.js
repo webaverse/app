@@ -50,7 +50,7 @@ const _getTempCanvas = () => {
   }
   return tempCanvas;
 };
-function fragmentText(context, maxWidth, text) {
+function fragmentText(context, text, maxWidth) {
   let lines = [];
   const words = text.split(' ');
 
@@ -292,7 +292,7 @@ export const generateCard = async ({
       document.body.removeChild(svg);
 
       ctx.font = '12px SanvitoPro-Regular';
-      let description2 = fragmentText(ctx, width, description);
+      let description2 = fragmentText(ctx, description, width);
       if (description2.length > 2) {
         description2 = description2.slice(0, 2);
         description2[description2.length - 1] += '…';
