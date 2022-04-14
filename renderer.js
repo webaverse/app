@@ -183,9 +183,10 @@ window.addEventListener('resize', e => {
   _setSizes();
 });
 
-/* addDefaultLights(scene, {
+addDefaultLights(scene, {
   shadowMap: true,
 });
+/*
 addDefaultLights(sceneHighPriority, {
   shadowMap: false,
 });

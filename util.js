@@ -3,6 +3,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import atlaspack from './atlaspack.js';
 import { getAddressFromMnemonic } from './blockchain.js';
 import {playersMapName, tokensHost, storageHost, accountsHost, loginEndpoint, audioTimeoutTime} from './constants.js';
+import CSM from './csm/Csm';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -493,13 +494,28 @@ export async function contentIdToFile(contentId) {
 export const addDefaultLights = (scene, {
   shadowMap = false,
 } = {}) => {
-  const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
-  scene.add(ambientLight);
-  scene.ambientLight = ambientLight;
-  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
-  directionalLight.position.set(1, 2, 3);
-  scene.add(directionalLight);
-  scene.directionalLight = directionalLight;
+    console.log('zz');
+
+    let csm = new CSM({
+        maxFar: camera.far,
+        cascades: 4,
+        shadowMapSize: 1024,
+        lightDirection: new THREE.Vector3(1, -1, 1).normalize(),
+        camera: camera,
+        parent: scene
+    });
+
+    // todo process materials
+
+    // csm.setupMaterial(material);
+
+//   const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
+//   scene.add(ambientLight);
+//   scene.ambientLight = ambientLight;
+//   const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+//   directionalLight.position.set(1, 2, 3);
+//   scene.add(directionalLight);
+//   scene.directionalLight = directionalLight;
   /* if (shadowMap) {
     const SHADOW_MAP_WIDTH = 1024;
     const SHADOW_MAP_HEIGHT = 1024;
@@ -513,6 +529,8 @@ export const addDefaultLights = (scene, {
     directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
   } */
 };
+
+
 
 export const unFrustumCull = o => {
   o.traverse(o => {
