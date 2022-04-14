@@ -59,6 +59,7 @@ class App extends THREE.Object3D {
 
     this.isApp = true;
     this.components = [];
+    this.description = '';
     this.appType = 'none';
     this.modules = [];
     this.modulesHash = 0;
