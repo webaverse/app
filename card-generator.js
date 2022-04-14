@@ -43,6 +43,67 @@ const _waitForFontsLoad = () => {
   return fontsLoadPromise;
 };
 
+let tempCanvas = null;
+const _getTempCanvas = () => {
+  if (tempCanvas === null) {
+    tempCanvas = document.createElement('canvas');
+    tempCanvas.width = 0;
+    tempCanvas.height = 0;
+  }
+  return tempCanvas;
+};
+// Fragment text function to calculate line breaks in dynamic text
+// https://itsahappymedium.com/create/blog/canvas-text-wrapping/
+function fragmentText(context, maxWidth, text, padding) {
+
+  // return text;
+  
+  let lines = [],
+      words = text.split(' ');
+
+  // Whoops - something went terribly wrong
+  if (maxWidth === NaN) return [text];
+
+  // We'll be constantly removing words from our words array to build our lines. Once we're out of words, we can stop
+  while (words.length) {
+      var tmp = words[0]; // Capture the current word, in case we need to re-add it to array
+      var line = words.shift(); // Start our line with the first word available to us
+
+      // Now we'll continue adding words to our line until we've exceeded our budget
+      while ( words.length && context.measureText(line).width < maxWidth) {
+          tmp = words[0];
+          line = line + " " + words.shift();
+      }
+
+      // If the line is too long, remove the last word and replace it in words array.
+      // This will happen on all but the last line, as we anticipate exceeding the length to break out of our second while loop
+      if (context.measureText(line).width > maxWidth) {
+          if(line.lastIndexOf(' ') != -1) {
+              // console.log('with space');
+              line = line.substring(0, line.lastIndexOf(' '));
+              words.unshift(tmp);
+          } else {
+              // console.log('our split');
+              var part1 = line.substring(0,12) + '-';
+              var part2 = line.substring(12);
+              //words.push(part1);
+              words.push(part2);
+              line = part1;
+
+          }
+
+          // line = line.substring(0, line.lastIndexOf(' '));
+          // words.unshift(tmp);
+      }
+
+      // Push the finshed line into the array
+
+          lines.push(line);
+  }
+
+  return lines;
+}
+
 const _getCanvasBlob = canvas => new Promise((resolve, reject) => {
   canvas.toBlob(blob => {
     resolve(blob);
@@ -157,8 +218,12 @@ export const generateCard = async ({
   minterAvatarPreview,
   glyphImage,
 } = {}) => {
+  description = description || 'A great mystery.';
+  
   const cardSvgSource = await _waitForSvgLoad();
   await _waitForFontsLoad();
+  const canvas = _getTempCanvas();
+  const ctx = canvas.getContext('2d');
 
   const cardHeight = cardWidth / 2.5 * 3.5;
 
@@ -239,13 +304,40 @@ export const generateCard = async ({
       glyphImageEl.setAttribute('xlink:href', glyphImage);
     }
 
-    /* {
-      const lines = description.split('\n');
+    {
+      const descriptionEl = el.querySelector('#description');
+
+      document.body.appendChild(svg);
+      const bbox = descriptionEl.getBBox();
+      const {width, height} = bbox;
+      // console.log('bbox', bbox);
+      document.body.removeChild(svg);
+
+      ctx.font = '12px SanvitoPro-Regular';
+      let description2 = fragmentText(ctx, width, description);
+      if (description2.length > 2) {
+        description2 = description2.slice(0, 2);
+        description2[description2.length - 1] += '…';
+      }
+
+      // const {height} = ctx.measureText('W');
+      // console.log('textMetrics', textMetrics);
+      // console.log('description2', {description2, height});
+
+      // debugger;
+      // descriptionEl.style.whiteSpace = 'pre';
+      // descriptionEl.setAttributeNS("http://www.w3.org/XML/1998/namespace", "xml:space", "preserve");
+      descriptionEl.innerHTML = description2.map((l, i) => {
+        return `<tspan x="0" y="${i * height * 1}">${l}</tspan>`;
+      }).join('');
+
+      /* const lines = description.split('\n');
       const descriptionHeaderTextEl = el.querySelector('#description-header-text');
       descriptionHeaderTextEl.innerHTML = lines[0];
       const descriptionBodyTextEl = el.querySelector('#description-body-text');
-      descriptionBodyTextEl.innerHTML = lines.slice(1).join('\n');
-    } */
+      descriptionBodyTextEl.innerHTML = lines.slice(1).join('\n'); */
+    }
+
     {
       const linearGradientName = 'linear-gradient-120';
       const stopEls = el.querySelectorAll(`#${linearGradientName} > stop`);
