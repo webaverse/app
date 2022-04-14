@@ -4,8 +4,6 @@ import {screenshotObjectApp} from './object-screenshotter.js';
 import {screenshotAvatarUrl} from './avatar-screenshotter.js';
 import {generateGlyph} from './glyph-generator.js';
 
-// const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
-// const cardsSvgUrl = `${baseUrl}cards.svg`;
 const cardsSvgUrl = `./images/cards-01.svg`;
 
 const _loadSvg = async () => {
