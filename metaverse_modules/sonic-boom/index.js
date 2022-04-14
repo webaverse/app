@@ -2380,9 +2380,9 @@ export default () => {
     
         //##################################################### material #####################################################
         let dustMaterial= new THREE.MeshBasicMaterial({
-            clipping: false,
+            // clipping: false,
             fog: false,
-            lights: false,
+            // lights: false,
         });
         dustMaterial.transparent=true; 
         dustMaterial.depthWrite=false;

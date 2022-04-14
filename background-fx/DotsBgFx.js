@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {
-  planeGeometry,
+  fullscreenGeometry,
   gradients,
   fullscreenVertexShader,
 } from './common.js';
@@ -300,9 +300,8 @@ class DotsBgFxMesh extends THREE.Mesh {
       depthWrite: false,
       depthTest: false,
       alphaToCoverage: true,
-    })
-
-    super(planeGeometry, material);
+    });
+    super(fullscreenGeometry, material);
     
     this.frustumCulled = false;
   }
