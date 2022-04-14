@@ -123,18 +123,17 @@ const _getCanvasDataUrl = async canvas => {
   return url;
 };
 
-const _previewImage = (image, width, height) => {
+/* const _previewImage = (image, width, height) => {
   image.style.cssText = `\
     position: fixed;
     top: 0;
     left: 0;
     width: ${width}px;
-    /* height: ${height}px; */
     z-index: 100;
   `;
   // console.log('got image', image);
   document.body.appendChild(image);
-};
+}; */
 
 export const generateObjectUrlCard = async ({
   start_url,
@@ -178,9 +177,8 @@ export const generateObjectCard = async ({
   let glyphImage = generateGlyph(url);
   glyphImage = await _getCanvasDataUrl(glyphImage);
 
-  // _previewImage(minterAvatarPreview, width, height);
   const minterUsername = 'Scillia';
-  console.log('call generate card', {
+  /* console.log('call generate card', {
     stats,
     width,
     name,
@@ -189,7 +187,7 @@ export const generateObjectCard = async ({
     minterUsername,
     minterAvatarPreview,
     glyphImage,
-  });
+  }); */
   const cardImg = await generateCard({
     stats,
     width,
@@ -202,7 +200,7 @@ export const generateObjectCard = async ({
     minterAvatarPreview,
     glyphImage,
   });
-  _previewImage(cardImg, width, height);
+  // _previewImage(cardImg, width, height);
   return cardImg;
 };
 
@@ -308,7 +306,6 @@ export const generateCard = async ({
       document.body.appendChild(svg);
       const bbox = descriptionEl.getBBox();
       const {width, height} = bbox;
-      // console.log('bbox', bbox);
       document.body.removeChild(svg);
 
       ctx.font = '12px SanvitoPro-Regular';
@@ -318,28 +315,14 @@ export const generateCard = async ({
         description2[description2.length - 1] += '…';
       }
 
-      // const {height} = ctx.measureText('W');
-      // console.log('textMetrics', textMetrics);
-      // console.log('description2', {description2, height});
-
-      // debugger;
-      // descriptionEl.style.whiteSpace = 'pre';
-      // descriptionEl.setAttributeNS("http://www.w3.org/XML/1998/namespace", "xml:space", "preserve");
       descriptionEl.innerHTML = description2.map((l, i) => {
         return `<tspan x="0" y="${i * height * 1}">${l}</tspan>`;
       }).join('');
-
-      /* const lines = description.split('\n');
-      const descriptionHeaderTextEl = el.querySelector('#description-header-text');
-      descriptionHeaderTextEl.innerHTML = lines[0];
-      const descriptionBodyTextEl = el.querySelector('#description-body-text');
-      descriptionBodyTextEl.innerHTML = lines.slice(1).join('\n'); */
     }
 
     {
       const linearGradientName = 'linear-gradient-120';
       const stopEls = el.querySelectorAll(`#${linearGradientName} > stop`);
-      // const c = `stop-color:${spec.art.colors[0]}`;
       stopEls[1].style.cssText = `stop-color:${spec.art.colors[0]}80`;
       stopEls[3].style.cssText = `stop-color:${spec.art.colors[1]}`;
     }
@@ -358,7 +341,6 @@ export const generateCard = async ({
     image.crossOrigin = 'Anonymous';
 
     const outerHTML = svg.outerHTML;
-    // console.log('outer html', outerHTML);
     const blob = new Blob([outerHTML], {
       type: 'image/svg+xml',
     });
