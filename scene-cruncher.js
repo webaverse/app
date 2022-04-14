@@ -193,7 +193,6 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
 
   const geometry = new THREE.PlaneBufferGeometry(worldSize.x, worldSize.z, worldDepthResolution.x, worldDepthResolution.y)
     .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(quaternion));
-  // const badIndices = {};
 
   const _isWhole = n => n % 1 === 0;
   const _isGez = n => n >= 0;
@@ -721,7 +720,7 @@ export function snapshotMapChunk(
   // object.add(topMesh[2]);
   object.updateMatrixWorld();
   // console.log('got top mesh', topMesh);
-  window.topMesh = topMesh;
+  // window.topMesh = topMesh;
   // object.add(bottomMesh);
   // object.add(leftMesh);
   // object.add(rightMesh);
