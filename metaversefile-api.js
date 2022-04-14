@@ -59,13 +59,13 @@ class App extends THREE.Object3D {
 
     this.isApp = true;
     this.components = [];
+    this.appType = 'none';
     this.modules = [];
     this.modulesHash = 0;
     // cleanup tracking
     this.physicsObjects = [];
     this.hitTracker = null;
-    this.appType = 'none';
-    this.hasRenderSettings = false;
+    this.hasSubApps = false;
     this.lastMatrix = new THREE.Matrix4();
 
     const startframe = () => {
@@ -157,7 +157,7 @@ class App extends THREE.Object3D {
     this.hitTracker && this.hitTracker.hit(damage, opts);
   }
   getRenderSettings() {
-    if (this.hasRenderSettings) {
+    if (this.hasSubApps) {
       return renderSettingsManager.findRenderSettings(this);
     } else {
       return null;
@@ -354,12 +354,6 @@ metaversefile.setApi({
       return null;
     }
   },
-  /* async load(u) {
-    const m = await metaversefile.import(u);
-    const app = metaversefile.createApp();
-    await metaversefile.addModule(app, m);
-    return app;
-  }, */
   useApp() {
     const app = currentAppRender;
     if (app) {
@@ -901,12 +895,12 @@ metaversefile.setApi({
     
     return app;
   },
-  createApp(opts) {
-    return metaversefile.createAppInternal(opts);
+  createApp(spec) {
+    return metaversefile.createAppInternal(spec);
   },
-  async createAppAsync(opts) {
+  async createAppAsync(spec, opts) {
     let p = null;
-    const app = metaversefile.createAppInternal(opts, {
+    const app = metaversefile.createAppInternal(spec, {
       onWaitPromise(newP) {
         p = newP;
       },
@@ -915,6 +909,15 @@ metaversefile.setApi({
       await p;
     }
     return app;
+  },
+  createAppPair(spec) {
+    let promise = null;
+    const app = metaversefile.createAppInternal(spec, {
+      onWaitPromise(newPromise) {
+        promise = newPromise;
+      },
+    });
+    return [app, promise];
   },
   createModule: (() => {
     const dataUrlPrefix = `data:application/javascript;charset=utf-8,`;
@@ -1092,6 +1095,7 @@ export default () => {
 
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
+    app.appType = m.type ?? '';
     app.contentId = m.contentId ?? '';
     if (Array.isArray(m.components)) {
       for (const {key, value} of m.components) {

@@ -1,8 +1,12 @@
 import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
+import renderSettingsManager from './rendersettings-manager.js';
 
 const localVector4D = new THREE.Vector4();
 const localColor = new THREE.Color();
+
+const sideScene = new THREE.Scene();
+sideScene.autoUpdate = false;
 
 export function screenshotScene(scene, camera, width, height, ctx) {
   const renderer = getRenderer();
@@ -22,8 +26,22 @@ export function screenshotScene(scene, camera, width, height, ctx) {
   renderer.setViewport(0, 0, width, height);
   renderer.setClearColor(0x000000, 0);
   renderer.clear();
-  renderer.render(scene, camera);
-  // const p = createImageBitmap(renderer.domElement, 0, 0, worldResolution, worldResolution);
+
+  {
+    const oldParent = scene.parent;
+    sideScene.add(scene);
+    
+    const pop = renderSettingsManager.push(scene, sideScene);
+    renderer.render(sideScene, camera);
+    pop();
+    
+    if (oldParent) {
+      oldParent.add(scene);
+    } else {
+      sideScene.remove(scene);
+    }
+    // const p = createImageBitmap(renderer.domElement, 0, 0, worldResolution, worldResolution);
+  }
 
   // for (const ctx of contexts) {
     ctx.clearRect(0, 0, width, height);
