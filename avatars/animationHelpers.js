@@ -943,16 +943,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             localQuaternion2.fromArray(v2);
 
             if (moveFactors.crouchFactor === 0) {
-              if (isArm) {
-                // do nothing: localQuaternion2 already pure combo animation
-              } else { // lerp legs between sword and walk/run by idleWalkFactor.
+              if (!isArm) {
                 localQuaternion2.slerp(dst, moveFactors.idleWalkFactor);
               }
-              // now localQuaternion2 is full combo animation ( which already processed legs )
-
-              // lerp default animation and combo animation when start combo.
               dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
-            } else { // when crouch, only apply combo to isArm bones ( arms with a little upper spines ).
+            } else {
               if (isArm) {
                 dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
               }
@@ -964,16 +959,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             _clearXZ(localVector2, isPosition);
 
             if (moveFactors.crouchFactor === 0) {
-              if (isArm) {
-                // do nothing: localVector2 already pure combo animation
-              } else { // lerp legs between sword and walk/run by idleWalkFactor.
+              if (!isArm) {
                 localVector2.lerp(dst, moveFactors.idleWalkFactor);
               }
-              // now localVector2 is full combo animation ( which already processed legs )
-
-              // lerp default animation and combo animation when start combo.
               dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
-            } else { // when crouch, only apply combo to isArm bones ( arms with a little upper spines ).
+            } else {
               if (isArm) {
                 dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
               }
