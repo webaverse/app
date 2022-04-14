@@ -1,5 +1,5 @@
 version: 0.2
-
+env: git-credential-helper: yes
 phases:
   install:
     runtime-versions:
@@ -10,6 +10,7 @@ phases:
       - git submodule update
   pre_build:
     commands:
+      - git submodule update --init --recursive
       - REPOSITORY_URI=907263135169.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/ecrrepository-app-$AWS_DEFAULT_REGION
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
