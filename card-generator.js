@@ -3,6 +3,7 @@ import {generateStats, types} from './procgen/procgen.js';
 import {screenshotObjectApp} from './object-screenshotter.js';
 import {screenshotAvatarUrl} from './avatar-screenshotter.js';
 import {generateGlyph} from './glyph-generator.js';
+import {splitLinesToWidth} from './util.js';
 
 const cardsSvgUrl = `./images/cards-01.svg`;
 
@@ -41,52 +42,6 @@ const _waitForFontsLoad = () => {
   return fontsLoadPromise;
 };
 
-let tempCanvas = null;
-const _getTempCanvas = () => {
-  if (tempCanvas === null) {
-    tempCanvas = document.createElement('canvas');
-    tempCanvas.width = 0;
-    tempCanvas.height = 0;
-  }
-  return tempCanvas;
-};
-function fragmentText(context, text, maxWidth) {
-  let lines = [];
-  const words = text.split(' ');
-
-  // We'll be constantly removing words from our words array to build our lines. Once we're out of words, we can stop
-  while (words.length > 0) {
-    let tmp = words[0]; // Capture the current word, in case we need to re-add it to array
-    let line = words.shift(); // Start our line with the first word available to us
-
-    // Now we'll continue adding words to our line until we've exceeded our budget
-    while (words.length && context.measureText(line).width < maxWidth) {
-      tmp = words[0];
-      line += ' ' + words.shift();
-    }
-
-    // If the line is too long, remove the last word and replace it in words array.
-    // This will happen on all but the last line, as we anticipate exceeding the length to break out of our second while loop
-    if (context.measureText(line).width > maxWidth) {
-      const lastSpaceIndex = line.lastIndexOf(' ');
-      if (lastSpaceIndex !== -1) {
-        line = line.substring(0, lastSpaceIndex);
-        words.unshift(tmp);
-      } else {
-        const part1 = line.substring(0, 12) + '-';
-        const part2 = line.substring(12);
-        line = part1;
-        words.push(part2);
-      }
-    }
-
-    // Push the finshed line into the array
-    lines.push(line);
-  }
-
-  return lines;
-}
-
 const _getCanvasBlob = canvas => new Promise((resolve, reject) => {
   canvas.toBlob(blob => {
     resolve(blob);
@@ -106,7 +61,7 @@ const _getCanvasDataUrl = async canvas => {
   return url;
 };
 
-/* const _previewImage = (image, width, height) => {
+const _previewImage = (image, width, height) => {
   image.style.cssText = `\
     position: fixed;
     top: 0;
@@ -116,7 +71,7 @@ const _getCanvasDataUrl = async canvas => {
   `;
   // console.log('got image', image);
   document.body.appendChild(image);
-}; */
+};
 
 export const generateObjectUrlCard = async ({
   start_url,
@@ -153,7 +108,7 @@ export const generateObjectCard = async ({
   objectImage = await _getCanvasDataUrl(objectImage);
 
   let minterAvatarPreview = await screenshotAvatarUrl({
-    start_url: `./avatars/4205786437846038737.vrm`,
+    start_url: `./avatars/scillia_drophunter_v15_vian.vrm`,
   });
   minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
 
@@ -161,16 +116,6 @@ export const generateObjectCard = async ({
   glyphImage = await _getCanvasDataUrl(glyphImage);
 
   const minterUsername = 'Scillia';
-  /* console.log('call generate card', {
-    stats,
-    width,
-    name,
-    description,
-    objectImage,
-    minterUsername,
-    minterAvatarPreview,
-    glyphImage,
-  }); */
   const cardImg = await generateCard({
     stats,
     width,
@@ -183,7 +128,7 @@ export const generateObjectCard = async ({
     minterAvatarPreview,
     glyphImage,
   });
-  // _previewImage(cardImg, width, height);
+  _previewImage(cardImg, width, height);
   return cardImg;
 };
 
@@ -203,8 +148,6 @@ export const generateCard = async ({
   
   const cardSvgSource = await _waitForSvgLoad();
   await _waitForFontsLoad();
-  const canvas = _getTempCanvas();
-  const ctx = canvas.getContext('2d');
 
   const cardHeight = cardWidth / 2.5 * 3.5;
 
@@ -291,16 +234,16 @@ export const generateCard = async ({
       const {width, height} = bbox;
       document.body.removeChild(svg);
 
-      ctx.font = '12px SanvitoPro-Regular';
-      let description2 = fragmentText(ctx, description, width);
+      const font = '12px SanvitoPro-Regular';
+      let description2 = splitLinesToWidth(description, font, width);
       if (description2.length > 2) {
         description2 = description2.slice(0, 2);
         description2[description2.length - 1] += '…';
       }
 
-      descriptionEl.innerHTML = description2.map((l, i) => {
-        return `<tspan x="0" y="${i * height * 1}">${l}</tspan>`;
-      }).join('');
+      descriptionEl.innerHTML = description2
+        .map((l, i) => `<tspan x="0" y="${i * height * 1}">${l}</tspan>`)
+        .join('');
     }
 
     {
