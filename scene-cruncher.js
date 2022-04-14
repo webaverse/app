@@ -183,8 +183,6 @@ const _getEtherIndex = worldDepthResolutionP1 => p =>
 const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, depthFloatImageData, ethers) => {
   const worldDepthResolutionP1 = worldDepthResolution.clone().add(new THREE.Vector3(1, 1, 1));
   
-  // const geometries = [];
-  // const geometry2 = new THREE.InstancedMesh( geometry, material, count );
   const cubePositions = [];
 
   const forwardDirection = _snap(new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion));
@@ -207,13 +205,8 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
     ) {
       const index = _etherIndex(p);
       if (index >= 0 && index < ethers.length) {
-        // console.log('got index', index, p.x, p.y, p.z);
         ethers[index] = v;
-      } else {
-        debugger;
       }
-    } else {
-      debugger;
     }
   };
   for (let y = 0; y <= worldDepthResolution.y; y++) {
@@ -281,94 +274,9 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
             break;
           }
         }
-
-        // console.log('position offset', position.toArray());
-
-        /* const basePosition = position.clone()
-          .sub(new THREE.Vector3(worldSize.x / 2, worldSize.y / 2, worldSize.z / 2));
-        const positionOffset = localLocation.clone().sub(basePosition);
-        const positionOffsetScaled = positionOffset.clone().multiply(
-          new THREE.Vector3(worldDepthResolutionP1.x/worldSize.x, worldDepthResolutionP1.y/worldSize.y, worldDepthResolutionP1.x/worldSize.z)
-        ); */
-
-        /* localLocation
-          .add(
-            localVector2.set(worldDepthResolutionP1.x/2, worldDepthResolutionP1.y/2, 0)
-              .applyQuaternion(quaternion)
-          )
-          .multiply(
-            localVector2.set(worldDepthResolutionP1.x)
-          ); */
-        // window.positionOffsetsScaled.push(positionOffsetScaled);
-
-        // ethers is a flattened 3d array of size worldDepthResolutionP1
-        // here we compute the index into ethers based on localLocation
-        // const ethersIndex = Math.floor(localLocation.x / worldSize.x * worldDepthResolutionP1.x) +
-          // Math.floor(localLocation.z / worldSize.z * worldDepthResolutionP1.y) * worldDepthResolutionP1.x;
-        
-        // ethers
       }
     }
   }
-  /* {
-    let allocator = new Allocator();
-
-    const dimsTypedArray = allocator.alloc(Int32Array, 3);
-    dimsTypedArray.set(dims);
-
-    const potentialTypedArray = allocator.alloc(Float32Array, potential.length);
-    potentialTypedArray.set(potential);
-
-    const shiftTypedArray = allocator.alloc(Float32Array, 3);
-    shiftTypedArray.set(shift);
-
-    const scaleTypedArray = allocator.alloc(Float32Array, 3);
-    scaleTypedArray.set(scale);
-
-    const outputBufferOffset = moduleInstance._doMarchingCubes(
-      dimsTypedArray.byteOffset,
-      potentialTypedArray.byteOffset,
-      shiftTypedArray.byteOffset,
-      scaleTypedArray.byteOffset
-    );
-
-    allocator.freeAll();
-
-    const head = outputBufferOffset / 4;
-
-    const positionCount = moduleInstance.HEAP32[head];
-    const faceCount = moduleInstance.HEAP32[head + 1];
-    const positions = moduleInstance.HEAPF32.slice(head + 2, head + 2 + positionCount);
-    const faces = moduleInstance.HEAP32.slice(head + 2 + positionCount, head + 2 + positionCount + faceCount);
-
-    moduleInstance._doFree(outputBufferOffset);
-
-    return {
-      positionCount: positionCount,
-      faceCount: faceCount,
-      positions: positions,
-      faces: faces
-    }
-  } */
-
-  /* for (let z = 0; z <= worldDepthResolution.y; z++) {
-    for (let x = 0; x <= worldDepthResolution.x; x++) {
-      const index = z * worldDepthResolutionP1.x + x;
-      localVector.fromArray(geofmetry.attributes.position.array, index * 3);
-    }
-  } */
-  /* for (let i = 0; i < geometry.index.array.length; i += 3) {
-    const ai = geometry.index.array[i];
-    const bi = geometry.index.array[i + 1];
-    const ci = geometry.index.array[i + 2];
-
-    // console.log('bad indices', !!(badIndices[ai] && badIndices[bi] && badIndices[ci]));
-    if (badIndices[ai] && badIndices[bi] && badIndices[ci]) {
-      geometry.index.array[i] = 0;
-      geometry.index.array[i + 1] = 0;
-      geometry.index.array[i + 2] = 0;
-    }
-  } */
 
   const _initializeSides = () => {
     const v = 1;
@@ -435,7 +343,6 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
   const scale = new THREE.Vector3().setScalar(worldSize.x / worldDepthResolution.x).toArray();
   // const scale = [1, 1, 1];
   const mc = physicsManager.marchingCubes(dims, ethers, shift, scale)
-  // console.log('got marching cubes 1', mc, dims, ethers.filter(n => n === 1).length, ethers.filter(n => n !== 1).length, {dims, shift, scale, worldDepthResolutionP1});
   const {faces, positions} = mc;
   const geometry2 = new THREE.BufferGeometry();
   geometry2.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -590,10 +497,7 @@ export function snapshotMapChunk(
       const _renderOverrideMaterial = (renderTarget, overrideMaterial, wp1) => {
         renderer.setViewport(0, 0, wp1.x, wp1.y);
         renderer.setRenderTarget(renderTarget);
-        // const oldClear = renderer.state.buffers.depth.getClear();
-        // renderer.state.buffers.depth.setClear(1);
         renderer.clear();
-        // renderer.state.buffers.depth.setClear(oldClear);
         scene.overrideMaterial = overrideMaterial;
 
         const pop = renderSettingsManager.push(scene, undefined, {
