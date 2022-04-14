@@ -202,7 +202,7 @@ try {
       // scene.remove(vrmApp);
 
       if (npcPlayer) {
-        npcPlayer.destroy();
+        npcManager.destroyNpc(npcPlayer);
       }
 
       loreAIScene.removeCharacter(character);
