@@ -50,53 +50,38 @@ const _getTempCanvas = () => {
   }
   return tempCanvas;
 };
-// Fragment text function to calculate line breaks in dynamic text
-// https://itsahappymedium.com/create/blog/canvas-text-wrapping/
-function fragmentText(context, maxWidth, text, padding) {
-
-  // return text;
-  
-  let lines = [],
-      words = text.split(' ');
-
-  // Whoops - something went terribly wrong
-  if (maxWidth === NaN) return [text];
+function fragmentText(context, maxWidth, text) {
+  let lines = [];
+  const words = text.split(' ');
 
   // We'll be constantly removing words from our words array to build our lines. Once we're out of words, we can stop
-  while (words.length) {
-      var tmp = words[0]; // Capture the current word, in case we need to re-add it to array
-      var line = words.shift(); // Start our line with the first word available to us
+  while (words.length > 0) {
+    let tmp = words[0]; // Capture the current word, in case we need to re-add it to array
+    let line = words.shift(); // Start our line with the first word available to us
 
-      // Now we'll continue adding words to our line until we've exceeded our budget
-      while ( words.length && context.measureText(line).width < maxWidth) {
-          tmp = words[0];
-          line = line + " " + words.shift();
+    // Now we'll continue adding words to our line until we've exceeded our budget
+    while (words.length && context.measureText(line).width < maxWidth) {
+      tmp = words[0];
+      line += ' ' + words.shift();
+    }
+
+    // If the line is too long, remove the last word and replace it in words array.
+    // This will happen on all but the last line, as we anticipate exceeding the length to break out of our second while loop
+    if (context.measureText(line).width > maxWidth) {
+      const lastSpaceIndex = line.lastIndexOf(' ');
+      if (lastSpaceIndex !== -1) {
+        line = line.substring(0, lastSpaceIndex);
+        words.unshift(tmp);
+      } else {
+        const part1 = line.substring(0, 12) + '-';
+        const part2 = line.substring(12);
+        line = part1;
+        words.push(part2);
       }
+    }
 
-      // If the line is too long, remove the last word and replace it in words array.
-      // This will happen on all but the last line, as we anticipate exceeding the length to break out of our second while loop
-      if (context.measureText(line).width > maxWidth) {
-          if(line.lastIndexOf(' ') != -1) {
-              // console.log('with space');
-              line = line.substring(0, line.lastIndexOf(' '));
-              words.unshift(tmp);
-          } else {
-              // console.log('our split');
-              var part1 = line.substring(0,12) + '-';
-              var part2 = line.substring(12);
-              //words.push(part1);
-              words.push(part2);
-              line = part1;
-
-          }
-
-          // line = line.substring(0, line.lastIndexOf(' '));
-          // words.unshift(tmp);
-      }
-
-      // Push the finshed line into the array
-
-          lines.push(line);
+    // Push the finshed line into the array
+    lines.push(line);
   }
 
   return lines;
