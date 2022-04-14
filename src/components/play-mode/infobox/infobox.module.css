@@ -1,0 +1,140 @@
+.infobox {
+  position: fixed;
+  display: flex;
+  width: 375px;
+  height: 100px;
+  bottom: 15px;
+  right: 30px;
+  padding-left: 30px;
+  color: #FFF;
+  transform: translateY(0);
+  transition: cubic-bezier(0, 1, 0, 1) 1s transform;
+}
+.infobox:not(.selected) {
+  transform: translateY(150px);
+}
+.infobox .screenshot {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  left: -25px;
+  /* background-color: white; */
+}
+.infobox .background {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* background: radial-gradient(circle at 25% 50%,#44444480, #00000080), linear-gradient(to bottom, rgb(30, 30, 30), rgb(0, 0, 0)); */
+  transform: skew(22deg);
+}
+.infobox .background-1 {
+  width: 100px;
+  height: 100px;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7)),
+    radial-gradient(ellipse closest-corner at 50% 80%, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 100%);
+}
+.infobox .background-2 {
+  flex: 1;
+  border: 2px solid #222;
+  background:
+    radial-gradient(circle at 25% 50%,#44444480, #00000080),
+    linear-gradient(to bottom, rgb(30, 30, 30), rgb(0, 0, 0));
+}
+.infobox h1,
+.infobox h2
+{
+  display: flex;
+  margin: 10px 0;
+  height: 30px;
+  font-family: 'WinchesterCaps';
+  text-align: left;
+  align-items: flex-end;
+  letter-spacing: 1px;
+}
+.infobox h1 {
+  margin-right: 10px;
+}
+.infobox h2 {
+  padding-bottom: 1px;
+  font-size: 13px;
+  vertical-align: bottom;
+}
+.infobox .content {
+  position: relative;
+  display: flex;
+  min-width: 160px;
+  flex-direction: column;
+}
+.infobox .row {
+  display: flex;
+}
+.infobox .stat {
+  display: flex;
+}
+.infobox .progress {
+  display: flex;
+  align-items: center;
+}
+.infobox progress {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: auto 0;
+  height: 2px;
+  border-radius: 1px;
+}
+.infobox progress::-webkit-progress-bar {
+  /* background-image: linear-gradient(to right, #000, #333); */
+  background-color: #333;
+}
+.infobox progress::-webkit-progress-value {
+  background-image: linear-gradient(to right, #56ab2f, #a8e063);
+}
+/* .infobox .pill {
+  margin-right: 10px;
+  padding: 0 5px;
+  background-image: linear-gradient(to bottom, #4CAF50, #2E7D32);
+  border-radius: 3px;
+} */
+.infobox .content .label {
+  width: 40px;
+  text-align: left;
+}
+.infobox .hints {
+  position: absolute;
+  right: 30px;
+  top: -23px;
+  display: flex;
+  align-items: flex-start;
+}
+.infobox .hints .hint {
+  display: flex;
+  padding-right: 10px;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+}
+.infobox .hints .hint .key {
+  position: relative;
+  display: flex;
+  height: 20px;
+  min-width: 20px;
+  padding: 0 4px;
+  justify-content: center;
+  align-items: center;
+  background-color: #333;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFF;
+}
+.infobox .hints .hint .label {
+  background-color: #CCC;
+  border-radius: 0 3px 3px 0;
+  padding: 1px 4px;
+}

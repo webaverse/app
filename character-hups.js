@@ -3,9 +3,7 @@ it controls the animated dioramas that happen when players perform actions.
 the HTML part of this code lives as part of the React app. */
 
 // import * as THREE from 'three';
-import metaversefile from 'metaversefile';
-import {VoicePack, VoicePackVoicer} from './voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-endpoint-voicer.js';
+// import metaversefile from 'metaversefile';
 import {chatManager} from './chat-manager.js';
 
 const deadTimeoutTime = 2000;
@@ -34,36 +32,38 @@ class Hup extends EventTarget {
     if (playerName) {
       this.playerName = playerName;
     }
-    if (message) {
-      if (this.fullText.length > 0) {
-        this.fullText += '\n';
-      }
-      this.fullText += message;
-    }
-    this.emote = emote ?? null;
   
     this.actionIds.push(action.actionId);
 
     this.clearDeadTimeout();
 
-    this.dispatchEvent(new MessageEvent('update'));
+    // this.dispatchEvent(new MessageEvent('update'));
   }
-  async updateVoicer(message) {
+  async updateVoicer(message, emote) {
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice start');
     this.dispatchEvent(new MessageEvent('voicequeue', {
       data: {
         message,
       },
     }));
-    if (this.parent.voicer) {
-      const preloadedMessage = this.parent.voicer.preloadMessage(message);
+    if (this.parent.player.voicer) {
+      const preloadedMessage = this.parent.player.voicer.preloadMessage(message);
       await chatManager.waitForVoiceTurn(() => {
+        if (message) {
+          if (this.fullText.length > 0) {
+            this.fullText += '\n';
+          }
+          this.fullText += message;
+        }
+        this.emote = emote ?? null;
+
         this.dispatchEvent(new MessageEvent('voicestart', {
           data: {
             message,
+            fullText: this.fullText,
           },
         }));
-        return this.parent.voicer.start(preloadedMessage);
+        return this.parent.player.voicer.start(preloadedMessage);
       });
     } else {
       await Promise.resolve();
@@ -80,18 +80,6 @@ class Hup extends EventTarget {
     if (index !== -1) {
       this.actionIds.splice(index, 1);
     }
-    /* if (this.actionIds.length === 0) {
-      const _updateVoicer = () => {
-        if (this.parent.voicer) {
-          this.parent.voicer.stop();
-        }
-      };
-      _updateVoicer();
-
-      this.deadTimeout = setTimeout(() => {
-        this.dispatchEvent(new MessageEvent('deadtimeout'));
-      }, 2000);
-    } */
   }
   clearDeadTimeout() {
     if (this.deadTimeout) {
@@ -126,7 +114,7 @@ class CharacterHups extends EventTarget {
       // console.log('got old hup', oldHup, actionId, this.hups.map(h => h.actionIds).flat());
       if (oldHup) {
         oldHup.mergeAction(action);
-        oldHup.updateVoicer(action.message);
+        oldHup.updateVoicer(action.message, action.emote);
       } else if (Hup.isHupAction(action)) {
         const newHup = new Hup(action.type, this);
         newHup.mergeAction(action);
@@ -160,7 +148,7 @@ class CharacterHups extends EventTarget {
             hup: newHup,
           },
         }));
-        newHup.updateVoicer(action.message);
+        newHup.updateVoicer(action.message, action.emote);
       }
     });
     player.addEventListener('actionremove', e => {
@@ -174,26 +162,10 @@ class CharacterHups extends EventTarget {
       }
     });
   }
-  setVoice(voice) {
-    if (voice instanceof VoicePack) {
-      const {syllableFiles, audioBuffer} = voice;
-      this.voicer = new VoicePackVoicer(syllableFiles, audioBuffer, this.player);
-    } else if (voice instanceof VoiceEndpoint) {
-      this.voicer = new VoiceEndpointVoicer(voice, this.player);
-    } else {
-      throw new Error('invalid voice');
-    }
-  }
   addChatHupAction(text) {
     this.player.addAction({
       type: 'chat',
       text,
-    });
-  }
-  addEmoteHupAction(emote) {
-    this.player.addAction({
-      type: 'emote',
-      emote,
     });
   }
   update(timestamp) {

@@ -11,16 +11,13 @@
     height: 100%;
     background-color: #000000;
     background-image: linear-gradient(315deg, #000000 0%, #414141 74%);
-    z-index: 2;
-    transition: visibility 0s 300ms, opacity 300ms ease;
-    opacity: 0;
-    visibility: hidden;
+    z-index: 10;
+    transition: transform 0.5s cubic-bezier(0, 1, 0, 1);
+    transform: translate( 100%, 0% );
 }
 
 .settings.open {
-    opacity: 1;
-    visibility: visible;
-    transition: visibility 0s 0ms, opacity 300ms ease;
+    transform: translate( 0%, 0% );
 }
 
 .closeBtn {
@@ -135,6 +132,21 @@
     margin-left: 230px;
     font-family: inherit;
 }
+
+.apiKeysTab .textarea {
+    width: 100%;
+    height: 200px;
+    outline: none;
+    resize: vertical;
+}
+
+.apiKeysTab .input.enabled {
+    background-color: #66bb6a;
+    /* color: #FFF; */
+}
+/* .apiKeysTab .input.enabled::placeholder {
+    color: #FFFFFF80;
+} */
 
 .audioTab .slider {
     float: left;

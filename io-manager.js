@@ -10,6 +10,7 @@ import cameraManager from './camera-manager.js';
 import game from './game.js';
 // import physicsManager from './physics-manager.js';
 import {world} from './world.js';
+import voiceInput from './voice-input/voice-input.js';
 // import * as universe from './universe.js';
 // import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe, getVelocityDampingFactor} from './util.js';
@@ -77,7 +78,7 @@ const resetKeys = () => {
   }
 };
 
-document.addEventListener('pointerlockchange', () => {
+cameraManager.addEventListener('pointerlockchange', () => {
   resetKeys();
 });
 
@@ -265,13 +266,13 @@ ioManager.bindInterface = () => {
     document.body.classList.remove('no-ui');
   }
 };
-const _setTransformMode = transformMode => {
+/* const _setTransformMode = transformMode => {
   if (transformControls.getTransformMode() !== transformMode) {
     transformControls.setTransformMode(transformMode);
   } else {
     transformControls.setTransformMode('disabled');
   }
-};
+}; */
 const doubleTapTime = 200;
 ioManager.keydown = e => {
   if (_inputFocused() || e.repeat) {
@@ -294,12 +295,9 @@ ioManager.keydown = e => {
   } */
 
   switch (e.which) {
-    /* case 9: { // tab
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('key-tab').click();
+    case 9: { // tab
       break;
-    } */
+    }
     case 49: // 1
     case 50: // 2
     case 51: // 3
@@ -314,7 +312,7 @@ ioManager.keydown = e => {
     }
     case 87: { // W
       ioManager.keys.up = true;
-      if (!document.pointerLockElement) {
+      if (!cameraManager.pointerLockElement) {
         game.menuVertical(-1);
       }
 
@@ -330,7 +328,7 @@ ioManager.keydown = e => {
     }
     case 65: { // A
       ioManager.keys.left = true;
-      if (!document.pointerLockElement) {
+      if (!cameraManager.pointerLockElement) {
         game.menuHorizontal(-1);
       }
 
@@ -345,30 +343,37 @@ ioManager.keydown = e => {
       break;
     }
     case 83: { // S
-      ioManager.keys.down = true;
-      if (!document.pointerLockElement) {
-        if (game.menuOpen) {
-          game.menuVertical(1);
-        } else {
-          // if (!game.dragging) {
-            // _setTransformMode('scale');
-          // }
-        }
-      }
+      if (e.ctrlKey) {
+        e.preventDefault();
+        e.stopPropagation();
 
-      const now = performance.now();
-      const timeDiff = now - lastWASDDownTime.keyS;
-      if (timeDiff < doubleTapTime && ioManager.keys.shift) {
-        ioManager.keys.doubleTap = true;
-        game.menuDoubleTap();
+        game.saveScene();
+      } else {
+        ioManager.keys.down = true;
+        if (!cameraManager.pointerLockElement) {
+          if (game.menuOpen) {
+            game.menuVertical(1);
+          } else {
+            // if (!game.dragging) {
+              // _setTransformMode('scale');
+            // }
+          }
+        }
+
+        const now = performance.now();
+        const timeDiff = now - lastWASDDownTime.keyS;
+        if (timeDiff < doubleTapTime && ioManager.keys.shift) {
+          ioManager.keys.doubleTap = true;
+          game.menuDoubleTap();
+        }
+        lastWASDDownTime.keyS = now;
+        lastWASDDownTime.keyW = 0;
       }
-      lastWASDDownTime.keyS = now;
-      lastWASDDownTime.keyW = 0;
       break;
     }
     case 68: { // D
       ioManager.keys.right = true;
-      if (!document.pointerLockElement) {
+      if (!cameraManager.pointerLockElement) {
         game.menuHorizontal(1);
       }
 
@@ -383,11 +388,11 @@ ioManager.keydown = e => {
       break;
     }
     case 82: { // R
-      if (document.pointerLockElement) {
+      if (cameraManager.pointerLockElement) {
         if (game.canRotate()) {
           game.menuRotate(1);
         } else {
-          game.drop();
+          game.dropSelectedApp();
         }
       } else {
         // if (!game.dragging) {
@@ -410,7 +415,7 @@ ioManager.keydown = e => {
       break;
     }
     case 71: { // G
-      if (document.pointerLockElement) {
+      if (cameraManager.pointerLockElement) {
         /* if (game.canTry()) {
           game.menuTry();
         } */
@@ -487,21 +492,16 @@ ioManager.keydown = e => {
       // }
       break;
     }
-    /* case 84: { // T
-      // if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        world.toggleMic();
-      // }
+    case 84: { // T
+      e.preventDefault();
+      e.stopPropagation();
+      voiceInput.toggleMic();
       break;
-    } */
-    case 85: { // U
-      // if (game.canUpload()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuUpload();
-      // }
+    }
+    case 89: { // Y
+      e.preventDefault();
+      e.stopPropagation();
+      voiceInput.toggleSpeech();
       break;
     }
     case 80: { // P
@@ -536,7 +536,7 @@ ioManager.keydown = e => {
       break;
     }
     case 69: { // E
-      // if (document.pointerLockElement) {
+      // if (cameraManager.pointerLockElement) {
         if (game.canRotate()) {
           game.menuRotate(-1);
         } else {
@@ -549,12 +549,12 @@ ioManager.keydown = e => {
       game.toggleEditMode();
       break;
     }
-    case 13: { // enter
+    /* case 13: { // enter
       game.enter();
       break;
-    }
+    } */
     /* case 77: { // M
-      menuActions.setIsOpen(!menuState.isOpen);
+      game.toggleMap();
       break;
     } */
     case 74: { // J
@@ -566,10 +566,27 @@ ioManager.keydown = e => {
       break;
     }
     case 72: { // H
-      game.toggleDebug(!game.debugMode);
+      const debug = metaversefile.useDebug();
+      debug.toggle();
       break;
     }
   }
+};
+ioManager.keypress = e => {
+  // nothing
+};
+ioManager.wheel = e => {
+  // window.addEventListener('wheel', e => {
+    // console.log('target', e.target);
+    if (physicsManager.getPhysicsEnabled()) {
+      const renderer = getRenderer();
+      if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
+        cameraManager.handleWheelEvent(e);
+      }
+    }
+  /* }, {
+    passive: false,
+  }); */
 };
 ioManager.keyup = e => {
   if (_inputFocused() || e.repeat) {
@@ -605,19 +622,19 @@ ioManager.keyup = e => {
       break;
     } */
     case 69: { // E
-      if (document.pointerLockElement) {
+      if (cameraManager.pointerLockElement) {
         game.menuActivateUp();
       }
       break;
     }
     case 70: { // F
-      // if (document.pointerLockElement) {
+      // if (cameraManager.pointerLockElement) {
         ioManager.keys.forward = false;
       // }
       break;
     }
     case 67: { // C
-      // if (document.pointerLockElement) {
+      // if (cameraManager.pointerLockElement) {
         ioManager.keys.backward = false;
         ioManager.keys.ctrl = false;
       // }
@@ -684,17 +701,21 @@ const _updateMouseMovement = e => {
 const _getMouseRaycaster = (e, raycaster) => {
   const {clientX, clientY} = e;
   const renderer = getRenderer();
-  renderer.getSize(localVector2D2);
-  localVector2D.set(
-    (clientX / localVector2D2.x) * 2 - 1,
-    -(clientY / localVector2D2.y) * 2 + 1
-  );
-  if (
-    localVector2D.x >= -1 && localVector2D.x <= 1 &&
-    localVector2D.y >= -1 && localVector2D.y <= 1
-  ) {
-    raycaster.setFromCamera(localVector2D, camera);
-    return raycaster;
+  if (renderer) {
+    renderer.getSize(localVector2D2);
+    localVector2D.set(
+      (clientX / localVector2D2.x) * 2 - 1,
+      -(clientY / localVector2D2.y) * 2 + 1
+    );
+    if (
+      localVector2D.x >= -1 && localVector2D.x <= 1 &&
+      localVector2D.y >= -1 && localVector2D.y <= 1
+    ) {
+      raycaster.setFromCamera(localVector2D, camera);
+      return raycaster;
+    } else {
+      return null;
+    }
   } else {
     return null;
   }
@@ -746,7 +767,7 @@ ioManager.mousemove = e => {
   /* if (game.weaponWheel) {
     game.updateWeaponWheel(e);
   } else { */
-    if (document.pointerLockElement) {
+    if (cameraManager.pointerLockElement) {
       _updateMouseMovement(e);
     } else {
       if (game.dragging) {
@@ -764,7 +785,7 @@ ioManager.mouseleave = e => {
   renderer.domElement.classList.remove('hover');
 };
 ioManager.click = e => {
-  if (document.pointerLockElement) {
+  if (cameraManager.pointerLockElement) {
     game.menuClick();
   } else {
     // game.setContextMenu(false);
@@ -794,7 +815,7 @@ ioManager.click = e => {
 let lastMouseButtons = 0;
 ioManager.mousedown = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
-  if (document.pointerLockElement) {
+  if (cameraManager.pointerLockElement) {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
       game.menuMouseDown();
     }
@@ -804,7 +825,9 @@ ioManager.mousedown = e => {
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
       const raycaster = _getMouseRaycaster(e, localRaycaster);
-      transformControls.handleMouseDown(raycaster);
+      if (raycaster) {
+        transformControls.handleMouseDown(raycaster);
+      }
     }
     if ((changedButtons & 1) && (e.buttons & 2)) { // right
       game.menuDragdownRight();
@@ -822,7 +845,7 @@ ioManager.mousedown = e => {
 ioManager.mouseup = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
   // if (mouseDown) {
-    if (document.pointerLockElement) {
+    if (cameraManager.pointerLockElement) {
       if ((changedButtons & 1) && !(e.buttons & 1)) { // left
         game.menuMouseUp();
       }
@@ -870,7 +893,7 @@ ioManager.bindInput = () => {
       }
     }
   }); */
-  window.addEventListener('wheel', e => {
+  /* window.addEventListener('wheel', e => {
     // console.log('target', e.target);
     if (physicsManager.getPhysicsEnabled()) {
       const renderer = getRenderer();
@@ -880,7 +903,7 @@ ioManager.bindInput = () => {
     }
   }, {
     passive: false,
-  });
+  }); */
 };
 
 export default ioManager;

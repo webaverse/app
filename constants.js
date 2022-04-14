@@ -3,6 +3,8 @@ export const previewExt = 'jpg';
 export const maxGrabDistance = 1.5;
 export const defaultRendererUrl = 'https://render.exokit.org/'
 
+export const transparentPngUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
 export const rarityColors = {
   common: [0xDCDCDC, 0x373737],
   uncommon: [0xff8400, 0x875806],
@@ -45,7 +47,7 @@ export const localstorageHost = 'https://localstorage.webaverse.com';
 export const loginEndpoint = 'https://login.webaverse.com';
 export const tokensHost = `https://${chainName}all-tokens.webaverse.com`;
 export const landHost = `https://${chainName}sidechain-land.webaverse.com`;
-export const aiHost = `https://ai.webaverse.com`;
+export const codeAiHost = `https://ai.webaverse.com/code`;
 export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
 export const web3TestnetSidechainEndpoint = 'https://testnetsidechain.exokit.org';
 export const worldUrl = 'worlds.webaverse.com';
@@ -60,8 +62,6 @@ export const appsMapName = 'apps';
 
 export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;
-
-export const defaultPlayerName = 'Scillia';
 
 export const audioTimeoutTime = 10 * 1000;
 
@@ -84,17 +84,21 @@ export const avatarInterpolationNumFrames = 4;
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
 
-export const defaultVoicePack = {
-  name: `ShiShi voice pack`,
-  audioUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllables.mp3`,
-  indexUrl: `https://webaverse.github.io/shishi-voicepack/syllables/syllable-files.json`,
-};
-export const voiceEndpoint = `https://voice.webaverse.com/tts`;
-export const defaultVoice = `1jLX0Py6j8uY93Fjf2l0HOZQYXiShfWUO`; // Sweetie Belle
+export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
 
-export const loreAiEndpoint = `https://ai.webaverse.com/lore`;
-export const chatTextSpeed = 20;
+export const voiceEndpoint = `https://voice.webaverse.com/tts`;
+export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
+
+export const chatTextSpeed = 15;
 export const shakeAnimationSpeed = 30;
 
+export const hotbarSize = 60;
+export const infoboxSize = 100;
+
+export const numLoadoutSlots = 8;
+
 export const defaultDioramaSize = 512;
+
 export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';
+// export const defaultAvatarUrl = './avatars/scillia_drophunter_v25_gloria_vian.vrm';
+// export const defaultAvatarUrl = './avatars/ann.vrm';

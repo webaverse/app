@@ -1,42 +1,43 @@
+
 .loginDiv {
-  width: 100%;
-  margin: 10px 0;
-  text-align: -webkit-center;
+    width: 100%;
+    margin: 10px 0;
+    text-align: -webkit-center;
 }
 
 .loginBtnText {
-  display: inline-block;
-  transform: skewX(20deg);
-}
+    display: inline-block;
+    transform: skewX(20deg);
+  }
 
 .loginBtnImg {
-  vertical-align: middle;
-  margin: 0 10px;
-}
+    vertical-align: middle;
+    margin: 0 10px;
+  }
 
 .loginBtn {
-  transform: skewX(-20deg);
-  background: rgb(0, 168, 252);
-  color: rgb(0, 0, 0);
-  padding: 0.5em;
-  width: 10em;
-  text-align: left;
-  cursor: pointer;
+    transform: skewX(-20deg);
+    background: rgb(0, 168, 252);
+    color: rgb(0, 0, 0);
+    padding: 0.5em;
+    width: 10em;
+    text-align: left;
+    cursor: pointer;
 }
 
 .logoutBtn {
-  position: absolute;
-  right: 0;
-  background: black;
-  color: white;
-  padding: 6px;
-  font-size: 14px;
-  cursor: pointer;
+    position: absolute;
+    right: 0;
+    background: black;
+    color: white;
+    padding: 6px;
+    font-size: 14px;
+    cursor: pointer;
 }
 
 .logoutBtn:hover {
-  background: #ef5350;
-  color: white;
+    background: #ef5350;
+    color: white;
 }
 
 body {
@@ -49,13 +50,9 @@ body {
 	width: 100%;
 	height: var(--header-height);
   top: 0;
-  flex-direction: column;
+  left: 0;
   user-select: none;
   z-index: 2;
-}
-
-.header.subheader {
-  z-index: 1;
 }
 
 .header > .row {
@@ -85,8 +82,11 @@ body {
 
 .header .tab {
   position: fixed;
-  top: 50px;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.header .tab.top.left {
+  top: 50px;
+  height: 40px;
 }
 .header .tab .label {
   position: relative;
@@ -112,7 +112,7 @@ body {
   display: flex;
   width: 400px;
   height: 100vh;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 .header .tab .panelsLogin {
   position: fixed;
@@ -131,6 +131,7 @@ body {
 .header .panel-header {
   display: flex;
   position: relative;
+  margin-bottom: 5px;
   /* padding: 0 10px; */
 }
 .header .panel-header > .panel-section {
@@ -149,7 +150,14 @@ body {
   font-size: 16px;
 }
 .header .panel-header > .panel-section.main-stats {
-  font-family: 'PlazaRegular';
+  display: flex;
+  width: 215px;
+  height: 50px;
+  flex: none;
+  font-family: 'WinchesterCaps';
+  font-size: 13px;
+  letter-spacing: 1px;
+  align-items: center;
 }
 .header .panel-header > .panel-section.name::before {
   position: absolute;
@@ -170,9 +178,6 @@ body {
   flex: 1;
   /* justify-content: flex-start; */
   align-items: flex-start;
-}
-.header .tab.top.left .panel-header {
-  /* margin-top: 20px; */
 }
 .header .tab.top.right .panel-header {
   margin-top: 60px;
@@ -644,149 +649,9 @@ input[type=range]::-webkit-slider-thumb {
 	content: '';
 }
 .header .avatar {
+  position: relative;
   width: 400px;
   height: 400px;
-}
-
-.location {
-  position: relative;
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  overflow: visible;
-}
-.location .row {
-  display: flex;
-  height: 100%;
-}
-.location .rooms {
-  position: absolute;
-  top: 50px;
-  display: flex;
-  width: 100%;
-  background-color: #000;
-  flex-direction: column;
-}
-.location .rooms .room {
-  display: flex;
-  padding: 10px;
-  color: #FFF;
-  cursor: pointer;
-}
-.location .rooms .room:hover {
-  background-color: #42a5f5;
-}
-.location .rooms .room .image {
-  margin-right: 10px;
-  user-drag: none;
-  -webkit-user-drag: none;
-}
-.location .rooms .room .name {
-  margin-right: auto;
-  font-size: 16px;
-}
-.location .rooms .button {
-  padding: 10px;
-  background: linear-gradient(to right, #673ab7, #512da8);
-  border-radius: 5px;
-  color: #FFF;
-  cursor: pointer;
-}
-.location .rooms .button.warning {
-  background: linear-gradient(to right, #ff416c, #ff4b2b);
-}
-.location .rooms .button:hover {
-  filter: brightness(0.7);
-}
-.location .rooms .create {
-  padding: 10px;
-  margin-right: auto;
-}
-.location .rooms .delete {
-  display: flex;
-}
-.location .input-wrap {
-  position: relative;
-  height: 100%;
-  width: 300px;
-  background-color: #000;
-  font-family: monospace;
-  overflow: hidden;
-}
-.location .input-wrap .background {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  transform: translateX(-100%);
-  transition: transform 1s cubic-bezier(0, 1, 0, 1);
-}
-.location .input-wrap .input {
-  position: relative;
-  height: inherit;
-  width: inherit;
-  padding: 10px;
-  background-color: transparent;
-  border: 0;
-  color: #FFF;
-  font-family: monospace;
-  font-size: 15px;
-  outline: none;
-  z-index: 1;
-  transition: color 1s cubic-bezier(0, 1, 0, 1);
-}
-.location .input-wrap .input:focus {
-  color: #000;
-}
-.location .input-wrap .input:focus + .background {
-  transform: none;
-}
-.location .button-wrap {
-  position: relative;
-  display: flex;
-  height: 100%;
-  cursor: pointer;
-}
-.location .button-wrap:active .button {
-  transform: scale(0.7);
-  transition: none;
-}
-.location .button {
-  outline: none;
-  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
-}
-.location .button,
-.location .button.disabled:hover
-{
-  display: flex;
-  height: 100%;
-  border: 0;
-  background-color: #9ccc65;
-  align-items: center;
-}
-.location .button:hover {
-  background-color: #7cb342;
-}
-.location .button.primary:not(.disabled),
-.location .button.primary:hover
-{
-  background: linear-gradient(to right, #ff416c, #ff4b2b);
-} 
-.location .button.disabled {
-  background-color: #888;
-}
-.location .button img {
-  width: 30px; 
-  height: 30px;
-}
-.location .button:not(.disabled) img {
-  filter: invert(1);
-}
-
-.location .button .hidden {
-  display: none;
 }
 
 .sidebar {
@@ -846,80 +711,6 @@ input[type=range]::-webkit-slider-thumb {
   font-size: 13px;
 }
 
-.equipment {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background-color: #222;
-  overflow: hidden;
-  cursor: pointer;
-}
-.equipment:hover .background {
-  transform: translateX(-220px) !important;
-}
-.equipment .background {
-  position: absolute;
-  height: 70px;
-  transform: translateX(-560px) !important;
-  transition: transform 0.2s cubic-bezier(0, 1, 0, 1);
-  object-fit: cover;
-  pointer-events: none;
-  z-index: 1;
-}
-.equipment .icon {
-  position: relative;
-  width: 70px;
-  height: 70px;
-  padding: 10px;
-  object-fit: contain;
-  z-index: 1;
-}
-.equipment .name {
-  position: relative;
-  margin-right: auto;
-  font-size: 20px;
-  z-index: 1;
-}
-.equipment .button {
-  position: relative;
-  display: flex;
-  width: 70px;
-  height: 70px;
-  background-color: transparent;
-  border: 0;
-  justify-content: center;
-  align-items: center;
-  cursor: inherit;
-  z-index: 1;
-}
-.equipment .button > img {
-  width: 30px;
-  height: 30px;
-  filter: invert(0.3);
-  visibility: hidden;
-}
-.equipment .background2 {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-}
-.equipment .button:hover > img {
-  filter: none;
-}
-.equipment:hover .button > img {
-   visibility: visible;
-}
-.equipment .button:hover + .background2 {
-  background-color: #ef5350;
-}
-.equipment .button:active + .background2 {
-  background-color: #b71c1c;
-  transition: none;
-}
-
 .login_options {
   background: black;
   color: white;
@@ -948,4 +739,20 @@ input[type=range]::-webkit-slider-thumb {
 .discord_text {
   margin-left: 10px;
 
+}
+
+/* */
+
+.tabs {
+  display: flex;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  width: 100vw;
+  z-index: 3;
+  pointer-events: none;
+}
+.tabs > div {
+  pointer-events: all;
 }

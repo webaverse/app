@@ -1,11 +1,15 @@
 
 import * as THREE from 'three';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import classnames from 'classnames';
 
 import { world } from '../../../../world.js'
 import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
+import cameraManager from '../../../../camera-manager.js';
+import ioManager from '../../../../io-manager.js';
+import { AppContext } from '../../app';
+import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 
 import styles from './world-objects-list.module.css';
 
@@ -17,7 +21,7 @@ const NumberInput = ({ input }) => {
 
     const handleInputKeyDown = ( event ) => {
 
-        if ( event.which === 13 ) {
+        if ( event.which === 13 ) { // enter
 
             event.target.blur();
 
@@ -37,10 +41,10 @@ const NumberInput = ({ input }) => {
 
 //
 
-export const WorldObjectsList = ({ app, opened, setOpened }) => {
+export const WorldObjectsList = ({ setSelectedApp, selectedApp }) => {
 
+    const { state, setState } = useContext( AppContext );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
-    const [ selectedApp, setSelectedApp ] = useState( null );
 
     let [ px, setPx ] = useState( 0 );
     let [ py, setPy ] = useState( 0 );
@@ -67,21 +71,6 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
     const stopPropagation = ( event ) => {
 
         event.stopPropagation();
-
-    };
-
-    const handleKeyDown = ( event ) => {
-
-        switch ( event.which ) {
-
-            case 90: {   // Z
-
-                setOpened( ! opened );
-                break;
-
-            }
-
-        }
 
     };
 
@@ -121,15 +110,15 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
 
     };
 
-    const handleOnFocusLost = () => {
-
-        setOpened( false );
-
-    };
-
     const handleBackBtn = () => {
 
         setSelectedApp( null );
+
+    };
+
+    const closePanel = () => {
+
+        setState({ openedPanel: null });
 
     };
 
@@ -143,21 +132,62 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
 
         };
 
+        const handleKeyUp = ( event ) => {
+
+            const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
+            if ( inputFocused ) return true;
+
+            switch ( event.which ) {
+
+                case 90: {   // Z
+
+                    if ( state.openedPanel === 'WorldPanel' ) {
+
+                        if ( ! cameraManager.pointerLockElement ) {
+
+                            cameraManager.requestPointerLock();
+
+                        }
+
+                        setState({ openedPanel: null });
+
+                    } else if ( state.openedPanel !== 'SettingsPanel' ) {
+
+                        if ( cameraManager.pointerLockElement ) {
+
+                            cameraManager.exitPointerLock();
+
+                        }
+
+                        setState({ openedPanel: 'WorldPanel' });
+
+                    }
+
+                    return false;
+
+                }
+
+            }
+
+            return true;
+
+        };
+
         world.appManager.addEventListener( 'appadd', update );
         world.appManager.addEventListener( 'appremove', update );
-        window.addEventListener( 'click', handleOnFocusLost );
-        window.addEventListener( 'keydown', handleKeyDown );
+        registerIoEventHandler( 'click', closePanel );
+        registerIoEventHandler( 'keyup', handleKeyUp );
 
         return () => {
 
             world.appManager.removeEventListener( 'appadd', update );
             world.appManager.removeEventListener( 'appremove', update );
-            window.removeEventListener( 'click', handleOnFocusLost );
-            window.removeEventListener( 'keydown', handleKeyDown );
+            unregisterIoEventHandler( 'click', closePanel );
+            unregisterIoEventHandler( 'keyup', handleKeyUp );
 
         };
 
-    }, [] );
+    }, [ state.openedPanel ] );
 
     useEffect( () => {
 
@@ -182,8 +212,8 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
     //
 
     return (
-        <div className={ classnames( styles.worldObjectListWrapper, opened ? styles.opened : null ) } onClick={ stopPropagation } >
-            <div className={ classnames( styles.panel, ( ! selectedApp && opened ) ? styles.opened : null ) } >
+        <div className={ classnames( styles.worldObjectListWrapper, state.openedPanel === 'WorldPanel' ? styles.opened : null ) } onClick={ stopPropagation } >
+            <div className={ classnames( styles.panel, ( ! selectedApp && state.openedPanel === 'WorldPanel' ) ? styles.opened : null ) } >
                 <div className={ styles.header } >
                     <h1>Tokens</h1>
                 </div>
@@ -195,7 +225,7 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
                                 <img src="images/webpencil.svg" className={ classnames( styles.backgroundInner, styles.lime ) } />
                                 <img src="images/object.jpg" className={ styles.img } />
                                 <div className={ styles.wrap } >
-                                    <div className={ styles.name } >{ app.contentId.replace(/^[\s\S]*\/([^\/]+)$/, '$1') }</div>
+                                    <div className={ styles.name } >{ app.name }</div>
                                 </div>
                             </div>
                         ))
@@ -203,33 +233,35 @@ export const WorldObjectsList = ({ app, opened, setOpened }) => {
                     </div>
                 }
             </div>
-            <div className={ classnames( styles.objectProperties, styles.panel, selectedApp ? styles.opened : null ) } >
-                <div className={ styles.header } >
-                    <div className={ classnames( styles.button, styles.back ) } onClick={ handleBackBtn } >
-                        <img src="images/webchevron.svg" className={ styles.img } />
+            {selectedApp ? (
+                <div className={ classnames( styles.objectProperties, styles.panel ) } >
+                    <div className={ styles.header } >
+                        <div className={ classnames( styles.button, styles.back ) } onClick={ handleBackBtn } >
+                            <img src="images/webchevron.svg" className={ styles.img } />
+                        </div>
+                        <h1>{ selectedApp ? _formatContentId( selectedApp.contentId ) : null } </h1>
                     </div>
-                    <h1>{ selectedApp ? _formatContentId( selectedApp.contentId ) : null } </h1>
+                    <div className={ styles.clearfix } />
+                    <div className={ styles.subheader } >Position</div>
+                    <div className={ styles.inputs } >
+                        <NumberInput input={ px } />
+                        <NumberInput input={ py } />
+                        <NumberInput input={ pz } />
+                    </div>
+                    <div className={ styles.subheader } >Rotation</div>
+                    <div className={ styles.inputs } >
+                        <NumberInput input={ rx } />
+                        <NumberInput input={ ry } />
+                        <NumberInput input={ rz } />
+                    </div>
+                    <div className={ styles.subheader } >Scale</div>
+                    <div className={ styles.inputs } >
+                        <NumberInput input={ sx } />
+                        <NumberInput input={ sy } />
+                        <NumberInput input={ sz } />
+                    </div>
                 </div>
-                <div className={ styles.clearfix } />
-                <div className={ styles.subheader } >Position</div>
-                <div className={ styles.inputs } >
-                    <NumberInput input={ px } />
-                    <NumberInput input={ py } />
-                    <NumberInput input={ pz } />
-                </div>
-                <div className={ styles.subheader } >Rotation</div>
-                <div className={ styles.inputs } >
-                    <NumberInput input={ rx } />
-                    <NumberInput input={ ry } />
-                    <NumberInput input={ rz } />
-                </div>
-                <div className={ styles.subheader } >Scale</div>
-                <div className={ styles.inputs } >
-                    <NumberInput input={ sx } />
-                    <NumberInput input={ sy } />
-                    <NumberInput input={ sz } />
-                </div>
-            </div>
+            ) : null}
         </div>
     );
 

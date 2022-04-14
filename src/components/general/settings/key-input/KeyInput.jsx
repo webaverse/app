@@ -42,8 +42,6 @@ export const KeyInput = ({ value, setValue, className }) => {
 
     const handleKeyDown = ( event ) => {
 
-        event.stopPropagation();
-
         keysList.set( event.key, true );
         updateValue();
 

@@ -8,18 +8,16 @@ import styles from './switch.module.css';
 
 export const Switch = ({ value, setValue, values, className }) => {
 
-    const handleLeftArrowClick = ( event ) => {
+    const handleLeftArrowClick = () => {
 
-        event.stopPropagation();
         const oldValueId = values.indexOf( value );
         const newValueId = ( oldValueId === 0 ? values.length - 1 : oldValueId - 1 );
         setValue( values[ newValueId ] );
 
     };
 
-    const handleRightArrowClick = ( event ) => {
+    const handleRightArrowClick = () => {
 
-        event.stopPropagation();
         const oldValueId = values.indexOf( value );
         const newValueId = ( oldValueId >= values.length - 1 ? 0 : oldValueId + 1 );
         setValue( values[ newValueId ] );

@@ -1,0 +1,99 @@
+.characterSelect .menu {
+  display: flex;
+  position: fixed;
+  bottom: calc(-100vh + 200px);
+  left: 0px;
+  width: 100vw;
+  height: calc(100vh - 200px);
+  background-image: linear-gradient(to bottom, #222, #000);
+  color: #FFF;
+  flex-direction: column;
+  /* transform: translateY(100vh); */
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+.characterSelect .menu.open {
+  transform: translateY(calc(-100vh + 200px));
+}
+.characterSelect .menu .heading {
+  padding: 15px 20px;
+}
+.characterSelect .menu .subheading
+{
+  padding: 10px 20px;
+}
+.characterSelect h1,
+.characterSelect h2
+{
+  margin: 0;
+  font-family: 'WinchesterCaps';
+  letter-spacing: 1px;
+}
+.characterSelect ul.reset,
+.characterSelect ul.reset li,
+.characterSelect ul.reset ul li {
+   margin: 0;
+   padding: 0;
+   text-indent: 0;
+   list-style-type: none;
+}
+
+@keyframes character-animation {
+  0% {
+    background-image: none;
+    background-color: #000;
+  }
+  50% {
+    background-image: none;
+    background-color: #FFFFFF;
+  }
+  100% {
+    background-image: none;
+    background-color: #000;
+  }
+}
+
+.characterSelect .list {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+}
+.characterSelect .list .item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 200px;
+  margin: 10px;
+  border-radius: 10px;
+  background-image: radial-gradient(#444, #222);
+  border: 3px solid #282828;
+  cursor: pointer;
+}
+.characterSelect .list .item.highlight
+{
+  border-color: #FFF;
+}
+.characterSelect .list .item.animate {
+  animation-name: character-animation;
+  animation-duration: 0.03s;
+  animation-timing-function: step-end;
+  animation-iteration-count: 5;
+}
+.characterSelect .list .item.animate,
+.characterSelect .list .item.disabled
+{
+  cursor: default;
+}
+.characterSelect .list .item .img {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+}
+
+.characterSelect .list .item .name {
+  font-family: 'PlazaRegular';
+  font-size: 20px;
+  letter-spacing: 0.5px;
+}

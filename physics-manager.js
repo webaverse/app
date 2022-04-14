@@ -37,7 +37,7 @@ const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
   physicsObject.scale.copy(scale);
   physicsObject.updateMatrixWorld();
   physicsObject.physicsId = physicsId;
-  physicsObject.detached = false;
+  physicsObject.detached = false; // detached physics objects do not get updated when the owning app moves
   physicsObject.collided = false;
   physicsObject.grounded = false;
   return physicsObject;
@@ -211,6 +211,9 @@ physicsManager.setAngularVelocity = (physicsObject, velocity, autoWake) => {
 };
 physicsManager.setTransform = (physicsObject, autoWake) => {
   physx.physxWorker.setTransformPhysics(physx.physics, physicsObject.physicsId, physicsObject.position, physicsObject.quaternion, physicsObject.scale, autoWake);
+};
+physicsManager.getPath = (start, dest, isWalk, hy, heightTolerance, maxIterDetect, maxIterStep, ignorePhysicsIds) => {
+  return physx.physxWorker.getPathPhysics(physx.physics, start, dest, isWalk, hy, heightTolerance, maxIterDetect, maxIterStep, ignorePhysicsIds);
 };
 physicsManager.overlapBox = (hx, hy, hz, p, q) => {
   return physx.physxWorker.overlapBoxPhysics(physx.physics, hx, hy, hz, p, q);

@@ -8,9 +8,8 @@ import * as THREE from 'three';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
-import * as Z from 'zjs';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, postSceneOrthographic, postScenePerspective, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
@@ -20,28 +19,37 @@ import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
-import {LocalPlayer} from './character-controller.js';
 import postProcessing from './post-processing.js';
 import {makeId, getRandomString, getPlayerPrefix, memoize} from './util.js';
 import JSON6 from 'json-6';
-import {initialPosY} from './constants.js';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
-import loreAI from './lore-ai.js';
-import loreAIScene from './lore-ai-scene.js';
+import loreAI from './ai/lore/lore-ai.js';
 import npcManager from './npc-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
+import {localPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
+import * as voices from './voices.js';
+import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
+import performanceTracker from './performance-tracker.js';
+import renderSettingsManager from './rendersettings-manager.js';
+import questManager from './quest-manager.js';
+import {murmurhash3} from './procgen/murmurhash3.js';
+import debug from './debug.js';
+import * as sceneCruncher from './scene-cruncher.js';
+import * as scenePreviewer from './scene-previewer.js';
+import * as sounds from './sounds.js';
+import hpManager from './hp-manager.js';
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
+// const localVector = new THREE.Vector3();
+// const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-const localQuaternion = new THREE.Quaternion();
+// const localQuaternion = new THREE.Quaternion();
 // const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
 
@@ -49,17 +57,30 @@ class App extends THREE.Object3D {
   constructor() {
     super();
 
+    this.isApp = true;
     this.components = [];
+    this.appType = 'none';
+    this.modules = [];
+    this.modulesHash = 0;
     // cleanup tracking
     this.physicsObjects = [];
-    this.appType = 'script';
+    this.hitTracker = null;
+    this.hasSubApps = false;
     this.lastMatrix = new THREE.Matrix4();
+
+    const startframe = () => {
+      performanceTracker.decorateApp(this);
+    };
+    performanceTracker.addEventListener('startframe', startframe);
+    this.addEventListener('destroy', () => {
+      performanceTracker.removeEventListener('startframe', startframe);
+    });
   }
   getComponent(key) {
     const component = this.components.find(component => component.key === key);
     return component ? component.value : null;
   }
-  setComponent(key, value = true) {
+  #setComponentInternal(key, value) {
     let component = this.components.find(component => component.key === key);
     if (!component) {
       component = {key, value};
@@ -73,6 +94,27 @@ class App extends THREE.Object3D {
       value,
     });
   }
+  setComponent(key, value = true) {
+    this.#setComponentInternal(key, value);
+    this.dispatchEvent({
+      type: 'componentsupdate',
+      keys: [key],
+    });
+  }
+  setComponents(o) {
+    const keys = Object.keys(o);
+    for (const k of keys) {
+      const v = o[k];
+      this.#setComponentInternal(k, v);
+    }
+    this.dispatchEvent({
+      type: 'componentsupdate',
+      keys,
+    });
+  }
+  hasComponent(key) {
+    return this.components.some(component => component.key === key);
+  }
   removeComponent(key) {
     const index = this.components.findIndex(component => component.type === key);
     if (index !== -1) {
@@ -85,22 +127,41 @@ class App extends THREE.Object3D {
     }
   }
   get contentId() {
-    return this.getComponent('contentId');
+    return this.getComponent('contentId') + '';
   }
   set contentId(contentId) {
-    this.setComponent('contentId', contentId);
+    this.setComponent('contentId', contentId + '');
   }
   get instanceId() {
-    return this.getComponent('instanceId');
+    return this.getComponent('instanceId') + '';
   }
   set instanceId(instanceId) {
-    this.setComponent('instanceId', instanceId);
+    this.setComponent('instanceId', instanceId + '');
+  }
+  get paused() {
+    return this.getComponent('paused') === true;
+  }
+  set paused(paused) {
+    this.setComponent('paused', !!paused);
   }
   addModule(m) {
     throw new Error('method not bound');
   }
+  updateModulesHash() {
+    this.modulesHash = murmurhash3(this.modules.map(m => m.contentId).join(','));
+  }
   getPhysicsObjects() {
     return this.physicsObjects;
+  }
+  hit(damage, opts) {
+    this.hitTracker && this.hitTracker.hit(damage, opts);
+  }
+  getRenderSettings() {
+    if (this.hasSubApps) {
+      return renderSettingsManager.findRenderSettings(this);
+    } else {
+      return null;
+    }
   }
   activate() {
     this.dispatchEvent({
@@ -119,17 +180,6 @@ class App extends THREE.Object3D {
       use: true,
     });
   }
-  /* hit(damage) {
-    console.log('hit', new Error().stack);
-    this.dispatchEvent({
-      type: 'hit',
-      hp: 100,
-      totalHp: 100,
-    });
-  } */
-  /* willDieFrom(damage) {
-    return false;
-  } */
   destroy() {
     this.dispatchEvent({
       type: 'destroy',
@@ -141,13 +191,26 @@ const defaultModules = {
   moduleUrls,
   modules,
 };
-const localPlayer = new LocalPlayer({
-  prefix: getPlayerPrefix(makeId(5)),
-  state: new Z.Doc(),
-});
-localPlayer.position.y = initialPosY;
-localPlayer.updateMatrixWorld();
-const remotePlayers = new Map();
+
+const loreAIScene = loreAI.createScene(localPlayer);
+const _bindAppManagerToLoreAIScene = (appManager, loreAIScene) => {
+  const bindings = new WeakMap();
+  appManager.addEventListener('appadd', e => {
+    const app = e.data;
+    const object = loreAIScene.addObject({
+      name: app.name,
+      description: app.description,
+    });
+    bindings.set(app, object);
+  });
+  appManager.addEventListener('appremove', e => {
+    const app = e.data;
+    const object = bindings.get(app);
+    loreAIScene.removeObject(object);
+    bindings.delete(app);
+  });
+};
+_bindAppManagerToLoreAIScene(world.appManager, loreAIScene);
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -262,6 +325,10 @@ const abis = {
   ERC1155,
 };
 
+/* debug.addEventListener('enabledchange', e => {
+  document.getElementById('statsBox').style.display = e.data.enabled ? null : 'none';
+}); */
+
 let currentAppRender = null;
 let iframeContainer = null;
 let recursion = 0;
@@ -271,7 +338,7 @@ const mirrors = [];
 metaversefile.setApi({
   // apps,
   async import(s) {
-    if (/^(?:ipfs:\/\/|https?:\/\/|data:)/.test(s)) {
+    if (/^(?:ipfs:\/\/|https?:\/\/|weba:\/\/|data:)/.test(s)) {
       const prefix = location.protocol + '//' + location.host + '/@proxy/';
       if (s.startsWith(prefix)) {
         s = s.slice(prefix.length);
@@ -287,12 +354,6 @@ metaversefile.setApi({
       return null;
     }
   },
-  async load(u) {
-    const m = await metaversefile.import(u);
-    const app = metaversefile.createApp();
-    await metaversefile.addModule(app, m);
-    return app;
-  },
   useApp() {
     const app = currentAppRender;
     if (app) {
@@ -301,18 +362,27 @@ metaversefile.setApi({
       throw new Error('useApp cannot be called outside of render()');
     }
   },
-  useCamera() {
-    return camera;
+  useRenderer() {
+    return getRenderer();
+  },
+  useRenderSettings() {
+    return renderSettingsManager;
   },
   useScene() {
     return scene;
   },
-  usePostOrthographicScene() {
+  useSound() {
+    return sounds;
+  },
+  useCamera() {
+    return camera;
+  },
+  /* usePostOrthographicScene() {
     return postSceneOrthographic;
   },
   usePostPerspectiveScene() {
     return postScenePerspective;
-  },
+  }, */
   getMirrors() {
     return mirrors;
   },
@@ -328,22 +398,16 @@ metaversefile.setApi({
   useWorld() {
     return {
       appManager: world.appManager,
-      /* addObject() {
-        return world.appManager.addObject.apply(world.appManager, arguments);
-      },
-      removeObject() {
-        return world.appManager.removeObject.apply(world.appManager, arguments);
-      }, */
       getApps() {
         return world.appManager.apps;
-      },
-      getLights() {
-        return world.lights;
       },
     };
   },
   useChatManager() {
     return chatManager;
+  },
+  useQuests() {
+    return questManager;
   },
   useLoreAI() {
     return loreAI;
@@ -351,18 +415,27 @@ metaversefile.setApi({
   useLoreAIScene() {
     return loreAIScene;
   },
+  useVoices() {
+    return voices;
+  },
   useAvatarCruncher() {
     return avatarCruncher;
   },
   useAvatarSpriter() {
     return avatarSpriter;
   },
+  useSceneCruncher() {
+    return sceneCruncher;
+  },
+  useScenePreviewer() {
+    return scenePreviewer;
+  },
   usePostProcessing() {
     return postProcessing;
   },
-  createAvatar(o, options) {
+  /* createAvatar(o, options) {
     return new Avatar(o, options);
-  },
+  }, */
   useAvatarAnimations() {
     return Avatar.getAnimations();
   },
@@ -370,7 +443,11 @@ metaversefile.setApi({
     const app = currentAppRender;
     if (app) {
       const frame = e => {
-        fn(e.data);
+        if (!app.paused) {
+          performanceTracker.startCpuObject(app.modulesHash, app.name);
+          fn(e.data);
+          performanceTracker.endCpuObject();
+        }
       };
       world.appManager.addEventListener('frame', frame);
       const destroy = () => {
@@ -652,6 +729,12 @@ metaversefile.setApi({
       throw new Error('usePhysics cannot be called outside of render()');
     }
   },
+  useHpManager() {
+    return hpManager;
+  },
+  useProcGen() {
+    return procgen;
+  },
   useCameraManager() {
     return cameraManager;
   },
@@ -725,34 +808,116 @@ metaversefile.setApi({
   getNextInstanceId() {
     return getRandomString();
   },
-  createApp({/* name = '', */start_url = '', /*components = [], */in_front = false} = {}) {
+  createAppInternal({
+    start_url = '',
+    module = null,
+    components = [],
+    position = null,
+    quaternion = null,
+    scale = null,
+    parent = null,
+    in_front = false,
+  } = {}, {onWaitPromise = null} = {}) {
     const app = new App();
-    // app.name = name;
-    // app.type = type;
-    app.contentId = start_url;
-    // app.components = components;
-    if (in_front) {
-      app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
-      app.quaternion.copy(localPlayer.quaternion);
-      app.updateMatrixWorld();
-      app.lastMatrix.copy(app.matrixWorld);
-    }
-    if (start_url) {
-      (async () => {
-        const m = await metaversefile.import(start_url);
+
+    // transform
+    const _updateTransform = () => {
+      let matrixNeedsUpdate = false;
+      if (Array.isArray(position)) {
+        app.position.fromArray(position);
+        matrixNeedsUpdate = true;
+      } else if (position?.isVector3) {
+        app.position.copy(position);
+        matrixNeedsUpdate = true;
+      }
+      if (Array.isArray(quaternion)) {
+        app.quaternion.fromArray(quaternion);
+        matrixNeedsUpdate = true;
+      } else if (quaternion?.isQuaternion) {
+        app.quaternion.copy(quaternion);
+        matrixNeedsUpdate = true;
+      }
+      if (Array.isArray(scale)) {
+        app.scale.fromArray(scale);
+        matrixNeedsUpdate = true;
+      } else if (scale?.isVector3) {
+        app.scale.copy(scale);
+        matrixNeedsUpdate = true;
+      }
+      if (in_front) {
+        app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
+        app.quaternion.copy(localPlayer.quaternion);
+        app.scale.setScalar(1);
+        matrixNeedsUpdate = true;
+      }
+      if (parent) {
+        parent.add(app);
+        matrixNeedsUpdate = true;
+      }
+
+      if (matrixNeedsUpdate) {
+        app.updateMatrixWorld();
+        app.lastMatrix.copy(app.matrixWorld);
+      }
+    };
+    _updateTransform();
+
+    // components
+    const _updateComponents = () => {
+      if (Array.isArray(components)) {
+        for (const {key, value} of components) {
+          app.setComponent(key, value);
+        }
+      } else if (typeof components === 'object' && components !== null) {
+        for (const key in components) {
+          const value = components[key];
+          app.setComponent(key, value);
+        }
+      }
+    };
+    _updateComponents();
+
+    // load
+    if (start_url || module) {
+      const p = (async () => {
+        let m;
+        if (start_url) {
+          m = await metaversefile.import(start_url);
+        } else {
+          m = module;
+        }
         await metaversefile.addModule(app, m);
       })();
-    }
-    app.addEventListener('destroy', () => {
-      const localPlayer = metaversefile.useLocalPlayer();
-      const wearActionIndex = localPlayer.findActionIndex(action => {
-        return action.type === 'wear' && action.instanceId === app.instanceId;
-      });
-      if (wearActionIndex !== -1) {
-        localPlayer.removeActionIndex(wearActionIndex);
+      if (onWaitPromise) {
+        onWaitPromise(p);
       }
-    });
+    }
+    
     return app;
+  },
+  createApp(spec) {
+    return metaversefile.createAppInternal(spec);
+  },
+  async createAppAsync(spec, opts) {
+    let p = null;
+    const app = metaversefile.createAppInternal(spec, {
+      onWaitPromise(newP) {
+        p = newP;
+      },
+    });
+    if (p !== null) {
+      await p;
+    }
+    return app;
+  },
+  createAppPair(spec) {
+    let promise = null;
+    const app = metaversefile.createAppInternal(spec, {
+      onWaitPromise(newPromise) {
+        promise = newPromise;
+      },
+    });
+    return [app, promise];
   },
   createModule: (() => {
     const dataUrlPrefix = `data:application/javascript;charset=utf-8,`;
@@ -831,6 +996,22 @@ export default () => {
       return null;
     }
   },
+  getPairByPhysicsId(physicsId) {
+    let result = world.appManager.getPairByPhysicsId(physicsId) ||
+      localPlayer.appManager.getPairByPhysicsId(physicsId);
+    if (result) {
+      return result;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remotePair = remotePlayer.appManager.getPairByPhysicsId(physicsId);
+        if (remotePair) {
+          return remotePair;
+        }
+      }
+      return null;
+    }
+  },
   getAvatarHeight(obj) {
     return getHeight(obj);
   },
@@ -860,8 +1041,8 @@ export default () => {
       renderer,
       scene,
       rootScene,
-      postSceneOrthographic,
-      postScenePerspective,
+      // postSceneOrthographic,
+      // postScenePerspective,
       camera,
       sceneHighPriority,
       sceneLowPriority,
@@ -871,10 +1052,10 @@ export default () => {
   /* useRigManagerInternal() {
     return rigManager;
   }, */
-  useAvatarInternal() {
+  /* useAvatar() {
     return Avatar;
-  },
-  useTextInternal() {
+  }, */
+  useText() {
     return Text;
   },
   useGeometries() {
@@ -895,12 +1076,33 @@ export default () => {
   async waitForSceneLoaded() {
     await universe.waitForSceneLoaded();
   },
+  useDebug() {
+    return debug;
+  },
   async addModule(app, m) {
-    currentAppRender = app;
+    // wait to make sure module initialization happens in a clean tick loop,
+    // even when adding a module from inside of another module's initialization
+    await Promise.resolve();
+
+    app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
+    app.description = m.description ?? '';
+    app.appType = m.type ?? '';
+    app.contentId = m.contentId ?? '';
+    if (Array.isArray(m.components)) {
+      for (const {key, value} of m.components) {
+        if (!app.hasComponent(key)) {
+          app.setComponent(key, value);
+        }
+      }
+    }
+    app.modules.push(m);
+    app.updateModulesHash();
 
     let renderSpec = null;
     let waitUntilPromise = null;
-    const _tickModule = () => {
+    const _initModule = () => {
+      currentAppRender = app;
+
       try {
         const fn = m.default;
         if (typeof fn === 'function') {
@@ -910,17 +1112,17 @@ export default () => {
             },
           });
         } else {
-          console.warn('module is not a function', m);
+          console.warn('module default export is not a function', m);
           return null;
         }
       } catch(err) {
         console.warn(err);
         return null;
+      } finally {
+        currentAppRender = null;
       }
     };
-    _tickModule();
-
-    currentAppRender = null;
+    _initModule();
 
     if (waitUntilPromise) {
       await waitUntilPromise;

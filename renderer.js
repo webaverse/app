@@ -33,10 +33,15 @@ function bindCanvas(c) {
     rendererExtensionFragDepth: true,
     logarithmicDepthBuffer: true,
   });
+  
+  const {
+    width,
+    height,
+    pixelRatio,
+  } = _getCanvasDimensions();
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(pixelRatio);
 
-  const rect = renderer.domElement.getBoundingClientRect();
-  renderer.setSize(rect.width, rect.height);
-  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
   renderer.sortObjects = false;
   renderer.physicallyCorrectLights = true;
@@ -44,30 +49,22 @@ function bindCanvas(c) {
   // renderer.gammaFactor = 2.2;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  if (!canvas) {
-    canvas = renderer.domElement;
-  }
-  if (!context) {
-    context = renderer.getContext();
-  }
-  // context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   renderer.xr.enabled = true;
 
   // initialize post-processing
-  {
-    const size = renderer.getSize(new THREE.Vector2());
-    const pixelRatio = renderer.getPixelRatio();
-    const encoding = THREE.sRGBEncoding;
-    const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.x * pixelRatio, size.y * pixelRatio, {
-      minFilter: THREE.LinearFilter,
-      magFilter: THREE.LinearFilter,
-      format: THREE.RGBAFormat,
-      encoding,
-    });
-    renderTarget.samples = context.MAX_SAMPLES;
-    composer = new EffectComposer(renderer, renderTarget);
-  }
+  const renderTarget = new THREE.WebGLMultisampleRenderTarget(width * pixelRatio, height * pixelRatio, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+    encoding: THREE.sRGBEncoding,
+  });
+  renderTarget.samples = context.MAX_SAMPLES;
+  composer = new EffectComposer(renderer, renderTarget);
 
+  // initialize camera
+  _setCameraSize(width, height, pixelRatio);
+
+  // resolve promise
   waitPromise.accept();
 }
 
@@ -84,7 +81,6 @@ function getComposer() {
   return composer;
 }
 
-
 const scene = new THREE.Object3D();
 scene.name = 'scene';
 const sceneHighPriority = new THREE.Object3D();
@@ -94,10 +90,10 @@ sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
-const postSceneOrthographic = new THREE.Scene();
-postSceneOrthographic.name = 'postOrthographic';
-const postScenePerspective = new THREE.Scene();
-postScenePerspective.name = 'postPerspective';
+// const postSceneOrthographic = new THREE.Scene();
+// postSceneOrthographic.name = 'postOrthographic';
+// const postScenePerspective = new THREE.Scene();
+// postScenePerspective.name = 'postPerspective';
 rootScene.add(sceneHighPriority);
 rootScene.add(scene);
 rootScene.add(sceneLowPriority);
@@ -105,7 +101,7 @@ rootScene.add(sceneLowPriority);
 // const orthographicScene = new THREE.Scene();
 // const avatarScene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(minFov, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 camera.name = 'sceneCamera';
@@ -121,40 +117,70 @@ dolly.add(camera);
 // dolly.add(avatarCamera);
 scene.add(dolly);
 
-const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
+// const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
 // scene.add(orthographicCamera);
 
-window.addEventListener('resize', e => {
+const _getCanvasDimensions = () => {
+  let width, height, pixelRatio;
+  width = window.innerWidth;
+  height = window.innerHeight;
+  pixelRatio = window.devicePixelRatio;
+  
+  return {
+    width,
+    height,
+    pixelRatio,
+  };
+};
+
+const _setSizes = () => {
+  const {
+    width,
+    height,
+    pixelRatio,
+  } = _getCanvasDimensions();
+  _setRendererSize(width, height, pixelRatio);
+  _setComposerSize(width, height, pixelRatio);
+  _setCameraSize(width, height, pixelRatio);
+};
+
+const _setRendererSize = (width, height, pixelRatio) => {
   const renderer = getRenderer();
   if (renderer) {
+    // pause XR since it gets in the way of resize
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = false;
     }
 
-    const containerElement = getContainerElement();
-    const {width, height} = containerElement.getBoundingClientRect();
-    const pixelRatio = window.devicePixelRatio;
+    const {
+      width,
+      height,
+      pixelRatio,
+    } = _getCanvasDimensions();
     renderer.setSize(width, height);
     renderer.setPixelRatio(pixelRatio);
-    // renderer2.setSize(window.innerWidth, window.innerHeight);
 
-    const aspect = width / height;
-    camera.aspect = aspect;
-    camera.updateProjectionMatrix();
-
-    // avatarCamera.aspect = aspect;
-    // avatarCamera.updateProjectionMatrix();
-    
+    // resume XR
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = true;
     }
-
-    const composer = getComposer();
-    if (composer) {
-      composer.setSize(width, height);
-      composer.setPixelRatio(pixelRatio);
-    }
   }
+};
+const _setComposerSize = (width, height, pixelRatio) => {
+  const composer = getComposer();
+  if (composer) {
+    composer.setSize(width, height);
+    composer.setPixelRatio(pixelRatio);
+  }
+};
+const _setCameraSize = (width, height, pixelRatio) => {
+  const aspect = width / height;
+  camera.aspect = aspect;
+  camera.updateProjectionMatrix();
+};
+
+window.addEventListener('resize', e => {
+  _setSizes();
 });
 
 /* addDefaultLights(scene, {
@@ -187,11 +213,11 @@ export {
   getComposer,
   scene,
   rootScene,
-  postSceneOrthographic,
-  postScenePerspective,
+  // postSceneOrthographic,
+  // postScenePerspective,
   // avatarScene,
   camera,
-  orthographicCamera,
+  // orthographicCamera,
   // avatarCamera,
   dolly,
   /*orbitControls, renderer2,*/

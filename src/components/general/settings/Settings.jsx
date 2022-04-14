@@ -1,19 +1,22 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import { TabGeneral } from './TabGeneral';
 import { TabControls } from './TabControls';
 import { TabAudio } from './TabAudio';
 import { TabGraphics } from './TabGraphics';
-import { TabApiKeys } from './TabApiKeys';
+import { TabAi } from './TabAi';
+import { AppContext } from '../../app';
+import { registerIoEventHandler, unregisterIoEventHandler } from '../io-handler';
 
 import styles from './settings.module.css';
 
 //
 
-export const Settings = ({ opened, setOpened }) => {
+export const Settings = () => {
 
+    const { state, setState } = useContext( AppContext );
     const [ activeTab, setActiveTab ] = useState('general');
 
     //
@@ -24,49 +27,48 @@ export const Settings = ({ opened, setOpened }) => {
 
     };
 
-    const handleCloseBtnClick = ( event ) => {
+    const handleCloseBtnClick = () => {
 
-        event.stopPropagation();
-        setOpened( false );
+        setState({ openedPanel: null });
 
     };
 
     const handleTabClick = ( event ) => {
-
-        event.stopPropagation();
 
         const tabName = event.currentTarget.getAttribute('data-tab-name');
         setActiveTab( tabName );
 
     };
 
+    //
+
     useEffect( () => {
 
-        const handleKeyPress = ( event ) => {
+        const handleKeyUp = ( event ) => {
 
-            if ( opened && event.key === 'Escape' ) {
+            if ( state.openedPanel === 'SettingsPanel' && event.which === 27 ) { // esc key
 
-                setOpened( false );
+                setState({ openedPanel: null });
 
             }
 
         };
 
-        window.addEventListener( 'keydown', handleKeyPress );
+        registerIoEventHandler( 'keyup', handleKeyUp );
 
         return () => {
 
-            window.removeEventListener( 'keydown', handleKeyPress );
+            unregisterIoEventHandler( 'keyup', handleKeyUp );
 
         };
 
-    }, [ opened ] );
+    }, [ state.openedPanel ] );
 
     //
 
     return (
 
-        <div className={ classNames( styles.settings, opened ? styles.open : null ) } onClick={ stopPropagation } >
+        <div className={ classNames( styles.settings, state.openedPanel === 'SettingsPanel' ? styles.open : null ) } onClick={ stopPropagation } >
 
             <div className={ styles.closeBtn } onClick={ handleCloseBtnClick } >X</div>
 
@@ -78,18 +80,16 @@ export const Settings = ({ opened, setOpened }) => {
                     <div className={ classNames( styles.tab, activeTab === 'controls' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='controls' >CONTROLS</div>
                     <div className={ classNames( styles.tab, activeTab === 'audio' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='audio' >AUDIO</div>
                     <div className={ classNames( styles.tab, activeTab === 'graphics' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='graphics' >GRAPHICS</div>
-                    <div className={ classNames( styles.tab, activeTab === 'apiKeys' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='apiKeys' >API KEYS</div>
+                    <div className={ classNames( styles.tab, activeTab === 'ai' ? styles.active : null ) } onClick={ handleTabClick } data-tab-name='ai' >AI</div>
                     <div className={ styles.clearfix } />
                 </div>
 
                 <div className={ styles.tabContentWrapper }>
-
                     <TabGeneral active={ activeTab === 'general' } />
                     <TabControls active={ activeTab === 'controls' } />
                     <TabAudio active={ activeTab === 'audio' } />
                     <TabGraphics active={ activeTab === 'graphics' } />
-                    <TabApiKeys active={ activeTab === 'apiKeys' } />
-
+                    <TabAi active={ activeTab === 'ai' } />
                 </div>
 
             </div>

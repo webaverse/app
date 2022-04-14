@@ -53,6 +53,14 @@
         0,
         0
       ],
+      "start_url": "https://webaverse.github.io/street-base/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
       "start_url": "https://webaverse.github.io/street/index.js"
     },
     {
@@ -98,7 +106,7 @@
     {
       "position": [
         24,
-        0,
+        2,
         24
       ],
       "quaternion": [
@@ -106,6 +114,16 @@
         0,
         0,
         1
+      ],
+      "components": [
+        {
+          "key": "size",
+          "value": [
+            8,
+            4,
+            8
+          ]
+        }
       ],
       "physics": false,
       "start_url": "https://webaverse.github.io/barrier/",
