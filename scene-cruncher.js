@@ -211,16 +211,7 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
   for (let y = 0; y <= worldDepthResolution.y; y++) {
     for (let x = 0; x <= worldDepthResolution.x; x++) {
       const index = y * worldDepthResolutionP1.x + x;
-      // const index2 = (worldDepthResolutionP1.y - 1 - z) * worldDepthResolutionP1.x + x;
       let z = depthFloatImageData[index];
-      // window.depthFloatImageData = depthFloatImageData;
-      // console.log('got y', y);
-      // y = Math.max(y, -cameraHeight);
-      /* if (y <= -cameraHeight * 2) {
-        y = -cameraHeight;
-        // badIndices[index] = true;
-        // console.log('bad index', index, x, z);
-      } */
 
       localVector.fromArray(geometry.attributes.position.array, index * 3)
         .add(position)
@@ -228,8 +219,6 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
       localVector.toArray(geometry.attributes.position.array, index * 3);
 
       {
-        // const worldBottomLeft = position.clone()
-
         const x2 = x;
         const y2 = -y;
         const z2 = worldDepthResolution.x + z * worldDepthResolution.x / worldSize.x;
@@ -238,10 +227,6 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
             .add(rightDirection.clone().multiplyScalar(x2))
             .add(upDirection.clone().multiplyScalar(y2))
         );
-        /* const absolutelocation = localVector2.copy(localLocation)
-          .add(forwardDirection.clone().multiplyScalar(z2))
-          .multiplyScalar(worldSize.x/worldDepthResolution.x)
-          .add(baseWorldPosition); */
 
         const localLocation2 = localVector2.copy(localLocation)
           .add(forwardDirection.clone().multiplyScalar(z2));
