@@ -26,9 +26,7 @@ const localEuler = new THREE.Euler();
 // world
 export const world = {};
 
-const appManager = new AppManager({
-  appsMap: null,
-});
+const appManager = new AppManager();
 world.appManager = appManager;
 
 world.particleSystem = createParticleSystem();
@@ -92,9 +90,6 @@ world.connectRoom = async u => {
       wsrtc.removeEventListener('init', init);
       
       localPlayer.bindState(state.getArray(playersMapName));
-      if (mediaStream) {
-        wsrtc.enableMic(mediaStream);
-      }
     };
     wsrtc.addEventListener('init', init);
   };

@@ -33,14 +33,13 @@ import styles from './App.module.css';
 
 const _startApp = async ( weba, canvas ) => {
 
-    weba.setContentLoaded();
-
     weba.bindInput();
     weba.bindInterface();
     weba.bindCanvas( canvas );
 
-    await weba.waitForLoad();
     universe.handleUrlUpdate();
+    await weba.waitForLoad();
+    weba.setContentLoaded();
     await weba.startLoop();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
@@ -50,16 +49,9 @@ const _startApp = async ( weba, canvas ) => {
 
 const _getCurrentSceneSrc = () => {
 
-    const q = parseQuery( window.location.search );
-    let { src } = q;
+    let { src } = parseQuery( window.location.search );
 
-    if ( src === undefined ) {
-
-        src = './scenes/' + sceneNames[0];
-
-    }
-
-    return src;
+    return src ?? './scenes/' + sceneNames[0];
 
 };
 
