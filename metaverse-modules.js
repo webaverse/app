@@ -14,6 +14,9 @@ const moduleUrls = {
   infinistreet: './metaverse_modules/infinistreet/',
   spawner: './metaverse_modules/spawner/',
   defaultScene: './metaverse_modules/default-scene/',
+  path: './metaverse_modules/path/',
+  area: './metaverse_modules/area/',
+  cameraPlaceholder: './metaverse_modules/camera-placeholder/',
 };
 const modules = {};
 const loadPromise = (async () => {
@@ -24,6 +27,8 @@ const loadPromise = (async () => {
     const p = metaversefile.import(moduleUrl)
       .then(m => {
         modules[moduleName] = m;
+      }, err => {
+        console.warn(err);
       });
     promises.push(p);
   }

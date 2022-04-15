@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import postProcessing from './post-processing.js';
-import {rootScene} from './renderer.js';
+// import {rootScene} from './renderer.js';
 
 class RenderSettings {
   constructor(json) {
@@ -77,6 +77,16 @@ class RenderSettingsManager {
       passes = null,
     } = (renderSettings ?? {});
     localPostProcessing.setPasses(passes);
+  }
+  push(srcScene, dstScene = srcScene) {
+    const renderSettings = this.findRenderSettings(srcScene);
+    // console.log('push render settings', renderSettings);
+    this.applyRenderSettingsToScene(renderSettings, dstScene);
+    
+    return () => {
+      // console.log('pop render settings');
+      this.applyRenderSettingsToScene(null, dstScene);
+    };
   }
 }
 const renderSettingsManager = new RenderSettingsManager();

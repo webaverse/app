@@ -5,7 +5,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
-import {planeGeometry, gradients} from './background-fx/common.js';
+import {fullscreenGeometry, gradients} from './background-fx/common.js';
 import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
@@ -280,7 +280,7 @@ const labelMesh = (() => {
     }
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   };
-  const g1 = planeGeometry.clone()
+  const g1 = fullscreenGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
         .makeShear(0, 0, sk1, 0, 0, 0)
@@ -294,7 +294,7 @@ const labelMesh = (() => {
         .makeTranslation(p1.x, p1.y, p1.z)
     );
   _decorateGeometry(g1, new THREE.Color(0xFFFFFF), speed1);
-  const g2 = planeGeometry.clone()
+  const g2 = fullscreenGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
         .makeShear(0, 0, sk2, 0, 0, 0)
@@ -496,6 +496,7 @@ const createPlayerDiorama = ({
   glyphBackground = false,
   dotsBackground = false,
   autoCamera = true,
+  detached = false,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
@@ -844,9 +845,10 @@ const createPlayerDiorama = ({
       renderer.setClearColor(oldClearColor, oldClearAlpha);
     },
     destroy() {
-      dioramas.splice(dioramas.indexOf(diorama), 1);
-
-      // postProcessing.removeEventListener('update', recompile);
+      const index = dioramas.indexOf(diorama);
+      if (index !== -1) {
+        dioramas.splice(index, 1);
+      }
     },
   };
 
@@ -869,7 +871,9 @@ const createPlayerDiorama = ({
     player.addEventListener('avatarchange', avatarchange);
   } */
 
-  dioramas.push(diorama);
+  if (!detached) {
+    dioramas.push(diorama);
+  }
   return diorama;
 };
 

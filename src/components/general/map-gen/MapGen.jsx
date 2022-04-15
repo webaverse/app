@@ -13,6 +13,7 @@ import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
 import cameraManager from '../../../../camera-manager.js';
+import {snapshotMapChunk} from '../../../../scene-cruncher.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
 // import easing from '../../../../easing.js';
@@ -317,13 +318,12 @@ export const MapGen = () => {
                 case 76: { // L
                 
                     (async () => {
-                      const chunkWorldSize = 64;
-                      const chunkWorldResolution = 2048;
-                      const chunkWorldDepthResolution = 64;
+                      const chunkWorldSize = new THREE.Vector3(64, 64, 64);
+                      const chunkWorldResolution = new THREE.Vector2(2048, 2048);
+                      const chunkWorldDepthResolution = new THREE.Vector2(256, 256);
                   
-                      const sceneCruncher = useSceneCruncher();
                       const localPlayer = useLocalPlayer();
-                      const mesh = await sceneCruncher.snapshotMapChunk(
+                      const mesh = snapshotMapChunk(
                         rootScene,
                         localPlayer.position,
                         chunkWorldSize,
