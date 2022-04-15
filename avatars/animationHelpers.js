@@ -202,30 +202,6 @@ async function loadAnimations() {
   });
 
   const swordStrikeContinuousAnimation = animations.filter(a => a.name === 'sword_strike_continuous.fbx')[0];
-  animations = animations.map(animationClip => {
-    if (animationClip.name === 'One Hand Sword Combo.fbx') {
-      trimClip(animationClip, 0.4, animationClip.duration - 0.5);
-      // trim start to make attack fast.
-      // trim end to prevent sword cross player's head.
-    } else if (animationClip.name === 'sword_side_slash.fbx') {
-      const bakName = animationClip.name;
-      animationClip = trimClip(swordStrikeContinuousAnimation.clone(), 0, 20 / 30);
-      animationClip.name = bakName;
-    } else if (animationClip.name === 'sword_side_slash_step.fbx') {
-      const bakName = animationClip.name;
-      animationClip = trimClip(swordStrikeContinuousAnimation.clone(), 20 / 30, 45 / 30);
-      animationClip.name = bakName;
-    } else if (animationClip.name === 'sword_topdown_slash.fbx') {
-      const bakName = animationClip.name;
-      animationClip = trimClip(swordStrikeContinuousAnimation.clone(), 45 / 30, 62 / 30);
-      animationClip.name = bakName;
-    } else if (animationClip.name === 'sword_topdown_slash_step.fbx') {
-      const bakName = animationClip.name;
-      animationClip = trimClip(swordStrikeContinuousAnimation.clone(), 62 / 30, 80 / 30);
-      animationClip.name = bakName;
-    }
-    return animationClip;
-  });
 
   animationStepIndices = animationsJson.animationStepIndices;
   animations.index = {};
@@ -1393,45 +1369,6 @@ export function getFirstPersonCurves(vrmExtension) {
   } else {
     return null;
   }
-}
-
-export function trimClip(clip, startTime, endTime) {
-  for (let i = 0; i < clip.tracks.length; i++) {
-    const oldTrack = clip.tracks[i];
-
-    const newTrack = oldTrack.clone();
-    newTrack.trim(startTime, endTime);
-
-    // const interpolant = oldTrack.createInterpolant(); // todo: performance.
-
-    // if (newTrack.times[0] !== startTime) {
-    //   const timesArr = Array.from(newTrack.times);
-    //   timesArr.unshift(startTime);
-    //   newTrack.times = new Float32Array(timesArr);
-
-    //   const valuesArr = Array.from(newTrack.values);
-    //   valuesArr.unshift(...interpolant.evaluate(startTime));
-    //   newTrack.values = new Float32Array(valuesArr);
-    // }
-    // if (newTrack.times[newTrack.times.length - 1] !== endTime) {
-    //   const timesArr = Array.from(newTrack.times);
-    //   timesArr.push(endTime);
-    //   newTrack.times = new Float32Array(timesArr);
-
-    //   const valuesArr = Array.from(newTrack.values);
-    //   valuesArr.push(...interpolant.evaluate(endTime));
-    //   newTrack.values = new Float32Array(valuesArr);
-    // }
-
-    for (let j = 0; j < newTrack.times.length; j++) {
-      newTrack.times[j] -= startTime;
-      newTrack.times[j] = Math.max(0, newTrack.times[j]);
-    }
-
-    clip.tracks[i] = newTrack;
-  }
-  clip.resetDuration();
-  return clip;
 }
 
 /* const _localizeMatrixWorld = bone => {

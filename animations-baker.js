@@ -35,6 +35,16 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
     'Crouched Sneaking Left.fbx',
     'Crouched Sneaking Right.fbx',
   ];
+  const trimClip = (clip, startTime, endTime) => {
+    for (let i = 0; i < clip.tracks.length; i++) {
+      clip.tracks[i].trim(startTime, endTime);
+      for (let j = 0; j < clip.tracks[i].times.length; j++) {
+        clip.tracks[i].times[j] -= startTime;
+      }
+    }
+    clip.resetDuration();
+    return clip;
+  };
   const findFilesWithExtension = (baseDir, subDir, ext) => {
     const files = [];
     const dotExt = `.${ext}`;
@@ -260,6 +270,22 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
 
       animations.push(animation);
     }
+
+    const swordStrikeContinuousAnimation = animations.filter(a => a.name === 'sword_strike_continuous.fbx')[0];
+    let animation;
+    animation = trimClip(swordStrikeContinuousAnimation.clone(), 0, 20 / 30);
+    animation.name = 'sword_side_slash.fbx';
+    animations.push(animation);
+    animation = trimClip(swordStrikeContinuousAnimation.clone(), 20 / 30, 45 / 30);
+    animation.name = 'sword_side_slash_step.fbx';
+    animations.push(animation);
+    animation = trimClip(swordStrikeContinuousAnimation.clone(), 45 / 30, 62 / 30);
+    animation.name = 'sword_topdown_slash.fbx';
+    animations.push(animation);
+    animation = trimClip(swordStrikeContinuousAnimation.clone(), 62 / 30, 80 / 30);
+    animation.name = 'sword_topdown_slash_step.fbx';
+    animations.push(animation);
+
     const _reverseAnimation = animation => {
       animation = animation.clone();
       for (const track of animation.tracks) {
