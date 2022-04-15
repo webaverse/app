@@ -1398,29 +1398,30 @@ export function getFirstPersonCurves(vrmExtension) {
 export function trimClip(clip, startTime, endTime) {
   for (let i = 0; i < clip.tracks.length; i++) {
     const oldTrack = clip.tracks[i];
-    const interpolant = oldTrack.createInterpolant(); // todo: performance.
 
     const newTrack = oldTrack.clone();
     newTrack.trim(startTime, endTime);
 
-    if (newTrack.times[0] !== startTime) {
-      const timesArr = Array.from(newTrack.times);
-      timesArr.unshift(startTime);
-      newTrack.times = new Float32Array(timesArr);
+    // const interpolant = oldTrack.createInterpolant(); // todo: performance.
 
-      const valuesArr = Array.from(newTrack.values);
-      valuesArr.unshift(...interpolant.evaluate(startTime));
-      newTrack.values = new Float32Array(valuesArr);
-    }
-    if (newTrack.times[newTrack.times.length - 1] !== endTime) {
-      const timesArr = Array.from(newTrack.times);
-      timesArr.push(endTime);
-      newTrack.times = new Float32Array(timesArr);
+    // if (newTrack.times[0] !== startTime) {
+    //   const timesArr = Array.from(newTrack.times);
+    //   timesArr.unshift(startTime);
+    //   newTrack.times = new Float32Array(timesArr);
 
-      const valuesArr = Array.from(newTrack.values);
-      valuesArr.push(...interpolant.evaluate(endTime));
-      newTrack.values = new Float32Array(valuesArr);
-    }
+    //   const valuesArr = Array.from(newTrack.values);
+    //   valuesArr.unshift(...interpolant.evaluate(startTime));
+    //   newTrack.values = new Float32Array(valuesArr);
+    // }
+    // if (newTrack.times[newTrack.times.length - 1] !== endTime) {
+    //   const timesArr = Array.from(newTrack.times);
+    //   timesArr.push(endTime);
+    //   newTrack.times = new Float32Array(timesArr);
+
+    //   const valuesArr = Array.from(newTrack.values);
+    //   valuesArr.push(...interpolant.evaluate(endTime));
+    //   newTrack.values = new Float32Array(valuesArr);
+    // }
 
     for (let j = 0; j < newTrack.times.length; j++) {
       newTrack.times[j] -= startTime;
