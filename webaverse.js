@@ -526,6 +526,7 @@ const _startHacks = webaverse => {
     }
   }; */
   webaverse.titleCardHack = false;
+  let haloMeshApp = null;
   window.addEventListener('keydown', e => {
     if (e.which === 46) { // .
       emoteIndex = -1;
@@ -568,6 +569,20 @@ const _startHacks = webaverse => {
         console.log('final result', result);
         offscreenEngine.destroy();
       })();
+    } else if (e.which === 75) { // K
+      if (!haloMeshApp) {
+        haloMeshApp = metaversefileApi.createApp();
+        (async () => {
+          const {modules} = metaversefileApi.useDefaultModules();
+          const m = modules['halo'];
+          await haloMeshApp.addModule(m);
+        })();
+        scene.add(haloMeshApp);
+      } else {
+        scene.remove(haloMeshApp);
+        haloMeshApp.destroy();
+        haloMeshApp = null;
+      }
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {
