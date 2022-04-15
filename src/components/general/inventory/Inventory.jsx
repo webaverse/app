@@ -29,24 +29,59 @@ const objects = {
     upstreet: [
         {
             name: 'Silsword',
-            start_url: 'https://webaverse.github.io/silsword/',
+            start_url: '../silsword/',
             level: 6,
+        },
+        {
+            name: 'Bow',
+            start_url: '../bow/',
+            level: 9,
+        },
+        {
+            name: 'Pistol',
+            start_url: '../pistol/',
+            level: 7,
+        },
+        {
+            name: 'Potion',
+            start_url: '../potion/',
+            level: 3,
         },
         {
             name: 'Dragon',
             start_url: 'https://webaverse.github.io/dragon-mount/',
             level: 5,
         },
-        {
-            name: 'Bow',
-            start_url: 'https://webaverse.github.io/bow/',
-            level: 9,
-        },
         /* {
             name: 'Silk',
             start_url: './metaverse_modules/silk/',
             level: 1,
         }, */
+        /* {
+            name: 'Catinhat',
+            start_url: '../cat-in-hat/',
+            level: 4,
+        }, */
+        {
+            name: 'Silk',
+            start_url: './metaverse_modules/silk/',
+            level: 1,
+        },
+        {
+            name: 'Chest',
+            start_url: '../chest/',
+            level: 10,
+        },
+        {
+            name: 'Flower',
+            start_url: '../flower/',
+            level: 2,
+        },
+        {
+            name: 'Silkworm',
+            start_url: '../silkworm/',
+            level: 1,
+        },
     ],
 };
 
