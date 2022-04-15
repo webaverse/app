@@ -240,9 +240,6 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
           .multiplyScalar(worldDepthVoxelSize.x)
           .add(baseWorldPosition);
         cubePositions.push(absoluteLocation.clone());
-        /* if (isNaN(absoluteLocation.x)) {
-          debugger;
-        } */
       }
 
       {
@@ -615,7 +612,6 @@ export function snapshotMapChunk(
     worldSize.x !== worldSize.y || worldSize.x !== worldSize.z ||
     worldDepthResolution.x !== worldDepthResolution.y
   ) {
-    // debugger;
     throw new Error('non-cube dimensions not supported');
   }
   const ethers = new Float32Array(worldDepthResolutionP3.x * worldDepthResolutionP3.x * worldDepthResolutionP3.x)
