@@ -8,13 +8,10 @@ import cameraManager from '../../../../camera-manager.js';
 import { AppContext } from '../../app';
 
 import { Emotions } from './Emotions';
+import { Poses } from './Poses';
 
 import styles from './character.module.css';
 
-const poses = [
-    'dance',
-    'happy',
-];
 const mainStatSpecs = [
     {
         // imgSrc: 'images/stats/noun-support-cure-2360283.svg',
@@ -91,38 +88,6 @@ const Stat = ({
                     <progress className={styles.progress} value={statSpec.progress} />
                 )  : null}
             </div>
-        </div>
-    );
-};
-
-//
-
-const Poses = () => {
-    const [ posesOpen, setPosesOpen ] = useState( false );
-    const posesRef = useRef();
-
-    return (
-        <div
-            className={classnames(styles.poses, posesOpen ? styles.open : null)}
-            onMouseEnter={e => {
-                setPosesOpen(true);
-            }}
-            onMouseLeave={e => {
-                setPosesOpen(false);
-            }}
-            ref={posesRef}
-        >
-            {poses.map((pose, emotionIndex) => {
-                return (
-                    <div
-                        className={styles.pose}
-                        key={pose}
-                    >
-                        <img src={`images/poses/${pose}.svg`} className={styles.poseIcon} />
-                        <div className={styles.poseName}>{pose}</div>
-                    </div>
-                );
-            })}
         </div>
     );
 };
@@ -211,11 +176,13 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
             </div>
 
             <div className={ styles.characterPanel } >
+                <Poses
+                    parentOpened={open}
+                />
+                
                 <Emotions
                     parentOpened={open}
                 />
-
-                <Poses />
 
                 <canvas className={ styles.avatar } ref={ dioramaCanvasRef } width={ sideSize } height={ sideSize } onClick={ onCanvasClick } />
 
