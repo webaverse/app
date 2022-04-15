@@ -225,23 +225,10 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerPoseToAvatar(player, rig);
 }
 
-function handleAnimationEnd(e) {
-  const avatar = e.target;
-  window.comboState.needEndUse = true;
-  // debugger
-  if (window.comboState.needContinuCombo && avatar.useAnimationIndex < avatar.useAnimationCombo.length - 1) {
-    window.comboState.needContinuCombo = false;
-    window.comboState.needStartUse = true;
-  }
-}
-
-export function switchAvatar(player, oldAvatar, newApp) {
+export function switchAvatar(oldAvatar, newApp) {
   let result;
 
-  if (oldAvatar) {
-    oldAvatar[appSymbol].toggleBoneUpdates(true);
-    oldAvatar.removeEventListener('animationEnd', handleAnimationEnd);
-  }
+  oldAvatar && oldAvatar[appSymbol].toggleBoneUpdates(true);
 
   if (newApp) {
     newApp.toggleBoneUpdates(true);
@@ -249,13 +236,12 @@ export function switchAvatar(player, oldAvatar, newApp) {
       newApp[avatarSymbol] = makeAvatar(newApp);
     }
     result = newApp[avatarSymbol];
-    result.addEventListener('animationEnd', handleAnimationEnd);
   } else {
     result = null;
   }
   return result;
 }
-/* export async function switchAvatar(player, oldAvatar, newApp) {
+/* export async function switchAvatar(oldAvatar, newApp) {
   let result;
   const promises = [];
   if (oldAvatar) {

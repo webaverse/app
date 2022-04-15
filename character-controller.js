@@ -572,9 +572,11 @@ class StatePlayer extends PlayerBase {
     
     const _setNextAvatarApp = app => {
       (() => {
-        const avatar = switchAvatar(this, this.avatar, app);
+        this.avatar && this.avatar.removeEventListener('animationEnd', this.handleAnimationEnd);
+        const avatar = switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = avatar;
+        this.avatar.addEventListener('animationEnd', this.handleAnimationEnd);
 
         this.dispatchEvent({
           type: 'avatarchange',
@@ -1137,6 +1139,15 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.avatar.update(timestamp, timeDiff);
 
       this.characterHups.update(timestamp);
+    }
+  }
+  handleAnimationEnd(e) {
+    const avatar = e.target;
+    window.comboState.needEndUse = true;
+    // debugger
+    if (window.comboState.needContinuCombo && avatar.useAnimationIndex < avatar.useAnimationCombo.length - 1) {
+      window.comboState.needContinuCombo = false;
+      window.comboState.needStartUse = true;
     }
   }
   resetPhysics() {
