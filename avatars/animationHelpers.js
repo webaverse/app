@@ -353,6 +353,22 @@ export const loadPromise = (async () => {
   danceAnimations = {
     dansu: animations.find(a => a.isDancing),
     powerup: animations.find(a => a.isPowerUp),
+    alert: animations.find(a => a.isAlert),
+    alertSoft: animations.find(a => a.isAlertSoft),
+    angry: animations.find(a => a.isAngry),
+    angrySoft: animations.find(a => a.isAngrySoft),
+    embarrassed: animations.find(a => a.isEmbarrassed),
+    embarrassedSoft: animations.find(a => a.isEmbarrassedSoft),
+    headNod: animations.find(a => a.isHeadNod),
+    headNodSingle: animations.find(a => a.isHeadNodSingle),
+    headShake: animations.find(a => a.isHeadShake),
+    headShakeSingle: animations.find(a => a.isHeadShakeSingle),
+    sad: animations.find(a => a.isSad),
+    sadSoft: animations.find(a => a.isSadSoft),
+    surprise: animations.find(a => a.isSurprise),
+    surpriseSoft: animations.find(a => a.isSurpriseSoft),
+    victory: animations.find(a => a.isVictory),
+    victorySoft: animations.find(a => a.isVictorySoft),
   };
   throwAnimations = {
     throw: animations.find(a => a.isThrow),
