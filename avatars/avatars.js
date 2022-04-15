@@ -884,7 +884,6 @@ class Avatar {
       animationMapping = animationMapping.clone();
       const isPosition = /\.position$/.test(animationMapping.animationTrackName);
       animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
-      animationMapping.lastDst = animationMapping.dst.clone();
       animationMapping.lerpFn = _getLerpFn(isPosition);
       return animationMapping;
     });
