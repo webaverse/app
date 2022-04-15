@@ -590,7 +590,7 @@ export function makeId(length) {
   return result;
 }
 
-async function contentIdToStorageUrl(id) {
+/* async function contentIdToStorageUrl(id) {
   if (typeof id === 'number') {
     const hash = await contracts.mainnetsidechain.NFT.methods.getHash(id + '').call();
     return `${storageHost}/${hash}`;
@@ -599,7 +599,7 @@ async function contentIdToStorageUrl(id) {
   } else {
     return null;
   }
-}
+} */
 
 async function pullUserObject(loginToken) {
   const address = getAddressFromMnemonic(loginToken.mnemonic);
