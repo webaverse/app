@@ -526,7 +526,7 @@ const _startHacks = webaverse => {
     }
   }; */
   webaverse.titleCardHack = false;
-  let haloMeshHack = false;
+  let haloMeshApp = null;
   window.addEventListener('keydown', e => {
     if (e.which === 46) { // .
       emoteIndex = -1;
@@ -570,16 +570,18 @@ const _startHacks = webaverse => {
         offscreenEngine.destroy();
       })();
     } else if (e.which === 75) { // K
-      if (!haloMeshHack) {
-        const haloMeshApp = metaversefileApi.createApp();
+      if (!haloMeshApp) {
+        haloMeshApp = metaversefileApi.createApp();
         (async () => {
           const {modules} = metaversefileApi.useDefaultModules();
           const m = modules['halo'];
           await haloMeshApp.addModule(m);
         })();
         scene.add(haloMeshApp);
-
-        haloMeshHack = true;
+      } else {
+        scene.remove(haloMeshApp);
+        haloMeshApp.destroy();
+        haloMeshApp = null;
       }
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
