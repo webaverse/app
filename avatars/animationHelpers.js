@@ -72,6 +72,7 @@ let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
+let lastActionTime = 0;
 
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
@@ -784,6 +785,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     _getHorizontalBlend(k, lerpFn, isPosition, dst, now);
   };
+  const _handleEndActionTransition = spec => {
+    const {dst, lastDst} = spec;
+
+    lastDst.copy(dst);
+    lastActionTime = now;
+  };
   const _getApplyFn = () => {
     if (activeAvatar.jumpState) {
       return spec => {
@@ -798,6 +805,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
+
+        _handleEndActionTransition(spec);
       };
     }
     if (activeAvatar.sitState) {
@@ -813,6 +822,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(1);
 
         dst.fromArray(v2);
+
+        _handleEndActionTransition(spec);
       };
     }
     if (activeAvatar.narutoRunState) {
@@ -832,6 +843,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.fromArray(v2);
 
         _clearXZ(dst, isPosition);
+
+        _handleEndActionTransition(spec);
       };
     }
 
@@ -862,6 +875,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           );
 
         _clearXZ(dst, isPosition);
+
+        _handleEndActionTransition(spec);
       };
     }
 
@@ -970,6 +985,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             }
           }
         }
+
+        _handleEndActionTransition(spec);
       };
     } else if (activeAvatar.hurtAnimation) {
       return spec => {
@@ -1012,6 +1029,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .sub(localVector2.fromArray(v3))
             .add(localVector2.fromArray(v2));
         }
+
+        _handleEndActionTransition(spec);
       };
     } else if (activeAvatar.aimAnimation) {
       return spec => {
@@ -1053,6 +1072,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             }
           }
         }
+
+        _handleEndActionTransition(spec);
       };
     } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
       return (spec, isLastBone) => {
@@ -1116,8 +1137,32 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         if (isLastBone && f >= 1) {
           activeAvatar.unuseAnimation = null;
         }
+
+        _handleEndActionTransition(spec);
       };
     }
+
+    const unactionTime = now - lastActionTime;
+    const endActionTransitionTime = 150;
+    if (unactionTime <= endActionTransitionTime) { // _handleEndActionTransition
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          lastDst,
+          isPosition,
+        } = spec;
+
+        _handleDefault(spec);
+
+        if (!isPosition) {
+          dst.slerp(lastDst, 1 - Math.min(1, unactionTime / endActionTransitionTime));
+        } else {
+          dst.lerp(lastDst, 1 - Math.min(1, unactionTime / endActionTransitionTime));
+        }
+      };
+    }
+
     return _handleDefault;
   };
   const applyFn = _getApplyFn();
