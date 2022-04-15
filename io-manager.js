@@ -414,18 +414,6 @@ ioManager.keydown = e => {
       }
       break;
     }
-    case 71: { // G
-      if (cameraManager.pointerLockElement) {
-        /* if (game.canTry()) {
-          game.menuTry();
-        } */
-      } else {
-        // if (!game.dragging) {
-          // _setTransformMode('translate');
-        // }
-      }
-      break;
-    }
     /* case 90: { // Z
       if (!e.ctrlKey) {
         if (game.canStartBuild()) {
@@ -473,7 +461,8 @@ ioManager.keydown = e => {
       break;
     } */
     case 71: { // G
-      game.menuDrop();
+      // game.menuDrop();
+      game.menuGDown();
       break;
     }
     case 86: { // V
@@ -637,6 +626,15 @@ ioManager.keyup = e => {
       // if (cameraManager.pointerLockElement) {
         ioManager.keys.backward = false;
         ioManager.keys.ctrl = false;
+      // }
+      break;
+    }
+    // g key
+    case 71: {
+      // if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        game.menuGUp();
       // }
       break;
     }

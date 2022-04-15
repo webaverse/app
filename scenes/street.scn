@@ -37,7 +37,7 @@
         30,
         -30
       ],
-      "start_url": "https://webaverse.github.io/floating-island/"
+      "start_url": "../floating-island/"
     },
     {
       "position": [
@@ -201,6 +201,11 @@
       "position": [-2, 1, 2],
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
       "start_url": "https://webaverse.github.io/helm/"
+    },
+    {
+      "position": [-2, 1, 3],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
+      "start_url": "../morpher/"
     },
     {
       "position": [
