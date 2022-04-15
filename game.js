@@ -1309,6 +1309,21 @@ class GameManager extends EventTarget {
     }
   }
 
+  menuGDown() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('dance');
+
+    const newAction = {
+      type: 'dance',
+      animation: 'angry',
+    };
+    localPlayer.addAction(newAction);
+  }
+  menuGUp() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('dance');
+  }
+
   menuVDown() {
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
