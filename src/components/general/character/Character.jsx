@@ -17,6 +17,10 @@ const emotions = [
     'fun',
     'surprise'
 ];
+const poses = [
+    'dance',
+    'happy',
+];
 const mainStatSpecs = [
     {
         // imgSrc: 'images/stats/noun-support-cure-2360283.svg',
@@ -226,6 +230,37 @@ const Emotions = () => {
         </div>
     );
 };
+
+const Poses = () => {
+    const [ posesOpen, setPosesOpen ] = useState( false );
+    const posesRef = useRef();
+
+    return (
+        <div
+            className={classnames(styles.poses, posesOpen ? styles.open : null)}
+            onMouseEnter={e => {
+                setPosesOpen(true);
+            }}
+            onMouseLeave={e => {
+                setPosesOpen(false);
+            }}
+            ref={posesRef}
+        >
+            {poses.map((pose, emotionIndex) => {
+                return (
+                    <div
+                        className={styles.pose}
+                        key={pose}
+                    >
+                        <img src={`images/poses/${pose}.svg`} className={styles.poseIcon} />
+                        <div className={styles.poseName}>{pose}</div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 //
 
 export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
@@ -310,6 +345,8 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
             <div className={ styles.characterPanel } >
                 <Emotions />
+
+                <Poses />
 
                 <canvas className={ styles.avatar } ref={ dioramaCanvasRef } width={ sideSize } height={ sideSize } onClick={ onCanvasClick } />
 
