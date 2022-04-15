@@ -1334,16 +1334,16 @@ class GameManager extends EventTarget {
       const newAction = {
         type: 'dance',
         animation: 'dansu',
-        // time: 0,
       };
       localPlayer.addAction(newAction);
     }
   }
-  menuVUp(e) {
+  menuVUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('dance');
   }
-  menuBDown(e) {
+
+  menuBDown() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     
     const sssAction = localPlayer.getAction('sss');
@@ -1375,6 +1375,7 @@ class GameManager extends EventTarget {
     
     // physicsManager.setThrowState(null);
   }
+
   menuDoubleTap() {
     if (!this.isCrouched()) {
       const localPlayer = metaversefileApi.useLocalPlayer();
