@@ -1119,18 +1119,16 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       const useAction = this.getAction('use');
       if (useAction?.needEndUse) {
-        useAction.needEndUse = false;
         if (!useAction.needStartUse) {
           useAction.needResetUseIndex = true;
         }
-        gameManager.menuEndUse();
+        gameManager.menuEndUse(); // must before updateInterpolation
       }
 
       this.updateInterpolation(timeDiff);
 
       if (useAction?.needStartUse) {
-        useAction.needStartUse = false;
-        gameManager.menuStartUse();
+        gameManager.menuStartUse(); // must after updateInterpolation
       }
 
       const session = this.getSession();
@@ -1149,7 +1147,6 @@ class LocalPlayer extends UninterpolatedPlayer {
       useAction.needEndUse = true;
       // debugger
       if (useAction.needContinuCombo && avatar.useAnimationIndex < avatar.useAnimationCombo.length - 1) {
-        useAction.needContinuCombo = false;
         useAction.needStartUse = true;
       }
     }

@@ -374,7 +374,6 @@ const _endUse = () => {
     });
     localPlayer.removeAction('use');
     if (useAction.needResetUseIndex) {
-      useAction.needResetUseIndex = false;
       lastUseIndex = 0;
     }
   }
