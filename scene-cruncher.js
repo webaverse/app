@@ -7,9 +7,9 @@ import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
+// const localVector3 = new THREE.Vector3();
 const localVector4D = new THREE.Vector4();
-const localMatrix = new THREE.Matrix4();
+// const localMatrix = new THREE.Matrix4();
 
 const cameraNear = 0;
 
@@ -24,7 +24,7 @@ const floatImageData = imageData => {
   for (let y = 0; y < height / 2; y++) {
     for (let x = 0; x < width; x++) {
       const i = y * width + x;
-      const j = (height - y - 1) * width + x;
+      const j = (height - 1 - y) * width + x;
       const tmp = result[i];
       result[i] = result[j];
       result[j] = tmp;
@@ -160,7 +160,7 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
   const worldDepthVoxelSize = new THREE.Vector2(worldSize.x, worldSize.y).divide(worldDepthResolution);
   const cameraFar = worldSize.z + worldDepthVoxelSize.x * 2;
   
-  const cubePositions = [];
+  // const cubePositions = [];
 
   const forwardDirection = _snap(new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion));
   const upDirection = _snap(new THREE.Vector3(0, 1, 0).applyQuaternion(quaternion));
@@ -193,7 +193,7 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
       const index = y * worldDepthResolutionP3.x + x;
       let z = depthFloatImageData[index];
 
-      {
+      /* {
         const x2 = x - 1;
         const y2 = -(y - 1);
         const z2 = (1 + z / cameraFar) * worldDepthResolutionP2.x - 2;
@@ -209,7 +209,7 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
           .multiplyScalar(worldDepthVoxelSize.x)
           .add(baseWorldPosition);
         cubePositions.push(absoluteLocation.clone());
-      }
+      } */
 
       {
         const x2 = x;
@@ -318,7 +318,7 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
   geometry2.setIndex(new THREE.BufferAttribute(faces, 1));
   geometry2.computeVertexNormals();
 
-  return [geometry2, cubePositions];
+  return [geometry2/*, cubePositions*/];
 };
 const normalMaterial = new THREE.MeshNormalMaterial();
 const baseMaterial = new THREE.MeshBasicMaterial({
@@ -500,7 +500,7 @@ export function snapshotMapChunk(
 
     const [
       geometry2,
-      cubePositions,
+      // cubePositions,
     ] = _makeGeometry(
       camera.position,
       camera.quaternion,
@@ -544,18 +544,18 @@ export function snapshotMapChunk(
     mesh2.frustumCulled = false;
     mesh2.updateMatrixWorld();
 
-    const cubeGeometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
+    /* const cubeGeometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
     const mesh3 = new THREE.InstancedMesh(cubeGeometry, normalMaterial, cubePositions.length);
     for (let i = 0; i < cubePositions.length; i++) {
       const position = cubePositions[i];
       mesh3.setMatrixAt(i, localMatrix.makeTranslation(position.x, position.y, position.z));
     }
     mesh3.instanceMatrix.needsUpdate = true;
-    mesh3.frustumCulled = false;
+    mesh3.frustumCulled = false; */
 
     return [
       mesh2,
-      mesh3,
+      // mesh3,
     ];
   };
 
@@ -664,7 +664,7 @@ export function snapshotMapChunk(
 
   const object = new THREE.Object3D();
   object.add(topMesh[0]);
-  object.add(topMesh[1]);
+  // object.add(topMesh[1]);
   // object.add(bottomMesh);
   // object.add(leftMesh);
   // object.add(rightMesh);
