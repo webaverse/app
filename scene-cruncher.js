@@ -245,7 +245,7 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
       {
         const x2 = x;
         const y2 = -y;
-        const z2 = (1 + z / cameraFar) * worldDepthResolutionP2.x - 1;
+        const z2 = (1 + z / cameraFar) * worldDepthResolutionP2.x;
         const voxelLocationPlane = _snap(
           localVector.set(0, 0, 0)
             .add(rightDirection.clone().multiplyScalar(x2))
@@ -581,7 +581,7 @@ export function snapshotMapChunk(
       .add(
         new THREE.Vector3(
           -worldSize.x/2 - worldDepthVoxelSize.x,
-          -worldSize.y/2,
+          -worldSize.y/2 - worldDepthVoxelSize.x,
           -worldSize.z/2 - worldDepthVoxelSize.x
         )
       );
