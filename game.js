@@ -1025,21 +1025,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 };
-const _pushAppUpdates = () => {
-  world.appManager.pushAppUpdates();
-  
-  /*const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.appManager.pushAppUpdates();*/
-  
-  const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
-  for (const remotePlayer of remotePlayers) {
-    remotePlayer.appManager.pushAppUpdates();
-  }
-};
-const _pushPlayerUpdates = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.pushPlayerUpdates();
-};
 
 const rotationSnap = Math.PI/6;
 
@@ -1681,8 +1666,6 @@ class GameManager extends EventTarget {
     // console.log('got scene', scene);
   }
   update = _gameUpdate;
-  pushAppUpdates = _pushAppUpdates;
-  pushPlayerUpdates = _pushPlayerUpdates;
 }
 const gameManager = new GameManager();
 export default gameManager;
