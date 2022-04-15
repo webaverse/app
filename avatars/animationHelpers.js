@@ -988,12 +988,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
             // if (k === 'mixamorigHips.quaternion' && useTimeS >= useAnimation.duration) {
             if (useTimeS >= useAnimation.duration) {
-              window.comboState.needEndUse = true;
-              // debugger
-              if (window.comboState.needContinuCombo && activeAvatar.useAnimationIndex < activeAvatar.useAnimationCombo.length - 1) {
-                window.comboState.needContinuCombo = false;
-                window.comboState.needStartUse = true;
-              }
+              activeAvatar.dispatchEvent(new MessageEvent('animationEnd'));
+              // window.comboState.needEndUse = true;
+              // // debugger
+              // if (window.comboState.needContinuCombo && activeAvatar.useAnimationIndex < activeAvatar.useAnimationCombo.length - 1) {
+              //   window.comboState.needContinuCombo = false;
+              //   window.comboState.needStartUse = true;
+              // }
 
               //   window.isDebugger = true
               //   window.comboState.isContinueCombo = true

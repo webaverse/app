@@ -398,8 +398,9 @@ const _makeDebugMesh = (avatar) => {
 
 
 
-class Avatar {
+class Avatar extends EventTarget {
 	constructor(object, options = {}) {
+    super();
     window.avatar = this;
     if (!object) {
       object = {};

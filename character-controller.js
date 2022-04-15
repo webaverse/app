@@ -572,7 +572,7 @@ class StatePlayer extends PlayerBase {
     
     const _setNextAvatarApp = app => {
       (() => {
-        const avatar = switchAvatar(this.avatar, app);
+        const avatar = switchAvatar(this, this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = avatar;
 
