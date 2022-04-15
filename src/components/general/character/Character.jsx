@@ -316,11 +316,6 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
                                 <progress className={styles.progress} value={20} max={100} />
                             </div>
                         </div>
-                        {/* <div className={styles['xp']}>
-                            <progress className={styles.progress} value={20} max={100} />
-                            <img className={styles.icon} src="images/ui/xp-bar.svg" />
-                        </div> */}
-                        {/* <div className={classnames(styles['panel-section'], styles['name-placeholder'])} /> */}
                     </div>
                     <div className={classnames(styles.stats, styles.main)}>
                         {mainStatSpecs.map((statSpec, i) => {
@@ -332,66 +327,7 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
                             return <Stat statSpec={statSpec} key={i} />;
                         })}
                     </div>
-                    {/* wearActions.map((wearAction, i) => {
-                        const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
-
-                        return (
-                            <div
-                            className={styles.equipment}
-                            key={i}
-                            onMouseEnter={e => {
-                                game.setMouseHoverObject(null);
-                                const physicsId = app.getPhysicsObjects()[0]?.physicsId;
-                                game.setMouseDomEquipmentHoverObject(app, physicsId);
-                            }}
-                            onMouseLeave={e => {
-                                game.setMouseDomEquipmentHoverObject(null);
-                            }}
-                            >
-                            <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
-                            <img src="images/flower.png" className={styles.icon} />
-                            <div className={styles.name}>{app.name}</div>
-                            <button className={styles.button} onClick={e => {
-                                localPlayer.unwear(app);
-                            }}>
-                                <img src="images/remove.svg" />
-                            </button>
-                            <div className={styles.background2} />
-                            </div>
-                        );
-                    }) */}
                 </div>
-
-                {/* wearActions.map((wearAction, i) => {
-
-                    const app = metaversefile.getAppByInstanceId(wearAction.instanceId);
-
-                    return (
-                        <div
-                            className={styles.equipment}
-                            key={i}
-                            onMouseEnter={e => {
-                                game.setMouseHoverObject(null);
-                                const physicsId = app.getPhysicsObjects()[0]?.physicsId;
-                                game.setMouseDomEquipmentHoverObject(app, physicsId);
-                            }}
-                            onMouseLeave={e => {
-                                game.setMouseDomEquipmentHoverObject(null);
-                            }}
-                        >
-                            <img src="images/webpencil.svg" className={classnames(styles.background, styles.violet)} />
-                            <img src="images/flower.png" className={styles.icon} />
-                            <div className={styles.name}>{app.name}</div>
-                            <button className={styles.button} onClick={e => {
-                                localPlayer.unwear(app);
-                            }}>
-                                <img src="images/remove.svg" />
-                            </button>
-                            <div className={styles.background2} />
-                        </div>
-                    );
-
-                }) */}
 
                 <div
                     className={classnames(styles.selectButton, characterSelectOpen ? styles.highlight : null)}
