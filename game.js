@@ -349,6 +349,10 @@ const _startUse = () => {
           position,
           quaternion,
           scale,
+          needEndUse: false,
+          needStartUse: false,
+          needContinuCombo: false,
+          needResetUseIndex: false,
         };
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
@@ -369,17 +373,17 @@ const _endUse = () => {
       use: false,
     });
     localPlayer.removeAction('use');
-  }
-  if (window.comboState.needResetUseIndex) {
-    window.comboState.needResetUseIndex = false;
-    lastUseIndex = 0;
+    if (useAction.needResetUseIndex) {
+      useAction.needResetUseIndex = false;
+      lastUseIndex = 0;
+    }
   }
 };
 const _mousedown = () => {
   // debugger
   let useAction = localPlayer.getAction('use');
   if (useAction?.animationCombo?.length > 0) {
-    window.comboState.needContinuCombo = true;
+    useAction.needContinuCombo = true;
   }
   _startUse();
   useAction = localPlayer.getAction('use');

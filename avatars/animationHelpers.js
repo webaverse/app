@@ -980,32 +980,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           useAnimation = useAnimations[useAnimationName];
 
           if (k === 'mixamorigHips.quaternion') {
-            // if (useTimeS >= useAnimation.duration && (!window.comboState.needContinuCombo || activeAvatar.useAnimationIndex < activeAvatar.useAnimationCombo.length - 1)) {
-            //   window.comboState.needEndUse = true;
-            // } else {
-            //   window.comboState.needEndUse = false;
-            // }
-
             // if (k === 'mixamorigHips.quaternion' && useTimeS >= useAnimation.duration) {
             if (useTimeS >= useAnimation.duration) {
               activeAvatar.dispatchEvent(new MessageEvent('animationEnd'));
-              // window.comboState.needEndUse = true;
-              // // debugger
-              // if (window.comboState.needContinuCombo && activeAvatar.useAnimationIndex < activeAvatar.useAnimationCombo.length - 1) {
-              //   window.comboState.needContinuCombo = false;
-              //   window.comboState.needStartUse = true;
-              // }
-
-              //   window.isDebugger = true
-              //   window.comboState.isContinueCombo = true
-              //   debugger 
-              //   gameManager.menuEndUse();
-              //   // requestAnimationFrame(() => {
-              //   //   // requestAnimationFrame(() => {
-              //   //     debugger
-              //   //     gameManager.menuStartUse();
-              //   //   // });
-              //   // });
             }
           }
 

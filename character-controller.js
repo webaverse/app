@@ -576,7 +576,7 @@ class StatePlayer extends PlayerBase {
         const avatar = switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = avatar;
-        this.avatar.addEventListener('animationEnd', this.handleAnimationEnd);
+        this.avatar.addEventListener('animationEnd', this.handleAnimationEnd.bind(this));
 
         this.dispatchEvent({
           type: 'avatarchange',
@@ -1117,18 +1117,19 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
 
-      if (window.comboState.needEndUse) {
-        window.comboState.needEndUse = false;
-        if (!window.comboState.needStartUse) {
-          window.comboState.needResetUseIndex = true;
+      const useAction = this.getAction('use');
+      if (useAction?.needEndUse) {
+        useAction.needEndUse = false;
+        if (!useAction.needStartUse) {
+          useAction.needResetUseIndex = true;
         }
         gameManager.menuEndUse();
       }
 
       this.updateInterpolation(timeDiff);
 
-      if (window.comboState.needStartUse) {
-        window.comboState.needStartUse = false;
+      if (useAction?.needStartUse) {
+        useAction.needStartUse = false;
         gameManager.menuStartUse();
       }
 
@@ -1143,11 +1144,14 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   handleAnimationEnd(e) {
     const avatar = e.target;
-    window.comboState.needEndUse = true;
-    // debugger
-    if (window.comboState.needContinuCombo && avatar.useAnimationIndex < avatar.useAnimationCombo.length - 1) {
-      window.comboState.needContinuCombo = false;
-      window.comboState.needStartUse = true;
+    const useAction = this.getAction('use');
+    if (useAction) {
+      useAction.needEndUse = true;
+      // debugger
+      if (useAction.needContinuCombo && avatar.useAnimationIndex < avatar.useAnimationCombo.length - 1) {
+        useAction.needContinuCombo = false;
+        useAction.needStartUse = true;
+      }
     }
   }
   resetPhysics() {
