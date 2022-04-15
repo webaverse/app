@@ -6,10 +6,10 @@ import {WebaverseShaderMaterial} from './materials.js';
 import {localPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
 
-window.THREE = THREE;
+/* window.THREE = THREE;
 window.lol = true;
 window.backBottomLefts = [];
-window.positionOffsetsScaled = [];
+window.positionOffsetsScaled = []; */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
