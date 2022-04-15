@@ -629,8 +629,7 @@ ioManager.keyup = e => {
       // }
       break;
     }
-    // g key
-    case 71: {
+    case 71: { // G
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
