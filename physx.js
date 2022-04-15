@@ -1576,7 +1576,7 @@ const physxWorker = (() => {
     const positionCount = moduleInstance.HEAP32[head];
     const faceCount = moduleInstance.HEAP32[head + 1];
     const positions = moduleInstance.HEAPF32.slice(head + 2, head + 2 + positionCount);
-    const faces = moduleInstance.HEAP32.slice(head + 2 + positionCount, head + 2 + positionCount + faceCount);
+    const faces = moduleInstance.HEAPU32.slice(head + 2 + positionCount, head + 2 + positionCount + faceCount);
 
     moduleInstance._doFree(outputBufferOffset);
 
