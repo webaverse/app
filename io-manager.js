@@ -535,7 +535,7 @@ ioManager.keydown = e => {
       }
       break;
     }
-    case 69: { // E keyE
+    case 69: { // E
       // if (cameraManager.pointerLockElement) {
         if (game.canRotate()) {
           game.menuRotate(-1);
@@ -621,7 +621,7 @@ ioManager.keyup = e => {
       ioManager.keys.ctrl = false;
       break;
     } */
-    case 69: { // E keyE
+    case 69: { // E
       if (cameraManager.pointerLockElement) {
         game.menuActivateUp();
       }

@@ -119,7 +119,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
       rig.useAnimationEnvelope = [];
     }
   }
-  if (window.isDebugger) debugger
   rig.useAnimationIndex = useAction?.index;
   rig.useTime = player.actionInterpolants.use.get();
   rig.unuseTime = player.actionInterpolants.unuse.get();
