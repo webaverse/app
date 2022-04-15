@@ -97,12 +97,11 @@ const Stat = ({
     );
 };
 
-export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
+//
 
-    const { state, setState } = useContext( AppContext );
-
+const Emotions = () => {
+    const [ emotionsOpen, setEmotionsOpen ] = useState( false );
     const emotionStates = emotions.map(e => {
-
         const [ action, setAction ] = useState(null);
         const [ value, setValue ] = useState(0);
 
@@ -110,54 +109,13 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
             action,
             setAction,
             value,
-            setValue
+            setValue,
         };
-
     });
-
     const [ dragEmotionIndex, setDragEmotionIndex ] = useState( -1 );
-    const [ emotionsOpen, setEmotionsOpen ] = useState( false );
     const emotionsRef = useRef();
+
     const localPlayer = metaversefile.useLocalPlayer();
-    const sideSize = 400;
-
-    //
-
-    const handleCharacterBtnClick = () => {
-
-        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
-
-        if ( state.openedPanel === 'CharacterPanel' ) {
-
-            cameraManager.requestPointerLock();
-
-        }
-
-    };
-
-    //
-
-    useEffect( () => {
-
-        if ( game.playerDiorama ) {
-
-            const canvas = dioramaCanvasRef.current;
-
-            if ( canvas && state.openedPanel === 'CharacterPanel' ) {
-
-                game.playerDiorama.addCanvas( canvas );
-
-                return () => {
-
-                    game.playerDiorama.removeCanvas( canvas );
-
-                };
-
-            }
-
-        }
-
-    }, [ dioramaCanvasRef, state.openedPanel ] );
 
     useEffect( () => {
 
@@ -221,6 +179,99 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
     }, [ emotionsRef, dragEmotionIndex ].concat( emotionStates.flatMap(e => [ e.action, e.value ] ) ) );
 
+    return (
+        <div
+            className={classnames(styles.emotions, emotionsOpen ? styles.open : null)}
+            onMouseEnter={e => {
+                setEmotionsOpen(true);
+            }}
+            onMouseLeave={e => {
+                setEmotionsOpen(false);
+            }}
+            onMouseUp={e => {
+                document.exitPointerLock();
+                setDragEmotionIndex(-1);
+            }}
+            ref={emotionsRef}
+        >
+            {emotions.map((emotion, emotionIndex) => {
+                return (
+                    <div
+                        className={classnames(
+                            styles.emotion,
+                            emotionStates[emotionIndex].value > 0 ? styles.nonzero : null,
+                            emotionStates[emotionIndex].value === 1 ? styles.full : null,
+                        )}
+                        onMouseDown={e => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            (async () => {
+                            const emotionsEl = emotionsRef.current;
+                            await emotionsEl.requestPointerLock();
+                            })();
+
+                            setDragEmotionIndex(emotionIndex);
+                        }}
+                        key={emotion}
+                    >
+                        <div className={styles.emotionIconPlaceholder} />
+                        <div className={styles.emotionNamePlaceholder} />
+                        <progress className={classnames(styles.emotionProgress)} value={emotionStates[emotionIndex].value} />
+                        <img src={`images/emotions/${emotion}.svg`} className={styles.emotionIcon} />
+                        <div className={styles.emotionName}>{emotion}</div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+//
+
+export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
+
+    const { state, setState } = useContext( AppContext );
+
+    const sideSize = 400;
+
+    //
+
+    const handleCharacterBtnClick = () => {
+
+        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+
+        if ( state.openedPanel === 'CharacterPanel' ) {
+
+            cameraManager.requestPointerLock();
+
+        }
+
+    };
+
+    //
+
+    useEffect( () => {
+
+        if ( game.playerDiorama ) {
+
+            const canvas = dioramaCanvasRef.current;
+
+            if ( canvas && state.openedPanel === 'CharacterPanel' ) {
+
+                game.playerDiorama.addCanvas( canvas );
+
+                return () => {
+
+                    game.playerDiorama.removeCanvas( canvas );
+
+                };
+
+            }
+
+        }
+
+    }, [ dioramaCanvasRef, state.openedPanel ] );
+
     function onCanvasClick () {
 
         game.playerDiorama.toggleShader();
@@ -258,50 +309,7 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
             </div>
 
             <div className={ styles.characterPanel } >
-                <div
-                    className={classnames(styles.emotions, emotionsOpen ? styles.open : null)}
-                    onMouseEnter={e => {
-                        setEmotionsOpen(true);
-                    }}
-                    onMouseLeave={e => {
-                        setEmotionsOpen(false);
-                    }}
-                    onMouseUp={e => {
-                        document.exitPointerLock();
-                        setDragEmotionIndex(-1);
-                    }}
-                    ref={emotionsRef}
-                >
-                    {emotions.map((emotion, emotionIndex) => {
-                        return (
-                            <div
-                                className={classnames(
-                                    styles.emotion,
-                                    emotionStates[emotionIndex].value > 0 ? styles.nonzero : null,
-                                    emotionStates[emotionIndex].value === 1 ? styles.full : null,
-                                )}
-                                onMouseDown={e => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-
-                                    (async () => {
-                                    const emotionsEl = emotionsRef.current;
-                                    await emotionsEl.requestPointerLock();
-                                    })();
-
-                                    setDragEmotionIndex(emotionIndex);
-                                }}
-                                key={emotion}
-                            >
-                                <div className={styles.emotionIconPlaceholder} />
-                                <div className={styles.emotionNamePlaceholder} />
-                                <progress className={classnames(styles.emotionProgress)} value={emotionStates[emotionIndex].value} />
-                                <img src={`images/emotions/${emotion}.svg`} className={styles.emotionIcon} />
-                                <div className={styles.emotionName}>{emotion}</div>
-                            </div>
-                        );
-                    })}
-                </div>
+                <Emotions />
 
                 <canvas className={ styles.avatar } ref={ dioramaCanvasRef } width={ sideSize } height={ sideSize } onClick={ onCanvasClick } />
 
