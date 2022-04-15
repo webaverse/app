@@ -526,8 +526,21 @@ const _startHacks = webaverse => {
     }
   }; */
   webaverse.titleCardHack = false;
+  let haloMeshHack = false;
   window.addEventListener('keydown', e => {
-    if (e.which === 46) { // .
+    if (e.which === 75) { // K
+      if (!haloMeshHack) {
+        const haloMeshApp = metaversefileApi.createApp();
+        (async () => {
+          const {modules} = metaversefileApi.useDefaultModules();
+          const m = modules['halo'];
+          await haloMeshApp.addModule(m);
+        })();
+        scene.add(haloMeshApp);
+
+        haloMeshHack = true;
+      }
+    } else if (e.which === 46) { // .
       emoteIndex = -1;
       _updateEmote();
     } else if (e.which === 107) { // +
