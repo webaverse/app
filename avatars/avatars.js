@@ -914,6 +914,7 @@ class Avatar {
     // this.danceState = false;
     this.danceFactor = 0;
     this.danceAnimation = null;
+    this.emoteState = 0;
     this.emoteFactor = 0;
     this.emoteAnimation = null;
     this.poseFactor = 0;
