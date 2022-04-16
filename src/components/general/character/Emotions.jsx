@@ -55,7 +55,7 @@ export const Emotions = ({
 
                         if ( emotionState.action === null ) {
 
-                            const newAction = localPlayer.addAction({ type: 'emote', emotion, value });
+                            const newAction = localPlayer.addAction({ type: 'facepose', emotion, value });
                             emotionState.setAction( newAction );
                             emotionState.setValue( value );
 
@@ -68,11 +68,11 @@ export const Emotions = ({
 
                     } else {
 
-                        const emoteActionIndex = localPlayer.findActionIndex( a => a.type === 'emote' && a.emotion === emotion );
+                        const facePoseActionIndex = localPlayer.findActionIndex( a => a.type === 'facepose' && a.emotion === emotion );
 
-                        if ( emoteActionIndex !== -1 ) {
+                        if ( facePoseActionIndex !== -1 ) {
 
-                            localPlayer.removeActionIndex( emoteActionIndex );
+                            localPlayer.removeActionIndex( facePoseActionIndex );
                             emotionState.setAction( null );
                             emotionState.setValue(0);
 
