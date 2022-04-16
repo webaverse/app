@@ -40,7 +40,6 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
-import gameManager from '../game.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -73,6 +72,7 @@ let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
+let lastF;
 
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
@@ -900,19 +900,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         if (activeAvatar.useAnimation) {
           const useAnimationName = activeAvatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];
-          if (useTimeS > useAnimation.duration) gameManager.menuEndUse();
           t2 = Math.min(useTimeS, useAnimation.duration);
+          lastF = useTimeS / useAnimation.duration;
         } else if (activeAvatar.useAnimationCombo.length > 0) {
           const useAnimationName = activeAvatar.useAnimationCombo[activeAvatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
-
-          if (k === 'mixamorigHips.quaternion') {
-            if (useTimeS >= useAnimation.duration) {
-              activeAvatar.dispatchEvent(new MessageEvent('animationEnd'));
-            }
-          }
-
           t2 = Math.min(useTimeS, useAnimation.duration);
+          lastF = useTimeS / useAnimation.duration;
         } else if (activeAvatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
           for (let i = 0; i < activeAvatar.useAnimationEnvelope.length - 1; i++) {
@@ -1147,6 +1141,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.y = activeAvatar.height * 0.55;
       }
     }
+  }
+  if (lastF >= 1) {
+    lastF = null;
+    activeAvatar.dispatchEvent(new MessageEvent('animationEnd'));
   }
 };
 
