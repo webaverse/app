@@ -195,6 +195,8 @@ export const LightArrow = function({
   animate = false,
   x,
   y,
+  ax,
+  ay,
 }) {
   const canvasRef = useRef();
 
@@ -244,6 +246,8 @@ export const LightArrow = function({
       )}
       style={{
         transform: `translate(${x}px, ${y}px)`,
+        left: ax,
+        top: ay,
       }}
     >
       <div
