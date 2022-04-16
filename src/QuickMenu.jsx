@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import React, {useEffect, useRef, useState} from 'react';
 import classnames from 'classnames';
+import metaversefile from 'metaversefile';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler';
 import {LightArrow} from './LightArrow';
 
 import styles from './QuickMenu.module.css';
 
+import {emoteAnimations} from '../avatars/animationHelpers.js';
 import {mod} from '../util.js';
 
 const modPi2 = angle => mod(angle, Math.PI*2);
@@ -16,7 +18,7 @@ const localVector2D = new THREE.Vector2();
 
 //
 
-const options = [
+const emotes = [
   'alert',
   'angry',
   'embarrassed',
@@ -26,13 +28,12 @@ const options = [
   'surprise',
   'victory',
 ];
-// const optionsSoft = options.map(o => o.name + 'Soft');
 
 const size = 400;
 const pixelRatio = window.devicePixelRatio;
 const pixelSize = size * pixelRatio;
 
-const numSlices = options.length;
+const numSlices = emotes.length;
 const sliceSize = Math.PI*2/numSlices;
 const interval = Math.PI*0.01;
 
@@ -46,7 +47,23 @@ const innerRadius = pixelSize/4;
 const outerRadiusSoft = pixelSize/4 - 10;
 const innerRadiusSoft = pixelSize/8;
 
-// const selectRadius = 30;
+const _triggerEmote = emote => {
+  const localPlayer = metaversefile.useLocalPlayer();
+  localPlayer.removeAction('emote');
+
+  const newAction = {
+    type: 'emote',
+    animation: emote,
+  };
+  localPlayer.addAction(newAction);
+
+  const emoteAnimation = emoteAnimations[emote];
+  const emoteAnimationDuration = emoteAnimation.duration;
+  setTimeout(() => {
+    const actionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && action.animation === emote);
+    localPlayer.removeActionIndex(actionIndex);
+  }, emoteAnimationDuration * 1000);
+};
 
 export default function QuickMenu() {
   const [open, setOpen] = useState(false);
@@ -56,13 +73,23 @@ export default function QuickMenu() {
   const [coords, setCoords] = useState([0, 0]);
   const canvasRef = useRef();
 
+  const _getSelectedEmote = () => {
+    if (selectedSlice !== -1 && selectedDepth !== -1) {
+      return emotes[selectedSlice] + (selectedDepth === 0 ? 'Soft' : '');
+    } else {
+      return null;
+    }
+  }
+
   useEffect(() => {
     if (!open) {
       function keydown(e) {
-        if (e.keyCode === 81) { // Q
-          setOpen(true);
-          setDown(false);
-          setCoords([0, 0]);
+        if (!e.repeat) {
+          if (e.keyCode === 81) { // Q
+            setOpen(true);
+            setDown(false);
+            setCoords([0, 0]);
+          }
         }
       }
       registerIoEventHandler('keydown', keydown);
@@ -73,6 +100,8 @@ export default function QuickMenu() {
     } else {
       function keyup(e) {
         if (e.keyCode === 81) { // Q
+          /* const emote = _getSelectedEmote();
+          emote && _triggerEmote(emote); */
           setOpen(false);
         }
       }
@@ -99,6 +128,9 @@ export default function QuickMenu() {
       
       function mouseup(e) {
         setDown(false);
+        const emote = _getSelectedEmote();
+        emote && _triggerEmote(emote);
+        setOpen(false);
         return false;
       }
       registerIoEventHandler('mouseup', mouseup);
@@ -147,7 +179,7 @@ export default function QuickMenu() {
           const midAngle = (startAngle + endAngle)/2;
           ctx.fillText(i + '', pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2, pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2);
           ctx.font = (pixelSize/30) + 'px Muli';
-          ctx.fillText(options[i], pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2, pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2 + pixelSize/20);
+          ctx.fillText(emotes[i], pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2, pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2 + pixelSize/20);
         }
       }
     }
