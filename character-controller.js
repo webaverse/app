@@ -1108,7 +1108,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
   }
   handleAnimationEnd(e) {
-    const avatar = e.target;
+    // const avatar = e.target;
     const useAction = this.getAction('use');
     if (useAction) {
       useAction.needEndUse = true; // tell next frame need endUse();
