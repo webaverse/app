@@ -851,7 +851,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
     }
 
-    if (activeAvatar.danceTime > 0) {
+    if (activeAvatar.danceFactor > 0) {
       return spec => {
         const {
           animationTrackName: k,
@@ -868,8 +868,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const t2 = (now / 1000) % danceAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        const danceTimeS = activeAvatar.danceTime / crouchMaxTime;
-        const f = Math.min(Math.max(danceTimeS, 0), 1);
+        const danceFactorS = activeAvatar.danceFactor / crouchMaxTime;
+        const f = Math.min(Math.max(danceFactorS, 0), 1);
         lerpFn
           .call(
             dst,
