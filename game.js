@@ -351,7 +351,6 @@ const _startUse = () => {
           scale,
           needEndUse: false,
           needContinuCombo: false,
-          needResetUseIndex: false,
         };
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
@@ -371,7 +370,7 @@ const _endUse = () => {
       use: false,
     });
     localPlayer.removeAction('use');
-    if (useAction.needResetUseIndex) {
+    if (!useAction.needContinuCombo) {
       lastUseIndex = 0;
     }
   }
