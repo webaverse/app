@@ -8,11 +8,11 @@ import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
 import {
-  angleDifference,
+  // angleDifference,
   // getVelocityDampingFactor,
   getNextPhysicsId,
 } from '../util.js';
-import Simplex from '../simplex-noise.js';
+// import Simplex from '../simplex-noise.js';
 import {
   crouchMaxTime,
   // useMaxTime,
@@ -29,7 +29,7 @@ import {
   idleFactorSpeed,
   walkFactorSpeed,
   runFactorSpeed,
-  narutoRunTimeFactor,
+  // narutoRunTimeFactor,
 } from './constants.js';
 import {
   getSkinnedMeshes,
@@ -40,7 +40,7 @@ import {
   getTailBones,
   getModelBones,
   // cloneModelBones,
-  decorateAnimation,
+  // decorateAnimation,
   // retargetAnimation,
   // animationBoneToModelBone,
 } from './util.mjs';
