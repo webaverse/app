@@ -44,6 +44,7 @@ import {
   // retargetAnimation,
   // animationBoneToModelBone,
 } from './util.mjs';
+import {easing} from '../math-utils.js';
 import metaversefile from 'metaversefile';
 
 import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
@@ -107,17 +108,14 @@ const maxEyeTargetTime = 2000;
   };
 })(VRMSpringBoneImporter.prototype._createSpringBone); */
 
-
-
-const _makeSimplexes = numSimplexes => {
+/* const _makeSimplexes = numSimplexes => {
   const result = Array(numSimplexes);
   for (let i = 0; i < numSimplexes; i++) {
     result[i] = new Simplex(i + '');
   }
   return result;
 };
-const simplexes = _makeSimplexes(5);
-
+const simplexes = _makeSimplexes(5); */
 
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 // const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
@@ -126,14 +124,13 @@ const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(
 
 const upVector = new THREE.Vector3(0, 1, 0);
 
-const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
+// const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 import {
   animations,
   animationStepIndices,
-  cubicBezier
 } from './animationHelpers.js';
 
-
+const cubicBezier = easing(0, 1, 0, 1);
 
 const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
 const srcCubeGeometries = {};
