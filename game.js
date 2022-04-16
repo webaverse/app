@@ -27,7 +27,6 @@ import metaversefileApi from './metaversefile-api.js';
 // import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
-import { localPlayer } from './players.js';
 // import soundManager from './sound-manager.js';
 import {generateObjectUrlCard} from './card-generator.js';
 
@@ -366,7 +365,6 @@ const _startUse = () => {
 const _endUse = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const useAction = localPlayer.getAction('use');
-  // if (window.isDebugger) debugger
   if (useAction) {
     const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
     app.dispatchEvent({
@@ -380,7 +378,7 @@ const _endUse = () => {
   }
 };
 const _mousedown = () => {
-  // debugger
+  const localPlayer = metaversefileApi.useLocalPlayer();
   let useAction = localPlayer.getAction('use');
   if (useAction?.animationCombo?.length > 0) {
     useAction.needContinuCombo = true;
@@ -396,10 +394,9 @@ const _mousedown = () => {
   }
 };
 const _mouseup = () => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
   const useAction = localPlayer.getAction('use');
-  // debugger
   if (
-    // useAction.animationCombo?.length > 0 ||
     useAction?.animationEnvelope?.length > 0
   ) {
     _endUse();
@@ -437,7 +434,6 @@ const damageMeshOffsetDistance = 1.5;
 let grabUseMesh = null;
 const _gameInit = () => {
   grabUseMesh = metaversefileApi.createApp();
-  window.grabUseMesh = grabUseMesh;
   (async () => {
     await metaverseModules.waitForLoad();
     const {modules} = metaversefileApi.useDefaultModules();
@@ -1166,12 +1162,6 @@ class GameManager extends EventTarget {
   setContextMenuObject(contextMenuObject) {
     this.contextMenuObject = contextMenuObject;
   }
-  startUse() {
-    _startUse();
-  }
-  endUse() {
-    _endUse();
-  }
   menuUse() {
     _use();
   }
@@ -1194,7 +1184,6 @@ class GameManager extends EventTarget {
     _mouseup();
   }
   menuAim() {
-    // debugger
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
       const localPlayer = metaversefileApi.useLocalPlayer();

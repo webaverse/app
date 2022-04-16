@@ -271,7 +271,6 @@ class PlayerBase extends THREE.Object3D {
   wear(app, {
     loadoutIndex = -1,
   } = {}) {
-    // debugger
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -673,7 +672,6 @@ class StatePlayer extends PlayerBase {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
   }
   addAction(action) {
-    // if (this === window.s?.localPlayer) debugger;
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);
@@ -894,34 +892,7 @@ class UninterpolatedPlayer extends StatePlayer {
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
     };
-
-    // test
-    this.actionInterpolants.use = new Proxy(this.actionInterpolants.use, {
-      set: (obj, prop, newVal) => {
-        const oldVal = obj[prop];
-        // if (prop === 'value' && oldVal !== 0 && newVal === 0) debugger;
-        if (window.isDebugger && prop === 'value') debugger
-        obj[prop] = newVal;
-        return true;
-      }
-    })
-    // this.actionInterpolants.activate = new Proxy(this.actionInterpolants.activate, {
-    //   set: (obj, prop, newVal) => {
-    //     if (prop === 'fn') debugger;
-    //     obj[prop] = newVal;
-    //     return true;
-    //   }
-    // })
-    // this.actionInterpolants.activate = new Proxy(this.actionInterpolants.activate, {
-    //   set: (obj, prop, newVal) => {
-    //     if (prop === 'value' && newVal !== 0) debugger;
-    //     obj[prop] = newVal;
-    //     return true;
-    //   }
-    // })
-
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
-
 
     this.avatarBinding = {
       position: this.position,
@@ -1113,7 +1084,6 @@ class LocalPlayer extends UninterpolatedPlayer {
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
-
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
 
@@ -1145,7 +1115,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     const useAction = this.getAction('use');
     if (useAction) {
       useAction.needEndUse = true;
-      // debugger
       if (useAction.needContinuCombo && avatar.useAnimationIndex < avatar.useAnimationCombo.length - 1) {
         useAction.needStartUse = true;
       }
@@ -1290,9 +1259,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     super(opts);
   
     this.isNpcPlayer = true;
-
-    if (!window.npcPlayers) window.npcPlayers = []
-    window.npcPlayers.push(this);
   }
   setAvatarApp(app) {
     app.toggleBoneUpdates(true);

@@ -7,7 +7,6 @@ import LegsManager from './vrarmik/LegsManager.js';
 import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
-import ioManager from '../io-manager.js';
 import {
   angleDifference,
   // getVelocityDampingFactor,
@@ -133,7 +132,6 @@ import {
   animationStepIndices,
   cubicBezier
 } from './animationHelpers.js';
-import { localPlayer } from '../players.js';
 
 
 
@@ -401,7 +399,6 @@ const _makeDebugMesh = (avatar) => {
 class Avatar extends EventTarget {
 	constructor(object, options = {}) {
     super();
-    window.avatar = this;
     if (!object) {
       object = {};
     }
@@ -786,7 +783,6 @@ class Avatar extends EventTarget {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
-    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -889,7 +885,6 @@ class Avatar extends EventTarget {
       animationMapping = animationMapping.clone();
       const isPosition = /\.position$/.test(animationMapping.animationTrackName);
       animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
-      animationMapping.lastDst = animationMapping.dst.clone();
       animationMapping.lerpFn = _getLerpFn(isPosition);
       return animationMapping;
     });
