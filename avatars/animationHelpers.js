@@ -1,7 +1,8 @@
 import {Vector3, Quaternion, AnimationClip} from 'three';
 import metaversefile from 'metaversefile';
-import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
-import easing from '../easing.js';
+import {/*VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+// import easing from '../easing.js';
+import {easing} from '../math-utils.js';
 import loaders from '../loaders.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 
