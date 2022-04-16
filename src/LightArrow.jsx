@@ -192,6 +192,7 @@ const _downloadArrowImage = async () => {
 
 export const LightArrow = function({
   enabled = true,
+  down = false,
   animate = false,
   x,
   y,
@@ -243,6 +244,7 @@ export const LightArrow = function({
       className={classnames(
         styles.lightArrowContainer,
         enabled ? styles.enabled : null,
+        down ? styles.down : null,
       )}
       style={{
         transform: `translate(${x}px, ${y}px)`,

@@ -10,6 +10,9 @@
 .lightArrowContainer:not(.enabled) .lightArrow {
   transform: scale(0, 0);
 }
+.lightArrowContainer.down .lightArrow {
+  transform: scale(0.8, 0.8);
+}
 
 @keyframes arrow-animation {
   0% {
