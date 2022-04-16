@@ -7,7 +7,7 @@ import styles from './LightArrow.module.css';
 const frameSize = 64;
 const numFrames = 64;
 const numFramesPerRow = Math.sqrt(numFrames);
-const canvasSize = frameSize * numFramesPerRow;
+// const canvasSize = frameSize * numFramesPerRow;
 const arrowTime = 5000;
 const timeDiff = arrowTime / numFrames;
 
