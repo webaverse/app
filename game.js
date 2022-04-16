@@ -350,7 +350,6 @@ const _startUse = () => {
           quaternion,
           scale,
           needEndUse: false,
-          needStartUse: false,
           needContinuCombo: false,
           needResetUseIndex: false,
         };
@@ -380,7 +379,7 @@ const _endUse = () => {
 const _mousedown = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   let useAction = localPlayer.getAction('use');
-  if (useAction?.animationCombo?.length > 0) {
+  if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
     useAction.needContinuCombo = true;
   }
   _startUse();
