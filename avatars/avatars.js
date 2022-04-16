@@ -912,7 +912,7 @@ class Avatar {
     // this.activateState = false;
     this.activateTime = 0;
     this.danceState = false;
-    this.danceTime = 0;
+    this.danceFactor = 0;
     this.danceAnimation = null;
     // this.throwState = null;
     // this.throwTime = 0;
