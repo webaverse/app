@@ -785,7 +785,7 @@ class Avatar {
 
     this.debugMesh = null;
 
-    this.emotes = [];
+    this.faceposes = [];
     if (this.options.visemes) {
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
       const _getBlendShapeIndexForPresetName = presetName => {
@@ -1687,14 +1687,11 @@ class Avatar {
             }
           } */
 
-          // emotes
-          if (this.emotes.length > 0) {
-            for (const emote of this.emotes) {
-              /* if (emote.index >= 0 && emote.index < morphTargetInfluences.length) {
-                morphTargetInfluences[emote.index] = emote.value;
-              } else { */
+          // face poses
+          if (this.faceposes.length > 0) {
+            for (const facepose of this.faceposes) {
               let index = -1;
-              switch (emote.emotion) {
+              switch (facepose.emotion) {
                 case 'neutral': {
                   index = neutralIndex;
                   break;
@@ -1720,7 +1717,7 @@ class Avatar {
                   break;
                 }
                 default: {
-                  const match = emote.emotion.match(/^emotion-([0-9]+)$/);
+                  const match = facepose.emotion.match(/^emotion-([0-9]+)$/);
                   if (match) {
                     index = parseInt(match[1], 10);
                   }
@@ -1728,9 +1725,8 @@ class Avatar {
                 }
               }
               if (index !== -1) {
-                morphTargetInfluences[index] = emote.value;
+                morphTargetInfluences[index] = facepose.value;
               }
-              // }
             }
           }
 

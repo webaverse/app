@@ -198,13 +198,13 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
     }
   }
 }
-export function applyPlayerEmotesToAvatar(player, rig) {
-  const emoteActions = player.getActionsArray().filter(a => a.type === 'emote');
-  if (emoteActions.length > 0) {
-    player.avatar.emotes = emoteActions;
+export function applyFacePoseToAvatar(player, rig) {
+  const facePoseActions = player.getActionsArray().filter(a => a.type === 'facepose');
+  if (facePoseActions.length > 0) {
+    player.avatar.faceposes = facePoseActions;
   } else {
-    if (player.avatar.emotes.length !== 0) {
-      player.avatar.emotes.length = 0;
+    if (player.avatar.faceposes.length !== 0) {
+      player.avatar.faceposes.length = 0;
     }
   }
 }
@@ -220,7 +220,7 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerActionsToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
   
-  applyPlayerEmotesToAvatar(player, rig);
+  applyFacePoseToAvatar(player, rig);
   applyPlayerPoseToAvatar(player, rig);
 }
 
