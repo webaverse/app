@@ -27,9 +27,9 @@ import {
 } from '../util.js';
 
 import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
+  // idleFactorSpeed,
+  // walkFactorSpeed,
+  // runFactorSpeed,
   narutoRunTimeFactor,
 } from './constants.js';
 
