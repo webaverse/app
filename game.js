@@ -1311,17 +1311,17 @@ class GameManager extends EventTarget {
 
   menuGDown() {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.removeAction('dance');
+    localPlayer.removeAction('emote');
 
     const newAction = {
-      type: 'dance',
+      type: 'emote',
       animation: 'angry',
     };
     localPlayer.addAction(newAction);
   }
   menuGUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.removeAction('dance');
+    localPlayer.removeAction('emote');
   }
 
   menuVDown() {

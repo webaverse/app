@@ -77,6 +77,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const sitAnimation = sitAction ? sitAction.animation : '';
   const danceAction = player.getAction('dance');
   const danceAnimation = danceAction ? danceAction.animation : '';
+  const emoteAction = player.getAction('emote');
+  const emoteAnimation = emoteAction ? emoteAction.animation : '';
   // const throwAction = player.getAction('throw');
   const aimAction = player.getAction('aim');
   const crouchAction = player.getAction('crouch');
@@ -140,6 +142,10 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.danceFactor = player.actionInterpolants.dance.get();
   if (danceAction) {
     rig.danceAnimation = danceAnimation;
+  }
+  rig.emoteFactor = player.actionInterpolants.emote.get();
+  if (emoteAction) {
+    rig.emoteAnimation = emoteAnimation;
   }
   // rig.throwState = !!throwAction;
   // rig.throwTime = player.actionInterpolants.throw.get();

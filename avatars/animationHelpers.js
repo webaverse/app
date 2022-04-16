@@ -61,6 +61,7 @@ let useAnimations;
 let aimAnimations;
 let sitAnimations;
 let danceAnimations;
+let emoteAnimations;
 let throwAnimations;
 // let crouchAnimations;
 let activateAnimations;
@@ -76,6 +77,7 @@ let hurtAnimations;
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
 const defaultDanceAnimation = 'dansu';
+const defaultEmoteAnimation = 'angry';
 const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
 const defaultActivateAnimation = 'activate';
@@ -353,6 +355,8 @@ export const loadPromise = (async () => {
   danceAnimations = {
     dansu: animations.find(a => a.isDancing),
     powerup: animations.find(a => a.isPowerUp),
+  };
+  emoteAnimations = {
     alert: animations.find(a => a.isAlert),
     alertSoft: animations.find(a => a.isAlertSoft),
     angry: animations.find(a => a.isAngry),
@@ -870,6 +874,36 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const danceFactorS = activeAvatar.danceFactor / crouchMaxTime;
         const f = Math.min(Math.max(danceFactorS, 0), 1);
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
+
+        _clearXZ(dst, isPosition);
+      };
+    }
+
+    if (activeAvatar.emoteFactor > 0) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          lerpFn,
+          // isTop,
+          isPosition,
+        } = spec;
+
+        _handleDefault(spec);
+
+        const emoteAnimation = emoteAnimations[activeAvatar.emoteAnimation || defaultEmoteAnimation];
+        const src2 = emoteAnimation.interpolants[k];
+        const t2 = (now / 1000) % emoteAnimation.duration;
+        const v2 = src2.evaluate(t2);
+
+        const emoteFactorS = activeAvatar.emoteFactor / crouchMaxTime;
+        const f = Math.min(Math.max(emoteFactorS, 0), 1);
         lerpFn
           .call(
             dst,
