@@ -793,6 +793,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   }
   activeAvatar.lastBackwardFactor = mirrorFactor;
 
+  if (activeAvatar.emoteState) {
+    if (activeAvatar.lastEmoteTime === 0) {
+      activeAvatar.lastEmoteTime = now;
+    }
+  } else {
+    activeAvatar.lastEmoteTime = 0;
+  }
+
   const _handleDefault = spec => {
     const {
       animationTrackName: k,
@@ -899,7 +907,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const emoteAnimation = emoteAnimations[activeAvatar.emoteAnimation || defaultEmoteAnimation];
         const src2 = emoteAnimation.interpolants[k];
-        const t2 = (now / 1000) % emoteAnimation.duration;
+        const emoteTime = now - avatar.lastEmoteTime;
+        const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
         const v2 = src2.evaluate(t2);
 
         const emoteFactorS = activeAvatar.emoteFactor / crouchMaxTime;

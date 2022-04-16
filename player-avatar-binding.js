@@ -143,6 +143,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   if (danceAction) {
     rig.danceAnimation = danceAnimation;
   }
+  rig.emoteState = !!emoteAction;
   rig.emoteFactor = player.actionInterpolants.emote.get();
   if (emoteAction) {
     rig.emoteAnimation = emoteAnimation;
