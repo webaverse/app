@@ -460,11 +460,11 @@ ioManager.keydown = e => {
       document.getElementById('key-r').click(); // equip
       break;
     } */
-    case 71: { // G
+    /* case 71: { // G
       // game.menuDrop();
       game.menuGDown();
       break;
-    }
+    } */
     case 86: { // V
       // if (!_inputFocused()) {
         e.preventDefault();
@@ -629,14 +629,14 @@ ioManager.keyup = e => {
       // }
       break;
     }
-    case 71: { // G
+    /* case 71: { // G
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
         game.menuGUp();
       // }
       break;
-    }
+    } */
     case 86: { // V
       // if (!_inputFocused()) {
         e.preventDefault();

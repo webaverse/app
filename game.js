@@ -1309,7 +1309,7 @@ class GameManager extends EventTarget {
     }
   }
 
-  menuGDown() {
+  /* menuGDown() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('emote');
 
@@ -1322,7 +1322,7 @@ class GameManager extends EventTarget {
   menuGUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('emote');
-  }
+  } */
 
   menuVDown() {
     if (_getGrabbedObject(0)) {
