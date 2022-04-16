@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {
-  planeGeometry,
+  fullscreenGeometry,
   gradients,
   fullscreenVertexShader,
 } from './common.js';
@@ -72,7 +72,7 @@ export const outlineShader = `\
 
 class OutlineBgFxMesh extends THREE.Mesh {
   constructor() {
-    const geometry = planeGeometry;
+    const geometry = fullscreenGeometry;
     const material = new THREE.ShaderMaterial({
       uniforms: {
         t0: {
