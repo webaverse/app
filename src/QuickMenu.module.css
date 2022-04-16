@@ -17,10 +17,9 @@
 }
 
 .quickMenu .canvas {
-  --size: 300px;
+  --size: 400px;
   width: var(--size);
   height: var(--size);
-  
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 .quickMenu:not(.open) .canvas {
