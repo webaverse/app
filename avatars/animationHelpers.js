@@ -1204,7 +1204,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 export {
   animations,
   animationStepIndices,
- cubicBezier
+  emoteAnimations,
+  // cubicBezier,
 };
 
 export const getClosest2AnimationAngles = (key, angle) => {
