@@ -210,11 +210,18 @@ export default function QuickMenu() {
       }
       registerIoEventHandler('mouseup', mouseup);
       
+      function wheel(e) {
+        // nothing
+        return false;
+      }
+      registerIoEventHandler('wheel', wheel);
+
       return () => {
         unregisterIoEventHandler('keyup', keyup);
         unregisterIoEventHandler('mousemove', mousemove);
         unregisterIoEventHandler('mousedown', mousedown);
         unregisterIoEventHandler('mouseup', mouseup);
+        unregisterIoEventHandler('wheel', wheel);
       };
     }
   }, [open, coords]);
