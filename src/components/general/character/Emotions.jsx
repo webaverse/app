@@ -14,6 +14,28 @@ const emotions = [
     'surprise',
 ];
 
+export const setFacePoseValue = (emotion, value) => {
+    const localPlayer = metaversefile.useLocalPlayer();
+
+    const facePoseActionIndex = localPlayer.findActionIndex( a => a.type === 'facepose' && a.emotion === emotion );
+    if ( facePoseActionIndex !== -1 ) {
+
+        localPlayer.removeActionIndex( facePoseActionIndex );
+
+    }
+
+    if ( value > 0 ) {
+
+        const newAction = {
+            type: 'facepose',
+            emotion,
+            value,
+        };
+        localPlayer.addAction(newAction);
+
+    }
+};
+
 export const Emotions = ({
     parentOpened,
 }) => {
