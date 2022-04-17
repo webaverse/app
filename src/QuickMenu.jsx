@@ -64,10 +64,17 @@ const radiusCenterSoft = (outerRadiusSoft + innerRadiusSoft) / 2;
 const iconSize = 80;
 const chevronSize = 50;
 
+let emoteTimeout = null;
 const _triggerEmote = emote => {
+  // clear old emote
   const localPlayer = metaversefile.useLocalPlayer();
   localPlayer.removeAction('emote');
+  if (emoteTimeout) {
+    clearTimeout(emoteTimeout);
+    emoteTimeout = null;
+  }
 
+  // add new emote
   const newAction = {
     type: 'emote',
     animation: emote,
@@ -76,9 +83,11 @@ const _triggerEmote = emote => {
 
   const emoteAnimation = emoteAnimations[emote];
   const emoteAnimationDuration = emoteAnimation.duration;
-  setTimeout(() => {
+  emoteTimeout = setTimeout(() => {
     const actionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && action.animation === emote);
     localPlayer.removeActionIndex(actionIndex);
+    
+    emoteTimeout = null;
   }, emoteAnimationDuration * 1000);
 };
 
