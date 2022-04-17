@@ -54,7 +54,7 @@
   background: transparent;
 }
 .emotions .emotion .emotionProgress::-webkit-progress-value {
-  background-color: #444;
+  background-color: #666;
   /* background-image: linear-gradient(to bottom, #56ab2f, #a8e063); */
   transition: background-color 1s cubic-bezier(0, 1, 0, 1);
 }
