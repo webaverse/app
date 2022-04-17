@@ -1826,6 +1826,7 @@ class Avatar {
     window.domInfo.innerHTML = `
       <div>keysDirection: --- ${window.logVector3(ioManager.keysDirection)}</div>
       <div>avatar.direction: --- ${window.logVector3(avatar.direction)}</div>
+      <div>localPlayer.direction: --- ${window.logVector3(localPlayer.getWorldDirection(localVector))}</div>
       <div>velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>
       <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
       <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
