@@ -177,6 +177,7 @@ export default function QuickMenu() {
           /* const emote = _getSelectedEmote();
           emote && _triggerEmote(emote); */
           setOpen(false);
+          setDown(false);
         }
       }
       registerIoEventHandler('keyup', keyup);
