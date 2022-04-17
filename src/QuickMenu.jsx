@@ -8,7 +8,7 @@ import {LightArrow} from './LightArrow';
 import styles from './QuickMenu.module.css';
 
 import {emoteAnimations} from '../avatars/animationHelpers.js';
-import {mod} from '../util.js';
+import {mod, loadImage} from '../util.js';
 
 const modPi2 = angle => mod(angle, Math.PI*2);
 
@@ -28,8 +28,18 @@ const emotes = [
   'surprise',
   'victory',
 ];
+const emoteIconNames = [
+  'noun-wondering-4705278.svg',
+  'noun-mad-4705281.svg',
+  'noun-embarrassed-4705269.svg',
+  'noun-pleased-4705286.svg',
+  'noun-hostile-4705273.svg',
+  'noun-depress-4705264.svg',
+  'noun-panic-4705288.svg',
+  'noun-cheerful-4705270.svg',
+];
 
-const size = 400;
+const size = 500;
 const pixelRatio = window.devicePixelRatio;
 const pixelSize = size * pixelRatio;
 
@@ -46,6 +56,8 @@ const outerRadius = pixelSize/2;
 const innerRadius = pixelSize/4;
 const outerRadiusSoft = pixelSize/4 - 10;
 const innerRadiusSoft = pixelSize/8;
+
+const iconSize = 80;
 
 const _triggerEmote = emote => {
   const localPlayer = metaversefile.useLocalPlayer();
@@ -65,12 +77,37 @@ const _triggerEmote = emote => {
   }, emoteAnimationDuration * 1000);
 };
 
+function drawImageContain(ctx, img) {
+  const imgWidth = img.width;
+  const imgHeight = img.height;
+  const canvasWidth = ctx.canvas.width;
+  const canvasHeight = ctx.canvas.height;
+  const imgAspect = imgWidth / imgHeight;
+  const canvasAspect = canvasWidth / canvasHeight;
+  let x, y, width, height;
+  if (imgAspect > canvasAspect) {
+    // image is wider than canvas
+    width = canvasWidth;
+    height = width / imgAspect;
+    x = 0;
+    y = (canvasHeight - height) / 2;
+  } else {
+    // image is taller than canvas
+    height = canvasHeight;
+    width = height * imgAspect;
+    x = (canvasWidth - width) / 2;
+    y = 0;
+  }
+  ctx.drawImage(img, x, y, width, height);
+}
+
 export default function QuickMenu() {
   const [open, setOpen] = useState(false);
   const [down, setDown] = useState(false);
   const [selectedSlice, setSelectedSlice] = useState(-1);
   const [selectedDepth, setSelectedDepth] = useState(-1);
   const [coords, setCoords] = useState([0, 0]);
+  const [emoteIconImages, setEmoteIconImages] = useState(null);
   const canvasRef = useRef();
 
   const _getSelectedEmote = () => {
@@ -79,7 +116,21 @@ export default function QuickMenu() {
     } else {
       return null;
     }
-  }
+  };
+
+  useEffect(async () => {
+    const emoteIconImages = await Promise.all(emoteIconNames.map(async emoteIconName => {
+      const img = await loadImage(`./images/poses/${emoteIconName}`);
+      const canvas = document.createElement('canvas');
+      canvas.width = iconSize;
+      canvas.height = iconSize;
+      const ctx = canvas.getContext('2d');
+      // ctx.drawImage(img, 0, 0, iconSize, iconSize);
+      drawImageContain(ctx, img);
+      return canvas;
+    }));
+    setEmoteIconImages(emoteIconImages);
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -146,7 +197,7 @@ export default function QuickMenu() {
 
   const _render = () => {
     const wheelCanvas = canvasRef.current;
-    if (wheelCanvas) {
+    if (wheelCanvas && emoteIconImages) {
       const ctx = wheelCanvas.getContext('2d');
 
       ctx.clearRect(0, 0, pixelSize, pixelSize);
@@ -177,16 +228,29 @@ export default function QuickMenu() {
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           const midAngle = (startAngle + endAngle)/2;
-          ctx.fillText(i + '', pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2, pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2);
+          /* ctx.fillText(
+            i + '',
+            pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2,
+            pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2
+          ); */
+          ctx.drawImage(
+            emoteIconImages[i],
+            pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2 - iconSize/2,
+            pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2 - iconSize/2 - pixelSize/20
+          );
           ctx.font = (pixelSize/30) + 'px Muli';
-          ctx.fillText(emotes[i], pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2, pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2 + pixelSize/20);
+          ctx.fillText(
+            emotes[i],
+            pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2,
+            pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2 + pixelSize/20
+          );
         }
       }
     }
   };
   useEffect(() => {
     _render();
-  }, [canvasRef.current, selectedSlice, selectedDepth]);
+  }, [canvasRef.current, selectedSlice, selectedDepth, emoteIconImages]);
   
   useEffect(() => {
     localVector2D.fromArray(coords);
