@@ -590,7 +590,7 @@ export function makeId(length) {
   return result;
 }
 
-async function contentIdToStorageUrl(id) {
+/* async function contentIdToStorageUrl(id) {
   if (typeof id === 'number') {
     const hash = await contracts.mainnetsidechain.NFT.methods.getHash(id + '').call();
     return `${storageHost}/${hash}`;
@@ -599,7 +599,7 @@ async function contentIdToStorageUrl(id) {
   } else {
     return null;
   }
-}
+} */
 
 async function pullUserObject(loginToken) {
   const address = getAddressFromMnemonic(loginToken.mnemonic);
@@ -1057,3 +1057,55 @@ export const getTransferables = o => {
   _recurse(o);
   return result;
 };
+export const splitLinesToWidth = (() => {
+  let tempCanvas = null;
+  const _getTempCanvas = () => {
+    if (tempCanvas === null) {
+      tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 0;
+      tempCanvas.height = 0;
+    }
+    return tempCanvas;
+  };
+  
+  return (text, font, maxWidth) => {
+    const canvas = _getTempCanvas();
+    const ctx = canvas.getContext('2d');
+    ctx.font = font;
+
+    let lines = [];
+    const words = text.split(' ');
+
+    // We'll be constantly removing words from our words array to build our lines. Once we're out of words, we can stop
+    while (words.length > 0) {
+      let tmp = words[0]; // Capture the current word, in case we need to re-add it to array
+      let line = words.shift(); // Start our line with the first word available to us
+
+      // Now we'll continue adding words to our line until we've exceeded our budget
+      while (words.length && ctx.measureText(line).width < maxWidth) {
+        tmp = words[0];
+        line += ' ' + words.shift();
+      }
+
+      // If the line is too long, remove the last word and replace it in words array.
+      // This will happen on all but the last line, as we anticipate exceeding the length to break out of our second while loop
+      if (ctx.measureText(line).width > maxWidth) {
+        const lastSpaceIndex = line.lastIndexOf(' ');
+        if (lastSpaceIndex !== -1) {
+          line = line.substring(0, lastSpaceIndex);
+          words.unshift(tmp);
+        } else {
+          const part1 = line.substring(0, 12) + '-';
+          const part2 = line.substring(12);
+          line = part1;
+          words.push(part2);
+        }
+      }
+
+      // Push the finshed line into the array
+      lines.push(line);
+    }
+
+    return lines;
+  };
+})();

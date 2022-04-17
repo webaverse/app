@@ -540,12 +540,14 @@ class StatePlayer extends PlayerBase {
   getAvatarInstanceId() {
     return this.getAvatarState().get('instanceId') ?? '';
   }
+  localVector = [0, 0, 0];
+  localQuaternion = [0, 0, 0, 1];
   // serializers
   getPosition() {
-    return this.position.toArray() ?? [0, 0, 0];
+    return this.position.toArray(this.localVector);
   }
   getQuaternion() {
-        return this.quaternion.toArray() ?? [0, 0, 0, 1];
+        return this.quaternion.toArray(this.localQuaternion);
   }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {

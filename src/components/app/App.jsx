@@ -28,6 +28,7 @@ import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 
 import styles from './App.module.css';
+import '../../fonts.css';
 
 //
 
