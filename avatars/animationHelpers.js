@@ -72,6 +72,7 @@ let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
+let isFirst = true;
 
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
@@ -471,6 +472,8 @@ const _getHorizontalBlend = (k, lerpFn, isPosition, target, now) => {
       localQuaternion2,
       activeMoveFactors.crouchFactor,
     );
+
+  // target.copy(localQuaternion);
 };
 
 const _get7wayBlend = (
@@ -497,6 +500,7 @@ const _get7wayBlend = (
   const {idleWalkFactor, walkRunFactor} = moveFactors;
   // WALK
   // normal horizontal walk blend
+  // debugger
   {
     const t1 = timeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
     const src1 = horizontalWalkAnimationAngles[0].animation.interpolants[k];
@@ -539,6 +543,35 @@ const _get7wayBlend = (
       localQuaternion4,
       mirrorFactor,
     );
+
+  // if (isFirst) console.log(mirrorFactor); 
+
+  if (isFirst && mirrorFactor === 1) {
+    console.log('------', angleFactor);
+    console.log(
+      horizontalWalkAnimationAngles[0].name,
+      '---',
+      horizontalWalkAnimationAngles[1].name,
+    );
+    console.log(
+      horizontalWalkAnimationAnglesMirror[0].name,
+      '---',
+      horizontalWalkAnimationAnglesMirror[1].name,
+    );
+    /*
+      full  back: ------ 1
+        walking backwards.fbx --- left strafe walking.fbx
+        walking backwards.fbx --- right strafe walking reverse.fbx
+      left  back: ------ ~= 0.5
+        walking backwards.fbx --- left strafe walking.fbx
+        walking backwards.fbx --- right strafe walking reverse.fbx
+      right back: ------ ~= 0.5
+        walking backwards.fbx --- right strafe walking.fbx
+        walking backwards.fbx --- left strafe walking reverse.fbx
+    */
+  }
+
+  // localQuaternion5.copy(localQuaternion3);
 
   // RUN
   // normal horizontal run blend
@@ -1151,7 +1184,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.y = activeAvatar.height * 0.55;
       }
     }
+    isFirst = false;
   }
+  isFirst = true;
 };
 
 export {
