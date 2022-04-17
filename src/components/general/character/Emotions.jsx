@@ -18,13 +18,10 @@ export const Emotions = ({
     parentOpened,
 }) => {
     const [ emotionsOpen, setEmotionsOpen ] = useState( false );
-    const emotionStates = emotions.map(e => {
-        const [ action, setAction ] = useState(null);
+    const emotionStates = emotions.map(emotion => {
         const [ value, setValue ] = useState(0);
 
         return {
-            action,
-            setAction,
             value,
             setValue,
         };
@@ -48,35 +45,25 @@ export const Emotions = ({
 
                     const emotion = emotions[dragEmotionIndex];
                     const emotionState = emotionStates[dragEmotionIndex];
-                    const oldValue = emotionState.action ? emotionState.action.value : 0;
+                    const oldValue = emotionState.value;
                     const value = Math.min(Math.max(oldValue - movementY * 0.01, 0), 1);
 
+                    const facePoseActionIndex = localPlayer.findActionIndex( a => a.type === 'facepose' && a.emotion === emotion );
+                    if ( facePoseActionIndex !== -1 ) {
+
+                        localPlayer.removeActionIndex( facePoseActionIndex );
+
+                    }
+
                     if ( value > 0 ) {
-
-                        if ( emotionState.action === null ) {
-
-                            const newAction = localPlayer.addAction({ type: 'facepose', emotion, value });
-                            emotionState.setAction( newAction );
-                            emotionState.setValue( value );
-
-                        } else {
-
-                            emotionState.action.value = value;
-                            emotionState.setValue( value );
-
-                        }
-
-                    } else {
-
-                        const facePoseActionIndex = localPlayer.findActionIndex( a => a.type === 'facepose' && a.emotion === emotion );
-
-                        if ( facePoseActionIndex !== -1 ) {
-
-                            localPlayer.removeActionIndex( facePoseActionIndex );
-                            emotionState.setAction( null );
-                            emotionState.setValue(0);
-
-                        }
+                        
+                        const newAction = {
+                            type: 'facepose',
+                            emotion,
+                            value,
+                        };
+                        localPlayer.addAction(newAction);
+                        emotionState.setValue( value );
 
                     }
 
@@ -94,7 +81,44 @@ export const Emotions = ({
 
         };
 
-    }, [ emotionsRef, dragEmotionIndex ].concat( emotionStates.flatMap(e => [ e.action, e.value ] ) ) );
+    }, [ emotionsRef, dragEmotionIndex ].concat( emotionStates.map(e => e.value ) ) );
+
+    useEffect( () => {
+
+        const actionadd = e => {
+
+            const {action} = e;
+            if (action.type === 'facepose') {
+                const {emotion, value} = action;
+                const emotionIndex = emotions.indexOf(emotion);
+                const emotionState = emotionStates[emotionIndex];
+                emotionState.setValue(value);
+            }
+
+        };
+        localPlayer.addEventListener('actionadd', actionadd);
+
+        const actionremove = e => {
+
+            const {action} = e;
+            if (action.type === 'facepose') {
+                const {emotion} = action;
+                const emotionIndex = emotions.indexOf(emotion);
+                const emotionState = emotionStates[emotionIndex];
+                emotionState.setValue(0);
+            }
+
+        };
+        localPlayer.addEventListener('actionremove', actionremove);
+    
+        return () => {
+
+            localPlayer.removeEventListener('actionadd', actionadd);
+            localPlayer.removeEventListener('actionremove', actionremove);
+
+        };
+
+    }, []);
 
     return (
         <div
