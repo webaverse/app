@@ -15,7 +15,6 @@
   position: relative;
   width: var(--size);
   height: var(--size);
-  pointer-events: all;
 }
 
 .quickMenu .canvas {

@@ -794,12 +794,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   }
   activeAvatar.lastBackwardFactor = mirrorFactor;
 
-  if (activeAvatar.emoteState) {
-    if (activeAvatar.lastEmoteTime === 0) {
-      activeAvatar.lastEmoteTime = now;
-    }
-  } else {
-    activeAvatar.lastEmoteTime = 0;
+  if (activeAvatar.emoteAnimation !== activeAvatar.lastEmoteAnimation) {
+    activeAvatar.lastEmoteTime = activeAvatar.emoteAnimation ? now : 0;
+    activeAvatar.lastEmoteAnimation = activeAvatar.emoteAnimation;
   }
 
   const _handleDefault = spec => {
