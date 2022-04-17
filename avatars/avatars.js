@@ -911,7 +911,6 @@ class Avatar {
     // this.danceState = false;
     this.danceFactor = 0;
     this.danceAnimation = null;
-    this.emoteState = 0;
     this.emoteFactor = 0;
     this.emoteAnimation = null;
     this.poseFactor = 0;
@@ -945,6 +944,7 @@ class Avatar {
     this.velocity = new THREE.Vector3();
     this.lastMoveTime = 0;
     this.lastEmoteTime = 0;
+    this.lastEmoteAnimation = 0;
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
