@@ -505,6 +505,11 @@ const _get7wayBlend = (
   // WALK
   // normal horizontal walk blend
   // debugger
+
+  // // test
+  // if (horizontalWalkAnimationAngles[0].name === 'walking backwards.fbx') angleFactor = 0;
+  // else angleFactor = 1;
+
   {
     const t1 = timeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
     const src1 = horizontalWalkAnimationAngles[0].animation.interpolants[k];
