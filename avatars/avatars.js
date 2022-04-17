@@ -7,6 +7,7 @@ import LegsManager from './vrarmik/LegsManager.js';
 import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
+import ioManager from '../io-manager.js';
 import {
   angleDifference,
   // getVelocityDampingFactor,
@@ -398,6 +399,7 @@ const _makeDebugMesh = (avatar) => {
 
 class Avatar {
 	constructor(object, options = {}) {
+    window.avatar = this;
     if (!object) {
       object = {};
     }
@@ -1822,6 +1824,9 @@ class Avatar {
 
     _updateHmdPosition();
     window.domInfo.innerHTML = `
+      <div>keysDirection: --- ${window.logVector3(ioManager.keysDirection)}</div>
+      <div>avatar.direction: --- ${window.logVector3(avatar.direction)}</div>
+      <div>velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>
       <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
       <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
       <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
@@ -1838,12 +1843,25 @@ class Avatar {
       <div>poseAnimation: --- ${this.poseAnimation}</div>
       <div>sitAnimation: --- ${this.sitAnimation}</div>
       <div>useAnimation: --- ${this.useAnimation}</div>
-      <div>useAnimationCombo: --- ${this.useAnimationCombo}</div>
+      <div>useAnimationCombo: --- </div>
+      <div>${this.useAnimationCombo}&nbsp;</div>
       <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
       <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
-      <div>useTime: --- ${Math.floor(this.useTime)}</div>
       <div>unuseAnimation: --- ${this.unuseAnimation}</div>
+      <div>activateTime: --- ${Math.floor(this.activateTime)}</div>
+      <div>aimTime: --- ${Math.floor(this.aimTime)}</div>
+      <div>chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>
+      <div>crouchTime: --- ${Math.floor(this.crouchTime)}</div>
+      <div>danceTime: --- ${Math.floor(this.danceTime)}</div>
+      <div>fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>
+      <div>flyTime: --- ${Math.floor(this.flyTime)}</div>
+      <div>hurtTime: --- ${Math.floor(this.hurtTime)}</div>
+      <div>jumpTime: --- ${Math.floor(this.jumpTime)}</div>
+      <div>lastEyeTargetTime: --- ${Math.floor(this.lastEyeTargetTime)}</div>
+      <div>lastMoveTime: --- ${Math.floor(this.lastMoveTime)}</div>
+      <div>narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>
       <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
+      <div>useTime: --- ${Math.floor(this.useTime)}</div>
     `
     _applyAnimation(this, now, moveFactors);
 
