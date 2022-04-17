@@ -163,7 +163,7 @@ export default (app, component) => {
           }
           const deltaSeconds = timeDiff / 1000;
           petMixer.update(deltaSeconds);
-          petMixer.getRoot().updateMatrixWorld();
+          petMixer.getRoot().parent.updateMatrixWorld();
         }
       }
     };
