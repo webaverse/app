@@ -1219,6 +1219,12 @@ class RemotePlayer extends InterpolatedPlayer {
         if(this.avatar){  
           this.avatar.setVelocity(remoteTimeDiff / 1000, lastPosition, this.position, this.quaternion);
         }
+
+        this.appManager.apps.forEach( app => app. dispatchEvent({
+          type: 'wearupdate',
+          app,
+          wear: true
+        }));
       }
     };
 
