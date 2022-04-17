@@ -38,6 +38,7 @@ const emoteIconNames = [
   'noun-panic-4705288.svg',
   'noun-cheerful-4705270.svg',
 ];
+const chevronImgSrc = `./images/chevron2.svg`;
 
 const size = 500;
 const pixelRatio = window.devicePixelRatio;
@@ -54,10 +55,14 @@ const centerCoords = [
 
 const outerRadius = pixelSize/2;
 const innerRadius = pixelSize/4;
+const radiusCenter = (outerRadius + innerRadius) / 2;
+
 const outerRadiusSoft = pixelSize/4 - 10;
 const innerRadiusSoft = pixelSize/8;
+const radiusCenterSoft = (outerRadiusSoft + innerRadiusSoft) / 2;
 
 const iconSize = 80;
+const chevronSize = 50;
 
 const _triggerEmote = emote => {
   const localPlayer = metaversefile.useLocalPlayer();
@@ -100,6 +105,14 @@ function drawImageContain(ctx, img) {
   }
   ctx.drawImage(img, x, y, width, height);
 }
+const _imageToCanvas = (img, w, h) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  drawImageContain(ctx, img);
+  return canvas;
+};
 
 export default function QuickMenu() {
   const [open, setOpen] = useState(false);
@@ -108,6 +121,7 @@ export default function QuickMenu() {
   const [selectedDepth, setSelectedDepth] = useState(-1);
   const [coords, setCoords] = useState([0, 0]);
   const [emoteIconImages, setEmoteIconImages] = useState(null);
+  const [chevronImage, setChevronImage] = useState(null);
   const canvasRef = useRef();
 
   const _getSelectedEmote = () => {
@@ -121,15 +135,15 @@ export default function QuickMenu() {
   useEffect(async () => {
     const emoteIconImages = await Promise.all(emoteIconNames.map(async emoteIconName => {
       const img = await loadImage(`./images/poses/${emoteIconName}`);
-      const canvas = document.createElement('canvas');
-      canvas.width = iconSize;
-      canvas.height = iconSize;
-      const ctx = canvas.getContext('2d');
-      // ctx.drawImage(img, 0, 0, iconSize, iconSize);
-      drawImageContain(ctx, img);
+      const canvas = _imageToCanvas(img, iconSize, iconSize);
       return canvas;
     }));
     setEmoteIconImages(emoteIconImages);
+  }, []);
+  useEffect(async () => {
+    const img = await loadImage(chevronImgSrc);
+    const canvas = _imageToCanvas(img, chevronSize, chevronSize);
+    setChevronImage(canvas);
   }, []);
 
   useEffect(() => {
@@ -197,8 +211,10 @@ export default function QuickMenu() {
 
   const _render = () => {
     const wheelCanvas = canvasRef.current;
-    if (wheelCanvas && emoteIconImages) {
+    if (wheelCanvas && emoteIconImages && chevronImage) {
       const ctx = wheelCanvas.getContext('2d');
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
 
       ctx.clearRect(0, 0, pixelSize, pixelSize);
     
@@ -223,26 +239,40 @@ export default function QuickMenu() {
           ctx.fill();
         }
         {
-          ctx.font = (pixelSize/20) + 'px Muli';
-          ctx.fillStyle = '#FFF';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
           const midAngle = (startAngle + endAngle)/2;
-          /* ctx.fillText(
-            i + '',
-            pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2,
-            pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2
-          ); */
+
+          // soft chevron
+          {
+            ctx.save();
+            ctx.globalAlpha = 0.3;
+            ctx.translate(
+              pixelSize/2 + Math.cos(midAngle)*radiusCenterSoft,
+              pixelSize/2 + Math.sin(midAngle)*radiusCenterSoft
+            );
+            ctx.rotate(midAngle + Math.PI);
+            ctx.translate(-chevronSize/2, -chevronSize/2);
+            ctx.drawImage(
+              chevronImage,
+              0,
+              0
+            );
+            ctx.restore();
+          }
+          
+          // hard icon
           ctx.drawImage(
             emoteIconImages[i],
-            pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2 - iconSize/2,
-            pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2 - iconSize/2 - pixelSize/20
+            pixelSize/2 + Math.cos(midAngle)*radiusCenter - iconSize/2,
+            pixelSize/2 + Math.sin(midAngle)*radiusCenter - iconSize/2 - pixelSize/30
           );
+
+          // hard label
           ctx.font = (pixelSize/30) + 'px Muli';
+          ctx.fillStyle = '#FFF';
           ctx.fillText(
             emotes[i],
-            pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2,
-            pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2 + pixelSize/20
+            pixelSize/2 + Math.cos(midAngle)*radiusCenter,
+            pixelSize/2 + Math.sin(midAngle)*radiusCenter + pixelSize/20
           );
         }
       }
@@ -250,7 +280,7 @@ export default function QuickMenu() {
   };
   useEffect(() => {
     _render();
-  }, [canvasRef.current, selectedSlice, selectedDepth, emoteIconImages]);
+  }, [canvasRef.current, selectedSlice, selectedDepth, emoteIconImages, chevronImage]);
   
   useEffect(() => {
     localVector2D.fromArray(coords);
