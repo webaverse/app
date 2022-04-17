@@ -1,13 +1,16 @@
 import * as THREE from 'three';
 import React, {useEffect, useRef, useState} from 'react';
 import classnames from 'classnames';
-import metaversefile from 'metaversefile';
+// import metaversefile from 'metaversefile';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler';
 import {LightArrow} from './LightArrow';
 
 import styles from './QuickMenu.module.css';
 
-import {emoteAnimations} from '../avatars/animationHelpers.js';
+import emotes from './components/general/character/emotes.json';
+import {triggerEmote} from './components/general/character/Poses';
+// import {emoteAnimations} from '../avatars/animationHelpers.js';
+// import * as cameraManager from '../camera-manager.js';
 import {mod, loadImage} from '../util.js';
 
 const modPi2 = angle => mod(angle, Math.PI*2);
@@ -18,26 +21,6 @@ const localVector2D = new THREE.Vector2();
 
 //
 
-const emotes = [
-  'alert',
-  'angry',
-  'embarrassed',
-  'headNod',
-  'headShake',
-  'sad',
-  'surprise',
-  'victory',
-];
-const emoteIconNames = [
-  'noun-wondering-4705278.svg',
-  'noun-mad-4705281.svg',
-  'noun-embarrassed-4705269.svg',
-  'noun-pleased-4705286.svg',
-  'noun-hostile-4705273.svg',
-  'noun-depress-4705264.svg',
-  'noun-panic-4705288.svg',
-  'noun-cheerful-4705270.svg',
-];
 const chevronImgSrc = `./images/chevron2.svg`;
 
 const size = 500;
@@ -63,33 +46,6 @@ const radiusCenterSoft = (outerRadiusSoft + innerRadiusSoft) / 2;
 
 const iconSize = 80;
 const chevronSize = 50;
-
-let emoteTimeout = null;
-const _triggerEmote = emote => {
-  // clear old emote
-  const localPlayer = metaversefile.useLocalPlayer();
-  localPlayer.removeAction('emote');
-  if (emoteTimeout) {
-    clearTimeout(emoteTimeout);
-    emoteTimeout = null;
-  }
-
-  // add new emote
-  const newAction = {
-    type: 'emote',
-    animation: emote,
-  };
-  localPlayer.addAction(newAction);
-
-  const emoteAnimation = emoteAnimations[emote];
-  const emoteAnimationDuration = emoteAnimation.duration;
-  emoteTimeout = setTimeout(() => {
-    const actionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && action.animation === emote);
-    localPlayer.removeActionIndex(actionIndex);
-    
-    emoteTimeout = null;
-  }, emoteAnimationDuration * 1000);
-};
 
 function drawImageContain(ctx, img) {
   const imgWidth = img.width;
@@ -135,15 +91,15 @@ export default function QuickMenu() {
 
   const _getSelectedEmote = () => {
     if (selectedSlice !== -1 && selectedDepth !== -1) {
-      return emotes[selectedSlice] + (selectedDepth === 0 ? 'Soft' : '');
+      return emotes[selectedSlice].name + (selectedDepth === 0 ? 'Soft' : '');
     } else {
       return null;
     }
   };
 
   useEffect(async () => {
-    const emoteIconImages = await Promise.all(emoteIconNames.map(async emoteIconName => {
-      const img = await loadImage(`./images/poses/${emoteIconName}`);
+    const emoteIconImages = await Promise.all(emotes.map(async ({icon}) => {
+      const img = await loadImage(`./images/poses/${icon}`);
       const canvas = _imageToCanvas(img, iconSize, iconSize);
       return canvas;
     }));
@@ -175,7 +131,7 @@ export default function QuickMenu() {
       function keyup(e) {
         if (e.keyCode === 81) { // Q
           /* const emote = _getSelectedEmote();
-          emote && _triggerEmote(emote); */
+          emote && triggerEmote(emote); */
           setOpen(false);
           setDown(false);
         }
@@ -204,7 +160,7 @@ export default function QuickMenu() {
       function mouseup(e) {
         setDown(false);
         const emote = _getSelectedEmote();
-        emote && _triggerEmote(emote);
+        emote && triggerEmote(emote);
         setOpen(false);
         return false;
       }
@@ -287,7 +243,7 @@ export default function QuickMenu() {
           ctx.font = (pixelSize/30) + 'px Muli';
           ctx.fillStyle = '#FFF';
           ctx.fillText(
-            emotes[i],
+            emotes[i].name,
             pixelSize/2 + Math.cos(midAngle)*radiusCenter,
             pixelSize/2 + Math.sin(midAngle)*radiusCenter + pixelSize/20
           );
