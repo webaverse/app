@@ -1,4 +1,6 @@
 .quickMenu {
+  --size: 500px;
+
   display: flex;
   justify-content: center;
   align-items: center;
@@ -11,13 +13,12 @@
 }
 .quickMenu .container {
   position: relative;
-  width: 400px;
-  height: 400px;
+  width: var(--size);
+  height: var(--size);
   pointer-events: all;
 }
 
 .quickMenu .canvas {
-  --size: 400px;
   width: var(--size);
   height: var(--size);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
