@@ -17,7 +17,7 @@
   {
     "name": "headNod",
     "icon": "noun-pleased-4705286.svg",
-    "emotion": "joy"
+    "emotion": "fun"
   },
   {
     "name": "headShake",
@@ -37,6 +37,6 @@
   {
     "name": "victory",
     "icon": "noun-cheerful-4705270.svg",
-    "emotion": "fun"
+    "emotion": "joy"
   }
 ]
