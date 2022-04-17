@@ -452,28 +452,32 @@ const _getHorizontalBlend = (k, lerpFn, isPosition, target, now) => {
     localQuaternion,
     now,
   );
-  _get7wayBlend(
-    activeAvatar,
-    anglesOther,
-    idleAnimationOther,
-    activeMoveFactors,
-    k,
-    lerpFn,
-    isPosition,
-    localQuaternion2,
-    now,
-  );
 
-  // _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
+  // // formal
+  // _get7wayBlend(
+  //   activeAvatar,
+  //   anglesOther,
+  //   idleAnimationOther,
+  //   activeMoveFactors,
+  //   k,
+  //   lerpFn,
+  //   isPosition,
+  //   localQuaternion2,
+  //   now,
+  // );
 
-  lerpFn
-    .call(
-      target.copy(localQuaternion),
-      localQuaternion2,
-      activeMoveFactors.crouchFactor,
-    );
+  // // _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
 
-  // target.copy(localQuaternion);
+  // lerpFn
+  //   .call(
+  //     target.copy(localQuaternion),
+  //     localQuaternion2,
+  //     activeMoveFactors.crouchFactor,
+  //   );
+  // // end formal
+
+  // test
+  target.copy(localQuaternion);
 };
 
 const _get7wayBlend = (
@@ -544,30 +548,50 @@ const _get7wayBlend = (
       mirrorFactor,
     );
 
-  // if (isFirst) console.log(mirrorFactor); 
+  // if (isFirst) console.log(mirrorFactor);
+
+  // if (isFirst && mirrorFactor === 1) {
+  //   console.log('------', angleFactor);
+  //   console.log(
+  //     horizontalWalkAnimationAngles[0].name,
+  //     '---',
+  //     horizontalWalkAnimationAngles[1].name,
+  //   );
+  //   console.log(
+  //     horizontalWalkAnimationAnglesMirror[0].name,
+  //     '---',
+  //     horizontalWalkAnimationAnglesMirror[1].name,
+  //   );
+  //   /*
+  //     full  back: ------ 1
+  //       walking backwards.fbx --- left strafe walking.fbx
+  //       walking backwards.fbx --- right strafe walking reverse.fbx
+  //     left  back: ------ ~= 0.5
+  //       walking backwards.fbx --- left strafe walking.fbx
+  //       walking backwards.fbx --- right strafe walking reverse.fbx
+  //     right back: ------ ~= 0.5
+  //       walking backwards.fbx --- right strafe walking.fbx
+  //       walking backwards.fbx --- left strafe walking reverse.fbx
+  //   */
+  // }
 
   if (isFirst && mirrorFactor === 1) {
-    console.log('------', angleFactor);
-    console.log(
-      horizontalWalkAnimationAngles[0].name,
-      '---',
-      horizontalWalkAnimationAngles[1].name,
-    );
-    console.log(
-      horizontalWalkAnimationAnglesMirror[0].name,
-      '---',
-      horizontalWalkAnimationAnglesMirror[1].name,
-    );
+    let logText = '';
+    if (horizontalWalkAnimationAngles[0].name !== 'walking backwards.fbx') logText += horizontalWalkAnimationAngles[0].name + ' --- ';
+    if (horizontalWalkAnimationAngles[1].name !== 'walking backwards.fbx') logText += horizontalWalkAnimationAngles[1].name + ' --- ';
+    if (horizontalWalkAnimationAnglesMirror[0].name !== 'walking backwards.fbx') logText += horizontalWalkAnimationAnglesMirror[0].name + ' --- ';
+    if (horizontalWalkAnimationAnglesMirror[1].name !== 'walking backwards.fbx') logText += horizontalWalkAnimationAnglesMirror[1].name + ' --- ';
+    // logText += angleFactor
+    console.log(logText);
     /*
-      full  back: ------ 1
-        walking backwards.fbx --- left strafe walking.fbx
-        walking backwards.fbx --- right strafe walking reverse.fbx
-      left  back: ------ ~= 0.5
-        walking backwards.fbx --- left strafe walking.fbx
-        walking backwards.fbx --- right strafe walking reverse.fbx
-      right back: ------ ~= 0.5
-        walking backwards.fbx --- right strafe walking.fbx
-        walking backwards.fbx --- left strafe walking reverse.fbx
+      full  back:
+        left strafe walking.fbx --- right strafe walking reverse.fbx --- 
+        or
+        right strafe walking.fbx --- left strafe walking reverse.fbx --- 
+      left  back:
+        left strafe walking.fbx --- right strafe walking reverse.fbx --- 
+      right back:
+        right strafe walking.fbx --- left strafe walking reverse.fbx --- 
     */
   }
 
