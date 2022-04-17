@@ -1,0 +1,34 @@
+[
+  {
+    "name": "alert",
+    "icon": "noun-wondering-4705278.svg"
+  },
+  {
+    "name": "angry",
+    "icon": "noun-mad-4705281.svg"
+  },
+  {
+    "name": "embarrassed",
+    "icon": "noun-embarrassed-4705269.svg"
+  },
+  {
+    "name": "headNod",
+    "icon": "noun-pleased-4705286.svg"
+  },
+  {
+    "name": "headShake",
+    "icon": "noun-hostile-4705273.svg"
+  },
+  {
+    "name": "sad",
+    "icon": "noun-depress-4705264.svg"
+  },
+  {
+    "name": "surprise",
+    "icon": "noun-panic-4705288.svg"
+  },
+  {
+    "name": "victory",
+    "icon": "noun-cheerful-4705270.svg"
+  }
+]
