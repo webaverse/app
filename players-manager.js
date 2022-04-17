@@ -80,7 +80,7 @@ class PlayersManager {
       this.unbindStateFn = this.playersArray.unobserve.bind(this.playersArray, playersObserveFn);
     }
   }
-  update(timestamp, timeDiff) {
+  updateRemotePlayers(timestamp, timeDiff) {
     for (const remotePlayer of this.remotePlayers.values()) {
       remotePlayer.updateAvatar(timestamp, timeDiff);
     }

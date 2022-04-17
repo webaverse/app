@@ -18,6 +18,7 @@ import { Settings } from '../general/settings';
 import { WorldObjectsList } from '../general/world-objects-list';
 import { IoHandler } from '../general/io-handler';
 import { ZoneTitleCard } from '../general/zone-title-card';
+import { Quests } from '../play-mode/quests';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
 import { LoadingBox } from '../../LoadingBox.jsx';
 import { DragAndDrop } from '../../DragAndDrop.jsx';
@@ -29,6 +30,7 @@ import { registerIoEventHandler, unregisterIoEventHandler } from '../general/io-
 import Header from '../../Header.jsx';
 
 import styles from './App.module.css';
+import '../../fonts.css';
 
 //
 
@@ -238,6 +240,7 @@ export const App = () => {
                 <IoHandler />
                 <ZoneTitleCard />
                 <MapGen />
+                <Quests />
                 <LoadingBox />
                 <DragAndDrop />
                 <Stats app={ app } />

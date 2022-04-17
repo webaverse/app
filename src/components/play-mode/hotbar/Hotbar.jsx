@@ -16,14 +16,16 @@ export const Hotbar = () => {
     useEffect(() => {
         if (open) {
             const keydown = e => {
-                switch (e.which) {
-                    case 82: { // R
-                        game.dropSelectedApp();
-                        return false;
-                    }
-                    case 46: { // delete
-                        game.deleteSelectedApp();
-                        return false;
+                if (!e.ctrlKey) {
+                    switch (e.which) {
+                        case 82: { // R
+                            game.dropSelectedApp();
+                            return false;
+                        }
+                        case 46: { // delete
+                            game.deleteSelectedApp();
+                            return false;
+                        }
                     }
                 }
             };

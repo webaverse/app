@@ -28,6 +28,7 @@ import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
+import {generateObjectUrlCard} from './card-generator.js';
 
 // const {contractNames} = metaversefileConstants;
 
@@ -923,13 +924,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
         );
         if (collision) {
           const collisionId = collision.objectId;
-          const object = metaversefileApi.getAppByPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
-          if (object) {
-            const lastHitTime = lastHitTimes.get(object) ?? 0;
+          const result = metaversefileApi.getPairByPhysicsId(collisionId);
+          if (result) {
+            const [app, physicsObject] = result;
+            const lastHitTime = lastHitTimes.get(app) ?? 0;
             const timeDiff = now - lastHitTime;
             if (timeDiff > 1000) {
               const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
-              const hitDirection = object.position.clone()
+              const hitDirection = app.position.clone()
                 .sub(localPlayer.position);
               hitDirection.y = 0;
               hitDirection.normalize();
@@ -942,17 +944,17 @@ const _gameUpdate = (timestamp, timeDiff) => {
               localEuler.z = 0;
               const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
 
-              const willDie = object.willDieFrom(damage);
-              object.hit(damage, {
+              // const willDie = app.willDieFrom(damage);
+              app.hit(damage, {
                 collisionId,
-                // collisionId,
+                physicsObject,
                 hitPosition,
                 hitQuaternion,
                 hitDirection,
-                willDie,
+                // willDie,
               });
             
-              lastHitTimes.set(object, now);
+              lastHitTimes.set(app, now);
             }
           }
         }
@@ -1488,7 +1490,9 @@ class GameManager extends EventTarget {
 
   }
   isMovingBackward() {
-    return ioManager.keysDirection.z > 0 && this.isAiming();
+    // return ioManager.keysDirection.z > 0 && this.isAiming();
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
   }
   isAiming() {
     return metaversefileApi.useLocalPlayer().hasAction('aim');
@@ -1680,6 +1684,21 @@ class GameManager extends EventTarget {
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
   pushPlayerUpdates = _pushPlayerUpdates;
+  async renderCard(object) { // HACK: this should be moved to a UI component
+    const start_url = object?.start_url;
+    if (start_url) {
+      // console.log('render card 1', start_url);
+      const cardImg = await generateObjectUrlCard({
+        start_url,
+      });
+      // console.log('render card 2', start_url, cardImg);
+      // const stats = procgen.generateStats();
+      /* console.log('render start url', {
+        start_url,
+        stats,
+      }); */
+    }
+  }
 }
 const gameManager = new GameManager();
 export default gameManager;

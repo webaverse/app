@@ -18,6 +18,8 @@ import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
 import loadoutManager from './loadout-manager.js';
+import questManager from './quest-manager.js';
+import mobManager from './mob-manager.js';
 import {
   getRenderer,
   scene,
@@ -64,14 +66,6 @@ const frameEvent = new MessageEvent('frame', {
     // lastTimestamp: 0,
   },
 });
-const _pushRenderSettings = () => {
-  const renderSettings = renderSettingsManager.findRenderSettings(rootScene);
-  renderSettingsManager.applyRenderSettingsToSceneAndPostProcessing(renderSettings, rootScene, postProcessing);
-
-  return () => {
-    renderSettingsManager.applyRenderSettingsToSceneAndPostProcessing(null, rootScene, postProcessing);
-  }
-};
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -313,11 +307,13 @@ export default class Webaverse extends EventTarget {
           game.update(timestamp, timeDiffCapped);
           
           localPlayer.updateAvatar(timestamp, timeDiffCapped);
-          playersManager.update(timestamp, timeDiffCapped);
+          playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
+          mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
+          questManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
@@ -345,7 +341,7 @@ export default class Webaverse extends EventTarget {
         loadoutManager.update(timestamp, timeDiffCapped);
 
         {
-          const popRenderSettings = _pushRenderSettings();
+          const popRenderSettings = renderSettingsManager.push(rootScene);
 
           performanceTracker.setGpuPrefix('');
           this.render(timestamp, timeDiffCapped);
@@ -530,6 +526,7 @@ const _startHacks = webaverse => {
     }
   }; */
   webaverse.titleCardHack = false;
+  let haloMeshApp = null;
   window.addEventListener('keydown', e => {
     if (e.which === 46) { // .
       emoteIndex = -1;
@@ -572,6 +569,20 @@ const _startHacks = webaverse => {
         console.log('final result', result);
         offscreenEngine.destroy();
       })();
+    } else if (e.which === 75) { // K
+      if (!haloMeshApp) {
+        haloMeshApp = metaversefileApi.createApp();
+        (async () => {
+          const {modules} = metaversefileApi.useDefaultModules();
+          const m = modules['halo'];
+          await haloMeshApp.addModule(m);
+        })();
+        scene.add(haloMeshApp);
+      } else {
+        scene.remove(haloMeshApp);
+        haloMeshApp.destroy();
+        haloMeshApp = null;
+      }
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {

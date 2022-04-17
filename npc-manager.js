@@ -13,6 +13,7 @@ class NpcManager extends EventTarget {
     position,
     quaternion,
     scale,
+    detached,
   }) {
     const npcPlayer = new NpcPlayer();
     npcPlayer.name = name;
@@ -35,13 +36,15 @@ class NpcManager extends EventTarget {
     }
 
     npcPlayer.setAvatarApp(avatarApp);
-    this.npcs.push(npcPlayer);
 
-    this.dispatchEvent(new MessageEvent('npcadd', {
-      data: {
-        player: npcPlayer,
-      },
-    }));
+    if (!detached) {
+      this.npcs.push(npcPlayer);
+      this.dispatchEvent(new MessageEvent('npcadd', {
+        data: {
+          player: npcPlayer,
+        },
+      }));
+    }
 
     return npcPlayer;
   }
@@ -50,13 +53,14 @@ class NpcManager extends EventTarget {
     npcPlayer.destroy();
 
     const removeIndex = this.npcs.indexOf(npcPlayer);
-    this.npcs.splice(removeIndex, 1);
-
-    this.dispatchEvent(new MessageEvent('npcremove', {
-      data: {
-        player: npcPlayer,
-      },
-    }));
+    if (removeIndex !== -1) {
+      this.npcs.splice(removeIndex, 1);
+      this.dispatchEvent(new MessageEvent('npcremove', {
+        data: {
+          player: npcPlayer,
+        },
+      }));
+    }
   }
 }
 const npcManager = new NpcManager();

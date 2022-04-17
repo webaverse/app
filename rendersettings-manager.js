@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import postProcessing from './post-processing.js';
-import {rootScene} from './renderer.js';
+// import {rootScene} from './renderer.js';
 
 class RenderSettings {
   constructor(json) {
@@ -77,6 +77,38 @@ class RenderSettingsManager {
       passes = null,
     } = (renderSettings ?? {});
     localPostProcessing.setPasses(passes);
+  }
+  push(srcScene, dstScene = srcScene, {
+    fog = false,
+  } = {}) {
+    const renderSettings = this.findRenderSettings(srcScene);
+    this.applyRenderSettingsToScene(renderSettings, dstScene);
+
+    const hideFog = fog === false && !!dstScene.fog;
+    let fogCleanup = null;
+    if (hideFog) {
+      if (dstScene.fog.isFog) {
+        const oldNear = dstScene.fog.near;
+        const oldFar = dstScene.fog.far;
+        dstScene.fog.near = Infinity;
+        dstScene.fog.far = Infinity;
+        fogCleanup = () => {
+          dstScene.fog.near = oldNear;
+          dstScene.fog.far = oldFar;
+        };
+      } else if (dstScene.fog.isFogExp2) {
+        const oldDensity = dstScene.fog.density;
+        dstScene.fog.density = 0;
+        fogCleanup = () => {
+          dstScene.fog.density = oldDensity;
+        };
+      }
+    }
+
+    return () => {
+      fogCleanup && fogCleanup();
+      this.applyRenderSettingsToScene(null, dstScene);
+    };
   }
 }
 const renderSettingsManager = new RenderSettingsManager();

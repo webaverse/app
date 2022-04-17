@@ -1,12 +1,15 @@
 import * as THREE from 'three';
-import physx from './physx.js';
-import physicsManager from './physics-manager.js';
+// import physx from './physx.js';
+// import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
 import {scene} from './renderer.js';
+import * as metaverseModules from './metaverse-modules.js';
+import * as sounds from './sounds.js';
 import metaversefileApi from 'metaversefile';
 
 // const localVector = new THREE.Vector3();
+const localEuler = new THREE.Euler();
 // const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
 
@@ -58,18 +61,108 @@ const triggerDamageAnimation = collisionId => {
 const makeHitTracker = ({
   totalHp = 100,
 } = {}) => {
-  const jitterObject = new THREE.Object3D();
-  jitterObject.name = 'hitTracker';
+  const hitTracker = new THREE.Object3D();
+  hitTracker.name = 'hitTracker';
+  
   let hitTime = -1;
-  jitterObject.hp = totalHp;
-  jitterObject.totalHp = totalHp;
-  jitterObject.hit = damage => {
+  hitTracker.hp = totalHp;
+  hitTracker.totalHp = totalHp;
+  let currentApp = null;
+  const frame = e => {
+    hitTracker.update(e.data.timeDiff);
+  };
+  hitTracker.bind = app => {
+    if (!currentApp) {
+      app.parent.add(hitTracker);
+      hitTracker.add(app);
+      hitTracker.updateMatrixWorld();
+
+      world.appManager.addEventListener('frame', frame);
+
+      app.hitTracker = hitTracker;
+      currentApp = app;
+    } else {
+      throw new Error('already bound');
+    }
+  };
+  hitTracker.unbind = () => {
+    if (currentApp) {
+      if (hitTracker.parent) {
+        hitTracker.parent.add(currentApp);
+      } else {
+        hitTracker.remove(currentApp);
+      }
+      currentApp.updateMatrixWorld();
+      if (hitTracker.parent) {
+        hitTracker.parent.remove(hitTracker);
+      }
+
+      currentApp = null;
+
+      world.appManager.removeEventListener('frame', frame);
+    } else {
+      throw new Error('not bound');
+    }
+  };
+  hitTracker.hit = (damage, opts) => {
+    const result = hitTracker.damage(damage);
+    const {hit, died} = result;
+    if (hit) {
+      const {collisionId, hitPosition, hitDirection, hitQuaternion} = opts;
+
+      if (died) {
+        triggerDamageAnimation(collisionId);
+        
+        const soundFiles = sounds.getSoundFiles();
+        const enemyDeathSound = soundFiles.enemyDeath[Math.floor(Math.random() * soundFiles.enemyDeath.length)];
+        sounds.playSound(enemyDeathSound);
+      }
+
+      {
+        const damageMeshApp = metaversefileApi.createApp();
+        (async () => {
+          await metaverseModules.waitForLoad();
+          const {modules} = metaversefileApi.useDefaultModules();
+          const m = modules['damageMesh'];
+          await damageMeshApp.addModule(m);
+        })();
+        damageMeshApp.position.copy(hitPosition);
+        localEuler.setFromQuaternion(hitQuaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        damageMeshApp.quaternion.setFromEuler(localEuler);
+        damageMeshApp.updateMatrixWorld();
+        scene.add(damageMeshApp);
+      }
+
+      hitTracker.dispatchEvent({
+        type: 'hit',
+        collisionId,
+        hitPosition,
+        hitDirection,
+        hitQuaternion,
+        // willDie,
+        hp: hitTracker.hp,
+        totalHp: hitTracker.totalHp,
+      });
+      if (died) {
+        hitTracker.dispatchEvent({
+          type: 'die',
+          // position: cylinderMesh.position,
+          // quaternion: cylinderMesh.quaternion,
+        });
+      }
+    }
+    return result;
+  };
+
+  hitTracker.damage = damage => {
     if (hitTime === -1) {
-      jitterObject.hp = Math.max(jitterObject.hp - damage, 0);
-      if (jitterObject.hp > 0) {
+      hitTracker.hp = Math.max(hitTracker.hp - damage, 0);
+      if (hitTracker.hp > 0) {
         hitTime = 0;
         
-        /* jitterObject.dispatchEvent({
+        /* hitTracker.dispatchEvent({
           type: 'hit',
           hp,
           totalHp,
@@ -93,24 +186,25 @@ const makeHitTracker = ({
       };
     }
   };
-  jitterObject.update = timeDiff => {
+  // hitTracker.willDieFrom = damage => (hitTracker.hp - damage) <= 0;
+  hitTracker.update = timeDiff => {
     if (hitTime !== -1) {
       hitTime += timeDiff;
       
       const scale = (1-hitTime/hitAnimationLength) * 0.1;
-      jitterObject.position.set((-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale);
-      jitterObject.updateMatrixWorld();
+      hitTracker.position.set((-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale);
+      hitTracker.updateMatrixWorld();
       if (hitTime > hitAnimationLength) {
         hitTime = -1;
       }
     }
   };
-  return jitterObject;
+  return hitTracker;
 };
 
 const hpManager = {
   makeHitTracker,
   update,
-  triggerDamageAnimation,
+  // triggerDamageAnimation,
 };
 export default hpManager;
