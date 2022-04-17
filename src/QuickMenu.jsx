@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import React, {useEffect, useRef, useState} from 'react';
 import classnames from 'classnames';
-// import metaversefile from 'metaversefile';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler';
 import {LightArrow} from './LightArrow';
 
@@ -9,8 +8,7 @@ import styles from './QuickMenu.module.css';
 
 import emotes from './components/general/character/emotes.json';
 import {triggerEmote} from './components/general/character/Poses';
-// import {emoteAnimations} from '../avatars/animationHelpers.js';
-// import * as cameraManager from '../camera-manager.js';
+import cameraManager from '../camera-manager.js';
 import {mod, loadImage} from '../util.js';
 
 const modPi2 = angle => mod(angle, Math.PI*2);
@@ -116,6 +114,8 @@ export default function QuickMenu() {
       function keydown(e) {
         if (!e.repeat) {
           if (e.keyCode === 81) { // Q
+            cameraManager.requestPointerLock();
+
             setOpen(true);
             setDown(false);
             setCoords([0, 0]);
@@ -261,7 +261,6 @@ export default function QuickMenu() {
     const angle = modPi2(Math.atan2(coords[1], coords[0]) + Math.PI/2);
     const sliceIndex = Math.floor(angle/sliceSize);
 
-    // console.log('got center', centerDistance, innerRadius, innerRadiusSoft);
     if (centerDistance > innerRadius) {
       setSelectedSlice(sliceIndex);
       setSelectedDepth(1);
@@ -289,8 +288,6 @@ export default function QuickMenu() {
           ref={canvasRef}
         />
         <LightArrow
-          /* enabled={!!arrowPosition}
-          animate={!!selectCharacter} */
           enabled={open}
           down={down}
           ax={coords[0] + centerCoords[0]}
