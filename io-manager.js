@@ -521,6 +521,9 @@ ioManager.keydown = e => {
       // game.setWeaponWheel(true);
       if (game.canToggleAxis()) {
         game.toggleAxis();
+      } else {
+        // clear conflicting aim with quick menu
+        game.menuUnaim();
       }
       break;
     }
