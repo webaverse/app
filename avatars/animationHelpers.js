@@ -796,8 +796,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
   if (activeAvatar.emoteAnimation !== activeAvatar.lastEmoteAnimation) {
     activeAvatar.lastEmoteTime = activeAvatar.emoteAnimation ? now : 0;
-    activeAvatar.lastEmoteAnimation = activeAvatar.emoteAnimation;
   }
+  activeAvatar.lastEmoteAnimation = activeAvatar.emoteAnimation;
 
   const _handleDefault = spec => {
     const {
