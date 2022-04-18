@@ -53,6 +53,7 @@ export const Emotions = ({
 
     const localPlayer = metaversefile.useLocalPlayer();
 
+    // handle mouse events
     useEffect( () => {
 
         function mousemove ( e ) {
@@ -72,6 +73,9 @@ export const Emotions = ({
 
                     setFacePoseValue(emotion, value);
 
+                    // this set is redundant, but it ensures zero values from setFacePoseValue do not interfere with the drag
+                    emotionState.setValue( value );
+
                 }
 
             }
@@ -88,6 +92,7 @@ export const Emotions = ({
 
     }, [ emotionsRef, dragEmotionIndex ].concat( emotionStates.map(e => e.value ) ) );
 
+    // update UI from external actions
     useEffect( () => {
 
         const actionadd = e => {
