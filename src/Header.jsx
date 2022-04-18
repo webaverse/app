@@ -1,9 +1,8 @@
-
 import React, { useEffect, useRef, useContext, useState } from 'react';
-import classnames from 'classnames';
+// import classnames from 'classnames';
 
 import CharacterHups from './CharacterHups.jsx';
-import { world } from '../world.js'
+// import { world } from '../world.js'
 import game from '../game.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
@@ -23,7 +22,19 @@ import styles from './Header.module.css';
 
 //
 
-export default function Header () {
+const HeaderIcon = () => {
+    return (
+        <div className={styles.headerIcon}>
+            <a href="/" className={styles.logo}>
+                <img src="images/arrow-logo.svg" className={styles.image} />
+            </a>
+        </div>
+    );
+};
+
+//
+
+export default function Header() {
 
     const { state, setState, selectedApp } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
@@ -34,9 +45,9 @@ export default function Header () {
 
     const [address, setAddress] = useState(false);
     const [nfts, setNfts] = useState(null);
-    const [apps, setApps] = useState(world.appManager.getApps().slice());
+    // const [apps, setApps] = useState(world.appManager.getApps().slice());
     // const [claims, setClaims] = useState([]);
-    const [dragging, setDragging] = useState(false);
+    // const [dragging, setDragging] = useState(false);
     const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
 
@@ -258,20 +269,17 @@ export default function Header () {
 
 	return (
         <div className={styles.container} onClick={ stopPropagation } >
-            <CharacterHups localPlayer={localPlayer} npcs={npcs} />
-            <div className={styles.inner}>
-                <header className={styles.header}>
-                    <div className={styles.row}>
-                        <a href="/" className={styles.logo}>
-                            <img src="images/arrow-logo.svg" className={styles.image} />
-                        </a>
-                        <User
-                            address={address}
-                            setAddress={setAddress}
-                            setLoginFrom={setLoginFrom}
-                        />
-                    </div>
-				</header>
+            <CharacterHups
+              localPlayer={localPlayer}
+              npcs={npcs}
+            />
+            {/* <div className={styles.inner}> */}
+                <HeaderIcon />
+                <User
+                    address={address}
+                    setAddress={setAddress}
+                    setLoginFrom={setLoginFrom}
+                />
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}
@@ -299,7 +307,7 @@ export default function Header () {
                         loginFrom={loginFrom}
                     />
                 </div>
-            </div>
+            {/* </div> */}
         </div>
     );
 
