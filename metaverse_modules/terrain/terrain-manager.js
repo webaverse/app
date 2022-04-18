@@ -181,12 +181,12 @@ export class TerrainManager {
 
     const chunksToRemove = this.currentChunks.filter(chunk => !this.targetChunkIds.includes(chunk.chunkId));
 
-    for (const chunk of chunksToRemove) {
+    chunksToRemove.forEach(chunk => {
       this.vertexFreeRanges = this._freeRange(this.vertexFreeRanges, this.chunkVertexRanges[chunk.rangeIndex]);
       this.indexFreeRanges = this._freeRange(this.indexFreeRanges, this.chunkIndexRanges[chunk.rangeIndex]);
       this.chunkVertexRanges[chunk.rangeIndex] = {offset: -1, count: -1};
       this.chunkIndexRanges[chunk.rangeIndex] = {offset: -1, count: -1};
-    }
+    });
 
     this.currentChunks = this.currentChunks.filter(c => !chunksToRemove.includes(c));
     this.onRemoveChunks(chunksToRemove.map(chunk => chunk.chunkId));
