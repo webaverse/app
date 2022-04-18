@@ -28,6 +28,30 @@ class VoicePack {
     this.actionFiles = actionFiles;
     this.audioBuffer = audioBuffer;
     this.voiceActor = voiceActor;
+    this.actionVoices = actionFiles.map(({name, offset, duration}) => {
+      return {
+        name,
+        offset,
+        duration,
+        nonce: 0,
+      };
+    });
+  }
+  selectVoice(voicer) {
+    // the weight of each voice is proportional to the inverse of the number of times it has been used
+    const maxNonce = voicer.reduce((max, voice) => Math.max(max, voice.nonce), 0);
+    const weights = voicer.map(({nonce}) => {
+      return 1 - (nonce / (maxNonce + 1));
+    });
+    const selectionIndex = weightedRandom(weights);
+    const voiceSpec = voicer[selectionIndex];
+    voiceSpec.nonce++;
+    while (voicer.every(voice => voice.nonce > 0)) {
+      for (const voiceSpec of voicer) {
+        voiceSpec.nonce--;
+      }
+    }
+    return voiceSpec;
   }
   static async load({
     audioUrl,
