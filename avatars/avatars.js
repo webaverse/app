@@ -1728,7 +1728,7 @@ class Avatar {
                 }
               }
               if (index !== -1) {
-                morphTargetInfluences[index] = facepose.value;
+                morphTargetInfluences[index] = facepose.value ?? 1;
               }
             }
           }
