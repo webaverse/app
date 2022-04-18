@@ -1,0 +1,157 @@
+.loginDiv {
+    width: 100%;
+    margin: 10px 0;
+    text-align: -webkit-center;
+}
+
+.loginBtnText {
+    display: inline-block;
+    transform: skewX(20deg);
+  }
+
+.loginBtnImg {
+    vertical-align: middle;
+    margin: 0 10px;
+  }
+
+.loginBtn {
+    transform: skewX(-20deg);
+    background: rgb(0, 168, 252);
+    color: rgb(0, 0, 0);
+    padding: 0.5em;
+    width: 10em;
+    text-align: left;
+    cursor: pointer;
+}
+
+.logoutBtn {
+    position: absolute;
+    right: 0;
+    background: black;
+    color: white;
+    padding: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.logoutBtn:hover {
+    background: #ef5350;
+    color: white;
+}
+
+.user {
+	position: fixed;
+  top: 0;
+  right: 0;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	user-select: none;
+  z-index: 2;
+}
+
+.user:hover .name {
+	transform: translateX(-30px);
+  background-color: #ef5350;
+}
+.user:hover .name::before {
+	border-right-color: #ef5350;
+}
+.user:hover::before {
+	width: 100%;
+}
+.user:active .name {
+	background-color: #283593;
+}
+.user:active .name::before {
+	border-right-color: #283593;
+}
+
+.user:active .icon {
+  transform: scale(1.2);
+}
+.user .icon {
+	position: relative;
+  height: 70px;
+	margin-left: 20px;
+	margin-right: 60px;
+	background-color: #FFF;
+	border-radius: 100px;
+	border: 2px solid #333;
+}
+
+.user .name {
+	position: relative;
+	display: flex;
+	height: 80px;
+	margin-right: -30px;
+	padding: 0 10px;
+	padding-right: 40px;
+	padding-top: 30px;
+	margin-bottom: auto;
+	background-color: #000;
+	color: #FFF;
+	align-items: center;
+}
+.user .name,
+.user .name::before
+{
+	transition: all 2s cubic-bezier(0, 1, 0, 1);
+}
+.user .name::before {
+	position: absolute;
+	top: 0;
+	left: -80px;
+  border-width: 0;
+	border-right-width: 80px;
+	border-bottom-width: 80px;
+	border-color: transparent;
+	border-style: solid;
+	border-right-color: #000;
+	content: '';
+}
+.user::before {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 0;
+	background-color: #000;
+	transition: width 0.5s cubic-bezier(0, 1, 0, 1);
+	content: '';
+}
+.avatar {
+  position: relative;
+  width: 400px;
+  height: 400px;
+}
+
+/* */
+
+.login_options {
+  background: black;
+  color: white;
+  font-size: initial;
+  text-align: left;
+  cursor: pointer;
+}
+
+.metamask {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.discord {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.metamask_text {
+  margin-left: 10px;
+}
+
+.discord_text {
+  margin-left: 10px;
+}
