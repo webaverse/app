@@ -12,7 +12,8 @@ import emotes from './emotes.json';
 
 let emoteTimeout = null;
 export const triggerEmote = emoteName => {
-  const emote = emotes.find(emote => emote.name === emoteName);
+  const emoteHardName = emoteName.replace(/Soft$/, '');
+  const emote = emotes.find(emote => emote.name === emoteHardName);
   const {emotion} = emote;
   
   // clear old emote
