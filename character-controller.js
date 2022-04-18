@@ -1091,8 +1091,10 @@ class LocalPlayer extends UninterpolatedPlayer {
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
-      this.characterSfx?.update(timestamp, timeDiffS);
-      this.characterFx?.update(timestamp, timeDiffS);
+
+      const actions = this.getActionsState()
+      this.characterSfx.update(timestamp, timeDiffS, actions);
+      this.characterFx.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
 
