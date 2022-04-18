@@ -134,6 +134,7 @@ export const screenshotAvatarApp = async ({
   _render();
 
   diorama.destroy();
+  player.destroy();
 
   return writeCanvas;
 };
