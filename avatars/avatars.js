@@ -4,7 +4,7 @@ import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-import {scene, camera, rootScene} from '../renderer.js';
+import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
 import {
@@ -384,6 +384,7 @@ const _makeDebugMesh = (avatar) => {
   };
   return mesh;
 };
+
 
 // const g = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
 // const m = new THREE.MeshBasicMaterial({ color: 0xFF00FF });
@@ -1862,8 +1863,6 @@ class Avatar {
 
       _updateEyeTarget();
       _updateEyeballTarget();
-
-      // if (this.ragdollMesh?.visible) this.ragdollMesh.setFromAvatar(this);
     }
     this.prevRagdoll = this.ragdoll;
 

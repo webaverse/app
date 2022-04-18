@@ -235,7 +235,7 @@ export const makeRagdollMesh = () => {
     if (object.isCreatedRagdoll) return;
     object.isCreatedRagdoll = true;
     object.skeleton = true;
-    const localPlayer = metaversefile.useLocalPlayer();
+    const localPlayer = metaversefile.useLocalPlayer(); // todo: no localPlayer.
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k];
       const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, localPlayer.characterController.physicsId);
