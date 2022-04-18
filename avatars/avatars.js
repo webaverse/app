@@ -526,24 +526,12 @@ const _makeRagdollMesh = () => {
   };
 
   const flatMeshes = _makeMeshes(); // type: physicsObject/meshBone
-  // note:
-  // modelBone = avatar.modelBoneOutputs[k];
-  // modelBoneOutputs.Hips.parent === modelBoneOutputs.Root
-  // meshBone = flatMeshes[k]
-  // flatMeshes.Hips.parent === flatMeshes.Spine.parent
-  // flatMeshes.Hips.children2[0] === flatMeshes.Spine
-  // flatMeshes.Hips.children2[1] === flatMeshes.Left_leg
-  // flatMeshes.Hips.children2[2] === flatMeshes.Right_leg
-  // flatMeshes.Hips === ragdollMesh.children[0].children[0]
-  // flatMeshes.Hips.physicsMesh === flatMeshes.Hips.children[0]
-  // localPlayer.avatar.model === ragdollMesh.parent === flatMeshes.Hips.parent.parent.parent
-  // flatMeshes !== ragdollMesh.children[0]
   const flatMesh = new THREE.Object3D();
   flatMesh.name = 'flatMesh';
   for (const k in flatMeshes) {
     flatMesh.add(flatMeshes[k]); // note
   }
-  const modelBoneToFlatMeshBoneMap = new Map();
+  // const modelBoneToFlatMeshBoneMap = new Map();
 
   const object = new THREE.Object3D(); // === ragdollMesh
   object.name = 'ragdollMesh';
@@ -620,7 +608,7 @@ const _makeRagdollMesh = () => {
       meshBone.physicsMesh.geometry = _makeCapsuleGeometry(meshBone);
 
       // memoize
-      modelBoneToFlatMeshBoneMap.set(modelBone, meshBone);
+      // modelBoneToFlatMeshBoneMap.set(modelBone, meshBone);
     }
   };
   object.createRagdoll = avatar => {
@@ -1890,32 +1878,6 @@ class Avatar {
       }
     }
   }
-  recordCurrentPose() {
-    for (const k in this.modelBoneOutputs) {
-      const modelBone = this.modelBoneOutputs[k];
-      if (!modelBone._recordedPosition) modelBone._recordedPosition = new THREE.Vector3();
-      modelBone._recordedPosition.copy(modelBone.position);
-      if (!modelBone._recordedQuaternion) modelBone._recordedQuaternion = new THREE.Quaternion();
-      modelBone._recordedQuaternion.copy(modelBone.quaternion);
-    }
-  }
-  resetToRecordedPose() {
-    for (const k in this.modelBoneOutputs) {
-      const modelBone = this.modelBoneOutputs[k];
-      modelBone.position.copy(modelBone._recordedPosition);
-      modelBone.quaternion.copy(modelBone._recordedQuaternion);
-    }
-    this.modelBoneOutputs.Root.updateMatrixWorld();
-  }
-  resetToTPose() {
-    this.initializeBonePositions(this.setups);
-
-    for (const k in this.modelBoneOutputs) {
-      const modelBone = this.modelBoneOutputs[k];
-      modelBone.rotation.set(0, 0, 0);
-    }
-    this.modelBoneOutputs.Root.updateMatrixWorld();
-  }
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
@@ -2344,25 +2306,15 @@ class Avatar {
 
     if (this.ragdoll) {
       if (this.ragdoll !== this.prevRagdoll) {
-        // console.log('switch to ragdoll');
         if (!this.ragdollMesh) {
-          this.recordCurrentPose();
-          this.resetToTPose();
           this.ragdollMesh = _makeRagdollMesh();
           this.ragdollMesh.visible = false;
           this.ragdollMesh.wrapToAvatar(this);
           this.ragdollMesh.createRagdoll(this);
           this.model.add(this.ragdollMesh);
-          this.resetToRecordedPose();
         }
         this.ragdollMesh.setFromAvatar(this);
       }
-
-      // // test: drag Left_elbow move to mouse position.
-      // const lastMouseEvent = game.getLastMouseEvent()
-      // localVector.set((-window.innerWidth / 2 + lastMouseEvent.clientX) / 50, (window.innerHeight / 2 - lastMouseEvent.clientY) / 50, 0); // target
-      // localVector.sub(this.ragdollMesh.flatMeshes.Left_elbow.position);
-      // physicsManager.setVelocity(this.ragdollMesh.flatMeshes.Left_elbow, localVector);
 
       this.ragdollMesh.toAvatar(this);
     } else {
