@@ -188,8 +188,7 @@ export class TerrainManager {
       this.chunkIndexRanges[chunk.rangeIndex] = {offset: -1, count: -1};
       this.currentChunks = this.currentChunks.filter(c => c !== chunk);
     }
-
-    // this.onRemoveChunks(chunksToRemove.map(chunk => chunk.chunkId)); // TO-DO: too add
+    this.onRemoveChunks(chunksToRemove.map(chunk => chunk.chunkId));
 
     chunkIdToAdds.forEach(chunkIdToAdd => {
       const [ox, oy, oz] = chunkIdToAdd.split(':');
