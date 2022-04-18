@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {getRenderer, camera} from './renderer.js';
-import * as notifications from './notifications.js';
+// import * as notifications from './notifications.js';
 import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
