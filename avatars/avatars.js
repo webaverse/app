@@ -1921,7 +1921,7 @@ class Avatar {
         this.manuallySetMouthStartTime = -1;
       }
     }
-    const _handleEnvelopeNull=()=>{
+    const _handleMouthMovementNull=()=>{
       this.manuallySetMouthState = this.manuallySetMouth ? 'attack' : null;
       this.manuallySetMouthStartTime = timestamp/1000;
     }
@@ -1943,7 +1943,7 @@ class Avatar {
         break;
       }
       case null: {
-        _handleEnvelopeNull();
+        _handleMouthMovementNull();
         break;
       }
     }
