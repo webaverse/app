@@ -70,24 +70,7 @@ export const Emotions = ({
                     const oldValue = emotionState.value;
                     const value = Math.min(Math.max(oldValue - movementY * 0.01, 0), 1);
 
-                    const facePoseActionIndex = localPlayer.findActionIndex( a => a.type === 'facepose' && a.emotion === emotion );
-                    if ( facePoseActionIndex !== -1 ) {
-
-                        localPlayer.removeActionIndex( facePoseActionIndex );
-
-                    }
-
-                    if ( value > 0 ) {
-                        
-                        const newAction = {
-                            type: 'facepose',
-                            emotion,
-                            value,
-                        };
-                        localPlayer.addAction(newAction);
-                        emotionState.setValue( value );
-
-                    }
+                    setFacePoseValue(emotion, value);
 
                 }
 
