@@ -131,8 +131,8 @@ world.connectRoom = async u => {
       extra.states[5] = rig.useAnimation;
       extra.states[6] = rig.sitState;
       extra.states[7] = rig.sitAnimation;
-      extra.states[8] = rig.danceState;
-      extra.states[9] = rig.danceTime;
+      // extra.states[8] = rig.danceState;
+      extra.states[9] = rig.danceFactor;
       extra.states[10] = rig.danceAnimation;
       extra.states[11] = rig.throwState;
       extra.states[12] = rig.throwTime;

@@ -119,6 +119,10 @@ export default () => {
           transparent: true,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
+
+          clipping: false,
+          fog: false,
+          lights: false,
         });
         material.freeze();
     
@@ -220,6 +224,10 @@ export default () => {
           transparent: true,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
+
+          clipping: false,
+          fog: false,
+          lights: false,
         });
         material2.freeze();
       
@@ -352,7 +360,11 @@ export default () => {
                 transparent: true,
                 depthWrite: false,
                 blending: THREE.AdditiveBlending,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+
+                clipping: false,
+                fog: false,
+                lights: false,
             });
             windMaterial.freeze();
             // const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
@@ -509,6 +521,10 @@ export default () => {
                 depthWrite: false,
                 blending: THREE.AdditiveBlending,
                 side: THREE.DoubleSide,
+
+                clipping: false,
+                fog: false,
+                lights: false,
             });
             flameMaterial.freeze();
         
@@ -710,6 +726,10 @@ export default () => {
                 depthWrite: false,
                 blending: THREE.AdditiveBlending,
                 side: THREE.DoubleSide,
+
+                clipping: false,
+                fog: false,
+                lights: false,
             });
             lightningMaterial.freeze();
         
@@ -921,6 +941,10 @@ export default () => {
           transparent: true,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
+
+          clipping: false,
+          fog: false,
+          lights: false,
       });
       material.freeze();
     
@@ -1155,6 +1179,10 @@ export default () => {
           transparent: true,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
+
+          clipping: false,
+          fog: false,
+          lights: false,
       });
       material.freeze();
     
@@ -1373,6 +1401,10 @@ export default () => {
             transparent: true,
             depthWrite: false,
             blending: THREE.AdditiveBlending,
+
+            clipping: false,
+            fog: false,
+            lights: false,
         });
         particlesMaterial.freeze();
         
@@ -1559,6 +1591,10 @@ export default () => {
             transparent: true,
             depthWrite: false,
             blending: THREE.AdditiveBlending,
+
+            clipping: false,
+            fog: false,
+            lights: false,
         });
         electricityMaterial.freeze();
 
@@ -1746,6 +1782,10 @@ export default () => {
             transparent: true,
             depthWrite: false,
             blending: THREE.AdditiveBlending,
+
+            clipping: false,
+            fog: false,
+            lights: false,
         });
         electricityMaterial.freeze();
 
@@ -1839,7 +1879,7 @@ export default () => {
             blending: THREE.AdditiveBlending,
             side: THREE.DoubleSide,
         });
-        particleMaterial.freeze();
+        // particleMaterial.freeze();
         function addInstancedMesh() {
             mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), particleMaterial, particleCount);
             group.add(mesh);
@@ -1986,9 +2026,9 @@ export default () => {
             depthWrite: false,
             opacity: 0.5,
             blending: THREE.AdditiveBlending,
-            side:THREE.DoubleSide,
+            side: THREE.DoubleSide,
         });
-        particleMaterial.freeze();
+        // particleMaterial.freeze();
         function addInstancedMesh() {
             mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3, 0.3), particleMaterial, particleCount);
             group.add(mesh);
@@ -2229,6 +2269,10 @@ export default () => {
                 transparent: true,
                 depthWrite: false,
                 blending: THREE.AdditiveBlending,
+
+                clipping: false,
+                fog: false,
+                lights: false,
             });
             wave.scene.children[0].material.freeze();
 
@@ -2335,7 +2379,11 @@ export default () => {
         };
     
         //##################################################### material #####################################################
-        let dustMaterial= new THREE.MeshBasicMaterial();
+        let dustMaterial= new THREE.MeshBasicMaterial({
+            // clipping: false,
+            fog: false,
+            // lights: false,
+        });
         dustMaterial.transparent=true; 
         dustMaterial.depthWrite=false;
         dustMaterial.alphaMap=noiseMap;

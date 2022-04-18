@@ -26,8 +26,10 @@ import { Stats } from '../../Stats.jsx';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
+import QuickMenu from '../../QuickMenu.jsx';
 
 import styles from './App.module.css';
+import '../../fonts.css';
 
 //
 
@@ -232,6 +234,7 @@ export const App = () => {
                     setSelectedRoom={ setSelectedRoom }
                 />
                 <IoHandler />
+                <QuickMenu />
                 <ZoneTitleCard />
                 <MapGen />
                 <Quests />
