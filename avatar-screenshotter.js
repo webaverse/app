@@ -41,16 +41,34 @@ export const screenshotAvatarApp = async ({
   canvas = null,
   emotion = '',
 }) => {
-  await Avatar.waitForLoad();
+  // await Avatar.waitForLoad();
 
   const player = npcManager.createNpc({
-    name: 'npc',
+    name: 'sceenshot-npc',
     avatarApp: app,
     detached: true,
   });
-  player.position.set(0, 1.5, 0);
-  player.updateMatrixWorld();
 
+  return await screenshotPlayer({
+    player,
+    width,
+    height,
+    canvas,
+    emotion,
+  });
+};
+export const screenshotPlayer = async ({
+  player,
+  width = 300,
+  height = 300,
+  canvas = null,
+  emotion = '',
+}) => {
+  player.position.set(0, 1.5, 0);
+  player.quaternion.identity();
+  player.scale.set(1, 1, 1);
+  player.updateMatrixWorld();
+  
   let now = 0;
   const timeDiff = 1000/FPS;
 
