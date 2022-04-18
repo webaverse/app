@@ -54,7 +54,7 @@ export const Poses = ({
     const posesRef = useRef();
 
     const poseClick = emote => e => {
-      triggerEmote(emote);
+        triggerEmote(emote);
     };
 
     return (
