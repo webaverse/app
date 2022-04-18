@@ -1,4 +1,3 @@
-
 .loginDiv {
     width: 100%;
     margin: 10px 0;
@@ -44,41 +43,32 @@ body {
   --header-height: 50px;
 }
 
-.header {
+.headerIcon {
   position: fixed;
 	display: flex;
-	width: 100%;
-	height: var(--header-height);
   top: 0;
   left: 0;
   user-select: none;
   z-index: 2;
 }
 
-.header > .row {
-  display: flex;
-  width: inherit;
-  height: inherit;
-  align-items: center;
-}
-
-.header .logo {
-  height: 100%;
-	margin-right: auto;
-  padding: 0 10px;
+.headerIcon .logo {
+  width: var(--header-height);
+	height: var(--header-height);
+  margin-left: 10px;
   user-select: none;
 }
-.header .logo img {
+.headerIcon .logo img {
   pointer-events: none;
 }
-.header .logo:hover img {
+.headerIcon .logo:hover img {
   transform: scale(1.4);
 }
 
-.header .image {
+/* .header .image {
   width: var(--header-height);
   height: var(--header-height);
-}
+} */
 
 .header .tab {
   position: fixed;
