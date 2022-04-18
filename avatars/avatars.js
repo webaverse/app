@@ -948,6 +948,14 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
+
+    this.manuallySetMouth=false;
+    this.manuallySetMouthState=null;
+    this.manuallySetMouthStartTime=0;
+    this.manuallySetMouthAttackTime=0;
+    this.manuallySetMouthDecayTime=0;
+    this.manuallySetMouthSustainTime=0;
+    this.manuallySetMouthReleaseTime=0;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1649,16 +1657,16 @@ class Avatar {
           if (aIndex !== -1) {
             morphTargetInfluences[aIndex] = volumeValue;
           }
-          if (eIndex !== -1) {
+          if (eIndex !== -1 && !this.manuallySetMouth) {
             morphTargetInfluences[eIndex] = volumeValue * this.vowels[1];
           }
-          if (iIndex !== -1) {
+          if (iIndex !== -1 && !this.manuallySetMouth) {
             morphTargetInfluences[iIndex] = volumeValue * this.vowels[2];
           }
-          if (oIndex !== -1) {
+          if (oIndex !== -1 && !this.manuallySetMouth) {
             morphTargetInfluences[oIndex] = volumeValue * this.vowels[3];
           }
-          if (uIndex !== -1) {
+          if (uIndex !== -1 && !this.manuallySetMouth) {
             morphTargetInfluences[uIndex] = volumeValue * this.vowels[4];
           }
           /* } else { // fake speech
@@ -1883,7 +1891,72 @@ class Avatar {
       }
       this.debugMesh.visible = debug.enabled;
     }
-	}
+    
+    //#################################### manually set mouth movement ##########################################
+    const _handleEnvelopeAttack=()=>{
+      this.volume = ((timestamp/1000 - this.manuallySetMouthStartTime) / this.manuallySetMouthAttackTime)/12;
+      if(timestamp/1000 - this.manuallySetMouthStartTime >= this.manuallySetMouthAttackTime){
+        this.manuallySetMouthState = 'decay';
+        this.manuallySetMouthStartTime = timestamp/1000;
+      }
+    }
+    const _handleEnvelopeDecay=()=>{
+      this.volume = (1 - ((timestamp/1000 - this.manuallySetMouthStartTime) / this.manuallySetMouthDecayTime) * 0.8)/12;
+      if(timestamp/1000 - this.manuallySetMouthStartTime >= this.manuallySetMouthDecayTime){
+        this.manuallySetMouthState='sustain';
+        this.manuallySetMouthStartTime = timestamp/1000;
+      }
+    }
+    const _handleEnvelopeSustain=()=>{
+      if(timestamp/1000 - this.manuallySetMouthStartTime >= this.manuallySetMouthSustainTime){
+        this.manuallySetMouthState='release';
+        this.manuallySetMouthStartTime = timestamp/1000;
+      } 
+    }
+    const _handleEnvelopeRelease=()=>{
+      this.volume = (0.2 - ((timestamp/1000 - this.manuallySetMouthStartTime) / this.manuallySetMouthReleaseTime) * 0.2)/12;
+      if(timestamp/1000 - this.manuallySetMouthStartTime >= this.manuallySetMouthReleaseTime){
+        this.manuallySetMouthState=null;
+        this.manuallySetMouth=false;
+        this.manuallySetMouthStartTime = -1;
+      }
+    }
+    const _handleEnvelopeNull=()=>{
+      this.manuallySetMouthState = this.manuallySetMouth ? 'attack' : null;
+      this.manuallySetMouthStartTime = timestamp/1000;
+    }
+    switch (this.manuallySetMouthState) {
+      case 'attack': {
+        _handleEnvelopeAttack();
+        break;
+      }
+      case 'decay': {
+        _handleEnvelopeDecay();
+        break;
+      }
+      case 'sustain': {
+        _handleEnvelopeSustain();
+        break;
+      }
+      case 'release': {
+        _handleEnvelopeRelease();
+        break;
+      }
+      case null: {
+        _handleEnvelopeNull();
+        break;
+      }
+    }
+
+  }
+  setMouthMoving(attack, decay, sustain, release){
+    this.manuallySetMouthState=null;
+    this.manuallySetMouth=true;
+    this.manuallySetMouthAttackTime=attack;
+    this.manuallySetMouthDecayTime=decay;
+    this.manuallySetMouthSustainTime=sustain;
+    this.manuallySetMouthReleaseTime=release;
+  }
 
   isAudioEnabled() {
     return !!this.microphoneWorker;
@@ -1916,7 +1989,9 @@ class Avatar {
         emitBuffer: true,
       });
       this.microphoneWorker.addEventListener('volume', e => {
-        this.volume = this.volume*0.8 + e.data*0.2;
+        if(!this.manuallySetMouth){
+          this.volume = this.volume*0.8 + e.data*0.2;
+        }
       });
       this.microphoneWorker.addEventListener('buffer', e => {
         this.audioRecognizer.send(e.data);

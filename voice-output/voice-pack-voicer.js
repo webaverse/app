@@ -23,9 +23,11 @@ function weightedRandom(weights) {
 }
 
 class VoicePack {
-  constructor(syllableFiles, audioBuffer) {
+  constructor(syllableFiles, actionFiles, voiceActor, audioBuffer) {
     this.syllableFiles = syllableFiles;
+    this.actionFiles = actionFiles;
     this.audioBuffer = audioBuffer;
+    this.voiceActor = voiceActor;
   }
   static async load({
     audioUrl,
@@ -44,7 +46,24 @@ class VoicePack {
       })(),
       loadAudioBuffer(audioContext, audioUrl),
     ]);
-    const voicePack = new VoicePack(syllableFiles, audioBuffer);
+    const [
+      actionFiles,
+    ] = await Promise.all([
+      (async () => {
+        const res = await fetch(indexUrl);
+        let j = await res.json();
+        j = j.filter(({name}) => /^actions\//.test(name));
+        return j;
+      })(),
+      loadAudioBuffer(audioContext, audioUrl),
+    ]);
+
+    const name=audioUrl.substring(
+      audioUrl.indexOf('voicepacks')+11,
+      audioUrl.lastIndexOf('/')
+    )
+
+    const voicePack = new VoicePack(syllableFiles, actionFiles, name, audioBuffer);
     return voicePack;
   }
 }
