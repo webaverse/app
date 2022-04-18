@@ -43,17 +43,13 @@ export const screenshotAvatarApp = async ({
 }) => {
   await Avatar.waitForLoad();
 
-  const position = new THREE.Vector3(0, 1.5, 0);
-  const quaternion = new THREE.Quaternion();
-  const scale = new THREE.Vector3(1, 1, 1);
   const player = npcManager.createNpc({
     name: 'npc',
     avatarApp: app,
-    position,
-    quaternion,
-    scale,
     detached: true,
   });
+  player.position.set(0, 1.5, 0);
+  player.updateMatrixWorld();
 
   let now = 0;
   const timeDiff = 1000/FPS;
