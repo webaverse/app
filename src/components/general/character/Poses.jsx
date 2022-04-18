@@ -1,6 +1,7 @@
 import React, {useState, useRef} from 'react';
 import classnames from 'classnames';
 
+import {setFacePoseValue} from './Emotions';
 import styles from './poses.module.css';
 
 import metaversefile from 'metaversefile';
@@ -10,7 +11,10 @@ import emotes from './emotes.json';
 //
 
 let emoteTimeout = null;
-export const triggerEmote = emote => {
+export const triggerEmote = emoteName => {
+  const emote = emotes.find(emote => emote.name === emoteName);
+  const {emotion} = emote;
+  
   // clear old emote
   const localPlayer = metaversefile.useLocalPlayer();
   localPlayer.removeAction('emote');
@@ -22,15 +26,19 @@ export const triggerEmote = emote => {
   // add new emote
   const newAction = {
     type: 'emote',
-    animation: emote,
+    animation: emoteName,
   };
   localPlayer.addAction(newAction);
 
-  const emoteAnimation = emoteAnimations[emote];
+  setFacePoseValue(emotion, 1);
+
+  const emoteAnimation = emoteAnimations[emoteName];
   const emoteAnimationDuration = emoteAnimation.duration;
   emoteTimeout = setTimeout(() => {
-    const actionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && action.animation === emote);
+    const actionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && action.animation === emoteName);
     localPlayer.removeActionIndex(actionIndex);
+
+    setFacePoseValue(emotion, 0);
     
     emoteTimeout = null;
   }, emoteAnimationDuration * 1000);
