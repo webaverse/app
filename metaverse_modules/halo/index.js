@@ -25,24 +25,32 @@ function createBoxWithRoundedEdges(width, height, radius, innerFactor) {
   return geometry;
 }
 function createAngledBox() {
-  const radius = 0.3;
-  const lineWidth = 0.05;
+  const radius = 0.175;
+  const lineWidth = 0.01;
 
   const a = new THREE.Vector2(0, radius);
   const b = new THREE.Vector2(-radius, radius);
   const c = new THREE.Vector2(-radius * 0.75, radius * 0.25);
 
-  const a2 = a.clone().add(new THREE.Vector2(0, -lineWidth));
-  const b2 = b.clone().add(new THREE.Vector2(lineWidth, -lineWidth));
-  const c2 = c.clone().add(new THREE.Vector2(lineWidth, 0));
+  const a2 = a.clone().add(new THREE.Vector2(0, lineWidth));
+  const b2 = b.clone().add(new THREE.Vector2(-lineWidth, lineWidth));
+  const c2 = c.clone().add(new THREE.Vector2(-lineWidth, 0));
+
+  const a3 = a.clone().add(new THREE.Vector2(0, -lineWidth));
+  const b3 = b.clone().add(new THREE.Vector2(lineWidth, -lineWidth));
+  const c3 = c.clone().add(new THREE.Vector2(lineWidth, 0));
 
   const d = new THREE.Vector2(0, -radius);
   const e = new THREE.Vector2(radius, -radius);
   const f = new THREE.Vector2(radius * 0.75, -radius * 0.25);
 
-  const d2 = d.clone().add(new THREE.Vector2(0, lineWidth));
-  const e2 = e.clone().add(new THREE.Vector2(-lineWidth, lineWidth));
-  const f2 = f.clone().add(new THREE.Vector2(-lineWidth, 0));
+  const d2 = d.clone().add(new THREE.Vector2(0, -lineWidth));
+  const e2 = e.clone().add(new THREE.Vector2(lineWidth, -lineWidth));
+  const f2 = f.clone().add(new THREE.Vector2(lineWidth, 0));
+
+  const d3 = d.clone().add(new THREE.Vector2(0, lineWidth));
+  const e3 = e.clone().add(new THREE.Vector2(-lineWidth, lineWidth));
+  const f3 = f.clone().add(new THREE.Vector2(-lineWidth, 0));
 
   const shape = new THREE.Shape();
   shape.moveTo(a.x, a.y);
@@ -66,6 +74,7 @@ function createAngledBox() {
   shape.holes.push(hole); */
 
   const geometry = new THREE.ShapeGeometry(shape);
+  geometry.translate(0, radius * 0.25, 0);
   // geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(angle));
   return geometry;
 }
