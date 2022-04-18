@@ -20,6 +20,8 @@ export const screenshotAvatarUrl = async ({
   start_url,
   width = 300,
   height = 300,
+  canvas = null,
+  emotion = '',
 }) => {
   const app = await metaversefile.createAppAsync({
     start_url,
@@ -28,12 +30,16 @@ export const screenshotAvatarUrl = async ({
     app,
     width,
     height,
+    canvas,
+    emotion,
   });
 };
 export const screenshotAvatarApp = async ({
   app,
   width = 300,
   height = 300,
+  canvas = null,
+  emotion = '',
 }) => {
   await Avatar.waitForLoad();
 
@@ -66,10 +72,13 @@ export const screenshotAvatarApp = async ({
     player.avatar.inputs.hmd.position.y = player.avatar.height;
     player.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
     player.avatar.inputs.hmd.updateMatrixWorld();
-    player.addAction({
-      type: 'facepose',
-      emotion: 'angry',
-    });
+    if (emotion) {
+      player.clearActions();
+      player.addAction({
+        type: 'facepose',
+        emotion,
+      });
+    }
   };
   const _preAnimate = () => {
     for (let i = 0; i < FPS*2; i++) {
@@ -88,9 +97,14 @@ export const screenshotAvatarApp = async ({
   };
 
   // rendering
-  const writeCanvas = document.createElement('canvas');
-  writeCanvas.width = width;
-  writeCanvas.height = height;
+  let writeCanvas;
+  if (canvas) {
+    writeCanvas = canvas;
+  } else {
+    writeCanvas = document.createElement('canvas');
+    writeCanvas.width = width;
+    writeCanvas.height = height;
+  }
 
   const localLights = _makeLights();
   const objects = localLights.concat([
