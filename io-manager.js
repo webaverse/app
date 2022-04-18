@@ -414,18 +414,6 @@ ioManager.keydown = e => {
       }
       break;
     }
-    case 71: { // G
-      if (cameraManager.pointerLockElement) {
-        /* if (game.canTry()) {
-          game.menuTry();
-        } */
-      } else {
-        // if (!game.dragging) {
-          // _setTransformMode('translate');
-        // }
-      }
-      break;
-    }
     /* case 90: { // Z
       if (!e.ctrlKey) {
         if (game.canStartBuild()) {
@@ -472,10 +460,11 @@ ioManager.keydown = e => {
       document.getElementById('key-r').click(); // equip
       break;
     } */
-    case 71: { // G
-      game.menuDrop();
+    /* case 71: { // G
+      // game.menuDrop();
+      game.menuGDown();
       break;
-    }
+    } */
     case 86: { // V
       // if (!_inputFocused()) {
         e.preventDefault();
@@ -532,6 +521,9 @@ ioManager.keydown = e => {
       // game.setWeaponWheel(true);
       if (game.canToggleAxis()) {
         game.toggleAxis();
+      } else {
+        // clear conflicting aim with quick menu
+        game.menuUnaim();
       }
       break;
     }
@@ -640,6 +632,14 @@ ioManager.keyup = e => {
       // }
       break;
     }
+    /* case 71: { // G
+      // if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        game.menuGUp();
+      // }
+      break;
+    } */
     case 86: { // V
       // if (!_inputFocused()) {
         e.preventDefault();
