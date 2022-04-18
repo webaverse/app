@@ -35,7 +35,8 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
     'Crouched Sneaking Left.fbx',
     'Crouched Sneaking Right.fbx',
   ];
-  const trimClip = (clip, startTime, endTime) => {
+  const trimClip = (clip, startTime, endTime) => { // todo: trim animations in Blender.
+    // https://github.com/webaverse/app/pull/2791#discussion_r851795506
     for (let i = 0; i < clip.tracks.length; i++) {
       clip.tracks[i].trim(startTime, endTime);
       for (let j = 0; j < clip.tracks[i].times.length; j++) {
