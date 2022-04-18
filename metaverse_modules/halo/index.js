@@ -24,6 +24,51 @@ function createBoxWithRoundedEdges(width, height, radius, innerFactor) {
   const geometry = new THREE.ShapeGeometry(shape);
   return geometry;
 }
+function createAngledBox() {
+  const radius = 0.3;
+  const lineWidth = 0.05;
+
+  const a = new THREE.Vector2(0, radius);
+  const b = new THREE.Vector2(-radius, radius);
+  const c = new THREE.Vector2(-radius * 0.75, radius * 0.25);
+
+  const a2 = a.clone().add(new THREE.Vector2(0, -lineWidth));
+  const b2 = b.clone().add(new THREE.Vector2(lineWidth, -lineWidth));
+  const c2 = c.clone().add(new THREE.Vector2(lineWidth, 0));
+
+  const d = new THREE.Vector2(0, -radius);
+  const e = new THREE.Vector2(radius, -radius);
+  const f = new THREE.Vector2(radius * 0.75, -radius * 0.25);
+
+  const d2 = d.clone().add(new THREE.Vector2(0, lineWidth));
+  const e2 = e.clone().add(new THREE.Vector2(-lineWidth, lineWidth));
+  const f2 = f.clone().add(new THREE.Vector2(-lineWidth, 0));
+
+  const shape = new THREE.Shape();
+  shape.moveTo(a.x, a.y);
+  shape.lineTo(b.x, b.y);
+  shape.lineTo(c.x, c.y);
+  shape.lineTo(c2.x, c2.y);
+  shape.lineTo(b2.x, b2.y);
+  shape.lineTo(a2.x, a2.y);
+  shape.lineTo(a.x, a.y);
+
+  shape.moveTo(d.x, d.y);
+  shape.lineTo(e.x, e.y);
+  shape.lineTo(f.x, f.y);
+  shape.lineTo(f2.x, f2.y);
+  shape.lineTo(e2.x, e2.y);
+  shape.lineTo(d2.x, d2.y);
+  shape.lineTo(d.x, d.y);
+
+  /* makeShape(new THREE.Shape(), 0, 0, width, height, 0);
+  const hole = makeShape(new THREE.Path(), 0, 0, width * innerFactor, height * innerFactor, 0);
+  shape.holes.push(hole); */
+
+  const geometry = new THREE.ShapeGeometry(shape);
+  // geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(angle));
+  return geometry;
+}
 export default () => {
   const {WebaverseShaderMaterial} = useMaterials();
   const localPlayer = useLocalPlayer();
@@ -32,7 +77,8 @@ export default () => {
 
   const w = menuWidth + menuRadius*2;
   const h = menuHeight + menuRadius*2;
-  const geometry = createBoxWithRoundedEdges(w, h, menuRadius, 0.95);
+  // const geometry = createBoxWithRoundedEdges(w, h, menuRadius, 0.95);
+  const geometry = createAngledBox();
   const boundingBox = new THREE.Box3().setFromObject(new THREE.Mesh(geometry));
   // console.log('got bounding box', boundingBox);
   const material = new WebaverseShaderMaterial({
