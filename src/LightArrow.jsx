@@ -7,7 +7,7 @@ import styles from './LightArrow.module.css';
 const frameSize = 64;
 const numFrames = 64;
 const numFramesPerRow = Math.sqrt(numFrames);
-const canvasSize = frameSize * numFramesPerRow;
+// const canvasSize = frameSize * numFramesPerRow;
 const arrowTime = 5000;
 const timeDiff = arrowTime / numFrames;
 
@@ -192,9 +192,12 @@ const _downloadArrowImage = async () => {
 
 export const LightArrow = function({
   enabled = true,
+  down = false,
   animate = false,
   x,
   y,
+  ax,
+  ay,
 }) {
   const canvasRef = useRef();
 
@@ -241,9 +244,12 @@ export const LightArrow = function({
       className={classnames(
         styles.lightArrowContainer,
         enabled ? styles.enabled : null,
+        down ? styles.down : null,
       )}
       style={{
         transform: `translate(${x}px, ${y}px)`,
+        left: ax,
+        top: ay,
       }}
     >
       <div
