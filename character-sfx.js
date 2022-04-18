@@ -55,37 +55,6 @@ const _getActionFrameIndex = (f, frameTimes) => {
   return i;
 };
 
-const jumpGruntIndex={
-  'shishi':[{index:2,nonce:0},{index:3,nonce:0},{index:4,nonce:0},{index:5,nonce:0},{index:6,nonce:0},{index:7,nonce:0}],
-  'bryce':[{index:0,nonce:0},{index:5,nonce:0},{index:9,nonce:0},{index:12,nonce:0},{index:13,nonce:0},{index:15,nonce:0}],
-  'griffin':[{index:0,nonce:0},{index:11,nonce:0},{index:16,nonce:0},{index:17,nonce:0},{index:18,nonce:0},{index:19,nonce:0}],
-  'tiffany':[{index:0,nonce:0},{index:3,nonce:0},{index:9,nonce:0},{index:10,nonce:0},{index:11,nonce:0},{index:12,nonce:0}],
-  'andrew':[{index:0,nonce:0},{index:2,nonce:0},{index:11,nonce:0},{index:12,nonce:0},{index:13,nonce:0},{index:15,nonce:0}],
-}
-const gaspGruntIndex={
-  'shishi':[{index:1,nonce:0},{index:2,nonce:0},{index:3,nonce:0},{index:4,nonce:0},{index:5,nonce:0},{index:6,nonce:0},{index:7,nonce:0}],
-  'bryce':[{index:0,nonce:0},{index:2,nonce:0},{index:3,nonce:0},{index:4,nonce:0},{index:5,nonce:0},{index:6,nonce:0}],
-  'griffin':[{index:0,nonce:0},{index:11,nonce:0},{index:14,nonce:0},{index:15,nonce:0},{index:17,nonce:0},{index:18,nonce:0},{index:19,nonce:0}],
-  'tiffany':[{index:0,nonce:0},{index:5,nonce:0},{index:7,nonce:0},{index:8,nonce:0},{index:9,nonce:0},{index:10,nonce:0},{index:11,nonce:0}],
-  'andrew':[{index:0,nonce:0},{index:4,nonce:0},{index:5,nonce:0},{index:8,nonce:0},{index:10,nonce:0},{index:1,nonce:0},{index:3,nonce:0}]
-}
-function weightedRandom(weights) {
-	let totalWeight = 0;
-	for (let i = 0; i < weights.length; i++) {
-		totalWeight += weights[i];
-	}
-
-	let random = Math.random() * totalWeight;
-	for (let i = 0; i < weights.length; i++) {
-		if (random < weights[i]) {
-			return i;
-		}
-		random -= weights[i];
-	}
-
-	return -1;
-}
-
 class CharacterSfx {
   constructor(player) {
     this.player = player;
@@ -110,22 +79,6 @@ class CharacterSfx {
     
     this.oldNarutoRunSound = null;
   }
-  selectVoice(voicer) {
-    // the weight of each voice is proportional to the inverse of the number of times it has been used
-    const maxNonce = voicer.reduce((max, voice) => Math.max(max, voice.nonce), 0);
-    const weights = voicer.map(({nonce}) => {
-      return 1 - (nonce / (maxNonce + 1));
-    });
-    const selectionIndex = weightedRandom(weights);
-    const voiceSpec = voicer[selectionIndex];
-    voiceSpec.nonce++;
-    while (voicer.every(voice => voice.nonce > 0)) {
-      for (const voiceSpec of voicer) {
-        voiceSpec.nonce--;
-      }
-    }
-    return voiceSpec;
-  }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
       return;
@@ -148,8 +101,7 @@ class CharacterSfx {
         sounds.playSound(audioSpec);
         // play jump grunt 
         if(this.player.voicePack!==null && !this.player.hasAction('fly') && !this.player.hasAction('narutoRun') && this.player.avatar.velocity.y<0){
-          let voice = this.selectVoice(jumpGruntIndex[this.player.voicePack.voiceActor]);
-          this.playGrunt('attack',voice.index);
+          this.playGrunt('jump'); 
         }
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
         const audioSpec = soundFiles.land[Math.floor(Math.random() * soundFiles.land.length)];
@@ -254,13 +206,11 @@ class CharacterSfx {
         this.lastWalkTime = timeSeconds;
       }
       // handel gasp grunt
-      if(timeSeconds-this.lastRunningTime>2){
+      if(timeSeconds-this.lastRunningTime>2 || this.player.hasAction('jump')){
         this.runStep=0;
       }
-      if(timeSeconds - this.lastWalkTime>0.01 && this.runStep>10 && !this.player.hasAction('narutoRun')){
-        let voice = this.selectVoice(gaspGruntIndex[this.player.voicePack.voiceActor]);
-        this.playGrunt('gasp',voice.index);
-        
+      if(timeSeconds - this.lastWalkTime>0.01 && this.runStep>10 && !this.player.hasAction('narutoRun') && !this.player.hasAction('jump')){
+        this.playGrunt('gasp');
         this.runStep=0;
       }
     };
@@ -386,37 +336,44 @@ class CharacterSfx {
   }
   playGrunt(type, index){
 
-    let fileIndex;
-    let voiceFiles;
+    let voiceFiles, offset, duration;
     switch (type) {
       case 'pain': {
-        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Pain/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /Pain/.test(f.name));
         break;
       }
       case 'scream': {
-        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Scream/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /Scream/.test(f.name));
         break;
       }
       case 'attack': {
-        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Attack/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /Attack/.test(f.name));
         break;
       }
       case 'angry': {
-        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Angry/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /Angry/.test(f.name));
         break;
       }
       case 'gasp': {
-        voiceFiles = this.player.voicePack.actionFiles.filter(f => /Gasp/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /Gasp/.test(f.name));
+        break;
+      }
+      case 'jump': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/.test(f.name));
         break;
       }
     }
-
-    if(index===undefined)
-      fileIndex=Math.floor(Math.random()*voiceFiles.length);
-    else 
-      fileIndex=index;
-
-    const {offset, duration}=voiceFiles[fileIndex];
+    
+    if(index===undefined){
+      let voice = this.player.voicePack.selectVoice(voiceFiles);
+      duration = voice.duration;
+      offset = voice.offset;
+    }
+    else{
+      duration = voiceFiles[index].duration;
+      offset = voiceFiles[index].offset;
+    } 
+    
     const audioContext = Avatar.getAudioContext();
     const audioBufferSourceNode = audioContext.createBufferSource();
     audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
