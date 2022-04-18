@@ -101,8 +101,10 @@ export const Emotions = ({
             if (action.type === 'facepose') {
                 const {emotion, value} = action;
                 const emotionIndex = emotions.indexOf(emotion);
-                const emotionState = emotionStates[emotionIndex];
-                emotionState.setValue(value);
+                if (emotionIndex !== -1) {
+                    const emotionState = emotionStates[emotionIndex];
+                    emotionState.setValue(value);
+                }
             }
 
         };
@@ -114,8 +116,10 @@ export const Emotions = ({
             if (action.type === 'facepose') {
                 const {emotion} = action;
                 const emotionIndex = emotions.indexOf(emotion);
-                const emotionState = emotionStates[emotionIndex];
-                emotionState.setValue(0);
+                if (emotionIndex !== -1) {
+                    const emotionState = emotionStates[emotionIndex];
+                    emotionState.setValue(0);
+                }
             }
 
         };
