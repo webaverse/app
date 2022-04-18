@@ -1,7 +1,8 @@
 import {Vector3, Quaternion, AnimationClip} from 'three';
 import metaversefile from 'metaversefile';
-import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
-import easing from '../easing.js';
+import {/*VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+// import easing from '../easing.js';
+import {easing} from '../math-utils.js';
 import loaders from '../loaders.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 
@@ -26,9 +27,9 @@ import {
 } from '../util.js';
 
 import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
+  // idleFactorSpeed,
+  // walkFactorSpeed,
+  // runFactorSpeed,
   narutoRunTimeFactor,
 } from './constants.js';
 
@@ -61,6 +62,7 @@ let useAnimations;
 let aimAnimations;
 let sitAnimations;
 let danceAnimations;
+let emoteAnimations;
 let throwAnimations;
 // let crouchAnimations;
 let activateAnimations;
@@ -76,6 +78,7 @@ let hurtAnimations;
 const defaultSitAnimation = 'chair';
 const defaultUseAnimation = 'combo';
 const defaultDanceAnimation = 'dansu';
+const defaultEmoteAnimation = 'angry';
 const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
 const defaultActivateAnimation = 'activate';
@@ -353,6 +356,24 @@ export const loadPromise = (async () => {
   danceAnimations = {
     dansu: animations.find(a => a.isDancing),
     powerup: animations.find(a => a.isPowerUp),
+  };
+  emoteAnimations = {
+    alert: animations.find(a => a.isAlert),
+    alertSoft: animations.find(a => a.isAlertSoft),
+    angry: animations.find(a => a.isAngry),
+    angrySoft: animations.find(a => a.isAngrySoft),
+    embarrassed: animations.find(a => a.isEmbarrassed),
+    embarrassedSoft: animations.find(a => a.isEmbarrassedSoft),
+    headNod: animations.find(a => a.isHeadNod),
+    headNodSoft: animations.find(a => a.isHeadNodSingle),
+    headShake: animations.find(a => a.isHeadShake),
+    headShakeSoft: animations.find(a => a.isHeadShakeSingle),
+    sad: animations.find(a => a.isSad),
+    sadSoft: animations.find(a => a.isSadSoft),
+    surprise: animations.find(a => a.isSurprise),
+    surpriseSoft: animations.find(a => a.isSurpriseSoft),
+    victory: animations.find(a => a.isVictory),
+    victorySoft: animations.find(a => a.isVictorySoft),
   };
   throwAnimations = {
     throw: animations.find(a => a.isThrow),
@@ -773,6 +794,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   }
   activeAvatar.lastBackwardFactor = mirrorFactor;
 
+  if (activeAvatar.emoteAnimation !== activeAvatar.lastEmoteAnimation) {
+    activeAvatar.lastEmoteTime = activeAvatar.emoteAnimation ? now : 0;
+  }
+  activeAvatar.lastEmoteAnimation = activeAvatar.emoteAnimation;
+
   const _handleDefault = spec => {
     const {
       animationTrackName: k,
@@ -835,7 +861,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
     }
 
-    if (activeAvatar.danceTime > 0) {
+    if (activeAvatar.danceFactor > 0) {
       return spec => {
         const {
           animationTrackName: k,
@@ -852,8 +878,39 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const t2 = (now / 1000) % danceAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        const danceTimeS = activeAvatar.danceTime / crouchMaxTime;
-        const f = Math.min(Math.max(danceTimeS, 0), 1);
+        const danceFactorS = activeAvatar.danceFactor / crouchMaxTime;
+        const f = Math.min(Math.max(danceFactorS, 0), 1);
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
+
+        _clearXZ(dst, isPosition);
+      };
+    }
+
+    if (activeAvatar.emoteFactor > 0) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          lerpFn,
+          // isTop,
+          isPosition,
+        } = spec;
+
+        _handleDefault(spec);
+
+        const emoteAnimation = emoteAnimations[activeAvatar.emoteAnimation || defaultEmoteAnimation];
+        const src2 = emoteAnimation.interpolants[k];
+        const emoteTime = now - avatar.lastEmoteTime;
+        const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
+        const v2 = src2.evaluate(t2);
+
+        const emoteFactorS = activeAvatar.emoteFactor / crouchMaxTime;
+        const f = Math.min(Math.max(emoteFactorS, 0), 1);
         lerpFn
           .call(
             dst,
@@ -1144,7 +1201,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 export {
   animations,
   animationStepIndices,
- cubicBezier
+  emoteAnimations,
+  // cubicBezier,
 };
 
 export const getClosest2AnimationAngles = (key, angle) => {
