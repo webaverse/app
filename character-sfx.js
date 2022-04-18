@@ -253,6 +253,7 @@ class CharacterSfx {
 
         this.lastWalkTime = timeSeconds;
       }
+      // handel gasp grunt
       if(timeSeconds-this.lastRunningTime>2){
         this.runStep=0;
       }
@@ -343,7 +344,7 @@ class CharacterSfx {
             const audioSpec = soundFiles.chomp[Math.floor(Math.random() * soundFiles.chomp.length)];
             sounds.playSound(audioSpec);
             // control mouth movement
-            this.player.avatar.setMouthMoving(0.04,0.04,0.1,0.02);
+            this.player.characterBehavior.setMouthMoving(0.04,0.04,0.1,0.02);
           }
 
           this.lastEatFrameIndex = eatFrameIndex;
@@ -359,7 +360,7 @@ class CharacterSfx {
             const audioSpec = soundFiles.gulp[Math.floor(Math.random() * soundFiles.gulp.length)];
             sounds.playSound(audioSpec);
             // control mouth movement
-            this.player.avatar.setMouthMoving(0.1,0.1,0.1,0.1);
+            this.player.characterBehavior.setMouthMoving(0.1,0.1,0.1,0.1);
           }
 
           this.lastDrinkFrameIndex = drinkFrameIndex;
