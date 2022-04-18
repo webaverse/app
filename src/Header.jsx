@@ -17,17 +17,61 @@ import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
 import { User } from './User';
+import {emotions} from './components/general/character/Emotions';
+import {screenshotAvatarApp} from '../avatar-screenshotter.js';
 
 import styles from './Header.module.css';
 
 //
 
+const CharacterIcon = () => {
+    const characterIconSize = 150;
+    const canvasRefs = [];
+    const canvases = (() => {
+        const result = [];
+        for (let i = 0; i < emotions.length; i++) {
+            const canvasRef = useRef();
+            const canvas = <canvas width={characterIconSize} height={characterIconSize} ref={canvasRef} key={i} />;
+            result.push(canvas);
+            canvasRefs.push(canvasRef);
+        }
+        return result;
+    })();
+
+    useEffect(() => {
+        if (canvasRefs.every(ref => !!ref.current)) {
+            (async () => {
+                const avatarApp = await metaversefile.createAppAsync({
+                    start_url: `./avatars/scillia_drophunter_v15_vian.vrm`, // XXX use the current avatar contentId
+                });
+
+                for (let i = 0; i < emotions.length; i++) {
+                    const emotion = emotions[i];
+                    const canvas = canvasRefs[i].current;
+                    const avatarCanvas = await screenshotAvatarApp({
+                        app: avatarApp,
+                        canvas,
+                        emotion,
+                    });
+                }
+            })()
+        }
+    }, canvasRefs.map(ref => ref.current));
+
+    return (
+        <div className={styles.characterIcon}>
+            {canvases}
+        </div>
+    );
+};
+
 const HeaderIcon = () => {
     return (
         <div className={styles.headerIcon}>
-            <a href="/" className={styles.logo}>
+            {/* <a href="/" className={styles.logo}>
                 <img src="images/arrow-logo.svg" className={styles.image} />
-            </a>
+            </a> */}
+            <CharacterIcon />
         </div>
     );
 };
