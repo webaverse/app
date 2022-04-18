@@ -1,2 +1,1 @@
-
-export * from "./wallet/metamask";
+export * from "./wallet/wallet";

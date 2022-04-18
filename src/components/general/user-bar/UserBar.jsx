@@ -7,7 +7,7 @@ import wallet from '../../wallet';
 import { discordClientId } from '../../../../constants';
 import { parseQuery } from '../../../../util.js';
 import WebaWallet from '../../wallet';
-import { MetamaskManager } from '../../../../blockchain-lib';
+import { WalletManager } from '../../../../blockchain-lib';
 
 import { AppContext } from '../../app';
 import { HealthBar } from './HealthBar';
@@ -20,8 +20,6 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
     const { state, setState } = useContext( AppContext );
     const [ loginError, setLoginError ] = useState( null );
-
-    const metamask = new MetamaskManager();
 
     //
 
@@ -58,15 +56,9 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
     };
 
-
-    const sendWabawalletMessage = (method, data = {}) => {
-
-        const message = { method, data };
-        wallet.iframe.contentWindow.postMessage( JSON.stringify( message ), "*" );
-
-    };
-
     const handleMaskLoginBtnClick = async () => {
+
+        const metamask = new WalletManager();
 
         if ( userAddress ) {
 
@@ -74,20 +66,33 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
         } else {
 
-            const metamask = new MetamaskManager();
-
             try {
 
-                const signedMessage = await metamask.connect();
-                const jwt = await metamask.login( signedMessage );
-                sendWabawalletMessage('initiate_wallet', { jwt });
-                sendWabawalletMessage('get_profile', {});
+                await metamask.connectMetamask();
+                console.log('zz');
 
-            } catch ( error ) {
+                metamask.addListener( 'profile', ( event ) => {
 
-                console.error( error.message );
+                    console.log( event.data );
 
+                });
+
+            } catch (error) {
+                alert(error.message);
             }
+
+            // try {
+
+            //     const signedMessage = await metamask.connect();
+            //     const jwt = await metamask.login( signedMessage );
+            //     sendWabawalletMessage('initiate_wallet', { jwt });
+            //     sendWabawalletMessage('get_profile', {});
+
+            // } catch ( error ) {
+
+            //     console.error( error.message );
+
+            // }
 
         }
 
@@ -98,111 +103,6 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
         setState({ openedPanel: null });
 
     };
-
-    //
-
-    useEffect( () => {
-
-        const receiveWebawalletMessage = ( event ) => {
-
-            if ( ! event.data || event.origin + '/' !== wallet.src ) { // Adding '/' at the end to compare origin and src
-
-                return;
-
-            }
-
-            const res = JSON.parse( event.data );
-            const { type, method, data, error } = res;
-
-            if ( error ) {
-
-                console.error( error );
-                return;
-
-            }
-
-            if ( type === 'event' ) {
-
-                console.log( `Got event: ${ method }`, { data } );
-
-            } else if ( type === 'response' ) {
-
-                console.log( `Got response for: ${ method }`, { data } );
-
-            }
-
-        };
-
-        window.addEventListener( 'message', receiveWebawalletMessage, false );
-
-        //
-
-        return () => {
-
-            window.removeEventListener( 'message', receiveWebawalletMessage );
-
-        };
-
-    }, [] );
-
-    // useEffect( () => {
-
-    //     const { error, code, id, play, realmId, twitter: arrivingFromTwitter } = parseQuery( window.location.search );
-
-    //     if ( ! autoLoginRequestMade ) {
-
-    //         setAutoLoginRequestMade( true );
-
-    //         if ( code ) {
-
-    //             setLoggingIn( true );
-
-    //             WebaWallet.waitForLaunch().then( async () => {
-
-    //                 const { address, error } = await WebaWallet.loginDiscord( code, id );
-
-    //                 if ( address ) {
-
-    //                     setUserAddress( address );
-    //                     setLoginMethod( 'discord' );
-    //                     setState({ openedPanel: null });
-
-    //                 } else if ( error ) {
-
-    //                     setLoginError( String( error ).toLocaleUpperCase() );
-
-    //                 }
-
-    //                 window.history.pushState( {}, '', window.location.origin );
-    //                 setLoggingIn( false );
-
-    //             }); // it may occur that wallet loading is in progress already
-
-    //         } else {
-
-    //             WebaWallet.waitForLaunch().then( async () => {
-
-    //                 const { address, error } = await WebaWallet.autoLogin();
-
-    //                 if ( address ) {
-
-    //                     setUserAddress( address );
-    //                     setLoginMethod( 'discord' );
-    //                     setState({ openedPanel: null });
-
-    //                 } else if ( error ) {
-
-    //                     setLoginError( String( error ).toLocaleUpperCase() );
-
-    //                 }
-
-    //             }); // it may occur that wallet loading is in progress already
-
-    //         }
-
-    //     }
-
-    // }, [ userAddress ] );
 
     //
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, createContext } from 'react';
 
 import { defaultAvatarUrl } from '../../../constants';
 
+import { WalletManager } from '../../../blockchain-lib';
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
@@ -197,6 +198,23 @@ export const App = () => {
         }
 
     }, [ canvasRef ] );
+
+    useEffect( async () => {
+
+        const metamask = new WalletManager();
+
+        console.log('z');
+
+        metamask.addListener( 'profile', ( ev ) => {
+
+            console.log('profile fetched', ev);
+            setProfile( ev.data );
+
+        });
+
+        await metamask.connectMetamask();
+
+    }, [] );
 
     //
 
