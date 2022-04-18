@@ -171,12 +171,11 @@ export class TerrainManager {
   }
 
   async updateChunk() {
-    const chunkIdToAdd = this.targetChunkIds
+    const chunkIdToAdds = this.targetChunkIds
       .filter(id => !this.currentChunks.map(v => v.chunkId).includes(id))
-      .filter(id => !this.stagedChunkIds.includes(id))
-      .at(0);
+      .filter(id => !this.stagedChunkIds.includes(id));
 
-    if (chunkIdToAdd === undefined) {
+    if (chunkIdToAdds.length === 0) {
       return;
     }
 
@@ -190,9 +189,9 @@ export class TerrainManager {
       this.currentChunks = this.currentChunks.filter(c => c !== chunk);
     }
 
-    // this.currentChunks = this.currentChunks.filter(chunk => this.targetChunkIds.includes(chunk.chunkId));
+    // this.onRemoveChunks(chunksToRemove.map(chunk => chunk.chunkId)); // TO-DO: too add
 
-    if (chunkIdToAdd) {
+    chunkIdToAdds.forEach(chunkIdToAdd => {
       const [ox, oy, oz] = chunkIdToAdd.split(':');
 
       this.stagedChunkIds.push(chunkIdToAdd);
@@ -232,7 +231,7 @@ export class TerrainManager {
         this.stagedChunkIds = this.stagedChunkIds.filter(id => id !== chunkIdToAdd);
         console.log('>>> error: ', error);
       });
-    }
+    });
   }
 
   _updateChunkGeometry(rangeIndex) {

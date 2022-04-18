@@ -4,6 +4,7 @@ const geometryUtils = (() => {
   scope.workers = [];
   scope.workingFlags = [];
   scope.resolves = [];
+  scope.stagedRequests = [];
 
   for (let i = 0; i < NUM_WORKER; i++) {
     scope.workers.push(new Worker('./geometry-utils.worker.js', {type: 'module'}));
@@ -13,7 +14,17 @@ const geometryUtils = (() => {
     scope.workers[i].onmessage = e => {
       if (e.data.message === 'generateChunk') {
         scope.resolves[e.data.workerIndex](e.data.output);
-        scope.workingFlags[e.data.workerIndex] = false;
+        if (scope.stagedRequests.length > 0) {
+          const request = scope.stagedRequests.shift();
+          scope.workers[e.data.workerIndex].postMessage({
+            workerIndex: e.data.workerIndex,
+            message: 'generateChunk',
+            params: request.params
+          });
+          scope.resolves[e.data.workerIndex] = request.resolve;
+        } else {
+          scope.workingFlags[e.data.workerIndex] = false;
+        }
       }
     }
   }
@@ -22,7 +33,8 @@ const geometryUtils = (() => {
     return new Promise((resolve, reject) => {
       const idleWorkerIndex = scope.workingFlags.findIndex(e => e === false);
       if (idleWorkerIndex === -1) {
-        reject('no idle worker');
+        scope.stagedRequests.push({params: [x, y, z, chunkSize, segment], resolve: resolve, reject: reject});
+        // reject('no idle worker');
         return;
       }
 
