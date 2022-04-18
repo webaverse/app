@@ -18,7 +18,8 @@ import { registerIoEventHandler, unregisterIoEventHandler } from './components/g
 import { AppContext } from './components/app';
 import { User } from './User';
 import {emotions} from './components/general/character/Emotions';
-import {screenshotAvatarApp} from '../avatar-screenshotter.js';
+import {screenshotPlayer} from '../avatar-screenshotter.js';
+import npcManager from '../npc-manager.js';
 
 import styles from './Header.module.css';
 
@@ -31,7 +32,9 @@ const CharacterIcon = () => {
         const result = [];
         for (let i = 0; i < emotions.length; i++) {
             const canvasRef = useRef();
-            const canvas = <canvas width={characterIconSize} height={characterIconSize} ref={canvasRef} key={i} />;
+            const canvas = (
+              <canvas width={characterIconSize} height={characterIconSize} ref={canvasRef} key={i} />
+            );
             result.push(canvas);
             canvasRefs.push(canvasRef);
         }
@@ -44,12 +47,17 @@ const CharacterIcon = () => {
                 const avatarApp = await metaversefile.createAppAsync({
                     start_url: `./avatars/scillia_drophunter_v15_vian.vrm`, // XXX use the current avatar contentId
                 });
+                const player = npcManager.createNpc({
+                    name: 'character-icon-npc',
+                    avatarApp,
+                    detached: true,
+                });
 
                 for (let i = 0; i < emotions.length; i++) {
                     const emotion = emotions[i];
                     const canvas = canvasRefs[i].current;
-                    const avatarCanvas = await screenshotAvatarApp({
-                        app: avatarApp,
+                    const avatarCanvas = await screenshotPlayer({
+                        player,
                         canvas,
                         emotion,
                     });
