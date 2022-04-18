@@ -1891,29 +1891,29 @@ class Avatar {
       }
       this.debugMesh.visible = debug.enabled;
     }
-    
+
     //#################################### manually set mouth movement ##########################################
-    const _handleEnvelopeAttack=()=>{
+    const _handleMouthMovementAttack=()=>{
       this.volume = ((timestamp/1000 - this.manuallySetMouthStartTime) / this.manuallySetMouthAttackTime)/12;
       if(timestamp/1000 - this.manuallySetMouthStartTime >= this.manuallySetMouthAttackTime){
         this.manuallySetMouthState = 'decay';
         this.manuallySetMouthStartTime = timestamp/1000;
       }
     }
-    const _handleEnvelopeDecay=()=>{
+    const _handleMouthMovementDecay=()=>{
       this.volume = (1 - ((timestamp/1000 - this.manuallySetMouthStartTime) / this.manuallySetMouthDecayTime) * 0.8)/12;
       if(timestamp/1000 - this.manuallySetMouthStartTime >= this.manuallySetMouthDecayTime){
         this.manuallySetMouthState='sustain';
         this.manuallySetMouthStartTime = timestamp/1000;
       }
     }
-    const _handleEnvelopeSustain=()=>{
+    const _handleMouthMovementSustain=()=>{
       if(timestamp/1000 - this.manuallySetMouthStartTime >= this.manuallySetMouthSustainTime){
         this.manuallySetMouthState='release';
         this.manuallySetMouthStartTime = timestamp/1000;
       } 
     }
-    const _handleEnvelopeRelease=()=>{
+    const _handleMouthMovementRelease=()=>{
       this.volume = (0.2 - ((timestamp/1000 - this.manuallySetMouthStartTime) / this.manuallySetMouthReleaseTime) * 0.2)/12;
       if(timestamp/1000 - this.manuallySetMouthStartTime >= this.manuallySetMouthReleaseTime){
         this.manuallySetMouthState=null;
@@ -1927,19 +1927,19 @@ class Avatar {
     }
     switch (this.manuallySetMouthState) {
       case 'attack': {
-        _handleEnvelopeAttack();
+        _handleMouthMovementAttack();
         break;
       }
       case 'decay': {
-        _handleEnvelopeDecay();
+        _handleMouthMovementDecay();
         break;
       }
       case 'sustain': {
-        _handleEnvelopeSustain();
+        _handleMouthMovementSustain();
         break;
       }
       case 'release': {
-        _handleEnvelopeRelease();
+        _handleMouthMovementRelease();
         break;
       }
       case null: {
