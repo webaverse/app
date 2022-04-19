@@ -117,12 +117,34 @@ const CharacterIcon = () => {
 };
 
 const HeaderIcon = () => {
+    const { state, setState } = useContext( AppContext );
+
+    const handleCharacterBtnClick = () => {
+
+        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+
+        if ( state.openedPanel === 'CharacterPanel' ) {
+
+            cameraManager.requestPointerLock();
+
+        }
+
+    };
+
     return (
-        <div className={styles.headerIcon}>
+        <div
+            className={styles.headerIcon}
+            onClick={handleCharacterBtnClick}
+        >
             {/* <a href="/" className={styles.logo}>
                 <img src="images/arrow-logo.svg" className={styles.image} />
             </a> */}
             <CharacterIcon />
+            
+            <button className={classnames(styles.button, styles.sub)}>
+                <div className={styles.label}>人 Chara</div>
+                <div className={styles.key}>Tab</div>
+            </button>
         </div>
     );
 };
