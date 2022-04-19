@@ -5,6 +5,7 @@ import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
+import { lerp } from 'three/src/math/MathUtils';
 // import alea from './alea.js';
 
 const localVector = new THREE.Vector3();
@@ -15,7 +16,10 @@ const localEuler = new THREE.Euler();
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
+//
+let aimoffsetx = 0;
 
+//
 let cameraOffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
 const rayVectorUp = new THREE.Vector3(0,1,0);
@@ -102,6 +106,15 @@ class CameraManager extends EventTarget {
         },
       }));
     });
+  }
+  //set offset value to be used only if in isometric view
+  aimdownSight(adsValx){
+    aimoffsetx = adsValx;
+  }
+  //Lerp towards offset for smoother ADS, works both aiming in and out
+  ads(){
+    cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1)
+    cameraOffset.updateMatrixWorld;
   }
   focusCamera(position) {
     camera.lookAt(position);
@@ -355,6 +368,9 @@ class CameraManager extends EventTarget {
               localVector.copy(avatarCameraOffset)
                 .applyQuaternion(camera.quaternion)
             );
+            //only aims down sight when not in first person mode
+            this.ads();
+            
     
           break;
         }
@@ -362,6 +378,7 @@ class CameraManager extends EventTarget {
           throw new Error('invalid camera mode: ' + cameraMode);
         }
       }
+      
 
       camera.position.y -= crouchOffset;
     };
