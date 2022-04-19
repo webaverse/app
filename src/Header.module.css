@@ -113,6 +113,18 @@ body {
   right: 0;
   background-color: #000;
   transform: skewX(-30deg);
+  overflow: hidden;
+}
+.headerIcon .characterIcon .meta .name .background::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #42a5f5;
+  transform: translateX(-100%);
+  transition: transform 0.5s cubic-bezier(0, 1, 0, 1);
+  content: '';
 }
 .headerIcon .characterIcon .meta .stat {
   display: flex;
@@ -237,6 +249,9 @@ body {
 .headerIcon:hover .buttonWrap .button {
   background-color: #42a5f5;
   /* color: #FFF; */
+}
+.headerIcon:hover .characterIcon .meta .name .background::before {
+  transform: translate(0, 0);
 }
 /* .characterBtn:hover .background, .characterWrapper.opened .background {
   transform: rotateZ(180deg) translateX(50px);
