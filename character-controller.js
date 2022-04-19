@@ -877,7 +877,17 @@ class UninterpolatedPlayer extends StatePlayer {
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
-      use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
+      use: new InfiniteActionInterpolant(() => {
+        const useAction = this.getAction('use')
+        if (useAction) {
+          if (useAction.needResetUseTime) {
+            useAction.needResetUseTime = false;
+            return false;
+          }
+          return true;
+        }
+        return false;
+      }, 0),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
@@ -1087,16 +1097,21 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
 
-      const useAction = this.getAction('use');
-      if (useAction?.needEndUse) {
-        gameManager.menuEndUse(); // must before updateInterpolation
+      const oldUseAction = this.getAction('use');
+
+      if (oldUseAction?.needEndUse) {
+        gameManager.menuEndUse();
+      }
+
+      if (oldUseAction?.needContinuCombo) {
+        gameManager.menuStartUse();
+        const newUseAction = this.getAction('use');
+        if (oldUseAction.needEndUse && oldUseAction.needContinuCombo) {
+          newUseAction.needResetUseTime = true;
+        }
       }
 
       this.updateInterpolation(timeDiff);
-
-      if (useAction?.needContinuCombo) {
-        gameManager.menuStartUse(); // must after updateInterpolation
-      }
 
       const session = this.getSession();
       const mirrors = metaversefile.getMirrors();

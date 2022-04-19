@@ -351,6 +351,7 @@ const _startUse = () => {
           scale,
           needEndUse: false,
           needContinuCombo: false,
+          needResetUseTime: false,
         };
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
