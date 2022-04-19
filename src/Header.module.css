@@ -92,8 +92,9 @@ body {
   flex-direction: column;
   width: 150px;
 }
-.headerIcon .characterIcon .meta .name {
+.headerIcon .characterIcon .meta .text {
   position: relative;
+  display: flex;
   margin-left: -50px;
   padding: 5px 10px;
   padding-left: 50px;
@@ -101,11 +102,20 @@ body {
   font-size: 16px;
   color: #FFF;
   letter-spacing: 1px;
+  align-items: baseline;
 }
-.headerIcon .characterIcon .meta .name .text {
+.headerIcon .characterIcon .meta .text .name,
+.headerIcon .characterIcon .meta .text .level
+{
   position: relative;
 }
-.headerIcon .characterIcon .meta .name .background {
+.headerIcon .characterIcon .meta .text .name {
+  margin-right: auto;
+}
+.headerIcon .characterIcon .meta .text .level {
+  font-size: 12px;
+}
+.headerIcon .characterIcon .meta .text .background {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -115,7 +125,7 @@ body {
   transform: skewX(-30deg);
   overflow: hidden;
 }
-.headerIcon .characterIcon .meta .name .background::before {
+.headerIcon .characterIcon .meta .text .background::before {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -227,7 +237,7 @@ body {
   align-items: center;
   width: 80px;
   color: #FFF;
-  font-size: 11px;
+  font-size: 12px;
   /* background: transparent; */
   /* background: #000; */
   /* border: 0; */
@@ -250,7 +260,7 @@ body {
   background-color: #42a5f5;
   /* color: #FFF; */
 }
-.headerIcon:hover .characterIcon .meta .name .background::before {
+.headerIcon:hover .characterIcon .meta .text .background::before {
   transform: translate(0, 0);
 }
 /* .characterBtn:hover .background, .characterWrapper.opened .background {

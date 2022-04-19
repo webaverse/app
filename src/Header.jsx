@@ -82,15 +82,17 @@ const CharacterIcon = () => {
     const hp = 80;
     const mp = 20;
     const xp = 40;
+    const level = 6;
 
     return (
         <div className={styles.characterIcon}>
             <div className={styles.main}>
                 {canvases}
                 <div className={styles.meta}>
-                    <div className={styles.name}>
+                    <div className={styles.text}>
                         <div className={styles.background} />
-                        <span className={styles.text}>Anon</span>
+                        <span className={styles.name}>Anon</span>
+                        <span className={styles.level}>Lv. {level}</span>
                     </div>
                     <div className={classnames(styles.stat, styles.hp)}>
                         <div className={styles.label}>HP</div>
