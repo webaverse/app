@@ -73,9 +73,13 @@ body {
 .headerIcon .characterIcon .canvas {
   --canvas-size: 80px;
 
+  position: relative;
   width: var(--canvas-size);
   height: var(--canvas-size);
+  background-color: #FFF;
+  border: 3px solid #000;
   border-radius: 1000px;
+  z-index: 1;
 }
 .headerIcon .characterIcon .canvas:not(:first-child) {
   display: none;
@@ -83,9 +87,67 @@ body {
 .headerIcon .characterIcon .meta {
   display: flex;
   flex-direction: column;
+  width: 150px;
 }
 .headerIcon .characterIcon .meta .name {
+  position: relative;
+  margin-left: -40px;
+  padding: 5px 10px;
+  padding-left: 40px;
   font-family: WinchesterCaps;
+  font-size: 16px;
+  color: #FFF;
+  letter-spacing: 1px;
+}
+.headerIcon .characterIcon .meta .name .text {
+  position: relative;
+}
+.headerIcon .characterIcon .meta .name .background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #000;
+  transform: skewX(-30deg);
+}
+.headerIcon .characterIcon .meta .stat {
+  display: flex;
+  position: relative;
+}
+.headerIcon .characterIcon .meta .stat .label {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 51px;
+  margin-left: -30px;
+  padding: 0 5px;
+  padding-left: 30px;
+  background-color: #000;
+  color: #FFF;
+  font-family: 'PlazaRegular';
+  font-size: 12px;
+}
+
+.headerIcon .characterIcon .meta .stat .progress {
+  width: 100%;
+  height: 2px;
+  margin-top: auto;
+  margin-bottom: 3px;
+  appearance: none;
+}
+.headerIcon .characterIcon .meta .stat .progress::-webkit-progress-bar {
+  background: transparent;
+}
+.headerIcon .characterIcon .meta .stat .progress::-webkit-progress-value {
+  background-image: linear-gradient(to right, #42a5f5, #1e88e5);
+}
+
+.headerIcon .characterIcon .meta .stat .barImg {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  bottom: 0;
 }
 
 .header .tab {
