@@ -1,9 +1,6 @@
-// import * as THREE from 'three';
 import React, { useEffect, useRef, useContext, useState } from 'react';
-// import classnames from 'classnames';
 
 import CharacterHups from './CharacterHups.jsx';
-// import { world } from '../world.js'
 import game from '../game.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
@@ -16,12 +13,9 @@ import { Inventory } from './components/general/inventory';
 import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
+import { HeaderIcon } from './HeaderIcon';
 import { User } from './User';
-// import {emotions} from './components/general/character/Emotions';
-// import {screenshotPlayer} from '../avatar-screenshotter.js';
-// import npcManager from '../npc-manager.js';
 
-import {HeaderIcon} from './HeaderIcon.jsx';
 import styles from './Header.module.css';
 
 //
