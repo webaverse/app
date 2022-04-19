@@ -65,14 +65,27 @@ body {
   transform: scale(1.4);
 }
 
+.headerIcon .characterIcon {
+  display: flex;
+  margin-top: 10px;
+  margin-left: 10px;
+}
 .headerIcon .characterIcon .canvas {
-  --canvas-size: 100px;
+  --canvas-size: 80px;
 
   width: var(--canvas-size);
   height: var(--canvas-size);
+  border-radius: 1000px;
 }
 .headerIcon .characterIcon .canvas:not(:first-child) {
   display: none;
+}
+.headerIcon .characterIcon .meta {
+  display: flex;
+  flex-direction: column;
+}
+.headerIcon .characterIcon .meta .name {
+  font-family: WinchesterCaps;
 }
 
 .header .tab {

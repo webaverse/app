@@ -16,7 +16,7 @@
 
 .characterBtn {
   position: relative;
-  top: 50px;
+  top: calc(80px + 10px + 10px);
   left: 400px;
   height: 41px;
   opacity: 1;
