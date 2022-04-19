@@ -108,15 +108,15 @@ const CharacterIcon = () => {
                         <div className={styles.value}>{xp}</div>
                         <progress className={styles.progress} value={xp} max={100} />
                     </div>
+                    <div className={styles.limitBar}>
+                        <div className={styles.inner} />
+                        <div className={styles.label}>Limit</div>
+                    </div>
                 </div>
             </div>
             <div className={styles.sub}>
                 <div className={styles.buttonWrap}>
                     <div className={styles.button}>Tab</div>
-                </div>
-                <div className={styles.limitBar}>
-                    <div className={styles.inner} />
-                    <div className={styles.label}>Limit</div>
                 </div>
             </div>
         </div>

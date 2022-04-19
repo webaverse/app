@@ -70,6 +70,8 @@ body {
   display: flex;
   margin-top: 10px;
   margin-left: 10px;
+  transform: translate(0, 0);
+  transition: transform 0.5s cubic-bezier(0, 1, 0, 1);
 }
 .headerIcon .characterIcon .canvas {
   --canvas-size: 80px;
@@ -169,18 +171,19 @@ body {
 
 .headerIcon .characterIcon .main {
   display: flex;
+  z-index: 1;
 }
 .headerIcon .characterIcon .sub {
   position: absolute;
   display: flex;
-  top: 91px;
-  left: 10px;
+  top: 81px;
+  left: 0;
 }
 .headerIcon .characterIcon .limitBar {
   position: relative;
   height: 13px;
   width: 150px;
-  /* margin-top: 6px; */
+  margin-top: 7px;
   /* margin-left: 20px; */
   border: 3px solid;
   background: linear-gradient(to bottom,rgb(46, 46, 46) 10%,rgb(116, 116, 116) 40%,rgb(116, 116, 116) 100%);
@@ -223,11 +226,17 @@ body {
   background-color: #000;
   /* border: 1px solid #fff; */
   border-radius: 3px;
+  transition: background-color 0.5s cubic-bezier(0, 1, 0, 1);
 }
+.headerIcon:hover .characterIcon {
+  transform: translateX(10px);
+}
+/* .headerIcon:hover .main {
+  transform: scale(1.1, 1.1);
+} */
 .headerIcon:hover .buttonWrap .button {
   background-color: #42a5f5;
   /* color: #FFF; */
-  transition: color 0.3s cubic-bezier(0, 1, 0, 1);
 }
 /* .characterBtn:hover .background, .characterWrapper.opened .background {
   transform: rotateZ(180deg) translateX(50px);
