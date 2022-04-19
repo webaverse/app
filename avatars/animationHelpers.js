@@ -74,7 +74,6 @@ let narutoRunAnimations;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
-let lastF;
 
 const defaultSitAnimation = 'chair';
 // const defaultUseAnimation = 'combo';
@@ -1097,7 +1096,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             );
         }
 
-        lastF = f;
+        if (f >= 1) {
+          avatar.useAnimation = '';
+        }
       };
     }
     return _handleDefault;
@@ -1181,10 +1182,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.y = avatar.height * 0.55;
       }
     }
-  }
-  if (lastF >= 1) {
-    lastF = null;
-    avatar.unuseAnimation = null;
   }
 };
 
