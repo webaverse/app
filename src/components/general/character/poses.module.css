@@ -1,0 +1,75 @@
+.poses {
+  --poses-width: 140px;
+
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 50px;
+  left: 400px;
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+
+.poses:not(.open) .pose {
+  display: none;
+}
+.poses:not(.open) .pose:first-child {
+  display: flex;
+}
+.poses:not(.open) .pose:first-child .poseName
+{
+  display: none;
+}
+
+.poses:not(.parentOpened) {
+  transform: translate(-50px, 0px );
+}
+
+.poses .pose {
+  display: flex;
+  position: relative;
+  background-color: #000;
+  cursor: pointer;
+  user-select: none;
+  transition: all 1s cubic-bezier(0, 1, 0, 1);
+}
+.poses .pose .poseName,
+.poses .pose .poseIcon
+{
+  pointer-events: none;  
+}
+.poses .pose:active {
+  filter: invert(1);
+}
+.poses .pose .poseIcon {
+  width: 50px;
+  height: 50px;
+  padding: 5px;
+  object-fit: contain;
+  filter: brightness(0.3);
+  /* transition: filter 1s cubic-bezier(0, 1, 0, 1); */
+}
+
+.poses .pose:hover .poseIcon,
+.poses .pose.nonzero .poseIcon {
+  filter: brightness(0.7);
+}
+.poses .pose.full .poseIcon {
+  filter: brightness(1);
+}
+
+.poses .pose .poseName {
+  display: flex;
+  position: relative;
+  align-items: center;
+  width: 120px;
+  padding: 0 10px;
+  text-align: center;
+  color: #666;
+  text-transform: uppercase;
+  /* transition: color 1s cubic-bezier(0, 1, 0, 1); */
+}
+
+.poses .pose:hover .poseName,
+.poses .pose.nonzero .poseName {
+  color: #FFFFFF;
+}
