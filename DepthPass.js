@@ -36,6 +36,7 @@ class DepthPass extends Pass {
     this.camera = camera;
     this.width = width;
     this.height = height;
+		this.onBeforeRenderScene = onBeforeRenderScene;
     const depthTexture = new DepthTexture();
 		// depthTexture.type = UnsignedShortType;
 
