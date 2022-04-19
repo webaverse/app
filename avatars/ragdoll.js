@@ -17,7 +17,7 @@ const localMatrix = new THREE.Matrix4();
 const identityVector = new THREE.Vector3();
 const identityQuaternion = new THREE.Quaternion();
 
-export const makeRagdollMesh = () => {
+export const makeRagdollMesh = avatar => {
   const ragdollMeshGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
   const ragdollMeshMaterial = new THREE.MeshNormalMaterial({
     // color: 0xFF0000,
@@ -234,7 +234,6 @@ export const makeRagdollMesh = () => {
   object.createRagdoll = avatar => {
     if (object.isCreatedRagdoll) return;
     object.isCreatedRagdoll = true;
-    object.skeleton = true;
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k];
       // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, localPlayer.characterController.physicsId); // can't hardcode localPlayer here, used disableGeometryQueries instead.
@@ -500,6 +499,9 @@ export const makeRagdollMesh = () => {
     avatar.modelBoneOutputs.Neck.quaternion.copy(getDiffQuaternion(flatMeshes.UpperChest.quaternion, flatMeshes.Neck.quaternion));
     avatar.modelBoneOutputs.Head.quaternion.copy(getDiffQuaternion(flatMeshes.Neck.quaternion, flatMeshes.Head.quaternion));
   };
-  object.skeleton = null;
+
+  object.wrapToAvatar(avatar);
+  object.createRagdoll(avatar);
+
   return object;
 };
