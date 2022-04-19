@@ -79,6 +79,10 @@ const CharacterIcon = () => {
         }
     }, canvasRefs.map(ref => ref.current));
 
+    const hp = 80;
+    const mp = 20;
+    const xp = 40;
+
     return (
         <div className={styles.characterIcon}>
             {canvases}
@@ -89,16 +93,19 @@ const CharacterIcon = () => {
                 </div>
                 <div className={classnames(styles.stat, styles.hp)}>
                     <div className={styles.label}>HP</div>
-                    <progress className={styles.progress} value={80} max={100} />
+                    <progress className={styles.progress} value={hp} max={100} />
+                    <div className={styles.value}>{hp}</div>
                 </div>
                 <div className={classnames(styles.stat, styles.mp)}>
                     <div className={styles.label}>MP</div>
-                    <progress className={styles.progress} value={20} max={100} />
+                    <progress className={styles.progress} value={mp} max={100} />
+                    <div className={styles.value}>{mp}</div>
                 </div>
                 <div className={classnames(styles.stat, styles.xp)}>
                     <img className={styles.barImg} src={`./images/xp-bar.svg`} />
                     <div className={styles.label}>XP</div>
-                    <progress className={styles.progress} value={40} max={100} />
+                    <div className={styles.value}>{xp}</div>
+                    <progress className={styles.progress} value={xp} max={100} />
                 </div>
                 <div className={styles.limitBar}>
                     <div className={styles.inner} />
