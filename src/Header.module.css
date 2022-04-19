@@ -119,19 +119,19 @@ body {
   position: relative;
   display: flex;
   justify-content: center;
-  width: 51px;
+  width: 52px;
   margin-left: -30px;
   padding: 0 5px;
   padding-left: 30px;
   background-color: #000;
   color: #FFF;
   font-family: 'PlazaRegular';
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .headerIcon .characterIcon .meta .stat .progress {
   width: 100%;
-  height: 2px;
+  height: 3px;
   margin-top: auto;
   margin-bottom: 3px;
   appearance: none;
@@ -139,8 +139,14 @@ body {
 .headerIcon .characterIcon .meta .stat .progress::-webkit-progress-bar {
   background: transparent;
 }
+.headerIcon .characterIcon .meta .stat.hp .progress::-webkit-progress-value {
+  background-image: linear-gradient(to right, #ad1457, #f48fb1);
+}
+.headerIcon .characterIcon .meta .stat.mp .progress::-webkit-progress-value {
+  background-image: linear-gradient(to right, #7cb342, #9ccc65);
+}
 .headerIcon .characterIcon .meta .stat .progress::-webkit-progress-value {
-  background-image: linear-gradient(to right, #42a5f5, #1e88e5);
+  background-image: linear-gradient(to right, #1e88e5, #42a5f5);
 }
 
 .headerIcon .characterIcon .meta .stat .barImg {
@@ -148,6 +154,37 @@ body {
   width: 100%;
   left: 0;
   bottom: 0;
+}
+
+.headerIcon .characterIcon .meta .limitBar {
+  position: relative;
+  /* margin-left: 20px; */
+  height: 13px;
+  width: 100%;
+  margin-top: 3px;
+  border: 3px solid;
+  background: linear-gradient(to bottom,rgb(46, 46, 46) 10%,rgb(116, 116, 116) 40%,rgb(116, 116, 116) 100%);
+}
+.headerIcon .characterIcon .meta .limitBar .label {
+  position: absolute;
+  top: 0;
+  font-size: 10px;
+  /* line-height: 1; */
+  letter-spacing: 1px;
+  color: #FFF;
+  /* -webkit-text-stroke: 0.5px #000; */
+  text-shadow: 1px 1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, -1px -1px 0 #000;
+  text-transform: uppercase;
+}
+.headerIcon .characterIcon .meta .limitBar .inner {
+  position: absolute;
+  /* margin: 3px 0px 0px 23px; */
+  /* height: 13px; */
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  background: linear-gradient(to bottom,rgb(194, 130, 130) 20%,rgb(255, 255, 255) 40%,rgb(255, 170, 170) 60%, rgb(255, 170, 170) 100%);
 }
 
 .header .tab {
