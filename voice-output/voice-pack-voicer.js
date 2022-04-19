@@ -83,7 +83,7 @@ class VoicePack {
     ]);
 
     const name=audioUrl.substring(
-      audioUrl.indexOf('voicepacks')+11,
+      audioUrl.indexOf('voicepacks') + 11,
       audioUrl.lastIndexOf('/')
     )
 
