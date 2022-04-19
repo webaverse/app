@@ -75,11 +75,6 @@ body {
   display: none;
 }
 
-/* .header .image {
-  width: var(--header-height);
-  height: var(--header-height);
-} */
-
 .header .tab {
   position: fixed;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
