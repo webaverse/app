@@ -49,6 +49,7 @@ body {
   top: 0;
   left: 0;
   user-select: none;
+  cursor: pointer;
   z-index: 2;
 }
 
@@ -166,16 +167,25 @@ body {
   bottom: 0;
 }
 
-.headerIcon .characterIcon .meta .limitBar {
+.headerIcon .characterIcon .main {
+  display: flex;
+}
+.headerIcon .characterIcon .sub {
+  position: absolute;
+  display: flex;
+  top: 91px;
+  left: 10px;
+}
+.headerIcon .characterIcon .limitBar {
   position: relative;
   height: 13px;
-  width: 100%;
-  margin-top: 6px;
+  width: 150px;
+  /* margin-top: 6px; */
   /* margin-left: 20px; */
   border: 3px solid;
   background: linear-gradient(to bottom,rgb(46, 46, 46) 10%,rgb(116, 116, 116) 40%,rgb(116, 116, 116) 100%);
 }
-.headerIcon .characterIcon .meta .limitBar .label {
+.headerIcon .characterIcon .limitBar .label {
   position: absolute;
   top: 0;
   font-size: 10px;
@@ -186,7 +196,7 @@ body {
   text-shadow: 1px 1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, -1px -1px 0 #000;
   text-transform: uppercase;
 }
-.headerIcon .characterIcon .meta .limitBar .inner {
+.headerIcon .characterIcon .limitBar .inner {
   position: absolute;
   /* margin: 3px 0px 0px 23px; */
   /* height: 13px; */
@@ -196,18 +206,11 @@ body {
   width: 50px;
   background: linear-gradient(to bottom,rgb(194, 130, 130) 20%,rgb(255, 255, 255) 40%,rgb(255, 170, 170) 60%, rgb(255, 170, 170) 100%);
 }
-.headerIcon {
-  cursor: pointer;
-}
-.headerIcon .button.sub {
-  position: absolute;
+.headerIcon .buttonWrap {
   display: flex;
-  align-items: center;
-  top: 91px;
-  left: 10px;
-  width: 80px;
-  padding: 0;
   justify-content: center;
+  align-items: center;
+  width: 80px;
   color: #FFF;
   font-size: 11px;
   /* background: transparent; */
@@ -215,16 +218,13 @@ body {
   /* border: 0; */
   border-radius: 3px;
 }
-.headerIcon .button.sub .label {
-  margin-right: 2px;
-}
-.headerIcon .button.sub .key {
+.headerIcon .buttonWrap .button {
   padding: 2px;
   background-color: #000;
   /* border: 1px solid #fff; */
   border-radius: 3px;
 }
-.headerIcon:hover .button.sub .key {
+.headerIcon:hover .buttonWrap .button {
   background-color: #42a5f5;
   /* color: #FFF; */
   transition: color 0.3s cubic-bezier(0, 1, 0, 1);

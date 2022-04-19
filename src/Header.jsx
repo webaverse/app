@@ -85,27 +85,34 @@ const CharacterIcon = () => {
 
     return (
         <div className={styles.characterIcon}>
-            {canvases}
-            <div className={styles.meta}>
-                <div className={styles.name}>
-                    <div className={styles.background} />
-                    <span className={styles.text}>Anon</span>
+            <div className={styles.main}>
+                {canvases}
+                <div className={styles.meta}>
+                    <div className={styles.name}>
+                        <div className={styles.background} />
+                        <span className={styles.text}>Anon</span>
+                    </div>
+                    <div className={classnames(styles.stat, styles.hp)}>
+                        <div className={styles.label}>HP</div>
+                        <progress className={styles.progress} value={hp} max={100} />
+                        <div className={styles.value}>{hp}</div>
+                    </div>
+                    <div className={classnames(styles.stat, styles.mp)}>
+                        <div className={styles.label}>MP</div>
+                        <progress className={styles.progress} value={mp} max={100} />
+                        <div className={styles.value}>{mp}</div>
+                    </div>
+                    <div className={classnames(styles.stat, styles.xp)}>
+                        <img className={styles.barImg} src={`./images/xp-bar.svg`} />
+                        <div className={styles.label}>XP</div>
+                        <div className={styles.value}>{xp}</div>
+                        <progress className={styles.progress} value={xp} max={100} />
+                    </div>
                 </div>
-                <div className={classnames(styles.stat, styles.hp)}>
-                    <div className={styles.label}>HP</div>
-                    <progress className={styles.progress} value={hp} max={100} />
-                    <div className={styles.value}>{hp}</div>
-                </div>
-                <div className={classnames(styles.stat, styles.mp)}>
-                    <div className={styles.label}>MP</div>
-                    <progress className={styles.progress} value={mp} max={100} />
-                    <div className={styles.value}>{mp}</div>
-                </div>
-                <div className={classnames(styles.stat, styles.xp)}>
-                    <img className={styles.barImg} src={`./images/xp-bar.svg`} />
-                    <div className={styles.label}>XP</div>
-                    <div className={styles.value}>{xp}</div>
-                    <progress className={styles.progress} value={xp} max={100} />
+            </div>
+            <div className={styles.sub}>
+                <div className={styles.buttonWrap}>
+                    <div className={styles.button}>Tab</div>
                 </div>
                 <div className={styles.limitBar}>
                     <div className={styles.inner} />
@@ -140,11 +147,6 @@ const HeaderIcon = () => {
                 <img src="images/arrow-logo.svg" className={styles.image} />
             </a> */}
             <CharacterIcon />
-            
-            <div className={classnames(styles.button, styles.sub)}>
-                {/* <div className={styles.label}>人 Chara</div> */}
-                <div className={styles.key}>Tab</div>
-            </div>
         </div>
     );
 };
