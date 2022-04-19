@@ -252,8 +252,8 @@ class PlayerBase extends THREE.Object3D {
   updateVoicer() {
     const voice = this.getVoice();
     if (voice instanceof VoicePack) {
-      const {syllableFiles, actionFiles, voiceActor, audioBuffer} = voice;
-      this.voicer = new VoicePackVoicer(syllableFiles, actionFiles, voiceActor, audioBuffer, this);
+      const {syllableFiles, audioBuffer} = voice;
+      this.voicer = new VoicePackVoicer(syllableFiles, audioBuffer, this);
     } else if (voice instanceof VoiceEndpoint) {
       this.voicer = new VoiceEndpointVoicer(voice, this);
     } else if (voice === null) {

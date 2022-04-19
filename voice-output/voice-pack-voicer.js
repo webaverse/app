@@ -92,11 +92,9 @@ class VoicePack {
   }
 }
 class VoicePackVoicer {
-  constructor(syllableFiles, actionFiles, voiceActor, audioBuffer, player) {
+  constructor(syllableFiles, audioBuffer, player) {
     this.syllableFiles = syllableFiles;
-    this.actionFiles = actionFiles;
     this.audioBuffer = audioBuffer;
-    this.voiceActor = voiceActor;
     this.voices = syllableFiles.map(({name, offset, duration}) => {
       return {
         name,
@@ -107,8 +105,6 @@ class VoicePackVoicer {
     });
     this.nonce = 0;
     this.player = player;
-
-    
 
     this.startTime = -1;
     this.charactersSinceStart = 0;
