@@ -70,16 +70,9 @@ class RenderSettingsManager {
     scene.background = background;
     scene.fog = fog;
   }
-  applyRenderSettingsToSceneAndPostProcessing(renderSettings, scene, localPostProcessing) {
-    this.applyRenderSettingsToScene(renderSettings, scene);
-    
-    const {
-      passes = null,
-    } = (renderSettings ?? {});
-    localPostProcessing.setPasses(passes);
-  }
   push(srcScene, dstScene = srcScene, {
     fog = false,
+    postProcessing = null,
   } = {}) {
     const renderSettings = this.findRenderSettings(srcScene);
     this.applyRenderSettingsToScene(renderSettings, dstScene);
@@ -104,10 +97,20 @@ class RenderSettingsManager {
         };
       }
     }
+    if (postProcessing) {
+      const {
+        passes = null,
+      } = (renderSettings ?? {});
+      postProcessing.setPasses(passes);
+    }
 
     return () => {
       fogCleanup && fogCleanup();
       this.applyRenderSettingsToScene(null, dstScene);
+
+      if (postProcessing) {
+        postProcessing.setPasses(null);
+      }
     };
   }
 }

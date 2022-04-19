@@ -1358,6 +1358,21 @@ class GameManager extends EventTarget {
     }
   }
 
+  /* menuGDown() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('emote');
+
+    const newAction = {
+      type: 'emote',
+      animation: 'angry',
+    };
+    localPlayer.addAction(newAction);
+  }
+  menuGUp() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('emote');
+  } */
+
   menuVDown() {
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
@@ -1368,16 +1383,16 @@ class GameManager extends EventTarget {
       const newAction = {
         type: 'dance',
         animation: 'dansu',
-        // time: 0,
       };
       localPlayer.addAction(newAction);
     }
   }
-  menuVUp(e) {
+  menuVUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('dance');
   }
-  menuBDown(e) {
+
+  menuBDown() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     
     const sssAction = localPlayer.getAction('sss');
@@ -1409,6 +1424,7 @@ class GameManager extends EventTarget {
     
     // physicsManager.setThrowState(null);
   }
+
   menuDoubleTap() {
     if (!this.isCrouched()) {
       const localPlayer = metaversefileApi.useLocalPlayer();

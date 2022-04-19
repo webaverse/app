@@ -67,7 +67,7 @@ export const screenshotAvatarApp = async ({
     player.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
     player.avatar.inputs.hmd.updateMatrixWorld();
     player.addAction({
-      type: 'emote',
+      type: 'facepose',
       emotion: 'angry',
     });
   };
