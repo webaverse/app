@@ -102,7 +102,7 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
     //
 
-    const handleCharacterBtnClick = () => {
+    /* const handleCharacterBtnClick = () => {
 
         setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
 
@@ -112,7 +112,7 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
         }
 
-    };
+    }; */
 
     //
 
@@ -169,11 +169,11 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
             className={ classnames( styles.characterWrapper, open ? styles.opened : null ) }
             onDrop={onDrop}
         >
-            <div className={ styles.characterBtn } onClick={ handleCharacterBtnClick } >
+            {/* <div className={ styles.characterBtn } onClick={ handleCharacterBtnClick } >
                 <img src="images/webpencil.svg" className={ styles.background } />
                 <span className={ styles.btnText } >人 Character</span>
                 <span className={ styles.btnShortKey } >Tab</span>
-            </div>
+            </div> */}
 
             <div className={ styles.characterPanel } >
                 <Poses

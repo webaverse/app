@@ -196,6 +196,60 @@ body {
   width: 50px;
   background: linear-gradient(to bottom,rgb(194, 130, 130) 20%,rgb(255, 255, 255) 40%,rgb(255, 170, 170) 60%, rgb(255, 170, 170) 100%);
 }
+.headerIcon {
+  cursor: pointer;
+}
+.headerIcon .button.sub {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  top: 91px;
+  left: 10px;
+  padding: 0;
+  color: #FFF;
+  font-size: 11px;
+  background: #000;
+  border: 0;
+  border-radius: 3px;
+  transition: color 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.headerIcon .button.sub .label {
+  margin-right: 2px;
+}
+.headerIcon .button.sub .key {
+  padding: 2px;
+  border: 1px solid #fff;
+  border-radius: 3px;
+}
+.headerIcon:hover .button.sub {
+  background-color: #42a5f5;
+  /* color: #FFF; */
+}
+/* .characterBtn:hover .background, .characterWrapper.opened .background {
+  transform: rotateZ(180deg) translateX(50px);
+}
+.characterBtn .btnShortKey {
+  position: relative;
+  z-index: 2;
+}
+.characterBtn .btnShortKey {
+  color: #fff;
+  border: 1px solid #fff;
+  border-radius: 3px;
+  font-size: 13px;
+  padding: 2px;
+  margin-left: 4px;
+  z-index: 2;
+}
+.characterBtn:hover .btnShortKey, .characterWrapper.opened .btnShortKey {
+  border-color: #000;
+  color: #000;
+}
+.characterBtn:hover .btnText, .characterWrapper.opened .btnText {
+  position: relative;
+  color: #000;
+  z-index: 2;
+} */
 
 .header .tab {
   position: fixed;
