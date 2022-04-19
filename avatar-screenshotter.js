@@ -20,8 +20,9 @@ export const screenshotAvatarUrl = async ({
   start_url,
   width = 300,
   height = 300,
-  canvas = null,
-  emotion = '',
+  canvas,
+  cameraOffset,
+  emotion,
 }) => {
   const app = await metaversefile.createAppAsync({
     start_url,
@@ -31,6 +32,7 @@ export const screenshotAvatarUrl = async ({
     width,
     height,
     canvas,
+    cameraOffset,
     emotion,
   });
 };
@@ -38,8 +40,9 @@ export const screenshotAvatarApp = async ({
   app,
   width = 300,
   height = 300,
-  canvas = null,
-  emotion = '',
+  canvas,
+  cameraOffset,
+  emotion,
 }) => {
   // await Avatar.waitForLoad();
 
@@ -54,6 +57,7 @@ export const screenshotAvatarApp = async ({
     width,
     height,
     canvas,
+    cameraOffset,
     emotion,
   });
 };
@@ -61,8 +65,9 @@ export const screenshotPlayer = async ({
   player,
   width = 300,
   height = 300,
-  canvas = null,
-  emotion = '',
+  canvas,
+  cameraOffset,
+  emotion,
 }) => {
   player.position.set(0, 1.5, 0);
   player.quaternion.identity();
@@ -128,6 +133,7 @@ export const screenshotPlayer = async ({
   const diorama = dioramaManager.createPlayerDiorama({
     // target: player,
     target,
+    cameraOffset,
     objects,
     lights: false,
     // label: true,
