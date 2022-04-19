@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import metaversefile from './metaversefile-api.js';
-import Avatar from './avatars/avatars.js';
+// import Avatar from './avatars/avatars.js';
 import npcManager from './npc-manager.js';
 import dioramaManager from './diorama.js';
 
