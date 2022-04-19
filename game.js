@@ -385,9 +385,9 @@ const _mousedown = () => {
   _startUse();
   useAction = localPlayer.getAction('use');
   if (!(
-    useAction.animation ||
-    useAction.animationCombo?.length > 0 ||
-    useAction.animationEnvelope?.length > 0
+    useAction?.animation ||
+    useAction?.animationCombo?.length > 0 ||
+    useAction?.animationEnvelope?.length > 0
   )) {
     _endUse();
   }
