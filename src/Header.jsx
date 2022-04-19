@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import React, { useEffect, useRef, useContext, useState } from 'react';
 // import classnames from 'classnames';
 
@@ -25,15 +26,24 @@ import styles from './Header.module.css';
 
 //
 
+const pixelRatio = window.devicePixelRatio;
+const characterIconSize = 100 * pixelRatio;
+const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
+
 const CharacterIcon = () => {
-    const characterIconSize = 150;
     const canvasRefs = [];
     const canvases = (() => {
         const result = [];
         for (let i = 0; i < emotions.length; i++) {
             const canvasRef = useRef();
             const canvas = (
-              <canvas width={characterIconSize} height={characterIconSize} ref={canvasRef} key={i} />
+                <canvas
+                    className={styles.canvas}
+                    width={characterIconSize}
+                    height={characterIconSize}
+                    ref={canvasRef}
+                    key={i}
+                />
             );
             result.push(canvas);
             canvasRefs.push(canvasRef);
@@ -56,9 +66,10 @@ const CharacterIcon = () => {
                 for (let i = 0; i < emotions.length; i++) {
                     const emotion = emotions[i];
                     const canvas = canvasRefs[i].current;
-                    const avatarCanvas = await screenshotPlayer({
+                    await screenshotPlayer({
                         player,
                         canvas,
+                        cameraOffset,
                         emotion,
                     });
                 }
