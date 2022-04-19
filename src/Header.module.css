@@ -91,9 +91,9 @@ body {
 }
 .headerIcon .characterIcon .meta .name {
   position: relative;
-  margin-left: -40px;
+  margin-left: -50px;
   padding: 5px 10px;
-  padding-left: 40px;
+  padding-left: 50px;
   font-family: WinchesterCaps;
   font-size: 16px;
   color: #FFF;
