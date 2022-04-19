@@ -141,10 +141,10 @@ const HeaderIcon = () => {
             </a> */}
             <CharacterIcon />
             
-            <button className={classnames(styles.button, styles.sub)}>
-                <div className={styles.label}>人 Chara</div>
+            <div className={classnames(styles.button, styles.sub)}>
+                {/* <div className={styles.label}>人 Chara</div> */}
                 <div className={styles.key}>Tab</div>
-            </button>
+            </div>
         </div>
     );
 };
