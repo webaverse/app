@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import React, { useEffect, useRef, useContext, useState } from 'react';
-// import classnames from 'classnames';
+import classnames from 'classnames';
 
 import CharacterHups from './CharacterHups.jsx';
 // import { world } from '../world.js'
@@ -27,20 +27,22 @@ import styles from './Header.module.css';
 //
 
 const pixelRatio = window.devicePixelRatio;
-const characterIconSize = 100 * pixelRatio;
+const characterIconSize = 80;
 const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
+
+const allEmotions = [''].concat(emotions);
 
 const CharacterIcon = () => {
     const canvasRefs = [];
     const canvases = (() => {
         const result = [];
-        for (let i = 0; i < emotions.length; i++) {
+        for (let i = 0; i < allEmotions.length; i++) {
             const canvasRef = useRef();
             const canvas = (
                 <canvas
                     className={styles.canvas}
-                    width={characterIconSize}
-                    height={characterIconSize}
+                    width={characterIconSize * pixelRatio}
+                    height={characterIconSize * pixelRatio}
                     ref={canvasRef}
                     key={i}
                 />
@@ -63,8 +65,8 @@ const CharacterIcon = () => {
                     detached: true,
                 });
 
-                for (let i = 0; i < emotions.length; i++) {
-                    const emotion = emotions[i];
+                for (let i = 0; i < allEmotions.length; i++) {
+                    const emotion = allEmotions[i];
                     const canvas = canvasRefs[i].current;
                     await screenshotPlayer({
                         player,
@@ -80,6 +82,21 @@ const CharacterIcon = () => {
     return (
         <div className={styles.characterIcon}>
             {canvases}
+            <div className={styles.meta}>
+                <div className={styles.name}>Anon</div>
+                <div className={classnames(styles.stat, styles.hp)}>
+                    <div className={styles.label}>HP</div>
+                    <progress className={styles.progress} value={80} max={100} />
+                </div>
+                <div className={classnames(styles.stat, styles.mp)}>
+                    <div className={styles.label}>MP</div>
+                    <progress className={styles.progress} value={20} max={100} />
+                </div>
+                <div className={classnames(styles.stat, styles.xp)}>
+                    <div className={styles.label}>XP</div>
+                    <progress className={styles.progress} value={40} max={100} />
+                </div>
+            </div>
         </div>
     );
 };
