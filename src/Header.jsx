@@ -83,7 +83,10 @@ const CharacterIcon = () => {
         <div className={styles.characterIcon}>
             {canvases}
             <div className={styles.meta}>
-                <div className={styles.name}>Anon</div>
+                <div className={styles.name}>
+                    <div className={styles.background} />
+                    <span className={styles.text}>Anon</span>
+                </div>
                 <div className={classnames(styles.stat, styles.hp)}>
                     <div className={styles.label}>HP</div>
                     <progress className={styles.progress} value={80} max={100} />
@@ -93,6 +96,7 @@ const CharacterIcon = () => {
                     <progress className={styles.progress} value={20} max={100} />
                 </div>
                 <div className={classnames(styles.stat, styles.xp)}>
+                    <img className={styles.barImg} src={`./images/xp-bar.svg`} />
                     <div className={styles.label}>XP</div>
                     <progress className={styles.progress} value={40} max={100} />
                 </div>
