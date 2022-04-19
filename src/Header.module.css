@@ -128,7 +128,17 @@ body {
   font-family: 'PlazaRegular';
   font-size: 14px;
 }
-
+.headerIcon .characterIcon .meta .stat .value {
+  position: absolute;
+  top: 0;
+  left: 22px;
+  /* font-family: 'PlazaRegular'; */
+  font-family: 'WinchesterCaps';
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #FFF;
+  text-shadow: 1px 1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, -1px -1px 0 #000;
+}
 .headerIcon .characterIcon .meta .stat .progress {
   width: 100%;
   height: 3px;
