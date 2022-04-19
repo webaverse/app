@@ -325,6 +325,24 @@ physicsManager.getGlobalPosition = (physicsObject, position) => {
     position
   )
 }
+physicsManager.addForceAtPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addForceAtPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addLocalForceAtPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addLocalForceAtPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addForceAtLocalPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addForceAtLocalPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addLocalForceAtLocalPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addLocalForceAtLocalPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addForce = (physicsObject, velocity, autoWake) => {
+  physx.physxWorker.addForcePhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
+}
+physicsManager.addTorque = (physicsObject, velocity, autoWake) => {
+  physx.physxWorker.addTorquePhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
+}
 physicsManager.setVelocity = (physicsObject, velocity, autoWake) => {
   physx.physxWorker.setVelocityPhysics(
     physx.physics,
@@ -544,7 +562,7 @@ physicsManager.simulatePhysics = (timeDiff) => {
     )
     physicsUpdates.length = 0
     for (const updateOut of updatesOut) {
-      const { id, position, quaternion, collided, grounded } = updateOut
+      const { id, position, quaternion, collided, grounded, linearVelocity, angularVelocity } = updateOut
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id)
       if (physicsObject) {
         physicsObject.position.copy(position)
@@ -553,6 +571,8 @@ physicsManager.simulatePhysics = (timeDiff) => {
 
         physicsObject.collided = collided
         physicsObject.grounded = grounded
+        physicsObject.linearVelocity = linearVelocity
+        physicsObject.angularVelocity = angularVelocity
       } /* else {
         console.warn('failed to get physics object', id);
       } */

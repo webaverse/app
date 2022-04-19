@@ -173,7 +173,7 @@ class CharacterPhysics {
         } = sitComponent;
         this.sitOffset.fromArray(sitOffset);
 
-        applyVelocity(controlledApp.position, this.velocity, timeDiffS);
+        /*applyVelocity(controlledApp.position, this.velocity, timeDiffS);
         if (this.velocity.lengthSq() > 0) {
           controlledApp.quaternion
             .setFromUnitVectors(
@@ -182,7 +182,9 @@ class CharacterPhysics {
             )
             .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
         }
-        controlledApp.updateMatrixWorld();
+        controlledApp.updateMatrixWorld();*/
+
+        
 
         localMatrix.copy(sitPos.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
