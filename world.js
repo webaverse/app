@@ -20,6 +20,7 @@ import {playersManager} from './players-manager.js';
 // import * as metaverseModules from './metaverse-modules.js';
 import {createParticleSystem} from './particle-system.js';
 // import * as sounds from './sounds.js';
+import physicsManager from './physics-manager.js';
 
 const localEuler = new THREE.Euler();
 
@@ -295,6 +296,8 @@ const _bindHitTracker = app => {
 
   const die = () => {
     if (app.npcPlayer?.avatar) {
+      physicsManager.disableGeometry(app.npcPlayer.characterController);
+      physicsManager.disableGeometryQueries(app.npcPlayer.characterController);
       app.npcPlayer.avatar.ragdoll = true;
       setTimeout(() => {
         world.appManager.removeTrackedApp(app.instanceId);

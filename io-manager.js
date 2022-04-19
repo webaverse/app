@@ -565,7 +565,15 @@ ioManager.keydown = e => {
     case 78: { // N
       const localPlayer = metaversefile.useLocalPlayer();
       if (localPlayer.avatar) {
-        localPlayer.avatar.ragdoll = !localPlayer.avatar.ragdoll;
+        if (localPlayer.avatar.ragdoll) {
+          localPlayer.avatar.ragdoll = false;
+          physicsManager.enableGeometry(localPlayer.characterController);
+          physicsManager.enableGeometryQueries(localPlayer.characterController);
+        } else {
+          localPlayer.avatar.ragdoll = true;
+          physicsManager.disableGeometry(localPlayer.characterController);
+          physicsManager.disableGeometryQueries(localPlayer.characterController);
+        }
       }
       break;
     }
