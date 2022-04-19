@@ -355,7 +355,7 @@ class CharacterSfx {
         break;
       }
       case 'gasp': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /Gasp/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/.test(f.name));
         break;
       }
       case 'jump': {
