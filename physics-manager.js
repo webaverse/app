@@ -535,6 +535,25 @@ physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z)
 }
+physicsManager.addJoint = (physicsObject1, physicsObject2, position1, position2, quaternion1, quaternion2, fixBody1 = false) => {
+  const joint = physx.physxWorker.addJointPhysics(physx.physics, physicsObject1.physicsId, physicsObject2.physicsId, position1, position2, quaternion1, quaternion2, fixBody1);
+  return joint;
+}
+physicsManager.setJointMotion = (joint, axis, motion) => {
+  return physx.physxWorker.setJointMotionPhysics(physx.physics, joint, axis, motion);
+}
+physicsManager.setJointTwistLimit = (joint, lowerLimit, upperLimit, contactDist) => {
+  return physx.physxWorker.setJointTwistLimitPhysics(physx.physics, joint, lowerLimit, upperLimit, contactDist);
+}
+physicsManager.setJointSwingLimit = (joint, yLimitAngle, zLimitAngle, contactDist) => {
+  return physx.physxWorker.setJointSwingLimitPhysics(physx.physics, joint, yLimitAngle, zLimitAngle, contactDist);
+}
+physicsManager.updateMassAndInertia = (body, shapeDensities) => {
+  return physx.physxWorker.updateMassAndInertiaPhyscis(physx.physics, body, shapeDensities);
+}
+physicsManager.getBodyMass = (body) => {
+  return physx.physxWorker.getBodyMassPhysics(physx.physics, body);
+}
 physicsManager.simulatePhysics = (timeDiff) => {
   if (physicsEnabled) {
     const t = timeDiff / 1000
