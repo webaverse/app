@@ -91,20 +91,18 @@ function createAngledBox() {
   geometry.setAttribute('f', new THREE.BufferAttribute(fs, 1));
 
   return geometry;
-}
-export default () => {
+};
+const _makeRoundMesh = () => {
   const {WebaverseShaderMaterial} = useMaterials();
-  const localPlayer = useLocalPlayer();
   const {easing} = useMathUtils();
   const cubicBezier = easing(0, 1, 0, 1);
 
   const w = menuWidth + menuRadius*2;
   const h = menuHeight + menuRadius*2;
-  // const geometry = createBoxWithRoundedEdges(w, h, menuRadius, 0.95);
-  const geometry = createAngledBox();
+  const geometry = createBoxWithRoundedEdges(w, h, menuRadius, 0.95);
   const boundingBox = new THREE.Box3().setFromObject(new THREE.Mesh(geometry));
   // console.log('got bounding box', boundingBox);
-  /* const material = new WebaverseShaderMaterial({
+  const material = new WebaverseShaderMaterial({
     uniforms: {
       uBoundingBox: {
         type: 'vec4',
@@ -198,7 +196,28 @@ export default () => {
       }
     `,
     side: THREE.DoubleSide,
-  }); */
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.update = (timestamp, timeDiff) => {
+    const maxTime = 2000;
+    const f = (timestamp % maxTime) / maxTime;
+
+    const localPlayer = useLocalPlayer();
+    mesh.position.copy(localPlayer.position);
+    mesh.quaternion.copy(localPlayer.quaternion);
+    mesh.updateMatrixWorld();
+
+    material.uniforms.uTime.value = f;
+    material.uniforms.uTime.needsUpdate = true;
+    material.uniforms.uTimeCubic.value = cubicBezier(f);
+    material.uniforms.uTimeCubic.needsUpdate = true;
+  };
+  return mesh;
+};
+const _makeAngleMesh = () => {
+  const {WebaverseShaderMaterial} = useMaterials();
+
+  const geometry = createAngledBox();
   const material = new WebaverseShaderMaterial({
     uniforms: {
       /* uBoundingBox: {
@@ -216,11 +235,11 @@ export default () => {
         value: 0,
         needsUpdate: true,
       },
-      uTimeCubic: {
+      /* uTimeCubic: {
         type: 'f',
         value: 0,
         needsUpdate: true,
-      },
+      }, */
     },
     vertexShader: `\
       precision highp float;
@@ -301,19 +320,28 @@ export default () => {
     side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
-
-  useFrame(() => {
+  mesh.update = (timestamp, timeDiff) => {
     const maxTime = 2000;
-    const f = (performance.now() % maxTime) / maxTime;
+    const f = (timestamp % maxTime) / maxTime;
 
+    const localPlayer = useLocalPlayer();
     mesh.position.copy(localPlayer.position);
     mesh.quaternion.copy(localPlayer.quaternion);
     mesh.updateMatrixWorld();
 
     material.uniforms.uTime.value = f;
     material.uniforms.uTime.needsUpdate = true;
-    material.uniforms.uTimeCubic.value = cubicBezier(f);
-    material.uniforms.uTimeCubic.needsUpdate = true;
+    // material.uniforms.uTimeCubic.value = cubicBezier(f);
+    // material.uniforms.uTimeCubic.needsUpdate = true;
+  };
+  return mesh;
+};
+export default () => {
+  // const mesh = _makeRoundMesh();
+  const mesh = _makeAngleMesh();
+
+  useFrame(({timestamp, timeDiff}) => {
+    mesh.update(timestamp, timeDiff);
   });
   
   return mesh;
