@@ -65,6 +65,16 @@ body {
   transform: scale(1.4);
 }
 
+.headerIcon .characterIcon .canvas {
+  --canvas-size: 100px;
+
+  width: var(--canvas-size);
+  height: var(--canvas-size);
+}
+.headerIcon .characterIcon .canvas:not(:first-child) {
+  display: none;
+}
+
 /* .header .image {
   width: var(--header-height);
   height: var(--header-height);
