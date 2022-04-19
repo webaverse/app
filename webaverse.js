@@ -39,7 +39,7 @@ import * as voices from './voices.js';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
-import WebaWallet from './src/components/wallet.js';
+// import WebaWallet from './src/components/wallet.js';
 import {OffscreenEngine} from './offscreen-engine.js';
 
 const localVector = new THREE.Vector3();
@@ -80,7 +80,7 @@ export default class Webaverse extends EventTarget {
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
-        WebaWallet.waitForLoad(),
+        // WebaWallet.waitForLoad(),
       ]);
     })();
     this.contentLoaded = false;

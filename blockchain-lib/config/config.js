@@ -6,7 +6,7 @@ import WebaverseAccountsABI from "../abi/Accounts.json";
 export const config = {
   sidechainURL: "http://13.57.177.184:8545",
   authServerURL: "http://auth.webaverse.com",
-  webaWalletURL: "http://auth.webaverse.com/weba-wallet",
+  webaWalletURL: "http://auth.webaverse.com/weba-wallet/",
   contracts: {
     erc1155: {
       abi: WebaverseERC1155ABI.abi,

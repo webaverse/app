@@ -42,6 +42,7 @@ export class WalletManager extends EventEmitter {
     //
 
     document.body.appendChild(this.iframe);
+    console.log( this.iframe );
 
     this.emit(this.events.webaWalletConnected, {
       error: false,
@@ -188,11 +189,11 @@ export class WalletManager extends EventEmitter {
 
   receiveMessage(event) {
     console.log("Received message", event);
-    if (event.origin !== config.authServerURL) {
-      return;
-    }
+    // if (event.origin !== config.authServerURL) {
+    //   return;
+    // }
     console.log(event);
-    const res = JSON.parse(event.data);
+    const res = event.data; // JSON.parse(event.data);
     if (res.type === "event") {
       if (res.method === "wallet_launched") {
         console.log('Webawallet launched');

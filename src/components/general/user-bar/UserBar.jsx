@@ -3,10 +3,10 @@ import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
 import * as ceramicApi from '../../../../ceramic.js';
-import wallet from '../../wallet';
+// import wallet from '../../wallet';
 import { discordClientId } from '../../../../constants';
 import { parseQuery } from '../../../../util.js';
-import WebaWallet from '../../wallet';
+// import WebaWallet from '../../wallet';
 import { WalletManager } from '../../../../blockchain-lib';
 
 import { AppContext } from '../../app';
@@ -18,7 +18,7 @@ import styles from './user-bar.module.css';
 
 export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, loginManager } = useContext( AppContext );
     const [ loginError, setLoginError ] = useState( null );
 
     //
@@ -51,30 +51,39 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
     const handleLogoutBtnClick = () => {
 
-        WebaWallet.logout();
+        // WebaWallet.logout();
         setUserAddress( null );
 
     };
 
     const handleMaskLoginBtnClick = async () => {
 
-        const metamask = new WalletManager();
+        // if ( userAddress ) {
 
-        if ( userAddress ) {
+        //     setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
 
-            setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
-
-        } else {
+        // } else {
 
             try {
 
-                await metamask.connectMetamask();
-                console.log('zz');
+                await loginManager.connectMetamask();
+                // console.log('zz');
+                // console.log( metamask.address );
 
-                metamask.addListener( 'profile', ( event ) => {
+                // metamask.addListener( 'profile', ( event ) => {
 
-                    console.log( event.data );
+                //     console.log( event.data );
 
+                // });
+
+                loginManager.addListener('nft', (ev) => {
+                    console.log('nfts fetched', ev);
+                    // setNFTs(ev.data);
+                });
+
+                loginManager.addListener('profile', (ev) => {
+                    console.log('profile fetched', ev);
+                    // setProfile(ev.data);
                 });
 
             } catch (error) {
@@ -94,7 +103,7 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
             // }
 
-        }
+        // }
 
     };
 

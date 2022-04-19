@@ -90,6 +90,7 @@ export const App = () => {
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
+    const [ loginManager, setLoginManager ] = useState();
 
     //
 
@@ -202,18 +203,38 @@ export const App = () => {
 
     useEffect( async () => {
 
-        const metamask = new WalletManager();
-
         console.log('z');
+        setLoginManager( new WalletManager() );
 
-        metamask.addListener( 'profile', ( ev ) => {
+        // metamask.addListener( 'profile', ( ev ) => {
 
-            console.log('profile fetched', ev);
-            setProfile( ev.data );
+        //     console.log('profile fetched', ev);
+        //     setProfile( ev.data );
 
-        });
+        // });
 
-        await metamask.connectMetamask();
+        setTimeout( async () => {
+            // login('metamask').then(() => {
+            //     document.getElementById('editprofilebtn').addEventListener('click', () => {
+            //         editProfile();
+            //     }, false);
+            // });
+
+            // try {
+            //     await metamask.connectMetamask();
+            //     // document.getElementById('loginBtns').style.display = "none";
+            //     // document.getElementById('address').innerHTML = metamask.address;
+            //     metamask.addListener('profile', (ev) => {
+            //         console.log('profile fetched', ev);
+            //         setProfile(ev.data);
+            //     });
+            //     console.log(metamask.address);
+            //     metamask.getProfile();
+            // } catch( err) { console.log( err ); }
+
+        }, 3000 );
+
+        // await metamask.connectMetamask();
 
     }, [] );
 
@@ -238,7 +259,7 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, loginManager }}>
                 <Header userAddress={ userAddress } loginMethod={ loginMethod } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
                 <UserBar userAddress={ userAddress } setUserAddress={ setUserAddress } setLoginMethod={ setLoginMethod } />
