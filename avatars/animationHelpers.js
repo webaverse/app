@@ -74,7 +74,6 @@ let narutoRunAnimations;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
-let lastF;
 
 const defaultSitAnimation = 'chair';
 // const defaultUseAnimation = 'combo';
@@ -884,12 +883,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-          lastF = useTimeS / useAnimation.duration;
         } else if (avatar.useAnimationCombo.length > 0) {
           const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-          lastF = useTimeS / useAnimation.duration;
         } else if (avatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
           for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
@@ -1179,10 +1176,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.y = avatar.height * 0.55;
       }
     }
-  }
-  if (lastF >= 1) {
-    lastF = null;
-    activeAvatar.dispatchEvent(new MessageEvent('animationEnd'));
   }
 };
 
