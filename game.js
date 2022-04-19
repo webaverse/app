@@ -1050,6 +1050,24 @@ const _gameUpdate = (timestamp, timeDiff) => {
       !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
+
+  const handleUseActionCombo = () => {
+    const oldUseAction = localPlayer.getAction('use');
+  
+    if (oldUseAction?.needEndUse) {
+      gameManager.menuEndUse();
+    }
+  
+    if (oldUseAction?.needContinuCombo) {
+      gameManager.menuStartUse();
+      const newUseAction = localPlayer.getAction('use');
+      if (oldUseAction.needEndUse && oldUseAction.needContinuCombo) {
+        newUseAction.needResetUseTime = true;
+      }
+    }
+  }
+  handleUseActionCombo();
+
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
