@@ -54,8 +54,8 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                     const { address, profile } = await ceramicApi.login();
                     setAddress(address);
                     setLoginFrom('metamask');
-                    setShow(false);
-                    setLoginFrom('metamask');
+                    // setShow(false);
+                    // setLoginFrom('metamask');
 
                 } catch (err) {
 
@@ -95,7 +95,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                         setAddress( address );
                         setLoginFrom( 'discord' );
-                        setShow( false );
+                        // setShow( false );
 
                     } else if ( error ) {
 
@@ -118,7 +118,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                         setAddress( address );
                         setLoginFrom( 'discord' );
-                        setShow( false );
+                        // setShow( false );
 
                     } else if ( error ) {
 
@@ -134,34 +134,52 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
     }, [ address, setAddress ] );
 
+    const open = state.openedPanel === 'LoginPanel';
+
     //
 
     return (
         <div
-            className={ classnames( styles.user, loggingIn ? styles.loggingIn : null ) }
+            className={ classnames(
+                styles.user,
+                open ? styles.open : null,
+                loggingIn ? styles.loggingIn : null
+            ) }
             onClick={async e => {
                 e.preventDefault();
                 e.stopPropagation();
 
-                console.log('click', [!!address, address]);
-
-                if ( address ) {
+                /* if ( address ) {
 
                     setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
 
-                } else {
+                } else { */
 
+                if ( !open ) {
                     // setLoginButtons( true );
                     setState({ openedPanel: 'LoginPanel' });
 
+                } else {
+                    setState({ openedPanel: null });
                 }
             }}
         >
-            <img src="images/soul.png" className={styles.icon} />
+            {/* <img src="images/soul.png" className={styles.icon} />
             <div className={styles.name} onClick={e => {
                 showModal(e);
             }}>
                 {loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}
+            </div> */}
+            <div className={styles.button} onClick={e => {
+                showModal(e);
+            }}>
+                <div className={styles.bow}>
+                    <img className={styles.icon} src="./images/log-in.svg" />
+                </div>
+                <div className={styles.blade}>
+                    <div className={styles.background} />
+                    <div className={styles.text}>ログイン Log in</div>
+                </div>
             </div>
 
             { address ? (
@@ -175,30 +193,27 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 >Logout</div> ) : ''
             }
 
-            {
-                state.openedPanel === 'LoginPanel' ? (
-                    <div className={styles.login_options}>
-                        <Modal onClose={ showModal } show>
-                            <div className={styles.loginDiv}>
-                                <div className={styles.loginBtn} onClick={ metaMaskLogin }>
-                                    <div className={styles.loginBtnText}>
-                                        <img className={styles.loginBtnImg} src="images/metamask.png" alt="metamask" width="28px"/>
-                                        <span>MetaMask</span>
-                                    </div>
-                                </div>
-                                <a href={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`}>
-                                    <div className={styles.loginBtn} style={{marginTop: '10px'}}>
-                                        <div className={styles.loginBtnText}>
-                                            <img className={styles.loginBtnImg} src="images/discord-dark.png" alt="discord" width="28px"/>
-                                            <span>Discord</span>
-                                        </div>
-                                    </div>
-                                </a>
+            <Modal onClose={ showModal } show={open}>
+                <div className={styles.login_options}>
+                
+                    <div className={styles.loginDiv}>
+                        <div className={styles.loginBtn} onClick={ metaMaskLogin }>
+                            <div className={styles.loginBtnText}>
+                                <img className={styles.loginBtnImg} src="images/metamask.png" alt="metamask" width="28px"/>
+                                <span>MetaMask</span>
                             </div>
-                        </Modal>
+                        </div>
+                        <a href={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`}>
+                            <div className={styles.loginBtn} style={{marginTop: '10px'}}>
+                                <div className={styles.loginBtnText}>
+                                    <img className={styles.loginBtnImg} src="images/discord-dark.png" alt="discord" width="28px"/>
+                                    <span>Discord</span>
+                                </div>
+                            </div>
+                        </a>
                     </div>
-                ) : <div/>
-            }
+                </div>
+            </Modal>
         </div>
     );
 
