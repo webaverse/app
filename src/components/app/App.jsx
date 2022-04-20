@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, createContext } from 'react';
 
 import { defaultAvatarUrl } from '../../../constants';
 
+import { WalletManager } from '../../../blockchain-lib';
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
@@ -25,6 +26,7 @@ import { DragAndDrop } from '../../DragAndDrop.jsx';
 import { Stats } from '../../Stats.jsx';
 import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
+import { AuthBar } from '../auth-bar';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
 
@@ -85,6 +87,9 @@ export const App = () => {
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
+
+    const [ authManager, setAuthManager ] = useState( null );
+    const [ address, setAddress ] = useState( null );
 
     //
 
@@ -195,6 +200,31 @@ export const App = () => {
 
     }, [ canvasRef ] );
 
+    useEffect( async () => {
+
+        const authManager = new WalletManager();
+        setAuthManager( authManager );
+
+        authManager.addListener( 'webawallet_inited', async () => {
+
+            await authManager.connectMetamask();
+
+        });
+
+        authManager.addListener( 'user_not_auth', () => {
+
+            console.log('need auth');
+
+        });
+
+        authManager.addListener( 'user_auth', async () => {
+
+            setAddress( authManager.address );
+
+        });
+
+    }, [] );
+
     //
 
     const onDragOver = e => {
@@ -208,6 +238,8 @@ export const App = () => {
         // console.log('drag end', e);
     };
 
+    //
+
     return (
         <div
             className={ styles.App }
@@ -216,8 +248,9 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, authManager, address }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
+                <AuthBar />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
                 <ActionMenu />

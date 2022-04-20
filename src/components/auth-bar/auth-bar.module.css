@@ -1,17 +1,17 @@
-.user {
+.authBar {
 	position: fixed;
-  display: flex;
-  top: 0;
-  right: 0;
+    display: flex;
+    top: 0;
+    right: 0;
 	align-items: center;
-  pointer-events: none;
+    pointer-events: none;
 	user-select: none;
-  z-index: 2;
+    z-index: 2;
 }
 
 .user:hover .name {
 	transform: translateX(-30px);
-  background-color: #ef5350;
+    background-color: #ef5350;
 }
 .user:hover .name::before {
 	border-right-color: #ef5350;
@@ -32,46 +32,46 @@
 	height: 80px;
 	margin-right: -30px;
 	/* margin-bottom: auto; */
-  padding: 0 10px;
+    padding: 0 10px;
 	padding-right: 40px;
 	padding-top: 30px;
 	background-color: #000;
 	color: #FFF;
 	align-items: center;
 }
-.user .name {
+.authBar .name {
 	transition: all 2s cubic-bezier(0, 1, 0, 1);
 }
 
 /* */
 
-.user .keyWrap {
+.authBar .keyWrap {
   perspective: 400px;
   perspective-origin: -100px 100px;
   pointer-events: all;
 }
-.user:not(.loggedIn) .keyWrap {
+.authBar:not(.loggedIn) .keyWrap {
   cursor: pointer;
 }
-.user .key {
+.authBar .key {
   display: flex;
   margin-top: 5px;
   align-items: center;
   transform: translate3d(0, 0, 0);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
-.user:not(.loggedIn) .keyWrap:hover .key,
-.user.open .keyWrap .key
+.authBar:not(.loggedIn) .keyWrap:hover .key,
+.authBar.open .keyWrap .key
 {
   transform: translate3d(15px, 0, 0);
 }
-.user:not(.loggedIn) .keyWrap:active .key {
+.authBar:not(.loggedIn) .keyWrap:active .key {
   transform: translate3d(15px, 0, 0) rotateX(50deg);
 }
-.user.loggedIn .key {
+.authBar.loggedIn .key {
   transform: translate3d(200px, 0, 0);
 }
-.user .key .bow {
+.authBar .key .bow {
   position: relative;
   margin-right: -15px;
   background-color: #FFF;
@@ -79,21 +79,21 @@
   border-radius: 1000px;
   z-index: 1;
 }
-.user .key .bow .icon {
+.authBar .key .bow .icon {
   --bow-size: 45px;
 
   width: var(--bow-size);
   height: var(--bow-size);
   padding: 8px;
 }
-.user .key .blade {
+.authBar .key .blade {
   position: relative;
   /* height: 30px; */
   padding: 5px 20px;
   color: #FFF;
   font-size: 14px;
 }
-.user .key .blade .background {
+.authBar .key .blade .background {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -102,71 +102,8 @@
   background-image: linear-gradient(to bottom,#333, #000000);
   transform: skewX(30deg);
 }
-.user .key .blade .text {
+.authBar .key .blade .text {
   position: relative;
-}
-
-/* */
-
-.login_options {
-  --size: 220px;
-
-  position: absolute;
-  top: 30px;
-  right: 0;
-  width: var(--size);
-  padding: 10px;
-  background: #000;
-  font-size: initial;
-  text-align: left;
-  pointer-events: all;
-}
-
-.metamask {
-  margin-left: 10px;
-  display: flex;
-  align-items: center;
-}
-
-.discord {
-  margin-left: 10px;
-  display: flex;
-  align-items: center;
-}
-
-.metamask_text {
-  margin-left: 10px;
-}
-
-.discord_text {
-  margin-left: 10px;
-}
-
-/* */
-
-.loginDiv {
-  width: 100%;
-  text-align: -webkit-center;
-}
-
-.loginBtnText {
-  display: inline-block;
-  transform: skewX(20deg);
-}
-
-.loginBtnImg {
-  vertical-align: middle;
-  margin: 0 10px;
-}
-
-.loginBtn {
-  transform: skewX(-20deg);
-  background-color: rgb(0, 168, 252);
-  color: rgb(0, 0, 0);
-  padding: 0.5em;
-  width: 10em;
-  text-align: left;
-  cursor: pointer;
 }
 
 /* */
@@ -179,18 +116,18 @@
   align-items: center;
 }
 
-.userBar {
+.authBar {
   display: flex;
   font-size: 14px;
   align-items: center;
   pointer-events: all;
   cursor: pointer;
 }
-.userBar .avatarUrl {
+.authBar .avatarUrl {
   position: relative;
   z-index: 1;
 }
-.userBar .avatarUrl .img {
+.authBar .avatarUrl .img {
   --size: 50px;
 
   height: var(--size);
@@ -202,7 +139,7 @@
   transform: translate(0, 0);
   transition: transform 0.5s cubic-bezier(0, 1, 0, 1);
 }
-.userBar .address,
+.authBar .address,
 .logoutBtn
 {
   display: flex;
@@ -210,7 +147,7 @@
   /* font-size: 16px; */
   align-items: center;
 }
-.userBar .address {
+.authBar .address {
   position: relative;
   display: flex;
   padding: 0 10px;
@@ -220,13 +157,13 @@
   line-height: 1.4;
   align-items: center;
 }
-.userBar .avatarUrl + .address {
+.authBar .avatarUrl + .address {
   border-radius: 0;
 }
-.userBar:hover .address {
+.authBar:hover .address {
   background-color: #00a8fc;
 }
-.userBar .verifiedIcon {
+.authBar .verifiedIcon {
   position: relative;
   width: 18px;
   height: 18px;
@@ -234,7 +171,7 @@
   object-fit: contain;
   z-index: 1;
 }
-.userBar .address::after {
+.authBar .address::after {
   position: absolute;
   right: 14px;
   width: 10px;
@@ -242,7 +179,7 @@
   background-color: #FFF;
   content: '';
 }
-.userBar:hover .avatarUrl .img {
+.authBar:hover .avatarUrl .img {
   transform: scale(1.2, 1.2);
 }
 .logoutBtn {
@@ -255,4 +192,89 @@
 .logoutBtn:hover {
   background: #ef5350;
   color: white;
+}
+
+/*  */
+
+.authBar .userLoginMethodsModal {
+    position: fixed;
+    top: 50vh;
+    left: 50vw;
+    transform: translate( -50%, -150% );
+    padding: 10px;
+    background-color: #000;
+    margin-top: 45px;
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s ease, visibility 0s;
+    width: 300px;
+    visibility: hidden;
+}
+
+.authBar .userLoginMethodsModal.opened {
+    transform: translate( -50%, -100% );
+    opacity: 1;
+    visibility: visible;
+}
+
+.authBar .userLoginMethodsModal .title {
+    position: relative;
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+    color: #fff;
+    font-size: 20px;
+    padding: 10px 50px;
+}
+
+.authBar .userLoginMethodsModal .title .background {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: #222;
+    transform: skewX(-20deg);
+    z-index: -1;
+}
+
+.authBar .userLoginMethodsModal .methodBtn {
+    position: relative;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    background: rgb(0, 0, 0);
+    font-size: 30px;
+    font-family: 'PlazaRegular';
+    letter-spacing: 1px;
+    transition: all 1s cubic-bezier(0, 1, 0, 1);
+    border: 2px solid #fff;
+}
+
+.authBar .userLoginMethodsModal .methodBtn:hover {
+    background: #fff;
+}
+
+.authBar .userLoginMethodsModal a {
+    text-decoration: none;
+}
+
+.authBar .userLoginMethodsModal .methodBtn img {
+    position: absolute;
+    left: 10px;
+    margin: 10px;
+}
+
+.authBar .userLoginMethodsModal .methodBtn .methodBtnText {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    color: #fff;
+    font-size: 15px;
+    text-decoration: none;
+    line-height: 45px;
+}
+
+.authBar .userLoginMethodsModal .methodBtn:hover .methodBtnText {
+    color: #000;
 }

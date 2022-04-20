@@ -14,7 +14,6 @@ import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
 import { HeaderIcon } from './HeaderIcon';
-import { User } from './User';
 
 // import blockchainManager from '../blockchain-manager.js';
 
@@ -263,11 +262,6 @@ export default function Header() {
             />
             {/* <div className={styles.inner}> */}
                 <HeaderIcon />
-                <User
-                    address={address}
-                    setAddress={setAddress}
-                    setLoginFrom={setLoginFrom}
-                />
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}
@@ -275,12 +269,8 @@ export default function Header() {
                         dioramaCanvasRef={dioramaCanvasRef}
                         game={game}
                     />
-                    <CharacterSelect
-                        
-                    />
-                    <Inventory
-                    
-                    />
+                    <CharacterSelect />
+                    <Inventory />
                     {/* <Claims
                         open={ claimsOpen }
                         toggleOpen={ toggleClaimsOpen }
