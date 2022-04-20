@@ -16,7 +16,7 @@ import { AppContext } from './components/app';
 import { HeaderIcon } from './HeaderIcon';
 import { User } from './User';
 
-import blockchainManager from '../blockchain-manager.js';
+// import blockchainManager from '../blockchain-manager.js';
 
 import styles from './Header.module.css';
 
