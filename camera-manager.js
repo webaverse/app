@@ -213,8 +213,6 @@ class CameraManager extends EventTarget {
   
   //Lerp towards offset for smoother ADS, works both aiming in and out
   takeAim(playerPos){
-    //const localPlayer = metaversefileApi.useLocalPlayer();
-
     if (-cameraOffset.z> (-maxAim.z)){
       localVector.copy(playerPos).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
     
@@ -224,9 +222,10 @@ class CameraManager extends EventTarget {
       }
       
     else{
+      
+    //If you're close enough, we can just lerp to the side 
       cameraOffset.x = lerp(cameraOffset.x, maxAim.x, 0.1);
      
-    //If you're close enough, we can just lerp to the side (this will also lerp us back after we unaim)
     }
     cameraOffset.updateMatrixWorld;
   }
@@ -234,20 +233,22 @@ class CameraManager extends EventTarget {
   saveaim(){
     lastCamoffsetz = cameraOffsetTargetZ;
   }
-  //we only want to unaim if we are not aiming, and there is a descrepancy between our expected zdistance and our actual distance
+
   removeAim(){
     
     const zdist = (lastCamoffsetz - cameraOffsetTargetZ);
+    
+  //we only want to revert to our original z value if there is a descrepancy between our expected zdistance and our actual distance
     if (zdist !== 0){
     cameraOffsetZ = lerpNum(cameraOffsetZ, lastCamoffsetz, 0.1);
     cameraOffsetTargetZ = cameraOffsetZ;
-    cameraOffset.x = lerp(cameraOffset.x, rayVectorZero.x, 0.1);
-    cameraOffset.updateMatrixWorld;
     }
     else{
-
-      cameraOffset.x = lerp(cameraOffset.x, rayVectorZero.x, 0.1);
+      //do nothing
     }
+    
+    cameraOffset.x = lerp(cameraOffset.x, rayVectorZero.x, 0.1);
+    cameraOffset.updateMatrixWorld;
   }
   
   updatePost(timestamp, timeDiff) {
