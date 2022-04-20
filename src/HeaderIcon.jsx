@@ -19,7 +19,7 @@ const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;
 
 const CharacterIcon = () => {
-  const [arrowLogoImage, setArrowlogoImage] = useState(null);
+  const [loaded, setLoaded] = useState(false);
   const canvasRef = useRef();
 
   useEffect(() => {
@@ -34,22 +34,28 @@ const CharacterIcon = () => {
       const frame = () => {
         if (avatarIconer.enabled) {
           avatarIconer.update();
-        } else if (arrowLogoImage) {
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(arrowLogoImage, 0, 0);
         }
       };
       world.appManager.addEventListener('frame', frame);
 
+      const enabledchange = e => {
+        setLoaded(e.data.enabled);
+      };
+      avatarIconer.addEventListener('enabledchange', enabledchange);
+
       return () => {
         avatarIconer.destroy();
         world.appManager.removeEventListener('frame', frame);
+        avatarIconer.removeEventListener('enabledchange', enabledchange);
       };
     }
   }, [canvasRef.current]);
 
   return (
-      <div className={styles.characterIcon}>
+      <div className={classnames(
+        styles.characterIcon,
+        loaded ? styles.loaded : null,
+      )}>
           <div className={styles.main}>
               <canvas
                 className={styles.canvas}
@@ -57,6 +63,7 @@ const CharacterIcon = () => {
                 height={characterIconSize * pixelRatio}
                 ref={canvasRef}
               />
+              <img className={styles.placeholderImg} src="./images/arc.svg" />
               <div className={styles.meta}>
                   <div className={styles.text}>
                       <div className={styles.background} />
