@@ -20,6 +20,7 @@ let cameraOffsetTargetZ = cameraOffset.z;
 //
 let aimoffsetx = 0;
 const maxAim = new THREE.Vector3(-0.2,0,-5);
+let lastCamoffsetz = 0;
 
 //
 let cameraOffsetZ = cameraOffset.z;
@@ -33,9 +34,6 @@ const rayQuaternion = new THREE.Quaternion();
 const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
 const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
 
-// const lastCameraQuaternion = new THREE.Quaternion();
-// let lastCameraZ = 0;
-// let lastCameraValidZ = 0;
 
 const seed = 'camera';
 const shakeNoise = new Simplex(seed);
@@ -110,8 +108,8 @@ class CameraManager extends EventTarget {
     });
   }
   //set offset value to be used only if in isometric view
-  aimdownSight(adsValx){
-    aimoffsetx = adsValx;
+  aimdownSight(aimValX){
+    aimoffsetx = aimValX;
   }
 
   focusCamera(position) {
@@ -190,6 +188,7 @@ class CameraManager extends EventTarget {
     // e.preventDefault();
 
     cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
+    lastCamoffsetz = cameraOffsetTargetZ;
   }
   addShake(position, intensity, radius, decay) {
     const startTime = performance.now();
@@ -219,7 +218,8 @@ class CameraManager extends EventTarget {
   }
   
   //Lerp towards offset for smoother ADS, works both aiming in and out
-  ads(){
+  takeAim(){
+
     if (localPlayer.hasAction('aim') && -cameraOffset.z>1){
       localVector.copy(localPlayer.position).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
     
@@ -231,9 +231,24 @@ class CameraManager extends EventTarget {
     else{
      
     //If you're close enough, we can just lerp to the side (this will also lerp us back after we unaim)
-    cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
+    //cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
     }
     cameraOffset.updateMatrixWorld;
+  }
+  //When we aim, we want to remember the last camera Z offset
+  saveaim(){
+    lastCamoffsetz = cameraOffsetTargetZ;
+  }
+  //we only want to unaim if we are not aiming, and there is a descrepancy between our expected zdistance and our actual distance
+  removeAim(){
+    
+    const zdist = (lastCamoffsetz - cameraOffsetTargetZ);
+    if (!localPlayer.hasAction('aim') && zdist !== 0){
+    cameraOffsetZ = lerpNum(cameraOffsetZ, lastCamoffsetz, 0.1);
+    cameraOffsetTargetZ = cameraOffsetZ;
+    cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
+    cameraOffset.updateMatrixWorld;
+    }
   }
   
   updatePost(timestamp, timeDiff) {
@@ -387,8 +402,10 @@ class CameraManager extends EventTarget {
               localVector.copy(avatarCameraOffset)
                 .applyQuaternion(camera.quaternion)
             );
+
             //only aims down sight when not in first person mode
-            this.ads();
+            this.takeAim();
+            this.removeAim();
             
     
           break;
