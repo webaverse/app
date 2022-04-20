@@ -106,11 +106,6 @@ class CameraManager extends EventTarget {
       }));
     });
   }
-  //set offset value to be used only if in isometric view
-  aimdownSight(aimValX){
-    aimoffsetx = aimValX;
-  }
-
   focusCamera(position) {
     camera.lookAt(position);
     camera.updateMatrixWorld();
@@ -225,11 +220,11 @@ class CameraManager extends EventTarget {
     
     cameraOffsetZ = lerpNum(cameraOffsetZ, -localVector.z, 0.1);
     cameraOffsetTargetZ = cameraOffsetZ;
-    cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
+    cameraOffset.x = lerp(cameraOffset.x, maxAim.x, 0.1);
       }
       
     else{
-      cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
+      cameraOffset.x = lerp(cameraOffset.x, maxAim.x, 0.1);
      
     //If you're close enough, we can just lerp to the side (this will also lerp us back after we unaim)
     }
@@ -246,12 +241,12 @@ class CameraManager extends EventTarget {
     if (zdist !== 0){
     cameraOffsetZ = lerpNum(cameraOffsetZ, lastCamoffsetz, 0.1);
     cameraOffsetTargetZ = cameraOffsetZ;
-    cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
+    cameraOffset.x = lerp(cameraOffset.x, rayVectorZero.x, 0.1);
     cameraOffset.updateMatrixWorld;
     }
     else{
 
-      cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
+      cameraOffset.x = lerp(cameraOffset.x, rayVectorZero.x, 0.1);
     }
   }
   

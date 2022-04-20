@@ -1154,10 +1154,6 @@ class GameManager extends EventTarget {
   menuAim() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
-      //current ads value is just a hardcoded offset value that seemed appropriate
-      cameraManager.saveaim();
-      cameraManager.aimdownSight(0.3);
-      //
       const localPlayer = metaversefileApi.useLocalPlayer();
       const wearApp = loadoutManager.getSelectedApp();
       const wearAimApp = (() => {
@@ -1191,8 +1187,6 @@ class GameManager extends EventTarget {
     const aimAction = localPlayer.getAction('aim');
     if (aimAction) {
       localPlayer.removeAction('aim');
-      //Return to default offset
-      cameraManager.aimdownSight(0);
     }
   }
   menuDragdown(e) {
