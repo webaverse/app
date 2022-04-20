@@ -26,19 +26,6 @@
 	border-right-color: #283593;
 }
 
-/* .user:active .icon {
-  transform: scale(1.2);
-}
-.user .icon {
-	position: relative;
-  height: 70px;
-	margin-left: 20px;
-	margin-right: 60px;
-	background-color: #FFF;
-	border-radius: 100px;
-	border: 2px solid #333;
-} */
-
 .user .name {
 	position: relative;
 	display: flex;
@@ -55,39 +42,14 @@
 .user .name {
 	transition: all 2s cubic-bezier(0, 1, 0, 1);
 }
-/* .user .name::before {
-	position: absolute;
-	top: 0;
-	left: -80px;
-  border-width: 0;
-	border-right-width: 80px;
-	border-bottom-width: 80px;
-	border-color: transparent;
-	border-style: solid;
-	border-right-color: #000;
-	content: '';
-} */
-/* .user::before {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	width: 0;
-	background-color: #000;
-	transition: width 0.5s cubic-bezier(0, 1, 0, 1);
-	content: '';
-} */
-/* .avatar {
-  position: relative;
-  width: 400px;
-  height: 400px;
-} */
+
+/* */
 
 .user {
   perspective: 400px;
   perspective-origin: -100px 100px;
 }
-.user .button {
+.user .key {
   display: flex;
   align-items: center;
   pointer-events: all;
@@ -95,55 +57,49 @@
   transform: translate3d(0, 0, 0);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
-.user:hover .button,
-.user.open .button
+.user:hover .key,
+.user.open .key
 {
   transform: translate3d(15px, 0, 0);
 }
-.user:active .button {
+.user:active .key {
   transform: translate3d(15px, 0, 0) rotateX(-60deg);
 }
-.user.loggedIn .button {
+.user.loggedIn .key {
   transform: translate3d(200px, 0, 0);
 }
-.user .button .bow {
+.user .key .bow {
   position: relative;
   margin-right: -15px;
   background-color: #FFF;
-  /* background-image: radial-gradient(#FFF, #AAA); */
   border: 3px solid #000;
   border-radius: 1000px;
-  /* box-shadow: inset 0 0 5px #000; */
   z-index: 1;
 }
-.user .button .bow .icon {
+.user .key .bow .icon {
   --bow-size: 45px;
 
   width: var(--bow-size);
   height: var(--bow-size);
   padding: 8px;
 }
-.user .button .blade {
+.user .key .blade {
   position: relative;
   height: 30px;
-  /* margin-top: 10px; */
   padding: 5px 20px;
-  /* background-color: #000; */
-  /* border: 2px solid #000; */
   color: #FFF;
   font-size: 13px;
 }
-.user .button .blade .background {
+.user .key .blade .background {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
-  /* background-color: #000; */
   background-image: linear-gradient(to bottom,#333, #000000);
   transform: skewX(30deg);
 }
-.user .button .blade .text {
+.user .key .blade .text {
   position: relative;
 }
 
