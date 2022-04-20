@@ -20,7 +20,7 @@ class AvatarIconer {
     this.emotion = '';
     this.lastRenderedEmotion = null;
 
-    this.running = false;
+    this.enabled = false;
 
     this.canvases = [];
 
@@ -66,8 +66,11 @@ class AvatarIconer {
 
       player.destroy();
       dstAvatarApp.destroy();
+
+      this.enabled = true;
     } else {
       this.emotionCanvases.length = 0;
+      this.enabled = false;
     }
 
     this.lastRenderedEmotion = null;
