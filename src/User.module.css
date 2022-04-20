@@ -1,6 +1,6 @@
 .loginDiv {
     width: 100%;
-    margin: 10px 0;
+    /* margin: 10px 0; */
     text-align: -webkit-center;
 }
 
@@ -67,7 +67,7 @@
 	border-right-color: #283593;
 }
 
-.user:active .icon {
+/* .user:active .icon {
   transform: scale(1.2);
 }
 .user .icon {
@@ -78,7 +78,7 @@
 	background-color: #FFF;
 	border-radius: 100px;
 	border: 2px solid #333;
-}
+} */
 
 .user .name {
 	position: relative;
@@ -93,12 +93,10 @@
 	color: #FFF;
 	align-items: center;
 }
-.user .name,
-.user .name::before
-{
+.user .name {
 	transition: all 2s cubic-bezier(0, 1, 0, 1);
 }
-.user .name::before {
+/* .user .name::before {
 	position: absolute;
 	top: 0;
 	left: -80px;
@@ -109,8 +107,8 @@
 	border-style: solid;
 	border-right-color: #000;
 	content: '';
-}
-.user::before {
+} */
+/* .user::before {
 	position: absolute;
 	top: 0;
 	bottom: 0;
@@ -119,21 +117,91 @@
 	background-color: #000;
 	transition: width 0.5s cubic-bezier(0, 1, 0, 1);
 	content: '';
-}
-.avatar {
+} */
+/* .avatar {
   position: relative;
   width: 400px;
   height: 400px;
+} */
+
+.user {
+  perspective: 400px;
+  perspective-origin: -100px 100px;
+}
+.user .button {
+  display: flex;
+  align-items: center;
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.user:hover .button,
+.user.open .button
+{
+  transform: translate3d(15px, 0, 0);
+}
+.user:active .button {
+  transform: translate3d(15px, 0, 0) rotateX(-60deg);
+}
+.user .button .bow {
+  position: relative;
+  margin-right: -15px;
+  background-color: #FFF;
+  /* background-image: radial-gradient(#FFF, #AAA); */
+  border: 3px solid #000;
+  border-radius: 1000px;
+  /* box-shadow: inset 0 0 5px #000; */
+  z-index: 1;
+}
+.user .button .bow .icon {
+  --bow-size: 45px;
+
+  width: var(--bow-size);
+  height: var(--bow-size);
+  padding: 8px;
+}
+.user .button .blade {
+  position: relative;
+  height: 30px;
+  /* margin-top: 10px; */
+  padding: 5px 20px;
+  /* background-color: #000; */
+  /* border: 2px solid #000; */
+  color: #FFF;
+  font-size: 13px;
+}
+.user .button .blade .background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  /* background-color: #000; */
+  background-image: linear-gradient(to bottom,#333, #000000);
+  transform: skewX(30deg);
+}
+.user .button .blade .text {
+  position: relative;
 }
 
 /* */
 
 .login_options {
-  background: black;
-  color: white;
+  position: absolute;
+  top: 30px;
+  right: 0;
+  background: #000;
   font-size: initial;
   text-align: left;
-  cursor: pointer;
+  /* cursor: pointer; */
+}
+/* .login_options:not(.open) {
+  visibility: hidden;
+} */
+.login_options {
+  --size: 220px;
+
+  width: var(--size);
+  padding: 10px;
 }
 
 .metamask {
