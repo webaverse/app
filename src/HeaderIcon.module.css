@@ -1,3 +1,21 @@
+@keyframes hueRotate {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  25% {
+    filter: hue-rotate(90deg);
+  }
+  50% {
+    filter: hue-rotate(180deg);
+  }
+  75% {
+    filter: hue-rotate(270deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
+
 .headerIcon {
   --width: 200px;
   
@@ -186,6 +204,12 @@
   left: 0;
   width: 50px;
   background: linear-gradient(to bottom,rgb(194, 130, 130) 20%,rgb(255, 255, 255) 40%,rgb(255, 170, 170) 60%, rgb(255, 170, 170) 100%);
+}
+.headerIcon .characterIcon .limitBar.full .inner {
+  animation-name: hueRotate;
+  animation-duration: 0.5s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
 }
 .headerIcon .buttonWrap {
   display: flex;
