@@ -220,7 +220,7 @@ class CameraManager extends EventTarget {
   //Lerp towards offset for smoother ADS, works both aiming in and out
   takeAim(){
 
-    if (localPlayer.hasAction('aim') && -cameraOffset.z>1){
+    if (localPlayer.hasAction('aim') && -cameraOffset.z> (-maxAim.z)){
       localVector.copy(localPlayer.position).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
     
     cameraOffsetZ = lerpNum(cameraOffsetZ, -localVector.z, 0.1);
@@ -230,6 +230,7 @@ class CameraManager extends EventTarget {
       
     else{
      
+    cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
     //If you're close enough, we can just lerp to the side (this will also lerp us back after we unaim)
     //cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
     }
