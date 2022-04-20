@@ -204,8 +204,8 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 </div>
             </div>
 
-            {address ? (
-                <div className={styles.userDetails}>
+            {address ? <div className={styles.userWrap}>
+                <div className={styles.userBar}>
                     {avatarUrl ? (
                         <div
                             className={styles.avatarUrl}
@@ -218,16 +218,16 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                         className={styles.address}
                         onClick={openUserPanel}
                     >{ensName || address || ''}</div>
-                    <div className={styles.logoutBtn}
-                        onClick={e => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            WebaWallet.logout();
-                            _setAddress(null);
-                        }}
-                    >Logout</div>
                 </div>
-            ) : null}
+                <div className={styles.logoutBtn}
+                    onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        WebaWallet.logout();
+                        _setAddress(null);
+                    }}
+                >Logout</div>
+            </div> : null}
 
             <Modal onClose={ showModal } show={open}>
                 <div className={styles.login_options}>

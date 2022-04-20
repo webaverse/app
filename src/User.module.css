@@ -1,8 +1,8 @@
 .user {
 	position: fixed;
+  display: flex;
   top: 0;
   right: 0;
-	display: flex;
 	align-items: center;
   pointer-events: none;
 	user-select: none;
@@ -87,10 +87,10 @@
 }
 .user .key .blade {
   position: relative;
-  height: 30px;
+  /* height: 30px; */
   padding: 5px 20px;
   color: #FFF;
-  font-size: 13px;
+  font-size: 14px;
 }
 .user .key .blade .background {
   position: absolute;
@@ -170,54 +170,63 @@
 
 /* */
 
-.userDetails {
+.userWrap {
   display: flex;
   position: absolute;
   right: 0;
   margin-top: 10px;
   align-items: center;
-  pointer-events: all;
 }
-.userDetails .avatarUrl {
-  --size: 40px;
-  --border-size: 3px;
 
+.userBar {
+  display: flex;
+  font-size: 14px;
+  align-items: center;
+  pointer-events: all;
   cursor: pointer;
 }
-.userDetails .avatarUrl .img {
+.userBar .avatarUrl .img {
+  --size: 50px;
+
   height: var(--size);
   width: var(--size);
   background-color: #FFF;
-  border-radius: 5px;
-  border: var(--border-size) solid #000;
+  border-radius: 7px;
+  border: 3px solid #000;
   object-fit: cover;
+  transform: translate(0, 0);
+  transition: transform 0.5s cubic-bezier(0, 1, 0, 1);
 }
-.userDetails .address,
-.userDetails .logoutBtn
+.userBar .address,
+.logoutBtn
 {
   display: flex;
   height: 30px;
-  font-size: 12px;
+  /* font-size: 16px; */
   align-items: center;
 }
-.userDetails .address {
+.userBar .address {
   display: flex;
   padding: 0 10px;
   background-color: #000;
   color: #FFF;
   align-items: center;
-  cursor: pointer;
+  line-height: 1;
 }
-.userDetails .address:hover {
+.userBar:hover .address {
   background-color: #00a8fc;
 }
-.userDetails .logoutBtn {
+.userBar:hover .avatarUrl .img {
+  transform: scale(1.2, 1.2);
+}
+.logoutBtn {
   background: #333;
   color: #FFF;
-  padding: 6px;
+  padding: 5px;
   cursor: pointer;
+  pointer-events: all;
 }
-.userDetails .logoutBtn:hover {
+.logoutBtn:hover {
   background: #ef5350;
   color: white;
 }
