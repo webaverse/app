@@ -7,11 +7,13 @@ import npcManager from './npc-manager.js';
 const allEmotions = [''].concat(emotions);
 const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
 
-class AvatarIconer {
+class AvatarIconer extends EventTarget {
   constructor(player, {
     width = 150,
     height = 150,
   } = {}) {
+    super();
+
     this.player = player;
     this.width = width;
     this.height = height;
@@ -36,6 +38,8 @@ class AvatarIconer {
     };
   }
   async renderAvatarApp(srcAvatarApp) {
+    const lastEnabled = this.enabled;
+
     if (srcAvatarApp) {
       const start_url = srcAvatarApp.contentId;
       const dstAvatarApp = await metaversefile.createAppAsync({
@@ -74,6 +78,14 @@ class AvatarIconer {
     }
 
     this.lastRenderedEmotion = null;
+  
+    if (lastEnabled !== this.enabled) {
+      this.dispatchEvent(new MessageEvent('enabledchange', {
+        data: {
+          enabled: this.enabled,
+        },
+      }));
+    }
   }
   setEmotion(emotion) {
     this.emotion = emotion || '';
