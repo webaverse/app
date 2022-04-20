@@ -133,6 +133,7 @@
 .headerIcon .characterIcon .meta .stat .value {
   position: absolute;
   top: 0;
+  /* top: -1px; */
   left: 25px;
   font-family: 'WinchesterCaps';
   font-size: 17px;
