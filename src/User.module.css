@@ -46,6 +46,10 @@
 /* */
 
 .user .keyWrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 180px;
   perspective: 400px;
   perspective-origin: -100px 100px;
   pointer-events: all;
@@ -60,15 +64,17 @@
   transform: translate3d(0, 0, 0);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
-.user:not(.loggedIn) .keyWrap:hover .key,
-.user.open .keyWrap .key
+.user:not(.loggedIn):not(.loggingIn) .keyWrap:hover .key,
+.user:not(.loggedIn):not(.loggingIn).open .keyWrap .key
 {
   transform: translate3d(15px, 0, 0);
 }
-.user:not(.loggedIn) .keyWrap:active .key {
+.user:not(.loggedIn):not(.loggingIn) .keyWrap:active .key {
   transform: translate3d(15px, 0, 0) rotateX(50deg);
 }
-.user.loggedIn .key {
+.user.loggedIn .key,
+.user.loggingIn .key
+{
   transform: translate3d(200px, 0, 0);
 }
 .user .key .bow {
@@ -108,11 +114,32 @@
 
 /* */
 
+.user .loggingInPlaceholder {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  margin-top: 10px;
+  margin-right: 10px;
+  padding: 10px;
+  background-image: linear-gradient(to bottom,#333, #000000);
+  border-radius: 5px;
+  color: #FFF;
+  white-space: nowrap;
+  transform: translate(200px, 0);
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.user.loggingIn .loggingInPlaceholder {
+  transform: translate(0, 0);
+}
+
+/* */
+
 .login_options {
   --size: 220px;
 
   position: absolute;
-  top: 30px;
+  top: 65px;
   right: 0;
   width: var(--size);
   padding: 10px;
@@ -174,8 +201,9 @@
 .userWrap {
   display: flex;
   position: absolute;
+  top: 0;
   right: 0;
-  margin-top: 10px;
+  margin-top: 5px;
   align-items: center;
 }
 
