@@ -216,19 +216,20 @@ class CameraManager extends EventTarget {
     if (-cameraOffset.z> (-maxAim.z)){
       localVector.copy(playerPos).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
     
-    cameraOffsetZ = lerpNum(cameraOffsetZ, -localVector.z, 0.1);
-    cameraOffsetTargetZ = cameraOffsetZ;
-    cameraOffset.x = lerp(cameraOffset.x, maxAim.x, 0.1);
-      }
+      cameraOffsetZ = lerpNum(cameraOffsetZ, -localVector.z, 0.1);
+      cameraOffsetTargetZ = cameraOffsetZ;
+      cameraOffset.x = lerp(cameraOffset.x, maxAim.x, 0.1);
+    }
       
     else{
       
-    //If you're close enough, we can just lerp to the side 
+      //If you're close enough, we can just lerp to the side 
       cameraOffset.x = lerp(cameraOffset.x, maxAim.x, 0.1);
      
     }
     cameraOffset.updateMatrixWorld;
   }
+
   //When we aim, we want to remember the last camera Z offset
   saveaim(){
     lastCamoffsetz = cameraOffsetTargetZ;
@@ -238,10 +239,10 @@ class CameraManager extends EventTarget {
     
     const zdist = (lastCamoffsetz - cameraOffsetTargetZ);
     
-  //we only want to revert to our original z value if there is a descrepancy between our expected zdistance and our actual distance
+    //we only want to revert to our original z value if there is a descrepancy between our expected zdistance and our actual distance
     if (zdist !== 0){
-    cameraOffsetZ = lerpNum(cameraOffsetZ, lastCamoffsetz, 0.1);
-    cameraOffsetTargetZ = cameraOffsetZ;
+      cameraOffsetZ = lerpNum(cameraOffsetZ, lastCamoffsetz, 0.1);
+      cameraOffsetTargetZ = cameraOffsetZ;
     }
     else{
       //do nothing
@@ -403,13 +404,13 @@ class CameraManager extends EventTarget {
                 .applyQuaternion(camera.quaternion)
             );
 
-            //only aims down sight when not in first person mode
-            if (localPlayer.hasAction('aim')){
+          //only aims down sight when not in first person mode
+          if (localPlayer.hasAction('aim')){
             this.takeAim(localPlayer.position);
-            }
-            else{
+          }
+          else{
             this.removeAim();
-            }
+          }
             
     
           break;
