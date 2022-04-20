@@ -103,6 +103,8 @@ export const AuthBar = ({ setLoginFrom }) => {
                 </div>
             </div>
 
+            <div className={styles.loggingInPlaceholder}>Logging in</div>
+
             { address ? <div className={styles.userWrap}>
                 <div className={styles.userBar}>
                     {avatarUrl ? (
