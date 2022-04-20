@@ -1508,7 +1508,6 @@ class GameManager extends EventTarget {
   }
   ensureFly() {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
       const instanceId = wearAction.instanceId;
