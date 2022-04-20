@@ -688,6 +688,13 @@ class StatePlayer extends PlayerBase {
   removeActionIndex(index) {
     this.getActionsState().delete(index);
   }
+  clearActions() {
+    const actionsState = this.getActionsState();
+    const numActions = actionsState.length;
+    for (let i = numActions - 1; i >= 0; i--) {
+      this.removeActionIndex(i);
+    }
+  }
   setControlAction(action) {
     const actions = this.getActionsState();
     for (let i = 0; i < actions.length; i++) {
@@ -1235,6 +1242,12 @@ class StaticUninterpolatedPlayer extends PlayerBase {
       type: 'actionremove',
       action,
     });
+  }
+  clearActions() {
+    const numActions = this.actions.length;
+    for (let i = numActions - 1; i >= 0; i--) {
+      this.removeActionIndex(i);
+    }
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 }
