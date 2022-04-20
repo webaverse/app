@@ -15,7 +15,7 @@ import { localPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
 import cameraManager from '../camera-manager.js'
 
-const characterIconSize = 80;
+const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;
 
 const CharacterIcon = () => {
