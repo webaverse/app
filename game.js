@@ -28,6 +28,7 @@ import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
+import {generateObjectUrlCard} from './card-generator.js';
 
 // const {contractNames} = metaversefileConstants;
 
@@ -1310,6 +1311,21 @@ class GameManager extends EventTarget {
     }
   }
 
+  /* menuGDown() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('emote');
+
+    const newAction = {
+      type: 'emote',
+      animation: 'angry',
+    };
+    localPlayer.addAction(newAction);
+  }
+  menuGUp() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('emote');
+  } */
+
   menuVDown() {
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
@@ -1320,16 +1336,16 @@ class GameManager extends EventTarget {
       const newAction = {
         type: 'dance',
         animation: 'dansu',
-        // time: 0,
       };
       localPlayer.addAction(newAction);
     }
   }
-  menuVUp(e) {
+  menuVUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('dance');
   }
-  menuBDown(e) {
+
+  menuBDown() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     
     const sssAction = localPlayer.getAction('sss');
@@ -1361,6 +1377,7 @@ class GameManager extends EventTarget {
     
     // physicsManager.setThrowState(null);
   }
+
   menuDoubleTap() {
     if (!this.isCrouched()) {
       const localPlayer = metaversefileApi.useLocalPlayer();
@@ -1491,7 +1508,9 @@ class GameManager extends EventTarget {
 
   }
   isMovingBackward() {
-    return ioManager.keysDirection.z > 0 && this.isAiming();
+    // return ioManager.keysDirection.z > 0 && this.isAiming();
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
   }
   isAiming() {
     return metaversefileApi.useLocalPlayer().hasAction('aim');
@@ -1683,6 +1702,21 @@ class GameManager extends EventTarget {
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
   pushPlayerUpdates = _pushPlayerUpdates;
+  async renderCard(object) { // HACK: this should be moved to a UI component
+    const start_url = object?.start_url;
+    if (start_url) {
+      // console.log('render card 1', start_url);
+      const cardImg = await generateObjectUrlCard({
+        start_url,
+      });
+      // console.log('render card 2', start_url, cardImg);
+      // const stats = procgen.generateStats();
+      /* console.log('render start url', {
+        start_url,
+        stats,
+      }); */
+    }
+  }
 }
 const gameManager = new GameManager();
 export default gameManager;

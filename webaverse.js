@@ -341,7 +341,10 @@ export default class Webaverse extends EventTarget {
         loadoutManager.update(timestamp, timeDiffCapped);
 
         {
-          const popRenderSettings = renderSettingsManager.push(rootScene);
+          const popRenderSettings = renderSettingsManager.push(rootScene, undefined, {
+            fog: true,
+            postProcessing,
+          });
 
           performanceTracker.setGpuPrefix('');
           this.render(timestamp, timeDiffCapped);
@@ -383,41 +386,41 @@ const _startHacks = webaverse => {
   window.s.loadoutManager = loadoutManager;
 
   // let playerDiorama = null;
-  const lastEmoteKey = {
+  const lastEmotionKey = {
     key: -1,
     timestamp: 0,
   };
-  let emoteIndex = -1;
+  let emotionIndex = -1;
   let poseAnimationIndex = -1;
-  const _emoteKey = key => {
+  const _emotionKey = key => {
     const timestamp = performance.now();
-    if ((timestamp - lastEmoteKey.timestamp) < 1000) {
-      const key1 = lastEmoteKey.key;
+    if ((timestamp - lastEmotionKey.timestamp) < 1000) {
+      const key1 = lastEmotionKey.key;
       const key2 = key;
-      emoteIndex = (key1 * 10) + key2;
+      emotionIndex = (key1 * 10) + key2;
       
-      lastEmoteKey.key = -1;
-      lastEmoteKey.timestamp = 0;
+      lastEmotionKey.key = -1;
+      lastEmotionKey.timestamp = 0;
     } else {
-      lastEmoteKey.key = key;
-      lastEmoteKey.timestamp = timestamp;
+      lastEmotionKey.key = key;
+      lastEmotionKey.timestamp = timestamp;
     }
   };
-  const _updateEmote = () => {
-    const oldEmoteActionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && /^emotion-/.test(action.emotion));
-    if (oldEmoteActionIndex !== -1) {
-      localPlayer.removeActionIndex(oldEmoteActionIndex);
+  const _updateFacePose = () => {
+    const oldFacePoseActionIndex = localPlayer.findActionIndex(action => action.type === 'facepose' && /^emotion-/.test(action.emotion));
+    if (oldFacePoseActionIndex !== -1) {
+      localPlayer.removeActionIndex(oldFacePoseActionIndex);
     }
-    if (emoteIndex !== -1) {
+    if (emotionIndex !== -1) {
       const emoteAction = {
-        type: 'emote',
-        emotion: `emotion-${emoteIndex}`,
+        type: 'facepose',
+        emotion: `emotion-${emotionIndex}`,
         value: 1,
       };
       localPlayer.addAction(emoteAction);
     }
   };
-  const _updatePoseAnimation = () => {
+  const _updatePose = () => {
     localPlayer.removeAction('pose');
     if (poseAnimationIndex !== -1) {
       const animation = vpdAnimations[poseAnimationIndex];
@@ -544,21 +547,22 @@ const _startHacks = webaverse => {
     }
   }; */
   webaverse.titleCardHack = false;
+  let haloMeshApp = null;
   window.addEventListener('keydown', e => {
     if (e.which === 46) { // .
-      emoteIndex = -1;
-      _updateEmote();
+      emotionIndex = -1;
+      _updateFacePose();
     } else if (e.which === 107) { // +
       poseAnimationIndex++;
       poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
-      _updatePoseAnimation();
+      _updatePose();
     
       // _ensureMikuModel();
       // _updateMikuModel();
     } else if (e.which === 109) { // -
       poseAnimationIndex--;
       poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
-      _updatePoseAnimation();
+      _updatePose();
 
       // _ensureMikuModel();
       // _updateMikuModel();
@@ -586,12 +590,26 @@ const _startHacks = webaverse => {
         console.log('final result', result);
         offscreenEngine.destroy();
       })();
+    } else if (e.which === 75) { // K
+      if (!haloMeshApp) {
+        haloMeshApp = metaversefileApi.createApp();
+        (async () => {
+          const {modules} = metaversefileApi.useDefaultModules();
+          const m = modules['halo'];
+          await haloMeshApp.addModule(m);
+        })();
+        scene.add(haloMeshApp);
+      } else {
+        scene.remove(haloMeshApp);
+        haloMeshApp.destroy();
+        haloMeshApp = null;
+      }
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {
         const key = parseInt(match[1], 10);
-        _emoteKey(key);
-        _updateEmote();
+        _emotionKey(key);
+        _updateFacePose();
       }
     }
   });

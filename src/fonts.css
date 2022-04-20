@@ -1,0 +1,55 @@
+/* ui */
+@font-face {
+  font-family: 'Muli';
+  src: url('../public/fonts/Muli.ttf');
+}
+@font-face {
+  font-family: 'GeoSans';
+  src: url('../public/fonts/GeosansLight.woff2') format('woff2'); /* Super Modern Browsers */
+}
+@font-face {
+  font-family: 'PlazaRegular';
+  src:  url('../public/fonts/Plaza Regular.ttf');
+}
+@font-face {
+  font-family: 'WinchesterCaps';
+  src:  url('../public/fonts/WinchesterCaps.ttf');
+}
+
+/* cards */
+@font-face {
+  font-family: 'FuturaLT-Condensed';
+  src:  url('../public/fonts/Futura LT Condensed Medium.ttf');
+}
+@font-face {
+  font-family: 'GillSans-CondensedBold';
+  src:  url('../public/fonts/gill-cb.ttf');
+}
+@font-face {
+  font-family: 'FuturaStd-Heavy';
+  src:  url('../public/fonts/Futura Std Heavy.ttf');
+}
+@font-face {
+  font-family: 'PlazaITC-Normal';
+  src:  url('../public/fonts/Plaza Regular.ttf');
+}
+@font-face {
+  font-family: 'MS-Gothic';
+  src:  url('../public/fonts/MS Gothic.ttf');
+}
+@font-face {
+  font-family: 'GillSans';
+  src:  url('../public/fonts/gill-sans.woff');
+}
+@font-face {
+  font-family: 'GillSans-ExtraBoldDisplay';
+  src:  url('../public/fonts/Gill Sans Extra Bold Display.ttf');
+}
+@font-face {
+  font-family: 'FuturaLT-CondensedBold';
+  src:  url('../public/fonts/Futura LT Condensed Bold.ttf');
+}
+@font-face {
+  font-family: 'SanvitoPro-Regular';
+  src:  url('../public/fonts/SanvitoPro-Regular.ttf');
+}

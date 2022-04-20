@@ -70,22 +70,47 @@ class RenderSettingsManager {
     scene.background = background;
     scene.fog = fog;
   }
-  applyRenderSettingsToSceneAndPostProcessing(renderSettings, scene, localPostProcessing) {
-    this.applyRenderSettingsToScene(renderSettings, scene);
-    
-    const {
-      passes = null,
-    } = (renderSettings ?? {});
-    localPostProcessing.setPasses(passes);
-  }
-  push(srcScene, dstScene = srcScene) {
+  push(srcScene, dstScene = srcScene, {
+    fog = false,
+    postProcessing = null,
+  } = {}) {
     const renderSettings = this.findRenderSettings(srcScene);
-    // console.log('push render settings', renderSettings);
     this.applyRenderSettingsToScene(renderSettings, dstScene);
-    
+
+    const hideFog = fog === false && !!dstScene.fog;
+    let fogCleanup = null;
+    if (hideFog) {
+      if (dstScene.fog.isFog) {
+        const oldNear = dstScene.fog.near;
+        const oldFar = dstScene.fog.far;
+        dstScene.fog.near = Infinity;
+        dstScene.fog.far = Infinity;
+        fogCleanup = () => {
+          dstScene.fog.near = oldNear;
+          dstScene.fog.far = oldFar;
+        };
+      } else if (dstScene.fog.isFogExp2) {
+        const oldDensity = dstScene.fog.density;
+        dstScene.fog.density = 0;
+        fogCleanup = () => {
+          dstScene.fog.density = oldDensity;
+        };
+      }
+    }
+    if (postProcessing) {
+      const {
+        passes = null,
+      } = (renderSettings ?? {});
+      postProcessing.setPasses(passes);
+    }
+
     return () => {
-      // console.log('pop render settings');
+      fogCleanup && fogCleanup();
       this.applyRenderSettingsToScene(null, dstScene);
+
+      if (postProcessing) {
+        postProcessing.setPasses(null);
+      }
     };
   }
 }
