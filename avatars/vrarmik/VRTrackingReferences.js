@@ -10,6 +10,7 @@ const _makeFingers = () => {
 
 class VRTrackingReferences {
   constructor() {
+    console.log('VRTrackingReferences');
     /* this.leftController = new Transform();
     this.rightController = new Transform();
     this.hmd = new Transform(); */
@@ -18,6 +19,7 @@ class VRTrackingReferences {
     }; */
     this.head = new THREE.Object3D();
     this.leftHand = new THREE.Object3D();
+    window.leftHand = this.leftHand;
     this.leftHand.pointer = 0;
     this.leftHand.grip = 0;
     this.leftHand.fingers = _makeFingers();
