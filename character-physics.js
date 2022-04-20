@@ -91,7 +91,22 @@ class CharacterPhysics {
         this.player.characterController.position
       );
       // const collided = flags !== 0;
-      const grounded = !!(flags & 0x1); 
+      let grounded = !!(flags & 0x1); 
+
+      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly')) { // prevent jump when go down slope
+        const flags = physicsManager.moveCharacterController(
+          this.player.characterController,
+          localVector3.set(0, -0.06, 0),
+          minDist,
+          0,
+          localVector4,
+        );
+        const newGrounded = !!(flags & 0x1); 
+        if (newGrounded) {
+          grounded = true;
+          this.player.characterController.position.copy(localVector4);
+        }
+      }
 
       this.player.characterController.updateMatrixWorld();
       this.player.characterController.matrixWorld.decompose(localVector, localQuaternion, localVector2);
