@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
@@ -8,6 +7,7 @@ import { parseQuery } from '../util.js';
 import Modal from './components/modal';
 import WebaWallet from './components/wallet';
 
+import blockchainManager from '../blockchain-manager.js';
 import { AppContext } from './components/app';
 
 import styles from './User.module.css';
@@ -17,9 +17,9 @@ import styles from './User.module.css';
 export const User = ({ address, setAddress, setLoginFrom }) => {
 
     const { state, setState } = useContext( AppContext );
-    // const [ show, setShow ] = useState(false);
+    const [ensName, setEnsName] = useState('');
+    const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
-    // const [ loginButtons, setLoginButtons ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
 
@@ -34,16 +34,47 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
     };
 
+    const openUserPanel = e => {
+
+        setState({ openedPanel: 'UserPanel' });
+    
+    };
+
+    const _setAddress = async address => {
+        
+        if (address) {
+            // let live = true;
+            // (async () => {
+                const ensName = await blockchainManager.getEnsName(address);
+                // if (!live) return;
+                setEnsName(ensName);
+
+                const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
+                // if (!live) return;
+                setAvatarUrl(avatarUrl);
+            // })();
+
+            /* return () => {
+                live = false;
+            }; */
+
+            // console.log('render name', {address, ensName, avatarUrl});
+        }
+
+        setAddress(address);
+    
+    };
+
     const metaMaskLogin = async ( event ) => {
 
         event.preventDefault();
         event.stopPropagation();
 
-        if ( address ) {
+        /* if ( address ) {
 
             setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
 
-        } else {
+        } else { */
 
             if ( ! loggingIn ) {
 
@@ -52,7 +83,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 try {
 
                     const { address, profile } = await ceramicApi.login();
-                    setAddress(address);
+                    _setAddress(address);
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
@@ -71,13 +102,13 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
             }
 
-        }
+        // }
 
     };
 
     useEffect( () => {
 
-        const { error, code, id, play, realmId, twitter: arrivingFromTwitter } = parseQuery( window.location.search );
+        const { error, code, id, play, realmId } = parseQuery( window.location.search );
 
         if ( ! autoLoginRequestMade ) {
 
@@ -93,7 +124,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                     if ( address ) {
 
-                        setAddress( address );
+                        _setAddress( address );
                         setLoginFrom( 'discord' );
                         // setShow( false );
 
@@ -116,7 +147,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                     if ( address ) {
 
-                        setAddress( address );
+                        _setAddress( address );
                         setLoginFrom( 'discord' );
                         // setShow( false );
 
@@ -132,7 +163,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
         }
 
-    }, [ address, setAddress ] );
+    }, [ address ] );
 
     const open = state.openedPanel === 'LoginPanel';
     const loggedIn = !!address;
@@ -173,16 +204,30 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 </div>
             </div>
 
-            { address ? (
-                <div className={styles.logoutBtn}
-                    onClick={e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        WebaWallet.logout();
-                        setAddress(null);
-                    }}
-                >Logout</div> ) : ''
-            }
+            {address ? (
+                <div className={styles.userDetails}>
+                    {avatarUrl ? (
+                        <div
+                            className={styles.avatarUrl}
+                            onClick={openUserPanel}
+                        >
+                            <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
+                        </div>
+                    ) : null}
+                    <div
+                        className={styles.address}
+                        onClick={openUserPanel}
+                    >{ensName || address || ''}</div>
+                    <div className={styles.logoutBtn}
+                        onClick={e => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            WebaWallet.logout();
+                            _setAddress(null);
+                        }}
+                    >Logout</div>
+                </div>
+            ) : null}
 
             <Modal onClose={ showModal } show={open}>
                 <div className={styles.login_options}>
