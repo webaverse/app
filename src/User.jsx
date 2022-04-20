@@ -211,7 +211,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
             <div className={styles.loggingInPlaceholder}>Logging in</div>
 
-            {address ? <div
+            <div
                 className={styles.userWrap}
             >
                 <div
@@ -237,9 +237,9 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                         _setAddress(null);
                     }}
                 >Logout</div>
-            </div> : null}
+            </div>
 
-            <Modal onClose={ showModal } show={open}>
+            <Modal onClose={ showModal } show={open && !loggingIn}>
                 <div className={styles.login_options}>
                 
                     <div className={styles.loginDiv}>
