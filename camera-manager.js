@@ -6,6 +6,7 @@ import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
 import { lerp } from 'three/src/math/MathUtils';
+import { localPlayer } from './players.js';
 // import alea from './alea.js';
 
 const localVector = new THREE.Vector3();
@@ -18,6 +19,8 @@ const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 //
 let aimoffsetx = 0;
+let aimoffsetz = 0;
+const maxAim = new THREE.Vector3(-0.2,0,-1);
 
 //
 let cameraOffsetZ = cameraOffset.z;
@@ -108,14 +111,11 @@ class CameraManager extends EventTarget {
     });
   }
   //set offset value to be used only if in isometric view
-  aimdownSight(adsValx){
+  aimdownSight(adsValx, adsValz){
     aimoffsetx = adsValx;
+    aimoffsetz = adsValz;
   }
-  //Lerp towards offset for smoother ADS, works both aiming in and out
-  ads(){
-    cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1)
-    cameraOffset.updateMatrixWorld;
-  }
+
   focusCamera(position) {
     camera.lookAt(position);
     camera.updateMatrixWorld();
@@ -219,6 +219,26 @@ class CameraManager extends EventTarget {
     }
     return result;
   }
+  
+  //Lerp towards offset for smoother ADS, works both aiming in and out
+  ads(){
+    //Works for x axis aiming
+    //cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
+    //
+
+
+    //To do: Smooth lerp towards/away from maxAim
+
+    //instantly locks you into aim distance from any zoom
+    if (localPlayer.hasAction('aim')){
+    camera.position.copy(localPlayer.position).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
+    }
+    else{
+      //do nothing
+    }
+    cameraOffset.updateMatrixWorld;
+  }
+  
   updatePost(timestamp, timeDiff) {
     // console.log('camera manager update post');
 
@@ -317,6 +337,8 @@ class CameraManager extends EventTarget {
         // camera.updateMatrixWorld();
       }
     };
+
+    
     _setCameraOffset();
 
     const endMode = this.getMode();
@@ -405,6 +427,8 @@ class CameraManager extends EventTarget {
       }
     };
     _shakeCamera();
+
+    
 
     camera.updateMatrixWorld();
   }
