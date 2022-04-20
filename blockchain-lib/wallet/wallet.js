@@ -29,6 +29,7 @@ export class WalletManager extends EventEmitter {
     };
 
     this.events = {
+      webaWalletInited: "webawallet_inited",
       webaWalletLoaded: "webawallet_loaded",
       webaWalletConnected: "webawallet_connected",
       profile: "profile",
@@ -42,20 +43,15 @@ export class WalletManager extends EventEmitter {
     //
 
     document.body.appendChild(this.iframe);
-    console.log( this.iframe );
 
-    this.emit(this.events.webaWalletConnected, {
-      error: false,
-      data: this.webaWalletConnected,
-    });
-    this.emit(this.events.profile, {
-      error: false,
-      data: this.profile,
-    });
-    this.emit(this.events.nft, {
-      error: false,
-      data: this.nft,
-    });
+    this.iframe.onload = () => {
+
+        this.emit(this.events.webaWalletInited, {
+            error: false,
+            data: this.webaWalletConnected,
+        });
+
+    };
 
   };
 
@@ -188,12 +184,12 @@ export class WalletManager extends EventEmitter {
   };
 
   receiveMessage(event) {
-    console.log("Received message", event);
+    // console.log("Received message", event);
     // if (event.origin !== config.authServerURL) {
     //   return;
     // }
-    console.log(event);
-    const res = event.data; // JSON.parse(event.data);
+    // console.log(event);
+    const res = ( typeof event.data === 'string' ? JSON.parse(event.data) : event.data );
     if (res.type === "event") {
       if (res.method === "wallet_launched") {
         console.log('Webawallet launched');
@@ -206,7 +202,11 @@ export class WalletManager extends EventEmitter {
     if (res.type === "response") {
       if (res.method === "check_auth") {
         if (!res.data.auth) {
-          this.authenticate();
+        //   this.authenticate();
+          this.emit('user_not_auth', {
+            error: null,
+            success: "User not autintificated.",
+          });
         } else {
           this.emit(this.events.notification, {
             error: null,

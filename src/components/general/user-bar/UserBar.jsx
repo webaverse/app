@@ -66,9 +66,11 @@ export const UserBar = ({ userAddress, setUserAddress, setLoginMethod }) => {
 
             try {
 
-                await loginManager.connectMetamask();
+                // await loginManager.connectMetamask();
+                loginManager.authenticate();
                 // console.log('zz');
-                // console.log( metamask.address );
+                console.log( loginManager.address );
+                loginManager.getProfile();
 
                 // metamask.addListener( 'profile', ( event ) => {
 

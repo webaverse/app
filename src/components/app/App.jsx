@@ -203,15 +203,33 @@ export const App = () => {
 
     useEffect( async () => {
 
-        console.log('z');
-        setLoginManager( new WalletManager() );
+        const authManager = new WalletManager();
+        setLoginManager( authManager );
 
-        // metamask.addListener( 'profile', ( ev ) => {
+        authManager.addListener('webawallet_inited', async (ev) => {
 
-        //     console.log('profile fetched', ev);
-        //     setProfile( ev.data );
+        // setTimeout( async () => {
 
-        // });
+            await authManager.connectMetamask();
+            console.log('WEBAWALLET LOADED');
+            // authManager.getProfile();
+
+        // }, 5000 );
+
+        });
+
+        authManager.addListener( 'user_not_auth', ( ev ) => {
+
+            console.log('need auth');
+
+        });
+
+        authManager.addListener( 'profile', ( ev ) => {
+
+            console.log('profile fetched', ev);
+            // setProfile( ev.data );
+
+        });
 
         setTimeout( async () => {
             // login('metamask').then(() => {
