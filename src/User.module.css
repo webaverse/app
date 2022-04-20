@@ -65,7 +65,7 @@
   transform: translate3d(15px, 0, 0);
 }
 .user:not(.loggedIn) .keyWrap:active .key {
-  transform: translate3d(15px, 0, 0) rotateX(60deg);
+  transform: translate3d(15px, 0, 0) rotateX(50deg);
 }
 .user.loggedIn .key {
   transform: translate3d(200px, 0, 0);

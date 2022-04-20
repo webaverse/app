@@ -34,7 +34,8 @@
   position: relative;
   width: var(--canvas-size);
   height: var(--canvas-size);
-  background-color: #FFF;
+  /* background-color: #FFF; */
+  background-image: radial-gradient(#FFF, #CCC);
   border: 3px solid #000;
   border-radius: 1000px;
   z-index: 1;
