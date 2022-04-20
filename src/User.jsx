@@ -135,6 +135,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
     }, [ address, setAddress ] );
 
     const open = state.openedPanel === 'LoginPanel';
+    const loggedIn = !!address;
 
     //
 
@@ -143,7 +144,8 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
             className={ classnames(
                 styles.user,
                 open ? styles.open : null,
-                loggingIn ? styles.loggingIn : null
+                loggedIn ? styles.loggedIn : null,
+                // loggingIn ? styles.loggingIn : null
             ) }
             onClick={async e => {
                 e.preventDefault();
