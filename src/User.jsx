@@ -147,24 +147,6 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 loggedIn ? styles.loggedIn : null,
                 // loggingIn ? styles.loggingIn : null
             ) }
-            onClick={async e => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                /* if ( address ) {
-
-                    setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
-
-                } else { */
-
-                if ( !open ) {
-                    // setLoginButtons( true );
-                    setState({ openedPanel: 'LoginPanel' });
-
-                } else {
-                    setState({ openedPanel: null });
-                }
-            }}
         >
             {/* <img src="images/soul.png" className={styles.icon} />
             <div className={styles.name} onClick={e => {
@@ -173,7 +155,24 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 {loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}
             </div> */}
             <div className={styles.button} onClick={e => {
-                showModal(e);
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (!loggedIn) {
+                    /* if ( address ) {
+
+                        setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
+
+                    } else { */
+
+                    if ( !open ) {
+                        // setLoginButtons( true );
+                        setState({ openedPanel: 'LoginPanel' });
+
+                    } else {
+                        setState({ openedPanel: null });
+                    }
+                }
             }}>
                 <div className={styles.bow}>
                     <img className={styles.icon} src="./images/log-in.svg" />

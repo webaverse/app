@@ -1,42 +1,41 @@
 .loginDiv {
-    width: 100%;
-    /* margin: 10px 0; */
-    text-align: -webkit-center;
+  width: 100%;
+  text-align: -webkit-center;
 }
 
 .loginBtnText {
-    display: inline-block;
-    transform: skewX(20deg);
-  }
+  display: inline-block;
+  transform: skewX(20deg);
+}
 
 .loginBtnImg {
-    vertical-align: middle;
-    margin: 0 10px;
-  }
+  vertical-align: middle;
+  margin: 0 10px;
+}
 
 .loginBtn {
-    transform: skewX(-20deg);
-    background: rgb(0, 168, 252);
-    color: rgb(0, 0, 0);
-    padding: 0.5em;
-    width: 10em;
-    text-align: left;
-    cursor: pointer;
+  transform: skewX(-20deg);
+  background: rgb(0, 168, 252);
+  color: rgb(0, 0, 0);
+  padding: 0.5em;
+  width: 10em;
+  text-align: left;
+  cursor: pointer;
 }
 
 .logoutBtn {
-    position: absolute;
-    right: 0;
-    background: black;
-    color: white;
-    padding: 6px;
-    font-size: 14px;
-    cursor: pointer;
+  position: absolute;
+  right: 0;
+  background: black;
+  color: white;
+  padding: 6px;
+  font-size: 14px;
+  pointer-events: all;
+  cursor: pointer;
 }
-
 .logoutBtn:hover {
-    background: #ef5350;
-    color: white;
+  background: #ef5350;
+  color: white;
 }
 
 .user {
@@ -45,7 +44,7 @@
   right: 0;
 	display: flex;
 	align-items: center;
-	cursor: pointer;
+  pointer-events: none;
 	user-select: none;
   z-index: 2;
 }
@@ -131,6 +130,8 @@
 .user .button {
   display: flex;
   align-items: center;
+  pointer-events: all;
+  cursor: pointer;
   transform: translate3d(0, 0, 0);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
@@ -196,6 +197,7 @@
   font-size: initial;
   text-align: left;
   /* cursor: pointer; */
+  pointer-events: all;
 }
 /* .login_options:not(.open) {
   visibility: hidden;
