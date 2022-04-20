@@ -154,7 +154,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
             }}>
                 {loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}
             </div> */}
-            <div className={styles.button} onClick={e => {
+            <div className={styles.key} onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
 
