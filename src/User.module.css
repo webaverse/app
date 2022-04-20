@@ -275,7 +275,7 @@
   background-color: #FFF;
   content: '';
 }
-.userBar:hover .avatarUrl .img {
+.userBar:hover:not(:active) .avatarUrl .img {
   transform: scale(1.2, 1.2);
 }
 .logoutBtn {
