@@ -929,6 +929,11 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     this.setAvatarApp(avatarApp);
   }
+  getAvatarApp() {
+    const avatar = this.getAvatarState();
+    const instanceId = avatar.get('instanceId');
+    return this.appManager.getAppByInstanceId(instanceId);
+  }
   setAvatarApp(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
@@ -1238,6 +1243,10 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     super(opts);
   
     this.isNpcPlayer = true;
+    this.avatarApp = null;
+  }
+  getAvatarApp() {
+    return this.avatarApp;
   }
   setAvatarApp(app) {
     app.toggleBoneUpdates(true);
@@ -1253,6 +1262,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     enableShadows(app);
   
     this.avatar = avatar;
+    this.avatarApp = app;
 
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
