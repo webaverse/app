@@ -1,4 +1,6 @@
 .headerIcon {
+  --width: 200px;
+  
   position: fixed;
 	display: flex;
   top: 0;
@@ -8,7 +10,7 @@
   z-index: 2;
 }
 
-.headerIcon .logo {
+/* .headerIcon .logo {
   width: var(--header-height);
 	height: var(--header-height);
   margin-left: 10px;
@@ -19,7 +21,7 @@
 }
 .headerIcon .logo:hover img {
   transform: scale(1.4);
-}
+} */
 
 .headerIcon .characterIcon {
   display: flex;
@@ -29,12 +31,11 @@
   transition: transform 0.5s cubic-bezier(0, 1, 0, 1);
 }
 .headerIcon .characterIcon .canvas {
-  --canvas-size: 80px;
+  --canvas-size: 100px;
 
   position: relative;
   width: var(--canvas-size);
   height: var(--canvas-size);
-  /* background-color: #FFF; */
   background-image: radial-gradient(#FFF, #CCC);
   border: 3px solid #000;
   border-radius: 1000px;
@@ -46,7 +47,7 @@
 .headerIcon .characterIcon .meta {
   display: flex;
   flex-direction: column;
-  width: 150px;
+  width: var(--width);
 }
 .headerIcon .characterIcon .meta .text {
   position: relative;
@@ -55,7 +56,7 @@
   padding: 5px 10px;
   padding-left: 50px;
   font-family: WinchesterCaps;
-  font-size: 16px;
+  font-size: 23px;
   color: #FFF;
   letter-spacing: 1px;
   align-items: baseline;
@@ -69,7 +70,7 @@
   margin-right: auto;
 }
 .headerIcon .characterIcon .meta .text .level {
-  font-size: 12px;
+  font-size: 18px;
 }
 .headerIcon .characterIcon .meta .text .background {
   position: absolute;
@@ -100,22 +101,21 @@
   position: relative;
   display: flex;
   justify-content: center;
-  width: 52px;
+  width: 56px;
   margin-left: -30px;
   padding: 0 5px;
   padding-left: 30px;
   background-color: #000;
   color: #FFF;
   font-family: 'PlazaRegular';
-  font-size: 14px;
+  font-size: 18px;
 }
 .headerIcon .characterIcon .meta .stat .value {
   position: absolute;
   top: 0;
-  left: 22px;
-  /* font-family: 'PlazaRegular'; */
+  left: 25px;
   font-family: 'WinchesterCaps';
-  font-size: 13px;
+  font-size: 17px;
   letter-spacing: 1px;
   color: #FFF;
   text-shadow: 1px 1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, -1px -1px 0 #000;
@@ -154,13 +154,13 @@
 .headerIcon .characterIcon .sub {
   position: absolute;
   display: flex;
-  top: 81px;
+  top: 102px;
   left: 0;
 }
 .headerIcon .characterIcon .limitBar {
   position: relative;
-  height: 13px;
-  width: 150px;
+  height: 18px;
+  width: var(--width);
   margin-top: 7px;
   /* margin-left: 20px; */
   border: 3px solid;
@@ -169,7 +169,7 @@
 .headerIcon .characterIcon .limitBar .label {
   position: absolute;
   top: 0;
-  font-size: 10px;
+  font-size: 14px;
   /* line-height: 1; */
   letter-spacing: 1px;
   color: #FFF;
@@ -191,7 +191,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 80px;
+  width: 100px;
   color: #FFF;
   font-size: 12px;
   /* background: transparent; */
