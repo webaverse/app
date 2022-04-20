@@ -127,6 +127,7 @@
   color: #FFF;
   font-family: 'PlazaRegular';
   font-size: 18px;
+  line-height: 20px;
 }
 .headerIcon .characterIcon .meta .stat .value {
   position: absolute;
