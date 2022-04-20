@@ -19,8 +19,7 @@ const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 //
 let aimoffsetx = 0;
-let aimoffsetz = 0;
-const maxAim = new THREE.Vector3(-0.2,0,-1);
+const maxAim = new THREE.Vector3(-0.2,0,-5);
 
 //
 let cameraOffsetZ = cameraOffset.z;
@@ -111,9 +110,8 @@ class CameraManager extends EventTarget {
     });
   }
   //set offset value to be used only if in isometric view
-  aimdownSight(adsValx, adsValz){
+  aimdownSight(adsValx){
     aimoffsetx = adsValx;
-    aimoffsetz = adsValz;
   }
 
   focusCamera(position) {
@@ -222,19 +220,18 @@ class CameraManager extends EventTarget {
   
   //Lerp towards offset for smoother ADS, works both aiming in and out
   ads(){
-    //Works for x axis aiming
-    //cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
-    //
-
-
-    //To do: Smooth lerp towards/away from maxAim
-
-    //instantly locks you into aim distance from any zoom
-    if (localPlayer.hasAction('aim')){
-    camera.position.copy(localPlayer.position).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
-    }
+    if (localPlayer.hasAction('aim') && -cameraOffset.z>1){
+      localVector.copy(localPlayer.position).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
+    
+    cameraOffsetZ = lerpNum(cameraOffsetZ, -localVector.z, 0.1);
+    cameraOffsetTargetZ = cameraOffsetZ;
+    cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
+      }
+      
     else{
-      //do nothing
+     
+    //If you're close enough, we can just lerp to the side (this will also lerp us back after we unaim)
+    cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
     }
     cameraOffset.updateMatrixWorld;
   }
