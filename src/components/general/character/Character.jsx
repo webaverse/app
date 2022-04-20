@@ -3,7 +3,17 @@ import React, { useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
 
 import { defaultPlayerName } from '../../../../ai/lore/lore-model.js';
-import cameraManager from '../../../../camera-manager.js';
+// import cameraManager from '../../../../camera-manager.js';
+import {
+    hp,
+    mp,
+    atk,
+    def,
+    vit,
+    spr,
+    dex,
+    lck,
+} from '../../../../player-stats.js';
 
 import { AppContext } from '../../app';
 
@@ -20,7 +30,7 @@ const mainStatSpecs = [
         imgSrc: 'images/stats/noun-angel-heart-1927972.svg',
         name: 'HP',
         className: 'hp',
-        progress: 61,
+        progress: hp,
     },
     {
         // imgSrc: 'images/stats/noun-item-crystal-2360128.svg',
@@ -31,7 +41,7 @@ const mainStatSpecs = [
         imgSrc: 'images/stats/noun-vortex-2806369.svg',
         name: 'MP',
         className: 'mp',
-        progress: 23,
+        progress: mp,
     },
 ];
 const statSpecs = [
@@ -40,34 +50,34 @@ const statSpecs = [
         imgSrc: 'images/stats/noun-skill-sword-swing-2360242.svg',
         // imgSrc: 'images/noun-effect-circle-strike-2360022.svg',
         name: 'Atk',
-        value: 23,
+        value: atk,
     },
     {
         imgSrc: 'images/stats/noun-abnormal-burned-2359995.svg',
         name: 'Def',
-        value: 17,
+        value: def,
     },
     {
         // imgSrc: 'images/stats/noun-skill-magic-shock-2360168.svg',
         // imgSrc: 'images/noun-classes-magician-2360012.svg',
         imgSrc: 'images/stats/noun-skill-dna-2360269.svg',
         name: 'Vit',
-        value: 10,
+        value: vit,
     },
     {
         imgSrc: 'images/stats/noun-skill-magic-chain-lightning-2360268.svg',
         name: 'Spr',
-        value: 9,
+        value: spr,
     },
     {
         imgSrc: 'images/stats/noun-skill-speed-down-2360205.svg',
         name: 'Dex',
-        value: 50,
+        value: dex,
     },
     {
         imgSrc: 'images/stats/noun-effect-circle-strike-2360022.svg',
         name: 'Lck',
-        value: 7,
+        value: lck,
     },
 ];
 

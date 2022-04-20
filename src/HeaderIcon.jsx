@@ -19,6 +19,12 @@ import { AppContext } from './components/app';
 import {emotions} from './components/general/character/Emotions';
 import {screenshotPlayer} from '../avatar-screenshotter.js';
 import npcManager from '../npc-manager.js';
+import {
+  hp,
+  mp,
+  xp,
+  level,
+} from '../player-stats.js';
 
 import styles from './HeaderIcon.module.css';
 
@@ -74,11 +80,6 @@ const CharacterIcon = () => {
             })()
         }
     }, canvasRefs.map(ref => ref.current));
-
-    const hp = 80;
-    const mp = 20;
-    const xp = 40;
-    const level = 6;
 
     return (
         <div className={styles.characterIcon}>
