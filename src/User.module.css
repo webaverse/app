@@ -186,6 +186,10 @@
   pointer-events: all;
   cursor: pointer;
 }
+.userBar .avatarUrl {
+  position: relative;
+  z-index: 1;
+}
 .userBar .avatarUrl .img {
   --size: 50px;
 
@@ -202,17 +206,18 @@
 .logoutBtn
 {
   display: flex;
-  height: 30px;
+  height: 33px;
   /* font-size: 16px; */
   align-items: center;
 }
 .userBar .address {
+  position: relative;
   display: flex;
   padding: 0 10px;
   background-color: #000;
   border-radius: 5px 0 0 5px;
   color: #FFF;
-  line-height: 1;
+  line-height: 1.4;
   align-items: center;
 }
 .userBar .avatarUrl + .address {
@@ -220,6 +225,22 @@
 }
 .userBar:hover .address {
   background-color: #00a8fc;
+}
+.userBar .verifiedIcon {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  margin-left: 8px;
+  object-fit: contain;
+  z-index: 1;
+}
+.userBar .address::after {
+  position: absolute;
+  right: 14px;
+  width: 10px;
+  height: 10px;
+  background-color: #FFF;
+  content: '';
 }
 .userBar:hover .avatarUrl .img {
   transform: scale(1.2, 1.2);

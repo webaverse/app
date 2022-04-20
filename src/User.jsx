@@ -217,7 +217,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                     <div
                         className={styles.address}
                         onClick={openUserPanel}
-                    >{ensName || address || ''}</div>
+                    >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
                 </div>
                 <div className={styles.logoutBtn}
                     onClick={e => {
