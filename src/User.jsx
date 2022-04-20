@@ -83,7 +83,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 try {
 
                     const { address, profile } = await ceramicApi.login();
-                    _setAddress(address);
+                    await _setAddress(address);
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
@@ -108,60 +108,64 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
     useEffect( () => {
 
-        const { error, code, id, play, realmId } = parseQuery( window.location.search );
+        (async () => {
 
-        if ( ! autoLoginRequestMade ) {
+            const { error, code, id, play, realmId } = parseQuery( window.location.search );
 
-            setAutoLoginRequestMade( true );
+            if ( ! autoLoginRequestMade ) {
 
-            if ( code ) {
+                setAutoLoginRequestMade( true );
 
-                setLoggingIn( true );
+                if ( code ) {
 
-                WebaWallet.waitForLaunch().then( async () => {
+                    setLoggingIn( true );
 
-                    const { address, error } = await WebaWallet.loginDiscord( code, id );
+                    WebaWallet.waitForLaunch().then( async () => {
 
-                    if ( address ) {
+                        const { address, error } = await WebaWallet.loginDiscord( code, id );
 
-                        _setAddress( address );
-                        setLoginFrom( 'discord' );
-                        // setShow( false );
+                        if ( address ) {
 
-                    } else if ( error ) {
+                            await _setAddress( address );
+                            setLoginFrom( 'discord' );
+                            // setShow( false );
 
-                        setLoginError( String( error ).toLocaleUpperCase() );
+                        } else if ( error ) {
 
-                    }
+                            setLoginError( String( error ).toLocaleUpperCase() );
 
-                    window.history.pushState( {}, '', window.location.origin );
-                    setLoggingIn( false );
+                        }
 
-                }); // it may occur that wallet loading is in progress already
+                        window.history.pushState( {}, '', window.location.origin );
+                        setLoggingIn( false );
 
-            } else {
+                    }); // it may occur that wallet loading is in progress already
 
-                WebaWallet.waitForLaunch().then( async () => {
+                } else {
 
-                    const { address, error } = await WebaWallet.autoLogin();
+                    WebaWallet.waitForLaunch().then( async () => {
 
-                    if ( address ) {
+                        const { address, error } = await WebaWallet.autoLogin();
 
-                        _setAddress( address );
-                        setLoginFrom( 'discord' );
-                        // setShow( false );
+                        if ( address ) {
 
-                    } else if ( error ) {
+                            await  _setAddress( address );
+                            setLoginFrom( 'discord' );
+                            // setShow( false );
 
-                        setLoginError( String( error ).toLocaleUpperCase() );
+                        } else if ( error ) {
 
-                    }
+                            setLoginError( String( error ).toLocaleUpperCase() );
 
-                }); // it may occur that wallet loading is in progress already
+                        }
+
+                    }); // it may occur that wallet loading is in progress already
+
+                }
 
             }
 
-        }
+        })();
 
     }, [ address ] );
 
@@ -176,6 +180,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 styles.user,
                 open ? styles.open : null,
                 loggedIn ? styles.loggedIn : null,
+                loggingIn ? styles.loggingIn : null,
             ) }
         >
             <div className={styles.keyWrap} onClick={e => {
@@ -204,19 +209,24 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 </div>
             </div>
 
-            {address ? <div className={styles.userWrap}>
-                <div className={styles.userBar}>
+            <div className={styles.loggingInPlaceholder}>Logging in</div>
+
+            {address ? <div
+                className={styles.userWrap}
+            >
+                <div
+                    className={styles.userBar}
+                    onClick={openUserPanel}
+                >
                     {avatarUrl ? (
                         <div
                             className={styles.avatarUrl}
-                            onClick={openUserPanel}
                         >
                             <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
                         </div>
                     ) : null}
                     <div
                         className={styles.address}
-                        onClick={openUserPanel}
                     >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
                 </div>
                 <div className={styles.logoutBtn}
