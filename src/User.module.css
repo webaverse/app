@@ -108,23 +108,17 @@
 /* */
 
 .login_options {
+  --size: 220px;
+
   position: absolute;
   top: 30px;
   right: 0;
+  width: var(--size);
+  padding: 10px;
   background: #000;
   font-size: initial;
   text-align: left;
-  /* cursor: pointer; */
   pointer-events: all;
-}
-/* .login_options:not(.open) {
-  visibility: hidden;
-} */
-.login_options {
-  --size: 220px;
-
-  width: var(--size);
-  padding: 10px;
 }
 
 .metamask {
@@ -166,7 +160,7 @@
 
 .loginBtn {
   transform: skewX(-20deg);
-  background: rgb(0, 168, 252);
+  background-color: rgb(0, 168, 252);
   color: rgb(0, 0, 0);
   padding: 0.5em;
   width: 10em;
@@ -174,17 +168,56 @@
   cursor: pointer;
 }
 
-.logoutBtn {
+/* */
+
+.userDetails {
+  display: flex;
   position: absolute;
   right: 0;
-  background: black;
-  color: white;
-  padding: 6px;
-  font-size: 14px;
+  margin-top: 10px;
+  align-items: center;
   pointer-events: all;
+}
+.userDetails .avatarUrl {
+  --size: 40px;
+  --border-size: 3px;
+
   cursor: pointer;
 }
-.logoutBtn:hover {
+.userDetails .avatarUrl .img {
+  height: var(--size);
+  width: var(--size);
+  background-color: #FFF;
+  border-radius: 5px;
+  border: var(--border-size) solid #000;
+  object-fit: cover;
+}
+.userDetails .address,
+.userDetails .logoutBtn
+{
+  display: flex;
+  height: 30px;
+  font-size: 12px;
+  align-items: center;
+}
+.userDetails .address {
+  display: flex;
+  padding: 0 10px;
+  background-color: #000;
+  color: #FFF;
+  align-items: center;
+  cursor: pointer;
+}
+.userDetails .address:hover {
+  background-color: #00a8fc;
+}
+.userDetails .logoutBtn {
+  background: #333;
+  color: #FFF;
+  padding: 6px;
+  cursor: pointer;
+}
+.userDetails .logoutBtn:hover {
   background: #ef5350;
   color: white;
 }

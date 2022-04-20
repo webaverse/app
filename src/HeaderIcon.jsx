@@ -30,15 +30,23 @@ import {
 import styles from './HeaderIcon.module.css';
 import { localPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
+import { loadImage, imageToCanvas } from '../util.js';
 
-const pixelRatio = window.devicePixelRatio;
 const characterIconSize = 80;
+const pixelRatio = window.devicePixelRatio;
 // const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
 
 // const allEmotions = [''].concat(emotions);
 
 const CharacterIcon = () => {
+  const [arrowLogoImage, setArrowlogoImage] = useState(null);
   const canvasRef = useRef();
+
+  /* useEffect(async () => {
+    const img = await loadImage('./images/arrow-logo.svg');
+    const canvas = imageToCanvas(img, characterIconSize * pixelRatio, characterIconSize * pixelRatio);
+    setArrowlogoImage(canvas);
+  }, []); */
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -50,7 +58,12 @@ const CharacterIcon = () => {
       avatarIconer.addCanvas(canvas);
 
       const frame = () => {
-        avatarIconer.update();
+        if (avatarIconer.enabled) {
+          avatarIconer.update();
+        } else if (arrowLogoImage) {
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(arrowLogoImage, 0, 0);
+        }
       };
       world.appManager.addEventListener('frame', frame);
 
