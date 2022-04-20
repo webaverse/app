@@ -383,6 +383,7 @@ class CameraManager extends EventTarget {
             localVector3.copy(localPlayer.position);
           }
 
+          this.removeAim();
           camera.position.copy(localVector3)
             .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
 
