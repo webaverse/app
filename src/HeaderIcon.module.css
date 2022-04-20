@@ -204,6 +204,7 @@
   background-color: #000;
   /* border: 1px solid #fff; */
   border-radius: 3px;
+  font-size: 13px;
   transition: background-color 0.5s cubic-bezier(0, 1, 0, 1);
 }
 .headerIcon:hover .characterIcon {
