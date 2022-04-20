@@ -45,7 +45,11 @@
 
 /* */
 
-.authBar .keyWrap {
+.user .keyWrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 180px;
   perspective: 400px;
   perspective-origin: -100px 100px;
   pointer-events: all;
@@ -108,12 +112,39 @@
 
 /* */
 
+.user .loggingInPlaceholder {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  margin-top: 15px;
+  margin-right: 10px;
+  padding: 10px;
+  background-image: linear-gradient(to bottom,#333, #000000);
+  border-radius: 5px;
+  color: #FFF;
+  white-space: nowrap;
+  transform: translate(200px, 0);
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.user.loggingIn .loggingInPlaceholder {
+  transform: translate(0, 0);
+}
+
+/*  */
+
 .userWrap {
   display: flex;
   position: absolute;
+  top: 0;
   right: 0;
   margin-top: 10px;
   align-items: center;
+  transform: none;
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.user:not(.loggedIn) .userWrap {
+  transform: translate(100%, 0);
 }
 
 .authBar {

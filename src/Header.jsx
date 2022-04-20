@@ -15,8 +15,6 @@ import { registerIoEventHandler, unregisterIoEventHandler } from './components/g
 import { AppContext } from './components/app';
 import { HeaderIcon } from './HeaderIcon';
 
-// import blockchainManager from '../blockchain-manager.js';
-
 import styles from './Header.module.css';
 
 //
