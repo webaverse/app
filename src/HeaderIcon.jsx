@@ -1,24 +1,7 @@
-// import * as THREE from 'three';
 import React, { useEffect, useRef, useContext, useState } from 'react';
 import classnames from 'classnames';
 
-// import CharacterHups from './CharacterHups.jsx';
-// import game from '../game.js'
-// import * as hacks from '../hacks.js'
-import cameraManager from '../camera-manager.js'
-// import metaversefile from '../metaversefile-api.js'
-// import ioManager from '../io-manager.js'
-
-// import { Character } from './components/general/character';
-// import { CharacterSelect } from './components/general/character-select';
-// import { Inventory } from './components/general/inventory';
-// import { Tokens } from './tabs/tokens';
-// import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
-// import { User } from './User';
-// import {emotions} from './components/general/character/Emotions';
-// import {screenshotPlayer} from '../avatar-screenshotter.js';
-// import npcManager from '../npc-manager.js';
 import {world} from '../world.js';
 import {
   hp,
@@ -30,23 +13,14 @@ import {
 import styles from './HeaderIcon.module.css';
 import { localPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
-import { loadImage, imageToCanvas } from '../util.js';
+import cameraManager from '../camera-manager.js'
 
 const characterIconSize = 80;
 const pixelRatio = window.devicePixelRatio;
-// const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
-
-// const allEmotions = [''].concat(emotions);
 
 const CharacterIcon = () => {
   const [arrowLogoImage, setArrowlogoImage] = useState(null);
   const canvasRef = useRef();
-
-  /* useEffect(async () => {
-    const img = await loadImage('./images/arrow-logo.svg');
-    const canvas = imageToCanvas(img, characterIconSize * pixelRatio, characterIconSize * pixelRatio);
-    setArrowlogoImage(canvas);
-  }, []); */
 
   useEffect(() => {
     const canvas = canvasRef.current;
