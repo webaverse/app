@@ -1227,6 +1227,7 @@ class RemotePlayer extends InterpolatedPlayer {
 
         this.appManager.apps.forEach( app => app. dispatchEvent({
           type: 'wearupdate',
+          player: this,
           app,
           wear: true
         }));
