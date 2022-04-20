@@ -45,11 +45,9 @@
 
 /* */
 
-.user {
+.user .keyWrap {
   perspective: 400px;
   perspective-origin: -100px 100px;
-}
-.user .keyWrap {
   pointer-events: all;
 }
 .user:not(.loggedIn) .keyWrap {
