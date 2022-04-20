@@ -145,28 +145,16 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 styles.user,
                 open ? styles.open : null,
                 loggedIn ? styles.loggedIn : null,
-                // loggingIn ? styles.loggingIn : null
             ) }
         >
-            {/* <img src="images/soul.png" className={styles.icon} />
-            <div className={styles.name} onClick={e => {
-                showModal(e);
-            }}>
-                {loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}
-            </div> */}
             <div className={styles.key} onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
 
                 if (!loggedIn) {
-                    /* if ( address ) {
-
-                        setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
-
-                    } else { */
 
                     if ( !open ) {
-                        // setLoginButtons( true );
+
                         setState({ openedPanel: 'LoginPanel' });
 
                     } else {
