@@ -147,7 +147,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 loggedIn ? styles.loggedIn : null,
             ) }
         >
-            <div className={styles.key} onClick={e => {
+            <div className={styles.keyWrap} onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -162,12 +162,14 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                     }
                 }
             }}>
-                <div className={styles.bow}>
-                    <img className={styles.icon} src="./images/log-in.svg" />
-                </div>
-                <div className={styles.blade}>
-                    <div className={styles.background} />
-                    <div className={styles.text}>ログイン Log in</div>
+                <div className={styles.key}>
+                    <div className={styles.bow}>
+                        <img className={styles.icon} src="./images/log-in.svg" />
+                    </div>
+                    <div className={styles.blade}>
+                        <div className={styles.background} />
+                        <div className={styles.text}>ログイン Log in</div>
+                    </div>
                 </div>
             </div>
 

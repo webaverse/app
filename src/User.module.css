@@ -49,20 +49,24 @@
   perspective: 400px;
   perspective-origin: -100px 100px;
 }
+.user .keyWrap {
+  pointer-events: all;
+}
+.user:not(.loggedIn) .keyWrap {
+  cursor: pointer;
+}
 .user .key {
   display: flex;
   align-items: center;
-  pointer-events: all;
-  cursor: pointer;
   transform: translate3d(0, 0, 0);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
-.user:hover .key,
-.user.open .key
+.user:not(.loggedIn) .keyWrap:hover .key,
+.user.open .keyWrap .key
 {
   transform: translate3d(15px, 0, 0);
 }
-.user:active .key {
+.user:not(.loggedIn) .keyWrap:active .key {
   transform: translate3d(15px, 0, 0) rotateX(-60deg);
 }
 .user.loggedIn .key {
