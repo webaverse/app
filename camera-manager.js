@@ -6,7 +6,6 @@ import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
 import { lerp } from 'three/src/math/MathUtils';
-import { localPlayer } from './players.js';
 // import alea from './alea.js';
 
 const localVector = new THREE.Vector3();
@@ -19,7 +18,7 @@ const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 //
 let aimoffsetx = 0;
-const maxAim = new THREE.Vector3(-0.2,0,-5);
+const maxAim = new THREE.Vector3(-0.2,0,-2);
 let lastCamoffsetz = 0;
 
 //
@@ -218,10 +217,11 @@ class CameraManager extends EventTarget {
   }
   
   //Lerp towards offset for smoother ADS, works both aiming in and out
-  takeAim(){
+  takeAim(playerPos){
+    //const localPlayer = metaversefileApi.useLocalPlayer();
 
-    if (localPlayer.hasAction('aim') && -cameraOffset.z> (-maxAim.z)){
-      localVector.copy(localPlayer.position).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
+    if (-cameraOffset.z> (-maxAim.z)){
+      localVector.copy(playerPos).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
     
     cameraOffsetZ = lerpNum(cameraOffsetZ, -localVector.z, 0.1);
     cameraOffsetTargetZ = cameraOffsetZ;
@@ -229,10 +229,9 @@ class CameraManager extends EventTarget {
       }
       
     else{
+      cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
      
-    cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
     //If you're close enough, we can just lerp to the side (this will also lerp us back after we unaim)
-    //cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
     }
     cameraOffset.updateMatrixWorld;
   }
@@ -244,11 +243,15 @@ class CameraManager extends EventTarget {
   removeAim(){
     
     const zdist = (lastCamoffsetz - cameraOffsetTargetZ);
-    if (!localPlayer.hasAction('aim') && zdist !== 0){
+    if (zdist !== 0){
     cameraOffsetZ = lerpNum(cameraOffsetZ, lastCamoffsetz, 0.1);
     cameraOffsetTargetZ = cameraOffsetZ;
     cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
     cameraOffset.updateMatrixWorld;
+    }
+    else{
+
+      cameraOffset.x = lerp(cameraOffset.x, -aimoffsetx, 0.1);
     }
   }
   
@@ -405,8 +408,12 @@ class CameraManager extends EventTarget {
             );
 
             //only aims down sight when not in first person mode
-            this.takeAim();
+            if (localPlayer.hasAction('aim')){
+            this.takeAim(localPlayer.position);
+            }
+            else{
             this.removeAim();
+            }
             
     
           break;
