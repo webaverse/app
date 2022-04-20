@@ -1405,6 +1405,7 @@ class GameManager extends EventTarget {
     if (flyAction) {
       localPlayer.removeAction('fly');
     } else {
+      this.ensureFly()
       const flyAction = {
         type: 'fly',
         time: 0,
@@ -1504,6 +1505,19 @@ class GameManager extends EventTarget {
     // play sound
     // soundManager.play('jump');
 
+  }
+  ensureFly() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    
+    const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
+    for (const wearAction of wearActions) {
+      const instanceId = wearAction.instanceId;
+      const app = metaversefileApi.getAppByInstanceId(instanceId);
+      const sitComponent = app.getComponent('sit');
+      if (sitComponent) {
+        app.unwear();
+      }
+    }
   }
   isMovingBackward() {
     // return ioManager.keysDirection.z > 0 && this.isAiming();
