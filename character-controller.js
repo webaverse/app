@@ -1314,6 +1314,10 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
       npcs.splice(index, 1);
     } */
 
+    if (this.avatarApp) {
+      this.avatarApp.toggleBoneUpdates(false);
+    }
+
     super.destroy();
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
