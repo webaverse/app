@@ -142,6 +142,9 @@
 .user:active .button {
   transform: translate3d(15px, 0, 0) rotateX(-60deg);
 }
+.user.loggedIn .button {
+  transform: translate3d(200px, 0, 0);
+}
 .user .button .bow {
   position: relative;
   margin-right: -15px;
