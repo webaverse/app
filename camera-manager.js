@@ -218,15 +218,14 @@ class CameraManager extends EventTarget {
     
       cameraOffsetZ = lerpNum(cameraOffsetZ, -localVector.z, 0.1);
       cameraOffsetTargetZ = cameraOffsetZ;
-      cameraOffset.x = lerp(cameraOffset.x, maxAim.x, 0.1);
     }
       
     else{
       
       //If you're close enough, we can just lerp to the side 
-      cameraOffset.x = lerp(cameraOffset.x, maxAim.x, 0.1);
      
     }
+    cameraOffset.x = lerp(cameraOffset.x, maxAim.x, 0.1);
     cameraOffset.updateMatrixWorld;
   }
 
