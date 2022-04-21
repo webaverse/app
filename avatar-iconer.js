@@ -35,7 +35,6 @@ class AvatarIconer extends EventTarget {
     player.addEventListener('avatarchange', avatarchange);
     
     const actionupdate = e => {
-      console.log('got action', e.action);
       this.updateEmotionFromActions();
     };
     player.addEventListener('actionadd', actionupdate);
