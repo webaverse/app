@@ -34,6 +34,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
+const groundStickOffset = 0.03;
 
 class CharacterPhysics {
   constructor(player) {
@@ -96,7 +97,7 @@ class CharacterPhysics {
       if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly')) { // prevent jump when go down slope
         const flags = physicsManager.moveCharacterController(
           this.player.characterController,
-          localVector3.set(0, -0.06, 0),
+          localVector3.set(0, -groundStickOffset, 0),
           minDist,
           0,
           localVector4,
@@ -105,6 +106,8 @@ class CharacterPhysics {
         if (newGrounded) {
           grounded = true;
           this.player.characterController.position.copy(localVector4);
+        } else {
+          this.player.characterController.position.y += groundStickOffset;
         }
       }
 
