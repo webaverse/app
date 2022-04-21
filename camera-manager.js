@@ -17,7 +17,7 @@ const localEuler = new THREE.Euler();
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 //
-const maxAim = new THREE.Vector3(-0.2,0,-2);
+const maxAim = new THREE.Vector3(-0.3,0,-2);
 
 //
 let cameraOffsetZ = cameraOffset.z;
@@ -212,7 +212,7 @@ class CameraManager extends EventTarget {
   
   //Lerp towards offset for smoother ADS, works both aiming in and out
   takeAim(playerPos){
-    if (-cameraOffset.z> (-maxAim.z)){
+    if (-cameraOffset.z> -maxAim.z){
       localVector.copy(playerPos).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
       cameraOffsetZ = lerpNum(cameraOffsetZ, -localVector.z, 0.1);
       cameraOffsetTargetZ = cameraOffsetZ;
