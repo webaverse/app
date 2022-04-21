@@ -100,7 +100,7 @@ class CharacterSfx {
         const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
         sounds.playSound(audioSpec);
         // play jump grunt 
-        if(this.player.voicePack!==null && !this.player.hasAction('fly') && !this.player.hasAction('narutoRun') && this.player.avatar.velocity.y<0){
+        if(this.player.voicePack!==null && !this.player.hasAction('fly') && this.player.avatar.velocity.y<0){
           this.playGrunt('jump'); 
         }
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
@@ -172,7 +172,7 @@ class CharacterSfx {
                 
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                 sounds.playSound(audioSpec);
-
+                // set runStep
                 if(isRunning){
                   this.lastRunningTime = timeSeconds;
                   this.runStep++;
@@ -190,7 +190,7 @@ class CharacterSfx {
 
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                 sounds.playSound(audioSpec);
-
+                // set runStep
                 if(isRunning){
                   this.lastRunningTime = timeSeconds;
                   this.runStep++;
@@ -205,14 +205,7 @@ class CharacterSfx {
 
         this.lastWalkTime = timeSeconds;
       }
-      // handel gasp grunt
-      if(timeSeconds-this.lastRunningTime>2 || this.player.hasAction('jump')){
-        this.runStep=0;
-      }
-      if(timeSeconds - this.lastWalkTime>0.01 && this.runStep>10 && !this.player.hasAction('narutoRun') && !this.player.hasAction('jump')){
-        this.playGrunt('gasp');
-        this.runStep=0;
-      }
+      
     };
     _handleStep();
 
@@ -236,6 +229,7 @@ class CharacterSfx {
         if(this.narutoRunStartTime===0){
           this.narutoRunStartTime=timeSeconds; 
           sounds.playSound(soundFiles.sonicBoom[0]);
+          this.playGrunt('narutoRun');
         }
         else {
           if(this.arr.reduce((a,b)=>a+b) >= Math.PI/3){
@@ -262,6 +256,11 @@ class CharacterSfx {
           }
         }
 
+        // if naruto run play more than 2 sec, set runStep > 10
+        if(timeSeconds -  this.narutoRunStartTime > 2){
+          this.runStep = 11;
+        }
+
       }
       if(!this.player.avatar.narutoRunState && this.narutoRunStartTime!=0 ){
         this.narutoRunStartTime=0;
@@ -281,6 +280,19 @@ class CharacterSfx {
   
     };
     _handleNarutoRun();
+    
+
+    const _handleGasp = () =>{
+      if(timeSeconds - this.lastRunningTime > 2 && !this.player.avatar.narutoRunState && timeSeconds - this.narutoRunFinishTime > 0.5){
+        this.runStep = 0;
+      }
+      // if running step is more than 10
+      if(currentSpeed < 0.1 && timeSeconds - this.lastWalkTime > 0.01 && this.runStep > 10 && !this.player.avatar.narutoRunState){
+        this.playGrunt('gasp');
+        this.runStep = 0;
+      }
+    }
+    _handleGasp();
 
     const _handleFood = () => {
       const useAction = this.player.getAction('use');
@@ -360,6 +372,10 @@ class CharacterSfx {
       }
       case 'jump': {
         voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/.test(f.name));
+        break;
+      }
+      case 'narutoRun': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/.test(f.name));
         break;
       }
     }
