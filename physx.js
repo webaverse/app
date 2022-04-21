@@ -579,11 +579,11 @@ const physxWorker = (() => {
   w.setJointSwingLimitPhysics = (physics, joint, yLimitAngle, zLimitAngle, contactDist = -1) => {
     moduleInstance._setJointSwingLimitPhysics(physics, joint, yLimitAngle, zLimitAngle, contactDist)
   }
-  w.updateMassAndInertiaPhyscis = (physcis, body, shapeDensities) => {
-    return moduleInstance._updateMassAndInertiaPhyscis(physcis, body, shapeDensities)
+  w.updateMassAndInertiaPhyscis = (physcis, id, shapeDensities) => {
+    return moduleInstance._updateMassAndInertiaPhyscis(physcis, id, shapeDensities)
   }
-  w.getBodyMassPhysics = (physcis, body) => {
-    return moduleInstance._getBodyMassPhysics(physcis, body)
+  w.getBodyMassPhysics = (physcis, id) => {
+    return moduleInstance._getBodyMassPhysics(physcis, id)
   }
   w.simulatePhysics = (physics, updates, elapsedTime) => {
     /* if (updates.length > maxNumUpdates) {

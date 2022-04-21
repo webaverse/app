@@ -236,15 +236,15 @@ export const makeRagdollMesh = avatar => {
     object.isCreatedRagdoll = true;
     for (const k in flatMeshes) {
       const meshBone = flatMeshes[k];
-      // const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, localPlayer.characterController.physicsId); // can't hardcode localPlayer here, used disableGeometryQueries instead.
-      const body = physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true);
+      // physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true, localPlayer.characterController.physicsId); // can't hardcode localPlayer here, used disableGeometryQueries instead.
+      physx.physxWorker.addBoxGeometryPhysics(physx.physics, meshBone.position, meshBone.quaternion, meshBone.sizeHalf, meshBone.physicsId, true);
       physicsManager.disableGeometryQueries(meshBone); // prevent own CCT collide with ragdoll bones.
       avatar.app.physicsObjects.push(meshBone);
-      // console.log('mass 1: ', physicsManager.getBodyMass(body));
-      // physicsManager.updateMassAndInertia(body, 0.000001);
-      physicsManager.updateMassAndInertia(body, 0); // note: set mass 0 ( ie kinematic? ) will not break joints and get good result, but got much slow animation.
-      // physicsManager.updateMassAndInertia(body, 1000);
-      // console.log('mass 2: ', physicsManager.getBodyMass(body));
+      // console.log('mass 1: ', physicsManager.getBodyMass(meshBone));
+      // physicsManager.updateMassAndInertia(meshBone, 0.000001);
+      physicsManager.updateMassAndInertia(meshBone, 0); // note: set mass 0 ( ie kinematic? ) will not break joints and get good result, but got much slow animation.
+      // physicsManager.updateMassAndInertia(meshBone, 1000);
+      // console.log('mass 2: ', physicsManager.getBodyMass(meshBone));
     }
 
     //
