@@ -15,7 +15,7 @@ rm -f sounds.mp3
 
 clean
 
-ls {actions,syllables}/*.wav 2>/dev/null | sort -n >sound-files.txt
+ls {actions,syllables,emotes}/*.wav 2>/dev/null | sort -n >sound-files.txt
 
 set --
 while IFS='' read -r item; do
