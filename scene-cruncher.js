@@ -465,13 +465,17 @@ export function snapshotMapChunk(
         renderer.setRenderTarget(renderTarget);
         renderer.clear();
         scene.overrideMaterial = overrideMaterial;
+        
+        {
+          const popRenderSettings = renderSettingsManager.push(scene);
+          const popFogClear = renderSettingsManager.pushFogClear(scene);
 
-        const pop = renderSettingsManager.push(scene, undefined, {
-          fog: false,
-        });
-        // scene.fog = null;
-        renderer.render(scene, camera);
-        pop();
+          // scene.fog = null;
+          renderer.render(scene, camera);
+          
+          popRenderSettings();
+          popFogClear();
+        }
 
         const imageData = {
           data: new Uint8Array(wrp1.x * wrp1.y * 4),
