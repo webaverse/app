@@ -253,7 +253,7 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, authManager, address, authInProcess }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, authManager, address, setAddress, authInProcess }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <AuthBar />
                 <canvas className={ styles.canvas } ref={ canvasRef } />

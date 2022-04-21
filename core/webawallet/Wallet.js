@@ -170,6 +170,12 @@ export class WalletManager extends EventEmitter {
     this.sendMessage("check_auth", {});
   };
 
+  logout() {
+
+    this.sendMessage("logout", {});
+
+  };
+
   async authenticate() {
     let fetchRes = await fetch( `${config.authServerURL}/metamask-login?address=${this.address}`);
     let fetchResJson = await fetchRes.json();

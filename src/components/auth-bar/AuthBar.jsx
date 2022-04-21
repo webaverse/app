@@ -12,7 +12,7 @@ import styles from './auth-bar.module.css';
 
 export const AuthBar = () => {
 
-    const { address, authManager, authInProcess, state, setState } = useContext( AppContext );
+    const { address, setAddress, authManager, authInProcess, state, setState } = useContext( AppContext );
     const [ ensName, setEnsName ] = useState('');
     const [ avatarUrl, setAvatarUrl ] = useState('');
 
@@ -26,7 +26,10 @@ export const AuthBar = () => {
 
     const handleLogoutBtnClick = () => {
 
-        //
+        authManager.logout();
+        setAddress( null );
+        setEnsName( null );
+        setAvatarUrl( null );
 
     };
 
