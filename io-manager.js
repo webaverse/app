@@ -571,6 +571,8 @@ ioManager.keydown = e => {
           physicsManager.disableGeometryQueries(localPlayer.characterController);
         }
       }
+      break;
+    }
     case 192: { // tilde
       game.toggleEditMode();
       break;
