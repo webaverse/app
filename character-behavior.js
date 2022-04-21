@@ -38,12 +38,12 @@ class CharacterBehavior {
             this.player.avatar.volume = (0.2 - ((timestamp/1000 - this.mouthMovementStartTime) / this.mouthMovementReleaseTime) * 0.2)/12;
             if(timestamp/1000 - this.mouthMovementStartTime >= this.mouthMovementReleaseTime){
                 this.mouthMovementState=null;
-                this.player.avatar.manuallySetMouth=false;
+                this.manuallySetMouth=false;
                 this.mouthMovementStartTime = -1;
             }
         }
         const _handleMouthMovementNull=()=>{
-            this.mouthMovementState = this.player.avatar.manuallySetMouth ? 'attack' : null;
+            this.mouthMovementState = this.manuallySetMouth ? 'attack' : null;
             this.mouthMovementStartTime = timestamp/1000;
         }
         switch (this.mouthMovementState) {
@@ -71,7 +71,7 @@ class CharacterBehavior {
     }
     setMouthMoving(attack, decay, sustain, release){
         this.mouthMovementState=null;
-        this.player.avatar.manuallySetMouth=true;
+        this.manuallySetMouth=true;
         this.mouthMovementAttackTime=attack;
         this.mouthMovementDecayTime=decay;
         this.mouthMovementSustainTime=sustain;
