@@ -10,7 +10,7 @@ import {
   level,
 } from '../player-stats.js';
 
-import styles from './HeaderIcon.module.css';
+import styles from './AvatarIcon.module.css';
 import { localPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
 import cameraManager from '../camera-manager.js'
@@ -101,7 +101,7 @@ const CharacterIcon = () => {
   );
 };
 
-export const HeaderIcon = () => {
+export const AvatarIcon = () => {
     const { state, setState } = useContext( AppContext );
 
     const handleCharacterBtnClick = () => {
@@ -118,7 +118,7 @@ export const HeaderIcon = () => {
 
     return (
         <div
-            className={styles.headerIcon}
+            className={styles.avatarIcon}
             onClick={handleCharacterBtnClick}
         >
             {/* <a href="/" className={styles.logo}>

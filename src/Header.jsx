@@ -13,7 +13,7 @@ import { Inventory } from './components/general/inventory';
 import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
-import { HeaderIcon } from './HeaderIcon';
+import { AvatarIcon } from './AvatarIcon';
 import { User } from './User';
 
 import styles from './Header.module.css';
@@ -260,7 +260,7 @@ export default function Header() {
               npcs={npcs}
             />
             {/* <div className={styles.inner}> */}
-                <HeaderIcon />
+                <AvatarIcon />
                 <User
                     address={address}
                     setAddress={setAddress}
