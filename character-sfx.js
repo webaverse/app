@@ -74,9 +74,8 @@ class CharacterSfx {
     this.preQ=new THREE.Quaternion();
     this.arr = [0, 0, 0, 0];
 
-    this.runStep = 0;
+    this.startRunningTime = 0;
     this.lastRunningTime = 0;
-
     this.willGasp = false;
 
     
@@ -176,11 +175,6 @@ class CharacterSfx {
                 
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                 sounds.playSound(audioSpec);
-                // set runStep
-                if(isRunning){
-                  this.lastRunningTime = timeSeconds;
-                  this.runStep++;
-                }
               }
             }
             this.lastStepped[0] = leftStepIndices[i];
@@ -194,11 +188,6 @@ class CharacterSfx {
 
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                 sounds.playSound(audioSpec);
-                // set runStep
-                if(isRunning){
-                  this.lastRunningTime = timeSeconds;
-                  this.runStep++;
-                }
               }
             }
             this.lastStepped[1] = rightStepIndices[i];
@@ -287,14 +276,19 @@ class CharacterSfx {
     
 
     const _handleGasp = () =>{
-      if(timeSeconds - this.lastRunningTime > 2 && !this.player.avatar.narutoRunState && timeSeconds - this.narutoRunFinishTime > 0.5){
-        this.runStep = 0;
+      const isRunning = currentSpeed > 0.5;
+      if(isRunning && this.startRunningTime === 0){
+        this.startRunningTime = timeSeconds;
       }
-      // if running step is more than 10
-      if(currentSpeed < 0.1 && timeSeconds - this.lastWalkTime > 0.01 && (this.runStep > 10 || this.willGasp) && !this.player.avatar.narutoRunState){
+      
+      if(timeSeconds - this.startRunningTime > 5 && this.startRunningTime !== 0){
+        this.willGasp = true;
+      }
+      
+      if(!isRunning && this.startRunningTime !== 0 && this.willGasp && !this.player.avatar.narutoRunState){
         this.playGrunt('gasp');
-        this.runStep = 0;
         this.willGasp = false;
+        this.startRunningTime = 0;
       }
     }
     _handleGasp();
