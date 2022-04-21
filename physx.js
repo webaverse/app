@@ -556,7 +556,7 @@ const physxWorker = (() => {
     return moduleInstance._makeTracker.apply(moduleInstance, arguments);
   }; */
   w.makePhysics = () => moduleInstance._makePhysics()
-  w.addJointPhysics = (physics, physicsId1, physicsId2, position1, position2, quaternion1, quaternion2, fixBody1 = false) => {
+  w.addJointPhysics = (physics, physicsId1, physicsId2, position1, position2, quaternion1, quaternion2) => {
     position1.toArray(scratchStack.f32, 0)
     position2.toArray(scratchStack.f32, 3)
     quaternion1.toArray(scratchStack.f32, 6)
@@ -567,7 +567,7 @@ const physxWorker = (() => {
     const quaternion1Offset = scratchStack.f32.byteOffset + 6 * Float32Array.BYTES_PER_ELEMENT
     const quaternion2Offset = scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT
 
-    const joint = moduleInstance._addJointPhysics(physics, physicsId1, physicsId2, position1Offset, position2Offset, quaternion1Offset, quaternion2Offset, fixBody1)
+    const joint = moduleInstance._addJointPhysics(physics, physicsId1, physicsId2, position1Offset, position2Offset, quaternion1Offset, quaternion2Offset)
     return joint
   }
   w.setJointMotionPhysics = (physics, joint, axis, motion) => {
