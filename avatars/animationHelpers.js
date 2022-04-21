@@ -389,6 +389,7 @@ export const loadPromise = (async () => {
 });
 
 export const _applyAnimation = (avatar, now, moveFactors) => {
+  const blendList = [];
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
@@ -724,6 +725,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         localQuaternion2,
         crouchFactor,
       );
+
+    return target.toArray();
   };
   const _handleDefault = spec => {
     const {
@@ -734,26 +737,40 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    _getHorizontalBlend(k, lerpFn, isPosition, dst);
+    const arr = _getHorizontalBlend(k, lerpFn, isPosition, dst);
+    return {
+      arr,
+      intensity: 1,
+    }
   };
   const _getApplyFn = () => {
     if (avatar.jumpState) {
-      return spec => {
+      const applyFn = spec => {
         const {
           animationTrackName: k,
           dst,
           // isTop,
         } = spec;
 
+        // if (!blendList.includes(_handleDefault)) {
+        //   if (k === 'mixamorigHips.quaternion') debugger
+        //   blendList.push(_handleDefault);
+        // }
+
         const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
-        dst.fromArray(v2);
+        return {
+          arr: v2,
+          intensity: 1,
+        };
       };
+      debugger
+      blendList.push(applyFn);
     }
     if (avatar.sitState) {
-      return spec => {
+      const applyFn = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -766,9 +783,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         dst.fromArray(v2);
       };
+      debugger
+      blendList.push(applyFn);
     }
     if (avatar.narutoRunState) {
-      return spec => {
+      const applyFn = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -785,10 +804,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _clearXZ(dst, isPosition);
       };
+      debugger
+      blendList.push(applyFn);
     }
 
     if (avatar.danceFactor > 0) {
-      return spec => {
+      const applyFn = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -815,10 +836,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _clearXZ(dst, isPosition);
       };
+      debugger
+      blendList.push(applyFn);
     }
 
     if (avatar.emoteFactor > 0) {
-      return spec => {
+      const applyFn = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -846,10 +869,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _clearXZ(dst, isPosition);
       };
+      debugger
+      blendList.push(applyFn);
     }
 
     /* if (avatar.fallLoopState) {
-      return spec => {
+      const applyFn = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -868,7 +893,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       avatar.useAnimationCombo.length > 0 ||
       avatar.useAnimationEnvelope.length > 0
     ) {
-      return spec => {
+      const applyFn = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -949,8 +974,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           }
         }
       };
+      debugger
+      blendList.push(applyFn);
     } else if (avatar.hurtAnimation) {
-      return spec => {
+      const applyFn = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -991,8 +1018,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .add(localVector2.fromArray(v2));
         }
       };
+      debugger
+      blendList.push(applyFn);
     } else if (avatar.aimAnimation) {
-      return spec => {
+      const applyFn = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -1031,8 +1060,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .add(localVector2.fromArray(v2));
         }
       };
+      debugger
+      blendList.push(applyFn);
     } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
-      return spec => {
+      const applyFn = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -1094,24 +1125,30 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           avatar.useAnimation = '';
         }
       };
+      debugger
+      blendList.push(applyFn);
     }
-    return _handleDefault;
   };
-  const applyFn = _getApplyFn();
+  // const applyFn = _getApplyFn();
+  _getApplyFn();
+  // console.log(blendList.length);
   const _blendFly = spec => {
     const {
       animationTrackName: k,
       dst,
       // isTop,
       lerpFn,
+      isPosition,
     } = spec;
 
     if (avatar.flyState || (avatar.flyTime >= 0 && avatar.flyTime < 1000)) {
       const t2 = avatar.flyTime / 1000;
       const f = avatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+      // if (k === 'mixamorigHips.quaternion') console.log(f.toFixed(2));
       const src2 = floatAnimation.interpolants[k];
       const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
+      // if (isPosition) debugger;
       lerpFn
         .call(
           dst,
@@ -1162,7 +1199,36 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    applyFn(spec);
+    // applyFn(spec);
+    // _handleDefault(spec);
+
+    if (avatar.jumpState) debugger
+
+    const defaultBlender = _handleDefault(spec);
+    dst.fromArray(defaultBlender.arr);
+
+    if (blendList.length > 0) {
+      const blender1 = blendList[0](spec);
+      if (!isPosition) {
+        localQuaternion.fromArray(blender1.arr);
+        dst.slerp(localQuaternion, blender1.intensity);
+      } else {
+        localVector.fromArray(blender1.arr);
+        dst.lerp(localVector, blender1.intensity);
+      }
+    }
+
+    for (let i = 1; i < blendList.length; i++) {
+      const blender = blendList[i](spec);
+      if (!isPosition) {
+        localQuaternion.fromArray(blender.arr);
+        dst.slerp(localQuaternion, 1 / (i + 2) * blender.intensity);
+      } else {
+        localVector.fromArray(blender.arr);
+        dst.lerp(localVector, 1 / (i + 2) * blender.intensity);
+      }
+    }
+
     _blendFly(spec);
     _blendActivateAction(spec);
 
