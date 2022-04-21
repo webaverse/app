@@ -1282,7 +1282,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.lerp(localVector, blender1.intensity);
       }
 
-      let denominator = 2 + blender1.intensity;
+      let denominator = 1 + blender1.intensity;
       for (let i = 1; i < avatar.blendList.length; i++) {
         const blender = avatar.blendList[i](spec);
         if (!isPosition) {
