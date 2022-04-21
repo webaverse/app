@@ -766,18 +766,46 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             arr: v2,
             intensity: Math.min(1, avatar.jumpTime / 200),
           };
-          if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
           return blender;
         } else {
           const blender = {
             arr: v2,
             intensity: 1 - Math.min(1, avatar.unjumpTime / 200),
           };
-          if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
           return blender;
         }
       };
       debugger
+      avatar.blendList.push(applyFn);
+    }
+    if (avatar.flyState || avatar.unflyTime < 200) {
+      const applyFn = spec => {
+        const {
+          animationTrackName: k,
+        } = spec;
+
+        const t2 = (now - avatar.flyStartTime) / 1000 * 0.6 + 0.7;
+        const src2 = floatAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2 % floatAnimation.duration);
+
+        if (avatar.flyState) {
+          const blender = {
+            arr: v2,
+            intensity: Math.min(1, avatar.flyTime / 200),
+          };
+          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+          return blender;
+        } else {
+          const blender = {
+            arr: v2,
+            intensity: 1 - Math.min(1, avatar.unflyTime / 200),
+          };
+          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+          return blender;
+        }
+      };
       avatar.blendList.push(applyFn);
     }
     if (avatar.sitState) {
@@ -1154,8 +1182,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     if (avatar.flyState || (avatar.flyTime >= 0 && avatar.flyTime < 1000)) {
       const t2 = avatar.flyTime / 1000;
-      const f = avatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-      // if (k === 'mixamorigHips.quaternion') console.log(f.toFixed(2));
+      // const f = avatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+      const f = Math.min(1, t2 / 0.2);
+      if (k === 'mixamorigHips.quaternion') console.log(f.toFixed(2));
       const src2 = floatAnimation.interpolants[k];
       const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
@@ -1242,7 +1271,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       }
     }
 
-    _blendFly(spec);
     _blendActivateAction(spec);
 
     // ignore all animation position except y
