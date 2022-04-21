@@ -20,7 +20,8 @@ import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import postProcessing from './post-processing.js';
-import {makeId, getRandomString, getPlayerPrefix, memoize} from './util.js';
+import {getRandomString, memoize} from './util.js';
+import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
@@ -60,6 +61,7 @@ class App extends THREE.Object3D {
 
     this.isApp = true;
     this.components = [];
+    this.description = '';
     this.appType = 'none';
     this.modules = [];
     this.modulesHash = 0;
@@ -754,9 +756,9 @@ metaversefile.setApi({
   useAbis() {
     return abis;
   },
-  /* useUi() {
-    return ui;
-  }, */
+  useMathUtils() {
+    return mathUtils;
+  },
   useActivate(fn) {
     const app = currentAppRender;
     if (app) {

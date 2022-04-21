@@ -28,6 +28,7 @@ import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
+import {generateObjectUrlCard} from './card-generator.js';
 
 // const {contractNames} = metaversefileConstants;
 
@@ -508,15 +509,15 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
+    const renderer = getRenderer();
     const _isWear = o => localPlayer.findAction(action => action.type === 'wear' && action.instanceId === o.instanceId);
 
     for (let i = 0; i < 2; i++) {
       const grabAction = _getGrabAction(i);
       const grabbedObject = _getGrabbedObject(i);
       if (grabbedObject && !_isWear(grabbedObject)) {
-        const {position, quaternion} = localPlayer.hands[i];
+        const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        
         grabbedObject.updateMatrixWorld();
 
         /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
@@ -1308,6 +1309,21 @@ class GameManager extends EventTarget {
     }
   }
 
+  /* menuGDown() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('emote');
+
+    const newAction = {
+      type: 'emote',
+      animation: 'angry',
+    };
+    localPlayer.addAction(newAction);
+  }
+  menuGUp() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    localPlayer.removeAction('emote');
+  } */
+
   menuVDown() {
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
@@ -1318,16 +1334,16 @@ class GameManager extends EventTarget {
       const newAction = {
         type: 'dance',
         animation: 'dansu',
-        // time: 0,
       };
       localPlayer.addAction(newAction);
     }
   }
-  menuVUp(e) {
+  menuVUp() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.removeAction('dance');
   }
-  menuBDown(e) {
+
+  menuBDown() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     
     const sssAction = localPlayer.getAction('sss');
@@ -1359,6 +1375,7 @@ class GameManager extends EventTarget {
     
     // physicsManager.setThrowState(null);
   }
+
   menuDoubleTap() {
     if (!this.isCrouched()) {
       const localPlayer = metaversefileApi.useLocalPlayer();
@@ -1683,6 +1700,21 @@ class GameManager extends EventTarget {
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
   pushPlayerUpdates = _pushPlayerUpdates;
+  async renderCard(object) { // HACK: this should be moved to a UI component
+    const start_url = object?.start_url;
+    if (start_url) {
+      // console.log('render card 1', start_url);
+      const cardImg = await generateObjectUrlCard({
+        start_url,
+      });
+      // console.log('render card 2', start_url, cardImg);
+      // const stats = procgen.generateStats();
+      /* console.log('render start url', {
+        start_url,
+        stats,
+      }); */
+    }
+  }
 }
 const gameManager = new GameManager();
 export default gameManager;
