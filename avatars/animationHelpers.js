@@ -744,7 +744,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     }
   };
   const _getApplyFn = () => {
-    if (avatar.jumpState) {
+    if (avatar.jumpState || avatar.unjumpTime < 200) {
       const applyFn = spec => {
         const {
           animationTrackName: k,
@@ -757,14 +757,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         //   blendList.push(_handleDefault);
         // }
 
-        const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
+        const t2 = (now - avatar.jumpStartTime) / 1000 * 0.6 + 0.7;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
-        return {
-          arr: v2,
-          intensity: Math.min(1, avatar.jumpTime / 200),
-        };
+        if (avatar.jumpState) {
+          return {
+            arr: v2,
+            intensity: Math.min(1, avatar.jumpTime / 200),
+          };
+        } else {
+          return {
+            arr: v2,
+            intensity: 1 - Math.min(1, avatar.unjumpTime / 200),
+          };
+        }
       };
       debugger
       blendList.push(applyFn);
@@ -1131,7 +1138,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   };
   // const applyFn = _getApplyFn();
   _getApplyFn();
-  // console.log(blendList.length);
+  console.log(blendList.length);
   const _blendFly = spec => {
     const {
       animationTrackName: k,
