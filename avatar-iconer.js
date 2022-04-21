@@ -136,7 +136,7 @@ class AvatarIconer extends EventTarget {
 
       const narutoRunAction = this.player.getAction('narutoRun');
       if (narutoRunAction) {
-        return 'fun';
+        return 'angry';
       }
 
       const danceAction = this.player.getAction('dance');
