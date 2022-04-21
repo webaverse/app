@@ -21,10 +21,13 @@ export default (app, component) => {
 
   const initialScale = app.scale.clone();
 
-  const localPlayer = metaversefile.useLocalPlayer();
+  let localPlayer = metaversefile.useLocalPlayer();
 
   const wearupdate = e => {
     if (e.wear) {
+      if( e.player ) {
+        localPlayer = e.player
+      }
       wearSpec = app.getComponent('wear');
       initialScale.copy(app.scale);
       // console.log('activate component', app, wear);
