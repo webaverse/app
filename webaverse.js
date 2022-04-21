@@ -342,7 +342,6 @@ export default class Webaverse extends EventTarget {
 
         {
           const popRenderSettings = renderSettingsManager.push(rootScene, undefined, {
-            fog: true,
             postProcessing,
           });
 
