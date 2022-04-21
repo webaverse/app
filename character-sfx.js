@@ -75,7 +75,6 @@ class CharacterSfx {
     this.arr = [0, 0, 0, 0];
 
     this.startRunningTime = 0;
-    this.lastRunningTime = 0;
     this.willGasp = false;
 
     
