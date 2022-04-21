@@ -509,15 +509,15 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
+    const renderer = getRenderer();
     const _isWear = o => localPlayer.findAction(action => action.type === 'wear' && action.instanceId === o.instanceId);
 
     for (let i = 0; i < 2; i++) {
       const grabAction = _getGrabAction(i);
       const grabbedObject = _getGrabbedObject(i);
       if (grabbedObject && !_isWear(grabbedObject)) {
-        const {position, quaternion} = localPlayer.hands[i];
+        const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        
         grabbedObject.updateMatrixWorld();
 
         /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
@@ -1390,6 +1390,7 @@ class GameManager extends EventTarget {
     if (flyAction) {
       localPlayer.removeAction('fly');
     } else {
+      this.ensureFly()
       const flyAction = {
         type: 'fly',
         time: 0,
@@ -1489,6 +1490,18 @@ class GameManager extends EventTarget {
     // play sound
     // soundManager.play('jump');
 
+  }
+  ensureFly() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
+    for (const wearAction of wearActions) {
+      const instanceId = wearAction.instanceId;
+      const app = metaversefileApi.getAppByInstanceId(instanceId);
+      const sitComponent = app.getComponent('sit');
+      if (sitComponent) {
+        app.unwear();
+      }
+    }
   }
   isMovingBackward() {
     // return ioManager.keysDirection.z > 0 && this.isAiming();
