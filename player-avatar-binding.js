@@ -128,6 +128,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
     }
   }
 
+  rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimTime = player.actionInterpolants.aim.get();

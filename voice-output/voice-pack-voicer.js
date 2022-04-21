@@ -2,33 +2,16 @@
 it is responsible for playing Banjo-Kazooie style character speech. */
 
 import Avatar from '../avatars/avatars.js';
-import {loadAudioBuffer, makePromise} from '../util.js';
+import {loadAudioBuffer, makePromise, selectVoice} from '../util.js';
 import {chatTextSpeed} from '../constants.js';
 
-function weightedRandom(weights) {
-	let totalWeight = 0;
-	for (let i = 0; i < weights.length; i++) {
-		totalWeight += weights[i];
-	}
-
-	let random = Math.random() * totalWeight;
-	for (let i = 0; i < weights.length; i++) {
-		if (random < weights[i]) {
-			return i;
-		}
-		random -= weights[i];
-	}
-
-	return -1;
-}
 
 class VoicePack {
-  constructor(syllableFiles, actionFiles, voiceActor, audioBuffer) {
-    this.syllableFiles = syllableFiles;
-    this.actionFiles = actionFiles;
+  constructor(files, audioBuffer) {
+    this.syllableFiles = files.filter(({name}) => /\/[0-9]+\.wav$/.test(name));
+    this.actionFiles = files.filter(({name}) => /^actions\//.test(name));
     this.audioBuffer = audioBuffer;
-    this.voiceActor = voiceActor;
-    this.actionVoices = actionFiles.map(({name, offset, duration}) => {
+    this.actionVoices = this.actionFiles.map(({name, offset, duration}) => {
       return {
         name,
         offset,
@@ -37,57 +20,24 @@ class VoicePack {
       };
     });
   }
-  selectVoice(voicer) {
-    // the weight of each voice is proportional to the inverse of the number of times it has been used
-    const maxNonce = voicer.reduce((max, voice) => Math.max(max, voice.nonce), 0);
-    const weights = voicer.map(({nonce}) => {
-      return 1 - (nonce / (maxNonce + 1));
-    });
-    const selectionIndex = weightedRandom(weights);
-    const voiceSpec = voicer[selectionIndex];
-    voiceSpec.nonce++;
-    while (voicer.every(voice => voice.nonce > 0)) {
-      for (const voiceSpec of voicer) {
-        voiceSpec.nonce--;
-      }
-    }
-    return voiceSpec;
-  }
   static async load({
     audioUrl,
     indexUrl,
   }) {
     const audioContext = Avatar.getAudioContext();
     const [
-      syllableFiles,
+      files,
       audioBuffer,
     ] = await Promise.all([
       (async () => {
         const res = await fetch(indexUrl);
         let j = await res.json();
-        j = j.filter(({name}) => /\/[0-9]+\.wav$/.test(name));
         return j;
       })(),
       loadAudioBuffer(audioContext, audioUrl),
     ]);
-    const [
-      actionFiles,
-    ] = await Promise.all([
-      (async () => {
-        const res = await fetch(indexUrl);
-        let j = await res.json();
-        j = j.filter(({name}) => /^actions\//.test(name));
-        return j;
-      })(),
-      loadAudioBuffer(audioContext, audioUrl),
-    ]);
-
-    const name=audioUrl.substring(
-      audioUrl.indexOf('voicepacks') + 11,
-      audioUrl.lastIndexOf('/')
-    )
-
-    const voicePack = new VoicePack(syllableFiles, actionFiles, name, audioBuffer);
+    
+    const voicePack = new VoicePack(files, audioBuffer);
     return voicePack;
   }
 }
@@ -110,22 +60,6 @@ class VoicePackVoicer {
     this.charactersSinceStart = 0;
     this.audioTimeout = null;
     this.endTimeout = null;
-  }
-  selectVoice() {
-    // the weight of each voice is proportional to the inverse of the number of times it has been used
-    const maxNonce = this.voices.reduce((max, voice) => Math.max(max, voice.nonce), 0);
-    const weights = this.voices.map(({nonce}) => {
-      return 1 - (nonce / (maxNonce + 1));
-    });
-    const selectionIndex = weightedRandom(weights);
-    const voiceSpec = this.voices[selectionIndex];
-    voiceSpec.nonce++;
-    while (this.voices.every(voice => voice.nonce > 0)) {
-      for (const voiceSpec of this.voices) {
-        voiceSpec.nonce--;
-      }
-    }
-    return voiceSpec;
   }
   clearTimeouts() {
     clearTimeout(this.audioTimeout);
@@ -156,7 +90,7 @@ class VoicePackVoicer {
 
     const p = makePromise();
     const _recurse = async () => {
-      const {offset, duration} = this.selectVoice();
+      const {offset, duration} = selectVoice(this.voices);
 
       const audioContext = Avatar.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();

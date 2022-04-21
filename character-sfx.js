@@ -15,6 +15,7 @@ import {
 } from './constants.js';
 import {
   mod,
+  selectVoice,
   // loadJson,
   // loadAudioBuffer,
 } from './util.js';
@@ -76,6 +77,8 @@ class CharacterSfx {
     this.runStep = 0;
     this.lastRunningTime = 0;
 
+    this.willGasp = false;
+
     
     this.oldNarutoRunSound = null;
   }
@@ -100,7 +103,7 @@ class CharacterSfx {
         const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
         sounds.playSound(audioSpec);
         // play jump grunt 
-        if(this.player.voicePack!==null && !this.player.hasAction('fly') && this.player.avatar.velocity.y<0){
+        if(!this.player.hasAction('fly') && this.player.avatar.velocity.y<0){
           this.playGrunt('jump'); 
         }
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
@@ -258,7 +261,7 @@ class CharacterSfx {
 
         // if naruto run play more than 2 sec, set runStep > 10
         if(timeSeconds -  this.narutoRunStartTime > 2){
-          this.runStep = 11;
+          this.willGasp = true;
         }
 
       }
@@ -287,9 +290,10 @@ class CharacterSfx {
         this.runStep = 0;
       }
       // if running step is more than 10
-      if(currentSpeed < 0.1 && timeSeconds - this.lastWalkTime > 0.01 && this.runStep > 10 && !this.player.avatar.narutoRunState){
+      if(currentSpeed < 0.1 && timeSeconds - this.lastWalkTime > 0.01 && (this.runStep > 10 || this.willGasp) && !this.player.avatar.narutoRunState){
         this.playGrunt('gasp');
         this.runStep = 0;
+        this.willGasp = false;
       }
     }
     _handleGasp();
@@ -347,41 +351,43 @@ class CharacterSfx {
     _handleFood();
   }
   playGrunt(type, index){
+    if(this.player.voicePack==null || this.oldGrunt)
+      return;
 
     let voiceFiles, offset, duration;
     switch (type) {
       case 'pain': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /Pain/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
         break;
       }
       case 'scream': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /Scream/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
         break;
       }
       case 'attack': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /Attack/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
         break;
       }
       case 'angry': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /Angry/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
         break;
       }
       case 'gasp': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
         break;
       }
       case 'jump': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
         break;
       }
       case 'narutoRun': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/.test(f.name));
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
         break;
       }
     }
     
     if(index===undefined){
-      let voice = this.player.voicePack.selectVoice(voiceFiles);
+      let voice = selectVoice(voiceFiles);
       duration = voice.duration;
       offset = voice.offset;
     }
@@ -400,10 +406,19 @@ class CharacterSfx {
     }
     audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
-    if(this.oldGrunt){
-      this.oldGrunt.stop();
-    }
+    // if the oldGrunt are still playing
+    // if(this.oldGrunt){
+    //   this.oldGrunt.stop();
+    //   this.oldGrunt = null;
+    // }
+
     this.oldGrunt=audioBufferSourceNode;
+    // clean the oldGrunt if voice end
+    audioBufferSourceNode.addEventListener('ended', () => {
+      if (this.oldGrunt === audioBufferSourceNode) {
+        this.oldGrunt = null;
+      }
+    });
 
     audioBufferSourceNode.start(0, offset, duration);
   }
