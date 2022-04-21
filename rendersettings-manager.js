@@ -63,23 +63,42 @@ class RenderSettingsManager {
     return null;
   }
   applyRenderSettingsToScene(renderSettings, scene) {
+    const oldBackground = scene.background;
+    const oldFog = scene.fog;
+
     const {
       background = null,
       fog = null,
     } = (renderSettings ?? {});
     scene.background = background;
     scene.fog = fog;
+
+    return () => {
+      scene.background = oldBackground;
+      scene.fog = oldFog;
+    };
   }
   push(srcScene, dstScene = srcScene, {
-    fog = false,
     postProcessing = null,
   } = {}) {
     const renderSettings = this.findRenderSettings(srcScene);
-    this.applyRenderSettingsToScene(renderSettings, dstScene);
+    const renderSettingsCleanup = this.applyRenderSettingsToScene(renderSettings, dstScene);
 
-    const hideFog = fog === false && !!dstScene.fog;
+    if (postProcessing) {
+      const {
+        passes = null,
+      } = (renderSettings ?? {});
+      postProcessing.setPasses(passes);
+    }
+
+    return () => {
+      renderSettingsCleanup();
+      postProcessing && postProcessing.setPasses(null);
+    };
+  }
+  pushFogClear(srcScene, dstScene = srcScene) {
     let fogCleanup = null;
-    if (hideFog) {
+    if (dstScene.fog) {
       if (dstScene.fog.isFog) {
         const oldNear = dstScene.fog.near;
         const oldFar = dstScene.fog.far;
@@ -97,20 +116,8 @@ class RenderSettingsManager {
         };
       }
     }
-    if (postProcessing) {
-      const {
-        passes = null,
-      } = (renderSettings ?? {});
-      postProcessing.setPasses(passes);
-    }
-
     return () => {
       fogCleanup && fogCleanup();
-      this.applyRenderSettingsToScene(null, dstScene);
-
-      if (postProcessing) {
-        postProcessing.setPasses(null);
-      }
     };
   }
 }
