@@ -2,9 +2,51 @@
 import { ethers } from "ethers";
 import detectEthereumProvider from "@metamask/detect-provider";
 import { config } from "../config/config";
-import { EventEmitter } from "events";
 
 //
+
+class EventEmitter {
+
+    constructor () {
+
+        this.listeners = {};
+
+    };
+
+    addListener ( name, callback ) {
+
+        this.listeners[ name ] = this.listeners[ name ] ?? [];
+
+    };
+
+    removeListener ( name, callback ) {
+
+        const listeners = this.listeners[ name ] ?? [];
+        const newListeners = [];
+
+        listeners.forEach( ( listener ) => {
+
+            if ( listener !== callback ) newListeners.push( listener );
+
+        });
+
+        this.listeners[ name ] = newListeners;
+
+    };
+
+    emit ( name, params ) {
+
+        const listeners = this.listeners[ name ] ?? [];
+
+        listeners.forEach( ( listener ) => {
+
+            listener( params );
+
+        });
+
+    };
+
+};
 
 export class WalletManager extends EventEmitter {
 
