@@ -10,8 +10,8 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 // const localVector6 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
+// const localQuaternion = new THREE.Quaternion();
+// const localQuaternion2 = new THREE.Quaternion();
 // const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -1057,15 +1057,12 @@ export const getTransferables = o => {
   _recurse(o);
   return result;
 };
-export function getDiffQuaternion(quaternionA, quaternionB) {
+export function getDiffQuaternion(target, quaternionA, quaternionB) {
   // Purpose: Get a diffQuaternion which can rotate quaternionA to quaternionB.
   // i.e. quaternionA * diffQuaternion = quaternionB .
   // https://forum.unity.com/threads/subtracting-quaternions.317649/
   // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/functions/index.htm
-  localQuaternion.copy(quaternionA);
-  localQuaternion2.copy(quaternionB);
-  const diffQuaternion = localQuaternion2.invert().multiply(localQuaternion).invert();
-  return diffQuaternion;
+  target.copy(quaternionB).invert().multiply(quaternionA).invert();
 }
 export const splitLinesToWidth = (() => {
   let tempCanvas = null;
