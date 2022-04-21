@@ -351,9 +351,7 @@ class CharacterSfx {
     _handleFood();
   }
   playGrunt(type, index){
-    if(this.player.voicePack==null || this.oldGrunt)
-      return;
-
+    
     let voiceFiles, offset, duration;
     switch (type) {
       case 'pain': {
@@ -407,10 +405,10 @@ class CharacterSfx {
     audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
     // if the oldGrunt are still playing
-    // if(this.oldGrunt){
-    //   this.oldGrunt.stop();
-    //   this.oldGrunt = null;
-    // }
+    if(this.oldGrunt){
+      this.oldGrunt.stop();
+      this.oldGrunt = null;
+    }
 
     this.oldGrunt=audioBufferSourceNode;
     // clean the oldGrunt if voice end
