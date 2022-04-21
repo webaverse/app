@@ -21,7 +21,7 @@ const maxAim = new THREE.Vector3(-0.3,0,-2);
 
 //
 let cameraOffsetZ = cameraOffset.z;
-let lastCamoffsetz = cameraOffset.z;
+let lastCamoffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
 const rayVectorUp = new THREE.Vector3(0,1,0);
 const rayStartPos = new THREE.Vector3(0,0,0);
@@ -181,7 +181,7 @@ class CameraManager extends EventTarget {
     // e.preventDefault();
 
     cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
-    lastCamoffsetz = cameraOffsetTargetZ;
+    lastCamoffsetZ = cameraOffsetTargetZ;
   }
   addShake(position, intensity, radius, decay) {
     const startTime = performance.now();
@@ -212,7 +212,7 @@ class CameraManager extends EventTarget {
   
   //Lerp towards offset for smoother ADS, works both aiming in and out
   takeAim(playerPos){
-    if (-cameraOffset.z> -maxAim.z){
+    if (-cameraOffset.z > -maxAim.z){
       localVector.copy(playerPos).sub(localVector.copy(maxAim).applyQuaternion(camera.quaternion));
       cameraOffsetZ = lerpNum(cameraOffsetZ, -localVector.z, 0.1);
       cameraOffsetTargetZ = cameraOffsetZ;
@@ -221,26 +221,24 @@ class CameraManager extends EventTarget {
       //do nothing
     }
     cameraOffset.x = lerp(cameraOffset.x, maxAim.x, 0.1);
-    cameraOffset.updateMatrixWorld;
   }
 
   //When we aim, we want to remember the last camera Z offset
-  saveaim(){
-    lastCamoffsetz = cameraOffsetTargetZ;
+  saveAim(){
+    lastCamoffsetZ = cameraOffsetTargetZ;
   }
 
   removeAim(){
-    const zdist = (lastCamoffsetz - cameraOffsetTargetZ);
+    const zdist = (lastCamoffsetZ - cameraOffsetTargetZ);
     //we only want to revert to our original z value if there is a descrepancy between our expected zdistance and our actual distance
     if (zdist !== 0){
-      cameraOffsetZ = lerpNum(cameraOffsetZ, lastCamoffsetz, 0.1);
+      cameraOffsetZ = lerpNum(cameraOffsetZ, lastCamoffsetZ, 0.1);
       cameraOffsetTargetZ = cameraOffsetZ;
     }
     else{
       //do nothing
     }
     cameraOffset.x = lerp(cameraOffset.x, rayVectorZero.x, 0.1);
-    cameraOffset.updateMatrixWorld;
   }
   
   updatePost(timestamp, timeDiff) {
