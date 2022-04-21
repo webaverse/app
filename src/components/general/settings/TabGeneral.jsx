@@ -1,8 +1,7 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import classNames from 'classnames';
 
-import WebaWallet from '../../wallet';
 import { Button } from './button';
 
 import styles from './settings.module.css';
@@ -13,9 +12,11 @@ export const TabGeneral = ({ active }) => {
 
     const handleLogoutBtnClick = () => {
 
-        WebaWallet.logout();
+        // WebaWallet.logout();
 
     };
+
+    //
 
     return (
         <div className={ classNames( styles.tabContent, active ? styles.active : null ) }>

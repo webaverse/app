@@ -53,9 +53,12 @@
   perspective: 400px;
   perspective-origin: -100px 100px;
   pointer-events: all;
+  transform: translate(200px, 0);
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
-.authBar:not(.loggedIn) .keyWrap {
-  cursor: pointer;
+.authBar .keyWrap.active {
+    cursor: pointer;
+    transform: translate(0px, 0);
 }
 .authBar .key {
   display: flex;
@@ -127,7 +130,7 @@
   transform: translate(200px, 0);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
-.authBar.loggingIn .loggingInPlaceholder {
+.authBar .loggingInPlaceholder.active {
   transform: translate(0, 0);
 }
 
@@ -142,9 +145,10 @@
   align-items: center;
   transform: none;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
-}
-.authBar:not(.loggedIn) .userWrap {
   transform: translate(100%, 0);
+}
+.authBar .userWrap.active {
+  transform: translate(0%, 0);
 }
 
 .authBar {

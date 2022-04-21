@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, createContext } from 'react';
 
 import { defaultAvatarUrl } from '../../../constants';
 
-import { WalletManager } from '../../../blockchain-lib';
+import { WalletManager } from '../../../core/webawallet';
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
@@ -90,6 +90,7 @@ export const App = () => {
 
     const [ authManager, setAuthManager ] = useState( null );
     const [ address, setAddress ] = useState( null );
+    const [ authInProcess, setAuthInProcess ] = useState( false );
 
     //
 
@@ -202,6 +203,7 @@ export const App = () => {
 
     useEffect( async () => {
 
+        setAuthInProcess( true );
         const authManager = new WalletManager();
         setAuthManager( authManager );
 
@@ -213,12 +215,15 @@ export const App = () => {
 
         authManager.addListener( 'user_not_auth', () => {
 
-            console.log('need auth');
+            // auth check finished, and user is NOT autintificated
+            setAuthInProcess( false );
 
         });
 
         authManager.addListener( 'user_auth', async () => {
 
+            // auth check finished, and user is autintificated
+            setAuthInProcess( false );
             setAddress( authManager.address );
 
         });
@@ -248,7 +253,7 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, authManager, address }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, authManager, address, authInProcess }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <AuthBar />
                 <canvas className={ styles.canvas } ref={ canvasRef } />

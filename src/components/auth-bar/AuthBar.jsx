@@ -10,13 +10,11 @@ import styles from './auth-bar.module.css';
 
 //
 
-export const AuthBar = ({ setLoginFrom }) => {
+export const AuthBar = () => {
 
-    const { address, authManager, state, setState } = useContext( AppContext );
+    const { address, authManager, authInProcess, state, setState } = useContext( AppContext );
     const [ ensName, setEnsName ] = useState('');
     const [ avatarUrl, setAvatarUrl ] = useState('');
-
-    const loggedIn = !! address;
 
     //
 
@@ -83,45 +81,37 @@ export const AuthBar = ({ setLoginFrom }) => {
     //
 
     return (
-        <div
-            className={ classnames(
-                styles.authBar,
-                state.openedPanel === 'LoginPanel' ? styles.open : null,
-                loggedIn ? styles.loggedIn : null,
-            ) }
-            onClick={ stopPropagation }
-        >
-            <div className={styles.keyWrap} onClick={ handleLoginLabelBtnClick } >
-                <div className={styles.key}>
-                    <div className={styles.bow}>
-                        <img className={styles.icon} src="./images/log-in.svg" />
+        <div className={ classnames( styles.authBar, state.openedPanel === 'LoginPanel' ? styles.open : null ) } onClick={ stopPropagation } >
+
+            <div className={ classnames( styles.loggingInPlaceholder, authInProcess ? styles.active : null ) }>Logging in</div>
+
+            <div className={ classnames( styles.keyWrap, ( address === null && ! authInProcess ) ? styles.active : null ) } onClick={ handleLoginLabelBtnClick } >
+                <div className={ styles.key } >
+                    <div className={ styles.bow } >
+                        <img className={ styles.icon } src="./images/log-in.svg" />
                     </div>
-                    <div className={styles.blade}>
-                        <div className={styles.background} />
-                        <div className={styles.text}>ログイン Log in</div>
+                    <div className={ styles.blade } >
+                        <div className={ styles.background } />
+                        <div className={ styles.text } >ログイン Log in</div>
                     </div>
                 </div>
             </div>
 
-            <div className={styles.loggingInPlaceholder}>Logging in</div>
-
-            { address ? <div className={styles.userWrap}>
-                <div className={styles.userBar}>
-                    {avatarUrl ? (
-                        <div
-                            className={styles.avatarUrl}
-                            onClick={openUserPanel}
-                        >
-                            <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
-                        </div>
-                    ) : null}
-                    <div
-                        className={styles.address}
-                        onClick={openUserPanel}
-                    >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+            <div className={ classnames( styles.userWrap, ( address && ! authInProcess ) ? styles.active : null ) }>
+                <div className={ styles.userBar } >
+                    {
+                        avatarUrl ? (
+                            <div className={ styles.avatarUrl } onClick={ openUserPanel } >
+                                <img className={ styles.img } src={ avatarUrl } crossOrigin='Anonymous' />
+                            </div>
+                        ) : null
+                    }
+                    <div className={ styles.address } onClick={openUserPanel} >
+                        { ensName || address || '' } <img className={ styles.verifiedIcon } src="./images/verified.svg" />
+                    </div>
                 </div>
-                <div className={styles.logoutBtn} onClick={ handleLogoutBtnClick } >Logout</div>
-            </div> : null}
+                <div className={ styles.logoutBtn } onClick={ handleLogoutBtnClick } >Logout</div>
+            </div>
 
             <div className={ classnames( styles.userLoginMethodsModal, ( state.openedPanel === 'LoginPanel' ? styles.opened : null ) ) } >
                 <div className={ styles.title } >

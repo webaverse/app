@@ -1,7 +1,7 @@
 
 import { ethers } from "ethers";
 import detectEthereumProvider from "@metamask/detect-provider";
-import { config } from "../config/config";
+import { config } from "./config/config";
 
 //
 
@@ -16,6 +16,7 @@ class EventEmitter {
     addListener ( name, callback ) {
 
         this.listeners[ name ] = this.listeners[ name ] ?? [];
+        this.listeners[ name ].push( callback );
 
     };
 
