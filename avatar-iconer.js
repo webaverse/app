@@ -33,8 +33,17 @@ class AvatarIconer extends EventTarget {
       this.renderAvatarApp(e.app);
     };
     player.addEventListener('avatarchange', avatarchange);
+    
+    const actionupdate = e => {
+      this.updateEmotionFromActions();
+    };
+    player.addEventListener('actionadd', actionupdate);
+    player.addEventListener('actionremove', actionupdate);
+
     this.cleanup = () => {
       player.removeEventListener('avatarchange', avatarchange);
+      player.removeEventListener('actionadd', actionupdate);
+      player.removeEventListener('actionremove', actionupdate);
     };
   }
   async renderAvatarApp(srcAvatarApp) {
@@ -87,12 +96,57 @@ class AvatarIconer extends EventTarget {
       }));
     }
   }
-  setEmotion(emotion) {
-    this.emotion = emotion || '';
-  }
   addCanvas(canvas) {
     canvas.ctx = canvas.getContext('2d');
     this.canvases.push(canvas);
+  }
+  updateEmotionFromActions() {
+    const emotion = (() => {
+      const faceposeAction = this.player.getAction('facepose');
+      if (faceposeAction) {
+        return faceposeAction.emotion;
+      }
+
+      const hurtAction = this.player.getAction('hurt');
+      if (hurtAction) {
+        return 'sorrow';
+      }
+      
+      const useAction = this.player.getAction('use');
+      if (useAction) {
+        if (
+          useAction.animation === 'eat' ||
+          useAction.animation === 'drink'
+        ) {
+          return 'joy';
+        }
+        if (
+          useAction.behavior === 'sword' ||
+          useAction.ik === 'pistol' ||
+          useAction.ik === 'bow'
+        ) {
+          return 'angry';
+        }
+      }
+
+      const jumpAction = this.player.getAction('jump');
+      if (jumpAction) {
+        return 'fun';
+      }
+
+      const narutoRunAction = this.player.getAction('narutoRun');
+      if (narutoRunAction) {
+        return 'angry';
+      }
+
+      const danceAction = this.player.getAction('dance');
+      if (danceAction) {
+        return 'joy';
+      }
+
+      return '';
+    })();
+    this.emotion = emotion;
   }
   update() {
     if (this.emotion !== this.lastRenderedEmotion) {

@@ -13,7 +13,7 @@ import { Inventory } from './components/general/inventory';
 import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
-import { HeaderIcon } from './HeaderIcon';
+import { AvatarIcon } from './AvatarIcon';
 
 import styles from './Header.module.css';
 
@@ -232,24 +232,6 @@ export default function Header() {
 
     }, []);
 
-    // tmp code [will be remove in next PRs]
-
-    const claimsOpen = ( state.openedPanel === 'ClaimsPanel' ? 'claims' : false );
-
-    const toggleClaimsOpen = () => {
-
-        if ( claimsOpen ) {
-
-            setState({ openedPanel: null });
-
-        } else {
-
-            setState({ openedPanel: 'ClaimsPanel' });
-
-        }
-
-    };
-
     //
 
 	return (
@@ -258,32 +240,24 @@ export default function Header() {
               localPlayer={localPlayer}
               npcs={npcs}
             />
-            {/* <div className={styles.inner}> */}
-                <HeaderIcon />
-                <div className={styles.tabs}>
-                    <Character
-                        panelsRef={panelsRef}
-                        wearActions={wearActions}
-                        dioramaCanvasRef={dioramaCanvasRef}
-                        game={game}
-                    />
-                    <CharacterSelect />
-                    <Inventory />
-                    {/* <Claims
-                        open={ claimsOpen }
-                        toggleOpen={ toggleClaimsOpen }
-                        claims={claims}
-                        panelsRef={panelsRef}
-                    /> */}
-                    <Tokens
-                        nfts={nfts}
-                        hacks={hacks}
-                        address={address}
-                        setNfts={setNfts}
-                        loginFrom={loginFrom}
-                    />
-                </div>
-            {/* </div> */}
+            <AvatarIcon />
+            <div className={styles.tabs}>
+                <Character
+                    panelsRef={panelsRef}
+                    wearActions={wearActions}
+                    dioramaCanvasRef={dioramaCanvasRef}
+                    game={game}
+                />
+                <CharacterSelect />
+                <Inventory />
+                <Tokens
+                    nfts={nfts}
+                    hacks={hacks}
+                    address={address}
+                    setNfts={setNfts}
+                    loginFrom={loginFrom}
+                />
+            </div>
         </div>
     );
 
