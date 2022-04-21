@@ -102,9 +102,9 @@ class CharacterSfx {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
         const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
         sounds.playSound(audioSpec);
-        
+
         // play jump grunt 
-        if(this.player.hasAction('jump') && this.player.getAction('jump').trigger=='jump'){
+        if(this.player.hasAction('jump') && this.player.getAction('jump').trigger === 'jump'){
           this.playGrunt('jump'); 
         }
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
