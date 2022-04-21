@@ -23,9 +23,6 @@ class AvatarIconer extends EventTarget {
     this.enabled = false;
 
     this.canvases = [];
-
-    const avatarApp = player.getAvatarApp();
-    this.renderAvatarApp(avatarApp);
     
     const avatarchange = e => {
       this.renderAvatarApp(e.app);
@@ -88,6 +85,9 @@ class AvatarIconer extends EventTarget {
         return emotionCanvases;
       }
     ]);
+
+    const avatarApp = player.getAvatarApp();
+    this.renderAvatarApp(avatarApp);
   }
   async renderAvatarApp(srcAvatarApp) {
     const lastEnabled = this.enabled;
