@@ -102,6 +102,11 @@ class AvatarIconer extends EventTarget {
   }
   updateEmotionFromActions() {
     const emotion = (() => {
+      const faceposeAction = this.player.getAction('facepose');
+      if (faceposeAction) {
+        return faceposeAction.emotion;
+      }
+
       const hurtAction = this.player.getAction('hurt');
       if (hurtAction) {
         return 'sorrow';
@@ -124,10 +129,21 @@ class AvatarIconer extends EventTarget {
         }
       }
 
+      const jumpAction = this.player.getAction('jump');
+      if (jumpAction) {
+        return 'fun';
+      }
+
       const narutoRunAction = this.player.getAction('narutoRun');
       if (narutoRunAction) {
         return 'fun';
       }
+
+      const danceAction = this.player.getAction('dance');
+      if (danceAction) {
+        return 'joy';
+      }
+
       return '';
     })();
     this.emotion = emotion;
