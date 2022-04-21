@@ -157,16 +157,29 @@ class CharacterPhysics {
           }
         }
       } else {
-        //Outdated vehicle code
+        // Vehicle code
         this.velocity.y = 0;
 
         const sitAction = this.player.getAction('sit');
 
         const objInstanceId = sitAction.controllingId;
         const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
-        const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
 
         const sitComponent = controlledApp.getComponent('sit');
+
+        // NOTE: This works, but is probably not very performant for more than a few riders
+        // TODO: Optimize this
+        let rideMesh = null;
+        controlledApp.glb.scene.traverse(o => {
+          if (rideMesh === null && o.isSkinnedMesh) {
+            rideMesh = o;
+          }
+        });
+
+        // NOTE: We had a problem with sending the entire bone in the message buffer, so we're just sending the bone name
+        // Make sure this is compatible with all metaversefiles
+        const sitPos = sitComponent.sitBone ? rideMesh.skeleton.bones.find(bone => bone.name === sitComponent.sitBone) : controlledApp;
+
         const {
           sitOffset = [0, 0, 0],
           // damping,

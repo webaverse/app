@@ -77,9 +77,17 @@ class CharacterSfx {
     
     this.oldNarutoRunSound = null;
   }
-  update(timestamp, timeDiffS) {
+  update(timestamp, timeDiffS, actions = []) {
     if (!this.player.avatar) {
       return;
+    }
+
+    //check current actions has sit action
+    let hasSitAction = false
+    for (const action of actions) {
+      if (action.type === 'sit') {
+        hasSitAction = true
+      }
     }
 
     const timeSeconds = timestamp/1000;
@@ -190,7 +198,10 @@ class CharacterSfx {
         this.lastWalkTime = timeSeconds;
       }
     };
-    _handleStep();
+
+    if (!hasSitAction) {
+      _handleStep();
+    }
 
     const _handleNarutoRun = () => {
       
