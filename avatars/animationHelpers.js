@@ -763,7 +763,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         return {
           arr: v2,
-          intensity: 1,
+          intensity: Math.min(1, avatar.jumpTime / 200),
         };
       };
       debugger
@@ -1216,16 +1216,18 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         localVector.fromArray(blender1.arr);
         dst.lerp(localVector, blender1.intensity);
       }
-    }
 
-    for (let i = 1; i < blendList.length; i++) {
-      const blender = blendList[i](spec);
-      if (!isPosition) {
-        localQuaternion.fromArray(blender.arr);
-        dst.slerp(localQuaternion, 1 / (i + 2) * blender.intensity);
-      } else {
-        localVector.fromArray(blender.arr);
-        dst.lerp(localVector, 1 / (i + 2) * blender.intensity);
+      let denominator = 2 + blender1.intensity;
+      for (let i = 1; i < blendList.length; i++) {
+        const blender = blendList[i](spec);
+        if (!isPosition) {
+          localQuaternion.fromArray(blender.arr);
+          dst.slerp(localQuaternion, 1 / (denominator) * blender.intensity);
+        } else {
+          localVector.fromArray(blender.arr);
+          dst.lerp(localVector, 1 / (denominator) * blender.intensity);
+        }
+        denominator += blender.intensity;
       }
     }
 
