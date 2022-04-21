@@ -1,11 +1,9 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile'
 import {emotions} from './src/components/general/character/Emotions';
-import {screenshotPlayer} from './avatar-screenshotter.js';
-import npcManager from './npc-manager.js';
+import offscreenEngineManager from './offscreen-engine-manager.js';
 
 const allEmotions = [''].concat(emotions);
-const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
 
 class AvatarIconer extends EventTarget {
   constructor(player, {
@@ -45,40 +43,59 @@ class AvatarIconer extends EventTarget {
       player.removeEventListener('actionadd', actionupdate);
       player.removeEventListener('actionremove', actionupdate);
     };
+
+    this.getEmotionCanvases = offscreenEngineManager.createFunction([
+      `\
+      import * as THREE from 'three';
+      import metaversefile from './metaversefile-api.js';
+      import npcManager from './npc-manager.js';
+      import {screenshotPlayer} from './avatar-screenshotter.js';
+      import {emotions} from './src/components/general/character/Emotions.jsx';
+
+      const allEmotions = [''].concat(emotions);
+      const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
+      `,
+      async function(start_url, width, height) {
+        const dstAvatarApp = await metaversefile.createAppAsync({
+          start_url,
+        });
+  
+        const player = npcManager.createNpc({
+          name: 'avatar-iconer-npc',
+          avatarApp: dstAvatarApp,
+          detached: true,
+        });
+  
+        const emotionCanvases = await Promise.all(allEmotions.map(async emotion => {
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+  
+          await screenshotPlayer({
+            player,
+            canvas,
+            cameraOffset,
+            emotion,
+          });
+
+          const imageBitmap = await createImageBitmap(canvas);
+          return imageBitmap;
+        }));
+  
+        player.destroy();
+        dstAvatarApp.destroy();
+
+        return emotionCanvases;
+      }
+    ]);
   }
   async renderAvatarApp(srcAvatarApp) {
     const lastEnabled = this.enabled;
 
     if (srcAvatarApp) {
       const start_url = srcAvatarApp.contentId;
-      const dstAvatarApp = await metaversefile.createAppAsync({
-        start_url,
-      });
 
-      const player = npcManager.createNpc({
-        name: 'avatar-iconer-npc',
-        avatarApp: dstAvatarApp,
-        detached: true,
-      });
-
-      const emotionCanvases = await Promise.all(allEmotions.map(async emotion => {
-        const canvas = document.createElement('canvas');
-        canvas.width = this.width;
-        canvas.height = this.height;
-
-        await screenshotPlayer({
-          player,
-          canvas,
-          cameraOffset,
-          emotion,
-        });
-
-        return canvas;
-      }));
-      this.emotionCanvases = emotionCanvases;
-
-      player.destroy();
-      dstAvatarApp.destroy();
+      this.emotionCanvases = await this.getEmotionCanvases(start_url, this.width, this.height);
 
       this.enabled = true;
     } else {
