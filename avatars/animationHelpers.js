@@ -797,14 +797,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             arr: v2,
             intensity: Math.max(0, Math.min(1, avatar.flyTime / 200) - 0.1),
           };
-          if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity); // todo: if (isPosition)
           return blender;
         } else {
           const blender = {
             arr: v2,
             intensity: Math.max(0, 1 - Math.min(1, avatar.unflyTime / 200) - 0.1),
           };
-          if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
           return blender;
         }
       };
@@ -1270,8 +1270,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     const defaultBlender = _handleDefault(spec);
     dst.fromArray(defaultBlender.arr);
 
+    let logText = '';
     if (avatar.blendList.length > 0) {
       const blender1 = avatar.blendList[0](spec);
+      logText += blender1.intensity.toFixed(2) + ' --- ';
       if (!isPosition) {
         localQuaternion.fromArray(blender1.arr);
         dst.slerp(localQuaternion, blender1.intensity);
@@ -1289,9 +1291,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } else {
           localVector.fromArray(blender.arr);
           dst.lerp(localVector, 1 / (denominator) * blender.intensity);
+          logText += (1 / (denominator) * blender.intensity).toFixed(2) + ' --- ';
         }
         denominator += blender.intensity;
       }
+      if (isPosition) console.log(logText);
     }
 
     _blendActivateAction(spec);
