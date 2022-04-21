@@ -688,6 +688,13 @@ class StatePlayer extends PlayerBase {
   removeActionIndex(index) {
     this.getActionsState().delete(index);
   }
+  clearActions() {
+    const actionsState = this.getActionsState();
+    const numActions = actionsState.length;
+    for (let i = numActions - 1; i >= 0; i--) {
+      this.removeActionIndex(i);
+    }
+  }
   setControlAction(action) {
     const actions = this.getActionsState();
     for (let i = 0; i < actions.length; i++) {
@@ -928,6 +935,11 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     
     this.setAvatarApp(avatarApp);
+  }
+  getAvatarApp() {
+    const avatar = this.getAvatarState();
+    const instanceId = avatar.get('instanceId');
+    return this.appManager.getAppByInstanceId(instanceId);
   }
   setAvatarApp(app) {
     const self = this;
@@ -1231,6 +1243,12 @@ class StaticUninterpolatedPlayer extends PlayerBase {
       action,
     });
   }
+  clearActions() {
+    const numActions = this.actions.length;
+    for (let i = numActions - 1; i >= 0; i--) {
+      this.removeActionIndex(i);
+    }
+  }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 }
 class NpcPlayer extends StaticUninterpolatedPlayer {
@@ -1238,6 +1256,10 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     super(opts);
   
     this.isNpcPlayer = true;
+    this.avatarApp = null;
+  }
+  getAvatarApp() {
+    return this.avatarApp;
   }
   setAvatarApp(app) {
     app.toggleBoneUpdates(true);
@@ -1253,6 +1275,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     enableShadows(app);
   
     this.avatar = avatar;
+    this.avatarApp = app;
 
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
@@ -1303,6 +1326,10 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     if (index !== -1) {
       npcs.splice(index, 1);
     } */
+
+    if (this.avatarApp) {
+      this.avatarApp.toggleBoneUpdates(false);
+    }
 
     super.destroy();
   }

@@ -1019,6 +1019,37 @@ export const loadImage = u => new Promise((resolve, reject) => {
   img.crossOrigin = 'Anonymous';
   img.src = u;
 });
+export const drawImageContain = (ctx, img) => {
+  const imgWidth = img.width;
+  const imgHeight = img.height;
+  const canvasWidth = ctx.canvas.width;
+  const canvasHeight = ctx.canvas.height;
+  const imgAspect = imgWidth / imgHeight;
+  const canvasAspect = canvasWidth / canvasHeight;
+  let x, y, width, height;
+  if (imgAspect > canvasAspect) {
+    // image is wider than canvas
+    width = canvasWidth;
+    height = width / imgAspect;
+    x = 0;
+    y = (canvasHeight - height) / 2;
+  } else {
+    // image is taller than canvas
+    height = canvasHeight;
+    width = height * imgAspect;
+    x = (canvasWidth - width) / 2;
+    y = 0;
+  }
+  ctx.drawImage(img, x, y, width, height);
+};
+export const imageToCanvas = (img, w, h) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  drawImageContain(ctx, img);
+  return canvas;
+};
 
 export const isTransferable = o => {
   const ctor = o?.constructor;
