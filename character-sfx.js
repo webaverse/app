@@ -259,7 +259,7 @@ class CharacterSfx {
           }
         }
 
-        // if naruto run play more than 2 sec, set runStep > 10
+        // if naruto run play more than 2 sec, set willGasp
         if(timeSeconds -  this.narutoRunStartTime > 2){
           this.willGasp = true;
         }
