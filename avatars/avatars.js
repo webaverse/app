@@ -953,6 +953,10 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
+
+    //
+
+    this.blendList = [];
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1863,6 +1867,7 @@ class Avatar {
       <div>narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>
       <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
       <div>useTime: --- ${Math.floor(this.useTime)}</div>
+      <div>blendList.length: --- ${this.blendList.length}</div>
     `
     _applyAnimation(this, now, moveFactors);
 

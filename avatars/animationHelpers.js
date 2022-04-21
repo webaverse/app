@@ -389,7 +389,7 @@ export const loadPromise = (async () => {
 });
 
 export const _applyAnimation = (avatar, now, moveFactors) => {
-  const blendList = [];
+  avatar.blendList.length = 0;
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
@@ -752,9 +752,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           // isTop,
         } = spec;
 
-        // if (!blendList.includes(_handleDefault)) {
+        // if (!avatar.blendList.includes(_handleDefault)) {
         //   if (k === 'mixamorigHips.quaternion') debugger
-        //   blendList.push(_handleDefault);
+        //   avatar.blendList.push(_handleDefault);
         // }
 
         const t2 = (now - avatar.jumpStartTime) / 1000 * 0.6 + 0.7;
@@ -762,19 +762,23 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         if (avatar.jumpState) {
-          return {
+          const blender = {
             arr: v2,
             intensity: Math.min(1, avatar.jumpTime / 200),
           };
+          if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+          return blender;
         } else {
-          return {
+          const blender = {
             arr: v2,
             intensity: 1 - Math.min(1, avatar.unjumpTime / 200),
           };
+          if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+          return blender;
         }
       };
       debugger
-      blendList.push(applyFn);
+      avatar.blendList.push(applyFn);
     }
     if (avatar.sitState) {
       const applyFn = spec => {
@@ -791,7 +795,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.fromArray(v2);
       };
       debugger
-      blendList.push(applyFn);
+      avatar.blendList.push(applyFn);
     }
     if (avatar.narutoRunState) {
       const applyFn = spec => {
@@ -812,7 +816,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         _clearXZ(dst, isPosition);
       };
       debugger
-      blendList.push(applyFn);
+      avatar.blendList.push(applyFn);
     }
 
     if (avatar.danceFactor > 0) {
@@ -844,7 +848,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         _clearXZ(dst, isPosition);
       };
       debugger
-      blendList.push(applyFn);
+      avatar.blendList.push(applyFn);
     }
 
     if (avatar.emoteFactor > 0) {
@@ -877,7 +881,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         _clearXZ(dst, isPosition);
       };
       debugger
-      blendList.push(applyFn);
+      avatar.blendList.push(applyFn);
     }
 
     /* if (avatar.fallLoopState) {
@@ -982,7 +986,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
       debugger
-      blendList.push(applyFn);
+      avatar.blendList.push(applyFn);
     } else if (avatar.hurtAnimation) {
       const applyFn = spec => {
         const {
@@ -1026,7 +1030,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
       debugger
-      blendList.push(applyFn);
+      avatar.blendList.push(applyFn);
     } else if (avatar.aimAnimation) {
       const applyFn = spec => {
         const {
@@ -1068,7 +1072,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
       debugger
-      blendList.push(applyFn);
+      avatar.blendList.push(applyFn);
     } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
       const applyFn = spec => {
         const {
@@ -1133,12 +1137,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
       debugger
-      blendList.push(applyFn);
+      avatar.blendList.push(applyFn);
     }
   };
   // const applyFn = _getApplyFn();
   _getApplyFn();
-  console.log(blendList.length);
+  // console.log(avatar.blendList.length);
   const _blendFly = spec => {
     const {
       animationTrackName: k,
@@ -1214,8 +1218,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     const defaultBlender = _handleDefault(spec);
     dst.fromArray(defaultBlender.arr);
 
-    if (blendList.length > 0) {
-      const blender1 = blendList[0](spec);
+    if (avatar.blendList.length > 0) {
+      const blender1 = avatar.blendList[0](spec);
       if (!isPosition) {
         localQuaternion.fromArray(blender1.arr);
         dst.slerp(localQuaternion, blender1.intensity);
@@ -1225,8 +1229,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       }
 
       let denominator = 2 + blender1.intensity;
-      for (let i = 1; i < blendList.length; i++) {
-        const blender = blendList[i](spec);
+      for (let i = 1; i < avatar.blendList.length; i++) {
+        const blender = avatar.blendList[i](spec);
         if (!isPosition) {
           localQuaternion.fromArray(blender.arr);
           dst.slerp(localQuaternion, 1 / (denominator) * blender.intensity);

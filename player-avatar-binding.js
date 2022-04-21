@@ -101,11 +101,11 @@ export function applyPlayerActionsToAvatar(player, rig) {
     if (rig.jumpState !== jumpState) {
       rig.jumpStartTime = performance.now();
     }
-    rig.jumpTime = performance.now() - rig.jumpStartTime;
     rig.jumpState = true;
   } else {
     rig.jumpState = false;
   }
+  rig.jumpTime = performance.now() - rig.jumpStartTime;
   rig.unjumpTime = player.actionInterpolants.unjump.get();
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
