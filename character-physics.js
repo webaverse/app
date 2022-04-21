@@ -95,6 +95,7 @@ class CharacterPhysics {
       let grounded = !!(flags & 0x1); 
 
       if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly')) { // prevent jump when go down slope
+        const oldY = this.player.characterController.position.y;
         const flags = physicsManager.moveCharacterController(
           this.player.characterController,
           localVector3.set(0, -groundStickOffset, 0),
@@ -107,7 +108,7 @@ class CharacterPhysics {
           grounded = true;
           this.player.characterController.position.copy(localVector4);
         } else {
-          this.player.characterController.position.y += groundStickOffset;
+          this.player.characterController.position.y = oldY;
         }
       }
 
