@@ -892,6 +892,7 @@ class UninterpolatedPlayer extends StatePlayer {
       unfly: new InfiniteActionInterpolant(() => !this.hasAction('fly'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
       unjump: new InfiniteActionInterpolant(() => !this.hasAction('jump'), 0),
+      fall: new InfiniteActionInterpolant(() => this.hasAction('fall'), 0),
       dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),
@@ -1101,6 +1102,13 @@ class LocalPlayer extends UninterpolatedPlayer {
       const timeDiffS = timeDiff / 1000;
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
+
+      if (this.actionInterpolants.jump.get() > 2000) {
+        const fallAction = this.getAction('fall');
+        if (!fallAction) {
+          this.addAction({type: 'fall'});
+        }
+      }
 
       this.updateInterpolation(timeDiff);
 

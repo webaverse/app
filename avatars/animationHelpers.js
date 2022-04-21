@@ -57,6 +57,7 @@ let animations;
 let animationStepIndices;
 // let animationsBaseModel;
 let jumpAnimation;
+let fallAnimation;
 let floatAnimation;
 let useAnimations;
 let aimAnimations;
@@ -176,6 +177,7 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
+  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -300,6 +302,7 @@ export const loadPromise = (async () => {
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   jumpAnimation = animations.find(a => a.isJump);
+  fallAnimation = animations.index['falling_idle.fbx'];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -744,7 +747,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     }
   };
   const _getApplyFn = () => {
-    if (avatar.jumpState || avatar.unjumpTime < 200) {
+    if (avatar.jumpState || avatar.unjumpTime <= 200) {
       const applyFn = spec => {
         const {
           animationTrackName: k,
@@ -777,10 +780,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           return blender;
         }
       };
-      debugger
       avatar.blendList.push(applyFn);
     }
-    if (avatar.flyState || avatar.unflyTime < 200) {
+    if (avatar.flyState || avatar.unflyTime <= 200) {
       const applyFn = spec => {
         const {
           animationTrackName: k,
@@ -793,19 +795,40 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         if (avatar.flyState) {
           const blender = {
             arr: v2,
-            intensity: Math.min(1, avatar.flyTime / 200),
+            intensity: Math.max(0, Math.min(1, avatar.flyTime / 200) - 0.1),
           };
-          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+          if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
           return blender;
         } else {
           const blender = {
             arr: v2,
-            intensity: 1 - Math.min(1, avatar.unflyTime / 200),
+            intensity: Math.max(0, 1 - Math.min(1, avatar.unflyTime / 200) - 0.1),
           };
-          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+          if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
           return blender;
         }
       };
+      debugger
+      avatar.blendList.push(applyFn);
+    }
+    if (avatar.fallState || avatar.unfallTime < 200) {
+      const applyFn = spec => {
+        const {
+          animationTrackName: k,
+        } = spec;
+
+        const t2 = avatar.fallTime / 1000;
+        const src2 = fallAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2 % fallAnimation.duration);
+
+        const blender = {
+          arr: v2,
+          intensity: Math.min(1, avatar.fallTime / 200),
+        };
+        // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
+        return blender;
+      };
+      debugger
       avatar.blendList.push(applyFn);
     }
     if (avatar.sitState) {
