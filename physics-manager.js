@@ -549,7 +549,7 @@ physicsManager.setJointSwingLimit = (joint, yLimitAngle, zLimitAngle, contactDis
   return physx.physxWorker.setJointSwingLimitPhysics(physx.physics, joint, yLimitAngle, zLimitAngle, contactDist);
 }
 physicsManager.updateMassAndInertia = (physicsObject, shapeDensities) => {
-  return physx.physxWorker.updateMassAndInertiaPhyscis(physx.physics, physicsObject.physicsId, shapeDensities);
+  return physx.physxWorker.updateMassAndInertiaPhysics(physx.physics, physicsObject.physicsId, shapeDensities);
 }
 physicsManager.getBodyMass = (physicsObject) => {
   return physx.physxWorker.getBodyMassPhysics(physx.physics, physicsObject.physicsId);
