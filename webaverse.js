@@ -345,7 +345,10 @@ export default class Webaverse extends EventTarget {
         loadoutManager.update(timestamp, timeDiffCapped);
 
         {
-          const popRenderSettings = renderSettingsManager.push(rootScene);
+          const popRenderSettings = renderSettingsManager.push(rootScene, undefined, {
+            fog: true,
+            postProcessing,
+          });
 
           performanceTracker.setGpuPrefix('');
           this.render(timestamp, timeDiffCapped);
