@@ -18,7 +18,7 @@ const localEuler = new THREE.Euler();
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 //
-const maxAim = new THREE.Vector3(-0.3,0,-2);
+const maxAim = new THREE.Vector3(-0.4,0,-2);
 
 //
 let cameraOffsetZ = cameraOffset.z;
