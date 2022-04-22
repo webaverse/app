@@ -6,6 +6,7 @@ import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
 import { lerp } from 'three/src/math/MathUtils';
+import { localPlayer } from './players.js';
 // import alea from './alea.js';
 
 const localVector = new THREE.Vector3();
@@ -179,9 +180,14 @@ class CameraManager extends EventTarget {
   }
   handleWheelEvent(e) {
     // e.preventDefault();
-
+    //disable scrolling while aiming
+    if (localPlayer.hasAction('aim')){
+      //do nothing
+    }
+    else{
     cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
     lastCamoffsetZ = cameraOffsetTargetZ;
+    }
   }
   addShake(position, intensity, radius, decay) {
     const startTime = performance.now();
