@@ -368,7 +368,7 @@ const _startHacks = webaverse => {
 
   window.localPlayer = localPlayer;
 
-  localPlayer.addAction({type: 'fall'}); // test
+  // localPlayer.addAction({type: 'fall'}); // test
 
   // let playerDiorama = null;
   const lastEmotionKey = {

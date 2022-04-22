@@ -1106,7 +1106,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       if (this.actionInterpolants.jump.get() > 2000) {
         const fallAction = this.getAction('fall');
         if (!fallAction) {
-          this.addAction({type: 'fall'});
+          // this.addAction({type: 'fall'});
         }
       }
 
