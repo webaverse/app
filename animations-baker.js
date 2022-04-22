@@ -329,7 +329,8 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
       const rootBone = object; // not really a bone
       const leftFootBone = bones.find(b => b.name === 'mixamorigLeftFoot');
       const rightFootBone = bones.find(b => b.name === 'mixamorigRightFoot');
-      const allOnes = arr => arr.every(v => v === 1);
+      const epsilon = 0.001;
+      const allOnesEpsilon = arr => arr.every(v => Math.abs(1 - v) < epsilon);
 
       const bonePositionInterpolants = {};
       const boneQuaternionInterpolants = {};
@@ -346,7 +347,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
           const boneInterpolant = new THREE.QuaternionLinearInterpolant(track.times, track.values, track.getValueSize());
           boneQuaternionInterpolants[boneName] = boneInterpolant;
         } else if (/\.scale$/.test(track.name)) {
-          if (allOnes(track.values)) {
+          if (allOnesEpsilon(track.values)) {
             const index = tracks.indexOf(track);
             tracksToRemove.push(index);
           } else {

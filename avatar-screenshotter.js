@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import metaversefile from './metaversefile-api.js';
-import Avatar from './avatars/avatars.js';
+// import Avatar from './avatars/avatars.js';
 import npcManager from './npc-manager.js';
 import dioramaManager from './diorama.js';
 
@@ -20,6 +20,9 @@ export const screenshotAvatarUrl = async ({
   start_url,
   width = 300,
   height = 300,
+  canvas,
+  cameraOffset,
+  emotion,
 }) => {
   const app = await metaversefile.createAppAsync({
     start_url,
@@ -28,27 +31,49 @@ export const screenshotAvatarUrl = async ({
     app,
     width,
     height,
+    canvas,
+    cameraOffset,
+    emotion,
   });
 };
 export const screenshotAvatarApp = async ({
   app,
   width = 300,
   height = 300,
+  canvas,
+  cameraOffset,
+  emotion,
 }) => {
-  await Avatar.waitForLoad();
+  // await Avatar.waitForLoad();
 
-  const position = new THREE.Vector3(0, 1.5, 0);
-  const quaternion = new THREE.Quaternion();
-  const scale = new THREE.Vector3(1, 1, 1);
   const player = npcManager.createNpc({
-    name: 'npc',
+    name: 'sceenshot-npc',
     avatarApp: app,
-    position,
-    quaternion,
-    scale,
     detached: true,
   });
 
+  return await screenshotPlayer({
+    player,
+    width,
+    height,
+    canvas,
+    cameraOffset,
+    emotion,
+  });
+};
+export const screenshotPlayer = async ({
+  player,
+  width = 300,
+  height = 300,
+  canvas,
+  cameraOffset,
+  emotion,
+}) => {
+  player.position.set(0, 1.5, 0);
+  player.quaternion.identity();
+  player.scale.set(1, 1, 1);
+  player.updateMatrixWorld();
+  
   let now = 0;
   const timeDiff = 1000/FPS;
 
@@ -66,10 +91,13 @@ export const screenshotAvatarApp = async ({
     player.avatar.inputs.hmd.position.y = player.avatar.height;
     player.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
     player.avatar.inputs.hmd.updateMatrixWorld();
-    player.addAction({
-      type: 'emote',
-      emotion: 'angry',
-    });
+    if (emotion) {
+      player.clearActions();
+      player.addAction({
+        type: 'facepose',
+        emotion,
+      });
+    }
   };
   const _preAnimate = () => {
     for (let i = 0; i < FPS*2; i++) {
@@ -88,9 +116,14 @@ export const screenshotAvatarApp = async ({
   };
 
   // rendering
-  const writeCanvas = document.createElement('canvas');
-  writeCanvas.width = width;
-  writeCanvas.height = height;
+  let writeCanvas;
+  if (canvas) {
+    writeCanvas = canvas;
+  } else {
+    writeCanvas = document.createElement('canvas');
+    writeCanvas.width = width;
+    writeCanvas.height = height;
+  }
 
   const localLights = _makeLights();
   const objects = localLights.concat([
@@ -100,6 +133,7 @@ export const screenshotAvatarApp = async ({
   const diorama = dioramaManager.createPlayerDiorama({
     // target: player,
     target,
+    cameraOffset,
     objects,
     lights: false,
     // label: true,
@@ -120,6 +154,7 @@ export const screenshotAvatarApp = async ({
   _render();
 
   diorama.destroy();
+  player.destroy();
 
   return writeCanvas;
 };

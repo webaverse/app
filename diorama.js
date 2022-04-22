@@ -682,7 +682,7 @@ const createPlayerDiorama = ({
 
           sideCamera.position.copy(targetPosition)
             .add(
-              localVector2.copy(cameraOffset)
+              localVector2.set(cameraOffset.x, 0, cameraOffset.z)
                 .applyQuaternion(targetQuaternion)
             );
           sideCamera.quaternion.setFromRotationMatrix(
@@ -691,6 +691,10 @@ const createPlayerDiorama = ({
               targetPosition,
               localVector3.set(0, 1, 0)
             )
+          );
+          sideCamera.position.add(
+            localVector2.set(0, cameraOffset.y, 0)
+              .applyQuaternion(targetQuaternion)
           );
           sideCamera.updateMatrixWorld();
         }
