@@ -1,8 +1,8 @@
 import * as ethers from 'ethers';
 // window.ethers = ethers;
 
-const infuraProjectId = '9962763ddd1a453795d5ad09f10bb818';
-const infuraProjectSecret = 'c1c6c5227c13423fbba1c977e25352e1';
+const infuraProjectId = 'f6d37ed423e143feb2b0a331e7899aaf';
+const infuraProjectSecret = '';
 
 class BlockchainManager {
   constructor() {
