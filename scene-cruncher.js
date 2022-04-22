@@ -468,16 +468,13 @@ export function snapshotMapChunk(
         
         {
           const popRenderSettings = renderSettingsManager.push(scene);
-          // const popFogClear = renderSettingsManager.pushFogClear(scene);
 
           // elide fog rendering for scene snapshot
-          // scene.fog = null;
           scene.fog.density = 0;
-
+          
           renderer.render(scene, camera);
 
           popRenderSettings();
-          // popFogClear();
         }
 
         const imageData = {
