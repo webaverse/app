@@ -752,7 +752,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   };
   const _getApplyFn = () => {
     if (avatar.jumpState || avatar.unjumpTime <= 200) {
-      const applyFn = spec => {
+      const applyFnJump = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -791,10 +791,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           return blendee;
         }
       };
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnJump);
     }
     if (avatar.flyTransitionTime > 0) {
-      const applyFn = spec => {
+      const applyFnFly = spec => {
         const {
           animationTrackName: k,
         } = spec;
@@ -811,10 +811,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         return blendee;
       };
       // debugger
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnFly);
     }
     if (avatar.fallTransitionTime > 0) {
-      const applyFn = spec => {
+      const applyFnFall = spec => {
         const {
           animationTrackName: k,
         } = spec;
@@ -831,10 +831,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         return blendee;
       };
       // debugger
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnFall);
     }
     if (avatar.landTransitionTime > 0) {
-      const applyFn = spec => {
+      const applyFnLand = spec => {
         const {
           animationTrackName: k,
         } = spec;
@@ -855,10 +855,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         return blendee;
       };
       // debugger
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnLand);
     }
     if (avatar.sitTransitionTime > 0) {
-      const applyFn = spec => {
+      const applyFnSit = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -876,10 +876,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         return blendee;
       };
       // debugger
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnSit);
     }
     if (avatar.narutoRunState) {
-      const applyFn = spec => {
+      const applyFnNaruto = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -901,11 +901,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         return blendee;
       };
       // debugger 
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnNaruto);
     }
 
     if (avatar.danceFactor > 0) {
-      const applyFn = spec => {
+      const applyFnDance = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -933,11 +933,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         _clearXZ(dst, isPosition);
       };
       // debugger
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnDance);
     }
 
     if (avatar.emoteFactor > 0) {
-      const applyFn = spec => {
+      const applyFnEmote = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -966,7 +966,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         _clearXZ(dst, isPosition);
       };
       // debugger
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnEmote);
     }
 
     /* if (avatar.fallLoopState) {
@@ -989,7 +989,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       avatar.useAnimationCombo.length > 0 ||
       avatar.useAnimationEnvelope.length > 0
     ) {
-      const applyFn = spec => {
+      const applyFnUse = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -1082,9 +1082,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         return blendee;
       };
       // debugger
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnUse);
     } else if (avatar.hurtAnimation) {
-      const applyFn = spec => {
+      const applyFnHurt = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -1126,9 +1126,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
       // debugger
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnHurt);
     } else if (avatar.aimAnimation) {
-      const applyFn = spec => {
+      const applyFnAim = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -1179,9 +1179,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         return blendee;
       };
       // debugger
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnAim);
     } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
-      const applyFn = spec => {
+      const applyFnUnuse = spec => {
         const {
           animationTrackName: k,
           dst,
@@ -1244,7 +1244,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
       // debugger
-      avatar.blendList.push(applyFn);
+      avatar.blendList.push(applyFnUnuse);
     }
   };
   // const applyFn = _getApplyFn();

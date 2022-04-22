@@ -1883,6 +1883,7 @@ class Avatar {
       <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
       <div>useTime: --- ${Math.floor(this.useTime)}</div>
       <div>blendList.length: --- ${this.blendList.length}</div>
+      <div>blendList: --- ${this.blendList.map(blendee=>blendee.name.slice('applyFn'.length))}</div>
     `
     _applyAnimation(this, now, moveFactors);
 
