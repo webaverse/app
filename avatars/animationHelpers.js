@@ -1037,8 +1037,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           }
         }
 
-        _handleDefault(spec);
+        // _handleDefault(spec);
 
+        const arr = [];
         if (useAnimation) {
           if (!isPosition) {
             const src2 = useAnimation.interpolants[k];
@@ -1049,14 +1050,16 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const src3 = idleAnimation.interpolants[k];
             const v3 = src3.evaluate(t3);
 
-            dst
+            localQuaternion.copy(dst)
               .premultiply(localQuaternion2.fromArray(v3).invert())
               .premultiply(localQuaternion2.fromArray(v2));
+
+            localQuaternion.toArray(arr);
           } else {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
+            _clearXZ(v2, isPosition);
             localVector2.fromArray(v2);
-            _clearXZ(localVector2, isPosition);
 
             const idleAnimation = _getIdleAnimation('walk');
             const t3 = 0;
@@ -1064,11 +1067,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const v3 = src3.evaluate(t3);
             localVector3.fromArray(v3);
 
-            dst
+            localVector.copy(dst)
               .sub(localVector3)
               .add(localVector2);
+
+            localVector.toArray(arr);
           }
         }
+
+        const blendee = {
+          arr,
+          intensity: 1,
+        };
+        return blendee;
       };
       // debugger
       avatar.blendList.push(applyFn);
