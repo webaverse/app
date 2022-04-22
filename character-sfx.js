@@ -249,7 +249,7 @@ class CharacterSfx {
         }
 
         // if naruto run play more than 2 sec, set willGasp
-        if(timeSeconds -  this.narutoRunStartTime > 2){
+        if(timeSeconds - this.narutoRunStartTime > 2){
           this.willGasp = true;
         }
 
@@ -276,19 +276,23 @@ class CharacterSfx {
 
     const _handleGasp = () =>{
       const isRunning = currentSpeed > 0.5;
-      if(isRunning && this.startRunningTime === 0){
-        this.startRunningTime = timeSeconds;
+      if(isRunning){
+        if(this.startRunningTime === 0)
+          this.startRunningTime = timeSeconds;
+      }
+      else{
+        if(this.startRunningTime !== 0 && this.willGasp && !this.player.avatar.narutoRunState){
+          this.playGrunt('gasp');
+        }
+        this.willGasp = false;
+        this.startRunningTime = 0;
       }
       
       if(timeSeconds - this.startRunningTime > 5 && this.startRunningTime !== 0){
         this.willGasp = true;
       }
       
-      if(!isRunning && this.startRunningTime !== 0 && this.willGasp && !this.player.avatar.narutoRunState){
-        this.playGrunt('gasp');
-        this.willGasp = false;
-        this.startRunningTime = 0;
-      }
+      
     }
     _handleGasp();
 
