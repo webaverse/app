@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import postProcessing from './post-processing.js';
 // import {rootScene} from './renderer.js';
 
+const blackColor = new THREE.Color(0x000000);
+
 class RenderSettings {
   constructor(json) {
     this.background = this.#makeBackground(json.background);
@@ -36,6 +38,9 @@ class RenderSettings {
 }
 
 class RenderSettingsManager {
+  constructor() {
+    this.fog = new THREE.FogExp2(0x000000, 0);
+  }
   makeRenderSettings(json) {
     return new RenderSettings(json);
   }
@@ -62,6 +67,33 @@ class RenderSettingsManager {
     }
     return null;
   }
+  /* #pushFog(srcFog, dstFog) {
+    let fogCleanup = null;
+    if (srcFog) {
+      // if (oldFog.isFog) {
+      //   const oldNear = oldFog.near;
+      //   const oldFar = oldFog.far;
+      //   oldFog.near = Infinity;
+      //   oldFog.far = Infinity;
+      //   fogCleanup = () => {
+      //     oldFog.near = oldNear;
+      //     oldFog.far = oldFar;
+      //   };
+      // } else if (oldFog.isFogExp2) {
+        const oldColor = srcFog.color;
+        const oldDensity = srcFog.density;
+        dstFog.color = srcFog.color;
+        dstFog.density = srcFog.density;
+        fogCleanup = () => {
+          dstFog.color = oldColor;
+          dstFog.density = oldDensity;
+        };
+      // }
+    }
+    return () => {
+      fogCleanup && fogCleanup();
+    };
+  } */
   applyRenderSettingsToScene(renderSettings, scene) {
     const oldBackground = scene.background;
     const oldFog = scene.fog;
@@ -71,7 +103,15 @@ class RenderSettingsManager {
       fog = null,
     } = (renderSettings ?? {});
     scene.background = background;
-    scene.fog = fog;
+    scene.fog = this.fog;
+
+    if (fog) {
+      this.fog.color = fog.color;
+      this.fog.density = fog.density;
+    } else {
+      this.fog.color = blackColor;
+      this.fog.density = 0;
+    }
 
     return () => {
       scene.background = oldBackground;
@@ -94,31 +134,6 @@ class RenderSettingsManager {
     return () => {
       renderSettingsCleanup();
       postProcessing && postProcessing.setPasses(null);
-    };
-  }
-  pushFogClear(srcScene, dstScene = srcScene) {
-    let fogCleanup = null;
-    const oldFog = dstScene.fog;
-    if (oldFog) {
-      if (oldFog.isFog) {
-        const oldNear = oldFog.near;
-        const oldFar = oldFog.far;
-        oldFog.near = Infinity;
-        oldFog.far = Infinity;
-        fogCleanup = () => {
-          oldFog.near = oldNear;
-          oldFog.far = oldFar;
-        };
-      } else if (oldFog.isFogExp2) {
-        const oldDensity = oldFog.density;
-        oldFog.density = 0;
-        fogCleanup = () => {
-          oldFog.density = oldDensity;
-        };
-      }
-    }
-    return () => {
-      fogCleanup && fogCleanup();
     };
   }
 }
