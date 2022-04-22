@@ -26,11 +26,12 @@ import {
   voiceEndpoint,
   numLoadoutSlots,
 } from './constants.js';
-import { AppManager } from './app-manager.js';
-import { CharacterPhysics } from './character-physics.js';
-import { CharacterHups } from './character-hups.js';
-import { CharacterSfx } from './character-sfx.js';
-import { CharacterFx } from './character-fx.js';
+import {AppManager} from './app-manager.js';
+import {CharacterPhysics} from './character-physics.js';
+import {CharacterHups} from './character-hups.js';
+import {CharacterSfx} from './character-sfx.js';
+import {CharacterBehavior} from './character-behavior.js';
+import {CharacterFx} from './character-fx.js';
 import {
   VoicePack,
   VoicePackVoicer,
@@ -733,6 +734,13 @@ class StatePlayer extends PlayerBase {
   removeActionIndex(index) {
     this.getActionsState().delete(index);
   }
+  clearActions() {
+    const actionsState = this.getActionsState();
+    const numActions = actionsState.length;
+    for (let i = numActions - 1; i >= 0; i--) {
+      this.removeActionIndex(i);
+    }
+  }
   setControlAction(action) {
     const actions = this.getActionsState();
     for (let i = 0; i < actions.length; i++) {
@@ -1041,6 +1049,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
+    this.characterBehavior = new CharacterBehavior(this);
+    
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -1051,6 +1061,11 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
 
     this.setAvatarApp(avatarApp);
+  }
+  getAvatarApp() {
+    const avatar = this.getAvatarState();
+    const instanceId = avatar.get('instanceId');
+    return this.appManager.getAppByInstanceId(instanceId);
   }
   setAvatarApp(app) {
     const self = this;
@@ -1257,6 +1272,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       const actions = this.getActionsState();
       this.characterSfx.update(timestamp, timeDiffS, actions);
       this.characterFx.update(timestamp, timeDiffS);
+      this.characterBehavior.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
 
@@ -1329,6 +1345,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterHups.destroy();
     this.characterSfx.destroy();
     this.characterFx.destroy();
+    this.characterBehavior.destroy();
 
     super.destroy();
   }
@@ -1511,6 +1528,12 @@ class StaticUninterpolatedPlayer extends PlayerBase {
       action,
     });
   }
+  clearActions() {
+    const numActions = this.actions.length;
+    for (let i = numActions - 1; i >= 0; i--) {
+      this.removeActionIndex(i);
+    }
+  }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 }
 class NpcPlayer extends StaticUninterpolatedPlayer {
@@ -1518,6 +1541,16 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     super(opts);
 
     this.isNpcPlayer = true;
+    this.avatarApp = null;
+
+    this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
+    this.characterBehavior = new CharacterBehavior(this);
+  }
+  getAvatarApp() {
+    return this.avatarApp;
   }
   setAvatarApp(app) {
     app.toggleBoneUpdates(true);
@@ -1534,11 +1567,14 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
 
     this.avatar = avatar;
 
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
+    // If these weren't set on constructor (which they aren't on remote player) then set them now 
+    this.characterPhysics = this.characterPhysics ?? new CharacterPhysics(this);
+    this.characterHups = this.characterHups ?? new CharacterHups(this);
+    this.characterSfx = this.characterSfx ?? new CharacterSfx(this);
+    this.characterFx = this.characterFx ?? new CharacterFx(this);
 
+    this.avatarApp = app;
+    
     loadPhysxCharacterController.call(this);
     // loadPhysxAuxCharacterCapsule.call(this);
   }
@@ -1583,6 +1619,16 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     if (index !== -1) {
       npcs.splice(index, 1);
     } */
+
+    this.characterPhysics.destroy();
+    this.characterHups.destroy();
+    this.characterSfx.destroy();
+    this.characterFx.destroy();
+    this.characterBehavior.destroy();
+
+    if (this.avatarApp) {
+      this.avatarApp.toggleBoneUpdates(false);
+    }
 
     super.destroy();
   }
