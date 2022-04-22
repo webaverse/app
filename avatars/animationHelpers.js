@@ -765,19 +765,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         if (avatar.jumpState) {
-          const blender = {
+          const blendee = {
             arr: v2,
             intensity: Math.min(1, avatar.jumpTime / 200),
           };
-          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
-          return blender;
+          // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity);
+          return blendee;
         } else {
-          const blender = {
+          const blendee = {
             arr: v2,
             intensity: 1 - Math.min(1, avatar.unjumpTime / 200),
           };
-          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
-          return blender;
+          // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity);
+          return blendee;
         }
       };
       avatar.blendList.push(applyFn);
@@ -793,19 +793,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
         if (avatar.flyState) {
-          const blender = {
+          const blendee = {
             arr: v2,
             intensity: Math.max(0, Math.min(1, avatar.flyTime / 200) - 0.1),
           };
-          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity); // todo: if (isPosition)
-          return blender;
+          // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity); // todo: if (isPosition)
+          return blendee;
         } else {
-          const blender = {
+          const blendee = {
             arr: v2,
             intensity: Math.max(0, 1 - Math.min(1, avatar.unflyTime / 200) - 0.1),
           };
-          // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
-          return blender;
+          // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity);
+          return blendee;
         }
       };
       debugger
@@ -821,12 +821,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const src2 = fallAnimation.interpolants[k];
         const v2 = src2.evaluate(t2 % fallAnimation.duration);
 
-        const blender = {
+        const blendee = {
           arr: v2,
           intensity: Math.min(1, avatar.fallTime / 200),
         };
-        // if (k === 'mixamorigHips.quaternion') console.log(blender.intensity);
-        return blender;
+        // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity);
+        return blendee;
       };
       debugger
       avatar.blendList.push(applyFn);
@@ -1267,33 +1267,33 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     if (avatar.jumpState) debugger
 
-    const defaultBlender = _handleDefault(spec);
-    dst.fromArray(defaultBlender.arr);
+    const defaultBlendee = _handleDefault(spec);
+    dst.fromArray(defaultBlendee.arr);
 
     let logText = '';
     if (avatar.blendList.length > 0) {
-      const blender1 = avatar.blendList[0](spec);
-      logText += blender1.intensity.toFixed(2) + ' --- ';
+      const blendee1 = avatar.blendList[0](spec);
+      logText += blendee1.intensity.toFixed(2) + ' --- ';
       if (!isPosition) {
-        localQuaternion.fromArray(blender1.arr);
-        dst.slerp(localQuaternion, blender1.intensity);
+        localQuaternion.fromArray(blendee1.arr);
+        dst.slerp(localQuaternion, blendee1.intensity);
       } else {
-        localVector.fromArray(blender1.arr);
-        dst.lerp(localVector, blender1.intensity);
+        localVector.fromArray(blendee1.arr);
+        dst.lerp(localVector, blendee1.intensity);
       }
 
-      let denominator = 1 + blender1.intensity;
+      let denominator = 1 + blendee1.intensity;
       for (let i = 1; i < avatar.blendList.length; i++) {
-        const blender = avatar.blendList[i](spec);
+        const blendee = avatar.blendList[i](spec);
         if (!isPosition) {
-          localQuaternion.fromArray(blender.arr);
-          dst.slerp(localQuaternion, 1 / (denominator) * blender.intensity);
+          localQuaternion.fromArray(blendee.arr);
+          dst.slerp(localQuaternion, 1 / (denominator) * blendee.intensity);
         } else {
-          localVector.fromArray(blender.arr);
-          dst.lerp(localVector, 1 / (denominator) * blender.intensity);
-          logText += (1 / (denominator) * blender.intensity).toFixed(2) + ' --- ';
+          localVector.fromArray(blendee.arr);
+          dst.lerp(localVector, 1 / (denominator) * blendee.intensity);
+          logText += (1 / (denominator) * blendee.intensity).toFixed(2) + ' --- ';
         }
-        denominator += blender.intensity;
+        denominator += blendee.intensity;
       }
       if (isPosition) console.log(logText);
     }
