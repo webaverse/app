@@ -14,11 +14,11 @@ import {
 } from '../util.js';
 // import Simplex from '../simplex-noise.js';
 import {
-  crouchMaxTime,
+  crouchTransitionMaxTime,
   // useMaxTime,
   aimMaxTime,
-  flyMaxTime,
-  fallMaxTime,
+  flyTransitionMaxTime,
+  fallTransitionMaxTime,
   landTransitionMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
@@ -900,7 +900,7 @@ class Avatar {
     this.jumpState = false;
     this.jumpTime = NaN;
     this.flyState = false;
-    this.flyTime = NaN;
+    this.flyTransitionTime = NaN;
 
     this.useTime = NaN;
     this.useAnimation = null;
@@ -922,7 +922,7 @@ class Avatar {
     this.poseAnimation = null;
     // this.throwState = null;
     // this.throwTime = 0;
-    this.crouchTime = crouchMaxTime;
+    this.crouchTime = crouchTransitionMaxTime;
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
     this.fakeSpeechSmoothed = 0;
@@ -1415,11 +1415,11 @@ class Avatar {
     const moveFactors = {};
     moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
-    moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
-    moveFactors.flyFactor = THREE.MathUtils.clamp(this.flyTime / flyMaxTime, 0, 1);
-    moveFactors.fallFactor = THREE.MathUtils.clamp(this.fallTime / fallMaxTime, 0, 1);
+    moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTransitionTime / crouchTransitionMaxTime), 0), 1);
+    moveFactors.flyFactor = THREE.MathUtils.clamp(this.flyTransitionTime / flyTransitionMaxTime, 0, 1);
+    moveFactors.fallFactor = THREE.MathUtils.clamp(this.fallTransitionTime / fallTransitionMaxTime, 0, 1);
     moveFactors.landFactor = THREE.MathUtils.clamp(this.landTransitionTime / landTransitionMaxTime, 0, 1);
-    moveFactors.sitFactor = THREE.MathUtils.clamp(this.sitTime / flyMaxTime, 0, 1);
+    moveFactors.sitFactor = THREE.MathUtils.clamp(this.sitTransitionTime / flyTransitionMaxTime, 0, 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
     const _updateHmdPosition = () => {
@@ -1845,7 +1845,7 @@ class Avatar {
       <div>jumpTime: --- ${Math.floor(this.jumpTime)}</div>
       <div>flyState: --- ${this.flyState}</div>
       <div>flyFactor: --- ${moveFactors.flyFactor.toFixed(2)}</div>
-      <div>flyTime: --- ${Math.floor(this.flyTime)}</div>
+      <div>flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>
       <div>landState: --- ${this.landState}</div>
       <div>landFactor: --- ${moveFactors.landFactor.toFixed(2)}</div>
       <div>landTime: --- ${Math.floor(this.landTime)}</div>

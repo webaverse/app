@@ -111,10 +111,10 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.unjumpTime = jumpState ? -1 : player.actionInterpolants.unjump.get();
 
   rig.flyState = !!flyAction;
-  rig.flyTime = player.actionInterpolants.fly.get();
+  rig.flyTransitionTime = player.actionInterpolants.flyTransition.get();
 
   rig.fallState = !!fallAction;
-  rig.fallTime = player.actionInterpolants.fall.get();
+  rig.fallTransitionTime = player.actionInterpolants.fallTransition.get();
 
   rig.landState = !!landAction;
   rig.landTime = player.actionInterpolants.land.get();
@@ -160,7 +160,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
-  rig.sitTime = player.actionInterpolants.sit.get();
+  rig.sitTTransitionime = player.actionInterpolants.sitTransition.get();
   // rig.danceState = !!danceAction;
   rig.danceFactor = player.actionInterpolants.dance.get();
   if (danceAction) {
@@ -170,7 +170,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.emoteAnimation = emoteAnimation;
   // rig.throwState = !!throwAction;
   // rig.throwTime = player.actionInterpolants.throw.get();
-  rig.crouchTime = player.actionInterpolants.crouch.getInverse();
+  rig.crouchTransitionTime = player.actionInterpolants.crouchTransition.getInverse();
   // rig.chargeJumpTime = player.actionInterpolants.chargeJump.get();
   // rig.chargeAnimation = chargeJumpAnimation;
   // rig.chargeJumpState = !!chargeJump;

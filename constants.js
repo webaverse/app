@@ -65,11 +65,11 @@ export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th
 
 export const audioTimeoutTime = 10 * 1000;
 
-export const crouchMaxTime = 200;
-export const flyMaxTime = 200;
-export const fallMaxTime = 200;
+export const crouchTransitionMaxTime = 200;
+export const flyTransitionMaxTime = 200;
+export const fallTransitionMaxTime = 200;
 export const landTransitionMaxTime = 200;
-export const sitMaxTime = 200;
+export const sitTransitionMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;
 export const aimMaxTime = 1000;

@@ -16,7 +16,7 @@ import {
   avatarMapName,
   appsMapName,
   playersMapName,
-  crouchMaxTime,
+  crouchTransitionMaxTime,
   activateMaxTime,
   // useMaxTime,
   avatarInterpolationFrameRate,
@@ -25,9 +25,9 @@ import {
   // groundFriction,
   voiceEndpoint,
   numLoadoutSlots,
-  flyMaxTime,
-  sitMaxTime,
-  fallMaxTime,
+  flyTransitionMaxTime,
+  sitTransitionMaxTime,
+  fallTransitionMaxTime,
   landTransitionMaxTime,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
@@ -266,7 +266,7 @@ class PlayerBase extends THREE.Object3D {
     }
   }
   getCrouchFactor() {
-    return 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
+    return 1 - 0.4 * this.actionInterpolants.crouchTransition.getNormalized();
     /* let factor = 1;
     factor *= 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
     return factor; */
@@ -816,7 +816,7 @@ class InterpolatedPlayer extends StatePlayer {
     };
     this.actionBinaryInterpolantsArray = Object.keys(this.actionBinaryInterpolants).map(k => this.actionBinaryInterpolants[k]);
     this.actionBinaryTimeSteps = {
-      crouch: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.crouch.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      crouchTransition: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.crouchTransition.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       activate: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.activate.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       use: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.use.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       aim: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.aim.snapshot(timeDiff);}, avatarInterpolationFrameRate),
@@ -835,7 +835,7 @@ class InterpolatedPlayer extends StatePlayer {
     };
     this.actionBinaryTimeStepsArray = Object.keys(this.actionBinaryTimeSteps).map(k => this.actionBinaryTimeSteps[k]);
     this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, crouchMaxTime),
+      crouchTransition: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouchTransition.get(), 0, crouchTransitionMaxTime),
       activate: new UniActionInterpolant(() => this.actionBinaryInterpolants.activate.get(), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.use.get(), 0),
       unuse: new InfiniteActionInterpolant(() => !this.actionBinaryInterpolants.use.get(), 0),
@@ -886,21 +886,21 @@ class UninterpolatedPlayer extends StatePlayer {
   }
   static init() {
     this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
+      crouchTransition: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchTransitionMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
-      fly: new BiActionInterpolant(() => this.hasAction('fly'), 0, flyMaxTime),
-      sit: new BiActionInterpolant(() => this.hasAction('sit'), 0, sitMaxTime),
+      flyTransition: new BiActionInterpolant(() => this.hasAction('fly'), 0, flyTransitionMaxTime),
+      sitTransition: new BiActionInterpolant(() => this.hasAction('sit'), 0, sitTransitionMaxTime),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
       unjump: new InfiniteActionInterpolant(() => !this.hasAction('jump'), 0),
-      fall: new BiActionInterpolant(() => this.hasAction('fall'), 0, fallMaxTime),
+      fallTransition: new BiActionInterpolant(() => this.hasAction('fall'), 0, fallTransitionMaxTime),
       land: new InfiniteActionInterpolant(() => this.hasAction('land'), 0),
       landTransition: new BiActionInterpolant(() => this.hasAction('land'), 0, landTransitionMaxTime),
-      dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
-      emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
+      dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchTransitionMaxTime),
+      emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchTransitionMaxTime),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
       // standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),

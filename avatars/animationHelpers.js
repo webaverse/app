@@ -34,7 +34,7 @@ import {
 } from './constants.js';
 
 import {
-  crouchMaxTime,
+  crouchTransitionMaxTime,
   // useMaxTime,
   aimMaxTime,
   // avatarInterpolationFrameRate,
@@ -793,7 +793,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
       avatar.blendList.push(applyFn);
     }
-    if (avatar.flyTime > 0) {
+    if (avatar.flyTransitionTime > 0) {
       const applyFn = spec => {
         const {
           animationTrackName: k,
@@ -813,7 +813,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // debugger
       avatar.blendList.push(applyFn);
     }
-    if (avatar.fallTime > 0) {
+    if (avatar.fallTransitionTime > 0) {
       const applyFn = spec => {
         const {
           animationTrackName: k,
@@ -857,7 +857,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // debugger
       avatar.blendList.push(applyFn);
     }
-    if (avatar.sitTime > 0) {
+    if (avatar.sitTransitionTime > 0) {
       const applyFn = spec => {
         const {
           animationTrackName: k,
@@ -921,7 +921,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const t2 = (now / 1000) % danceAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        const danceFactorS = avatar.danceFactor / crouchMaxTime;
+        const danceFactorS = avatar.danceFactor / crouchTransitionMaxTime;
         const f = Math.min(Math.max(danceFactorS, 0), 1);
         lerpFn
           .call(
@@ -954,7 +954,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
         const v2 = src2.evaluate(t2);
 
-        const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
+        const emoteFactorS = avatar.emoteFactor / crouchTransitionMaxTime;
         const f = Math.min(Math.max(emoteFactorS, 0), 1);
         lerpFn
           .call(
@@ -1228,32 +1228,32 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const applyFn = _getApplyFn();
   _getApplyFn();
   // console.log(avatar.blendList.length);
-  const _blendFly = spec => {
-    const {
-      animationTrackName: k,
-      dst,
-      // isTop,
-      lerpFn,
-      isPosition,
-    } = spec;
+  // const _blendFly = spec => {
+  //   const {
+  //     animationTrackName: k,
+  //     dst,
+  //     // isTop,
+  //     lerpFn,
+  //     isPosition,
+  //   } = spec;
 
-    if (avatar.flyState || (avatar.flyTime >= 0 && avatar.flyTime < 1000)) {
-      const t2 = avatar.flyTime / 1000;
-      // const f = avatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-      const f = Math.min(1, t2 / 0.2);
-      if (k === 'mixamorigHips.quaternion') console.log(f.toFixed(2));
-      const src2 = floatAnimation.interpolants[k];
-      const v2 = src2.evaluate(t2 % floatAnimation.duration);
+  //   if (avatar.flyState || (avatar.flyTime >= 0 && avatar.flyTime < 1000)) {
+  //     const t2 = avatar.flyTime / 1000;
+  //     // const f = avatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+  //     const f = Math.min(1, t2 / 0.2);
+  //     if (k === 'mixamorigHips.quaternion') console.log(f.toFixed(2));
+  //     const src2 = floatAnimation.interpolants[k];
+  //     const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
-      // if (isPosition) debugger;
-      lerpFn
-        .call(
-          dst,
-          localQuaternion.fromArray(v2),
-          f,
-        );
-    }
-  };
+  //     // if (isPosition) debugger;
+  //     lerpFn
+  //       .call(
+  //         dst,
+  //         localQuaternion.fromArray(v2),
+  //         f,
+  //       );
+  //   }
+  // };
 
   const _blendActivateAction = spec => {
     const {

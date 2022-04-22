@@ -56,7 +56,7 @@ function applyPlayerActionsToAvatar(player, rig) {
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
   rig.flyState = !!flyAction;
-  rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
+  rig.flyTransitionTime = player.actionInterpolants.flyTransition.get();
   rig.activateTime = player.actionInterpolants.activate.get();
   rig.useTime = player.actionInterpolants.use.get();
   rig.useAnimation = (useAction?.animation) || '';
