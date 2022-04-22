@@ -1156,6 +1156,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterHups.destroy();
     this.characterSfx.destroy();
     this.characterFx.destroy();
+    this.characterBehavior.destroy();
 
     super.destroy();
   }
@@ -1261,6 +1262,12 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   
     this.isNpcPlayer = true;
     this.avatarApp = null;
+
+    this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
+    this.characterBehavior = new CharacterBehavior(this);
   }
   getAvatarApp() {
     return this.avatarApp;
@@ -1280,11 +1287,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   
     this.avatar = avatar;
     this.avatarApp = app;
-
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
     
     loadPhysxCharacterController.call(this);
     // loadPhysxAuxCharacterCapsule.call(this);
@@ -1330,6 +1332,12 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     if (index !== -1) {
       npcs.splice(index, 1);
     } */
+
+    this.characterPhysics.destroy();
+    this.characterHups.destroy();
+    this.characterSfx.destroy();
+    this.characterFx.destroy();
+    this.characterBehavior.destroy();
 
     if (this.avatarApp) {
       this.avatarApp.toggleBoneUpdates(false);
