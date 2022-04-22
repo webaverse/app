@@ -484,6 +484,7 @@ physicsManager.setCharacterControllerPosition = (
   characterController,
   position
 ) => {
+  console.log("characterController", characterController, position);
   const result = physx.physxWorker.setCharacterControllerPositionPhysics(
     physx.physics,
     characterController.characterControllerId,
