@@ -1409,7 +1409,6 @@ class RemotePlayer extends InterpolatedPlayer {
 
     loadPhysxCharacterController.call(this);
 
-
     const observePlayerFn = (e) => {
       const transform = this.playerMap.get('transform');
 
@@ -1417,7 +1416,7 @@ class RemotePlayer extends InterpolatedPlayer {
         const remoteTimeDiff = transform[10];
         lastPosition.copy(this.position);
         this.position.fromArray(transform, 0);
-        
+
         physicsManager.setCharacterControllerPosition(this.characterController, this.position);
         this.characterPhysics.update(performance.now(), remoteTimeDiff);
         
