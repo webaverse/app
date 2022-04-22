@@ -959,7 +959,7 @@ class Avatar {
 
     //
 
-    this.blendList = [];
+    this.blendList = []; // todo: rename to applyFnList.
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1883,7 +1883,7 @@ class Avatar {
       <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
       <div>useTime: --- ${Math.floor(this.useTime)}</div>
       <div>blendList.length: --- ${this.blendList.length}</div>
-      <div>blendList: --- ${this.blendList.map(blendee=>blendee.name.slice('applyFn'.length))}</div>
+      <div>blendList: --- ${this.blendList.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
     `
     _applyAnimation(this, now, moveFactors);
 

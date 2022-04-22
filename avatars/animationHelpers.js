@@ -1190,15 +1190,17 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        _handleDefault(spec);
+        // _handleDefault(spec);
 
         const unuseTimeS = avatar.unuseTime / 1000;
         const unuseAnimationName = avatar.unuseAnimation;
         const unuseAnimation = useAnimations[unuseAnimationName];
         const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
         const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
+        // if (isPosition) console.log(f);
         const f2 = Math.pow(1 - f, 2);
 
+        const arr = [];
         if (!isPosition) {
           const src2 = unuseAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
@@ -1212,12 +1214,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .premultiply(localQuaternion2.fromArray(v3).invert())
             .premultiply(localQuaternion2.fromArray(v2));
 
-          lerpFn
-            .call(
-              dst,
-              localQuaternion,
-              f2,
-            );
+          localQuaternion.toArray(arr);
         } else {
           const src2 = unuseAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
@@ -1231,17 +1228,18 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .sub(localVector2.fromArray(v3))
             .add(localVector2.fromArray(v2));
 
-          lerpFn
-            .call(
-              dst,
-              localVector,
-              f2,
-            );
+          localVector.toArray(arr);
         }
 
-        if (f >= 1) {
-          avatar.useAnimation = '';
+        if (k === 'mixamorigLeftToeBase.quaternion' && f >= 1) { // todo: do not use 'mixamorigLeftToeBase.quaternion' to check last bone.
+          avatar.unuseAnimation = '';
         }
+
+        const blendee = {
+          arr,
+          intensity: 1,
+        };
+        return blendee;
       };
       // debugger
       avatar.blendList.push(applyFnUnuse);
@@ -1351,7 +1349,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
         denominator += blendee.intensity;
       }
-      if (isPosition) console.log(logText);
+      // if (isPosition) console.log(logText);
     }
 
     _blendActivateAction(spec);
