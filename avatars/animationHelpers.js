@@ -143,10 +143,10 @@ const animationsIdleArrays = {
 
 const cubicBezier = easing(0, 1, 0, 1);
 
-const _clearXZ = (dst, isPosition) => {
+const _clearXZ = (arr, isPosition) => {
   if (isPosition) {
-    dst.x = 0;
-    dst.z = 0;
+    arr[0] = 0;
+    arr[2] = 0;
   }
 };
 
@@ -843,7 +843,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const src2 = sitAnimation.interpolants[k];
         const v2 = src2.evaluate(1);
 
-        dst.fromArray(v2);
+        const blendee = {
+          arr: v2,
+          intensity: 1,
+        };
+        return blendee;
       };
       debugger
       avatar.blendList.push(applyFn);
@@ -862,11 +866,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const t2 = (avatar.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        dst.fromArray(v2);
+        _clearXZ(v2, isPosition);
 
-        _clearXZ(dst, isPosition);
+        const blendee = {
+          arr: v2,
+          intensity: 1,
+        };
+        return blendee;
       };
-      debugger
+      debugger 
       avatar.blendList.push(applyFn);
     }
 
