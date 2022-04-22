@@ -488,7 +488,7 @@ metaversefile.setApi({
       // console.log('was decap', wasDecapitated);
       if (localPlayer.avatar && wasDecapitated) {
         localPlayer.avatar.decapitate();
-        localPlayer.avatar.skeleton.update();
+        // localPlayer.avatar.skeleton.update();
       }
     }
   },
