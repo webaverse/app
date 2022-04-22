@@ -1019,6 +1019,37 @@ export const loadImage = u => new Promise((resolve, reject) => {
   img.crossOrigin = 'Anonymous';
   img.src = u;
 });
+export const drawImageContain = (ctx, img) => {
+  const imgWidth = img.width;
+  const imgHeight = img.height;
+  const canvasWidth = ctx.canvas.width;
+  const canvasHeight = ctx.canvas.height;
+  const imgAspect = imgWidth / imgHeight;
+  const canvasAspect = canvasWidth / canvasHeight;
+  let x, y, width, height;
+  if (imgAspect > canvasAspect) {
+    // image is wider than canvas
+    width = canvasWidth;
+    height = width / imgAspect;
+    x = 0;
+    y = (canvasHeight - height) / 2;
+  } else {
+    // image is taller than canvas
+    height = canvasHeight;
+    width = height * imgAspect;
+    x = (canvasWidth - width) / 2;
+    y = 0;
+  }
+  ctx.drawImage(img, x, y, width, height);
+};
+export const imageToCanvas = (img, w, h) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  drawImageContain(ctx, img);
+  return canvas;
+};
 
 export const isTransferable = o => {
   const ctor = o?.constructor;
@@ -1064,6 +1095,38 @@ export function getDiffQuaternion(target, quaternionA, quaternionB) {
   // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/functions/index.htm
   target.copy(quaternionB).invert().multiply(quaternionA).invert();
 }
+export const selectVoice = (voicer) => {
+  const weightedRandom = (weights) => {
+    let totalWeight = 0;
+    for (let i = 0; i < weights.length; i++) {
+      totalWeight += weights[i];
+    }
+  
+    let random = Math.random() * totalWeight;
+    for (let i = 0; i < weights.length; i++) {
+      if (random < weights[i]) {
+        return i;
+      }
+      random -= weights[i];
+    }
+  
+    return -1;
+  }
+  // the weight of each voice is proportional to the inverse of the number of times it has been used
+  const maxNonce = voicer.reduce((max, voice) => Math.max(max, voice.nonce), 0);
+  const weights = voicer.map(({nonce}) => {
+    return 1 - (nonce / (maxNonce + 1));
+  });
+  const selectionIndex = weightedRandom(weights);
+  const voiceSpec = voicer[selectionIndex];
+  voiceSpec.nonce++;
+  while (voicer.every(voice => voice.nonce > 0)) {
+    for (const voiceSpec of voicer) {
+      voiceSpec.nonce--;
+    }
+  }
+  return voiceSpec;
+};
 export const splitLinesToWidth = (() => {
   let tempCanvas = null;
   const _getTempCanvas = () => {

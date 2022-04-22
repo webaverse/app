@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
@@ -8,18 +7,19 @@ import { parseQuery } from '../util.js';
 import Modal from './components/modal';
 import WebaWallet from './components/wallet';
 
+import blockchainManager from '../blockchain-manager.js';
 import { AppContext } from './components/app';
 
-import styles from './Header.module.css';
+import styles from './User.module.css';
 
 //
 
 export const User = ({ address, setAddress, setLoginFrom }) => {
 
     const { state, setState } = useContext( AppContext );
-    const [ show, setShow ] = useState(false);
+    const [ensName, setEnsName] = useState('');
+    const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
-    const [ loginButtons, setLoginButtons ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
 
@@ -28,8 +28,41 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
     const showModal = ( event ) => {
 
         event.preventDefault();
-        setShow( ! show );
+        // setShow( ! show );
 
+        setState({ openedPanel: 'LoginPanel' });
+
+    };
+
+    const openUserPanel = e => {
+
+        setState({ openedPanel: 'UserPanel' });
+    
+    };
+
+    const _setAddress = async address => {
+        
+        if (address) {
+            // let live = true;
+            // (async () => {
+                const ensName = await blockchainManager.getEnsName(address);
+                // if (!live) return;
+                setEnsName(ensName);
+
+                const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
+                // if (!live) return;
+                setAvatarUrl(avatarUrl);
+            // })();
+
+            /* return () => {
+                live = false;
+            }; */
+
+            // console.log('render name', {address, ensName, avatarUrl});
+        }
+
+        setAddress(address);
+    
     };
 
     const metaMaskLogin = async ( event ) => {
@@ -37,11 +70,11 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
         event.preventDefault();
         event.stopPropagation();
 
-        if ( address ) {
+        /* if ( address ) {
 
             setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
 
-        } else {
+        } else { */
 
             if ( ! loggingIn ) {
 
@@ -50,10 +83,10 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 try {
 
                     const { address, profile } = await ceramicApi.login();
-                    setAddress(address);
+                    await _setAddress(address);
                     setLoginFrom('metamask');
-                    setShow(false);
-                    setLoginFrom('metamask');
+                    // setShow(false);
+                    // setLoginFrom('metamask');
 
                 } catch (err) {
 
@@ -61,142 +94,172 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                 } finally {
 
+                    setState({ openedPanel: null });
+
                     setLoggingIn(false);
 
                 }
 
             }
 
-        }
+        // }
 
     };
 
     useEffect( () => {
 
-        const { error, code, id, play, realmId, twitter: arrivingFromTwitter } = parseQuery( window.location.search );
+        (async () => {
 
-        if ( ! autoLoginRequestMade ) {
+            const { error, code, id, play, realmId } = parseQuery( window.location.search );
 
-            setAutoLoginRequestMade( true );
+            if ( ! autoLoginRequestMade ) {
 
-            if ( code ) {
+                setAutoLoginRequestMade( true );
 
-                setLoggingIn( true );
+                if ( code ) {
 
-                WebaWallet.waitForLaunch().then( async () => {
+                    setLoggingIn( true );
 
-                    const { address, error } = await WebaWallet.loginDiscord( code, id );
+                    WebaWallet.waitForLaunch().then( async () => {
 
-                    if ( address ) {
+                        const { address, error } = await WebaWallet.loginDiscord( code, id );
 
-                        setAddress( address );
-                        setLoginFrom( 'discord' );
-                        setShow( false );
+                        if ( address ) {
 
-                    } else if ( error ) {
+                            await _setAddress( address );
+                            setLoginFrom( 'discord' );
+                            // setShow( false );
 
-                        setLoginError( String( error ).toLocaleUpperCase() );
+                        } else if ( error ) {
 
-                    }
+                            setLoginError( String( error ).toLocaleUpperCase() );
 
-                    window.history.pushState( {}, '', window.location.origin );
-                    setLoggingIn( false );
+                        }
 
-                }); // it may occur that wallet loading is in progress already
+                        window.history.pushState( {}, '', window.location.origin );
+                        setLoggingIn( false );
 
-            } else {
+                    }); // it may occur that wallet loading is in progress already
 
-                WebaWallet.waitForLaunch().then( async () => {
+                } else {
 
-                    const { address, error } = await WebaWallet.autoLogin();
+                    WebaWallet.waitForLaunch().then( async () => {
 
-                    if ( address ) {
+                        const { address, error } = await WebaWallet.autoLogin();
 
-                        setAddress( address );
-                        setLoginFrom( 'discord' );
-                        setShow( false );
+                        if ( address ) {
 
-                    } else if ( error ) {
+                            await  _setAddress( address );
+                            setLoginFrom( 'discord' );
+                            // setShow( false );
 
-                        setLoginError( String( error ).toLocaleUpperCase() );
+                        } else if ( error ) {
 
-                    }
+                            setLoginError( String( error ).toLocaleUpperCase() );
 
-                }); // it may occur that wallet loading is in progress already
+                        }
+
+                    }); // it may occur that wallet loading is in progress already
+
+                }
 
             }
 
-        }
+        })();
 
-    }, [ address, setAddress ] );
+    }, [ address ] );
+
+    const open = state.openedPanel === 'LoginPanel';
+    const loggedIn = !!address;
 
     //
 
     return (
-        <div>
-            <div
-                className={ classnames( styles.user, loggingIn ? styles.loggingIn : null ) }
-                onClick={async e => {
-                    e.preventDefault();
-                    e.stopPropagation();
+        <div
+            className={ classnames(
+                styles.user,
+                open ? styles.open : null,
+                loggedIn ? styles.loggedIn : null,
+                loggingIn ? styles.loggingIn : null,
+            ) }
+        >
+            <div className={styles.keyWrap} onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
 
-                    if ( address ) {
+                if (!loggedIn) {
 
-                        setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
+                    if ( !open ) {
 
-                    } else {
-
-                        setLoginButtons( true );
                         setState({ openedPanel: 'LoginPanel' });
 
+                    } else {
+                        setState({ openedPanel: null });
                     }
-                }}
-            >
-                <img src="images/soul.png" className={styles.icon} />
-                <div className={styles.name} onClick={e => { showModal(e); }}>
-                    {loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}
+                }
+            }}>
+                <div className={styles.key}>
+                    <div className={styles.bow}>
+                        <img className={styles.icon} src="./images/log-in.svg" />
+                    </div>
+                    <div className={styles.blade}>
+                        <div className={styles.background} />
+                        <div className={styles.text}>ログイン Log in</div>
+                    </div>
                 </div>
             </div>
 
-            { address ? (
+            <div className={styles.loggingInPlaceholder}>Logging in</div>
+
+            <div
+                className={styles.userWrap}
+            >
+                <div
+                    className={styles.userBar}
+                    onClick={openUserPanel}
+                >
+                    {avatarUrl ? (
+                        <div
+                            className={styles.avatarUrl}
+                        >
+                            <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
+                        </div>
+                    ) : null}
+                    <div
+                        className={styles.address}
+                    >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                </div>
                 <div className={styles.logoutBtn}
                     onClick={e => {
                         e.preventDefault();
                         e.stopPropagation();
                         WebaWallet.logout();
-                        setAddress(null);
+                        _setAddress(null);
                     }}
-                >Logout</div> ) : ''
-            }
+                >Logout</div>
+            </div>
 
-            {
-                state.openedPanel === 'LoginPanel' ? (
-                    <div className={styles.login_options}>
-                        {
-                            loginButtons ? <>
-                                <Modal onClose={ showModal } show={show}>
-                                    <div className={styles.loginDiv}>
-                                        <div className={styles.loginBtn} onClick={ metaMaskLogin }>
-                                            <div className={styles.loginBtnText}>
-                                                <img className={styles.loginBtnImg} src="images/metamask.png" alt="metamask" width="28px"/>
-                                                <span>MetaMask</span>
-                                            </div>
-                                        </div>
-                                        <a href={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`}>
-                                            <div className={styles.loginBtn} style={{marginTop: '10px'}}>
-                                                <div className={styles.loginBtnText}>
-                                                    <img className={styles.loginBtnImg} src="images/discord-dark.png" alt="discord" width="28px"/>
-                                                    <span>Discord</span>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                </Modal>
-                            </> : ''
-                        }
+            <Modal onClose={ showModal } show={open && !loggingIn}>
+                <div className={styles.login_options}>
+                
+                    <div className={styles.loginDiv}>
+                        <div className={styles.loginBtn} onClick={ metaMaskLogin }>
+                            <div className={styles.loginBtnText}>
+                                <img className={styles.loginBtnImg} src="images/metamask.png" alt="metamask" width="28px"/>
+                                <span>MetaMask</span>
+                            </div>
+                        </div>
+                        <a href={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`}>
+                            <div className={styles.loginBtn} style={{marginTop: '10px'}}>
+                                <div className={styles.loginBtnText}>
+                                    <img className={styles.loginBtnImg} src="images/discord-dark.png" alt="discord" width="28px"/>
+                                    <span>Discord</span>
+                                </div>
+                            </div>
+                        </a>
                     </div>
-                ) : <div/>
-            }
+                </div>
+            </Modal>
         </div>
     );
 

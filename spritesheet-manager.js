@@ -1,11 +1,10 @@
 import {createObjectSprite} from './object-spriter.js';
-import {OffscreenEngine} from './offscreen-engine.js';
+import offscreenEngineManager from './offscreen-engine-manager.js';
 
 class SpritesheetManager {
   constructor() {
     this.spritesheetCache = new Map();
-    this.offscreenEngine = new OffscreenEngine();
-    this.getSpriteSheetForAppUrlInternal = this.offscreenEngine.createFunction([
+    this.getSpriteSheetForAppUrlInternal = offscreenEngineManager.createFunction([
       `\
       import {createObjectSpriteAsync} from './object-spriter.js';
       import metaversefile from './metaversefile-api.js';

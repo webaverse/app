@@ -1472,7 +1472,7 @@ class GameManager extends EventTarget {
   isJumping() {
     return metaversefileApi.useLocalPlayer().hasAction('jump');
   }
-  ensureJump() {
+  ensureJump(trigger) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const jumpAction = localPlayer.getAction('jump');
 
@@ -1489,14 +1489,15 @@ class GameManager extends EventTarget {
     if (!jumpAction) {
       const newJumpAction = {
         type: 'jump',
+        trigger:trigger
         // time: 0,
       };
       localPlayer.addAction(newJumpAction);
     }
   }
-  jump() {
+  jump(trigger) {
     // add jump action
-    this.ensureJump();
+    this.ensureJump(trigger);
 
     // update velocity
     const localPlayer = metaversefileApi.useLocalPlayer();
