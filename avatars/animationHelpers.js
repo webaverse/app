@@ -1137,8 +1137,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } = spec;
 
         const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
-        _handleDefault(spec);
+        // _handleDefault(spec);
         const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
+        const arr = [];
         if (!isPosition) {
           if (aimAnimation) {
             const src2 = aimAnimation.interpolants[k];
@@ -1149,9 +1150,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const src3 = idleAnimation.interpolants[k];
             const v3 = src3.evaluate(t3);
 
-            dst
+            localQuaternion.copy(dst)
               .premultiply(localQuaternion2.fromArray(v3).invert())
               .premultiply(localQuaternion2.fromArray(v2));
+
+            localQuaternion.toArray(arr);
           }
         } else {
           const src2 = aimAnimation.interpolants[k];
@@ -1162,10 +1165,18 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
 
-          dst
+          localVector.copy(dst)
             .sub(localVector2.fromArray(v3))
             .add(localVector2.fromArray(v2));
+
+          localVector.toArray(arr);
         }
+
+        const blendee = {
+          arr,
+          intensity: 1,
+        };
+        return blendee;
       };
       // debugger
       avatar.blendList.push(applyFn);
