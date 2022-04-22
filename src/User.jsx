@@ -22,7 +22,6 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-    const [ walletLaunched, setWalletLaunched ] = useState( false );
 
     //
 
@@ -121,8 +120,8 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
             if ( address ) {
 
-                // await _setAddress( address );
-                setAddress( address );
+                await _setAddress( address );
+                // setAddress( address );
                 setLoginFrom( 'discord' );
                 // setShow( false );
 
@@ -139,9 +138,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
         const metamaskLogin = async () => {
 
-            console.log('q');
-            const p = await WebaWallet.autoLogin();
-            console.log( address, p );
+            const { address } = await WebaWallet.autoLogin();
 
             if ( address ) {
 
@@ -167,7 +164,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                 setLoggingIn( true );
 
-                if ( walletLaunched ) {
+                if ( WebaWallet.launched ) {
 
                     discordLogin();
 
@@ -179,7 +176,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
             } else {
 
-                if ( walletLaunched ) {
+                if ( WebaWallet.launched ) {
 
                     metamaskLogin();
 
@@ -194,16 +191,6 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
         }
 
     }, [ address ] );
-
-    useEffect( () => {
-
-        WebaWallet.waitForLaunch().then( async () => {
-
-            setWalletLaunched( true );
-
-        });
-
-    }, [] );
 
     const open = state.openedPanel === 'LoginPanel';
     const loggedIn = !!address;
