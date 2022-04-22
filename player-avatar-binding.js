@@ -109,19 +109,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.jumpTime = performance.now() - rig.jumpStartTime;
   rig.unjumpTime = jumpState ? -1 : player.actionInterpolants.unjump.get();
 
-  // rig.flyState = !!flyAction;
-  // rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
-  const flyState = !!flyAction;
-  if (flyState) {
-    if (rig.flyState !== flyState) {
-      rig.flyStartTime = performance.now();
-    }
-    rig.flyState = true;
-  } else {
-    rig.flyState = false;
-  }
-  rig.flyTime = performance.now() - rig.flyStartTime;
-  rig.unflyTime = player.actionInterpolants.unfly.get();
+  rig.flyState = !!flyAction;
+  rig.flyTime = player.actionInterpolants.fly.get();
 
   rig.fallState = !!fallAction;
   rig.fallTime = player.actionInterpolants.fall.get();

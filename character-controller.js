@@ -25,6 +25,7 @@ import {
   // groundFriction,
   voiceEndpoint,
   numLoadoutSlots,
+  flyMaxTime,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
@@ -888,8 +889,7 @@ class UninterpolatedPlayer extends StatePlayer {
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
-      fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
-      unfly: new InfiniteActionInterpolant(() => !this.hasAction('fly'), 0),
+      fly: new BiActionInterpolant(() => this.hasAction('fly'), 0, flyMaxTime),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
       unjump: new InfiniteActionInterpolant(() => !this.hasAction('jump'), 0),
       fall: new InfiniteActionInterpolant(() => this.hasAction('fall'), 0),

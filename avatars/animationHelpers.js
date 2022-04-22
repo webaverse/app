@@ -393,10 +393,11 @@ export const loadPromise = (async () => {
 
 export const _applyAnimation = (avatar, now, moveFactors) => {
   avatar.blendList.length = 0;
+  const nowS = now / 1000;
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -782,31 +783,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
       avatar.blendList.push(applyFn);
     }
-    if (avatar.flyState || avatar.unflyTime <= 200) {
+    if (avatar.flyTime > 0) {
       const applyFn = spec => {
         const {
           animationTrackName: k,
         } = spec;
 
-        const t2 = (now - avatar.flyStartTime) / 1000 * 0.6 + 0.7;
+        const t2 = nowS;
         const src2 = floatAnimation.interpolants[k];
         const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
-        if (avatar.flyState) {
-          const blendee = {
-            arr: v2,
-            intensity: Math.max(0, Math.min(1, avatar.flyTime / 200) - 0.1),
-          };
-          // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity); // todo: if (isPosition)
-          return blendee;
-        } else {
-          const blendee = {
-            arr: v2,
-            intensity: Math.max(0, 1 - Math.min(1, avatar.unflyTime / 200) - 0.1),
-          };
-          // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity);
-          return blendee;
-        }
+        const blendee = {
+          arr: v2,
+          intensity: flyFactor,
+        };
+        // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity); // todo: if (isPosition)
+        return blendee;
       };
       debugger
       avatar.blendList.push(applyFn);

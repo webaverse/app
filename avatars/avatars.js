@@ -17,6 +17,7 @@ import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
+  flyMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -1413,6 +1414,7 @@ class Avatar {
     moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
+    moveFactors.flyFactor = THREE.MathUtils.clamp(this.flyTime / flyMaxTime, 0, 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
     const _updateHmdPosition = () => {
@@ -1834,6 +1836,8 @@ class Avatar {
       <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
       <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
       <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
+      <div>flyFactor: --- ${moveFactors.flyFactor.toFixed(2)}</div>
+      <div>flyTime: --- ${Math.floor(this.flyTime)}</div>
       <div>chargeJumpState: --- ${this.chargeJumpState}</div>
       <div>danceState: --- ${this.danceState}</div>
       <div>fallLoopState: --- ${this.fallLoopState}</div>
@@ -1858,7 +1862,6 @@ class Avatar {
       <div>crouchTime: --- ${Math.floor(this.crouchTime)}</div>
       <div>danceTime: --- ${Math.floor(this.danceTime)}</div>
       <div>fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>
-      <div>flyTime: --- ${Math.floor(this.flyTime)}</div>
       <div>hurtTime: --- ${Math.floor(this.hurtTime)}</div>
       <div>jumpTime: --- ${Math.floor(this.jumpTime)}</div>
       <div>unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
