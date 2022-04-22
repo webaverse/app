@@ -1404,6 +1404,9 @@ class GameManager extends EventTarget {
     const flyAction = localPlayer.getAction('fly');
     if (flyAction) {
       localPlayer.removeAction('fly');
+      if (localPlayer.hasAction('air') && !localPlayer.hasAction('fall')) {
+        localPlayer.addAction({type: 'fall'});
+      }
     } else {
       const flyAction = {
         type: 'fly',
@@ -1412,6 +1415,7 @@ class GameManager extends EventTarget {
       localPlayer.setControlAction(flyAction);
       // console.log('remove jump');
       localPlayer.removeAction('jump');
+      localPlayer.removeAction('fall');
     }
   }
   isCrouched() {

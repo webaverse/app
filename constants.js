@@ -67,6 +67,7 @@ export const audioTimeoutTime = 10 * 1000;
 
 export const crouchMaxTime = 200;
 export const flyMaxTime = 200;
+export const fallMaxTime = 200;
 export const sitMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;

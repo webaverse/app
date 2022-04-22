@@ -397,7 +397,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -803,19 +803,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // debugger
       avatar.blendList.push(applyFn);
     }
-    if (avatar.fallState || avatar.unfallTime < 200) {
+    if (avatar.fallTime > 0) {
       const applyFn = spec => {
         const {
           animationTrackName: k,
         } = spec;
 
-        const t2 = avatar.fallTime / 1000;
+        const t2 = nowS;
         const src2 = fallAnimation.interpolants[k];
         const v2 = src2.evaluate(t2 % fallAnimation.duration);
 
         const blendee = {
           arr: v2,
-          intensity: Math.min(1, avatar.fallTime / 200),
+          intensity: fallFactor,
         };
         // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity);
         return blendee;

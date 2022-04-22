@@ -169,6 +169,7 @@ class CharacterPhysics {
           // console.log('remove jump');
           this.player.removeAction('air');
           this.player.removeAction('jump');
+          this.player.removeAction('fall');
           // this.lastGroundedTime = now;
 
           this.velocity.y = -1;

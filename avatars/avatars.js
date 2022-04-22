@@ -18,6 +18,7 @@ import {
   // useMaxTime,
   aimMaxTime,
   flyMaxTime,
+  fallMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -1415,6 +1416,7 @@ class Avatar {
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     moveFactors.flyFactor = THREE.MathUtils.clamp(this.flyTime / flyMaxTime, 0, 1);
+    moveFactors.fallFactor = THREE.MathUtils.clamp(this.fallTime / fallMaxTime, 0, 1);
     moveFactors.sitFactor = THREE.MathUtils.clamp(this.sitTime / flyMaxTime, 0, 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
