@@ -41,6 +41,7 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
+import { localPlayer } from '../players.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -754,6 +755,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           // isTop,
+          isPosition,
         } = spec;
 
         // if (!avatar.blendList.includes(_handleDefault)) {
@@ -764,6 +766,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const t2 = (now - avatar.jumpStartTime) / 1000 * 0.6 + 0.7;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
+        // if (isPosition) console.log(t2);
+
+        if (t2 > 1.5 && !localPlayer.hasAction('fall')) { // todo: don't directly add action at here.
+          localPlayer.addAction({type: 'fall'});
+          localPlayer.removeAction('jump');
+        }
 
         if (avatar.jumpState) {
           const blendee = {
