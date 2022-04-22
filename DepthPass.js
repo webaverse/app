@@ -105,7 +105,7 @@ class DepthPass extends Pass {
 				this.customScene.add(o);
 			}
 			{
-				const pop = this.onBeforeRenderScene(this.scene);
+				const pop = this.onBeforeRenderScene(scene);
 			  
 				renderer.render( this.customScene, this.camera );
 				
@@ -113,7 +113,7 @@ class DepthPass extends Pass {
 			}
 
 			{
-				const pop = this.onBeforeRenderScene(this.scene);
+				const pop = this.onBeforeRenderScene(scene);
 				
 				scene.overrideMaterial = overrideMaterial;
 				renderer.render( scene, this.camera );
