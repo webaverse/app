@@ -77,6 +77,9 @@ class CharacterBehavior {
         this.mouthMovementSustainTime=sustain;
         this.mouthMovementReleaseTime=release;
     }
+    destroy() {
+        // nothing
+    }
   }
   
   export {
