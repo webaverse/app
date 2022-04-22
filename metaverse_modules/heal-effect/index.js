@@ -144,6 +144,10 @@ export default () => {
           transparent: true,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
+
+          clipping: false,
+          fog: false,
+          lights: false,
         
       });
       //##################################################### pixel material #####################################################
@@ -199,6 +203,10 @@ export default () => {
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
+
+        clipping: false,
+        fog: false,
+        lights: false,
         
       });
       //######################################################## initial instanced mesh #################################################################
