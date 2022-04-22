@@ -72,6 +72,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
   const flyAction = player.getAction('fly');
   const fallAction = player.getAction('fall');
+  const landAction = player.getAction('land');
   const useAction = player.getAction('use');
   const narutoRunAction = player.getAction('narutoRun');
   const sitAction = player.getAction('sit');
@@ -114,6 +115,10 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.fallState = !!fallAction;
   rig.fallTime = player.actionInterpolants.fall.get();
+
+  rig.landState = !!landAction;
+  rig.landTime = player.actionInterpolants.land.get();
+  rig.landTransitionTime = player.actionInterpolants.landTransition.get();
 
   rig.activateTime = player.actionInterpolants.activate.get();
   

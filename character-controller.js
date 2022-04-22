@@ -28,6 +28,7 @@ import {
   flyMaxTime,
   sitMaxTime,
   fallMaxTime,
+  landTransitionMaxTime,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
@@ -896,6 +897,8 @@ class UninterpolatedPlayer extends StatePlayer {
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
       unjump: new InfiniteActionInterpolant(() => !this.hasAction('jump'), 0),
       fall: new BiActionInterpolant(() => this.hasAction('fall'), 0, fallMaxTime),
+      land: new InfiniteActionInterpolant(() => this.hasAction('land'), 0),
+      landTransition: new BiActionInterpolant(() => this.hasAction('land'), 0, landTransitionMaxTime),
       dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),

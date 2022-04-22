@@ -19,6 +19,7 @@ import {
   aimMaxTime,
   flyMaxTime,
   fallMaxTime,
+  landTransitionMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -1417,6 +1418,7 @@ class Avatar {
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     moveFactors.flyFactor = THREE.MathUtils.clamp(this.flyTime / flyMaxTime, 0, 1);
     moveFactors.fallFactor = THREE.MathUtils.clamp(this.fallTime / fallMaxTime, 0, 1);
+    moveFactors.landFactor = THREE.MathUtils.clamp(this.landTransitionTime / landTransitionMaxTime, 0, 1);
     moveFactors.sitFactor = THREE.MathUtils.clamp(this.sitTime / flyMaxTime, 0, 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
@@ -1844,6 +1846,10 @@ class Avatar {
       <div>flyState: --- ${this.flyState}</div>
       <div>flyFactor: --- ${moveFactors.flyFactor.toFixed(2)}</div>
       <div>flyTime: --- ${Math.floor(this.flyTime)}</div>
+      <div>landState: --- ${this.landState}</div>
+      <div>landFactor: --- ${moveFactors.landFactor.toFixed(2)}</div>
+      <div>landTime: --- ${Math.floor(this.landTime)}</div>
+      <div>landTransitionTime: --- ${Math.floor(this.landTransitionTime)}</div>
       <div>sitState: --- ${this.sitState}</div>
       <div>sitFactor: --- ${moveFactors.sitFactor.toFixed(2)}</div>
       <div>sitTime: --- ${Math.floor(this.sitTime)}</div>
