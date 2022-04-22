@@ -67,33 +67,6 @@ class RenderSettingsManager {
     }
     return null;
   }
-  /* #pushFog(srcFog, dstFog) {
-    let fogCleanup = null;
-    if (srcFog) {
-      // if (oldFog.isFog) {
-      //   const oldNear = oldFog.near;
-      //   const oldFar = oldFog.far;
-      //   oldFog.near = Infinity;
-      //   oldFog.far = Infinity;
-      //   fogCleanup = () => {
-      //     oldFog.near = oldNear;
-      //     oldFog.far = oldFar;
-      //   };
-      // } else if (oldFog.isFogExp2) {
-        const oldColor = srcFog.color;
-        const oldDensity = srcFog.density;
-        dstFog.color = srcFog.color;
-        dstFog.density = srcFog.density;
-        fogCleanup = () => {
-          dstFog.color = oldColor;
-          dstFog.density = oldDensity;
-        };
-      // }
-    }
-    return () => {
-      fogCleanup && fogCleanup();
-    };
-  } */
   applyRenderSettingsToScene(renderSettings, scene) {
     const oldBackground = scene.background;
     const oldFog = scene.fog;
