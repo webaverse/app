@@ -618,6 +618,7 @@ class StatePlayer extends PlayerBase {
         });
 
         loadPhysxCharacterController.call(this);
+        console.log("loadPhysxCharacterController on ", this)
         // console.log('disable actor', this.characterController);
         physicsManager.disableGeometryQueries(this.characterController);
       })();
@@ -671,7 +672,7 @@ class StatePlayer extends PlayerBase {
     camera.quaternion.copy(quaternion);
     camera.updateMatrixWorld();
 
-    if (this.characterController) {
+    if (this.characterPhysics) {
       this.characterPhysics.setPosition(position);
     }
   }
@@ -1362,6 +1363,8 @@ class RemotePlayer extends InterpolatedPlayer {
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
+    this.characterBehavior = new CharacterBehavior(this);
+
   }
   detachState() {
     return null;
@@ -1410,7 +1413,11 @@ class RemotePlayer extends InterpolatedPlayer {
       if (transform) {
         lastPosition.copy(this.position);
         this.position.fromArray(transform, 0);
+        // physicsManager.setCharacterControllerPosition(this, this.position);
+        // this.characterPhysics.update(performance.now(), remoteTimeDiff);
+        
         this.quaternion.fromArray(transform, 3);
+
 
         const remoteTimeDiff = transform[10];
 
@@ -1465,6 +1472,7 @@ class RemotePlayer extends InterpolatedPlayer {
 
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
+      this.characterBehavior.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
 
