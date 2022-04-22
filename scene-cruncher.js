@@ -320,7 +320,7 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
 
   return [geometry2/*, cubePositions*/];
 };
-const normalMaterial = new THREE.MeshNormalMaterial();
+// const normalMaterial = new THREE.MeshNormalMaterial();
 const baseMaterial = new THREE.MeshBasicMaterial({
   map: null,
   color: 0xFFFFFF,
