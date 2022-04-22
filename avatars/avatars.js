@@ -1837,6 +1837,8 @@ class Avatar {
       <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
       <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
       <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
+      <div>jumpState: --- ${this.jumpState}</div>
+      <div>jumpTime: --- ${Math.floor(this.jumpTime)}</div>
       <div>flyState: --- ${this.flyState}</div>
       <div>flyFactor: --- ${moveFactors.flyFactor.toFixed(2)}</div>
       <div>flyTime: --- ${Math.floor(this.flyTime)}</div>
@@ -1846,7 +1848,6 @@ class Avatar {
       <div>chargeJumpState: --- ${this.chargeJumpState}</div>
       <div>danceState: --- ${this.danceState}</div>
       <div>fallLoopState: --- ${this.fallLoopState}</div>
-      <div>jumpState: --- ${this.jumpState}</div>
       <div>narutoRunState: --- ${this.narutoRunState}</div>
       <div>sitState: --- ${this.sitState}</div>
       <div>aimAnimation: --- ${this.aimAnimation}</div>
@@ -1867,7 +1868,6 @@ class Avatar {
       <div>danceTime: --- ${Math.floor(this.danceTime)}</div>
       <div>fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>
       <div>hurtTime: --- ${Math.floor(this.hurtTime)}</div>
-      <div>jumpTime: --- ${Math.floor(this.jumpTime)}</div>
       <div>unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
       <div>lastEyeTargetTime: --- ${Math.floor(this.lastEyeTargetTime)}</div>
       <div>lastMoveTime: --- ${Math.floor(this.lastMoveTime)}</div>

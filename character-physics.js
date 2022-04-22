@@ -41,7 +41,16 @@ class CharacterPhysics {
     this.player = player;
 
     this.velocity = new THREE.Vector3();
-    this.lastGroundedTime = 0;
+    // this.velocity = new Proxy(this.velocity, {
+    //   set: (obj, prop, newVal) => {
+    //     const oldVal = obj[prop];
+    //     if (prop === 'y' && newVal < oldVal) debugger
+    //     obj[prop] = newVal;
+    //     return true;
+    //   }
+    // })
+    // this.lastGroundedTime = 0;
+    this.lastGrounded = null;
     this.sitOffset = new THREE.Vector3();
    
     this.lastPistolUse = false;
@@ -60,7 +69,7 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     // if (this.player) {
-      if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
+      if (this.player.hasAction('air') && !this.player.hasAction('fly')) {
         localVector.copy(physicsManager.getGravity())
           .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
@@ -140,41 +149,54 @@ class CharacterPhysics {
         }
 
         const jumpAction = this.player.getAction('jump');
-        const _ensureJumpAction = () => {
-          if (!jumpAction) {
-            const newJumpAction = {
-              type: 'jump',
-              time: 0,
-            };
-            this.player.addAction(newJumpAction);
-          } else {
-            jumpAction.set('time', 0);
-          }
-        };
-        const _ensureNoJumpAction = () => {
-          this.player.removeAction('jump');
-        };
+        // const _ensureJumpAction = () => {
+        //   if (!jumpAction) {
+        //     const newJumpAction = {
+        //       type: 'jump',
+        //       time: 0,
+        //     };
+        //     this.player.addAction(newJumpAction);
+        //   } else {
+        //     jumpAction.set('time', 0);
+        //   }
+        // };
+        // const _ensureNoJumpAction = () => {
+        //   this.player.removeAction('jump');
+        // };
 
+        // console.log(grounded);
         if (grounded) {
-          this.lastGroundedTime = now;
+          // console.log('remove jump');
+          this.player.removeAction('air');
+          this.player.removeAction('jump');
+          // this.lastGroundedTime = now;
 
           this.velocity.y = -1;
+        } else {
+          if (!this.player.getAction('air')) {
+            this.player.addAction({type: 'air'});
+          }
+          if (this.lastGrounded === true && !this.player.getAction('fly')) {
+            // console.log('add jump');
+            this.player.addAction({type: 'jump'});
+            // this.velocity.y = 0;
+          }
         }
 
-        if (!jumpAction) {
-          const lastGroundedTimeDiff = now - this.lastGroundedTime;
-          if (lastGroundedTimeDiff <= 100) {
-            _ensureNoJumpAction();
-          } else {
-            _ensureJumpAction();
+        // if (!jumpAction) {
+        //   const lastGroundedTimeDiff = now - this.lastGroundedTime;
+        //   if (lastGroundedTimeDiff <= 100) {
+        //     _ensureNoJumpAction();
+        //   } else {
+        //     _ensureJumpAction();
           
-            this.velocity.y = 0;
-          }
-        } else {
-          if (grounded) {
-            _ensureNoJumpAction();
-          }
-        }
+        //     this.velocity.y = 0;
+        //   }
+        // } else {
+        //   if (grounded) {
+        //     _ensureNoJumpAction();
+        //   }
+        // }
       } else {
         //Outdated vehicle code
         this.velocity.y = 0;
@@ -238,6 +260,8 @@ class CharacterPhysics {
         }
         this.avatar.updateMatrixWorld();
       } */
+
+      this.lastGrounded = grounded;
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */

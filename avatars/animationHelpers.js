@@ -800,7 +800,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity); // todo: if (isPosition)
         return blendee;
       };
-      debugger
+      // debugger
       avatar.blendList.push(applyFn);
     }
     if (avatar.fallState || avatar.unfallTime < 200) {
@@ -820,7 +820,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity);
         return blendee;
       };
-      debugger
+      // debugger
       avatar.blendList.push(applyFn);
     }
     if (avatar.sitTime > 0) {
@@ -841,7 +841,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         };
         return blendee;
       };
-      debugger
+      // debugger
       avatar.blendList.push(applyFn);
     }
     if (avatar.narutoRunState) {
@@ -866,7 +866,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         };
         return blendee;
       };
-      debugger 
+      // debugger 
       avatar.blendList.push(applyFn);
     }
 
@@ -898,7 +898,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _clearXZ(dst, isPosition);
       };
-      debugger
+      // debugger
       avatar.blendList.push(applyFn);
     }
 
@@ -931,7 +931,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _clearXZ(dst, isPosition);
       };
-      debugger
+      // debugger
       avatar.blendList.push(applyFn);
     }
 
@@ -1036,7 +1036,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           }
         }
       };
-      debugger
+      // debugger
       avatar.blendList.push(applyFn);
     } else if (avatar.hurtAnimation) {
       const applyFn = spec => {
@@ -1080,7 +1080,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .add(localVector2.fromArray(v2));
         }
       };
-      debugger
+      // debugger
       avatar.blendList.push(applyFn);
     } else if (avatar.aimAnimation) {
       const applyFn = spec => {
@@ -1122,7 +1122,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .add(localVector2.fromArray(v2));
         }
       };
-      debugger
+      // debugger
       avatar.blendList.push(applyFn);
     } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
       const applyFn = spec => {
@@ -1187,7 +1187,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           avatar.useAnimation = '';
         }
       };
-      debugger
+      // debugger
       avatar.blendList.push(applyFn);
     }
   };
@@ -1265,7 +1265,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     // applyFn(spec);
     // _handleDefault(spec);
 
-    if (avatar.jumpState) debugger
+    // if (avatar.jumpState) debugger
 
     const defaultBlendee = _handleDefault(spec);
     dst.fromArray(defaultBlendee.arr);
@@ -1295,7 +1295,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
         denominator += blendee.intensity;
       }
-      if (isPosition) console.log(logText);
+      // if (isPosition) console.log(logText);
     }
 
     _blendActivateAction(spec);

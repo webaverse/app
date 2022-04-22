@@ -1410,6 +1410,8 @@ class GameManager extends EventTarget {
         time: 0,
       };
       localPlayer.setControlAction(flyAction);
+      // console.log('remove jump');
+      localPlayer.removeAction('jump');
     }
   }
   isCrouched() {
@@ -1472,30 +1474,30 @@ class GameManager extends EventTarget {
     return metaversefileApi.useLocalPlayer().hasAction('jump');
   }
   ensureJump() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    const jumpAction = localPlayer.getAction('jump');
+    // const localPlayer = metaversefileApi.useLocalPlayer();
+    // const jumpAction = localPlayer.getAction('jump');
 
-    const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
-    for (const wearAction of wearActions) {
-      const instanceId = wearAction.instanceId;
-      const app = metaversefileApi.getAppByInstanceId(instanceId);
-      const sitComponent = app.getComponent('sit');
-      if (sitComponent) {
-        app.unwear();
-      }
-    }
+    // const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
+    // for (const wearAction of wearActions) {
+    //   const instanceId = wearAction.instanceId;
+    //   const app = metaversefileApi.getAppByInstanceId(instanceId);
+    //   const sitComponent = app.getComponent('sit');
+    //   if (sitComponent) {
+    //     app.unwear();
+    //   }
+    // }
 
-    if (!jumpAction) {
-      const newJumpAction = {
-        type: 'jump',
-        // time: 0,
-      };
-      localPlayer.addAction(newJumpAction);
-    }
+    // if (!jumpAction) {
+    //   const newJumpAction = {
+    //     type: 'jump',
+    //     // time: 0,
+    //   };
+    //   localPlayer.addAction(newJumpAction);
+    // }
   }
   jump() {
     // add jump action
-    this.ensureJump();
+    // this.ensureJump();
 
     // update velocity
     const localPlayer = metaversefileApi.useLocalPlayer();
