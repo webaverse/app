@@ -2,6 +2,7 @@ import * as THREE from 'three';
 
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useLocalPlayer, useInternals} = metaversefile;
+import {WebaverseShaderMaterial} from '../../materials.js';
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 const textureLoader = new THREE.TextureLoader();
@@ -58,7 +59,7 @@ export default () => {
 
       }
       //##################################################### flash material #####################################################
-      const flashMaterial = new THREE.ShaderMaterial({
+      const flashMaterial = new WebaverseShaderMaterial({
           uniforms: {
               cameraBillboardQuaternion: {
                   value: new THREE.Quaternion(),
@@ -71,9 +72,7 @@ export default () => {
               },
           },
           vertexShader: `\
-              ${THREE.ShaderChunk.common}
-              ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-
+              
               uniform vec4 cameraBillboardQuaternion;
       
               varying vec2 vUv;
@@ -106,11 +105,10 @@ export default () => {
                   vec4 projectionPosition = projectionMatrix * viewPosition;
           
                   gl_Position = projectionPosition;
-                  ${THREE.ShaderChunk.logdepthbuf_vertex}
               }
           `,
           fragmentShader: `\
-              ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+              
               
               varying vec2 vUv;
               varying float vId;
@@ -139,7 +137,7 @@ export default () => {
                       gl_FragColor.rgb *= vec3(0.444, 0.999, 0.777);
                   if(vId<0.2)
                       gl_FragColor.a *= distance(avatarPos,vPos)*2.;
-                  ${THREE.ShaderChunk.logdepthbuf_fragment}
+                  
               }
           `,
           side: THREE.DoubleSide,
@@ -149,10 +147,9 @@ export default () => {
         
       });
       //##################################################### pixel material #####################################################
-      const pixelMaterial = new THREE.ShaderMaterial({
+      const pixelMaterial = new WebaverseShaderMaterial({
         vertexShader: `\
-            ${THREE.ShaderChunk.common}
-            ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+           
   
             varying vec2 vUv;
             varying vec3 vPos;
@@ -181,11 +178,11 @@ export default () => {
                 vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
                 bool isPerspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 );
                     if ( isPerspective ) gl_PointSize *= (1.0 / - viewPosition.z);
-                ${THREE.ShaderChunk.logdepthbuf_vertex}
+                
             }
         `,
         fragmentShader: `\
-            ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+            
             
             varying vec2 vUv;
             varying vec3 vPos;
@@ -195,7 +192,7 @@ export default () => {
                 
                 gl_FragColor= vec4(0.0,vScales,0.3,1.0);
                 gl_FragColor.a *= vOpacity;
-                ${THREE.ShaderChunk.logdepthbuf_fragment}
+                
             }
         `,
         side: THREE.DoubleSide,
