@@ -404,10 +404,13 @@ export default () => {
                   healMaterial[i].r = 0;
                   healMaterial[i].g = 0;
                   healMaterial[i].b = 0;
-                  app.remove(group);
-                  app.remove(flashMesh);
-                  particleAlreadyInScene=false;
-                  materialStartTime = 0;
+                  if(particleAlreadyInScene){
+                    app.remove(group);
+                    app.remove(flashMesh);
+                    particleAlreadyInScene=false;
+                    materialStartTime = 0;
+                  }
+                  
                 }
                     
             }
