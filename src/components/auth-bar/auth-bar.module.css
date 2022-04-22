@@ -46,187 +46,189 @@
 /* */
 
 .authBar .keyWrap {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 180px;
-  perspective: 400px;
-  perspective-origin: -100px 100px;
-  pointer-events: all;
-  transform: translate(200px, 0);
-  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 180px;
+    perspective: 400px;
+    perspective-origin: -100px 100px;
+    pointer-events: all;
+    transform: translate(200px, 0);
+    transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 .authBar .keyWrap.active {
     cursor: pointer;
     transform: translate(0px, 0);
 }
 .authBar .key {
-  display: flex;
-  margin-top: 5px;
-  align-items: center;
-  transform: translate3d(0, 0, 0);
-  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+    display: flex;
+    margin-top: 5px;
+    align-items: center;
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 .authBar:not(.loggedIn) .keyWrap:hover .key,
 .authBar.open .keyWrap .key
 {
-  transform: translate3d(15px, 0, 0);
+    transform: translate3d(15px, 0, 0);
 }
 .authBar:not(.loggedIn) .keyWrap:active .key {
-  transform: translate3d(15px, 0, 0) rotateX(50deg);
+    transform: translate3d(15px, 0, 0) rotateX(50deg);
 }
 .authBar.loggedIn .key {
-  transform: translate3d(200px, 0, 0);
+    transform: translate3d(200px, 0, 0);
 }
 .authBar .key .bow {
-  position: relative;
-  margin-right: -15px;
-  background-color: #FFF;
-  border: 3px solid #000;
-  border-radius: 1000px;
-  z-index: 1;
+    position: relative;
+    margin-right: -15px;
+    background-color: #FFF;
+    border: 3px solid #000;
+    border-radius: 1000px;
+    z-index: 1;
 }
 .authBar .key .bow .icon {
-  --bow-size: 45px;
+    --bow-size: 45px;
 
-  width: var(--bow-size);
-  height: var(--bow-size);
-  padding: 8px;
+    width: var(--bow-size);
+    height: var(--bow-size);
+    padding: 8px;
 }
 .authBar .key .blade {
-  position: relative;
-  /* height: 30px; */
-  padding: 5px 20px;
-  color: #FFF;
-  font-size: 14px;
+    position: relative;
+    /* height: 30px; */
+    padding: 5px 20px;
+    color: #FFF;
+    font-size: 14px;
 }
 .authBar .key .blade .background {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-image: linear-gradient(to bottom,#333, #000000);
-  transform: skewX(30deg);
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-image: linear-gradient(to bottom,#333, #000000);
+    transform: skewX(30deg);
 }
 .authBar .key .blade .text {
-  position: relative;
+    position: relative;
 }
 
 /* */
 
 .authBar .loggingInPlaceholder {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: flex;
-  margin-top: 15px;
-  margin-right: 10px;
-  padding: 10px;
-  background-image: linear-gradient(to bottom,#333, #000000);
-  border-radius: 5px;
-  color: #FFF;
-  white-space: nowrap;
-  transform: translate(200px, 0);
-  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    margin-top: 15px;
+    margin-right: 10px;
+    padding: 10px;
+    background-image: linear-gradient(to bottom,#333, #000000);
+    border-radius: 5px;
+    color: #FFF;
+    white-space: nowrap;
+    transform: translate(200px, 0);
+    transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 .authBar .loggingInPlaceholder.active {
-  transform: translate(0, 0);
+    transform: translate(0, 0);
 }
 
 /*  */
 
 .userWrap {
-  display: flex;
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin-top: 10px;
-  align-items: center;
-  transform: none;
-  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
-  transform: translate(100%, 0);
+    display: flex;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-top: 10px;
+    align-items: center;
+    transform: none;
+    transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+    transform: translate(100%, 0);
 }
 .authBar .userWrap.active {
-  transform: translate(0%, 0);
+    transform: translate(0%, 0);
 }
 
 .authBar {
-  display: flex;
-  font-size: 14px;
-  align-items: center;
-  pointer-events: all;
-  cursor: pointer;
+    display: flex;
+    font-size: 14px;
+    align-items: center;
+    pointer-events: all;
+    cursor: pointer;
 }
 .authBar .avatarUrl {
-  position: relative;
-  z-index: 1;
+    position: absolute;
+    top: -7px;
+    left: -45px;
+    z-index: 1;
 }
 .authBar .avatarUrl .img {
-  --size: 50px;
+    --size: 50px;
 
-  height: var(--size);
-  width: var(--size);
-  background-color: #FFF;
-  border-radius: 7px;
-  border: 3px solid #000;
-  object-fit: cover;
-  transform: translate(0, 0);
-  transition: transform 0.5s cubic-bezier(0, 1, 0, 1);
+    height: var(--size);
+    width: var(--size);
+    background-color: #FFF;
+    border-radius: 7px;
+    border: 3px solid #000;
+    object-fit: cover;
+    transform: translate(0, 0);
+    transition: transform 0.5s cubic-bezier(0, 1, 0, 1);
 }
 .authBar .address,
 .logoutBtn
 {
-  display: flex;
-  height: 33px;
-  /* font-size: 16px; */
-  align-items: center;
+    display: flex;
+    height: 33px;
+    /* font-size: 16px; */
+    align-items: center;
 }
 .authBar .address {
-  position: relative;
-  display: flex;
-  padding: 0 10px;
-  background-color: #000;
-  border-radius: 5px 0 0 5px;
-  color: #FFF;
-  line-height: 1.4;
-  align-items: center;
+    position: relative;
+    display: flex;
+    padding: 0 10px;
+    background-color: #000;
+    border-radius: 5px 0 0 5px;
+    color: #FFF;
+    line-height: 1.4;
+    align-items: center;
 }
 .authBar .avatarUrl + .address {
-  border-radius: 0;
+    border-radius: 0;
 }
 .authBar:hover .address {
-  background-color: #00a8fc;
+    background-color: #00a8fc;
 }
 .authBar .verifiedIcon {
-  position: relative;
-  width: 18px;
-  height: 18px;
-  margin-left: 8px;
-  object-fit: contain;
-  z-index: 1;
+    position: relative;
+    width: 18px;
+    height: 18px;
+    margin-left: 8px;
+    object-fit: contain;
+    z-index: 1;
 }
 .authBar .address::after {
-  position: absolute;
-  right: 14px;
-  width: 10px;
-  height: 10px;
-  background-color: #FFF;
-  content: '';
+    position: absolute;
+    right: 14px;
+    width: 10px;
+    height: 10px;
+    background-color: #FFF;
+    content: '';
 }
 .userBar:hover:not(:active) .avatarUrl .img {
-  transform: scale(1.2, 1.2);
+    transform: scale(1.2, 1.2);
 }
 .logoutBtn {
-  background: #333;
-  color: #FFF;
-  padding: 5px;
-  cursor: pointer;
-  pointer-events: all;
+    background: #333;
+    color: #FFF;
+    padding: 5px;
+    cursor: pointer;
+    pointer-events: all;
 }
 .logoutBtn:hover {
-  background: #ef5350;
-  color: white;
+    background: #ef5350;
+    color: white;
 }
 
 /*  */
