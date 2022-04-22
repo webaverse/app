@@ -180,13 +180,14 @@ class CameraManager extends EventTarget {
   }
   handleWheelEvent(e) {
     // e.preventDefault();
-    //disable scrolling while aiming
-    if (localPlayer.hasAction('aim')){
+    //disable scrolling outwards (past aim distance) while aiming
+    const scrollDist = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
+    if (localPlayer.hasAction('aim') && scrollDist <= maxAim.z){
       //do nothing
     }
     else{
-    cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
-    lastCamoffsetZ = cameraOffsetTargetZ;
+      cameraOffsetTargetZ = scrollDist;
+      lastCamoffsetZ = cameraOffsetTargetZ;
     }
   }
   addShake(position, intensity, radius, decay) {
