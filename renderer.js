@@ -81,11 +81,11 @@ function getComposer() {
   return composer;
 }
 
-const scene = new THREE.Object3D();
+const scene = new THREE.Scene();
 scene.name = 'scene';
-const sceneHighPriority = new THREE.Object3D();
+const sceneHighPriority = new THREE.Scene();
 sceneHighPriority.name = 'highPriorioty';
-const sceneLowPriority = new THREE.Object3D();
+const sceneLowPriority = new THREE.Scene();
 sceneLowPriority.name = 'lowPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';

@@ -9,7 +9,7 @@ import styles from './QuickMenu.module.css';
 import emotes from './components/general/character/emotes.json';
 import {triggerEmote} from './components/general/character/Poses';
 import cameraManager from '../camera-manager.js';
-import {mod, loadImage} from '../util.js';
+import {mod, loadImage, drawImageContain, imageToCanvas} from '../util.js';
 
 const modPi2 = angle => mod(angle, Math.PI*2);
 
@@ -45,38 +45,6 @@ const radiusCenterSoft = (outerRadiusSoft + innerRadiusSoft) / 2;
 const iconSize = 80;
 const chevronSize = 50;
 
-function drawImageContain(ctx, img) {
-  const imgWidth = img.width;
-  const imgHeight = img.height;
-  const canvasWidth = ctx.canvas.width;
-  const canvasHeight = ctx.canvas.height;
-  const imgAspect = imgWidth / imgHeight;
-  const canvasAspect = canvasWidth / canvasHeight;
-  let x, y, width, height;
-  if (imgAspect > canvasAspect) {
-    // image is wider than canvas
-    width = canvasWidth;
-    height = width / imgAspect;
-    x = 0;
-    y = (canvasHeight - height) / 2;
-  } else {
-    // image is taller than canvas
-    height = canvasHeight;
-    width = height * imgAspect;
-    x = (canvasWidth - width) / 2;
-    y = 0;
-  }
-  ctx.drawImage(img, x, y, width, height);
-}
-const _imageToCanvas = (img, w, h) => {
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  drawImageContain(ctx, img);
-  return canvas;
-};
-
 export default function QuickMenu() {
   const [open, setOpen] = useState(false);
   const [down, setDown] = useState(false);
@@ -98,14 +66,14 @@ export default function QuickMenu() {
   useEffect(async () => {
     const emoteIconImages = await Promise.all(emotes.map(async ({icon}) => {
       const img = await loadImage(`./images/poses/${icon}`);
-      const canvas = _imageToCanvas(img, iconSize, iconSize);
+      const canvas = imageToCanvas(img, iconSize, iconSize);
       return canvas;
     }));
     setEmoteIconImages(emoteIconImages);
   }, []);
   useEffect(async () => {
     const img = await loadImage(chevronImgSrc);
-    const canvas = _imageToCanvas(img, chevronSize, chevronSize);
+    const canvas = imageToCanvas(img, chevronSize, chevronSize);
     setChevronImage(canvas);
   }, []);
 
