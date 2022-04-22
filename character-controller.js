@@ -1156,6 +1156,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterHups.destroy();
     this.characterSfx.destroy();
     this.characterFx.destroy();
+    this.characterBehavior.destroy();
 
     super.destroy();
   }
