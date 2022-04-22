@@ -30,6 +30,7 @@ import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
+import {CharacterBehavior} from './character-behavior.js';
 import {CharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
@@ -925,6 +926,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
+    this.characterBehavior = new CharacterBehavior(this);
+    
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -1099,6 +1102,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       const timeDiffS = timeDiff / 1000;
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
+      this.characterBehavior.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
 
