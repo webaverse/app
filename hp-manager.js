@@ -108,7 +108,7 @@ const makeHitTracker = ({
     const result = hitTracker.damage(damage);
     const {hit, died} = result;
     if (hit) {
-      const {collisionId, hitPosition, hitDirection, hitQuaternion} = opts;
+      const {collisionId, hitPosition, hitDirection, hitQuaternion, damageMeshVisible = true} = opts;
 
       if (died) {
         triggerDamageAnimation(collisionId);
@@ -119,20 +119,22 @@ const makeHitTracker = ({
       }
 
       {
-        const damageMeshApp = metaversefileApi.createApp();
-        (async () => {
-          await metaverseModules.waitForLoad();
-          const {modules} = metaversefileApi.useDefaultModules();
-          const m = modules['damageMesh'];
-          await damageMeshApp.addModule(m);
-        })();
-        damageMeshApp.position.copy(hitPosition);
-        localEuler.setFromQuaternion(hitQuaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        damageMeshApp.quaternion.setFromEuler(localEuler);
-        damageMeshApp.updateMatrixWorld();
-        scene.add(damageMeshApp);
+        if(damageMeshVisible) {
+          const damageMeshApp = metaversefileApi.createApp();
+          (async () => {
+            await metaverseModules.waitForLoad();
+            const {modules} = metaversefileApi.useDefaultModules();
+            const m = modules['damageMesh'];
+            await damageMeshApp.addModule(m);
+          })();
+          damageMeshApp.position.copy(hitPosition);
+          localEuler.setFromQuaternion(hitQuaternion, 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          damageMeshApp.quaternion.setFromEuler(localEuler);
+          damageMeshApp.updateMatrixWorld();
+          scene.add(damageMeshApp);
+        }
       }
 
       hitTracker.dispatchEvent({
