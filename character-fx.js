@@ -92,6 +92,7 @@ class CharacterFx {
 
     this.kiMesh = null;
     this.sonicBoom = null;
+    this.healEffect = null;
     this.hairMeshes = null;
     this.lastSSS = false;
   }
@@ -246,6 +247,20 @@ class CharacterFx {
       }
     };
     _updateSonicBoomMesh();
+
+    const _updateHealEffectMesh = () => {
+      if ( this.player.isLocalPlayer && !this.healEffect ) {
+        this.healEffect = metaversefile.createApp();
+        (async () => {
+          await metaverseModules.waitForLoad();
+          const {modules} = metaversefile.useDefaultModules();
+          const m = modules['healEffect'];
+          await this.healEffect.addModule(m);
+        })();
+        sceneLowPriority.add(this.healEffect);
+      }
+    };
+    _updateHealEffectMesh();
   }
   destroy() {
     if (this.kiMesh) {
@@ -255,6 +270,10 @@ class CharacterFx {
     if (this.sonicBoom) {
       sceneLowPriority.remove(this.sonicBoom);
       this.sonicBoom = null;
+    }
+    if (this.healEffect) {
+      sceneLowPriority.remove(this.healEffect);
+      this.healEffect = null;
     }
   }
 }
