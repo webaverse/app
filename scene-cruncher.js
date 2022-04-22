@@ -320,7 +320,7 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
 
   return [geometry2/*, cubePositions*/];
 };
-const normalMaterial = new THREE.MeshNormalMaterial();
+// const normalMaterial = new THREE.MeshNormalMaterial();
 const baseMaterial = new THREE.MeshBasicMaterial({
   map: null,
   color: 0xFFFFFF,
@@ -468,13 +468,13 @@ export function snapshotMapChunk(
         
         {
           const popRenderSettings = renderSettingsManager.push(scene);
-          const popFogClear = renderSettingsManager.pushFogClear(scene);
 
-          // scene.fog = null;
-          renderer.render(scene, camera);
+          // elide fog rendering for scene snapshot
+          scene.fog.density = 0;
           
+          renderer.render(scene, camera);
+
           popRenderSettings();
-          popFogClear();
         }
 
         const imageData = {

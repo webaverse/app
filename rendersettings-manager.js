@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import postProcessing from './post-processing.js';
 // import {rootScene} from './renderer.js';
 
+const blackColor = new THREE.Color(0x000000);
+
 class RenderSettings {
   constructor(json) {
     this.background = this.#makeBackground(json.background);
@@ -36,6 +38,9 @@ class RenderSettings {
 }
 
 class RenderSettingsManager {
+  constructor() {
+    this.fog = new THREE.FogExp2(0x000000, 0);
+  }
   makeRenderSettings(json) {
     return new RenderSettings(json);
   }
@@ -71,7 +76,15 @@ class RenderSettingsManager {
       fog = null,
     } = (renderSettings ?? {});
     scene.background = background;
-    scene.fog = fog;
+    scene.fog = this.fog;
+
+    if (fog) {
+      this.fog.color = fog.color;
+      this.fog.density = fog.density;
+    } else {
+      this.fog.color = blackColor;
+      this.fog.density = 0;
+    }
 
     return () => {
       scene.background = oldBackground;
@@ -94,30 +107,6 @@ class RenderSettingsManager {
     return () => {
       renderSettingsCleanup();
       postProcessing && postProcessing.setPasses(null);
-    };
-  }
-  pushFogClear(srcScene, dstScene = srcScene) {
-    let fogCleanup = null;
-    if (dstScene.fog) {
-      if (dstScene.fog.isFog) {
-        const oldNear = dstScene.fog.near;
-        const oldFar = dstScene.fog.far;
-        dstScene.fog.near = Infinity;
-        dstScene.fog.far = Infinity;
-        fogCleanup = () => {
-          dstScene.fog.near = oldNear;
-          dstScene.fog.far = oldFar;
-        };
-      } else if (dstScene.fog.isFogExp2) {
-        const oldDensity = dstScene.fog.density;
-        dstScene.fog.density = 0;
-        fogCleanup = () => {
-          dstScene.fog.density = oldDensity;
-        };
-      }
-    }
-    return () => {
-      fogCleanup && fogCleanup();
     };
   }
 }
