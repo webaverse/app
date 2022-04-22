@@ -98,21 +98,22 @@ class RenderSettingsManager {
   }
   pushFogClear(srcScene, dstScene = srcScene) {
     let fogCleanup = null;
-    if (dstScene.fog) {
-      if (dstScene.fog.isFog) {
-        const oldNear = dstScene.fog.near;
-        const oldFar = dstScene.fog.far;
-        dstScene.fog.near = Infinity;
-        dstScene.fog.far = Infinity;
+    const oldFog = dstScene.fog;
+    if (oldFog) {
+      if (oldFog.isFog) {
+        const oldNear = oldFog.near;
+        const oldFar = oldFog.far;
+        oldFog.near = Infinity;
+        oldFog.far = Infinity;
         fogCleanup = () => {
-          dstScene.fog.near = oldNear;
-          dstScene.fog.far = oldFar;
+          oldFog.near = oldNear;
+          oldFog.far = oldFar;
         };
-      } else if (dstScene.fog.isFogExp2) {
-        const oldDensity = dstScene.fog.density;
-        dstScene.fog.density = 0;
+      } else if (oldFog.isFogExp2) {
+        const oldDensity = oldFog.density;
+        oldFog.density = 0;
         fogCleanup = () => {
-          dstScene.fog.density = oldDensity;
+          oldFog.density = oldDensity;
         };
       }
     }
