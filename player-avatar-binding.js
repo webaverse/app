@@ -160,7 +160,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
-  rig.sitTTransitionime = player.actionInterpolants.sitTransition.get();
+  rig.sitTransitionTime = player.actionInterpolants.sitTransition.get();
   // rig.danceState = !!danceAction;
   rig.danceFactor = player.actionInterpolants.dance.get();
   if (danceAction) {
