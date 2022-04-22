@@ -397,7 +397,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -823,7 +823,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       debugger
       avatar.blendList.push(applyFn);
     }
-    if (avatar.sitState) {
+    if (avatar.sitTime > 0) {
       const applyFn = spec => {
         const {
           animationTrackName: k,
@@ -837,7 +837,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const blendee = {
           arr: v2,
-          intensity: 1,
+          intensity: sitFactor,
         };
         return blendee;
       };

@@ -1415,6 +1415,7 @@ class Avatar {
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     moveFactors.flyFactor = THREE.MathUtils.clamp(this.flyTime / flyMaxTime, 0, 1);
+    moveFactors.sitFactor = THREE.MathUtils.clamp(this.sitTime / flyMaxTime, 0, 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
     const _updateHmdPosition = () => {
@@ -1836,12 +1837,15 @@ class Avatar {
       <div>idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
       <div>walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
       <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
+      <div>flyState: --- ${this.flyState}</div>
       <div>flyFactor: --- ${moveFactors.flyFactor.toFixed(2)}</div>
       <div>flyTime: --- ${Math.floor(this.flyTime)}</div>
+      <div>sitState: --- ${this.sitState}</div>
+      <div>sitFactor: --- ${moveFactors.sitFactor.toFixed(2)}</div>
+      <div>sitTime: --- ${Math.floor(this.sitTime)}</div>
       <div>chargeJumpState: --- ${this.chargeJumpState}</div>
       <div>danceState: --- ${this.danceState}</div>
       <div>fallLoopState: --- ${this.fallLoopState}</div>
-      <div>flyState: --- ${this.flyState}</div>
       <div>jumpState: --- ${this.jumpState}</div>
       <div>narutoRunState: --- ${this.narutoRunState}</div>
       <div>sitState: --- ${this.sitState}</div>
