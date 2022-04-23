@@ -4,7 +4,7 @@ import classnames from 'classnames';
 import * as ceramicApi from '../ceramic.js';
 import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
-import Modal from './components/modal';
+// import Modal from './components/modal';
 import WebaWallet from './components/wallet';
 
 import blockchainManager from '../blockchain-manager.js';
@@ -25,19 +25,25 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
     //
 
-    const showModal = ( event ) => {
+    /* const showModal = ( event ) => {
 
         event.preventDefault();
         // setShow( ! show );
 
         setState({ openedPanel: 'LoginPanel' });
 
-    };
+    }; */
 
     const openUserPanel = e => {
 
         setState({ openedPanel: 'UserPanel' });
     
+    };
+
+    const handleCancelBtnClick = () => {
+
+        setState({ openedPanel: null });
+
     };
 
     const _setAddress = async address => {
@@ -114,7 +120,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
         //
 
-        const discordLogin = async () => {
+        const discordAutoLogin = async () => {
 
             const { address, error } = await WebaWallet.loginDiscord( code, id );
 
@@ -136,7 +142,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
         };
 
-        const metamaskLogin = async () => {
+        const metamaskAutoLogin = async () => {
 
             const { address } = await WebaWallet.autoLogin();
 
@@ -166,11 +172,11 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                 if ( WebaWallet.launched ) {
 
-                    discordLogin();
+                    discordAutoLogin();
 
                 } else {
 
-                    WebaWallet.waitForLaunch().then( discordLogin );
+                    WebaWallet.waitForLaunch().then( discordAutoLogin );
 
                 }
 
@@ -178,11 +184,11 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                 if ( WebaWallet.launched ) {
 
-                    metamaskLogin();
+                    metamaskAutoLogin();
 
                 } else {
 
-                    WebaWallet.waitForLaunch().then( metamaskLogin );
+                    WebaWallet.waitForLaunch().then( metamaskAutoLogin );
 
                 }
 
@@ -262,7 +268,30 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 >Logout</div>
             </div>
 
-            <Modal onClose={ showModal } show={open && !loggingIn}>
+            <div className={ classnames(
+                styles.userLoginMethodsModal,
+                open ? styles.opened : null,
+            ) } >
+                <div className={ styles.title } >
+                    <span>Log in</span>
+                    {/* <div className={ styles.background } /> */}
+                </div>
+                <div className={ styles.methodBtn } onClick={ metaMaskLogin } >
+                    <img src="images/metamask.png" alt="metamask" width="28px" />
+                    <span className={ styles.methodBtnText } >MetaMask</span>
+                </div>
+                <a href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` } >
+                    <div className={ styles.methodBtn } >
+                        <img src="images/discord.png" alt="discord" width="28px" />
+                        <span className={ styles.methodBtnText } >Discord</span>
+                    </div>
+                </a>
+                <div className={ styles.methodBtn } onClick={ handleCancelBtnClick } >
+                    <span className={ styles.methodBtnText } >Cancel</span>
+                </div>
+            </div>
+
+            {/* <Modal onClose={ showModal } show={open && !loggingIn}>
                 <div className={styles.login_options}>
                 
                     <div className={styles.loginDiv}>
@@ -282,7 +311,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                         </a>
                     </div>
                 </div>
-            </Modal>
+            </Modal> */}
         </div>
     );
 
