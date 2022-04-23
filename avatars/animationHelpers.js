@@ -400,7 +400,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -735,7 +735,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     return target.toArray();
   };
-  const _handleDefault = spec => {
+
+  // if (avatar.idleFactor > 0) {
+  const applyFnDefault = spec => {
     const {
       animationTrackName: k,
       dst,
@@ -745,11 +747,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     const arr = _getHorizontalBlend(k, lerpFn, isPosition, dst);
-    return {
+    const blendee = {
       arr,
-      intensity: 1,
-    }
+      intensity: idleFactor,
+    };
+    return blendee;
   };
+  avatar.blendList.push(applyFnDefault);
+  // }
+
   const _getApplyFn = () => {
     if (avatar.jumpState || avatar.unjumpTime <= 200) {
       const applyFnJump = spec => {
@@ -1316,40 +1322,23 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    // applyFn(spec);
-    // _handleDefault(spec);
-
-    // if (avatar.jumpState) debugger
-
-    const defaultBlendee = _handleDefault(spec);
-    dst.fromArray(defaultBlendee.arr);
-
-    let logText = '';
     if (avatar.blendList.length > 0) {
-      const blendee1 = avatar.blendList[0](spec);
-      logText += blendee1.intensity.toFixed(2) + ' --- ';
-      if (!isPosition) {
-        localQuaternion.fromArray(blendee1.arr);
-        dst.slerp(localQuaternion, blendee1.intensity);
-      } else {
-        localVector.fromArray(blendee1.arr);
-        dst.lerp(localVector, blendee1.intensity);
-      }
-
-      let denominator = 1 + blendee1.intensity;
+      let blendee = avatar.blendList[0](spec);
+      dst.fromArray(blendee.arr);
+      let intensityStep = blendee.intensity;
+      let logText = '';
       for (let i = 1; i < avatar.blendList.length; i++) {
-        const blendee = avatar.blendList[i](spec);
+        blendee = avatar.blendList[i](spec);
+        const t = blendee.intensity / (intensityStep + blendee.intensity);
+        logText += t.toFixed(2) + ' --- ';
         if (!isPosition) {
-          localQuaternion.fromArray(blendee.arr);
-          dst.slerp(localQuaternion, 1 / (denominator) * blendee.intensity);
+          dst.slerp(localQuaternion.fromArray(blendee.arr), t);
         } else {
-          localVector.fromArray(blendee.arr);
-          dst.lerp(localVector, 1 / (denominator) * blendee.intensity);
-          logText += (1 / (denominator) * blendee.intensity).toFixed(2) + ' --- ';
+          dst.lerp(localVector.fromArray(blendee.arr), t);
         }
-        denominator += blendee.intensity;
+        intensityStep += blendee.intensity;
       }
-      // if (isPosition) console.log(logText);
+      if (isPosition) console.log(logText);
     }
 
     _blendActivateAction(spec);

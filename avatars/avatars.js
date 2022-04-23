@@ -20,6 +20,7 @@ import {
   flyTransitionMaxTime,
   fallTransitionMaxTime,
   landTransitionMaxTime,
+  idleTransitionMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -901,6 +902,7 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTransitionTime = NaN;
+    this.idleTransitionTime = NaN;
 
     this.useTime = NaN;
     this.useAnimation = null;
@@ -1416,6 +1418,7 @@ class Avatar {
     moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTransitionTime / crouchTransitionMaxTime), 0), 1);
+    moveFactors.idleFactor = THREE.MathUtils.clamp(this.idleTransitionTime / idleTransitionMaxTime, 0, 1);
     moveFactors.flyFactor = THREE.MathUtils.clamp(this.flyTransitionTime / flyTransitionMaxTime, 0, 1);
     moveFactors.fallFactor = THREE.MathUtils.clamp(this.fallTransitionTime / fallTransitionMaxTime, 0, 1);
     moveFactors.landFactor = THREE.MathUtils.clamp(this.landTransitionTime / landTransitionMaxTime, 0, 1);
@@ -1843,6 +1846,7 @@ class Avatar {
       <div>crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
       <div>jumpState: --- ${this.jumpState}</div>
       <div>jumpTime: --- ${Math.floor(this.jumpTime)}</div>
+      <div>idleFactor: --- ${moveFactors.idleFactor.toFixed(2)}</div>
       <div>flyState: --- ${this.flyState}</div>
       <div>flyFactor: --- ${moveFactors.flyFactor.toFixed(2)}</div>
       <div>flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>

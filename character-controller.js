@@ -29,6 +29,7 @@ import {
   sitTransitionMaxTime,
   fallTransitionMaxTime,
   landTransitionMaxTime,
+  idleTransitionMaxTime,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
@@ -908,6 +909,23 @@ class UninterpolatedPlayer extends StatePlayer {
       // swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
+      idleTransition: new BiActionInterpolant(() => {
+        return ( // todo: performance: simplicity: maybe don't need list all actions here?
+          !this.hasAction('crouch') &&
+          !this.hasAction('activate') &&
+          !this.hasAction('use') &&
+          !this.hasAction('aim') &&
+          !this.hasAction('narutoRun') &&
+          !this.hasAction('fly') &&
+          !this.hasAction('sit') &&
+          !this.hasAction('jump') &&
+          !this.hasAction('fall') &&
+          !this.hasAction('land') &&
+          !this.hasAction('dance') &&
+          !this.hasAction('emote') &&
+          !this.hasAction('hurt')
+        )
+      }, 0, idleTransitionMaxTime),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
 

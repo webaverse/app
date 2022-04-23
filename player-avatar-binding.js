@@ -161,6 +161,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
   rig.sitTransitionTime = player.actionInterpolants.sitTransition.get();
+
+  rig.idleTransitionTime = player.actionInterpolants.idleTransition.get();
+
   // rig.danceState = !!danceAction;
   rig.danceFactor = player.actionInterpolants.dance.get();
   if (danceAction) {

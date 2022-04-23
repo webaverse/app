@@ -65,6 +65,8 @@ export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th
 
 export const audioTimeoutTime = 10 * 1000;
 
+// todo: defaultTransitionMaxTime.
+export const idleTransitionMaxTime = 200;
 export const crouchTransitionMaxTime = 200;
 export const flyTransitionMaxTime = 200;
 export const fallTransitionMaxTime = 200;
