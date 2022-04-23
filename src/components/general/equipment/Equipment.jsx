@@ -6,6 +6,7 @@ import { MegaHotBox } from '../../play-mode/mega-hotbox';
 import { Spritesheet } from '../spritesheet';
 import game from '../../../../game.js';
 import {transparentPngUrl} from '../../../../constants.js';
+import {mod} from '../../../../util.js';
 
 //
 
@@ -150,7 +151,12 @@ export const Equipment = () => {
 
         setSelectObject(object);
     };
-
+    const menuLeft = () => {
+        setSelectedMenuIndex(mod(selectedMenuIndex - 1, 4));
+    };
+    const menuRight = () => {
+        setSelectedMenuIndex(mod(selectedMenuIndex + 1, 4));
+    };
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
     return (
@@ -161,11 +167,11 @@ export const Equipment = () => {
                 selectClassName,
             )}>
                 <div className={styles.menu}>
-                    <div className={classnames(styles.wing, styles.left)}>
+                    <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                         <div className={styles.text}>Land</div>
                     </div>
-                    <div className={classnames(styles.wing, styles.right)}>
+                    <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
                         <div className={styles.text}>Series</div>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                     </div>
@@ -176,11 +182,11 @@ export const Equipment = () => {
                     </div>
                 </div>
                 <div className={styles.menu}>
-                    <div className={classnames(styles.wing, styles.left)}>
+                    <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                         <div className={styles.text}>Inventory</div>
                     </div>
-                    <div className={classnames(styles.wing, styles.right)}>
+                    <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
                         <div className={styles.text}>Account</div>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                     </div>
@@ -230,11 +236,11 @@ export const Equipment = () => {
                     </div>
                 </div>
                 <div className={styles.menu}>
-                    <div className={classnames(styles.wing, styles.left)}>
+                    <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                         <div className={styles.text}>Series</div>
                     </div>
-                    <div className={classnames(styles.wing, styles.right)}>
+                    <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
                         <div className={styles.text}>Land</div>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                     </div>
@@ -245,11 +251,11 @@ export const Equipment = () => {
                     </div>
                 </div>
                 <div className={styles.menu}>
-                    <div className={classnames(styles.wing, styles.left)}>
+                    <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                         <div className={styles.text}>Account</div>
                     </div>
-                    <div className={classnames(styles.wing, styles.right)}>
+                    <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
                         <div className={styles.text}>Inventory</div>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                     </div>
