@@ -17,6 +17,13 @@ const numFrames = 128;
 // const frameLoopTime = 2000;
 // const frameTime = frameLoopTime / numFrames;
 
+const equipmentTabs = [
+    `noun-backpack-16741.svg`,
+    `noun-box-4775546.svg`,
+    `noun-key-1173931.svg`,
+    `noun-arc-de-triomphe-4009238.svg`,
+];
+
 const userTokenObjects = []; // Array(2);
 for (let i = 0; i < userTokenObjects.length; i++) {
     userTokenObjects[i] = {
@@ -102,6 +109,7 @@ export const Equipment = () => {
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
     const [ spritesheet, setSpritesheet ] = useState(null);
+    const [ selectedMenuIndex, setSelectedMenuIndex ] = useState(1);
 
     const refsMap = (() => {
         const map = new Map();
@@ -143,12 +151,20 @@ export const Equipment = () => {
         setSelectObject(object);
     };
 
-    const selectedMenuIndex = 0;
+    const selectClassName = styles[`select-${selectedMenuIndex}`];
 
     return (
         <div className={styles.equipment}>
-            <div className={classnames(styles.menus, open ? styles.open : null)}>
+            <div className={classnames(
+                styles.menus,
+                open ? styles.open : null,
+                selectClassName,
+            )}>
                 <div className={styles.menu}>
+                    <div className={classnames(styles.wing, styles.left)}>
+                        <img className={styles.arrow} src="./images/chevron2.svg" />
+                        <div className={styles.text}>Land</div>
+                    </div>
                     <div className={classnames(styles.wing, styles.right)}>
                         <div className={styles.text}>Series</div>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
@@ -165,7 +181,7 @@ export const Equipment = () => {
                         <div className={styles.text}>Inventory</div>
                     </div>
                     <div className={classnames(styles.wing, styles.right)}>
-                        <div className={styles.text}>Series</div>
+                        <div className={styles.text}>Account</div>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                     </div>
                     <div className={styles.section}>
@@ -218,6 +234,25 @@ export const Equipment = () => {
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                         <div className={styles.text}>Series</div>
                     </div>
+                    <div className={classnames(styles.wing, styles.right)}>
+                        <div className={styles.text}>Land</div>
+                        <img className={styles.arrow} src="./images/chevron2.svg" />
+                    </div>
+                    <div className={styles.section}>
+                        <div className={styles.subheading}>
+                            <h2>Tokens</h2>
+                        </div>
+                    </div>
+                </div>
+                <div className={styles.menu}>
+                    <div className={classnames(styles.wing, styles.left)}>
+                        <img className={styles.arrow} src="./images/chevron2.svg" />
+                        <div className={styles.text}>Account</div>
+                    </div>
+                    <div className={classnames(styles.wing, styles.right)}>
+                        <div className={styles.text}>Inventory</div>
+                        <img className={styles.arrow} src="./images/chevron2.svg" />
+                    </div>
                     <div className={styles.section}>
                         <div className={styles.subheading}>
                             <h2>Tokens</h2>
@@ -226,17 +261,28 @@ export const Equipment = () => {
                 </div>
             </div>
 
-            <div className={classnames(styles.menuFooter, open ? styles.open : null)}>
+            <div className={classnames(
+                styles.menuFooter,
+                open ? styles.open : null,
+                selectClassName,
+            )}>
                 <div className={styles.menuFooterWrap}>
-                    <div className={classnames(styles.menuFooterItem, selectedMenuIndex === 0 ? styles.selected : null)}>
-                        <img className={styles.img} src="./images/equipment/noun-backpack-16741.svg" />
-                    </div>
-                    <div className={classnames(styles.menuFooterItem, selectedMenuIndex === 1 ? styles.selected : null)}>
-                        <img className={styles.img} src="./images/equipment/noun-box-4775546.svg" />
-                    </div>
-                    <div className={classnames(styles.menuFooterItem, selectedMenuIndex === 2 ? styles.selected : null)}>
-                        <img className={styles.img} src="./images/equipment/noun-key-1173931.svg" />
-                    </div>
+                    {equipmentTabs.map((imgFileName, i) => {
+                        return (
+                            <div
+                                className={classnames(
+                                    styles.menuFooterItem,
+                                    selectedMenuIndex === i ? styles.selected : null,
+                                )}
+                                onClick={e => {
+                                    setSelectedMenuIndex(i);
+                                }}
+                                key={i}
+                            >
+                                <img className={styles.img} src={`./images/equipment/${imgFileName}`} />
+                            </div>
+                        );
+                    })}
                     <div className={styles.bar} />
                 </div>
             </div>
