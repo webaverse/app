@@ -252,3 +252,15 @@
   height: 3px;
   background-color: #FFF;
 }
+.menuFooter.select-0 .menuFooterWrap .bar {
+  transform: translateX( calc( var(--item-size) * 0 ) );
+}
+.menuFooter.select-1 .menuFooterWrap .bar {
+  transform: translateX( calc( var(--item-size) * 1 ) );
+}
+.menuFooter.select-2 .menuFooterWrap .bar {
+  transform: translateX( calc( var(--item-size) * 2 ) );
+}
+.menuFooter.select-3 .menuFooterWrap .bar {
+  transform: translateX( calc( var(--item-size) * 3 ) );
+}
