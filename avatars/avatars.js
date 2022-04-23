@@ -951,6 +951,8 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
+
+    this.manuallySetMouth=false;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1728,7 +1730,7 @@ class Avatar {
                 }
               }
               if (index !== -1) {
-                morphTargetInfluences[index] = facepose.value;
+                morphTargetInfluences[index] = facepose.value ?? 1;
               }
             }
           }
@@ -1882,7 +1884,7 @@ class Avatar {
       }
       this.debugMesh.visible = debug.enabled;
     }
-	}
+  }
 
   isAudioEnabled() {
     return !!this.microphoneWorker;
@@ -1915,7 +1917,9 @@ class Avatar {
         emitBuffer: true,
       });
       this.microphoneWorker.addEventListener('volume', e => {
-        this.volume = this.volume*0.8 + e.data*0.2;
+        if(!this.manuallySetMouth){
+          this.volume = this.volume*0.8 + e.data*0.2;
+        }
       });
       this.microphoneWorker.addEventListener('buffer', e => {
         this.audioRecognizer.send(e.data);
