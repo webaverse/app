@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, useAvatarAnimations, useCleanup} = metaversefile;
+// const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, useAvatarAnimations, useCleanup} = metaversefile;
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
@@ -463,7 +463,9 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
     this.texs = texs;
   }
   setTexture(name) {
-    const tex = this.texs.find(t => t.name === name);
+    const spriteSpecs = getSpriteSpecs();
+    const spriteSpecIndex = spriteSpecs.findIndex(spriteSpec => spriteSpec.name === name);
+    const tex = this.texs[spriteSpecIndex];
     if (tex) {
       this.material.uniforms.uTex.value = tex;
       this.material.uniforms.uTex.needsUpdate = true;
@@ -1500,7 +1502,7 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
   }
 }
 
-const _renderSpriteImages = skinnedVrm => {
+export const renderSpriteImages = skinnedVrm => {
   const localRig = new Avatar(skinnedVrm, {
     fingers: true,
     hair: true,
@@ -1576,12 +1578,13 @@ const _renderSpriteImages = skinnedVrm => {
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
-    // canvas.style.cssText = `position: fixed; top: ${canvasIndex2*1024}px; left: 0; width: 1024px; height: 1024px; z-index: 10;`;
     const ctx = canvas.getContext('2d');
-    const tex = new THREE.Texture(canvas);
-    tex.name = name;
-    // tex.minFilter = THREE.NearestFilter;
-    // tex.magFilter = THREE.NearestFilter;
+    
+    let tex;
+    if (preview) {
+      tex = new THREE.Texture(canvas);
+      tex.name = name;
+    }
     let canvasIndex = 0;
     
     // console.log('generate sprite', name);
@@ -1651,7 +1654,9 @@ const _renderSpriteImages = skinnedVrm => {
           0, renderer.domElement.height - texSize, texSize, texSize,
           x * texSize, y * texSize, texSize, texSize
         );
-        tex.needsUpdate = true;
+        if (preview) {
+          tex.needsUpdate = true;
+        }
 
         // await _timeout(50);
       }
@@ -1687,14 +1692,18 @@ const _renderSpriteImages = skinnedVrm => {
     
     canvasIndex2++;
 
-    spriteImages.push(tex);
+    spriteImages.push(canvas);
   }
-  // console.timeEnd('render');
 
   return spriteImages;
 };
 export const createSpriteMegaMesh = skinnedVrm => {
-  const spriteImages = _renderSpriteImages(skinnedVrm);
-  const spriteMegaAvatarMesh = new SpriteMegaAvatarMesh(spriteImages);
+  const spriteImages = renderSpriteImages(skinnedVrm);
+  const spriteTextures = spriteImages.map(img => {
+    const t = new THREE.Texture(img);
+    t.needsUpdate = true;
+    return t;
+  });
+  const spriteMegaAvatarMesh = new SpriteMegaAvatarMesh(spriteTextures);
   return spriteMegaAvatarMesh;
 };
