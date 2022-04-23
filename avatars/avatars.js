@@ -21,6 +21,7 @@ import {
   fallTransitionMaxTime,
   landTransitionMaxTime,
   idleTransitionMaxTime,
+  defaultTransitionMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -1420,6 +1421,7 @@ class Avatar {
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTransitionTime / crouchTransitionMaxTime), 0), 1);
     moveFactors.idleFactor = THREE.MathUtils.clamp(this.idleTransitionTime / idleTransitionMaxTime, 0, 1);
     moveFactors.flyFactor = THREE.MathUtils.clamp(this.flyTransitionTime / flyTransitionMaxTime, 0, 1);
+    moveFactors.useFactor = THREE.MathUtils.clamp(this.useTransitionTime / defaultTransitionMaxTime, 0, 1);
     moveFactors.fallFactor = THREE.MathUtils.clamp(this.fallTransitionTime / fallTransitionMaxTime, 0, 1);
     moveFactors.landFactor = THREE.MathUtils.clamp(this.landTransitionTime / landTransitionMaxTime, 0, 1);
     moveFactors.sitFactor = THREE.MathUtils.clamp(this.sitTransitionTime / flyTransitionMaxTime, 0, 1);
@@ -1867,11 +1869,15 @@ class Avatar {
       <div>hurtAnimation: --- ${this.hurtAnimation}</div>
       <div>poseAnimation: --- ${this.poseAnimation}</div>
       <div>sitAnimation: --- ${this.sitAnimation}</div>
+      <div>useFactor: --- ${moveFactors.useFactor.toFixed(2)}</div>
+      <div>useTransitionTime: --- ${Math.floor(this.useTransitionTime)}</div>
+      <div>useTime: --- ${Math.floor(this.useTime)}</div>
       <div>useAnimation: --- ${this.useAnimation}</div>
       <div>useAnimationCombo: --- </div>
       <div>${this.useAnimationCombo}&nbsp;</div>
       <div>useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
       <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
+      <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
       <div>unuseAnimation: --- ${this.unuseAnimation}</div>
       <div>activateTime: --- ${Math.floor(this.activateTime)}</div>
       <div>aimTime: --- ${Math.floor(this.aimTime)}</div>
@@ -1884,8 +1890,6 @@ class Avatar {
       <div>lastEyeTargetTime: --- ${Math.floor(this.lastEyeTargetTime)}</div>
       <div>lastMoveTime: --- ${Math.floor(this.lastMoveTime)}</div>
       <div>narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>
-      <div>unuseTime: --- ${Math.floor(this.unuseTime)}</div>
-      <div>useTime: --- ${Math.floor(this.useTime)}</div>
       <div>blendList.length: --- ${this.blendList.length}</div>
       <div>blendList: --- ${this.blendList.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
     `

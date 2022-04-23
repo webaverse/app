@@ -30,6 +30,7 @@ import {
   fallTransitionMaxTime,
   landTransitionMaxTime,
   idleTransitionMaxTime,
+  defaultTransitionMaxTime,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
@@ -38,7 +39,7 @@ import {CharacterSfx} from './character-sfx.js';
 import {CharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
-import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
+import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, InfiniteUnstopActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
   defaultPlayerName,
@@ -889,7 +890,8 @@ class UninterpolatedPlayer extends StatePlayer {
     this.actionInterpolants = {
       crouchTransition: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchTransitionMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
-      use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
+      use: new InfiniteUnstopActionInterpolant(() => this.hasAction('use'), 0),
+      useTransition: new BiActionInterpolant(() => this.hasAction('use'), 0, defaultTransitionMaxTime),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
@@ -898,7 +900,7 @@ class UninterpolatedPlayer extends StatePlayer {
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
       unjump: new InfiniteActionInterpolant(() => !this.hasAction('jump'), 0),
       fallTransition: new BiActionInterpolant(() => this.hasAction('fall'), 0, fallTransitionMaxTime),
-      land: new InfiniteActionInterpolant(() => this.hasAction('land'), 0),
+      land: new InfiniteUnstopActionInterpolant(() => this.hasAction('land'), 0),
       landTransition: new BiActionInterpolant(() => this.hasAction('land'), 0, landTransitionMaxTime),
       dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchTransitionMaxTime),
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchTransitionMaxTime),

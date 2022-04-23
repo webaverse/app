@@ -59,6 +59,20 @@ export class InfiniteActionInterpolant extends ScalarInterpolant {
   }
 }
 
+// infinite linear; goes forward only; keep increasing even fn return false, just reset to zero when fn return true again;
+export class InfiniteUnstopActionInterpolant extends ScalarInterpolant {
+  constructor(fn, minValue) {
+    super(fn, minValue, Infinity);
+    this.lastState = false;
+  }
+  update(timeDiff) {
+    const newState = this.fn();
+    if (newState && !this.lastState) this.value = this.minValue;
+    this.value += timeDiff;
+    this.lastState = newState;
+  }
+}
+
 const _makeSnapshots = (constructor, numFrames) => {
   const result = Array(numFrames);
   for (let i = 0; i < numFrames; i++) {

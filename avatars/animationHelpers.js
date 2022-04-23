@@ -400,7 +400,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor, useFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -990,11 +990,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.fromArray(v2);
       };
     } */
-    if (
-      avatar.useAnimation ||
-      avatar.useAnimationCombo.length > 0 ||
-      avatar.useAnimationEnvelope.length > 0
-    ) {
+
+    // if (
+    //   avatar.useAnimation ||
+    //   avatar.useAnimationCombo.length > 0 ||
+    //   avatar.useAnimationEnvelope.length > 0
+    // ) {
+    if (avatar.useTransitionTime > 0) {
       const applyFnUse = spec => {
         const {
           animationTrackName: k,
@@ -1083,7 +1085,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const blendee = {
           arr,
-          intensity: 1,
+          intensity: useFactor,
         };
         return blendee;
       };
@@ -1326,11 +1328,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       let blendee = avatar.blendList[0](spec);
       dst.fromArray(blendee.arr);
       let intensityStep = blendee.intensity;
-      let logText = '';
+      // let logText = '';
       for (let i = 1; i < avatar.blendList.length; i++) {
         blendee = avatar.blendList[i](spec);
         const t = blendee.intensity / (intensityStep + blendee.intensity);
-        logText += t.toFixed(2) + ' --- ';
+        // logText += t.toFixed(2) + ' --- ';
         if (!isPosition) {
           dst.slerp(localQuaternion.fromArray(blendee.arr), t);
         } else {
@@ -1338,7 +1340,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
         intensityStep += blendee.intensity;
       }
-      if (isPosition) console.log(logText);
+      // if (isPosition) console.log(logText);
     }
 
     _blendActivateAction(spec);
