@@ -232,10 +232,10 @@ class CharacterFx {
       }
     };
     _updateKiMesh();
-
     this.lastSSS = isSSS;
+
     const _updateSonicBoomMesh = () => {
-      if ( this.player.isLocalPlayer && !this.sonicBoom ) {
+      if (this.player.isLocalPlayer && !this.sonicBoom ) {
         this.sonicBoom = metaversefile.createApp();
         (async () => {
           await metaverseModules.waitForLoad();
@@ -249,7 +249,7 @@ class CharacterFx {
     _updateSonicBoomMesh();
 
     const _updateHealEffectMesh = () => {
-      if ( this.player.isLocalPlayer && !this.healEffect ) {
+      if (this.player.isLocalPlayer && !this.healEffect ) {
         this.healEffect = metaversefile.createApp();
         (async () => {
           await metaverseModules.waitForLoad();
@@ -259,6 +259,11 @@ class CharacterFx {
         })();
         sceneLowPriority.add(this.healEffect);
       }
+      if(this.player.hasAction('cure')){
+        this.healEffect.playEffect();
+        this.player.removeAction('cure')
+      }
+        
     };
     _updateHealEffectMesh();
   }

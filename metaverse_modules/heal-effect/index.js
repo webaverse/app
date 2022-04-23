@@ -9,11 +9,15 @@ const textureLoader = new THREE.TextureLoader();
 const sparkle = textureLoader.load(`${baseUrl}/textures/sparkle.png`);
 const circle = textureLoader.load(`${baseUrl}/textures/Circle18.png`);
 const splashTexture12 = textureLoader.load(`${baseUrl}/textures/splash12.png`);
-
+let playEffect = false;
 export default () => {
+    
   const app = useApp();
   const localPlayer = useLocalPlayer();
   const {camera} = useInternals();
+  app.playEffect=()=>{
+    playEffect = true;
+  }
   {
       const flashParticleCount = 3;
       const pixelParticleCount = 15;
@@ -273,8 +277,7 @@ export default () => {
           const pixelPositionAttribute = pixel.geometry.getAttribute('position');
           const pixelScaleAttribute = pixel.geometry.getAttribute('scales');
           
-          if(localPlayer.hasAction('cure')){
-              localPlayer.removeAction('cure')
+          if(playEffect){
               if(!particleAlreadyInScene){
                 app.add(flashMesh);
                 app.add(group);
@@ -301,6 +304,7 @@ export default () => {
                 healMaterial[i].g = 70.;
                 healMaterial[i].b = 0.;
               }
+            playEffect = false;
           }
           //#################################### handle flash #######################################
           for (let i = 0; i < flashParticleCount; i++) {
