@@ -74,8 +74,11 @@ export const AuthBar = () => {
 
             const ensName = await authManager.getEnsName( address );
             setEnsName( ensName );
-            const avatarUrl = await authManager.getAvatarUrl( ensName );
-            setAvatarUrl( avatarUrl );
+
+            if ( ensName ) {
+                const avatarUrl = await authManager.getAvatarUrl( ensName );
+                setAvatarUrl( avatarUrl );
+            }
 
         }
 
