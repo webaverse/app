@@ -121,28 +121,18 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.landTransitionTime = player.actionInterpolants.landTransition.get();
 
   rig.activateTime = player.actionInterpolants.activate.get();
-  
+
   if (useAction?.animation) {
+    rig.useType = 'normal';
     rig.useAnimation = useAction.animation;
-  } else {
-    // if (rig.useAnimation) {
-    //   rig.useAnimation = '';
-    // }
-  }
-  if (useAction?.animationCombo) {
+  } else if (useAction?.animationCombo) {
+    rig.useType = 'combo';
     rig.useAnimationCombo = useAction.animationCombo;
-  } else {
-    // if (rig.useAnimationCombo.length > 0) {
-    //   rig.useAnimationCombo = [];
-    // }
-  }
-  if (useAction?.animationEnvelope) {
+  } else if (useAction?.animationEnvelope) {
+    rig.useType = 'envelope';
     rig.useAnimationEnvelope = useAction.animationEnvelope;
-  } else {
-    // if (rig.useAnimationEnvelope.length > 0) {
-    //   rig.useAnimationEnvelope = [];
-    // }
   }
+
   // rig.useAnimationIndex = useAction?.index;
   if (useAction) {
     rig.useAnimationIndex = useAction.index;

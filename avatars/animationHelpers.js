@@ -1008,15 +1008,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         let useAnimation;
         let t2;
         const useTimeS = avatar.useTime / 1000;
-        if (avatar.useAnimation) {
+        if (avatar.useType === 'normal') {
           const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (avatar.useAnimationCombo.length > 0) {
+        } else if (avatar.useType === 'combo') {
           const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (avatar.useAnimationEnvelope.length > 0) {
+        } else if (avatar.useType === 'envelope') {
           let totalTime = 0;
           for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
             const animationName = avatar.useAnimationEnvelope[i];
