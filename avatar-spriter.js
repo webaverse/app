@@ -54,7 +54,7 @@ const alphaTest = 0.9;
 
 const planeSpriteMeshes = [];
 const spriteAvatarMeshes = [];
-class SpritePlaneMesh extends THREE.Mesh {
+class SpriteAnimationPlaneMesh extends THREE.Mesh {
   constructor(tex, {angleIndex}) {
     const planeSpriteMaterial = new WebaverseShaderMaterial({
       uniforms: {
@@ -189,7 +189,7 @@ class SpritePlaneMesh extends THREE.Mesh {
     return this;
   }
 }
-class SpriteAvatarMesh extends THREE.Mesh {
+class SpriteAnimation360Mesh extends THREE.Mesh {
   constructor(tex) {
     const avatarSpriteMaterial = new WebaverseShaderMaterial({
       uniforms: {
@@ -321,13 +321,12 @@ class SpriteAvatarMesh extends THREE.Mesh {
     this.customPostMaterial = new AvatarSpriteDepthMaterial(undefined, {
       tex,
     });
-    // return spriteAvatarMesh;
 
     this.lastSpriteSpecName = '';
     this.lastSpriteSpecTimestamp = 0;
   }
 }
-class SpriteMegaAvatarMesh extends THREE.Mesh {
+class SpriteAvatarMesh extends THREE.Mesh {
   constructor(texs) {
     const tex = texs[0];
     const avatarMegaSpriteMaterial = new WebaverseShaderMaterial({
@@ -1646,7 +1645,7 @@ export const renderSpriteImages = skinnedVrm => {
       }
 
       if (preview) {
-        const planeSpriteMesh = new SpritePlaneMesh(tex, {
+        const planeSpriteMesh = new SpriteAnimationPlaneMesh(tex, {
           angleIndex: startAngleIndex,
         });
         planeSpriteMesh.position.set(-canvasIndex*worldSize, 2, -canvasIndex2*worldSize);
@@ -1662,7 +1661,7 @@ export const renderSpriteImages = skinnedVrm => {
     }
 
     if (preview) {
-      const spriteAvatarMesh = new SpriteAvatarMesh(tex);
+      const spriteAvatarMesh = new SpriteAnimation360Mesh(tex);
       spriteAvatarMesh.position.set(
         -canvasIndex*worldSize,
         0,
@@ -1681,13 +1680,13 @@ export const renderSpriteImages = skinnedVrm => {
 
   return spriteImages;
 };
-export const createSpriteMegaMesh = skinnedVrm => {
+export const createSpriteAvatarMesh = skinnedVrm => {
   const spriteImages = renderSpriteImages(skinnedVrm);
   const spriteTextures = spriteImages.map(img => {
     const t = new THREE.Texture(img);
     t.needsUpdate = true;
     return t;
   });
-  const spriteMegaAvatarMesh = new SpriteMegaAvatarMesh(spriteTextures);
-  return spriteMegaAvatarMesh;
+  const spriteAvatarMesh = new SpriteAvatarMesh(spriteTextures);
+  return spriteAvatarMesh;
 };
