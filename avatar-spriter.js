@@ -777,7 +777,6 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
               // positionOffset -= walkSpeed/1000 * timeDiffMs;
               
@@ -801,7 +800,6 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
               positionOffset -= walkSpeed/1000 * timeDiffMs;
     
@@ -825,7 +823,6 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
               positionOffset -= walkSpeed/1000 * timeDiffMs;
     
@@ -849,7 +846,6 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
               positionOffset += walkSpeed/1000 * timeDiffMs;
     
@@ -873,7 +869,6 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
               positionOffset += walkSpeed/1000 * timeDiffMs;
     
@@ -897,7 +892,6 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
               positionOffset -= runSpeed/1000 * timeDiffMs;
     
@@ -921,7 +915,6 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
               positionOffset -= runSpeed/1000 * timeDiffMs;
               
@@ -945,7 +938,6 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
               positionOffset += runSpeed/1000 * timeDiffMs;
               
@@ -969,7 +961,6 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
               positionOffset += runSpeed/1000 * timeDiffMs;
               
@@ -1009,7 +1000,6 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
-            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1038,7 +1028,6 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
-            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1067,7 +1056,6 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
-            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1096,7 +1084,6 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
-            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1125,7 +1112,6 @@ const getSpriteSpecs = () => {
     
               localRig.update(timestamp, timeDiffMs);
             },
-            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1175,8 +1161,7 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
     
-          const defaultJumpTime = 0;
-          let jumpTime = defaultJumpTime;
+          let jumpTime = 0;
           // const jumpIncrementSpeed = 400;
     
           return {
@@ -1204,7 +1189,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             reset() {
-              jumpTime = defaultJumpTime;
+              jumpTime = 0;
             },
             cleanup() {
               localRig.jumpState = false;
@@ -1612,7 +1597,6 @@ export const renderSpriteImages = skinnedVrm => {
       // pre-run the animation one cycle first, to stabilize the hair physics
       let now = 0;
       const startAngleIndex = angleIndex;
-      // localRig.springBoneManager.reset();
       {
         const startNow = now;
         for (let j = 0; j < numFrames; j++) {
@@ -1624,7 +1608,7 @@ export const renderSpriteImages = skinnedVrm => {
       }
       const initialPositionOffset = localRig.inputs.hmd.position.z;
       
-      spriteGenerator.reset();
+      spriteGenerator.reset && spriteGenerator.reset();
 
       // now perform the real capture
       const startNow = now;
