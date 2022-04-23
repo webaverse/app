@@ -618,7 +618,6 @@ class StatePlayer extends PlayerBase {
         });
 
         loadPhysxCharacterController.call(this);
-        console.log("loadPhysxCharacterController on ", this)
         // console.log('disable actor', this.characterController);
         physicsManager.disableGeometryQueries(this.characterController);
       })();
@@ -1407,8 +1406,6 @@ class RemotePlayer extends InterpolatedPlayer {
 
     const lastPosition = new THREE.Vector3();
 
-    loadPhysxCharacterController.call(this);
-
     const observePlayerFn = (e) => {
       const transform = this.playerMap.get('transform');
 
@@ -1416,9 +1413,6 @@ class RemotePlayer extends InterpolatedPlayer {
         const remoteTimeDiff = transform[10];
         lastPosition.copy(this.position);
         this.position.fromArray(transform, 0);
-
-        physicsManager.setCharacterControllerPosition(this.characterController, this.position);
-        this.characterPhysics.update(performance.now(), remoteTimeDiff);
         
         this.quaternion.fromArray(transform, 3);
 
@@ -1459,6 +1453,16 @@ class RemotePlayer extends InterpolatedPlayer {
     this.appManager.loadApps();
 
     this.syncAvatar();
+  }
+
+  destroy() {
+    this.characterPhysics.destroy();
+    this.characterHups.destroy();
+    this.characterSfx.destroy();
+    this.characterFx.destroy();
+    this.characterBehavior.destroy();
+
+    super.destroy();
   }
 
   getSession() {
