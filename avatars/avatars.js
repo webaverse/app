@@ -445,6 +445,7 @@ class Avatar {
     this.model = model;
     this.spriteMegaAvatarMesh = null;
     this.crunchedModel = null;
+    this.optimizedModel = null;
     this.options = options;
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
@@ -878,6 +879,8 @@ class Avatar {
     this.audioWorker = null;
     this.microphoneWorker = null;
     this.volume = 0;
+
+    this.quality = 4;
 
     this.shoulderTransforms.Start();
     this.legsManager.Start();
@@ -1409,44 +1412,85 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
+    this.quality = quality;
 
-    this.model.visible = false;
-    if (this.crunchedModel) this.crunchedModel.visible = false;
-    if (this.spriteMegaAvatarMesh) this.spriteMegaAvatarMesh.visible = false;
-
-    switch (quality) {
+    switch (this.quality) {
       case 1: {
-        const skinnedMesh = await this.object.cloneVrm();
-        this.spriteMegaAvatarMesh = this.spriteMegaAvatarMesh ?? avatarSpriter.createSpriteMegaMesh(skinnedMesh);
-        scene.add(this.spriteMegaAvatarMesh);
-        this.spriteMegaAvatarMesh.visible = true;
+        if (!this.spriteAvatarMesh) {
+          const skinnedMesh = await this.object.cloneVrm();
+          this.spriteAvatarMesh = avatarSpriter.createSpriteAvatarMesh(skinnedMesh);
+          this.spriteAvatarMesh.visible = false;
+          this.spriteAvatarMesh.enabled = true; // XXX
+          scene.add(this.spriteAvatarMesh);
+        }
         break;
       }
       case 2: {
-        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel(this.model);
-        this.crunchedModel.frustumCulled = false;
-        scene.add(this.crunchedModel);
-        this.crunchedModel.visible = true;
+        if (!this.crunchedModel) {
+          this.crunchedModel = avatarCruncher.crunchAvatarModel(this.model);
+          this.crunchedModel.visible = false;
+          this.crunchedModel.enabled = true; // XXX
+          scene.add(this.crunchedModel);
+        }
         break;
       }
       case 3: {
-        this.optimizedModel = avatarOptimizer.optimizeAvatarModel(this.model);
-        this.optimizedModel.traverse(o => {
-          if (o.isMesh) {
-            o.frustumCulled = false;
-          }
-        });
-        scene.add(this.optimizedModel);
-        this.optimizedModel.visible = true;
+        if (!this.optimizedModel) {
+          this.optimizedModel = avatarOptimizer.optimizeAvatarModel(this.model);
+          this.optimizedModel.visible = false;
+          this.optimizedModel.enabled = true; // XXX
+          scene.add(this.optimizedModel);
+        }
+        break;
+      }
+      case 3:
+      case 4: {
+        break;
+      }
+      default: {
+        throw new Error('unknown avatar quality: ' + this.quality);
+      }
+    }
+
+    this.#updateVisibility();
+  }
+  #updateVisibility() {
+    this.model.visible = false;
+    if (this.spriteAvatarMesh) {
+      this.spriteAvatarMesh.visible = false;
+    }
+    if (this.crunchedModel) {
+      this.crunchedModel.visible = false;
+    }
+    if (this.optimizedModel) {
+      this.optimizedModel.visible = false;
+    }
+
+    switch (this.quality) {
+      case 1: {
+        if (this.spriteAvatarMesh && this.spriteAvatarMesh.enabled) {
+          this.spriteAvatarMesh.visible = true;
+        }
+        break;
+      }
+      case 2: {
+        if (this.crunchedModel && this.crunchedModel.enabled) {
+          this.crunchedModel.visible = true;
+        }
+        break;
+      }
+      case 3: {
+        if (this.optimizedModel && this.optimizedModel.enabled) {
+          this.optimizedModel.visible = true;
+        }
         break;
       }
       case 4: {
-        console.log('not implemented'); // XXX
         this.model.visible = true;
         break;
       }
       default: {
-        throw new Error('unknown avatar quality: ' + quality);
+        throw new Error('unknown avatar quality: ' + this.quality);
       }
     }
   }
@@ -1867,8 +1911,8 @@ class Avatar {
 
 
     const _updateSubAvatars = () => {
-      if (this.spriteMegaAvatarMesh) {
-        this.spriteMegaAvatarMesh.update(timestamp, timeDiff, {
+      if (this.spriteAvatarMesh) {
+        this.spriteAvatarMesh.update(timestamp, timeDiff, {
           playerAvatar: this,
           camera,
         });
@@ -2187,6 +2231,16 @@ class Avatar {
   } */
 
   destroy() {
+    if (this.spriteAvatarMesh) {
+      scene.remove(this.spriteAvatarMesh);
+    }
+    if (this.crunchedModel) {
+      scene.remove(this.crunchedModel);
+    }
+    if (this.optimizedModel) {
+      scene.remove(this.optimizedModel);
+    }
+
     this.setAudioEnabled(false);
   }
 }
