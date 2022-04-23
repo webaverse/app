@@ -1,6 +1,6 @@
 import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
-import styles from './inventory.module.css';
+import styles from './equipment.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
 import { Spritesheet } from '../spritesheet';
@@ -11,9 +11,9 @@ import {transparentPngUrl} from '../../../../constants.js';
 
 const size = 2048;
 const numFrames = 128;
-const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
-const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
-const frameSize = size / numFramesPerRow;
+// const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
+// const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
+// const frameSize = size / numFramesPerRow;
 // const frameLoopTime = 2000;
 // const frameTime = frameLoopTime / numFrames;
 
@@ -52,7 +52,7 @@ const objects = {
 
 //
 
-const InventoryObject = forwardRef(({
+const Item = forwardRef(({
     object,
     enabled,
     hovered,
@@ -65,7 +65,7 @@ const InventoryObject = forwardRef(({
     return (
         <div
             className={classnames(
-                styles.inventoryObject,
+                styles.item,
                 hovered ? styles.hovered : null,
                 selected ? styles.selected : null,
             )}
@@ -97,7 +97,7 @@ const InventoryObject = forwardRef(({
     );
 });
 
-export const Inventory = () => {
+export const Equipment = () => {
     const { state, setState } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
@@ -144,18 +144,15 @@ export const Inventory = () => {
     };
 
     return (
-        <div className={styles.inventory}>
+        <div className={styles.equipment}>
             <div className={classnames(styles.menu, open ? styles.open : null)}>
-                {/* <div className={styles.heading}>
-                    <h1>Inventory</h1>
-                </div> */}
                 <div className={styles.section}>
                     <div className={styles.subheading}>
                         <h2>Tokens</h2>
                     </div>
                     <ul className={styles.list}>
                         {userTokenObjects.map((object, i) =>
-                            <InventoryObject
+                            <Item
                                 object={object}
                                 enabled={open}
                                 hovered={object === hoverObject}
@@ -177,7 +174,7 @@ export const Inventory = () => {
                     <ul className={styles.list}>
                         {objects.upstreet.map((object, i) => {
                             return (
-                                <InventoryObject
+                                <Item
                                     object={object}
                                     enabled={open}
                                     hovered={object === hoverObject}

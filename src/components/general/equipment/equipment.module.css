@@ -1,4 +1,4 @@
-.inventory .menu {
+.equipment .menu {
   display: flex;
   position: fixed;
   top: 100vh;
@@ -10,19 +10,19 @@
   flex-direction: column;
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
-.inventory .menu.open {
+.equipment .menu.open {
   transform: translateY(calc(-100vh + 160px));
 }
-.inventory h1,
-.inventory h2
+.equipment h1,
+.equipment h2
 {
   margin: 15px;
   font-family: 'WinchesterCaps';
   letter-spacing: 1px;
 }
-.inventory ul.reset,
-.inventory ul.reset li,
-.inventory ul.reset ul li {
+.equipment ul.reset,
+.equipment ul.reset li,
+.equipment ul.reset ul li {
    margin:0;
    padding: 0;
    text-indent: 0;
@@ -44,13 +44,13 @@
   }
 }
 
-.inventory .list {
+.equipment .list {
   position: relative;
   display: flex;
   flex-wrap: wrap;
   padding-left: 20px;
 }
-/* .inventory .list .item {
+/* .equipment .list .item {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -67,7 +67,7 @@
 
 /* */
 
-.inventoryObject {
+.item {
   --size: 80px;
   
   display: flex;
@@ -77,13 +77,13 @@
   cursor: pointer;
   user-select: none;
 }
-/* .inventoryObject:hover,
-.inventoryObject:active
+/* .item:hover,
+.item:active
 {
   cursor: grabbing;
 } */
-.inventoryObject .background,
-.inventoryObject .highlight
+.item .background,
+.item .highlight
 {
   position: absolute;
   width: var(--size);
@@ -91,52 +91,52 @@
   border-radius: 1000px;
   transform-origin: 50% 50%;
 }
-.inventoryObject .background {
+.item .background {
   background-color: #111;
 }
-.inventoryObject .highlight {
+.item .highlight {
   background-color: #FFF;
   /* border: 5px solid transparent; */
   transform: scale(0, 0);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
-.inventoryObject:hover .highlight,
-.inventoryObject.selected .highlight
+.item:hover .highlight,
+.item.selected .highlight
 {
   transform: none;
 }
-.inventoryObject:active .highlight,
-.inventoryObject:active .background
+.item:active .highlight,
+.item:active .background
 {
   transform: scale(0.9, 0.9);
 }
-.inventoryObject.selected .highlight {
+.item.selected .highlight {
   background-image: radial-gradient(#7e57c2, #512da8);
 }
-.inventoryObject .canvas,
-.inventoryObject .name,
-.inventoryObject .level {
+.item .canvas,
+.item .name,
+.item .level {
   pointer-events: none;
 }
-.inventoryObject .canvas {
+.item .canvas {
   position: relative;
   width: var(--size);
   height: var(--size);
 }
-.inventoryObject .row {
+.item .row {
   display: flex;
   align-items: baseline;
 }
-.inventoryObject .name,
-.inventoryObject .level
+.item .name,
+.item .level
 {
   font-family: 'PlazaRegular';
 }
-.inventoryObject .name {
+.item .name {
   margin-right: auto;
   font-size: 18px;
 }
-.inventoryObject .level {
+.item .level {
   font-size: 13px;
   color: #666;
 }
