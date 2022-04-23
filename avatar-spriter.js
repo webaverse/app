@@ -1700,12 +1700,8 @@ const _renderSpriteImages = skinnedVrm => {
 
   return spriteImages;
 };
-function createSpriteMegaMesh(skinnedVrm) {
+export const createSpriteMegaMesh = skinnedVrm => {
   const spriteImages = _renderSpriteImages(skinnedVrm);
   const spriteMegaAvatarMesh = new SpriteMegaAvatarMesh(spriteImages);
   return spriteMegaAvatarMesh;
-}
-
-export {
-  createSpriteMegaMesh
 };
