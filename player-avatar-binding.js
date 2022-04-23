@@ -131,6 +131,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   } else if (useAction?.animationEnvelope) {
     rig.useType = 'envelope';
     rig.useAnimationEnvelope = useAction.animationEnvelope;
+  } else {
+    // rig.useType = null // eg: pistol
   }
 
   // rig.useAnimationIndex = useAction?.index;

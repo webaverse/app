@@ -1869,6 +1869,7 @@ class Avatar {
       <div>hurtAnimation: --- ${this.hurtAnimation}</div>
       <div>poseAnimation: --- ${this.poseAnimation}</div>
       <div>sitAnimation: --- ${this.sitAnimation}</div>
+      // <div>useType: --- ${this.useType}</div>
       <div>useFactor: --- ${moveFactors.useFactor.toFixed(2)}</div>
       <div>useTransitionTime: --- ${Math.floor(this.useTransitionTime)}</div>
       <div>useTime: --- ${Math.floor(this.useTime)}</div>

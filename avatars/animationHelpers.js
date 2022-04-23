@@ -1088,6 +1088,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           intensity: useFactor,
         };
         return blendee;
+
+        //   const blendee = {
+        //     arr,
+        //     intensity: useFactor,
+        //   };
+        //   return blendee;
+        // } else {
+        //   const blendee = {
+        //     arr: [0, 0, 0, 0],
+        //     intensity: 0,
+        //   };
+        //   return blendee;
+        // }
       };
       // debugger
       avatar.blendList.push(applyFnUse);
