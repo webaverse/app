@@ -17,7 +17,7 @@ import {
 import {
   crouchMaxTime,
   // useMaxTime,
-  aimMaxTime,
+  // aimMaxTime,
   aimTransitionMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
