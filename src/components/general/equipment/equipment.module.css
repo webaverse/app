@@ -1,18 +1,83 @@
-.equipment .menu {
-  display: flex;
+.equipment {
+  --width: 600px;
+}
+.equipment .menus,
+.equipment .menuFooter
+{
   position: fixed;
   top: 100vh;
   left: 460px;
-  width: 600px;
-  height: calc(100vh - 200px);
-  background-image: linear-gradient(to bottom, #222, #000);
-  color: #FFF;
+}
+.equipment .menus {
+  display: flex;
   flex-direction: column;
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
-.equipment .menu.open {
+.equipment .menus.open {
   transform: translateY(calc(-100vh + 160px));
 }
+.equipment .menu {
+  --height: calc(
+    100vh /* full height */
+    - 200px /* header */
+    - 40px /* footer */
+  );
+
+  position: relative;
+  display: flex;
+  width: var(--width);
+  height: var(--height);
+  background-image: linear-gradient(to bottom, #222, #000);
+  color: #FFF;
+  flex-direction: column;
+}
+
+.equipment .menu .wing {
+  --size: 40px;
+
+  position: absolute;
+  top: calc( 50% - 64px );
+  display: flex;
+  /* width: var(--height); */
+  width: 128px;
+  padding: 0 15px;
+  background-color: #000;
+  font-family: 'PlazaRegular';
+  font-size: 20px;
+  border-radius: 15px 15px 0 0;
+  justify-content: center;
+  align-items: center;
+  transform-origin: 0 0;
+  cursor: pointer;
+  user-select: none;
+}
+.equipment .menu .wing:hover {
+  background-color: #1e88e5;
+}
+.equipment .menu .wing:active {
+  background-color: #1565c0;
+}
+.equipment .menu .wing .arrow {
+  width: var(--size);
+  height: var(--size);
+  padding: 10px;
+  transform: rotateZ(90deg);
+}
+.equipment .menu .wing.left {
+  left: calc( - var(--width) );
+  margin-top: 128px;
+  margin-left: calc( -40px );
+  padding-left: 0;
+  transform: rotateZ(-90deg);
+}
+.equipment .menu .wing.right {
+  left: calc( var(--width) + var(--size) );
+  padding-right: 0;
+  transform: rotateZ(90deg);
+}
+
+/* */
+
 .equipment h1,
 .equipment h2
 {
@@ -29,7 +94,7 @@
    list-style-type: none;
 }
 
-@keyframes character-animation {
+/* @keyframes character-animation {
   0% {
     background-image: none;
     background-color: #000;
@@ -42,7 +107,7 @@
     background-image: none;
     background-color: #000;
   }
-}
+} */
 
 .equipment .list {
   position: relative;
@@ -50,20 +115,6 @@
   flex-wrap: wrap;
   padding-left: 20px;
 }
-/* .equipment .list .item {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100px;
-  height: 100px;
-  margin: 10px;
-  border-radius: 10px;
-  background-image: radial-gradient(#444, #222);
-  border: 3px solid #282828;
-  cursor: pointer;
-} */
 
 /* */
 
@@ -77,11 +128,6 @@
   cursor: pointer;
   user-select: none;
 }
-/* .item:hover,
-.item:active
-{
-  cursor: grabbing;
-} */
 .item .background,
 .item .highlight
 {
@@ -96,7 +142,6 @@
 }
 .item .highlight {
   background-color: #FFF;
-  /* border: 5px solid transparent; */
   transform: scale(0, 0);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
@@ -139,4 +184,58 @@
 .item .level {
   font-size: 13px;
   color: #666;
+}
+
+/* */
+
+.menuFooter {
+  --item-size: 100px;
+
+  display: flex;
+  width: var(--width);
+  margin: 0 auto;
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.menuFooter.open {
+  transform: translateY(calc(-50px - 20px));
+  transition: transform 1s cubic-bezier(0.5, 1, 0.5, 1);
+}
+.menuFooter .menuFooterWrap {
+  position: relative;
+  display: flex;
+  margin: 0 auto;
+}
+.menuFooter .menuFooterWrap .menuFooterItem {
+  display: flex;
+  width: var(--item-size);
+  padding-bottom: 3px;
+  background-color: #000;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.menuFooter .menuFooterWrap .menuFooterItem:hover,
+.menuFooter .menuFooterWrap .menuFooterItem.selected
+{
+  background-color: #222;
+}
+.menuFooter .menuFooterWrap .menuFooterItem:not(:hover):not(.selected) .img {
+  opacity: 0.2;
+}
+.menuFooter .menuFooterWrap .menuFooterItem .img {
+  width: 30px;
+  height: 30px;
+  margin: 10px;
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.menuFooter .menuFooterWrap .menuFooterItem:active .img {
+  transform: scale(0.8, 0.8);
+}
+.menuFooter .menuFooterWrap .bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: var(--item-size);
+  height: 3px;
+  background-color: #FFF;
 }

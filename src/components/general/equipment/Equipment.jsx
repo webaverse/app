@@ -143,37 +143,26 @@ export const Equipment = () => {
         setSelectObject(object);
     };
 
+    const selectedMenuIndex = 0;
+
     return (
         <div className={styles.equipment}>
-            <div className={classnames(styles.menu, open ? styles.open : null)}>
-                <div className={styles.section}>
-                    <div className={styles.subheading}>
-                        <h2>Tokens</h2>
+            <div className={classnames(styles.menus, open ? styles.open : null)}>
+                <div className={styles.menu}>
+                    <div className={classnames(styles.wing, styles.left)}>
+                        <img className={styles.arrow} src="./images/chevron2.svg" />
+                        <div className={styles.text}>Inventory</div>
                     </div>
-                    <ul className={styles.list}>
-                        {userTokenObjects.map((object, i) =>
-                            <Item
-                                object={object}
-                                enabled={open}
-                                hovered={object === hoverObject}
-                                selected={object === selectObject}
-                                onMouseEnter={onMouseEnter(object)}
-                                onMouseDown={onMouseDown(object)}
-                                onDragStart={onDragStart(object)}
-                                onDoubleClick={onDoubleClick(object)}
-                                key={i}
-                                ref={refsMap.get(object)}
-                            />
-                        )}
-                    </ul>
-                </div>
-                <div className={styles.section}>
-                    <div className={styles.subheading}>
-                        <h2>From Upstreet</h2>
+                    <div className={classnames(styles.wing, styles.right)}>
+                        <div className={styles.text}>Series</div>
+                        <img className={styles.arrow} src="./images/chevron2.svg" />
                     </div>
-                    <ul className={styles.list}>
-                        {objects.upstreet.map((object, i) => {
-                            return (
+                    <div className={styles.section}>
+                        <div className={styles.subheading}>
+                            <h2>Tokens</h2>
+                        </div>
+                        <ul className={styles.list}>
+                            {userTokenObjects.map((object, i) =>
                                 <Item
                                     object={object}
                                     enabled={open}
@@ -186,9 +175,47 @@ export const Equipment = () => {
                                     key={i}
                                     ref={refsMap.get(object)}
                                 />
-                            );
-                        })}
-                    </ul>
+                            )}
+                        </ul>
+                    </div>
+                    <div className={styles.section}>
+                        <div className={styles.subheading}>
+                            <h2>From Upstreet</h2>
+                        </div>
+                        <ul className={styles.list}>
+                            {objects.upstreet.map((object, i) => {
+                                return (
+                                    <Item
+                                        object={object}
+                                        enabled={open}
+                                        hovered={object === hoverObject}
+                                        selected={object === selectObject}
+                                        onMouseEnter={onMouseEnter(object)}
+                                        onMouseDown={onMouseDown(object)}
+                                        onDragStart={onDragStart(object)}
+                                        onDoubleClick={onDoubleClick(object)}
+                                        key={i}
+                                        ref={refsMap.get(object)}
+                                    />
+                                );
+                            })}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div className={classnames(styles.menuFooter, open ? styles.open : null)}>
+                <div className={styles.menuFooterWrap}>
+                    <div className={classnames(styles.menuFooterItem, selectedMenuIndex === 0 ? styles.selected : null)}>
+                        <img className={styles.img} src="./images/equipment/noun-backpack-16741.svg" />
+                    </div>
+                    <div className={classnames(styles.menuFooterItem, selectedMenuIndex === 1 ? styles.selected : null)}>
+                        <img className={styles.img} src="./images/equipment/noun-box-4775546.svg" />
+                    </div>
+                    <div className={classnames(styles.menuFooterItem, selectedMenuIndex === 2 ? styles.selected : null)}>
+                        <img className={styles.img} src="./images/equipment/noun-key-1173931.svg" />
+                    </div>
+                    <div className={styles.bar} />
                 </div>
             </div>
 
