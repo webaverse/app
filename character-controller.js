@@ -278,6 +278,7 @@ class PlayerBase extends THREE.Object3D {
     return factor; */
   }
   wear(app, { loadoutIndex = -1 } = {}) {
+    debugger
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -722,6 +723,10 @@ class StatePlayer extends PlayerBase {
     return action;
   }
   removeAction(type) {
+    if (type == 'wear') {
+      debugger
+    }
+    
     const actions = this.getActionsState();
     let i = 0;
     for (const action of actions) {
@@ -1046,11 +1051,12 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
-    this.characterBehavior = new CharacterBehavior(this);
+    // If these weren't set on constructor (which they aren't on remote player) then set them now 
+    this.characterPhysics = this.characterPhysics ?? new CharacterPhysics(this);
+    this.characterHups = this.characterHups ?? new CharacterHups(this);
+    this.characterSfx = this.characterSfx ?? new CharacterSfx(this);
+    this.characterFx = this.characterFx ?? new CharacterFx(this);
+    this.characterBehavior = this.characterBehavior ?? new CharacterBehavior(this);
     
   }
   async setAvatarUrl(u) {
@@ -1364,7 +1370,6 @@ class RemotePlayer extends InterpolatedPlayer {
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
     this.characterBehavior = new CharacterBehavior(this);
-
   }
   detachState() {
     return null;
@@ -1407,19 +1412,22 @@ class RemotePlayer extends InterpolatedPlayer {
 
     const lastPosition = new THREE.Vector3();
 
+    loadPhysxCharacterController.call(this);
+
+    let prevApps = []
+
     const observePlayerFn = (e) => {
       const transform = this.playerMap.get('transform');
 
       if (transform) {
+        const remoteTimeDiff = transform[10];
         lastPosition.copy(this.position);
         this.position.fromArray(transform, 0);
-        // physicsManager.setCharacterControllerPosition(this, this.position);
-        // this.characterPhysics.update(performance.now(), remoteTimeDiff);
+
+        physicsManager.setCharacterControllerPosition(this.characterController, this.position);
+        this.characterPhysics.update(performance.now(), remoteTimeDiff);
         
         this.quaternion.fromArray(transform, 3);
-
-
-        const remoteTimeDiff = transform[10];
 
         this.positionInterpolant?.snapshot(remoteTimeDiff);
         this.quaternionInterpolant?.snapshot(remoteTimeDiff);
@@ -1438,14 +1446,28 @@ class RemotePlayer extends InterpolatedPlayer {
           );
         }
 
-        this.appManager.apps.forEach((app) =>
+        if (prevApps.length > this.appManager.apps.length) {
+          prevApps.forEach((prevApp) => {
+            const filtered = this.appManager.apps.filter((app) => app.uuid == prevApp.uuid)
+            if (filtered.length == 0 && prevApp.getComponent('wear')) {
+              //removed app
+              debugger
+              this.unwear(prevApp)
+            }
+          })
+        }
+
+        prevApps = []
+        this.appManager.apps.forEach((app) => {
           app.dispatchEvent({
             type: 'wearupdate',
             player: this,
             app,
             wear: true,
           })
-        );
+          prevApps.push(app)
+        });
+
       }
     };
 
@@ -1575,7 +1597,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
 
     this.avatar = avatar;
 
-    // If these weren't set on constructor (which they aren't on remote player) then set them now 
     this.characterPhysics = this.characterPhysics ?? new CharacterPhysics(this);
     this.characterHups = this.characterHups ?? new CharacterHups(this);
     this.characterSfx = this.characterSfx ?? new CharacterSfx(this);
