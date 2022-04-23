@@ -149,6 +149,17 @@ export const Equipment = () => {
         <div className={styles.equipment}>
             <div className={classnames(styles.menus, open ? styles.open : null)}>
                 <div className={styles.menu}>
+                    <div className={classnames(styles.wing, styles.right)}>
+                        <div className={styles.text}>Series</div>
+                        <img className={styles.arrow} src="./images/chevron2.svg" />
+                    </div>
+                    <div className={styles.section}>
+                        <div className={styles.subheading}>
+                            <h2>Tokens</h2>
+                        </div>
+                    </div>
+                </div>
+                <div className={styles.menu}>
                     <div className={classnames(styles.wing, styles.left)}>
                         <img className={styles.arrow} src="./images/chevron2.svg" />
                         <div className={styles.text}>Inventory</div>
@@ -200,6 +211,17 @@ export const Equipment = () => {
                                 );
                             })}
                         </ul>
+                    </div>
+                </div>
+                <div className={styles.menu}>
+                    <div className={classnames(styles.wing, styles.left)}>
+                        <img className={styles.arrow} src="./images/chevron2.svg" />
+                        <div className={styles.text}>Series</div>
+                    </div>
+                    <div className={styles.section}>
+                        <div className={styles.subheading}>
+                            <h2>Tokens</h2>
+                        </div>
                     </div>
                 </div>
             </div>

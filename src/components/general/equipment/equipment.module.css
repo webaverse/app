@@ -1,5 +1,10 @@
 .equipment {
   --width: 600px;
+  --height: calc(
+    100vh /* full height */
+    - 200px /* header */
+    - 40px /* footer */
+  );
 }
 .equipment .menus,
 .equipment .menuFooter
@@ -11,25 +16,33 @@
 .equipment .menus {
   display: flex;
   flex-direction: column;
+  perspective: 1200px;
+  perspective-origin: calc( var(--width) / 2 ) calc( var(--height) / 2 );
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
 .equipment .menus.open {
   transform: translateY(calc(-100vh + 160px));
 }
 .equipment .menu {
-  --height: calc(
-    100vh /* full height */
-    - 200px /* header */
-    - 40px /* footer */
-  );
-
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   display: flex;
   width: var(--width);
   height: var(--height);
   background-image: linear-gradient(to bottom, #222, #000);
   color: #FFF;
   flex-direction: column;
+  transform-origin: 50% 50%;
+}
+.equipment .menu:nth-child(1) {
+  transform: translate3d( calc( var(--width) / -2 ), 0, calc( var(--width) / -2 ) ) rotateY(-90deg);
+}
+.equipment .menu:nth-child(3) {
+  transform: translate3d( calc( var(--width) / 2 ), 0, calc( var(--width) / -2 ) ) rotateY(90deg);
+}
+.equipment .menu:nth-child(4) {
+  transform: translate3d( 0, 0, calc( var(--width) * -1 ) ) rotateY(180deg);
 }
 
 .equipment .menu .wing {
