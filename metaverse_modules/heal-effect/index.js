@@ -15,7 +15,7 @@ export default () => {
   const app = useApp();
   const localPlayer = useLocalPlayer();
   const {camera} = useInternals();
-  app.playEffect=()=>{
+  app.playEffect = () =>{
     playEffect = true;
   }
   {
