@@ -6,6 +6,7 @@ const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials
 import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import Avatar from './avatars/avatars.js';
+import {mod, angleDifference} from './util.js';
 
 const preview = false; // whether to draw debug meshes
 
@@ -682,14 +683,6 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
   }
 }
 
-function mod(a, n) {
-  return ((a % n) + n) % n;
-}
-function angleDifference(angle1, angle2) {
-  let a = angle2 - angle1;
-  a = mod(a + Math.PI, Math.PI*2) - Math.PI;
-  return a;
-}
 const animationAngles = [
   {name: 'left', angle: Math.PI/2},
   {name: 'right', angle: -Math.PI/2},
