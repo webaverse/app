@@ -802,7 +802,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
       avatar.blendList.push(applyFnJump);
     }
-    if (avatar.flyTransitionTime > 0) {
+    if (flyFactor > 0) {
       const applyFnFly = spec => {
         const {
           animationTrackName: k,
@@ -822,7 +822,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // debugger
       avatar.blendList.push(applyFnFly);
     }
-    if (avatar.fallTransitionTime > 0) { // todo: use fallFactor.
+    if (fallFactor > 0) { // todo: use fallFactor.
       const applyFnFall = spec => {
         const {
           animationTrackName: k,
@@ -842,7 +842,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // debugger
       avatar.blendList.push(applyFnFall);
     }
-    if (avatar.landTransitionTime > 0) {
+    if (landFactor > 0) {
       const applyFnLand = spec => {
         const {
           animationTrackName: k,
@@ -999,7 +999,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     //   avatar.useAnimationCombo.length > 0 ||
     //   avatar.useAnimationEnvelope.length > 0
     // ) {
-    if (avatar.useTransitionTime > 0 && (
+    if (useFactor > 0 && (
       avatar.useAnimation ||
       avatar.useAnimationCombo.length > 0 ||
       avatar.useAnimationEnvelope.length > 0
