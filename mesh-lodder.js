@@ -67,6 +67,7 @@ export class MeshLodder {
     this.geometry = geometry;
 
     const material = new THREE.MeshStandardMaterial({
+      side: THREE.DoubleSide,
       alphaTest: 0.1,
       transparent: true,
     });
