@@ -96,7 +96,6 @@
   width: var(--size);
   height: var(--size);
   padding: 10px;
-  transform: rotateZ(90deg);
 }
 .equipment .menu .wing.left {
   left: calc( - var(--width) );
