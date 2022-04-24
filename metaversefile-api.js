@@ -25,6 +25,7 @@ import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
+import {MeshLodder} from './mesh-lodder.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
@@ -523,6 +524,9 @@ metaversefile.setApi({
   },
   useLoaders() {
     return loaders;
+  },
+  useMeshLodder() {
+    return MeshLodder;
   },
   usePhysics() {
     const app = currentAppRender;
