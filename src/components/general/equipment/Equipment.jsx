@@ -170,12 +170,12 @@ export const Equipment = () => {
                 >
                     <div className={styles.menu}>
                         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <img className={styles.arrow} src="./images/chevron3.svg" />
                             <div className={styles.text}>Land</div>
                         </div>
                         <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
                             <div className={styles.text}>Series</div>
-                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <img className={styles.arrow} src="./images/chevron3.svg" />
                         </div>
                         <div className={styles.section}>
                             <div className={styles.subheading}>
@@ -185,12 +185,12 @@ export const Equipment = () => {
                     </div>
                     <div className={styles.menu}>
                         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <img className={styles.arrow} src="./images/chevron3.svg" />
                             <div className={styles.text}>Inventory</div>
                         </div>
                         <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
                             <div className={styles.text}>Account</div>
-                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <img className={styles.arrow} src="./images/chevron3.svg" />
                         </div>
                         <div className={styles.section}>
                             <div className={styles.subheading}>
@@ -239,12 +239,12 @@ export const Equipment = () => {
                     </div>
                     <div className={styles.menu}>
                         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <img className={styles.arrow} src="./images/chevron3.svg" />
                             <div className={styles.text}>Series</div>
                         </div>
                         <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
                             <div className={styles.text}>Land</div>
-                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <img className={styles.arrow} src="./images/chevron3.svg" />
                         </div>
                         <div className={styles.section}>
                             <div className={styles.subheading}>
@@ -254,12 +254,12 @@ export const Equipment = () => {
                     </div>
                     <div className={styles.menu}>
                         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <img className={styles.arrow} src="./images/chevron3.svg" />
                             <div className={styles.text}>Account</div>
                         </div>
                         <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
                             <div className={styles.text}>Inventory</div>
-                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <img className={styles.arrow} src="./images/chevron3.svg" />
                         </div>
                         <div className={styles.section}>
                             <div className={styles.subheading}>
