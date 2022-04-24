@@ -1406,6 +1406,9 @@ class RemotePlayer extends InterpolatedPlayer {
 
     const lastPosition = new THREE.Vector3();
 
+    loadPhysxCharacterController.call(this);
+
+
     const observePlayerFn = (e) => {
       const transform = this.playerMap.get('transform');
 
@@ -1413,6 +1416,8 @@ class RemotePlayer extends InterpolatedPlayer {
         const remoteTimeDiff = transform[10];
         lastPosition.copy(this.position);
         this.position.fromArray(transform, 0);
+        
+        this.characterPhysics.setPosition(this.position);
         
         this.quaternion.fromArray(transform, 3);
 
