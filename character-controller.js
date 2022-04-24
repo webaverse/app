@@ -278,7 +278,6 @@ class PlayerBase extends THREE.Object3D {
     return factor; */
   }
   wear(app, { loadoutIndex = -1 } = {}) {
-    debugger
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -331,7 +330,6 @@ class PlayerBase extends THREE.Object3D {
             world.appManager,
             this.appManager
           );
-          debugger;
         }
       };
       _transplantNewApp();
@@ -619,7 +617,6 @@ class StatePlayer extends PlayerBase {
         });
 
         loadPhysxCharacterController.call(this);
-        console.log("loadPhysxCharacterController on ", this)
         // console.log('disable actor', this.characterController);
         physicsManager.disableGeometryQueries(this.characterController);
       })();
@@ -723,9 +720,9 @@ class StatePlayer extends PlayerBase {
     return action;
   }
   removeAction(type) {
-    if (type == 'wear') {
-      debugger
-    }
+//     if (type == 'wear') {
+//       debugger
+//     }
     
     const actions = this.getActionsState();
     let i = 0;
@@ -1423,9 +1420,8 @@ class RemotePlayer extends InterpolatedPlayer {
         const remoteTimeDiff = transform[10];
         lastPosition.copy(this.position);
         this.position.fromArray(transform, 0);
-
-        physicsManager.setCharacterControllerPosition(this.characterController, this.position);
-        this.characterPhysics.update(performance.now(), remoteTimeDiff);
+        
+        this.characterPhysics.setPosition(this.position);
         
         this.quaternion.fromArray(transform, 3);
 
@@ -1480,6 +1476,16 @@ class RemotePlayer extends InterpolatedPlayer {
     this.appManager.loadApps();
 
     this.syncAvatar();
+  }
+
+  destroy() {
+    this.characterPhysics.destroy();
+    this.characterHups.destroy();
+    this.characterSfx.destroy();
+    this.characterFx.destroy();
+    this.characterBehavior.destroy();
+
+    super.destroy();
   }
 
   getSession() {
