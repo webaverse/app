@@ -15,7 +15,7 @@
 }
 .equipment .menus {
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
   perspective: 1200px;
   perspective-origin: calc( var(--width) / 2 ) calc( var(--height) / 2 );
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
@@ -23,27 +23,54 @@
 .equipment .menus.open {
   transform: translateY(calc(-100vh + 160px));
 }
-.equipment .menu {
-  position: absolute;
-  top: 0;
-  left: 0;
+
+.equipment .menus .menu {
   display: flex;
   width: var(--width);
+  /* max-width: var(--width); */
   height: var(--height);
   background-image: linear-gradient(to bottom, #222, #000);
   color: #FFF;
   flex-direction: column;
   transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+  
+  /* transition: transform 10s cubic-bezier(0, 1, 0, 1); */
+  transition: transform 5s linear;
+
+  /* -webkit-backface-visibility: visible;
+  backface-visibility: visible; */
 }
-.equipment .menu:nth-child(1) {
-  transform: translate3d( calc( var(--width) / -2 ), 0, calc( var(--width) / -2 ) ) rotateY(-90deg);
+
+/* */
+
+.equipment .menus.select-0 .menu:nth-child(1) {
+  transform: translateX( calc( var(--width) * -0 ) ) translate3d( 0, 0, 0 ) rotateY(0);
 }
-.equipment .menu:nth-child(3) {
-  transform: translate3d( calc( var(--width) / 2 ), 0, calc( var(--width) / -2 ) ) rotateY(90deg);
+.equipment .menus.select-0 .menu:nth-child(2) {
+  transform: translateX( calc( var(--width) * -1 ) ) translate3d( calc( var(--width) / 2 ), 0, calc( var(--width) / -2 ) ) rotateY(90deg);
 }
-.equipment .menu:nth-child(4) {
-  transform: translate3d( 0, 0, calc( var(--width) * -1 ) ) rotateY(180deg);
+.equipment .menus.select-0 .menu:nth-child(3) {
+  transform: translateX( calc( var(--width) * -2 ) ) translate3d( 0, 0, calc( var(--width) * -1 ) ) rotateY(180deg);
 }
+.equipment .menus.select-0 .menu:nth-child(4) {
+  transform: translateX( calc( var(--width) * -3 ) ) translate3d( calc( var(--width) / -2 ), 0, calc( var(--width) / -2 ) ) rotateY(-90deg);
+}
+
+.equipment .menus.select-1 .menu:nth-child(1) {
+  transform: translateX( calc( var(--width) * -0 ) ) translate3d( calc( var(--width) / 2 ), 0, calc( var(--width) / -2 ) ) rotateY(90deg);
+}
+.equipment .menus.select-1 .menu:nth-child(2) {
+  transform: translateX( calc( var(--width) * -1 ) ) translate3d( 0, 0, calc( var(--width) * -1 ) ) rotateY(180deg);
+}
+.equipment .menus.select-1 .menu:nth-child(3) {
+  transform: translateX( calc( var(--width) * -2 ) ) translate3d( calc( var(--width) / -2 ), 0, calc( var(--width) / -2 ) ) rotateY(-90deg);
+}
+.equipment .menus.select-1 .menu:nth-child(4) {
+  transform: translateX( calc( var(--width) * -3 ) ) translate3d( 0, 0, 0 ) rotateY(0);
+}
+
+/* */
 
 .equipment .menu .wing {
   --size: 40px;
@@ -87,6 +114,19 @@
   left: calc( var(--width) + var(--size) );
   padding-right: 0;
   transform: rotateZ(90deg);
+}
+
+.equipment .menus.select-0 .menuCenter {
+  transform: rotateY( calc( -90deg * 0 ) );
+}
+.equipment .menus.select-1 .menuCenter {
+  transform: rotateY( calc( -90deg * 1 ) );
+}
+.equipment .menus.select-2 .menuCenter {
+  transform: rotateY( calc( -90deg * 2 ) );
+}
+.equipment .menus.select-3 .menuCenter {
+  transform: rotateY( calc( -90deg * 3 ) );
 }
 
 /* */
@@ -252,6 +292,7 @@
   height: 3px;
   background-color: #FFF;
 }
+
 .menuFooter.select-0 .menuFooterWrap .bar {
   transform: translateX( calc( var(--item-size) * 0 ) );
 }
