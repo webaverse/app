@@ -91,10 +91,11 @@
   /* width: var(--height); */
   width: 128px;
   padding: 0 15px;
-  background-color: #000;
+  /* background-color: #000; */
+  border-radius: 15px 15px 0 0;
   font-family: 'PlazaRegular';
   font-size: 20px;
-  border-radius: 15px 15px 0 0;
+  text-shadow: 0 0 3px black;
   justify-content: center;
   align-items: center;
   transform-origin: 0 0;
