@@ -122,17 +122,17 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.activateTime = player.actionInterpolants.activate.get();
 
-  if (useAction?.animation) {
-    rig.useType = 'normal';
-    rig.useAnimation = useAction.animation;
-  } else if (useAction?.animationCombo) {
-    rig.useType = 'combo';
-    rig.useAnimationCombo = useAction.animationCombo;
-  } else if (useAction?.animationEnvelope) {
-    rig.useType = 'envelope';
-    rig.useAnimationEnvelope = useAction.animationEnvelope;
-  } else {
-    // rig.useType = null // eg: pistol
+  if (useAction) {
+    rig.useAnimation = null;
+    rig.useAnimationCombo = [];
+    rig.useAnimationEnvelope = [];
+    if (useAction.animation) {
+      rig.useAnimation = useAction.animation;
+    } else if (useAction.animationCombo) {
+      rig.useAnimationCombo = useAction.animationCombo;
+    } else if (useAction.animationEnvelope) {
+      rig.useAnimationEnvelope = useAction.animationEnvelope;
+    }
   }
 
   // rig.useAnimationIndex = useAction?.index;
@@ -145,6 +145,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   if (rig.unuseTime === 0) { // this means use is active
     if (useAction?.animationEnvelope) {
       rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
+    } else {
+      rig.unuseAnimation = null;
     }
   }
 

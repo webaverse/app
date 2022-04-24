@@ -996,7 +996,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     //   avatar.useAnimationCombo.length > 0 ||
     //   avatar.useAnimationEnvelope.length > 0
     // ) {
-    if (avatar.useTransitionTime > 0) {
+    if (avatar.useTransitionTime > 0 && (
+      avatar.useAnimation ||
+      avatar.useAnimationCombo.length > 0 ||
+      avatar.useAnimationEnvelope.length > 0
+    )) {
       const applyFnUse = spec => {
         const {
           animationTrackName: k,
@@ -1008,15 +1012,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         let useAnimation;
         let t2;
         const useTimeS = avatar.useTime / 1000;
-        if (avatar.useType === 'normal') {
+        if (avatar.useAnimation) {
           const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (avatar.useType === 'combo') {
+        } else if (avatar.useAnimationCombo.length > 0) {
           const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (avatar.useType === 'envelope') {
+        } else if (avatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
           for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
             const animationName = avatar.useAnimationEnvelope[i];
