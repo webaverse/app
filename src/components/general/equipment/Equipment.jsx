@@ -110,7 +110,7 @@ export const Equipment = () => {
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
     const [ spritesheet, setSpritesheet ] = useState(null);
-    const [ selectedMenuIndex, setSelectedMenuIndex ] = useState(1);
+    const [ selectedMenuIndex, setSelectedMenuIndex ] = useState(0);
 
     const refsMap = (() => {
         const map = new Map();
