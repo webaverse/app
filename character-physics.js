@@ -52,6 +52,7 @@ class CharacterPhysics {
     localVector.y -= this.player.avatar.height * 0.5;
     physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
   }
+  
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
     if (this.player.avatar) {
@@ -451,6 +452,7 @@ class CharacterPhysics {
     this.applyAvatarPhysics(now, timeDiffS);
     this.applyAvatarActionKinematics(now, timeDiffS);
   }
+
   reset() {
     if (this.player.avatar) {
       this.velocity.set(0, 0, 0);
