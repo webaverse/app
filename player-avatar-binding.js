@@ -71,6 +71,7 @@ export function makeAvatar(app) {
 export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
   const flyAction = player.getAction('fly');
+  const activateAction = player.getAction('activate');
   const fallAction = player.getAction('fall');
   const landAction = player.getAction('land');
   const useAction = player.getAction('use');
@@ -120,7 +121,12 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.landTime = player.actionInterpolants.land.get();
   rig.landTransitionTime = player.actionInterpolants.landTransition.get();
 
-  rig.activateTime = player.actionInterpolants.activate.get();
+  // rig.activateTime = player.actionInterpolants.activate.get();
+  rig.activateUnstopTime = player.actionInterpolants.activateUnstop.get();
+  rig.activateTransitionTime = player.actionInterpolants.activateTransition.get();
+  if (activateAction) {
+    rig.activateAnimation = activateAction.animationName || 'grab_forward';
+  }
 
   if (useAction) {
     rig.useAnimation = null;

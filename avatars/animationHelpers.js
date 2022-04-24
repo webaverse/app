@@ -400,7 +400,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor, useFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor, useFactor, activateFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -887,6 +887,30 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // debugger
       avatar.blendList.push(applyFnSit);
     }
+    if (activateFactor > 0) {
+      const applyFnActivate = spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+        } = spec;
+
+        const activateAnimation = activateAnimations[avatar.activateAnimation].animation;
+        const src2 = activateAnimation.interpolants[k];
+        const t2 = ((avatar.activateUnstopTime / 1000) * activateAnimations[avatar.activateAnimation].speedFactor) % activateAnimation.duration;
+        const v2 = src2.evaluate(t2);
+
+        // const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+
+        const blendee = {
+          arr: v2,
+          intensity: activateFactor,
+        };
+        return blendee;
+      };
+      // debugger
+      avatar.blendList.push(applyFnActivate);
+    }
     if (avatar.narutoRunState) {
       const applyFnNaruto = spec => {
         const {
@@ -1306,38 +1330,38 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   //   }
   // };
 
-  const _blendActivateAction = spec => {
-    const {
-      animationTrackName: k,
-      dst,
-      // isTop,
-      lerpFn,
-    } = spec;
+  // const _blendActivateAction = spec => {
+  //   const {
+  //     animationTrackName: k,
+  //     dst,
+  //     // isTop,
+  //     lerpFn,
+  //   } = spec;
 
-    if (avatar.activateTime > 0) {
-      const localPlayer = metaversefile.useLocalPlayer();
+  //   if (avatar.activateTime > 0) {
+  //     const localPlayer = metaversefile.useLocalPlayer();
 
-      let defaultAnimation = 'grab_forward';
+  //     let defaultAnimation = 'grab_forward';
 
-      if (localPlayer.getAction('activate').animationName) {
-        defaultAnimation = localPlayer.getAction('activate').animationName;
-      }
+  //     if (localPlayer.getAction('activate').animationName) {
+  //       defaultAnimation = localPlayer.getAction('activate').animationName;
+  //     }
 
-      const activateAnimation = activateAnimations[defaultAnimation].animation;
-      const src2 = activateAnimation.interpolants[k];
-      const t2 = ((avatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
-      const v2 = src2.evaluate(t2);
+  //     const activateAnimation = activateAnimations[defaultAnimation].animation;
+  //     const src2 = activateAnimation.interpolants[k];
+  //     const t2 = ((avatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
+  //     const v2 = src2.evaluate(t2);
 
-      const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+  //     const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
 
-      lerpFn
-        .call(
-          dst,
-          localQuaternion.fromArray(v2),
-          f,
-        );
-    }
-  };
+  //     lerpFn
+  //       .call(
+  //         dst,
+  //         localQuaternion.fromArray(v2),
+  //         f,
+  //       );
+  //   }
+  // };
 
   for (const spec of avatar.animationMappings) {
     const {
@@ -1370,7 +1394,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // if (isPosition) console.log(logText);
     }
 
-    _blendActivateAction(spec);
+    // _blendActivateAction(spec);
 
     // ignore all animation position except y
     if (isPosition) {

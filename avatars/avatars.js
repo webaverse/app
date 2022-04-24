@@ -1425,6 +1425,7 @@ class Avatar {
     moveFactors.flyFactor = THREE.MathUtils.clamp(this.flyTransitionTime / flyTransitionMaxTime, 0, 1);
     moveFactors.useFactor = THREE.MathUtils.clamp(this.useTransitionTime / defaultTransitionMaxTime, 0, 1);
     moveFactors.fallFactor = THREE.MathUtils.clamp(this.fallTransitionTime / fallTransitionMaxTime, 0, 1);
+    moveFactors.activateFactor = THREE.MathUtils.clamp(this.activateTransitionTime / defaultTransitionMaxTime, 0, 1);
     moveFactors.landFactor = THREE.MathUtils.clamp(this.landTransitionTime / landTransitionMaxTime, 0, 1);
     moveFactors.sitFactor = THREE.MathUtils.clamp(this.sitTransitionTime / sitTransitionMaxTime, 0, 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
@@ -1881,7 +1882,9 @@ class Avatar {
       <div style="display:;">unuseAnimation: --- ${this.unuseAnimation}</div>
       <div style="display:;">unuseFactor: --- ${this.unuseFactor?.toFixed(2)}</div>
       <div style="display:;">unuseTime: --- ${this.unuseTime?.toFixed(2)}</div>
+      <div style="display:;">activateFactor: --- ${moveFactors.activateFactor.toFixed(2)}</div>
       <div style="display:;">activateTime: --- ${Math.floor(this.activateTime)}</div>
+      <div style="display:;">activateUnstopTime: --- ${Math.floor(this.activateUnstopTime)}</div>
       <div style="display:;">aimTime: --- ${Math.floor(this.aimTime)}</div>
       <div style="display:none;">chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>
       <div style="display:none;">crouchTime: --- ${Math.floor(this.crouchTime)}</div>
