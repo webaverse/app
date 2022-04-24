@@ -174,7 +174,7 @@ export const Equipment = () => {
                             <div className={styles.text}>Land</div>
                         </div>
                         <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                            <div className={styles.text}>Series</div>
+                            <div className={styles.text}>Season</div>
                             <img className={styles.arrow} src="./images/chevron3.svg" />
                         </div>
                         <div className={styles.section}>
@@ -194,7 +194,7 @@ export const Equipment = () => {
                         </div>
                         <div className={styles.section}>
                             <div className={styles.subheading}>
-                                <h2>Series</h2>
+                                <h2>Season</h2>
                             </div>
                             <ul className={styles.list}>
                                 {userTokenObjects.map((object, i) =>
@@ -240,7 +240,7 @@ export const Equipment = () => {
                     <div className={styles.menu}>
                         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
                             <img className={styles.arrow} src="./images/chevron3.svg" />
-                            <div className={styles.text}>Series</div>
+                            <div className={styles.text}>Season</div>
                         </div>
                         <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
                             <div className={styles.text}>Land</div>
