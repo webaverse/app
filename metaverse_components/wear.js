@@ -292,7 +292,6 @@ export default (app, component) => {
   return {
     remove() {
       // console.log('wear component remove');
-
       app.removeEventListener('wearupdate', wearupdate);
       metaversefile.clearFrame(frame);
 

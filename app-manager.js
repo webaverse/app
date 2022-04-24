@@ -513,7 +513,6 @@ class AppManager extends EventTarget {
         removeInstanceId,
         appsJson,
       });
-      debugger;
     }
   }
   removeTrackedApp(removeInstanceId) {

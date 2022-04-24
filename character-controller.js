@@ -375,46 +375,47 @@ class PlayerBase extends THREE.Object3D {
     const wearActionIndex = this.findActionIndex(({ type, instanceId }) => {
       return type === 'wear' && instanceId === app.instanceId;
     });
+
+    const _setAppTransform = () => {
+      const wearComponent = app.getComponent('wear');
+      if (wearComponent) {
+        const avatarHeight = this.avatar ? this.avatar.height : 0;
+        app.position
+          .copy(this.position)
+          .add(
+            localVector
+              .set(0, -avatarHeight + 0.5, -0.5)
+              .applyQuaternion(this.quaternion)
+          );
+        app.quaternion.identity();
+        app.scale.set(1, 1, 1);
+        app.updateMatrixWorld();
+      }
+    };
+    _setAppTransform();
+
+    const _deinitPhysics = () => {
+      const physicsObjects = app.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        physx.physxWorker.enableGeometryQueriesPhysics(
+          physx.physics,
+          physicsObject.physicsId
+        );
+        physx.physxWorker.enableGeometryPhysics(
+          physx.physics,
+          physicsObject.physicsId
+        );
+      }
+    };
+    _deinitPhysics();
+
     if (wearActionIndex !== -1) {
       const wearAction = this.getActionsState().get(wearActionIndex);
       const loadoutIndex = wearAction.loadoutIndex;
 
-      const _setAppTransform = () => {
-        const wearComponent = app.getComponent('wear');
-        if (wearComponent) {
-          const avatarHeight = this.avatar ? this.avatar.height : 0;
-          app.position
-            .copy(this.position)
-            .add(
-              localVector
-                .set(0, -avatarHeight + 0.5, -0.5)
-                .applyQuaternion(this.quaternion)
-            );
-          app.quaternion.identity();
-          app.scale.set(1, 1, 1);
-          app.updateMatrixWorld();
-        }
-      };
-      _setAppTransform();
-
-      const _deinitPhysics = () => {
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physx.physxWorker.enableGeometryQueriesPhysics(
-            physx.physics,
-            physicsObject.physicsId
-          );
-          physx.physxWorker.enableGeometryPhysics(
-            physx.physics,
-            physicsObject.physicsId
-          );
-        }
-      };
-      _deinitPhysics();
-
       const _removeApp = () => {
         this.removeActionIndex(wearActionIndex);
-
+  
         if (this.appManager.hasTrackedApp(app.instanceId)) {
           if (destroy) {
             this.appManager.removeApp(app);
@@ -441,6 +442,20 @@ class PlayerBase extends THREE.Object3D {
           app,
           wear: false,
           loadoutIndex,
+        });
+      };
+      _emitEvents();
+    } else {
+      const _emitEvents = () => {
+        app.dispatchEvent({
+          type: 'wearupdate',
+          player: this,
+          wear: false
+        });
+        this.dispatchEvent({
+          type: 'wearupdate',
+          app,
+          wear: false
         });
       };
       _emitEvents();
@@ -1414,6 +1429,8 @@ class RemotePlayer extends InterpolatedPlayer {
     let prevApps = []
 
     const observePlayerFn = (e) => {
+      if(!e.changes.keys.get('transform'))
+      console.log("event is ", e.changes.keys)
       const transform = this.playerMap.get('transform');
 
       if (transform) {
@@ -1421,6 +1438,7 @@ class RemotePlayer extends InterpolatedPlayer {
         lastPosition.copy(this.position);
         this.position.fromArray(transform, 0);
         
+        if(this.avatar)
         this.characterPhysics.setPosition(this.position);
         
         this.quaternion.fromArray(transform, 3);
@@ -1442,12 +1460,15 @@ class RemotePlayer extends InterpolatedPlayer {
           );
         }
 
+        // TODO: This is a hack
+        // TODO: Move this into the app manager class? We should be listening to the wear component change on the individual app I think
+        
         if (prevApps.length > this.appManager.apps.length) {
           prevApps.forEach((prevApp) => {
             const filtered = this.appManager.apps.filter((app) => app.uuid == prevApp.uuid)
             if (filtered.length == 0 && prevApp.getComponent('wear')) {
               //removed app
-              debugger
+              console.log("Calling unwear on app")
               this.unwear(prevApp)
             }
           })
@@ -1455,6 +1476,7 @@ class RemotePlayer extends InterpolatedPlayer {
 
         prevApps = []
         this.appManager.apps.forEach((app) => {
+          if(app.getComponent('wear'))
           app.dispatchEvent({
             type: 'wearupdate',
             player: this,
