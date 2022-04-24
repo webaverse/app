@@ -822,7 +822,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // debugger
       avatar.blendList.push(applyFnFly);
     }
-    if (avatar.fallTransitionTime > 0) {
+    if (avatar.fallTransitionTime > 0) { // todo: use fallFactor.
       const applyFnFall = spec => {
         const {
           animationTrackName: k,
@@ -866,7 +866,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // debugger
       avatar.blendList.push(applyFnLand);
     }
-    if (avatar.sitTransitionTime > 0) {
+    if (sitFactor > 0) {
       const applyFnSit = spec => {
         const {
           animationTrackName: k,

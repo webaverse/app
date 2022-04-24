@@ -22,6 +22,7 @@ import {
   landTransitionMaxTime,
   idleTransitionMaxTime,
   defaultTransitionMaxTime,
+  sitTransitionMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -1425,7 +1426,7 @@ class Avatar {
     moveFactors.useFactor = THREE.MathUtils.clamp(this.useTransitionTime / defaultTransitionMaxTime, 0, 1);
     moveFactors.fallFactor = THREE.MathUtils.clamp(this.fallTransitionTime / fallTransitionMaxTime, 0, 1);
     moveFactors.landFactor = THREE.MathUtils.clamp(this.landTransitionTime / landTransitionMaxTime, 0, 1);
-    moveFactors.sitFactor = THREE.MathUtils.clamp(this.sitTransitionTime / flyTransitionMaxTime, 0, 1);
+    moveFactors.sitFactor = THREE.MathUtils.clamp(this.sitTransitionTime / sitTransitionMaxTime, 0, 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
     const _updateHmdPosition = () => {
@@ -1850,6 +1851,8 @@ class Avatar {
       <div style="display:;">jumpState: --- ${this.jumpState}</div>
       <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
       <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
+      <div style="display:;">sitFactor: --- ${moveFactors.sitFactor?.toFixed(2)}</div>
+      <div style="display:;">sitState: --- ${this.sitState}</div>
       <div style="display:;">flyState: --- ${this.flyState}</div>
       <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
       <div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>
@@ -1857,14 +1860,11 @@ class Avatar {
       <div style="display:;">landFactor: --- ${moveFactors.landFactor?.toFixed(2)}</div>
       <div style="display:none;">landTime: --- ${Math.floor(this.landTime)}</div>
       <div style="display:none;">landTransitionTime: --- ${Math.floor(this.landTransitionTime)}</div>
-      <div style="display:;">sitState: --- ${this.sitState}</div>
-      <div style="display:;">sitFactor: --- ${moveFactors.sitFactor?.toFixed(2)}</div>
       <div style="display:none;">sitTime: --- ${Math.floor(this.sitTime)}</div>
       <div style="display:;">chargeJumpState: --- ${this.chargeJumpState}</div>
       <div style="display:;">danceState: --- ${this.danceState}</div>
       <div style="display:;">fallLoopState: --- ${this.fallLoopState}</div>
       <div style="display:;">narutoRunState: --- ${this.narutoRunState}</div>
-      <div style="display:;">sitState: --- ${this.sitState}</div>
       <div style="display:;">aimAnimation: --- ${this.aimAnimation}</div>
       <div style="display:;">danceAnimation: --- ${this.danceAnimation}</div>
       <div style="display:;">hurtAnimation: --- ${this.hurtAnimation}</div>
