@@ -747,6 +747,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     const arr = _getHorizontalBlend(k, lerpFn, isPosition, dst);
+
+    spec.defaultDst.fromArray(arr);
+
     const blendee = {
       arr,
       intensity: idleFactor,
@@ -1005,6 +1008,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
+          defaultDst,
           // isTop,
           isPosition,
         } = spec;
@@ -1062,7 +1066,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const src3 = idleAnimation.interpolants[k];
             const v3 = src3.evaluate(t3);
 
-            localQuaternion.copy(dst)
+            localQuaternion.copy(defaultDst)
               .premultiply(localQuaternion2.fromArray(v3).invert())
               .premultiply(localQuaternion2.fromArray(v2));
 
@@ -1079,7 +1083,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const v3 = src3.evaluate(t3);
             localVector3.fromArray(v3);
 
-            localVector.copy(dst)
+            localVector.copy(defaultDst)
               .sub(localVector3)
               .add(localVector2);
 
@@ -1108,7 +1112,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
       // debugger
       avatar.blendList.push(applyFnUse);
-    } else if (avatar.hurtAnimation) {
+    } if (avatar.hurtAnimation) {
       const applyFnHurt = spec => {
         const {
           animationTrackName: k,
@@ -1152,11 +1156,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
       // debugger
       avatar.blendList.push(applyFnHurt);
-    } else if (avatar.aimAnimation) {
+    } if (avatar.aimAnimation) {
       const applyFnAim = spec => {
         const {
           animationTrackName: k,
           dst,
+          defaultDst,
           // isTop,
           isPosition,
         } = spec;
@@ -1175,7 +1180,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const src3 = idleAnimation.interpolants[k];
             const v3 = src3.evaluate(t3);
 
-            localQuaternion.copy(dst)
+            localQuaternion.copy(defaultDst)
               .premultiply(localQuaternion2.fromArray(v3).invert())
               .premultiply(localQuaternion2.fromArray(v2));
 
@@ -1190,7 +1195,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
 
-          localVector.copy(dst)
+          localVector.copy(defaultDst)
             .sub(localVector2.fromArray(v3))
             .add(localVector2.fromArray(v2));
 
@@ -1205,11 +1210,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
       // debugger
       avatar.blendList.push(applyFnAim);
-    } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
+    } if (avatar.unuseAnimation && avatar.unuseTime > 0) {
       const applyFnUnuse = spec => {
         const {
           animationTrackName: k,
           dst,
+          defaultDst,
           lerpFn,
           // isTop,
           isPosition,
@@ -1235,7 +1241,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
 
-          localQuaternion.copy(dst)
+          localQuaternion.copy(defaultDst)
             .premultiply(localQuaternion2.fromArray(v3).invert())
             .premultiply(localQuaternion2.fromArray(v2));
 
@@ -1249,7 +1255,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src3 = idleAnimation.interpolants[k];
           const v3 = src3.evaluate(t3);
 
-          localVector.copy(dst)
+          localVector.copy(defaultDst)
             .sub(localVector2.fromArray(v3))
             .add(localVector2.fromArray(v2));
 
@@ -1262,7 +1268,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const blendee = {
           arr,
-          intensity: 1,
+          intensity: f2,
         };
         return blendee;
       };
@@ -1348,6 +1354,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // let logText = '';
       for (let i = 1; i < avatar.blendList.length; i++) {
         blendee = avatar.blendList[i](spec);
+        // if (blendee.intensity === Infinity) {
+        //   dst.fromArray(blendee.arr);
+        //   break;
+        // }
         const t = blendee.intensity / (intensityStep + blendee.intensity);
         // logText += t.toFixed(2) + ' --- ';
         if (!isPosition) {

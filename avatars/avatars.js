@@ -888,6 +888,7 @@ class Avatar {
       animationMapping = animationMapping.clone();
       const isPosition = /\.position$/.test(animationMapping.animationTrackName);
       animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
+      animationMapping.defaultDst = animationMapping.dst.clone();
       animationMapping.lerpFn = _getLerpFn(isPosition);
       return animationMapping;
     });
@@ -1877,8 +1878,9 @@ class Avatar {
       <div style="display:;">${this.useAnimationCombo}&nbsp;</div>
       <div style="display:;">useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
       <div style="display:;">useAnimationIndex: --- ${this.useAnimationIndex}</div>
-      <div style="display:;">unuseFactor: --- ${this.unuseFactor?.toFixed(2)}</div>
       <div style="display:;">unuseAnimation: --- ${this.unuseAnimation}</div>
+      <div style="display:;">unuseFactor: --- ${this.unuseFactor?.toFixed(2)}</div>
+      <div style="display:;">unuseTime: --- ${this.unuseTime?.toFixed(2)}</div>
       <div style="display:;">activateTime: --- ${Math.floor(this.activateTime)}</div>
       <div style="display:;">aimTime: --- ${Math.floor(this.aimTime)}</div>
       <div style="display:none;">chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>
