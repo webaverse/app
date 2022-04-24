@@ -36,7 +36,7 @@
   transform-style: preserve-3d;
 }
 
-.equipment .menus.select-0 .scene {
+/* .equipment .menus.select-0 .scene {
   transform: translateX(300px) translateZ(-300px) rotateY(-0deg) translateX(-300px);
 }
 .equipment .menus.select-1 .scene {
@@ -47,7 +47,7 @@
 }
 .equipment .menus.select-3 .scene {
   transform: translateX(300px) translateZ(-300px) rotateY(-270deg) translateX(-300px);
-}
+} */
 
 .equipment .scene .menu {
   display: flex;
