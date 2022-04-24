@@ -12,11 +12,6 @@ import {mod} from '../../../../util.js';
 
 const size = 2048;
 const numFrames = 128;
-// const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
-// const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
-// const frameSize = size / numFramesPerRow;
-// const frameLoopTime = 2000;
-// const frameTime = frameLoopTime / numFrames;
 
 const equipmentTabs = [
     `noun-backpack-16741.svg`,
@@ -110,7 +105,6 @@ export const Equipment = () => {
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
     const [ spritesheet, setSpritesheet ] = useState(null);
-    // const [ selectedMenuIndex, setSelectedMenuIndex ] = useState(1);
     const [ faceIndex, setFaceIndex ] = useState(1);
     const selectedMenuIndex = mod(faceIndex, 4);
 
@@ -154,13 +148,9 @@ export const Equipment = () => {
         setSelectObject(object);
     };
     const menuLeft = () => {
-        // const newSelectedMenuIndex = mod(selectedMenuIndex - 1, 4);
-        // setSelectedMenuIndex(newSelectedMenuIndex);
         setFaceIndex(faceIndex - 1);
     };
     const menuRight = () => {
-        // const newSelectedMenuIndex = mod(selectedMenuIndex + 1, 4);
-        // setSelectedMenuIndex(newSelectedMenuIndex);
         setFaceIndex(faceIndex + 1);
     };
     const selectClassName = styles[`select-${selectedMenuIndex}`];
@@ -294,7 +284,6 @@ export const Equipment = () => {
                                     selectedMenuIndex === i ? styles.selected : null,
                                 )}
                                 onClick={e => {
-                                    // setSelectedMenuIndex(i);
                                     const delta = i - selectedMenuIndex;
                                     setFaceIndex(faceIndex + delta);
                                 }}
