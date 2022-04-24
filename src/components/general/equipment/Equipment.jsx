@@ -166,58 +166,37 @@ export const Equipment = () => {
                 open ? styles.open : null,
                 selectClassName,
             )}>
-                <div className={styles.menu}>
-                    <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                        <img className={styles.arrow} src="./images/chevron2.svg" />
-                        <div className={styles.text}>Land</div>
-                    </div>
-                    <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                        <div className={styles.text}>Series</div>
-                        <img className={styles.arrow} src="./images/chevron2.svg" />
-                    </div>
-                    <div className={styles.section}>
-                        <div className={styles.subheading}>
-                            <h2>Tokens</h2>
+                <div className={styles.scene}>
+                    <div className={styles.menu}>
+                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
+                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <div className={styles.text}>Land</div>
+                        </div>
+                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
+                            <div className={styles.text}>Series</div>
+                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                        </div>
+                        <div className={styles.section}>
+                            <div className={styles.subheading}>
+                                <h2>Inventory</h2>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className={styles.menu}>
-                    <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                        <img className={styles.arrow} src="./images/chevron2.svg" />
-                        <div className={styles.text}>Inventory</div>
-                    </div>
-                    <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                        <div className={styles.text}>Account</div>
-                        <img className={styles.arrow} src="./images/chevron2.svg" />
-                    </div>
-                    <div className={styles.section}>
-                        <div className={styles.subheading}>
-                            <h2>Tokens</h2>
+                    <div className={styles.menu}>
+                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
+                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <div className={styles.text}>Inventory</div>
                         </div>
-                        <ul className={styles.list}>
-                            {userTokenObjects.map((object, i) =>
-                                <Item
-                                    object={object}
-                                    enabled={open}
-                                    hovered={object === hoverObject}
-                                    selected={object === selectObject}
-                                    onMouseEnter={onMouseEnter(object)}
-                                    onMouseDown={onMouseDown(object)}
-                                    onDragStart={onDragStart(object)}
-                                    onDoubleClick={onDoubleClick(object)}
-                                    key={i}
-                                    ref={refsMap.get(object)}
-                                />
-                            )}
-                        </ul>
-                    </div>
-                    <div className={styles.section}>
-                        <div className={styles.subheading}>
-                            <h2>From Upstreet</h2>
+                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
+                            <div className={styles.text}>Account</div>
+                            <img className={styles.arrow} src="./images/chevron2.svg" />
                         </div>
-                        <ul className={styles.list}>
-                            {objects.upstreet.map((object, i) => {
-                                return (
+                        <div className={styles.section}>
+                            <div className={styles.subheading}>
+                                <h2>Series</h2>
+                            </div>
+                            <ul className={styles.list}>
+                                {userTokenObjects.map((object, i) =>
                                     <Item
                                         object={object}
                                         enabled={open}
@@ -230,38 +209,61 @@ export const Equipment = () => {
                                         key={i}
                                         ref={refsMap.get(object)}
                                     />
-                                );
-                            })}
-                        </ul>
-                    </div>
-                </div>
-                <div className={styles.menu}>
-                    <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                        <img className={styles.arrow} src="./images/chevron2.svg" />
-                        <div className={styles.text}>Series</div>
-                    </div>
-                    <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                        <div className={styles.text}>Land</div>
-                        <img className={styles.arrow} src="./images/chevron2.svg" />
-                    </div>
-                    <div className={styles.section}>
-                        <div className={styles.subheading}>
-                            <h2>Tokens</h2>
+                                )}
+                            </ul>
+                        </div>
+                        <div className={styles.section}>
+                            <div className={styles.subheading}>
+                                <h2>From Upstreet</h2>
+                            </div>
+                            <ul className={styles.list}>
+                                {objects.upstreet.map((object, i) => {
+                                    return (
+                                        <Item
+                                            object={object}
+                                            enabled={open}
+                                            hovered={object === hoverObject}
+                                            selected={object === selectObject}
+                                            onMouseEnter={onMouseEnter(object)}
+                                            onMouseDown={onMouseDown(object)}
+                                            onDragStart={onDragStart(object)}
+                                            onDoubleClick={onDoubleClick(object)}
+                                            key={i}
+                                            ref={refsMap.get(object)}
+                                        />
+                                    );
+                                })}
+                            </ul>
                         </div>
                     </div>
-                </div>
-                <div className={styles.menu}>
-                    <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                        <img className={styles.arrow} src="./images/chevron2.svg" />
-                        <div className={styles.text}>Account</div>
+                    <div className={styles.menu}>
+                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
+                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <div className={styles.text}>Series</div>
+                        </div>
+                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
+                            <div className={styles.text}>Land</div>
+                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                        </div>
+                        <div className={styles.section}>
+                            <div className={styles.subheading}>
+                                <h2>Account</h2>
+                            </div>
+                        </div>
                     </div>
-                    <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                        <div className={styles.text}>Inventory</div>
-                        <img className={styles.arrow} src="./images/chevron2.svg" />
-                    </div>
-                    <div className={styles.section}>
-                        <div className={styles.subheading}>
-                            <h2>Tokens</h2>
+                    <div className={styles.menu}>
+                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
+                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                            <div className={styles.text}>Account</div>
+                        </div>
+                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
+                            <div className={styles.text}>Inventory</div>
+                            <img className={styles.arrow} src="./images/chevron2.svg" />
+                        </div>
+                        <div className={styles.section}>
+                            <div className={styles.subheading}>
+                                <h2>Land</h2>
+                            </div>
                         </div>
                     </div>
                 </div>
