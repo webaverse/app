@@ -110,7 +110,9 @@ export const Equipment = () => {
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
     const [ spritesheet, setSpritesheet ] = useState(null);
-    const [ selectedMenuIndex, setSelectedMenuIndex ] = useState(1);
+    // const [ selectedMenuIndex, setSelectedMenuIndex ] = useState(1);
+    const [ faceIndex, setFaceIndex ] = useState(1);
+    const selectedMenuIndex = mod(faceIndex, 4);
 
     const refsMap = (() => {
         const map = new Map();
@@ -152,10 +154,14 @@ export const Equipment = () => {
         setSelectObject(object);
     };
     const menuLeft = () => {
-        setSelectedMenuIndex(mod(selectedMenuIndex - 1, 4));
+        // const newSelectedMenuIndex = mod(selectedMenuIndex - 1, 4);
+        // setSelectedMenuIndex(newSelectedMenuIndex);
+        setFaceIndex(faceIndex - 1);
     };
     const menuRight = () => {
-        setSelectedMenuIndex(mod(selectedMenuIndex + 1, 4));
+        // const newSelectedMenuIndex = mod(selectedMenuIndex + 1, 4);
+        // setSelectedMenuIndex(newSelectedMenuIndex);
+        setFaceIndex(faceIndex + 1);
     };
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
@@ -166,7 +172,12 @@ export const Equipment = () => {
                 open ? styles.open : null,
                 selectClassName,
             )}>
-                <div className={styles.scene}>
+                <div
+                    className={styles.scene}
+                    style={{
+                        transform: `translateX(300px) translateZ(-300px) rotateY(${-faceIndex * 90}deg) translateX(-300px)`,
+                    }}
+                >
                     <div className={styles.menu}>
                         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
                             <img className={styles.arrow} src="./images/chevron2.svg" />
@@ -283,7 +294,9 @@ export const Equipment = () => {
                                     selectedMenuIndex === i ? styles.selected : null,
                                 )}
                                 onClick={e => {
-                                    setSelectedMenuIndex(i);
+                                    // setSelectedMenuIndex(i);
+                                    const delta = i - selectedMenuIndex;
+                                    setFaceIndex(faceIndex + delta);
                                 }}
                                 key={i}
                             >
