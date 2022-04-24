@@ -360,7 +360,7 @@ export class MeshLodder {
     return target.set(0, 0);
   }
   #getContentIndexNames() {
-    return Object.keys(this.contentIndex);
+    return Object.keys(this.contentIndex).sort();
   }
   update() {
     if (this.compiled) {
