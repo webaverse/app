@@ -72,8 +72,8 @@
   position: absolute;
   top: calc( 50% - 64px );
   display: flex;
-  /* width: var(--height); */
   width: 128px;
+    /* width: var(--height); */
   padding: 0 15px;
   /* background-color: #000; */
   border-radius: 15px 15px 0 0;
@@ -111,17 +111,12 @@
   transform: rotateZ(90deg);
 }
 
-.equipment .menus.select-0 .menuCenter {
-  transform: rotateY( calc( -90deg * 0 ) );
-}
-.equipment .menus.select-1 .menuCenter {
-  transform: rotateY( calc( -90deg * 1 ) );
-}
-.equipment .menus.select-2 .menuCenter {
-  transform: rotateY( calc( -90deg * 2 ) );
-}
-.equipment .menus.select-3 .menuCenter {
-  transform: rotateY( calc( -90deg * 3 ) );
+.equipment .menus:not(.select-0) .menu:nth-child(1) .wing,
+.equipment .menus:not(.select-1) .menu:nth-child(2) .wing,
+.equipment .menus:not(.select-2) .menu:nth-child(3) .wing,
+.equipment .menus:not(.select-3) .menu:nth-child(4) .wing
+{
+  display: none;
 }
 
 /* */
