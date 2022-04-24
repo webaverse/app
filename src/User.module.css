@@ -278,14 +278,110 @@
 .userBar:hover:not(:active) .avatarUrl .img {
   transform: scale(1.2, 1.2);
 }
-.logoutBtn {
+
+/* */
+
+.userWrap .logoutBtn {
   background: #333;
   color: #FFF;
   padding: 5px;
   cursor: pointer;
   pointer-events: all;
 }
-.logoutBtn:hover {
+.userWrap .logoutBtn:hover {
   background: #ef5350;
   color: white;
+}
+
+/* */
+
+.userLoginMethodsModal {
+  position: fixed;
+  top: calc(50vh - 150px);
+  left: calc(50vw - 300px / 2);
+  padding: 10px;
+  background-color: #000;
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+  width: 300px;
+  transform: scale(1.2, 1.2);
+  transform-origin: 50% 50%;
+  pointer-events: all;
+  visibility: hidden;
+}
+
+.userLoginMethodsModal.opened {
+  transform: none;
+  visibility: visible;
+}
+
+.userLoginMethodsModal .title {
+  /* position: relative; */
+  display: table;
+  margin-left: auto;
+  margin-right: auto;
+  color: #fff;
+  font-size: 20px;
+  padding: 10px 50px;
+}
+
+/* .userLoginMethodsModal .title .background {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  background-color: #222;
+  transform: skewX(-20deg);
+  z-index: -1;
+} */
+
+.userLoginMethodsModal .methodBtn {
+  /* position: relative; */
+  display: flex;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  background-color: #000;
+  border: 2px solid #fff;
+  font-family: 'PlazaRegular';
+  transition: background-color 1s cubic-bezier(0, 1, 0, 1);
+}
+
+.userLoginMethodsModal .methodBtn:hover {
+  background: #fff;
+  transition: background-color 0.3s cubic-bezier(0, 1, 0, 1);
+}
+
+.userLoginMethodsModal a {
+  text-decoration: none;
+}
+
+.userLoginMethodsModal .methodBtn img {
+  /* position: absolute;
+  left: 10px; */
+  width: 28px;
+  height: 28px;
+  margin: 10px;
+}
+
+.userLoginMethodsModal .methodBtn .methodBtnText {
+  display: flex;
+  flex: 1;
+  /* height: 100%; */
+  /* text-align: center; */
+  color: #fff;
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-decoration: none;
+  line-height: 45px;
+  justify-content: center;
+  align-items: center;
+}
+
+.userLoginMethodsModal .methodBtn img + .methodBtnText {
+  margin-right: calc(28px + 10px * 2);
+}
+
+.userLoginMethodsModal .methodBtn:hover .methodBtnText {
+  color: #000;
 }

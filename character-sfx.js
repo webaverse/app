@@ -360,7 +360,9 @@ class CharacterSfx {
     _handleFood();
   }
   playGrunt(type, index){
-    
+    if(!this.player.voicePack){
+      return console.warn("Skipping grunt since voicePack not set on player (needs to be added to multiplayer)")
+    }
     let voiceFiles, offset, duration;
     switch (type) {
       case 'pain': {
