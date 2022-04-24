@@ -400,7 +400,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor, useFactor, activateFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor, useFactor, activateFactor, aimFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -1180,7 +1180,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
       // debugger
       avatar.blendList.push(applyFnHurt);
-    } if (avatar.aimAnimation) {
+    } if (aimFactor && avatar.aimAnimation) {
       const applyFnAim = spec => {
         const {
           animationTrackName: k,
@@ -1191,25 +1191,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } = spec;
 
         const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
-        // _handleDefault(spec);
         const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
         const arr = [];
         if (!isPosition) {
-          if (aimAnimation) {
-            const src2 = aimAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
+          const src2 = aimAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
 
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
+          const idleAnimation = _getIdleAnimation('walk');
+          const t3 = 0;
+          const src3 = idleAnimation.interpolants[k];
+          const v3 = src3.evaluate(t3);
 
-            localQuaternion.copy(defaultDst)
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
+          localQuaternion.copy(defaultDst)
+            .premultiply(localQuaternion2.fromArray(v3).invert())
+            .premultiply(localQuaternion2.fromArray(v2));
 
-            localQuaternion.toArray(arr);
-          }
+          localQuaternion.toArray(arr);
         } else {
           const src2 = aimAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
@@ -1228,7 +1225,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const blendee = {
           arr,
-          intensity: 1,
+          intensity: aimFactor,
         };
         return blendee;
       };

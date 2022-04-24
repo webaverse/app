@@ -896,6 +896,7 @@ class UninterpolatedPlayer extends StatePlayer {
       useTransition: new BiActionInterpolant(() => this.hasAction('use'), 0, defaultTransitionMaxTime),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
+      aimTransition: new BiActionInterpolant(() => this.hasAction('aim'), 0, defaultTransitionMaxTime),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
       flyTransition: new BiActionInterpolant(() => this.hasAction('fly'), 0, flyTransitionMaxTime),
       sitTransition: new BiActionInterpolant(() => this.hasAction('sit'), 0, sitTransitionMaxTime),
