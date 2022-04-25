@@ -9,8 +9,9 @@ const loadPromise = (async () => {
   Avatar.setAudioContext(audioContext);
   await audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
 })();
-const waitForLoad = () => loadPromise;
+export const waitForLoad = () => loadPromise;
 
-export {
-  waitForLoad,
+export const setVolume = volume => {
+  const audioContext = WSRTC.getAudioContext();
+  audioContext.gain.gain.value = volume;
 };
