@@ -17,6 +17,7 @@ const moduleUrls = {
   path: './metaverse_modules/path/',
   area: './metaverse_modules/area/',
   cameraPlaceholder: './metaverse_modules/camera-placeholder/',
+  halo: './metaverse_modules/halo/',
 };
 const modules = {};
 const loadPromise = (async () => {

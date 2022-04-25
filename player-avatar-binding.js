@@ -77,6 +77,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const sitAnimation = sitAction ? sitAction.animation : '';
   const danceAction = player.getAction('dance');
   const danceAnimation = danceAction ? danceAction.animation : '';
+  const emoteAction = player.getAction('emote');
+  const emoteAnimation = emoteAction ? emoteAction.animation : '';
   // const throwAction = player.getAction('throw');
   const aimAction = player.getAction('aim');
   const crouchAction = player.getAction('crouch');
@@ -125,8 +127,17 @@ export function applyPlayerActionsToAvatar(player, rig) {
   if (rig.unuseTime === 0) { // this means use is active
     if (useAction?.animationEnvelope) {
       rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
+    } else {
+      rig.unuseAnimation = null;
     }
   }
+
+  rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
+  rig.vowels[1] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[1];
+  rig.vowels[2] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[2];
+  rig.vowels[3] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[3];
+  rig.vowels[4] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[4];
+
 
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
@@ -137,10 +148,12 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
   // rig.danceState = !!danceAction;
-  rig.danceTime = player.actionInterpolants.dance.get();
+  rig.danceFactor = player.actionInterpolants.dance.get();
   if (danceAction) {
     rig.danceAnimation = danceAnimation;
   }
+  rig.emoteFactor = player.actionInterpolants.emote.get();
+  rig.emoteAnimation = emoteAnimation;
   // rig.throwState = !!throwAction;
   // rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();
@@ -198,13 +211,13 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
     }
   }
 }
-export function applyPlayerEmotesToAvatar(player, rig) {
-  const emoteActions = player.getActionsArray().filter(a => a.type === 'emote');
-  if (emoteActions.length > 0) {
-    player.avatar.emotes = emoteActions;
+export function applyFacePoseToAvatar(player, rig) {
+  const facePoseActions = player.getActionsArray().filter(a => a.type === 'facepose');
+  if (facePoseActions.length > 0) {
+    player.avatar.faceposes = facePoseActions;
   } else {
-    if (player.avatar.emotes.length !== 0) {
-      player.avatar.emotes.length = 0;
+    if (player.avatar.faceposes.length !== 0) {
+      player.avatar.faceposes.length = 0;
     }
   }
 }
@@ -220,7 +233,7 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerActionsToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
   
-  applyPlayerEmotesToAvatar(player, rig);
+  applyFacePoseToAvatar(player, rig);
   applyPlayerPoseToAvatar(player, rig);
 }
 

@@ -6,10 +6,12 @@
   user-select: none;
   transform: translate(0, 0);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
-  /* transition: transform 1s cubic-bezier(0, 1, 0, 1); */
 }
 .lightArrowContainer:not(.enabled) .lightArrow {
   transform: scale(0, 0);
+}
+.lightArrowContainer.down .lightArrow {
+  transform: scale(0.8, 0.8);
 }
 
 @keyframes arrow-animation {
@@ -48,8 +50,4 @@
   animation-duration: 1s;
   animation-timing-function: cubic-bezier(0, 1, 0, 1);
   animation-fill-mode: forwards;
-}
-
-.lightArrow .perspective .canvas {
-  
 }

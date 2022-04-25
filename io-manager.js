@@ -387,20 +387,6 @@ ioManager.keydown = e => {
       lastWASDDownTime.keyA = 0;
       break;
     }
-    case 82: { // R
-      if (cameraManager.pointerLockElement) {
-        if (game.canRotate()) {
-          game.menuRotate(1);
-        } else {
-          game.dropSelectedApp();
-        }
-      } else {
-        // if (!game.dragging) {
-          // _setTransformMode('rotate');
-        // }
-      }
-      break;
-    }
     case 70: { // F
       e.preventDefault();
       e.stopPropagation();
@@ -411,18 +397,6 @@ ioManager.keydown = e => {
           game.jumpOff();
         } */
         game.toggleFly();
-      }
-      break;
-    }
-    case 71: { // G
-      if (cameraManager.pointerLockElement) {
-        /* if (game.canTry()) {
-          game.menuTry();
-        } */
-      } else {
-        // if (!game.dragging) {
-          // _setTransformMode('translate');
-        // }
       }
       break;
     }
@@ -472,10 +446,11 @@ ioManager.keydown = e => {
       document.getElementById('key-r').click(); // equip
       break;
     } */
-    case 71: { // G
-      game.menuDrop();
+    /* case 71: { // G
+      // game.menuDrop();
+      game.menuGDown();
       break;
-    }
+    } */
     case 86: { // V
       // if (!_inputFocused()) {
         e.preventDefault();
@@ -489,6 +464,16 @@ ioManager.keydown = e => {
         e.preventDefault();
         e.stopPropagation();
         game.menuBDown(e);
+      // }
+      break;
+    }
+    case 69: { // E
+      // if (cameraManager.pointerLockElement) {
+        if (game.canRotate()) {
+          game.menuRotate(-1);
+        } else {
+          game.menuActivateDown();
+        }
       // }
       break;
     }
@@ -509,6 +494,20 @@ ioManager.keydown = e => {
       // game.menuPhysics();
       break;
     }
+    case 82: { // R
+      if (cameraManager.pointerLockElement) {
+        if (game.canRotate()) {
+          game.menuRotate(1);
+        } else {
+          game.dropSelectedApp();
+        }
+      } else {
+        // if (!game.dragging) {
+          // _setTransformMode('rotate');
+        // }
+      }
+      break;
+    }
     case 16: { // shift
       ioManager.keys.shift = true;
       break;
@@ -517,7 +516,7 @@ ioManager.keydown = e => {
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
-          game.jump();
+          game.jump('jump');
         } /* else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
         } */
@@ -532,21 +531,10 @@ ioManager.keydown = e => {
       // game.setWeaponWheel(true);
       if (game.canToggleAxis()) {
         game.toggleAxis();
+      } else {
+        // clear conflicting aim with quick menu
+        game.menuUnaim();
       }
-      break;
-    }
-    case 69: { // E
-      // if (cameraManager.pointerLockElement) {
-        if (game.canRotate()) {
-          game.menuRotate(-1);
-        } else {
-          game.menuActivateDown();
-        }
-      // }
-      break;
-    }
-    case 192: { // tilde
-      game.toggleEditMode();
       break;
     }
     /* case 13: { // enter
@@ -568,6 +556,10 @@ ioManager.keydown = e => {
     case 72: { // H
       const debug = metaversefile.useDebug();
       debug.toggle();
+      break;
+    }
+    case 192: { // tilde
+      game.toggleEditMode();
       break;
     }
   }
@@ -640,6 +632,14 @@ ioManager.keyup = e => {
       // }
       break;
     }
+    /* case 71: { // G
+      // if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        game.menuGUp();
+      // }
+      break;
+    } */
     case 86: { // V
       // if (!_inputFocused()) {
         e.preventDefault();

@@ -43,21 +43,21 @@ class ChatManager extends EventTarget {
     };
     player.addAction(m);
     
-    const _addEmotion = () => {
+    const _addFacePose = () => {
       if (emotion) {
         player.addAction({
-          type: 'emote',
+          type: 'facepose',
           emotion,
           value: 1,
         });
       }
     };
-    _addEmotion();
-    const _removeEmotion = () => {
+    _addFacePose();
+    const _removeFacePose = () => {
       if (emotion) {
-        const emoteActionIndex = player.findActionIndex(action => action.type === 'emote' && action.value === value);
-        if (emoteActionIndex !== -1) {
-          player.removeActionIndex(emoteActionIndex);
+        const facePoseActionIndex = player.findActionIndex(action => action.type === 'facepose' && action.value === value);
+        if (facePoseActionIndex !== -1) {
+          player.removeActionIndex(facePoseActionIndex);
         }
       }
     };
@@ -72,7 +72,7 @@ class ChatManager extends EventTarget {
     const localTimeout = setTimeout(() => {
       this.removePlayerMessage(player, m);
       
-      _removeEmotion();
+      _removeFacePose();
     }, timeout);
     m.cleanup = () => {
       clearTimeout(localTimeout);

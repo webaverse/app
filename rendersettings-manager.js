@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import postProcessing from './post-processing.js';
 // import {rootScene} from './renderer.js';
 
+const blackColor = new THREE.Color(0x000000);
+
 class RenderSettings {
   constructor(json) {
     this.background = this.#makeBackground(json.background);
@@ -36,6 +38,9 @@ class RenderSettings {
 }
 
 class RenderSettingsManager {
+  constructor() {
+    this.fog = new THREE.FogExp2(0x000000, 0);
+  }
   makeRenderSettings(json) {
     return new RenderSettings(json);
   }
@@ -63,29 +68,45 @@ class RenderSettingsManager {
     return null;
   }
   applyRenderSettingsToScene(renderSettings, scene) {
+    const oldBackground = scene.background;
+    const oldFog = scene.fog;
+
     const {
       background = null,
       fog = null,
     } = (renderSettings ?? {});
     scene.background = background;
-    scene.fog = fog;
-  }
-  applyRenderSettingsToSceneAndPostProcessing(renderSettings, scene, localPostProcessing) {
-    this.applyRenderSettingsToScene(renderSettings, scene);
-    
-    const {
-      passes = null,
-    } = (renderSettings ?? {});
-    localPostProcessing.setPasses(passes);
-  }
-  push(srcScene, dstScene = srcScene) {
-    const renderSettings = this.findRenderSettings(srcScene);
-    // console.log('push render settings', renderSettings);
-    this.applyRenderSettingsToScene(renderSettings, dstScene);
-    
+    scene.fog = this.fog;
+
+    if (fog) {
+      this.fog.color = fog.color;
+      this.fog.density = fog.density;
+    } else {
+      this.fog.color = blackColor;
+      this.fog.density = 0;
+    }
+
     return () => {
-      // console.log('pop render settings');
-      this.applyRenderSettingsToScene(null, dstScene);
+      scene.background = oldBackground;
+      scene.fog = oldFog;
+    };
+  }
+  push(srcScene, dstScene = srcScene, {
+    postProcessing = null,
+  } = {}) {
+    const renderSettings = this.findRenderSettings(srcScene);
+    const renderSettingsCleanup = this.applyRenderSettingsToScene(renderSettings, dstScene);
+
+    if (postProcessing) {
+      const {
+        passes = null,
+      } = (renderSettings ?? {});
+      postProcessing.setPasses(passes);
+    }
+
+    return () => {
+      renderSettingsCleanup();
+      postProcessing && postProcessing.setPasses(null);
     };
   }
 }
