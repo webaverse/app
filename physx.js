@@ -1814,7 +1814,7 @@ const physxWorker = (() => {
     }
   }
 
-  w.dualContouring = () => {
+  w.createChunk = (x, y, z) => {
     const ELEMENT_BYTES = 4
 
     const readBuffer = (outputBuffer, index) => {
@@ -1836,7 +1836,58 @@ const physxWorker = (() => {
       )
     }
 
-    const outputBufferOffset = moduleInstance._doDualContouring()
+    const outputBufferOffset = moduleInstance._createChunk(x, y, z)
+
+    // reading the data with the same order as C++
+    const positionCount = readBuffer(outputBufferOffset, 0) // vector size
+    const positionBuffer = readBuffer(outputBufferOffset, 1) // position vector
+
+    const normalCount = readBuffer(outputBufferOffset, 2) // vector size
+    const normalBuffer = readBuffer(outputBufferOffset, 3) // normal vector
+
+    const indicesCount = readBuffer(outputBufferOffset, 4) // vector size
+    const indicesBuffer = readBuffer(outputBufferOffset, 5) // indices vector
+
+    moduleInstance._doFree(outputBufferOffset)
+
+    const positions = readAttribute(positionBuffer, positionCount * 3)
+    const normals = readAttribute(normalBuffer, normalCount * 3)
+    const indices = readIndices(indicesBuffer, indicesCount)
+
+    moduleInstance._doFree(positionBuffer)
+    moduleInstance._doFree(normalBuffer)
+    moduleInstance._doFree(indicesBuffer)
+
+    return {
+      positions: positions,
+      normals: normals,
+      indices: indices,
+    }
+  }
+
+  w.createSeam = (x, y, z) => {
+    const ELEMENT_BYTES = 4
+
+    const readBuffer = (outputBuffer, index) => {
+      const offset = outputBuffer / ELEMENT_BYTES
+      return Module.HEAP32[offset + index]
+    }
+
+    const readAttribute = (buffer, count) => {
+      return Module.HEAPF32.slice(
+        buffer / ELEMENT_BYTES,
+        buffer / ELEMENT_BYTES + count
+      )
+    }
+
+    const readIndices = (buffer, count) => {
+      return Module.HEAPU32.slice(
+        buffer / ELEMENT_BYTES,
+        buffer / ELEMENT_BYTES + count
+      )
+    }
+
+    const outputBufferOffset = moduleInstance._createSeams(x, y, z)
 
     // reading the data with the same order as C++
     const positionCount = readBuffer(outputBufferOffset, 0) // vector size
