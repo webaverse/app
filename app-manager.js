@@ -245,11 +245,13 @@ class AppManager extends EventTarget {
       // attempt to load app
       try {
         const m = await metaversefile.import(contentId);
+
         if (!live) return _bailout(null);
 
         // create app
         // as an optimization, the app may be reused by calling addApp() before tracking it
         const app = metaversefile.createApp();
+        app.contentId = contentId;
 
         // setup
         {

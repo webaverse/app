@@ -894,7 +894,6 @@ metaversefile.setApi({
         onWaitPromise(p);
       }
     }
-    
     return app;
   },
   createApp(spec) {
@@ -1089,7 +1088,7 @@ export default () => {
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
     app.appType = m.type ?? '';
-    app.contentId = m.contentId ?? '';
+    // app.contentId = m.contentId ?? '';
     if (Array.isArray(m.components)) {
       for (const {key, value} of m.components) {
         if (!app.hasComponent(key)) {

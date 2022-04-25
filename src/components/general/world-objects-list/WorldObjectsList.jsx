@@ -7,6 +7,7 @@ import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
 import cameraManager from '../../../../camera-manager.js';
 
+import { Spritesheet } from '../spritesheet';
 import { AppContext } from '../../app';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 
@@ -325,7 +326,13 @@ export const WorldObjectsList = () => {
                         apps.map( ( app, i ) => (
                             <div className={ classnames( styles.object, app === selectedApp ? styles.selected : null ) } key={ i } onClick={ handleItemClick.bind( this, app ) } onMouseEnter={ handleItemMouseEnter.bind( this, app ) } onMouseLeave={ handleItemMouseLeave.bind( this, app ) } >
                                 <img src="images/webpencil.svg" className={ classnames( styles.backgroundInner, styles.lime ) } />
-                                <img src="images/object.jpg" className={ styles.img } />
+                                        <Spritesheet
+                                            className={ styles.img }
+                                            startUrl={ app.contentId }
+                                            enabled={ true }
+                                            size={ 2048 }
+                                            numFrames={ 128 }
+                                        />
                                 <div className={ styles.wrap } >
                                     <div className={ styles.name } >{ app.name }</div>
                                 </div>
@@ -366,6 +373,10 @@ export const WorldObjectsList = () => {
                                             <select value={ rotationEulerOrder } onChange={ handleSetRotationEulerOrder } className={ styles.rotationEulerOrderSelect } >
                                                 <option value="YXZ">YXZ</option>
                                                 <option value="XYZ">XYZ</option>
+                                                <option value="YZX">YZX</option>
+                                                <option value="ZXY">ZXY</option>
+                                                <option value="XZY">XZY</option>
+                                                <option value="ZYX">ZYX</option>
                                             </select>
                                         </div>
                                     ) : (
