@@ -400,7 +400,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor, useFactor, activateFactor, aimFactor, narutoRunFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor, useFactor, activateFactor, aimFactor, narutoRunFactor, jumpFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -760,7 +760,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // }
 
   const _getApplyFn = () => {
-    if (avatar.jumpState || avatar.unjumpTime <= 200) {
+    if (jumpFactor > 0) {
       const applyFnJump = spec => {
         const {
           animationTrackName: k,
@@ -774,7 +774,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         //   avatar.blendList.push(_handleDefault);
         // }
 
-        const t2 = (now - avatar.jumpStartTime) / 1000 * 0.6 + 0.7;
+        const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
         // if (isPosition) console.log(t2);
@@ -784,21 +784,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           localPlayer.removeAction('jump');
         }
 
-        if (avatar.jumpState) {
-          const blendee = {
-            arr: v2,
-            intensity: Math.min(1, avatar.jumpTime / 200),
-          };
-          // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity);
-          return blendee;
-        } else {
-          const blendee = {
-            arr: v2,
-            intensity: 1 - Math.min(1, avatar.unjumpTime / 200),
-          };
-          // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity);
-          return blendee;
-        }
+        const blendee = {
+          arr: v2,
+          intensity: jumpFactor,
+        };
+        // if (k === 'mixamorigHips.quaternion') console.log(blendee.intensity);
+        return blendee;
       };
       avatar.blendList.push(applyFnJump);
     }
