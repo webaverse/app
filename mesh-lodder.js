@@ -13,6 +13,8 @@ const startAtlasSize = 512;
 const minObjectsPerChunk = 20;
 const maxObjectPerChunk = 50;
 
+const upVector = new THREE.Vector3(0, 1, 0);
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
@@ -133,6 +135,7 @@ export class MeshLodder {
                   material: objectMaterial,
                   meshes: [],
                   geometries: [],
+                  materials: [],
                   maps: [],
                   emissiveMaps: [],
                   normalMaps: [],
@@ -148,6 +151,7 @@ export class MeshLodder {
       
               m.meshes.push(o);
               m.geometries.push(objectGeometry);
+              m.materials.push(objectMaterial);
               m.maps.push(map);
               m.emissiveMaps.push(emissiveMap);
               m.normalMaps.push(normalMap);
@@ -172,6 +176,7 @@ export class MeshLodder {
       // material,
       meshes,
       geometries,
+      materials,
       maps,
       emissiveMaps,
       normalMaps,
@@ -212,21 +217,56 @@ export class MeshLodder {
       }
       return maxSize;
     });
+    const textureUuids = maps.map((map, i) => {
+      const emissiveMap = emissiveMaps[i];
+      const normalMap = normalMaps[i];
+      const roughnessMap = roughnessMaps[i];
+      const metalnessMap = metalnessMaps[i];
+
+      const uuids = [];
+      uuids.push(map ? map.uuid : null);
+      uuids.push(emissiveMap ? emissiveMap.uuid : null);
+      uuids.push(normalMap ? normalMap.uuid : null);
+      uuids.push(roughnessMap ? roughnessMap.uuid : null);
+      uuids.push(metalnessMap ? metalnessMap.uuid : null);
+      return uuids.join(':');
+    });
   
     // generate atlas layouts
     const _packAtlases = () => {
       const _attemptPack = (textureSizes, atlasSize) => {
-        const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 1);
-        const rects = textureSizes.map((textureSize, index) => {
+        const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 0);
+        const rectUuidCache = new Map();
+        const rectIndexCache = new Map();
+        // window.uniqueTextureSets = [];
+        textureSizes.forEach((textureSize, index) => {
           const {x: width, y: height} = textureSize;
-          return {
-            width,
-            height,
-            data: {
-              index,
-            },
-          };
+          const hash = textureUuids[index];
+          
+          let rect = rectUuidCache.get(hash);
+          if (!rect) {
+            /* window.uniqueTextureSets.push({
+              // uuid: materials[index].uuid,
+              mapUUid: maps[index]?.uuid,
+              name: materials[index].name,
+              material: materials[index],
+              mesh: meshes[index],
+              hash,
+            }); */
+
+            rect = {
+              width,
+              height,
+              data: {
+                index,
+              },
+            };
+            rectUuidCache.set(hash, rect);
+          }
+          rectIndexCache.set(index, rect);
         });
+        const rects = Array.from(rectUuidCache.values());
+
         maxRectsPacker.addArray(rects);
         let oversized = maxRectsPacker.bins.length > 1;
         maxRectsPacker.bins.forEach(bin => {
@@ -237,6 +277,7 @@ export class MeshLodder {
           });
         });
         if (!oversized) {
+          maxRectsPacker.rectIndexCache = rectIndexCache;
           return maxRectsPacker;
         } else {
           return null;
@@ -244,7 +285,6 @@ export class MeshLodder {
       };
       
       const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
-      console.log('has textures', hasTextures);
       if (hasTextures) {
         let atlas;
         let atlasSize = startAtlasSize;
@@ -310,6 +350,7 @@ export class MeshLodder {
       for (const textureType of textureTypes) {
         const textures = mergeable[`${textureType}s`];
         const key = _getTexturesKey(textures);
+        // console.log('textures key', key, textures);
 
         let atlasImage = atlasImagesMap.get(key);
         if (atlasImage === undefined) { // cache miss
@@ -324,6 +365,7 @@ export class MeshLodder {
       return atlasImages;
     };
     const atlasImages = _drawAtlasImages(atlas);
+    // window.atlasImages = atlasImages;
 
     const {material} = this;
     for (const textureType of textureTypes) {
@@ -338,15 +380,6 @@ export class MeshLodder {
     material.needsUpdate = true;
 
     this.meshes = meshes;
-
-    const indexRectMap = new Map();
-    atlas.bins.forEach(bin => {
-      bin.rects.forEach(rect => {
-        const {data: {index}} = rect;
-        indexRectMap.set(index, rect);
-      });
-    });
-    this.indexRectMap = indexRectMap;
 
     this.compiled = true;
   }
@@ -385,12 +418,13 @@ export class MeshLodder {
           const name = names[Math.floor(rng() * names.length)];
           const positionX = rng() * chunkWorldSize;
           const positionZ = rng() * chunkWorldSize;
+          const rotationY = rng() * Math.PI * 2;
 
           const meshes = this.contentIndex[name];
           const mesh = meshes[0];
           const g = mesh.geometry;
           const meshIndex = this.meshes.indexOf(mesh);
-          const rect = this.indexRectMap.get(meshIndex);
+          const rect = atlas.rectIndexCache.get(meshIndex);
           const {x, y, width: w, height: h} = rect;
           const tx = x * canvasScale;
           const ty = y * canvasScale;
@@ -405,6 +439,7 @@ export class MeshLodder {
               const dstIndex = positionIndex + i;
 
               localMatrix.copy(mesh.matrixWorld)
+                .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
                 .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ));
 
               localVector.fromArray(g.attributes.position.array, srcIndex * 3)
@@ -459,7 +494,7 @@ export class MeshLodder {
         }
 
         geometry.setDrawRange(0, indexIndex);
-        console.log('set draw range', geometry, indexIndex);
+        // console.log('set draw range', geometry, indexIndex);
       }
     }
   }
