@@ -590,7 +590,7 @@ export function makeId(length) {
   return result;
 }
 
-async function contentIdToStorageUrl(id) {
+/* async function contentIdToStorageUrl(id) {
   if (typeof id === 'number') {
     const hash = await contracts.mainnetsidechain.NFT.methods.getHash(id + '').call();
     return `${storageHost}/${hash}`;
@@ -599,7 +599,7 @@ async function contentIdToStorageUrl(id) {
   } else {
     return null;
   }
-}
+} */
 
 async function pullUserObject(loginToken) {
   const address = getAddressFromMnemonic(loginToken.mnemonic);
@@ -1019,6 +1019,37 @@ export const loadImage = u => new Promise((resolve, reject) => {
   img.crossOrigin = 'Anonymous';
   img.src = u;
 });
+export const drawImageContain = (ctx, img) => {
+  const imgWidth = img.width;
+  const imgHeight = img.height;
+  const canvasWidth = ctx.canvas.width;
+  const canvasHeight = ctx.canvas.height;
+  const imgAspect = imgWidth / imgHeight;
+  const canvasAspect = canvasWidth / canvasHeight;
+  let x, y, width, height;
+  if (imgAspect > canvasAspect) {
+    // image is wider than canvas
+    width = canvasWidth;
+    height = width / imgAspect;
+    x = 0;
+    y = (canvasHeight - height) / 2;
+  } else {
+    // image is taller than canvas
+    height = canvasHeight;
+    width = height * imgAspect;
+    x = (canvasWidth - width) / 2;
+    y = 0;
+  }
+  ctx.drawImage(img, x, y, width, height);
+};
+export const imageToCanvas = (img, w, h) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  drawImageContain(ctx, img);
+  return canvas;
+};
 
 export const isTransferable = o => {
   const ctor = o?.constructor;
@@ -1057,3 +1088,87 @@ export const getTransferables = o => {
   _recurse(o);
   return result;
 };
+export const selectVoice = (voicer) => {
+  const weightedRandom = (weights) => {
+    let totalWeight = 0;
+    for (let i = 0; i < weights.length; i++) {
+      totalWeight += weights[i];
+    }
+  
+    let random = Math.random() * totalWeight;
+    for (let i = 0; i < weights.length; i++) {
+      if (random < weights[i]) {
+        return i;
+      }
+      random -= weights[i];
+    }
+  
+    return -1;
+  }
+  // the weight of each voice is proportional to the inverse of the number of times it has been used
+  const maxNonce = voicer.reduce((max, voice) => Math.max(max, voice.nonce), 0);
+  const weights = voicer.map(({nonce}) => {
+    return 1 - (nonce / (maxNonce + 1));
+  });
+  const selectionIndex = weightedRandom(weights);
+  const voiceSpec = voicer[selectionIndex];
+  voiceSpec.nonce++;
+  while (voicer.every(voice => voice.nonce > 0)) {
+    for (const voiceSpec of voicer) {
+      voiceSpec.nonce--;
+    }
+  }
+  return voiceSpec;
+};
+export const splitLinesToWidth = (() => {
+  let tempCanvas = null;
+  const _getTempCanvas = () => {
+    if (tempCanvas === null) {
+      tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 0;
+      tempCanvas.height = 0;
+    }
+    return tempCanvas;
+  };
+  
+  return (text, font, maxWidth) => {
+    const canvas = _getTempCanvas();
+    const ctx = canvas.getContext('2d');
+    ctx.font = font;
+
+    let lines = [];
+    const words = text.split(' ');
+
+    // We'll be constantly removing words from our words array to build our lines. Once we're out of words, we can stop
+    while (words.length > 0) {
+      let tmp = words[0]; // Capture the current word, in case we need to re-add it to array
+      let line = words.shift(); // Start our line with the first word available to us
+
+      // Now we'll continue adding words to our line until we've exceeded our budget
+      while (words.length && ctx.measureText(line).width < maxWidth) {
+        tmp = words[0];
+        line += ' ' + words.shift();
+      }
+
+      // If the line is too long, remove the last word and replace it in words array.
+      // This will happen on all but the last line, as we anticipate exceeding the length to break out of our second while loop
+      if (ctx.measureText(line).width > maxWidth) {
+        const lastSpaceIndex = line.lastIndexOf(' ');
+        if (lastSpaceIndex !== -1) {
+          line = line.substring(0, lastSpaceIndex);
+          words.unshift(tmp);
+        } else {
+          const part1 = line.substring(0, 12) + '-';
+          const part2 = line.substring(12);
+          line = part1;
+          words.push(part2);
+        }
+      }
+
+      // Push the finshed line into the array
+      lines.push(line);
+    }
+
+    return lines;
+  };
+})();

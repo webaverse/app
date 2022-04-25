@@ -15,6 +15,7 @@ import {
 } from './constants.js';
 import {
   mod,
+  selectVoice,
   // loadJson,
   // loadAudioBuffer,
 } from './util.js';
@@ -73,6 +74,8 @@ class CharacterSfx {
     this.preQ=new THREE.Quaternion();
     this.arr = [0, 0, 0, 0];
 
+    this.startRunningTime = 0;
+    this.willGasp = false;
 
     
     this.oldNarutoRunSound = null;
@@ -97,6 +100,11 @@ class CharacterSfx {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
         const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
         sounds.playSound(audioSpec);
+
+        // play jump grunt 
+        if(this.player.hasAction('jump') && this.player.getAction('jump').trigger === 'jump'){
+          this.playGrunt('jump'); 
+        }
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
         const audioSpec = soundFiles.land[Math.floor(Math.random() * soundFiles.land.length)];
         sounds.playSound(audioSpec);
@@ -189,6 +197,7 @@ class CharacterSfx {
 
         this.lastWalkTime = timeSeconds;
       }
+      
     };
     _handleStep();
 
@@ -212,6 +221,7 @@ class CharacterSfx {
         if(this.narutoRunStartTime===0){
           this.narutoRunStartTime=timeSeconds; 
           sounds.playSound(soundFiles.sonicBoom[0]);
+          this.playGrunt('narutoRun');
         }
         else {
           if(this.arr.reduce((a,b)=>a+b) >= Math.PI/3){
@@ -225,19 +235,22 @@ class CharacterSfx {
           }
          
           if(timeSeconds - this.narutoRunTrailSoundStartTime>soundFiles.sonicBoom[2].duration-0.2 || this.narutoRunTrailSoundStartTime==0){
-            if(!this.player.getAction('sit')){
-              const localSound = sounds.playSound(soundFiles.sonicBoom[2]);
-              this.oldNarutoRunSound = localSound;
-              localSound.addEventListener('ended', () => {
-                if (this.oldNarutoRunSound === localSound) {
-                  this.oldNarutoRunSound = null;
-                }
-              });
-
-              this.narutoRunTrailSoundStartTime = timeSeconds;
-            }
             
+            const localSound = sounds.playSound(soundFiles.sonicBoom[2]);
+            this.oldNarutoRunSound = localSound;
+            localSound.addEventListener('ended', () => {
+              if (this.oldNarutoRunSound === localSound) {
+                this.oldNarutoRunSound = null;
+              }
+            });
+
+            this.narutoRunTrailSoundStartTime = timeSeconds;
           }
+        }
+
+        // if naruto run play more than 2 sec, set willGasp
+        if(timeSeconds - this.narutoRunStartTime > 2){
+          this.willGasp = true;
         }
 
       }
@@ -259,6 +272,29 @@ class CharacterSfx {
   
     };
     _handleNarutoRun();
+    
+
+    const _handleGasp = () =>{
+      const isRunning = currentSpeed > 0.5;
+      if(isRunning){
+        if(this.startRunningTime === 0)
+          this.startRunningTime = timeSeconds;
+      }
+      else{
+        if(this.startRunningTime !== 0 && this.willGasp && !this.player.avatar.narutoRunState){
+          this.playGrunt('gasp');
+        }
+        this.willGasp = false;
+        this.startRunningTime = 0;
+      }
+      
+      if(timeSeconds - this.startRunningTime > 5 && this.startRunningTime !== 0){
+        this.willGasp = true;
+      }
+      
+      
+    }
+    _handleGasp();
 
     const _handleFood = () => {
       const useAction = this.player.getAction('use');
@@ -271,6 +307,8 @@ class CharacterSfx {
           if (eatFrameIndex !== 0 && eatFrameIndex !== this.lastEatFrameIndex) {
             const audioSpec = soundFiles.chomp[Math.floor(Math.random() * soundFiles.chomp.length)];
             sounds.playSound(audioSpec);
+            // control mouth movement
+            this.player.characterBehavior.setMouthMoving(0.04,0.04,0.1,0.02);
           }
 
           this.lastEatFrameIndex = eatFrameIndex;
@@ -285,6 +323,8 @@ class CharacterSfx {
           if (drinkFrameIndex !== 0 && drinkFrameIndex !== this.lastDrinkFrameIndex) {
             const audioSpec = soundFiles.gulp[Math.floor(Math.random() * soundFiles.gulp.length)];
             sounds.playSound(audioSpec);
+            // control mouth movement
+            this.player.characterBehavior.setMouthMoving(0.1,0.1,0.1,0.1);
           }
 
           this.lastDrinkFrameIndex = drinkFrameIndex;
@@ -307,6 +347,76 @@ class CharacterSfx {
       }
     };
     _handleFood();
+  }
+  playGrunt(type, index){
+    
+    let voiceFiles, offset, duration;
+    switch (type) {
+      case 'pain': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
+        break;
+      }
+      case 'scream': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
+        break;
+      }
+      case 'attack': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
+        break;
+      }
+      case 'angry': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
+        break;
+      }
+      case 'gasp': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
+        break;
+      }
+      case 'jump': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
+        break;
+      }
+      case 'narutoRun': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
+        break;
+      }
+    }
+    
+    if(index===undefined){
+      let voice = selectVoice(voiceFiles);
+      duration = voice.duration;
+      offset = voice.offset;
+    }
+    else{
+      duration = voiceFiles[index].duration;
+      offset = voiceFiles[index].offset;
+    } 
+    
+    const audioContext = Avatar.getAudioContext();
+    const audioBufferSourceNode = audioContext.createBufferSource();
+    audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
+
+    // control mouth movement with audio volume
+    if (!this.player.avatar.isAudioEnabled()) {
+      this.player.avatar.setAudioEnabled(true);
+    }
+    audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+
+    // if the oldGrunt are still playing
+    if(this.oldGrunt){
+      this.oldGrunt.stop();
+      this.oldGrunt = null;
+    }
+
+    this.oldGrunt=audioBufferSourceNode;
+    // clean the oldGrunt if voice end
+    audioBufferSourceNode.addEventListener('ended', () => {
+      if (this.oldGrunt === audioBufferSourceNode) {
+        this.oldGrunt = null;
+      }
+    });
+
+    audioBufferSourceNode.start(0, offset, duration);
   }
   destroy() {
     // nothing

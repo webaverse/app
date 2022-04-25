@@ -301,7 +301,7 @@ class ScenePreviewer extends THREE.Object3D {
 
     {
       const worldResolution = new THREE.Vector2(2048, 2048);
-      const worldDepthResolution = new THREE.Vector2(512, 512);
+      const worldDepthResolution = new THREE.Vector2(128, 128);
       const oldPreviewContainerParent = this.previewContainer.parent;
 
       this.previewScene.add(this.previewContainer);

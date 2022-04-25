@@ -93,13 +93,13 @@ export const genPic = async ({
   await Avatar.waitForLoad();
   await audioManager.waitForLoad();
 
-  console.log('gen pic', {
+  /* console.log('gen pic', {
     url,
     width,
     height,
     canvas,
     video,
-  });
+  }); */
 
   const animations = metaversefile.useAvatarAnimations();
   const idleAnimation = animations.find(a => a.name === 'idle.fbx');
@@ -138,7 +138,7 @@ export const genPic = async ({
     player.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
     player.avatar.inputs.hmd.updateMatrixWorld();
     player.addAction({
-      type: 'emote',
+      type: 'facepose',
       emotion: 'angry',
     });
   };
