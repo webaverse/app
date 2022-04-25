@@ -30,7 +30,7 @@ class MicrophoneWorker extends EventTarget {
     };
 
     this.audioWorkletNode = audioWorkletNode;
-    this.audioWorkletNode.connect(options.audioContext.destination);
+    this.audioWorkletNode.connect(options.audioContext.gain);
   }
   getInput() {
     return this.audioWorkletNode;
