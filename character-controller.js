@@ -898,6 +898,7 @@ class UninterpolatedPlayer extends StatePlayer {
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
       aimTransition: new BiActionInterpolant(() => this.hasAction('aim'), 0, defaultTransitionMaxTime),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
+      narutoRunTransition: new BiActionInterpolant(() => this.hasAction('narutoRun'), 0, defaultTransitionMaxTime),
       flyTransition: new BiActionInterpolant(() => this.hasAction('fly'), 0, flyTransitionMaxTime),
       sitTransition: new BiActionInterpolant(() => this.hasAction('sit'), 0, sitTransitionMaxTime),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
@@ -916,7 +917,6 @@ class UninterpolatedPlayer extends StatePlayer {
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
       idleTransition: new BiActionInterpolant(() => {
         return ( // todo: performance: simplicity: maybe don't need list all actions here?
-          !this.hasAction('crouch') &&
           !this.hasAction('activate') &&
           !this.hasAction('use') &&
           !this.hasAction('aim') &&

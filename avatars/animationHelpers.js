@@ -400,7 +400,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor, useFactor, activateFactor, aimFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor, flyFactor, sitFactor, fallFactor, landFactor, idleFactor, useFactor, activateFactor, aimFactor, narutoRunFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -911,7 +911,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // debugger
       avatar.blendList.push(applyFnActivate);
     }
-    if (avatar.narutoRunState) {
+    if (narutoRunFactor) {
       const applyFnNaruto = spec => {
         const {
           animationTrackName: k,
@@ -929,7 +929,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const blendee = {
           arr: v2,
-          intensity: 1,
+          intensity: narutoRunFactor,
         };
         return blendee;
       };
@@ -947,8 +947,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        _handleDefault(spec);
-
         const danceAnimation = danceAnimations[avatar.danceAnimation || defaultDanceAnimation];
         const src2 = danceAnimation.interpolants[k];
         const t2 = (now / 1000) % danceAnimation.duration;
@@ -956,14 +954,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const danceFactorS = avatar.danceFactor / crouchTransitionMaxTime;
         const f = Math.min(Math.max(danceFactorS, 0), 1);
-        lerpFn
-          .call(
-            dst,
-            localQuaternion.fromArray(v2),
-            f,
-          );
 
-        _clearXZ(dst, isPosition);
+        _clearXZ(v2, isPosition);
+
+        const blendee = {
+          arr: v2,
+          intensity: f,
+        };
+        return blendee;
       };
       // debugger
       avatar.blendList.push(applyFnDance);

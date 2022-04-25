@@ -1426,6 +1426,7 @@ class Avatar {
     moveFactors.useFactor = THREE.MathUtils.clamp(this.useTransitionTime / defaultTransitionMaxTime, 0, 1);
     moveFactors.fallFactor = THREE.MathUtils.clamp(this.fallTransitionTime / fallTransitionMaxTime, 0, 1);
     moveFactors.activateFactor = THREE.MathUtils.clamp(this.activateTransitionTime / defaultTransitionMaxTime, 0, 1);
+    moveFactors.narutoRunFactor = THREE.MathUtils.clamp(this.narutoRunTransitionTime / defaultTransitionMaxTime, 0, 1);
     moveFactors.aimFactor = THREE.MathUtils.clamp(this.aimTransitionTime / defaultTransitionMaxTime, 0, 1);
     moveFactors.landFactor = THREE.MathUtils.clamp(this.landTransitionTime / landTransitionMaxTime, 0, 1);
     moveFactors.sitFactor = THREE.MathUtils.clamp(this.sitTransitionTime / sitTransitionMaxTime, 0, 1);
@@ -1850,6 +1851,7 @@ class Avatar {
       <div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor?.toFixed(2)}</div>
       <div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor?.toFixed(2)}</div>
       <div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor?.toFixed(2)}</div>
+      <div style="display:;">narutoRunFactor: --- ${moveFactors.narutoRunFactor?.toFixed(2)}</div>
       <div style="display:;">jumpState: --- ${this.jumpState}</div>
       <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
       <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>

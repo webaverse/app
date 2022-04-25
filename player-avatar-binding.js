@@ -158,6 +158,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
+  rig.narutoRunTransitionTime = player.actionInterpolants.narutoRunTransition.get();
   rig.aimTime = player.actionInterpolants.aim.get();
   rig.aimTransitionTime = player.actionInterpolants.aimTransition.get();
   if (aimAction) {
