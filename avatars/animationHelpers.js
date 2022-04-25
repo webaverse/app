@@ -979,8 +979,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        _handleDefault(spec);
-
         const emoteAnimation = emoteAnimations[avatar.emoteAnimation || defaultEmoteAnimation];
         const src2 = emoteAnimation.interpolants[k];
         const emoteTime = now - avatar.lastEmoteTime;
@@ -989,14 +987,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const emoteFactorS = avatar.emoteFactor / crouchTransitionMaxTime;
         const f = Math.min(Math.max(emoteFactorS, 0), 1);
-        lerpFn
-          .call(
-            dst,
-            localQuaternion.fromArray(v2),
-            f,
-          );
 
-        _clearXZ(dst, isPosition);
+        _clearXZ(v2, isPosition);
+
+        const blendee = {
+          arr: v2,
+          intensity: f,
+        };
+        return blendee;
       };
       // debugger
       avatar.blendList.push(applyFnEmote);
