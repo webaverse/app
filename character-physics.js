@@ -63,7 +63,7 @@ class CharacterPhysics {
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
-    if (this.player.avatar) {
+    if (this.player.avatar && !this.player.hasAction('land')) {
       this.velocity.add(keysDirection);
     }
   }
