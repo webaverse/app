@@ -736,32 +736,32 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     return target.toArray();
   };
 
-  // if (avatar.idleFactor > 0) {
-  const applyFnDefault = spec => {
-    const {
-      animationTrackName: k,
-      dst,
-      // isTop,
-      lerpFn,
-      isPosition,
-    } = spec;
-
-    const arr = _getHorizontalBlend(k, lerpFn, isPosition, dst);
-
-    spec.defaultDst.fromArray(arr);
-
-    const blendee = {
-      arr,
-      intensity: idleFactor,
-      // arr: [0, 0, 0, 0],
-      // intensity: 0,
-    };
-    return blendee;
-  };
-  avatar.blendList.push(applyFnDefault);
-  // }
-
   const _getApplyFn = () => {
+    // if (avatar.idleFactor > 0) {
+    const applyFnDefault = spec => {
+      const {
+        animationTrackName: k,
+        dst,
+        // isTop,
+        lerpFn,
+        isPosition,
+      } = spec;
+
+      const arr = _getHorizontalBlend(k, lerpFn, isPosition, dst);
+
+      spec.defaultDst.fromArray(arr);
+
+      const blendee = {
+        arr,
+        intensity: idleFactor,
+        // arr: [0, 0, 0, 0],
+        // intensity: 0,
+      };
+      return blendee;
+    };
+    avatar.blendList.push(applyFnDefault);
+    // }
+
     if (jumpFactor > 0) {
       const applyFnJump = spec => {
         const {
@@ -770,11 +770,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           // isTop,
           isPosition,
         } = spec;
-
-        // if (!avatar.blendList.includes(_handleDefault)) {
-        //   if (k === 'mixamorigHips.quaternion') debugger
-        //   avatar.blendList.push(_handleDefault);
-        // }
 
         const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
         const src2 = jumpAnimation.interpolants[k];
@@ -991,27 +986,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       avatar.blendList.push(applyFnEmote);
     }
 
-    /* if (avatar.fallLoopState) {
-      const applyFn = spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
-
-        const t2 = (avatar.fallLoopTime/1000) ;
-        const src2 = fallLoop.interpolants[k];
-        const v2 = src2.evaluate(t2);
-
-        dst.fromArray(v2);
-      };
-    } */
-
-    // if (
-    //   avatar.useAnimation ||
-    //   avatar.useAnimationCombo.length > 0 ||
-    //   avatar.useAnimationEnvelope.length > 0
-    // ) {
     if (useFactor > 0 && (
       avatar.useAnimation ||
       avatar.useAnimationCombo.length > 0 ||
@@ -1066,8 +1040,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           }
         }
 
-        // _handleDefault(spec);
-
         const arr = [];
         if (useAnimation) {
           if (!isPosition) {
@@ -1109,19 +1081,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           intensity: useFactor,
         };
         return blendee;
-
-        //   const blendee = {
-        //     arr,
-        //     intensity: useFactor,
-        //   };
-        //   return blendee;
-        // } else {
-        //   const blendee = {
-        //     arr: [0, 0, 0, 0],
-        //     intensity: 0,
-        //   };
-        //   return blendee;
-        // }
       };
       // debugger
       avatar.blendList.push(applyFnUse);
@@ -1289,68 +1248,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       avatar.blendList.push(applyFnUnuse);
     }
   };
-  // const applyFn = _getApplyFn();
   _getApplyFn();
-  // console.log(avatar.blendList.length);
-  // const _blendFly = spec => {
-  //   const {
-  //     animationTrackName: k,
-  //     dst,
-  //     // isTop,
-  //     lerpFn,
-  //     isPosition,
-  //   } = spec;
-
-  //   if (avatar.flyState || (avatar.flyTime >= 0 && avatar.flyTime < 1000)) {
-  //     const t2 = avatar.flyTime / 1000;
-  //     // const f = avatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-  //     const f = Math.min(1, t2 / 0.2);
-  //     if (k === 'mixamorigHips.quaternion') console.log(f.toFixed(2));
-  //     const src2 = floatAnimation.interpolants[k];
-  //     const v2 = src2.evaluate(t2 % floatAnimation.duration);
-
-  //     // if (isPosition) debugger;
-  //     lerpFn
-  //       .call(
-  //         dst,
-  //         localQuaternion.fromArray(v2),
-  //         f,
-  //       );
-  //   }
-  // };
-
-  // const _blendActivateAction = spec => {
-  //   const {
-  //     animationTrackName: k,
-  //     dst,
-  //     // isTop,
-  //     lerpFn,
-  //   } = spec;
-
-  //   if (avatar.activateTime > 0) {
-  //     const localPlayer = metaversefile.useLocalPlayer();
-
-  //     let defaultAnimation = 'grab_forward';
-
-  //     if (localPlayer.getAction('activate').animationName) {
-  //       defaultAnimation = localPlayer.getAction('activate').animationName;
-  //     }
-
-  //     const activateAnimation = activateAnimations[defaultAnimation].animation;
-  //     const src2 = activateAnimation.interpolants[k];
-  //     const t2 = ((avatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
-  //     const v2 = src2.evaluate(t2);
-
-  //     const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-
-  //     lerpFn
-  //       .call(
-  //         dst,
-  //         localQuaternion.fromArray(v2),
-  //         f,
-  //       );
-  //   }
-  // };
 
   for (const spec of avatar.animationMappings) {
     const {
