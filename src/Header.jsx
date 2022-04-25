@@ -9,7 +9,7 @@ import ioManager from '../io-manager.js'
 
 import { Character } from './components/general/character';
 import { CharacterSelect } from './components/general/character-select';
-import { Inventory } from './components/general/inventory';
+import { Equipment } from './components/general/equipment';
 import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
@@ -276,9 +276,7 @@ export default function Header() {
                     <CharacterSelect
                         
                     />
-                    <Inventory
-                    
-                    />
+                    <Equipment />
                     {/* <Claims
                         open={ claimsOpen }
                         toggleOpen={ toggleClaimsOpen }
