@@ -916,11 +916,11 @@ class UninterpolatedPlayer extends StatePlayer {
       // swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
-      idleTransition: new BiActionInterpolant(() => {
+      idleTransition: new BiActionInterpolant(() => { // todo: rename idle to default;
         return ( // todo: performance: simplicity: maybe don't need list all actions here?
           !this.hasAction('activate') &&
           !this.hasAction('use') &&
-          !this.hasAction('aim') &&
+          !this.hasAction('aim') && // ~~allow blend with default~~
           !this.hasAction('narutoRun') &&
           !this.hasAction('fly') &&
           !this.hasAction('sit') &&

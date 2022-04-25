@@ -1857,6 +1857,7 @@ class Avatar {
       <div style="display:;">jumpState: --- ${this.jumpState}</div>
       <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
       <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
+      <div style="display:;">aimFactor: --- ${moveFactors.aimFactor?.toFixed(2)}</div>
       <div style="display:;">sitFactor: --- ${moveFactors.sitFactor?.toFixed(2)}</div>
       <div style="display:;">sitState: --- ${this.sitState}</div>
       <div style="display:;">flyState: --- ${this.flyState}</div>

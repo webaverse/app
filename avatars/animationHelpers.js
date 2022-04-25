@@ -753,6 +753,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     const blendee = {
       arr,
       intensity: idleFactor,
+      // arr: [0, 0, 0, 0],
+      // intensity: 0,
     };
     return blendee;
   };
@@ -1180,9 +1182,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
         const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
         const arr = [];
+        // let arr = [];
         if (!isPosition) {
           const src2 = aimAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
+          // arr = v2;
 
           const idleAnimation = _getIdleAnimation('walk');
           const t3 = 0;
@@ -1197,6 +1201,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } else {
           const src2 = aimAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
+          // arr = v2;
 
           const idleAnimation = _getIdleAnimation('walk');
           const t3 = 0;
