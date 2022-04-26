@@ -87,6 +87,8 @@ class CameraManager extends EventTarget {
     this.pointerLockElement = null;
     // this.pointerLockEpoch = 0;
     this.shakes = [];
+    this.focus = false;
+    this.lastFocusChangeTime = 0;
 
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
@@ -205,6 +207,18 @@ class CameraManager extends EventTarget {
       }
     }
     return result;
+  }
+  setFocus(focus) {
+    if (focus !== this.focus) {
+      this.focus = focus;
+      this.lastFocusChangeTime = performance.now();
+
+      this.dispatchEvent(new MessageEvent('focuschange', {
+        data: {
+          focus,
+        },
+      }));
+    }
   }
   updatePost(timestamp, timeDiff) {
     // console.log('camera manager update post');
