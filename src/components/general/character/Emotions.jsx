@@ -6,7 +6,7 @@ import metaversefile from '../../../../metaversefile-api.js';
 
 import styles from './emotions.module.css';
 
-const emotions = [
+export const emotions = [
     'joy',
     'sorrow',
     'angry',

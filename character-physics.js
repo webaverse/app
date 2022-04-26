@@ -1,14 +1,12 @@
 /* this is the character physics implementation.
 it sets up and ticks the physics loop for our local character */
-
 import * as THREE from 'three';
 // import cameraManager from './camera-manager.js';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
-import {getVelocityDampingFactor} from './util.js';
+import {applyVelocity, getVelocityDampingFactor} from './util.js';
 import {groundFriction, flyFriction, airFriction} from './constants.js';
-import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
@@ -34,6 +32,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
+const groundStickOffset = 0.03;
 
 class CharacterPhysics {
   constructor(player) {
@@ -91,7 +90,25 @@ class CharacterPhysics {
         this.player.characterController.position
       );
       // const collided = flags !== 0;
-      const grounded = !!(flags & 0x1); 
+      let grounded = !!(flags & 0x1); 
+
+      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly')) { // prevent jump when go down slope
+        const oldY = this.player.characterController.position.y;
+        const flags = physicsManager.moveCharacterController(
+          this.player.characterController,
+          localVector3.set(0, -groundStickOffset, 0),
+          minDist,
+          0,
+          localVector4,
+        );
+        const newGrounded = !!(flags & 0x1); 
+        if (newGrounded) {
+          grounded = true;
+          this.player.characterController.position.copy(localVector4);
+        } else {
+          this.player.characterController.position.y = oldY;
+        }
+      }
 
       this.player.characterController.updateMatrixWorld();
       this.player.characterController.matrixWorld.decompose(localVector, localQuaternion, localVector2);

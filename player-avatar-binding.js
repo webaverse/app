@@ -127,8 +127,17 @@ export function applyPlayerActionsToAvatar(player, rig) {
   if (rig.unuseTime === 0) { // this means use is active
     if (useAction?.animationEnvelope) {
       rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
+    } else {
+      rig.unuseAnimation = null;
     }
   }
+
+  rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
+  rig.vowels[1] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[1];
+  rig.vowels[2] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[2];
+  rig.vowels[3] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[3];
+  rig.vowels[4] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[4];
+
 
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();

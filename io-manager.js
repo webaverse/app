@@ -387,20 +387,6 @@ ioManager.keydown = e => {
       lastWASDDownTime.keyA = 0;
       break;
     }
-    case 82: { // R
-      if (cameraManager.pointerLockElement) {
-        if (game.canRotate()) {
-          game.menuRotate(1);
-        } else {
-          game.dropSelectedApp();
-        }
-      } else {
-        // if (!game.dragging) {
-          // _setTransformMode('rotate');
-        // }
-      }
-      break;
-    }
     case 70: { // F
       e.preventDefault();
       e.stopPropagation();
@@ -481,6 +467,16 @@ ioManager.keydown = e => {
       // }
       break;
     }
+    case 69: { // E
+      // if (cameraManager.pointerLockElement) {
+        if (game.canRotate()) {
+          game.menuRotate(-1);
+        } else {
+          game.menuActivateDown();
+        }
+      // }
+      break;
+    }
     case 84: { // T
       e.preventDefault();
       e.stopPropagation();
@@ -498,6 +494,20 @@ ioManager.keydown = e => {
       // game.menuPhysics();
       break;
     }
+    case 82: { // R
+      if (cameraManager.pointerLockElement) {
+        if (game.canRotate()) {
+          game.menuRotate(1);
+        } else {
+          game.dropSelectedApp();
+        }
+      } else {
+        // if (!game.dragging) {
+          // _setTransformMode('rotate');
+        // }
+      }
+      break;
+    }
     case 16: { // shift
       ioManager.keys.shift = true;
       break;
@@ -506,7 +516,7 @@ ioManager.keydown = e => {
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
-          game.jump();
+          game.jump('jump');
         } /* else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
         } */
@@ -525,20 +535,6 @@ ioManager.keydown = e => {
         // clear conflicting aim with quick menu
         game.menuUnaim();
       }
-      break;
-    }
-    case 69: { // E
-      // if (cameraManager.pointerLockElement) {
-        if (game.canRotate()) {
-          game.menuRotate(-1);
-        } else {
-          game.menuActivateDown();
-        }
-      // }
-      break;
-    }
-    case 192: { // tilde
-      game.toggleEditMode();
       break;
     }
     /* case 13: { // enter
@@ -560,6 +556,10 @@ ioManager.keydown = e => {
     case 72: { // H
       const debug = metaversefile.useDebug();
       debug.toggle();
+      break;
+    }
+    case 192: { // tilde
+      game.toggleEditMode();
       break;
     }
   }

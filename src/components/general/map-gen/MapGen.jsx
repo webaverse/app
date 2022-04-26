@@ -198,6 +198,7 @@ export const MapGen = () => {
     const [lastSelectTime, setLastSelectTime] = useState(-Infinity);
     const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
+    const [haloMeshApp, setHaloMeshApp] = useState(null);
     const canvasRef = useRef();
 
     //
@@ -313,7 +314,29 @@ export const MapGen = () => {
 
             if (game.inputFocused()) return true;
 
-            switch ( event.which ) {
+              switch ( event.which ) {
+
+                case 75: { // K
+
+                  if (!haloMeshApp) {
+                    const haloMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['halo'];
+                      await haloMeshApp.addModule(m);
+                    })();
+                    scene.add(haloMeshApp);
+
+                    setHaloMeshApp(haloMeshApp);
+                  } else {
+                    scene.remove(haloMeshApp);
+                    haloMeshApp.destroy();
+
+                    setHaloMeshApp(null);
+                  }
+
+                  return false;
+                }
 
                 case 76: { // L
                 
@@ -379,7 +402,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel ]);
+    }, [ state.openedPanel, haloMeshApp ]);
 
     // resize
     useEffect(() => {
