@@ -33,20 +33,20 @@
           "aperture": 0.00002,
           "maxblur": 0.005
         },
-        "hdr": {
-          "adaptive": true,
-          "resolution": 256,
-          "adaptionRate": 100,
-          "maxLuminance": 10,
-          "minLuminance": 0,
-          "middleGrey": 3
-        },
         "bloom": {
-          "strength": 0.2,
+          "strength": 0.05,
           "radius": 0.5,
           "threshold": 0.8
         }
       }
+    },    
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "http://localhost/lib/webaverse_resource/desert-hill/"
     },
     {
       "position": [
@@ -54,15 +54,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/desert-hill/"
-    },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+      "start_url": "http://localhost/lib/webaverse_resource/atmospheric-sky/"
     },
     {
       "position": [
@@ -76,7 +68,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/mirror/",
+      "start_url": "http://localhost/lib/webaverse_resource/mirror/",
       "dynamic": true
     },
     {
@@ -91,7 +83,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/treehouse/"
+      "start_url": "http://localhost/lib/webaverse_resource/treehouse/"
     },
     {
       "position": [
@@ -105,7 +97,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/hovercraft/"
+      "start_url": "http://localhost/lib/webaverse_resource/hovercraft/"
     },
     {
       "position": [
@@ -119,7 +111,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/fox/"
+      "start_url": "http://localhost/lib/webaverse_resource/fox/"
     },
     {
       "position": [
@@ -133,7 +125,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/pistol/"
+      "start_url": "http://localhost/lib/webaverse_resource/pistol/"
     }
   ]
 }

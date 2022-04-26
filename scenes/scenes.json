@@ -1,16 +1,23 @@
 [
+  "test.scn",
+  "test2.scn",
   "street.scn",
+  "street-simple.scn",
   "treehouse.scn",
+  "treehouse-simple.scn",
+  "marching-cube.scn",
   "shadows.scn",
   "darkness.scn",
   "grass.scn",
   "battalion.scn",
   "gunroom.scn",
   "classroom.scn",
-  "block.scn",
+  "grid.scn",
+  "grid-simple.scn",
+  "grid-heli.scn",
   "canyon.scn",
   "prototype.scn",
+  "prototype-vis.scn",
   "silk-fountains.scn",
-  "moon.scn",
-  "terrain.scn"
+  "moon.scn"
 ]

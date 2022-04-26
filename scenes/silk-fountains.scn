@@ -38,7 +38,7 @@
           0,
           0
         ],
-        "start_url": "https://webaverse.github.io/twilight-sky/index.js"
+        "start_url": "http://localhost/lib/webaverse_resource/twilight-sky/index.js"
       }, 
     {
       "position": [
@@ -46,7 +46,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/silk-fountains-trees/index.js"
+      "start_url": "http://localhost/lib/webaverse_resource/silk-fountains-trees/index.js"
     },
     
     {
@@ -55,7 +55,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/silk-fountains-temp/index.js"
+      "start_url": "http://localhost/lib/webaverse_resource/silk-fountains-temp/index.js"
     },
 
      {
@@ -64,7 +64,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/silk-fountains-tunnels/index.js"
+      "start_url": "http://localhost/lib/webaverse_resource/silk-fountains-tunnels/index.js"
     },
     {
       "position": [
@@ -72,7 +72,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/silk-fountains-street/"
+      "start_url": "http://localhost/lib/webaverse_resource/silk-fountains-street/"
     },
     {
       "position": [
@@ -80,7 +80,21 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/silk-fountains-ruins/index.js"
+      "start_url": "http://localhost/lib/webaverse_resource/silk-fountains-ruins/index.js"
+    },
+    {
+      "position": [
+        0,
+        5,
+        -205
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "http://localhost/lib/webaverse_resource/npc/"
     }
   ]
 }
