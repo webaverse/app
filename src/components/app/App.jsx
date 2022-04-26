@@ -97,7 +97,6 @@ export const App = () => {
     const _loadUrlState = () => {
 
         const src = _getCurrentSceneSrc();
-        console.log('_loadUrlState', src);
         setSelectedScene( src );
 
         const roomName = _getCurrentRoom();

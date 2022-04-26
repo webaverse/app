@@ -47,7 +47,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/treehouse/"
+      "start_url": "https://webaverse.github.io/treehouse/"
     },
     {
       "type": "application/group",
@@ -65,7 +65,7 @@
       "content": {
         "objects": [
           {
-            "start_url": "http://localhost/lib/webaverse_resource/lantern/"
+            "start_url": "https://webaverse.github.io/lantern/"
           },
           {
             "type": "application/light",
@@ -93,7 +93,7 @@
       "content": {
         "objects": [
           {
-            "start_url": "http://localhost/lib/webaverse_resource/fairy/"
+            "start_url": "https://webaverse.github.io/fairy/"
           },
           {
             "type": "application/light",
@@ -108,6 +108,20 @@
     },
     {
       "position": [
+        0,
+        -1,
+        3
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/app/public/avatars/ann.vrm"
+    },
+    {
+      "position": [
         1,
         -1,
         3
@@ -118,7 +132,7 @@
         0,
         1
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/scissors/"
+      "start_url": "https://webaverse.github.io/scissors/"
     }
   ]
 }

@@ -50,7 +50,7 @@
     {
       "type": "application/spawnpoint",
       "content": {
-        "position": [0, 35, -70],
+        "position": [0, 35, 74],
         "quaternion": [0, 1, 0, 0]
       }
     },
@@ -66,7 +66,7 @@
       "position": [
         -2,
         35,
-        -70
+        74
       ],
       "quaternion": [
         0,
@@ -74,23 +74,15 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/npc/",
+      "start_url": "/avatars/drake_hacker_v3_vian.vrm",
       "components": [
         {
-          "key": "name",
-          "value": "Drake"
-        },
-        {
-          "key": "voice",
-          "value": "Shining Armor"
-        },
-        {
-          "key": "avatarUrl",
-          "value": "/avatars/drake_hacker_v3_vian.vrm"
-        },
-        {
-          "key": "bio",
-          "value": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+          "key": "npc",
+          "value": {
+            "name": "Drake",
+            "voice": "Shining Armor",
+            "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+          }
         }
       ]
     },
@@ -98,7 +90,7 @@
       "position": [
         2,
         33.5,
-        -70
+        74
       ],
       "quaternion": [
         0,
@@ -112,7 +104,7 @@
       "position": [
         0,
         33.5,
-        -53
+        91
       ],
       "quaternion": [
         0,
@@ -130,7 +122,7 @@
       "position": [
         0,
         40.3,
-        24
+        168
       ],
       "start_url": "https://webaverse.github.io/turret/"
     },
@@ -138,7 +130,7 @@
       "position": [
         0,
         0,
-        6
+        150
       ],
       "start_url": "https://webaverse.github.io/dreadnought/"
     },
@@ -146,7 +138,7 @@
       "position": [
         -150,
         20,
-        300
+        320
       ],
       "start_url": "https://webaverse.github.io/dreadnought/"
     }
