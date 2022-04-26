@@ -1364,6 +1364,7 @@ class Avatar {
       ),
       'YXZ'
     );
+    // localEuler.y += Math.PI / 2;
     return localEuler.y;
   }
   async setQuality(quality) {
@@ -1829,6 +1830,7 @@ class Avatar {
       <div style="display:;">keysDirection: --- ${window.logVector3(ioManager.keysDirection)}</div>
       <div style="display:;">avatar.direction: --- ${window.logVector3(avatar.direction)}</div>
       <div style="display:;">localPlayer.direction: --- ${window.logVector3(localPlayer.getWorldDirection(localVector))}</div>
+      <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
       <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>
       <div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
       <div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
@@ -1881,6 +1883,7 @@ class Avatar {
       <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
     `
     _applyAnimation(this, now, moveFactors);
+    // console.log(window.logVector3(this.modelBoneOutputs.Hips.getWorldDirection(localVector)));
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);
