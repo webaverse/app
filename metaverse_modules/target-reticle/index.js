@@ -155,6 +155,7 @@ const _makeTargetReticleMesh = () => {
       varying vec2 vUv;
       // varying vec2 vNormal2;
       // varying vec3 vNormal;
+      varying vec3 vBarycentric;
 
       vec2 rotate2D(vec2 v, float a) {
         return vec2(
@@ -178,6 +179,15 @@ const _makeTargetReticleMesh = () => {
         // vNormal = normal;
         vUv = uv;
         // vNormal2 = normal2;
+
+        float vid = float(gl_VertexID);
+        if (mod(vid, 3.) < 0.5) {
+          vBarycentric = vec3(1., 0., 0.);
+        } else if (mod(vid, 3.) < 1.5) {
+          vBarycentric = vec3(0., 1., 0.);
+        } else {
+          vBarycentric = vec3(0., 0., 1.);
+        }
       }
     `,
     fragmentShader: `\
@@ -188,8 +198,8 @@ const _makeTargetReticleMesh = () => {
 
       // uniform vec4 uBoundingBox;
       uniform float uTime;
-      uniform float uColor1;
-      uniform float uColor2;
+      uniform vec3 uColor1;
+      uniform vec3 uColor2;
       // uniform float uZoom;
       // uniform float uTimeCubic;
       // varying vec3 vColor;
@@ -197,6 +207,31 @@ const _makeTargetReticleMesh = () => {
       varying vec2 vUv;
       // varying vec2 vNormal2;
       // varying vec3 vNormal;
+      varying vec3 vBarycentric;
+
+      // compute the distance to edge of the triangle from its barycentric coordinates
+      float distanceToEdge(vec3 barycentric) {
+        return length(
+          vec3(
+            barycentric.x * 2. - 1.,
+            barycentric.y * 2. - 1.,
+            barycentric.z * 2. - 1.
+          )
+        );
+      }
+
+      /* float edgeFactor() {
+        vec3 d = fwidth(vBarycentric);
+        vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
+        return min(min(a3.x, a3.y), a3.z);
+      } */
+      
+      // const float lineWidth = 1.;
+      float edgeFactor(vec3 vbc, float lineWidth) {
+        vec3 d = fwidth(vbc);
+        vec3 f = step(d * lineWidth, vbc);
+        return min(min(f.x, f.y), f.z);
+      }
 
       vec3 hueShift( vec3 color, float hueAdjust ){
         const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
@@ -236,15 +271,29 @@ const _makeTargetReticleMesh = () => {
         } else {
           discard;
         } */
-        
-        gl_FragColor = vec4(vUv.x, vUv.y, 0., 1.);
+
+        vec3 c = mix(uColor1, uColor2, vUv.y);
+        c *= distanceToEdge(vBarycentric);
+        // c *= 0.25 + edgeFactor(vBarycentric, 1.) * 0.75;
+        if (edgeFactor(vBarycentric, 1.) < 0.2) {
+          c = vec3(0.);
+        }
+        /* if (vBarycentric.x > 0.9 || vBarycentric.y > 0.9 || vBarycentric.z > 0.9) {
+          c = vec3(0.);
+        } */
+        // float y = vUv.x * vUv.y;
+        /* if (vUv.x < (y + 0.1) || 1. - vUv.x > (y + 0.1) || vUv.y < 0.02 || vUv.y > 0.98) {
+          c = vec3(0.);
+        } */
+        // gl_FragColor = vec4(vUv.x, vUv.y, 0., 1.);
+        gl_FragColor = vec4(c, 1.);
       }
     `,
     side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.update = (timestamp, timeDiff) => {
-    const maxTime = 2000;
+    const maxTime = 5000;
     const f = (timestamp % maxTime) / maxTime;
 
     /* const localPlayer = useLocalPlayer();
@@ -255,18 +304,18 @@ const _makeTargetReticleMesh = () => {
     const targetType = 'friend';
     // const targetTypeIndex = targetTypes.indexOf(targetType);
     const targetTypeColor = targetTypeColors[targetType];
-    material.uniforms.uColor1.value.copy(targetTypeColor[0]);
+    material.uniforms.uColor1.value.copy(targetTypeColor[0])//.multiplyScalar(0.75);
     material.uniforms.uColor1.needsUpdate = true;
-    material.uniforms.uColor2.value.copy(targetTypeColor[1]);
+    material.uniforms.uColor2.value.copy(targetTypeColor[1])//.multiplyScalar(0.75);
     material.uniforms.uColor2.needsUpdate = true;
 
     let f2;
-    if (f < 1/3) {
-      f2 = f * 3;
-    } else if (f < 2/3) {
+    if (f < 1/4) {
+      f2 = f * 4;
+    } else if (f < 3/4) {
       f2 = 1;
     } else {
-      f2 = 1 - ((f - 2/3) * 3);
+      f2 = 1 - ((f - 3/4) * 4);
     }
     material.uniforms.uZoom.value = 1 - f2;
     material.uniforms.uZoom.needsUpdate = true;
