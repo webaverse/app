@@ -21,6 +21,7 @@ import { ZoneTitleCard } from '../general/zone-title-card';
 import { Quests } from '../play-mode/quests';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
 import { LoadingBox } from '../../LoadingBox.jsx';
+import { FocusBar } from '../../FocusBar.jsx';
 import { DragAndDrop } from '../../DragAndDrop.jsx';
 import { Stats } from '../../Stats.jsx';
 import { PlayMode } from '../play-mode';
@@ -239,6 +240,7 @@ export const App = () => {
                 <MapGen />
                 <Quests />
                 <LoadingBox />
+                <FocusBar />
                 <DragAndDrop />
                 <Stats app={ app } />
             </AppContext.Provider>
