@@ -349,6 +349,8 @@ class CharacterSfx {
     _handleFood();
   }
   playGrunt(type, index){
+    if(this.player.voicePack === null || this.player.voicePack === undefined)
+      return;
     
     let voiceFiles, offset, duration;
     switch (type) {
