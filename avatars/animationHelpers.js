@@ -865,8 +865,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } */
     if (
       avatar.useAnimation ||
-      avatar.useAnimationCombo.length > 0 ||
-      avatar.useAnimationEnvelope.length > 0
+      avatar.useAnimationCombo.length > 0
     ) {
       return spec => {
         const {
@@ -887,32 +886,79 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (avatar.useAnimationEnvelope.length > 0) {
-          let totalTime = 0;
+        }
+
+        _handleDefault(spec);
+
+        if (useAnimation) {
+          if (!isPosition) {
+            const src2 = useAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+
+            dst
+              .premultiply(localQuaternion2.fromArray(v3).invert())
+              .premultiply(localQuaternion2.fromArray(v2));
+          } else {
+            const src2 = useAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            localVector2.fromArray(v2);
+            _clearXZ(localVector2, isPosition);
+
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+            localVector3.fromArray(v3);
+
+            dst
+              .sub(localVector3)
+              .add(localVector2);
+          }
+        }
+      };
+    } else if (
+      avatar.useAnimationEnvelope.length > 0
+    ) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+          isPosition,
+        } = spec;
+
+        let useAnimation;
+        let t2;
+        const useTimeS = avatar.useTime / 1000;
+        let totalTime = 0;
+        for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+          const animationName = avatar.useAnimationEnvelope[i];
+          const animation = useAnimations[animationName];
+          totalTime += animation.duration;
+        }
+
+        if (totalTime > 0) {
+          let animationTimeBase = 0;
           for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
             const animationName = avatar.useAnimationEnvelope[i];
             const animation = useAnimations[animationName];
-            totalTime += animation.duration;
+            if (useTimeS < (animationTimeBase + animation.duration)) {
+              useAnimation = animation;
+              break;
+            }
+            animationTimeBase += animation.duration;
           }
-
-          if (totalTime > 0) {
-            let animationTimeBase = 0;
-            for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-              const animationName = avatar.useAnimationEnvelope[i];
-              const animation = useAnimations[animationName];
-              if (useTimeS < (animationTimeBase + animation.duration)) {
-                useAnimation = animation;
-                break;
-              }
-              animationTimeBase += animation.duration;
-            }
-            if (useAnimation !== undefined) { // first iteration
-              t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
-            } else { // loop
-              const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
-              useAnimation = useAnimations[secondLastAnimationName];
-              t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
-            }
+          if (useAnimation !== undefined) { // first iteration
+            t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
+          } else { // loop
+            const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
+            useAnimation = useAnimations[secondLastAnimationName];
+            t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
           }
         }
 
