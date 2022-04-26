@@ -166,7 +166,7 @@ const _makeTargetReticleMesh = () => {
       void main() {
         float angle = uTime * PI * 2.;
         // vec2 direction = rotate2D(normal2, angle);
-        vec3 p = position + vec3(normal2 * uZoom * 10., 0.); 
+        vec3 p = vec3(rotate2D(position.xy, angle) + rotate2D(normal2 * uZoom * 10., angle), position.z);
 
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mvPosition;
