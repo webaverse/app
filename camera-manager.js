@@ -93,6 +93,9 @@ class CameraManager extends EventTarget {
     this.fovFactor = 0;
     this.lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
 
+    this.lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
+    this.fovFactor = 0;
+
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
       const renderer = getRenderer();
@@ -432,6 +435,29 @@ class CameraManager extends EventTarget {
           camera.fov = minFov + Math.pow(this.fovFactor, 0.75) * (maxFov - minFov);
           camera.updateProjectionMatrix();
         }
+      }
+    };
+    _setCameraFov();
+
+    const _setCameraFov = () => {
+      if (!renderer.xr.getSession()) {
+        const fovInTime = 3;
+        const fovOutTime = 0.3;
+
+        const narutoRun = localPlayer.getAction('narutoRun');
+        if (narutoRun) {
+          if (this.lastNonzeroDirectionVector.z < 0) {
+            this.fovFactor += timeDiff / 1000 / fovInTime;
+          } else {
+            this.fovFactor -= timeDiff / 1000 / fovInTime;
+          }
+        } else {
+          this.fovFactor -= timeDiff / 1000 / fovOutTime;
+        }
+        this.fovFactor = Math.min(Math.max(this.fovFactor, 0), 1);
+
+        camera.fov = minFov + Math.pow(this.fovFactor, 0.75) * (maxFov - minFov);
+        camera.updateProjectionMatrix();
       }
     };
     _setCameraFov();
