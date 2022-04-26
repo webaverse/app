@@ -8,6 +8,8 @@ import * as voices from '../../../../voices';
 
 import styles from './settings.module.css';
 
+import * as audioManager from '../../../../audio-manager.js';
+
 //
 
 export const defaultVoicePack = {
@@ -88,6 +90,10 @@ export const TabAudio = ({ active }) => {
     };
 
     function applySettings () {
+
+        // set volume
+
+        audioManager.setVolume(generalVolume / 100);
 
         // set voice pack
 

@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import postProcessing from './post-processing.js';
 // import {rootScene} from './renderer.js';
 
+const blackColor = new THREE.Color(0x000000);
+
 class RenderSettings {
   constructor(json) {
     this.background = this.#makeBackground(json.background);
@@ -36,6 +38,9 @@ class RenderSettings {
 }
 
 class RenderSettingsManager {
+  constructor() {
+    this.fog = new THREE.FogExp2(0x000000, 0);
+  }
   makeRenderSettings(json) {
     return new RenderSettings(json);
   }
@@ -63,40 +68,35 @@ class RenderSettingsManager {
     return null;
   }
   applyRenderSettingsToScene(renderSettings, scene) {
+    const oldBackground = scene.background;
+    const oldFog = scene.fog;
+
     const {
       background = null,
       fog = null,
     } = (renderSettings ?? {});
     scene.background = background;
-    scene.fog = fog;
+    scene.fog = this.fog;
+
+    if (fog) {
+      this.fog.color = fog.color;
+      this.fog.density = fog.density;
+    } else {
+      this.fog.color = blackColor;
+      this.fog.density = 0;
+    }
+
+    return () => {
+      scene.background = oldBackground;
+      scene.fog = oldFog;
+    };
   }
   push(srcScene, dstScene = srcScene, {
-    fog = false,
     postProcessing = null,
   } = {}) {
     const renderSettings = this.findRenderSettings(srcScene);
-    this.applyRenderSettingsToScene(renderSettings, dstScene);
+    const renderSettingsCleanup = this.applyRenderSettingsToScene(renderSettings, dstScene);
 
-    const hideFog = fog === false && !!dstScene.fog;
-    let fogCleanup = null;
-    if (hideFog) {
-      if (dstScene.fog.isFog) {
-        const oldNear = dstScene.fog.near;
-        const oldFar = dstScene.fog.far;
-        dstScene.fog.near = Infinity;
-        dstScene.fog.far = Infinity;
-        fogCleanup = () => {
-          dstScene.fog.near = oldNear;
-          dstScene.fog.far = oldFar;
-        };
-      } else if (dstScene.fog.isFogExp2) {
-        const oldDensity = dstScene.fog.density;
-        dstScene.fog.density = 0;
-        fogCleanup = () => {
-          dstScene.fog.density = oldDensity;
-        };
-      }
-    }
     if (postProcessing) {
       const {
         passes = null,
@@ -105,12 +105,8 @@ class RenderSettingsManager {
     }
 
     return () => {
-      fogCleanup && fogCleanup();
-      this.applyRenderSettingsToScene(null, dstScene);
-
-      if (postProcessing) {
-        postProcessing.setPasses(null);
-      }
+      renderSettingsCleanup();
+      postProcessing && postProcessing.setPasses(null);
     };
   }
 }
