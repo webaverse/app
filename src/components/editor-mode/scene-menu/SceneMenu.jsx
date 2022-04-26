@@ -27,7 +27,6 @@ export const SceneMenu = ({
   const [speechEnabled, setSpeechEnabled] = useState(false);
   const [roomScene, setRoomScene] = React.useState('Erithor');
   const [roomName, setRoomName] = React.useState(_makeName);
-  //n
 
   const refreshRooms = async () => {
     const res = await fetch(universe.getWorldsHost());

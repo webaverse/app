@@ -622,7 +622,7 @@ class StatePlayer extends PlayerBase {
     const _setNextAvatarApp = (app) => {
       (() => {
         const avatar = switchAvatar(this.avatar, app);
-        if (!cancelFn.isLive()) return;
+        if (!cancelFn.isLive()) return console.log("canceling the function");
         this.avatar = avatar;
 
         this.dispatchEvent({
@@ -1384,7 +1384,20 @@ class RemotePlayer extends InterpolatedPlayer {
     this.characterBehavior = new CharacterBehavior(this);
   }
   detachState() {
-    return null;
+    const oldActions = this.playersArray
+      ? this.getActionsState()
+      : new Z.Array();
+    const oldAvatar = (
+      this.playersArray ? this.getAvatarState() : new Z.Map()
+    ).toJSON();
+    const oldApps = (
+      this.playersArray ? this.getAppsState() : new Z.Array()
+    ).toJSON();
+    return {
+      oldActions,
+      oldAvatar,
+      oldApps,
+    };
   }
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
@@ -1405,6 +1418,7 @@ class RemotePlayer extends InterpolatedPlayer {
     return null;
   }
   attachState(oldState) {
+    console.log("oldState is", oldState);
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
       const player = this.playersArray.get(i, Z.Map);
@@ -1413,6 +1427,7 @@ class RemotePlayer extends InterpolatedPlayer {
         break;
       }
     }
+
     if (index !== -1) {
       this.playerMap = this.playersArray.get(index, Z.Map);
     } else {
@@ -1422,6 +1437,8 @@ class RemotePlayer extends InterpolatedPlayer {
       );
     }
 
+    console.log("index is", index)
+
     const lastPosition = new THREE.Vector3();
 
     loadPhysxCharacterController.call(this);
@@ -1429,10 +1446,18 @@ class RemotePlayer extends InterpolatedPlayer {
     let prevApps = []
 
     const observePlayerFn = (e) => {
-      if(!e.changes.keys.get('transform'))
-      console.log("event is ", e.changes.keys)
-      const transform = this.playerMap.get('transform');
 
+      if(e.changes.keys.get('playerId')){
+        console.log("playerId is ", e.changes.keys.get('playerId'));
+      }
+      
+      if(e.changes.keys.get('avatar')){
+        console.log("avatar is ", e.changes.keys.get('avatar'));
+        // TODO: Handle attaching the remote
+      }
+
+      if(e.changes.keys.get('transform')){
+      const transform = this.playerMap.get('transform');
       if (transform) {
         const remoteTimeDiff = transform[10];
         lastPosition.copy(this.position);
@@ -1487,6 +1512,7 @@ class RemotePlayer extends InterpolatedPlayer {
         });
 
       }
+    }
     };
 
     this.playerMap.observe(observePlayerFn);
