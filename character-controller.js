@@ -30,6 +30,7 @@ import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
+import {CharacterBehavior} from './character-behavior.js';
 import {CharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
@@ -688,6 +689,13 @@ class StatePlayer extends PlayerBase {
   removeActionIndex(index) {
     this.getActionsState().delete(index);
   }
+  clearActions() {
+    const actionsState = this.getActionsState();
+    const numActions = actionsState.length;
+    for (let i = numActions - 1; i >= 0; i--) {
+      this.removeActionIndex(i);
+    }
+  }
   setControlAction(action) {
     const actions = this.getActionsState();
     for (let i = 0; i < actions.length; i++) {
@@ -794,6 +802,7 @@ class InterpolatedPlayer extends StatePlayer {
       fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      emote: new BinaryInterpolant(() => this.hasAction('emote'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
@@ -812,6 +821,7 @@ class InterpolatedPlayer extends StatePlayer {
       fly: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.fly.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       jump: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.jump.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       dance: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.dance.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      emote: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.emote.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       // throw: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.throw.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       // chargeJump: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.chargeJump.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       // standCharge: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.standCharge.snapshot(timeDiff);}, avatarInterpolationFrameRate),
@@ -831,6 +841,7 @@ class InterpolatedPlayer extends StatePlayer {
       fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
       jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
       dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
+      emote: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.emote.get(), 0),
       // throw: new UniActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJump.get(), 0),
       // standCharge: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.standCharge.get(), 0),
@@ -881,6 +892,7 @@ class UninterpolatedPlayer extends StatePlayer {
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
       dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
+      emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
       // standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),
@@ -914,6 +926,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
+    this.characterBehavior = new CharacterBehavior(this);
+    
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -924,6 +938,11 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     
     this.setAvatarApp(avatarApp);
+  }
+  getAvatarApp() {
+    const avatar = this.getAvatarState();
+    const instanceId = avatar.get('instanceId');
+    return this.appManager.getAppByInstanceId(instanceId);
   }
   setAvatarApp(app) {
     const self = this;
@@ -1083,6 +1102,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       const timeDiffS = timeDiff / 1000;
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
+      this.characterBehavior.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
 
@@ -1136,6 +1156,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterHups.destroy();
     this.characterSfx.destroy();
     this.characterFx.destroy();
+    this.characterBehavior.destroy();
 
     super.destroy();
   }
@@ -1227,16 +1248,32 @@ class StaticUninterpolatedPlayer extends PlayerBase {
       action,
     });
   }
+  clearActions() {
+    const numActions = this.actions.length;
+    for (let i = numActions - 1; i >= 0; i--) {
+      this.removeActionIndex(i);
+    }
+  }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 }
 class NpcPlayer extends StaticUninterpolatedPlayer {
   constructor(opts) {
     super(opts);
-  
-    this.isNpcPlayer = true;
 
     if (!window.npcPlayers) window.npcPlayers = []
     window.npcPlayers.push(this);
+  
+    this.isNpcPlayer = true;
+    this.avatarApp = null;
+
+    this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
+    this.characterBehavior = new CharacterBehavior(this);
+  }
+  getAvatarApp() {
+    return this.avatarApp;
   }
   setAvatarApp(app) {
     app.toggleBoneUpdates(true);
@@ -1252,11 +1289,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     enableShadows(app);
   
     this.avatar = avatar;
-
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
+    this.avatarApp = app;
     
     loadPhysxCharacterController.call(this);
     // loadPhysxAuxCharacterCapsule.call(this);
@@ -1302,6 +1335,16 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     if (index !== -1) {
       npcs.splice(index, 1);
     } */
+
+    this.characterPhysics.destroy();
+    this.characterHups.destroy();
+    this.characterSfx.destroy();
+    this.characterFx.destroy();
+    this.characterBehavior.destroy();
+
+    if (this.avatarApp) {
+      this.avatarApp.toggleBoneUpdates(false);
+    }
 
     super.destroy();
   }

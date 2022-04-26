@@ -7,31 +7,6 @@
     100% { transform: rotate(360deg); }
 }
 
-@font-face {
-    font-family: 'Bangers';
-    src: url('Bangers-Regular.woff2') format('woff2');
-}
-@font-face {
-    font-family: 'GeoSans';
-    src: url('GeosansLight.woff2') format('woff2'); /* Super Modern Browsers */
-}
-@font-face {
-    font-family: 'PlazaRegular';
-    src:  url('../public/fonts/Plaza\ Regular.ttf');
-}
-@font-face {
-    font-family: 'WinchesterCaps';
-    src:  url('../public/fonts/WinchesterCaps.ttf');
-}
-@font-face {
-    font-family: 'FastMonkRegular';
-    src:  url('../public/fonts/FastMonk-Regular.ttf');
-}
-@font-face {
-    font-family: 'FastMonkInkRegular';
-    src:  url('../public/fonts/FastMonk_Ink-Regular.ttf');
-}
-
 html, body {
     position: fixed;
     width: 100%;

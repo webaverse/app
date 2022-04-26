@@ -33,7 +33,7 @@ const playSound = (audioSpec) => {
   const audioContext = Avatar.getAudioContext();
   const audioBufferSourceNode = audioContext.createBufferSource();
   audioBufferSourceNode.buffer = soundFileAudioBuffer;
-  audioBufferSourceNode.connect(audioContext.destination);
+  audioBufferSourceNode.connect(audioContext.gain);
   audioBufferSourceNode.start(0, offset, duration);
   return audioBufferSourceNode;
 };

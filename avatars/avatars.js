@@ -9,11 +9,11 @@ import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
 import ioManager from '../io-manager.js';
 import {
-  angleDifference,
+  // angleDifference,
   // getVelocityDampingFactor,
   getNextPhysicsId,
 } from '../util.js';
-import Simplex from '../simplex-noise.js';
+// import Simplex from '../simplex-noise.js';
 import {
   crouchMaxTime,
   // useMaxTime,
@@ -30,7 +30,7 @@ import {
   idleFactorSpeed,
   walkFactorSpeed,
   runFactorSpeed,
-  narutoRunTimeFactor,
+  // narutoRunTimeFactor,
 } from './constants.js';
 import {
   getSkinnedMeshes,
@@ -41,10 +41,11 @@ import {
   getTailBones,
   getModelBones,
   // cloneModelBones,
-  decorateAnimation,
+  // decorateAnimation,
   // retargetAnimation,
   // animationBoneToModelBone,
 } from './util.mjs';
+import {easing} from '../math-utils.js';
 import metaversefile from 'metaversefile';
 
 import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
@@ -108,17 +109,14 @@ const maxEyeTargetTime = 2000;
   };
 })(VRMSpringBoneImporter.prototype._createSpringBone); */
 
-
-
-const _makeSimplexes = numSimplexes => {
+/* const _makeSimplexes = numSimplexes => {
   const result = Array(numSimplexes);
   for (let i = 0; i < numSimplexes; i++) {
     result[i] = new Simplex(i + '');
   }
   return result;
 };
-const simplexes = _makeSimplexes(5);
-
+const simplexes = _makeSimplexes(5); */
 
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 // const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
@@ -127,15 +125,14 @@ const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(
 
 const upVector = new THREE.Vector3(0, 1, 0);
 
-const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
+// const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 import {
   animations,
   animationStepIndices,
-  cubicBezier
 } from './animationHelpers.js';
 import { localPlayer } from '../players.js';
 
-
+const cubicBezier = easing(0, 1, 0, 1);
 
 const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
 const srcCubeGeometries = {};
@@ -789,7 +786,7 @@ class Avatar {
 
     this.debugMesh = null;
 
-    this.emotes = [];
+    this.faceposes = [];
     if (this.options.visemes) {
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
       const _getBlendShapeIndexForPresetName = presetName => {
@@ -915,9 +912,13 @@ class Avatar {
     this.sitAnimation = null;
     // this.activateState = false;
     this.activateTime = 0;
-    this.danceState = false;
-    this.danceTime = 0;
+    // this.danceState = false;
+    this.danceFactor = 0;
     this.danceAnimation = null;
+    this.emoteFactor = 0;
+    this.emoteAnimation = null;
+    this.poseFactor = 0;
+    this.poseAnimation = null;
     // this.throwState = null;
     // this.throwTime = 0;
     this.crouchTime = crouchMaxTime;
@@ -946,12 +947,16 @@ class Avatar {
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.lastMoveTime = 0;
+    this.lastEmoteTime = 0;
+    this.lastEmoteAnimation = 0;
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
+
+    this.manuallySetMouth=false;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1691,14 +1696,11 @@ class Avatar {
             }
           } */
 
-          // emotes
-          if (this.emotes.length > 0) {
-            for (const emote of this.emotes) {
-              /* if (emote.index >= 0 && emote.index < morphTargetInfluences.length) {
-                morphTargetInfluences[emote.index] = emote.value;
-              } else { */
+          // face poses
+          if (this.faceposes.length > 0) {
+            for (const facepose of this.faceposes) {
               let index = -1;
-              switch (emote.emotion) {
+              switch (facepose.emotion) {
                 case 'neutral': {
                   index = neutralIndex;
                   break;
@@ -1724,7 +1726,7 @@ class Avatar {
                   break;
                 }
                 default: {
-                  const match = emote.emotion.match(/^emotion-([0-9]+)$/);
+                  const match = facepose.emotion.match(/^emotion-([0-9]+)$/);
                   if (match) {
                     index = parseInt(match[1], 10);
                   }
@@ -1732,9 +1734,8 @@ class Avatar {
                 }
               }
               if (index !== -1) {
-                morphTargetInfluences[index] = emote.value;
+                morphTargetInfluences[index] = facepose.value ?? 1;
               }
-              // }
             }
           }
 
@@ -1928,7 +1929,7 @@ class Avatar {
       }
       this.debugMesh.visible = debug.enabled;
     }
-	}
+  }
 
   isAudioEnabled() {
     return !!this.microphoneWorker;
@@ -1961,7 +1962,9 @@ class Avatar {
         emitBuffer: true,
       });
       this.microphoneWorker.addEventListener('volume', e => {
-        this.volume = this.volume*0.8 + e.data*0.2;
+        if(!this.manuallySetMouth){
+          this.volume = this.volume*0.8 + e.data*0.2;
+        }
       });
       this.microphoneWorker.addEventListener('buffer', e => {
         this.audioRecognizer.send(e.data);

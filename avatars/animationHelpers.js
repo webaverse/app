@@ -1,7 +1,8 @@
 import {Vector3, Quaternion, AnimationClip, DepthStencilFormat} from 'three';
 import metaversefile from 'metaversefile';
-import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
-import easing from '../easing.js';
+import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+// import easing from '../easing.js';
+import {easing} from '../math-utils.js';
 import loaders from '../loaders.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 
@@ -26,9 +27,9 @@ import {
 } from '../util.js';
 
 import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
+  // idleFactorSpeed,
+  // walkFactorSpeed,
+  // runFactorSpeed,
   narutoRunTimeFactor,
 } from './constants.js';
 
@@ -54,57 +55,37 @@ const localQuaternion6 = new Quaternion();
 
 let animations;
 let animationStepIndices;
-let animationsBaseModel;
+// let animationsBaseModel;
 let jumpAnimation;
 let floatAnimation;
 let useAnimations;
 let aimAnimations;
 let sitAnimations;
 let danceAnimations;
-let throwAnimations;
+let emoteAnimations;
+// let throwAnimations;
 // let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
 // let jumpAnimationSegments;
 // let chargeJump;
 // let standCharge;
-let fallLoop;
+// let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
 
 const defaultSitAnimation = 'chair';
-const defaultUseAnimation = 'combo';
+// const defaultUseAnimation = 'combo';
 const defaultDanceAnimation = 'dansu';
-const defaultThrowAnimation = 'throw';
+const defaultEmoteAnimation = 'angry';
+// const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
-const defaultActivateAnimation = 'activate';
+// const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
 // const defaultchargeJumpAnimation = 'chargeJump';
 // const defaultStandChargeAnimation = 'standCharge';
 // const defaultHurtAnimation = 'pain_back';
-
-const angles = {
-  horizontalWalkAnimationAngles: null,
-  horizontalWalkAnimationAnglesMirror: null,
-  horizontalRunAnimationAngles: null,
-  horizontalRunAnimationAnglesMirror: null,
-};
-const anglesOther = {
-  horizontalWalkAnimationAngles: null,
-  horizontalWalkAnimationAnglesMirror: null,
-  horizontalRunAnimationAngles: null,
-  horizontalRunAnimationAnglesMirror: null,
-};
-
-let idleAnimation;
-let idleAnimationOther;
-
-let angleFactor = 0;
-let mirrorFactor;
-
-let activeAvatar;
-let activeMoveFactors;
 
 const animationsAngleArrays = {
   walk: [
@@ -233,17 +214,17 @@ async function loadSkeleton() {
 
   let o;
   try {
-    o = await new Promise((accept, reject) => {
+    o = await new Promise((resolve, reject) => {
       const {gltfLoader} = loaders;
       gltfLoader.load(srcUrl, () => {
-        accept();
+        resolve();
       }, function onprogress() { }, reject);
     });
   } catch (err) {
     console.warn(err);
   }
   if (o) {
-    animationsBaseModel = o;
+    // animationsBaseModel = o;
   }
 }
 
@@ -373,9 +354,27 @@ export const loadPromise = (async () => {
     dansu: animations.find(a => a.isDancing),
     powerup: animations.find(a => a.isPowerUp),
   };
-  throwAnimations = {
-    throw: animations.find(a => a.isThrow),
+  emoteAnimations = {
+    alert: animations.find(a => a.isAlert),
+    alertSoft: animations.find(a => a.isAlertSoft),
+    angry: animations.find(a => a.isAngry),
+    angrySoft: animations.find(a => a.isAngrySoft),
+    embarrassed: animations.find(a => a.isEmbarrassed),
+    embarrassedSoft: animations.find(a => a.isEmbarrassedSoft),
+    headNod: animations.find(a => a.isHeadNod),
+    headNodSoft: animations.find(a => a.isHeadNodSingle),
+    headShake: animations.find(a => a.isHeadShake),
+    headShakeSoft: animations.find(a => a.isHeadShakeSingle),
+    sad: animations.find(a => a.isSad),
+    sadSoft: animations.find(a => a.isSadSoft),
+    surprise: animations.find(a => a.isSurprise),
+    surpriseSoft: animations.find(a => a.isSurpriseSoft),
+    victory: animations.find(a => a.isVictory),
+    victorySoft: animations.find(a => a.isVictorySoft),
   };
+  // throwAnimations = {
+  //   throw: animations.find(a => a.isThrow),
+  // };
   /* crouchAnimations = {
       crouch: animations.find(a => a.isCrouch),
     }; */
@@ -408,320 +407,218 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
-const _getMirrorAnimationAngles = (animationAngles, key) => {
-  const animations = animationAngles.map(({animation}) => animation);
-  const animationAngleArrayMirror = animationsAngleArraysMirror[key];
+export const _applyAnimation = (avatar, now, moveFactors) => {
+  // const runSpeed = 0.5;
+  const angle = avatar.getAngle();
+  const timeSeconds = now / 1000;
+  const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
 
-  const backwardIndex = animations.findIndex(a => a.isBackward);
-  if (backwardIndex !== -1) {
-    // const backwardAnimationAngle = animationAngles[backwardIndex];
-    // const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
-    // if (angleToBackwardAnimation < Math.PI * 0.3) {
-    const sideIndex = backwardIndex === 0 ? 1 : 0;
-    const wrongAngle = animationAngles[sideIndex].angle;
-    const newAnimationAngle = animationAngleArrayMirror.find(animationAngle => animationAngle.matchAngle === wrongAngle);
-    animationAngles = animationAngles.slice();
-    animationAngles[sideIndex] = newAnimationAngle;
-    // animations[sideIndex] = newAnimationAngle.animation;
+  /* const _getAnimationKey = crouchState => {
+    if (crouchState) {
+      return 'crouch';
+    } else {
+      if (currentSpeed >= runSpeed) {
+        return 'run';
+      } else {
+        return 'walk';
+      }
+    }
+  }; */
+  const _getMirrorAnimationAngles = (animationAngles, key) => {
+    const animations = animationAngles.map(({animation}) => animation);
+    const animationAngleArrayMirror = animationsAngleArraysMirror[key];
+
+    const backwardIndex = animations.findIndex(a => a.isBackward);
+    if (backwardIndex !== -1) {
+      // const backwardAnimationAngle = animationAngles[backwardIndex];
+      // const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
+      // if (angleToBackwardAnimation < Math.PI * 0.3) {
+      const sideIndex = backwardIndex === 0 ? 1 : 0;
+      const wrongAngle = animationAngles[sideIndex].angle;
+      const newAnimationAngle = animationAngleArrayMirror.find(animationAngle => animationAngle.matchAngle === wrongAngle);
+      animationAngles = animationAngles.slice();
+      animationAngles[sideIndex] = newAnimationAngle;
+      // animations[sideIndex] = newAnimationAngle.animation;
+      // return {
+      // return animationAngles;
+      // angleToBackwardAnimation,
+      // };
+      // }
+    }
     // return {
-    // return animationAngles;
-    // angleToBackwardAnimation,
-    // };
-    // }
-  }
-  // return {
-  return animationAngles;
-  // angleToBackwardAnimation: Infinity,
-  // ;
-};
+    return animationAngles;
+    // angleToBackwardAnimation: Infinity,
+    // ;
+  };
+  const _getAngleToBackwardAnimation = animationAngles => {
+    const animations = animationAngles.map(({animation}) => animation);
 
-const _getAngleToBackwardAnimation = (angle, animationAngles) => {
-  const animations = animationAngles.map(({animation}) => animation);
-
-  const backwardIndex = animations.findIndex(a => a.isBackward);
-  if (backwardIndex !== -1) {
-    const backwardAnimationAngle = animationAngles[backwardIndex];
-    const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
-    return angleToBackwardAnimation;
-  } else {
-    return Infinity;
-  }
-};
-
-const _getIdleAnimation = key => animationsIdleArrays[key].animation;
-/* const _getIdleAnimation = key => {
+    const backwardIndex = animations.findIndex(a => a.isBackward);
+    if (backwardIndex !== -1) {
+      const backwardAnimationAngle = animationAngles[backwardIndex];
+      const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
+      return angleToBackwardAnimation;
+    } else {
+      return Infinity;
+    }
+  };
+  const _getIdleAnimation = key => animationsIdleArrays[key].animation;
+  /* const _getIdleAnimation = key => {
     if (key === 'walk' || key === 'run') {
       const name = animationsIdleArrays[key].name;
-      return activeAvatar.retargetedAnimations.find(a => a.name === name);
+      return avatar.retargetedAnimations.find(a => a.name === name);
     } else {
       return animationsIdleArrays[key].animation;
     }
   }; */
-
-const _getHorizontalBlend = (k, lerpFn, isPosition, target, now) => {
-  _get7wayBlend(
-    activeAvatar,
-    angles,
-    idleAnimation,
-    activeMoveFactors,
-    k,
-    lerpFn,
-    isPosition,
-    localQuaternion,
-    now,
-  );
-  _get7wayBlend(
-    activeAvatar,
-    anglesOther,
-    idleAnimationOther,
-    activeMoveFactors,
-    k,
-    lerpFn,
-    isPosition,
-    localQuaternion2,
-    now,
-  );
-
-  // _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
-
-  lerpFn
-    .call(
-      target.copy(localQuaternion),
-      localQuaternion2,
-      activeMoveFactors.crouchFactor,
-    );
-};
-
-const _get7wayBlend = (
-  avatar,
-  angles,
-  idleAnimation,
-  // mirrorFactor,
-  // angleFactor,
-  moveFactors,
-  k,
-  lerpFn,
-  isPosition,
-  target,
-  now,
-) => {
-  const timeSeconds = now / 1000;
-
-  const {
+  const _get7wayBlend = (
     horizontalWalkAnimationAngles,
     horizontalWalkAnimationAnglesMirror,
     horizontalRunAnimationAngles,
     horizontalRunAnimationAnglesMirror,
-  } = angles;
-  const {idleWalkFactor, walkRunFactor} = moveFactors;
-  // WALK
-  // normal horizontal walk blend
-  {
-    const t1 = timeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
-    const src1 = horizontalWalkAnimationAngles[0].animation.interpolants[k];
-    const v1 = src1.evaluate(t1);
+    idleAnimation,
+    // mirrorFactor,
+    // angleFactor,
+    // walkRunFactor,
+    // idleWalkFactor,
+    k,
+    lerpFn,
+    isPosition,
+    target,
+  ) => {
+    // WALK
+    // normal horizontal walk blend
+    {
+      const t1 = timeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
+      const src1 = horizontalWalkAnimationAngles[0].animation.interpolants[k];
+      const v1 = src1.evaluate(t1);
 
-    const t2 = timeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
-    const src2 = horizontalWalkAnimationAngles[1].animation.interpolants[k];
-    const v2 = src2.evaluate(t2);
+      const t2 = timeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
+      const src2 = horizontalWalkAnimationAngles[1].animation.interpolants[k];
+      const v2 = src2.evaluate(t2);
 
-    lerpFn
-      .call(
-        localQuaternion3.fromArray(v2),
-        localQuaternion4.fromArray(v1),
-        angleFactor,
-      );
-  }
-
-  // mirror horizontal blend (backwards walk)
-  {
-    const t1 = timeSeconds % horizontalWalkAnimationAnglesMirror[0].animation.duration;
-    const src1 = horizontalWalkAnimationAnglesMirror[0].animation.interpolants[k];
-    const v1 = src1.evaluate(t1);
-
-    const t2 = timeSeconds % horizontalWalkAnimationAnglesMirror[1].animation.duration;
-    const src2 = horizontalWalkAnimationAnglesMirror[1].animation.interpolants[k];
-    const v2 = src2.evaluate(t2);
-
-    lerpFn
-      .call(
-        localQuaternion4.fromArray(v2),
-        localQuaternion5.fromArray(v1),
-        angleFactor,
-      );
-  }
-
-  // blend mirrors together to get a smooth walk
-  lerpFn
-    .call(
-      localQuaternion5.copy(localQuaternion3), // Result is in localQuaternion5
-      localQuaternion4,
-      mirrorFactor,
-    );
-
-  // RUN
-  // normal horizontal run blend
-  {
-    const t1 = timeSeconds % horizontalRunAnimationAngles[0].animation.duration;
-    const src1 = horizontalRunAnimationAngles[0].animation.interpolants[k];
-    const v1 = src1.evaluate(t1);
-
-    const t2 = timeSeconds % horizontalRunAnimationAngles[1].animation.duration;
-    const src2 = horizontalRunAnimationAngles[1].animation.interpolants[k];
-    const v2 = src2.evaluate(t2);
-
-    lerpFn
-      .call(
-        localQuaternion3.fromArray(v2),
-        localQuaternion4.fromArray(v1),
-        angleFactor,
-      );
-  }
-
-  // mirror horizontal blend (backwards run)
-  {
-    const t1 = timeSeconds % horizontalRunAnimationAnglesMirror[0].animation.duration;
-    const src1 = horizontalRunAnimationAnglesMirror[0].animation.interpolants[k];
-    const v1 = src1.evaluate(t1);
-
-    const t2 = timeSeconds % horizontalRunAnimationAnglesMirror[1].animation.duration;
-    const src2 = horizontalRunAnimationAnglesMirror[1].animation.interpolants[k];
-    const v2 = src2.evaluate(t2);
-
-    lerpFn
-      .call(
-        localQuaternion4.fromArray(v2),
-        localQuaternion6.fromArray(v1),
-        angleFactor,
-      );
-  }
-
-  // blend mirrors together to get a smooth run
-  lerpFn
-    .call(
-      localQuaternion6.copy(localQuaternion3), // Result is in localQuaternion6
-      localQuaternion4,
-      mirrorFactor,
-    );
-
-  // Blend walk/run
-  lerpFn
-    .call(
-      localQuaternion4.copy(localQuaternion5), // Result is in localQuaternion4
-      localQuaternion6,
-      walkRunFactor,
-    );
-
-  // blend the smooth walk/run with idle
-  {
-    const timeSinceLastMove = now - avatar.lastMoveTime;
-    const timeSinceLastMoveSeconds = timeSinceLastMove / 1000;
-    const t3 = timeSinceLastMoveSeconds % idleAnimation.duration;
-    const src3 = idleAnimation.interpolants[k];
-    const v3 = src3.evaluate(t3);
-
-    target.fromArray(v3);
-    if (isPosition) {
-      // target.x = 0;
-      // target.z = 0;
-
-      localQuaternion4.x = 0;
-      localQuaternion4.z = 0;
+      lerpFn
+        .call(
+          localQuaternion3.fromArray(v2),
+          localQuaternion4.fromArray(v1),
+          angleFactor,
+        );
     }
 
+    // mirror horizontal blend (backwards walk)
+    {
+      const t1 = timeSeconds % horizontalWalkAnimationAnglesMirror[0].animation.duration;
+      const src1 = horizontalWalkAnimationAnglesMirror[0].animation.interpolants[k];
+      const v1 = src1.evaluate(t1);
+
+      const t2 = timeSeconds % horizontalWalkAnimationAnglesMirror[1].animation.duration;
+      const src2 = horizontalWalkAnimationAnglesMirror[1].animation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      lerpFn
+        .call(
+          localQuaternion4.fromArray(v2),
+          localQuaternion5.fromArray(v1),
+          angleFactor,
+        );
+    }
+
+    // blend mirrors together to get a smooth walk
     lerpFn
       .call(
-        target,
+        localQuaternion5.copy(localQuaternion3), // Result is in localQuaternion5
         localQuaternion4,
-        idleWalkFactor,
+        mirrorFactor,
       );
-  }
-};
 
-const prepAngles = angle => {
-  angles.horizontalWalkAnimationAngles = getClosest2AnimationAngles('walk', angle);
-  angles.horizontalWalkAnimationAnglesMirror = _getMirrorAnimationAngles(angles.horizontalWalkAnimationAngles, 'walk');
+    // RUN
+    // normal horizontal run blend
+    {
+      const t1 = timeSeconds % horizontalRunAnimationAngles[0].animation.duration;
+      const src1 = horizontalRunAnimationAngles[0].animation.interpolants[k];
+      const v1 = src1.evaluate(t1);
 
-  angles.horizontalRunAnimationAngles = getClosest2AnimationAngles('run', angle);
-  angles.horizontalRunAnimationAnglesMirror = _getMirrorAnimationAngles(angles.horizontalRunAnimationAngles, 'run');
+      const t2 = timeSeconds % horizontalRunAnimationAngles[1].animation.duration;
+      const src2 = horizontalRunAnimationAngles[1].animation.interpolants[k];
+      const v2 = src2.evaluate(t2);
 
-  anglesOther.horizontalWalkAnimationAngles = getClosest2AnimationAngles('crouch', angle);
-  anglesOther.horizontalWalkAnimationAnglesMirror = _getMirrorAnimationAngles(anglesOther.horizontalWalkAnimationAngles, 'crouch');
-
-  anglesOther.horizontalRunAnimationAngles = getClosest2AnimationAngles('crouch', angle);
-  anglesOther.horizontalRunAnimationAnglesMirror = _getMirrorAnimationAngles(anglesOther.horizontalRunAnimationAngles, 'crouch');
-
-  const angleToClosestAnimation = Math.abs(angleDifference(angle, angles.horizontalWalkAnimationAnglesMirror[0].angle));
-  const angleBetweenAnimations = Math.abs(angleDifference(angles.horizontalWalkAnimationAnglesMirror[0].angle, angles.horizontalWalkAnimationAnglesMirror[1].angle));
-  angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
-};
-
-const _blendFly = spec => {
-  const {
-    animationTrackName: k,
-    dst,
-    isTop,
-    lerpFn,
-  } = spec;
-
-  if (activeAvatar.flyState || (activeAvatar.flyTime >= 0 && activeAvatar.flyTime < 1000)) {
-    const t2 = activeAvatar.flyTime / 1000;
-    const f = activeAvatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-    const src2 = floatAnimation.interpolants[k];
-    const v2 = src2.evaluate(t2 % floatAnimation.duration);
-
-    lerpFn
-      .call(
-        dst,
-        localQuaternion.fromArray(v2),
-        f,
-      );
-  }
-};
-
-const _blendActivateAction = spec => {
-  const {
-    animationTrackName: k,
-    dst,
-    isTop,
-    lerpFn,
-  } = spec;
-
-  if (activeAvatar.activateTime > 0) {
-    const localPlayer = metaversefile.useLocalPlayer();
-
-    let defaultAnimation = 'grab_forward';
-
-    if (localPlayer.getAction('activate').animationName) {
-      defaultAnimation = localPlayer.getAction('activate').animationName;
+      lerpFn
+        .call(
+          localQuaternion3.fromArray(v2),
+          localQuaternion4.fromArray(v1),
+          angleFactor,
+        );
     }
 
-    const activateAnimation = activateAnimations[defaultAnimation].animation;
-    const src2 = activateAnimation.interpolants[k];
-    const t2 = ((activeAvatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
-    const v2 = src2.evaluate(t2);
+    // mirror horizontal blend (backwards run)
+    {
+      const t1 = timeSeconds % horizontalRunAnimationAnglesMirror[0].animation.duration;
+      const src1 = horizontalRunAnimationAnglesMirror[0].animation.interpolants[k];
+      const v1 = src1.evaluate(t1);
 
-    const f = activeAvatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+      const t2 = timeSeconds % horizontalRunAnimationAnglesMirror[1].animation.duration;
+      const src2 = horizontalRunAnimationAnglesMirror[1].animation.interpolants[k];
+      const v2 = src2.evaluate(t2);
 
+      lerpFn
+        .call(
+          localQuaternion4.fromArray(v2),
+          localQuaternion6.fromArray(v1),
+          angleFactor,
+        );
+    }
+
+    // blend mirrors together to get a smooth run
     lerpFn
       .call(
-        dst,
-        localQuaternion.fromArray(v2),
-        f,
+        localQuaternion6.copy(localQuaternion3), // Result is in localQuaternion6
+        localQuaternion4,
+        mirrorFactor,
       );
-  }
-};
 
-export const _applyAnimation = (avatar, now, moveFactors) => {
-  activeMoveFactors = moveFactors;
-  // const runSpeed = 0.5;
-  activeAvatar = avatar;
-  const angle = avatar.getAngle();
+    // Blend walk/run
+    lerpFn
+      .call(
+        localQuaternion4.copy(localQuaternion5), // Result is in localQuaternion4
+        localQuaternion6,
+        walkRunFactor,
+      );
 
-  prepAngles(angle);
+    // blend the smooth walk/run with idle
+    {
+      const timeSinceLastMove = now - avatar.lastMoveTime;
+      const timeSinceLastMoveSeconds = timeSinceLastMove / 1000;
+      const t3 = timeSinceLastMoveSeconds % idleAnimation.duration;
+      const src3 = idleAnimation.interpolants[k];
+      const v3 = src3.evaluate(t3);
 
-  idleAnimation = _getIdleAnimation('walk');
-  idleAnimationOther = _getIdleAnimation('crouch');
+      target.fromArray(v3);
+      if (isPosition) {
+        // target.x = 0;
+        // target.z = 0;
+
+        localQuaternion4.x = 0;
+        localQuaternion4.z = 0;
+      }
+
+      lerpFn
+        .call(
+          target,
+          localQuaternion4,
+          idleWalkFactor,
+        );
+    }
+  };
+
+  // stand
+  // const key = _getAnimationKey(false);
+  const keyWalkAnimationAngles = getClosest2AnimationAngles('walk', angle);
+  const keyWalkAnimationAnglesMirror = _getMirrorAnimationAngles(keyWalkAnimationAngles, 'walk');
+
+  const keyRunAnimationAngles = getClosest2AnimationAngles('run', angle);
+  const keyRunAnimationAnglesMirror = _getMirrorAnimationAngles(keyRunAnimationAngles, 'run');
+
+  const idleAnimation = _getIdleAnimation('walk');
 
   /* // walk sound effect
     {
@@ -764,34 +661,89 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       }
     } */
 
-  const isBackward = _getAngleToBackwardAnimation(angle, angles.horizontalWalkAnimationAnglesMirror) < Math.PI * 0.4;
-  if (isBackward !== activeAvatar.lastIsBackward) {
-    activeAvatar.backwardAnimationSpec = {
-      startFactor: activeAvatar.lastBackwardFactor,
+  // crouch
+  // const keyOther = _getAnimationKey(true);
+  const keyAnimationAnglesOther = getClosest2AnimationAngles('crouch', angle);
+  const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
+  const idleAnimationOther = _getIdleAnimation('crouch');
+
+  const angleToClosestAnimation = Math.abs(angleDifference(angle, keyWalkAnimationAnglesMirror[0].angle));
+  const angleBetweenAnimations = Math.abs(angleDifference(keyWalkAnimationAnglesMirror[0].angle, keyWalkAnimationAnglesMirror[1].angle));
+  const angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
+  const isBackward = _getAngleToBackwardAnimation(keyWalkAnimationAnglesMirror) < Math.PI * 0.4;
+  if (isBackward !== avatar.lastIsBackward) {
+    avatar.backwardAnimationSpec = {
+      startFactor: avatar.lastBackwardFactor,
       endFactor: isBackward ? 1 : 0,
       startTime: now,
       endTime: now + 150,
     };
-    activeAvatar.lastIsBackward = isBackward;
+    avatar.lastIsBackward = isBackward;
   }
-
-  if (activeAvatar.backwardAnimationSpec) {
-    const f = (now - activeAvatar.backwardAnimationSpec.startTime) / (activeAvatar.backwardAnimationSpec.endTime - activeAvatar.backwardAnimationSpec.startTime);
+  let mirrorFactor;
+  if (avatar.backwardAnimationSpec) {
+    const f = (now - avatar.backwardAnimationSpec.startTime) / (avatar.backwardAnimationSpec.endTime - avatar.backwardAnimationSpec.startTime);
     if (f >= 1) {
-      mirrorFactor = activeAvatar.backwardAnimationSpec.endFactor;
-      activeAvatar.backwardAnimationSpec = null;
+      mirrorFactor = avatar.backwardAnimationSpec.endFactor;
+      avatar.backwardAnimationSpec = null;
     } else {
-      mirrorFactor = activeAvatar.backwardAnimationSpec.startFactor +
-                Math.pow(
-                  f,
-                  0.5,
-                ) * (activeAvatar.backwardAnimationSpec.endFactor - activeAvatar.backwardAnimationSpec.startFactor);
+      mirrorFactor = avatar.backwardAnimationSpec.startFactor +
+        Math.pow(
+          f,
+          0.5,
+        ) * (avatar.backwardAnimationSpec.endFactor - avatar.backwardAnimationSpec.startFactor);
     }
   } else {
     mirrorFactor = isBackward ? 1 : 0;
   }
-  activeAvatar.lastBackwardFactor = mirrorFactor;
+  avatar.lastBackwardFactor = mirrorFactor;
 
+  if (avatar.emoteAnimation !== avatar.lastEmoteAnimation) {
+    avatar.lastEmoteTime = avatar.emoteAnimation ? now : 0;
+  }
+  avatar.lastEmoteAnimation = avatar.emoteAnimation;
+
+  const _getHorizontalBlend = (k, lerpFn, isPosition, target) => {
+    _get7wayBlend(
+      keyWalkAnimationAngles,
+      keyWalkAnimationAnglesMirror,
+      keyRunAnimationAngles,
+      keyRunAnimationAnglesMirror,
+      idleAnimation,
+      // mirrorFactor,
+      // angleFactor,
+      // walkRunFactor,
+      // idleWalkFactor,
+      k,
+      lerpFn,
+      isPosition,
+      localQuaternion,
+    );
+    _get7wayBlend(
+      keyAnimationAnglesOther,
+      keyAnimationAnglesOtherMirror,
+      keyAnimationAnglesOther,
+      keyAnimationAnglesOtherMirror,
+      idleAnimationOther,
+      // mirrorFactor,
+      // angleFactor,
+      // walkRunFactor,
+      // idleWalkFactor,
+      k,
+      lerpFn,
+      isPosition,
+      localQuaternion2,
+    );
+
+    // _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
+
+    lerpFn
+      .call(
+        target.copy(localQuaternion),
+        localQuaternion2,
+        crouchFactor,
+      );
+  };
   const _handleDefault = spec => {
     const {
       animationTrackName: k,
@@ -801,10 +753,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    _getHorizontalBlend(k, lerpFn, isPosition, dst, now);
+    _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    if (activeAvatar.jumpState) {
+    if (avatar.jumpState) {
       return spec => {
         const {
           animationTrackName: k,
@@ -812,17 +764,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isTop,
         } = spec;
 
-        if (k === 'mixamorigHips.quaternion') console.log('jumpAnimation');
-        // debugger
-
-        const t2 = activeAvatar.jumpTime / 1000 * 0.6 + 0.7;
+        const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
       };
     }
-    if (activeAvatar.sitState) {
+    if (avatar.sitState) {
       return spec => {
         const {
           animationTrackName: k,
@@ -830,17 +779,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isTop,
         } = spec;
 
-        if (k === 'mixamorigHips.quaternion') console.log('sitAnimation');
-        // debugger
-
-        const sitAnimation = sitAnimations[activeAvatar.sitAnimation || defaultSitAnimation];
+        const sitAnimation = sitAnimations[avatar.sitAnimation || defaultSitAnimation];
         const src2 = sitAnimation.interpolants[k];
         const v2 = src2.evaluate(1);
 
         dst.fromArray(v2);
       };
     }
-    if (activeAvatar.narutoRunState) {
+    if (avatar.narutoRunState) {
       return spec => {
         const {
           animationTrackName: k,
@@ -854,7 +800,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
         const src2 = narutoRunAnimation.interpolants[k];
-        const t2 = (activeAvatar.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
+        const t2 = (avatar.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
@@ -863,7 +809,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
     }
 
-    if (activeAvatar.danceTime > 0) {
+    if (avatar.danceFactor > 0) {
       return spec => {
         const {
           animationTrackName: k,
@@ -878,13 +824,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _handleDefault(spec);
 
-        const danceAnimation = danceAnimations[activeAvatar.danceAnimation || defaultDanceAnimation];
+        const danceAnimation = danceAnimations[avatar.danceAnimation || defaultDanceAnimation];
         const src2 = danceAnimation.interpolants[k];
         const t2 = (now / 1000) % danceAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        const danceTimeS = activeAvatar.danceTime / crouchMaxTime;
-        const f = Math.min(Math.max(danceTimeS, 0), 1);
+        const danceFactorS = avatar.danceFactor / crouchMaxTime;
+        const f = Math.min(Math.max(danceFactorS, 0), 1);
         lerpFn
           .call(
             dst,
@@ -896,24 +842,56 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
     }
 
-    /* if (activeAvatar.fallLoopState) {
-          return spec => {
-            const {
-              animationTrackName: k,
-              dst,
-              isTop,
-            } = spec;
+    if (avatar.emoteFactor > 0) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          lerpFn,
+          // isTop,
+          isPosition,
+        } = spec;
 
-            const t2 = (activeAvatar.fallLoopTime/1000) ;
-            const src2 = fallLoop.interpolants[k];
-            const v2 = src2.evaluate(t2);
+        _handleDefault(spec);
 
-            dst.fromArray(v2);
-          };
-        } */
+        const emoteAnimation = emoteAnimations[avatar.emoteAnimation || defaultEmoteAnimation];
+        const src2 = emoteAnimation.interpolants[k];
+        const emoteTime = now - avatar.lastEmoteTime;
+        const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
+        const v2 = src2.evaluate(t2);
+
+        const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
+        const f = Math.min(Math.max(emoteFactorS, 0), 1);
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
+
+        _clearXZ(dst, isPosition);
+      };
+    }
+
+    /* if (avatar.fallLoopState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+        } = spec;
+
+        const t2 = (avatar.fallLoopTime/1000) ;
+        const src2 = fallLoop.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        dst.fromArray(v2);
+      };
+    } */
     if (
-      activeAvatar.useAnimation ||
-            activeAvatar.useAnimationCombo.length > 0
+      avatar.useAnimation ||
+      avatar.useAnimationCombo.length > 0 ||
+      avatar.useAnimationEnvelope.length > 0
     ) {
       return spec => {
         const {
@@ -929,118 +907,39 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         let useAnimation;
         let t2;
-        const useTimeS = activeAvatar.useTime / 1000;
-        if (activeAvatar.useAnimation) {
-          const useAnimationName = activeAvatar.useAnimation;
-          // if (useAnimationName.indexOf('pistol') >= 0) debugger;
+        const useTimeS = avatar.useTime / 1000;
+        if (avatar.useAnimation) {
+          const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (activeAvatar.useAnimationCombo.length > 0) {
-          const useAnimationName = activeAvatar.useAnimationCombo[activeAvatar.useAnimationIndex];
-          // if (useAnimationName.indexOf('pistol') >= 0) debugger;
+        } else if (avatar.useAnimationCombo.length > 0) {
+          const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-        }
-
-        _handleDefault(spec);
-
-        if (useAnimation) {
-          if (!isPosition) {
-            // debugger
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            localQuaternion2.fromArray(v2);
-
-            // const idleAnimation = _getIdleAnimation('walk');
-            // const t3 = 0;
-            // const src3 = idleAnimation.interpolants[k];
-            // const v3 = src3.evaluate(t3);
-
-            // dst
-            //   .premultiply(localQuaternion2.fromArray(v3).invert())
-            //   .premultiply(localQuaternion2.fromArray(v2));
-
-            if (moveFactors.crouchFactor === 0) {
-              if (isCombo) {
-                // do nothing: localQuaternion2 already pure combo animation
-              } else { // lerp legs between sword and walk/run by idleWalkFactor.
-                localQuaternion2.slerp(dst, moveFactors.idleWalkFactor);
-              }
-              // now localQuaternion2 is full combo animation ( which already processed legs )
-
-              // lerp default animation and combo animation when start combo.
-              dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
-            } else { // when crouch, only apply combo to isCombo bones ( arms with a little upper spines ).
-              if (isCombo) {
-                dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
-              }
-            }
-          } else {
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            localVector2.fromArray(v2);
-            _clearXZ(localVector2, isPosition);
-
-            // const idleAnimation = _getIdleAnimation('walk');
-            // const t3 = 0;
-            // const src3 = idleAnimation.interpolants[k];
-            // const v3 = src3.evaluate(t3);
-            // localVector3.fromArray(v3);
-
-            // dst
-            //   .sub(localVector3)
-            //   .add(localVector2);
-
-            if (moveFactors.crouchFactor === 0) {
-              if (isCombo) {
-                // do nothing: localVector2 already pure combo animation
-              } else { // lerp legs between sword and walk/run by idleWalkFactor.
-                localVector2.lerp(dst, moveFactors.idleWalkFactor);
-              }
-              // now localVector2 is full combo animation ( which already processed legs )
-
-              // lerp default animation and combo animation when start combo.
-              dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
-            } else { // when crouch, only apply combo to isCombo bones ( arms with a little upper spines ).
-              if (isCombo) {
-                dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
-              }
-            }
-          }
-        }
-      };
-    } else if (activeAvatar.useAnimationEnvelope.length > 0) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          isTop,
-          isPosition,
-        } = spec;
-
-        if (k === 'mixamorigHips.quaternion') console.log('useAnimationEnvelope');
-        // debugger 
-
-        let useAnimation;
-        let t2;
-        const useTimeS = activeAvatar.useTime / 1000;
-        let totalTime = 0;
-        for (let i = 0; i < activeAvatar.useAnimationEnvelope.length - 1; i++) {
-          const animationName = activeAvatar.useAnimationEnvelope[i];
-          // if (animationName.indexOf('pistol') >= 0) debugger;
-          const animation = useAnimations[animationName];
-          totalTime += animation.duration;
-        }
-
-        if (totalTime > 0) {
-          let animationTimeBase = 0;
-          for (let i = 0; i < activeAvatar.useAnimationEnvelope.length - 1; i++) {
-            const animationName = activeAvatar.useAnimationEnvelope[i];
-            // if (animationName.indexOf('pistol') >= 0) debugger;
+        } else if (avatar.useAnimationEnvelope.length > 0) {
+          let totalTime = 0;
+          for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+            const animationName = avatar.useAnimationEnvelope[i];
             const animation = useAnimations[animationName];
-            if (useTimeS < (animationTimeBase + animation.duration)) {
-              useAnimation = animation;
-              break;
+            totalTime += animation.duration;
+          }
+
+          if (totalTime > 0) {
+            let animationTimeBase = 0;
+            for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+              const animationName = avatar.useAnimationEnvelope[i];
+              const animation = useAnimations[animationName];
+              if (useTimeS < (animationTimeBase + animation.duration)) {
+                useAnimation = animation;
+                break;
+              }
+            }
+            if (useAnimation !== undefined) { // first iteration
+              t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
+            } else { // loop
+              const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
+              useAnimation = useAnimations[secondLastAnimationName];
+              t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
             }
             animationTimeBase += animation.duration;
           }
@@ -1082,7 +981,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           }
         }
       };
-    } else if (activeAvatar.hurtAnimation) {
+    } else if (avatar.hurtAnimation) {
       return spec => {
         const {
           animationTrackName: k,
@@ -1091,14 +990,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        if (k === 'mixamorigHips.quaternion') console.log('hurtAnimation');
-        // debugger
-
-        const hurtAnimation = (activeAvatar.hurtAnimation && hurtAnimations[activeAvatar.hurtAnimation]);
+        const hurtAnimation = (avatar.hurtAnimation && hurtAnimations[avatar.hurtAnimation]);
         _handleDefault(spec);
-        const hurtTimeS = activeAvatar.hurtTime / 1000;
+        const hurtTimeS = avatar.hurtTime / 1000;
         const t2 = Math.min(hurtTimeS, hurtAnimation.duration);
-        // console.log('hurtAnimation', activeAvatar.hurtAnimation, activeAvatar.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
+        // console.log('hurtAnimation', avatar.hurtAnimation, avatar.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
         if (!isPosition) {
           if (hurtAnimation) {
             const src2 = hurtAnimation.interpolants[k];
@@ -1127,7 +1023,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .add(localVector2.fromArray(v2));
         }
       };
-    } else if (activeAvatar.aimAnimation) {
+    } else if (avatar.aimAnimation) {
       return spec => {
         const {
           animationTrackName: k,
@@ -1137,15 +1033,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        if (k === 'mixamorigHips.quaternion') console.log('aimAnimation');
-        // debugger
-
+        const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
         _handleDefault(spec);
-
-        const aimAnimation = (activeAvatar.aimAnimation && aimAnimations[activeAvatar.aimAnimation]);
-        if (aimAnimation) {
-          const t2 = (activeAvatar.aimTime / aimMaxTime) % aimAnimation.duration;
-          if (!isPosition) {
+        const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
+        if (!isPosition) {
+          if (aimAnimation) {
             const src2 = aimAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localQuaternion2.fromArray(v2);
@@ -1171,7 +1063,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           }
         }
       };
-    } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
+    } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
       return spec => {
         const {
           animationTrackName: k,
@@ -1186,14 +1078,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _handleDefault(spec);
 
-        if (!activeAvatar.unuseAnimation) return;
-        // Though already checked outter, the codes here will run multiple times equal to bones number.
-        // So will cause error after first bone set `activeAvatar.unuseAnimation = null;` if not check here.
-        // todo: May can extract `activeAvatar.unuseAnimation = null;` and related codes to outter.
-
-        const unuseTimeS = activeAvatar.unuseTime / 1000;
-        const unuseAnimationName = activeAvatar.unuseAnimation;
-        // if (unuseAnimationName.indexOf('pistol') >= 0) debugger;
+        const unuseTimeS = avatar.unuseTime / 1000;
+        const unuseAnimationName = avatar.unuseAnimation;
         const unuseAnimation = useAnimations[unuseAnimationName];
         const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
         const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
@@ -1240,19 +1126,74 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
 
         if (f >= 1) {
-          activeAvatar.unuseAnimation = null;
+          avatar.useAnimation = '';
         }
       };
     }
     return _handleDefault;
   };
   const applyFn = _getApplyFn();
-
-  for (const spec of activeAvatar.animationMappings) {
+  const _blendFly = spec => {
     const {
       animationTrackName: k,
       dst,
-      isTop,
+      // isTop,
+      lerpFn,
+    } = spec;
+
+    if (avatar.flyState || (avatar.flyTime >= 0 && avatar.flyTime < 1000)) {
+      const t2 = avatar.flyTime / 1000;
+      const f = avatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+      const src2 = floatAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2 % floatAnimation.duration);
+
+      lerpFn
+        .call(
+          dst,
+          localQuaternion.fromArray(v2),
+          f,
+        );
+    }
+  };
+
+  const _blendActivateAction = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      lerpFn,
+    } = spec;
+
+    if (avatar.activateTime > 0) {
+      const localPlayer = metaversefile.useLocalPlayer();
+
+      let defaultAnimation = 'grab_forward';
+
+      if (localPlayer.getAction('activate').animationName) {
+        defaultAnimation = localPlayer.getAction('activate').animationName;
+      }
+
+      const activateAnimation = activateAnimations[defaultAnimation].animation;
+      const src2 = activateAnimation.interpolants[k];
+      const t2 = ((avatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
+      const v2 = src2.evaluate(t2);
+
+      const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+
+      lerpFn
+        .call(
+          dst,
+          localQuaternion.fromArray(v2),
+          f,
+        );
+    }
+  };
+
+  for (const spec of avatar.animationMappings) {
+    const {
+      // animationTrackName: k,
+      dst,
+      // isTop,
       isPosition,
     } = spec;
 
@@ -1262,12 +1203,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     // ignore all animation position except y
     if (isPosition) {
-      if (!activeAvatar.jumpState) {
+      if (!avatar.jumpState) {
         // animations position is height-relative
-        dst.y *= activeAvatar.height; // XXX this could be made perfect by measuring from foot to hips instead
+        dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       } else {
         // force height in the jump case to overide the animation
-        dst.y = activeAvatar.height * 0.55;
+        dst.y = avatar.height * 0.55;
       }
     }
   }
@@ -1276,7 +1217,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 export {
   animations,
   animationStepIndices,
- cubicBezier
+  emoteAnimations,
+  // cubicBezier,
 };
 
 export const getClosest2AnimationAngles = (key, angle) => {
@@ -1296,12 +1238,20 @@ export const _findArmature = bone => {
       return bone;
     }
   }
-  return null; // can't happen
+  // return null; // can't happen
 };
 
 export const _getLerpFn = isPosition => isPosition ? Vector3.prototype.lerp : Quaternion.prototype.slerp;
 
 export function getFirstPersonCurves(vrmExtension) {
+  const DEG2RAD = Math.PI / 180; // MathUtils.DEG2RAD;
+  function _importCurveMapperBone(map) {
+    return new VRMCurveMapper(
+      typeof map.xRange === 'number' ? DEG2RAD * map.xRange : undefined,
+      typeof map.yRange === 'number' ? DEG2RAD * map.yRange : undefined,
+      map.curve,
+    );
+  }
   if (vrmExtension) {
     const {firstPerson} = vrmExtension;
     const {
@@ -1312,14 +1262,6 @@ export function getFirstPersonCurves(vrmExtension) {
       // lookAtTypeName,
     } = firstPerson;
 
-    const DEG2RAD = Math.PI / 180; // MathUtils.DEG2RAD;
-    function _importCurveMapperBone(map) {
-      return new VRMCurveMapper(
-        typeof map.xRange === 'number' ? DEG2RAD * map.xRange : undefined,
-        typeof map.yRange === 'number' ? DEG2RAD * map.yRange : undefined,
-        map.curve,
-      );
-    }
     const lookAtHorizontalInnerCurve = _importCurveMapperBone(lookAtHorizontalInner);
     const lookAtHorizontalOuterCurve = _importCurveMapperBone(lookAtHorizontalOuter);
     const lookAtVerticalDownCurve = _importCurveMapperBone(lookAtVerticalDown);
