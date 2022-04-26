@@ -1978,6 +1978,10 @@ class Avatar extends EventTarget {
     return this.poseManager.vrTransforms.floorHeight;
   }
 
+  dispatchAnimationEndEvent() {
+    this.dispatchEvent(new MessageEvent('animationEnd'));
+  }
+
   /* say(audio) {
     this.setMicrophoneMediaStream(audio, {
       muted: false,

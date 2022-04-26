@@ -1183,7 +1183,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     }
   }
   if (lastF >= 1) {
-    avatar.dispatchEvent(new MessageEvent('animationEnd'));
+    avatar.dispatchAnimationEndEvent();
   }
 };
 
