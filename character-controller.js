@@ -880,10 +880,9 @@ class UninterpolatedPlayer extends StatePlayer {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => {
-        const useAction = this.getAction('use')
-        if (useAction) {
-          if (useAction.needResetUseTime) {
-            useAction.needResetUseTime = false;
+        if (this.hasAction('use')) {
+          if (this.hasAction('needResetUseTime')) {
+            this.removeAction('needResetUseTime');
             return false;
           }
           return true;
@@ -1113,9 +1112,10 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   handleAnimationEnd(e) {
     // const avatar = e.target;
-    const useAction = this.getAction('use');
-    if (useAction) {
-      useAction.needEndUse = true; // tell next frame need endUse();
+    if (this.hasAction('use')) {
+      if (!this.hasAction('needEndUse')) {
+        this.addAction({type: 'needEndUse'}); // tell next frame need endUse();
+      }
     }
   }
   resetPhysics() {

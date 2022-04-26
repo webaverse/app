@@ -349,9 +349,6 @@ const _startUse = () => {
           position,
           quaternion,
           scale,
-          needEndUse: false,
-          needContinueCombo: false,
-          needResetUseTime: false,
         };
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
@@ -371,16 +368,15 @@ const _endUse = () => {
       use: false,
     });
     localPlayer.removeAction('use');
-    if (!useAction.needContinueCombo) {
-      lastUseIndex = 0;
-    }
   }
 };
 const _mousedown = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   let useAction = localPlayer.getAction('use');
   if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
-    useAction.needContinueCombo = true;
+    if (!localPlayer.hasAction('needContinueCombo')) {
+      localPlayer.addAction({type: 'needContinueCombo'});
+    }
   }
   _startUse();
   useAction = localPlayer.getAction('use');
@@ -1052,17 +1048,19 @@ const _gameUpdate = (timestamp, timeDiff) => {
   }
 
   const handleUseActionCombo = () => {
-    const oldUseAction = localPlayer.getAction('use');
-  
-    if (oldUseAction?.needEndUse) {
+    if (localPlayer.hasAction('needEndUse')) {
+      localPlayer.removeAction('needEndUse');
       gameManager.menuEndUse();
-    }
-  
-    if (oldUseAction?.needContinueCombo) {
-      gameManager.menuStartUse();
-      const newUseAction = localPlayer.getAction('use');
-      if (oldUseAction.needEndUse && oldUseAction.needContinueCombo) {
-        newUseAction.needResetUseTime = true;
+
+      if (localPlayer.hasAction('needContinueCombo')) {
+        localPlayer.removeAction('needContinueCombo');
+        gameManager.menuStartUse();
+        if (!localPlayer.hasAction('needResetUseTime')) {
+          localPlayer.addAction({type: 'needResetUseTime'});
+          debugger;
+        }
+      } else {
+        lastUseIndex = 0;
       }
     }
   }
