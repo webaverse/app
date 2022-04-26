@@ -393,43 +393,43 @@ class CharacterSfx {
         voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
         break;
       }
-    }
-    
-    if(index===undefined){
-      let voice = selectVoice(voiceFiles);
-      duration = voice.duration;
-      offset = voice.offset;
-    }
-    else{
-      duration = voiceFiles[index].duration;
-      offset = voiceFiles[index].offset;
-    } 
-    
-    const audioContext = Avatar.getAudioContext();
-    const audioBufferSourceNode = audioContext.createBufferSource();
-    audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
+      
+      if(index===undefined){
+        let voice = selectVoice(voiceFiles);
+        duration = voice.duration;
+        offset = voice.offset;
+      }
+      else{
+        duration = voiceFiles[index].duration;
+        offset = voiceFiles[index].offset;
+      } 
+      
+      const audioContext = Avatar.getAudioContext();
+      const audioBufferSourceNode = audioContext.createBufferSource();
+      audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
 
-    // control mouth movement with audio volume
-    if (!this.player.avatar.isAudioEnabled()) {
-      this.player.avatar.setAudioEnabled(true);
-    }
-    audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+      // control mouth movement with audio volume
+      if (!this.player.avatar.isAudioEnabled()) {
+        this.player.avatar.setAudioEnabled(true);
+      }
+      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
-    // if the oldGrunt are still playing
-    if(this.oldGrunt){
-      this.oldGrunt.stop();
-      this.oldGrunt = null;
-    }
-
-    this.oldGrunt=audioBufferSourceNode;
-    // clean the oldGrunt if voice end
-    audioBufferSourceNode.addEventListener('ended', () => {
-      if (this.oldGrunt === audioBufferSourceNode) {
+      // if the oldGrunt are still playing
+      if(this.oldGrunt){
+        this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-    });
 
-    audioBufferSourceNode.start(0, offset, duration);
+      this.oldGrunt=audioBufferSourceNode;
+      // clean the oldGrunt if voice end
+      audioBufferSourceNode.addEventListener('ended', () => {
+        if (this.oldGrunt === audioBufferSourceNode) {
+          this.oldGrunt = null;
+        }
+      });
+
+      audioBufferSourceNode.start(0, offset, duration);
+    }
   }
   destroy() {
     // nothing

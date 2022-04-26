@@ -558,20 +558,6 @@ const _startHacks = webaverse => {
           titleCardHack: webaverse.titleCardHack,
         }
       }));
-    } else if (e.which === 75) { // K
-      if (!haloMeshApp) {
-        haloMeshApp = metaversefileApi.createApp();
-        (async () => {
-          const {modules} = metaversefileApi.useDefaultModules();
-          const m = modules['halo'];
-          await haloMeshApp.addModule(m);
-        })();
-        scene.add(haloMeshApp);
-      } else {
-        scene.remove(haloMeshApp);
-        haloMeshApp.destroy();
-        haloMeshApp = null;
-      }
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {

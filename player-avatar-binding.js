@@ -127,6 +127,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   if (rig.unuseTime === 0) { // this means use is active
     if (useAction?.animationEnvelope) {
       rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
+    } else {
+      rig.unuseAnimation = null;
     }
   }
 
