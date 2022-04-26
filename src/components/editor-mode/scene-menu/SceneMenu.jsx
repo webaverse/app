@@ -57,11 +57,14 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleSceneSelect = ( event, sceneName ) => {
 
-        setState({ openedPanel: null });
-
         sceneName = sceneName ?? event.target.value;
-        setSelectedScene( sceneName );
-        universe.pushUrl( `/?src=${ encodeURIComponent( './scenes/' + sceneName ) }` );
+        window.location.href = `/?src=${ encodeURIComponent( './scenes/' + sceneName ) }`
+
+        // setState({ openedPanel: null });
+
+        // sceneName = sceneName ?? event.target.value;
+        // setSelectedScene( sceneName );
+        // universe.pushUrl( `/?src=${ encodeURIComponent( './scenes/' + sceneName ) }` );
 
     };
 
