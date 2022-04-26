@@ -289,7 +289,7 @@ const _makeTargetReticleMesh = () => {
           c = vec3(0.);
         } */
 
-        c = hueShift(c, sin(uTime * 10. * PI * 2.) * 0.05 * PI * 2.);
+        c = hueShift(c, sin(uTime * 10. * PI * 2.) * 0.1 * PI * 2.);
 
         // gl_FragColor = vec4(vUv.x, vUv.y, 0., 1.);
         
