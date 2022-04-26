@@ -349,74 +349,75 @@ class CharacterSfx {
     _handleFood();
   }
   playGrunt(type, index){
-    
-    let voiceFiles, offset, duration;
-    switch (type) {
-      case 'pain': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
-        break;
+    if (this.player.voicePack) { // ensure voice pack loaded
+      let voiceFiles, offset, duration;
+      switch (type) {
+        case 'pain': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
+          break;
+        }
+        case 'scream': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
+          break;
+        }
+        case 'attack': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
+          break;
+        }
+        case 'angry': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
+          break;
+        }
+        case 'gasp': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
+          break;
+        }
+        case 'jump': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
+          break;
+        }
+        case 'narutoRun': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
+          break;
+        }
       }
-      case 'scream': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
-        break;
+      
+      if(index===undefined){
+        let voice = selectVoice(voiceFiles);
+        duration = voice.duration;
+        offset = voice.offset;
       }
-      case 'attack': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
-        break;
-      }
-      case 'angry': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
-        break;
-      }
-      case 'gasp': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
-        break;
-      }
-      case 'jump': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
-        break;
-      }
-      case 'narutoRun': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
-        break;
-      }
-    }
-    
-    if(index===undefined){
-      let voice = selectVoice(voiceFiles);
-      duration = voice.duration;
-      offset = voice.offset;
-    }
-    else{
-      duration = voiceFiles[index].duration;
-      offset = voiceFiles[index].offset;
-    } 
-    
-    const audioContext = Avatar.getAudioContext();
-    const audioBufferSourceNode = audioContext.createBufferSource();
-    audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
+      else{
+        duration = voiceFiles[index].duration;
+        offset = voiceFiles[index].offset;
+      } 
+      
+      const audioContext = Avatar.getAudioContext();
+      const audioBufferSourceNode = audioContext.createBufferSource();
+      audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
 
-    // control mouth movement with audio volume
-    if (!this.player.avatar.isAudioEnabled()) {
-      this.player.avatar.setAudioEnabled(true);
-    }
-    audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+      // control mouth movement with audio volume
+      if (!this.player.avatar.isAudioEnabled()) {
+        this.player.avatar.setAudioEnabled(true);
+      }
+      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
-    // if the oldGrunt are still playing
-    if(this.oldGrunt){
-      this.oldGrunt.stop();
-      this.oldGrunt = null;
-    }
-
-    this.oldGrunt=audioBufferSourceNode;
-    // clean the oldGrunt if voice end
-    audioBufferSourceNode.addEventListener('ended', () => {
-      if (this.oldGrunt === audioBufferSourceNode) {
+      // if the oldGrunt are still playing
+      if(this.oldGrunt){
+        this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-    });
 
-    audioBufferSourceNode.start(0, offset, duration);
+      this.oldGrunt=audioBufferSourceNode;
+      // clean the oldGrunt if voice end
+      audioBufferSourceNode.addEventListener('ended', () => {
+        if (this.oldGrunt === audioBufferSourceNode) {
+          this.oldGrunt = null;
+        }
+      });
+
+      audioBufferSourceNode.start(0, offset, duration);
+    }
   }
   destroy() {
     // nothing
