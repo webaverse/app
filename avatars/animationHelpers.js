@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import {Vector3, Quaternion, AnimationClip} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
@@ -930,7 +931,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -983,34 +984,32 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               localVector3.fromArray(v3);
               dst.lerp(localVector3, idleWalkFactor);
             }
-          } else {
-            if (!isPosition) {
-              const src2 = useAnimation.interpolants[k];
-              const v2 = src2.evaluate(t2);
+          } else if (useAnimation === useAnimations.bowDraw) {
+            const src2 = useAnimations.bowDraw.interpolants[k];
+            const v2 = src2.evaluate(t2 % useAnimations.bowDraw.duration);
 
-              const idleAnimation = _getIdleAnimation('walk');
-              const t3 = 0;
-              const src3 = idleAnimation.interpolants[k];
-              const v3 = src3.evaluate(t3);
+            const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
+            const v3 = src3.evaluate((useTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
+            if (!isPosition) localQuaternion3.fromArray(v3);
+            else localVector3.fromArray(v3);
 
-              dst
-                .premultiply(localQuaternion2.fromArray(v3).invert())
-                .premultiply(localQuaternion2.fromArray(v2));
+            dst.fromArray(v2);
+
+            if (isTop) {
+              let t = (useTimeS - useAnimations.bowDraw.duration + 0.3) / 0.3;
+              t = THREE.MathUtils.clamp(t, 0, 1);
+              t *= idleWalkFactor;
+              if (!isPosition) {
+                dst.slerp(localQuaternion3, t);
+              } else {
+                dst.lerp(localVector3, t);
+              }
             } else {
-              const src2 = useAnimation.interpolants[k];
-              const v2 = src2.evaluate(t2);
-              localVector2.fromArray(v2);
-              _clearXZ(localVector2, isPosition);
-
-              const idleAnimation = _getIdleAnimation('walk');
-              const t3 = 0;
-              const src3 = idleAnimation.interpolants[k];
-              const v3 = src3.evaluate(t3);
-              localVector3.fromArray(v3);
-
-              dst
-                .sub(localVector3)
-                .add(localVector2);
+              if (!isPosition) {
+                dst.slerp(localQuaternion3, idleWalkFactor);
+              } else {
+                dst.lerp(localVector3, idleWalkFactor);
+              }
             }
           }
         }
@@ -1103,7 +1102,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           lerpFn,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -1117,17 +1116,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const f2 = Math.pow(1 - f, 2);
 
         if (!isPosition) {
-          const src2 = unuseAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          localQuaternion.copy(dst)
-            .premultiply(localQuaternion2.fromArray(v3).invert())
-            .premultiply(localQuaternion2.fromArray(v2));
+          if (isTop) {
+            const src2 = unuseAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            localQuaternion.fromArray(v2);
+          } else {
+            const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
+            const v3 = src3.evaluate((unuseTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
+            localQuaternion.fromArray(v3);
+          }
 
           lerpFn
             .call(
@@ -1136,17 +1133,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               f2,
             );
         } else {
-          const src2 = unuseAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          localVector.copy(dst)
-            .sub(localVector2.fromArray(v3))
-            .add(localVector2.fromArray(v2));
+          if (isTop) {
+            const src2 = unuseAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            localVector.fromArray(v2);
+          } else {
+            const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
+            const v3 = src3.evaluate((unuseTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
+            localVector.fromArray(v3);
+          }
 
           lerpFn
             .call(
