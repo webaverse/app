@@ -1814,7 +1814,7 @@ const physxWorker = (() => {
     }
   }
 
-  w.createChunk = (x, y, z) => {
+  w.createChunkWithDualContouring = (x, y, z) => {
     const ELEMENT_BYTES = 4
 
     const readBuffer = (outputBuffer, index) => {
@@ -1836,7 +1836,7 @@ const physxWorker = (() => {
       )
     }
 
-    const outputBufferOffset = moduleInstance._createChunk(x, y, z)
+    const outputBufferOffset = moduleInstance._createChunkWithDualContouring(x, y, z)
 
     // reading the data with the same order as C++
     const positionCount = readBuffer(outputBufferOffset, 0) // vector size
@@ -1865,7 +1865,7 @@ const physxWorker = (() => {
     }
   }
 
-  w.createSeam = (x, y, z) => {
+  w.createSeamsWithDualContouring = (x, y, z) => {
     const ELEMENT_BYTES = 4
 
     const readBuffer = (outputBuffer, index) => {
@@ -1887,7 +1887,7 @@ const physxWorker = (() => {
       )
     }
 
-    const outputBufferOffset = moduleInstance._createSeams(x, y, z)
+    const outputBufferOffset = moduleInstance._createSeamsWithDualContouring(x, y, z)
 
     // reading the data with the same order as C++
     const positionCount = readBuffer(outputBufferOffset, 0) // vector size

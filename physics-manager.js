@@ -563,9 +563,9 @@ physicsManager.simulatePhysics = (timeDiff) => {
 physicsManager.marchingCubes = (dims, potential, shift, scale) =>
   physx.physxWorker.marchingCubes(dims, potential, shift, scale)
 
-physicsManager.createChunk = (x, y, z) => physx.physxWorker.createChunk(x, y, z)
+physicsManager.createChunkWithDualContouring = (x, y, z) => physx.physxWorker.createChunkWithDualContouring(x, y, z)
 
-physicsManager.createSeam = (x, y, z) => physx.physxWorker.createSeam(x, y, z)
+physicsManager.createSeamsWithDualContouring = (x, y, z) => physx.physxWorker.createSeamsWithDualContouring(x, y, z)
 
 physicsManager.pushUpdate = (physicsObject) => {
   const { physicsId, physicsMesh } = physicsObject
