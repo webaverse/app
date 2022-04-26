@@ -157,6 +157,8 @@ const _makeTargetReticleMesh = () => {
       // varying vec3 vNormal;
       varying vec3 vBarycentric;
 
+      const float zoomDistance = 20.;
+
       vec2 rotate2D(vec2 v, float a) {
         return vec2(
           v.x * cos(a) - v.y * sin(a),
@@ -167,7 +169,7 @@ const _makeTargetReticleMesh = () => {
       void main() {
         float angle = uTime * PI * 2.;
         // vec2 direction = rotate2D(normal2, angle);
-        vec3 p = vec3(rotate2D(position.xy, angle) + rotate2D(normal2 * uZoom * 10., angle), position.z);
+        vec3 p = vec3(rotate2D(position.xy, angle) + rotate2D(normal2 * uZoom * zoomDistance, angle), position.z);
 
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mvPosition;
@@ -273,7 +275,8 @@ const _makeTargetReticleMesh = () => {
         } */
 
         vec3 c = mix(uColor1, uColor2, vUv.y);
-        c *= distanceToEdge(vBarycentric);
+        // c *= distanceToEdge(vBarycentric);
+        c *= (0.5 + 0.5 * (1. - vUv.y));
         // c *= 0.25 + edgeFactor(vBarycentric, 1.) * 0.75;
         if (edgeFactor(vBarycentric, 1.) < 0.2) {
           c = vec3(0.);
@@ -285,7 +288,11 @@ const _makeTargetReticleMesh = () => {
         /* if (vUv.x < (y + 0.1) || 1. - vUv.x > (y + 0.1) || vUv.y < 0.02 || vUv.y > 0.98) {
           c = vec3(0.);
         } */
+
+        c = hueShift(c, sin(uTime * 10. * PI * 2.) * 0.05 * PI * 2.);
+
         // gl_FragColor = vec4(vUv.x, vUv.y, 0., 1.);
+        
         gl_FragColor = vec4(c, 1.);
       }
     `,
@@ -293,7 +300,7 @@ const _makeTargetReticleMesh = () => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.update = (timestamp, timeDiff) => {
-    const maxTime = 5000;
+    const maxTime = 3000;
     const f = (timestamp % maxTime) / maxTime;
 
     /* const localPlayer = useLocalPlayer();
