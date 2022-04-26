@@ -176,6 +176,7 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
+  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -326,6 +327,7 @@ export const loadPromise = (async () => {
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
   }, aimAnimations);
+  window.useAnimations = useAnimations;
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
     saddle: animations.find(a => a.isSitting),
@@ -965,33 +967,51 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         _handleDefault(spec);
 
         if (useAnimation) {
-          if (!isPosition) {
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
+          if (useAnimation === useAnimations.bowIdle) {
+            const src2 = useAnimations.bowIdle.interpolants[k];
+            const v2 = src2.evaluate(t2 % useAnimations.bowIdle.duration);
 
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
+            const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
+            const v3 = src3.evaluate((useTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
 
-            dst
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
+            dst.fromArray(v2);
+
+            if (!isPosition) {
+              localQuaternion3.fromArray(v3);
+              dst.slerp(localQuaternion3, idleWalkFactor);
+            } else {
+              localVector3.fromArray(v3);
+              dst.lerp(localVector3, idleWalkFactor);
+            }
           } else {
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            localVector2.fromArray(v2);
-            _clearXZ(localVector2, isPosition);
+            if (!isPosition) {
+              const src2 = useAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
 
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-            localVector3.fromArray(v3);
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
 
-            dst
-              .sub(localVector3)
-              .add(localVector2);
+              dst
+                .premultiply(localQuaternion2.fromArray(v3).invert())
+                .premultiply(localQuaternion2.fromArray(v2));
+            } else {
+              const src2 = useAnimation.interpolants[k];
+              const v2 = src2.evaluate(t2);
+              localVector2.fromArray(v2);
+              _clearXZ(localVector2, isPosition);
+
+              const idleAnimation = _getIdleAnimation('walk');
+              const t3 = 0;
+              const src3 = idleAnimation.interpolants[k];
+              const v3 = src3.evaluate(t3);
+              localVector3.fromArray(v3);
+
+              dst
+                .sub(localVector3)
+                .add(localVector2);
+            }
           }
         }
       };
