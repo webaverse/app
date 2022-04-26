@@ -6,8 +6,7 @@ import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
 // import alea from './alea.js';
-import {minFov, maxFov} from './constants.js';
-const midFov = 90;
+import {minFov, maxFov, midFov} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
