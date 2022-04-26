@@ -293,7 +293,6 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
 
     const walkAnimationNames = [
       'walking.fbx',
-      'Standing Aim Walk Forward.fbx',
       'left strafe walking.fbx',
       'right strafe walking.fbx',
       'walking backwards.fbx',
@@ -358,11 +357,11 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
           console.warn('unknown track name', animation.name, track);
         }
       }
-      // // remove scale transform tracks as they won't be used;
-      // let i = tracksToRemove.length;
-      // while (i--) {
-      //   tracks.splice(tracksToRemove[i], 1);
-      // }
+      // remove scale transform tracks as they won't be used;
+      let i = tracksToRemove.length;
+      while (i--) {
+        tracks.splice(tracksToRemove[i], 1);
+      }
 
       const walkBufferSize = 256;
       const leftFootYDeltas = new Float32Array(walkBufferSize);

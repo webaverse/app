@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip, DepthStencilFormat} from 'three';
+import {Vector3, Quaternion, AnimationClip} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -92,8 +92,7 @@ const animationsAngleArrays = {
     {name: 'left strafe walking.fbx', angle: Math.PI / 2},
     {name: 'right strafe walking.fbx', angle: -Math.PI / 2},
 
-    // {name: 'walking.fbx', angle: 0},
-    {name: 'Standing Aim Walk Forward.fbx', angle: 0},
+    {name: 'walking.fbx', angle: 0},
     {name: 'walking backwards.fbx', angle: Math.PI},
 
     // {name: 'left strafe walking reverse.fbx', angle: Math.PI*3/4},
@@ -140,12 +139,6 @@ const animationsIdleArrays = {
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
 };
-// {
-//   reset: {name: 'reset.fbx', animation: AnimationClip}
-//   walk: {name: 'idle.fbx', animation: AnimationClip}
-//   run: {name: 'idle.fbx', animation: AnimationClip}
-//   crouch: {name: 'Crouch Idle.fbx', animation: AnimationClip}
-// }
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -177,17 +170,7 @@ async function loadAnimations() {
   const uint8Array = new Uint8Array(arrayBuffer);
   const animationsJson = zbdecode(uint8Array);
   animations = animationsJson.animations
-    .map(a => {
-      const animationClip = AnimationClip.parse(a)
-      if (animationClip.name === 'One Hand Sword Combo.fbx') {
-        trimClip(animationClip, 0.4, animationClip.duration - 0.5);
-        // trim start to make attack fast.
-        // trim end to prevent sword cross player's head.
-      }
-      return animationClip;
-    });
-  window.animations = animations;
-
+    .map(a => AnimationClip.parse(a));
   animationStepIndices = animationsJson.animationStepIndices;
   animations.index = {};
   for (const animation of animations) {
@@ -253,8 +236,7 @@ export const loadPromise = (async () => {
   }
 
   const walkingAnimations = [
-    // 'walking.fbx',
-    'Standing Aim Walk Forward.fbx',
+    'walking.fbx',
     'left strafe walking.fbx',
     'right strafe walking.fbx',
   ].map(name => animations.index[name]);
@@ -324,12 +306,12 @@ export const loadPromise = (async () => {
   // hitAnimation = animations.find(a => a.isHit);
   aimAnimations = {
     swordSideIdle: animations.index['sword_idle_side.fbx'],
-    // swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
+    swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
     swordSideSlash: animations.index['sword_side_slash.fbx'],
     swordSideSlashStep: animations.index['sword_side_slash_step.fbx'],
     swordTopDownSlash: animations.index['sword_topdown_slash.fbx'],
     swordTopDownSlashStep: animations.index['sword_topdown_slash_step.fbx'],
-    // swordUndraw: animations.index['sword_undraw.fbx'],
+    swordUndraw: animations.index['sword_undraw.fbx'],
   };
   useAnimations = mergeAnimations({
     combo: animations.find(a => a.isCombo),
@@ -344,7 +326,6 @@ export const loadPromise = (async () => {
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
   }, aimAnimations);
-  window.useAnimations = useAnimations;
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
     saddle: animations.find(a => a.isSitting),
@@ -748,7 +729,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     const {
       animationTrackName: k,
       dst,
-      isTop,
+      // isTop,
       lerpFn,
       isPosition,
     } = spec;
@@ -761,7 +742,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
         } = spec;
 
         const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
@@ -776,7 +757,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
         } = spec;
 
         const sitAnimation = sitAnimations[avatar.sitAnimation || defaultSitAnimation];
@@ -791,12 +772,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
-
-        if (k === 'mixamorigHips.quaternion') console.log('narutoRunAnimation');
-        // debugger
 
         const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
         const src2 = narutoRunAnimation.interpolants[k];
@@ -815,12 +793,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           lerpFn,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
-
-        if (k === 'mixamorigHips.quaternion') console.log('danceAnimation');
-        // debugger
 
         _handleDefault(spec);
 
@@ -897,13 +872,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          isTop,
-          isCombo,
+          // isTop,
           isPosition,
         } = spec;
-
-        if (k === 'mixamorigHips.quaternion') console.log('useAnimation');
-        // debugger
 
         let useAnimation;
         let t2;
@@ -933,6 +904,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
                 useAnimation = animation;
                 break;
               }
+              animationTimeBase += animation.duration;
             }
             if (useAnimation !== undefined) { // first iteration
               t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
@@ -941,15 +913,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               useAnimation = useAnimations[secondLastAnimationName];
               t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
             }
-            animationTimeBase += animation.duration;
-          }
-          if (useAnimation !== undefined) { // first iteration
-            t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
-          } else { // loop
-            const secondLastAnimationName = activeAvatar.useAnimationEnvelope[activeAvatar.useAnimationEnvelope.length - 2];
-            // if (secondLastAnimationName.indexOf('pistol') >= 0) debugger;
-            useAnimation = useAnimations[secondLastAnimationName];
-            t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
           }
         }
 
@@ -957,27 +920,32 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         if (useAnimation) {
           if (!isPosition) {
-            // debugger
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
-            localQuaternion2.fromArray(v2);
 
-            if (isTop || k.includes('Hips')) {
-            } else {
-              localQuaternion2.slerp(dst, moveFactors.idleWalkFactor);
-            }
-            dst.slerp(localQuaternion2, Math.min(1, activeAvatar.useTime / 100));
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+
+            dst
+              .premultiply(localQuaternion2.fromArray(v3).invert())
+              .premultiply(localQuaternion2.fromArray(v2));
           } else {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localVector2.fromArray(v2);
             _clearXZ(localVector2, isPosition);
 
-            if (isTop || k.includes('Hips')) {
-            } else {
-              localVector2.lerp(dst, moveFactors.idleWalkFactor);
-            }
-            dst.lerp(localVector2, Math.min(1, activeAvatar.useTime / 100));
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+            localVector3.fromArray(v3);
+
+            dst
+              .sub(localVector3)
+              .add(localVector2);
           }
         }
       };
@@ -986,7 +954,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
 
@@ -1029,7 +997,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           // isTop,
-          isArm,
           isPosition,
         } = spec;
 
@@ -1040,27 +1007,28 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           if (aimAnimation) {
             const src2 = aimAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
-            localQuaternion2.fromArray(v2);
 
-            if (isArm) {
-              dst.slerp(localQuaternion2, Math.min(0.5, activeAvatar.aimTime / 100 * 0.5));
-            } else {
-              localQuaternion2.slerp(dst, 0.5 + moveFactors.idleWalkFactor * 0.5);
-              dst.slerp(localQuaternion2, Math.min(1, activeAvatar.aimTime / 100));
-            }
-          } else {
-            const src2 = aimAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            localVector2.fromArray(v2);
-            _clearXZ(localVector2, isPosition);
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
 
-            if (isArm) {
-              dst.lerp(localVector2, Math.min(0.5, activeAvatar.aimTime / 100 * 0.5));
-            } else {
-              localVector2.lerp(dst, 0.5 + moveFactors.idleWalkFactor * 0.5);
-              dst.lerp(localVector2, Math.min(1, activeAvatar.aimTime / 100));
-            }
+            dst
+              .premultiply(localQuaternion2.fromArray(v3).invert())
+              .premultiply(localQuaternion2.fromArray(v2));
           }
+        } else {
+          const src2 = aimAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          const idleAnimation = _getIdleAnimation('walk');
+          const t3 = 0;
+          const src3 = idleAnimation.interpolants[k];
+          const v3 = src3.evaluate(t3);
+
+          dst
+            .sub(localVector2.fromArray(v3))
+            .add(localVector2.fromArray(v2));
         }
       };
     } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
@@ -1069,12 +1037,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           lerpFn,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
-
-        if (k === 'mixamorigHips.quaternion') console.log('unuseAnimation');
-        // debugger
 
         _handleDefault(spec);
 
@@ -1275,17 +1240,6 @@ export function getFirstPersonCurves(vrmExtension) {
   } else {
     return null;
   }
-}
-
-export function trimClip(clip, startTime, endTime) {
-  for (let i = 0; i < clip.tracks.length; i++) {
-    clip.tracks[i].trim(startTime, endTime);
-    for (let j = 0; j < clip.tracks[i].times.length; j++) {
-      clip.tracks[i].times[j] -= startTime;
-    }
-  }
-  clip.resetDuration();
-  return clip;
 }
 
 /* const _localizeMatrixWorld = bone => {
