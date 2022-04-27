@@ -16,9 +16,18 @@ class Music {
   play() {
     const source = this.audioContext.createBufferSource();
     source.buffer = this.audioBuffer;
-    source.connect(this.audioContext.gain);
     source.start(0);
-    return source;
+
+    const gain = this.audioContext.createGain();
+    gain.gain.value = 0.5;
+
+    source.connect(gain);
+    gain.connect(this.audioContext.gain);
+
+    return {
+      source,
+      gain,
+    };
   }
   waitForLoad() {
     return this.loadPromise;
@@ -46,24 +55,25 @@ class MusicManager {
     return music || null;
   }
   playCurrentMusic(name) {
-    if (this.currentMusic) {
-      if (!this.currentMusic.paused) {
-        this.currentMusic.pause();
-      }
-      this.currentMusic.disconnect();
-      this.currentMusic = null;
-    }
+    this.stopCurrentMusic();
 
     const newMusic = this.musics.find(music => music.name);
     if (newMusic) {
       this.currentMusic = newMusic.play();
 
       const localCurrentMusic = this.currentMusic;
-      this.currentMusic.addEventListener('ended', () => {
+      this.currentMusic.source.addEventListener('ended', () => {
         if (this.currentMusic === localCurrentMusic) {
           this.currentMusic = null;
         }
       });
+    }
+  }
+  stopCurrentMusic() {
+    if (this.currentMusic) {
+      this.currentMusic.source.stop();
+      this.currentMusic.gain.disconnect();
+      this.currentMusic = null;
     }
   }
   waitForLoad() {
