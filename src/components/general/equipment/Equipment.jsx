@@ -127,9 +127,7 @@ export const Equipment = () => {
     const onMouseEnter = object => () => {
         setHoverObject(object);
 
-        const soundFiles = sounds.getSoundFiles();
-        const audioSpec = soundFiles.menuClick[Math.floor(Math.random() * soundFiles.menuClick.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('menuClick');
     };
     const onMouseDown = object => () => {
         const newSelectObject = selectObject !== object ? object : null;
@@ -137,13 +135,11 @@ export const Equipment = () => {
 
         // game.renderCard(object);
 
-        const soundFiles = sounds.getSoundFiles();
         if (newSelectObject) {
-            const audioSpec = soundFiles.menuClick[Math.floor(Math.random() * soundFiles.menuClick.length)];
-            sounds.playSound(audioSpec);
+            sounds.playSoundName('menuClick');
         } /* else {
             const audioSpec = soundFiles.menuBack[Math.floor(Math.random() * soundFiles.menuBack.length)];
-            sounds.playSound(audioSpec);
+            sounds.playSoundName('menuBack');
         } */
     };
     const onDragStart = object => e => {
@@ -165,16 +161,12 @@ export const Equipment = () => {
     const menuLeft = () => {
         setFaceIndex(faceIndex - 1);
 
-        const soundFiles = sounds.getSoundFiles();
-        const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('menuNext');
     };
     const menuRight = () => {
         setFaceIndex(faceIndex + 1);
     
-        const soundFiles = sounds.getSoundFiles();
-        const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('menuNext');
     };
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
@@ -310,9 +302,7 @@ export const Equipment = () => {
                                     const delta = i - selectedMenuIndex;
                                     setFaceIndex(faceIndex + delta);
 
-                                    const soundFiles = sounds.getSoundFiles();
-                                    const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
-                                    sounds.playSound(audioSpec);
+                                    sounds.playSoundName('menuNext');
                                 }}
                                 key={i}
                             >

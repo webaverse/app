@@ -59,9 +59,7 @@ const CharacterIcon = () => {
           loaded ? styles.loaded : null,
         )}
         onMouseEnter={e => {
-          const soundFiles = sounds.getSoundFiles();
-          const audioSpec = soundFiles.menuClick[Math.floor(Math.random() * soundFiles.menuClick.length)];
-          sounds.playSound(audioSpec);
+          sounds.playSoundName('menuClick');
         }}
       >
           <div className={styles.main}>

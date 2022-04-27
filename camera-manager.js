@@ -221,9 +221,7 @@ class CameraManager extends EventTarget {
       this.lastFocusChangeTime = performance.now();
 
       if (this.focus) {
-        const soundFiles = sounds.getSoundFiles();
-        const audioSpec = soundFiles.zTargetCenter[Math.floor(Math.random() * soundFiles.zTargetCenter.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('zTargetCenter');
       }
 
       this.dispatchEvent(new MessageEvent('focuschange', {

@@ -93,9 +93,7 @@ export default function QuickMenu() {
             setDown(false);
             setCoords([0, 0]);
 
-            const soundFiles = sounds.getSoundFiles();
-            const audioSpec = soundFiles.menuOk[Math.floor(Math.random() * soundFiles.menuOk.length)];
-            sounds.playSound(audioSpec);
+            sounds.playSoundName('menuOk');
 
             return false;
           }
@@ -116,9 +114,7 @@ export default function QuickMenu() {
             setOpen(false);
             setDown(false);
 
-            const soundFiles = sounds.getSoundFiles();
-            const audioSpec = soundFiles.menuBack[Math.floor(Math.random() * soundFiles.menuBack.length)];
-            sounds.playSound(audioSpec);
+            sounds.playSoundName('menuBack');
           }
         }
       }
@@ -150,9 +146,7 @@ export default function QuickMenu() {
         emote && triggerEmote(emote);
         setOpen(false);
         
-        const soundFiles = sounds.getSoundFiles();
-        const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('menuNext');
 
         return false;
       }

@@ -162,15 +162,11 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
         if (!lastOpen && newOpen) {
 
-            const soundFiles = sounds.getSoundFiles();
-            const audioSpec = soundFiles.menuOpen[Math.floor(Math.random() * soundFiles.menuOpen.length)];
-            sounds.playSound(audioSpec);
+            sounds.playSoundName('menuOpen');
 
         } else if (lastOpen && !newOpen) {
 
-            const soundFiles = sounds.getSoundFiles();
-            const audioSpec = soundFiles.menuClose[Math.floor(Math.random() * soundFiles.menuClose.length)];
-            sounds.playSound(audioSpec);
+            sounds.playSoundName('menuClose');
 
         }
 

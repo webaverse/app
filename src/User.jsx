@@ -46,9 +46,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
         setState({ openedPanel: null });
 
-        const soundFiles = sounds.getSoundFiles();
-        const audioSpec = soundFiles.menuBack[Math.floor(Math.random() * soundFiles.menuBack.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('menuBack');
 
     };
 
@@ -208,9 +206,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
     const _triggerClickSound = () => {
 
-        const soundFiles = sounds.getSoundFiles();
-        const audioSpec = soundFiles.menuClick[Math.floor(Math.random() * soundFiles.menuClick.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('menuClick');
 
     };
     
@@ -244,9 +240,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                         setState({ openedPanel: null });
                     }
 
-                    const soundFiles = sounds.getSoundFiles();
-                    const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
-                    sounds.playSound(audioSpec);
+                    sounds.playSoundName('menuNext');
 
                 }
             }} onMouseEnter={e => {
