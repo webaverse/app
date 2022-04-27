@@ -136,7 +136,7 @@ export const Equipment = () => {
         // game.renderCard(object);
 
         if (newSelectObject) {
-            sounds.playSoundName('menuClick');
+            sounds.playSoundName('menuNext');
         } /* else {
             const audioSpec = soundFiles.menuBack[Math.floor(Math.random() * soundFiles.menuBack.length)];
             sounds.playSoundName('menuBack');
