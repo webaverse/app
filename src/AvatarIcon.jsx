@@ -14,6 +14,7 @@ import styles from './AvatarIcon.module.css';
 import { localPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
 import cameraManager from '../camera-manager.js'
+import * as sounds from '../sounds.js'
 
 const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;
@@ -52,10 +53,17 @@ const CharacterIcon = () => {
   }, [canvasRef.current]);
 
   return (
-      <div className={classnames(
-        styles.characterIcon,
-        loaded ? styles.loaded : null,
-      )}>
+      <div
+        className={classnames(
+          styles.characterIcon,
+          loaded ? styles.loaded : null,
+        )}
+        onMouseEnter={e => {
+          const soundFiles = sounds.getSoundFiles();
+          const audioSpec = soundFiles.menuClick[Math.floor(Math.random() * soundFiles.menuClick.length)];
+          sounds.playSound(audioSpec);
+        }}
+      >
           <div className={styles.main}>
               <canvas
                 className={styles.canvas}
