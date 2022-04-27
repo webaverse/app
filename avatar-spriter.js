@@ -1519,7 +1519,7 @@ const _renderSpriteImages = skinnedVrm => {
   }
   localRig.setTopEnabled(false);
   localRig.setBottomEnabled(false);
-  localRig.emotes.push({
+  localRig.faceposes.push({
     emotion: "emotion-2",
     value: 1,
   });

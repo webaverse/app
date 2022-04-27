@@ -352,6 +352,9 @@ const _startUse = () => {
         };
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
+        if (newUseAction.ik !== 'pistol') {
+          localPlayer.removeAction('crouch');
+        }
 
         wearApp.use();
       }
@@ -530,15 +533,15 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
+    const renderer = getRenderer();
     const _isWear = o => localPlayer.findAction(action => action.type === 'wear' && action.instanceId === o.instanceId);
 
     for (let i = 0; i < 2; i++) {
       const grabAction = _getGrabAction(i);
       const grabbedObject = _getGrabbedObject(i);
       if (grabbedObject && !_isWear(grabbedObject)) {
-        const {position, quaternion} = localPlayer.hands[i];
+        const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        
         grabbedObject.updateMatrixWorld();
 
         /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
@@ -1015,29 +1018,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
   };
   _updateEyes();
-  
-  const updateFov = () => {
-    if (!renderer.xr.getSession()) {
-      const fovInTime = 3;
-      const fovOutTime = 0.3;
-      
-      const narutoRun = localPlayer.getAction('narutoRun');
-      if (narutoRun) {
-        if (ioManager.lastNonzeroDirectionVector.z < 0) {    
-          fovFactor += timeDiff / 1000 / fovInTime;
-        } else {
-          fovFactor -= timeDiff / 1000 / fovInTime;
-        }
-      } else {
-        fovFactor -= timeDiff / 1000 / fovOutTime;
-      }
-      fovFactor = Math.min(Math.max(fovFactor, 0), 1);
-
-      camera.fov = minFov + Math.pow(fovFactor, 0.75) * (maxFov - minFov);
-      camera.updateProjectionMatrix();
-    }
-  };
-  updateFov();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
@@ -1518,7 +1498,7 @@ class GameManager extends EventTarget {
   isJumping() {
     return metaversefileApi.useLocalPlayer().hasAction('jump');
   }
-  ensureJump() {
+  ensureJump(trigger) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const jumpAction = localPlayer.getAction('jump');
 
@@ -1535,14 +1515,15 @@ class GameManager extends EventTarget {
     if (!jumpAction) {
       const newJumpAction = {
         type: 'jump',
+        trigger:trigger
         // time: 0,
       };
       localPlayer.addAction(newJumpAction);
     }
   }
-  jump() {
+  jump(trigger) {
     // add jump action
-    this.ensureJump();
+    this.ensureJump(trigger);
 
     // update velocity
     const localPlayer = metaversefileApi.useLocalPlayer();

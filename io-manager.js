@@ -111,8 +111,6 @@ const _updateVertical = direction => {
 const keysDirection = new THREE.Vector3();
 ioManager.keysDirection = keysDirection;
 
-const lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
-ioManager.lastNonzeroDirectionVector = lastNonzeroDirectionVector;
 const _updateIo = timeDiff => {
   const renderer = getRenderer();
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
@@ -217,10 +215,10 @@ const _updateIo = timeDiff => {
     _updateHorizontal(keysDirection);
     if (keysDirection.equals(zeroVector)) {
       if (localPlayer.hasAction('narutoRun')) {
-        keysDirection.copy(lastNonzeroDirectionVector);
+        keysDirection.copy(cameraManager.lastNonzeroDirectionVector);
       }
     } else {
-      lastNonzeroDirectionVector.copy(keysDirection);
+      cameraManager.lastNonzeroDirectionVector.copy(keysDirection);
     }
     
     if (localPlayer.hasAction('fly')) {
@@ -387,20 +385,6 @@ ioManager.keydown = e => {
       lastWASDDownTime.keyA = 0;
       break;
     }
-    case 82: { // R
-      if (cameraManager.pointerLockElement) {
-        if (game.canRotate()) {
-          game.menuRotate(1);
-        } else {
-          game.dropSelectedApp();
-        }
-      } else {
-        // if (!game.dragging) {
-          // _setTransformMode('rotate');
-        // }
-      }
-      break;
-    }
     case 70: { // F
       e.preventDefault();
       e.stopPropagation();
@@ -481,6 +465,16 @@ ioManager.keydown = e => {
       // }
       break;
     }
+    case 69: { // E
+      // if (cameraManager.pointerLockElement) {
+        if (game.canRotate()) {
+          game.menuRotate(-1);
+        } else {
+          game.menuActivateDown();
+        }
+      // }
+      break;
+    }
     case 84: { // T
       e.preventDefault();
       e.stopPropagation();
@@ -498,6 +492,20 @@ ioManager.keydown = e => {
       // game.menuPhysics();
       break;
     }
+    case 82: { // R
+      if (cameraManager.pointerLockElement) {
+        if (game.canRotate()) {
+          game.menuRotate(1);
+        } else {
+          game.dropSelectedApp();
+        }
+      } else {
+        // if (!game.dragging) {
+          // _setTransformMode('rotate');
+        // }
+      }
+      break;
+    }
     case 16: { // shift
       ioManager.keys.shift = true;
       break;
@@ -506,7 +514,7 @@ ioManager.keydown = e => {
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
-          game.jump();
+          game.jump('jump');
         } /* else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
         } */
@@ -525,20 +533,6 @@ ioManager.keydown = e => {
         // clear conflicting aim with quick menu
         game.menuUnaim();
       }
-      break;
-    }
-    case 69: { // E
-      // if (cameraManager.pointerLockElement) {
-        if (game.canRotate()) {
-          game.menuRotate(-1);
-        } else {
-          game.menuActivateDown();
-        }
-      // }
-      break;
-    }
-    case 192: { // tilde
-      game.toggleEditMode();
       break;
     }
     /* case 13: { // enter
@@ -560,6 +554,10 @@ ioManager.keydown = e => {
     case 72: { // H
       const debug = metaversefile.useDebug();
       debug.toggle();
+      break;
+    }
+    case 192: { // tilde
+      game.toggleEditMode();
       break;
     }
   }
