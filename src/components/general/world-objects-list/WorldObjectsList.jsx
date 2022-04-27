@@ -12,6 +12,7 @@ import { AppContext } from '../../app';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 
 import styles from './world-objects-list.module.css';
+import physicsManager from '../../../../physics-manager.js';
 
 //
 
@@ -106,17 +107,27 @@ export const WorldObjectsList = () => {
 
             case 'sx':
                 setSx( value );
+                updatePhysics();
                 break;
             case 'sy':
                 setSy( value );
+                updatePhysics();
                 break;
             case 'sz':
                 setSz( value );
+                updatePhysics();
                 break;
 
         }
 
         setNeedsUpdate( true );
+
+    };
+
+    const updatePhysics = () => {
+
+        const physicsObjects = selectedApp.getPhysicsObjects();
+        physicsManager.reAddGeometry( selectedApp, physicsObjects[0] );
 
     };
 
