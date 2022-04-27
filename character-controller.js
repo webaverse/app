@@ -331,10 +331,6 @@ class PlayerBase extends THREE.Object3D {
       };
       _initPhysics();
 
-      const soundFiles = sounds.getSoundFiles();
-      const audioSpec = soundFiles.itemEquip[Math.floor(Math.random() * soundFiles.itemEquip.length)];
-      sounds.playSound(audioSpec);
-
       const _emitEvents = () => {
         this.addAction({
           type: 'wear',
@@ -405,10 +401,6 @@ class PlayerBase extends THREE.Object3D {
         }
       };
       _removeApp();
-
-      const soundFiles = sounds.getSoundFiles();
-      const audioSpec = soundFiles.itemUnequip[Math.floor(Math.random() * soundFiles.itemUnequip.length)];
-      sounds.playSound(audioSpec);
       
       const _emitEvents = () => {
         app.dispatchEvent({
