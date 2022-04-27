@@ -12,6 +12,8 @@ import { AppContext } from './components/app';
 
 import styles from './User.module.css';
 
+import * as sounds from '../sounds.js';
+
 //
 
 export const User = ({ address, setAddress, setLoginFrom }) => {
@@ -43,6 +45,10 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
     const handleCancelBtnClick = () => {
 
         setState({ openedPanel: null });
+
+        const soundFiles = sounds.getSoundFiles();
+        const audioSpec = soundFiles.menuBack[Math.floor(Math.random() * soundFiles.menuBack.length)];
+        sounds.playSound(audioSpec);
 
     };
 
@@ -198,6 +204,18 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
     }, [ address ] );
 
+    //
+
+    const _triggerClickSound = () => {
+
+        const soundFiles = sounds.getSoundFiles();
+        const audioSpec = soundFiles.menuClick[Math.floor(Math.random() * soundFiles.menuClick.length)];
+        sounds.playSound(audioSpec);
+
+    };
+    
+    //
+
     const open = state.openedPanel === 'LoginPanel';
     const loggedIn = !!address;
 
@@ -225,7 +243,16 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                     } else {
                         setState({ openedPanel: null });
                     }
+
+                    const soundFiles = sounds.getSoundFiles();
+                    const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
+                    sounds.playSound(audioSpec);
+
                 }
+            }} onMouseEnter={e => {
+                
+                _triggerClickSound();
+            
             }}>
                 <div className={styles.key}>
                     <div className={styles.bow}>
@@ -276,17 +303,20 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                     <span>Log in</span>
                     {/* <div className={ styles.background } /> */}
                 </div>
-                <div className={ styles.methodBtn } onClick={ metaMaskLogin } >
+                <div className={ styles.methodBtn } onClick={ metaMaskLogin } onMouseEnter={ _triggerClickSound } >
                     <img src="images/metamask.png" alt="metamask" width="28px" />
                     <span className={ styles.methodBtnText } >MetaMask</span>
                 </div>
-                <a href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` } >
+                <a
+                    href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` }
+                    onMouseEnter={ _triggerClickSound }
+                >
                     <div className={ styles.methodBtn } >
                         <img src="images/discord.png" alt="discord" width="28px" />
                         <span className={ styles.methodBtnText } >Discord</span>
                     </div>
                 </a>
-                <div className={ styles.methodBtn } onClick={ handleCancelBtnClick } >
+                <div className={ styles.methodBtn } onClick={ handleCancelBtnClick } onMouseEnter={ _triggerClickSound } >
                     <span className={ styles.methodBtnText } >Cancel</span>
                 </div>
             </div>
