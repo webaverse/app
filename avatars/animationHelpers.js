@@ -302,9 +302,9 @@ export const loadPromise = (async () => {
   _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
   _normalizeAnimationDurations(crouchingForwardAnimations, crouchingForwardAnimations[0], 0.5);
   _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
-  _setAnimationDuration(bowingForwardAnimations[0], bowingForwardAnimations[0].duration, 0.7749999530613436);
+  _setAnimationDuration(bowingForwardAnimations[0], bowingForwardAnimations[0].duration, 0.7749999530613436); // align duration with walkingAnimations[0].
   _normalizeAnimationDurations(bowingForwardAnimations, bowingForwardAnimations[0]);
-  _setAnimationDuration(bowingBackwardAnimations[0], bowingBackwardAnimations[0].duration, 0.7249999575316919);
+  _setAnimationDuration(bowingBackwardAnimations[0], bowingBackwardAnimations[0].duration, 0.7249999575316919); // align duration with walkingBackwardAnimations[0].
   _normalizeAnimationDurations(bowingBackwardAnimations, bowingBackwardAnimations[0]);
 
   function mergeAnimations(a, b) {
