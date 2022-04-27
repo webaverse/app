@@ -140,6 +140,10 @@ const animationsAngleArraysMirror = {
     {name: 'Crouched Sneaking Left reverse.fbx', matchAngle: -Math.PI / 2, angle: -Math.PI / 2},
     {name: 'Crouched Sneaking Right reverse.fbx', matchAngle: Math.PI / 2, angle: Math.PI / 2},
   ],
+  bow: [
+    {name: 'Standing Aim Walk Left reverse.fbx', matchAngle: -Math.PI / 2, angle: -Math.PI / 2},
+    {name: 'Standing Aim Walk Right reverse.fbx', matchAngle: Math.PI / 2, angle: Math.PI / 2},
+  ],
 };
 const animationsIdleArrays = {
   reset: {name: 'reset.fbx'},
@@ -477,7 +481,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     lerpFn,
     isPosition,
     target,
+    isDebugger = false,
   ) => {
+    debugger
     // WALK
     // normal horizontal walk blend
     {
@@ -488,6 +494,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const t2 = timeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
       const src2 = horizontalWalkAnimationAngles[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
+
+      if (isPosition && isDebugger) {
+        window.domInfo.innerHTML += `<div>${horizontalWalkAnimationAngles[0].name}</div>`;
+        window.domInfo.innerHTML += `<div>${horizontalWalkAnimationAngles[0].name}</div>`;
+        window.domInfo.innerHTML += `<div>${angleFactor}</div>`;
+      }
 
       lerpFn
         .call(
@@ -507,6 +519,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const src2 = horizontalWalkAnimationAnglesMirror[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
 
+      if (isPosition && isDebugger) {
+        window.domInfo.innerHTML += `<div>${horizontalWalkAnimationAnglesMirror[0].name}</div>`;
+        window.domInfo.innerHTML += `<div>${horizontalWalkAnimationAnglesMirror[0].name}</div>`;
+        window.domInfo.innerHTML += `<div>${angleFactor}</div>`;
+      }
+
       lerpFn
         .call(
           localQuaternion4.fromArray(v2),
@@ -522,6 +540,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         localQuaternion4,
         mirrorFactor,
       );
+
+    if (isPosition && isDebugger) {
+      window.domInfo.innerHTML += `<div>${mirrorFactor}</div>`;
+    }
 
     // RUN
     // normal horizontal run blend
@@ -662,6 +684,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // bow
   // const keyBow = _getAnimationKey(true);
   const keyAnimationAnglesBow = getClosest2AnimationAngles('bow', angle);
+  debugger
   const keyAnimationAnglesBowMirror = _getMirrorAnimationAngles(keyAnimationAnglesBow, 'bow');
   const idleAnimationBow = _getIdleAnimation('bow');
 
@@ -755,6 +778,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         lerpFn,
         isPosition,
         localQuaternion2,
+        true,
       );
 
       lerpFn
@@ -781,6 +805,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
+    // if (true) { // test
+    //   return spec => {
+    //     const {
+    //       animationTrackName: k,
+    //       dst,
+    //       // isTop,
+    //     } = spec;
+
+    //     const animation = animations.index['Standing Aim Walk Back.fbx'];
+    //     const t2 = timeSeconds;
+    //     const src2 = animation.interpolants[k];
+    //     const v2 = src2.evaluate(t2 % animation.duration);
+
+    //     dst.fromArray(v2);
+    //   };
+    // }
     if (avatar.jumpState) {
       return spec => {
         const {

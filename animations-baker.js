@@ -34,6 +34,8 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
     'Sneaking Forward.fbx',
     'Crouched Sneaking Left.fbx',
     'Crouched Sneaking Right.fbx',
+    'Standing Aim Walk Left.fbx',
+    'Standing Aim Walk Right.fbx',
   ];
   const findFilesWithExtension = (baseDir, subDir, ext) => {
     const files = [];
