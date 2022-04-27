@@ -1334,9 +1334,7 @@ class GameManager extends EventTarget {
       };
       localPlayer.addAction(newSssAction);
 
-      const soundFiles = sounds.getSoundFiles();
-      const audioSpec = soundFiles.limitBreak[Math.floor(Math.random() * soundFiles.limitBreak.length)];
-      sounds.playSound(audioSpec);
+      sounds.playSoundName('limitBreak');
 
       localPlayer.removeAction('dance');
       const newDanceAction = {
