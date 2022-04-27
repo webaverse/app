@@ -7,7 +7,6 @@ import LegsManager from './vrarmik/LegsManager.js';
 import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
-import ioManager from '../io-manager.js';
 import {
   // angleDifference,
   // getVelocityDampingFactor,
@@ -1827,7 +1826,7 @@ class Avatar {
 
     _updateHmdPosition();
     window.domInfo.innerHTML = ` 
-      <div style="display:;">keysDirection: --- ${window.logVector3(ioManager.keysDirection)}</div>
+      <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
       <div style="display:;">avatar.direction: --- ${window.logVector3(avatar.direction)}</div>
       <div style="display:;">localPlayer.direction: --- ${window.logVector3(localPlayer.getWorldDirection(localVector))}</div>
       <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
