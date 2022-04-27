@@ -6,6 +6,7 @@ import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
 // import alea from './alea.js';
+import {minFov, maxFov} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -87,6 +88,9 @@ class CameraManager extends EventTarget {
     this.pointerLockElement = null;
     // this.pointerLockEpoch = 0;
     this.shakes = [];
+
+    this.lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
+    this.fovFactor = 0;
 
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
@@ -366,6 +370,29 @@ class CameraManager extends EventTarget {
       camera.position.y -= crouchOffset;
     };
     _setCameraToAvatar();
+
+    const _setCameraFov = () => {
+      if (!renderer.xr.getSession()) {
+        const fovInTime = 3;
+        const fovOutTime = 0.3;
+
+        const narutoRun = localPlayer.getAction('narutoRun');
+        if (narutoRun) {
+          if (this.lastNonzeroDirectionVector.z < 0) {
+            this.fovFactor += timeDiff / 1000 / fovInTime;
+          } else {
+            this.fovFactor -= timeDiff / 1000 / fovInTime;
+          }
+        } else {
+          this.fovFactor -= timeDiff / 1000 / fovOutTime;
+        }
+        this.fovFactor = Math.min(Math.max(this.fovFactor, 0), 1);
+
+        camera.fov = minFov + Math.pow(this.fovFactor, 0.75) * (maxFov - minFov);
+        camera.updateProjectionMatrix();
+      }
+    };
+    _setCameraFov();
 
     const _shakeCamera = () => {
       this.flushShakes();
