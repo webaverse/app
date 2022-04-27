@@ -134,8 +134,13 @@ export const Equipment = () => {
         // game.renderCard(object);
 
         const soundFiles = sounds.getSoundFiles();
-        const audioSpec = soundFiles.menuClick[Math.floor(Math.random() * soundFiles.menuClick.length)];
-        sounds.playSound(audioSpec);
+        if (newSelectObject) {
+            const audioSpec = soundFiles.menuClick[Math.floor(Math.random() * soundFiles.menuClick.length)];
+            sounds.playSound(audioSpec);
+        } /* else {
+            const audioSpec = soundFiles.menuBack[Math.floor(Math.random() * soundFiles.menuBack.length)];
+            sounds.playSound(audioSpec);
+        } */
     };
     const onDragStart = object => e => {
         e.dataTransfer.setData('application/json', JSON.stringify(object));
