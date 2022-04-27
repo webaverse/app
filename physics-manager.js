@@ -166,6 +166,46 @@ physicsManager.addGeometry = (mesh) => {
   physicsObject.physicsMesh = physicsMesh
   return physicsObject
 }
+
+physicsManager.reAddGeometry = (mesh, physicsMesh) => {
+
+const physicsId = physicsMesh.physicsId;
+  physx.physxWorker.removeGeometryPhysics(physx.physics, physicsId);
+  const newPhysicsMesh = convertMeshToPhysicsMesh(mesh);
+
+  if (mesh.parent) {
+    mesh.parent.matrixWorld.decompose(
+      newPhysicsMesh.position,
+      newPhysicsMesh.quaternion,
+      newPhysicsMesh.scale
+    );
+    physicsMesh.updateMatrixWorld();
+  }
+
+  const physicsMaterial = [0.5, 0.5, 0]; // staticFriction, dynamicFriction, restitution
+
+  physx.physxWorker.addGeometryPhysics(
+    physx.physics,
+    newPhysicsMesh,
+    physicsId,
+    physicsMaterial
+  );
+  physicsMesh.geometry = _extractPhysicsGeometryForId(physicsId);
+
+  const physicsObject = _makePhysicsObject(
+    physicsId,
+    newPhysicsMesh.position,
+    newPhysicsMesh.quaternion,
+    newPhysicsMesh.scale
+  );
+  physicsObject.add(newPhysicsMesh);
+  physicsMesh.position.set(0, 0, 0);
+  physicsMesh.quaternion.set(0, 0, 0, 1);
+  physicsMesh.scale.set(1, 1, 1);
+  physicsMesh.updateMatrixWorld();
+  physicsObject.physicsMesh = newPhysicsMesh;
+  return physicsObject;
+}
 physicsManager.cookGeometry = (mesh) =>
   physx.physxWorker.cookGeometryPhysics(physx.physics, mesh)
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
