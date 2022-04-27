@@ -157,14 +157,14 @@ export const Equipment = () => {
         setFaceIndex(faceIndex - 1);
 
         const soundFiles = sounds.getSoundFiles();
-        const audioSpec = soundFiles.menuLeft[Math.floor(Math.random() * soundFiles.menuLeft.length)];
+        const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
         sounds.playSound(audioSpec);
     };
     const menuRight = () => {
         setFaceIndex(faceIndex + 1);
     
         const soundFiles = sounds.getSoundFiles();
-        const audioSpec = soundFiles.menuRight[Math.floor(Math.random() * soundFiles.menuRight.length)];
+        const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
         sounds.playSound(audioSpec);
     };
     const selectClassName = styles[`select-${selectedMenuIndex}`];
@@ -301,7 +301,7 @@ export const Equipment = () => {
                                     const delta = i - selectedMenuIndex;
                                     setFaceIndex(faceIndex + delta);
 
-                                    const soundFiles = sounds.getSoundFiles();                                    
+                                    const soundFiles = sounds.getSoundFiles();
                                     const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
                                     sounds.playSound(audioSpec);
                                 }}
