@@ -483,7 +483,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     target,
     isDebugger = false,
   ) => {
-    debugger
+    debugger 
     // WALK
     // normal horizontal walk blend
     {

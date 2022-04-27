@@ -1830,6 +1830,7 @@ class Avatar {
     // console.log(avatar.direction)
     window.domInfo.innerHTML = `
       <div>useBowFactor: --- ${moveFactors.useBowFactor.toFixed(2)}</div>
+      <div>velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>
     `;
     // window.domInfo.innerHTML = `
     //   <div>keysDirection: --- ${window.logVector3(ioManager.keysDirection)}</div>
