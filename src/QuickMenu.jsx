@@ -8,6 +8,8 @@ import styles from './QuickMenu.module.css';
 
 import emotes from './components/general/character/emotes.json';
 import {triggerEmote} from './components/general/character/Poses';
+
+import game from '../game.js';
 import cameraManager from '../camera-manager.js';
 import {mod, loadImage, drawImageContain, imageToCanvas} from '../util.js';
 
@@ -80,6 +82,8 @@ export default function QuickMenu() {
   useEffect(() => {
     if (!open) {
       function keydown(e) {
+        if (game.inputFocused()) return true;
+
         if (!e.repeat) {
           if (e.keyCode === 81) { // Q
             cameraManager.requestPointerLock();
@@ -87,6 +91,8 @@ export default function QuickMenu() {
             setOpen(true);
             setDown(false);
             setCoords([0, 0]);
+
+            return false;
           }
         }
       }

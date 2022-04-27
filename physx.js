@@ -313,6 +313,40 @@ const physxWorker = (() => {
     }
   }
 
+  class BufferManager {
+    constructor() {
+      this.buffers = []
+    }
+
+    readBuffer = (constructor, outputBuffer, index) => {
+      this.buffers.push(outputBuffer)
+      const offset = outputBuffer / constructor.BYTES_PER_ELEMENT
+      return Module.HEAP32[offset + index]
+    }
+
+    readAttribute = (constructor, buffer, count) => {
+      this.buffers.push(buffer)
+      return Module.HEAPF32.slice(
+        buffer / constructor.BYTES_PER_ELEMENT,
+        buffer / constructor.BYTES_PER_ELEMENT + count
+      )
+    }
+
+    readIndices = (constructor, buffer, count) => {
+      this.buffers.push(buffer)
+      return Module.HEAPU32.slice(
+        buffer / constructor.BYTES_PER_ELEMENT,
+        buffer / constructor.BYTES_PER_ELEMENT + count
+      )
+    }
+
+    freeAllBuffers = () => {
+      for (let i = 0; i < this.buffers.length; i++) {
+        Module._doFree(this.buffers[i])
+      }
+    }
+  }
+
   // const modulePromise = makePromise();
   /* const INITIAL_INITIAL_MEMORY = 52428800;
   const WASM_PAGE_SIZE = 65536;
@@ -1814,49 +1848,134 @@ const physxWorker = (() => {
     }
   }
 
-  w.dualContouring = () => {
-    const ELEMENT_BYTES = 4
+  w.createChunkWithDualContouring = (x, y, z) => {
+    const bufferManager = new BufferManager()
 
-    const readBuffer = (outputBuffer, index) => {
-      const offset = outputBuffer / ELEMENT_BYTES
-      return Module.HEAP32[offset + index]
-    }
-
-    const readAttribute = (buffer, count) => {
-      return Module.HEAPF32.slice(
-        buffer / ELEMENT_BYTES,
-        buffer / ELEMENT_BYTES + count
-      )
-    }
-
-    const readIndices = (buffer, count) => {
-      return Module.HEAPU32.slice(
-        buffer / ELEMENT_BYTES,
-        buffer / ELEMENT_BYTES + count
-      )
-    }
-
-    const outputBufferOffset = moduleInstance._doDualContouring()
+    const outputBufferOffset = moduleInstance._createChunkWithDualContouring(
+      x,
+      y,
+      z
+    )
 
     // reading the data with the same order as C++
-    const positionCount = readBuffer(outputBufferOffset, 0) // vector size
-    const positionBuffer = readBuffer(outputBufferOffset, 1) // position vector
+    const positionCount = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      0
+    ) // vector size
+    const positionBuffer = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      1
+    ) // position vector
 
-    const normalCount = readBuffer(outputBufferOffset, 2) // vector size
-    const normalBuffer = readBuffer(outputBufferOffset, 3) // normal vector
+    const normalCount = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      2
+    ) // vector size
+    const normalBuffer = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      3
+    ) // normal vector
 
-    const indicesCount = readBuffer(outputBufferOffset, 4) // vector size
-    const indicesBuffer = readBuffer(outputBufferOffset, 5) // indices vector
+    const indicesCount = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      4
+    ) // vector size
+    const indicesBuffer = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      5
+    ) // indices vector
 
-    moduleInstance._doFree(outputBufferOffset)
+    const positions = bufferManager.readAttribute(
+      Int32Array,
+      positionBuffer,
+      positionCount * 3
+    )
+    const normals = bufferManager.readAttribute(
+      Int32Array,
+      normalBuffer,
+      normalCount * 3
+    )
+    const indices = bufferManager.readIndices(
+      Int32Array,
+      indicesBuffer,
+      indicesCount
+    )
 
-    const positions = readAttribute(positionBuffer, positionCount * 3)
-    const normals = readAttribute(normalBuffer, normalCount * 3)
-    const indices = readIndices(indicesBuffer, indicesCount)
+    bufferManager.freeAllBuffers()
 
-    moduleInstance._doFree(positionBuffer)
-    moduleInstance._doFree(normalBuffer)
-    moduleInstance._doFree(indicesBuffer)
+    return {
+      positions: positions,
+      normals: normals,
+      indices: indices,
+    }
+  }
+
+  w.createSeamsWithDualContouring = (x, y, z) => {
+    const bufferManager = new BufferManager()
+
+    const outputBufferOffset = moduleInstance._createSeamsWithDualContouring(
+      x,
+      y,
+      z
+    )
+
+    // reading the data with the same order as C++
+    const positionCount = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      0
+    ) // vector size
+    const positionBuffer = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      1
+    ) // position vector
+
+    const normalCount = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      2
+    ) // vector size
+    const normalBuffer = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      3
+    ) // normal vector
+
+    const indicesCount = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      4
+    ) // vector size
+    const indicesBuffer = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      5
+    ) // indices vector
+
+    const positions = bufferManager.readAttribute(
+      Int32Array,
+      positionBuffer,
+      positionCount * 3
+    )
+    const normals = bufferManager.readAttribute(
+      Int32Array,
+      normalBuffer,
+      normalCount * 3
+    )
+    const indices = bufferManager.readIndices(
+      Int32Array,
+      indicesBuffer,
+      indicesCount
+    )
+
+    bufferManager.freeAllBuffers()
 
     return {
       positions: positions,

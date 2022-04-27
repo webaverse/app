@@ -352,6 +352,9 @@ const _startUse = () => {
         };
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
+        if (newUseAction.ik !== 'pistol') {
+          localPlayer.removeAction('crouch');
+        }
 
         wearApp.use();
       }
@@ -994,29 +997,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
   };
   _updateEyes();
-  
-  const updateFov = () => {
-    if (!renderer.xr.getSession()) {
-      const fovInTime = 3;
-      const fovOutTime = 0.3;
-      
-      const narutoRun = localPlayer.getAction('narutoRun');
-      if (narutoRun) {
-        if (ioManager.lastNonzeroDirectionVector.z < 0) {    
-          fovFactor += timeDiff / 1000 / fovInTime;
-        } else {
-          fovFactor -= timeDiff / 1000 / fovInTime;
-        }
-      } else {
-        fovFactor -= timeDiff / 1000 / fovOutTime;
-      }
-      fovFactor = Math.min(Math.max(fovFactor, 0), 1);
-
-      camera.fov = minFov + Math.pow(fovFactor, 0.75) * (maxFov - minFov);
-      camera.updateProjectionMatrix();
-    }
-  };
-  updateFov();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
