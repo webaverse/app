@@ -135,6 +135,12 @@ const makeHitTracker = ({
         scene.add(damageMeshApp);
       }
 
+      {
+        const soundFiles = sounds.getSoundFiles();
+        const audioSpec = soundFiles.enemyCut[Math.floor(Math.random() * soundFiles.enemyCut.length)];
+        sounds.playSound(audioSpec);
+      }
+
       hitTracker.dispatchEvent({
         type: 'hit',
         collisionId,
