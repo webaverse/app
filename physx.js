@@ -1530,6 +1530,21 @@ const physxWorker = (() => {
     )
     allocator.freeAll()
   }
+  w.setGeometryScale = (
+    physics,
+    id,
+    scale,
+  ) => {
+    const allocator = new Allocator()
+    const s = allocator.alloc(Float32Array, 3)
+    scale.toArray(s)
+    moduleInstance._setGeometryScalePhysics(
+        physics,
+        id,
+        s.byteOffset
+    )
+    allocator.freeAll()
+  }
   w.setTransformPhysics = (
     physics,
     id,
