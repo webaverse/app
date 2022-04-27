@@ -6,6 +6,7 @@ import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
 // import alea from './alea.js';
+import * as sounds from './sounds.js';
 import {minFov, maxFov, midFov} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -218,6 +219,12 @@ class CameraManager extends EventTarget {
     if (focus !== this.focus) {
       this.focus = focus;
       this.lastFocusChangeTime = performance.now();
+
+      if (this.focus) {
+        const soundFiles = sounds.getSoundFiles();
+        const audioSpec = soundFiles.zTargetCenter[Math.floor(Math.random() * soundFiles.zTargetCenter.length)];
+        sounds.playSound(audioSpec);
+      }
 
       this.dispatchEvent(new MessageEvent('focuschange', {
         data: {
