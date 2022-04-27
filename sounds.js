@@ -30,7 +30,7 @@ const soundFiles = {
   menuLeft: _getSoundFiles(/PauseMenu_Turn_Left/),
   menuRight: _getSoundFiles(/PauseMenu_Turn_Right/),
   menuReady: _getSoundFiles(/ff7_cursor_ready/),
-  itemEquip: _getSoundFiles(/Link_Item/),
+  itemEquip: _getSoundFiles(/Link_Item\.wav/),
   itemUnequip: _getSoundFiles(/Link_Item_Away/),
   zTargetCenter: _getSoundFiles(/ZTarget_Center/),
   zTargetObject: _getSoundFiles(/ZTarget_Object/),
