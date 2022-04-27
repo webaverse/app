@@ -868,7 +868,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } */
     if (
       avatar.useAnimation ||
-      avatar.useAnimationCombo.length > 0
+      avatar.useAnimationCombo.length > 0 ||
+      avatar.useAnimationEnvelope.length > 0
     ) {
       return spec => {
         const {
@@ -889,6 +890,33 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
+        } else if (avatar.useAnimationEnvelope.length > 0) {
+          let totalTime = 0;
+          for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+            const animationName = avatar.useAnimationEnvelope[i];
+            const animation = useAnimations[animationName];
+            totalTime += animation.duration;
+          }
+
+          if (totalTime > 0) {
+            let animationTimeBase = 0;
+            for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+              const animationName = avatar.useAnimationEnvelope[i];
+              const animation = useAnimations[animationName];
+              if (useTimeS < (animationTimeBase + animation.duration)) {
+                useAnimation = animation;
+                break;
+              }
+              animationTimeBase += animation.duration;
+            }
+            if (useAnimation !== undefined) { // first iteration
+              t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
+            } else { // loop
+              const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
+              useAnimation = useAnimations[secondLastAnimationName];
+              t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
+            }
+          }
         }
 
         _handleDefault(spec);
@@ -921,96 +949,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             dst
               .sub(localVector3)
               .add(localVector2);
-          }
-        }
-      };
-    } else if (
-      avatar.useAnimationEnvelope.length > 0
-    ) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          isTop,
-          isPosition,
-        } = spec;
-
-        let useAnimation;
-        let t2;
-        const useTimeS = avatar.useTime / 1000;
-        let totalTime = 0;
-        for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-          const animationName = avatar.useAnimationEnvelope[i];
-          const animation = useAnimations[animationName];
-          totalTime += animation.duration;
-        }
-
-        if (totalTime > 0) {
-          let animationTimeBase = 0;
-          for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-            const animationName = avatar.useAnimationEnvelope[i];
-            const animation = useAnimations[animationName];
-            if (useTimeS < (animationTimeBase + animation.duration)) {
-              useAnimation = animation;
-              break;
-            }
-            animationTimeBase += animation.duration;
-          }
-          if (useAnimation !== undefined) { // first iteration
-            t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
-          } else { // loop
-            const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
-            useAnimation = useAnimations[secondLastAnimationName];
-            t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
-          }
-        }
-
-        _handleDefault(spec);
-
-        if (useAnimation) {
-          if (useAnimation === useAnimations.bowIdle) {
-            const src2 = useAnimations.bowIdle.interpolants[k];
-            const v2 = src2.evaluate(t2 % useAnimations.bowIdle.duration);
-
-            const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
-            const v3 = src3.evaluate((useTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
-
-            dst.fromArray(v2);
-
-            if (!isPosition) {
-              localQuaternion3.fromArray(v3);
-              dst.slerp(localQuaternion3, idleWalkFactor);
-            } else {
-              localVector3.fromArray(v3);
-              dst.lerp(localVector3, idleWalkFactor);
-            }
-          } else if (useAnimation === useAnimations.bowDraw) {
-            const src2 = useAnimations.bowDraw.interpolants[k];
-            const v2 = src2.evaluate(t2 % useAnimations.bowDraw.duration);
-
-            const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
-            const v3 = src3.evaluate((useTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
-            if (!isPosition) localQuaternion3.fromArray(v3);
-            else localVector3.fromArray(v3);
-
-            dst.fromArray(v2);
-
-            if (isTop) {
-              let t = (useTimeS - useAnimations.bowDraw.duration + 0.3) / 0.3;
-              t = THREE.MathUtils.clamp(t, 0, 1);
-              t *= idleWalkFactor;
-              if (!isPosition) {
-                dst.slerp(localQuaternion3, t);
-              } else {
-                dst.lerp(localVector3, t);
-              }
-            } else {
-              if (!isPosition) {
-                dst.slerp(localQuaternion3, idleWalkFactor);
-              } else {
-                dst.lerp(localVector3, idleWalkFactor);
-              }
-            }
           }
         }
       };
@@ -1102,7 +1040,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           lerpFn,
-          isTop,
+          // isTop,
           isPosition,
         } = spec;
 
@@ -1116,15 +1054,17 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const f2 = Math.pow(1 - f, 2);
 
         if (!isPosition) {
-          if (isTop) {
-            const src2 = unuseAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            localQuaternion.fromArray(v2);
-          } else {
-            const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
-            const v3 = src3.evaluate((unuseTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
-            localQuaternion.fromArray(v3);
-          }
+          const src2 = unuseAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          const idleAnimation = _getIdleAnimation('walk');
+          const t3 = 0;
+          const src3 = idleAnimation.interpolants[k];
+          const v3 = src3.evaluate(t3);
+
+          localQuaternion.copy(dst)
+            .premultiply(localQuaternion2.fromArray(v3).invert())
+            .premultiply(localQuaternion2.fromArray(v2));
 
           lerpFn
             .call(
@@ -1133,15 +1073,17 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               f2,
             );
         } else {
-          if (isTop) {
-            const src2 = unuseAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            localVector.fromArray(v2);
-          } else {
-            const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
-            const v3 = src3.evaluate((unuseTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
-            localVector.fromArray(v3);
-          }
+          const src2 = unuseAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          const idleAnimation = _getIdleAnimation('walk');
+          const t3 = 0;
+          const src3 = idleAnimation.interpolants[k];
+          const v3 = src3.evaluate(t3);
+
+          localVector.copy(dst)
+            .sub(localVector2.fromArray(v3))
+            .add(localVector2.fromArray(v2));
 
           lerpFn
             .call(
