@@ -29,6 +29,7 @@ import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
 import {generateObjectUrlCard} from './card-generator.js';
+import * as sounds from './sounds.js';
 
 // const {contractNames} = metaversefileConstants;
 
@@ -1332,6 +1333,10 @@ class GameManager extends EventTarget {
         type: 'sss',
       };
       localPlayer.addAction(newSssAction);
+
+      const soundFiles = sounds.getSoundFiles();
+      const audioSpec = soundFiles.limitBreak[Math.floor(Math.random() * soundFiles.limitBreak.length)];
+      sounds.playSound(audioSpec);
 
       localPlayer.removeAction('dance');
       const newDanceAction = {
