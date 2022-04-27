@@ -54,7 +54,7 @@ class SwirlMaterial extends THREE.ShaderMaterial {
 			varying vec2 vUv;
 
 			const float ROTATION = 2.0 / 360.0 * 2.0 * 3.14159;
-			const float SCALE = 0.96;
+			const float SCALE = 0.97;
 
 			vec3 hueShift( vec3 color, float hueAdjust ){
         const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
