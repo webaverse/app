@@ -149,19 +149,23 @@ export default function Header() {
 
         const handleAnytimeKey = ( event ) => {
 
-            switch ( event.which ) {
+            if ( !event.repeat ) {
 
-                case 9: { // tab
+                switch ( event.which ) {
 
-                    setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+                    case 9: { // tab
 
-                    if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+                        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
 
-                        cameraManager.requestPointerLock();
+                        if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+
+                            cameraManager.requestPointerLock();
+
+                        }
+
+                        return true;
 
                     }
-
-                    return true;
 
                 }
 
