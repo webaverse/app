@@ -1425,7 +1425,7 @@ class GameManager extends EventTarget {
     return metaversefileApi.useLocalPlayer().hasAction('crouch');
   }
   isBowing() {
-    return metaversefileApi.useLocalPlayer().getAction('use')?.animationEnvelope.length > 0;
+    return metaversefileApi.useLocalPlayer().getAction('use')?.animationEnvelope?.length > 0;
   }
   toggleCrouch() {
     const localPlayer = metaversefileApi.useLocalPlayer();

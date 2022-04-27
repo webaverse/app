@@ -483,7 +483,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     target,
     isDebugger = false,
   ) => {
-    debugger 
     // WALK
     // normal horizontal walk blend
     {
@@ -677,7 +676,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
   // crouch
   // const keyOther = _getAnimationKey(true);
-  debugger
   const keyAnimationAnglesOther = getClosest2AnimationAngles('crouch', angle);
   const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
   const idleAnimationOther = _getIdleAnimation('crouch');
@@ -1157,6 +1155,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           dst,
           lerpFn,
           isTop,
+          boneName,
           isPosition,
         } = spec;
 
@@ -1169,7 +1168,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
         const f2 = Math.pow(1 - f, 2);
 
-        if (isTop) {
+        if (isTop || boneName === 'Hips') {
           if (!isPosition) {
             const src2 = unuseAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
