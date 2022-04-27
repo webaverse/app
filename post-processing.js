@@ -239,7 +239,7 @@ class PostProcessing extends EventTarget {
     passes.initialized = false;
     passes.depthPass = null;
     passes.ssaoPass = null;
-    passes.swirlPass = null;
+    // passes.swirlPass = null;
 
     passes.push(webaverseRenderPass);
     
@@ -264,10 +264,10 @@ class PostProcessing extends EventTarget {
         const bloomPass = makeBloomPass(bloom);
         passes.push(bloomPass);
       }
-      if (swirl) {
+      /* if (swirl) {
         const swirlPass = makeSwirlPass();
         passes.push(swirlPass);
-      }
+      } */
       if (postPostProcessScene) {
         const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;
         if (postPerspectiveScene) {
