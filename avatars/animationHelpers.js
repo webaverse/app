@@ -119,6 +119,13 @@ const animationsAngleArrays = {
     // {name: 'Crouched Sneaking Left reverse.fbx', angle: Math.PI*3/4},
     // {name: 'Crouched Sneaking Right reverse.fbx', angle: -Math.PI*3/4},
   ],
+  bow: [
+    {name: 'Standing Aim Walk Left.fbx', angle: Math.PI / 2},
+    {name: 'Standing Aim Walk Right.fbx', angle: -Math.PI / 2},
+
+    {name: 'Standing Aim Walk Forward.fbx', angle: 0},
+    {name: 'Standing Aim Walk Back.fbx', angle: Math.PI},
+  ],
 };
 const animationsAngleArraysMirror = {
   walk: [
@@ -139,6 +146,7 @@ const animationsIdleArrays = {
   walk: {name: 'idle.fbx'},
   run: {name: 'idle.fbx'},
   crouch: {name: 'Crouch Idle.fbx'},
+  bow: {name: 'bow idle.fbx'},
 };
 
 const cubicBezier = easing(0, 1, 0, 1);
@@ -651,6 +659,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
   const idleAnimationOther = _getIdleAnimation('crouch');
 
+  // bow
+  // const keyBow = _getAnimationKey(true);
+  const keyAnimationAnglesBow = getClosest2AnimationAngles('bow', angle);
+  const keyAnimationAnglesBowMirror = _getMirrorAnimationAngles(keyAnimationAnglesBow, 'bow');
+  const idleAnimationBow = _getIdleAnimation('bow');
+
   const angleToClosestAnimation = Math.abs(angleDifference(angle, keyWalkAnimationAnglesMirror[0].angle));
   const angleBetweenAnimations = Math.abs(angleDifference(keyWalkAnimationAnglesMirror[0].angle, keyWalkAnimationAnglesMirror[1].angle));
   const angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
@@ -703,12 +717,27 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
       localQuaternion,
     );
+    // _get7wayBlend(
+    //   keyAnimationAnglesOther,
+    //   keyAnimationAnglesOtherMirror,
+    //   keyAnimationAnglesOther,
+    //   keyAnimationAnglesOtherMirror,
+    //   idleAnimationOther,
+    //   // mirrorFactor,
+    //   // angleFactor,
+    //   // walkRunFactor,
+    //   // idleWalkFactor,
+    //   k,
+    //   lerpFn,
+    //   isPosition,
+    //   localQuaternion2,
+    // );
     _get7wayBlend(
-      keyAnimationAnglesOther,
-      keyAnimationAnglesOtherMirror,
-      keyAnimationAnglesOther,
-      keyAnimationAnglesOtherMirror,
-      idleAnimationOther,
+      keyAnimationAnglesBow,
+      keyAnimationAnglesBowMirror,
+      keyAnimationAnglesBow,
+      keyAnimationAnglesBowMirror,
+      idleAnimationBow,
       // mirrorFactor,
       // angleFactor,
       // walkRunFactor,
