@@ -14,6 +14,10 @@ const soundFiles = {
   combat: _getSoundFiles(/^combat\//),
   gulp: _getSoundFiles(/^food\/gulp/),
   enemyDeath: _getSoundFiles(/enemyDeath/),
+  zTargetCenter: _getSoundFiles(/ZTarget_Center/),
+  zTargetObject: _getSoundFiles(/ZTarget_Object/),
+  zTargetEnemy: _getSoundFiles(/ZTarget_Enemy/),
+  zTargetCancel: _getSoundFiles(/ZTarget_Object/),
 };
 
 let soundFileAudioBuffer;
