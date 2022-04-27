@@ -183,6 +183,10 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
         game.playerDiorama.toggleShader();
 
+        const soundFiles = sounds.getSoundFiles();
+        const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
+        sounds.playSound(audioSpec);
+
     };
 
     function onCharacterSelectClick(e) {
