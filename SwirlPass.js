@@ -35,50 +35,69 @@ import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 // const oldMaterialCache = new WeakMap();
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
+const vertexShader = `\
+	varying vec2 vUv;
+	void main() {
+		vUv = uv;
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+	}
+`;
 
 class SwirlMaterial extends THREE.ShaderMaterial {
   constructor() {
 		const positionOffsetMax = 0.02;
 
-		const vertexShader = `\
-			varying vec2 vUv;
-			void main() {
-				vUv = uv;
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-			}
-		`;
 		const fragmentShader = `\
       uniform sampler2D tDiffuse;
       uniform float uTime;
       uniform vec2 uPosition;
-
 			varying vec2 vUv;
 
 			const float ROTATION = 2.0 / 360.0 * 2.0 * 3.14159;
 			const float SCALE = 0.96;
 
+			vec3 hueShift( vec3 color, float hueAdjust ){
+        const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
+        const vec3  kRGBToI      = vec3 (0.596, -0.275, -0.321);
+        const vec3  kRGBToQ      = vec3 (0.212, -0.523, 0.311);
+
+        const vec3  kYIQToR     = vec3 (1.0, 0.956, 0.621);
+        const vec3  kYIQToG     = vec3 (1.0, -0.272, -0.647);
+        const vec3  kYIQToB     = vec3 (1.0, -1.107, 1.704);
+
+        float   YPrime  = dot (color, kRGBToYPrime);
+        float   I       = dot (color, kRGBToI);
+        float   Q       = dot (color, kRGBToQ);
+        float   hue     = atan (Q, I);
+        float   chroma  = sqrt (I * I + Q * Q);
+
+        hue += hueAdjust;
+
+        Q = chroma * sin (hue);
+        I = chroma * cos (hue);
+
+        vec3    yIQ   = vec3 (YPrime, I, Q);
+
+        return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );
+      }
+
 			void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
-					vec4 bg = texture(tDiffuse, fragCoord);
-					vec2 fgCoord = fragCoord * vec2(2.0) - vec2(1.0);
-					fgCoord += uPosition;
-					fgCoord = mat2(cos(ROTATION), sin(ROTATION), -sin(ROTATION), cos(ROTATION)) * fgCoord;
-					fgCoord *= SCALE;
-					fgCoord = (fgCoord + vec2(1.0)) * vec2(0.5);
-					vec4 fg = texture(tDiffuse, fgCoord);
-					fragColor = mix(bg, fg, 0.5);
-					
-					if (uTime > 3.) {
-						float distanceToMiddle = abs(fragCoord.y - 0.5);
-						float middleFactor = pow((uTime - 3.0) * 0.1, 2.0);
-						if (distanceToMiddle < middleFactor) {
-              // fragColor.rgb = bg.rgb;
-							fragColor.rgb = vec3(1.);
-						} else {
-							fragColor.rgb = vec3(0.);
-						}
-					} else if (uTime > 1.5) {
-						fragColor.rgb *= 0.99;
-					}
+				vec4 bg = texture(tDiffuse, fragCoord);
+				vec2 fgCoord = fragCoord * vec2(2.0) - vec2(1.0);
+				fgCoord += uPosition;
+				fgCoord = mat2(cos(ROTATION), sin(ROTATION), -sin(ROTATION), cos(ROTATION)) * fgCoord;
+				fgCoord *= SCALE;
+				fgCoord = (fgCoord + vec2(1.0)) * vec2(0.5);
+				vec4 fg = texture(tDiffuse, fgCoord);
+				fragColor = mix(bg, fg, 0.5);
+				
+				fragColor.rgb = hueShift(fragColor.rgb, -0.01);
+
+				// if (uTime > 1.) {
+					fragColor.rgb *= 0.99;
+				// }
+
+				fragColor.a = 1.;
 			}
 			void main() {
 				mainImage(gl_FragColor, vUv);
@@ -101,6 +120,52 @@ class SwirlMaterial extends THREE.ShaderMaterial {
 					value: new THREE.Vector2(positionOffsetMax, 0)
 					  .rotateAround(zeroVector, Math.random() * Math.PI * 2),
 					needsUpdate: true,
+				},
+			},
+			vertexShader,
+			fragmentShader,
+			blending: NoBlending,
+			encoding: sRGBEncoding,
+		} );
+	}
+}
+
+class OpenMaterial extends THREE.ShaderMaterial {
+  constructor() {
+		const fragmentShader = `\
+      uniform sampler2D tDiffuse;
+      uniform float uTime;
+			varying vec2 vUv;
+
+			void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
+				vec4 bg = texture(tDiffuse, fragCoord);
+
+				float distanceToMiddle = abs(fragCoord.y - 0.5);
+				float middleFactor = pow(uTime * 0.3, 2.0);
+				if (distanceToMiddle < middleFactor) {
+					fragColor.rgb = bg.rgb;
+					// fragColor.rgb = vec3(1.);
+				} else {
+					fragColor.rgb = vec3(0.);
+				}
+
+				fragColor.a = 1.;
+			}
+			void main() {
+				mainImage(gl_FragColor, vUv);
+			}
+		`;
+		
+		super( {
+			// defines: Object.assign( {}, SSAOShader.defines ),
+			uniforms: {
+			  tDiffuse: {
+				  value: new THREE.Texture(),
+					needsUpdate: false,
+				},
+				uTime: {
+					value: 0,
+					needsUpdate: false,
 				},
 			},
 			vertexShader,
@@ -140,6 +205,7 @@ class SwirlPass extends Pass {
 		];
 
 		this.swirlMaterial = new SwirlMaterial();
+		this.openMaterial = new OpenMaterial();
 
 		// this.swirlMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
 
@@ -210,25 +276,35 @@ class SwirlPass extends Pass {
 		}
 		const timeDiff = now - this.startTime;
 		const timeDiffS = timeDiff / 1000;
+		const uTime = timeDiffS;
 
 		// render SSAO
 
-		this.swirlMaterial.uniforms[ 'tDiffuse' ].value = this.first ?
-		  readBuffer // screen
-		:
-		  this.ssaoRenderTargets[0].texture;
-		this.swirlMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
+		const openStartTime = 3;
+		if (uTime < openStartTime) {
+			this.swirlMaterial.uniforms[ 'tDiffuse' ].value = this.first ?
+				readBuffer // screen
+			:
+				this.ssaoRenderTargets[0].texture; // feedback
+			this.swirlMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
 
-    this.swirlMaterial.uniforms[ 'uTime' ].value = timeDiffS;
-		// console.log('set utime', timeDiffS);
-		this.swirlMaterial.uniforms[ 'uTime' ].needsUpdate = true;
-		
-		this.swirlMaterial.blending = NoBlending;
-		this.renderPass( renderer, this.swirlMaterial, this.ssaoRenderTargets[1] );
+			this.swirlMaterial.uniforms[ 'uTime' ].value = uTime;
+			this.swirlMaterial.uniforms[ 'uTime' ].needsUpdate = true;
+			
+			this.swirlMaterial.blending = NoBlending;
+			this.renderPass( renderer, this.swirlMaterial, this.ssaoRenderTargets[1] );
+		} else {
+			this.openMaterial.uniforms[ 'tDiffuse' ].value = readBuffer; // screen
+			this.openMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
+
+			this.openMaterial.uniforms[ 'uTime' ].value = uTime - openStartTime;
+			this.openMaterial.uniforms[ 'uTime' ].needsUpdate = true;
+			
+			this.openMaterial.blending = NoBlending;
+			this.renderPass( renderer, this.openMaterial, this.ssaoRenderTargets[1] );
+		}
 
 		// render blur
-
-		// this.renderPass( renderer, this.blurMaterial, this.blurRenderTarget );
 
 		this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.ssaoRenderTargets[1].texture;
 		this.copyMaterial.blending = NoBlending;
