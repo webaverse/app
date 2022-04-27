@@ -36,33 +36,9 @@ import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 
-class SwirlPass extends Pass {
-
-	constructor( scene, camera, width, height/*, depthPass */ ) {
-
-		super();
-
-		this.width = ( width !== undefined ) ? width : 512;
-		this.height = ( height !== undefined ) ? height : 512;
-		// this.depthPass = depthPass;
-
-		this.clear = true;
-
-		this.originalClearColor = new Color();
-
-		const _makeRenderTarget = () => {
-      return new WebGLRenderTarget( this.width, this.height, {
-				minFilter: LinearFilter,
-				magFilter: LinearFilter,
-				format: RGBAFormat,
-				type: FloatType,
-				encoding: sRGBEncoding,
-			} );
-		};
-		this.ssaoRenderTargets = [
-			_makeRenderTarget(), // read buffer
-			_makeRenderTarget(), // write buffer
-		];
+class SwirlMaterial extends THREE.ShaderMaterial {
+  constructor() {
+		const positionOffsetMax = 0.02;
 
 		const vertexShader = `\
 			varying vec2 vUv;
@@ -108,9 +84,8 @@ class SwirlPass extends Pass {
 				mainImage(gl_FragColor, vUv);
 			}
 		`;
-
-		const positionOffsetMax = 0.02;
-		this.swirlMaterial = new ShaderMaterial( {
+		
+		super( {
 			// defines: Object.assign( {}, SSAOShader.defines ),
 			uniforms: {
 			  tDiffuse: {
@@ -133,6 +108,38 @@ class SwirlPass extends Pass {
 			blending: NoBlending,
 			encoding: sRGBEncoding,
 		} );
+	}
+}
+
+class SwirlPass extends Pass {
+
+	constructor( scene, camera, width, height/*, depthPass */ ) {
+
+		super();
+
+		this.width = ( width !== undefined ) ? width : 512;
+		this.height = ( height !== undefined ) ? height : 512;
+		// this.depthPass = depthPass;
+
+		this.clear = true;
+
+		this.originalClearColor = new Color();
+
+		const _makeRenderTarget = () => {
+      return new WebGLRenderTarget( this.width, this.height, {
+				minFilter: LinearFilter,
+				magFilter: LinearFilter,
+				format: RGBAFormat,
+				type: FloatType,
+				encoding: sRGBEncoding,
+			} );
+		};
+		this.ssaoRenderTargets = [
+			_makeRenderTarget(), // read buffer
+			_makeRenderTarget(), // write buffer
+		];
+
+		this.swirlMaterial = new SwirlMaterial();
 
 		// this.swirlMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
 
