@@ -77,8 +77,15 @@ class CharacterSfx {
     this.startRunningTime = 0;
     this.willGasp = false;
 
-    
     this.oldNarutoRunSound = null;
+
+    const wearupdate = e => {
+      sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
+    };
+    player.addEventListener('wearupdate', wearupdate);
+    this.cleanup = () => {
+      player.removeEventListener('wearupdate', wearupdate);
+    };
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -420,7 +427,7 @@ class CharacterSfx {
     }
   }
   destroy() {
-    // nothing
+    this.cleanup();
   }
 }
 
