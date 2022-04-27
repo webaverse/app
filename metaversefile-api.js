@@ -825,7 +825,6 @@ metaversefile.setApi({
     in_front = false,
   } = {}, {onWaitPromise = null} = {}) {
     const app = new App();
-    // console.log('createAppInternal', start_url);
 
     // transform
     const _updateTransform = () => {

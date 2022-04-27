@@ -189,7 +189,6 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
-  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -340,7 +339,6 @@ export const loadPromise = (async () => {
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
   }, aimAnimations);
-  window.useAnimations = useAnimations;
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
     saddle: animations.find(a => a.isSitting),
@@ -481,7 +479,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     lerpFn,
     isPosition,
     target,
-    isDebugger = false,
   ) => {
     // WALK
     // normal horizontal walk blend
@@ -493,12 +490,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const t2 = timeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
       const src2 = horizontalWalkAnimationAngles[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
-
-      if (isPosition && isDebugger) {
-        window.domInfo.innerHTML += `<div>${horizontalWalkAnimationAngles[0].name}</div>`;
-        window.domInfo.innerHTML += `<div>${horizontalWalkAnimationAngles[0].name}</div>`;
-        window.domInfo.innerHTML += `<div>${angleFactor}</div>`;
-      }
 
       lerpFn
         .call(
@@ -518,12 +509,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const src2 = horizontalWalkAnimationAnglesMirror[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
 
-      if (isPosition && isDebugger) {
-        window.domInfo.innerHTML += `<div>${horizontalWalkAnimationAnglesMirror[0].name}</div>`;
-        window.domInfo.innerHTML += `<div>${horizontalWalkAnimationAnglesMirror[0].name}</div>`;
-        window.domInfo.innerHTML += `<div>${angleFactor}</div>`;
-      }
-
       lerpFn
         .call(
           localQuaternion4.fromArray(v2),
@@ -539,10 +524,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         localQuaternion4,
         mirrorFactor,
       );
-
-    if (isPosition && isDebugger) {
-      window.domInfo.innerHTML += `<div>${mirrorFactor}</div>`;
-    }
 
     // RUN
     // normal horizontal run blend
@@ -681,7 +662,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   const idleAnimationOther = _getIdleAnimation('crouch');
 
   // bow
-  // const keyBow = _getAnimationKey(true);
   const keyAnimationAnglesBow = getClosest2AnimationAngles('bow', angle);
   const keyAnimationAnglesBowMirror = _getMirrorAnimationAngles(keyAnimationAnglesBow, 'bow');
   const idleAnimationBow = _getIdleAnimation('bow');
@@ -776,7 +756,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         lerpFn,
         isPosition,
         localQuaternion2,
-        true,
       );
 
       lerpFn
@@ -803,22 +782,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    // if (true) { // test
-    //   return spec => {
-    //     const {
-    //       animationTrackName: k,
-    //       dst,
-    //       // isTop,
-    //     } = spec;
-
-    //     const animation = animations.index['Standing Aim Walk Back.fbx'];
-    //     const t2 = timeSeconds;
-    //     const src2 = animation.interpolants[k];
-    //     const v2 = src2.evaluate(t2 % animation.duration);
-
-    //     dst.fromArray(v2);
-    //   };
-    // }
     if (avatar.jumpState) {
       return spec => {
         const {

@@ -27,7 +27,6 @@ import metaversefileApi from './metaversefile-api.js';
 // import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
-import { localPlayer } from './players.js';
 // import soundManager from './sound-manager.js';
 import {generateObjectUrlCard} from './card-generator.js';
 
@@ -327,7 +326,6 @@ const _getNextUseIndex = animationCombo => {
   }
 }
 const _startUse = () => {
-  // debugger
   const localPlayer = metaversefileApi.useLocalPlayer();
   const wearApp = loadoutManager.getSelectedApp();
   if (wearApp) {
@@ -1115,12 +1113,6 @@ class GameManager extends EventTarget {
   setContextMenuObject(contextMenuObject) {
     this.contextMenuObject = contextMenuObject;
   }
-  startUse() {
-    _startUse();
-  }
-  endUse() {
-    _endUse();
-  }
   menuUse() {
     _use();
   }
@@ -1137,7 +1129,6 @@ class GameManager extends EventTarget {
     _mouseup();
   }
   menuAim() {
-    // debugger
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
       const localPlayer = metaversefileApi.useLocalPlayer();
