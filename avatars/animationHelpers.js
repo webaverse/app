@@ -1150,13 +1150,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .add(localVector2.fromArray(v2));
         }
       };
-    } else if (false && avatar.unuseAnimation && avatar.unuseTime >= 0) {
+    } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
       return spec => {
         const {
           animationTrackName: k,
           dst,
           lerpFn,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -1169,44 +1169,30 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
         const f2 = Math.pow(1 - f, 2);
 
-        if (!isPosition) {
-          const src2 = unuseAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
+        if (isTop) {
+          if (!isPosition) {
+            const src2 = unuseAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            localQuaternion.fromArray(v2);
 
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
+            lerpFn
+              .call(
+                dst,
+                localQuaternion,
+                f2,
+              );
+          } else {
+            const src2 = unuseAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            localVector.fromArray(v2);
 
-          localQuaternion.copy(dst)
-            .premultiply(localQuaternion2.fromArray(v3).invert())
-            .premultiply(localQuaternion2.fromArray(v2));
-
-          lerpFn
-            .call(
-              dst,
-              localQuaternion,
-              f2,
-            );
-        } else {
-          const src2 = unuseAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          localVector.copy(dst)
-            .sub(localVector2.fromArray(v3))
-            .add(localVector2.fromArray(v2));
-
-          lerpFn
-            .call(
-              dst,
-              localVector,
-              f2,
-            );
+            lerpFn
+              .call(
+                dst,
+                localVector,
+                f2,
+              );
+          }
         }
 
         if (f >= 1) {
