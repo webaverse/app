@@ -127,7 +127,7 @@ export const WorldObjectsList = () => {
     const updatePhysics = () => {
 
         const physicsObjects = selectedApp.getPhysicsObjects();
-        physicsManager.reAddGeometry( selectedApp, physicsObjects[0] );
+        physicsManager.setGeometryScale( physicsObjects[0].physicsId, selectedApp.scale );
 
     };
 
