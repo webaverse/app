@@ -11,8 +11,9 @@ import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/Adaptiv
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import {BokehPass} from './BokehPass.js';
 import {SSAOPass} from './SSAOPass.js';
-import {RenderPass} from './RenderPass.js';
+// import {RenderPass} from './RenderPass.js';
 import {DepthPass} from './DepthPass.js';
+import {SwirlPass} from './SwirlPass.js';
 import {
   getRenderer,
   getComposer,
@@ -140,14 +141,14 @@ function makeEncodingPass() {
         value: null,
       },
     },
-    vertexShader: `
+    vertexShader: `\
       varying vec2 vUv;
       void main() {
         vUv = uv;
         gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
       }
     `,
-    fragmentShader: `
+    fragmentShader: `\
       uniform sampler2D tDiffuse;
       varying vec2 vUv;
       void main() {
@@ -163,6 +164,27 @@ function makeEncodingPass() {
   // encodingPass.enabled = false;
   return encodingPass;
 }
+
+
+function makeSwirlPass() {
+  const renderer = getRenderer();
+  const size = renderer.getSize(localVector2D)
+    .multiplyScalar(renderer.getPixelRatio());
+  const resolution = size;
+
+  const swirlPass = new SwirlPass(rootScene, camera, resolution.x, resolution.y);
+  // swirlPass.enabled = false;
+  return swirlPass;
+}
+
+window.addEventListener('keydown', e => {
+  if (e.which === 71) { // G
+    const swirlPass = makeSwirlPass();
+
+    const composer = getComposer();
+    composer.passes.push(swirlPass);
+  }
+})
 
 const webaverseRenderPass = new WebaverseRenderPass();
 const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
@@ -206,6 +228,7 @@ class PostProcessing extends EventTarget {
     this.defaultPasses.initialized = false;
     this.defaultPasses.depthPass = null;
     this.defaultPasses.ssaoPass = null;
+    this.defaultPasses.swirlPass = null;
   }
   bindCanvas() {
     this.setPasses(null);
@@ -216,6 +239,7 @@ class PostProcessing extends EventTarget {
     passes.initialized = false;
     passes.depthPass = null;
     passes.ssaoPass = null;
+    // passes.swirlPass = null;
 
     passes.push(webaverseRenderPass);
     
@@ -240,6 +264,10 @@ class PostProcessing extends EventTarget {
         const bloomPass = makeBloomPass(bloom);
         passes.push(bloomPass);
       }
+      /* if (swirl) {
+        const swirlPass = makeSwirlPass();
+        passes.push(swirlPass);
+      } */
       if (postPostProcessScene) {
         const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;
         if (postPerspectiveScene) {
