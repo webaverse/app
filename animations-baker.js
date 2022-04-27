@@ -246,7 +246,6 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
 
       // scale position tracks by height
       for (const track of animation.tracks) {
-        if (track.name.indexOf('mixamorig') !== 0) track.name = 'mixamorig' + track.name;
         if (/\.position/.test(track.name)) {
           const values2 = new track.values.constructor(track.values.length);
           const valueSize = track.getValueSize();
