@@ -126,6 +126,10 @@ export const Equipment = () => {
 
     const onMouseEnter = object => () => {
         setHoverObject(object);
+
+        const soundFiles = sounds.getSoundFiles();
+        const audioSpec = soundFiles.menuClick[Math.floor(Math.random() * soundFiles.menuClick.length)];
+        sounds.playSound(audioSpec);
     };
     const onMouseDown = object => () => {
         const newSelectObject = selectObject !== object ? object : null;
