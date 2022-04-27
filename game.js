@@ -1037,7 +1037,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
         gameManager.menuStartUse();
         if (!localPlayer.hasAction('needResetUseTime')) {
           localPlayer.addAction({type: 'needResetUseTime'});
-          debugger;
         }
       } else {
         lastUseIndex = 0;
