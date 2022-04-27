@@ -113,9 +113,7 @@ const makeHitTracker = ({
       if (died) {
         triggerDamageAnimation(collisionId);
         
-        const soundFiles = sounds.getSoundFiles();
-        const enemyDeathSound = soundFiles.enemyDeath[Math.floor(Math.random() * soundFiles.enemyDeath.length)];
-        sounds.playSound(enemyDeathSound);
+        sounds.playSoundName('enemyDeath');
       }
 
       {
@@ -134,6 +132,8 @@ const makeHitTracker = ({
         damageMeshApp.updateMatrixWorld();
         scene.add(damageMeshApp);
       }
+
+      sounds.playSoundName('enemyCut');
 
       hitTracker.dispatchEvent({
         type: 'hit',
