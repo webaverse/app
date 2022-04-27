@@ -11,6 +11,7 @@ import {triggerEmote} from './components/general/character/Poses';
 
 import game from '../game.js';
 import cameraManager from '../camera-manager.js';
+import * as sounds from '../sounds.js';
 import {mod, loadImage, drawImageContain, imageToCanvas} from '../util.js';
 
 const modPi2 = angle => mod(angle, Math.PI*2);
@@ -92,6 +93,8 @@ export default function QuickMenu() {
             setDown(false);
             setCoords([0, 0]);
 
+            sounds.playSoundName('menuOk');
+
             return false;
           }
         }
@@ -104,10 +107,15 @@ export default function QuickMenu() {
     } else {
       function keyup(e) {
         if (e.keyCode === 81) { // Q
-          /* const emote = _getSelectedEmote();
-          emote && triggerEmote(emote); */
-          setOpen(false);
-          setDown(false);
+          if (open) {
+            /* const emote = _getSelectedEmote();
+            emote && triggerEmote(emote); */
+            
+            setOpen(false);
+            setDown(false);
+
+            sounds.playSoundName('menuBack');
+          }
         }
       }
       registerIoEventHandler('keyup', keyup);
@@ -127,6 +135,7 @@ export default function QuickMenu() {
       
       function mousedown(e) {
         setDown(true);
+
         return false;
       }
       registerIoEventHandler('mousedown', mousedown);
@@ -136,6 +145,9 @@ export default function QuickMenu() {
         const emote = _getSelectedEmote();
         emote && triggerEmote(emote);
         setOpen(false);
+        
+        sounds.playSoundName('menuNext');
+
         return false;
       }
       registerIoEventHandler('mouseup', mouseup);
