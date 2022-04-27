@@ -1825,8 +1825,11 @@ class Avatar {
     
 
     _updateHmdPosition();
-    window.domInfo.innerHTML = ` 
+    /*
       <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
+    */
+    window.domInfo.innerHTML = ` 
+      <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
       <div style="display:;">avatar.direction: --- ${window.logVector3(avatar.direction)}</div>
       <div style="display:;">localPlayer.direction: --- ${window.logVector3(localPlayer.getWorldDirection(localVector))}</div>
       <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
