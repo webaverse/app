@@ -257,49 +257,41 @@ export const loadPromise = (async () => {
     'left strafe walking.fbx',
     'right strafe walking.fbx',
   ].map(name => animations.index[name]);
-  window.walkingAnimations = walkingAnimations;
   const walkingBackwardAnimations = [
     'walking backwards.fbx',
     'left strafe walking reverse.fbx',
     'right strafe walking reverse.fbx',
   ].map(name => animations.index[name]);
-  window.walkingBackwardAnimations = walkingBackwardAnimations;
   const runningAnimations = [
     'Fast Run.fbx',
     'left strafe.fbx',
     'right strafe.fbx',
   ].map(name => animations.index[name]);
-  window.runningAnimations = runningAnimations;
   const runningBackwardAnimations = [
     'running backwards.fbx',
     'left strafe reverse.fbx',
     'right strafe reverse.fbx',
   ].map(name => animations.index[name]);
-  window.runningBackwardAnimations = runningBackwardAnimations;
   const crouchingForwardAnimations = [
     'Sneaking Forward.fbx',
     'Crouched Sneaking Left.fbx',
     'Crouched Sneaking Right.fbx',
   ].map(name => animations.index[name]);
-  window.crouchingForwardAnimations = crouchingForwardAnimations;
   const crouchingBackwardAnimations = [
     'Sneaking Forward reverse.fbx',
     'Crouched Sneaking Left reverse.fbx',
     'Crouched Sneaking Right reverse.fbx',
   ].map(name => animations.index[name]);
-  window.crouchingBackwardAnimations = crouchingBackwardAnimations;
   const bowingForwardAnimations = [
     'Standing Aim Walk Forward.fbx',
     'Standing Aim Walk Left.fbx',
     'Standing Aim Walk Right.fbx',
   ].map(name => animations.index[name]);
-  window.bowingForwardAnimations = bowingForwardAnimations;
   const bowingBackwardAnimations = [
     'Standing Aim Walk Back.fbx',
     'Standing Aim Walk Left reverse.fbx',
     'Standing Aim Walk Right reverse.fbx',
   ].map(name => animations.index[name]);
-  window.bowingBackwardAnimations = bowingBackwardAnimations;
   for (const animation of animations) {
     decorateAnimation(animation);
   }
