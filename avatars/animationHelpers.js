@@ -677,6 +677,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
   // crouch
   // const keyOther = _getAnimationKey(true);
+  debugger
   const keyAnimationAnglesOther = getClosest2AnimationAngles('crouch', angle);
   const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
   const idleAnimationOther = _getIdleAnimation('crouch');
@@ -684,7 +685,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // bow
   // const keyBow = _getAnimationKey(true);
   const keyAnimationAnglesBow = getClosest2AnimationAngles('bow', angle);
-  debugger
   const keyAnimationAnglesBowMirror = _getMirrorAnimationAngles(keyAnimationAnglesBow, 'bow');
   const idleAnimationBow = _getIdleAnimation('bow');
 
