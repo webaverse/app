@@ -352,9 +352,6 @@ const _startUse = () => {
         };
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
-        if (newUseAction.ik !== 'pistol') {
-          localPlayer.removeAction('crouch');
-        }
 
         wearApp.use();
       }
