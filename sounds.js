@@ -53,7 +53,7 @@ const waitForLoad = () => loadPromise;
 const getSoundFiles = () => soundFiles;
 const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
-const playSound = (audioSpec) => {
+const playSound = audioSpec => {
   const {offset, duration} = audioSpec;
   const audioContext = Avatar.getAudioContext();
   const audioBufferSourceNode = audioContext.createBufferSource();
@@ -62,9 +62,20 @@ const playSound = (audioSpec) => {
   audioBufferSourceNode.start(0, offset, duration);
   return audioBufferSourceNode;
 };
+const playSoundName = name => {
+  const snds = soundFiles[name];
+  if (snds) {
+    const sound = snds[Math.floor(Math.random() * snds.length)];
+    playSound(sound);
+    return true;
+  } else {
+    return false;
+  }
+};
 export {
   waitForLoad,
   getSoundFiles,
   getSoundFileAudioBuffer,
   playSound,
+  playSoundName,
 };
