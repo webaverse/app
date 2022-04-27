@@ -62,7 +62,7 @@ physicsManager.addCapsuleGeometry = (
   quaternion,
   radius,
   halfHeight,
-  physicsMaterial,
+  material,
   dynamic,
   flags = {}
 ) => {
@@ -73,8 +73,8 @@ physicsManager.addCapsuleGeometry = (
     quaternion,
     radius,
     halfHeight,
-    physicsMaterial,
     physicsId,
+    material,
     dynamic,
     flags
   )
@@ -252,7 +252,7 @@ physicsManager.addCookedConvexGeometry = (
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
-  physicsObject.physicsMesh = physicsMesh
+  physicsObject.physicsMesh = physicsMesh;
   return physicsObject
 }
 
@@ -411,8 +411,7 @@ physicsManager.createCharacterController = (
   height,
   contactOffset,
   stepOffset,
-  position,
-  mat
+  position
 ) => {
   const physicsId = getNextPhysicsId()
   const characterControllerId =
@@ -423,7 +422,6 @@ physicsManager.createCharacterController = (
       contactOffset,
       stepOffset,
       position,
-      mat,
       physicsId
     )
 
