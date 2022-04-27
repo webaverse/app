@@ -29,6 +29,7 @@ import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
 import {generateObjectUrlCard} from './card-generator.js';
+import * as sounds from './sounds.js';
 
 // const {contractNames} = metaversefileConstants;
 
@@ -422,9 +423,8 @@ const _gameInit = () => {
 Promise.resolve()
   .then(_gameInit);
 
-let lastDraggingRight = false;
-let dragRightSpec = null;
-let fovFactor = 0;
+// let lastDraggingRight = false;
+// let dragRightSpec = null;
 let lastActivated = false;
 let lastThrowing = false;
 let lastHitTimes = new WeakMap();
@@ -635,7 +635,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     mouseHighlightPhysicsMesh.visible = false;
 
     const h = mouseHoverObject;
-    if (h && !gameManager.dragging) {
+    if (h /*&& !gameManager.dragging*/) {
       const physicsId = mouseHoverPhysicsId;
 
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
@@ -777,7 +777,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
             closestObject = closestDistanceSpec.object;
           }
         } else {
-          if ((!!localPlayer.avatar && /*controlsManager.isPossessed() &&*/ cameraManager.getMode()) === 'firstperson' || gameManager.dragging) {
+          if ((!!localPlayer.avatar && /*controlsManager.isPossessed() &&*/ cameraManager.getMode()) === 'firstperson' /*|| gameManager.dragging*/) {
             localRay.set(
               camera.position,
               localVector.set(0, 0, -1)
@@ -852,7 +852,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _handleUsableObject();
   
-  const _updateDrags = () => {
+  /* const _updateDrags = () => {
     const {draggingRight} = gameManager;
     if (draggingRight !== lastDraggingRight) {
       if (draggingRight) {
@@ -875,7 +875,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
     lastDraggingRight = draggingRight;
   };
-  _updateDrags();
+  _updateDrags(); */
   
   const _updateActivate = () => {
     const localPlayer = metaversefileApi.useLocalPlayer();
@@ -996,29 +996,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
   };
   _updateEyes();
-  
-  const updateFov = () => {
-    if (!renderer.xr.getSession()) {
-      const fovInTime = 3;
-      const fovOutTime = 0.3;
-      
-      const narutoRun = localPlayer.getAction('narutoRun');
-      if (narutoRun) {
-        if (ioManager.lastNonzeroDirectionVector.z < 0) {    
-          fovFactor += timeDiff / 1000 / fovInTime;
-        } else {
-          fovFactor -= timeDiff / 1000 / fovInTime;
-        }
-      } else {
-        fovFactor -= timeDiff / 1000 / fovOutTime;
-      }
-      fovFactor = Math.min(Math.max(fovFactor, 0), 1);
-
-      camera.fov = minFov + Math.pow(fovFactor, 0.75) * (maxFov - minFov);
-      camera.updateProjectionMatrix();
-    }
-  };
-  updateFov();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
@@ -1101,8 +1078,8 @@ class GameManager extends EventTarget {
     this.menuOpen = 0;
     this.gridSnap = 0;
     this.editMode = false;
-    this.dragging = false;
-    this.draggingRight = false;
+    // this.dragging = false;
+    // this.draggingRight = false;
     this.contextMenu = false;
     this.contextMenuObject = null;
     this.inventoryHack = false;
@@ -1193,16 +1170,18 @@ class GameManager extends EventTarget {
     }
   }
   menuDragdown(e) {
-    this.dragging = true;
+    cameraManager.setFocus(true);
+
+    // this.dragging = true;
     
-    world.appManager.dispatchEvent(new MessageEvent('dragchange', {
+    /* world.appManager.dispatchEvent(new MessageEvent('dragchange', {
       data: {
         dragging: this.dragging,
       },
-    }));
+    })); */
   }
   menuDrag(e) {
-    const {movementX, movementY} = e;
+    /* const {movementX, movementY} = e;
     if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
       camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
   
@@ -1214,25 +1193,27 @@ class GameManager extends EventTarget {
       camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
 
       camera.updateMatrixWorld();
-    }
+    } */
   }
   menuDragup() {
-    this.dragging = false;
+    cameraManager.setFocus(false);
+
+    // this.dragging = false;
     
-    world.appManager.dispatchEvent(new MessageEvent('dragchange', {
+    /* world.appManager.dispatchEvent(new MessageEvent('dragchange', {
       data: {
         dragging: this.dragging,
       },
-    }));
+    })); */
   }
   menuDragdownRight(e) {
-    this.draggingRight = true;
-  }
-  menuDragRight(e) {
     // this.draggingRight = true;
   }
+  menuDragRight(e) {
+    // nothing
+  }
   menuDragupRight() {
-    this.draggingRight = false;
+    // this.draggingRight = false;
   }
   menuKey(c) {
     menuMesh.key(c);
@@ -1355,6 +1336,8 @@ class GameManager extends EventTarget {
         type: 'sss',
       };
       localPlayer.addAction(newSssAction);
+
+      sounds.playSoundName('limitBreak');
 
       localPlayer.removeAction('dance');
       const newDanceAction = {
