@@ -149,11 +149,11 @@ export default function Header() {
 
         const handleAnytimeKey = ( event ) => {
 
-            if ( !event.repeat ) {
+            switch ( event.which ) {
 
-                switch ( event.which ) {
+                case 9: { // tab
 
-                    case 9: { // tab
+                    if ( !event.repeat ) {
 
                         setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
 
@@ -163,15 +163,13 @@ export default function Header() {
 
                         }
 
-                        return true;
-
                     }
+
+                    return true;
 
                 }
 
             }
-
-            return false;
 
         };
 
