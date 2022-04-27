@@ -403,7 +403,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor, useBowFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -717,45 +717,57 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
       localQuaternion,
     );
-    // _get7wayBlend(
-    //   keyAnimationAnglesOther,
-    //   keyAnimationAnglesOtherMirror,
-    //   keyAnimationAnglesOther,
-    //   keyAnimationAnglesOtherMirror,
-    //   idleAnimationOther,
-    //   // mirrorFactor,
-    //   // angleFactor,
-    //   // walkRunFactor,
-    //   // idleWalkFactor,
-    //   k,
-    //   lerpFn,
-    //   isPosition,
-    //   localQuaternion2,
-    // );
-    _get7wayBlend(
-      keyAnimationAnglesBow,
-      keyAnimationAnglesBowMirror,
-      keyAnimationAnglesBow,
-      keyAnimationAnglesBowMirror,
-      idleAnimationBow,
-      // mirrorFactor,
-      // angleFactor,
-      // walkRunFactor,
-      // idleWalkFactor,
-      k,
-      lerpFn,
-      isPosition,
-      localQuaternion2,
-    );
+    if (crouchFactor > 0) {
+      _get7wayBlend(
+        keyAnimationAnglesOther,
+        keyAnimationAnglesOtherMirror,
+        keyAnimationAnglesOther,
+        keyAnimationAnglesOtherMirror,
+        idleAnimationOther,
+        // mirrorFactor,
+        // angleFactor,
+        // walkRunFactor,
+        // idleWalkFactor,
+        k,
+        lerpFn,
+        isPosition,
+        localQuaternion2,
+      );
+
+      lerpFn
+        .call(
+          target.copy(localQuaternion),
+          localQuaternion2,
+          crouchFactor,
+        );
+    } else if (useBowFactor > 0) {
+      _get7wayBlend(
+        keyAnimationAnglesBow,
+        keyAnimationAnglesBowMirror,
+        keyAnimationAnglesBow,
+        keyAnimationAnglesBowMirror,
+        idleAnimationBow,
+        // mirrorFactor,
+        // angleFactor,
+        // walkRunFactor,
+        // idleWalkFactor,
+        k,
+        lerpFn,
+        isPosition,
+        localQuaternion2,
+      );
+
+      lerpFn
+        .call(
+          target.copy(localQuaternion),
+          localQuaternion2,
+          useBowFactor,
+        );
+    } else {
+      target.copy(localQuaternion);
+    }
 
     // _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
-
-    lerpFn
-      .call(
-        target.copy(localQuaternion),
-        localQuaternion2,
-        crouchFactor,
-      );
   };
   const _handleDefault = spec => {
     const {
@@ -897,8 +909,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } */
     if (
       avatar.useAnimation ||
-      avatar.useAnimationCombo.length > 0 ||
-      avatar.useAnimationEnvelope.length > 0
+      avatar.useAnimationCombo.length > 0
     ) {
       return spec => {
         const {
@@ -919,33 +930,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (avatar.useAnimationEnvelope.length > 0) {
-          let totalTime = 0;
-          for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-            const animationName = avatar.useAnimationEnvelope[i];
-            const animation = useAnimations[animationName];
-            totalTime += animation.duration;
-          }
-
-          if (totalTime > 0) {
-            let animationTimeBase = 0;
-            for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-              const animationName = avatar.useAnimationEnvelope[i];
-              const animation = useAnimations[animationName];
-              if (useTimeS < (animationTimeBase + animation.duration)) {
-                useAnimation = animation;
-                break;
-              }
-              animationTimeBase += animation.duration;
-            }
-            if (useAnimation !== undefined) { // first iteration
-              t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
-            } else { // loop
-              const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
-              useAnimation = useAnimations[secondLastAnimationName];
-              t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
-            }
-          }
         }
 
         _handleDefault(spec);
@@ -978,6 +962,69 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             dst
               .sub(localVector3)
               .add(localVector2);
+          }
+        }
+      };
+    } else if (
+      avatar.useAnimationEnvelope.length > 0
+    ) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          isTop,
+          isPosition,
+        } = spec;
+
+        let useAnimation;
+        let t2;
+        const useTimeS = avatar.useTime / 1000;
+        let totalTime = 0;
+        for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+          const animationName = avatar.useAnimationEnvelope[i];
+          const animation = useAnimations[animationName];
+          totalTime += animation.duration;
+        }
+
+        if (totalTime > 0) {
+          let animationTimeBase = 0;
+          for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+            const animationName = avatar.useAnimationEnvelope[i];
+            const animation = useAnimations[animationName];
+            if (useTimeS < (animationTimeBase + animation.duration)) {
+              useAnimation = animation;
+              break;
+            }
+            animationTimeBase += animation.duration;
+          }
+          if (useAnimation !== undefined) { // first iteration
+            t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
+          } else { // loop
+            const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
+            useAnimation = useAnimations[secondLastAnimationName];
+            t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
+          }
+        }
+
+        _handleDefault(spec);
+
+        if (isTop && useAnimation === useAnimations.bowDraw) {
+          let t = (useTimeS - useAnimations.bowDraw.duration + 0.3) / 0.3;
+          t = THREE.MathUtils.clamp(t, 0, 1);
+          t = 1 - t;
+          if (!isPosition) {
+            const src2 = useAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            localQuaternion2.fromArray(v2);
+
+            dst.slerp(localQuaternion2, t);
+          } else {
+            const src2 = useAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            localVector2.fromArray(v2);
+            _clearXZ(localVector2, isPosition);
+
+            dst.lerp(localVector2, t);
           }
         }
       };
@@ -1063,7 +1110,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .add(localVector2.fromArray(v2));
         }
       };
-    } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
+    } else if (false && avatar.unuseAnimation && avatar.unuseTime >= 0) {
       return spec => {
         const {
           animationTrackName: k,

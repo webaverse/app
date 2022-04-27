@@ -1413,6 +1413,7 @@ class Avatar {
     moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
+    moveFactors.useBowFactor = THREE.MathUtils.clamp(this.useBowTime / crouchMaxTime, 0, 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
 
     const _updateHmdPosition = () => {
@@ -1853,6 +1854,8 @@ class Avatar {
       <div>useAnimationIndex: --- ${this.useAnimationIndex}</div>
       <div>unuseAnimation: --- ${this.unuseAnimation}</div>
       <div>activateTime: --- ${Math.floor(this.activateTime)}</div>
+      <div>useBowTime: --- ${Math.floor(this.useBowTime)}</div>
+      <div>useBowFactor: --- ${moveFactors.useBowFactor.toFixed(2)}</div>
       <div>aimTime: --- ${Math.floor(this.aimTime)}</div>
       <div>chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>
       <div>crouchTime: --- ${Math.floor(this.crouchTime)}</div>
