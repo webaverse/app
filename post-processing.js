@@ -33,6 +33,8 @@ import {WebaverseRenderPass} from './webaverse-render-pass.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 // import {parseQuery} from './util.js';
+import * as sounds from './sounds.js';
+import musicManager from './music-manager.js';
 
 // const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
@@ -165,7 +167,6 @@ function makeEncodingPass() {
   return encodingPass;
 }
 
-
 function makeSwirlPass() {
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D)
@@ -178,13 +179,24 @@ function makeSwirlPass() {
 }
 
 window.addEventListener('keydown', e => {
-  if (e.which === 71) { // G
-    const swirlPass = makeSwirlPass();
-
+  if (e.which === 48) { // 0
     const composer = getComposer();
-    composer.passes.push(swirlPass);
+    
+    if (composer.swirlPass) {
+      const swirlPassIndex = composer.passes.indexOf(composer.swirlPass);
+      composer.passes.splice(swirlPassIndex, 1);
+      composer.swirlPass = null;
+
+      musicManager.stopCurrentMusic();
+    } else {
+      composer.swirlPass = makeSwirlPass();
+      composer.passes.push(composer.swirlPass);
+
+      sounds.playSoundName('battleTransition');
+      musicManager.playCurrentMusic('battle');
+    }
   }
-})
+});
 
 const webaverseRenderPass = new WebaverseRenderPass();
 const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
@@ -239,7 +251,7 @@ class PostProcessing extends EventTarget {
     passes.initialized = false;
     passes.depthPass = null;
     passes.ssaoPass = null;
-    // passes.swirlPass = null;
+    passes.swirlPass = null;
 
     passes.push(webaverseRenderPass);
     
@@ -264,10 +276,10 @@ class PostProcessing extends EventTarget {
         const bloomPass = makeBloomPass(bloom);
         passes.push(bloomPass);
       }
-      /* if (swirl) {
+      if (swirl) {
         const swirlPass = makeSwirlPass();
         passes.push(swirlPass);
-      } */
+      }
       if (postPostProcessScene) {
         const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;
         if (postPerspectiveScene) {
