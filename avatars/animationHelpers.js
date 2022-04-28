@@ -745,6 +745,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
+    // if (true) { // play one animation purely.
+    //   return spec => {
+    //     const {
+    //       animationTrackName: k,
+    //       dst,
+    //       // isTop,
+    //     } = spec;
+
+    //     const animation = animations.index['walking.fbx']
+    //     const t2 = timeSeconds;
+    //     const src2 = animation.interpolants[k];
+    //     const v2 = src2.evaluate(t2 % animation.duration);
+
+    //     dst.fromArray(v2);
+    //   };
+    // }
     if (avatar.jumpState) {
       return spec => {
         const {
