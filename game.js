@@ -442,7 +442,7 @@ class ZTargeting extends THREE.Object3D {
     this.lastFocus = false;
     this.focusTargetReticle = null;
   }
-  setQueryResult(result, focus, lastFocusChangeTime) {
+  setQueryResult(result, timestamp, focus, lastFocusChangeTime) {
     const targetReticleMesh = this.targetReticleApp.children[0];
     
     // console.log('set focus', focus);
@@ -475,25 +475,38 @@ class ZTargeting extends THREE.Object3D {
     }
 
     if (focus && !this.lastFocus) {
-      console.log('got reticles', reticles);
+      // sconsole.log('got reticles', reticles);
       if (reticles.length > 0) {
         this.focusTargetReticle = reticles[0];
         sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
       } else {
-        this.focusTargetReticle = null;
+        // this.focusTargetReticle = null;
         sounds.playSoundName('zTargetCenter');
       }
     } else if (this.lastFocus && !focus) {
       if (this.focusTargetReticle) {
-        this.focusTargetReticle = null;
+        // this.focusTargetReticle = null;
         sounds.playSoundName('zTargetCancel');
       }
     }
 
-    // console.log('focus target reticle', !!this.focusTargetReticle);
-
+    const timeDiff = timestamp - lastFocusChangeTime;
+    // console.log('focus target reticle', this.focusTargetReticle && timeDiff < 1000, timeDiff);
+    const focusTime = 250;
     if (this.focusTargetReticle) {
-      reticles = [this.focusTargetReticle];
+      if (focus || timeDiff < focusTime) {
+        reticles = [
+          this.focusTargetReticle,
+        ];
+    
+        let f2 = Math.min(Math.max(timeDiff / focusTime, 0), 1);
+        if (focus) {
+          f2 = 1 - f2;
+        }
+        this.focusTargetReticle.zoom = f2;
+      } else {
+        this.focusTargetReticle = null;
+      }
     }
     
     targetReticleMesh.setReticles(reticles);
@@ -710,12 +723,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
           return 'object';
         }
       })();
+      const zoom = 0;
       return {
         position: reticle.position,
         type,
+        zoom,
       }
     });
-    zTargeting.setQueryResult(queryResult, cameraManager.focus, cameraManager.lastFocusChangeTime);
+    zTargeting.setQueryResult(queryResult, timestamp, cameraManager.focus, cameraManager.lastFocusChangeTime);
   };
   _handleZTargeting();
 
