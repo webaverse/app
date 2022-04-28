@@ -167,37 +167,6 @@ function makeEncodingPass() {
   return encodingPass;
 }
 
-function makeSwirlPass() {
-  const renderer = getRenderer();
-  const size = renderer.getSize(localVector2D)
-    .multiplyScalar(renderer.getPixelRatio());
-  const resolution = size;
-
-  const swirlPass = new SwirlPass(rootScene, camera, resolution.x, resolution.y);
-  // swirlPass.enabled = false;
-  return swirlPass;
-}
-
-window.addEventListener('keydown', e => {
-  if (e.which === 48) { // 0
-    const composer = getComposer();
-    
-    if (composer.swirlPass) {
-      const swirlPassIndex = composer.passes.indexOf(composer.swirlPass);
-      composer.passes.splice(swirlPassIndex, 1);
-      composer.swirlPass = null;
-
-      musicManager.stopCurrentMusic();
-    } else {
-      composer.swirlPass = makeSwirlPass();
-      composer.passes.push(composer.swirlPass);
-
-      sounds.playSoundName('battleTransition');
-      musicManager.playCurrentMusic('battle');
-    }
-  }
-});
-
 const webaverseRenderPass = new WebaverseRenderPass();
 const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
 webaverseRenderPass.onBeforeRender = (a, b, c) => {
@@ -277,6 +246,7 @@ class PostProcessing extends EventTarget {
         passes.push(bloomPass);
       }
       if (swirl) {
+        console.log('set swirl pass', swirl, passes.swirlPass);
         const swirlPass = makeSwirlPass();
         passes.push(swirlPass);
       }
