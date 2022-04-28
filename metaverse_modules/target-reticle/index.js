@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useFrame, useMaterials, useLocalPlayer} = metaversefile;
+const {useFrame, useMaterials, useCamera, useLocalPlayer} = metaversefile;
 
 // const cardWidth = 0.063;
 // const cardHeight = cardWidth / 2.5 * 3.5;
@@ -49,6 +49,18 @@ function createTargetReticleGeometry() {
   shape.lineTo(a.x, a.y);
 
   const baseGeometry = new THREE.ShapeGeometry(shape);
+
+  const _setOffsets = g => {
+    const offsets = new Float32Array(g.attributes.position.count * 3);
+    baseGeometry.setAttribute('offset', new THREE.BufferAttribute(offsets, 3));
+  };
+  _setOffsets(baseGeometry);
+
+  const _setQuaternions = g => {
+    const quaternions = new Float32Array(g.attributes.position.count * 4);
+    baseGeometry.setAttribute('quaternion', new THREE.BufferAttribute(quaternions, 4));
+  };
+  _setQuaternions(baseGeometry);
   
   const _setUvs = g => {
     const positions = g.attributes.position.array;
@@ -103,10 +115,23 @@ function createTargetReticleGeometry() {
   ];
   return BufferGeometryUtils.mergeBufferGeometries(geometries);
 };
+function createTargetReticleGeometries(count) {
+  const geometry = createTargetReticleGeometry();
+  const geometries = Array(count);
+  for (let i = 0; i < count; i++) {
+    geometries[i] = geometry;
+  }
+  const result = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  result.drawStride = geometry.attributes.position.count;
+  return result;
+}
 const _makeTargetReticleMesh = () => {
   const {WebaverseShaderMaterial} = useMaterials();
+  const camera = useCamera();
+  // const localPlayer = useLocalPlayer();
 
-  const geometry = createTargetReticleGeometry();
+  const geometry = createTargetReticleGeometries(16);
+  geometry.setDrawRange(0, 0);
   const material = new WebaverseShaderMaterial({
     uniforms: {
       /* uBoundingBox: {
@@ -145,7 +170,7 @@ const _makeTargetReticleMesh = () => {
 
       // #define PI 3.1415926535897932384626433832795
 
-      // attribute float f;
+      attribute vec3 offset;
       attribute vec2 normal2;
       // uniform vec4 uBoundingBox;
       uniform float uZoom;
@@ -167,9 +192,12 @@ const _makeTargetReticleMesh = () => {
       }
 
       void main() {
-        float angle = uTime * PI * 2.;
-        // vec2 direction = rotate2D(normal2, angle);
-        vec3 p = vec3(rotate2D(position.xy, angle) + rotate2D(normal2 * uZoom * zoomDistance, angle), position.z);
+        vec3 p = position;
+        {
+          float angle = uTime * PI * 2.;
+          p = vec3(rotate2D(p.xy, angle) + rotate2D(normal2 * uZoom * zoomDistance, angle), p.z);
+        }
+        p += offset;
 
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mvPosition;
@@ -299,6 +327,7 @@ const _makeTargetReticleMesh = () => {
     side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
   mesh.update = (timestamp, timeDiff) => {
     const maxTime = 3000;
     const f = (timestamp % maxTime) / maxTime;
@@ -311,9 +340,9 @@ const _makeTargetReticleMesh = () => {
     const targetType = 'friend';
     // const targetTypeIndex = targetTypes.indexOf(targetType);
     const targetTypeColor = targetTypeColors[targetType];
-    material.uniforms.uColor1.value.copy(targetTypeColor[0])//.multiplyScalar(0.75);
+    material.uniforms.uColor1.value.copy(targetTypeColor[0]);
     material.uniforms.uColor1.needsUpdate = true;
-    material.uniforms.uColor2.value.copy(targetTypeColor[1])//.multiplyScalar(0.75);
+    material.uniforms.uColor2.value.copy(targetTypeColor[1]);
     material.uniforms.uColor2.needsUpdate = true;
 
     let f2;
@@ -329,6 +358,24 @@ const _makeTargetReticleMesh = () => {
 
     material.uniforms.uTime.value = f;
     material.uniforms.uTime.needsUpdate = true;
+  };
+  // console.log('set draw range', 0, geometry.drawStride);
+  mesh.setReticles = reticles => {
+    const numReticles = reticles.length;
+    for (let i = 0; i < numReticles; i++) {
+      const reticle = reticles[i];
+      
+      const position = reticle.position;
+      const quaternion = camera.quaternion;
+
+      for (let j = 0; j < geometry.drawStride; j++) {
+        position.toArray(geometry.attributes.offset.array, (i * geometry.drawStride * 3) + (j * 3));
+        quaternion.toArray(geometry.attributes.quaternion.array, (i * geometry.drawStride * 3) + (j * 4));
+      }
+    }
+    geometry.attributes.offset.needsUpdate = true;
+    geometry.attributes.quaternion.needsUpdate = true;
+    geometry.setDrawRange(0, geometry.drawStride * numReticles);
   };
   return mesh;
 };
