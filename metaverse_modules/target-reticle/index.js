@@ -13,6 +13,7 @@ const menuRadius = 0.025; */
 
 const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
+const localQuaternion = new THREE.Quaternion();
 
 const targetTypes = [
   'object',
@@ -171,6 +172,7 @@ const _makeTargetReticleMesh = () => {
       // #define PI 3.1415926535897932384626433832795
 
       attribute vec3 offset;
+      attribute vec4 quaternion;
       attribute vec2 normal2;
       // uniform vec4 uBoundingBox;
       uniform float uZoom;
@@ -190,6 +192,9 @@ const _makeTargetReticleMesh = () => {
           v.x * sin(a) + v.y * cos(a)
         );
       }
+      vec3 rotateVec3Quat( vec3 v, vec4 q ) { 
+        return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+      }
 
       void main() {
         vec3 p = position;
@@ -197,6 +202,7 @@ const _makeTargetReticleMesh = () => {
           float angle = uTime * PI * 2.;
           p = vec3(rotate2D(p.xy, angle) + rotate2D(normal2 * uZoom * zoomDistance, angle), p.z);
         }
+        p = rotateVec3Quat(p, quaternion);
         p += offset;
 
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
@@ -353,7 +359,8 @@ const _makeTargetReticleMesh = () => {
     } else {
       f2 = 1 - ((f - 3/4) * 4);
     }
-    material.uniforms.uZoom.value = 1 - f2;
+    // material.uniforms.uZoom.value = 1 - f2;
+    material.uniforms.uZoom.value = 0;
     material.uniforms.uZoom.needsUpdate = true;
 
     material.uniforms.uTime.value = f;
@@ -366,7 +373,7 @@ const _makeTargetReticleMesh = () => {
       const reticle = reticles[i];
       
       const position = reticle.position;
-      const quaternion = camera.quaternion;
+      const quaternion = localQuaternion.copy(camera.quaternion).invert();
 
       for (let j = 0; j < geometry.drawStride; j++) {
         position.toArray(geometry.attributes.offset.array, (i * geometry.drawStride * 3) + (j * 3));
