@@ -1,34 +1,18 @@
+/*
+this file contains the story beat triggers (battles, victory, game over, etc.)
+*/
+
 import * as THREE from 'three';
-// import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
-// import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
-// import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-// import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
-// import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
-// import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
-// import {BokehPass} from './BokehPass.js';
-// import {SSAOPass} from './SSAOPass.js';
-// import {RenderPass} from './RenderPass.js';
-// import {DepthPass} from './DepthPass.js';
 import {SwirlPass} from './SwirlPass.js';
 import {
   getRenderer,
   getComposer,
   rootScene,
-  sceneHighPriority,
-  scene,
-  sceneLowPriority,
-  // postSceneOrthographic,
-  // postScenePerspective,
+  // sceneHighPriority,
+  // scene,
+  // sceneLowPriority,
   camera,
-  // orthographicCamera,
 } from './renderer.js';
-// import {rigManager} from './rig.js';
-// import {getRandomString} from './util.js';
-// import cameraManager from './camera-manager.js';
-// import {WebaverseRenderPass} from './webaverse-render-pass.js';
-// import renderSettingsManager from './rendersettings-manager.js';
-// import metaversefileApi from 'metaversefile';
-// import {parseQuery} from './util.js';
 import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
 
