@@ -533,7 +533,7 @@ const _startHacks = webaverse => {
     }
   }; */
   webaverse.titleCardHack = false;
-  let haloMeshApp = null;
+  // let haloMeshApp = null;
   window.addEventListener('keydown', e => {
     if (e.which === 46) { // .
       emotionIndex = -1;
