@@ -957,6 +957,105 @@ const physxWorker = (() => {
     moduleInstance._setAngularLockFlagsPhysics(physics, physicsId, x, y, z)
   }
 
+  w.sweepBox = (
+    physics,
+    origin,
+    quaternion,
+    halfExtents,
+    direction,
+    sweepDistance,
+    maxHits,
+    /* numHitsBuf.byteOffset,
+    positionBuf.byteOffset,
+    normalBuf.byteOffset,
+    distanceBuf.byteOffset,
+    objectIdBuf.byteOffset,
+    faceIndexBuf.byteOffset, */
+  ) => {
+    const allocator = new Allocator();
+    
+    // inputs
+    const originBuf = allocator.alloc(
+      Float32Array,
+      3
+    );
+    origin.toArray(originBuf);
+    const quaternionBuf = allocator.alloc(
+      Float32Array,
+      4
+    );
+    quaternion.toArray(quaternionBuf);
+    const halfExtentsBuf = allocator.alloc(
+      Float32Array,
+      3
+    );
+    halfExtents.toArray(halfExtentsBuf);
+    const directionBuf = allocator.alloc(
+      Float32Array,
+      3
+    );
+    direction.toArray(directionBuf);
+
+    // outputs
+    const numHitsBuf = allocator.alloc(
+      Uint32Array,
+      1
+    );
+    const positionBuf = allocator.alloc(
+      Float32Array,
+      maxHits * 3
+    );
+    const normalBuf = allocator.alloc(
+      Float32Array,
+      maxHits * 3
+    );
+    const distanceBuf = allocator.alloc(
+      Float32Array,
+      maxHits * 1
+    );
+    const objectIdBuf = allocator.alloc(
+      Uint32Array,
+      maxHits * 1
+    );
+    const faceIndexBuf = allocator.alloc(
+      Uint32Array,
+      maxHits * 1
+    );
+
+    moduleInstance._sweepBox(
+      physics,
+      originBuf.byteOffset,
+      quaternionBuf.byteOffset,
+      halfExtentsBuf.byteOffset,
+      directionBuf.byteOffset,
+      sweepDistance,
+      maxHits,
+      numHitsBuf.byteOffset,
+      positionBuf.byteOffset,
+      normalBuf.byteOffset,
+      distanceBuf.byteOffset,
+      objectIdBuf.byteOffset,
+      faceIndexBuf.byteOffset,
+    );
+
+    const numHits = numHitsBuf[0];
+    let result = Array(numHits);
+    for (let i = 0; i < numHits; i++) {
+      const object = {
+        position: new THREE.Vector3().fromArray(positionBuf, i * 3),
+        normal: new THREE.Vector3().fromArray(normalBuf, i * 3),
+        distance: distanceBuf[i],
+        objectId: objectIdBuf[i],
+        faceIndex: faceIndexBuf[i],
+      };
+      result[i] = object;
+    }
+
+    allocator.freeAll();
+
+    return result
+  };
+
   w.getPathPhysics = (
     physics,
     start,
