@@ -14,7 +14,6 @@ import { getNextPhysicsId, convertMeshToPhysicsMesh } from './util.js'
 // import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
 import { CapsuleGeometry } from './geometries.js'
-import { localPlayer } from './players.js'
 
 const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
@@ -551,23 +550,6 @@ physicsManager.sweepBox = (
     sweepDistance,
     maxHits,
   )
-};
-window.sweepBox = () => {
-  const {position, quaternion} = localPlayer;
-  const halfExtents = new THREE.Vector3(10, 10, 0.1);
-  const direction = new THREE.Vector3(0, 0, -1)
-    .applyQuaternion(quaternion);
-  const sweepDistance = 100;
-  const maxHits = 4;
-  const result = physicsManager.sweepBox(
-    position,
-    quaternion,
-    halfExtents,
-    direction,
-    sweepDistance,
-    maxHits,
-  );
-  return result;
 };
 
 physicsManager.simulatePhysics = (timeDiff) => {
