@@ -162,22 +162,18 @@ const _clearXZ = (dst, isPosition) => {
   }
 };
 
-const _setAnimationDuration = (animation, duration, factor = 1) => {
-  const oldDuration = animation.duration;
-  const newDuration = duration;
-  for (const track of animation.tracks) {
-    const {times} = track;
-    for (let j = 0; j < times.length; j++) {
-      times[j] *= newDuration / oldDuration * factor;
-    }
-  }
-  animation.duration = newDuration * factor;
-};
-
 const _normalizeAnimationDurations = (animations, baseAnimation, factor = 1) => {
   for (let i = 1; i < animations.length; i++) {
     const animation = animations[i];
-    _setAnimationDuration(animation, baseAnimation.duration, factor);
+    const oldDuration = animation.duration;
+    const newDuration = baseAnimation.duration;
+    for (const track of animation.tracks) {
+      const {times} = track;
+      for (let j = 0; j < times.length; j++) {
+        times[j] *= newDuration / oldDuration * factor;
+      }
+    }
+    animation.duration = newDuration * factor;
   }
 };
 
@@ -302,9 +298,7 @@ export const loadPromise = (async () => {
   _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
   _normalizeAnimationDurations(crouchingForwardAnimations, crouchingForwardAnimations[0], 0.5);
   _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
-  _setAnimationDuration(bowingForwardAnimations[0], bowingForwardAnimations[0].duration, 0.7749999530613436); // align duration with walkingAnimations[0].
   _normalizeAnimationDurations(bowingForwardAnimations, bowingForwardAnimations[0]);
-  _setAnimationDuration(bowingBackwardAnimations[0], bowingBackwardAnimations[0].duration, 0.7249999575316919); // align duration with walkingBackwardAnimations[0].
   _normalizeAnimationDurations(bowingBackwardAnimations, bowingBackwardAnimations[0]);
 
   function mergeAnimations(a, b) {
