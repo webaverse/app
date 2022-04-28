@@ -445,11 +445,10 @@ class ZTargeting extends THREE.Object3D {
     targetReticleMesh.setReticles([
       {
         position: new THREE.Vector3(-2, 1, -0.9),
+        type: 'friend',
       },
     ].concat(
-      result.map(({position}) => ({
-        position,
-      }))
+      result
     ));
   }
 }
@@ -651,7 +650,23 @@ const _gameUpdate = (timestamp, timeDiff) => {
       sweepDistance,
       maxHits,
     );
-    zTargeting.setQueryResult(result);
+    const queryResult = result.map(reticle => {
+      const distance = reticle.position.distanceTo(position);
+      const type = (() => {
+        if (distance < 5) {
+          return 'friend';
+        } else if (distance < 15) {
+          return 'enemy';
+        } else {
+          return 'object';
+        }
+      })();
+      return {
+        position: reticle.position,
+        type,
+      }
+    });
+    zTargeting.setQueryResult(queryResult);
   };
   _handleZTargeting();
 
