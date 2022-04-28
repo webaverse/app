@@ -315,15 +315,36 @@ physicsManager.removeGeometry = (physicsObject) => {
     console.warn('failed to remove geometry', err.stack);
   } */
 }
-/* physicsManager.getVelocity = (physicsObject, velocity) => {
-  physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
-}; */
+physicsManager.getLinearVelocity = (physicsObject, velocity) => {
+  physx.physxWorker.getLinearVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
+};
+physicsManager.getAngularVelocity = (physicsObject, velocity) => {
+  physx.physxWorker.getAngularVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
+}; 
 physicsManager.getGlobalPosition = (physicsObject, position) => {
   physx.physxWorker.getGlobalPositionPhysics(
     physx.physics,
     physicsObject.physicsId,
     position
   )
+}
+physicsManager.addForceAtPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addForceAtPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addLocalForceAtPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addLocalForceAtPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addForceAtLocalPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addForceAtLocalPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addLocalForceAtLocalPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addLocalForceAtLocalPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addForce = (physicsObject, velocity, autoWake) => {
+  physx.physxWorker.addForcePhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
+}
+physicsManager.addTorque = (physicsObject, velocity, autoWake) => {
+  physx.physxWorker.addTorquePhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
 }
 physicsManager.setVelocity = (physicsObject, velocity, autoWake) => {
   physx.physxWorker.setVelocityPhysics(

@@ -1529,15 +1529,93 @@ const physxWorker = (() => {
 
     allocator.freeAll()
   }
-  w.getVelocityPhysics = (physics, id, velocity) => {
+  w.getLinearVelocityPhysics = (physics, id, velocity) => {
     const allocator = new Allocator()
     const v = allocator.alloc(Float32Array, 3)
 
-    moduleInstance._getVelocityPhysics(physics, id, v.byteOffset)
+    moduleInstance._getLinearVelocityPhysics(physics, id, v.byteOffset)
 
     velocity.fromArray(v)
 
     allocator.freeAll()
+  }
+  w.getAngularVelocityPhysics = (physics, id, velocity) => {
+    const allocator = new Allocator()
+    const v = allocator.alloc(Float32Array, 3)
+
+    moduleInstance._getAngularVelocityPhysics(physics, id, v.byteOffset)
+
+    velocity.fromArray(v)
+
+    allocator.freeAll()
+  }
+  w.addForceAtPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addForceAtPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addLocalForceAtPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addLocalForceAtPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addLocalForceAtLocalPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addLocalForceAtLocalPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addForceAtLocalPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addForceAtLocalPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addForcePhysics = (physics, id, velocity, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addForcePhysics(physics, id, vel.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addTorquePhysics = (physics, id, velocity, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addTorquePhysics(physics, id, vel.byteOffset, autoWake);
+    allocator.freeAll();
   }
   w.setVelocityPhysics = (physics, id, velocity, autoWake) => {
     const allocator = new Allocator()
