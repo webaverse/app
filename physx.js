@@ -1841,19 +1841,21 @@ const physxWorker = (() => {
     quaternion,
     radius,
     halfHeight,
-    physicsMaterial,
+    materialAddress,
     id,
     dynamic,
     flags = {}
   ) => {
+    if (typeof materialAddress !== 'number') {
+      debugger;
+    }
+
     const allocator = new Allocator()
     const p = allocator.alloc(Float32Array, 3)
     const q = allocator.alloc(Float32Array, 4)
-    const mat = allocator.alloc(Float32Array, 3)
 
     position.toArray(p)
     quaternion.toArray(q)
-    physicsMaterial.toArray(mat)
 
     const flagsInt = (+flags.physics << 0) | (+flags.ccd << 1)
     moduleInstance._addCapsuleGeometryPhysics(
@@ -1862,7 +1864,7 @@ const physxWorker = (() => {
       q.byteOffset,
       radius,
       halfHeight,
-      mat.byteOffset,
+      materialAddress,
       id,
       dynamic,
       flagsInt

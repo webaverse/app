@@ -166,6 +166,10 @@ physicsManager.addGeometry = (mesh) => {
   physicsObject.physicsMesh = physicsMesh
   return physicsObject
 }
+physicsManager.createMaterial = physicsMaterial =>
+  physx.physxWorker.createMaterial(physx.physics, physicsMaterial);
+physicsManager.destroyMaterial = materialAddress =>
+  physx.physxWorker.destroyMaterial(physx.physics, materialAddress);
 physicsManager.cookGeometry = (mesh) =>
   physx.physxWorker.cookGeometryPhysics(physx.physics, mesh)
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
