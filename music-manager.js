@@ -3,6 +3,7 @@ this manager provides music preloading, selection, and playing.
 */
 
 import WSRTC from 'wsrtc/wsrtc.js';
+import {defaultMusicVolume} from './constants.js';
 
 class Music {
   constructor({name, urls}, audioContext) {
@@ -32,7 +33,7 @@ class Music {
     source.start(0);
 
     const gain = this.audioContext.createGain();
-    gain.gain.value = 0.3;
+    gain.gain.value = defaultMusicVolume;
 
     source.connect(gain);
     gain.connect(this.audioContext.gain);
