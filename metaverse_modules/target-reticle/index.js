@@ -24,15 +24,15 @@ const targetTypeColors = [
   {
     name: 'object',
     colors: [
-      new THREE.Color(0xffa726),
-      new THREE.Color(0xf57c00),
+      new THREE.Color(0x42a5f5),
+      new THREE.Color(0x1976d2),
     ],
   },
   {
     name: 'enemy',
     colors: [
-      new THREE.Color(0xef5350),
-      new THREE.Color(0xd32f2f),
+      new THREE.Color(0xffca28),
+      new THREE.Color(0xffa000),
     ],
   },
   {
@@ -73,7 +73,7 @@ function createTargetReticleGeometry() {
   _setQuaternions(baseGeometry);
 
   const _setTypes = g => {
-    const types = new Float32Array(g.attributes.position.count);
+    const types = new Int32Array(g.attributes.position.count);
     baseGeometry.setAttribute('type', new THREE.BufferAttribute(types, 1));
   };
   _setTypes(baseGeometry);
@@ -186,6 +186,7 @@ const _makeTargetReticleMesh = () => {
 
       attribute vec3 offset;
       attribute vec4 quaternion;
+      attribute int type;
       attribute vec2 normal2;
       // uniform vec4 uBoundingBox;
       uniform float uZoom;
@@ -196,6 +197,7 @@ const _makeTargetReticleMesh = () => {
       // varying vec2 vNormal2;
       // varying vec3 vNormal;
       varying vec3 vBarycentric;
+      flat varying int vType;
 
       const float zoomDistance = 20.;
 
@@ -237,6 +239,8 @@ const _makeTargetReticleMesh = () => {
         } else {
           vBarycentric = vec3(0., 0., 1.);
         }
+
+        vType = type;
       }
     `,
     fragmentShader: `\
@@ -245,15 +249,9 @@ const _makeTargetReticleMesh = () => {
 
       #define PI 3.1415926535897932384626433832795
 
-      // uniform vec4 uBoundingBox;
       uniform float uTime;
-      uniform vec3 uColor1;
-      uniform vec3 uColor2;
-      // uniform float uZoom;
-      // uniform float uTimeCubic;
-      // varying vec3 vColor;
-      // varying float vF;
       varying vec2 vUv;
+      flat varying int vType;
       // varying vec2 vNormal2;
       // varying vec3 vNormal;
       varying vec3 vBarycentric;
@@ -308,6 +306,19 @@ const _makeTargetReticleMesh = () => {
     }
 
       void main() {
+        vec3 uColor1;
+        vec3 uColor2;
+        if (vType == 0) {
+          uColor1 = vec3(${targetTypeColors[0].colors[0].toArray().join(', ')});
+          uColor2 = vec3(${targetTypeColors[0].colors[1].toArray().join(', ')});
+        } else if (vType == 1) {
+          uColor1 = vec3(${targetTypeColors[1].colors[0].toArray().join(', ')});
+          uColor2 = vec3(${targetTypeColors[1].colors[1].toArray().join(', ')});
+        } else if (vType == 2) {
+          uColor1 = vec3(${targetTypeColors[2].colors[0].toArray().join(', ')});
+          uColor2 = vec3(${targetTypeColors[2].colors[1].toArray().join(', ')});
+        }
+
         /* float t = pow(uTime, 0.5)/2. + 0.5;
         bool draw;
         if (vF > 0.5) {
@@ -356,12 +367,12 @@ const _makeTargetReticleMesh = () => {
     mesh.quaternion.copy(localPlayer.quaternion);
     mesh.updateMatrixWorld(); */
 
-    const targetType = 'friend';
+    /* const targetType = 'friend';
     const targetColors = targetTypeColors.find(t => t.name === targetType);
     material.uniforms.uColor1.value.copy(targetColors.colors[0]);
     material.uniforms.uColor1.needsUpdate = true;
     material.uniforms.uColor2.value.copy(targetColors.colors[1]);
-    material.uniforms.uColor2.needsUpdate = true;
+    material.uniforms.uColor2.needsUpdate = true; */
 
     let f2;
     if (f < 1/4) {
@@ -392,7 +403,7 @@ const _makeTargetReticleMesh = () => {
       for (let j = 0; j < geometry.drawStride; j++) {
         position.toArray(geometry.attributes.offset.array, (i * geometry.drawStride * 3) + (j * 3));
         quaternion.toArray(geometry.attributes.quaternion.array, (i * geometry.drawStride * 3) + (j * 4));
-        geometry.attributes.type.array[i] = typeIndex;
+        geometry.attributes.type.array[i * geometry.drawStride + j] = typeIndex;
       }
     }
     geometry.attributes.offset.needsUpdate = true;
