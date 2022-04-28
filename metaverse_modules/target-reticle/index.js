@@ -15,25 +15,34 @@ const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 
-const targetTypes = [
+/* const targetTypes = [
   'object',
   'enemy',
   'friend',
+]; */
+const targetTypeColors = [
+  {
+    name: 'object',
+    colors: [
+      new THREE.Color(0xffa726),
+      new THREE.Color(0xf57c00),
+    ],
+  },
+  {
+    name: 'enemy',
+    colors: [
+      new THREE.Color(0xef5350),
+      new THREE.Color(0xd32f2f),
+    ],
+  },
+  {
+    name: 'friend',
+    colors: [
+      new THREE.Color(0x66bb6a),
+      new THREE.Color(0x388e3c),
+    ],
+  },
 ];
-const targetTypeColors = {
-  object: [
-    new THREE.Color(0xffa726),
-    new THREE.Color(0xf57c00),
-  ],
-  enemy: [
-    new THREE.Color(0xef5350),
-    new THREE.Color(0xd32f2f),
-  ],
-  friend: [
-    new THREE.Color(0x66bb6a),
-    new THREE.Color(0x388e3c),
-  ],
-};
 const triangleHalfSize = 0.08;
 const triangleSize = triangleHalfSize * 2;
 const innerRadius = 0.3;
@@ -62,6 +71,12 @@ function createTargetReticleGeometry() {
     baseGeometry.setAttribute('quaternion', new THREE.BufferAttribute(quaternions, 4));
   };
   _setQuaternions(baseGeometry);
+
+  const _setTypes = g => {
+    const types = new Float32Array(g.attributes.position.count);
+    baseGeometry.setAttribute('type', new THREE.BufferAttribute(types, 1));
+  };
+  _setTypes(baseGeometry);
   
   const _setUvs = g => {
     const positions = g.attributes.position.array;
@@ -83,7 +98,6 @@ function createTargetReticleGeometry() {
     for (let i = 0; i < g.attributes.normal2.count; i++) {
       normal2D.toArray(normal2s, i * 2);
     }
-    // console.log('got normnal 2s', normal2s);
     g.attributes.normal2.needsUpdate = true;
     return g;
   };
@@ -152,7 +166,6 @@ const _makeTargetReticleMesh = () => {
       uColor2: {
         value: new THREE.Color(0xFFFFFF),
         needsUpdate: true,
-
       },
       uZoom: {
         // type: 'f',
@@ -344,11 +357,10 @@ const _makeTargetReticleMesh = () => {
     mesh.updateMatrixWorld(); */
 
     const targetType = 'friend';
-    // const targetTypeIndex = targetTypes.indexOf(targetType);
-    const targetTypeColor = targetTypeColors[targetType];
-    material.uniforms.uColor1.value.copy(targetTypeColor[0]);
+    const targetColors = targetTypeColors.find(t => t.name === targetType);
+    material.uniforms.uColor1.value.copy(targetColors.colors[0]);
     material.uniforms.uColor1.needsUpdate = true;
-    material.uniforms.uColor2.value.copy(targetTypeColor[1]);
+    material.uniforms.uColor2.value.copy(targetColors.colors[1]);
     material.uniforms.uColor2.needsUpdate = true;
 
     let f2;
@@ -366,7 +378,7 @@ const _makeTargetReticleMesh = () => {
     material.uniforms.uTime.value = f;
     material.uniforms.uTime.needsUpdate = true;
   };
-  // console.log('set draw range', 0, geometry.drawStride);
+
   mesh.setReticles = reticles => {
     const numReticles = reticles.length;
     for (let i = 0; i < numReticles; i++) {
@@ -374,14 +386,18 @@ const _makeTargetReticleMesh = () => {
       
       const position = reticle.position;
       const quaternion = localQuaternion.copy(camera.quaternion).invert();
+      const type = reticle.type;
+      const typeIndex = targetTypeColors.findIndex(t => t.name === type);
 
       for (let j = 0; j < geometry.drawStride; j++) {
         position.toArray(geometry.attributes.offset.array, (i * geometry.drawStride * 3) + (j * 3));
         quaternion.toArray(geometry.attributes.quaternion.array, (i * geometry.drawStride * 3) + (j * 4));
+        geometry.attributes.type.array[i] = typeIndex;
       }
     }
     geometry.attributes.offset.needsUpdate = true;
     geometry.attributes.quaternion.needsUpdate = true;
+    geometry.attributes.type.needsUpdate = true;
     geometry.setDrawRange(0, geometry.drawStride * numReticles);
   };
   return mesh;
