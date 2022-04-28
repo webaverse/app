@@ -447,7 +447,7 @@ class ZTargeting extends THREE.Object3D {
         position: new THREE.Vector3(-2, 1, -0.9),
       },
     ].concat(
-      result.map(({position, rotation, distance}) => ({
+      result.map(({position}) => ({
         position,
       }))
     ));
