@@ -35,17 +35,6 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
     'Crouched Sneaking Left.fbx',
     'Crouched Sneaking Right.fbx',
   ];
-  const trimClip = (clip, startTime, endTime) => { // todo: trim animations in Blender.
-    // https://github.com/webaverse/app/pull/2791#discussion_r851795506
-    for (let i = 0; i < clip.tracks.length; i++) {
-      clip.tracks[i].trim(startTime, endTime);
-      for (let j = 0; j < clip.tracks[i].times.length; j++) {
-        clip.tracks[i].times[j] -= startTime;
-      }
-    }
-    clip.resetDuration();
-    return clip;
-  }
   const findFilesWithExtension = (baseDir, subDir, ext) => {
     const files = [];
     const dotExt = `.${ext}`;
@@ -267,12 +256,6 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
           }
           track.values = values2;
         }
-      }
-
-      if (animation.name === 'One Hand Sword Combo.fbx') {
-        trimClip(animation, 0.4, animation.duration - 0.5);
-        // trim start to make attack fast.
-        // trim end to prevent sword cross player's head.
       }
 
       animations.push(animation);
