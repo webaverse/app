@@ -532,6 +532,26 @@ physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z)
 }
+
+physicsManager.sweepBox = (
+  origin,
+  quaternion,
+  halfExtents,
+  direction,
+  sweepDistance,
+  maxHits,
+) => {
+  return physx.physxWorker.sweepBox(
+    physx.physics,
+    origin,
+    quaternion,
+    halfExtents,
+    direction,
+    sweepDistance,
+    maxHits,
+  )
+};
+
 physicsManager.simulatePhysics = (timeDiff) => {
   if (physicsEnabled) {
     const t = timeDiff / 1000
