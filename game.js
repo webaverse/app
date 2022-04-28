@@ -655,7 +655,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       const type = (() => {
         if (distance < 5) {
           return 'friend';
-        } else if (distance < 15) {
+        } else if (distance < 10) {
           return 'enemy';
         } else {
           return 'object';
