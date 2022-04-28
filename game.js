@@ -30,6 +30,9 @@ import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
 import {generateObjectUrlCard} from './card-generator.js';
 import * as sounds from './sounds.js';
+import {scene} from './renderer.js';
+import physicsManager from './physics-manager.js';
+// import * as metaverseModules from './metaverse-modules.js';
 
 // const {contractNames} = metaversefileConstants;
 
@@ -421,6 +424,38 @@ const _gameInit = () => {
 Promise.resolve()
   .then(_gameInit);
 
+class ZTargeting extends THREE.Object3D {
+  constructor() {
+    super();
+
+    const targetReticleApp = metaversefileApi.createApp();
+    (async () => {
+      await metaverseModules.waitForLoad();
+
+      const {modules} = metaverseModules;
+      const m = modules['targetReticle'];
+      await targetReticleApp.addModule(m);
+    })();
+    scene.add(targetReticleApp);
+    this.targetReticleApp = targetReticleApp;
+  }
+  setQueryResult(result) {
+    // console.log('set result', this.targetReticleApp, result);
+    const targetReticleMesh = this.targetReticleApp.children[0];
+    targetReticleMesh.setReticles([
+      {
+        position: new THREE.Vector3(-2, 1, -0.9),
+      },
+    ].concat(
+      result.map(({position, rotation, distance}) => ({
+        position,
+      }))
+    ));
+  }
+}
+const zTargeting = new ZTargeting();
+scene.add(zTargeting);
+
 // let lastDraggingRight = false;
 // let dragRightSpec = null;
 let lastActivated = false;
@@ -600,6 +635,25 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
   };
   _handlePhysicsHighlight();
+
+  const _handleZTargeting = () => {
+    const {position, quaternion} = localPlayer;
+    const halfExtents = new THREE.Vector3(2, 1, 0.1);
+    const direction = new THREE.Vector3(0, 0, -1)
+      .applyQuaternion(quaternion);
+    const sweepDistance = 100;
+    const maxHits = 4;
+    const result = physicsManager.sweepBox(
+      position,
+      quaternion,
+      halfExtents,
+      direction,
+      sweepDistance,
+      maxHits,
+    );
+    zTargeting.setQueryResult(result);
+  };
+  _handleZTargeting();
 
   const _updatePhysicsHighlight = () => {
     highlightPhysicsMesh.visible = false;
