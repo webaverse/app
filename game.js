@@ -438,18 +438,67 @@ class ZTargeting extends THREE.Object3D {
     })();
     scene.add(targetReticleApp);
     this.targetReticleApp = targetReticleApp;
+
+    this.lastFocus = false;
+    this.focusTargetReticle = null;
   }
-  setQueryResult(result) {
-    // console.log('set result', this.targetReticleApp, result);
+  setQueryResult(result, focus, lastFocusChangeTime) {
     const targetReticleMesh = this.targetReticleApp.children[0];
-    targetReticleMesh.setReticles([
-      {
-        position: new THREE.Vector3(-2, 1, -0.9),
-        type: 'friend',
-      },
-    ].concat(
-      result
-    ));
+    
+    // console.log('set focus', focus);
+
+    let reticles = result;
+    if (reticles.length > 0) {
+      const reticleSpecs = reticles.map(reticle => {
+        localVector.copy(reticle.position)
+          .project(camera);
+        if (
+          localVector.x >= -1 && localVector.x <= 1 &&
+          localVector.y >= -1 && localVector.y <= 1 &&
+          localVector.z > 0
+        ) {
+          return {
+            reticle,
+            lengthSq: localVector.lengthSq(),
+          };
+        } else {
+          return null;
+        }
+      });
+      for (let i = reticleSpecs.length - 1; i >= 0; i--) {
+        if (reticleSpecs[i] === null) {
+          reticleSpecs.splice(i, 1);
+        }
+      }
+      reticleSpecs.sort((a, b) => a.lengthSq - b.lengthSq);
+      reticles = reticleSpecs.map(reticleSpec => reticleSpec.reticle);
+    }
+
+    if (focus && !this.lastFocus) {
+      console.log('got reticles', reticles);
+      if (reticles.length > 0) {
+        this.focusTargetReticle = reticles[0];
+        sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
+      } else {
+        this.focusTargetReticle = null;
+        sounds.playSoundName('zTargetCenter');
+      }
+    } else if (this.lastFocus && !focus) {
+      if (this.focusTargetReticle) {
+        this.focusTargetReticle = null;
+        sounds.playSoundName('zTargetCancel');
+      }
+    }
+
+    // console.log('focus target reticle', !!this.focusTargetReticle);
+
+    if (this.focusTargetReticle) {
+      reticles = [this.focusTargetReticle];
+    }
+    
+    targetReticleMesh.setReticles(reticles);
+
+    this.lastFocus = focus;
   }
 }
 const zTargeting = new ZTargeting();
@@ -666,7 +715,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         type,
       }
     });
-    zTargeting.setQueryResult(queryResult);
+    zTargeting.setQueryResult(queryResult, cameraManager.focus, cameraManager.lastFocusChangeTime);
   };
   _handleZTargeting();
 
@@ -1238,13 +1287,10 @@ class GameManager extends EventTarget {
   menuDragdown(e) {
     cameraManager.setFocus(true);
 
-    // this.dragging = true;
-    
-    /* world.appManager.dispatchEvent(new MessageEvent('dragchange', {
-      data: {
-        dragging: this.dragging,
-      },
-    })); */
+    // zTargetCenter
+    // zTargetObject
+    // zTargetEnemy
+    // zTargetCancel
   }
   menuDrag(e) {
     /* const {movementX, movementY} = e;
