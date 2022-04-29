@@ -784,7 +784,7 @@ ioManager.mouseleave = e => {
 };
 ioManager.click = e => {
   if (cameraManager.pointerLockElement) {
-    game.menuClick();
+    game.menuClick(e);
   } else {
     // game.setContextMenu(false);
     

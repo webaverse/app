@@ -1281,8 +1281,8 @@ class GameManager extends EventTarget {
   menuDelete() {
     _delete();
   }
-  menuClick() {
-    _click();
+  menuClick(e) {
+    _click(e);
   }
   menuMouseDown() {
     _mousedown();
