@@ -205,9 +205,8 @@ class AppManager extends EventTarget {
   bindEvents() {
     this.addEventListener('trackedappadd', async e => {
       const {trackedApp} = e.data;
-      const trackedAppJson = trackedApp.toJSON();
-      const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedAppJson;
-      const components = componentsString/* JSON.parse(componentsString) */;
+      const trackedAppBinding = trackedApp.toJSON();
+      const {instanceId, contentId, position, quaternion, scale, components} = trackedAppBinding;
       
       const p = makePromise();
       p.instanceId = instanceId;
@@ -426,7 +425,7 @@ class AppManager extends EventTarget {
     trackedApp.set('position', position);
     trackedApp.set('quaternion', quaternion);
     trackedApp.set('scale', scale);
-    trackedApp.set('components', components/* JSON.stringify(components) */);
+    trackedApp.set('components', components);
     return trackedApp;
   }
   addTrackedApp(
