@@ -249,20 +249,20 @@ class CameraManager extends EventTarget {
   takeAim(){
     //If the camera is far zoom in when aiming
     if (-cameraOffset.z > -maxAim.z){
-      let tempOffset = lerpNum(cameraOffsetZ, -maxAim.z, 0.2);
-      cameraOffsetTargetZ = tempOffset;
+      let lerpValZ = lerpNum(cameraOffsetZ, -maxAim.z, 0.2);
+      cameraOffsetTargetZ = lerpValZ;
     }
     else{
       //do nothing
     }
     //Offset aim along the x axis regardless of distance
-    const newOffset = lerpNum(cameraOffset.x, maxAim.x, 0.1);
-    cameraOffset.x = newOffset;
+    const lerpX = lerpNum(cameraOffset.x, maxAim.x, 0.1);
+    cameraOffset.x = lerpX;
   }
   removeAim(){
-    const zdist = (lastCamoffsetZ - cameraOffsetTargetZ);
+    const zDist = (lastCamoffsetZ - cameraOffsetTargetZ);
     //we only want to revert to our original z value if there is a descrepancy between our expected zdistance and our actual distance
-    if (zdist !== 0){
+    if (zDist !== 0){
       cameraOffsetZ = lerpNum(cameraOffsetZ, lastCamoffsetZ, 0.2);
       cameraOffsetTargetZ = cameraOffsetZ;
     }
@@ -270,8 +270,8 @@ class CameraManager extends EventTarget {
       //do nothing
     }
     //Revert x axis offset back to 0
-    const newOffset2 = lerpNum(cameraOffset.x, 0, 0.1);
-    cameraOffset.x = newOffset2;
+    const lerpZero = lerpNum(cameraOffset.x, 0, 0.1);
+    cameraOffset.x = lerpZero;
   }
 
 
@@ -416,8 +416,8 @@ class CameraManager extends EventTarget {
             } else {
               localVector3.copy(localPlayer.position);
             }
+            //any time we return to first person we remove any x-axis shift
             this.removeAim();
-
             camera.position.copy(localVector3)
               .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
 
