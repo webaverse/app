@@ -76,14 +76,40 @@ class Conversation extends EventTarget {
 
     this.messages = [];
   }
-  addLocalPlayerMessage(message) {
+  addLocalPlayerMessage(text) {
+    const message = {
+      name: this.localPlayer.name,
+      text,
+    };
+    this.messages.push(message);
+
     (async () => {
-      await _playerSay(this.localPlayer, message);
+      await _playerSay(this.localPlayer, text);
+    })();
+
+    (async () => {
+      console.log('got remote player name', this.messages.slice(), this.remotePlayer.name);
+      const aiScene = metaversefile.useLoreAIScene();
+      const comment = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
+      console.log('got remote player text', text);
+      /* const conversation = new Conversation(localPlayer, remotePlayer);
+      story.dispatchEvent(new MessageEvent({
+        data: {
+          conversation,
+        },
+      })); */
+      this.addRemotePlayerMessage(comment);
     })();
   }
-  addRemotePlayerMessage(message) {
+  addRemotePlayerMessage(text) {
+    const message = {
+      name: this.remotePlayer.name,
+      text,
+    };
+    this.messages.push(message);
+    
     (async () => {
-      await _playerSay(this.remotePlayer, message);
+      await _playerSay(this.remotePlayer, text);
     })();
   }
   destroy() {
@@ -164,19 +190,21 @@ export const listenHack = () => {
         const aiScene = metaversefile.useLoreAIScene();
         // console.log('generate 1');
         if (appType === 'vrm') {
-          const comment = await aiScene.generateSelectCharacterComment(name, description);
           const remotePlayer = npcManager.npcs.find(npc => {
-            console.log('find npc', npc);
-            return false;
+            return true; // XXX
           });
 
-          const conversation = new Conversation(localPlayer, remotePlayer);
-          story.dispatchEvent(new MessageEvent({
-            data: {
-              conversation,
-            },
-          }));
-          conversation.addLocalPlayerMessage(comment);
+          if (remotePlayer) {
+            const comment = await aiScene.generateSelectCharacterComment(name, description);
+
+            const conversation = new Conversation(localPlayer, remotePlayer);
+            story.dispatchEvent(new MessageEvent({
+              data: {
+                conversation,
+              },
+            }));
+            conversation.addLocalPlayerMessage(comment);
+          }
         } else {
           const comment = await aiScene.generateSelectTargetComment(name, description);
           _playerSay(localPlayer, comment);
