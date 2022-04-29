@@ -203,11 +203,11 @@ class AIScene {
     });
     const stop = makeLoreStop(this.localCharacter, 0);
     let response = await this.generateFn(prompt, stop);
-    console.log('got lore', {prompt, response});
+    // console.log('got lore', {prompt, response});
     response = postProcessResponse(response, this.characters, dstCharacter);
     return response;
   }
-  async generateComment(name, dstCharacter = null) {
+  async generateLocationComment(name, dstCharacter = null) {
     const prompt = makeCommentPrompt({
       settings: this.settings,
       dstCharacter,
@@ -216,7 +216,33 @@ class AIScene {
     const stop = makeCommentStop();
     let response = await this.generateFn(prompt, stop);
     response = parseCommentResponse(response);
-    console.log('got comment', {prompt, response});
+    // console.log('got comment', {prompt, response});
+    return response;
+  }
+  async generateSelectTargetComment(name, description) {
+    const prompt = makeSelectTargetPrompt({
+      name,
+      description,
+    });
+    console.log('select target prompt', {prompt});
+    const stop = makeSelectTargetStop();
+    let response = await this.generateFn(prompt, stop);
+    console.log('select target response', {prompt, response});
+    response = parseSelectTargetResponse(response);
+    // console.log('got comment', {prompt, response});
+    return response;
+  }
+  async generateSelectCharacterComment(name, description) {
+    const prompt = makeSelectCharacterPrompt({
+      name,
+      description,
+    });
+    console.log('select character prompt', {prompt});
+    const stop = makeSelectCharacterStop();
+    let response = await this.generateFn(prompt, stop);
+    console.log('select character response', {prompt, response});
+    response = parseSelectCharacterResponse(response);
+    // console.log('got comment', {prompt, response});
     return response;
   }
 }
@@ -228,7 +254,9 @@ class LoreAI {
   async generate(prompt, {
     stop,
     max_tokens = 100,
-    // temperature,
+    temperature,
+    frequency_penalty,
+    presence_penalty,
     // top_p,
   } = {}) {
     if (prompt) {    
@@ -237,6 +265,15 @@ class LoreAI {
       query.max_tokens = max_tokens;
       if (stop !== undefined) {
         query.stop = stop;
+      }
+      if (temperature !== undefined) {
+        query.temperature = temperature;
+      }
+      if (frequency_penalty !== undefined) {
+        query.frequency_penalty = frequency_penalty;
+      }
+      if (presence_penalty !== undefined) {
+        query.presence_penalty = presence_penalty;
       }
       
       query.temperature = temperature;
@@ -296,7 +333,9 @@ class LoreAI {
       generateFn: (prompt, stop) => {
         return this.generate(prompt, {
           stop,
-          // temperature,
+          temperature: 1,
+          presence_penalty: 2,
+          frequency_penalty: 2,
           // top_p,
         });
       },
