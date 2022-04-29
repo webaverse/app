@@ -193,7 +193,7 @@ class CameraManager extends EventTarget {
 
     //Prevent scrolling past aim distance while aiming
     const scrollDist = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
-    if (localPlayer.hasAction('aim') && localPlayer.position.z - scrollDist > maxAim.z){
+    if (localPlayer.hasAction('aim') && scrollDist <= maxAim.z){
       //do nothing
     }
     else{
