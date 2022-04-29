@@ -655,8 +655,7 @@ class AppManager extends EventTarget {
       const position = trackedApp.get('position');
       const quaternion = trackedApp.get('quaternion');
       const scale = trackedApp.get('scale');
-      const componentsString = trackedApp.get('components');
-      const components = jsonParse(componentsString) ?? [];
+      const components = trackedApp.get('components') ?? [];
       const object = {
         position,
         quaternion,
