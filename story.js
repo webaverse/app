@@ -18,6 +18,7 @@ import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
 import zTargeting from './z-targeting.js';
 import cameraManager from './camera-manager.js';
+import npcManager from './npc-manager.js';
 import {chatManager} from './chat-manager.js';
 
 const localVector2D = new THREE.Vector2();
@@ -55,10 +56,50 @@ const _stopSwirl = () => {
     return false;
   }
 };
+
+//
+
+const _playerSay = async (player, message) => {
+  const preloadedMessage = player.voicer.preloadMessage(message);
+  await chatManager.waitForVoiceTurn(() => {
+    // setText(message);
+    return player.voicer.start(preloadedMessage);
+  });
+  // setText('');
+};
+class Conversation extends EventTarget {
+  constructor(localPlayer, remotePlayer) {
+    super();
+
+    this.localPlayer = localPlayer;
+    this.remotePlayer = remotePlayer;
+
+    this.messages = [];
+  }
+  addLocalPlayerMessage(message) {
+    (async () => {
+      await _playerSay(this.localPlayer, message);
+    })();
+  }
+  addRemotePlayerMessage(message) {
+    (async () => {
+      await _playerSay(this.remotePlayer, message);
+    })();
+  }
+  destroy() {
+    this.dispatchEvent(new MessageEvent('destroy'));
+  }
+}
+
+//
+
 const fieldMusicNames = [
   'dungeon',
   'homespace',
 ];
+
+//
+
 export const listenHack = () => {
   let currentFieldMusic = null;
   let currentFieldMusicIndex = 0;
@@ -122,21 +163,28 @@ export const listenHack = () => {
         const localPlayer = metaversefile.useLocalPlayer();
         const aiScene = metaversefile.useLoreAIScene();
         // console.log('generate 1');
-        let comment;
         if (appType === 'vrm') {
-          comment = await aiScene.generateSelectCharacterComment(name, description);
+          const comment = await aiScene.generateSelectCharacterComment(name, description);
+          const remotePlayer = npcManager.npcs.find(npc => {
+            console.log('find npc', npc);
+            return false;
+          });
+
+          const conversation = new Conversation(localPlayer, remotePlayer);
+          story.dispatchEvent(new MessageEvent({
+            data: {
+              conversation,
+            },
+          }));
+          conversation.addLocalPlayerMessage(comment);
         } else {
-          comment = await aiScene.generateSelectTargetComment(name, description);
+          const comment = await aiScene.generateSelectTargetComment(name, description);
+          _playerSay(localPlayer, comment);
         }
-        // console.log('generate select target comment', {comment, name, description});
-        const message = comment;
-        const preloadedMessage = localPlayer.voicer.preloadMessage(message);
-        await chatManager.waitForVoiceTurn(() => {
-          // setText(message);
-          return localPlayer.voicer.start(preloadedMessage);
-        });
-        // setText('');
       })();
     }
   });
 };
+
+const story = new EventTarget();
+export default story;
