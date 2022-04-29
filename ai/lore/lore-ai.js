@@ -20,6 +20,14 @@ import {
   makeSelectCharacterPrompt,
   makeSelectCharacterStop,
   parseSelectCharacterResponse,
+
+  makeChatPrompt,
+  makeChatStop,
+  parseChatResponse,
+
+  makeOptionsPrompt,
+  makeOptionsStop,
+  parseOptionsResponse,
 } from './lore-model.js'
 
 const numGenerateTries = 5;
@@ -219,6 +227,8 @@ class AIScene {
     // console.log('got comment', {prompt, response});
     return response;
   }
+  
+  // XXX needs better API
   async generateSelectTargetComment(name, description) {
     const prompt = makeSelectTargetPrompt({
       name,
@@ -242,6 +252,31 @@ class AIScene {
     let response = await this.generateFn(prompt, stop);
     console.log('select character response', {prompt, response});
     response = parseSelectCharacterResponse(response);
+    // console.log('got comment', {prompt, response});
+    return response;
+  }
+  async generateChatMessage(messages, nextCharacter) {
+    const prompt = makeChatPrompt({
+      messages,
+      nextCharacter,
+    });
+    console.log('chat prompt', {prompt});
+    const stop = makeChatStop();
+    let response = await this.generateFn(prompt, stop);
+    console.log('chat response', {prompt, response});
+    response = parseChatResponse(response);
+    // console.log('got comment', {prompt, response});
+    return response;
+  }
+  async generateDialogueOptions(messages) {
+    const prompt = makeOptionsPrompt({
+      messages,
+    });
+    console.log('dialogue prompt', {prompt});
+    const stop = makeOptionsStop();
+    let response = await this.generateFn(prompt, stop);
+    console.log('dialogue response', {prompt, response});
+    response = parseOptionsResponse(response);
     // console.log('got comment', {prompt, response});
     return response;
   }
