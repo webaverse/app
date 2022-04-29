@@ -26,6 +26,7 @@ const soundFiles = {
   menuDone: _getSoundFiles(/OOT_Dialogue_Done/),
   menuClick: _getSoundFiles(/ff8_click/),
   menuOk: _getSoundFiles(/ff8_menu_ok/),
+  menuSelect: _getSoundFiles(/PauseMenu_Select/),
   menuBack: _getSoundFiles(/ff8_menu_back/),
   menuLeft: _getSoundFiles(/PauseMenu_Turn_Left/),
   menuRight: _getSoundFiles(/PauseMenu_Turn_Right/),
