@@ -4,7 +4,7 @@ physx wasm integration.
 
 import * as THREE from 'three'
 // import {makePromise} from './util.js';
-// import { getRenderer } from './renderer.js'
+import { getRenderer } from './renderer.js'
 import Module from './public/bin/geometry.js'
 
 const localVector = new THREE.Vector3()
@@ -659,45 +659,6 @@ const physxWorker = (() => {
 
     return newUpdates
   }
-
-  w.createMaterial = (physics, mat) => {
-    const material = scratchStack.f32.subarray(0, 3);
-    material.set(mat);
-
-    const materialByteOffset = scratchStack.f32.byteOffset;
-
-    const materialAddress = moduleInstance._createMaterialPhysics(
-      physics,
-      materialByteOffset,
-    );
-    return materialAddress;
-  };
-  w.destroyMaterial = (physics, materialAddress) => {
-    moduleInstance._destroyMaterial(physics, materialAddress);
-  };
-  w.getDefaultMaterial = (() => {
-    let defaultMaterial = null;
-    const defaultMaterialParams = [0.5, 0.5, 0.1];
-    
-    return physics => {
-      if (defaultMaterial === null) {
-        defaultMaterial = w.createMaterial(physics, defaultMaterialParams);
-      }
-      return defaultMaterial;
-    };
-  })();
-  w.getZeroMaterial = (() => {
-    let zeroMaterial = null;
-    const zeroMaterialParams = [0, 0, 0];
-    
-    return physics => {
-      if (zeroMaterial === null) {
-        zeroMaterial = w.createMaterial(physics, zeroMaterialParams);
-      }
-      return zeroMaterial;
-    };
-  })();
-
   w.raycastPhysics = (physics, p, q) => {
     if (physics) {
       p.toArray(scratchStack.f32, 0)
@@ -956,105 +917,6 @@ const physxWorker = (() => {
   w.setAngularLockFlags = (physics, physicsId, x, y, z) => {
     moduleInstance._setAngularLockFlagsPhysics(physics, physicsId, x, y, z)
   }
-
-  w.sweepBox = (
-    physics,
-    origin,
-    quaternion,
-    halfExtents,
-    direction,
-    sweepDistance,
-    maxHits,
-    /* numHitsBuf.byteOffset,
-    positionBuf.byteOffset,
-    normalBuf.byteOffset,
-    distanceBuf.byteOffset,
-    objectIdBuf.byteOffset,
-    faceIndexBuf.byteOffset, */
-  ) => {
-    const allocator = new Allocator();
-    
-    // inputs
-    const originBuf = allocator.alloc(
-      Float32Array,
-      3
-    );
-    origin.toArray(originBuf);
-    const quaternionBuf = allocator.alloc(
-      Float32Array,
-      4
-    );
-    quaternion.toArray(quaternionBuf);
-    const halfExtentsBuf = allocator.alloc(
-      Float32Array,
-      3
-    );
-    halfExtents.toArray(halfExtentsBuf);
-    const directionBuf = allocator.alloc(
-      Float32Array,
-      3
-    );
-    direction.toArray(directionBuf);
-
-    // outputs
-    const numHitsBuf = allocator.alloc(
-      Uint32Array,
-      1
-    );
-    const positionBuf = allocator.alloc(
-      Float32Array,
-      maxHits * 3
-    );
-    const normalBuf = allocator.alloc(
-      Float32Array,
-      maxHits * 3
-    );
-    const distanceBuf = allocator.alloc(
-      Float32Array,
-      maxHits * 1
-    );
-    const objectIdBuf = allocator.alloc(
-      Uint32Array,
-      maxHits * 1
-    );
-    const faceIndexBuf = allocator.alloc(
-      Uint32Array,
-      maxHits * 1
-    );
-
-    moduleInstance._sweepBox(
-      physics,
-      originBuf.byteOffset,
-      quaternionBuf.byteOffset,
-      halfExtentsBuf.byteOffset,
-      directionBuf.byteOffset,
-      sweepDistance,
-      maxHits,
-      numHitsBuf.byteOffset,
-      positionBuf.byteOffset,
-      normalBuf.byteOffset,
-      distanceBuf.byteOffset,
-      objectIdBuf.byteOffset,
-      faceIndexBuf.byteOffset,
-    );
-
-    const numHits = numHitsBuf[0];
-    let result = Array(numHits);
-    for (let i = 0; i < numHits; i++) {
-      const object = {
-        position: new THREE.Vector3().fromArray(positionBuf, i * 3),
-        normal: new THREE.Vector3().fromArray(normalBuf, i * 3),
-        distance: distanceBuf[i],
-        objectId: objectIdBuf[i],
-        faceIndex: faceIndexBuf[i],
-      };
-      result[i] = object;
-    }
-
-    allocator.freeAll();
-
-    return result
-  };
 
   w.getPathPhysics = (
     physics,
@@ -1335,7 +1197,7 @@ const physxWorker = (() => {
       : null
   }
 
-  w.addGeometryPhysics = (physics, mesh, id) => {
+  w.addGeometryPhysics = (physics, mesh, id, physicsMaterial) => {
     const { geometry } = mesh
 
     const allocator = new Allocator()
@@ -1364,35 +1226,27 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2]
 
-    const shape = moduleInstance._createShapePhysics(
-      physics,
-      dataPtr,
-      dataLength,
-      streamPtr,
-    )
-
     const positionBuffer = scratchStack.f32.subarray(3, 6)
     mesh.getWorldPosition(localVector).toArray(positionBuffer)
     const quaternionBuffer = scratchStack.f32.subarray(6, 10)
     mesh.getWorldQuaternion(localQuaternion).toArray(quaternionBuffer)
     const scaleBuffer = scratchStack.f32.subarray(10, 13)
     mesh.getWorldScale(localVector2).toArray(scaleBuffer)
-    /* const mat = scratchStack.f32.subarray(13, 16)
+    const mat = scratchStack.f32.subarray(13, 16)
     mat[0] = physicsMaterial[0]
     mat[1] = physicsMaterial[1]
-    mat[2] = physicsMaterial[2] */
-
-    const materialAddress = w.getDefaultMaterial(physics)
+    mat[2] = physicsMaterial[2]
 
     moduleInstance._addGeometryPhysics(
       physics,
-      shape,
+      dataPtr,
+      dataLength,
       positionBuffer.byteOffset,
       quaternionBuffer.byteOffset,
       scaleBuffer.byteOffset,
       id,
-      materialAddress,
-      shape
+      mat.byteOffset,
+      streamPtr
     )
   }
   w.cookGeometryPhysics = (physics, mesh) => {
@@ -1448,23 +1302,14 @@ const physxWorker = (() => {
     const scaleBuffer = scratchStack.f32.subarray(7, 10)
     scale.toArray(scaleBuffer)
 
-    const shape = moduleInstance._createShapePhysics(
+    moduleInstance._addGeometryPhysics(
       physics,
       buffer2.byteOffset,
       buffer2.byteLength,
-      0,
-    )
-
-    const materialAddress = w.getDefaultMaterial(physics)
-
-    moduleInstance._addGeometryPhysics(
-      physics,
-      shape,
       positionBuffer.byteOffset,
       quaternionBuffer.byteOffset,
       scaleBuffer.byteOffset,
       id,
-      materialAddress,
       0
     )
     allocator.freeAll()
@@ -1500,35 +1345,22 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2]
 
-    const shape = moduleInstance._createShapePhysics(
-      physics,
-      dataPtr,
-      dataLength,
-      streamPtr,
-    )
-
     const positionBuffer = scratchStack.f32.subarray(3, 6)
     mesh.getWorldPosition(localVector).toArray(positionBuffer)
     const quaternionBuffer = scratchStack.f32.subarray(6, 10)
     mesh.getWorldQuaternion(localQuaternion).toArray(quaternionBuffer)
     const scaleBuffer = scratchStack.f32.subarray(10, 13)
     mesh.getWorldScale(localVector2).toArray(scaleBuffer)
-    /* const mat = scratchStack.f32.subarray(13, 16)
-    mat[0] = physicsMaterial[0]
-    mat[1] = physicsMaterial[1]
-    mat[2] = physicsMaterial[2] */
-
-    const materialAddress = w.getDefaultMaterial(physics);
 
     moduleInstance._addConvexGeometryPhysics(
       physics,
-      shape,
+      dataPtr,
+      dataLength,
       positionBuffer.byteOffset,
       quaternionBuffer.byteOffset,
       scaleBuffer.byteOffset,
       id,
-      materialAddress,
-      shape
+      streamPtr
     )
   }
   w.cookConvexGeometryPhysics = (physics, mesh) => {
@@ -1558,7 +1390,7 @@ const physxWorker = (() => {
 
     const dataPtr = scratchStack.u32[0]
     const dataLength = scratchStack.u32[1]
-    const streamPtr = scratchStack.u32[2] // XXX delete if it will not be deleted
+    const streamPtr = scratchStack.u32[2]
 
     const result = new Uint8Array(dataLength)
     result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength))
@@ -1583,28 +1415,15 @@ const physxWorker = (() => {
     quaternion.toArray(quaternionBuffer)
     const scaleBuffer = scratchStack.f32.subarray(7, 10)
     scale.toArray(scaleBuffer)
-    /* const mat = scratchStack.f32.subarray(10, 13)
-    mat[0] = physicsMaterial[0]
-    mat[1] = physicsMaterial[1]
-    mat[2] = physicsMaterial[2] */
-
-    const shape = moduleInstance._createShapePhysics(
-      physics,
-      buffer2.byteOffset,
-      buffer2.byteLength,
-      0,
-    )
-
-    const materialAddress = w.getDefaultMaterial(physics)
 
     moduleInstance._addConvexGeometryPhysics(
       physics,
-      shape,
+      buffer2.byteOffset,
+      buffer2.byteLength,
       positionBuffer.byteOffset,
       quaternionBuffer.byteOffset,
       scaleBuffer.byteOffset,
       id,
-      materialAddress,
       0
     )
     allocator.freeAll()
@@ -1841,21 +1660,19 @@ const physxWorker = (() => {
     quaternion,
     radius,
     halfHeight,
-    materialAddress,
+    physicsMaterial,
     id,
     dynamic,
     flags = {}
   ) => {
-    if (typeof materialAddress !== 'number') {
-      debugger;
-    }
-
     const allocator = new Allocator()
     const p = allocator.alloc(Float32Array, 3)
     const q = allocator.alloc(Float32Array, 4)
+    const mat = allocator.alloc(Float32Array, 3)
 
     position.toArray(p)
     quaternion.toArray(q)
+    physicsMaterial.toArray(mat)
 
     const flagsInt = (+flags.physics << 0) | (+flags.ccd << 1)
     moduleInstance._addCapsuleGeometryPhysics(
@@ -1864,7 +1681,7 @@ const physxWorker = (() => {
       q.byteOffset,
       radius,
       halfHeight,
-      materialAddress,
+      mat.byteOffset,
       id,
       dynamic,
       flagsInt
@@ -1888,15 +1705,12 @@ const physxWorker = (() => {
     quaternion.toArray(q)
     size.toArray(s)
 
-    const materialAddress = w.getDefaultMaterial(physics);
-
     moduleInstance._addBoxGeometryPhysics(
       physics,
       p.byteOffset,
       q.byteOffset,
       s.byteOffset,
       id,
-      materialAddress,
       +dynamic
     )
     allocator.freeAll()
@@ -1908,14 +1722,15 @@ const physxWorker = (() => {
     contactOffset,
     stepOffset,
     position,
+    mat,
     id
   ) => {
     const allocator = new Allocator()
     const p = allocator.alloc(Float32Array, 3)
+    const m = allocator.alloc(Float32Array, 3)
 
     position.toArray(p)
-
-    const zeroMaterial = w.getZeroMaterial(physics);
+    mat.toArray(m)
 
     const characterController =
       moduleInstance._createCharacterControllerPhysics(
@@ -1925,7 +1740,7 @@ const physxWorker = (() => {
         contactOffset,
         stepOffset,
         p.byteOffset,
-        zeroMaterial,
+        m.byteOffset,
         id
       )
     allocator.freeAll()

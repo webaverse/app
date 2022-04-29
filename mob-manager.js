@@ -36,13 +36,15 @@ function makeCharacterController(app, {
       localVector3.copy(position)
         .applyQuaternion(localQuaternion)
     );
-
+  const physicsMaterial = new THREE.Vector3(0, 0, 0);
+  
   const characterController = physicsManager.createCharacterController(
     radius - contactOffset,
     innerHeight,
     contactOffset,
     stepOffset,
-    characterPosition
+    characterPosition,
+    physicsMaterial
   );
   // this.characterControllerObject = new THREE.Object3D();
   return characterController;

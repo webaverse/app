@@ -922,7 +922,11 @@ export const handleUpload = async (
 
     const rootDirectory = hashes.find(h => h.name === '');
     const rootDirectoryHash = rootDirectory.hash;
-    return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+    const data = {
+      u: `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`,
+      hash: rootDirectoryHash
+    }
+    return data;
   };
   const _handleString = item => handleDropJsonItem(item);
   const _handleDirectory = async entry => {
@@ -980,7 +984,12 @@ export const handleUpload = async (
 
     const rootDirectory = hashes.find(h => h.name === '');
     const rootDirectoryHash = rootDirectory.hash;
-    return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+
+    const data = {
+      u: `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`,
+      hash: rootDirectoryHash
+    }
+    return data;
   };
   const _handleFile = async file => {
     const j = await doUpload(`https://ipfs.webaverse.com/`, file, {
@@ -988,8 +997,11 @@ export const handleUpload = async (
     });
     const {hash} = j;
     const {name} = file;
-
-    return `${storageHost}/${hash}/${name}`;
+    const data = {
+        u: `${storageHost}/${hash}/${name}`,
+        hash: hash
+    }
+    return data;
   };
   const _uploadObject = async item => {
     let u = null;

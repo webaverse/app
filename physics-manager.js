@@ -62,7 +62,7 @@ physicsManager.addCapsuleGeometry = (
   quaternion,
   radius,
   halfHeight,
-  material,
+  physicsMaterial,
   dynamic,
   flags = {}
 ) => {
@@ -73,8 +73,8 @@ physicsManager.addCapsuleGeometry = (
     quaternion,
     radius,
     halfHeight,
+    physicsMaterial,
     physicsId,
-    material,
     dynamic,
     flags
   )
@@ -166,10 +166,6 @@ physicsManager.addGeometry = (mesh) => {
   physicsObject.physicsMesh = physicsMesh
   return physicsObject
 }
-physicsManager.createMaterial = physicsMaterial =>
-  physx.physxWorker.createMaterial(physx.physics, physicsMaterial);
-physicsManager.destroyMaterial = materialAddress =>
-  physx.physxWorker.destroyMaterial(physx.physics, materialAddress);
 physicsManager.cookGeometry = (mesh) =>
   physx.physxWorker.cookGeometryPhysics(physx.physics, mesh)
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
@@ -256,7 +252,7 @@ physicsManager.addCookedConvexGeometry = (
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
-  physicsObject.physicsMesh = physicsMesh;
+  physicsObject.physicsMesh = physicsMesh
   return physicsObject
 }
 
@@ -415,7 +411,8 @@ physicsManager.createCharacterController = (
   height,
   contactOffset,
   stepOffset,
-  position
+  position,
+  mat
 ) => {
   const physicsId = getNextPhysicsId()
   const characterControllerId =
@@ -426,6 +423,7 @@ physicsManager.createCharacterController = (
       contactOffset,
       stepOffset,
       position,
+      mat,
       physicsId
     )
 
@@ -536,26 +534,6 @@ physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z)
 }
-
-physicsManager.sweepBox = (
-  origin,
-  quaternion,
-  halfExtents,
-  direction,
-  sweepDistance,
-  maxHits,
-) => {
-  return physx.physxWorker.sweepBox(
-    physx.physics,
-    origin,
-    quaternion,
-    halfExtents,
-    direction,
-    sweepDistance,
-    maxHits,
-  )
-};
-
 physicsManager.simulatePhysics = (timeDiff) => {
   if (physicsEnabled) {
     const t = timeDiff / 1000

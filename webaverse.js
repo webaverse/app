@@ -40,9 +40,7 @@ import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-import musicManager from './music-manager.js';
-import * as story from './story.js';
-// import {OffscreenEngine} from './offscreen-engine.js';
+import {OffscreenEngine} from './offscreen-engine.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -73,8 +71,6 @@ export default class Webaverse extends EventTarget {
   constructor() {
     super();
 
-    story.listenHack();
-
     this.loadPromise = (async () => {
       await Promise.all([
         physx.waitForLoad(),
@@ -84,7 +80,6 @@ export default class Webaverse extends EventTarget {
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
-        musicManager.waitForLoad(),
         WebaWallet.waitForLoad(),
       ]);
     })();

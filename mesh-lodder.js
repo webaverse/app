@@ -83,7 +83,7 @@ export class MeshLodder {
     this.lastChunkCoord = new THREE.Vector2(NaN, NaN);
   }
   registerLodMesh(name, meshes) {
-    // console.log('register lod mesh', name, meshes);
+    console.log('register lod mesh', name, meshes);
 
     const newMeshes = meshes.map(mesh => {
       const {geometry} = mesh;

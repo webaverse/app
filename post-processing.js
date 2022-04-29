@@ -11,9 +11,8 @@ import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/Adaptiv
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import {BokehPass} from './BokehPass.js';
 import {SSAOPass} from './SSAOPass.js';
-// import {RenderPass} from './RenderPass.js';
+import {RenderPass} from './RenderPass.js';
 import {DepthPass} from './DepthPass.js';
-import {SwirlPass} from './SwirlPass.js';
 import {
   getRenderer,
   getComposer,
@@ -33,8 +32,6 @@ import {WebaverseRenderPass} from './webaverse-render-pass.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 // import {parseQuery} from './util.js';
-import * as sounds from './sounds.js';
-import musicManager from './music-manager.js';
 
 // const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
@@ -143,14 +140,14 @@ function makeEncodingPass() {
         value: null,
       },
     },
-    vertexShader: `\
+    vertexShader: `
       varying vec2 vUv;
       void main() {
         vUv = uv;
         gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
       }
     `,
-    fragmentShader: `\
+    fragmentShader: `
       uniform sampler2D tDiffuse;
       varying vec2 vUv;
       void main() {
@@ -209,7 +206,6 @@ class PostProcessing extends EventTarget {
     this.defaultPasses.initialized = false;
     this.defaultPasses.depthPass = null;
     this.defaultPasses.ssaoPass = null;
-    this.defaultPasses.swirlPass = null;
   }
   bindCanvas() {
     this.setPasses(null);
@@ -220,12 +216,11 @@ class PostProcessing extends EventTarget {
     passes.initialized = false;
     passes.depthPass = null;
     passes.ssaoPass = null;
-    passes.swirlPass = null;
 
     passes.push(webaverseRenderPass);
     
     if (rendersettings) {
-      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl} = rendersettings;
+      const {ssao, dof, hdr, bloom, postPostProcessScene} = rendersettings;
       
       if (ssao || dof) {
         passes.depthPass = makeDepthPass({ssao, dof});
@@ -244,10 +239,6 @@ class PostProcessing extends EventTarget {
       if (bloom) {
         const bloomPass = makeBloomPass(bloom);
         passes.push(bloomPass);
-      }
-      if (swirl) {
-        const swirlPass = makeSwirlPass();
-        passes.push(swirlPass);
       }
       if (postPostProcessScene) {
         const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;

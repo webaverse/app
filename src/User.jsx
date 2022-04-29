@@ -74,6 +74,8 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
         }
 
         setAddress(address);
+        localStorage.setItem("wallet_address",address);
+        console.log(localStorage.getItem("wallet_address"));
     
     };
 
