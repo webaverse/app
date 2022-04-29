@@ -225,7 +225,7 @@ class PostProcessing extends EventTarget {
     passes.push(webaverseRenderPass);
     
     if (rendersettings) {
-      const {ssao, dof, hdr, bloom, postPostProcessScene} = rendersettings;
+      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl} = rendersettings;
       
       if (ssao || dof) {
         passes.depthPass = makeDepthPass({ssao, dof});
@@ -246,7 +246,6 @@ class PostProcessing extends EventTarget {
         passes.push(bloomPass);
       }
       if (swirl) {
-        console.log('set swirl pass', swirl, passes.swirlPass);
         const swirlPass = makeSwirlPass();
         passes.push(swirlPass);
       }
