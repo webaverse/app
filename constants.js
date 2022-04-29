@@ -72,6 +72,7 @@ export const aimMaxTime = 1000;
 export const throwReleaseTime = 750;
 export const minFov = 60;
 export const maxFov = 120;
+export const midFov = 90;
 export const initialPosY = 1.5;
 export const groundFriction = 0.28;
 export const airFriction = groundFriction;
