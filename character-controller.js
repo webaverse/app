@@ -769,6 +769,7 @@ class StatePlayer extends PlayerBase {
         i--;
       }
     }
+    action.controllingBone = action.type === 'sit' ? null : action.controllingBone
     actions.push([action]);
   }
   setMicMediaStream(mediaStream) {
