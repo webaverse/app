@@ -311,10 +311,38 @@ const _delete = () => {
     gameManager.setMouseSelectedObject(null);
   }
 };
-const _click = () => {
+const _click = e => {
   if (_getGrabbedObject(0)) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.ungrab();
+  } else if (e.button === 0 && (zTargeting.focusTargetReticle && zTargeting.lastFocus)) {
+    const app = metaversefileApi.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
+    // console.log('click reticle', app);
+    const {name, description, appType} = app;
+
+    cameraManager.setFocus(false);
+    zTargeting.focusTargetReticle = null;
+    sounds.playSoundName('menuSelect');
+
+    (async () => {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      const aiScene = metaversefileApi.useLoreAIScene();
+      // console.log('generate 1');
+      let comment;
+      if (appType === 'vrm') {
+        comment = await aiScene.generateSelectCharacterComment(name, description);
+      } else {
+        comment = await aiScene.generateSelectTargetComment(name, description);
+      }
+      // console.log('generate select target comment', {comment, name, description});
+      const message = comment;
+      const preloadedMessage = localPlayer.voicer.preloadMessage(message);
+      await chatManager.waitForVoiceTurn(() => {
+        // setText(message);
+        return localPlayer.voicer.start(preloadedMessage);
+      });
+      // setText('');
+    })();
   } else {
     if (highlightedPhysicsObject) {
       _grab(highlightedPhysicsObject);
