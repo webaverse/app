@@ -3,6 +3,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import dioramaManager from '../diorama.js';
 import {RpgText} from './RpgText.jsx';
+import {LightArrow} from './LightArrow.jsx';
 import styles from './StoryTime.module.css';
 // import metaversefile from 'metaversefile';
 // const {useLocalPlayer} = metaversefile;
@@ -29,6 +30,10 @@ const MegaChatBox = ({
           <div className={styles.level}>Lv. {level}</div>
         </div>
         <div className={styles.text}>{message.text}</div>
+        <LightArrow
+          className={styles.lightArrow}
+          up
+        />
       </div>
     </div>
   );
@@ -93,7 +98,9 @@ export const StoryTime = ({
 
   return (
     <div className={styles.storyTime}>
-      {message ? <MegaChatBox message={message} /> : null}
+      {message ? <>
+          <MegaChatBox message={message} />
+      </> : null}
       {/* hups.map((hup, index) => {
         return (
           <CharacterHup

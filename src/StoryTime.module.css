@@ -43,6 +43,13 @@
 .storyTime .megaChatBox .text {
   /* font-family: 'Muli'; */
   font-family: 'PlazaRegular';
-  font-size: 40px;
-  letter-spacing: 1px;
+  font-size: 32px;
+  letter-spacing: 2px;
+}
+.storyTime .lightArrow {
+  bottom: 100px !important;
+  right: 115px !important;
+  top: auto !important;
+  left: auto !important;
+  z-index: 1;
 }
