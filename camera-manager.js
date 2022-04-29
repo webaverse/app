@@ -8,6 +8,7 @@ import Simplex from './simplex-noise.js';
 // import alea from './alea.js';
 import * as sounds from './sounds.js';
 import {minFov, maxFov, midFov} from './constants.js';
+import { localPlayer } from './players.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -17,6 +18,9 @@ const localEuler = new THREE.Euler();
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
+
+const maxAim = new THREE.Vector3(-0.4,0,-2);
+let lastCamoffsetZ = cameraOffset.z;
 
 let cameraOffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
@@ -187,7 +191,15 @@ class CameraManager extends EventTarget {
   handleWheelEvent(e) {
     // e.preventDefault();
 
-    cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
+    //Prevent scrolling past aim distance while aiming
+    const scrollDist = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
+    if (localPlayer.hasAction('aim') && localPlayer.position.z - scrollDist > maxAim.z){
+      //do nothing
+    }
+    else{
+      cameraOffsetTargetZ = scrollDist;
+      lastCamoffsetZ = cameraOffsetTargetZ;
+    }
   }
   addShake(position, intensity, radius, decay) {
     const startTime = performance.now();
@@ -231,6 +243,41 @@ class CameraManager extends EventTarget {
       }));
     }
   }
+  saveAim(){
+    lastCamoffsetZ = cameraOffsetTargetZ;
+  }
+  takeAim(){
+    //If the camera is far zoom in when aiming
+    if (-cameraOffset.z > -maxAim.z){
+      let tempOffset = lerpNum(cameraOffsetZ, -maxAim.z, 0.2);
+      cameraOffsetTargetZ = tempOffset;
+    }
+    else{
+      //do nothing
+    }
+    //Offset aim along the x axis regardless of distance
+    const newOffset = lerpNum(cameraOffset.x, maxAim.x, 0.1);
+    cameraOffset.x = newOffset;
+  }
+  removeAim(){
+    const zdist = (lastCamoffsetZ - cameraOffsetTargetZ);
+    //we only want to revert to our original z value if there is a descrepancy between our expected zdistance and our actual distance
+    if (zdist !== 0){
+      cameraOffsetZ = lerpNum(cameraOffsetZ, lastCamoffsetZ, 0.2);
+      cameraOffsetTargetZ = cameraOffsetZ;
+    }
+    else{
+      //do nothing
+    }
+    //Revert x axis offset back to 0
+    const newOffset2 = lerpNum(cameraOffset.x, 0, 0.1);
+    cameraOffset.x = newOffset2;
+  }
+
+
+
+
+
   updatePost(timestamp, timeDiff) {
     // console.log('camera manager update post');
 
@@ -369,6 +416,7 @@ class CameraManager extends EventTarget {
             } else {
               localVector3.copy(localPlayer.position);
             }
+            this.removeAim();
 
             camera.position.copy(localVector3)
               .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
@@ -381,6 +429,12 @@ class CameraManager extends EventTarget {
                 localVector.copy(avatarCameraOffset)
                   .applyQuaternion(camera.quaternion)
               );
+            if (localPlayer.hasAction('aim')){
+              this.takeAim();
+            }
+            else{
+              this.removeAim();
+            }
       
             break;
           }
@@ -390,7 +444,8 @@ class CameraManager extends EventTarget {
         }
 
         camera.position.y -= crouchOffset;
-      } else {
+      } 
+      else {
         cameraOffsetTargetZ = -1;
 
         const targetPosition = localVector.copy(localPlayer.position)

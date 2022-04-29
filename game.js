@@ -1131,6 +1131,7 @@ class GameManager extends EventTarget {
   menuAim() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
+      cameraManager.saveAim();
       const localPlayer = metaversefileApi.useLocalPlayer();
       const wearApp = loadoutManager.getSelectedApp();
       const wearAimApp = (() => {
