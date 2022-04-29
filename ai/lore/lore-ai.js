@@ -3,13 +3,23 @@ import {
   defaultPlayerBio,
   defaultObjectName,
   defaultObjectDescription,
+  
   makeLorePrompt,
   makeLoreStop,
+  postProcessResponse,
+  parseLoreResponses,
+  
   makeCommentPrompt,
   makeCommentStop,
   parseCommentResponse,
-  postProcessResponse,
-  parseLoreResponses,
+
+  makeSelectTargetPrompt,
+  makeSelectTargetStop,
+  parseSelectTargetResponse,
+
+  makeSelectCharacterPrompt,
+  makeSelectCharacterStop,
+  parseSelectCharacterResponse,
 } from './lore-model.js'
 
 const numGenerateTries = 5;
