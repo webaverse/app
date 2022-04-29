@@ -3,6 +3,7 @@ this file contains the story beat triggers (battles, victory, game over, etc.)
 */
 
 import * as THREE from 'three';
+import metaversefile from 'metaversefile';
 import {SwirlPass} from './SwirlPass.js';
 import {
   getRenderer,
@@ -15,6 +16,9 @@ import {
 } from './renderer.js';
 import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
+import zTargeting from './z-targeting.js';
+import cameraManager from './camera-manager.js';
+import {chatManager} from './chat-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -101,6 +105,38 @@ export const listenHack = () => {
         });
         break;
       }
+    }
+  });
+
+  window.document.addEventListener('click', async e => {
+    if (e.button === 0 && (zTargeting.focusTargetReticle && zTargeting.lastFocus)) {
+      const app = metaversefile.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
+      // console.log('click reticle', app);
+      const {name, description, appType} = app;
+
+      cameraManager.setFocus(false);
+      zTargeting.focusTargetReticle = null;
+      sounds.playSoundName('menuSelect');
+
+      (async () => {
+        const localPlayer = metaversefile.useLocalPlayer();
+        const aiScene = metaversefile.useLoreAIScene();
+        // console.log('generate 1');
+        let comment;
+        if (appType === 'vrm') {
+          comment = await aiScene.generateSelectCharacterComment(name, description);
+        } else {
+          comment = await aiScene.generateSelectTargetComment(name, description);
+        }
+        // console.log('generate select target comment', {comment, name, description});
+        const message = comment;
+        const preloadedMessage = localPlayer.voicer.preloadMessage(message);
+        await chatManager.waitForVoiceTurn(() => {
+          // setText(message);
+          return localPlayer.voicer.start(preloadedMessage);
+        });
+        // setText('');
+      })();
     }
   });
 };
