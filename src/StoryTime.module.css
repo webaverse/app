@@ -1,0 +1,48 @@
+.storyTime {
+  display: flex;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+.storyTime .megaChatBox {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  height: 30vh;
+  background-image: linear-gradient(to bottom, #222, #000);
+  color: #FFF;
+  z-index: 1;
+  pointer-events: all;
+}
+.storyTime .megaChatBox .inner {
+  margin: 15px;
+  padding: 15px;
+  border: 3px solid #FFF3;
+  flex: 1;
+}
+.storyTime .megaChatBox .row {
+  display: flex;
+  margin: 10px 0;
+  align-items: baseline;
+}
+.storyTime .megaChatBox .name {
+  margin-right: 20px;
+  font-family: 'WinchesterCaps';
+  font-size: 30px;
+}
+.storyTime .megaChatBox .level {
+  font-family: 'WinchesterCaps';
+  font-size: 22px;
+}
+.storyTime .megaChatBox .text {
+  /* font-family: 'Muli'; */
+  font-family: 'PlazaRegular';
+  font-size: 40px;
+  letter-spacing: 1px;
+}
