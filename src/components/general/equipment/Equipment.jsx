@@ -6,6 +6,7 @@ import { MegaHotBox } from '../../play-mode/mega-hotbox';
 import { Spritesheet } from '../spritesheet';
 import game from '../../../../game.js';
 import {transparentPngUrl} from '../../../../constants.js';
+import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
 
 //
@@ -125,11 +126,21 @@ export const Equipment = () => {
 
     const onMouseEnter = object => () => {
         setHoverObject(object);
+
+        sounds.playSoundName('menuClick');
     };
     const onMouseDown = object => () => {
-        setSelectObject(selectObject !== object ? object : null);
+        const newSelectObject = selectObject !== object ? object : null;
+        setSelectObject(newSelectObject);
 
         // game.renderCard(object);
+
+        if (newSelectObject) {
+            sounds.playSoundName('menuNext');
+        } /* else {
+            const audioSpec = soundFiles.menuBack[Math.floor(Math.random() * soundFiles.menuBack.length)];
+            sounds.playSoundName('menuBack');
+        } */
     };
     const onDragStart = object => e => {
         e.dataTransfer.setData('application/json', JSON.stringify(object));
@@ -149,9 +160,13 @@ export const Equipment = () => {
     };
     const menuLeft = () => {
         setFaceIndex(faceIndex - 1);
+
+        sounds.playSoundName('menuNext');
     };
     const menuRight = () => {
         setFaceIndex(faceIndex + 1);
+    
+        sounds.playSoundName('menuNext');
     };
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
@@ -286,6 +301,8 @@ export const Equipment = () => {
                                 onClick={e => {
                                     const delta = i - selectedMenuIndex;
                                     setFaceIndex(faceIndex + delta);
+
+                                    sounds.playSoundName('menuNext');
                                 }}
                                 key={i}
                             >

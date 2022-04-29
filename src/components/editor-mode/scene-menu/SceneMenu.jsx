@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import classnames from 'classnames';
 
 import { world } from '../../../../world'
@@ -13,12 +13,25 @@ import styles from './scene-menu.module.css';
 
 //
 
+const origSceneList = [];
+
+sceneNames.forEach( ( name ) => {
+
+    origSceneList.push( `./scenes/${ name } `);
+
+});
+
+//
+
 export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
     const { state, setState } = useContext( AppContext );
+    const sceneNameInputRef = useRef( null );
     const [ rooms, setRooms ] = useState([]);
     const [ micEnabled, setMicEnabled ] = useState( false );
     const [ speechEnabled, setSpeechEnabled ] = useState( false );
+    const [ sceneInputName, setSceneInputName ] = useState( selectedScene );
+    const [ scenesList, setScenesList ] = useState( origSceneList );
 
     //
 
@@ -61,7 +74,8 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
         sceneName = sceneName ?? event.target.value;
         setSelectedScene( sceneName );
-        universe.pushUrl( `/?src=${ encodeURIComponent( './scenes/' + sceneName ) }` );
+        setSceneInputName( sceneName );
+        universe.pushUrl( `/?src=${ encodeURIComponent( sceneName ) }` );
 
     };
 
@@ -149,18 +163,33 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
     const handleSceneInputKeyDown = ( event ) => {
 
+        const newList = ( event.target.value ? origSceneList.filter( ( sceneName ) => ( sceneName.indexOf( event.target.value ) !== -1 ) ) : origSceneList );
+        setScenesList( newList );
+        setSceneInputName( event.target.value );
+
+    };
+
+    const handleSceneMenuKeyUp = ( event ) => {
+
         switch ( event.which ) {
 
             case 27: { // escape
 
+                event.preventDefault();
+                event.stopPropagation();
                 setState({ openedPanel: null });
+                sceneNameInputRef.current.blur();
                 break;
 
             }
 
             case 13: { // enter
 
-                universe.pushUrl( `/?src=${ encodeURIComponent( selectedScene ) }` );
+                event.preventDefault();
+                event.stopPropagation();
+                universe.pushUrl( `/?src=${ encodeURIComponent( sceneInputName ) }` );
+                setState({ openedPanel: null });
+                sceneNameInputRef.current.blur();
                 break;
 
             }
@@ -240,7 +269,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                     </button>
                 </div>
                 <div className={ styles.inputWrap } >
-                    <input type="text" className={ styles.input } value={ multiplayerConnected ? selectedRoom : selectedScene } onFocus={ handleSceneMenuOpen.bind( this, false ) } onChange={ handleSceneSelect } disabled={ multiplayerConnected } onKeyDown={ handleSceneInputKeyDown } placeholder="Goto..." />
+                    <input type="text" className={ styles.input } ref={ sceneNameInputRef } value={ multiplayerConnected ? selectedRoom : sceneInputName } onKeyUp={ handleSceneMenuKeyUp } onFocus={ handleSceneMenuOpen.bind( this, false ) } disabled={ multiplayerConnected } onChange={ handleSceneInputKeyDown } placeholder="Goto..." />
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.green ) } />
                 </div>
                 <div className={ styles.buttonWrap  } onClick={ handleRoomMenuOpen.bind( this, null ) } >
@@ -265,7 +294,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                 state.openedPanel === 'SceneMenuPanel' ? (
                     <div className={ styles.rooms }>
                     {
-                        sceneNames.map( ( sceneName, i ) => (
+                        scenesList.map( ( sceneName, i ) => (
                             <div className={ styles.room } onMouseDown={ ( e ) => { handleSceneSelect( e, sceneName ) } } key={ i } >
                                 <img className={ styles.image } src="images/world.jpg" />
                                 <div className={ styles.name } >{ sceneName }</div>

@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
 
 import { defaultPlayerName } from '../../../../ai/lore/lore-model.js';
+import * as sounds from '../../../../sounds.js';
 // import cameraManager from '../../../../camera-manager.js';
 import {
     hp,
@@ -107,6 +108,8 @@ const Stat = ({
 export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
     const { state, setState } = useContext( AppContext );
+    const [ open, setOpen ] = useState(false);
+    const [ characterSelectOpen, setCharacterSelectOpen ] = useState(false);
 
     const sideSize = 400;
 
@@ -148,9 +151,37 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
     }, [ dioramaCanvasRef, state.openedPanel ] );
 
+
+    useEffect( () => {
+
+        const lastOpen = open;
+        const lastCharacterSelectOpen = characterSelectOpen;
+
+        const newOpen = state.openedPanel === 'CharacterPanel';
+        const newCharacterSelectOpen = state.openedPanel === 'CharacterSelect';
+
+        if (!lastOpen && newOpen) {
+
+            sounds.playSoundName('menuOpen');
+
+        } else if (lastOpen && !newOpen) {
+
+            sounds.playSoundName('menuClose');
+
+        }
+
+        setOpen(newOpen);
+        setCharacterSelectOpen(newCharacterSelectOpen);
+
+    }, [ state.openedPanel ] );
+
     function onCanvasClick () {
 
         game.playerDiorama.toggleShader();
+
+        const soundFiles = sounds.getSoundFiles();
+        const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
+        sounds.playSound(audioSpec);
 
     };
 
@@ -169,8 +200,6 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
         game.handleDropJsonItemToPlayer(e.dataTransfer.items[0]);
     }
-    const open = state.openedPanel === 'CharacterPanel';
-    const characterSelectOpen = state.openedPanel === 'CharacterSelect';
 
     //
 
