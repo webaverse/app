@@ -754,6 +754,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       const zoom = 0;
       return {
         position: reticle.position,
+        physicsId: reticle.objectId,
         type,
         zoom,
       }
