@@ -8,10 +8,15 @@ import {registerIoEventHandler, unregisterIoEventHandler} from './components/gen
 import {registerLoad} from './LoadingBox.jsx';
 import {ObjectPreview} from './ObjectPreview.jsx';
 import game from '../game.js';
+// import config from "../integration/web3/config";
+import { mint } from '../integration/web3/app';
 import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
+import { localstorageHost } from '../constants';
+const {useApp, addTrackedApp, removeTrackedApp, useLocalPlayer, useActivate, useLoaders, useCleanup, usePhysics, useWeb3, useAbis} = metaversefile;
+
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -32,10 +37,10 @@ const _isJsonItem = item => item?.kind === 'string';
 const uploadCreateApp = async (item, {
   drop = false,
 }) => {
-  let u;
+  let data;
   {
     let load = null;
-    u = await handleUpload(item, {
+    data = await handleUpload(item, {
       onTotal(total) {
         const type = 'upload';
         const name = item.name;
@@ -57,13 +62,13 @@ const uploadCreateApp = async (item, {
   }
 
   let o = null;
-  if (u) {
+  if (data.u) {
     const type = 'download';
     const name = item.name;
     const load = registerLoad(type, name);
     try {
       o = await metaversefile.createAppAsync({
-        start_url: u,
+        start_url: data.u,
         in_front: drop,
         components: {
           physics: true,
@@ -76,18 +81,26 @@ const uploadCreateApp = async (item, {
   }
 
   if (o) {
-    o.contentId = u;
+    o.contentId = data.u;
     o.instanceId = getRandomString();
-    return o;
+    const dt = {
+      o: o,
+      hash: data.hash
+    }
+    return dt;
   } else {
     return null;
   }
 };
 
 const DragAndDrop = () => {
+  const web3 = useWeb3();
+  const {WebaverseERC721} = useAbis();
   const { state, setState, } = useContext( AppContext )
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
+  const [hash, setHash] = useState("");
+  // const contractAddress = config.networks.rinkeby.contractAddress;
 
   useEffect(() => {
     function keydown(e) {
@@ -153,12 +166,14 @@ const DragAndDrop = () => {
           const app = await uploadCreateApp(item, {
             drop,
           });
-          if (app) {
+          console.log(app);
+          if (app.o) {
             if (drop) {
-              world.appManager.importApp(app);
+              world.appManager.importApp(app.o);
               setState({ openedPanel: null });
             } else {
-              setQueue(queue.concat([app]));
+              setQueue(queue.concat([app.o]));
+              setHash(app.hash);
             }
           }
         }));
@@ -232,10 +247,21 @@ const DragAndDrop = () => {
       setCurrentApp(null);
     }
   };
-  const _mint = e => {
+  const _mint = async e => {
     e.preventDefault();
     e.stopPropagation();
+    await mint(
+      `https://gateway.pinata.cloud/ipfs/${hash}`
+  );
+    // const contract = new web3.eth.Contract(WebaverseERC721, "0xCb7dF1B738A91aD07D13845C4773e15bA049A034");
+    // const wallet_address = localStorage.getItem("wallet_address");
+    // console.log(hash);
+    // await contract.methods.mintSingle(wallet_address, hash).send({ 
+    //   from: wallet_address,
+    //   value: Web3.utils.toWei(0.01, "matic")
+    // });
 
+    
     console.log('mint', currentApp);
   };
   const _cancel = e => {
@@ -275,7 +301,7 @@ const DragAndDrop = () => {
               <span>Equip</span>
               <sub>to self</sub>
             </div>
-            <div className={style.button} disabled onClick={_mint}>
+            <div className={style.button} onClick={_mint}>
               <span>Mint</span>
               <sub>on chain</sub>
             </div>

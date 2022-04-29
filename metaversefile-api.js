@@ -16,6 +16,7 @@ import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
 import ERC721 from './erc721-abi.json';
 import ERC1155 from './erc1155-abi.json';
+import WebaverseERC721 from './webaverseERC721-abi.json';
 import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
@@ -326,6 +327,7 @@ const gradientMaps = {
 const abis = {
   ERC721,
   ERC1155,
+  WebaverseERC721,
 };
 
 /* debug.addEventListener('enabledchange', e => {
