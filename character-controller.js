@@ -1484,33 +1484,6 @@ class RemotePlayer extends InterpolatedPlayer {
             this.quaternion
           );
         }
-
-        // TODO: This is a hack
-        // TODO: Move this into the app manager class? We should be listening to the wear component change on the individual app I think
-        
-        if (prevApps.length > this.appManager.apps.length) {
-          prevApps.forEach((prevApp) => {
-            const filtered = this.appManager.apps.filter((app) => app.uuid == prevApp.uuid)
-            if (filtered.length == 0 && prevApp.getComponent('wear')) {
-              //removed app
-              console.log("Calling unwear on app")
-              this.unwear(prevApp)
-            }
-          })
-        }
-
-        prevApps = []
-        this.appManager.apps.forEach((app) => {
-          if(app.getComponent('wear'))
-          app.dispatchEvent({
-            type: 'wearupdate',
-            player: this,
-            app,
-            wear: true,
-          })
-          prevApps.push(app)
-        });
-
       }
     }
     };
@@ -1522,6 +1495,22 @@ class RemotePlayer extends InterpolatedPlayer {
 
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps();
+    this.appManager.callBackFn = (app, event, flag) => {
+      if (event == 'wear') {
+        if (flag == 'add') {
+          console.log("Calling wear on app")
+          app.dispatchEvent({
+            type: 'wearupdate',
+            player: this,
+            app,
+            wear: true,
+          })
+        } else if (flag == 'remove') {
+          console.log("Calling unwear on app")
+          this.unwear(app)
+        }
+      }
+    }
 
     this.syncAvatar();
   }

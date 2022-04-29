@@ -82,7 +82,6 @@ class AppManager extends EventTarget {
     if (!nextAppsArray) return
       const observe = (e) => {
         const { added, deleted } = e.changes;
-
         for (const item of added.values()) {
           let appMap = item.content.type;
           if (appMap.constructor === Object) {
@@ -108,6 +107,10 @@ class AppManager extends EventTarget {
                 // destinationAppManager: peerOwnerAppManager,
               },
             }));
+
+            if(oldApp.getComponent('wear') && this.callBackFn) {
+              this.callBackFn(oldApp, 'wear', 'add')
+            }
           } else {
             const trackedApp = this.getOrCreateTrackedApp(instanceId);
             // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
@@ -142,6 +145,10 @@ class AppManager extends EventTarget {
             this.dispatchEvent(e);
             peerOwnerAppManager.dispatchEvent(e);
             migrated = true;
+            
+            if(app.getComponent('wear') && this.callBackFn) {
+              this.callBackFn(app, 'wear', 'remove')
+            }
             break;
           }
 
