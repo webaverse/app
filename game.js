@@ -32,7 +32,7 @@ import {generateObjectUrlCard} from './card-generator.js';
 import * as sounds from './sounds.js';
 import {scene} from './renderer.js';
 import physicsManager from './physics-manager.js';
-// import * as metaverseModules from './metaverse-modules.js';
+import zTargeting from './z-targeting.js';
 
 // const {contractNames} = metaversefileConstants;
 
@@ -315,34 +315,6 @@ const _click = e => {
   if (_getGrabbedObject(0)) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     localPlayer.ungrab();
-  } else if (e.button === 0 && (zTargeting.focusTargetReticle && zTargeting.lastFocus)) {
-    const app = metaversefileApi.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
-    // console.log('click reticle', app);
-    const {name, description, appType} = app;
-
-    cameraManager.setFocus(false);
-    zTargeting.focusTargetReticle = null;
-    sounds.playSoundName('menuSelect');
-
-    (async () => {
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      const aiScene = metaversefileApi.useLoreAIScene();
-      // console.log('generate 1');
-      let comment;
-      if (appType === 'vrm') {
-        comment = await aiScene.generateSelectCharacterComment(name, description);
-      } else {
-        comment = await aiScene.generateSelectTargetComment(name, description);
-      }
-      // console.log('generate select target comment', {comment, name, description});
-      const message = comment;
-      const preloadedMessage = localPlayer.voicer.preloadMessage(message);
-      await chatManager.waitForVoiceTurn(() => {
-        // setText(message);
-        return localPlayer.voicer.start(preloadedMessage);
-      });
-      // setText('');
-    })();
   } else {
     if (highlightedPhysicsObject) {
       _grab(highlightedPhysicsObject);
@@ -451,99 +423,6 @@ const _gameInit = () => {
 };
 Promise.resolve()
   .then(_gameInit);
-
-class ZTargeting extends THREE.Object3D {
-  constructor() {
-    super();
-
-    const targetReticleApp = metaversefileApi.createApp();
-    (async () => {
-      await metaverseModules.waitForLoad();
-
-      const {modules} = metaverseModules;
-      const m = modules['targetReticle'];
-      await targetReticleApp.addModule(m);
-    })();
-    scene.add(targetReticleApp);
-    this.targetReticleApp = targetReticleApp;
-
-    this.lastFocus = false;
-    this.focusTargetReticle = null;
-  }
-  setQueryResult(result, timestamp, focus, lastFocusChangeTime) {
-    const targetReticleMesh = this.targetReticleApp.children[0];
-    
-    // console.log('set focus', focus);
-
-    let reticles = result;
-    if (reticles.length > 0) {
-      const reticleSpecs = reticles.map(reticle => {
-        localVector.copy(reticle.position)
-          .project(camera);
-        if (
-          localVector.x >= -1 && localVector.x <= 1 &&
-          localVector.y >= -1 && localVector.y <= 1 &&
-          localVector.z > 0
-        ) {
-          return {
-            reticle,
-            lengthSq: localVector.lengthSq(),
-          };
-        } else {
-          return null;
-        }
-      });
-      for (let i = reticleSpecs.length - 1; i >= 0; i--) {
-        if (reticleSpecs[i] === null) {
-          reticleSpecs.splice(i, 1);
-        }
-      }
-      reticleSpecs.sort((a, b) => a.lengthSq - b.lengthSq);
-      reticles = reticleSpecs.map(reticleSpec => reticleSpec.reticle);
-    }
-
-    if (focus && !this.lastFocus) {
-      // sconsole.log('got reticles', reticles);
-      if (reticles.length > 0) {
-        this.focusTargetReticle = reticles[0];
-        sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
-      } else {
-        // this.focusTargetReticle = null;
-        sounds.playSoundName('zTargetCenter');
-      }
-    } else if (this.lastFocus && !focus) {
-      if (this.focusTargetReticle) {
-        // this.focusTargetReticle = null;
-        sounds.playSoundName('zTargetCancel');
-      }
-    }
-
-    const timeDiff = timestamp - lastFocusChangeTime;
-    // console.log('focus target reticle', this.focusTargetReticle && timeDiff < 1000, timeDiff);
-    const focusTime = 250;
-    if (this.focusTargetReticle) {
-      if (focus || timeDiff < focusTime) {
-        reticles = [
-          this.focusTargetReticle,
-        ];
-    
-        let f2 = Math.min(Math.max(timeDiff / focusTime, 0), 1);
-        if (focus) {
-          f2 = 1 - f2;
-        }
-        this.focusTargetReticle.zoom = f2;
-      } else {
-        this.focusTargetReticle = null;
-      }
-    }
-    
-    targetReticleMesh.setReticles(reticles);
-
-    this.lastFocus = focus;
-  }
-}
-const zTargeting = new ZTargeting();
-scene.add(zTargeting);
 
 // let lastDraggingRight = false;
 // let dragRightSpec = null;
