@@ -731,7 +731,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     const direction = new THREE.Vector3(0, 0, -1)
       .applyQuaternion(quaternion);
     const sweepDistance = 100;
-    const maxHits = 4;
+    const maxHits = 64;
     const result = physicsManager.sweepBox(
       position,
       quaternion,
