@@ -5,12 +5,9 @@ import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
-import { lerp } from 'three/src/math/MathUtils';
-import { localPlayer } from './players.js';
 // import alea from './alea.js';
 import * as sounds from './sounds.js';
 import {minFov, maxFov, midFov} from './constants.js';
-import { localPlayer } from './players.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -20,14 +17,11 @@ const localEuler = new THREE.Euler();
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
-//
-const maxAim = new THREE.Vector3(-0.4,0,-2);
 
 const maxAim = new THREE.Vector3(-0.4,0,-2);
 let lastCamoffsetZ = cameraOffset.z;
 
 let cameraOffsetZ = cameraOffset.z;
-let lastCamoffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
 const rayVectorUp = new THREE.Vector3(0,1,0);
 const rayStartPos = new THREE.Vector3(0,0,0);
@@ -38,6 +32,9 @@ const rayQuaternion = new THREE.Quaternion();
 const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
 const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
 
+// const lastCameraQuaternion = new THREE.Quaternion();
+// let lastCameraZ = 0;
+// let lastCameraValidZ = 0;
 
 const seed = 'camera';
 const shakeNoise = new Simplex(seed);
@@ -192,6 +189,7 @@ class CameraManager extends EventTarget {
   }
   handleWheelEvent(e) {
     // e.preventDefault();
+    const localPlayer = metaversefile.useLocalPlayer();
 
     //Prevent scrolling past aim distance while aiming
     const scrollDist = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
@@ -378,8 +376,6 @@ class CameraManager extends EventTarget {
         // camera.updateMatrixWorld();
       }
     };
-
-    
     _setCameraOffset();
 
     const endMode = this.getMode();
@@ -524,8 +520,6 @@ class CameraManager extends EventTarget {
       }
     };
     _shakeCamera();
-
-    
 
     camera.updateMatrixWorld();
   }
