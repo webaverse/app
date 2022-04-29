@@ -83,21 +83,21 @@ class Conversation extends EventTarget {
     };
     this.messages.push(message);
 
+    this.dispatchEvent(new MessageEvent('message', {
+      data: {
+        message,
+      },
+    }));
+
     (async () => {
       await _playerSay(this.localPlayer, text);
     })();
 
+    // kick off the first response
     (async () => {
-      console.log('got remote player name', this.messages.slice(), this.remotePlayer.name);
       const aiScene = metaversefile.useLoreAIScene();
       const comment = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
-      console.log('got remote player text', text);
-      /* const conversation = new Conversation(localPlayer, remotePlayer);
-      story.dispatchEvent(new MessageEvent({
-        data: {
-          conversation,
-        },
-      })); */
+      
       this.addRemotePlayerMessage(comment);
     })();
   }
@@ -107,6 +107,12 @@ class Conversation extends EventTarget {
       text,
     };
     this.messages.push(message);
+
+    this.dispatchEvent(new MessageEvent('message', {
+      data: {
+        message,
+      },
+    }));
     
     (async () => {
       await _playerSay(this.remotePlayer, text);
@@ -198,7 +204,7 @@ export const listenHack = () => {
             const comment = await aiScene.generateSelectCharacterComment(name, description);
 
             const conversation = new Conversation(localPlayer, remotePlayer);
-            story.dispatchEvent(new MessageEvent({
+            story.dispatchEvent(new MessageEvent('conversationstart', {
               data: {
                 conversation,
               },
