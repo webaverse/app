@@ -300,7 +300,7 @@ export const MapGen = () => {
         (async () => {
           const localPlayer = useLocalPlayer();
           const aiScene = useLoreAIScene();
-          const comment = await aiScene.generateComment(selectedChunk.name);
+          const comment = await aiScene.generateLocationComment(selectedChunk.name);
           const message = `${selectedChunk.name}. ${comment}`;
           const preloadedMessage = localPlayer.voicer.preloadMessage(message);
           await chatManager.waitForVoiceTurn(() => {
