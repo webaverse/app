@@ -255,47 +255,51 @@ export const listenHack = () => {
   let currentFieldMusic = null;
   let currentFieldMusicIndex = 0;
   window.document.addEventListener('keydown', async e => {
-    switch (e.which) {
-      case 48: { // 0
-        await musicManager.waitForLoad();
+    const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
 
-        _stopSwirl() || _startSwirl();
-        break;
-      }
-      case 57: { // 9
-        await musicManager.waitForLoad();
+    if (!inputFocused) {
+      switch (e.which) {
+        case 48: { // 0
+          await musicManager.waitForLoad();
 
-        _stopSwirl();
-        if (currentFieldMusic) {
-          musicManager.stopCurrentMusic();
-          currentFieldMusic = null;
-        } else {
-          const fieldMusicName = fieldMusicNames[currentFieldMusicIndex];
-          currentFieldMusicIndex = (currentFieldMusicIndex + 1) % fieldMusicNames.length;
+          _stopSwirl() || _startSwirl();
+          break;
+        }
+        case 57: { // 9
+          await musicManager.waitForLoad();
+
+          _stopSwirl();
+          if (currentFieldMusic) {
+            musicManager.stopCurrentMusic();
+            currentFieldMusic = null;
+          } else {
+            const fieldMusicName = fieldMusicNames[currentFieldMusicIndex];
+            currentFieldMusicIndex = (currentFieldMusicIndex + 1) % fieldMusicNames.length;
+            
+            currentFieldMusic = musicManager.playCurrentMusic(fieldMusicName, {
+              repeat: true,
+            });
+          }
+          break;
+        }
+        case 189: { // -
+          await musicManager.waitForLoad();
           
-          currentFieldMusic = musicManager.playCurrentMusic(fieldMusicName, {
+          _stopSwirl();
+          musicManager.playCurrentMusic('victory', {
             repeat: true,
           });
+          break;
         }
-        break;
-      }
-      case 189: { // -
-        await musicManager.waitForLoad();
-        
-        _stopSwirl();
-        musicManager.playCurrentMusic('victory', {
-          repeat: true,
-        });
-        break;
-      }
-      case 187: { // =
-        await musicManager.waitForLoad();
+        case 187: { // =
+          await musicManager.waitForLoad();
 
-        _stopSwirl();
-        musicManager.playCurrentMusic('gameOver', {
-          repeat: true,
-        });
-        break;
+          _stopSwirl();
+          musicManager.playCurrentMusic('gameOver', {
+            repeat: true,
+          });
+          break;
+        }
       }
     }
   });
