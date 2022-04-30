@@ -18,10 +18,6 @@ const localVector6 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
-const localQuaternionShoulderAnchor = new THREE.Quaternion();
-const localQuaternionUpperArm = new THREE.Quaternion();
-const localQuaternionLowerArm = new THREE.Quaternion();
-const localQuaternionHand = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
@@ -75,12 +71,6 @@ const FINGER_SPECS = [
 
 		Update()
 		{
-      
-      localQuaternionShoulderAnchor.copy(this.shoulderAnchor.quaternion);
-      localQuaternionUpperArm.copy(this.arm.upperArm.quaternion);
-      localQuaternionLowerArm.copy(this.arm.lowerArm.quaternion);
-      localQuaternionHand.copy(this.arm.hand.quaternion);
-
       this.shoulderAnchor.quaternion.identity();
       
 			Helpers.updateMatrixWorld(this.arm.transform);
@@ -137,7 +127,6 @@ const FINGER_SPECS = [
         .add(localVector5.copy(offsetDirection).multiplyScalar(offsetDistance));
       const upVector = localVector5.set(this.left ? -1 : 1, 0, 0).applyQuaternion(shoulderRotation);
       this.arm.upperArm.quaternion.setFromRotationMatrix(
-      // localQuaternionUpperArm.setFromRotationMatrix(
       	localMatrix.lookAt(
 	      	zeroVector,
 	      	localVector6.copy(elbowPosition).sub(upperArmPosition),
@@ -147,11 +136,9 @@ const FINGER_SPECS = [
         .multiply(this.left ? rightRotation : leftRotation)
         .premultiply(Helpers.getWorldQuaternion(this.arm.upperArm.parent, localQuaternion3).invert());
       Helpers.updateMatrixMatrixWorld(this.arm.upperArm);
-      // debugger
 
       // this.arm.lowerArm.position = elbowPosition;
       this.arm.lowerArm.quaternion.setFromRotationMatrix(
-      // localQuaternionLowerArm.setFromRotationMatrix(
         localMatrix.lookAt(
 	      	zeroVector,
 	      	localVector6.copy(handPosition).sub(elbowPosition),
@@ -164,7 +151,6 @@ const FINGER_SPECS = [
 
       // this.arm.hand.position = handPosition;
       this.arm.hand.quaternion.copy(this.target.quaternion)
-      // localQuaternionHand.copy(this.target.quaternion)
         .multiply(this.left ? bankRightRotation : bankLeftRotation)
         .premultiply(Helpers.getWorldQuaternion(this.arm.hand.parent, localQuaternion3).invert());
       Helpers.updateMatrixMatrixWorld(this.arm.hand);
@@ -174,13 +160,6 @@ const FINGER_SPECS = [
         this.arm[key].quaternion.copy(this.target.fingers[index].quaternion);
         Helpers.updateMatrixMatrixWorld(this.arm[key]);
       }
-
-      const t = 1 - Math.min(1, window.avatar.aimTime / 150); // test
-      this.shoulderAnchor.quaternion.slerp(localQuaternionShoulderAnchor, t);
-      this.arm.upperArm.quaternion.slerp(localQuaternionUpperArm, t);
-      this.arm.lowerArm.quaternion.slerp(localQuaternionLowerArm, t);
-      this.arm.hand.quaternion.slerp(localQuaternionHand, t);
-      this.shoulderAnchor.updateMatrixWorld();
 		}
 	}
 
