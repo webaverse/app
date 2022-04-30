@@ -40,6 +40,11 @@ const soundFiles = {
   battleTransition: _getSoundFiles(/ff7_battle_transition/),
   limitBreak: _getSoundFiles(/ff7_limit_break/),
   limitBreakReady: _getSoundFiles(/ff8_limit_ready/),
+  naviHey: _getSoundFiles(/navi_hey/),
+  naviWatchout: _getSoundFiles(/navi_watchout/),
+  naviFriendly: _getSoundFiles(/navi_friendly/),
+  naviItem: _getSoundFiles(/navi_item/),
+  naviDanger: _getSoundFiles(/navi_danger/),
 };
 
 let soundFileAudioBuffer;
