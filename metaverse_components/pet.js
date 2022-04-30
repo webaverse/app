@@ -10,7 +10,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 export default (app, component) => {
-  const {useFrame, useCleanup, useLocalPlayer, useActivate} = metaversefile;
+  const {useFrame, useCleanup, useLocalPlayer, useRemotePlayers, useActivate} = metaversefile;
 
   let petSpec = null;
   let petMixer = null;
@@ -86,11 +86,30 @@ export default (app, component) => {
       _unwear();
     }
   });
+
+  
+
+  const _getCurrentPlayer = () => {
+    const localPlayer = useLocalPlayer();
+    let currentPlayer = localPlayer
+    const remotePlayers = useRemotePlayers();
+    const players = [localPlayer]
+      .concat(remotePlayers)
+    for (const player of players) {
+      const wearActionIndex = player.findActionIndex(action => {
+        return action.type === 'wear' && action.instanceId === app.instanceId;
+      });
+      if (wearActionIndex !== -1) {
+        currentPlayer = player
+      }
+    }
+    return currentPlayer
+  };
   
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
   const _getAppDistance = () => {
-    const localPlayer = useLocalPlayer();
+    const localPlayer = _getCurrentPlayer();
     const position = localVector.copy(localPlayer.position);
     position.y = 0;
     const distance = app.position.distanceTo(position);
@@ -190,7 +209,7 @@ export default (app, component) => {
             }
             
             if (!bone.quaternion.equals(lastLookQuaternion)) {
-              const localPlayer = useLocalPlayer();
+              const localPlayer = _getCurrentPlayer();
               const {position, quaternion} = localPlayer;
               localQuaternion2.setFromRotationMatrix(
                 localMatrix.lookAt(

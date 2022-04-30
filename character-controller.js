@@ -1457,36 +1457,48 @@ class RemotePlayer extends InterpolatedPlayer {
         // TODO: Handle attaching the remote
       }
 
-      if(e.changes.keys.get('transform')){
-      const transform = this.playerMap.get('transform');
-      if (transform) {
-        const remoteTimeDiff = transform[10];
-        lastPosition.copy(this.position);
-        this.position.fromArray(transform, 0);
-        
-        if(this.avatar)
-        this.characterPhysics.setPosition(this.position);
-        
-        this.quaternion.fromArray(transform, 3);
+      if(e.changes.keys.get('transform')) {
+        const transform = this.playerMap.get('transform');
+        if (transform) {
+          const remoteTimeDiff = transform[10];
+          lastPosition.copy(this.position);
+          this.position.fromArray(transform, 0);
+          
+          if(this.avatar)
+          this.characterPhysics.setPosition(this.position);
+          
+          this.quaternion.fromArray(transform, 3);
 
-        this.positionInterpolant?.snapshot(remoteTimeDiff);
-        this.quaternionInterpolant?.snapshot(remoteTimeDiff);
+          this.positionInterpolant?.snapshot(remoteTimeDiff);
+          this.quaternionInterpolant?.snapshot(remoteTimeDiff);
 
-        for (const actionBinaryInterpolant of this
-          .actionBinaryInterpolantsArray) {
-          actionBinaryInterpolant.snapshot(remoteTimeDiff);
+          for (const actionBinaryInterpolant of this
+            .actionBinaryInterpolantsArray) {
+            actionBinaryInterpolant.snapshot(remoteTimeDiff);
+          }
+
+          if (this.avatar) {
+            this.avatar.setVelocity(
+              remoteTimeDiff / 1000,
+              lastPosition,
+              this.position,
+              this.quaternion
+            );
+          }
         }
 
-        if (this.avatar) {
-          this.avatar.setVelocity(
-            remoteTimeDiff / 1000,
-            lastPosition,
-            this.position,
-            this.quaternion
-          );
-        }
+        //TODO: need to update wearupdate when transform
+        this.appManager.apps.forEach((app) => {
+          if(app.getComponent('wear') || app.getComponent('pet')) {
+            app.dispatchEvent({
+              type: 'wearupdate',
+              player: this,
+              app,
+              wear: true,
+            })
+          }
+        });
       }
-    }
     };
 
     this.playerMap.observe(observePlayerFn);
@@ -1498,15 +1510,7 @@ class RemotePlayer extends InterpolatedPlayer {
     this.appManager.loadApps();
     this.appManager.callBackFn = (app, event, flag) => {
       if (event == 'wear') {
-        if (flag == 'add') {
-          console.log("Calling wear on app")
-          app.dispatchEvent({
-            type: 'wearupdate',
-            player: this,
-            app,
-            wear: true,
-          })
-        } else if (flag == 'remove') {
+        if (flag == 'remove') {
           console.log("Calling unwear on app")
           this.unwear(app)
         }
