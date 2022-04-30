@@ -1,4 +1,5 @@
-import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
+
+import React, { useEffect, useState, useRef } from 'react';
 import classnames from 'classnames';
 import styles from './spritesheet.module.css';
 import spritesheetManager from '../../../../spritesheet-manager.js';
@@ -11,8 +12,10 @@ export const Spritesheet = ({
     enabled,
     size,
     numFrames,
+    animated = true,
+    background
 }) => {
-    // console.log('spritesheet url', startUrl);
+
     const [ spritesheet, setSpritesheet ] = useState(null);
     const canvasRef = useRef();
 
@@ -22,33 +25,16 @@ export const Spritesheet = ({
     const frameLoopTime = 2000;
     const frameTime = frameLoopTime / numFrames;
 
+    //
+
     useEffect(() => {
         if (startUrl) {
             let live = true;
             (async () => {
-                // console.log('got spritesheet 1', {startUrl, frameSize, numFramesPerRow, size, numFrames});
                 const spritesheet = await spritesheetManager.getSpriteSheetForAppUrlAsync(startUrl, {
                     size,
                     numFrames,
                 });
-                
-                /* {
-                    const imageBitmap = spritesheet.result;
-                    const canvas = document.createElement('canvas');
-                    canvas.width = imageBitmap.width;
-                    canvas.height = imageBitmap.height;
-                    canvas.style.cssText = `\
-                        position: fixed;
-                        top: 100px;
-                        left: 100px;
-                        width: ${600}px;
-                        height: ${600}px;
-                        background-color: #F00;
-                    `;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(imageBitmap, 0, 0);
-                    document.body.appendChild(canvas);
-                } */
 
                 if (!live) {
                     return;
@@ -61,29 +47,64 @@ export const Spritesheet = ({
         }
     }, [startUrl]);
 
-    useEffect(() => {
+    useEffect( () => {
+
         const canvas = canvasRef.current;
-        if (canvas && spritesheet && enabled) {
+
+        if ( canvas && spritesheet && enabled ) {
+
             const ctx = canvas.getContext('2d');
             const imageBitmap = spritesheet.result;
-            // console.log('render image bitmap', imageBitmap, size, canvas.width, canvas.height);
-            // ctx.drawImage(imageBitmap, 0, 0, size, size, 0, 0, canvas.width, canvas.height);
-
             let frameIndex = 0;
+            let interval;
+
             const _recurse = () => {
+
                 const x = (frameIndex % numFramesPerRow) * frameSize;
                 const y = size - frameSize - Math.floor(frameIndex / numFramesPerRow) * frameSize;
                 frameIndex = (frameIndex + 1) % numFrames;
 
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if ( background ) {
+
+                    ctx.rect( 0, 0, canvas.width, canvas.height );
+                    ctx.fillStyle = background;
+                    ctx.fill();
+
+                } else {
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                }
+
                 ctx.drawImage(imageBitmap, x, y, frameSize, frameSize, 0, 0, canvas.width, canvas.height);
+
             };
-            const interval = setInterval(_recurse, frameTime);
+
+            if ( animated ) {
+
+                setInterval(_recurse, frameTime);
+
+            }
+
+            _recurse();
+
+            //
+
             return () => {
-                clearInterval(interval);
+
+                if ( animated ) {
+
+                    clearInterval(interval);
+
+                }
+
             };
+
         }
-    }, [canvasRef, spritesheet, enabled]);
+
+    }, [ canvasRef, spritesheet, enabled, animated ] );
+
+    //
 
     return (
         <canvas
@@ -93,4 +114,5 @@ export const Spritesheet = ({
             ref={canvasRef}
         />
     );
+
 };
