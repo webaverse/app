@@ -158,9 +158,8 @@ class Conversation extends EventTarget {
     // say the option
     this.addLocalPlayerMessage(option, 'option');
     
-    // 25% chance of self, 75% chance of other character
+    // 25% chance of self elaboration, 75% chance of other character reply
     this.localTurn = Math.random() < 0.25;
-    // this.progress();
   }
   progressSelf() {
     this.wrapProgress(async () => {
