@@ -142,8 +142,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimTime = player.actionInterpolants.aim.get();
-  rig.aimFactor = Math.min(1, rig.aimTime / 1500);
-  rig.aimFactorReverse = 1 - rig.aimFactor;
+  rig.aimTransitionTime = player.actionInterpolants.aimTransition.get();
   rig.aimAnimation = (aimAction?.playerAnimation) || '';
   // rig.aimDirection.set(0, 0, -1);
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);

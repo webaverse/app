@@ -17,6 +17,7 @@ import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
+  aimTransitionMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -956,6 +957,9 @@ class Avatar {
     this.emoteAnimation = null;
     this.poseFactor = 0;
     this.poseAnimation = null;
+    this.aimTransitionTime = 0;
+    this.aimFactor = 0;
+    this.aimFactorReverse = 1;
     // this.throwState = null;
     // this.throwTime = 0;
     this.crouchTime = crouchMaxTime;
@@ -1544,6 +1548,8 @@ class Avatar {
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
+    this.aimFactor = this.aimTransitionTime / aimTransitionMaxTime;
+    this.aimFactorReverse = 1 - this.aimFactor;
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -1986,6 +1992,10 @@ class Avatar {
       <div style="display:;">fallLoopState: --- ${this.fallLoopState}</div>
       <div style="display:;">narutoRunState: --- ${this.narutoRunState}</div>
       <div style="display:;">sitState: --- ${this.sitState}</div>
+      <div style="display:;">aimTransitionTime: --- ${Math.floor(this.aimTransitionTime)}</div>
+      <div style="display:;">aimFactor: --- ${this.aimFactor.toFixed(2)}</div>
+      <div style="display:;">aimFactorReverse: --- ${this.aimFactorReverse.toFixed(2)}</div>
+      <div style="display:;">aimTime: --- ${Math.floor(this.aimTime)}</div>
       <div style="display:;">aimAnimation: --- ${this.aimAnimation}</div>
       <div style="display:;">danceAnimation: --- ${this.danceAnimation}</div>
       <div style="display:;">hurtAnimation: --- ${this.hurtAnimation}</div>
@@ -2002,7 +2012,6 @@ class Avatar {
       <div style="display:;">unuseFactor: --- ${this.unuseFactor?.toFixed(2)}</div>
       <div style="display:;">unuseAnimation: --- ${this.unuseAnimation}</div>
       <div style="display:;">activateTime: --- ${Math.floor(this.activateTime)}</div>
-      <div style="display:;">aimTime: --- ${Math.floor(this.aimTime)}</div>
       <div style="display:none;">chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>
       <div style="display:none;">crouchTime: --- ${Math.floor(this.crouchTime)}</div>
       <div style="display:;">danceTime: --- ${Math.floor(this.danceTime)}</div>

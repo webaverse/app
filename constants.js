@@ -77,6 +77,7 @@ export const initialPosY = 1.5;
 export const groundFriction = 0.28;
 export const airFriction = groundFriction;
 export const flyFriction = 0.5;
+export const aimTransitionMaxTime = 1500;
 
 export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
