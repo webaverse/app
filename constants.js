@@ -32,14 +32,36 @@ export {
 };
 export const polygonVigilKey = `0937c004ab133135c86586b55ca212a6c9ecd224`;
 
+//
+
 const origin = window.location.protocol + '//' + window.location.hostname;
+
+let _inappPreviewHost = '';
+
+switch ( origin ) {
+    case 'https://local.webaverse.com': {
+        _inappPreviewHost = 'https://local.webaverse.online';
+        break;
+    }
+    case 'https://dev.webaverse.com': {
+        _inappPreviewHost = 'https://dev.webaverse.online';
+        break;
+    }
+    case 'https://staging.webaverse.com': {
+        _inappPreviewHost = 'https://staging.webaverse.online';
+        break;
+    }
+    default: {
+        _inappPreviewHost = 'https://app.webaverse.online';
+    }
+}
+
+export const inappPreviewHost = _inappPreviewHost;
+
+//
 
 export const storageHost = 'https://ipfs.webaverse.com';
 export const previewHost = 'https://preview.exokit.org';
-export const inappPreviewHost = origin === 'https://local.webaverse.com' ?
-  'https://local.webaverse.online'
-:
-  'https://app.webaverse.online';
 export const worldsHost = 'https://worlds.exokit.org';
 export const accountsHost = `https://${chainName}sidechain-accounts.webaverse.com`;
 export const contractsHost = 'https://contracts.webaverse.com';
@@ -84,6 +106,8 @@ export const avatarInterpolationNumFrames = 4;
 
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
+
+export const defaultMusicVolume = 0.35;
 
 export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
 
