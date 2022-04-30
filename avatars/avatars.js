@@ -460,6 +460,7 @@ class Avatar {
     this.skinnedMeshes = skinnedMeshes;
     this.skeleton = skeleton;
     this.modelBones = modelBones;
+    window.modelBones = this.modelBones;
     this.foundModelBones = foundModelBones;
     this.flipZ = flipZ;
     this.flipY = flipY;
@@ -1909,6 +1910,8 @@ class Avatar {
     // debugger
     this.shoulderTransforms.Update();
     this.legsManager.Update();
+
+    // _applyAnimation(this, now, moveFactors);
 
     _updateEyeTarget();
     _updateEyeballTarget();
