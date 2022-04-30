@@ -153,11 +153,15 @@ export default function Header() {
 
                 case 9: { // tab
 
-                    setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+                    if ( !event.repeat ) {
 
-                    if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+                        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
 
-                        cameraManager.requestPointerLock();
+                        if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+
+                            cameraManager.requestPointerLock();
+
+                        }
 
                     }
 
@@ -166,8 +170,6 @@ export default function Header() {
                 }
 
             }
-
-            return false;
 
         };
 

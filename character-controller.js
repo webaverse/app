@@ -52,6 +52,8 @@ import { applyPlayerToAvatar, switchAvatar } from './player-avatar-binding.js';
 import { defaultPlayerName, defaultPlayerBio } from './ai/lore/lore-model.js';
 import { makeId, clone, unFrustumCull, enableShadows } from './util.js';
 
+import * as sounds from './sounds.js';
+
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
@@ -82,10 +84,8 @@ function loadPhysxCharacterController() {
   const contactOffset = (0.1 / heightFactor) * avatarHeight;
   const stepOffset = (0.5 / heightFactor) * avatarHeight;
 
-  const position = this.position
-    .clone()
-    .add(new THREE.Vector3(0, -avatarHeight / 2, 0));
-  const physicsMaterial = new THREE.Vector3(0, 0, 0);
+  const position = this.position.clone()
+    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
 
   if (this.characterController) {
     physicsManager.destroyCharacterController(this.characterController);
@@ -97,8 +97,7 @@ function loadPhysxCharacterController() {
     height,
     contactOffset,
     stepOffset,
-    position,
-    physicsMaterial
+    position
   );
   // this.characterControllerObject = new THREE.Object3D();
 }

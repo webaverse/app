@@ -1,0 +1,39 @@
+.focusBar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+.focusBar .topBar,
+.focusBar .bottomBar
+{
+  --height: 10vh;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--height);
+  background-color: #000;
+  transition: transform 0.3s linear;
+}
+.focusBar.focused .topBar,
+.focusBar.focused .bottomBar
+{
+  transition: transform 1.5s cubic-bezier(0, 1, 0, 1);
+}
+.focusBar .topBar {
+  top: 0;
+  background-image: linear-gradient(to bottom, #000, #222);
+}
+.focusBar .bottomBar {
+  bottom: 0;
+  background-image: linear-gradient(to bottom, #222, #000);
+}
+.focusBar:not(.focused) .topBar {
+  transform: translate( 0, calc( var(--height) * -1 ) );
+}
+.focusBar:not(.focused) .bottomBar {
+  transform: translate( 0, var(--height) );
+}

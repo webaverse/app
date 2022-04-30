@@ -1,0 +1,53 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [1, 100, 3]
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        -1
+      ],
+      "start_url": "https://webaverse.github.io/skybox/index.js"
+    },
+
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://propialis.github.io/desert_monument/monument_desert.glb",
+      "dynamic": false
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+    },
+    {
+      "position": [3,1,-8],
+      "quaternion": [0,0.7071,0,0.7071],
+      "start_url": "https://webaverse.github.io/sword/"
+    }
+
+
+  ]
+}
