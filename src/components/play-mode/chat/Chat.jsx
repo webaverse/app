@@ -8,7 +8,7 @@ import { chatManager } from '../../../../chat-manager.js';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 import { AppContext } from '../../app';
 
-// import storyManager from '../../../../story.js';
+import storyManager from '../../../../story.js';
 
 import styles from './chat.module.css';
 
@@ -51,7 +51,7 @@ function ChatInput () {
 
                     case 13: { // enter
 
-                        if (state.openedPanel === 'StoryTime') {
+                        if (storyManager.getConversation()) {
 
                             // nothing; handled in StoryTime
 

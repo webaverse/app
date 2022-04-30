@@ -28,6 +28,7 @@ const MegaChatBox = ({
   // hoveredOptionIndex,
   selectedOptionIndex,
   progressing,
+  onOptionSelect,
 }) => {
   /* if (!(options && options.length > 0)) {
     options = [
@@ -58,8 +59,6 @@ const MegaChatBox = ({
             sounds.playSoundName('menuClick');
           }}
           onClick={e => {
-            // e.stopPropagation();
-            // e.preventDefault();
             if (!progressing) {
               const conversation = storyManager.getConversation();
               conversation.progress();
@@ -90,10 +89,7 @@ const MegaChatBox = ({
                   selected ? styles.selected : null,
                 )}
                 onClick={e => {
-                  const conversation = storyManager.getConversation();
-                  conversation.progressOptionSelect(option);
-
-                  sounds.playSoundName('menuSelect');
+                  onOptionSelect(option, i);
                 }}
                 key={i}
               >
@@ -135,11 +131,12 @@ export const StoryTime = ({
       conversation.addEventListener('message', e => {
         const {message} = e.data;
         setMessage(message);
-        // setOptions(null);
       });
       conversation.addEventListener('options', e => {
         const {options} = e.data;
         setOptions(options);
+        setHoveredOptionIndex(-1);
+        setSelectedOptionIndex(-1);
       });
 
       conversation.addEventListener('progressstart', e => {
@@ -199,6 +196,18 @@ export const StoryTime = ({
           hoveredOptionIndex={hoveredOptionIndex}
           selectedOptionIndex={selectedOptionIndex}
           progressing={progressing}
+          onOptionSelect={(option, i) => {
+            const conversation = storyManager.getConversation();
+            conversation.progressOptionSelect(option);
+
+            setSelectedOptionIndex(i);
+
+            sounds.playSoundName('menuSelect');
+
+            setTimeout(() => {
+              setOptions(null);
+            }, 1500);
+          }}
         />
       </> : null}
       {/* hups.map((hup, index) => {
