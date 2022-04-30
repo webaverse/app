@@ -63,6 +63,8 @@ const MegaChatBox = ({
             if (!progressing) {
               const conversation = storyManager.getConversation();
               conversation.progress();
+
+              sounds.playSoundName('menuNext');
             }
           }}
         >
@@ -141,8 +143,6 @@ export const StoryTime = ({
 
       conversation.addEventListener('progressstart', e => {
         setProgressing(true);
-
-        sounds.playSoundName('menuNext');
       });
       conversation.addEventListener('progressend', e => {
         setProgressing(false);
@@ -169,6 +169,8 @@ export const StoryTime = ({
           const conversation = storyManager.getConversation();
           conversation.progress(selectedOptionIndex);
           
+          sounds.playSoundName('menuNext');
+
           return false;
         }
       };
