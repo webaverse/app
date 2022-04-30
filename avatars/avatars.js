@@ -1285,13 +1285,13 @@ class Avatar {
 
       // if (topEnabled) {
         if (k === 'Left_wrist') {
-          if (rHandEnabled) {
+          if (avatar.aimLeftFactor > 0) {
             // modelBone.quaternion.multiply(leftRotation); // center
             localQuaternion.copy(modelBone.quaternion).multiply(leftRotation)
             modelBone.quaternion.slerp(localQuaternion, avatar.aimLeftFactor); // center
           }
         } else if (k === 'Right_wrist') {
-          if (lHandEnabled) {
+          if (avatar.aimRightFactor > 0) {
             // modelBone.quaternion.multiply(rightRotation); // center
             localQuaternion.copy(modelBone.quaternion).multiply(rightRotation)
             modelBone.quaternion.slerp(localQuaternion, avatar.aimRightFactor); // center
