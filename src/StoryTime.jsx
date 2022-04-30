@@ -167,16 +167,16 @@ export const StoryTime = () => {
 
       conversation.addEventListener('close', e => {
         setMessage(null);
-        if (state.openedPanel === 'StoryTime') {
+        /* if (state.openedPanel === 'StoryTime') {
           setState({
             openedPanel: null,
           });
-        }
+        } */
       });
 
-      setState({
+      /* setState({
         openedPanel: 'StoryTime',
-      });
+      }); */
     }
     storyManager.addEventListener('conversationstart', conversationstart);
     
