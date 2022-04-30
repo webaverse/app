@@ -29,12 +29,12 @@ const MegaChatBox = ({
   selectedOptionIndex,
   progressing,
 }) => {
-  if (!(options && options.length > 0)) {
+  /* if (!(options && options.length > 0)) {
     options = [
       'Take the bait',
       'To the pain!',
     ];
-  }
+  } */
 
   // console.log('render mega chat box');
   return (
