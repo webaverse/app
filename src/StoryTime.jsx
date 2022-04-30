@@ -72,31 +72,35 @@ const MegaChatBox = ({
           />
         </div>
       </div>
-      {options ? (
-        <div className={classnames(styles.options, styles.outer)}>
-          <div className={styles.inner}>
-            {options.map((option, i) => {
-              const selected = i === selectedOptionIndex;
-              return (
-                <div
-                  className={classnames(
-                    styles.option,
-                    selected ? styles.selected : null,
-                  )}
-                  onClick={e => {
-                    const conversation = storyManager.getConversation();
-                    conversation.progressOptionSelect(option);
-                  }}
-                  key={i}
-                >
-                  <div className={styles.border}/>
-                  <div className={styles.value}>{option}</div>
-                </div>
-              );
-            })}
-          </div>
+      <div className={classnames(
+        styles.options,
+        styles.outer,
+        options ? styles.open : null,
+      )}>
+        <div className={styles.inner}>
+          {options ? options.map((option, i) => {
+            const selected = i === selectedOptionIndex;
+            return (
+              <div
+                className={classnames(
+                  styles.option,
+                  selected ? styles.selected : null,
+                )}
+                onClick={e => {
+                  const conversation = storyManager.getConversation();
+                  conversation.progressOptionSelect(option);
+
+                  sounds.playSoundName('menuSelect');
+                }}
+                key={i}
+              >
+                <div className={styles.border}/>
+                <div className={styles.value}>{option}</div>
+              </div>
+            );
+          }) : null}
         </div>
-      ) : null}
+      </div>
     </div>
   );
 };
