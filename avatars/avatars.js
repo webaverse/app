@@ -107,6 +107,46 @@ const localQuaternionRight_ringFinger3 = new THREE.Quaternion();
 const localQuaternionRight_littleFinger1 = new THREE.Quaternion();
 const localQuaternionRight_littleFinger2 = new THREE.Quaternion();
 const localQuaternionRight_littleFinger3 = new THREE.Quaternion();
+
+const lastQuaternionLeft_shoulder = new THREE.Quaternion();
+const lastQuaternionLeft_arm = new THREE.Quaternion();
+const lastQuaternionLeft_elbow = new THREE.Quaternion();
+const lastQuaternionLeft_wrist = new THREE.Quaternion();
+const lastQuaternionLeft_thumb0 = new THREE.Quaternion();
+const lastQuaternionLeft_thumb1 = new THREE.Quaternion();
+const lastQuaternionLeft_thumb2 = new THREE.Quaternion();
+const lastQuaternionLeft_indexFinger1 = new THREE.Quaternion();
+const lastQuaternionLeft_indexFinger2 = new THREE.Quaternion();
+const lastQuaternionLeft_indexFinger3 = new THREE.Quaternion();
+const lastQuaternionLeft_middleFinger1 = new THREE.Quaternion();
+const lastQuaternionLeft_middleFinger2 = new THREE.Quaternion();
+const lastQuaternionLeft_middleFinger3 = new THREE.Quaternion();
+const lastQuaternionLeft_ringFinger1 = new THREE.Quaternion();
+const lastQuaternionLeft_ringFinger2 = new THREE.Quaternion();
+const lastQuaternionLeft_ringFinger3 = new THREE.Quaternion();
+const lastQuaternionLeft_littleFinger1 = new THREE.Quaternion();
+const lastQuaternionLeft_littleFinger2 = new THREE.Quaternion();
+const lastQuaternionLeft_littleFinger3 = new THREE.Quaternion();
+const lastQuaternionRight_shoulder = new THREE.Quaternion();
+const lastQuaternionRight_arm = new THREE.Quaternion();
+const lastQuaternionRight_elbow = new THREE.Quaternion();
+const lastQuaternionRight_wrist = new THREE.Quaternion();
+const lastQuaternionRight_thumb0 = new THREE.Quaternion();
+const lastQuaternionRight_thumb1 = new THREE.Quaternion();
+const lastQuaternionRight_thumb2 = new THREE.Quaternion();
+const lastQuaternionRight_indexFinger1 = new THREE.Quaternion();
+const lastQuaternionRight_indexFinger2 = new THREE.Quaternion();
+const lastQuaternionRight_indexFinger3 = new THREE.Quaternion();
+const lastQuaternionRight_middleFinger1 = new THREE.Quaternion();
+const lastQuaternionRight_middleFinger2 = new THREE.Quaternion();
+const lastQuaternionRight_middleFinger3 = new THREE.Quaternion();
+const lastQuaternionRight_ringFinger1 = new THREE.Quaternion();
+const lastQuaternionRight_ringFinger2 = new THREE.Quaternion();
+const lastQuaternionRight_ringFinger3 = new THREE.Quaternion();
+const lastQuaternionRight_littleFinger1 = new THREE.Quaternion();
+const lastQuaternionRight_littleFinger2 = new THREE.Quaternion();
+const lastQuaternionRight_littleFinger3 = new THREE.Quaternion();
+
 const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
 const localMatrix = new THREE.Matrix4();
@@ -957,10 +997,14 @@ class Avatar {
     this.emoteAnimation = null;
     this.poseFactor = 0;
     this.poseAnimation = null;
-    this.aimTransitionTime = 0;
-    this.aimFactor = 0;
-    this.aimFactorReverse = 1;
-    // this.throwState = null;
+    this.aimState = false;
+    this.aimRightTransitionTime = 0;
+    this.aimRightFactor = 0;
+    this.aimRightFactorReverse = 1;
+    this.aimLeftTransitionTime = 0;
+    this.aimLeftFactor = 0;
+    this.aimLeftFactorReverse = 1;
+    // this.LeftState = null;
     // this.throwTime = 0;
     this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
@@ -1244,13 +1288,13 @@ class Avatar {
           if (rHandEnabled) {
             // modelBone.quaternion.multiply(leftRotation); // center
             localQuaternion.copy(modelBone.quaternion).multiply(leftRotation)
-            modelBone.quaternion.slerp(localQuaternion, avatar.aimFactor); // center
+            modelBone.quaternion.slerp(localQuaternion, avatar.aimLeftFactor); // center
           }
         } else if (k === 'Right_wrist') {
           if (lHandEnabled) {
             // modelBone.quaternion.multiply(rightRotation); // center
             localQuaternion.copy(modelBone.quaternion).multiply(rightRotation)
-            modelBone.quaternion.slerp(localQuaternion, avatar.aimFactor); // center
+            modelBone.quaternion.slerp(localQuaternion, avatar.aimRightFactor); // center
           }
         }
       // }
@@ -1492,48 +1536,137 @@ class Avatar {
       localQuaternionLeft_littleFinger2.copy(this.modelBoneOutputs.Left_littleFinger2.quaternion);
       localQuaternionLeft_littleFinger3.copy(this.modelBoneOutputs.Left_littleFinger3.quaternion);
     }
+
     this.shoulderTransforms.Update();
+
     if (this.shoulderTransforms.handsEnabled[0]) {
-      this.modelBoneOutputs.Right_shoulder.quaternion.slerp(localQuaternionRight_shoulder, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_arm.quaternion.slerp(localQuaternionRight_arm, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_elbow.quaternion.slerp(localQuaternionRight_elbow, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_wrist.quaternion.slerp(localQuaternionRight_wrist, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_thumb0.quaternion.slerp(localQuaternionRight_thumb0, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_thumb1.quaternion.slerp(localQuaternionRight_thumb1, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_thumb2.quaternion.slerp(localQuaternionRight_thumb2, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_indexFinger1.quaternion.slerp(localQuaternionRight_indexFinger1, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_indexFinger2.quaternion.slerp(localQuaternionRight_indexFinger2, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_indexFinger3.quaternion.slerp(localQuaternionRight_indexFinger3, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_middleFinger1.quaternion.slerp(localQuaternionRight_middleFinger1, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_middleFinger2.quaternion.slerp(localQuaternionRight_middleFinger2, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_middleFinger3.quaternion.slerp(localQuaternionRight_middleFinger3, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_ringFinger1.quaternion.slerp(localQuaternionRight_ringFinger1, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_ringFinger2.quaternion.slerp(localQuaternionRight_ringFinger2, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_ringFinger3.quaternion.slerp(localQuaternionRight_ringFinger3, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_littleFinger1.quaternion.slerp(localQuaternionRight_littleFinger1, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_littleFinger2.quaternion.slerp(localQuaternionRight_littleFinger2, this.aimFactorReverse);
-      this.modelBoneOutputs.Right_littleFinger3.quaternion.slerp(localQuaternionRight_littleFinger3, this.aimFactorReverse);
+      lastQuaternionRight_shoulder.copy(modelBoneOutputs.Right_shoulder.quaternion);
+      lastQuaternionRight_arm.copy(modelBoneOutputs.Right_arm.quaternion);
+      lastQuaternionRight_elbow.copy(modelBoneOutputs.Right_elbow.quaternion);
+      lastQuaternionRight_wrist.copy(modelBoneOutputs.Right_wrist.quaternion);
+      lastQuaternionRight_thumb0.copy(modelBoneOutputs.Right_thumb0.quaternion);
+      lastQuaternionRight_thumb1.copy(modelBoneOutputs.Right_thumb1.quaternion);
+      lastQuaternionRight_thumb2.copy(modelBoneOutputs.Right_thumb2.quaternion);
+      lastQuaternionRight_indexFinger1.copy(modelBoneOutputs.Right_indexFinger1.quaternion);
+      lastQuaternionRight_indexFinger2.copy(modelBoneOutputs.Right_indexFinger2.quaternion);
+      lastQuaternionRight_indexFinger3.copy(modelBoneOutputs.Right_indexFinger3.quaternion);
+      lastQuaternionRight_middleFinger1.copy(modelBoneOutputs.Right_middleFinger1.quaternion);
+      lastQuaternionRight_middleFinger2.copy(modelBoneOutputs.Right_middleFinger2.quaternion);
+      lastQuaternionRight_middleFinger3.copy(modelBoneOutputs.Right_middleFinger3.quaternion);
+      lastQuaternionRight_ringFinger1.copy(modelBoneOutputs.Right_ringFinger1.quaternion);
+      lastQuaternionRight_ringFinger2.copy(modelBoneOutputs.Right_ringFinger2.quaternion);
+      lastQuaternionRight_ringFinger3.copy(modelBoneOutputs.Right_ringFinger3.quaternion);
+      lastQuaternionRight_littleFinger1.copy(modelBoneOutputs.Right_littleFinger1.quaternion);
+      lastQuaternionRight_littleFinger2.copy(modelBoneOutputs.Right_littleFinger2.quaternion);
+      lastQuaternionRight_littleFinger3.copy(modelBoneOutputs.Right_littleFinger3.quaternion);
     }
     if (this.shoulderTransforms.handsEnabled[1]) {
-      this.modelBoneOutputs.Left_shoulder.quaternion.slerp(localQuaternionLeft_shoulder, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_arm.quaternion.slerp(localQuaternionLeft_arm, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_elbow.quaternion.slerp(localQuaternionLeft_elbow, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_wrist.quaternion.slerp(localQuaternionLeft_wrist, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_thumb0.quaternion.slerp(localQuaternionLeft_thumb0, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_thumb1.quaternion.slerp(localQuaternionLeft_thumb1, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_thumb2.quaternion.slerp(localQuaternionLeft_thumb2, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_indexFinger1.quaternion.slerp(localQuaternionLeft_indexFinger1, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_indexFinger2.quaternion.slerp(localQuaternionLeft_indexFinger2, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_indexFinger3.quaternion.slerp(localQuaternionLeft_indexFinger3, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_middleFinger1.quaternion.slerp(localQuaternionLeft_middleFinger1, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_middleFinger2.quaternion.slerp(localQuaternionLeft_middleFinger2, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_middleFinger3.quaternion.slerp(localQuaternionLeft_middleFinger3, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_ringFinger1.quaternion.slerp(localQuaternionLeft_ringFinger1, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_ringFinger2.quaternion.slerp(localQuaternionLeft_ringFinger2, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_ringFinger3.quaternion.slerp(localQuaternionLeft_ringFinger3, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_littleFinger1.quaternion.slerp(localQuaternionLeft_littleFinger1, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_littleFinger2.quaternion.slerp(localQuaternionLeft_littleFinger2, this.aimFactorReverse);
-      this.modelBoneOutputs.Left_littleFinger3.quaternion.slerp(localQuaternionLeft_littleFinger3, this.aimFactorReverse);
+      lastQuaternionLeft_shoulder.copy(modelBoneOutputs.Left_shoulder.quaternion);
+      lastQuaternionLeft_arm.copy(modelBoneOutputs.Left_arm.quaternion);
+      lastQuaternionLeft_elbow.copy(modelBoneOutputs.Left_elbow.quaternion);
+      lastQuaternionLeft_wrist.copy(modelBoneOutputs.Left_wrist.quaternion);
+      lastQuaternionLeft_thumb0.copy(modelBoneOutputs.Left_thumb0.quaternion);
+      lastQuaternionLeft_thumb1.copy(modelBoneOutputs.Left_thumb1.quaternion);
+      lastQuaternionLeft_thumb2.copy(modelBoneOutputs.Left_thumb2.quaternion);
+      lastQuaternionLeft_indexFinger1.copy(modelBoneOutputs.Left_indexFinger1.quaternion);
+      lastQuaternionLeft_indexFinger2.copy(modelBoneOutputs.Left_indexFinger2.quaternion);
+      lastQuaternionLeft_indexFinger3.copy(modelBoneOutputs.Left_indexFinger3.quaternion);
+      lastQuaternionLeft_middleFinger1.copy(modelBoneOutputs.Left_middleFinger1.quaternion);
+      lastQuaternionLeft_middleFinger2.copy(modelBoneOutputs.Left_middleFinger2.quaternion);
+      lastQuaternionLeft_middleFinger3.copy(modelBoneOutputs.Left_middleFinger3.quaternion);
+      lastQuaternionLeft_ringFinger1.copy(modelBoneOutputs.Left_ringFinger1.quaternion);
+      lastQuaternionLeft_ringFinger2.copy(modelBoneOutputs.Left_ringFinger2.quaternion);
+      lastQuaternionLeft_ringFinger3.copy(modelBoneOutputs.Left_ringFinger3.quaternion);
+      lastQuaternionLeft_littleFinger1.copy(modelBoneOutputs.Left_littleFinger1.quaternion);
+      lastQuaternionLeft_littleFinger2.copy(modelBoneOutputs.Left_littleFinger2.quaternion);
+      lastQuaternionLeft_littleFinger3.copy(modelBoneOutputs.Left_littleFinger3.quaternion);
+    }
+
+    if (this.aimRightFactor > 0) {
+      if (this.aimState) {
+        this.modelBoneOutputs.Right_shoulder.quaternion.slerp(localQuaternionRight_shoulder, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_arm.quaternion.slerp(localQuaternionRight_arm, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_elbow.quaternion.slerp(localQuaternionRight_elbow, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_wrist.quaternion.slerp(localQuaternionRight_wrist, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_thumb0.quaternion.slerp(localQuaternionRight_thumb0, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_thumb1.quaternion.slerp(localQuaternionRight_thumb1, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_thumb2.quaternion.slerp(localQuaternionRight_thumb2, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_indexFinger1.quaternion.slerp(localQuaternionRight_indexFinger1, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_indexFinger2.quaternion.slerp(localQuaternionRight_indexFinger2, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_indexFinger3.quaternion.slerp(localQuaternionRight_indexFinger3, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_middleFinger1.quaternion.slerp(localQuaternionRight_middleFinger1, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_middleFinger2.quaternion.slerp(localQuaternionRight_middleFinger2, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_middleFinger3.quaternion.slerp(localQuaternionRight_middleFinger3, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_ringFinger1.quaternion.slerp(localQuaternionRight_ringFinger1, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_ringFinger2.quaternion.slerp(localQuaternionRight_ringFinger2, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_ringFinger3.quaternion.slerp(localQuaternionRight_ringFinger3, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_littleFinger1.quaternion.slerp(localQuaternionRight_littleFinger1, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_littleFinger2.quaternion.slerp(localQuaternionRight_littleFinger2, this.aimRightFactorReverse);
+        this.modelBoneOutputs.Right_littleFinger3.quaternion.slerp(localQuaternionRight_littleFinger3, this.aimRightFactorReverse);
+      } else {
+        this.modelBoneOutputs.Right_shoulder.quaternion.slerp(lastQuaternionRight_shoulder, this.aimRightFactor);
+        this.modelBoneOutputs.Right_arm.quaternion.slerp(lastQuaternionRight_arm, this.aimRightFactor);
+        this.modelBoneOutputs.Right_elbow.quaternion.slerp(lastQuaternionRight_elbow, this.aimRightFactor);
+        this.modelBoneOutputs.Right_wrist.quaternion.slerp(lastQuaternionRight_wrist, this.aimRightFactor);
+        this.modelBoneOutputs.Right_thumb0.quaternion.slerp(lastQuaternionRight_thumb0, this.aimRightFactor);
+        this.modelBoneOutputs.Right_thumb1.quaternion.slerp(lastQuaternionRight_thumb1, this.aimRightFactor);
+        this.modelBoneOutputs.Right_thumb2.quaternion.slerp(lastQuaternionRight_thumb2, this.aimRightFactor);
+        this.modelBoneOutputs.Right_indexFinger1.quaternion.slerp(lastQuaternionRight_indexFinger1, this.aimRightFactor);
+        this.modelBoneOutputs.Right_indexFinger2.quaternion.slerp(lastQuaternionRight_indexFinger2, this.aimRightFactor);
+        this.modelBoneOutputs.Right_indexFinger3.quaternion.slerp(lastQuaternionRight_indexFinger3, this.aimRightFactor);
+        this.modelBoneOutputs.Right_middleFinger1.quaternion.slerp(lastQuaternionRight_middleFinger1, this.aimRightFactor);
+        this.modelBoneOutputs.Right_middleFinger2.quaternion.slerp(lastQuaternionRight_middleFinger2, this.aimRightFactor);
+        this.modelBoneOutputs.Right_middleFinger3.quaternion.slerp(lastQuaternionRight_middleFinger3, this.aimRightFactor);
+        this.modelBoneOutputs.Right_ringFinger1.quaternion.slerp(lastQuaternionRight_ringFinger1, this.aimRightFactor);
+        this.modelBoneOutputs.Right_ringFinger2.quaternion.slerp(lastQuaternionRight_ringFinger2, this.aimRightFactor);
+        this.modelBoneOutputs.Right_ringFinger3.quaternion.slerp(lastQuaternionRight_ringFinger3, this.aimRightFactor);
+        this.modelBoneOutputs.Right_littleFinger1.quaternion.slerp(lastQuaternionRight_littleFinger1, this.aimRightFactor);
+        this.modelBoneOutputs.Right_littleFinger2.quaternion.slerp(lastQuaternionRight_littleFinger2, this.aimRightFactor);
+        this.modelBoneOutputs.Right_littleFinger3.quaternion.slerp(lastQuaternionRight_littleFinger3, this.aimRightFactor);
+      }
+    }
+    if (this.aimLeftFactor > 0) {
+      if (this.aimState) {
+        this.modelBoneOutputs.Left_shoulder.quaternion.slerp(localQuaternionLeft_shoulder, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_arm.quaternion.slerp(localQuaternionLeft_arm, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_elbow.quaternion.slerp(localQuaternionLeft_elbow, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_wrist.quaternion.slerp(localQuaternionLeft_wrist, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_thumb0.quaternion.slerp(localQuaternionLeft_thumb0, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_thumb1.quaternion.slerp(localQuaternionLeft_thumb1, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_thumb2.quaternion.slerp(localQuaternionLeft_thumb2, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_indexFinger1.quaternion.slerp(localQuaternionLeft_indexFinger1, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_indexFinger2.quaternion.slerp(localQuaternionLeft_indexFinger2, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_indexFinger3.quaternion.slerp(localQuaternionLeft_indexFinger3, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_middleFinger1.quaternion.slerp(localQuaternionLeft_middleFinger1, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_middleFinger2.quaternion.slerp(localQuaternionLeft_middleFinger2, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_middleFinger3.quaternion.slerp(localQuaternionLeft_middleFinger3, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_ringFinger1.quaternion.slerp(localQuaternionLeft_ringFinger1, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_ringFinger2.quaternion.slerp(localQuaternionLeft_ringFinger2, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_ringFinger3.quaternion.slerp(localQuaternionLeft_ringFinger3, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_littleFinger1.quaternion.slerp(localQuaternionLeft_littleFinger1, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_littleFinger2.quaternion.slerp(localQuaternionLeft_littleFinger2, this.aimLeftFactorReverse);
+        this.modelBoneOutputs.Left_littleFinger3.quaternion.slerp(localQuaternionLeft_littleFinger3, this.aimLeftFactorReverse);
+      } else {
+        this.modelBoneOutputs.Left_shoulder.quaternion.slerp(lastQuaternionLeft_shoulder, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_arm.quaternion.slerp(lastQuaternionLeft_arm, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_elbow.quaternion.slerp(lastQuaternionLeft_elbow, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_wrist.quaternion.slerp(lastQuaternionLeft_wrist, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_thumb0.quaternion.slerp(lastQuaternionLeft_thumb0, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_thumb1.quaternion.slerp(lastQuaternionLeft_thumb1, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_thumb2.quaternion.slerp(lastQuaternionLeft_thumb2, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_indexFinger1.quaternion.slerp(lastQuaternionLeft_indexFinger1, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_indexFinger2.quaternion.slerp(lastQuaternionLeft_indexFinger2, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_indexFinger3.quaternion.slerp(lastQuaternionLeft_indexFinger3, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_middleFinger1.quaternion.slerp(lastQuaternionLeft_middleFinger1, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_middleFinger2.quaternion.slerp(lastQuaternionLeft_middleFinger2, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_middleFinger3.quaternion.slerp(lastQuaternionLeft_middleFinger3, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_ringFinger1.quaternion.slerp(lastQuaternionLeft_ringFinger1, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_ringFinger2.quaternion.slerp(lastQuaternionLeft_ringFinger2, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_ringFinger3.quaternion.slerp(lastQuaternionLeft_ringFinger3, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_littleFinger1.quaternion.slerp(lastQuaternionLeft_littleFinger1, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_littleFinger2.quaternion.slerp(lastQuaternionLeft_littleFinger2, this.aimLeftFactor);
+        this.modelBoneOutputs.Left_littleFinger3.quaternion.slerp(lastQuaternionLeft_littleFinger3, this.aimLeftFactor);
+      }
     }
   }
 
@@ -1548,8 +1681,10 @@ class Avatar {
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
-    this.aimFactor = this.aimTransitionTime / aimTransitionMaxTime;
-    this.aimFactorReverse = 1 - this.aimFactor;
+    this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;
+    this.aimRightFactorReverse = 1 - this.aimRightFactor;
+    this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
+    this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -1992,9 +2127,12 @@ class Avatar {
       <div style="display:;">fallLoopState: --- ${this.fallLoopState}</div>
       <div style="display:;">narutoRunState: --- ${this.narutoRunState}</div>
       <div style="display:;">sitState: --- ${this.sitState}</div>
-      <div style="display:;">aimTransitionTime: --- ${Math.floor(this.aimTransitionTime)}</div>
-      <div style="display:;">aimFactor: --- ${this.aimFactor.toFixed(2)}</div>
-      <div style="display:;">aimFactorReverse: --- ${this.aimFactorReverse.toFixed(2)}</div>
+      <div style="display:;">aimRightTransitionTime: --- ${Math.floor(this.aimRightTransitionTime)}</div>
+      <div style="display:;">aimRightFactor: --- ${this.aimRightFactor.toFixed(2)}</div>
+      <div style="display:;">aimRightFactorReverse: --- ${this.aimRightFactorReverse.toFixed(2)}</div>
+      <div style="display:;">aimLeftTransitionTime: --- ${Math.floor(this.aimLeftTransitionTime)}</div>
+      <div style="display:;">aimLeftFactor: --- ${this.aimLeftFactor.toFixed(2)}</div>
+      <div style="display:;">aimLeftFactorReverse: --- ${this.aimLeftFactorReverse.toFixed(2)}</div>
       <div style="display:;">aimTime: --- ${Math.floor(this.aimTime)}</div>
       <div style="display:;">aimAnimation: --- ${this.aimAnimation}</div>
       <div style="display:;">danceAnimation: --- ${this.danceAnimation}</div>
