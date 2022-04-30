@@ -46,6 +46,9 @@
   font-size: 32px;
   letter-spacing: 2px;
 }
+
+/* */
+
 .storyTime .lightArrow {
   bottom: 100px !important;
   right: 115px !important;
@@ -53,6 +56,8 @@
   left: auto !important;
   z-index: 1;
 }
+
+/* */
 
 @keyframes blink_effect {
   0% {
@@ -68,13 +73,20 @@
     visibility: hidden;
   }
 }
-
-.storyTime .down {
+.storyTime .nextBlink {
   position: absolute;
-  width: 30px;
-  height: 30px;
-  bottom: 40px;
-  right: 60px;
+  bottom: 0;
+  right: 20px;
+  padding: 30px;
+  z-index: 1;
+  cursor: pointer;
+}
+.storyTime .nextBlink:not(.visible) {
+  display: none;
+}
+.storyTime .nextBlink .arrow {
+  width: 25px;
+  height: 25px;
   object-fit: contain;
   animation: 1.5s linear infinite blink_effect;
 }

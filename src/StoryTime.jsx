@@ -1,5 +1,5 @@
 // import * as THREE from 'three';
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import classnames from 'classnames';
 import dioramaManager from '../diorama.js';
 import {RpgText} from './RpgText.jsx';
@@ -9,8 +9,10 @@ import styles from './StoryTime.module.css';
 // const {useLocalPlayer} = metaversefile;
 import {chatTextSpeed} from '../constants.js';
 import {level} from '../player-stats.js';
+import {AppContext} from './components/app';
 
 import storyManager from '../story.js';
+import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -20,6 +22,8 @@ import storyManager from '../story.js';
 
 const MegaChatBox = ({
   message,
+  options,
+  progressing,
 }) => {
   // console.log('render mega chat box');
   return (
@@ -34,7 +38,27 @@ const MegaChatBox = ({
           className={styles.lightArrow}
           up
         />*/}
-        <img className={styles.down} src="./images/ui/down.svg" />
+        <div
+          className={classnames(
+            styles.nextBlink,
+            progressing ? null : styles.visible,
+          )}
+          onClick={e => {
+            // e.stopPropagation();
+            // e.preventDefault();
+            console.log('progress conversation', progressing);
+            if (!progressing) {
+              const conversation = storyManager.getConversation();
+              conversation.progress();
+            }
+          }}
+        >
+          <img
+            className={styles.arrow}
+            src="./images/ui/down.svg"
+          />
+        </div>
+        {options ? <></> : null}
       </div>
     </div>
   );
@@ -44,28 +68,52 @@ export const StoryTime = ({
   // localPlayer,
   // npcs,
 }) => {
-  const [messages, setMessages] = useState([]);
+  const {state, setState} = useContext(AppContext);
+  // const [messages, setMessages] = useState([]);
+  const [conversation, setConversation] = useState(null);
   const [message, setMessage] = useState(null);
+  const [options, setOptions] = useState(null);
+  const [progressing, setProgressing] = useState(false);
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(-1);
+
+  const open = state.openedPanel === 'StoryTime';
+  // console.log('got open', open);
 
   useEffect(() => {
     // console.log('listen conversation start');
     function conversationstart(e) {
-        const {conversation} = e.data;
-        const {messages} = conversation;
+      const {conversation} = e.data;
+      // const {messages} = conversation;
 
-        // console.log('conversation start', conversation, messages);
-        
-        conversation.addEventListener('message', e => {
-          // console.log('got message event', e.data)
-          const {message} = e.data;
-          setMessages(messages.concat([message]));
-          setMessage(message);
-        });
-        /* setMessages(messages);
-        
-        if (messages.length > 0) {
-          setMessage(messages[0]);
-        } */
+      // console.log('conversation start', conversation, messages);
+      
+      conversation.addEventListener('message', e => {
+        const {message} = e.data;
+        setMessage(message);
+      });
+      conversation.addEventListener('options', e => {
+        const {options} = e.data;
+        // setMessage(message);
+        setOptions(options);
+        // console.log('set options', options);
+      });
+      /* setMessages(messages);
+      
+      if (messages.length > 0) {
+        setMessage(messages[0]);
+      } */
+
+      conversation.addEventListener('progressstart', e => {
+        setProgressing(true);
+      });
+      conversation.addEventListener('progressend', e => {
+        setProgressing(false);
+      });
+
+      setConversation(conversation);
+      setState({
+        openedPanel: 'StoryTime',
+      });
     }
     storyManager.addEventListener('conversationstart', conversationstart);
     
@@ -74,33 +122,37 @@ export const StoryTime = ({
     };
   }, []);
 
-  /* useEffect(() => {
-    function hupadd(e) {
-      const newHups = hups.concat([e.data.hup]);
-      // console.log('new hups', newHups);
-      setHups(newHups);
-    }
-    localPlayer.characterHups.addEventListener('hupadd', hupadd);
-    // localPlayer.characterHups.addEventListener('hupremove', hupremove);
-    for (const npcPlayer of npcs) {
-      npcPlayer.characterHups.addEventListener('hupadd', hupadd);
-      // npcPlayer.characterHups.addEventListener('hupremove', hupremove);
-    }
+  useEffect(() => {
+    if (conversation) {
+      const handleKeyDown = event => {
+        console.log('got key down', event.which);
 
-    return () => {
-      localPlayer.characterHups.removeEventListener('hupadd', hupadd);
-      // localPlayer.characterHups.removeEventListener('hupremove', hupremove);
-      for (const npcPlayer of npcs) {
-        npcPlayer.characterHups.removeEventListener('hupadd', hupadd);
-        // npcPlayer.characterHups.removeEventListener('hupremove', hupremove);
-      }
-    };
-  }, [localPlayer, npcs, npcs.length, hups, hups.length]); */
+        if (event.which === 13) { // enter
+          const conversation = storyManager.getConversation();
+          conversation.progress(selectedOptionIndex);
+          
+          return false;
+        }
+      };
+
+      registerIoEventHandler('keydown', handleKeyDown);
+
+      return () => {
+        unregisterIoEventHandler('keydown', handleKeyDown);
+      };
+    }
+  }, [conversation]);
+  
+  useEffect(() => {
+    if (!open && conversation) {
+      conversation.end();
+    }
+  }, [open, conversation]);
 
   return (
     <div className={styles.storyTime}>
       {message ? <>
-          <MegaChatBox message={message} />
+        <MegaChatBox message={message} options={options} progressing={progressing} />
       </> : null}
       {/* hups.map((hup, index) => {
         return (
