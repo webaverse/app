@@ -77,9 +77,9 @@ class Conversation extends EventTarget {
     this.messages = [];
     this.progressing = false;
   }
-  addLocalPlayerMessage(text) {
+  addLocalPlayerMessage(text, type = 'chat') {
     const message = {
-      type: 'chat',
+      type,
       player: this.localPlayer,
       name: this.localPlayer.name,
       text,
@@ -96,9 +96,9 @@ class Conversation extends EventTarget {
       await _playerSay(this.localPlayer, text);
     })();
   }
-  addRemotePlayerMessage(text) {
+  addRemotePlayerMessage(text, type = 'chat') {
     const message = {
-      type: 'chat',
+      type,
       player: this.remotePlayer,
       name: this.remotePlayer.name,
       text,
@@ -146,8 +146,6 @@ class Conversation extends EventTarget {
     this.wrapProgress(async () => {
       const aiScene = metaversefile.useLoreAIScene();
       const options = await aiScene.generateDialogueOptions(this.messages);
-      console.log('got options', options);
-      // this.addLocalPlayerMessage(comment);
 
       this.dispatchEvent(new MessageEvent('options', {
         data: {
@@ -158,11 +156,11 @@ class Conversation extends EventTarget {
   }
   progressOptionSelect(option) {
     // say the option
-    this.addLocalPlayerMessage(option);
+    this.addLocalPlayerMessage(option, 'option');
     
-    // 50% chance of either character reacting
-    this.localTurn = Math.random() < 0.5;
-    this.progress();
+    // 25% chance of self, 75% chance of other character
+    this.localTurn = Math.random() < 0.25;
+    // this.progress();
   }
   progressSelf() {
     this.wrapProgress(async () => {
@@ -172,20 +170,36 @@ class Conversation extends EventTarget {
       this.addLocalPlayerMessage(comment);
     });
   }
+  #getMessageAgo(n) {
+    return this.messages[this.messages.length - n] ?? null;
+  }
   progress() {
-    // const localTurn = this.messages.length % 2 === 0;
-    // console.log('progress', this.messages.length);
+    const lastMessage = this.#getMessageAgo(1);
+    
     if (this.localTurn) {
-      this.progressSelf();
+      console.log('check last message 1', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.localPlayer);
+      
+      if (lastMessage?.type === 'chat' && lastMessage?.player === this.localPlayer) {
+        // 50% chance of showing options
+        if (Math.random() < 0.5) {
+          this.progressOptions();
+          this.localTurn = true;
+        } else {
+          this.progressSelf();
 
-      // 50% chance of moving to the other character
-      this.localTurn = Math.random() < 0.5;
+          // 50% chance of moving to the other character
+          this.localTurn = Math.random() < 0.5;
+        }
+      } else {
+        this.progressSelf();
+
+        // 50% chance of moving to the other character
+        this.localTurn = Math.random() < 0.5;
+      }
     } else {
-      if ( // if last was chat from remote player
-        this.messages.length > 0 &&
-        this.messages[this.messages.length - 1].type === 'chat' &&
-        this.messages[this.messages.length - 1].player === this.remotePlayer
-      ) {
+      console.log('check last message 2', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.remotePlayer);
+
+      if (lastMessage?.type === 'chat' && lastMessage?.player === this.remotePlayer) {
         // 50% chance of showing options
         if (Math.random() < 0.5) {
           this.progressOptions();
