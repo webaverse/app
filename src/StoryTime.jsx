@@ -30,10 +30,11 @@ const MegaChatBox = ({
           <div className={styles.level}>Lv. {level}</div>
         </div>
         <div className={styles.text}>{message.text}</div>
-        <LightArrow
+        {/* <LightArrow
           className={styles.lightArrow}
           up
-        />
+        />*/}
+        <img className={styles.down} src="./images/ui/down.svg" />
       </div>
     </div>
   );
