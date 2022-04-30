@@ -78,6 +78,7 @@ const MegaChatBox = ({
         styles.options,
         styles.outer,
         options ? styles.open : null,
+        selectedOptionIndex !== -1 ? styles.selected : null,
       )}>
         <div className={styles.inner}>
           {options ? options.map((option, i) => {
