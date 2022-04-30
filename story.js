@@ -75,9 +75,12 @@ class Conversation extends EventTarget {
     this.remotePlayer = remotePlayer;
 
     this.messages = [];
+    this.progressing = false;
   }
   addLocalPlayerMessage(text) {
     const message = {
+      type: 'chat',
+      player: this.localPlayer,
       name: this.localPlayer.name,
       text,
     };
@@ -93,11 +96,12 @@ class Conversation extends EventTarget {
       await _playerSay(this.localPlayer, text);
     })();
 
-    // kick off the first response
-    // this.progressChat();
+    this.localTurn = false;
   }
   addRemotePlayerMessage(text) {
     const message = {
+      type: 'chat',
+      player: this.remotePlayer,
       name: this.remotePlayer.name,
       text,
     };
@@ -113,48 +117,84 @@ class Conversation extends EventTarget {
       await _playerSay(this.remotePlayer, text);
     })();
   }
+  async wrapProgress(fn) {
+    if (!this.progressing) {
+      this.progressing = true;
+      this.dispatchEvent(new MessageEvent('progressstart'));
+
+      try {
+        await fn();
+      } finally {
+        this.progressing = false;
+        this.dispatchEvent(new MessageEvent('progressend'));
+      }
+    } else {
+      console.warn('ignoring conversation progress() because it was already in progress');
+    }
+  }
   progressChat() {
     console.log('progress chat');
-    (async () => {
+
+    this.wrapProgress(async () => {
       const aiScene = metaversefile.useLoreAIScene();
       const comment = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
       
       this.addRemotePlayerMessage(comment);
-    })();
+    });
   }
   progressOption() {
     console.log('progress option');
+    
+    this.wrapProgress(async () => {
+      const aiScene = metaversefile.useLoreAIScene();
+      const options = await aiScene.generateDialogueOptions(this.messages);
+      console.log('got options', options);
+      // this.addLocalPlayerMessage(comment);
+
+      this.dispatchEvent(new MessageEvent('options', {
+        data: {
+          options,
+        },
+      }));
+    });
   }
   progressSelf() {
-    console.log('progress self');
+    // console.log('progress self');
     
-    (async () => {
+    this.wrapProgress(async () => {
       const aiScene = metaversefile.useLoreAIScene();
       const comment = await aiScene.generateChatMessage(this.messages, this.localPlayer.name);
       
       this.addLocalPlayerMessage(comment);
-    })();
+    });
   }
   progress() {
-    const localTurn = this.messages.length % 2 === 0;
-    console.log('progress', this.messages.length);
-    if (localTurn) {
+    // const localTurn = this.messages.length % 2 === 0;
+    // console.log('progress', this.messages.length);
+    if (this.localTurn) {
       this.progressSelf();
+
+      // 50% chance of moving to the other character
+      this.localTurn = Math.random() < 0.5;
     } else {
-      const typeIndex = Math.floor(Math.random() * 2);
-      switch (typeIndex) {
-        case 0: {
-          this.progressChat();
-          break;
-        }
-        case 1: {
+      if ( // if last was chat from remote player
+        this.messages.length > 0 &&
+        this.messages[this.messages.length - 1].type === 'chat' &&
+        this.messages[this.messages.length - 1].player === this.remotePlayer
+      ) {
+        // 50% chance of showing options
+        if (Math.random() < 0.5) {
           this.progressOption();
-          break;
+        } else {
+          // otherwise 50% chance of each character taking a turn
+          if (Math.random() < 0.5) {
+            this.progressChat();
+          } else {
+            this.progressSelf();
+          }
         }
-        case 2: {
-          this.progressSelf();
-          break;
-        }
+      } else { // it is the remote character's turn
+        this.progressChat();
       }
     }
   }
