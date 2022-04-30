@@ -272,10 +272,10 @@ class AIScene {
     const prompt = makeOptionsPrompt({
       messages,
     });
-    console.log('dialogue prompt', {prompt});
+    console.log('dialogue options prompt', {prompt});
     const stop = makeOptionsStop();
     let response = await this.generateFn(prompt, stop);
-    console.log('dialogue response', {prompt, response});
+    console.log('dialogue options response', {prompt, response});
     response = parseOptionsResponse(response);
     // console.log('got comment', {prompt, response});
     return response;
