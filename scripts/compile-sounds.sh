@@ -15,7 +15,7 @@ rm -f sounds.mp3
 
 clean
 
-ls {walk,run,jump,land,narutoRun,sonicBoom,food,combat,spells,ui}/*.wav | sort -n >sound-files.txt
+ls {walk,run,jump,land,narutoRun,sonicBoom,food,combat,spells,ui,navi}/*.wav | sort -n >sound-files.txt
 
 set --
 while IFS='' read -r item; do
