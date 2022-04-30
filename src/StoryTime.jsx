@@ -30,14 +30,6 @@ const MegaChatBox = ({
   progressing,
   onOptionSelect,
 }) => {
-  /* if (!(options && options.length > 0)) {
-    options = [
-      'Take the bait',
-      'To the pain!',
-    ];
-  } */
-
-  // console.log('render mega chat box');
   return (
     <div className={classnames(styles.megaChatBox, styles.outer)}>
       <div className={styles.inner}>
@@ -104,30 +96,33 @@ const MegaChatBox = ({
   );
 };
 
-export const StoryTime = ({
-  // localPlayer,
-  // npcs,
-}) => {
+export const StoryTime = () => {
   const {state, setState} = useContext(AppContext);
-  // const [messages, setMessages] = useState([]);
   const [conversation, setConversation] = useState(null);
   const [message, setMessage] = useState(null);
-  const [options, setOptions] = useState(null);
+  let [options, setOptions] = useState(/* () => {
+    return [
+      'Take the bait',
+      'To the pain!',
+    ];
+  } */);
   const [progressing, setProgressing] = useState(false);
   const [hoveredOptionIndex, setHoveredOptionIndex] = useState(-1);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(-1);
 
+  /* // XXX hack
+  if (!(options && options.length > 0)) {
+    options = [
+      'Take the bait',
+      'To the pain!',
+    ];
+  } */
+
   const open = state.openedPanel === 'StoryTime';
-  // console.log('got open', open);
 
   useEffect(() => {
-    // console.log('listen conversation start');
     function conversationstart(e) {
       const {conversation} = e.data;
-      // const {messages} = conversation;
-
-      // console.log('conversation start', conversation, messages);
-      
       conversation.addEventListener('message', e => {
         const {message} = e.data;
         setMessage(message);
@@ -161,7 +156,7 @@ export const StoryTime = ({
   useEffect(() => {
     if (conversation) {
       const handleKeyDown = event => {
-        console.log('got key down', event.which);
+        // console.log('got key down', event.which);
 
         if (event.which === 13) { // enter
           const conversation = storyManager.getConversation();
@@ -187,9 +182,26 @@ export const StoryTime = ({
     }
   }, [open, conversation]);
 
+  useEffect(() => {
+    // console.log('check options', options, selectedOptionIndex);
+    if (options && selectedOptionIndex !== -1) {
+      // console.log('set timeout', options, selectedOptionIndex);
+      const timeout = setTimeout(() => {
+        // console.log('clear options');
+        setOptions(null);
+        setSelectedOptionIndex(-1);
+      }, 1500);
+
+      return () => {
+        // console.log('clear timeout');
+        clearTimeout(timeout);
+      };
+    }
+  }, [options, selectedOptionIndex]);
+
   return (
     <div className={styles.storyTime}>
-      {message ? <>
+      {message ? (
         <MegaChatBox
           message={message}
           options={options}
@@ -203,24 +215,9 @@ export const StoryTime = ({
             setSelectedOptionIndex(i);
 
             sounds.playSoundName('menuSelect');
-
-            setTimeout(() => {
-              setOptions(null);
-            }, 1500);
           }}
         />
-      </> : null}
-      {/* hups.map((hup, index) => {
-        return (
-          <CharacterHup
-            key={hup.hupId}
-            hup={hup}
-            index={index}
-            hups={hups}
-            setHups={setHups}
-          />
-        );
-      }) */}
+      ) : null}
     </div>
   );
 };
