@@ -189,16 +189,23 @@ class Conversation extends EventTarget {
     return this.messages[this.messages.length - n] ?? null;
   }
   progress() {
-    const lastMessage = this.#getMessageAgo(1);
-    
-    if (this.localTurn) {
-      // console.log('check last message 1', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.localPlayer);
+    if (!this.finished) {
+      const lastMessage = this.#getMessageAgo(1);
       
-      if (lastMessage?.type === 'chat' && lastMessage?.player === this.localPlayer) {
-        // 50% chance of showing options
-        if (Math.random() < 0.5) {
-          this.progressSelfOptions();
-          this.localTurn = true;
+      if (this.localTurn) {
+        // console.log('check last message 1', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.localPlayer);
+        
+        if (lastMessage?.type === 'chat' && lastMessage?.player === this.localPlayer) {
+          // 50% chance of showing options
+          if (Math.random() < 0.5) {
+            this.progressSelfOptions();
+            this.localTurn = true;
+          } else {
+            this.progressSelf();
+
+            // 50% chance of moving to the other character
+            this.localTurn = Math.random() < 0.5;
+          }
         } else {
           this.progressSelf();
 
@@ -206,31 +213,28 @@ class Conversation extends EventTarget {
           this.localTurn = Math.random() < 0.5;
         }
       } else {
-        this.progressSelf();
+        // console.log('check last message 2', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.remotePlayer);
 
-        // 50% chance of moving to the other character
-        this.localTurn = Math.random() < 0.5;
+        if (lastMessage?.type === 'chat' && lastMessage?.player === this.remotePlayer) {
+          // 50% chance of showing options
+          if (Math.random() < 0.5) {
+            this.progressSelfOptions();
+            this.localTurn = true;
+          } else {
+            // otherwise 50% chance of each character taking a turn
+            if (Math.random() < 0.5) {
+              this.progressChat();
+            } else {
+              this.localTurn = true;
+              this.progress();
+            }
+          }
+        } else { // it is the remote character's turn
+          this.progressChat();
+        }
       }
     } else {
-      // console.log('check last message 2', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.remotePlayer);
-
-      if (lastMessage?.type === 'chat' && lastMessage?.player === this.remotePlayer) {
-        // 50% chance of showing options
-        if (Math.random() < 0.5) {
-          this.progressSelfOptions();
-          this.localTurn = true;
-        } else {
-          // otherwise 50% chance of each character taking a turn
-          if (Math.random() < 0.5) {
-            this.progressChat();
-          } else {
-            this.localTurn = true;
-            this.progress();
-          }
-        }
-      } else { // it is the remote character's turn
-        this.progressChat();
-      }
+      this.close();
     }
   }
   finish() {
@@ -343,6 +347,10 @@ export const listenHack = () => {
           _playerSay(localPlayer, comment);
         }
       })();
+    } else if (e.button === 0 && currentConversation) {
+      if (!currentConversation.progressing) {
+        currentConversation.progress();
+      }
     }
   });
 };
