@@ -15,12 +15,15 @@
   display: flex;
   flex-direction: column;
   height: 30vh;
-  background-image: linear-gradient(to bottom, #222, #000);
   color: #FFF;
   z-index: 1;
   pointer-events: all;
 }
+.storyTime .outer {
+  background-image: linear-gradient(to bottom, #222, #000);
+}
 .storyTime .megaChatBox .inner {
+  position: relative;
   margin: 15px;
   padding: 15px;
   border: 3px solid #FFF3;
@@ -89,4 +92,44 @@
   height: 25px;
   object-fit: contain;
   animation: 1.5s linear infinite blink_effect;
+}
+
+/* */
+
+.storyTime .options {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  width: 350px;
+  font-family: 'PlazaRegular';
+  font-size: 22px;
+  z-index: 1;
+}
+.storyTime .options .option {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+.storyTime .options .option .border {
+  pointer-events: none;
+}
+.storyTime .options .option:not(:hover) .border {
+  visibility: hidden;
+}
+.storyTime .options .option .border {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
+  border: 2px solid #FFF;
+  /* margin: 5px;
+  padding: 5px; */
+}
+.storyTime .options .option .value {
+  padding: 10px;
+  font-size: 22px;
 }
