@@ -1,18 +1,24 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, {useState, useEffect, useContext, useRef} from 'react';
 import classnames from 'classnames';
 
-import { world } from '../../../../world';
+import {world} from '../../../../world';
 import universe from '../../../../universe';
 import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
 
-import { AppContext } from '../../app';
+import {AppContext} from '../../app';
 
 import styles from './scene-menu.module.css';
 
 //
 const _makeName = (N = 8) =>
   (Math.random().toString(36) + '00000000000000000').slice(2, N + 2);
+
+const origSceneList = [];
+
+sceneNames.forEach(name => {
+  origSceneList.push(`./scenes/${name} `);
+});
 
 export const SceneMenu = ({
   multiplayerConnected,
@@ -21,12 +27,15 @@ export const SceneMenu = ({
   selectedRoom,
   setSelectedRoom,
 }) => {
-  const { state, setState } = useContext(AppContext);
+  const {state, setState} = useContext(AppContext);
   const [rooms, setRooms] = useState([]);
   const [micEnabled, setMicEnabled] = useState(false);
   const [speechEnabled, setSpeechEnabled] = useState(false);
   const [roomScene, setRoomScene] = React.useState('Erithor');
   const [roomName, setRoomName] = React.useState(_makeName);
+  const [sceneInputName, setSceneInputName] = useState(selectedScene);
+  const [scenesList, setScenesList] = useState(origSceneList);
+  const sceneNameInputRef = useRef(null);
 
   const refreshRooms = async () => {
     const res = await fetch(universe.getWorldsHost());
@@ -42,34 +51,34 @@ export const SceneMenu = ({
 
   //
 
-  const stopPropagation = (event) => {
+  const stopPropagation = event => {
     event.stopPropagation();
   };
 
-  const handleSceneMenuOpen = (value) => {
+  const handleSceneMenuOpen = value => {
     value =
       typeof value === 'boolean'
         ? value
         : state.openedPanel === 'SceneMenuPanel';
-    setState({ openedPanel: value ? null : 'SceneMenuPanel' });
+    setState({openedPanel: value ? null : 'SceneMenuPanel'});
   };
 
   const handleSceneSelect = (event, sceneName) => {
-    setState({ openedPanel: null });
+    setState({openedPanel: null});
 
     sceneName = sceneName ?? event.target.value;
     setSelectedScene(sceneName);
     universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
   };
 
-  const handleRoomMenuOpen = (value) => {
+  const handleRoomMenuOpen = value => {
     value =
       typeof value === 'boolean'
         ? value
         : state.openedPanel === 'RoomMenuPanel';
 
     if (!multiplayerConnected) {
-      setState({ openedPanel: value ? null : 'RoomMenuPanel' });
+      setState({openedPanel: value ? null : 'RoomMenuPanel'});
     } else {
       universe.pushUrl(`/?src=${encodeURIComponent(selectedScene)}`);
     }
@@ -93,7 +102,7 @@ export const SceneMenu = ({
       refreshRooms();
       setSelectedRoom(roomName);
       universe.pushUrl(
-        `/?src=${encodeURIComponent(sceneName)}&room=${roomName}`
+        `/?src=${encodeURIComponent(sceneName)}&room=${roomName}`,
       );
 
       /* this.parent.sendMessage([
@@ -106,12 +115,12 @@ export const SceneMenu = ({
     }
   };
 
-  const handleRoomSelect = (room) => {
-    setState({ openedPanel: null });
+  const handleRoomSelect = room => {
+    setState({openedPanel: null});
 
     if (!world.isConnected()) {
       universe.pushUrl(
-        `/?src=${encodeURIComponent(selectedScene)}&room=${room.name}`
+        `/?src=${encodeURIComponent(selectedScene)}&room=${room.name}`,
       );
 
       /* const isConnected = world.isConnected();
@@ -138,26 +147,35 @@ export const SceneMenu = ({
     }
   };
 
-  const handleSceneInputKeyDown = (event) => {
-    switch (event.which) {
-      case 27: {
-        // escape
+  const handleSceneInputKeyDown = event => {
+    const newList = (event.target.value ? origSceneList.filter(sceneName => (sceneName.indexOf(event.target.value) !== -1)) : origSceneList);
+    setScenesList(newList);
+    setSceneInputName(event.target.value);
+  };
 
-        setState({ openedPanel: null });
+  const handleSceneMenuKeyUp = event => {
+    switch (event.which) {
+      case 27: { // escape
+        event.preventDefault();
+        event.stopPropagation();
+        setState({openedPanel: null});
+        sceneNameInputRef.current.blur();
         break;
       }
 
-      case 13: {
-        // enter
-
-        universe.pushUrl(`/?src=${encodeURIComponent(selectedScene)}`);
+      case 13: { // enter
+        event.preventDefault();
+        event.stopPropagation();
+        universe.pushUrl(`/?src=${encodeURIComponent(sceneInputName)}`);
+        setState({openedPanel: null});
+        sceneNameInputRef.current.blur();
         break;
       }
     }
   };
 
   const handleMicBtnClick = async () => {
-    setState({ openedPanel: null });
+    setState({openedPanel: null});
 
     if (!voiceInput.micEnabled()) {
       await voiceInput.enableMic();
@@ -167,7 +185,7 @@ export const SceneMenu = ({
   };
 
   const handleSpeakBtnClick = async () => {
-    setState({ openedPanel: null });
+    setState({openedPanel: null});
 
     if (!voiceInput.speechEnabled()) {
       await voiceInput.enableSpeech();
@@ -209,23 +227,14 @@ export const SceneMenu = ({
             className={classnames(
               styles.button,
               styles.primary,
-              state.openedPanel === 'SceneMenuPanel' ? null : styles.disabled
+              state.openedPanel === 'SceneMenuPanel' ? null : styles.disabled,
             )}
           >
             <img src='images/webarrow.svg' />
           </button>
         </div>
         <div className={styles.inputWrap}>
-          <input
-            type='text'
-            className={styles.input}
-            value={multiplayerConnected ? selectedRoom : selectedScene}
-            onFocus={handleSceneMenuOpen.bind(this, false)}
-            onChange={handleSceneSelect}
-            disabled={multiplayerConnected}
-            onKeyDown={handleSceneInputKeyDown}
-            placeholder='Goto...'
-          />
+          <input type="text" className={ styles.input } ref={ sceneNameInputRef } value={ multiplayerConnected ? selectedRoom : sceneInputName } onKeyUp={ handleSceneMenuKeyUp } onFocus={ handleSceneMenuOpen.bind(this, false) } disabled={ multiplayerConnected } onChange={ handleSceneInputKeyDown } placeholder="Goto..." />
           <img
             src='images/webpencil.svg'
             className={classnames(styles.background, styles.green)}
@@ -240,7 +249,7 @@ export const SceneMenu = ({
               styles.button,
               state.openedPanel === 'RoomsMenuPanel' || multiplayerConnected
                 ? null
-                : styles.disabled
+                : styles.disabled,
             )}
           >
             <img src='images/wifi.svg' />
@@ -250,7 +259,7 @@ export const SceneMenu = ({
           <div
             className={classnames(
               styles.button,
-              micEnabled ? null : styles.disabled
+              micEnabled ? null : styles.disabled,
             )}
           >
             <img
@@ -267,7 +276,7 @@ export const SceneMenu = ({
           <div
             className={classnames(
               styles.button,
-              speechEnabled ? null : styles.disabled
+              speechEnabled ? null : styles.disabled,
             )}
           >
             <img src='images/speak.svg' />
@@ -280,7 +289,7 @@ export const SceneMenu = ({
           {sceneNames.map((sceneName, i) => (
             <div
               className={styles.room}
-              onMouseDown={(e) => {
+              onMouseDown={e => {
                 handleSceneSelect(e, sceneName);
               }}
               key={i}
@@ -305,7 +314,7 @@ export const SceneMenu = ({
           {rooms.map((room, i) => (
             <div
               className={styles.room}
-              onClick={(e) => {
+              onClick={e => {
                 handleRoomSelect(room);
               }}
               key={i}
