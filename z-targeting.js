@@ -61,6 +61,16 @@ class ZTargeting extends THREE.Object3D {
       if (reticles.length > 0) {
         this.focusTargetReticle = reticles[0];
         sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
+      
+        const naviSoundNames = [
+          'naviHey',
+          'naviWatchout',
+          'naviFriendly',
+          'naviItem',
+          'naviDanger',
+        ];
+        const naviSoundName = naviSoundNames[Math.floor(Math.random() * naviSoundNames.length)];
+        sounds.playSoundName(naviSoundName);
       } else {
         // this.focusTargetReticle = null;
         sounds.playSoundName('zTargetCenter');
