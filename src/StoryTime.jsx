@@ -28,12 +28,6 @@ const _progressConversation = () => {
 
   sounds.playSoundName('menuNext');
 };
-const _closeConversation = () => {
-  const conversation = storyManager.getConversation();
-  conversation.close();
-
-  sounds.playSoundName('menuNext');
-};
 
 const MegaChatBox = ({
   message,
@@ -46,11 +40,7 @@ const MegaChatBox = ({
 }) => {
   const _continue = () => {
     if (!progressing) {
-      if (!finished) {
-        _progressConversation();
-      } else {
-        _closeConversation();
-      }
+      _progressConversation();
     }
   };
 
@@ -143,11 +133,7 @@ export const StoryTime = () => {
 
   const _continue = () => {
     if (!progressing) {
-      if (!finished) {
-        _progressConversation();
-      } else {
-        _closeConversation();
-      }
+      _progressConversation();
     }
   };
 
