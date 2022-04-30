@@ -75,6 +75,7 @@ class Conversation extends EventTarget {
     this.remotePlayer = remotePlayer;
 
     this.messages = [];
+    this.finished = false;
     this.progressing = false;
   }
   addLocalPlayerMessage(text, type = 'chat') {
@@ -135,23 +136,46 @@ class Conversation extends EventTarget {
 
     this.wrapProgress(async () => {
       const aiScene = metaversefile.useLoreAIScene();
-      const comment = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
+      const {
+        value: comment,
+        done,
+      } = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
       
       this.addRemotePlayerMessage(comment);
+      done && this.finish();
     });
   }
-  progressOptions() {
-    console.log('progress options');
+  progressSelf() {
+    this.wrapProgress(async () => {
+      const aiScene = metaversefile.useLoreAIScene();
+      const {
+        value: comment,
+        done,
+      } = await aiScene.generateChatMessage(this.messages, this.localPlayer.name);
+      
+      this.addLocalPlayerMessage(comment);
+      done && this.finish();
+    });
+  }
+  progressSelfOptions() {
+    console.log('progress self options');
     
     this.wrapProgress(async () => {
       const aiScene = metaversefile.useLoreAIScene();
-      const options = await aiScene.generateDialogueOptions(this.messages);
+      const {
+        value: options,
+        done,
+       } = await aiScene.generateDialogueOptions(this.messages, this.localPlayer.name);
 
-      this.dispatchEvent(new MessageEvent('options', {
-        data: {
-          options,
-        },
-      }));
+      if (!done) {
+        this.dispatchEvent(new MessageEvent('options', {
+          data: {
+            options,
+          },
+        }));
+      } else {
+        this.finish();
+      }
     });
   }
   progressOptionSelect(option) {
@@ -160,14 +184,6 @@ class Conversation extends EventTarget {
     
     // 25% chance of self elaboration, 75% chance of other character reply
     this.localTurn = Math.random() < 0.25;
-  }
-  progressSelf() {
-    this.wrapProgress(async () => {
-      const aiScene = metaversefile.useLoreAIScene();
-      const comment = await aiScene.generateChatMessage(this.messages, this.localPlayer.name);
-      
-      this.addLocalPlayerMessage(comment);
-    });
   }
   #getMessageAgo(n) {
     return this.messages[this.messages.length - n] ?? null;
@@ -181,7 +197,7 @@ class Conversation extends EventTarget {
       if (lastMessage?.type === 'chat' && lastMessage?.player === this.localPlayer) {
         // 50% chance of showing options
         if (Math.random() < 0.5) {
-          this.progressOptions();
+          this.progressSelfOptions();
           this.localTurn = true;
         } else {
           this.progressSelf();
@@ -201,7 +217,7 @@ class Conversation extends EventTarget {
       if (lastMessage?.type === 'chat' && lastMessage?.player === this.remotePlayer) {
         // 50% chance of showing options
         if (Math.random() < 0.5) {
-          this.progressOptions();
+          this.progressSelfOptions();
           this.localTurn = true;
         } else {
           // otherwise 50% chance of each character taking a turn
@@ -217,12 +233,13 @@ class Conversation extends EventTarget {
       }
     }
   }
-  end() {
-    this.dispatchEvent(new MessageEvent('ended'));
+  finish() {
+    this.finished = true;
+    this.dispatchEvent(new MessageEvent('finish'));
   }
-  /* destroy() {
-    this.dispatchEvent(new MessageEvent('destroy'));
-  } */
+  close() {
+    this.dispatchEvent(new MessageEvent('close'));
+  }
 }
 
 //
@@ -303,7 +320,10 @@ export const listenHack = () => {
           });
 
           if (remotePlayer) {
-            const comment = await aiScene.generateSelectCharacterComment(name, description);
+            const {
+              value: comment,
+              done,
+            } = await aiScene.generateSelectCharacterComment(name, description);
 
             currentConversation = new Conversation(localPlayer, remotePlayer);
             story.dispatchEvent(new MessageEvent('conversationstart', {
@@ -312,6 +332,7 @@ export const listenHack = () => {
               },
             }));
             currentConversation.addLocalPlayerMessage(comment);
+            done && currentConversation.finish();
           }
         } else {
           const comment = await aiScene.generateSelectTargetComment(name, description);
