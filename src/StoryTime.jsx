@@ -11,7 +11,9 @@ import {chatTextSpeed} from '../constants.js';
 import {level} from '../player-stats.js';
 import {AppContext} from './components/app';
 
+import * as sounds from '../sounds.js';
 import storyManager from '../story.js';
+
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler';
 
 // const localVector = new THREE.Vector3();
@@ -43,10 +45,12 @@ const MegaChatBox = ({
             styles.nextBlink,
             progressing ? null : styles.visible,
           )}
+          onMouseEnter={e => {
+            sounds.playSoundName('menuClick');
+          }}
           onClick={e => {
             // e.stopPropagation();
             // e.preventDefault();
-            console.log('progress conversation', progressing);
             if (!progressing) {
               const conversation = storyManager.getConversation();
               conversation.progress();
@@ -93,18 +97,13 @@ export const StoryTime = ({
       });
       conversation.addEventListener('options', e => {
         const {options} = e.data;
-        // setMessage(message);
         setOptions(options);
-        // console.log('set options', options);
       });
-      /* setMessages(messages);
-      
-      if (messages.length > 0) {
-        setMessage(messages[0]);
-      } */
 
       conversation.addEventListener('progressstart', e => {
         setProgressing(true);
+
+        sounds.playSoundName('menuNext');
       });
       conversation.addEventListener('progressend', e => {
         setProgressing(false);
