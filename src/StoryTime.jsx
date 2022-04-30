@@ -25,11 +25,20 @@ import {registerIoEventHandler, unregisterIoEventHandler} from './components/gen
 const MegaChatBox = ({
   message,
   options,
+  // hoveredOptionIndex,
+  selectedOptionIndex,
   progressing,
 }) => {
+  if (!(options && options.length > 0)) {
+    options = [
+      'Take the bait',
+      'To the pain!',
+    ];
+  }
+
   // console.log('render mega chat box');
   return (
-    <div className={styles.megaChatBox}>
+    <div className={classnames(styles.megaChatBox, styles.outer)}>
       <div className={styles.inner}>
         <div className={styles.row}>
           <div className={styles.name}>{message.name}</div>
@@ -62,8 +71,32 @@ const MegaChatBox = ({
             src="./images/ui/down.svg"
           />
         </div>
-        {options ? <></> : null}
       </div>
+      {options ? (
+        <div className={classnames(styles.options, styles.outer)}>
+          <div className={styles.inner}>
+            {options.map((option, i) => {
+              const selected = i === selectedOptionIndex;
+              return (
+                <div
+                  className={classnames(
+                    styles.option,
+                    selected ? styles.selected : null,
+                  )}
+                  onClick={e => {
+                    const conversation = storyManager.getConversation();
+                    conversation.progressOptionSelect(option);
+                  }}
+                  key={i}
+                >
+                  <div className={styles.border}/>
+                  <div className={styles.value}>{option}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -78,6 +111,7 @@ export const StoryTime = ({
   const [message, setMessage] = useState(null);
   const [options, setOptions] = useState(null);
   const [progressing, setProgressing] = useState(false);
+  const [hoveredOptionIndex, setHoveredOptionIndex] = useState(-1);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(-1);
 
   const open = state.openedPanel === 'StoryTime';
@@ -94,6 +128,7 @@ export const StoryTime = ({
       conversation.addEventListener('message', e => {
         const {message} = e.data;
         setMessage(message);
+        // setOptions(null);
       });
       conversation.addEventListener('options', e => {
         const {options} = e.data;
@@ -151,7 +186,13 @@ export const StoryTime = ({
   return (
     <div className={styles.storyTime}>
       {message ? <>
-        <MegaChatBox message={message} options={options} progressing={progressing} />
+        <MegaChatBox
+          message={message}
+          options={options}
+          hoveredOptionIndex={hoveredOptionIndex}
+          selectedOptionIndex={selectedOptionIndex}
+          progressing={progressing}
+        />
       </> : null}
       {/* hups.map((hup, index) => {
         return (
