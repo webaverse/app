@@ -95,8 +95,6 @@ class Conversation extends EventTarget {
     (async () => {
       await _playerSay(this.localPlayer, text);
     })();
-
-    this.localTurn = false;
   }
   addRemotePlayerMessage(text) {
     const message = {
@@ -142,8 +140,8 @@ class Conversation extends EventTarget {
       this.addRemotePlayerMessage(comment);
     });
   }
-  progressOption() {
-    console.log('progress option');
+  progressOptions() {
+    console.log('progress options');
     
     this.wrapProgress(async () => {
       const aiScene = metaversefile.useLoreAIScene();
@@ -158,9 +156,15 @@ class Conversation extends EventTarget {
       }));
     });
   }
-  progressSelf() {
-    // console.log('progress self');
+  progressOptionSelect(option) {
+    // say the option
+    this.addLocalPlayerMessage(option);
     
+    // 50% chance of either character reacting
+    this.localTurn = Math.random() < 0.5;
+    this.progress();
+  }
+  progressSelf() {
     this.wrapProgress(async () => {
       const aiScene = metaversefile.useLoreAIScene();
       const comment = await aiScene.generateChatMessage(this.messages, this.localPlayer.name);
@@ -184,13 +188,15 @@ class Conversation extends EventTarget {
       ) {
         // 50% chance of showing options
         if (Math.random() < 0.5) {
-          this.progressOption();
+          this.progressOptions();
+          this.localTurn = true;
         } else {
           // otherwise 50% chance of each character taking a turn
           if (Math.random() < 0.5) {
             this.progressChat();
           } else {
-            this.progressSelf();
+            this.localTurn = true;
+            this.progress();
           }
         }
       } else { // it is the remote character's turn
