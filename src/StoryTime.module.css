@@ -44,7 +44,6 @@
   font-size: 22px;
 }
 .storyTime .megaChatBox .text {
-  /* font-family: 'Muli'; */
   font-family: 'PlazaRegular';
   font-size: 32px;
   letter-spacing: 2px;
@@ -53,11 +52,13 @@
 /* */
 
 .storyTime .lightArrow {
-  bottom: 100px !important;
-  right: 115px !important;
-  top: auto !important;
-  left: auto !important;
+  bottom: 10px;
+  right: 40px;
+  top: auto;
+  left: auto;
   z-index: 1;
+  cursor: pointer;
+  pointer-events: all;
 }
 
 /* */
