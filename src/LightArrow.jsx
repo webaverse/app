@@ -200,6 +200,7 @@ export const LightArrow = function({
   y,
   ax,
   ay,
+  onClick,
 }) {
   const canvasRef = useRef();
 
@@ -255,6 +256,7 @@ export const LightArrow = function({
         left: ax,
         top: ay,
       }}
+      onClick={onClick}
     >
       <div
         className={classnames(
