@@ -176,7 +176,7 @@ class Conversation extends EventTarget {
     const lastMessage = this.#getMessageAgo(1);
     
     if (this.localTurn) {
-      console.log('check last message 1', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.localPlayer);
+      // console.log('check last message 1', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.localPlayer);
       
       if (lastMessage?.type === 'chat' && lastMessage?.player === this.localPlayer) {
         // 50% chance of showing options
@@ -196,7 +196,7 @@ class Conversation extends EventTarget {
         this.localTurn = Math.random() < 0.5;
       }
     } else {
-      console.log('check last message 2', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.remotePlayer);
+      // console.log('check last message 2', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.remotePlayer);
 
       if (lastMessage?.type === 'chat' && lastMessage?.player === this.remotePlayer) {
         // 50% chance of showing options
