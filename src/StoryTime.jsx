@@ -44,6 +44,16 @@ const MegaChatBox = ({
   finished,
   onOptionSelect,
 }) => {
+  const _continue = () => {
+    if (!progressing) {
+      if (!finished) {
+        _progressConversation();
+      } else {
+        _closeConversation();
+      }
+    }
+  };
+
   return (
     <div className={classnames(styles.megaChatBox, styles.outer)}>
       <div className={styles.inner}>
@@ -52,33 +62,33 @@ const MegaChatBox = ({
           <div className={styles.level}>Lv. {level}</div>
         </div>
         <div className={styles.text}>{message.text}</div>
-        {/* <LightArrow
-          className={styles.lightArrow}
-          up
-        />*/}
-        <div
-          className={classnames(
-            styles.nextBlink,
-            progressing ? null : styles.visible,
-          )}
-          onMouseEnter={e => {
-            sounds.playSoundName('menuClick');
-          }}
-          onClick={e => {
-            if (!progressing) {
-              if (!finished) {
-                _progressConversation();
-              } else {
-                _closeConversation();
-              }
-            }
-          }}
-        >
-          <img
-            className={styles.arrow}
-            src="./images/ui/down.svg"
+        {finished ? (
+          <LightArrow
+            className={styles.lightArrow}
+            up
+            onClick={e => {
+              _continue();
+            }}
           />
-        </div>
+        ) : (
+          <div
+            className={classnames(
+              styles.nextBlink,
+              progressing ? null : styles.visible,
+            )}
+            onMouseEnter={e => {
+              sounds.playSoundName('menuClick');
+            }}
+            onClick={e => {
+              _continue();
+            }}
+          >
+            <img
+              className={styles.arrow}
+              src="./images/ui/down.svg"
+            />
+          </div>
+        )}
       </div>
       <div className={classnames(
         styles.options,
@@ -131,13 +141,23 @@ export const StoryTime = () => {
 
   // const open = state.openedPanel === 'StoryTime';
 
+  const _continue = () => {
+    if (!progressing) {
+      if (!finished) {
+        _progressConversation();
+      } else {
+        _closeConversation();
+      }
+    }
+  };
+
   useEffect(() => {
     function conversationstart(e) {
       const {conversation} = e.data;
       conversation.addEventListener('message', e => {
         const {message} = e.data;
-        setMessage(message);
         setFinished(false);
+        setMessage(message);
       });
       conversation.addEventListener('options', e => {
         const {options} = e.data;
@@ -185,13 +205,7 @@ export const StoryTime = () => {
         // console.log('got key down', event.which);
 
         if (event.which === 13) { // enter
-          if (!progressing) {
-            if (!finished) {
-              _progressConversation();
-            } else {
-              _closeConversation();
-            }
-          }
+          _continue();
 
           return false;
         }
