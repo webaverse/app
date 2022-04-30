@@ -76,12 +76,22 @@ const _getCurrentRoom = () => {
 
 export const AppContext = createContext();
 
+const useWebaverseApp = (() => {
+  let webaverse = null;
+  return () => {
+        if ( webaverse === null ) {
+            webaverse = new Webaverse();
+        }
+        return webaverse;
+  };
+})();
+
 export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
 
     const canvasRef = useRef( null );
-    const [ app, setApp ] = useState( () => new Webaverse() );
+    const app = useWebaverseApp();
     const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
