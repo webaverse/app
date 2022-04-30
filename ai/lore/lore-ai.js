@@ -251,9 +251,9 @@ class AIScene {
     const stop = makeSelectCharacterStop();
     let response = await this.generateFn(prompt, stop);
     console.log('select character response', {prompt, response});
-    response = parseSelectCharacterResponse(response);
-    // console.log('got comment', {prompt, response});
-    return response;
+    const response2 = parseSelectCharacterResponse(response);
+    console.log('select character parsed', {response2});
+    return response2;
   }
   async generateChatMessage(messages, nextCharacter) {
     const prompt = makeChatPrompt({
@@ -264,21 +264,22 @@ class AIScene {
     const stop = makeChatStop();
     let response = await this.generateFn(prompt, stop);
     console.log('chat response', {prompt, response});
-    response = parseChatResponse(response);
-    // console.log('got comment', {prompt, response});
-    return response;
+    const response2 = parseChatResponse(response);
+    console.log('chat parsed', {response2});
+    return response2;
   }
-  async generateDialogueOptions(messages) {
+  async generateDialogueOptions(messages, nextCharacter) {
     const prompt = makeOptionsPrompt({
       messages,
+      nextCharacter,
     });
     console.log('dialogue options prompt', {prompt});
     const stop = makeOptionsStop();
     let response = await this.generateFn(prompt, stop);
     console.log('dialogue options response', {prompt, response});
-    response = parseOptionsResponse(response);
-    // console.log('got comment', {prompt, response});
-    return response;
+    const response2 = parseOptionsResponse(response);
+    console.log('dialogue options parsed', {response2});
+    return response2;
   }
 }
 
