@@ -107,6 +107,12 @@
   font-family: 'PlazaRegular';
   font-size: 22px;
   z-index: 1;
+  transition: all 0.5 cubic-bezier(0, 1, 0, 1);
+}
+.storyTime .options:not(.open) {
+  transform: scale(0.8);
+  opacity: 0;
+  pointer-events: none;
 }
 .storyTime .options .option {
   position: relative;
