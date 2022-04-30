@@ -160,7 +160,6 @@ export const StoryTime = () => {
       });
 
       conversation.addEventListener('close', e => {
-        // setConversation(null);
         setMessage(null);
         if (state.openedPanel === 'StoryTime') {
           setState({
@@ -169,7 +168,6 @@ export const StoryTime = () => {
         }
       });
 
-      // setConversation(conversation);
       setState({
         openedPanel: 'StoryTime',
       });
