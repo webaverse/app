@@ -22,12 +22,26 @@ import {registerIoEventHandler, unregisterIoEventHandler} from './components/gen
 // const defaultHupSize = 256;
 // const pixelRatio = window.devicePixelRatio;
 
+const _progressConversation = () => {
+  const conversation = storyManager.getConversation();
+  conversation.progress();
+
+  sounds.playSoundName('menuNext');
+};
+const _closeConversation = () => {
+  const conversation = storyManager.getConversation();
+  conversation.close();
+
+  sounds.playSoundName('menuNext');
+};
+
 const MegaChatBox = ({
   message,
   options,
   // hoveredOptionIndex,
   selectedOptionIndex,
   progressing,
+  finished,
   onOptionSelect,
 }) => {
   return (
@@ -52,10 +66,11 @@ const MegaChatBox = ({
           }}
           onClick={e => {
             if (!progressing) {
-              const conversation = storyManager.getConversation();
-              conversation.progress();
-
-              sounds.playSoundName('menuNext');
+              if (!finished) {
+                _progressConversation();
+              } else {
+                _closeConversation();
+              }
             }
           }}
         >
@@ -98,15 +113,11 @@ const MegaChatBox = ({
 
 export const StoryTime = () => {
   const {state, setState} = useContext(AppContext);
-  const [conversation, setConversation] = useState(null);
+  // const [conversation, setConversation] = useState(null);
   const [message, setMessage] = useState(null);
-  let [options, setOptions] = useState(/* () => {
-    return [
-      'Take the bait',
-      'To the pain!',
-    ];
-  } */);
+  let [options, setOptions] = useState(null);
   const [progressing, setProgressing] = useState(false);
+  const [finished, setFinished] = useState(false);
   const [hoveredOptionIndex, setHoveredOptionIndex] = useState(-1);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(-1);
 
@@ -118,7 +129,7 @@ export const StoryTime = () => {
     ];
   } */
 
-  const open = state.openedPanel === 'StoryTime';
+  // const open = state.openedPanel === 'StoryTime';
 
   useEffect(() => {
     function conversationstart(e) {
@@ -126,6 +137,7 @@ export const StoryTime = () => {
       conversation.addEventListener('message', e => {
         const {message} = e.data;
         setMessage(message);
+        setFinished(false);
       });
       conversation.addEventListener('options', e => {
         const {options} = e.data;
@@ -141,7 +153,23 @@ export const StoryTime = () => {
         setProgressing(false);
       });
 
-      setConversation(conversation);
+      conversation.addEventListener('finish', e => {
+        setFinished(true);
+
+        sounds.playSoundName('menuDone');
+      });
+
+      conversation.addEventListener('close', e => {
+        // setConversation(null);
+        setMessage(null);
+        if (state.openedPanel === 'StoryTime') {
+          setState({
+            openedPanel: null,
+          });
+        }
+      });
+
+      // setConversation(conversation);
       setState({
         openedPanel: 'StoryTime',
       });
@@ -154,15 +182,18 @@ export const StoryTime = () => {
   }, []);
 
   useEffect(() => {
-    if (conversation) {
+    if (message) {
       const handleKeyDown = event => {
         // console.log('got key down', event.which);
 
         if (event.which === 13) { // enter
-          const conversation = storyManager.getConversation();
-          conversation.progress(selectedOptionIndex);
-          
-          sounds.playSoundName('menuNext');
+          if (!progressing) {
+            if (!finished) {
+              _progressConversation();
+            } else {
+              _closeConversation();
+            }
+          }
 
           return false;
         }
@@ -174,13 +205,13 @@ export const StoryTime = () => {
         unregisterIoEventHandler('keydown', handleKeyDown);
       };
     }
-  }, [conversation]);
+  }, [message, progressing]);
   
-  useEffect(() => {
+  /* useEffect(() => {
     if (!open && conversation) {
       conversation.end();
     }
-  }, [open, conversation]);
+  }, [open, conversation]); */
 
   useEffect(() => {
     // console.log('check options', options, selectedOptionIndex);
@@ -208,6 +239,7 @@ export const StoryTime = () => {
           hoveredOptionIndex={hoveredOptionIndex}
           selectedOptionIndex={selectedOptionIndex}
           progressing={progressing}
+          finished={finished}
           onOptionSelect={(option, i) => {
             const conversation = storyManager.getConversation();
             conversation.progressOptionSelect(option);
