@@ -239,8 +239,8 @@ class Conversation extends EventTarget {
         // console.log('check last message 2', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.remotePlayer);
 
         if (lastMessage?.type === 'chat' && lastMessage?.player === this.remotePlayer) {
-          // 90% chance of showing options
-          if (Math.random() < 0.9) {
+          // 70% chance of showing options
+          if (Math.random() < 0.7) {
             this.progressSelfOptions();
             this.localTurn = true;
           } else {
