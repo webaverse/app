@@ -207,8 +207,6 @@ class AppManager extends EventTarget {
       const {trackedApp} = e.data;
       const trackedAppJson = trackedApp.toJSON();
       const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedAppJson;
-      // if (contentId.indexOf('sword') >= 0) debugger;
-      // if (contentId.indexOf('bow') >= 0) debugger;
       const components = JSON.parse(componentsString);
       
       const p = makePromise();
@@ -246,8 +244,6 @@ class AppManager extends EventTarget {
 
       // attempt to load app
       try {
-        // if (contentId.indexOf('sword') >= 0) debugger;
-        // if (contentId.indexOf('bow') >= 0) debugger;
         const m = await metaversefile.import(contentId);
         if (!live) return _bailout(null);
 
@@ -265,8 +261,6 @@ class AppManager extends EventTarget {
           app.lastMatrix.copy(app.matrixWorld);
 
           // set components
-          // if (contentId.indexOf('sword') >= 0) debugger;
-          // if (contentId.indexOf('bow') >= 0) debugger;
           app.instanceId = instanceId;
           app.setComponent('physics', true);
           for (const {key, value} of components) {
@@ -277,16 +271,11 @@ class AppManager extends EventTarget {
         // initialize app
         {
           // console.log('add module', m);
-          // if (contentId.indexOf('sword') >= 0) debugger;
-          // if (contentId.indexOf('bow') >= 0) debugger;
           const mesh = await app.addModule(m);
           if (!live) return _bailout(app);
           if (!mesh) {
             console.warn('failed to load object', {contentId});
           }
-
-          // if (contentId.indexOf('sword') >= 0) debugger;
-          // if (contentId.indexOf('bow') >= 0) debugger;
 
           this.addApp(app);
         }

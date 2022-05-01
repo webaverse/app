@@ -327,7 +327,6 @@ const _getNextUseIndex = animationCombo => {
   }
 }
 const _startUse = () => {
-  // debugger
   const localPlayer = metaversefileApi.useLocalPlayer();
   const wearApp = loadoutManager.getSelectedApp();
   if (wearApp) {
@@ -354,7 +353,6 @@ const _startUse = () => {
         };
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
-        // debugger
 
         wearApp.use();
       }
@@ -1131,7 +1129,6 @@ class GameManager extends EventTarget {
     _mouseup();
   }
   menuAim() {
-    // debugger
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
       const localPlayer = metaversefileApi.useLocalPlayer();
