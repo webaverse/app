@@ -6,6 +6,8 @@
   left: 0;
   right: 0;
   pointer-events: none;
+
+  --width: 350px;
 }
 .storyTime .megaChatBox {
   position: absolute;
@@ -104,7 +106,7 @@
   right: 0;
   display: flex;
   flex-direction: column;
-  width: 350px;
+  width: var(--width);
   font-family: 'PlazaRegular';
   font-size: 22px;
   z-index: 1;
@@ -126,6 +128,8 @@
 
 .storyTime .options .option {
   position: relative;
+  display: flex;
+  align-items: center;
   cursor: pointer;
   user-select: none;
 }
@@ -134,7 +138,6 @@
   visibility: hidden;
 }
 .storyTime .options:not(.selected) .option:hover .border,
-.storyTime .options:not(.selected) .option.hovered .border,
 .storyTime .options.selected .option.selected .border
 {
   visibility: visible;
@@ -146,10 +149,22 @@
   left: 5px;
   right: 5px;
   border: 2px solid #FFF;
-  /* margin: 5px;
-  padding: 5px; */
 }
 .storyTime .options .option .value {
   padding: 10px;
   font-size: 22px;
+  flex: 1;
+}
+.storyTime .options .option .arrow {
+  /* padding: 10px; */
+  display: flex;
+  width: 20px;
+  height: 20px;
+  margin-right: 30px;
+  object-fit: contain;
+}
+.storyTime .options .option:not(.hovered) .arrow,
+.storyTime .options .option.selected .arrow
+{
+  visibility: hidden;
 }
