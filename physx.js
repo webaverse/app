@@ -2033,13 +2033,14 @@ const physxWorker = (() => {
     }
   }
 
-  w.createChunkWithDualContouring = (x, y, z) => {
+  w.createChunkWithDualContouring = (x, y, z, lod) => {
     const bufferManager = new BufferManager()
 
     const outputBufferOffset = moduleInstance._createChunkWithDualContouring(
       x,
       y,
-      z
+      z,
+      lod
     )
 
     // reading the data with the same order as C++
