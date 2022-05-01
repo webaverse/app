@@ -1,7 +1,6 @@
 // import * as THREE from 'three';
 import React, {useState, useEffect, useContext} from 'react';
 import classnames from 'classnames';
-import dioramaManager from '../diorama.js';
 import {RpgText} from './RpgText.jsx';
 import {LightArrow} from './LightArrow.jsx';
 import styles from './StoryTime.module.css';
