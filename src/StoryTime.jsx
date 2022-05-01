@@ -9,7 +9,7 @@ import styles from './StoryTime.module.css';
 // const {useLocalPlayer} = metaversefile;
 import {chatTextSpeed} from '../constants.js';
 import {level} from '../player-stats.js';
-import {AppContext} from './components/app';
+// import {AppContext} from './components/app';
 
 import * as sounds from '../sounds.js';
 import storyManager from '../story.js';
@@ -39,6 +39,7 @@ const MegaChatBox = ({
   onOptionSelect,
 }) => {
   const selectedOptionIndex = options ? options.indexOf(option) : -1;
+  // console.log('hover select index', {hoverIndex, selectedOptionIndex, options, option});
 
   const _continue = () => {
     if (!progressing) {
@@ -109,6 +110,7 @@ const MegaChatBox = ({
               >
                 <div className={styles.border}/>
                 <div className={styles.value}>{option}</div>
+                <img className={styles.arrow} src="./images/ui/left.svg" />
               </div>
             );
           }) : null}
@@ -154,18 +156,24 @@ export const StoryTime = () => {
       });
       conversation.addEventListener('options', e => {
         const {options} = e.data;
-        console.log('options', options);
-        setOptions(options);
-        setOption(null);
+        /* if (window.lol && !options) {
+          console.log('set options', options, new Error().stack);
+          debugger;
+        } */
+        if (options) {
+          setOptions(options);
+          setOption(null);
+        }
       });
       conversation.addEventListener('hoverindex', e => {
         const {hoverIndex} = e.data;
-        console.log('hoverIndex', hoverIndex);
+        // console.log('hoverIndex', hoverIndex);
         setHoverIndex(hoverIndex);
+
+        sounds.playSoundName('menuMove');
       });
       conversation.addEventListener('option', e => {
         const {option} = e.data;
-        console.log('option', option);
         setOption(option);
       });
 
@@ -183,17 +191,10 @@ export const StoryTime = () => {
       });
 
       conversation.addEventListener('close', e => {
-        setMessage(null);
-        /* if (state.openedPanel === 'StoryTime') {
-          setState({
-            openedPanel: null,
-          });
-        } */
-      });
+        // console.log('got close event');
 
-      /* setState({
-        openedPanel: 'StoryTime',
-      }); */
+        setMessage(null);
+      });
     }
     storyManager.addEventListener('conversationstart', conversationstart);
     
@@ -205,7 +206,6 @@ export const StoryTime = () => {
   useEffect(() => {
     if (message) {
       const handleKeyDown = event => {
-        // console.log('got key down', event.which);
 
         if (event.which === 13) { // enter
           _continue();
@@ -221,26 +221,20 @@ export const StoryTime = () => {
       };
     }
   }, [message, progressing]);
-  
-  /* useEffect(() => {
-    if (!open && conversation) {
-      conversation.end();
-    }
-  }, [open, conversation]); */
 
   useEffect(() => {
-    console.log('check options', options, option);
+    // console.log('check options', options, option);
     if (options && option) {
-      console.log('set timeout', options, option);
+      // console.log('set timeout', options, option);
       const timeout = setTimeout(() => {
-        console.log('clear options');
+        // console.log('clear options');
         setOptions(null);
         setOption(null);
         setHoverIndex(null);
       }, 1000);
 
       return () => {
-        console.log('clear options timeout');
+        // console.log('clear options timeout');
         clearTimeout(timeout);
       };
     }
