@@ -1014,14 +1014,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateBehavior();
   
-  const _updateEyes = () => {
+  const _updateMouseLook = () => {
     if (localPlayer.avatar) {
       if (mouseSelectedObject && mouseSelectedPosition) {
         // console.log('got', mouseSelectedObject.position.toArray().join(','));
         localPlayer.avatar.eyeTarget.copy(mouseSelectedPosition);
         localPlayer.avatar.eyeTargetInverted = true;
         localPlayer.avatar.eyeTargetEnabled = true;
-      } else if (!cameraManager.pointerLockElement && lastMouseEvent) {
+      } else if (!cameraManager.pointerLockElement && !cameraManager.target && lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
@@ -1034,7 +1034,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       }
     }
   };
-  _updateEyes();
+  _updateMouseLook();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
