@@ -396,7 +396,6 @@ const _makeDebugMesh = (avatar) => {
 
 class Avatar {
 	constructor(object, options = {}) {
-    window.avatar = this;
     if (!object) {
       object = {};
     }
@@ -461,7 +460,6 @@ class Avatar {
     this.skinnedMeshes = skinnedMeshes;
     this.skeleton = skeleton;
     this.modelBones = modelBones;
-    window.modelBones = this.modelBones;
     this.foundModelBones = foundModelBones;
     this.flipZ = flipZ;
     this.flipY = flipY;
@@ -782,7 +780,6 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
-    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -926,7 +923,7 @@ class Avatar {
     this.aimLeftTransitionTime = 0;
     this.aimLeftFactor = 0;
     this.aimLeftFactorReverse = 1;
-    // this.LeftState = null;
+    // this.throwState = null;
     // this.throwTime = 0;
     this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
@@ -1194,7 +1191,7 @@ class Avatar {
       // retargetedAnimations,
     };
   }
-  static applyModelBoneOutputs(avatar, modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled, lHandEnabled, rHandEnabled) {
+  static applyModelBoneOutputs(avatar, modelBones, modelBoneOutputs, /*topEnabled,*/ bottomEnabled) {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
@@ -1210,13 +1207,13 @@ class Avatar {
           if (avatar.aimLeftFactor > 0) {
             // modelBone.quaternion.multiply(leftRotation); // center
             localQuaternion.copy(modelBone.quaternion).multiply(leftRotation)
-            modelBone.quaternion.slerp(localQuaternion, avatar.aimLeftFactor); // center
+            modelBone.quaternion.slerp(localQuaternion, avatar.aimLeftFactor);
           }
         } else if (k === 'Right_wrist') {
           if (avatar.aimRightFactor > 0) {
             // modelBone.quaternion.multiply(rightRotation); // center
             localQuaternion.copy(modelBone.quaternion).multiply(rightRotation)
-            modelBone.quaternion.slerp(localQuaternion, avatar.aimRightFactor); // center
+            modelBone.quaternion.slerp(localQuaternion, avatar.aimRightFactor);
           }
         }
       // }
@@ -1376,7 +1373,6 @@ class Avatar {
       ),
       'YXZ'
     );
-    // localEuler.y += Math.PI / 2;
     return localEuler.y;
   }
   async setQuality(quality) {
@@ -1899,73 +1895,7 @@ class Avatar {
     
 
     _updateHmdPosition();
-    /*
-      <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
-    */
-    window.domInfo.innerHTML = ` 
-      <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
-      <div style="display:;">avatar.direction: --- ${window.logVector3(avatar.direction)}</div>
-      <div style="display:;">localPlayer.direction: --- ${window.logVector3(localPlayer.getWorldDirection(localVector))}</div>
-      <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
-      <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>
-      <div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
-      <div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
-      <div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
-      <div style="display:;">jumpState: --- ${this.jumpState}</div>
-      <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
-      <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
-      <div style="display:;">flyState: --- ${this.flyState}</div>
-      <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
-      <div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>
-      <div style="display:;">landState: --- ${this.landState}</div>
-      <div style="display:;">landFactor: --- ${moveFactors.landFactor?.toFixed(2)}</div>
-      <div style="display:none;">landTime: --- ${Math.floor(this.landTime)}</div>
-      <div style="display:none;">landTransitionTime: --- ${Math.floor(this.landTransitionTime)}</div>
-      <div style="display:;">sitState: --- ${this.sitState}</div>
-      <div style="display:;">sitFactor: --- ${moveFactors.sitFactor?.toFixed(2)}</div>
-      <div style="display:none;">sitTime: --- ${Math.floor(this.sitTime)}</div>
-      <div style="display:;">chargeJumpState: --- ${this.chargeJumpState}</div>
-      <div style="display:;">danceState: --- ${this.danceState}</div>
-      <div style="display:;">fallLoopState: --- ${this.fallLoopState}</div>
-      <div style="display:;">narutoRunState: --- ${this.narutoRunState}</div>
-      <div style="display:;">sitState: --- ${this.sitState}</div>
-      <div style="display:;">aimRightTransitionTime: --- ${Math.floor(this.aimRightTransitionTime)}</div>
-      <div style="display:;">aimRightFactor: --- ${this.aimRightFactor.toFixed(2)}</div>
-      <div style="display:;">aimRightFactorReverse: --- ${this.aimRightFactorReverse.toFixed(2)}</div>
-      <div style="display:;">aimLeftTransitionTime: --- ${Math.floor(this.aimLeftTransitionTime)}</div>
-      <div style="display:;">aimLeftFactor: --- ${this.aimLeftFactor.toFixed(2)}</div>
-      <div style="display:;">aimLeftFactorReverse: --- ${this.aimLeftFactorReverse.toFixed(2)}</div>
-      <div style="display:;">aimTime: --- ${Math.floor(this.aimTime)}</div>
-      <div style="display:;">aimAnimation: --- ${this.aimAnimation}</div>
-      <div style="display:;">danceAnimation: --- ${this.danceAnimation}</div>
-      <div style="display:;">hurtAnimation: --- ${this.hurtAnimation}</div>
-      <div style="display:;">poseAnimation: --- ${this.poseAnimation}</div>
-      <div style="display:;">sitAnimation: --- ${this.sitAnimation}</div>
-      <div style="display:;">useFactor: --- ${moveFactors.useFactor?.toFixed(2)}</div>
-      <div style="display:;">useTransitionTime: --- ${Math.floor(this.useTransitionTime)}</div>
-      <div style="display:;">useTime: --- ${Math.floor(this.useTime)}</div>
-      <div style="display:;">useAnimation: --- ${this.useAnimation}</div>
-      <div style="display:;">useAnimationCombo: --- </div>  
-      <div style="display:;">${this.useAnimationCombo}&nbsp;</div>
-      <div style="display:;">useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
-      <div style="display:;">useAnimationIndex: --- ${this.useAnimationIndex}</div>
-      <div style="display:;">unuseFactor: --- ${this.unuseFactor?.toFixed(2)}</div>
-      <div style="display:;">unuseAnimation: --- ${this.unuseAnimation}</div>
-      <div style="display:;">activateTime: --- ${Math.floor(this.activateTime)}</div>
-      <div style="display:none;">chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>
-      <div style="display:none;">crouchTime: --- ${Math.floor(this.crouchTime)}</div>
-      <div style="display:;">danceTime: --- ${Math.floor(this.danceTime)}</div>
-      <div style="display:none;">fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>
-      <div style="display:;">hurtTime: --- ${Math.floor(this.hurtTime)}</div>
-      <div style="display:;">unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
-      <div style="display:;">lastEyeTargetTime: --- ${Math.floor(this.lastEyeTargetTime)}</div>
-      <div style="display:;">lastMoveTime: --- ${Math.floor(this.lastMoveTime)}</div>
-      <div style="display:;">narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>
-      <div style="display:;">blendList.length: --- ${this.blendList?.length}</div>
-      <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
-    `
     _applyAnimation(this, now, moveFactors);
-    // console.log(window.logVector3(this.modelBoneOutputs.Hips.getWorldDirection(localVector)));
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);
@@ -1986,11 +1916,8 @@ class Avatar {
     } */
 
 
-    // debugger
-    this.lerpShoulderTransforms(); // this.shoulderTransforms.Update();
+    this.lerpShoulderTransforms();
     this.legsManager.Update();
-
-    // _applyAnimation(this, now, moveFactors);
 
     _updateEyeTarget();
     _updateEyeballTarget();
@@ -2002,8 +1929,6 @@ class Avatar {
       this.modelBoneOutputs,
       // this.getTopEnabled(),
       this.getBottomEnabled(),
-      this.getHandEnabled(0),
-      this.getHandEnabled(1),
     );
     // this.modelBones.Root.updateMatrixWorld();
 
