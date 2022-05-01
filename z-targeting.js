@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import metaversefile from 'metaversefile';
+import metaversefile from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import {scene, camera} from './renderer.js';
 import * as sounds from './sounds.js';
