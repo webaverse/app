@@ -140,6 +140,16 @@
   cursor: pointer;
   user-select: none;
 }
+.storyTime .options .option.hovered {
+  background-image: url('/images/ui/rainbow-line.svg');
+  object-fit: fill;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  /* filter: brightness(1.5); */
+
+  animation-duration: 0.5s;
+}
 .storyTime .options .option .border {
   pointer-events: none;
   visibility: hidden;
@@ -163,15 +173,44 @@
   flex: 1;
 }
 .storyTime .options .option .arrow {
-  /* padding: 10px; */
   display: flex;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   margin-right: 30px;
   object-fit: contain;
+  
+  animation-duration: 2s;
 }
 .storyTime .options .option:not(.hovered) .arrow,
 .storyTime .options.selected .option .arrow
 {
   visibility: hidden;
+}
+
+/* */
+
+@keyframes hueRotate {
+  0% {
+    filter: brightness(1.7) hue-rotate(0deg);
+  }
+  25% {
+    filter: brightness(1.7) hue-rotate(90deg);
+  }
+  50% {
+    filter: brightness(1.7) hue-rotate(180deg);
+  }
+  75% {
+    filter: brightness(1.7) hue-rotate(270deg);
+  }
+  100% {
+    filter: brightness(1.7) hue-rotate(360deg);
+  }
+}
+
+.storyTime .options .option.hovered,
+.storyTime .options .option .arrow
+{
+  animation-name: hueRotate;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
 }
