@@ -84,12 +84,12 @@ class Conversation extends EventTarget {
     this.option = null;
     this.hoverIndex = null;
 
-    this.addEventListener('message', e => {
+    /* this.addEventListener('message', e => {
       if (this.options) {
         const {message} = e.data;
         this.#setOption(message.text);
       }
-    });
+    }); */
   }
   addLocalPlayerMessage(text, type = 'chat') {
     const message = {
@@ -203,6 +203,7 @@ class Conversation extends EventTarget {
     
     // clear options
     this.#setOptions(null);
+    this.#setOption(option);
 
     // 25% chance of self elaboration, 75% chance of other character reply
     this.localTurn = Math.random() < 0.25;
@@ -423,9 +424,7 @@ export const listenHack = () => {
           const aiScene = metaversefile.useLoreAIScene();
           // console.log('generate 1');
           if (appType === 'vrm') {
-            const remotePlayer = npcManager.npcs.find(npc => {
-              return true; // XXX
-            });
+            const remotePlayer = npcManager.npcs.find(npc => npc.avatarApp === app);
 
             if (remotePlayer) {
               const {

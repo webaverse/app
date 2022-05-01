@@ -164,7 +164,7 @@
   object-fit: contain;
 }
 .storyTime .options .option:not(.hovered) .arrow,
-.storyTime .options .option.selected .arrow
+.storyTime .options.selected .option .arrow
 {
   visibility: hidden;
 }
