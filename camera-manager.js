@@ -390,7 +390,7 @@ class CameraManager extends EventTarget {
 
             if (!this.lastTarget) {
               camera.position.add(localVector10.set(0, 0, -0.65).applyQuaternion(camera.quaternion));
-              camera.quaternion.premultiply(localQuaternion4.setFromAxisAngle(upVector, sideOfY * -Math.PI * 0.87));
+              camera.quaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, sideOfY * -Math.PI * 0.87));
               camera.position.add(localVector10.set(0, 0, 0.65).applyQuaternion(camera.quaternion));
             }
 
@@ -402,7 +402,6 @@ class CameraManager extends EventTarget {
             camera.updateMatrixWorld();
           }
 
-          
           cameraOffsetZ = -0.65;
           cameraOffset.z = -0.65;
         };
