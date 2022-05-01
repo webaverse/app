@@ -250,11 +250,9 @@ export const StoryTime = () => {
           hoverIndex={hoverIndex}
           progressing={progressing}
           finished={finished}
-          onOptionSelect={(option, i) => {
+          onOptionSelect={option => {
             const conversation = storyManager.getConversation();
             conversation.progressOptionSelect(option);
-
-            setSelectedOptionIndex(i);
 
             sounds.playSoundName('menuSelect');
           }}
