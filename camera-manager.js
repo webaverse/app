@@ -19,9 +19,12 @@ const localVector6 = new THREE.Vector3();
 const localVector7 = new THREE.Vector3();
 const localVector8 = new THREE.Vector3();
 const localVector9 = new THREE.Vector3();
+const localVector10 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
+const localQuaternion4 = new THREE.Quaternion();
+const localQuaternion5 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
@@ -384,6 +387,13 @@ class CameraManager extends EventTarget {
                 upVector
               )
             );
+
+            if (!this.lastTarget) {
+              camera.position.add(localVector10.set(0, 0, -0.65).applyQuaternion(camera.quaternion));
+              camera.quaternion.premultiply(localQuaternion4.setFromAxisAngle(upVector, sideOfY * -Math.PI * 0.87));
+              camera.position.add(localVector10.set(0, 0, 0.65).applyQuaternion(camera.quaternion));
+            }
+
             camera.updateMatrixWorld();
           } else {
             camera.position.copy(localVector)
@@ -393,8 +403,8 @@ class CameraManager extends EventTarget {
           }
 
           
-          cameraOffsetZ = -0.6;
-          cameraOffset.z = -0.6;
+          cameraOffsetZ = -0.65;
+          cameraOffset.z = -0.65;
         };
         _setCameraToTarget();
       }
