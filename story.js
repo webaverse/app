@@ -392,6 +392,22 @@ export const listenHack = () => {
     }
   });
 
+  const _startConversation = (comment, remotePlayer, done) => {
+    // console.log('start convo', currentConversation, comment, remotePlayer, done);
+    
+    const localPlayer = metaversefile.useLocalPlayer();
+    currentConversation = new Conversation(localPlayer, remotePlayer);
+    currentConversation.addEventListener('close', () => {
+      currentConversation = null;
+    }, {once: true});
+    story.dispatchEvent(new MessageEvent('conversationstart', {
+      data: {
+        conversation: currentConversation,
+      },
+    }));
+    currentConversation.addLocalPlayerMessage(comment);
+    done && currentConversation.finish();
+  };
   window.document.addEventListener('click', async e => {
     if (cameraManager.pointerLockElement) {
       if (e.button === 0 && (zTargeting.focusTargetReticle && zTargeting.lastFocus)) {
@@ -404,7 +420,6 @@ export const listenHack = () => {
         sounds.playSoundName('menuSelect');
 
         (async () => {
-          const localPlayer = metaversefile.useLocalPlayer();
           const aiScene = metaversefile.useLoreAIScene();
           // console.log('generate 1');
           if (appType === 'vrm') {
@@ -418,30 +433,13 @@ export const listenHack = () => {
                 done,
               } = await aiScene.generateSelectCharacterComment(name, description);
 
-              currentConversation = new Conversation(localPlayer, remotePlayer);
-              currentConversation.addEventListener('close', () => {
-                currentConversation = null;
-              }, {once: true});
-              /* currentConversation.addEventListener('options', e => {
-                const {options} = e.data;
-                console.log('got options', options);
-                currentOptions = options;
-              });
-              currentConversation.addEventListener('message', () => {
-                console.log('got message; clearing options');
-                currentOptions = null;
-              }); */
-              story.dispatchEvent(new MessageEvent('conversationstart', {
-                data: {
-                  conversation: currentConversation,
-                },
-              }));
-              currentConversation.addLocalPlayerMessage(comment);
-              done && currentConversation.finish();
+              _startConversation(comment, remotePlayer, done);
+            } else {
+              console.warn('no player associated with app', app);
             }
           } else {
             const comment = await aiScene.generateSelectTargetComment(name, description);
-            _playerSay(localPlayer, comment);
+            _startConversation(comment, null, true);
           }
         })();
       } else if (e.button === 0 && currentConversation) {
