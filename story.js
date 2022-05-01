@@ -109,6 +109,8 @@ class Conversation extends EventTarget {
     (async () => {
       await _playerSay(this.localPlayer, text);
     })();
+
+    cameraManager.setTarget(this.localPlayer.avatar.modelBones.Head, Math.PI/4);
   }
   addRemotePlayerMessage(text, type = 'chat') {
     const message = {
@@ -128,6 +130,10 @@ class Conversation extends EventTarget {
     (async () => {
       await _playerSay(this.remotePlayer, text);
     })();
+
+    /* debugger;
+    cameraManager.setTarget(); */
+    cameraManager.setTarget(this.remotePlayer.avatar.modelBones.Head, -Math.PI/4);
   }
   async wrapProgress(fn) {
     if (!this.progressing) {
@@ -400,6 +406,8 @@ export const listenHack = () => {
     currentConversation = new Conversation(localPlayer, remotePlayer);
     currentConversation.addEventListener('close', () => {
       currentConversation = null;
+
+      cameraManager.setTarget(null);
     }, {once: true});
     story.dispatchEvent(new MessageEvent('conversationstart', {
       data: {
