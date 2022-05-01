@@ -32,12 +32,14 @@ const _progressConversation = () => {
 const MegaChatBox = ({
   message,
   options,
-  // hoveredOptionIndex,
-  selectedOptionIndex,
+  option,
+  hoverIndex,
   progressing,
   finished,
   onOptionSelect,
 }) => {
+  const selectedOptionIndex = options ? options.indexOf(option) : -1;
+
   const _continue = () => {
     if (!progressing) {
       _progressConversation();
@@ -88,15 +90,20 @@ const MegaChatBox = ({
       )}>
         <div className={styles.inner}>
           {options ? options.map((option, i) => {
+            const hovered = i === hoverIndex;
             const selected = i === selectedOptionIndex;
             return (
               <div
                 className={classnames(
                   styles.option,
+                  hovered ? styles.hovered : null,
                   selected ? styles.selected : null,
                 )}
                 onClick={e => {
                   onOptionSelect(option, i);
+                }}
+                onMouseEnter={e => {
+                  sounds.playSoundName('menuMove');
                 }}
                 key={i}
               >
@@ -116,10 +123,10 @@ export const StoryTime = () => {
   // const [conversation, setConversation] = useState(null);
   const [message, setMessage] = useState(null);
   let [options, setOptions] = useState(null);
+  const [option, setOption] = useState(null);
+  const [hoverIndex, setHoverIndex] = useState(null);
   const [progressing, setProgressing] = useState(false);
   const [finished, setFinished] = useState(false);
-  const [hoveredOptionIndex, setHoveredOptionIndex] = useState(-1);
-  const [selectedOptionIndex, setSelectedOptionIndex] = useState(-1);
 
   /* // XXX hack
   if (!(options && options.length > 0)) {
@@ -147,9 +154,19 @@ export const StoryTime = () => {
       });
       conversation.addEventListener('options', e => {
         const {options} = e.data;
+        console.log('options', options);
         setOptions(options);
-        setHoveredOptionIndex(-1);
-        setSelectedOptionIndex(-1);
+        setOption(null);
+      });
+      conversation.addEventListener('hoverindex', e => {
+        const {hoverIndex} = e.data;
+        console.log('hoverIndex', hoverIndex);
+        setHoverIndex(hoverIndex);
+      });
+      conversation.addEventListener('option', e => {
+        const {option} = e.data;
+        console.log('option', option);
+        setOption(option);
       });
 
       conversation.addEventListener('progressstart', e => {
@@ -212,21 +229,22 @@ export const StoryTime = () => {
   }, [open, conversation]); */
 
   useEffect(() => {
-    // console.log('check options', options, selectedOptionIndex);
-    if (options && selectedOptionIndex !== -1) {
-      // console.log('set timeout', options, selectedOptionIndex);
+    console.log('check options', options, option);
+    if (options && option) {
+      console.log('set timeout', options, option);
       const timeout = setTimeout(() => {
-        // console.log('clear options');
+        console.log('clear options');
         setOptions(null);
-        setSelectedOptionIndex(-1);
-      }, 1500);
+        setOption(null);
+        setHoverIndex(null);
+      }, 1000);
 
       return () => {
-        // console.log('clear timeout');
+        console.log('clear options timeout');
         clearTimeout(timeout);
       };
     }
-  }, [options, selectedOptionIndex]);
+  }, [options, option]);
 
   return (
     <div className={styles.storyTime}>
@@ -234,8 +252,8 @@ export const StoryTime = () => {
         <MegaChatBox
           message={message}
           options={options}
-          hoveredOptionIndex={hoveredOptionIndex}
-          selectedOptionIndex={selectedOptionIndex}
+          option={option}
+          hoverIndex={hoverIndex}
           progressing={progressing}
           finished={finished}
           onOptionSelect={(option, i) => {

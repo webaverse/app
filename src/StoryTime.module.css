@@ -110,10 +110,10 @@
   z-index: 1;
   transform: none;
   opacity: 1;
-  transition: transform 0.5s cubic-bezier(0, 1, 0, 1), opacity 0.5s cubic-bezier(0, 1, 0, 1);
+  transition: transform 2s cubic-bezier(0, 1, 0, 1), opacity 2s cubic-bezier(0, 1, 0, 1);
 }
 .storyTime .options:not(.open) {
-  transform: scale(0.8, 0.8);
+  transform: scale(0.8);
   opacity: 0;
 }
 .storyTime .options:not(.open),
@@ -134,6 +134,7 @@
   visibility: hidden;
 }
 .storyTime .options:not(.selected) .option:hover .border,
+.storyTime .options:not(.selected) .option.hovered .border,
 .storyTime .options.selected .option.selected .border
 {
   visibility: visible;

@@ -20,6 +20,7 @@ import zTargeting from './z-targeting.js';
 import cameraManager from './camera-manager.js';
 import npcManager from './npc-manager.js';
 import {chatManager} from './chat-manager.js';
+import {mod} from './util.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -77,6 +78,20 @@ class Conversation extends EventTarget {
     this.messages = [];
     this.finished = false;
     this.progressing = false;
+    this.deltaY = 0;
+
+    this.options = null;
+    this.hoverIndex = null;
+    this.option = null;
+
+    this.addEventListener('message', e => {
+      if (this.options) {
+        const {message} = e.data;
+
+        this.#setOptions(null);
+        this.#setOption(message);
+      }
+    });
   }
   addLocalPlayerMessage(text, type = 'chat') {
     const message = {
@@ -168,17 +183,21 @@ class Conversation extends EventTarget {
        } = await aiScene.generateDialogueOptions(this.messages, this.localPlayer.name);
 
       if (!done) {
-        this.dispatchEvent(new MessageEvent('options', {
-          data: {
-            options,
-          },
-        }));
+        this.#setOptions(options);
+        this.#setHoverIndex(0);
       } else {
         this.finish();
       }
     });
   }
   progressOptionSelect(option) {
+    if (!option) {
+      option = this.options[this.hoverIndex];
+      if (!option) {
+        throw new Error('failed to select option (not in options state?)');
+      }
+    }
+
     // say the option
     this.addLocalPlayerMessage(option, 'option');
     
@@ -192,7 +211,7 @@ class Conversation extends EventTarget {
     if (!this.finished) {
       const lastMessage = this.#getMessageAgo(1);
       
-      if (this.localTurn) {
+      const _handleLocalTurn = () => {
         // console.log('check last message 1', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.localPlayer);
         
         if (lastMessage?.type === 'chat' && lastMessage?.player === this.localPlayer) {
@@ -212,12 +231,13 @@ class Conversation extends EventTarget {
           // 50% chance of moving to the other character
           this.localTurn = Math.random() < 0.5;
         }
-      } else {
+      };
+      const _handleOtherTurn = () => {
         // console.log('check last message 2', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.remotePlayer);
 
         if (lastMessage?.type === 'chat' && lastMessage?.player === this.remotePlayer) {
-          // 50% chance of showing options
-          if (Math.random() < 0.5) {
+          // 90% chance of showing options
+          if (Math.random() < 0.9) {
             this.progressSelfOptions();
             this.localTurn = true;
           } else {
@@ -232,6 +252,16 @@ class Conversation extends EventTarget {
         } else { // it is the remote character's turn
           this.progressChat();
         }
+      };
+
+      if (this.options) {
+        this.progressOptionSelect();
+      } else {
+        if (this.localTurn) {
+          _handleLocalTurn();
+        } else {
+          _handleOtherTurn();
+        }
       }
     } else {
       this.close();
@@ -243,6 +273,57 @@ class Conversation extends EventTarget {
   }
   close() {
     this.dispatchEvent(new MessageEvent('close'));
+  }
+  #setOptions(options) {
+    this.options = options;
+    
+    this.dispatchEvent(new MessageEvent('options', {
+      data: {
+        options,
+      },
+    }));
+  }
+  #setOption(option) {
+    this.option = option;
+
+    this.dispatchEvent(new MessageEvent('option', {
+      data: {
+        option: this.option,
+      },
+    }));
+  }
+  #getHoverIndexAbsolute() {
+    const selectScrollIncrement = 150;
+    return Math.floor(this.deltaY / selectScrollIncrement);
+  }
+  #setHoverIndex(hoverIndex) {
+    this.hoverIndex = hoverIndex;
+
+    this.dispatchEvent(new MessageEvent('hoverindex', {
+      data: {
+        hoverIndex: this.hoverIndex,
+      },
+    }));
+  }
+  handleWheel(e) {
+    if (this.options) {
+      // console.log('got delta Y', this.options, e.deltaY);
+
+      const oldHoverIndexAbsolute = this.#getHoverIndexAbsolute();
+      this.deltaY += e.deltaY;
+      const newHoverIndexAbsolute = this.#getHoverIndexAbsolute();
+
+      if (newHoverIndexAbsolute !== oldHoverIndexAbsolute) {
+        const newHoverIndex = mod(newHoverIndexAbsolute, this.options.length);
+        this.#setHoverIndex(newHoverIndex);
+      }
+
+      /* const modDeltaY = mod(this.deltaY, scrollIncrement);
+      this.deltaY = modDeltaY; */
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 
@@ -309,53 +390,80 @@ export const listenHack = () => {
   });
 
   window.document.addEventListener('click', async e => {
-    if (e.button === 0 && (zTargeting.focusTargetReticle && zTargeting.lastFocus)) {
-      const app = metaversefile.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
-      // console.log('click reticle', app);
-      const {name, description, appType} = app;
+    if (cameraManager.pointerLockElement) {
+      if (e.button === 0 && (zTargeting.focusTargetReticle && zTargeting.lastFocus)) {
+        const app = metaversefile.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
+        // console.log('click reticle', app);
+        const {name, description, appType} = app;
 
-      cameraManager.setFocus(false);
-      zTargeting.focusTargetReticle = null;
-      sounds.playSoundName('menuSelect');
+        cameraManager.setFocus(false);
+        zTargeting.focusTargetReticle = null;
+        sounds.playSoundName('menuSelect');
 
-      (async () => {
-        const localPlayer = metaversefile.useLocalPlayer();
-        const aiScene = metaversefile.useLoreAIScene();
-        // console.log('generate 1');
-        if (appType === 'vrm') {
-          const remotePlayer = npcManager.npcs.find(npc => {
-            return true; // XXX
-          });
+        (async () => {
+          const localPlayer = metaversefile.useLocalPlayer();
+          const aiScene = metaversefile.useLoreAIScene();
+          // console.log('generate 1');
+          if (appType === 'vrm') {
+            const remotePlayer = npcManager.npcs.find(npc => {
+              return true; // XXX
+            });
 
-          if (remotePlayer) {
-            const {
-              value: comment,
-              done,
-            } = await aiScene.generateSelectCharacterComment(name, description);
+            if (remotePlayer) {
+              const {
+                value: comment,
+                done,
+              } = await aiScene.generateSelectCharacterComment(name, description);
 
-            currentConversation = new Conversation(localPlayer, remotePlayer);
-            story.dispatchEvent(new MessageEvent('conversationstart', {
-              data: {
-                conversation: currentConversation,
-              },
-            }));
-            currentConversation.addLocalPlayerMessage(comment);
-            done && currentConversation.finish();
+              currentConversation = new Conversation(localPlayer, remotePlayer);
+              currentConversation.addEventListener('close', () => {
+                currentConversation = null;
+              }, {once: true});
+              /* currentConversation.addEventListener('options', e => {
+                const {options} = e.data;
+                console.log('got options', options);
+                currentOptions = options;
+              });
+              currentConversation.addEventListener('message', () => {
+                console.log('got message; clearing options');
+                currentOptions = null;
+              }); */
+              story.dispatchEvent(new MessageEvent('conversationstart', {
+                data: {
+                  conversation: currentConversation,
+                },
+              }));
+              currentConversation.addLocalPlayerMessage(comment);
+              done && currentConversation.finish();
+            }
+          } else {
+            const comment = await aiScene.generateSelectTargetComment(name, description);
+            _playerSay(localPlayer, comment);
           }
-        } else {
-          const comment = await aiScene.generateSelectTargetComment(name, description);
-          _playerSay(localPlayer, comment);
+        })();
+      } else if (e.button === 0 && currentConversation) {
+        if (!currentConversation.progressing) {
+          currentConversation.progress();
+
+          sounds.playSoundName('menuNext');
         }
-      })();
-    } else if (e.button === 0 && currentConversation) {
-      if (!currentConversation.progressing) {
-        currentConversation.progress();
       }
     }
   });
 };
 
 const story = new EventTarget();
+
 let currentConversation = null;
 story.getConversation = () => currentConversation;
+
+// returns whether the event was handled
+story.handleWheel = e => {
+  if (currentConversation) {
+    return currentConversation.handleWheel(e);
+  } else {
+    return false;
+  }
+};
+
 export default story;
