@@ -17,6 +17,8 @@ const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
 const localVector7 = new THREE.Vector3();
+const localVector8 = new THREE.Vector3();
+const localVector9 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -141,7 +143,7 @@ function initOffsetRayParams(arrayIndex,originPoint) {
   rayDirectionArray[arrayIndex].copy(rayQuaternion);
 }
 
-const redMesh = (() => {
+/* const redMesh = (() => {
   const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
   const material = new THREE.MeshBasicMaterial({color: 0xff0000});
   const mesh = new THREE.Mesh(geometry, material);
@@ -157,7 +159,7 @@ const blueMesh = (() => {
   // mesh.visible = false;
   return mesh;
 })();
-scene.add(blueMesh);
+scene.add(blueMesh); */
 
 class CameraManager extends EventTarget {
   constructor() {
@@ -338,11 +340,11 @@ class CameraManager extends EventTarget {
             );
             const lookDirection = localVector6.set(0, 0, -1).applyQuaternion(lookQuaternion);
 
-            // debug meshes
+            /* // debug meshes
             redMesh.position.copy(localVector).add(faceDirection);
             redMesh.updateMatrixWorld();
             blueMesh.position.copy(localVector).add(lookDirection);
-            blueMesh.updateMatrixWorld();
+            blueMesh.updateMatrixWorld(); */
 
             // const theta = signedAngleTo(faceDirection, lookDirection, localVector7);
             const sideOfY = getSideOfY(faceDirection, lookDirection);
@@ -358,14 +360,30 @@ class CameraManager extends EventTarget {
 
             const theta = Math.acos(forwardDirection.dot(lookDirection)); */
             
-            console.log('got theta', sideOfY, faceDirection.toArray().join(', '), lookDirection.toArray().join(', '));
+            // console.log('got theta', sideOfY, faceDirection.toArray().join(', '), lookDirection.toArray().join(', '));
             const side = sideOfY < 0 ? 'left' : 'right';
             const face = faceDirection.dot(lookDirection) >= 0 ? 'front' : 'back';
-            console.log(`scene to the ${side} and ${face}`);
+            // console.log(`scene to the ${side} and ${face}`);
+
+            const dollyPosition = localVector7.copy(localVector)
+              .add(localVector3)
+              .multiplyScalar(0.5);
+
+            dollyPosition.add(
+              localVector8.set(sideOfY * -0.3, 0, 0).applyQuaternion(lookQuaternion)
+            );
+
+            const lookToDollyVector = localVector9.copy(dollyPosition).sub(localVector).normalize();
 
             camera.position.copy(localVector)
-              .add(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion));
-            camera.quaternion.copy(localQuaternion);
+              .add(lookToDollyVector);
+            camera.quaternion.setFromRotationMatrix(
+              localMatrix.lookAt(
+                lookToDollyVector,
+                zeroVector,
+                upVector
+              )
+            );
             camera.updateMatrixWorld();
           } else {
             camera.position.copy(localVector)
@@ -374,7 +392,8 @@ class CameraManager extends EventTarget {
             camera.updateMatrixWorld();
           }
 
-          cameraOffsetZ = 0;
+          
+          cameraOffsetZ = -0.6;
           cameraOffset.z = -0.6;
         };
         _setCameraToTarget();
