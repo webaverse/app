@@ -110,7 +110,7 @@ class Conversation extends EventTarget {
       await _playerSay(this.localPlayer, text);
     })();
 
-    cameraManager.setTarget(this.localPlayer.avatar.modelBones.Head, Math.PI/4);
+    cameraManager.setTarget(this.localPlayer.avatar.modelBones.Head, this.remotePlayer?.avatar.modelBones.Head);
   }
   addRemotePlayerMessage(text, type = 'chat') {
     const message = {
@@ -131,9 +131,7 @@ class Conversation extends EventTarget {
       await _playerSay(this.remotePlayer, text);
     })();
 
-    /* debugger;
-    cameraManager.setTarget(); */
-    cameraManager.setTarget(this.remotePlayer.avatar.modelBones.Head, -Math.PI/4);
+    cameraManager.setTarget(this.remotePlayer.avatar.modelBones.Head, this.localPlayer.avatar.modelBones.Head);
   }
   async wrapProgress(fn) {
     if (!this.progressing) {
