@@ -119,7 +119,7 @@ const MegaChatBox = ({
               >
                 <div className={styles.border}/>
                 <div className={styles.value}>{option}</div>
-                <img className={styles.arrow} src="./images/ui/left.svg" />
+                <img className={styles.arrow} src="./images/ui/left-red.svg" />
               </div>
             );
           }) : null}
