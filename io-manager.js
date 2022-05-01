@@ -5,6 +5,7 @@ the functionality is implemented in other managers.
 */
 
 import * as THREE from 'three';
+import metaversefile from 'metaversefile';
 import cameraManager from './camera-manager.js';
 // import controlsManager from './controls-manager.js';
 import game from './game.js';
@@ -21,7 +22,7 @@ import {menuState} from './mithril-ui/store/state.js'; */
 import physx from './physx.js';
 // import {airFriction, flyFriction} from './constants.js';
 import transformControls from './transform-controls.js';
-import metaversefile from 'metaversefile';
+import storyManager from './story.js';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -566,17 +567,16 @@ ioManager.keypress = e => {
   // nothing
 };
 ioManager.wheel = e => {
-  // window.addEventListener('wheel', e => {
-    // console.log('target', e.target);
+  if (storyManager.handleWheel(e)) {
+    // nothing
+  } else {
     if (physicsManager.getPhysicsEnabled()) {
       const renderer = getRenderer();
       if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
         cameraManager.handleWheelEvent(e);
       }
     }
-  /* }, {
-    passive: false,
-  }); */
+  }
 };
 ioManager.keyup = e => {
   if (_inputFocused() || e.repeat) {
