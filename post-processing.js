@@ -168,7 +168,10 @@ function makeEncodingPass() {
 }
 
 const webaverseRenderPass = new WebaverseRenderPass();
-const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
+const _isDecapitated = () => (
+  (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) && !cameraManager.target) ||
+  !!getRenderer().xr.getSession()
+);
 webaverseRenderPass.onBeforeRender = (a, b, c) => {
   // ensure lights attached
   // scene.add(world.lights);
