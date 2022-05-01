@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer, camera} from './renderer.js';
+import {getRenderer, camera, scene} from './renderer.js';
 // import * as notifications from './notifications.js';
 import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
@@ -8,12 +8,32 @@ import Simplex from './simplex-noise.js';
 // import alea from './alea.js';
 import * as sounds from './sounds.js';
 import {minFov, maxFov, midFov} from './constants.js';
+import { updateRaycasterFromMouseEvent } from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
+const localVector5 = new THREE.Vector3();
+const localVector6 = new THREE.Vector3();
+const localVector7 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localEuler2 = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
+const localPlane = new THREE.Plane();
+
+/*
+Anon: "Hey man, can I get your autograph?"
+Drake: "Depends. What's it worth to you?"
+Anon: "Your first born child"
+Drake: "No thanks. I don't think your child would be worth very much."
+*/
+
+const zeroVector = new THREE.Vector3(0, 0, 0);
+const upVector = new THREE.Vector3(0, 1, 0);
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
@@ -28,6 +48,45 @@ const rayMatrix = new THREE.Matrix4();
 const rayQuaternion = new THREE.Quaternion();
 const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
 const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
+
+/* function getNormal(u, v) {
+  return localPlane.setFromCoplanarPoints(zeroVector, u, v).normal;
+} */
+/* function signedAngleTo(u, v) {
+  // Get the signed angle between u and v, in the range [-pi, pi]
+  const angle = u.angleTo(v);
+  console.log('signed angle to', angle, u.dot(v));
+  return (u.dot(v) >= 0 ? 1 : -1) * angle;
+} */
+/* function signedAngleTo(a, b, v) {
+  const s = v.crossVectors(a, b).length();
+  // s = length(cross_product(a, b))
+  const c = a.dot(b);
+  const angle = Math.atan2(s, c);
+  console.log('get signed angle', s, c, angle);
+  return angle;
+} */
+const getSideOfY = (() => {
+  const localVector = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  const localQuaternion = new THREE.Quaternion();
+  const localPlane = new THREE.Plane();
+
+  function getSideOfY(a, b) {
+    localQuaternion.setFromRotationMatrix(
+      localMatrix.lookAt(
+        zeroVector,
+        a,
+        upVector
+      )
+    );
+    const rightVector = localVector.set(1, 0, 0).applyQuaternion(localQuaternion);
+    localPlane.setFromNormalAndCoplanarPoint(rightVector, a);
+    const distance = localPlane.distanceToPoint(b, localVector2);
+    return distance >= 0 ? 1 : -1;
+  }
+  return getSideOfY;
+})();
 
 // const lastCameraQuaternion = new THREE.Quaternion();
 // let lastCameraZ = 0;
@@ -82,6 +141,24 @@ function initOffsetRayParams(arrayIndex,originPoint) {
   rayDirectionArray[arrayIndex].copy(rayQuaternion);
 }
 
+const redMesh = (() => {
+  const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+  const material = new THREE.MeshBasicMaterial({color: 0xff0000});
+  const mesh = new THREE.Mesh(geometry, material);
+  // mesh.visible = false;
+  return mesh;
+})();
+scene.add(redMesh);
+
+const blueMesh = (() => {
+  const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+  const material = new THREE.MeshBasicMaterial({color: 0x0000ff});
+  const mesh = new THREE.Mesh(geometry, material);
+  // mesh.visible = false;
+  return mesh;
+})();
+scene.add(blueMesh);
+
 class CameraManager extends EventTarget {
   constructor() {
     super();
@@ -98,7 +175,7 @@ class CameraManager extends EventTarget {
     this.fovFactor = 0;
 
     this.target = null;
-    // this.targetAngle = null;
+    this.target2 = null;
     this.lastTarget = null;
 
     document.addEventListener('pointerlockchange', e => {
@@ -231,9 +308,9 @@ class CameraManager extends EventTarget {
       }));
     }
   }
-  setTarget(target = null/*, targetAngle = 0*/) {
+  setTarget(target = null, target2 = null) {
     this.target = target;
-    // this.targetAngle = targetAngle;
+    this.target2 = target2;
   }
   updatePost(timestamp, timeDiff) {
     // console.log('camera manager update post');
@@ -247,11 +324,58 @@ class CameraManager extends EventTarget {
       if (this.target !== this.lastTarget) {
         const _setCameraToTarget = () => {
           this.target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+          
+          if (this.target2) {
+            this.target2.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
 
-          camera.position.copy(localVector)
-            .add(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion));
-          camera.quaternion.copy(localQuaternion);
-          camera.updateMatrixWorld();
+            const faceDirection = localVector5.set(0, 0, 1).applyQuaternion(localQuaternion);
+            const lookQuaternion = localQuaternion3.setFromRotationMatrix(
+              localMatrix.lookAt(
+                localVector,
+                localVector3,
+                upVector,
+              )
+            );
+            const lookDirection = localVector6.set(0, 0, -1).applyQuaternion(lookQuaternion);
+
+            // debug meshes
+            redMesh.position.copy(localVector).add(faceDirection);
+            redMesh.updateMatrixWorld();
+            blueMesh.position.copy(localVector).add(lookDirection);
+            blueMesh.updateMatrixWorld();
+
+            // const theta = signedAngleTo(faceDirection, lookDirection, localVector7);
+            const sideOfY = getSideOfY(faceDirection, lookDirection);
+
+            /* const forwardY = localEuler.setFromQuaternion(localQuaternion, 'YXZ').y;
+            const lookY = localEuler.setFromQuaternion(lookQuaternion, 'YXZ').y;
+            const theta = forwardY - lookY; */
+            
+            /* const lookDirection = localVector3.set(0, 0, -1)
+              .applyQuaternion(lookQuaternion);
+            lookDirection.y = 0;
+            lookDirection.normalize();
+
+            const theta = Math.acos(forwardDirection.dot(lookDirection)); */
+            
+            console.log('got theta', sideOfY, faceDirection.toArray().join(', '), lookDirection.toArray().join(', '));
+            const side = sideOfY < 0 ? 'left' : 'right';
+            const face = faceDirection.dot(lookDirection) >= 0 ? 'front' : 'back';
+            console.log(`scene to the ${side} and ${face}`);
+
+            camera.position.copy(localVector)
+              .add(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion));
+            camera.quaternion.copy(localQuaternion);
+            camera.updateMatrixWorld();
+          } else {
+            camera.position.copy(localVector)
+              .add(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion));
+            camera.quaternion.copy(localQuaternion);
+            camera.updateMatrixWorld();
+          }
+
+          cameraOffsetZ = 0;
+          cameraOffset.z = -0.6;
         };
         _setCameraToTarget();
       }
