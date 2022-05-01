@@ -81,15 +81,13 @@ class Conversation extends EventTarget {
     this.deltaY = 0;
 
     this.options = null;
-    this.hoverIndex = null;
     this.option = null;
+    this.hoverIndex = null;
 
     this.addEventListener('message', e => {
       if (this.options) {
         const {message} = e.data;
-
-        this.#setOptions(null);
-        this.#setOption(message);
+        this.#setOption(message.text);
       }
     });
   }
@@ -161,6 +159,8 @@ class Conversation extends EventTarget {
     });
   }
   progressSelf() {
+    console.log('progress self');
+
     this.wrapProgress(async () => {
       const aiScene = metaversefile.useLoreAIScene();
       const {
@@ -201,6 +201,9 @@ class Conversation extends EventTarget {
     // say the option
     this.addLocalPlayerMessage(option, 'option');
     
+    // clear options
+    this.#setOptions(null);
+
     // 25% chance of self elaboration, 75% chance of other character reply
     this.localTurn = Math.random() < 0.25;
   }
