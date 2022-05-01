@@ -361,8 +361,8 @@ class CameraManager extends EventTarget {
             const theta = Math.acos(forwardDirection.dot(lookDirection)); */
             
             // console.log('got theta', sideOfY, faceDirection.toArray().join(', '), lookDirection.toArray().join(', '));
-            const side = sideOfY < 0 ? 'left' : 'right';
-            const face = faceDirection.dot(lookDirection) >= 0 ? 'front' : 'back';
+            // const side = sideOfY < 0 ? 'left' : 'right';
+            // const face = faceDirection.dot(lookDirection) >= 0 ? 'front' : 'back';
             // console.log(`scene to the ${side} and ${face}`);
 
             const dollyPosition = localVector7.copy(localVector)
