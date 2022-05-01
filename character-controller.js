@@ -772,16 +772,19 @@ class StatePlayer extends PlayerBase {
     actions.push([action]);
   }
   setMicMediaStream(mediaStream) {
+    if(!this.avatar)
+      return console.log("Can't set mic media stream, no avatar");
     if (this.microphoneMediaStream) {
       this.microphoneMediaStream.disconnect();
       this.microphoneMediaStream = null;
     }
     if (mediaStream) {
-      this.avatar.setAudioEnabled(true);
+      this.avatar.setAudioEnabled(true, this);
       const audioContext = Avatar.getAudioContext();
       const mediaStreamSource =
         audioContext.createMediaStreamSource(mediaStream);
-      mediaStreamSource.connect(this.avatar.getAudioInput());
+      if(!this.isLocalPlayer)
+        mediaStreamSource.connect(this.avatar.getAudioInput());
       this.microphoneMediaStream = mediaStreamSource;
     }
   }
