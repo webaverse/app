@@ -37,8 +37,14 @@ const MegaChatBox = ({
   finished,
   onOptionSelect,
 }) => {
+  const [currentMessage, setCurrentMessage] = useState(message);
   const selectedOptionIndex = options ? options.indexOf(option) : -1;
-  // console.log('hover select index', {hoverIndex, selectedOptionIndex, options, option});
+
+  useEffect(() => {
+    if (message && currentMessage !== message) {
+      setCurrentMessage(message);
+    }
+  }, [message, currentMessage]);
 
   const _continue = () => {
     if (!progressing) {
@@ -47,13 +53,17 @@ const MegaChatBox = ({
   };
 
   return (
-    <div className={classnames(styles.megaChatBox, styles.outer)}>
+    <div className={classnames(
+      styles.megaChatBox,
+      styles.outer,
+      message ? styles.open : null,
+    )}>
       <div className={styles.inner}>
         <div className={styles.row}>
-          <div className={styles.name}>{message.name}</div>
+          <div className={styles.name}>{currentMessage ? currentMessage.name : ''}</div>
           <div className={styles.level}>Lv. {level}</div>
         </div>
-        <RpgText className={styles.text} styles={styles} textSpeed={chatTextSpeed} text={message.text}></RpgText>
+        <RpgText className={styles.text} styles={styles} textSpeed={chatTextSpeed} text={currentMessage ? currentMessage.text : ''}></RpgText>
         {finished ? (
           <LightArrow
             className={styles.lightArrow}
@@ -66,7 +76,7 @@ const MegaChatBox = ({
           <div
             className={classnames(
               styles.nextBlink,
-              progressing ? null : styles.visible,
+              (!currentMessage || progressing) ? null : styles.visible,
             )}
             onMouseEnter={e => {
               sounds.playSoundName('menuClick');
@@ -241,22 +251,20 @@ export const StoryTime = () => {
 
   return (
     <div className={styles.storyTime}>
-      {message ? (
-        <MegaChatBox
-          message={message}
-          options={options}
-          option={option}
-          hoverIndex={hoverIndex}
-          progressing={progressing}
-          finished={finished}
-          onOptionSelect={option => {
-            const conversation = storyManager.getConversation();
-            conversation.progressOptionSelect(option);
+      <MegaChatBox
+        message={message}
+        options={options}
+        option={option}
+        hoverIndex={hoverIndex}
+        progressing={progressing}
+        finished={finished}
+        onOptionSelect={option => {
+          const conversation = storyManager.getConversation();
+          conversation.progressOptionSelect(option);
 
-            sounds.playSoundName('menuSelect');
-          }}
-        />
-      ) : null}
+          sounds.playSoundName('menuSelect');
+        }}
+      />
     </div>
   );
 };
