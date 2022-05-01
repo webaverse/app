@@ -97,6 +97,10 @@ class CameraManager extends EventTarget {
     this.lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
     this.fovFactor = 0;
 
+    this.target = null;
+    // this.targetAngle = null;
+    this.lastTarget = null;
+
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
       const renderer = getRenderer();
@@ -227,9 +231,9 @@ class CameraManager extends EventTarget {
       }));
     }
   }
-  setTarget(target = null, targetAngle = 0) {
+  setTarget(target = null/*, targetAngle = 0*/) {
     this.target = target;
-    this.targetAngle = targetAngle;
+    // this.targetAngle = targetAngle;
   }
   updatePost(timestamp, timeDiff) {
     // console.log('camera manager update post');
@@ -240,15 +244,17 @@ class CameraManager extends EventTarget {
     const startMode = this.getMode();
 
     if (this.target) {
-      const _setCameraToTarget = () => {
-        this.target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      if (this.target !== this.lastTarget) {
+        const _setCameraToTarget = () => {
+          this.target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-        camera.position.copy(localVector)
-          .add(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion));
-        camera.quaternion.copy(localQuaternion);
-        camera.updateMatrixWorld();
-      };
-      _setCameraToTarget();
+          camera.position.copy(localVector)
+            .add(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion));
+          camera.quaternion.copy(localQuaternion);
+          camera.updateMatrixWorld();
+        };
+        _setCameraToTarget();
+      }
     } else {
       const _setCameraOffset = () => {
         let newVal = cameraOffsetTargetZ;
@@ -480,6 +486,8 @@ class CameraManager extends EventTarget {
     _shakeCamera();
 
     camera.updateMatrixWorld();
+
+    this.lastTarget = this.target;
   }
 };
 const cameraManager = new CameraManager();
