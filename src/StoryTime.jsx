@@ -54,7 +54,7 @@ const MegaChatBox = ({
           <div className={styles.name}>{message.name}</div>
           <div className={styles.level}>Lv. {level}</div>
         </div>
-        <div className={styles.text}>{message.text}</div>
+        <RpgText className={styles.text} styles={styles} textSpeed={chatTextSpeed} text={message.text}></RpgText>
         {finished ? (
           <LightArrow
             className={styles.lightArrow}
