@@ -182,6 +182,9 @@ class CameraManager extends EventTarget {
     this.target = null;
     this.target2 = null;
     this.lastTarget = null;
+    this.targetPosition = new THREE.Vector3(0, 0, 0);
+    this.targetQuaternion = new THREE.Quaternion();
+    this.targetLerpFn = null;
 
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
@@ -378,9 +381,9 @@ class CameraManager extends EventTarget {
 
             const lookToDollyVector = localVector9.copy(dollyPosition).sub(localVector).normalize();
 
-            camera.position.copy(localVector)
+            this.targetPosition.copy(localVector)
               .add(lookToDollyVector);
-            camera.quaternion.setFromRotationMatrix(
+            this.targetQuaternion.setFromRotationMatrix(
               localMatrix.lookAt(
                 lookToDollyVector,
                 zeroVector,
@@ -389,17 +392,14 @@ class CameraManager extends EventTarget {
             );
 
             if (!this.lastTarget) {
-              camera.position.add(localVector10.set(0, 0, -0.65).applyQuaternion(camera.quaternion));
-              camera.quaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, sideOfY * -Math.PI * 0.87));
-              camera.position.add(localVector10.set(0, 0, 0.65).applyQuaternion(camera.quaternion));
+              this.targetPosition.add(localVector10.set(0, 0, -0.65).applyQuaternion(this.targetQuaternion));
+              this.targetQuaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, sideOfY * -Math.PI * 0.87));
+              this.targetPosition.add(localVector10.set(0, 0, 0.65).applyQuaternion(this.targetQuaternion));
             }
-
-            camera.updateMatrixWorld();
           } else {
-            camera.position.copy(localVector)
+            this.targetPosition.copy(localVector)
               .add(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion));
-            camera.quaternion.copy(localQuaternion);
-            camera.updateMatrixWorld();
+            this.targetQuaternion.copy(localQuaternion);
           }
 
           cameraOffsetZ = -0.65;
@@ -407,6 +407,12 @@ class CameraManager extends EventTarget {
         };
         _setCameraToTarget();
       }
+
+      camera.position.lerp(this.targetPosition, 0.1);
+      camera.quaternion.slerp(this.targetQuaternion, 0.1);
+      // camera.position.copy(this.targetPosition);
+      // camera.quaternion.copy(this.targetQuaternion);
+      camera.updateMatrixWorld();
     } else {
       const _setCameraOffset = () => {
         let newVal = cameraOffsetTargetZ;
