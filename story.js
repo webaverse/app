@@ -444,7 +444,14 @@ export const listenHack = () => {
             }
           } else {
             const comment = await aiScene.generateSelectTargetComment(name, description);
-            _startConversation(comment, null, true);
+            const fakePlayer = {
+              avatar: {
+                modelBones: {
+                  Head: app,
+                },
+              },
+            };
+            _startConversation(comment, fakePlayer, true);
           }
         })();
       } else if (e.button === 0 && currentConversation) {
