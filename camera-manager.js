@@ -184,7 +184,10 @@ class CameraManager extends EventTarget {
     this.lastTarget = null;
     this.targetPosition = new THREE.Vector3(0, 0, 0);
     this.targetQuaternion = new THREE.Quaternion();
-    this.targetLerpFn = null;
+    this.sourcePosition = new THREE.Vector3();
+    this.sourceQuaternion = new THREE.Quaternion();
+    this.lerpStartTime = 0;
+    this.lastTimestamp = 0;
 
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
@@ -402,14 +405,41 @@ class CameraManager extends EventTarget {
             this.targetQuaternion.copy(localQuaternion);
           }
 
+          this.sourcePosition.copy(camera.position);
+          this.sourceQuaternion.copy(camera.quaternion);
+          this.lerpStartTime = timestamp;
+          this.lastTimestamp = timestamp;
+
           cameraOffsetZ = -0.65;
           cameraOffset.z = -0.65;
         };
         _setCameraToTarget();
       }
 
-      camera.position.lerp(this.targetPosition, 0.1);
-      camera.quaternion.slerp(this.targetQuaternion, 0.1);
+      const _getLerpDelta = (position, quaternion) => {
+        const lastTimeFactor = Math.min(Math.max(Math.pow((this.lastTimestamp - this.lerpStartTime) / 1000, 0.5), 0), 1);
+        const currentTimeFactor = Math.min(Math.max(Math.pow((timestamp - this.lerpStartTime) / 1000, 0.5), 0), 1);
+        if (lastTimeFactor !== currentTimeFactor) {
+          {
+            
+            const lastLerp = localVector.copy(this.sourcePosition).lerp(this.targetPosition, lastTimeFactor);
+            const currentLerp = localVector2.copy(this.sourcePosition).lerp(this.targetPosition, currentTimeFactor);
+            position.add(currentLerp).sub(lastLerp);
+          }
+          {
+            const lastLerp = localQuaternion.copy(this.sourceQuaternion).slerp(this.targetQuaternion, lastTimeFactor);
+            const currentLerp = localQuaternion2.copy(this.sourceQuaternion).slerp(this.targetQuaternion, currentTimeFactor);
+            quaternion.premultiply(lastLerp.invert()).premultiply(currentLerp);
+          }
+        }
+
+        this.lastTimestamp = timestamp;
+      };
+      _getLerpDelta(camera.position, camera.quaternion);
+      // camera.position.add(localQuaternion3);
+      // camera.quaternion.premultiply(lerpDelta.quaternion);
+      // camera.position.lerp(this.targetPosition, 0.1);
+      // camera.quaternion.slerp(this.targetQuaternion, 0.1);
       // camera.position.copy(this.targetPosition);
       // camera.quaternion.copy(this.targetQuaternion);
       camera.updateMatrixWorld();
