@@ -4,6 +4,7 @@ import * as metaverseModules from './metaverse-modules.js';
 import {scene, camera} from './renderer.js';
 import * as sounds from './sounds.js';
 import cameraManager from './camera-manager.js';
+import {localPlayer} from './players.js';
 
 const localVector = new THREE.Vector3();
 
@@ -59,7 +60,6 @@ class ZTargeting extends THREE.Object3D {
     }
 
     const timeDiff = timestamp - lastFocusChangeTime;
-    // console.log('focus target reticle', this.focusTargetReticle && timeDiff < 1000, timeDiff);
     const focusTime = 250;
     if (this.focusTargetReticle) {
       if (focus || timeDiff < focusTime) {
@@ -84,8 +84,6 @@ class ZTargeting extends THREE.Object3D {
   }
   handleDown() {
     if (!cameraManager.focus) {
-      cameraManager.setFocus(true);
-
       if (this.reticles.length > 0) {
         this.focusTargetReticle = this.reticles[0];
         sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
@@ -100,17 +98,20 @@ class ZTargeting extends THREE.Object3D {
         const naviSoundName = naviSoundNames[Math.floor(Math.random() * naviSoundNames.length)];
         sounds.playSoundName(naviSoundName);
       } else {
-        // this.focusTargetReticle = null;
         sounds.playSoundName('zTargetCenter');
       }
+
+      cameraManager.setFocus(true);
+      const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
+      cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
     }
   }
   handleUp() {
     if (cameraManager.focus) {
       cameraManager.setFocus(false);
+      cameraManager.setStaticTarget();
 
       if (this.focusTargetReticle) {
-        // this.focusTargetReticle = null;
         sounds.playSoundName('zTargetCancel');
       }
     }

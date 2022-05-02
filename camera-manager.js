@@ -182,6 +182,7 @@ class CameraManager extends EventTarget {
     this.lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
     this.fovFactor = 0;
 
+    this.targetType = 'dynamic';
     this.target = null;
     this.target2 = null;
     this.lastTarget = null;
@@ -322,9 +323,15 @@ class CameraManager extends EventTarget {
       }));
     }
   }
-  setTarget(target = null, target2 = null) {
+  setDynamicTarget(target = null, target2 = null) {
+    this.targetType = 'dynamic';
     this.target = target;
     this.target2 = target2;
+  }
+  setStaticTarget(target = null, target2 = null) {
+    this.targetType = 'static';
+    /* this.target = target;
+    this.target2 = target2; */
   }
   updatePost(timestamp, timeDiff) {
     // console.log('camera manager update post');
@@ -544,66 +551,71 @@ class CameraManager extends EventTarget {
       };
       _setCameraOffset();
 
+      const _setFreeCamera = () => {
+        const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
+        const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
+        const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
+        
+        const endMode = this.getMode();
+        switch (endMode) {
+          case 'firstperson': {
+            if (localPlayer.avatar) {
+              const boneNeck = localPlayer.avatar.foundModelBones['Neck'];
+              const boneEyeL = localPlayer.avatar.foundModelBones['Eye_L'];
+              const boneEyeR = localPlayer.avatar.foundModelBones['Eye_R'];
+              const boneHead = localPlayer.avatar.foundModelBones['Head'];
+
+              boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
+              boneNeck.updateMatrixWorld();
+        
+              if (boneEyeL && boneEyeR) {
+                boneEyeL.matrixWorld.decompose(localVector, localQuaternion, localVector3);
+                boneEyeR.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
+                localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
+              } else {
+                boneHead.matrixWorld.decompose(localVector, localQuaternion, localVector3);
+                localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion));
+                localVector3.copy(localVector);
+              }
+            } else {
+              localVector3.copy(localPlayer.position);
+            }
+
+            camera.position.copy(localVector3)
+              .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+
+            break;
+          }
+          case 'isometric': {
+            camera.position.copy(localPlayer.position)
+              .sub(
+                localVector.copy(avatarCameraOffset)
+                  .applyQuaternion(camera.quaternion)
+              );
+      
+            break;
+          }
+          default: {
+            throw new Error('invalid camera mode: ' + cameraMode);
+          }
+        }
+
+        camera.position.y -= crouchOffset;
+      };
+      const _setFocusCamera = () => {
+        cameraOffsetTargetZ = -1;
+
+        const targetPosition = localVector.copy(localPlayer.position)
+          .add(localVector2.set(0, 0, -cameraOffsetTargetZ).applyQuaternion(localPlayer.quaternion));
+        const targetQuaternion = localPlayer.quaternion;
+        camera.position.lerp(targetPosition, 0.2);
+        camera.quaternion.slerp(targetQuaternion, 0.2);
+      };
       const _setCameraToAvatar = () => {
         if (!this.focus) {
-          const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
-          const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-          const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
-          
-          const endMode = this.getMode();
-          switch (endMode) {
-            case 'firstperson': {
-              if (localPlayer.avatar) {
-                const boneNeck = localPlayer.avatar.foundModelBones['Neck'];
-                const boneEyeL = localPlayer.avatar.foundModelBones['Eye_L'];
-                const boneEyeR = localPlayer.avatar.foundModelBones['Eye_R'];
-                const boneHead = localPlayer.avatar.foundModelBones['Head'];
-
-                boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
-                boneNeck.updateMatrixWorld();
-          
-                if (boneEyeL && boneEyeR) {
-                  boneEyeL.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-                  boneEyeR.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
-                  localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
-                } else {
-                  boneHead.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-                  localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion));
-                  localVector3.copy(localVector);
-                }
-              } else {
-                localVector3.copy(localPlayer.position);
-              }
-
-              camera.position.copy(localVector3)
-                .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
-
-              break;
-            }
-            case 'isometric': {
-              camera.position.copy(localPlayer.position)
-                .sub(
-                  localVector.copy(avatarCameraOffset)
-                    .applyQuaternion(camera.quaternion)
-                );
-        
-              break;
-            }
-            default: {
-              throw new Error('invalid camera mode: ' + cameraMode);
-            }
-          }
-
-          camera.position.y -= crouchOffset;
+          _setFreeCamera();
         } else {
-          cameraOffsetTargetZ = -1;
-
-          const targetPosition = localVector.copy(localPlayer.position)
-            .add(localVector2.set(0, 0, -cameraOffsetTargetZ).applyQuaternion(localPlayer.quaternion));
-          const targetQuaternion = localPlayer.quaternion;
-          camera.position.lerp(targetPosition, 0.2);
-          camera.quaternion.slerp(targetQuaternion, 0.2);
-          // camera.updateMatrixWorld();
+          _setFocusCamera();
         }
       };
       _setCameraToAvatar();
