@@ -66,11 +66,12 @@ ioManager.keys = {
   space: false,
   ctrl: false,
 };
-const lastWASDDownTime = {
+const lastKeysDownTime = {
   keyW: 0,
   keyA: 0,
   keyS: 0,
-  keyD: 0
+  keyD: 0,
+  keyE: 0,
 };
 
 const resetKeys = () => {
@@ -322,13 +323,13 @@ ioManager.keydown = e => {
       }
 
       const now = performance.now();
-      const timeDiff = now - lastWASDDownTime.keyW;
+      const timeDiff = now - lastKeysDownTime.keyW;
       if (timeDiff < doubleTapTime && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
         game.menuDoubleTap();
       }
-      lastWASDDownTime.keyW = now;
-      lastWASDDownTime.keyS = 0;
+      lastKeysDownTime.keyW = now;
+      lastKeysDownTime.keyS = 0;
       break;
     }
     case 65: { // A
@@ -338,13 +339,13 @@ ioManager.keydown = e => {
       }
 
       const now = performance.now();
-      const timeDiff = now - lastWASDDownTime.keyA;
+      const timeDiff = now - lastKeysDownTime.keyA;
       if (timeDiff < doubleTapTime && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
         game.menuDoubleTap();
       }
-      lastWASDDownTime.keyA = now;
-      lastWASDDownTime.keyD = 0;
+      lastKeysDownTime.keyA = now;
+      lastKeysDownTime.keyD = 0;
       break;
     }
     case 83: { // S
@@ -366,13 +367,13 @@ ioManager.keydown = e => {
         }
 
         const now = performance.now();
-        const timeDiff = now - lastWASDDownTime.keyS;
+        const timeDiff = now - lastKeysDownTime.keyS;
         if (timeDiff < doubleTapTime && ioManager.keys.shift) {
           ioManager.keys.doubleTap = true;
           game.menuDoubleTap();
         }
-        lastWASDDownTime.keyS = now;
-        lastWASDDownTime.keyW = 0;
+        lastKeysDownTime.keyS = now;
+        lastKeysDownTime.keyW = 0;
       }
       break;
     }
@@ -383,13 +384,13 @@ ioManager.keydown = e => {
       }
 
       const now = performance.now();
-      const timeDiff = now - lastWASDDownTime.keyD;
+      const timeDiff = now - lastKeysDownTime.keyD;
       if (timeDiff < doubleTapTime && ioManager.keys.shift) {
         ioManager.keys.doubleTap = true;
         game.menuDoubleTap();
       }
-      lastWASDDownTime.keyD = now;
-      lastWASDDownTime.keyA = 0;
+      lastKeysDownTime.keyD = now;
+      lastKeysDownTime.keyA = 0;
       break;
     }
     case 70: { // F
@@ -474,11 +475,22 @@ ioManager.keydown = e => {
     }
     case 69: { // E
       // if (cameraManager.pointerLockElement) {
+      
+      const now = performance.now();
+      const timeDiff = now - lastKeysDownTime.keyE;
+      if (timeDiff < doubleTapTime) {
+        game.menuMiddleToggle();
+      } else {
+        game.menuMiddleUp();
+
         if (game.canRotate()) {
           game.menuRotate(-1);
         } else {
           game.menuActivateDown();
         }
+      }
+      lastKeysDownTime.keyE = now;
+
       // }
       break;
     }
