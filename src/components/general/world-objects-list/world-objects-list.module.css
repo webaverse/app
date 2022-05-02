@@ -63,7 +63,7 @@
     overflow: hidden;
 }
 
-.objects .object:hover .img div {
+.objects .object:hover .img div, .objects .object:hover .defaultPlaceHolder {
     background-image: radial-gradient(#0ab213, #014a13);
 }
 
@@ -72,7 +72,7 @@
     min-width: 80px;
     height: 80px;
     margin: 0 10px;
-    border: 1px solid #222;
+    background-image: radial-gradient(#444, #222);
 }
 
 .objects .object .wrap {
