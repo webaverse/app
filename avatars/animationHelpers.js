@@ -1006,16 +1006,17 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
         if (aimAnimation) {
           const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
+          const transitionFactor = Math.min(1, avatar.aimTime / 200);
           if (!isPosition) {
             const src2 = aimAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localQuaternion2.fromArray(v2);
 
             if (isArm) {
-              dst.slerp(localQuaternion2, Math.min(0.5, avatar.aimTime / 200 * 0.5));
+              dst.slerp(localQuaternion2, transitionFactor * 0.5);
             } else {
-              localQuaternion2.slerp(dst, 0.5 + moveFactors.idleWalkFactor * 0.5);
-              dst.slerp(localQuaternion2, Math.min(1, avatar.aimTime / 200));
+              const t = (0.5 - idleWalkFactor * 0.5) * transitionFactor;
+              dst.slerp(localQuaternion2, t);
             }
           } else {
             const src2 = aimAnimation.interpolants[k];
@@ -1023,12 +1024,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             localVector2.fromArray(v2);
             _clearXZ(localVector2, isPosition);
 
-            if (isArm) {
-              dst.lerp(localVector2, Math.min(0.5, avatar.aimTime / 200 * 0.5));
-            } else {
-              localVector2.lerp(dst, 0.5 + moveFactors.idleWalkFactor * 0.5);
-              dst.lerp(localVector2, Math.min(1, avatar.aimTime / 200));
-            }
+            dst.lerp(localVector2, crouchFactor * transitionFactor);
           }
         }
       };
