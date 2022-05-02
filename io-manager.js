@@ -278,6 +278,13 @@ ioManager.keydown = e => {
     return;
   }
 
+  if (e.keyCode === 18) { // alt
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('alt down');
+    return;
+  }
+
   // HACK: these keybindings control developer avatar animation offset settings in avatars.js
   /* if (e.which === 74) {
     window.lol -= 0.01;
@@ -582,6 +589,14 @@ ioManager.keyup = e => {
   if (_inputFocused() || e.repeat) {
     return;
   }
+
+  if (e.keyCode === 18) { // alt
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('alt up');
+    return;
+  }
+
   switch (e.which) {
     /* case 81: { // Q
       game.setWeaponWheel(false);
