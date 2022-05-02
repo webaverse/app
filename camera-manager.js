@@ -576,19 +576,19 @@ class CameraManager extends EventTarget {
               boneNeck.updateMatrixWorld();
         
               if (boneEyeL && boneEyeR) {
-                boneEyeL.matrixWorld.decompose(localVector, localQuaternion2, localVector3);
-                boneEyeR.matrixWorld.decompose(localVector2, localQuaternion2, localVector3);
-                localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
+                boneEyeL.matrixWorld.decompose(localVector2, localQuaternion2, localVector4);
+                boneEyeR.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
+                localVector4.copy(localVector2.add(localVector3).multiplyScalar(0.5));
               } else {
-                boneHead.matrixWorld.decompose(localVector, localQuaternion2, localVector3);
-                localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion2));
-                localVector3.copy(localVector);
+                boneHead.matrixWorld.decompose(localVector2, localQuaternion2, localVector4);
+                localVector2.add(localVector3.set(0, 0, 0.1).applyQuaternion(localQuaternion2));
+                localVector4.copy(localVector2);
               }
             } else {
-              localVector3.copy(localPlayer.position);
+              localVector4.copy(localPlayer.position);
             }
 
-            camera.position.copy(localVector3)
+            camera.position.copy(localVector4)
               .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
 
             break;
