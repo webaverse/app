@@ -703,24 +703,6 @@ ioManager.keyup = e => {
   }
 };
 // let lastMouseDistance = 0;
-const _updateMouseMovement = e => {
-  const {movementX, movementY} = e;
-
-  // const mouseDistance = Math.sqrt(movementX*movementX, movementY*movementY);
-  // if ((mouseDistance - lastMouseDistance) < 100) { // hack around a Chrome bug
-    camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-  
-    camera.rotation.y -= movementX * Math.PI * 2 * 0.0005;
-    camera.rotation.x -= movementY * Math.PI * 2 * 0.0005;
-    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI * 0.35), Math.PI / 2);
-    camera.quaternion.setFromEuler(camera.rotation);
-
-    camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-
-    camera.updateMatrixWorld();
-  // }
-  // lastMouseDistance = mouseDistance;
-};
 const _getMouseRaycaster = (e, raycaster) => {
   const {clientX, clientY} = e;
   const renderer = getRenderer();
@@ -791,7 +773,7 @@ ioManager.mousemove = e => {
     game.updateWeaponWheel(e);
   } else { */
     if (cameraManager.pointerLockElement) {
-      _updateMouseMovement(e);
+      cameraManager.handleMouseMove(e);
     } else {
       if (game.dragging) {
         game.menuDrag(e);
