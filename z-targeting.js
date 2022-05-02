@@ -58,31 +58,6 @@ class ZTargeting extends THREE.Object3D {
       reticles = reticleSpecs.map(reticleSpec => reticleSpec.reticle);
     }
 
-    if (focus && !this.lastFocus) {
-      if (reticles.length > 0) {
-        this.focusTargetReticle = reticles[0];
-        sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
-      
-        const naviSoundNames = [
-          'naviHey',
-          'naviWatchout',
-          'naviFriendly',
-          'naviItem',
-          'naviDanger',
-        ];
-        const naviSoundName = naviSoundNames[Math.floor(Math.random() * naviSoundNames.length)];
-        sounds.playSoundName(naviSoundName);
-      } else {
-        // this.focusTargetReticle = null;
-        sounds.playSoundName('zTargetCenter');
-      }
-    } else if (this.lastFocus && !focus) {
-      if (this.focusTargetReticle) {
-        // this.focusTargetReticle = null;
-        sounds.playSoundName('zTargetCancel');
-      }
-    }
-
     const timeDiff = timestamp - lastFocusChangeTime;
     // console.log('focus target reticle', this.focusTargetReticle && timeDiff < 1000, timeDiff);
     const focusTime = 250;
@@ -110,23 +85,46 @@ class ZTargeting extends THREE.Object3D {
   handleDown() {
     if (!cameraManager.focus) {
       cameraManager.setFocus(true);
+
+      if (this.reticles.length > 0) {
+        this.focusTargetReticle = this.reticles[0];
+        sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
+      
+        const naviSoundNames = [
+          'naviHey',
+          'naviWatchout',
+          'naviFriendly',
+          'naviItem',
+          'naviDanger',
+        ];
+        const naviSoundName = naviSoundNames[Math.floor(Math.random() * naviSoundNames.length)];
+        sounds.playSoundName(naviSoundName);
+      } else {
+        // this.focusTargetReticle = null;
+        sounds.playSoundName('zTargetCenter');
+      }
     }
   }
   handleUp() {
     if (cameraManager.focus) {
       cameraManager.setFocus(false);
+
+      if (this.focusTargetReticle) {
+        // this.focusTargetReticle = null;
+        sounds.playSoundName('zTargetCancel');
+      }
     }
   }
   toggle() {
     if (cameraManager.focus) {
-      cameraManager.setFocus(false);
+      this.handleUp();
     } else {
       if (this.reticles.length > 0) {
-        cameraManager.setFocus(true);
+        this.handleDown();
       } else {
-        cameraManager.setFocus(true);
+        this.handleDown();
         setTimeout(() => {
-          cameraManager.setFocus(false);
+          this.handleUp();
         }, 200);
       }
     }
