@@ -462,7 +462,7 @@ class CameraManager extends EventTarget {
 
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
-    const startMode = this.getMode();
+    // const startMode = this.getMode();
 
     if (this.target) {
       const _setLerpDelta = (position, quaternion) => {
