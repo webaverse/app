@@ -33,6 +33,7 @@ export default (app, component) => {
       }
       wearSpec = app.getComponent("wear");
       initialScale.copy(app.scale);
+      
       if (isLocal === false && lastWornApp !== app) {
         e.player.wear(app);
       }
