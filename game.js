@@ -58,7 +58,7 @@ const localRay = new THREE.Ray();
 
 // const cubicBezier = easing(0, 1, 0, 1);
 
-let redMesh = null;
+// let redMesh = null;
 
 const getPyramidConvexGeometry = (() => {
   const radius = 0.5;
@@ -83,11 +83,12 @@ const getPyramidConvexGeometry = (() => {
       geometry.rotateZ(Math.PI/4);
       geometry.scale(2, 2.75, 1);
 
-      redMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xff0000}));
+      /* redMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xff0000}));
       redMesh.frustumCulled = false;
-      scene.add(redMesh);
+      scene.add(redMesh); */
 
-      const buffer = physicsManager.cookConvexGeometry(redMesh);
+      const fakeMesh = new THREE.Mesh(geometry);
+      const buffer = physicsManager.cookConvexGeometry(fakeMesh);
       shapeAddress = physicsManager.createConvexShape(buffer);
     }
     return shapeAddress;
@@ -651,9 +652,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
     const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
 
-    redMesh.position.copy(position);
+    /* redMesh.position.copy(position);
     redMesh.quaternion.copy(quaternion);
-    redMesh.updateMatrixWorld();
+    redMesh.updateMatrixWorld(); */
 
     // console.log('pyramid geometry address', pyramidConvexGeometryAddress);
 
