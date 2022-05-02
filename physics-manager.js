@@ -608,6 +608,9 @@ physicsManager.createChunkWithDualContouring = (x, y, z) => physx.physxWorker.cr
 
 physicsManager.createSeamsWithDualContouring = (x, y, z) => physx.physxWorker.createSeamsWithDualContouring(x, y, z)
 
+physicsManager.createShape = buffer => physx.physxWorker.createShapePhysics(physx.physics, buffer);
+physicsManager.createConvexShape = buffer => physx.physxWorker.createConvexShapePhysics(physx.physics, buffer);
+
 physicsManager.pushUpdate = (physicsObject) => {
   const { physicsId, physicsMesh } = physicsObject
   physicsMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2)

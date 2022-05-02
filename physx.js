@@ -1587,7 +1587,7 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2]
 
-    const shape = moduleInstance._createShapePhysics(
+    const shape = moduleInstance._createConvexShapePhysics(
       physics,
       dataPtr,
       dataLength,
