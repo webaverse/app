@@ -1697,6 +1697,35 @@ const physxWorker = (() => {
     allocator.freeAll()
   }
 
+  w.createShapePhysics = (physics, buffer) => {
+    const allocator = new Allocator()
+    const buffer2 = allocator.alloc(Uint8Array, buffer.length)
+    buffer2.set(buffer)
+
+    const shapeAddress = moduleInstance._createShapePhysics(
+      physics,
+      buffer2.byteOffset,
+      buffer2.byteLength,
+      0,
+    );
+    allocator.freeAll();
+    return shapeAddress;
+  };
+  w.createConvexShapePhysics = (physics, buffer) => {
+    const allocator = new Allocator()
+    const buffer2 = allocator.alloc(Uint8Array, buffer.length)
+    buffer2.set(buffer)
+
+    const shapeAddress = moduleInstance._createConvexShapePhysics(
+      physics,
+      buffer2.byteOffset,
+      buffer2.byteLength,
+      0,
+    );
+    allocator.freeAll();
+    return shapeAddress;
+  };
+
   w.getGeometryPhysics = (physics, id) => {
     const allocator = new Allocator()
     const positionsBuffer = allocator.alloc(Float32Array, 1024 * 1024 * 2)
