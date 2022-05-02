@@ -42,6 +42,7 @@ Drake: "No thanks. I don't think your child would be worth very much."
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const upVector = new THREE.Vector3(0, 1, 0);
+const cameraOffsetDefault = 0.65;
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
@@ -370,9 +371,9 @@ class CameraManager extends EventTarget {
             this.targetQuaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, Math.PI));
             this.targetPosition.add(localVector10.set(0, 0, 0.8).applyQuaternion(this.targetQuaternion));
           } else if (!this.lastTarget) {
-            this.targetPosition.add(localVector10.set(0, 0, -0.65).applyQuaternion(this.targetQuaternion));
+            this.targetPosition.add(localVector10.set(0, 0, -cameraOffsetDefault).applyQuaternion(this.targetQuaternion));
             this.targetQuaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, sideOfY * -Math.PI * 0.87));
-            this.targetPosition.add(localVector10.set(0, 0, 0.65).applyQuaternion(this.targetQuaternion));
+            this.targetPosition.add(localVector10.set(0, 0, cameraOffsetDefault).applyQuaternion(this.targetQuaternion));
           }
         } else {
           this.targetPosition.copy(localVector)
@@ -389,8 +390,8 @@ class CameraManager extends EventTarget {
         this.lerpStartTime = timestamp;
         this.lastTimestamp = timestamp;
 
-        cameraOffsetZ = -0.65;
-        cameraOffset.z = -0.65;
+        cameraOffsetZ = -cameraOffsetDefault;
+        cameraOffset.z = -cameraOffsetDefault;
       };
       _setCameraToDynamicTarget();
     }
@@ -423,8 +424,22 @@ class CameraManager extends EventTarget {
         const timestamp = performance.now();
         this.lerpStartTime = timestamp;
         this.lastTimestamp = timestamp;
+
+        // cameraOffsetZ = -cameraOffsetDefault;
+        // cameraOffset.z = -cameraOffsetDefault;
       };
       _setCameraToStaticTarget();
+    } else {
+      this.sourcePosition.copy(camera.position);
+      this.sourceQuaternion.copy(camera.quaternion);
+      this.sourceFov = camera.fov;
+      // this.targetPosition.copy(targetPosition);
+      // this.targetQuaternion.copy(targetQuaternion);
+      // XXX the target should be automatically computed
+      this.targetFov = minFov;
+      const timestamp = performance.now();
+      this.lerpStartTime = timestamp;
+      this.lastTimestamp = timestamp;
     }
   }
   updatePost(timestamp, timeDiff) {
@@ -537,7 +552,7 @@ class CameraManager extends EventTarget {
         // }
 
         // Slow zoom out if there is no intersection
-        cameraOffsetZ = lerpNum(cameraOffsetZ,newVal, 0.2);
+        cameraOffsetZ = lerpNum(cameraOffsetZ, newVal, 0.2);
 
         // Fast zoom in to the point of intersection
         if (hasIntersection) {
