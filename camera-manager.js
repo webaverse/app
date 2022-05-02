@@ -27,11 +27,8 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
 const localQuaternion4 = new THREE.Quaternion();
-const localQuaternion5 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
-const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
-const localPlane = new THREE.Plane();
 
 /*
 Anon: "Hey man, can I get your autograph?"
@@ -422,6 +419,7 @@ class CameraManager extends EventTarget {
         // this.target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
         cameraOffsetTargetZ = -1;
+        cameraOffset.z = cameraOffsetTargetZ;
 
         const targetPosition = localVector.copy(localPlayer.position)
           .add(localVector2.set(0, 0, -cameraOffsetTargetZ).applyQuaternion(localPlayer.quaternion));
@@ -486,7 +484,7 @@ class CameraManager extends EventTarget {
       _setLerpDelta(camera.position, camera.quaternion);
       camera.updateMatrixWorld();
     } else {
-      const _setCameraOffset = () => {
+      /* const _setCameraOffset = () => {
         let newVal = cameraOffsetTargetZ;
         let hasIntersection = false;
 
@@ -556,8 +554,9 @@ class CameraManager extends EventTarget {
         if (zDiff !== 0) {
           cameraOffset.z = cameraOffsetZ;
         }
-      };
-      _setCameraOffset();
+      }; */
+      // _setCameraOffset();
+      cameraOffset.z = cameraOffsetTargetZ;
 
       const _setFreeCamera = () => {
         const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
@@ -609,18 +608,21 @@ class CameraManager extends EventTarget {
         }
 
         camera.position.y -= crouchOffset;
+        localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+        localEuler.z = 0;
+        camera.quaternion.setFromEuler(localEuler);
       };
       _setFreeCamera();
     };
 
-    const endMode = this.getMode();
-    if (endMode !== startMode) {
+    // const endMode = this.getMode();
+    /* if (endMode !== startMode) {
       this.dispatchEvent(new MessageEvent('modechange', {
         data: {
           mode: endMode,
         },
       }));
-    }
+    } */
       
     const _setCameraFov = () => {
       if (!renderer.xr.getSession()) {
