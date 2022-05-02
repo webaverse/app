@@ -45,16 +45,16 @@ const maxFocusTime = 300;
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 
-let cameraOffsetZ = cameraOffset.z;
+// let cameraOffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
-const rayVectorUp = new THREE.Vector3(0,1,0);
-const rayStartPos = new THREE.Vector3(0,0,0);
-const rayDirection = new THREE.Vector3(0,0,0);
-const rayOffsetPoint = new THREE.Vector3(0,0,0);
-const rayMatrix = new THREE.Matrix4();
-const rayQuaternion = new THREE.Quaternion();
-const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
-const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
+// const rayVectorUp = new THREE.Vector3(0,1,0);
+// const rayStartPos = new THREE.Vector3(0,0,0);
+// const rayDirection = new THREE.Vector3(0,0,0);
+// const rayOffsetPoint = new THREE.Vector3(0,0,0);
+// const rayMatrix = new THREE.Matrix4();
+// const rayQuaternion = new THREE.Quaternion();
+// const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
+// const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
 
 /* function getNormal(u, v) {
   return localPlane.setFromCoplanarPoints(zeroVector, u, v).normal;
@@ -406,7 +406,7 @@ class CameraManager extends EventTarget {
         this.lerpStartTime = timestamp;
         this.lastTimestamp = timestamp;
 
-        cameraOffsetZ = -cameraOffsetDefault;
+        // cameraOffsetZ = -cameraOffsetDefault;
         cameraOffset.z = -cameraOffsetDefault;
       };
       _setCameraToDynamicTarget();
@@ -565,8 +565,47 @@ class CameraManager extends EventTarget {
         }
       }; */
       // _setCameraOffset();
-      const lerpFactor = 0.1;
-      cameraOffset.z = cameraOffset.z * (1-lerpFactor) + cameraOffsetTargetZ*lerpFactor;
+
+      const _bumpCamera = () => {
+        // const {position, quaternion} = localPlayer;
+        const direction = localVector.copy(camera.position)
+          .sub(localPlayer.position);
+        const sweepDistance = direction.length();
+        direction.normalize();
+        const halfExtents = localVector2.set(0.5, 0.5, 0.1);
+        const maxHits = 1;
+    
+        // sweepBox
+    
+        // const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
+    
+        /* redMesh.position.copy(position);
+        redMesh.quaternion.copy(quaternion);
+        redMesh.updateMatrixWorld(); */
+    
+        // console.log('pyramid geometry address', pyramidConvexGeometryAddress);
+
+        const result = physicsManager.sweepBox(
+          localPlayer.position,
+          localPlayer.quaternion,
+          halfExtents,
+          direction,
+          sweepDistance,
+          maxHits,
+        );
+        if (result.length > 0) {
+          // console.log('got result', result[0], result[0].position.toArray().join(','));
+          const distance = result[0].distance;
+          cameraOffsetTargetZ = distance < 0.5 ? 0 : -distance;
+        }
+      };
+      _bumpCamera();
+
+      const _lerpCameraOffset = () => {
+        const lerpFactor = 0.1;
+        cameraOffset.z = cameraOffset.z * (1-lerpFactor) + cameraOffsetTargetZ*lerpFactor;
+      };
+      _lerpCameraOffset();
 
       const _setFreeCamera = () => {
         const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
