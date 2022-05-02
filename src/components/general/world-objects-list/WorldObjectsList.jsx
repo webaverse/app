@@ -6,9 +6,11 @@ import { world } from '../../../../world.js'
 import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
 import cameraManager from '../../../../camera-manager.js';
+import physicsManager from '../../../../physics-manager.js';
 
 import { Spritesheet } from '../spritesheet';
 import { AppContext } from '../../app';
+import { ObjectScreenshot } from '../object-screenshot';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 
 import styles from './world-objects-list.module.css';
@@ -342,14 +344,12 @@ export const WorldObjectsList = () => {
                                 <img src="images/webpencil.svg" className={ classnames( styles.backgroundInner, styles.lime ) } />
                                 {
                                     ( [ 'glb', 'html', 'gltf', 'gif', 'vrm' ].indexOf( app.appType ) !== -1 ) ? (
-                                        <Spritesheet
+                                        <ObjectScreenshot
                                             className={ styles.img }
                                             startUrl={ app.contentId }
-                                            enabled={ true }
-                                            size={ 2048 }
-                                            numFrames={ 1 }
-                                            animated={ false }
-                                            background={ '#000' }
+                                            width={ 80 }
+                                            height={ 80 }
+                                            // background={ '#000' }
                                         />
                                     ) : (
                                         <img src={ `./images/ui/${ appTypeIcons[ app.appType ] ?? 'gears' }-icon.png` } className={ styles.gearsPlaceHolder } />
