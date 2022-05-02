@@ -40,6 +40,7 @@ Drake: "No thanks. I don't think your child would be worth very much."
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const upVector = new THREE.Vector3(0, 1, 0);
 const cameraOffsetDefault = 0.65;
+const maxFocusTime = 300;
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
@@ -112,7 +113,7 @@ class Shake extends THREE.Object3D {
   }
 }
 
-function lerpNum(value1, value2, amount) {
+/* function lerpNum(value1, value2, amount) {
   amount = amount < 0 ? 0 : amount;
   amount = amount > 1 ? 1 : amount;
   return value1 + (value2 - value1) * amount;
@@ -141,7 +142,7 @@ function initOffsetRayParams(arrayIndex,originPoint) {
 
   rayOriginArray[arrayIndex].copy(originPoint);
   rayDirectionArray[arrayIndex].copy(rayQuaternion);
-}
+} */
 
 /* const redMesh = (() => {
   const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
@@ -409,6 +410,16 @@ class CameraManager extends EventTarget {
         cameraOffset.z = -cameraOffsetDefault;
       };
       _setCameraToDynamicTarget();
+    } else {
+      this.sourcePosition.copy(camera.position);
+      this.sourceQuaternion.copy(camera.quaternion);
+      this.sourceFov = camera.fov;
+      this.targetPosition.copy(camera.position);
+      this.targetQuaternion.copy(camera.quaternion);
+      this.targetFov = minFov;
+      const timestamp = performance.now();
+      this.lerpStartTime = timestamp;
+      this.lastTimestamp = timestamp;
     }
   }
   setStaticTarget(target = null, target2 = null) {
@@ -565,7 +576,7 @@ class CameraManager extends EventTarget {
         const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
         const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
         const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
-        
+
         switch (this.getMode()) {
           case 'firstperson': {
             if (localPlayer.avatar) {
@@ -578,25 +589,25 @@ class CameraManager extends EventTarget {
               boneNeck.updateMatrixWorld();
         
               if (boneEyeL && boneEyeR) {
-                boneEyeL.matrixWorld.decompose(localVector2, localQuaternion2, localVector4);
-                boneEyeR.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
+                boneEyeL.matrixWorld.decompose(localVector2, localQuaternion, localVector4);
+                boneEyeR.matrixWorld.decompose(localVector3, localQuaternion, localVector4);
                 localVector4.copy(localVector2.add(localVector3).multiplyScalar(0.5));
               } else {
-                boneHead.matrixWorld.decompose(localVector2, localQuaternion2, localVector4);
-                localVector2.add(localVector3.set(0, 0, 0.1).applyQuaternion(localQuaternion2));
+                boneHead.matrixWorld.decompose(localVector2, localQuaternion, localVector4);
+                localVector2.add(localVector3.set(0, 0, 0.1).applyQuaternion(localQuaternion));
                 localVector4.copy(localVector2);
               }
             } else {
               localVector4.copy(localPlayer.position);
             }
 
-            camera.position.copy(localVector4)
+            this.targetPosition.copy(localVector4)
               .sub(localVector2.copy(avatarCameraOffset).applyQuaternion(this.targetQuaternion));
 
             break;
           }
           case 'isometric': {
-            camera.position.copy(localPlayer.position)
+            this.targetPosition.copy(localPlayer.position)
               .sub(
                 localVector2.copy(avatarCameraOffset)
                   .applyQuaternion(this.targetQuaternion)
@@ -609,17 +620,23 @@ class CameraManager extends EventTarget {
           }
         }
 
-        camera.position.y -= crouchOffset;
+        const factor = Math.min((timestamp - this.lerpStartTime) / maxFocusTime, 1);
+
+        this.targetPosition.y -= crouchOffset;
+        camera.position.copy(this.sourcePosition)
+          .lerp(this.targetPosition, factor);
+
         localEuler.setFromQuaternion(this.targetQuaternion, 'YXZ');
         localEuler.z = 0;
-        camera.quaternion.setFromEuler(localEuler);
+        camera.quaternion.copy(this.sourceQuaternion)
+          .slerp(localQuaternion.setFromEuler(localEuler), factor);
       };
       _setFreeCamera();
     };
       
     const _setCameraFov = () => {
       if (!renderer.xr.getSession()) {
-        const focusTime = Math.min((timestamp - this.lerpStartTime) / 300, 1);
+        const focusTime = Math.min((timestamp - this.lerpStartTime) / maxFocusTime, 1);
         if (focusTime < 1) {
           this.fovFactor = 0;
 
