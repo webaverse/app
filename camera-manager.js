@@ -450,13 +450,12 @@ class CameraManager extends EventTarget {
     const startMode = this.getMode();
 
     if (this.target) {
-      const _getLerpDelta = (position, quaternion) => {
+      const _setLerpDelta = (position, quaternion) => {
         const lerpTime = 2000;
         const lastTimeFactor = Math.min(Math.max(cubicBezier((this.lastTimestamp - this.lerpStartTime) / lerpTime), 0), 1);
         const currentTimeFactor = Math.min(Math.max(cubicBezier((timestamp - this.lerpStartTime) / lerpTime), 0), 1);
         if (lastTimeFactor !== currentTimeFactor) {
           {
-            
             const lastLerp = localVector.copy(this.sourcePosition).lerp(this.targetPosition, lastTimeFactor);
             const currentLerp = localVector2.copy(this.sourcePosition).lerp(this.targetPosition, currentTimeFactor);
             position.add(currentLerp).sub(lastLerp);
@@ -470,13 +469,7 @@ class CameraManager extends EventTarget {
 
         this.lastTimestamp = timestamp;
       };
-      _getLerpDelta(camera.position, camera.quaternion);
-      // camera.position.add(localQuaternion3);
-      // camera.quaternion.premultiply(lerpDelta.quaternion);
-      // camera.position.lerp(this.targetPosition, 0.1);
-      // camera.quaternion.slerp(this.targetQuaternion, 0.1);
-      // camera.position.copy(this.targetPosition);
-      // camera.quaternion.copy(this.targetQuaternion);
+      _setLerpDelta(camera.position, camera.quaternion);
       camera.updateMatrixWorld();
     } else {
       const _setCameraOffset = () => {
@@ -519,7 +512,6 @@ class CameraManager extends EventTarget {
             if (newVal < (-1 * (collisionArray.distance[i]-0.15))) {
               newVal = (-1 * (collisionArray.distance[i]-0.15));
               hasIntersection = true;
-              //console.log(i + " " + collisionArray.distance[i]+ " " + collisionArray.hit[i]);
             }
           }
         }
@@ -537,19 +529,6 @@ class CameraManager extends EventTarget {
           hasIntersection = false;
           newVal = cameraOffsetTargetZ;
         }
-        
-        /* // Remove jitter when there is no movement
-        if (lastCameraQuaternion.equals(camera.quaternion) && lastCameraZ === cameraOffsetTargetZ) {
-          if (lastCameraValidZ < newVal) {
-            lastCameraValidZ = newVal;
-          }
-          if (newVal < lastCameraValidZ)
-            newVal = lastCameraValidZ;
-        } else { */
-          // lastCameraQuaternion.copy(camera.quaternion);
-          // lastCameraZ = cameraOffsetTargetZ;
-          // lastCameraValidZ = cameraOffsetTargetZ;
-        // }
 
         // Slow zoom out if there is no intersection
         cameraOffsetZ = lerpNum(cameraOffsetZ, newVal, 0.2);
@@ -560,13 +539,8 @@ class CameraManager extends EventTarget {
         }
 
         const zDiff = Math.abs(cameraOffset.z - cameraOffsetZ);
-        if (zDiff === 0) {
-          // nothing
-        } else {
-          // camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+        if (zDiff !== 0) {
           cameraOffset.z = cameraOffsetZ;
-          // camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
-          // camera.updateMatrixWorld();
         }
       };
       _setCameraOffset();
