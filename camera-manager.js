@@ -286,6 +286,10 @@ class CameraManager extends EventTarget {
     camera.position.sub(localVector.copy(this.getCameraOffset()).applyQuaternion(camera.quaternion));
 
     camera.updateMatrixWorld();
+
+    if (!this.target) {
+      this.targetQuaternion.copy(camera.quaternion);
+    }
   }
   handleWheelEvent(e) {
     if (!this.target) {
@@ -445,9 +449,8 @@ class CameraManager extends EventTarget {
       this.sourcePosition.copy(camera.position);
       this.sourceQuaternion.copy(camera.quaternion);
       this.sourceFov = camera.fov;
-      // this.targetPosition.copy(targetPosition);
-      // this.targetQuaternion.copy(targetQuaternion);
-      // XXX the target should be automatically computed
+      this.targetPosition.copy(camera.position);
+      this.targetQuaternion.copy(camera.quaternion);
       this.targetFov = minFov;
       const timestamp = performance.now();
       this.lerpStartTime = timestamp;
@@ -588,7 +591,7 @@ class CameraManager extends EventTarget {
             }
 
             camera.position.copy(localVector4)
-              .sub(localVector2.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+              .sub(localVector2.copy(avatarCameraOffset).applyQuaternion(this.targetQuaternion));
 
             break;
           }
@@ -596,7 +599,7 @@ class CameraManager extends EventTarget {
             camera.position.copy(localPlayer.position)
               .sub(
                 localVector2.copy(avatarCameraOffset)
-                  .applyQuaternion(camera.quaternion)
+                  .applyQuaternion(this.targetQuaternion)
               );
       
             break;
@@ -607,7 +610,7 @@ class CameraManager extends EventTarget {
         }
 
         camera.position.y -= crouchOffset;
-        localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+        localEuler.setFromQuaternion(this.targetQuaternion, 'YXZ');
         localEuler.z = 0;
         camera.quaternion.setFromEuler(localEuler);
       };
