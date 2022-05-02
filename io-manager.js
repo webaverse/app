@@ -850,7 +850,7 @@ ioManager.mousedown = e => {
     if (!cameraManager.pointerLockElement) {
       cameraManager.requestPointerLock();
     }
-    game.menuDragdown();
+    game.menuMiddleDown();
   }
   lastMouseButtons = e.buttons;
   // mouseDown = true;
@@ -872,7 +872,7 @@ ioManager.mouseup = e => {
       }
     }
     if ((changedButtons & 4) && !(e.buttons & 4)) { // middle
-      game.menuDragup();
+      game.menuMiddleUp();
     }
     // mouseDown = false;
   // }
