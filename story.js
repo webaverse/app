@@ -430,9 +430,12 @@ export const listenHack = () => {
         // console.log('click reticle', app);
         const {name, description, appType} = app;
 
-        cameraManager.setFocus(false);
+        // cameraManager.setFocus(false);
         zTargeting.focusTargetReticle = null;
         sounds.playSoundName('menuSelect');
+
+        cameraManager.setFocus(false);
+        cameraManager.setDynamicTarget();
 
         (async () => {
           const aiScene = metaversefile.useLoreAIScene();
