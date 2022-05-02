@@ -411,15 +411,7 @@ class CameraManager extends EventTarget {
       };
       _setCameraToDynamicTarget();
     } else {
-      this.sourcePosition.copy(camera.position);
-      this.sourceQuaternion.copy(camera.quaternion);
-      this.sourceFov = camera.fov;
-      this.targetPosition.copy(camera.position);
-      this.targetQuaternion.copy(camera.quaternion);
-      this.targetFov = minFov;
-      const timestamp = performance.now();
-      this.lerpStartTime = timestamp;
-      this.lastTimestamp = timestamp;
+      this.setCameraToNullTarget();
     }
   }
   setStaticTarget(target = null, target2 = null) {
@@ -457,16 +449,19 @@ class CameraManager extends EventTarget {
       };
       _setCameraToStaticTarget();
     } else {
-      this.sourcePosition.copy(camera.position);
-      this.sourceQuaternion.copy(camera.quaternion);
-      this.sourceFov = camera.fov;
-      this.targetPosition.copy(camera.position);
-      this.targetQuaternion.copy(camera.quaternion);
-      this.targetFov = minFov;
-      const timestamp = performance.now();
-      this.lerpStartTime = timestamp;
-      this.lastTimestamp = timestamp;
+      this.setCameraToNullTarget();
     }
+  }
+  setCameraToNullTarget() {
+    this.sourcePosition.copy(camera.position);
+    this.sourceQuaternion.copy(camera.quaternion);
+    this.sourceFov = camera.fov;
+    // this.targetPosition.copy(camera.position);
+    // this.targetQuaternion.copy(camera.quaternion);
+    this.targetFov = minFov;
+    const timestamp = performance.now();
+    this.lerpStartTime = timestamp;
+    this.lastTimestamp = timestamp;
   }
   updatePost(timestamp, timeDiff) {
     // console.log('camera manager update post');
