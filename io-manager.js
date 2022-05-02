@@ -281,7 +281,6 @@ ioManager.keydown = e => {
   if (e.keyCode === 18) { // alt
     e.preventDefault();
     e.stopPropagation();
-    console.log('alt down');
     return;
   }
 
@@ -593,7 +592,6 @@ ioManager.keyup = e => {
   if (e.keyCode === 18) { // alt
     e.preventDefault();
     e.stopPropagation();
-    console.log('alt up');
     return;
   }
 
