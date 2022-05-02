@@ -181,8 +181,10 @@ class CameraManager extends EventTarget {
     this.lastTarget = null;
     this.targetPosition = new THREE.Vector3(0, 0, 0);
     this.targetQuaternion = new THREE.Quaternion();
+    this.targetFov = camera.fov;
     this.sourcePosition = new THREE.Vector3();
     this.sourceQuaternion = new THREE.Quaternion();
+    this.sourceFov = camera.fov;
     this.lerpStartTime = 0;
     this.lastTimestamp = 0;
 
@@ -378,6 +380,9 @@ class CameraManager extends EventTarget {
           this.targetQuaternion.copy(localQuaternion);
         }
 
+        this.sourceFov = camera.fov;
+        this.targetFov = minFov;
+
         this.sourcePosition.copy(camera.position);
         this.sourceQuaternion.copy(camera.quaternion);
         const timestamp = performance.now();
@@ -411,8 +416,10 @@ class CameraManager extends EventTarget {
 
         this.sourcePosition.copy(camera.position);
         this.sourceQuaternion.copy(camera.quaternion);
+        this.sourceFov = camera.fov;
         this.targetPosition.copy(targetPosition);
         this.targetQuaternion.copy(targetQuaternion);
+        this.targetFov = midFov;
         const timestamp = performance.now();
         this.lerpStartTime = timestamp;
         this.lastTimestamp = timestamp;
@@ -614,15 +621,14 @@ class CameraManager extends EventTarget {
       
     const _setCameraFov = () => {
       if (!renderer.xr.getSession()) {
-        const focusTime = (timestamp - this.lastFocusChangeTime) / 300;
+        const focusTime = Math.min((timestamp - this.lerpStartTime) / 300, 1);
         if (focusTime < 1) {
-          // const fovInTime = 3;
-          // const fovOutTime = 0.3;
-
           this.fovFactor = 0;
 
-          const a = this.focus ? minFov : midFov;
-          const b = this.focus ? midFov : minFov;
+          // const a = this.focus ? minFov : midFov;
+          // const b = this.focus ? midFov : minFov;
+          const a = this.sourceFov;
+          const b = this.targetFov;
           camera.fov = a * (1 - focusTime) + focusTime * b;
           camera.updateProjectionMatrix();
         } else if (this.focus) {
