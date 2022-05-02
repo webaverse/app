@@ -126,7 +126,7 @@ class ZTargeting extends THREE.Object3D {
         this.handleDown();
         setTimeout(() => {
           this.handleUp();
-        }, 200);
+        }, 300);
       }
     }
   }
