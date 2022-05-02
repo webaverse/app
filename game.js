@@ -58,6 +58,42 @@ const localRay = new THREE.Ray();
 
 // const cubicBezier = easing(0, 1, 0, 1);
 
+let redMesh = null;
+
+const getPyramidConvexGeometry = (() => {
+  const radius = 0.5;
+  const height = 0.2;
+  const radialSegments = 4;
+  const heightSegments = 1;
+
+  let shapeAddress = null;
+
+  return () => {
+    if (shapeAddress === null) {
+      const geometry = new THREE.ConeGeometry(
+        radius,
+        height,
+        radialSegments,
+        heightSegments,
+        /* openEnded,
+        thetaStart,
+        thetaLength, */
+      );
+      geometry.rotateX(-Math.PI/2);
+      geometry.rotateZ(Math.PI/4);
+      geometry.scale(2, 2.75, 1);
+
+      redMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xff0000}));
+      redMesh.frustumCulled = false;
+      scene.add(redMesh);
+
+      const buffer = physicsManager.cookConvexGeometry(redMesh);
+      shapeAddress = physicsManager.createConvexShape(buffer);
+    }
+    return shapeAddress;
+  };
+})();
+
 const _getGrabAction = i => {
   const targetHand = i === 0 ? 'left' : 'right';
   const localPlayer = metaversefileApi.useLocalPlayer();
@@ -606,19 +642,37 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
   const _handleZTargeting = () => {
     const {position, quaternion} = localPlayer;
-    const halfExtents = new THREE.Vector3(2, 1, 0.1);
     const direction = new THREE.Vector3(0, 0, -1)
       .applyQuaternion(quaternion);
     const sweepDistance = 100;
     const maxHits = 64;
-    const result = physicsManager.sweepBox(
+
+    // sweepBox
+
+    const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
+
+    redMesh.position.copy(position);
+    redMesh.quaternion.copy(quaternion);
+    redMesh.updateMatrixWorld();
+
+    // console.log('pyramid geometry address', pyramidConvexGeometryAddress);
+
+    const result = physicsManager.sweepConvexShape(
+      pyramidConvexGeometryAddress,
+      position,
+      quaternion,
+      direction,
+      sweepDistance,
+      maxHits,
+    );
+    /* const result = physicsManager.sweepBox(
       position,
       quaternion,
       halfExtents,
       direction,
       sweepDistance,
       maxHits,
-    );
+    ); */
     const queryResult = result.map(reticle => {
       const distance = reticle.position.distanceTo(position);
       const type = (() => {
