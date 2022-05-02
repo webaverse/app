@@ -25,6 +25,7 @@
     height: 100%;
     transform: translateX( 100% );
     transition: transform 1s cubic-bezier(0, 1, 0, 1);
+    background-image: linear-gradient(to bottom, #222, #000);
 }
 
 .panel.opened {
@@ -34,14 +35,13 @@
 .header {
     color: #fff;
     text-align: left;
-    padding: 0px 10px;
-    font-size: 12px;
-    height: 40px;
-    margin-top: 70px;
+    font-family: 'GeoSans';
+    font-size: 30px;
+    padding: 28px 15px 15px 15px;
 }
 
 .objects {
-    height: calc( 100% - 110px );
+    height: calc( 100% - 65px );
     overflow-y: scroll;
 }
 
@@ -60,6 +60,15 @@
     height: 80px;
     margin: 0 10px;
     object-fit: cover;
+    border: 1px solid #222;
+}
+
+.objects .object .gearsPlaceHolder {
+    position: relative;
+    min-width: 80px;
+    height: 80px;
+    margin: 0 10px;
+    border: 1px solid #222;
 }
 
 .objects .object .wrap {
@@ -69,11 +78,19 @@
 
 .objects .object .wrap .name {
     position: relative;
-    font-size: 16px;
+    font-size: 20px;
+    font-family: 'GeoSans';
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
     color: #fff;
+    padding-top: 5px;
+    z-index: 10;
+}
+
+.objects .object .wrap .type {
+    color: #fff;
+    z-index: 10;
 }
 
 .objects .object .backgroundInner.lime {
@@ -113,9 +130,10 @@
     transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 
-.objectProperties .header h1 {
+.objectProperties .header .title {
     float: left;
-    line-height: 12px;
+    padding: 3px 0px;
+    font-size: 30px;
 }
 
 .objectProperties .subheader {
@@ -136,44 +154,91 @@
     height: 50px;
     filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
     transition: filter 0.3s cubic-bezier(0, 1, 0, 1);
+    margin-left: -10px;
 }
 
 .objectProperties .button:hover .img {
     filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
 }
 
-.rotationModeSelect {
+.objectProperties .settingsBlock {
+    width: 100%;
+    height: calc( 100% - 441px );
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.objectProperties .selectWrapper {
+    position: relative;
     padding: 5px;
+    width: calc( 100% - 40px );
     margin-left: 20px;
-    width: 260px;
-    margin-bottom: 10px;
-}
-
-.objectProperties .inputs {
-    display: flex;
-    padding-left: 20px;
-}
-
-.objectProperties .inputs input {
-    padding: 5px;
     border: 1px;
+    height: 29px;
+    margin-bottom: 10px;
+    border-radius: 0px;
 }
 
-.objectProperties .inputs.pos input, .objectProperties .inputs.rote input, .objectProperties .inputs.scale input {
-    width: 80px;
+.objectProperties .selectWrapper select {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding-left: 120px;
+    width: 100%;
+    z-index: 0;
+    height: 33px;
 }
+
+.objectProperties .selectWrapperTitle {
+    position: absolute;
+    left: 10px;
+    top: 0px;
+    z-index: 10;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 32px;
+    font-family: 'GeoSans';
+}
+
+.objectProperties .objectPreview {
+    position: absolute;
+    bottom: 0px;
+    width: 350px;
+    height: 350px;
+}
+
+/*  */
 
 .objectProperties .inputs .input {
-    width: 50px;
+    position: relative;
+    width: 100%;
+    padding-left: 20px;
+    outline: none;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    border-radius: 0px;
+    border: 1px solid #000;
+    height: 29px;
 }
 
-.objectProperties .inputs .rotationEulerOrderSelect {
-    padding: 5px;
-    width: 60px;
-    margin-left: 10px;
-    border: 1px;
+.objectProperties .inputs .inputText {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding-left: 40px;
+    width: calc( 100% - 40px );
+    font-size: 15px;
+    line-height: 27px;
+    z-index: 1;
+    outline: none;
 }
 
-.objectProperties .inputs .input + .input {
-    margin-left: 10px;
+.objectProperties .inputs .inputTitle {
+    position: absolute;
+    left: 10px;
+    z-index: 2;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 32px;
+    font-family: 'GeoSans';
 }

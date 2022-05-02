@@ -62,7 +62,7 @@ physicsManager.addCapsuleGeometry = (
   quaternion,
   radius,
   halfHeight,
-  physicsMaterial,
+  material,
   dynamic,
   flags = {}
 ) => {
@@ -73,8 +73,8 @@ physicsManager.addCapsuleGeometry = (
     quaternion,
     radius,
     halfHeight,
-    physicsMaterial,
     physicsId,
+    material,
     dynamic,
     flags
   )
@@ -166,11 +166,10 @@ physicsManager.addGeometry = (mesh) => {
   physicsObject.physicsMesh = physicsMesh
   return physicsObject
 }
-
-physicsManager.setGeometryScale = (physicsId, newScale) => {
-  physx.physxWorker.setGeometryScale(physx.physics, physicsId, newScale);
-}
-
+physicsManager.createMaterial = physicsMaterial =>
+  physx.physxWorker.createMaterial(physx.physics, physicsMaterial);
+physicsManager.destroyMaterial = materialAddress =>
+  physx.physxWorker.destroyMaterial(physx.physics, materialAddress);
 physicsManager.cookGeometry = (mesh) =>
   physx.physxWorker.cookGeometryPhysics(physx.physics, mesh)
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
@@ -257,7 +256,7 @@ physicsManager.addCookedConvexGeometry = (
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
-  physicsObject.physicsMesh = physicsMesh
+  physicsObject.physicsMesh = physicsMesh;
   return physicsObject
 }
 
@@ -356,6 +355,9 @@ physicsManager.setTransform = (physicsObject, autoWake) => {
     autoWake
   )
 }
+physicsManager.setGeometryScale = (physicsId, newScale) => {
+  physx.physxWorker.setGeometryScale(physx.physics, physicsId, newScale);
+}
 physicsManager.getPath = (
   start,
   dest,
@@ -416,8 +418,7 @@ physicsManager.createCharacterController = (
   height,
   contactOffset,
   stepOffset,
-  position,
-  mat
+  position
 ) => {
   const physicsId = getNextPhysicsId()
   const characterControllerId =
@@ -428,7 +429,6 @@ physicsManager.createCharacterController = (
       contactOffset,
       stepOffset,
       position,
-      mat,
       physicsId
     )
 
@@ -539,6 +539,26 @@ physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z)
 }
+
+physicsManager.sweepBox = (
+  origin,
+  quaternion,
+  halfExtents,
+  direction,
+  sweepDistance,
+  maxHits,
+) => {
+  return physx.physxWorker.sweepBox(
+    physx.physics,
+    origin,
+    quaternion,
+    halfExtents,
+    direction,
+    sweepDistance,
+    maxHits,
+  )
+};
+
 physicsManager.simulatePhysics = (timeDiff) => {
   if (physicsEnabled) {
     const t = timeDiff / 1000
@@ -567,8 +587,10 @@ physicsManager.simulatePhysics = (timeDiff) => {
 
 physicsManager.marchingCubes = (dims, potential, shift, scale) =>
   physx.physxWorker.marchingCubes(dims, potential, shift, scale)
-  
-physicsManager.dualContouring = () => physx.physxWorker.dualContouring()
+
+physicsManager.createChunkWithDualContouring = (x, y, z) => physx.physxWorker.createChunkWithDualContouring(x, y, z)
+
+physicsManager.createSeamsWithDualContouring = (x, y, z) => physx.physxWorker.createSeamsWithDualContouring(x, y, z)
 
 physicsManager.pushUpdate = (physicsObject) => {
   const { physicsId, physicsMesh } = physicsObject
