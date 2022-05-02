@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import {getRenderer, camera, scene} from './renderer.js';
 // import * as notifications from './notifications.js';
-import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
+import {localPlayer} from './players.js';
 // import alea from './alea.js';
 // import * as sounds from './sounds.js';
 import {minFov, maxFov, midFov} from './constants.js';
@@ -121,8 +121,6 @@ function lerpNum(value1, value2, amount) {
 }
 // Raycast from player to camera corner
 function initCameraRayParams(arrayIndex,originPoint) {
-  const localPlayer = metaversefile.useLocalPlayer();
-
   rayDirection.subVectors(localPlayer.position, originPoint).normalize();
 
   rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
@@ -138,8 +136,6 @@ function initCameraRayParams(arrayIndex,originPoint) {
 }
 // Raycast from player postition with small offset
 function initOffsetRayParams(arrayIndex,originPoint) {
-  const localPlayer = metaversefile.useLocalPlayer();
-
   rayDirection.subVectors(localPlayer.position, camera.position).normalize();
 
   rayMatrix.lookAt(rayDirection,rayVectorZero,rayVectorUp);
