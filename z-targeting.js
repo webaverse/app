@@ -112,6 +112,13 @@ class ZTargeting extends THREE.Object3D {
   handleUp() {
     cameraManager.setFocus(false);
   }
+  toggle() {
+    if (cameraManager.focus) {
+      cameraManager.setFocus(false);
+    } else {
+      cameraManager.setFocus(true);
+    }
+  }
 }
 const zTargeting = new ZTargeting();
 scene.add(zTargeting);
