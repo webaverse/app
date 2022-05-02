@@ -576,12 +576,12 @@ class CameraManager extends EventTarget {
               boneNeck.updateMatrixWorld();
         
               if (boneEyeL && boneEyeR) {
-                boneEyeL.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-                boneEyeR.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
+                boneEyeL.matrixWorld.decompose(localVector, localQuaternion2, localVector3);
+                boneEyeR.matrixWorld.decompose(localVector2, localQuaternion2, localVector3);
                 localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
               } else {
-                boneHead.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-                localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion));
+                boneHead.matrixWorld.decompose(localVector, localQuaternion2, localVector3);
+                localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion2));
                 localVector3.copy(localVector);
               }
             } else {
@@ -614,15 +614,6 @@ class CameraManager extends EventTarget {
       };
       _setFreeCamera();
     };
-
-    // const endMode = this.getMode();
-    /* if (endMode !== startMode) {
-      this.dispatchEvent(new MessageEvent('modechange', {
-        data: {
-          mode: endMode,
-        },
-      }));
-    } */
       
     const _setCameraFov = () => {
       if (!renderer.xr.getSession()) {
@@ -679,7 +670,6 @@ class CameraManager extends EventTarget {
           .normalize()
           .multiplyScalar(shakeFactor * randomValue());
         camera.position.add(localVector);
-        // camera.updateMatrixWorld();
       }
     };
     _shakeCamera();
