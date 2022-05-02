@@ -17,10 +17,12 @@ import styles from './world-objects-list.module.css';
 
 const NumberInput = ({ value, step, onChange, title }) => {
 
-    const handleInputKeyDown = ( event ) => {
+    const handleInputKeyUp = ( event ) => {
 
         if ( event.which === 13 ) { // enter
 
+            event.preventDefault();
+            event.stopPropagation();
             event.target.blur();
 
         }
@@ -33,7 +35,7 @@ const NumberInput = ({ value, step, onChange, title }) => {
 
         <div className={ styles.input } >
             <div className={ styles.inputTitle } >{ title }</div>
-            <input type="number" className={ styles.inputText } value={ value } onChange={ onChange } onKeyDown={ handleInputKeyDown } step={ step } />
+            <input type="number" className={ styles.inputText } value={ value } onChange={ onChange } onKeyUp={ handleInputKeyUp } step={ step } />
         </div>
 
     );
