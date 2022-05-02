@@ -625,8 +625,6 @@ class CameraManager extends EventTarget {
         if (focusTime < 1) {
           this.fovFactor = 0;
 
-          // const a = this.focus ? minFov : midFov;
-          // const b = this.focus ? midFov : minFov;
           const a = this.sourceFov;
           const b = this.targetFov;
           camera.fov = a * (1 - focusTime) + focusTime * b;
