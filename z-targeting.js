@@ -3,6 +3,7 @@ import metaversefile from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import {scene, camera} from './renderer.js';
 import * as sounds from './sounds.js';
+import cameraManager from './camera-manager.js';
 
 const localVector = new THREE.Vector3();
 
@@ -104,6 +105,12 @@ class ZTargeting extends THREE.Object3D {
     targetReticleMesh.setReticles(reticles);
 
     this.lastFocus = focus;
+  }
+  handleDown() {
+    cameraManager.setFocus(true);
+  }
+  handleUp() {
+    cameraManager.setFocus(false);
   }
 }
 const zTargeting = new ZTargeting();
