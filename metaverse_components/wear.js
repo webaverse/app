@@ -22,24 +22,16 @@ export default (app, component) => {
 
   const initialScale = app.scale.clone();
 
-<<<<<<< Updated upstream
-  const localPlayer = metaversefile.useLocalPlayer();
-=======
   let localPlayer = metaversefile.useLocalPlayer();
   let lastWornApp = null;
->>>>>>> Stashed changes
 
   const wearupdate = (e) => {
     if (e.wear) {
-<<<<<<< Updated upstream
-      wearSpec = app.getComponent('wear');
-=======
       const isLocal = e.player === metaversefile.useLocalPlayer();
       if (e.player) {
         localPlayer = e.player;
       }
       wearSpec = app.getComponent("wear");
->>>>>>> Stashed changes
       initialScale.copy(app.scale);
       if (isLocal === false && lastWornApp !== app) {
         e.player.wear(app);
