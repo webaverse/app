@@ -324,12 +324,7 @@ export default (app, component) => {
   return {
     remove() {
       // console.log('wear component remove');
-<<<<<<< Updated upstream
-
-      app.removeEventListener('wearupdate', wearupdate);
-=======
       app.removeEventListener("wearupdate", wearupdate);
->>>>>>> Stashed changes
       metaversefile.clearFrame(frame);
 
       _unwear();

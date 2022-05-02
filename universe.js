@@ -26,7 +26,7 @@ class Universe extends EventTarget {
   }
   async enterWorld(worldSpec) {
     world.disconnectRoom();
-    
+
     const localPlayer = metaversefile.useLocalPlayer();
     /* localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
       relation: 'float',
@@ -39,7 +39,6 @@ class Universe extends EventTarget {
     physicsManager.setPhysicsEnabled(false);
 
     const _doLoad = async () => {
-      // world.clear();
 
       const promises = [];
       const {src, room} = worldSpec;
