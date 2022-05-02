@@ -374,7 +374,7 @@ class CameraManager extends EventTarget {
             
             // console.log('got theta', sideOfY, faceDirection.toArray().join(', '), lookDirection.toArray().join(', '));
             // const side = sideOfY < 0 ? 'left' : 'right';
-            // const face = faceDirection.dot(lookDirection) >= 0 ? 'front' : 'back';
+            const face = faceDirection.dot(lookDirection) >= 0 ? 1 : -1;
             // console.log(`scene to the ${side} and ${face}`);
 
             const dollyPosition = localVector7.copy(localVector)
@@ -397,7 +397,11 @@ class CameraManager extends EventTarget {
               )
             );
 
-            if (!this.lastTarget) {
+            if (face < 0) {
+              this.targetPosition.add(localVector10.set(0, 0, -0.8).applyQuaternion(this.targetQuaternion));
+              this.targetQuaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, sideOfY * -Math.PI * 0.95));
+              this.targetPosition.add(localVector10.set(0, 0, 0.8).applyQuaternion(this.targetQuaternion));
+            } else if (!this.lastTarget) {
               this.targetPosition.add(localVector10.set(0, 0, -0.65).applyQuaternion(this.targetQuaternion));
               this.targetQuaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, sideOfY * -Math.PI * 0.87));
               this.targetPosition.add(localVector10.set(0, 0, 0.65).applyQuaternion(this.targetQuaternion));
