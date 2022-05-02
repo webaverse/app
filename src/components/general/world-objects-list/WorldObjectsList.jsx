@@ -383,7 +383,7 @@ export const WorldObjectsList = () => {
                                             app={ app }
                                         />
                                     ) : (
-                                        <img src={ `./images/ui/${ appTypeIcons[ app.appType ] ?? 'gears' }-icon.png` } className={ styles.defaultPlaceHolder } />
+                                        <img src={ `./images/ui/${ appTypeIcons[ app.appType ] ?? 'gears' }-icon.svg` } className={ styles.defaultPlaceHolder } />
                                     )
                                 }
                                 <div className={ styles.wrap } >
