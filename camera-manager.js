@@ -565,7 +565,8 @@ class CameraManager extends EventTarget {
         }
       }; */
       // _setCameraOffset();
-      cameraOffset.z = cameraOffsetTargetZ;
+      const lerpFactor = 0.1;
+      cameraOffset.z = cameraOffset.z * (1-lerpFactor) + cameraOffsetTargetZ*lerpFactor;
 
       const _setFreeCamera = () => {
         const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
