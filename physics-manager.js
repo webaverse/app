@@ -556,6 +556,25 @@ physicsManager.sweepBox = (
   )
 };
 
+physicsManager.sweepConvexShape = (
+  shapeAddress,
+  origin,
+  quaternion,
+  direction,
+  sweepDistance,
+  maxHits,
+) => {
+  return physx.physxWorker.sweepConvexShape(
+    physx.physics,
+    shapeAddress,
+    origin,
+    quaternion,
+    direction,
+    sweepDistance,
+    maxHits,
+  )
+};
+
 physicsManager.simulatePhysics = (timeDiff) => {
   if (physicsEnabled) {
     const t = timeDiff / 1000
