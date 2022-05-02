@@ -6,9 +6,12 @@ import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
 // import alea from './alea.js';
-import * as sounds from './sounds.js';
+// import * as sounds from './sounds.js';
 import {minFov, maxFov, midFov} from './constants.js';
-import { updateRaycasterFromMouseEvent } from './util.js';
+// import { updateRaycasterFromMouseEvent } from './util.js';
+import easing from './easing.js';
+
+const cubicBezier = easing(0, 1, 0, 1);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -417,8 +420,9 @@ class CameraManager extends EventTarget {
       }
 
       const _getLerpDelta = (position, quaternion) => {
-        const lastTimeFactor = Math.min(Math.max(Math.pow((this.lastTimestamp - this.lerpStartTime) / 1000, 0.5), 0), 1);
-        const currentTimeFactor = Math.min(Math.max(Math.pow((timestamp - this.lerpStartTime) / 1000, 0.5), 0), 1);
+        const lerpTime = 2000;
+        const lastTimeFactor = Math.min(Math.max(cubicBezier((this.lastTimestamp - this.lerpStartTime) / lerpTime), 0), 1);
+        const currentTimeFactor = Math.min(Math.max(cubicBezier((timestamp - this.lerpStartTime) / lerpTime), 0), 1);
         if (lastTimeFactor !== currentTimeFactor) {
           {
             
