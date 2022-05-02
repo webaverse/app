@@ -563,8 +563,7 @@ class CameraManager extends EventTarget {
         const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
         const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
         
-        const endMode = this.getMode();
-        switch (endMode) {
+        switch (this.getMode()) {
           case 'firstperson': {
             if (localPlayer.avatar) {
               const boneNeck = localPlayer.avatar.foundModelBones['Neck'];
@@ -589,14 +588,14 @@ class CameraManager extends EventTarget {
             }
 
             camera.position.copy(localVector4)
-              .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+              .sub(localVector2.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
 
             break;
           }
           case 'isometric': {
             camera.position.copy(localPlayer.position)
               .sub(
-                localVector.copy(avatarCameraOffset)
+                localVector2.copy(avatarCameraOffset)
                   .applyQuaternion(camera.quaternion)
               );
       
