@@ -292,6 +292,7 @@ const _getBindSceneForRenderPriority = renderPriority => {
 const _bindHitTracker = app => {
   const hitTracker = hpManager.makeHitTracker();
   hitTracker.bind(app);
+  app.dispatchEvent({type: 'bindHitTracker'});
 
   const die = () => {
     world.appManager.removeTrackedApp(app.instanceId);
