@@ -965,12 +965,6 @@ const physxWorker = (() => {
     direction,
     sweepDistance,
     maxHits,
-    /* numHitsBuf.byteOffset,
-    positionBuf.byteOffset,
-    normalBuf.byteOffset,
-    distanceBuf.byteOffset,
-    objectIdBuf.byteOffset,
-    faceIndexBuf.byteOffset, */
   ) => {
     const allocator = new Allocator();
     
@@ -1670,10 +1664,6 @@ const physxWorker = (() => {
     quaternion.toArray(quaternionBuffer)
     const scaleBuffer = scratchStack.f32.subarray(7, 10)
     scale.toArray(scaleBuffer)
-    /* const mat = scratchStack.f32.subarray(10, 13)
-    mat[0] = physicsMaterial[0]
-    mat[1] = physicsMaterial[1]
-    mat[2] = physicsMaterial[2] */
 
     const shape = moduleInstance._createShapePhysics(
       physics,
