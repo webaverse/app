@@ -35,7 +35,7 @@
 .header {
     color: #fff;
     text-align: left;
-    font-family: 'WinchesterCaps';
+    font-family: 'GeoSans';
     font-size: 30px;
     padding: 28px 15px 15px 15px;
 }
@@ -79,7 +79,7 @@
 .objects .object .wrap .name {
     position: relative;
     font-size: 20px;
-    font-family: 'WinchesterCaps';
+    font-family: 'GeoSans';
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -132,7 +132,7 @@
 
 .objectProperties .header .title {
     float: left;
-    padding: 13px 0px;
+    padding: 3px 0px;
     font-size: 30px;
 }
 
@@ -161,11 +161,11 @@
     filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
 }
 
-.rotationModeSelect {
-    width: calc( 100% - 40px );
-    padding: 5px;
-    margin-left: 20px;
-    margin-bottom: 10px;
+.objectProperties .settingsBlock {
+    width: 100%;
+    height: calc( 100% - 441px );
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 .objectProperties .selectWrapper {
@@ -196,9 +196,15 @@
     z-index: 10;
     font-size: 18px;
     font-weight: bold;
-    line-height: 40px;
-    letter-spacing: 0.1em;
-    font-family: 'WinchesterCaps';
+    line-height: 32px;
+    font-family: 'GeoSans';
+}
+
+.objectProperties .objectPreview {
+    position: absolute;
+    bottom: 0px;
+    width: 350px;
+    height: 350px;
 }
 
 /*  */
@@ -232,6 +238,6 @@
     z-index: 2;
     font-size: 18px;
     font-weight: bold;
-    line-height: 40px;
-    font-family: 'WinchesterCaps';
+    line-height: 32px;
+    font-family: 'GeoSans';
 }
