@@ -264,12 +264,7 @@ class CameraManager extends EventTarget {
     document.exitPointerLock();
   }
   getMode() {
-    const f = -cameraOffset.z;
-    if (f < 0.5) {
-      return 'firstperson';
-    } else {
-      return 'isometric';
-    }
+    return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
   }
   getCameraOffset() {
     return cameraOffset;
@@ -594,7 +589,6 @@ class CameraManager extends EventTarget {
           maxHits,
         );
         if (result.length > 0) {
-          // console.log('got result', result[0], result[0].position.toArray().join(','));
           const distance = result[0].distance;
           cameraOffsetTargetZ = distance < 0.5 ? 0 : -distance;
         }
