@@ -30,7 +30,7 @@ import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
 import {generateObjectUrlCard} from './card-generator.js';
 import * as sounds from './sounds.js';
-import {scene} from './renderer.js';
+// import {scene} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import zTargeting from './z-targeting.js';
 
@@ -1262,15 +1262,15 @@ class GameManager extends EventTarget {
       localPlayer.removeAction('aim');
     }
   }
-  menuDragdown(e) {
-    cameraManager.setFocus(true);
+  menuMiddleDown() {
+    zTargeting.handleDown();
 
     // zTargetCenter
     // zTargetObject
     // zTargetEnemy
     // zTargetCancel
   }
-  menuDrag(e) {
+  menuMiddle() {
     /* const {movementX, movementY} = e;
     if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
       camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
@@ -1285,8 +1285,8 @@ class GameManager extends EventTarget {
       camera.updateMatrixWorld();
     } */
   }
-  menuDragup() {
-    cameraManager.setFocus(false);
+  menuMiddleUp() {
+    zTargeting.handleUp();
 
     // this.dragging = false;
     
