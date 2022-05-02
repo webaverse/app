@@ -50,6 +50,7 @@ export const WorldObjectsList = () => {
 
     const { state, setState, setSelectedApp, selectedApp } = useContext( AppContext );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
+    const [ sortedApps, setSortedApps ] = useState( [] );
     const [ rotationMode, setRotationMode ] = useState( 'euler' );
     const [ rotationEulerOrder, setRotationEulerOrder ] = useState( 'YXZ' );
     const [ needsUpdate, setNeedsUpdate ] = useState( false );
@@ -324,6 +325,36 @@ export const WorldObjectsList = () => {
 
     }, [ selectedApp ] );
 
+    useEffect( () => {
+
+        if ( ! apps ) return;
+
+        const sortedApps = [];
+
+        apps.forEach( ( app ) => {
+
+            if ( [ 'glb', 'html', 'gltf', 'vrm', 'gif' ].indexOf( app.appType ) !== -1 ) {
+
+                sortedApps.push( app );
+
+            }
+
+        });
+
+        apps.forEach( ( app ) => {
+
+            if ( [ 'glb', 'html', 'gltf', 'vrm', 'gif' ].indexOf( app.appType ) === -1 ) {
+
+                sortedApps.push( app );
+
+            }
+
+        });
+
+        setSortedApps( sortedApps );
+
+    }, [ apps ] );
+
     //
 
     const appTypeIcons = { 'js': 'script', 'light': 'light' };
@@ -339,7 +370,7 @@ export const WorldObjectsList = () => {
                 {
                     <div className={ styles.objects } >
                     {
-                        apps.map( ( app, i ) => (
+                        sortedApps.map( ( app, i ) => (
                             <div className={ classnames( styles.object, app === selectedApp ? styles.selected : null ) } key={ i } onClick={ handleItemClick.bind( this, app ) } onMouseEnter={ handleItemMouseEnter.bind( this, app ) } onMouseLeave={ handleItemMouseLeave.bind( this, app ) } >
                                 <img src="images/webpencil.svg" className={ classnames( styles.backgroundInner, styles.lime ) } />
                                 {
@@ -349,10 +380,10 @@ export const WorldObjectsList = () => {
                                             startUrl={ app.contentId }
                                             width={ 80 }
                                             height={ 80 }
-                                            // background={ '#000' }
+                                            app={ app }
                                         />
                                     ) : (
-                                        <img src={ `./images/ui/${ appTypeIcons[ app.appType ] ?? 'gears' }-icon.png` } className={ styles.gearsPlaceHolder } />
+                                        <img src={ `./images/ui/${ appTypeIcons[ app.appType ] ?? 'gears' }-icon.png` } className={ styles.defaultPlaceHolder } />
                                     )
                                 }
                                 <div className={ styles.wrap } >
