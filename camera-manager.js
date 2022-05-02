@@ -399,7 +399,7 @@ class CameraManager extends EventTarget {
 
             if (face < 0) {
               this.targetPosition.add(localVector10.set(0, 0, -0.8).applyQuaternion(this.targetQuaternion));
-              this.targetQuaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, sideOfY * -Math.PI * 0.95));
+              this.targetQuaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, Math.PI));
               this.targetPosition.add(localVector10.set(0, 0, 0.8).applyQuaternion(this.targetQuaternion));
             } else if (!this.lastTarget) {
               this.targetPosition.add(localVector10.set(0, 0, -0.65).applyQuaternion(this.targetQuaternion));
