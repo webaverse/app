@@ -2,13 +2,13 @@
 import React, { useEffect, useRef } from 'react';
 import classnames from 'classnames';
 
-import { screenshotObjectUrl } from '../../../../object-screenshotter';
+import { screenshotObjectApp } from '../../../../object-screenshotter';
 
 import styles from './object-screenshot.module.css';
 
 //
 
-export const ObjectScreenshot = ({ startUrl, width, height, className = '' }) => {
+export const ObjectScreenshot = ({ app, startUrl, width, height, className = '' }) => {
 
     const canvasRef = useRef( null );
 
@@ -16,7 +16,7 @@ export const ObjectScreenshot = ({ startUrl, width, height, className = '' }) =>
 
         if ( ! canvasRef.current ) return;
 
-        await screenshotObjectUrl({ canvas: canvasRef.current, start_url: startUrl, width, height });
+        await screenshotObjectApp({ app, clearAlpha: 0, canvas: canvasRef.current, start_url: startUrl, width, height });
 
     }, [ startUrl, canvasRef.current ] );
 
@@ -25,6 +25,7 @@ export const ObjectScreenshot = ({ startUrl, width, height, className = '' }) =>
     return (
         <div className={ classnames( className, styles.imgWrapper ) } >
             <canvas ref={ canvasRef } />
+            <div className={ styles.background } />
         </div>
     );
 

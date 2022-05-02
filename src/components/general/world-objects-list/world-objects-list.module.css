@@ -8,7 +8,6 @@
     transform: translateX( 350px );
     transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
     background-color: #000;
-    border-left: 3px solid #aaa;
     z-index: 9;
     overflow: hidden;
 }
@@ -60,10 +59,15 @@
     height: 80px;
     margin: 0 10px;
     object-fit: cover;
-    border: 1px solid #222;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.objects .object .gearsPlaceHolder {
+.objects .object:hover .img div {
+    background-image: radial-gradient(#7e57c2, #512da8);
+}
+
+.objects .object .defaultPlaceHolder {
     position: relative;
     min-width: 80px;
     height: 80px;
@@ -125,7 +129,6 @@
     width: 350px;
     height: 100%;
     background-color: #000;
-    border-left: 3px solid #aaa;
     transform: translateX( -100% );
     transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
