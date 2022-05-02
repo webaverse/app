@@ -22,6 +22,7 @@ class ZTargeting extends THREE.Object3D {
     scene.add(targetReticleApp);
     this.targetReticleApp = targetReticleApp;
 
+    this.reticles = [];
     this.lastFocus = false;
     this.focusTargetReticle = null;
   }
@@ -58,7 +59,6 @@ class ZTargeting extends THREE.Object3D {
     }
 
     if (focus && !this.lastFocus) {
-      // sconsole.log('got reticles', reticles);
       if (reticles.length > 0) {
         this.focusTargetReticle = reticles[0];
         sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
@@ -103,6 +103,7 @@ class ZTargeting extends THREE.Object3D {
     }
     
     targetReticleMesh.setReticles(reticles);
+    this.reticles = reticles;
 
     this.lastFocus = focus;
   }
@@ -120,7 +121,14 @@ class ZTargeting extends THREE.Object3D {
     if (cameraManager.focus) {
       cameraManager.setFocus(false);
     } else {
-      cameraManager.setFocus(true);
+      if (this.reticles.length > 0) {
+        cameraManager.setFocus(true);
+      } else {
+        cameraManager.setFocus(true);
+        setTimeout(() => {
+          cameraManager.setFocus(false);
+        }, 200);
+      }
     }
   }
 }
