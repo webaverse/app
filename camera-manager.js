@@ -459,11 +459,8 @@ class CameraManager extends EventTarget {
     this.lastTimestamp = timestamp;
   }
   updatePost(timestamp, timeDiff) {
-    // console.log('camera manager update post');
-
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
-    // const startMode = this.getMode();
 
     if (this.target) {
       const _setLerpDelta = (position, quaternion) => {
@@ -488,97 +485,13 @@ class CameraManager extends EventTarget {
       _setLerpDelta(camera.position, camera.quaternion);
       camera.updateMatrixWorld();
     } else {
-      /* const _setCameraOffset = () => {
-        let newVal = cameraOffsetTargetZ;
-        let hasIntersection = false;
-
-        // Camera - Top left 
-        initCameraRayParams(0,rayStartPos.set(-1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
-
-        // Camera - Bottom left
-        initCameraRayParams(1,rayStartPos.set(-1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
-
-        // Camera - Top right
-        initCameraRayParams(2,rayStartPos.set(1, 1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
-
-        // Camera - Bottom right
-        initCameraRayParams(3,rayStartPos.set(1, -1, ( camera.near + camera.far ) / ( camera.near - camera.far )).unproject( camera ));
-
-        // Player postition - offset to left
-        rayStartPos.copy(localPlayer.position);
-        rayOffsetPoint.set(-1, 0, 0);
-        rayOffsetPoint.applyQuaternion(camera.quaternion);
-        rayOffsetPoint.normalize();
-        rayStartPos.add(rayOffsetPoint);
-        initOffsetRayParams(4,rayStartPos);
-        
-        // Player postition - offset to right
-        rayStartPos.copy(localPlayer.position);
-        rayOffsetPoint.set(1, 0, 0);
-        rayOffsetPoint.applyQuaternion(camera.quaternion);
-        rayOffsetPoint.normalize();
-        rayStartPos.add(rayOffsetPoint);
-        initOffsetRayParams(5,rayStartPos);
-
-        let collisionArray = physicsManager.raycastArray(rayOriginArray, rayDirectionArray, 6);
-
-        // Check collision from player to camera corners
-        for(let i=0;i<4;i++) {
-          if ((collisionArray.hit[i] === 1) && (collisionArray.distance[i] <= -1 * newVal)) {
-            if (newVal < (-1 * (collisionArray.distance[i]-0.15))) {
-              newVal = (-1 * (collisionArray.distance[i]-0.15));
-              hasIntersection = true;
-            }
-          }
-        }
-
-        // Check collision from player pos and small offset to left and right - to camera center
-        let offsetCollisionCount = 0;
-        for(let i=4;i<6;i++) {
-          if ((collisionArray.hit[i] === 1) && (collisionArray.distance[i] <= (-1 * cameraOffsetTargetZ))) {
-            offsetCollisionCount++;
-          }
-        }
-
-        // Discard collision with small objects
-        if (hasIntersection && (offsetCollisionCount === 0)) {
-          hasIntersection = false;
-          newVal = cameraOffsetTargetZ;
-        }
-
-        // Slow zoom out if there is no intersection
-        cameraOffsetZ = lerpNum(cameraOffsetZ, newVal, 0.2);
-
-        // Fast zoom in to the point of intersection
-        if (hasIntersection) {
-          cameraOffsetZ = newVal;
-        }
-
-        const zDiff = Math.abs(cameraOffset.z - cameraOffsetZ);
-        if (zDiff !== 0) {
-          cameraOffset.z = cameraOffsetZ;
-        }
-      }; */
-      // _setCameraOffset();
-
       const _bumpCamera = () => {
-        // const {position, quaternion} = localPlayer;
         const direction = localVector.copy(camera.position)
           .sub(localPlayer.position);
         const sweepDistance = direction.length();
         direction.normalize();
         const halfExtents = localVector2.set(0.5, 0.5, 0.1);
         const maxHits = 1;
-    
-        // sweepBox
-    
-        // const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
-    
-        /* redMesh.position.copy(position);
-        redMesh.quaternion.copy(quaternion);
-        redMesh.updateMatrixWorld(); */
-    
-        // console.log('pyramid geometry address', pyramidConvexGeometryAddress);
 
         const result = physicsManager.sweepBox(
           localPlayer.position,
