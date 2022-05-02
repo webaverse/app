@@ -1296,6 +1296,9 @@ class GameManager extends EventTarget {
       },
     })); */
   }
+  menuMiddleToggle() {
+    zTargeting.toggle();
+  }
   menuDragdownRight(e) {
     // this.draggingRight = true;
   }
