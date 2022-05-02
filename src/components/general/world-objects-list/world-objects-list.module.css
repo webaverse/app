@@ -64,7 +64,7 @@
 }
 
 .objects .object:hover .img div {
-    background-image: radial-gradient(#7e57c2, #512da8);
+    background-image: radial-gradient(#0ab213, #014a13);
 }
 
 .objects .object .defaultPlaceHolder {
