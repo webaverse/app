@@ -110,7 +110,7 @@ class Conversation extends EventTarget {
       await _playerSay(this.localPlayer, text);
     })();
 
-    cameraManager.setTarget(this.localPlayer.avatar.modelBones.Head, this.remotePlayer?.avatar.modelBones.Head);
+    cameraManager.setDynamicTarget(this.localPlayer.avatar.modelBones.Head, this.remotePlayer?.avatar.modelBones.Head);
   }
   addRemotePlayerMessage(text, type = 'chat') {
     const message = {
@@ -131,7 +131,7 @@ class Conversation extends EventTarget {
       await _playerSay(this.remotePlayer, text);
     })();
 
-    cameraManager.setTarget(this.remotePlayer.avatar.modelBones.Head, this.localPlayer.avatar.modelBones.Head);
+    cameraManager.setDynamicTarget(this.remotePlayer.avatar.modelBones.Head, this.localPlayer.avatar.modelBones.Head);
   }
   async wrapProgress(fn) {
     if (!this.progressing) {
@@ -413,7 +413,7 @@ export const listenHack = () => {
     currentConversation.addEventListener('close', () => {
       currentConversation = null;
 
-      cameraManager.setTarget(null);
+      cameraManager.setDynamicTarget(null);
     }, {once: true});
     story.dispatchEvent(new MessageEvent('conversationstart', {
       data: {
