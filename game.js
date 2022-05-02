@@ -986,6 +986,15 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateActivate();
 
+  const _updateThirdPerson = () => {
+    const firstPerson = cameraManager.getMode() === 'firstperson';
+    if (firstPerson !== lastFirstPerson) {
+      _setFirstPersonAction(firstPerson);
+      lastFirstPerson = firstPerson;
+    }
+  };
+  _updateThirdPerson();
+
   const _updateThrow = () => {
     const localPlayer = metaversefileApi.useLocalPlayer();
     const useAction = localPlayer.getAction('use');
@@ -1155,14 +1164,14 @@ const _setFirstPersonAction = firstPerson => {
     localPlayer.removeAction('firstperson');
   }
 };
-if (cameraManager.getMode() === 'firstperson') {
-  _setFirstPersonAction(true);
-}
-cameraManager.addEventListener('modechange', e => {
+let lastFirstPerson = cameraManager.getMode() === 'firstperson';
+_setFirstPersonAction(lastFirstPerson);
+/* cameraManager.addEventListener('modechange', e => {
+  // XXX need to do this in the frame loop instead
   const {mode} = e.data;
   const firstPerson = mode === 'firstperson';
   _setFirstPersonAction(firstPerson);
-});
+}); */
 
 let lastMouseEvent = null;
 class GameManager extends EventTarget {
