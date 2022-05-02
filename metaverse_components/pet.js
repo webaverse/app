@@ -91,7 +91,7 @@ export default (app, component) => {
 
   const _getCurrentPlayer = () => {
     const localPlayer = useLocalPlayer();
-    let currentPlayer = localPlayer
+    let currentPlayer = null
     const remotePlayers = useRemotePlayers();
     const players = [localPlayer]
       .concat(remotePlayers)
@@ -126,7 +126,7 @@ export default (app, component) => {
           rootBone.quaternion.copy(rootBone.originalQuaternion);
           rootBone.updateMatrixWorld();
         }
-        if (petMixer) { // animated pet
+        if (petMixer && _getCurrentPlayer()) { // animated pet
           if (petSpec) { // activated pet
             const speed = 0.0014;
 
@@ -190,7 +190,7 @@ export default (app, component) => {
     
     const _updateLook = () => {
       const lookComponent = app.getComponent('look');
-      if (lookComponent && app.glb) {
+      if (lookComponent && app.glb && _getCurrentPlayer()) {
         let skinnedMesh = null;
         app.glb.scene.traverse(o => {
           if (skinnedMesh === null && o.isSkinnedMesh) {
@@ -199,7 +199,7 @@ export default (app, component) => {
         });
         if (skinnedMesh) {
           const bone = skinnedMesh.skeleton.bones.find(bone => bone.name === lookComponent.rootBone);
-          if (bone) {
+          if (bone && _getCurrentPlayer()) {
             rootBone = bone;
             if (!bone.originalQuaternion) {
               bone.originalQuaternion = bone.quaternion.clone();
