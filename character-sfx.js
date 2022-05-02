@@ -77,8 +77,15 @@ class CharacterSfx {
     this.startRunningTime = 0;
     this.willGasp = false;
 
-    
     this.oldNarutoRunSound = null;
+
+    const wearupdate = e => {
+      sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
+    };
+    player.addEventListener('wearupdate', wearupdate);
+    this.cleanup = () => {
+      player.removeEventListener('wearupdate', wearupdate);
+    };
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -98,16 +105,14 @@ class CharacterSfx {
     // jump
     const _handleJump = () => {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
-        const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('jump');
 
         // play jump grunt 
         if(this.player.hasAction('jump') && this.player.getAction('jump').trigger === 'jump'){
           this.playGrunt('jump'); 
         }
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
-        const audioSpec = soundFiles.land[Math.floor(Math.random() * soundFiles.land.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('land');
       }
       this.lastJumpState = this.player.avatar.jumpState;
     };
@@ -305,8 +310,7 @@ class CharacterSfx {
 
           // console.log('chomp', v, eatFrameIndex, this.lastEatFrameIndex);
           if (eatFrameIndex !== 0 && eatFrameIndex !== this.lastEatFrameIndex) {
-            const audioSpec = soundFiles.chomp[Math.floor(Math.random() * soundFiles.chomp.length)];
-            sounds.playSound(audioSpec);
+            sounds.playSoundName('chomp');
             // control mouth movement
             this.player.characterBehavior.setMouthMoving(0.04,0.04,0.1,0.02);
           }
@@ -321,8 +325,7 @@ class CharacterSfx {
 
           // console.log('gulp', v, drinkFrameIndex, this.lastDrinkFrameIndex);
           if (drinkFrameIndex !== 0 && drinkFrameIndex !== this.lastDrinkFrameIndex) {
-            const audioSpec = soundFiles.gulp[Math.floor(Math.random() * soundFiles.gulp.length)];
-            sounds.playSound(audioSpec);
+            sounds.playSoundName('gulp');
             // control mouth movement
             this.player.characterBehavior.setMouthMoving(0.1,0.1,0.1,0.1);
           }
@@ -349,77 +352,78 @@ class CharacterSfx {
     _handleFood();
   }
   playGrunt(type, index){
-    
-    let voiceFiles, offset, duration;
-    switch (type) {
-      case 'pain': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
-        break;
+    if (this.player.voicePack) { // ensure voice pack loaded
+      let voiceFiles, offset, duration;
+      switch (type) {
+        case 'pain': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
+          break;
+        }
+        case 'scream': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
+          break;
+        }
+        case 'attack': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
+          break;
+        }
+        case 'angry': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
+          break;
+        }
+        case 'gasp': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
+          break;
+        }
+        case 'jump': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
+          break;
+        }
+        case 'narutoRun': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
+          break;
+        }
       }
-      case 'scream': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
-        break;
+      
+      if(index===undefined){
+        let voice = selectVoice(voiceFiles);
+        duration = voice.duration;
+        offset = voice.offset;
       }
-      case 'attack': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
-        break;
-      }
-      case 'angry': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
-        break;
-      }
-      case 'gasp': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
-        break;
-      }
-      case 'jump': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
-        break;
-      }
-      case 'narutoRun': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
-        break;
-      }
-    }
-    
-    if(index===undefined){
-      let voice = selectVoice(voiceFiles);
-      duration = voice.duration;
-      offset = voice.offset;
-    }
-    else{
-      duration = voiceFiles[index].duration;
-      offset = voiceFiles[index].offset;
-    } 
-    
-    const audioContext = Avatar.getAudioContext();
-    const audioBufferSourceNode = audioContext.createBufferSource();
-    audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
+      else{
+        duration = voiceFiles[index].duration;
+        offset = voiceFiles[index].offset;
+      } 
+      
+      const audioContext = Avatar.getAudioContext();
+      const audioBufferSourceNode = audioContext.createBufferSource();
+      audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
 
-    // control mouth movement with audio volume
-    if (!this.player.avatar.isAudioEnabled()) {
-      this.player.avatar.setAudioEnabled(true);
-    }
-    audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+      // control mouth movement with audio volume
+      if (!this.player.avatar.isAudioEnabled()) {
+        this.player.avatar.setAudioEnabled(true);
+      }
+      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
-    // if the oldGrunt are still playing
-    if(this.oldGrunt){
-      this.oldGrunt.stop();
-      this.oldGrunt = null;
-    }
-
-    this.oldGrunt=audioBufferSourceNode;
-    // clean the oldGrunt if voice end
-    audioBufferSourceNode.addEventListener('ended', () => {
-      if (this.oldGrunt === audioBufferSourceNode) {
+      // if the oldGrunt are still playing
+      if(this.oldGrunt){
+        this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-    });
 
-    audioBufferSourceNode.start(0, offset, duration);
+      this.oldGrunt=audioBufferSourceNode;
+      // clean the oldGrunt if voice end
+      audioBufferSourceNode.addEventListener('ended', () => {
+        if (this.oldGrunt === audioBufferSourceNode) {
+          this.oldGrunt = null;
+        }
+      });
+
+      audioBufferSourceNode.start(0, offset, duration);
+    }
   }
   destroy() {
-    // nothing
+    this.cleanup();
   }
 }
 
