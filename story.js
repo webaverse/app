@@ -158,8 +158,12 @@ class Conversation extends EventTarget {
         done,
       } = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
       
-      this.addRemotePlayerMessage(comment);
-      done && this.finish();
+      if (!this.messages.some(m => m.text === comment && m.player === this.remotePlayer)) {
+        this.addRemotePlayerMessage(comment);
+        done && this.finish();
+      } else {
+        this.finish();
+      }
     });
   }
   progressSelf() {
@@ -172,8 +176,12 @@ class Conversation extends EventTarget {
         done,
       } = await aiScene.generateChatMessage(this.messages, this.localPlayer.name);
       
-      this.addLocalPlayerMessage(comment);
-      done && this.finish();
+      if (!this.messages.some(m => m.text === comment && m.player === this.localPlayer)) {
+        this.addLocalPlayerMessage(comment);
+        done && this.finish();
+      } else {
+        this.finish();
+      }
     });
   }
   progressSelfOptions() {
