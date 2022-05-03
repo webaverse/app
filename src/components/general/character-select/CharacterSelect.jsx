@@ -8,7 +8,7 @@ import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
 import { world } from '../../../../world.js';
 // import { NpcPlayer } from '../../../../character-controller.js';
-import * as sounds from '../../../../sounds.js'; 
+import * as sounds from '../../../../sounds.js';
 import musicManager from '../../../../music-manager.js';
 
 //
@@ -199,7 +199,7 @@ export const CharacterSelect = () => {
                     npcPlayerCache.set(avatarUrl, npcPlayer);
                 }
 
-                sounds.playSoundName('menuBeep');
+                sounds.playSoundName('menuClick');
 
                 let themeSong = themeSongCache.get(npcPlayer);
                 if (!themeSong) {
