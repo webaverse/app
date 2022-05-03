@@ -648,15 +648,11 @@ const _gameUpdate = (timestamp, timeDiff) => {
     const sweepDistance = 100;
     const maxHits = 64;
 
-    // sweepBox
-
     const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
 
     /* redMesh.position.copy(position);
     redMesh.quaternion.copy(quaternion);
     redMesh.updateMatrixWorld(); */
-
-    // console.log('pyramid geometry address', pyramidConvexGeometryAddress);
 
     const result = physicsManager.sweepConvexShape(
       pyramidConvexGeometryAddress,
@@ -666,14 +662,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       sweepDistance,
       maxHits,
     );
-    /* const result = physicsManager.sweepBox(
-      position,
-      quaternion,
-      halfExtents,
-      direction,
-      sweepDistance,
-      maxHits,
-    ); */
     const queryResult = result.map(reticle => {
       const distance = reticle.position.distanceTo(position);
       const type = (() => {
