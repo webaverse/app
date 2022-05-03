@@ -44,7 +44,8 @@ import {
 // import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
-import * as voices from './voices.js';
+import overrides from './overrides.js';
+// import * as voices from './voices.js';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -941,56 +942,12 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterBehavior = new CharacterBehavior(this);
   }
   async setPlayerSpec(u, playerSpec) {
-    await Promise.all([
-      this.setAvatarUrl(u),
-      (async () => {
-        const voice = playerSpec.voice ? voices.voiceEndpoints.find(ve =>
-          ve.name === playerSpec.voice
-        )?.drive_id : undefined;
-        this.setVoiceEndpoint(voice);
-      })(),
-      (async () => {
-        const vp = voices.voicePacks.find(vp => vp.name === playerSpec.voicePack) || voices.voicePacks.find(vp => vp.name === defaultVoicePackName);
-        const {audioUrl, indexUrl} = vp;
-        // async () => {
-          console.log('load voice pack', playerSpec.voiceEndpoint, {
-            audioUrl,
-            indexUrl,
-          });
-          /* await game.loadVoicePack({
-            audioUrl,
-            indexUrl,
-          }); */
-        /* })().catch( ( err ) => {
+    const p = this.setAvatarUrl(u);
+    
+    overrides.userVoiceEndpoint.set(playerSpec.voice ?? null);
+    overrides.userVoicePack.set(playerSpec.voicePack ?? null);
 
-            console.warn( err );
-
-        }); */
-      })(),
-      // this.loadVoicePack(playerSpec.voicePack),
-    ]);
-    /* const vp = voicePacks.find( ( vp ) => { return vp.name; } );
-    if ( vp ) {
-
-        const { audioPath, indexPath } = vp;
-        const voicePacksUrlBase = voicePacksUrl.replace( /\/+[^\/]+$/, '' );
-        const audioUrl = voicePacksUrlBase + audioPath;
-        const indexUrl = voicePacksUrlBase + indexPath;
-
-        (async () => {
-
-            await game.loadVoicePack({
-                audioUrl,
-                indexUrl
-            });
-
-        })().catch( ( err ) => {
-
-            console.warn( err );
-
-        });
-
-    } */
+    await p;
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
