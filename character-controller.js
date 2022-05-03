@@ -23,6 +23,7 @@ import {
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
   // groundFriction,
+  defaultVoicePackName,
   voiceEndpoint,
   numLoadoutSlots,
 } from './constants.js';
@@ -43,6 +44,7 @@ import {
 // import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
+import * as voices from './voices.js';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -260,6 +262,16 @@ class PlayerBase extends THREE.Object3D {
       this.voicer = null;
     } else {
       throw new Error('invalid voice');
+    }
+  }
+  async fetchThemeSong() {
+    const avatarApp = this.getAvatarApp();
+    const npcComponent = avatarApp.getComponent('npc');
+    const npcThemeSongUrl = npcComponent?.themeSongUrl;
+    if (npcThemeSongUrl) {
+      return await musicManager.fetchMusic(npcThemeSongUrl);
+    } else {
+      return null;
     }
   }
   getCrouchFactor() {
@@ -927,7 +939,58 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
     this.characterBehavior = new CharacterBehavior(this);
-    
+  }
+  async setPlayerSpec(u, playerSpec) {
+    await Promise.all([
+      this.setAvatarUrl(u),
+      (async () => {
+        const voice = playerSpec.voice ? voices.voiceEndpoints.find(ve =>
+          ve.name === playerSpec.voice
+        )?.drive_id : undefined;
+        this.setVoiceEndpoint(voice);
+      })(),
+      (async () => {
+        const vp = voices.voicePacks.find(vp => vp.name === playerSpec.voicePack) || voices.voicePacks.find(vp => vp.name === defaultVoicePackName);
+        const {audioUrl, indexUrl} = vp;
+        // async () => {
+          console.log('load voice pack', playerSpec.voiceEndpoint, {
+            audioUrl,
+            indexUrl,
+          });
+          /* await game.loadVoicePack({
+            audioUrl,
+            indexUrl,
+          }); */
+        /* })().catch( ( err ) => {
+
+            console.warn( err );
+
+        }); */
+      })(),
+      // this.loadVoicePack(playerSpec.voicePack),
+    ]);
+    /* const vp = voicePacks.find( ( vp ) => { return vp.name; } );
+    if ( vp ) {
+
+        const { audioPath, indexPath } = vp;
+        const voicePacksUrlBase = voicePacksUrl.replace( /\/+[^\/]+$/, '' );
+        const audioUrl = voicePacksUrlBase + audioPath;
+        const indexUrl = voicePacksUrlBase + indexPath;
+
+        (async () => {
+
+            await game.loadVoicePack({
+                audioUrl,
+                indexUrl
+            });
+
+        })().catch( ( err ) => {
+
+            console.warn( err );
+
+        });
+
+    } */
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -1296,16 +1359,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   }
   updatePhysics = LocalPlayer.prototype.updatePhysics;
   updateAvatar = LocalPlayer.prototype.updateAvatar;
-  async fetchThemeSong() {
-    const avatarApp = this.getAvatarApp();
-    const npcComponent = avatarApp.getComponent('npc');
-    const npcThemeSongUrl = npcComponent?.themeSongUrl;
-    if (npcThemeSongUrl) {
-      return await musicManager.fetchMusic(npcThemeSongUrl);
-    } else {
-      return null;
-    }
-  }
   /* detachState() {
     return null;
   }
