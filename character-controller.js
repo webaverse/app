@@ -40,7 +40,8 @@ import {
   defaultPlayerName,
   defaultPlayerBio,
 } from './ai/lore/lore-model.js';
-import * as sounds from './sounds.js';
+// import * as sounds from './sounds.js';
+import musicManager from './music-manager.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -1295,6 +1296,16 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   }
   updatePhysics = LocalPlayer.prototype.updatePhysics;
   updateAvatar = LocalPlayer.prototype.updateAvatar;
+  async fetchThemeSong() {
+    const avatarApp = this.getAvatarApp();
+    const npcComponent = avatarApp.getComponent('npc');
+    const npcThemeSongUrl = npcComponent?.themeSongUrl;
+    if (npcThemeSongUrl) {
+      return await musicManager.fetchMusic(npcThemeSongUrl);
+    } else {
+      return null;
+    }
+  }
   /* detachState() {
     return null;
   }
