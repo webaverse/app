@@ -1,10 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
-import { voicePacksUrl, voiceEndpointsUrl } from '../../../../constants';
-import game from '../../../../game';
+import { voicePacksUrl, voiceEndpointsUrl, defaultVoicePackName } from '../../../../constants';
+// import game from '../../../../game';
 import { Slider } from './slider';
 import * as voices from '../../../../voices';
+import {localPlayer} from '../../../../players';
+
+// console.log('got voices', voices);
 
 import styles from './settings.module.css';
 
@@ -13,7 +16,7 @@ import * as audioManager from '../../../../audio-manager.js';
 //
 
 export const defaultVoicePack = {
-    name: `ShiShi voice pack`,
+    name: defaultVoicePackName,
 };
 const noneVoiceEndpoint = {
     name: 'None',
@@ -107,7 +110,7 @@ export const TabAudio = ({ active }) => {
 
             (async () => {
 
-                await game.loadVoicePack({
+                await localPlayer.loadVoicePack({
                     audioUrl,
                     indexUrl
                 });
@@ -125,7 +128,7 @@ export const TabAudio = ({ active }) => {
         const ve = voiceEndpoints[ voiceEndpoints.map( ( vp ) => { return vp.name; } ).indexOf( voiceEndpoint ) ];
         if ( ve ) {
 
-            game.setVoiceEndpoint( ve.drive_id );
+            localPlayer.setVoiceEndpoint( ve.drive_id );
 
         }
 
