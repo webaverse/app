@@ -1255,7 +1255,7 @@ export default () => {
             onCreated: state => {
               // state = newState;
               // scene.add(state.scene);
-              console.log('got state', state);
+              // console.log('got state', state);
               const {scene: newRtfScene} = state;
               if (newRtfScene !== rtfScene) {
                 if (rtfScene) {
