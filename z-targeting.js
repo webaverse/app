@@ -34,7 +34,7 @@ class ZTargeting extends THREE.Object3D {
       const reticleSpecs = reticles.map(reticle => {
         localVector.copy(reticle.position)
           .project(camera);
-        if (
+        if ( // check inside camera frustum
           localVector.x >= -1 && localVector.x <= 1 &&
           localVector.y >= -1 && localVector.y <= 1 &&
           localVector.z > 0
@@ -47,6 +47,7 @@ class ZTargeting extends THREE.Object3D {
           return null;
         }
       });
+      // remove not in camera frustum
       for (let i = reticleSpecs.length - 1; i >= 0; i--) {
         if (reticleSpecs[i] === null) {
           reticleSpecs.splice(i, 1);
