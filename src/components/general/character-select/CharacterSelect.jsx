@@ -42,7 +42,7 @@ const characters = {
             previewUrl: './images/characters/upstreet/small/drake.png',
             avatarUrl: './avatars/Drake_hacker_v8_Guilty.vrm',
             voice: `Shining Armor`,
-            voicePack: `Zane voice pack`,
+            voicePack: `Andrew voice pack`,
             class: 'Neural Hacker',
             bio: `His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight.`,
             themeSongUrl: `https://webaverse.github.io/music/themes/129079005-im-gonna-find-it-mystery-sci-f.mp3`,
