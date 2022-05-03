@@ -31,7 +31,7 @@ import loadoutManager from './loadout-manager.js';
 import {generateObjectUrlCard} from './card-generator.js';
 import * as sounds from './sounds.js';
 // import {scene} from './renderer.js';
-import physicsManager from './physics-manager.js';
+// import physicsManager from './physics-manager.js';
 import zTargeting from './z-targeting.js';
 
 // const {contractNames} = metaversefileConstants;
@@ -1680,10 +1680,10 @@ class GameManager extends EventTarget {
       ]);
     });
   }
-  loadVoicePack(voicePack) {
+  /* loadVoicePack(voicePack) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     return localPlayer.loadVoicePack(voicePack);
-  }
+  } */
   setVoiceEndpoint(voiceId) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     return localPlayer.setVoiceEndpoint(voiceId);
