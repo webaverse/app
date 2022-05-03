@@ -323,8 +323,6 @@ class Conversation extends EventTarget {
   }
   handleWheel(e) {
     if (this.options) {
-      // console.log('got delta Y', this.options, e.deltaY);
-
       const oldHoverIndexAbsolute = this.#getHoverIndexAbsolute();
       this.deltaY += e.deltaY;
       const newHoverIndexAbsolute = this.#getHoverIndexAbsolute();
@@ -334,8 +332,6 @@ class Conversation extends EventTarget {
         this.#setHoverIndex(newHoverIndex);
       }
 
-      /* const modDeltaY = mod(this.deltaY, scrollIncrement);
-      this.deltaY = modDeltaY; */
       return true;
     } else {
       return false;
@@ -406,8 +402,6 @@ export const listenHack = () => {
   });
 
   const _startConversation = (comment, remotePlayer, done) => {
-    // console.log('start convo', currentConversation, comment, remotePlayer, done);
-    
     const localPlayer = metaversefile.useLocalPlayer();
     currentConversation = new Conversation(localPlayer, remotePlayer);
     currentConversation.addEventListener('close', () => {
@@ -425,9 +419,8 @@ export const listenHack = () => {
   };
   window.document.addEventListener('click', async e => {
     if (cameraManager.pointerLockElement) {
-      if (e.button === 0 && (zTargeting.focusTargetReticle && zTargeting.lastFocus)) {
+      if (e.button === 0 && (cameraManager.focus && zTargeting.focusTargetReticle)) {
         const app = metaversefile.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
-        // console.log('click reticle', app);
         const {name, description, appType} = app;
 
         // cameraManager.setFocus(false);
@@ -439,7 +432,6 @@ export const listenHack = () => {
 
         (async () => {
           const aiScene = metaversefile.useLoreAIScene();
-          // console.log('generate 1');
           if (appType === 'vrm') {
             const remotePlayer = npcManager.npcs.find(npc => npc.avatarApp === app);
 
