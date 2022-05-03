@@ -102,6 +102,17 @@ export const numLoadoutSlots = 8;
 
 export const defaultDioramaSize = 512;
 
+export const defaultVoicePackName = `ShiShi voice pack`;
+
 export const defaultAvatarUrl = './avatars/scilly_drophunter_v30.5_Guilty.vrm';
 // export const defaultAvatarUrl = './avatars/scillia_drophunter_v25_gloria_vian.vrm';
 // export const defaultAvatarUrl = './avatars/ann.vrm';
+export const defaultPlayerSpec = {
+  name: 'Scillia',
+  previewUrl: './images/characters/upstreet/small/scillia.png',
+  avatarUrl: './avatars/scillia_drophunter_v15_vian.vrm',
+  voice: `Sweetie Belle`,
+  class: 'Drop Hunter',
+  bio: `Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan.`,
+  themeSongUrl: `https://webaverse.github.io/music/themes/149274046-smooth-adventure-quest.mp3`,
+};
