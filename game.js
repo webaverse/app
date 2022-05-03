@@ -60,41 +60,6 @@ const localRay = new THREE.Ray();
 
 // let redMesh = null;
 
-const getPyramidConvexGeometry = (() => {
-  const radius = 0.5;
-  const height = 0.2;
-  const radialSegments = 4;
-  const heightSegments = 1;
-
-  let shapeAddress = null;
-
-  return () => {
-    if (shapeAddress === null) {
-      const geometry = new THREE.ConeGeometry(
-        radius,
-        height,
-        radialSegments,
-        heightSegments,
-        /* openEnded,
-        thetaStart,
-        thetaLength, */
-      );
-      geometry.rotateX(-Math.PI/2);
-      geometry.rotateZ(Math.PI/4);
-      geometry.scale(2, 2.75, 1);
-
-      /* redMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xff0000}));
-      redMesh.frustumCulled = false;
-      scene.add(redMesh); */
-
-      const fakeMesh = new THREE.Mesh(geometry);
-      const buffer = physicsManager.cookConvexGeometry(fakeMesh);
-      shapeAddress = physicsManager.createConvexShape(buffer);
-    }
-    return shapeAddress;
-  };
-})();
-
 const _getGrabAction = i => {
   const targetHand = i === 0 ? 'left' : 'right';
   const localPlayer = metaversefileApi.useLocalPlayer();
@@ -641,49 +606,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _handlePhysicsHighlight();
 
-  const _handleZTargeting = () => {
-    const {position, quaternion} = localPlayer;
-    const direction = new THREE.Vector3(0, 0, -1)
-      .applyQuaternion(quaternion);
-    const sweepDistance = 100;
-    const maxHits = 64;
-
-    const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
-
-    /* redMesh.position.copy(position);
-    redMesh.quaternion.copy(quaternion);
-    redMesh.updateMatrixWorld(); */
-
-    const result = physicsManager.sweepConvexShape(
-      pyramidConvexGeometryAddress,
-      position,
-      quaternion,
-      direction,
-      sweepDistance,
-      maxHits,
-    );
-    const queryResult = result.map(reticle => {
-      const distance = reticle.position.distanceTo(position);
-      const type = (() => {
-        if (distance < 5) {
-          return 'friend';
-        } else if (distance < 10) {
-          return 'enemy';
-        } else {
-          return 'object';
-        }
-      })();
-      const zoom = 0;
-      return {
-        position: reticle.position,
-        physicsId: reticle.objectId,
-        type,
-        zoom,
-      }
-    });
-    zTargeting.setQueryResult(queryResult, timestamp, cameraManager.focus, cameraManager.lastFocusChangeTime);
-  };
-  _handleZTargeting();
+  zTargeting.update(timestamp, timeDiff);
 
   const _updatePhysicsHighlight = () => {
     highlightPhysicsMesh.visible = false;
