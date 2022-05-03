@@ -4,9 +4,45 @@ import * as metaverseModules from './metaverse-modules.js';
 import {scene, camera} from './renderer.js';
 import * as sounds from './sounds.js';
 import cameraManager from './camera-manager.js';
+import physicsManager from './physics-manager.js';
 import {localPlayer} from './players.js';
 
 const localVector = new THREE.Vector3();
+
+const getPyramidConvexGeometry = (() => {
+  const radius = 0.5;
+  const height = 0.2;
+  const radialSegments = 4;
+  const heightSegments = 1;
+
+  let shapeAddress = null;
+
+  return () => {
+    if (shapeAddress === null) {
+      const geometry = new THREE.ConeGeometry(
+        radius,
+        height,
+        radialSegments,
+        heightSegments,
+        /* openEnded,
+        thetaStart,
+        thetaLength, */
+      );
+      geometry.rotateX(-Math.PI/2);
+      geometry.rotateZ(Math.PI/4);
+      geometry.scale(2, 2.75, 1);
+
+      /* redMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xff0000}));
+      redMesh.frustumCulled = false;
+      scene.add(redMesh); */
+
+      const fakeMesh = new THREE.Mesh(geometry);
+      const buffer = physicsManager.cookConvexGeometry(fakeMesh);
+      shapeAddress = physicsManager.createConvexShape(buffer);
+    }
+    return shapeAddress;
+  };
+})();
 
 class ZTargeting extends THREE.Object3D {
   constructor() {
@@ -22,6 +58,8 @@ class ZTargeting extends THREE.Object3D {
     })();
     scene.add(targetReticleApp);
     this.targetReticleApp = targetReticleApp;
+
+    this.queryResults = Array();
 
     this.reticles = [];
     this.focusTargetReticle = null;
@@ -78,6 +116,44 @@ class ZTargeting extends THREE.Object3D {
     
     targetReticleMesh.setReticles(reticles);
     this.reticles = reticles;
+  }
+  update(timestamp, timeDiff) {
+    const {position, quaternion} = localPlayer;
+    const direction = new THREE.Vector3(0, 0, -1)
+      .applyQuaternion(quaternion);
+    const sweepDistance = 100;
+    const maxHits = 64;
+
+    const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
+
+    const result = physicsManager.sweepConvexShape(
+      pyramidConvexGeometryAddress,
+      position,
+      quaternion,
+      direction,
+      sweepDistance,
+      maxHits,
+    );
+    const queryResult = result.map(reticle => {
+      const distance = reticle.position.distanceTo(position);
+      const type = (() => {
+        if (distance < 5) {
+          return 'friend';
+        } else if (distance < 10) {
+          return 'enemy';
+        } else {
+          return 'object';
+        }
+      })();
+      const zoom = 0;
+      return {
+        position: reticle.position,
+        physicsId: reticle.objectId,
+        type,
+        zoom,
+      }
+    });
+    this.setQueryResult(queryResult, timestamp, cameraManager.focus, cameraManager.lastFocusChangeTime);
   }
   handleDown() {
     if (!cameraManager.focus) {
