@@ -1,25 +1,16 @@
 // import * as THREE from 'three';
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState, useEffect} from 'react';
 import classnames from 'classnames';
 import {RpgText} from './RpgText.jsx';
 import {LightArrow} from './LightArrow.jsx';
 import styles from './StoryTime.module.css';
-// import metaversefile from 'metaversefile';
-// const {useLocalPlayer} = metaversefile;
 import {chatTextSpeed} from '../constants.js';
 import {level} from '../player-stats.js';
-// import {AppContext} from './components/app';
 
 import * as sounds from '../sounds.js';
 import storyManager from '../story.js';
 
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler';
-
-// const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
-
-// const defaultHupSize = 256;
-// const pixelRatio = window.devicePixelRatio;
 
 const _progressConversation = () => {
   const conversation = storyManager.getConversation();
@@ -130,24 +121,12 @@ const MegaChatBox = ({
 };
 
 export const StoryTime = () => {
-  // const {state, setState} = useContext(AppContext);
-  // const [conversation, setConversation] = useState(null);
   const [message, setMessage] = useState(null);
-  let [options, setOptions] = useState(null);
+  const [options, setOptions] = useState(null);
   const [option, setOption] = useState(null);
   const [hoverIndex, setHoverIndex] = useState(null);
   const [progressing, setProgressing] = useState(false);
   const [finished, setFinished] = useState(false);
-
-  /* // XXX hack
-  if (!(options && options.length > 0)) {
-    options = [
-      'Take the bait',
-      'To the pain!',
-    ];
-  } */
-
-  // const open = state.openedPanel === 'StoryTime';
 
   const _continue = () => {
     if (!progressing) {
@@ -165,10 +144,6 @@ export const StoryTime = () => {
       });
       conversation.addEventListener('options', e => {
         const {options} = e.data;
-        /* if (window.lol && !options) {
-          console.log('set options', options, new Error().stack);
-          debugger;
-        } */
         if (options) {
           setOptions(options);
           setOption(null);
@@ -176,7 +151,6 @@ export const StoryTime = () => {
       });
       conversation.addEventListener('hoverindex', e => {
         const {hoverIndex} = e.data;
-        // console.log('hoverIndex', hoverIndex);
         setHoverIndex(hoverIndex);
 
         sounds.playSoundName('menuMove');
@@ -200,8 +174,6 @@ export const StoryTime = () => {
       });
 
       conversation.addEventListener('close', e => {
-        // console.log('got close event');
-
         setMessage(null);
       });
     }
