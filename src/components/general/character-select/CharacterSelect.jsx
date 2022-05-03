@@ -270,8 +270,8 @@ export const CharacterSelect = () => {
             sounds.playSoundName('menuBoop');
 
             (async () => {
-                const localPlayer = await metaversefile.useLocalPlayer();
-                await localPlayer.setAvatarUrl(character.avatarUrl);
+                const localPlayer = metaversefile.useLocalPlayer();
+                await localPlayer.setPlayerSpec(character.avatarUrl, character);
             })();
 
             setTimeout(() => {
