@@ -24,6 +24,26 @@ class BlockchainManager {
       return null;
     }
   }
+  async getContractItems ( address ) {
+
+    const abi = [
+        "function totalSupply() view returns (uint256)",
+        "function ownerOf(uint256 tokenId) external view returns (address owner)"
+    ];
+    const contract = new ethers.Contract( address, abi, this.provider );
+    return await contract.totalSupply();
+
+  }
+  async getNFTContent ( address, tokenId ) {
+
+    const abi = [
+        "function tokenURI(uint256 _tokenId) public view returns (string)"
+    ];
+    const contract = new ethers.Contract( address, abi, this.provider );
+    return await contract.tokenURI( tokenId );
+
+  }
 }
 const blockchainManager = new BlockchainManager();
+// await blockchainManager.getContract();
 export default blockchainManager;

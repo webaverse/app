@@ -12,6 +12,7 @@ import {initialPosY} from './constants.js';
 import {parseQuery} from './util.js';
 import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
+import blockchainManager from './blockchain-manager.js';
 
 class Universe extends EventTarget {
   constructor() {
@@ -37,6 +38,38 @@ class Universe extends EventTarget {
     // physicsManager.setPhysicsEnabled(true);
     // localPlayer.updatePhysics(0, 0);
     physicsManager.setPhysicsEnabled(false);
+
+    if ( worldSpec.eth ) {
+
+        const promises = [];
+        const itemNum = await blockchainManager.getContractItems( worldSpec.eth );
+
+        for ( let i = 1; i <= Math.min( 10, itemNum ); i ++ ) {
+
+          try {
+
+            const data = await blockchainManager.getNFTContent( worldSpec.eth, i );
+            promises.push(metaversefile.createAppAsync({
+              start_url: '/@proxy/' + data
+            }));
+
+            console.log( data );
+
+          } catch ( err ) {
+
+            console.log( err );
+
+          }
+
+        }
+
+        this.sceneLoadedPromise = Promise.all(promises).then(() => {});
+        await this.sceneLoadedPromise;
+        this.sceneLoadedPromise = null;
+
+        return;
+
+    }
 
     const _doLoad = async () => {
       // world.clear();
