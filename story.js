@@ -424,7 +424,7 @@ export const listenHack = () => {
         const {name, description, appType} = app;
 
         // cameraManager.setFocus(false);
-        zTargeting.focusTargetReticle = null;
+        // zTargeting.focusTargetReticle = null;
         sounds.playSoundName('menuSelect');
 
         cameraManager.setFocus(false);
