@@ -24,10 +24,9 @@ class ZTargeting extends THREE.Object3D {
     this.targetReticleApp = targetReticleApp;
 
     this.reticles = [];
-    this.lastFocus = false;
     this.focusTargetReticle = null;
   }
-  setQueryResult(result, timestamp, focus, lastFocusChangeTime) {
+  setQueryResult(result, timestamp) {
     const targetReticleMesh = this.targetReticleApp.children[0];
     
     // console.log('set focus', focus);
@@ -59,16 +58,17 @@ class ZTargeting extends THREE.Object3D {
       reticles = reticleSpecs.map(reticleSpec => reticleSpec.reticle);
     }
 
-    const timeDiff = timestamp - lastFocusChangeTime;
-    const focusTime = 250;
     if (this.focusTargetReticle) {
-      if (focus || timeDiff < focusTime) {
+      const timeDiff = timestamp - cameraManager.lerpStartTime;
+      const focusTime = 250;
+
+      if (cameraManager.focus || timeDiff < focusTime) {
         reticles = [
           this.focusTargetReticle,
         ];
     
         let f2 = Math.min(Math.max(timeDiff / focusTime, 0), 1);
-        if (focus) {
+        if (cameraManager.focus) {
           f2 = 1 - f2;
         }
         this.focusTargetReticle.zoom = f2;
@@ -79,8 +79,6 @@ class ZTargeting extends THREE.Object3D {
     
     targetReticleMesh.setReticles(reticles);
     this.reticles = reticles;
-
-    this.lastFocus = focus;
   }
   handleDown() {
     if (!cameraManager.focus) {
