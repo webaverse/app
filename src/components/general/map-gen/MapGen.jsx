@@ -211,7 +211,7 @@ export const MapGen = () => {
     
     useEffect(() => {
         if (open) {
-            musicManager.playCurrentMusic('overworld', {
+            musicManager.playCurrentMusicName('overworld', {
                 repeat: true,
             });
         }

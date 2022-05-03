@@ -7,7 +7,8 @@ import { AppContext } from '../../app';
 import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
 import { world } from '../../../../world.js';
-import { NpcPlayer } from '../../../../character-controller.js';
+// import { NpcPlayer } from '../../../../character-controller.js';
+import musicManager from '../../../../music-manager.js';
 
 //
 
@@ -85,7 +86,7 @@ const Character = forwardRef(({
     animate,
     disabled,
     onMouseMove,
-    onClick
+    onClick,
 }, ref) => {
     return (
         <li
@@ -124,6 +125,7 @@ export const CharacterSelect = () => {
     const [ npcPlayer, setNpcPlayer ] = useState(null);
     const [ enabled, setEnabled ] = useState(false);
     const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
+    const [ themeSongCache, setThemeSongCache ] = useState(new WeakMap());
 
     const refsMap = (() => {
         const map = new Map();
@@ -173,13 +175,35 @@ export const CharacterSelect = () => {
             (async () => {
                 if (!npcPlayer) {
                     const avatarApp = await metaversefile.createAppAsync({
-                        start_url: avatarUrl,
+                        // type: 'application/npc',
+                        // content: targetCharacter,
+                        start_url: targetCharacter.avatarUrl,
+                        components: [
+                            {
+                              key: 'npc',
+                              value: targetCharacter,
+                            },
+                        ],
                     });
-                    npcPlayer = new NpcPlayer();
-                    npcPlayer.setAvatarApp(avatarApp);
+                    if (!live) {
+                        avatarApp.destroy();
+                        return;
+                    }
+                    // console.log('got avatar app', avatarApp, targetCharacter);
+                    // debugger;
+                    npcPlayer = avatarApp.npcPlayer;
+                    // npcPlayer = new NpcPlayer();
+                    // npcPlayer.setAvatarApp(avatarApp);
+
                     npcPlayerCache.set(avatarUrl, npcPlayer);
+                }
+                let themeSong = themeSongCache.get(npcPlayer);
+                if (!themeSong) {
+                    themeSong = await npcPlayer.fetchThemeSong();
+                    themeSongCache.set(npcPlayer, themeSong);
                     if (!live) return;
                 }
+                musicManager.playCurrentMusic(themeSong);
 
                 setNpcPlayer(npcPlayer);
             })();
