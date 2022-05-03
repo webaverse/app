@@ -206,7 +206,7 @@ const _makeTargetReticleMesh = () => {
       varying vec3 vBarycentric;
       flat varying int vType;
 
-      const float zoomDistance = 10.;
+      const float zoomDistance = 5.;
 
       vec2 rotate2D(vec2 v, float a) {
         return vec2(
