@@ -31,6 +31,8 @@ const soundFiles = {
   menuLeft: _getSoundFiles(/PauseMenu_Turn_Left/),
   menuRight: _getSoundFiles(/PauseMenu_Turn_Right/),
   menuReady: _getSoundFiles(/ff7_cursor_ready/),
+  menuBeep: _getSoundFiles(/beep/),
+  menuBoop: _getSoundFiles(/boop/),
   itemEquip: _getSoundFiles(/Link_Item\.wav/),
   itemUnequip: _getSoundFiles(/Link_Item_Away/),
   zTargetCenter: _getSoundFiles(/ZTarget_Center/),
@@ -72,9 +74,13 @@ const playSoundName = name => {
   const snds = soundFiles[name];
   if (snds) {
     const sound = snds[Math.floor(Math.random() * snds.length)];
+    if (!sound) {
+      debugger;
+    }
     playSound(sound);
     return true;
   } else {
+    debugger;
     return false;
   }
 };
