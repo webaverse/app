@@ -94,7 +94,7 @@ try {
 
     app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterController] : [];
 
-    app.addEventListener('bindHitTracker', e => {
+    app.addEventListener('hittrackeradded', e => {
       app.hitTracker.addEventListener('hit', e => {
         if (!npcPlayer.hasAction('hurt')) {
           const newAction = {
