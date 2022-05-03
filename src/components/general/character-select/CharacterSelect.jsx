@@ -31,6 +31,7 @@ const characters = {
             voice: `Sweetie Belle`,
             class: 'Drop Hunter',
             bio: `Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan.`,
+            themeSong: `https://webaverse.github.io/music/themes/149274046-smooth-adventure-quest.mp3`,
         },
         {
             name: 'Drake',
@@ -39,6 +40,7 @@ const characters = {
             voice: `Shining Armor`,
             class: 'Neural Hacker',
             bio: `His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight.`,
+            themeSong: `https://webaverse.github.io/music/themes/129079005-im-gonna-find-it-mystery-sci-fi`,
         },
         {
             name: 'Hyacinth',
@@ -47,6 +49,7 @@ const characters = {
             voice: `Maud Pie`,
             class: 'Beast Painter',
             bio: `Scillia's mentor. 15/F beast tamer. She is quite famous. She is known for releasing beasts on her enemies when she get angry.`,
+            themeSongUrl: `https://webaverse.github.io/music/themes/092909594-fun-electro-dance-groove-racin.mp3`,
         },
         {
             name: 'Juniper',
@@ -55,6 +58,7 @@ const characters = {
             voice: `Cadance`,
             class: 'Academy Engineer',
             bio: `She is an engineer. 17/F engineer. She is new on the street. She has a strong moral compass and it the voice of reason in the group.`,
+            themeSongUrl: `https://webaverse.github.io/music/themes/092958842-groovy-jazzy-band-fun-light-su.mp3`,
         },
         {
             name: 'Anemone',
@@ -63,6 +67,7 @@ const characters = {
             voice: `Trixie`,
             class: 'Lisk Witch',
             bio: `A witch studying to make the best potions. 13/F. She is exceptionally skilled and sells her potions on the black market, but she is very shy.`,
+            themeSongUrl: `https://webaverse.github.io/music/themes/158618260-ghost-catcher-scary-funny-adve.mp3`,
         },
     ],
 };
