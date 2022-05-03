@@ -8,6 +8,7 @@ import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
 import { world } from '../../../../world.js';
 // import { NpcPlayer } from '../../../../character-controller.js';
+import * as sounds from '../../../../sounds.js'; 
 import musicManager from '../../../../music-manager.js';
 
 //
@@ -197,6 +198,9 @@ export const CharacterSelect = () => {
 
                     npcPlayerCache.set(avatarUrl, npcPlayer);
                 }
+
+                sounds.playSoundName('menuBeep');
+
                 let themeSong = themeSongCache.get(npcPlayer);
                 if (!themeSong) {
                     themeSong = await npcPlayer.fetchThemeSong();
@@ -257,6 +261,8 @@ export const CharacterSelect = () => {
     const onClick = character => e => {
         if (character && npcPlayer) {
             setSelectCharacter(character);
+
+            sounds.playSoundName('menuBoop');
 
             (async () => {
                 const localPlayer = await metaversefile.useLocalPlayer();
