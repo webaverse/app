@@ -41,7 +41,7 @@ const _startSwirl = () => {
     composer.passes.push(composer.swirlPass);
 
     sounds.playSoundName('battleTransition');
-    musicManager.playCurrentMusic('battle');
+    musicManager.playCurrentMusicName('battle');
   }
 };
 const _stopSwirl = () => {
@@ -373,7 +373,7 @@ export const listenHack = () => {
             const fieldMusicName = fieldMusicNames[currentFieldMusicIndex];
             currentFieldMusicIndex = (currentFieldMusicIndex + 1) % fieldMusicNames.length;
             
-            currentFieldMusic = musicManager.playCurrentMusic(fieldMusicName, {
+            currentFieldMusic = musicManager.playCurrentMusicName(fieldMusicName, {
               repeat: true,
             });
           }
@@ -383,7 +383,7 @@ export const listenHack = () => {
           await musicManager.waitForLoad();
           
           _stopSwirl();
-          musicManager.playCurrentMusic('victory', {
+          musicManager.playCurrentMusicName('victory', {
             repeat: true,
           });
           break;
@@ -392,7 +392,7 @@ export const listenHack = () => {
           await musicManager.waitForLoad();
 
           _stopSwirl();
-          musicManager.playCurrentMusic('gameOver', {
+          musicManager.playCurrentMusicName('gameOver', {
             repeat: true,
           });
           break;
