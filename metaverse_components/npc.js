@@ -24,6 +24,8 @@ try {
     const npcVoiceName = component.voice ?? 'Shining armor';
     const npcBio = component.bio ?? 'A generic avatar.';
     // const npcAvatarUrl = app.getComponent('avatarUrl') ?? `/avatars/Drake_hacker_v6_Guilty.vrm`;
+    // const npcThemeSongUrl = component.themeSongUrl ?? '';
+    const npcDetached = !!component.detached;
     let npcWear = component.wear ?? [];
     if (!Array.isArray(npcWear)) {
       npcWear = [npcWear];
@@ -31,7 +33,7 @@ try {
 
     let live = true;
     let vrmApp = app;
-    let npcPlayer = null;
+    app.npcPlayer = null;
     /* e.waitUntil(*/(async () => {
       // const u2 = npcAvatarUrl;
       // const m = await metaversefile.import(u2);
@@ -59,6 +61,7 @@ try {
         position,
         quaternion,
         scale,
+        detached: npcDetached,
       });
       // if (!live) return;
 
@@ -89,21 +92,21 @@ try {
 
       // scene.add(vrmApp);
       
-      npcPlayer = newNpcPlayer;
+      app.npcPlayer = newNpcPlayer;
     })()// );
 
-    app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterController] : [];
+    app.getPhysicsObjects = () => app.npcPlayer ? [app.npcPlayer.characterController] : [];
 
     app.addEventListener('hit', e => {
-      if (!npcPlayer.hasAction('hurt')) {
+      if (!app.npcPlayer.hasAction('hurt')) {
         const newAction = {
           type: 'hurt',
           animation: 'pain_back',
         };
-        npcPlayer.addAction(newAction);
+        app.npcPlayer.addAction(newAction);
         
         setTimeout(() => {
-          npcPlayer.removeAction('hurt');
+          app.npcPlayer.removeAction('hurt');
         }, hurtAnimationDuration * 1000);
       }
     });
@@ -136,12 +139,12 @@ try {
     character.addEventListener('say', e => {
       console.log('got character say', e.data);
       const {message, emote, action, object, target} = e.data;
-      chatManager.addPlayerMessage(npcPlayer, message);
+      chatManager.addPlayerMessage(app.npcPlayer, message);
       if (emote === 'supersaiyan' || action === 'supersaiyan' || /supersaiyan/i.test(object) || /supersaiyan/i.test(target)) {
         const newSssAction = {
           type: 'sss',
         };
-        npcPlayer.addAction(newSssAction);  
+        app.npcPlayer.addAction(newSssAction);  
       } else if (action === 'follow' || (object === 'none' && target === localPlayer.name)) { // follow player
         targetSpec = {
           type: 'follow',
@@ -171,11 +174,11 @@ try {
     const runSpeed = walkSpeed * 8;
     const speedDistanceRate = 0.07;
     useFrame(({timestamp, timeDiff}) => {
-      if (npcPlayer && physics.getPhysicsEnabled()) {
+      if (app.npcPlayer && physics.getPhysicsEnabled()) {
         if (targetSpec) {
           const target = targetSpec.object;
           const v = localVector.setFromMatrixPosition(target.matrixWorld)
-            .sub(npcPlayer.position);
+            .sub(app.npcPlayer.position);
           v.y = 0;
           const distance = v.length();
           if (targetSpec.type === 'moveto' && distance < 2) {
@@ -184,15 +187,15 @@ try {
             const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
             v.normalize()
               .multiplyScalar(speed * timeDiff);
-            npcPlayer.characterPhysics.applyWasd(v);
+              app.npcPlayer.characterPhysics.applyWasd(v);
           }
         }
 
-        npcPlayer.eyeballTarget.copy(localPlayer.position);
-        npcPlayer.eyeballTargetEnabled = true;
+        app.npcPlayer.eyeballTarget.copy(localPlayer.position);
+        app.npcPlayer.eyeballTargetEnabled = true;
 
-        npcPlayer.updatePhysics(timestamp, timeDiff);
-        npcPlayer.updateAvatar(timestamp, timeDiff);
+        app.npcPlayer.updatePhysics(timestamp, timeDiff);
+        app.npcPlayer.updateAvatar(timestamp, timeDiff);
       }
     });
 
@@ -201,8 +204,8 @@ try {
 
       // scene.remove(vrmApp);
 
-      if (npcPlayer) {
-        npcManager.destroyNpc(npcPlayer);
+      if (app.npcPlayer) {
+        npcManager.destroyNpc(app.npcPlayer);
       }
 
       loreAIScene.removeCharacter(character);
