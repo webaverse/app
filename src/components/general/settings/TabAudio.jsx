@@ -5,7 +5,8 @@ import { voicePacksUrl, voiceEndpointsUrl, defaultVoicePackName } from '../../..
 // import game from '../../../../game';
 import { Slider } from './slider';
 import * as voices from '../../../../voices';
-import {localPlayer} from '../../../../players';
+// import {localPlayer} from '../../../../players';
+import overrides from '../../../../overrides';
 
 // console.log('got voices', voices);
 
@@ -100,43 +101,21 @@ export const TabAudio = ({ active }) => {
 
         // set voice pack
 
-        const vp = voicePacks[ voicePacks.map( ( vp ) => { return vp.name; } ).indexOf( voicePack ) ];
-        if ( vp ) {
-
-            const { audioPath, indexPath } = vp;
-            const voicePacksUrlBase = voicePacksUrl.replace( /\/+[^\/]+$/, '' );
-            const audioUrl = voicePacksUrlBase + audioPath;
-            const indexUrl = voicePacksUrlBase + indexPath;
-
-            (async () => {
-
-                await localPlayer.loadVoicePack({
-                    audioUrl,
-                    indexUrl
-                });
-
-            })().catch( ( err ) => {
-
-                console.warn( err );
-
-            });
-
-        }
+        overrides.overrideVoicePack.set(voicePack);
 
         // set voice endpoint
 
-        const ve = voiceEndpoints[ voiceEndpoints.map( ( vp ) => { return vp.name; } ).indexOf( voiceEndpoint ) ];
-        if ( ve ) {
-
-            localPlayer.setVoiceEndpoint( ve.drive_id );
-
-        }
+        overrides.overrideVoiceEndpoint.set(voiceEndpoint);
 
         //
 
         saveSettings();
         setChangesNotSaved( false );
-        setTimeout( () => { setAppyingChanges( false ) }, 1000 );
+        setTimeout( () => {
+
+            setAppyingChanges( false );
+            
+        }, 1000 );
 
     };
 
