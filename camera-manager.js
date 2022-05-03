@@ -335,7 +335,7 @@ class CameraManager extends EventTarget {
     this.target = target;
     this.target2 = target2;
 
-    console.log('set dynamic target', this.target, this.target2, new Error().stack);
+    // console.log('set dynamic target', this.target, this.target2, new Error().stack);
 
     if (this.target) {
       const _setCameraToDynamicTarget = () => {
@@ -414,7 +414,7 @@ class CameraManager extends EventTarget {
     this.target = target;
     this.target2 = target2;
 
-    console.log('set static target', this.target, this.target2, new Error().stack);
+    // console.log('set static target', this.target, this.target2, new Error().stack);
 
     if (this.target) {
       const _setCameraToStaticTarget = () => {
