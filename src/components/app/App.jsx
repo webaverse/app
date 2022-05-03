@@ -28,6 +28,7 @@ import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
+// import * as voices from '../../../voices';
 
 import styles from './App.module.css';
 import '../../fonts.css';
@@ -47,8 +48,8 @@ const _startApp = async ( weba, canvas ) => {
     await weba.startLoop();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
+    // console.log('set player spec', defaultPlayerSpec);
     await localPlayer.setPlayerSpec(defaultAvatarUrl, defaultPlayerSpec);
-    // await localPlayer.setAvatarUrl( defaultAvatarUrl );
 
 };
 
