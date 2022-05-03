@@ -65,7 +65,7 @@ try {
       });
       // if (!live) return;
 
-      const _setVoice = () => {
+      const _setVoiceEndpoint = () => {
         const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
         if (voice) {
           newNpcPlayer.setVoiceEndpoint(voice.drive_id);
@@ -73,7 +73,7 @@ try {
           console.warn('unknown voice name', npcVoiceName, voices.voiceEndpoints);
         }
       };
-      _setVoice();
+      _setVoiceEndpoint();
 
       const _updateWearables = async () => {
         const wearablePromises = npcWear.map(wear => (async () => {
