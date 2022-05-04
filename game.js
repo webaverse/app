@@ -377,9 +377,7 @@ const _mousedown = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   let useAction = localPlayer.getAction('use');
   if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
-    if (!localPlayer.hasAction('needContinueCombo')) {
-      localPlayer.addAction({type: 'needContinueCombo'});
-    }
+    localPlayer.needContinueCombo = true;
   }
   _startUse();
   useAction = localPlayer.getAction('use');
@@ -1028,16 +1026,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
   }
 
   const handleUseActionCombo = () => {
-    if (localPlayer.hasAction('needEndUse')) {
-      localPlayer.removeAction('needEndUse');
+    if (localPlayer.needEndUse) {
+      localPlayer.needEndUse = false;
       gameManager.menuEndUse();
 
-      if (localPlayer.hasAction('needContinueCombo')) {
-        localPlayer.removeAction('needContinueCombo');
+      if (localPlayer.needContinueCombo) {
+        localPlayer.needContinueCombo = false;
         gameManager.menuStartUse();
-        if (!localPlayer.hasAction('needResetUseTime')) {
-          localPlayer.addAction({type: 'needResetUseTime'});
-        }
+        localPlayer.needResetUseTime = true;
       } else {
         lastUseIndex = 0;
       }

@@ -160,6 +160,10 @@ class PlayerBase extends THREE.Object3D {
     this.eyeballTargetEnabled = false;
     this.voicePack = null;
     this.voiceEndpoint = null;
+
+    this.needEndUse = false;
+    this.needContinueCombo = false;
+    this.needResetUseTime = false;
   }
   findAction(fn) {
     const actions = this.getActionsState();
@@ -889,8 +893,8 @@ class UninterpolatedPlayer extends StatePlayer {
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => {
         if (this.hasAction('use')) {
-          if (this.hasAction('needResetUseTime')) {
-            this.removeAction('needResetUseTime');
+          if (this.needResetUseTime) {
+            this.needResetUseTime = false;
             return false;
           }
           return true;
@@ -1129,9 +1133,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   handleAnimationEnd(e) {
     // const avatar = e.target;
     if (this.hasAction('use')) {
-      if (!this.hasAction('needEndUse')) {
-        this.addAction({type: 'needEndUse'}); // tell next frame need endUse();
-      }
+      this.needEndUse = true; // tell next frame need endUse();
     }
   }
   resetPhysics() {
