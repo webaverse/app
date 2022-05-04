@@ -9,6 +9,8 @@ import {localPlayer} from './players.js';
 
 const localVector = new THREE.Vector3();
 
+const maxResults = 16;
+
 const getPyramidConvexGeometry = (() => {
   const radius = 0.5;
   const height = 0.2;
@@ -43,6 +45,72 @@ const getPyramidConvexGeometry = (() => {
     return shapeAddress;
   };
 })();
+class QueryResults {
+  constructor() {
+    this.results = Array(maxResults);
+  }
+  snapshot() {
+    const {position, quaternion} = localPlayer;
+    const direction = new THREE.Vector3(0, 0, -1)
+      .applyQuaternion(quaternion);
+    const sweepDistance = 100;
+    const maxHits = 64;
+
+    const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
+
+    const result = physicsManager.sweepConvexShape(
+      pyramidConvexGeometryAddress,
+      position,
+      quaternion,
+      direction,
+      sweepDistance,
+      maxHits,
+    );
+    const reticles = result.map(reticle => {
+      const distance = reticle.position.distanceTo(position);
+      const type = (() => {
+        if (distance < 5) {
+          return 'friend';
+        } else if (distance < 10) {
+          return 'enemy';
+        } else {
+          return 'object';
+        }
+      })();
+      const zoom = 0;
+      return {
+        position: reticle.position,
+        physicsId: reticle.objectId,
+        type,
+        zoom,
+      }
+    });
+    const reticleSpecs = reticles.map(reticle => {
+      localVector.copy(reticle.position)
+        .project(camera);
+      if ( // check inside camera frustum
+        localVector.x >= -1 && localVector.x <= 1 &&
+        localVector.y >= -1 && localVector.y <= 1 &&
+        localVector.z > 0
+      ) {
+        return {
+          reticle,
+          lengthSq: localVector.lengthSq(),
+        };
+      } else {
+        return null;
+      }
+    });
+    // remove not in camera frustum
+    for (let i = reticleSpecs.length - 1; i >= 0; i--) {
+      if (reticleSpecs[i] === null) {
+        reticleSpecs.splice(i, 1);
+      }
+    }
+    reticleSpecs.sort((a, b) => a.lengthSq - b.lengthSq);
+    this.results = reticleSpecs.map(reticleSpec => reticleSpec.reticle);
+  }
+}
 
 class ZTargeting extends THREE.Object3D {
   constructor() {
@@ -59,42 +127,14 @@ class ZTargeting extends THREE.Object3D {
     scene.add(targetReticleApp);
     this.targetReticleApp = targetReticleApp;
 
-    this.queryResults = Array();
-
     this.reticles = [];
     this.focusTargetReticle = null;
+    this.queryResults = new QueryResults();
   }
-  setQueryResult(result, timestamp) {
+  setQueryResult(timestamp) {
     const targetReticleMesh = this.targetReticleApp.children[0];
 
-    let reticles = result;
-    if (reticles.length > 0) {
-      const reticleSpecs = reticles.map(reticle => {
-        localVector.copy(reticle.position)
-          .project(camera);
-        if ( // check inside camera frustum
-          localVector.x >= -1 && localVector.x <= 1 &&
-          localVector.y >= -1 && localVector.y <= 1 &&
-          localVector.z > 0
-        ) {
-          return {
-            reticle,
-            lengthSq: localVector.lengthSq(),
-          };
-        } else {
-          return null;
-        }
-      });
-      // remove not in camera frustum
-      for (let i = reticleSpecs.length - 1; i >= 0; i--) {
-        if (reticleSpecs[i] === null) {
-          reticleSpecs.splice(i, 1);
-        }
-      }
-      reticleSpecs.sort((a, b) => a.lengthSq - b.lengthSq);
-      reticles = reticleSpecs.map(reticleSpec => reticleSpec.reticle);
-    }
-
+    let reticles = this.queryResults.results;
     if (this.focusTargetReticle) {
       const timeDiff = timestamp - cameraManager.lerpStartTime;
       const focusTime = 250;
@@ -118,42 +158,9 @@ class ZTargeting extends THREE.Object3D {
     this.reticles = reticles;
   }
   update(timestamp, timeDiff) {
-    const {position, quaternion} = localPlayer;
-    const direction = new THREE.Vector3(0, 0, -1)
-      .applyQuaternion(quaternion);
-    const sweepDistance = 100;
-    const maxHits = 64;
+    this.queryResults.snapshot();
 
-    const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
-
-    const result = physicsManager.sweepConvexShape(
-      pyramidConvexGeometryAddress,
-      position,
-      quaternion,
-      direction,
-      sweepDistance,
-      maxHits,
-    );
-    const queryResult = result.map(reticle => {
-      const distance = reticle.position.distanceTo(position);
-      const type = (() => {
-        if (distance < 5) {
-          return 'friend';
-        } else if (distance < 10) {
-          return 'enemy';
-        } else {
-          return 'object';
-        }
-      })();
-      const zoom = 0;
-      return {
-        position: reticle.position,
-        physicsId: reticle.objectId,
-        type,
-        zoom,
-      }
-    });
-    this.setQueryResult(queryResult, timestamp, cameraManager.focus, cameraManager.lastFocusChangeTime);
+    this.setQueryResult(timestamp);
   }
   handleDown() {
     if (!cameraManager.focus) {
