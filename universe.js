@@ -39,38 +39,6 @@ class Universe extends EventTarget {
     // localPlayer.updatePhysics(0, 0);
     physicsManager.setPhysicsEnabled(false);
 
-    if ( worldSpec.eth ) {
-
-        const promises = [];
-        const itemNum = await blockchainManager.getContractItems( worldSpec.eth );
-
-        for ( let i = 1; i <= Math.min( 10, itemNum ); i ++ ) {
-
-          try {
-
-            const data = await blockchainManager.getNFTContent( worldSpec.eth, i );
-            promises.push(metaversefile.createAppAsync({
-              start_url: '/@proxy/' + data
-            }));
-
-            console.log( data );
-
-          } catch ( err ) {
-
-            console.log( err );
-
-          }
-
-        }
-
-        this.sceneLoadedPromise = Promise.all(promises).then(() => {});
-        await this.sceneLoadedPromise;
-        this.sceneLoadedPromise = null;
-
-        return;
-
-    }
-
     const _doLoad = async () => {
       // world.clear();
 
@@ -79,6 +47,46 @@ class Universe extends EventTarget {
       if (!room) {
         const state = new Z.Doc();
         world.connectState(state);
+
+        if ( worldSpec.eth ) {
+
+            const promises = [];
+            const itemNum = await blockchainManager.getContractItems( worldSpec.eth );
+            const num = Math.min( 100, itemNum );
+
+            for ( let i = 1; i <= Math.round( Math.sqrt( num ) ); i ++ ) {
+
+                for ( let j = 1; j <= Math.round( Math.sqrt( num ) ); j ++ ) {
+
+                    try {
+
+                        const data = await blockchainManager.getNFTContent( worldSpec.eth, 1000 + i );
+                        const request = await fetch( data );
+                        const json = await request.json();
+
+                        const app = metaversefile.createApp({
+                            start_url: '/@proxy/eth://' + worldSpec.eth + '/' + i
+                        });
+                        promises.push( app );
+
+                        // app.position.y += 0.5;
+                        app.position.set( i * 1.5, 1, j * 1.5 );
+
+                        metaversefile.addApp( app );
+
+                    } catch ( err ) {
+
+                        console.log( err );
+
+                    }
+
+                }
+
+            }
+
+            // return;
+
+        }
         
         let match;
         if (src === undefined) {
