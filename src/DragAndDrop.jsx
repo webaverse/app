@@ -250,17 +250,15 @@ const DragAndDrop = () => {
   const _mint = async e => {
     e.preventDefault();
     e.stopPropagation();
-    await mint(
-      `https://gateway.pinata.cloud/ipfs/${hash}`
-  );
-    // const contract = new web3.eth.Contract(WebaverseERC721, "0xCb7dF1B738A91aD07D13845C4773e15bA049A034");
-    // const wallet_address = localStorage.getItem("wallet_address");
-    // console.log(hash);
-    // await contract.methods.mintSingle(wallet_address, hash).send({ 
-    //   from: wallet_address,
-    //   value: Web3.utils.toWei(0.01, "matic")
-    // });
-
+    
+    const contract = new web3.eth.Contract(WebaverseERC721, "0xCb7dF1B738A91aD07D13845C4773e15bA049A034");
+    const wallet_address = localStorage.getItem("wallet_address");
+    console.log(hash);
+    await contract.methods.mintSingle(wallet_address, hash).send({ 
+      from: wallet_address,
+      // value: Web3.utils.toWei(0.01, "matic")
+      value: "10000000000000000",
+    });
     
     console.log('mint', currentApp);
   };

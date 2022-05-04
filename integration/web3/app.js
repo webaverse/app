@@ -18,6 +18,7 @@ export async function mint(tokenURI) {
     try {
         console.log(tokenID);
         await contract.mint(await signer.getAddress(), tokenID, tokenURI);
+        console.log(await signer.getAddress());
         localStorage.setItem(
             "mintedIDs",
             JSON.stringify([...JSON.parse(localStorage.getItem("mintedIDs")), tokenID])
