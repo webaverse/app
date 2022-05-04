@@ -130,11 +130,12 @@ class ZTargeting extends THREE.Object3D {
     this.queryResults = new QueryResults();
   }
   setQueryResult(timestamp) {
-    const targetReticleMesh = this.targetReticleApp.children[0];
-
-    let reticles = this.queryResults.results;
-    if (!localPlayer.hasAction('aim')) {
-      reticles.length = 0;
+    let reticles;
+    if (localPlayer.hasAction('aim')) {
+      this.queryResults.snapshot(camera);
+      reticles = this.queryResults.results;
+    } else {
+      reticles = [];
     }
     if (this.focusTargetReticle) {
       const timeDiff = timestamp - cameraManager.lerpStartTime;
@@ -156,11 +157,10 @@ class ZTargeting extends THREE.Object3D {
       }
     }
     
+    const targetReticleMesh = this.targetReticleApp.children[0];
     targetReticleMesh.setReticles(reticles);
   }
   update(timestamp) {
-    this.queryResults.snapshot(camera);
-
     this.setQueryResult(timestamp);
   }
   handleDown(object = camera) {
