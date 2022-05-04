@@ -16,9 +16,7 @@ let voucher;
 export async function mint(tokenURI) {
     const tokenID = ethers.BigNumber.from(ethers.utils.randomBytes(4)).toNumber();
     try {
-        console.log(tokenID);
         await contract.mint(await signer.getAddress(), tokenID, tokenURI);
-        console.log(await signer.getAddress());
         localStorage.setItem(
             "mintedIDs",
             JSON.stringify([...JSON.parse(localStorage.getItem("mintedIDs")), tokenID])
@@ -67,18 +65,4 @@ export async function redeem(voucher) {
 
 window.onload = async () => {
     await window.ethereum.enable();
-
-    // document.getElementById("mint").addEventListener("click", async () => {
-    //     await mint(
-    //         "https://gateway.pinata.cloud/ipfs/QmRpBLJEG6HkqokZhHAAKfBsJpGB58d3rMqFPHBCsH5VDv"
-    //     );
-    // });
-
-    // document.getElementById("drop").addEventListener("click", async () => {
-    //     await drop(JSON.parse(localStorage.getItem("mintedIDs")).shift());
-    // });
-
-    // document.getElementById("redeem").addEventListener("click", async () => {
-    //     await redeem(JSON.parse(localStorage.getItem("latestvoucher")));
-    // });
 };

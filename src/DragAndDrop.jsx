@@ -250,7 +250,6 @@ const DragAndDrop = () => {
   const _mint = async e => {
     e.preventDefault();
     e.stopPropagation();
-    
     const contract = new web3.eth.Contract(WebaverseERC721, "0xCb7dF1B738A91aD07D13845C4773e15bA049A034");
     const wallet_address = localStorage.getItem("wallet_address");
     console.log(hash);
