@@ -97,18 +97,20 @@ try {
 
     app.getPhysicsObjects = () => app.npcPlayer ? [app.npcPlayer.characterController] : [];
 
-    app.addEventListener('hit', e => {
-      if (!app.npcPlayer.hasAction('hurt')) {
-        const newAction = {
-          type: 'hurt',
-          animation: 'pain_back',
-        };
-        app.npcPlayer.addAction(newAction);
-        
-        setTimeout(() => {
-          app.npcPlayer.removeAction('hurt');
-        }, hurtAnimationDuration * 1000);
-      }
+    app.addEventListener('hittrackeradded', e => {
+      app.hitTracker.addEventListener('hit', e => {
+        if (!app.npcPlayer.hasAction('hurt')) {
+          const newAction = {
+            type: 'hurt',
+            animation: 'pain_back',
+          };
+          app.npcPlayer.addAction(newAction);
+          
+          setTimeout(() => {
+            app.npcPlayer.removeAction('hurt');
+          }, hurtAnimationDuration * 1000);
+        }
+      });
     });
 
     let targetSpec = null;
