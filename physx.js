@@ -1550,7 +1550,7 @@ const physxWorker = (() => {
     allocator.freeAll()
   }
 
-  w.addConvexGeometryPhysics = (physics, mesh, id) => {
+  w.addConvexGeometryPhysics = (physics, mesh, dynamic, id) => {
     mesh.updateMatrixWorld()
     const { geometry } = mesh
 
@@ -1608,7 +1608,8 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
-      shape
+      +dynamic,
+      shape,
     )
   }
   w.cookConvexGeometryPhysics = (physics, mesh) => {
@@ -1650,6 +1651,7 @@ const physxWorker = (() => {
     position,
     quaternion,
     scale,
+    dynamic,
     id
   ) => {
     const allocator = new Allocator()
@@ -1680,7 +1682,8 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
-      0
+      +dynamic,
+      0,
     )
     allocator.freeAll()
   }
