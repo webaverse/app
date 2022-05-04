@@ -137,12 +137,13 @@ class ZTargeting extends THREE.Object3D {
       const timeDiff = timestamp - cameraManager.lerpStartTime;
       const focusTime = 250;
 
-      if (cameraManager.focus) {
+      const f = timeDiff / focusTime;
+      if (cameraManager.focus || f < 3) {
         reticles = [
           this.focusTargetReticle,
         ];
-    
-        let f2 = Math.min(Math.max(timeDiff / focusTime, 0), 1);
+
+        let f2 = Math.min(Math.max(f, 0), 1);
         if (cameraManager.focus) {
           f2 = 1 - f2;
         }
