@@ -133,6 +133,9 @@ class ZTargeting extends THREE.Object3D {
     const targetReticleMesh = this.targetReticleApp.children[0];
 
     let reticles = this.queryResults.results;
+    if (!localPlayer.hasAction('aim')) {
+      reticles.length = 0;
+    }
     if (this.focusTargetReticle) {
       const timeDiff = timestamp - cameraManager.lerpStartTime;
       const focusTime = 250;
