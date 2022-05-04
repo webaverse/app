@@ -1505,8 +1505,7 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2] // XXX delete if it will not be deleted
 
-    const result = new Uint8Array(dataLength)
-    result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength))
+    const result = moduleInstance.HEAPU8.slice(dataPtr, dataPtr + dataLength);
     allocator.freeAll()
     return result
   }
@@ -1641,8 +1640,7 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2] // XXX delete if it will not be deleted
 
-    const result = new Uint8Array(dataLength)
-    result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength))
+    const result = moduleInstance.HEAPU8.slice(dataPtr, dataPtr + dataLength);
     allocator.freeAll()
     return result
   }
