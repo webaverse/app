@@ -162,8 +162,11 @@ physicsManager.createMaterial = physicsMaterial =>
   physx.physxWorker.createMaterial(physx.physics, physicsMaterial);
 physicsManager.destroyMaterial = materialAddress =>
   physx.physxWorker.destroyMaterial(physx.physics, materialAddress);
-physicsManager.cookGeometry = (mesh) =>
-  physx.physxWorker.cookGeometryPhysics(physx.physics, mesh)
+physicsManager.cookGeometry = (mesh) => {
+  const physicsMesh = convertMeshToPhysicsMesh(mesh);
+  const buffer = physx.physxWorker.cookGeometryPhysics(physx.physics, physicsMesh);
+  return buffer;
+};
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId()
   physx.physxWorker.addCookedGeometryPhysics(
@@ -213,8 +216,11 @@ physicsManager.addConvexGeometry = (mesh) => {
   physicsObject.physicsMesh = physicsMesh
   return physicsObject
 }
-physicsManager.cookConvexGeometry = (mesh) =>
-  physx.physxWorker.cookConvexGeometryPhysics(physx.physics, mesh)
+physicsManager.cookConvexGeometry = (mesh) => {
+  const physicsMesh = convertMeshToPhysicsMesh(mesh);
+  const buffer = physx.physxWorker.cookConvexGeometryPhysics(physx.physics, physicsMesh);
+  return buffer;
+};
 physicsManager.addCookedConvexGeometry = (
   buffer,
   position,
