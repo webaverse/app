@@ -24,6 +24,11 @@ const localQuaternion = new THREE.Quaternion()
 const localQuaternion2 = new THREE.Quaternion()
 const localMatrix = new THREE.Matrix4()
 
+/* const redMaterial = new THREE.MeshBasicMaterial({
+  color: 0xff0000,
+  side: THREE.DoubleSide,
+}); */
+
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const upVector = new THREE.Vector3(0, 1, 0);
 
@@ -250,6 +255,67 @@ physicsManager.addCookedConvexGeometry = (
   return physicsObject
 }
 
+physicsManager.addShape = (shapeAddress, id) => {
+  const physicsId = getNextPhysicsId()
+
+  physx.physxWorker.addShapePhysics(
+    physx.physics,
+    shapeAddress,
+    position,
+    quaternion,
+    scale,
+    physicsId
+  );
+
+  const physicsObject = _makePhysicsObject(
+    physicsId,
+    position,
+    quaternion,
+    scale
+  )
+  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
+  physicsMesh.visible = false
+  physicsObject.add(physicsMesh)
+  physicsObject.physicsMesh = physicsMesh;
+  return physicsObject
+};
+physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dynamic) => {
+  const physicsId = getNextPhysicsId()
+
+  physx.physxWorker.addConvexShapePhysics(
+    physx.physics,
+    shapeAddress,
+    position,
+    quaternion,
+    scale,
+    dynamic,
+    physicsId
+  );
+
+  const physicsObject = _makePhysicsObject(
+    physicsId,
+    position,
+    quaternion,
+    scale
+  )
+  // console.log('extract 1');
+  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId)/*, redMaterial*/)
+  /* console.log('convex shape', physicsMesh.geometry.boundingBox.getSize(localVector).toArray().join(','), {
+    physicsMesh,
+    sourceMesh: window.shapeMeshes[shapeAddress],
+  }); */
+  /* if (physicsMesh.geometry.attributes.position.array.some(v => isNaN(v))) {
+    console.log('bad position array', physicsMesh.geometry.attributes.position.array, physicsMesh.geometry.index.array);
+    debugger;
+  } */
+  physicsMesh.visible = false
+  // physicsMesh.visible = true
+  physicsObject.add(physicsMesh)
+  physicsObject.physicsMesh = physicsMesh;
+  // physicsObject.updateMatrixWorld();
+  scene.add(physicsMesh);
+  return physicsObject
+};
 physicsManager.getGeometryForPhysicsId = (physicsId) =>
   physx.physxWorker.getGeometryPhysics(physx.physics, physicsId)
 physicsManager.getBoundingBoxForPhysicsId = (physicsId, box) =>
