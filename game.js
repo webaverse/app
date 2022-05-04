@@ -996,12 +996,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
         localPlayer.avatar.eyeTarget.copy(mouseSelectedPosition);
         localPlayer.avatar.eyeTargetInverted = true;
         localPlayer.avatar.eyeTargetEnabled = true;
-      } else if (cameraManager.target) {
-        if (cameraManager.target2) { // todo: wrong: need to use target icon position.
-          cameraManager.target2.getWorldPosition(localPlayer.avatar.eyeTarget);
-          localPlayer.avatar.eyeTargetInverted = true;
-          localPlayer.avatar.eyeTargetEnabled = true;
-        }
       } else if (!cameraManager.pointerLockElement && !cameraManager.target && lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
@@ -1009,6 +1003,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
         localPlayer.avatar.eyeTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
           .unproject(camera);
         localPlayer.avatar.eyeTargetInverted = false;
+        localPlayer.avatar.eyeTargetEnabled = true;
+      } else if (cameraManager.target && cameraManager.target2) {
+        cameraManager.target2.getWorldPosition(localPlayer.avatar.eyeTarget);
+        localPlayer.avatar.eyeTargetInverted = true;
         localPlayer.avatar.eyeTargetEnabled = true;
       } else {
         localPlayer.avatar.eyeTargetEnabled = false;
