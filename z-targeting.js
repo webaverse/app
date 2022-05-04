@@ -32,7 +32,7 @@ const getPyramidConvexGeometry = (() => {
       );
       geometry.rotateX(-Math.PI/2);
       geometry.rotateZ(Math.PI/4);
-      geometry.scale(2, 2.75, 1);
+      geometry.scale(2, 3, 1);
 
       /* redMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xff0000}));
       redMesh.frustumCulled = false;
@@ -47,7 +47,7 @@ const getPyramidConvexGeometry = (() => {
 })();
 class QueryResults {
   constructor() {
-    this.results = Array(maxResults);
+    this.results = [];
   }
   snapshot(object) {
     const {position, quaternion} = object;
@@ -66,7 +66,7 @@ class QueryResults {
       sweepDistance,
       maxHits,
     );
-    const reticles = result.map(reticle => {
+    let reticles = result.map(reticle => {
       const distance = reticle.position.distanceTo(position);
       const type = (() => {
         if (distance < 5) {
@@ -85,30 +85,28 @@ class QueryResults {
         zoom,
       }
     });
+    if (object === camera) {
+      reticles = reticles.filter(reticle => {
+        localVector.copy(reticle.position)
+          .project(camera);
+        return ( // check inside camera frustum
+          localVector.x >= -1 && localVector.x <= 1 &&
+          localVector.y >= -1 && localVector.y <= 1 &&
+          localVector.z > 0
+        );
+      });
+    }
     const reticleSpecs = reticles.map(reticle => {
       localVector.copy(reticle.position)
         .project(camera);
-      if ( // check inside camera frustum
-        localVector.x >= -1 && localVector.x <= 1 &&
-        localVector.y >= -1 && localVector.y <= 1 &&
-        localVector.z > 0
-      ) {
-        return {
-          reticle,
-          lengthSq: localVector.lengthSq(),
-        };
-      } else {
-        return null;
-      }
+      return {
+        reticle,
+        lengthSq: localVector.lengthSq(),
+      };
     });
-    // remove not in camera frustum
-    for (let i = reticleSpecs.length - 1; i >= 0; i--) {
-      if (reticleSpecs[i] === null) {
-        reticleSpecs.splice(i, 1);
-      }
-    }
     reticleSpecs.sort((a, b) => a.lengthSq - b.lengthSq);
-    this.results = reticleSpecs.map(reticleSpec => reticleSpec.reticle);
+    reticles = reticleSpecs.map(reticleSpec => reticleSpec.reticle);
+    this.results = reticles;
   }
 }
 
@@ -155,16 +153,15 @@ class ZTargeting extends THREE.Object3D {
     }
     
     targetReticleMesh.setReticles(reticles);
-    this.reticles = reticles;
   }
   update(timestamp) {
     this.queryResults.snapshot(camera);
 
     this.setQueryResult(timestamp);
   }
-  handleDown() {
+  handleDown(object = camera) {
     if (!cameraManager.focus) {
-      this.queryResults.snapshot(camera);
+      this.queryResults.snapshot(object);
 
       if (this.queryResults.results.length > 0) {
         this.focusTargetReticle = this.queryResults.results[0];
@@ -202,10 +199,9 @@ class ZTargeting extends THREE.Object3D {
     if (cameraManager.focus) {
       this.handleUp();
     } else {
-      if (this.reticles.length > 0) {
-        this.handleDown();
-      } else {
-        this.handleDown();
+      this.handleDown(localPlayer);
+      
+      if (this.queryResults.results.length === 0) {
         setTimeout(() => {
           this.handleUp();
         }, 300);
