@@ -311,9 +311,8 @@ physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dyna
   physicsMesh.visible = false
   // physicsMesh.visible = true
   physicsObject.add(physicsMesh)
-  physicsObject.physicsMesh = physicsMesh;
+  physicsObject.physicsMesh = physicsMesh
   // physicsObject.updateMatrixWorld();
-  scene.add(physicsMesh);
   return physicsObject
 };
 physicsManager.getGeometryForPhysicsId = (physicsId) =>
