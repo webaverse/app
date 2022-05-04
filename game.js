@@ -1028,11 +1028,11 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const handleUseActionCombo = () => {
     if (localPlayer.needEndUse) {
       localPlayer.needEndUse = false;
-      gameManager.menuEndUse();
+      _endUse();
 
       if (localPlayer.needContinueCombo) {
         localPlayer.needContinueCombo = false;
-        gameManager.menuStartUse();
+        _startUse();
         localPlayer.needResetUseTime = true;
       } else {
         lastUseIndex = 0;
@@ -1154,12 +1154,6 @@ class GameManager extends EventTarget {
   }
   menuUse() {
     _use();
-  }
-  menuStartUse() {
-    _startUse();
-  }
-  menuEndUse() {
-    _endUse();
   }
   menuDelete() {
     _delete();
