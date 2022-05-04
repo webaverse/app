@@ -132,14 +132,6 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
 }
 physicsManager.addGeometry = (mesh) => {
   const physicsMesh = convertMeshToPhysicsMesh(mesh)
-  if (mesh.parent) {
-    mesh.parent.matrixWorld.decompose(
-      physicsMesh.position,
-      physicsMesh.quaternion,
-      physicsMesh.scale
-    )
-    physicsMesh.updateMatrixWorld()
-  }
 
   const physicsMaterial = [0.5, 0.5, 0] // staticFriction, dynamicFriction, restitution
 
@@ -198,14 +190,6 @@ physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
 
 physicsManager.addConvexGeometry = (mesh) => {
   const physicsMesh = convertMeshToPhysicsMesh(mesh)
-  if (mesh.parent) {
-    mesh.parent.matrixWorld.decompose(
-      physicsMesh.position,
-      physicsMesh.quaternion,
-      physicsMesh.scale
-    )
-    physicsMesh.updateMatrixWorld()
-  }
 
   const physicsId = getNextPhysicsId()
   physx.physxWorker.addConvexGeometryPhysics(
