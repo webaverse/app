@@ -1688,6 +1688,29 @@ const physxWorker = (() => {
     allocator.freeAll()
   }
 
+  w.addConvexShapePhysics = (physics, shape, position, quaternion, scale, dynamic, id) => {
+    const positionBuffer = scratchStack.f32.subarray(3, 6)
+    position.toArray(positionBuffer)
+    const quaternionBuffer = scratchStack.f32.subarray(6, 10)
+    quaternion.toArray(quaternionBuffer)
+    const scaleBuffer = scratchStack.f32.subarray(10, 13)
+    scale.toArray(scaleBuffer)
+
+    const materialAddress = w.getDefaultMaterial(physics);
+
+    moduleInstance._addConvexGeometryPhysics(
+      physics,
+      shape,
+      positionBuffer.byteOffset,
+      quaternionBuffer.byteOffset,
+      scaleBuffer.byteOffset,
+      id,
+      materialAddress,
+      +dynamic,
+      shape
+    )
+  }
+
   w.createShapePhysics = (physics, buffer) => {
     const allocator = new Allocator()
     const buffer2 = allocator.alloc(Uint8Array, buffer.length)
