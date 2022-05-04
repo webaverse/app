@@ -32,7 +32,7 @@ const getPyramidConvexGeometry = (() => {
       );
       geometry.rotateX(-Math.PI/2);
       geometry.rotateZ(Math.PI/4);
-      geometry.scale(2, 3, 1);
+      geometry.scale(2, 2.75, 1);
 
       /* redMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xff0000}));
       redMesh.frustumCulled = false;
