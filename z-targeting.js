@@ -49,8 +49,8 @@ class QueryResults {
   constructor() {
     this.results = Array(maxResults);
   }
-  snapshot() {
-    const {position, quaternion} = localPlayer;
+  snapshot(object) {
+    const {position, quaternion} = object;
     const direction = new THREE.Vector3(0, 0, -1)
       .applyQuaternion(quaternion);
     const sweepDistance = 100;
@@ -157,15 +157,17 @@ class ZTargeting extends THREE.Object3D {
     targetReticleMesh.setReticles(reticles);
     this.reticles = reticles;
   }
-  update(timestamp, timeDiff) {
-    this.queryResults.snapshot();
+  update(timestamp) {
+    this.queryResults.snapshot(camera);
 
     this.setQueryResult(timestamp);
   }
   handleDown() {
     if (!cameraManager.focus) {
-      if (this.reticles.length > 0) {
-        this.focusTargetReticle = this.reticles[0];
+      this.queryResults.snapshot(camera);
+
+      if (this.queryResults.results.length > 0) {
+        this.focusTargetReticle = this.queryResults.results[0];
         sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
       
         const naviSoundNames = [
