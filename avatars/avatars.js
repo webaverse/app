@@ -1488,6 +1488,7 @@ class Avatar {
 
       const needsEyeTarget = this.eyeTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI * 0.4;
       if (needsEyeTarget && !this.lastNeedsEyeTarget) {
+        console.log('needsEyeTarget');
         this.startEyeTargetQuaternion.copy(localQuaternion);
         this.lastEyeTargetTime = now;
       } else if (this.lastNeedsEyeTarget && !needsEyeTarget) {
