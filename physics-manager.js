@@ -24,6 +24,11 @@ const localQuaternion = new THREE.Quaternion()
 const localQuaternion2 = new THREE.Quaternion()
 const localMatrix = new THREE.Matrix4()
 
+/* const redMaterial = new THREE.MeshBasicMaterial({
+  color: 0xff0000,
+  side: THREE.DoubleSide,
+}); */
+
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const upVector = new THREE.Vector3(0, 1, 0);
 
@@ -132,14 +137,6 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
 }
 physicsManager.addGeometry = (mesh) => {
   const physicsMesh = convertMeshToPhysicsMesh(mesh)
-  if (mesh.parent) {
-    mesh.parent.matrixWorld.decompose(
-      physicsMesh.position,
-      physicsMesh.quaternion,
-      physicsMesh.scale
-    )
-    physicsMesh.updateMatrixWorld()
-  }
 
   const physicsMaterial = [0.5, 0.5, 0] // staticFriction, dynamicFriction, restitution
 
@@ -170,8 +167,11 @@ physicsManager.createMaterial = physicsMaterial =>
   physx.physxWorker.createMaterial(physx.physics, physicsMaterial);
 physicsManager.destroyMaterial = materialAddress =>
   physx.physxWorker.destroyMaterial(physx.physics, materialAddress);
-physicsManager.cookGeometry = (mesh) =>
-  physx.physxWorker.cookGeometryPhysics(physx.physics, mesh)
+physicsManager.cookGeometry = (mesh) => {
+  const physicsMesh = convertMeshToPhysicsMesh(mesh);
+  const buffer = physx.physxWorker.cookGeometryPhysics(physx.physics, physicsMesh);
+  return buffer;
+};
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId()
   physx.physxWorker.addCookedGeometryPhysics(
@@ -193,19 +193,12 @@ physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh
+  physicsMesh.updateMatrixWorld()
   return physicsObject
 }
 
 physicsManager.addConvexGeometry = (mesh) => {
   const physicsMesh = convertMeshToPhysicsMesh(mesh)
-  if (mesh.parent) {
-    mesh.parent.matrixWorld.decompose(
-      physicsMesh.position,
-      physicsMesh.quaternion,
-      physicsMesh.scale
-    )
-    physicsMesh.updateMatrixWorld()
-  }
 
   const physicsId = getNextPhysicsId()
   physx.physxWorker.addConvexGeometryPhysics(
@@ -229,8 +222,11 @@ physicsManager.addConvexGeometry = (mesh) => {
   physicsObject.physicsMesh = physicsMesh
   return physicsObject
 }
-physicsManager.cookConvexGeometry = (mesh) =>
-  physx.physxWorker.cookConvexGeometryPhysics(physx.physics, mesh)
+physicsManager.cookConvexGeometry = (mesh) => {
+  const physicsMesh = convertMeshToPhysicsMesh(mesh);
+  const buffer = physx.physxWorker.cookConvexGeometryPhysics(physx.physics, physicsMesh);
+  return buffer;
+};
 physicsManager.addCookedConvexGeometry = (
   buffer,
   position,
@@ -257,9 +253,73 @@ physicsManager.addCookedConvexGeometry = (
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh;
+  physicsMesh.updateMatrixWorld()
   return physicsObject
 }
 
+physicsManager.addShape = (shapeAddress, id) => {
+  const physicsId = getNextPhysicsId()
+
+  physx.physxWorker.addShapePhysics(
+    physx.physics,
+    shapeAddress,
+    position,
+    quaternion,
+    scale,
+    physicsId
+  );
+
+  const physicsObject = _makePhysicsObject(
+    physicsId,
+    position,
+    quaternion,
+    scale
+  )
+  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
+  physicsMesh.visible = false
+  physicsObject.add(physicsMesh)
+  physicsObject.physicsMesh = physicsMesh;
+  physicsMesh.updateMatrixWorld()
+  return physicsObject
+};
+physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dynamic) => {
+  const physicsId = getNextPhysicsId()
+
+  physx.physxWorker.addConvexShapePhysics(
+    physx.physics,
+    shapeAddress,
+    position,
+    quaternion,
+    scale,
+    dynamic,
+    physicsId
+  );
+
+  const physicsObject = _makePhysicsObject(
+    physicsId,
+    position,
+    quaternion,
+    scale
+  )
+  // console.log('extract 1');
+  const geometry = _extractPhysicsGeometryForId(physicsId);
+  const physicsMesh = new THREE.Mesh(geometry/*, redMaterial*/)
+  /* console.log('convex shape', physicsMesh.geometry.boundingBox.getSize(localVector).toArray().join(','), {
+    physicsMesh,
+    sourceMesh: window.shapeMeshes[shapeAddress],
+  }); */
+  /* if (physicsMesh.geometry.attributes.position.array.some(v => isNaN(v))) {
+    console.log('bad position array', physicsMesh.geometry.attributes.position.array, physicsMesh.geometry.index.array);
+    debugger;
+  } */
+  physicsMesh.visible = false
+  // physicsMesh.visible = true
+  physicsObject.add(physicsMesh)
+  physicsObject.physicsMesh = physicsMesh;
+  physicsMesh.updateMatrixWorld();
+  // scene.add(physicsMesh);
+  return physicsObject
+};
 physicsManager.getGeometryForPhysicsId = (physicsId) =>
   physx.physxWorker.getGeometryPhysics(physx.physics, physicsId)
 physicsManager.getBoundingBoxForPhysicsId = (physicsId, box) =>
