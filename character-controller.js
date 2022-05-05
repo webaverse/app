@@ -2,15 +2,15 @@
 this file is responisible for maintaining player state that is network-replicated.
 */
 
-import * as THREE from 'three';
-import * as Z from 'zjs';
-import { getRenderer, scene, camera, dolly } from './renderer.js';
-import physicsManager from './physics-manager.js';
-import { world } from './world.js';
-import cameraManager from './camera-manager.js';
-import physx from './physx.js';
-import Avatar from './avatars/avatars.js';
-import metaversefile from 'metaversefile';
+import * as THREE from "three";
+import * as Z from "zjs";
+import { getRenderer, scene, camera, dolly } from "./renderer.js";
+import physicsManager from "./physics-manager.js";
+import { world } from "./world.js";
+import cameraManager from "./camera-manager.js";
+import physx from "./physx.js";
+import Avatar from "./avatars/avatars.js";
+import metaversefile from "metaversefile";
 import {
   actionsMapName,
   avatarMapName,
@@ -25,21 +25,21 @@ import {
   // groundFriction,
   voiceEndpoint,
   numLoadoutSlots,
-} from './constants.js';
-import {AppManager} from './app-manager.js';
-import {CharacterPhysics} from './character-physics.js';
-import {CharacterHups} from './character-hups.js';
-import {CharacterSfx} from './character-sfx.js';
-import {CharacterBehavior} from './character-behavior.js';
-import {CharacterFx} from './character-fx.js';
+} from "./constants.js";
+import { AppManager } from "./app-manager.js";
+import { CharacterPhysics } from "./character-physics.js";
+import { CharacterHups } from "./character-hups.js";
+import { CharacterSfx } from "./character-sfx.js";
+import { CharacterBehavior } from "./character-behavior.js";
+import { CharacterFx } from "./character-fx.js";
 import {
   VoicePack,
   VoicePackVoicer,
-} from './voice-output/voice-pack-voicer.js';
+} from "./voice-output/voice-pack-voicer.js";
 import {
   VoiceEndpoint,
   VoiceEndpointVoicer,
-} from './voice-output/voice-endpoint-voicer.js';
+} from "./voice-output/voice-endpoint-voicer.js";
 import {
   BinaryInterpolant,
   BiActionInterpolant,
@@ -47,12 +47,12 @@ import {
   InfiniteActionInterpolant,
   PositionInterpolant,
   QuaternionInterpolant,
-} from './interpolants.js';
-import { applyPlayerToAvatar, switchAvatar } from './player-avatar-binding.js';
-import { defaultPlayerName, defaultPlayerBio } from './ai/lore/lore-model.js';
-import { makeId, clone, unFrustumCull, enableShadows } from './util.js';
+} from "./interpolants.js";
+import { applyPlayerToAvatar, switchAvatar } from "./player-avatar-binding.js";
+import { defaultPlayerName, defaultPlayerBio } from "./ai/lore/lore-model.js";
+import { makeId, clone, unFrustumCull, enableShadows } from "./util.js";
 
-import * as sounds from './sounds.js';
+import * as sounds from "./sounds.js";
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -84,8 +84,9 @@ function loadPhysxCharacterController() {
   const contactOffset = (0.1 / heightFactor) * avatarHeight;
   const stepOffset = (0.5 / heightFactor) * avatarHeight;
 
-  const position = this.position.clone()
-    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
+  const position = this.position
+    .clone()
+    .add(new THREE.Vector3(0, -avatarHeight / 2, 0));
 
   if (this.characterController) {
     physicsManager.destroyCharacterController(this.characterController);
@@ -153,13 +154,13 @@ class PlayerBase extends THREE.Object3D {
 
     this.appManager = new AppManager();
 
-    this.appManager.addEventListener('appadd', (e) => {
+    this.appManager.addEventListener("appadd", (e) => {
       // console.log("e", e)
       const app = e.data;
       scene.add(app);
       // console.log("appadd called")
     });
-    this.appManager.addEventListener('appremove', (e) => {
+    this.appManager.addEventListener("appremove", (e) => {
       const app = e.data;
       app.parent && app.parent.remove(app);
     });
@@ -267,7 +268,7 @@ class PlayerBase extends THREE.Object3D {
     } else if (voice === null) {
       this.voicer = null;
     } else {
-      throw new Error('invalid voice');
+      throw new Error("invalid voice");
     }
   }
   getCrouchFactor() {
@@ -281,7 +282,7 @@ class PlayerBase extends THREE.Object3D {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
       for (const action of this.getActionsState()) {
-        if (action.type === 'wear') {
+        if (action.type === "wear") {
           usedIndexes[action.loadoutIndex] = true;
         }
       }
@@ -303,7 +304,7 @@ class PlayerBase extends THREE.Object3D {
         let oldLoadoutAction = null;
         for (let i = 0; i < actions.length; i++) {
           const action = actions.get(i);
-          if (action.type === 'wear' && action.loadoutIndex === loadoutIndex) {
+          if (action.type === "wear" && action.loadoutIndex === loadoutIndex) {
             oldLoadoutAction = action;
             break;
           }
@@ -324,7 +325,7 @@ class PlayerBase extends THREE.Object3D {
           world.appManager.transplantApp(app, this.appManager);
         } else {
           console.warn(
-            'need to transplant unowned app',
+            "need to transplant unowned app",
             app,
             world.appManager,
             this.appManager
@@ -350,18 +351,18 @@ class PlayerBase extends THREE.Object3D {
 
       const _emitEvents = () => {
         this.addAction({
-          type: 'wear',
+          type: "wear",
           instanceId: app.instanceId,
           loadoutIndex,
         });
         app.dispatchEvent({
-          type: 'wearupdate',
+          type: "wearupdate",
           player: this,
           wear: true,
           loadoutIndex,
         });
         this.dispatchEvent({
-          type: 'wearupdate',
+          type: "wearupdate",
           app,
           wear: true,
           loadoutIndex,
@@ -372,11 +373,11 @@ class PlayerBase extends THREE.Object3D {
   }
   unwear(app, { destroy = false } = {}) {
     const wearActionIndex = this.findActionIndex(({ type, instanceId }) => {
-      return type === 'wear' && instanceId === app.instanceId;
+      return type === "wear" && instanceId === app.instanceId;
     });
 
     const _setAppTransform = () => {
-      const wearComponent = app.getComponent('wear');
+      const wearComponent = app.getComponent("wear");
       if (wearComponent) {
         const avatarHeight = this.avatar ? this.avatar.height : 0;
         app.position
@@ -414,7 +415,7 @@ class PlayerBase extends THREE.Object3D {
 
       const _removeApp = () => {
         this.removeActionIndex(wearActionIndex);
-  
+
         if (this.appManager.hasTrackedApp(app.instanceId)) {
           if (destroy) {
             this.appManager.removeApp(app);
@@ -431,13 +432,13 @@ class PlayerBase extends THREE.Object3D {
 
       const _emitEvents = () => {
         app.dispatchEvent({
-          type: 'wearupdate',
+          type: "wearupdate",
           player: this,
           wear: false,
           loadoutIndex,
         });
         this.dispatchEvent({
-          type: 'wearupdate',
+          type: "wearupdate",
           app,
           wear: false,
           loadoutIndex,
@@ -447,14 +448,14 @@ class PlayerBase extends THREE.Object3D {
     } else {
       const _emitEvents = () => {
         app.dispatchEvent({
-          type: 'wearupdate',
+          type: "wearupdate",
           player: this,
-          wear: false
+          wear: false,
         });
         this.dispatchEvent({
-          type: 'wearupdate',
+          type: "wearupdate",
           app,
-          wear: false
+          wear: false,
         });
       };
       _emitEvents();
@@ -464,7 +465,7 @@ class PlayerBase extends THREE.Object3D {
     // nothing
   }
 }
-const controlActionTypes = ['jump', 'crouch', 'fly', 'sit'];
+const controlActionTypes = ["jump", "crouch", "fly", "sit"];
 class StatePlayer extends PlayerBase {
   constructor({
     playerId = makeId(5),
@@ -498,10 +499,10 @@ class StatePlayer extends PlayerBase {
     }
   }
   detachState() {
-    throw new Error('called abstract method');
+    throw new Error("called abstract method");
   }
   attachState(oldState) {
-    throw new Error('called abstract method');
+    throw new Error("called abstract method");
   }
   bindCommonObservers() {
     const actions = this.getActionsState();
@@ -515,7 +516,7 @@ class StatePlayer extends PlayerBase {
           )
         ) {
           this.dispatchEvent({
-            type: 'actionadd',
+            type: "actionadd",
             action: nextAction,
           });
           // console.log('add action', nextAction);
@@ -528,7 +529,7 @@ class StatePlayer extends PlayerBase {
           )
         ) {
           this.dispatchEvent({
-            type: 'actionremove',
+            type: "actionremove",
             action: lastAction,
           });
           // console.log('remove action', lastAction);
@@ -541,7 +542,7 @@ class StatePlayer extends PlayerBase {
     this.unbindFns.push(actions.unobserve.bind(actions, observeActionsFn));
 
     const avatar = this.getAvatarState();
-    let lastAvatarInstanceId = '';
+    let lastAvatarInstanceId = "";
     const observeAvatarFn = async () => {
       // we are in an observer and we want to perform a state transaction as a result
       // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
@@ -583,7 +584,7 @@ class StatePlayer extends PlayerBase {
     }
   }
   getAvatarInstanceId() {
-    return this.getAvatarState().get('instanceId') ?? '';
+    return this.getAvatarState().get("instanceId") ?? "";
   }
   localVector = [0, 0, 0];
   localQuaternion = [0, 0, 0, 1];
@@ -625,7 +626,7 @@ class StatePlayer extends PlayerBase {
         this.avatar = avatar;
 
         this.dispatchEvent({
-          type: 'avatarchange',
+          type: "avatarchange",
           app,
           avatar,
         });
@@ -636,7 +637,7 @@ class StatePlayer extends PlayerBase {
       })();
 
       this.dispatchEvent({
-        type: 'avatarupdate',
+        type: "avatarupdate",
         app,
       });
     };
@@ -663,7 +664,7 @@ class StatePlayer extends PlayerBase {
             _setNextAvatarApp(nextAvatarApp);
           } else {
             console.warn(
-              'switching avatar to instanceId that does not exist in any app manager',
+              "switching avatar to instanceId that does not exist in any app manager",
               instanceId
             );
           }
@@ -734,10 +735,10 @@ class StatePlayer extends PlayerBase {
     return action;
   }
   removeAction(type) {
-//     if (type == 'wear') {
-//       debugger
-//     }
-    
+    //     if (type == 'wear') {
+    //       debugger
+    //     }
+
     const actions = this.getActionsState();
     let i = 0;
     for (const action of actions) {
@@ -768,7 +769,8 @@ class StatePlayer extends PlayerBase {
         i--;
       }
     }
-    action.controllingBone = action.type === 'sit' ? null : action.controllingBone
+    action.controllingBone =
+      action.type === "sit" ? null : action.controllingBone;
     actions.push([action]);
   }
   setMicMediaStream(mediaStream) {
@@ -794,7 +796,7 @@ class StatePlayer extends PlayerBase {
       }
 
       const avatar = self.getAvatarState();
-      avatar.delete('instanceId');
+      avatar.delete("instanceId");
 
       const apps = self.getAppsState();
       while (apps.length > 0) {
@@ -824,7 +826,7 @@ class StatePlayer extends PlayerBase {
 
       const avatar = self.getAvatarState();
       if (j?.avatar?.instanceId) {
-        avatar.set('instanceId', j.avatar.instanceId);
+        avatar.set("instanceId", j.avatar.instanceId);
       }
 
       const apps = self.getAppsState();
@@ -836,6 +838,23 @@ class StatePlayer extends PlayerBase {
     });
   }
   destroy() {
+    if (this.isLocalPlayer) {
+      const wearActions = Array.from(this.getActionsState()).filter(
+        (action) => action.type === "wear"
+      );
+      for (const wearAction of wearActions) {
+        const instanceId = wearAction.instanceId;
+        const app = metaversefileApi.getAppByInstanceId(instanceId);
+        if (
+          app.getComponent("wear") ||
+          app.getComponent("sit") ||
+          app.getComponent("pet")
+        ) {
+          app.unwear();
+        }
+      }
+    }
+
     this.unbindState();
     this.appManager.unbindState();
 
@@ -861,47 +880,47 @@ class InterpolatedPlayer extends StatePlayer {
 
     this.actionBinaryInterpolants = {
       crouch: new BinaryInterpolant(
-        () => this.hasAction('crouch'),
+        () => this.hasAction("crouch"),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
       ),
       activate: new BinaryInterpolant(
-        () => this.hasAction('activate'),
+        () => this.hasAction("activate"),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
       ),
       use: new BinaryInterpolant(
-        () => this.hasAction('use'),
+        () => this.hasAction("use"),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
       ),
       aim: new BinaryInterpolant(
-        () => this.hasAction('aim'),
+        () => this.hasAction("aim"),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
       ),
       narutoRun: new BinaryInterpolant(
-        () => this.hasAction('narutoRun'),
+        () => this.hasAction("narutoRun"),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
       ),
       fly: new BinaryInterpolant(
-        () => this.hasAction('fly'),
+        () => this.hasAction("fly"),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
       ),
       jump: new BinaryInterpolant(
-        () => this.hasAction('jump'),
+        () => this.hasAction("jump"),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
       ),
       dance: new BinaryInterpolant(
-        () => this.hasAction('dance'),
+        () => this.hasAction("dance"),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
       ),
       emote: new BinaryInterpolant(
-        () => this.hasAction('emote'),
+        () => this.hasAction("emote"),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
       ),
@@ -912,7 +931,7 @@ class InterpolatedPlayer extends StatePlayer {
       // swordSideSlash: new BinaryInterpolant(() => this.hasAction('swordSideSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // swordTopDownSlash: new BinaryInterpolant(() => this.hasAction('swordTopDownSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       hurt: new BinaryInterpolant(
-        () => this.hasAction('hurt'),
+        () => this.hasAction("hurt"),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
       ),
@@ -1004,31 +1023,31 @@ class UninterpolatedPlayer extends StatePlayer {
   static init() {
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(
-        () => this.hasAction('crouch'),
+        () => this.hasAction("crouch"),
         0,
         crouchMaxTime
       ),
       activate: new UniActionInterpolant(
-        () => this.hasAction('activate'),
+        () => this.hasAction("activate"),
         0,
         activateMaxTime
       ),
-      use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
-      unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
-      aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
+      use: new InfiniteActionInterpolant(() => this.hasAction("use"), 0),
+      unuse: new InfiniteActionInterpolant(() => !this.hasAction("use"), 0),
+      aim: new InfiniteActionInterpolant(() => this.hasAction("aim"), 0),
       narutoRun: new InfiniteActionInterpolant(
-        () => this.hasAction('narutoRun'),
+        () => this.hasAction("narutoRun"),
         0
       ),
-      fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
-      jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
+      fly: new InfiniteActionInterpolant(() => this.hasAction("fly"), 0),
+      jump: new InfiniteActionInterpolant(() => this.hasAction("jump"), 0),
       dance: new BiActionInterpolant(
-        () => this.hasAction('dance'),
+        () => this.hasAction("dance"),
         0,
         crouchMaxTime
       ),
       emote: new BiActionInterpolant(
-        () => this.hasAction('emote'),
+        () => this.hasAction("emote"),
         0,
         crouchMaxTime
       ),
@@ -1038,7 +1057,7 @@ class UninterpolatedPlayer extends StatePlayer {
       // fallLoop: new InfiniteActionInterpolant(() => this.hasAction('fallLoop'), 0),
       // swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
-      hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
+      hurt: new InfiniteActionInterpolant(() => this.hasAction("hurt"), 0),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
       (k) => this.actionInterpolants[k]
@@ -1063,13 +1082,13 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
-    // If these weren't set on constructor (which they aren't on remote player) then set them now 
+    // If these weren't set on constructor (which they aren't on remote player) then set them now
     this.characterPhysics = this.characterPhysics ?? new CharacterPhysics(this);
     this.characterHups = this.characterHups ?? new CharacterHups(this);
     this.characterSfx = this.characterSfx ?? new CharacterSfx(this);
     this.characterFx = this.characterFx ?? new CharacterFx(this);
-    this.characterBehavior = this.characterBehavior ?? new CharacterBehavior(this);
-    
+    this.characterBehavior =
+      this.characterBehavior ?? new CharacterBehavior(this);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -1083,16 +1102,16 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   getAvatarApp() {
     const avatar = this.getAvatarState();
-    const instanceId = avatar.get('instanceId');
+    const instanceId = avatar.get("instanceId");
     return this.appManager.getAppByInstanceId(instanceId);
   }
   setAvatarApp(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       const avatar = self.getAvatarState();
-      const oldInstanceId = avatar.get('instanceId');
+      const oldInstanceId = avatar.get("instanceId");
 
-      avatar.set('instanceId', app.instanceId);
+      avatar.set("instanceId", app.instanceId);
 
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
@@ -1122,7 +1141,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
       self.playersArray.push([self.playerMap]);
-      self.playerMap.set('playerId', self.playerId);
+      self.playerMap.set("playerId", self.playerId);
 
       /* const packed = new Float32Array(11);
       const pack3 = (v, i) => {
@@ -1151,7 +1170,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       const { instanceId } = oldAvatar;
       if (instanceId !== undefined) {
-        avatar.set('instanceId', instanceId);
+        avatar.set("instanceId", instanceId);
       }
 
       const apps = self.getAppsState();
@@ -1167,11 +1186,11 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.appManager.bindState(this.getAppsState());
   }
-  grab(app, hand = 'left') {
+  grab(app, hand = "left") {
     const renderer = getRenderer();
     const localPlayer = metaversefile.useLocalPlayer();
     const { position, quaternion } = renderer.xr.getSession()
-      ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
+      ? localPlayer[hand === "left" ? "leftHand" : "rightHand"]
       : camera;
 
     app.updateMatrixWorld();
@@ -1179,7 +1198,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     app.startQuaternion = quaternion.clone();
 
     const grabAction = {
-      type: 'grab',
+      type: "grab",
       hand,
       instanceId: app.instanceId,
       matrix: localMatrix
@@ -1203,7 +1222,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
 
     app.dispatchEvent({
-      type: 'grabupdate',
+      type: "grabupdate",
       grab: true,
     });
   }
@@ -1212,7 +1231,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     let removeOffset = 0;
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];
-      if (action.type === 'grab') {
+      if (action.type === "grab") {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
@@ -1226,7 +1245,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         removeOffset -= 1;
 
         app.dispatchEvent({
-          type: 'grabupdate',
+          type: "grabupdate",
           grab: false,
         });
       }
@@ -1268,8 +1287,8 @@ class LocalPlayer extends UninterpolatedPlayer {
       pack3(this.scale, 7);
       packed[10] = timeDiff;
 
-      this.playerMap.set('transform', packed);
-    }, 'push');
+      this.playerMap.set("transform", packed);
+    }, "push");
 
     // this.appManager.updatePhysics();
   }
@@ -1311,7 +1330,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     const localVector2 = new THREE.Vector3();
     const localQuaternion = new THREE.Quaternion();
     const localMatrix = new THREE.Matrix4();
-    return function (position, quaternion, { relation = 'floor' } = {}) {
+    return function (position, quaternion, { relation = "floor" } = {}) {
       const renderer = getRenderer();
       const xrCamera = renderer.xr.getSession()
         ? renderer.xr.getCamera(camera)
@@ -1337,7 +1356,7 @@ class LocalPlayer extends UninterpolatedPlayer {
           .premultiply(
             localMatrix.makeTranslation(
               0,
-              relation === 'floor' ? avatarHeight : 0,
+              relation === "floor" ? avatarHeight : 0,
               0
             )
           )
@@ -1351,7 +1370,7 @@ class LocalPlayer extends UninterpolatedPlayer {
               .copy(cameraManager.getCameraOffset())
               .applyQuaternion(camera.quaternion)
           );
-        camera.position.y += relation === 'floor' ? avatarHeight : 0;
+        camera.position.y += relation === "floor" ? avatarHeight : 0;
         camera.quaternion.copy(quaternion);
         camera.updateMatrixWorld();
       }
@@ -1422,7 +1441,7 @@ class RemotePlayer extends InterpolatedPlayer {
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
       const player = this.playersArray.get(i, Z.Map);
-      if (player.get('playerId') === this.playerId) {
+      if (player.get("playerId") === this.playerId) {
         index = i;
         break;
       }
@@ -1432,40 +1451,38 @@ class RemotePlayer extends InterpolatedPlayer {
       this.playerMap = this.playersArray.get(index, Z.Map);
     } else {
       console.warn(
-        'binding to nonexistent player object',
+        "binding to nonexistent player object",
         this.playersArray.toJSON()
       );
     }
 
-    console.log("index is", index)
+    console.log("index is", index);
 
     const lastPosition = new THREE.Vector3();
 
     loadPhysxCharacterController.call(this);
 
-    let prevApps = []
+    let prevApps = [];
 
     const observePlayerFn = (e) => {
-
-      if(e.changes.keys.get('playerId')){
-        console.log("playerId is ", e.changes.keys.get('playerId'));
+      if (e.changes.keys.get("playerId")) {
+        console.log("playerId is ", e.changes.keys.get("playerId"));
       }
-      
-      if(e.changes.keys.get('avatar')){
-        console.log("avatar is ", e.changes.keys.get('avatar'));
+
+      if (e.changes.keys.get("avatar")) {
+        console.log("avatar is ", e.changes.keys.get("avatar"));
         // TODO: Handle attaching the remote
       }
 
-      if(e.changes.keys.get('transform')) {
-        const transform = this.playerMap.get('transform');
+      if (e.changes.keys.get("transform")) {
+        const transform = this.playerMap.get("transform");
         if (transform) {
           const remoteTimeDiff = transform[10];
           lastPosition.copy(this.position);
           this.position.fromArray(transform, 0);
-          
-          if(this.avatar)
-          this.characterPhysics.setPosition(this.position);
-          
+
+          if (this.avatar) this.characterPhysics.setPosition(this.position);
+
           this.quaternion.fromArray(transform, 3);
 
           this.positionInterpolant?.snapshot(remoteTimeDiff);
@@ -1488,13 +1505,13 @@ class RemotePlayer extends InterpolatedPlayer {
 
         //TODO: need to update wearupdate when transform
         this.appManager.apps.forEach((app) => {
-          if(app.getComponent('wear') || app.getComponent('pet')) {
+          if (app.getComponent("wear") || app.getComponent("pet")) {
             app.dispatchEvent({
-              type: 'wearupdate',
+              type: "wearupdate",
               player: this,
               app,
               wear: true,
-            })
+            });
           }
         });
       }
@@ -1508,13 +1525,13 @@ class RemotePlayer extends InterpolatedPlayer {
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps();
     this.appManager.callBackFn = (app, event, flag) => {
-      if (event == 'wear') {
-        if (flag == 'remove') {
-          console.log("Calling unwear on app")
-          this.unwear(app)
+      if (event == "wear") {
+        if (flag == "remove") {
+          console.log("Calling unwear on app");
+          this.unwear(app);
         }
       }
-    }
+    };
 
     this.syncAvatar();
   }
@@ -1585,7 +1602,7 @@ class StaticUninterpolatedPlayer extends PlayerBase {
     this.actions.push(action);
 
     this.dispatchEvent({
-      type: 'actionadd',
+      type: "actionadd",
       action,
     });
   }
@@ -1601,7 +1618,7 @@ class StaticUninterpolatedPlayer extends PlayerBase {
   removeActionIndex(index) {
     const action = this.actions.splice(index, 1)[0];
     this.dispatchEvent({
-      type: 'actionremove',
+      type: "actionremove",
       action,
     });
   }
@@ -1650,7 +1667,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.characterFx = this.characterFx ?? new CharacterFx(this);
 
     this.avatarApp = app;
-    
+
     loadPhysxCharacterController.call(this);
     // loadPhysxAuxCharacterCapsule.call(this);
   }
