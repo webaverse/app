@@ -15,7 +15,7 @@
         "position": [1, 2, 3]
       }
     },
-    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/street/index.js" },
+    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/grid/grid.glb" },
     { "position": [ 0, 0, 0 ], "quaternion": [ 0, 0, 0, 1 ], "start_url": "http://localhost/lib/webaverse_resource/stacks/index.js" },
     { "position": [ 0, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/bow/" },
     { "position": [ 1.5, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/pistol/" },
