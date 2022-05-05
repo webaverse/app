@@ -17,6 +17,7 @@ import {snapshotMapChunk} from '../../../../scene-cruncher.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
 // import easing from '../../../../easing.js';
+import musicManager from '../../../../music-manager.js';
 import {chatManager} from '../../../../chat-manager.js';
 import {
   makeRng,
@@ -200,6 +201,21 @@ export const MapGen = () => {
     const [text, setText] = useState('');
     const [haloMeshApp, setHaloMeshApp] = useState(null);
     const canvasRef = useRef();
+
+    //
+
+    const open = state.openedPanel === 'MapGenPanel';
+    const selectedObjectName = selectedObject ? selectedObject.name : '';
+
+    //
+    
+    useEffect(() => {
+        if (open) {
+            musicManager.playCurrentMusic('overworld', {
+                repeat: true,
+            });
+        }
+    }, [open]);
 
     //
 
@@ -600,9 +616,9 @@ export const MapGen = () => {
       }
     }
 
-    const selectedObjectName = selectedObject ? selectedObject.name : '';
+    //
 
-    return state.openedPanel === 'MapGenPanel' ? (
+    return open ? (
         <div className={styles.mapGen} onClick={ stopPropagation }>
             <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
                 <h1>{selectedObjectName}</h1>

@@ -903,18 +903,20 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        // debugger
         let useAnimation;
         let t2;
         const useTimeS = avatar.useTime / 1000;
+        let f;
         if (avatar.useAnimation) {
           const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
+          f = useTimeS / useAnimation.duration;
         } else if (avatar.useAnimationCombo.length > 0) {
           const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
+          f = useTimeS / useAnimation.duration;
         } else if (avatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
           for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
@@ -976,6 +978,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               .add(localVector2);
           }
         }
+        return f;
       };
     } else if (avatar.hurtAnimation) {
       return spec => {
@@ -1185,6 +1188,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     }
   };
 
+  let lastF;
   for (const spec of avatar.animationMappings) {
     const {
       // animationTrackName: k,
@@ -1193,7 +1197,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    applyFn(spec);
+    lastF = applyFn(spec);
     _blendFly(spec);
     _blendActivateAction(spec);
 
@@ -1209,7 +1213,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     }
     isFirst = false;
   }
-  isFirst = true;
+  if (lastF >= 1) {
+    avatar.dispatchAnimationEndEvent();
+  }
 };
 
 export {

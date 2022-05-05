@@ -327,7 +327,6 @@ const _getNextUseIndex = animationCombo => {
   }
 }
 const _startUse = () => {
-  // debugger
   const localPlayer = metaversefileApi.useLocalPlayer();
   const wearApp = loadoutManager.getSelectedApp();
   if (wearApp) {
@@ -374,10 +373,29 @@ const _endUse = () => {
   }
 };
 const _mousedown = () => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  let useAction = localPlayer.getAction('use');
+  if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
+    localPlayer.needContinueCombo = true;
+  }
   _startUse();
+  useAction = localPlayer.getAction('use');
+  if (!(
+    useAction?.animation ||
+    useAction?.animationCombo?.length > 0 ||
+    useAction?.animationEnvelope?.length > 0
+  )) {
+    _endUse();
+  }
 };
 const _mouseup = () => {
-  _endUse();
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  const useAction = localPlayer.getAction('use');
+  if (
+    useAction?.animationEnvelope?.length > 0
+  ) {
+    _endUse();
+  }
 };
 
 const _grab = object => {
@@ -1004,6 +1022,23 @@ const _gameUpdate = (timestamp, timeDiff) => {
       !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
+
+  const handleUseActionCombo = () => {
+    if (localPlayer.needEndUse) {
+      localPlayer.needEndUse = false;
+      _endUse();
+
+      if (localPlayer.needContinueCombo) {
+        localPlayer.needContinueCombo = false;
+        _startUse();
+        localPlayer.needResetUseTime = true;
+      } else {
+        lastUseIndex = 0;
+      }
+    }
+  }
+  handleUseActionCombo();
+
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
@@ -1131,7 +1166,6 @@ class GameManager extends EventTarget {
     _mouseup();
   }
   menuAim() {
-    // debugger
     const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
       const localPlayer = metaversefileApi.useLocalPlayer();
