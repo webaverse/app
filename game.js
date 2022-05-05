@@ -618,11 +618,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         highlightPhysicsMesh.geometry = physicsMesh.geometry;
-        // highlightPhysicsMesh.matrix.copy(physicsObject.matrix);
         highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
           .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
-        // highlightPhysicsMesh.updateMatrixWorld();
-        // window.highlightPhysicsMesh = highlightPhysicsMesh;
+
         highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
