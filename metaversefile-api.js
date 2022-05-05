@@ -20,10 +20,12 @@ import {web3} from './blockchain.js';
 import {moduleUrls, modules} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import postProcessing from './post-processing.js';
-import {makeId, getRandomString, getPlayerPrefix, memoize} from './util.js';
+import {getRandomString, memoize} from './util.js';
+import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
+import {MeshLodder} from './mesh-lodder.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
@@ -38,6 +40,7 @@ import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
+import questManager from './quest-manager.js';
 import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
@@ -58,13 +61,14 @@ class App extends THREE.Object3D {
 
     this.isApp = true;
     this.components = [];
+    this.description = '';
+    this.appType = 'none';
     this.modules = [];
     this.modulesHash = 0;
     // cleanup tracking
     this.physicsObjects = [];
     this.hitTracker = null;
-    this.appType = 'none';
-    this.hasRenderSettings = false;
+    this.hasSubApps = false;
     this.lastMatrix = new THREE.Matrix4();
 
     const startframe = () => {
@@ -156,7 +160,7 @@ class App extends THREE.Object3D {
     this.hitTracker && this.hitTracker.hit(damage, opts);
   }
   getRenderSettings() {
-    if (this.hasRenderSettings) {
+    if (this.hasSubApps) {
       return renderSettingsManager.findRenderSettings(this);
     } else {
       return null;
@@ -353,12 +357,6 @@ metaversefile.setApi({
       return null;
     }
   },
-  /* async load(u) {
-    const m = await metaversefile.import(u);
-    const app = metaversefile.createApp();
-    await metaversefile.addModule(app, m);
-    return app;
-  }, */
   useApp() {
     const app = currentAppRender;
     if (app) {
@@ -410,6 +408,9 @@ metaversefile.setApi({
   },
   useChatManager() {
     return chatManager;
+  },
+  useQuests() {
+    return questManager;
   },
   useLoreAI() {
     return loreAI;
@@ -523,6 +524,9 @@ metaversefile.setApi({
   },
   useLoaders() {
     return loaders;
+  },
+  useMeshLodder() {
+    return MeshLodder;
   },
   usePhysics() {
     const app = currentAppRender;
@@ -752,9 +756,9 @@ metaversefile.setApi({
   useAbis() {
     return abis;
   },
-  /* useUi() {
-    return ui;
-  }, */
+  useMathUtils() {
+    return mathUtils;
+  },
   useActivate(fn) {
     const app = currentAppRender;
     if (app) {
@@ -812,6 +816,7 @@ metaversefile.setApi({
   },
   createAppInternal({
     start_url = '',
+    module = null,
     components = [],
     position = null,
     quaternion = null,
@@ -879,9 +884,14 @@ metaversefile.setApi({
     _updateComponents();
 
     // load
-    if (start_url) {
+    if (start_url || module) {
       const p = (async () => {
-        const m = await metaversefile.import(start_url);
+        let m;
+        if (start_url) {
+          m = await metaversefile.import(start_url);
+        } else {
+          m = module;
+        }
         await metaversefile.addModule(app, m);
       })();
       if (onWaitPromise) {
@@ -891,12 +901,12 @@ metaversefile.setApi({
     
     return app;
   },
-  createApp(opts) {
-    return metaversefile.createAppInternal(opts);
+  createApp(spec) {
+    return metaversefile.createAppInternal(spec);
   },
-  async createAppAsync(opts) {
+  async createAppAsync(spec, opts) {
     let p = null;
-    const app = metaversefile.createAppInternal(opts, {
+    const app = metaversefile.createAppInternal(spec, {
       onWaitPromise(newP) {
         p = newP;
       },
@@ -905,6 +915,15 @@ metaversefile.setApi({
       await p;
     }
     return app;
+  },
+  createAppPair(spec) {
+    let promise = null;
+    const app = metaversefile.createAppInternal(spec, {
+      onWaitPromise(newPromise) {
+        promise = newPromise;
+      },
+    });
+    return [app, promise];
   },
   createModule: (() => {
     const dataUrlPrefix = `data:application/javascript;charset=utf-8,`;
@@ -1067,8 +1086,13 @@ export default () => {
     return debug;
   },
   async addModule(app, m) {
+    // wait to make sure module initialization happens in a clean tick loop,
+    // even when adding a module from inside of another module's initialization
+    await Promise.resolve();
+
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
+    app.appType = m.type ?? '';
     app.contentId = m.contentId ?? '';
     if (Array.isArray(m.components)) {
       for (const {key, value} of m.components) {
@@ -1080,11 +1104,11 @@ export default () => {
     app.modules.push(m);
     app.updateModulesHash();
 
-    currentAppRender = app;
-
     let renderSpec = null;
     let waitUntilPromise = null;
-    const _tickModule = () => {
+    const _initModule = () => {
+      currentAppRender = app;
+
       try {
         const fn = m.default;
         if (typeof fn === 'function') {
@@ -1100,11 +1124,11 @@ export default () => {
       } catch(err) {
         console.warn(err);
         return null;
+      } finally {
+        currentAppRender = null;
       }
     };
-    _tickModule();
-
-    currentAppRender = null;
+    _initModule();
 
     if (waitUntilPromise) {
       await waitUntilPromise;

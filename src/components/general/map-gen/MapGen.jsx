@@ -13,9 +13,11 @@ import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
 import cameraManager from '../../../../camera-manager.js';
+import {snapshotMapChunk} from '../../../../scene-cruncher.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
 // import easing from '../../../../easing.js';
+import musicManager from '../../../../music-manager.js';
 import {chatManager} from '../../../../chat-manager.js';
 import {
   makeRng,
@@ -197,7 +199,23 @@ export const MapGen = () => {
     const [lastSelectTime, setLastSelectTime] = useState(-Infinity);
     const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
+    const [haloMeshApp, setHaloMeshApp] = useState(null);
     const canvasRef = useRef();
+
+    //
+
+    const open = state.openedPanel === 'MapGenPanel';
+    const selectedObjectName = selectedObject ? selectedObject.name : '';
+
+    //
+    
+    useEffect(() => {
+        if (open) {
+            musicManager.playCurrentMusic('overworld', {
+                repeat: true,
+            });
+        }
+    }, [open]);
 
     //
 
@@ -312,18 +330,39 @@ export const MapGen = () => {
 
             if (game.inputFocused()) return true;
 
-            switch ( event.which ) {
+              switch ( event.which ) {
+
+                case 75: { // K
+
+                  if (!haloMeshApp) {
+                    const haloMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['halo'];
+                      await haloMeshApp.addModule(m);
+                    })();
+                    scene.add(haloMeshApp);
+
+                    setHaloMeshApp(haloMeshApp);
+                  } else {
+                    scene.remove(haloMeshApp);
+                    haloMeshApp.destroy();
+
+                    setHaloMeshApp(null);
+                  }
+
+                  return false;
+                }
 
                 case 76: { // L
                 
                     (async () => {
-                      const chunkWorldSize = 64;
-                      const chunkWorldResolution = 2048;
-                      const chunkWorldDepthResolution = 64;
+                      const chunkWorldSize = new THREE.Vector3(64, 64, 64);
+                      const chunkWorldResolution = new THREE.Vector2(2048, 2048);
+                      const chunkWorldDepthResolution = new THREE.Vector2(256, 256);
                   
-                      const sceneCruncher = useSceneCruncher();
                       const localPlayer = useLocalPlayer();
-                      const mesh = await sceneCruncher.snapshotMapChunk(
+                      const mesh = snapshotMapChunk(
                         rootScene,
                         localPlayer.position,
                         chunkWorldSize,
@@ -379,7 +418,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel ]);
+    }, [ state.openedPanel, haloMeshApp ]);
 
     // resize
     useEffect(() => {
@@ -577,9 +616,9 @@ export const MapGen = () => {
       }
     }
 
-    const selectedObjectName = selectedObject ? selectedObject.name : '';
+    //
 
-    return state.openedPanel === 'MapGenPanel' ? (
+    return open ? (
         <div className={styles.mapGen} onClick={ stopPropagation }>
             <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
                 <h1>{selectedObjectName}</h1>

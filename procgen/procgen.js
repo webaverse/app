@@ -18,6 +18,7 @@ import {
 import {
   createMapChunkMesh,
 } from './map-render.js'
+import generateStats, {types, rarities} from './stats.js';
 
 export {
   alea,
@@ -35,4 +36,7 @@ export {
   MapChunk,
   createMapChunk,
   createMapChunkMesh,
+  generateStats,
+  types,
+  rarities,
 };

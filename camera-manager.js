@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import {getRenderer, camera} from './renderer.js';
-import * as notifications from './notifications.js';
+// import * as notifications from './notifications.js';
 import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
 // import alea from './alea.js';
+import * as sounds from './sounds.js';
+import {minFov, maxFov, midFov} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -87,6 +89,13 @@ class CameraManager extends EventTarget {
     this.pointerLockElement = null;
     // this.pointerLockEpoch = 0;
     this.shakes = [];
+    this.focus = false;
+    this.lastFocusChangeTime = 0;
+    this.fovFactor = 0;
+    this.lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
+
+    this.lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
+    this.fovFactor = 0;
 
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
@@ -206,6 +215,22 @@ class CameraManager extends EventTarget {
     }
     return result;
   }
+  setFocus(focus) {
+    if (focus !== this.focus) {
+      this.focus = focus;
+      this.lastFocusChangeTime = performance.now();
+
+      if (this.focus) {
+        sounds.playSoundName('zTargetCenter');
+      }
+
+      this.dispatchEvent(new MessageEvent('focuschange', {
+        data: {
+          focus,
+        },
+      }));
+    }
+  }
   updatePost(timestamp, timeDiff) {
     // console.log('camera manager update post');
 
@@ -316,56 +341,108 @@ class CameraManager extends EventTarget {
     }
 
     const _setCameraToAvatar = () => {
-      const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
-      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-      const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
-      
-      switch (endMode) {
-        case 'firstperson': {
-          if (localPlayer.avatar) {
-            const boneNeck = localPlayer.avatar.foundModelBones['Neck'];
-            const boneEyeL = localPlayer.avatar.foundModelBones['Eye_L'];
-            const boneEyeR = localPlayer.avatar.foundModelBones['Eye_R'];
-            const boneHead = localPlayer.avatar.foundModelBones['Head'];
+      if (!this.focus) {
+        const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
+        const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
+        const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
+        
+        switch (endMode) {
+          case 'firstperson': {
+            if (localPlayer.avatar) {
+              const boneNeck = localPlayer.avatar.foundModelBones['Neck'];
+              const boneEyeL = localPlayer.avatar.foundModelBones['Eye_L'];
+              const boneEyeR = localPlayer.avatar.foundModelBones['Eye_R'];
+              const boneHead = localPlayer.avatar.foundModelBones['Head'];
 
-            boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
-            boneNeck.updateMatrixWorld();
-      
-            if (boneEyeL && boneEyeR) {
-              boneEyeL.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-              boneEyeR.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
-              localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
+              boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
+              boneNeck.updateMatrixWorld();
+        
+              if (boneEyeL && boneEyeR) {
+                boneEyeL.matrixWorld.decompose(localVector, localQuaternion, localVector3);
+                boneEyeR.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
+                localVector3.copy(localVector.add(localVector2).multiplyScalar(0.5));
+              } else {
+                boneHead.matrixWorld.decompose(localVector, localQuaternion, localVector3);
+                localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion));
+                localVector3.copy(localVector);
+              }
             } else {
-              boneHead.matrixWorld.decompose(localVector, localQuaternion, localVector3);
-              localVector.add(localVector2.set(0, 0, 0.1).applyQuaternion(localQuaternion));
-              localVector3.copy(localVector);
+              localVector3.copy(localPlayer.position);
             }
-          } else {
-            localVector3.copy(localPlayer.position);
+
+            camera.position.copy(localVector3)
+              .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+
+            break;
           }
+          case 'isometric': {
+            camera.position.copy(localPlayer.position)
+              .sub(
+                localVector.copy(avatarCameraOffset)
+                  .applyQuaternion(camera.quaternion)
+              );
+      
+            break;
+          }
+          default: {
+            throw new Error('invalid camera mode: ' + cameraMode);
+          }
+        }
 
-          camera.position.copy(localVector3)
-            .sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+        camera.position.y -= crouchOffset;
+      } else {
+        cameraOffsetTargetZ = -1;
 
-          break;
-        }
-        case 'isometric': {
-          camera.position.copy(localPlayer.position)
-            .sub(
-              localVector.copy(avatarCameraOffset)
-                .applyQuaternion(camera.quaternion)
-            );
-    
-          break;
-        }
-        default: {
-          throw new Error('invalid camera mode: ' + cameraMode);
-        }
+        const targetPosition = localVector.copy(localPlayer.position)
+          .add(localVector2.set(0, 0, -cameraOffsetTargetZ).applyQuaternion(localPlayer.quaternion));
+        const targetQuaternion = localPlayer.quaternion;
+        camera.position.lerp(targetPosition, 0.2);
+        camera.quaternion.slerp(targetQuaternion, 0.2);
+        // camera.updateMatrixWorld();
       }
-
-      camera.position.y -= crouchOffset;
     };
     _setCameraToAvatar();
+    
+    const _setCameraFov = () => {
+      if (!renderer.xr.getSession()) {
+        const focusTime = (timestamp - this.lastFocusChangeTime) / 300;
+        if (focusTime < 1) {
+          // const fovInTime = 3;
+          // const fovOutTime = 0.3;
+
+          this.fovFactor = 0;
+
+          const a = this.focus ? minFov : midFov;
+          const b = this.focus ? midFov : minFov;
+          camera.fov = a * (1 - focusTime) + focusTime * b;
+          camera.updateProjectionMatrix();
+        } else if (this.focus) {
+          this.fovFactor = 0;
+
+          camera.fov = midFov;
+          camera.updateProjectionMatrix();
+        } else {
+          const fovInTime = 3;
+          const fovOutTime = 0.3;
+          
+          const narutoRun = localPlayer.getAction('narutoRun');
+          if (narutoRun) {
+            if (this.lastNonzeroDirectionVector.z < 0) {    
+              this.fovFactor += timeDiff / 1000 / fovInTime;
+            } else {
+              this.fovFactor -= timeDiff / 1000 / fovInTime;
+            }
+          } else {
+            this.fovFactor -= timeDiff / 1000 / fovOutTime;
+          }
+          this.fovFactor = Math.min(Math.max(this.fovFactor, 0), 1);
+          
+          camera.fov = minFov + Math.pow(this.fovFactor, 0.75) * (maxFov - minFov);
+          camera.updateProjectionMatrix();
+        }
+      }
+    };
+    _setCameraFov();
 
     const _shakeCamera = () => {
       this.flushShakes();

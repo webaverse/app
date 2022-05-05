@@ -1,9 +1,6 @@
-
 import React, { useEffect, useRef, useContext, useState } from 'react';
-import classnames from 'classnames';
 
 import CharacterHups from './CharacterHups.jsx';
-import { world } from '../world.js'
 import game from '../game.js'
 import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
@@ -12,18 +9,18 @@ import ioManager from '../io-manager.js'
 
 import { Character } from './components/general/character';
 import { CharacterSelect } from './components/general/character-select';
-import { Inventory } from './components/general/inventory';
+import { Equipment } from './components/general/equipment';
 import { Tokens } from './tabs/tokens';
-// import { Claims } from './tabs/claims';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
+import { AvatarIcon } from './AvatarIcon';
 import { User } from './User';
 
 import styles from './Header.module.css';
 
 //
 
-export default function Header () {
+export default function Header() {
 
     const { state, setState, selectedApp } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
@@ -32,11 +29,11 @@ export default function Header () {
     const dioramaCanvasRef = useRef();
     const panelsRef = useRef();
 
-    const [address, setAddress] = useState(false);
+    const [address, setAddress] = useState('');
     const [nfts, setNfts] = useState(null);
-    const [apps, setApps] = useState(world.appManager.getApps().slice());
+    // const [apps, setApps] = useState(world.appManager.getApps().slice());
     // const [claims, setClaims] = useState([]);
-    const [dragging, setDragging] = useState(false);
+    // const [dragging, setDragging] = useState(false);
     const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
 
@@ -156,11 +153,15 @@ export default function Header () {
 
                 case 9: { // tab
 
-                    setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+                    if ( !event.repeat ) {
 
-                    if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+                        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
 
-                        cameraManager.requestPointerLock();
+                        if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+
+                            cameraManager.requestPointerLock();
+
+                        }
 
                     }
 
@@ -169,8 +170,6 @@ export default function Header () {
                 }
 
             }
-
-            return false;
 
         };
 
@@ -258,20 +257,17 @@ export default function Header () {
 
 	return (
         <div className={styles.container} onClick={ stopPropagation } >
-            <CharacterHups localPlayer={localPlayer} npcs={npcs} />
-            <div className={styles.inner}>
-                <header className={styles.header}>
-                    <div className={styles.row}>
-                        <a href="/" className={styles.logo}>
-                            <img src="images/arrow-logo.svg" className={styles.image} />
-                        </a>
-                        <User
-                            address={address}
-                            setAddress={setAddress}
-                            setLoginFrom={setLoginFrom}
-                        />
-                    </div>
-				</header>
+            <CharacterHups
+              localPlayer={localPlayer}
+              npcs={npcs}
+            />
+            {/* <div className={styles.inner}> */}
+                <AvatarIcon />
+                <User
+                    address={address}
+                    setAddress={setAddress}
+                    setLoginFrom={setLoginFrom}
+                />
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}
@@ -282,9 +278,7 @@ export default function Header () {
                     <CharacterSelect
                         
                     />
-                    <Inventory
-                    
-                    />
+                    <Equipment />
                     {/* <Claims
                         open={ claimsOpen }
                         toggleOpen={ toggleClaimsOpen }
@@ -299,7 +293,7 @@ export default function Header () {
                         loginFrom={loginFrom}
                     />
                 </div>
-            </div>
+            {/* </div> */}
         </div>
     );
 
