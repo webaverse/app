@@ -186,7 +186,7 @@ class ZTargeting extends THREE.Object3D {
 
       cameraManager.setFocus(true);
       const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
-      if (remoteApp) debugger
+      if (this.focusTargetReticle) debugger
       cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
     }
   }
