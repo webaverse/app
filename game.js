@@ -606,8 +606,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _handlePhysicsHighlight();
 
-  zTargeting.update(timestamp, timeDiff);
-
   const _updatePhysicsHighlight = () => {
     highlightPhysicsMesh.visible = false;
 
@@ -635,6 +633,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
   };
   _updatePhysicsHighlight();
+
+  zTargeting.update(timestamp, timeDiff);
 
   const _updateMouseHighlight = () => {
     mouseHighlightPhysicsMesh.visible = false;
