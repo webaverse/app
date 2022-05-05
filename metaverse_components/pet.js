@@ -134,7 +134,7 @@ export default (app, component) => {
             const moveDelta = localVector;
             moveDelta.setScalar(0);
             if (_isFar(distance)) { // handle rounding errors
-              const localPlayer = useLocalPlayer();
+              const localPlayer = _getCurrentPlayer();
               const position = localPlayer.position.clone();
               position.y = 0;
               const direction = position.clone()
