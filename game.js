@@ -421,6 +421,7 @@ const _gameInit = () => {
     await grabUseMesh.addModule(m);
   })();
   grabUseMesh.targetApp = null;
+  grabUseMesh.targetPhysicsId = -1;
   sceneLowPriority.add(grabUseMesh);
 };
 Promise.resolve()
@@ -517,37 +518,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     const renderer = getRenderer();
     const _isWear = o => localPlayer.findAction(action => action.type === 'wear' && action.instanceId === o.instanceId);
 
-    for (let i = 0; i < 2; i++) {
-      const grabAction = _getGrabAction(i);
-      const grabbedObject = _getGrabbedObject(i);
-      if (grabbedObject && !_isWear(grabbedObject)) {
-        const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
-        localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        grabbedObject.updateMatrixWorld();
-
-        /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
-          collisionEnabled: true,
-          handSnapEnabled: true,
-          physx,
-          gridSnap: gameManager.getGridSnap(),
-        });
-
-        grabbedObject.updateMatrixWorld();
-        
-        grabUseMesh.position.copy(camera.position)
-          .add(
-            localVector.copy(grabbedObject.position)
-              .sub(camera.position)
-              .normalize()
-              .multiplyScalar(3)
-          );
-        grabUseMesh.quaternion.copy(camera.quaternion);
-        grabUseMesh.updateMatrixWorld();
-        // grabUseMesh.visible = true;
-        grabUseMesh.targetApp = grabbedObject;
-        grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
-      }
-    }
     grabUseMesh.visible = false;
     if (!gameManager.editMode) {
       const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
@@ -569,11 +539,44 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.updateMatrixWorld();
           //grabUseMesh.visible = true;
           grabUseMesh.targetApp = object;
+          grabUseMesh.targetPhysicsId = physicsId;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
           _updateActivateAnimation(grabUseMesh.position);
           grabUseMesh.visible = true;
         }
+      }
+    }
+
+    for (let i = 0; i < 2; i++) {
+      const grabAction = _getGrabAction(i);
+      const grabbedObject = _getGrabbedObject(i);
+      if (grabbedObject && !_isWear(grabbedObject)) {
+        const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
+        localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
+        grabbedObject.updateMatrixWorld();
+
+        /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
+          collisionEnabled: true,
+          handSnapEnabled: true,
+          physx,
+          gridSnap: gameManager.getGridSnap(),
+        });
+
+        /* grabbedObject.updateMatrixWorld();
+        
+        grabUseMesh.position.copy(camera.position)
+          .add(
+            localVector.copy(grabbedObject.position)
+              .sub(camera.position)
+              .normalize()
+              .multiplyScalar(3)
+          );
+        grabUseMesh.quaternion.copy(camera.quaternion);
+        grabUseMesh.updateMatrixWorld();
+        // grabUseMesh.visible = true;
+        grabUseMesh.targetApp = grabbedObject; */
+        grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
       }
     }
   };
@@ -887,7 +890,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
     
     if (currentActivated && !lastActivated) {
       if (grabUseMesh.targetApp) {
-        grabUseMesh.targetApp.activate();
+        grabUseMesh.targetApp.activate({
+          physicsId: grabUseMesh.targetPhysicsId,
+        });
       }
       localPlayer.removeAction('activate');
     }
