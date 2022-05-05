@@ -193,6 +193,7 @@ physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh
+  physicsMesh.updateMatrixWorld()
   return physicsObject
 }
 
@@ -252,6 +253,7 @@ physicsManager.addCookedConvexGeometry = (
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh;
+  physicsMesh.updateMatrixWorld()
   return physicsObject
 }
 
@@ -277,6 +279,7 @@ physicsManager.addShape = (shapeAddress, id) => {
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh;
+  physicsMesh.updateMatrixWorld()
   return physicsObject
 };
 physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dynamic) => {
@@ -311,8 +314,9 @@ physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dyna
   physicsMesh.visible = false
   // physicsMesh.visible = true
   physicsObject.add(physicsMesh)
-  physicsObject.physicsMesh = physicsMesh
-  // physicsObject.updateMatrixWorld();
+  physicsObject.physicsMesh = physicsMesh;
+  physicsMesh.updateMatrixWorld();
+  // scene.add(physicsMesh);
   return physicsObject
 };
 physicsManager.getGeometryForPhysicsId = (physicsId) =>
