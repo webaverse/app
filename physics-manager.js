@@ -302,7 +302,8 @@ physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dyna
     scale
   )
   // console.log('extract 1');
-  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId)/*, redMaterial*/)
+  const geometry = _extractPhysicsGeometryForId(physicsId);
+  const physicsMesh = new THREE.Mesh(geometry, redMaterial)
   /* console.log('convex shape', physicsMesh.geometry.boundingBox.getSize(localVector).toArray().join(','), {
     physicsMesh,
     sourceMesh: window.shapeMeshes[shapeAddress],
