@@ -33,6 +33,7 @@ import * as sounds from './sounds.js';
 // import {scene} from './renderer.js';
 // import physicsManager from './physics-manager.js';
 import zTargeting from './z-targeting.js';
+window.zTargeting = zTargeting;
 
 // const {contractNames} = metaversefileConstants;
 
@@ -607,6 +608,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _handlePhysicsHighlight();
 
   zTargeting.update(timestamp, timeDiff);
+  console.log(zTargeting?.focusTargetReticle?.position?.x, zTargeting?.focusTargetReticle?.position?.y, zTargeting?.focusTargetReticle?.position?.z);
 
   const _updatePhysicsHighlight = () => {
     highlightPhysicsMesh.visible = false;
