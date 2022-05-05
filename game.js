@@ -1004,10 +1004,11 @@ const _gameUpdate = (timestamp, timeDiff) => {
           .unproject(camera);
         localPlayer.avatar.eyeTargetInverted = false;
         localPlayer.avatar.eyeTargetEnabled = true;
-      } else if (cameraManager.target && cameraManager.target2) {
+      // this is commented out because it doesn't always look in the right direction
+      /* } else if (cameraManager.target && cameraManager.target2) {
         cameraManager.target2.getWorldPosition(localPlayer.avatar.eyeTarget);
         localPlayer.avatar.eyeTargetInverted = true;
-        localPlayer.avatar.eyeTargetEnabled = true;
+        localPlayer.avatar.eyeTargetEnabled = true; */
       } else {
         localPlayer.avatar.eyeTargetEnabled = false;
       }
