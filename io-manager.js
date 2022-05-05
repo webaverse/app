@@ -821,25 +821,25 @@ let lastMouseButtons = 0;
 ioManager.mousedown = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
   if (cameraManager.pointerLockElement) {
-    if ((changedButtons & 1) && (e.buttons & 1)) { // left
-      game.menuMouseDown();
-    }
+    // if ((changedButtons & 1) && (e.buttons & 1)) { // left
+    //   game.menuMouseDown();
+    // }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right
       game.menuAim();
     }
   } else {
-    if ((changedButtons & 1) && (e.buttons & 1)) { // left
-      const raycaster = _getMouseRaycaster(e, localRaycaster);
-      if (raycaster) {
-        transformControls.handleMouseDown(raycaster);
-      }
-    }
+    // if ((changedButtons & 1) && (e.buttons & 1)) { // left
+    //   const raycaster = _getMouseRaycaster(e, localRaycaster);
+    //   if (raycaster) {
+    //     transformControls.handleMouseDown(raycaster);
+    //   }
+    // }
     if ((changedButtons & 1) && (e.buttons & 2)) { // right
       game.menuDragdownRight();
       game.setContextMenu(false);
     }
   }
-  if ((changedButtons & 4) && (e.buttons & 4)) { // middle
+  if ((changedButtons & 1) && (e.buttons & 1)) { // middle
     e.preventDefault();
     if (!cameraManager.pointerLockElement) {
       cameraManager.requestPointerLock();
@@ -854,9 +854,9 @@ ioManager.mouseup = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
   // if (mouseDown) {
     if (cameraManager.pointerLockElement) {
-      if ((changedButtons & 1) && !(e.buttons & 1)) { // left
-        game.menuMouseUp();
-      }
+      // if ((changedButtons & 1) && !(e.buttons & 1)) { // left
+      //   game.menuMouseUp();
+      // }
       if ((changedButtons & 2) && !(e.buttons & 2)) { // right
         game.menuUnaim();
       }
@@ -865,7 +865,7 @@ ioManager.mouseup = e => {
         game.menuDragupRight();
       }
     }
-    if ((changedButtons & 4) && !(e.buttons & 4)) { // middle
+    if ((changedButtons & 1) && !(e.buttons & 1)) { // middle
       game.menuMiddleUp();
     }
     // mouseDown = false;
