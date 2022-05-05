@@ -7,8 +7,9 @@ import { AppContext } from '../../app';
 import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
 import { world } from '../../../../world.js';
-// import { NpcPlayer } from '../../../../character-controller.js';
+import { NpcPlayer } from '../../../../character-controller.js';
 import * as sounds from '../../../../sounds.js';
+import { chatManager } from '../../../../chat-manager.js';
 import musicManager from '../../../../music-manager.js';
 
 //
@@ -131,7 +132,8 @@ export const CharacterSelect = () => {
     const [ npcPlayer, setNpcPlayer ] = useState(null);
     const [ enabled, setEnabled ] = useState(false);
     const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
-    const [ themeSongCache, setThemeSongCache ] = useState(new WeakMap());
+    const [ themeSongCache, setThemeSongCache ] = useState(new Map());
+    const [ characterIntroCache, setCharacterIntroCache ] = useState(new Map());
 
     const refsMap = (() => {
         const map = new Map();
@@ -154,8 +156,6 @@ export const CharacterSelect = () => {
             if (el) {
                 const rect = el.getBoundingClientRect();
                 const parentRect = el.offsetParent.getBoundingClientRect();
-                // window.rect = rect;
-                // window.parentRect = parentRect;
                 setArrowPosition([
                     Math.floor(rect.left - parentRect.left + rect.width / 2 + 40),
                     Math.floor(rect.top - parentRect.top + rect.height / 2),
@@ -163,8 +163,6 @@ export const CharacterSelect = () => {
             } else {
                 setArrowPosition(null);
             }
-            // console.log('got ref', ref);
-            // setArrowPosition([highlightCharacter.x, highlightCharacter.y]);
         } else {
             setArrowPosition(null);
         }
@@ -177,42 +175,75 @@ export const CharacterSelect = () => {
             const {avatarUrl} = targetCharacter;
 
             let live = true;
-            let npcPlayer = npcPlayerCache.get(avatarUrl);
             (async () => {
-                if (!npcPlayer) {
-                    const avatarApp = await metaversefile.createAppAsync({
-                        // type: 'application/npc',
-                        // content: targetCharacter,
-                        start_url: targetCharacter.avatarUrl,
-                        components: [
-                            {
-                              key: 'npc',
-                              value: targetCharacter,
-                            },
-                        ],
-                    });
-                    if (!live) {
-                        avatarApp.destroy();
-                        return;
-                    }
-                    // console.log('got avatar app', avatarApp, targetCharacter);
-                    // debugger;
-                    npcPlayer = avatarApp.npcPlayer;
-                    // npcPlayer = new NpcPlayer();
-                    // npcPlayer.setAvatarApp(avatarApp);
-
-                    npcPlayerCache.set(avatarUrl, npcPlayer);
-                }
-
                 sounds.playSoundName('menuClick');
+                
+                let [
+                    npcPlayer,
+                    themeSong,
+                    characterIntro,
+                ] = await Promise.all([
+                    (async () => {
+                        let npcPlayer = npcPlayerCache.get(avatarUrl);
+                        if (!npcPlayer) {
+                            const avatarApp = await metaversefile.createAppAsync({
+                                // type: 'application/npc',
+                                // content: targetCharacter,
+                                start_url: targetCharacter.avatarUrl,
+                                components: [
+                                    {
+                                      key: 'npc',
+                                      value: targetCharacter,
+                                    },
+                                ],
+                            });
+                            if (!live) {
+                                avatarApp.destroy();
+                                return;
+                            }
+                            npcPlayer = avatarApp.npcPlayer;
+        
+                            npcPlayerCache.set(avatarUrl, npcPlayer);
+                        }
+                        return npcPlayer;
+                    })(),
+                    (async () => {
+                        let themeSong = themeSongCache.get(targetCharacter.themeSongUrl);
+                        if (!themeSong) {
+                            themeSong = await NpcPlayer.fetchThemeSong(targetCharacter.themeSongUrl);
+                            themeSongCache.set(targetCharacter.themeSongUrl, themeSong);
+                            if (!live) return;
+                        }
+                        musicManager.playCurrentMusic(themeSong);
+                        return themeSong;
+                    })(),
+                    (async () => {
+                        let characterIntro = characterIntroCache.get(targetCharacter.avatarUrl);
+                        if (!characterIntro) {
+                            const loreAIScene = metaversefile.useLoreAIScene();
+                            const response = await loreAIScene.generateCharacterIntroPrompt(targetCharacter.name, targetCharacter.bio);
+                            console.log('got character intro', response);
+                            characterIntroCache.set(targetCharacter.avatarUrl, response);
+                            if (!live) return;
+                            return response;
+                        } else {
+                            return characterIntro;
+                        }
+                    })(),
+                ]);
 
-                let themeSong = themeSongCache.get(npcPlayer);
-                if (!themeSong) {
-                    themeSong = await npcPlayer.fetchThemeSong();
-                    themeSongCache.set(npcPlayer, themeSong);
-                    if (!live) return;
-                }
-                musicManager.playCurrentMusic(themeSong);
+                (async () => {
+                    if (characterIntro) {
+                        const {message, onselect} = characterIntro;
+
+                        const preloadedMessage = npcPlayer.voicer.preloadMessage(message);
+                        await chatManager.waitForVoiceTurn(() => {
+                            return npcPlayer.voicer.start(preloadedMessage);
+                        });
+                    } else {
+                        console.warn('no character intro');
+                    }
+                })();
 
                 setNpcPlayer(npcPlayer);
             })();
@@ -272,6 +303,20 @@ export const CharacterSelect = () => {
             (async () => {
                 const localPlayer = metaversefile.useLocalPlayer();
                 await localPlayer.setPlayerSpec(character.avatarUrl, character);
+            })();
+
+            (async () => {
+                let characterIntro = characterIntroCache.get(character.avatarUrl);
+                // console.log('character on click', character.avatarUrl, characterIntro)
+                if (characterIntro) {
+                    const {onselect} = characterIntro;
+                    // console.log('onselect', {characterIntro, onselect});
+
+                    const preloadedMessage = npcPlayer.voicer.preloadMessage(onselect);
+                    await chatManager.waitForVoiceTurn(() => {
+                        return npcPlayer.voicer.start(preloadedMessage);
+                    });
+                }
             })();
 
             setTimeout(() => {
