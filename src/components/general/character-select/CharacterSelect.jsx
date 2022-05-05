@@ -306,18 +306,13 @@ export const CharacterSelect = () => {
             (async () => {
                 const localPlayer = metaversefile.useLocalPlayer();
                 await localPlayer.setPlayerSpec(character.avatarUrl, character);
-            })();
 
-            (async () => {
-                let characterIntro = characterIntroCache.get(character.avatarUrl);
-                // console.log('character on click', character.avatarUrl, characterIntro)
+                const characterIntro = characterIntroCache.get(character.avatarUrl);
                 if (characterIntro) {
                     const {onselect} = characterIntro;
-                    // console.log('onselect', {characterIntro, onselect});
-
-                    const preloadedMessage = npcPlayer.voicer.preloadMessage(onselect);
+                    const preloadedMessage = localPlayer.voicer.preloadMessage(onselect);
                     await chatManager.waitForVoiceTurn(() => {
-                        return npcPlayer.voicer.start(preloadedMessage);
+                        return localPlayer.voicer.start(preloadedMessage);
                     });
                 }
             })();
