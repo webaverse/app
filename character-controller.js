@@ -269,6 +269,9 @@ class PlayerBase extends THREE.Object3D {
     const avatarApp = this.getAvatarApp();
     const npcComponent = avatarApp.getComponent('npc');
     const npcThemeSongUrl = npcComponent?.themeSongUrl;
+    return await PlayerBase.fetchThemeSong(npcThemeSongUrl);
+  }
+  static async fetchThemeSong(npcThemeSongUrl) {
     if (npcThemeSongUrl) {
       return await musicManager.fetchMusic(npcThemeSongUrl);
     } else {
