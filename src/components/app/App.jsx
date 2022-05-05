@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, createContext } from 'react';
 
 import { defaultAvatarUrl } from '../../../constants';
 
+import metaversefile from 'metaversefile';
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
@@ -74,6 +75,14 @@ const _getCurrentRoom = () => {
 
 };
 
+const _getCurrentContract = () => {
+
+    const q = parseQuery( window.location.search );
+    const { eth } = q;
+    return eth || '';
+
+};
+
 export const AppContext = createContext();
 
 const useWebaverseApp = (() => {
@@ -86,6 +95,12 @@ const useWebaverseApp = (() => {
   };
 })();
 
+const playerPos = { x: -1000, z: -1000 };
+const loadedBlocks = {};
+const blockSize = 4.5;
+const itemsPerBlock = 3;
+const appsLoaded = [];
+
 export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
@@ -95,7 +110,10 @@ export const App = () => {
     const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
+    const [ contractId, setContractId ] = useState( _getCurrentContract() );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
+
+    const localPlayer = metaversefileApi.useLocalPlayer();
 
     //
 
@@ -113,7 +131,82 @@ export const App = () => {
         const roomName = _getCurrentRoom();
         setSelectedRoom( roomName );
 
+        const contractId = _getCurrentContract();
+        setContractId( contractId );
+
     };
+
+    useEffect( () => {
+
+        const loop = async () => {
+
+            requestAnimationFrame( loop );
+
+            let x = Math.round( playerPos.x / blockSize );
+            let z = Math.round( playerPos.z / blockSize );
+
+            if ( x !== Math.round( localPlayer.position.x / blockSize ) || z !== Math.round( localPlayer.position.z / blockSize ) ) {
+
+                playerPos.x = Math.round( localPlayer.position.x / blockSize );
+                playerPos.z = Math.round( localPlayer.position.z / blockSize );
+
+                x = playerPos.x;
+                z = playerPos.z;
+
+                if ( ! loadedBlocks[ x + '-' + z ] ) {
+
+                    loadedBlocks[ x + '-' + z ] = true;
+
+                    x *= itemsPerBlock;
+                    z *= itemsPerBlock;
+
+                    for ( let i = x; i < x + itemsPerBlock; i ++ ) {
+
+                        for ( let j = z; j < z + itemsPerBlock; j ++ ) {
+
+                            const app = await metaversefile.createAppAsync({
+                                start_url: '/@proxy/eth://' + contractId + '/' + ( 10 * i + j + 1000 )
+                            });
+
+                            app.position.set( i * ( blockSize / itemsPerBlock ) - 0.0 * blockSize + 100, 1, j * ( blockSize / itemsPerBlock ) - 0.0 * blockSize );
+                            app.userData.targetPos = { x: i * ( blockSize / itemsPerBlock ) - 0.0 * blockSize, z: j * ( blockSize / itemsPerBlock ) - 0.0 * blockSize };
+                            app.updateMatrixWorld( true );
+                            metaversefile.addApp( app );
+                            appsLoaded.push( app );
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            //
+
+            appsLoaded.forEach( ( item ) => {
+
+                item.position.x = 0.95 * item.position.x + 0.05 * item.userData.targetPos.x;
+                item.position.z = 0.95 * item.position.z + 0.05 * item.userData.targetPos.z;
+                item.updateMatrixWorld( true );
+
+            });
+
+        };
+
+        loop();
+
+        //
+
+        return () => {
+
+            cancelAnimationFrame( loop );
+
+        };
+
+    }, [] );
+
+    //
 
     useEffect( () => {
 

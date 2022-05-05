@@ -24,7 +24,7 @@ class BlockchainManager {
       return null;
     }
   }
-  async getContractItems ( address ) {
+  async getContractItemsTotal ( address ) {
 
     const abi = [
         "function totalSupply() view returns (uint256)",
