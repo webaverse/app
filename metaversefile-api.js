@@ -166,9 +166,12 @@ class App extends THREE.Object3D {
       return null;
     }
   }
-  activate() {
+  activate({
+    physicsId = -1,
+  } = {}) {
     this.dispatchEvent({
       type: 'activate',
+      physicsId,
     });
   }
   wear() {
