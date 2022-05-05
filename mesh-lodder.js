@@ -114,7 +114,7 @@ export class MeshLodder {
   getPhysicsObjects() {
     return this.physicsObjects;
   }
-  #getContentergeable()  {
+  #getContentMergeable()  {
     /* const getObjectKey = (object, material) => {
       const renderer = getRenderer();
       return renderer.getProgramCacheKey(object, material);
@@ -187,7 +187,7 @@ export class MeshLodder {
     return Array.from(mergeables.values())[0];
   }
   compile() {
-    const mergeable = this.#getContentergeable();
+    const mergeable = this.#getContentMergeable();
     const {
       // type,
       // material,
