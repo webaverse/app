@@ -47,6 +47,17 @@ const textureInitializers = {
   }, */
 };
 
+const _eraseVertices = (geometry, positionStart, positionCount/*, indexStart, indexCount*/) => {
+  console.log('erase vertices', geometry, positionStart, positionCount/*, indexStart, indexCount*/);
+  for (let i = 0; i < positionCount; i++) {
+    geometry.attributes.position.array[positionStart + i] = 0;
+    geometry.attributes.position.needsUpdate = true; // XXX needs to use update range
+  }
+  /* for (let i = 0; i < indexCount; i++) {
+    geometry.index.array[indexStart + i] = 0;
+  } */
+};
+
 export class MeshLodder {
   constructor() {
     const positions = new Float32Array(bufferSize * 3);
@@ -74,6 +85,7 @@ export class MeshLodder {
     this.mesh.frustumCulled = false;
 
     this.contentIndex = {};
+    this.itemRegistry = [];
     this.shapeAddresses = {};
     this.physicsObjects = [];
     this.compiled = false;
@@ -380,6 +392,35 @@ export class MeshLodder {
   #getContentIndexNames() {
     return Object.keys(this.contentIndex).sort();
   }
+  getItemByPhysicsId(physicsId) {
+    const physicsObjectIndex = this.physicsObjects.findIndex(p => p.physicsId === physicsId);
+    if (physicsObjectIndex !== -1) {
+      const item = this.itemRegistry[physicsObjectIndex];
+      return item;
+    } else {
+      return null;
+    }
+  }
+  deleteItem(item) {
+    const index = this.itemRegistry.indexOf(item);
+    if (index !== -1) {
+      const item = this.itemRegistry[index];
+      const {geometry} = this.mesh;
+      _eraseVertices(
+        geometry,
+        item.position.start,
+        item.position.count,
+        // item.index.start,
+        // item.index.count,
+      );
+
+      const physicsObject = this.physicsObjects[index];
+      physicsManager.removeGeometry(physicsObject);
+      
+      this.itemRegistry.splice(index, 1);
+      this.physicsObjects.splice(index, 1);
+    }
+  }
   update() {
     if (this.compiled) {
       const currentCoord = this.#getCurrentCoord(localVector2D);
@@ -426,9 +467,29 @@ export class MeshLodder {
             const quaternion = localQuaternion;
             const scale = localVector2;
             const shape = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale);
+
             this.physicsObjects.push(shape);
+
+            // return shape;
           };
+          // const physicsObject = _addPhysicsShape();
           _addPhysicsShape();
+
+          const _addItemToRegistry = () => {
+            const item = {
+              // physicsId: physicsObject.physicsId,
+              position: {
+                start: positionIndex * 3,
+                count: g.attributes.position.count * 3,
+              },
+              index: {
+                start: indexIndex,
+                count: g.index.count,
+              },
+            };
+            this.itemRegistry.push(item);
+          };
+          _addItemToRegistry();
 
           const _mapPositions = (g, geometry) => {
             const count = g.attributes.position.count;
