@@ -1505,8 +1505,7 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2] // XXX delete if it will not be deleted
 
-    const result = new Uint8Array(dataLength)
-    result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength))
+    const result = moduleInstance.HEAPU8.slice(dataPtr, dataPtr + dataLength);
     allocator.freeAll()
     return result
   }
@@ -1551,7 +1550,7 @@ const physxWorker = (() => {
     allocator.freeAll()
   }
 
-  w.addConvexGeometryPhysics = (physics, mesh, id) => {
+  w.addConvexGeometryPhysics = (physics, mesh, dynamic, id) => {
     mesh.updateMatrixWorld()
     const { geometry } = mesh
 
@@ -1609,7 +1608,8 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
-      shape
+      +dynamic,
+      shape,
     )
   }
   w.cookConvexGeometryPhysics = (physics, mesh) => {
@@ -1641,8 +1641,7 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2] // XXX delete if it will not be deleted
 
-    const result = new Uint8Array(dataLength)
-    result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength))
+    const result = moduleInstance.HEAPU8.slice(dataPtr, dataPtr + dataLength);
     allocator.freeAll()
     return result
   }
@@ -1652,6 +1651,7 @@ const physxWorker = (() => {
     position,
     quaternion,
     scale,
+    dynamic,
     id
   ) => {
     const allocator = new Allocator()
@@ -1682,9 +1682,33 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
-      0
+      +dynamic,
+      0,
     )
     allocator.freeAll()
+  }
+
+  w.addConvexShapePhysics = (physics, shape, position, quaternion, scale, dynamic, id) => {
+    const positionBuffer = scratchStack.f32.subarray(3, 6)
+    position.toArray(positionBuffer)
+    const quaternionBuffer = scratchStack.f32.subarray(6, 10)
+    quaternion.toArray(quaternionBuffer)
+    const scaleBuffer = scratchStack.f32.subarray(10, 13)
+    scale.toArray(scaleBuffer)
+
+    const materialAddress = w.getDefaultMaterial(physics);
+
+    moduleInstance._addConvexGeometryPhysics(
+      physics,
+      shape,
+      positionBuffer.byteOffset,
+      quaternionBuffer.byteOffset,
+      scaleBuffer.byteOffset,
+      id,
+      materialAddress,
+      +dynamic,
+      shape
+    )
   }
 
   w.createShapePhysics = (physics, buffer) => {

@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import {MaxRectsPacker} from 'maxrects-packer';
-import {localPlayer} from './players.js';
+// import {localPlayer} from './players.js';
 import {alea} from './procgen/procgen.js';
 // import {getRenderer} from './renderer.js';
-import {mod/*, modUv*/} from './util.js';
+import {mod, modUv, getNextPhysicsId} from './util.js';
 import physicsManager from './physics-manager.js';
 
 const bufferSize = 2 * 1024 * 1024;
@@ -19,6 +19,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
+const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
@@ -44,12 +45,6 @@ const textureInitializers = {
   /* metalness(canvas) {
     _colorCanvas(canvas, 'rgb(0, 0, 0)');
   }, */
-};
-
-const modUv = uv => {
-  uv.x = mod(uv.x, 1);
-  uv.y = mod(uv.y, 1);
-  return uv;
 };
 
 export class MeshLodder {
@@ -79,6 +74,8 @@ export class MeshLodder {
     this.mesh.frustumCulled = false;
 
     this.contentIndex = {};
+    this.shapeAddresses = {};
+    this.physicsObjects = [];
     this.compiled = false;
     this.lastChunkCoord = new THREE.Vector2(NaN, NaN);
   }
@@ -96,6 +93,14 @@ export class MeshLodder {
       return mesh;
     });
     this.contentIndex[name] = newMeshes;
+
+    const lastMesh = newMeshes[newMeshes.length - 1];
+    const buffer = physicsManager.cookConvexGeometry(lastMesh);
+    const shapeAddress = physicsManager.createConvexShape(buffer);
+    this.shapeAddresses[name] = shapeAddress;
+  }
+  getPhysicsObjects() {
+    return this.physicsObjects;
   }
   #getContentergeable()  {
     /* const getObjectKey = (object, material) => {
@@ -238,22 +243,12 @@ export class MeshLodder {
         const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 0);
         const rectUuidCache = new Map();
         const rectIndexCache = new Map();
-        // window.uniqueTextureSets = [];
         textureSizes.forEach((textureSize, index) => {
           const {x: width, y: height} = textureSize;
           const hash = textureUuids[index];
           
           let rect = rectUuidCache.get(hash);
           if (!rect) {
-            /* window.uniqueTextureSets.push({
-              // uuid: materials[index].uuid,
-              mapUUid: maps[index]?.uuid,
-              name: materials[index].name,
-              material: materials[index],
-              mesh: meshes[index],
-              hash,
-            }); */
-
             rect = {
               width,
               height,
@@ -300,7 +295,6 @@ export class MeshLodder {
     this.atlas = atlas;
 
     // draw atlas images
-    // const originalTextures = new Map(); // map of canvas to the texture that generated it
     const _drawAtlasImages = atlas => {
       const _getTexturesKey = textures => textures.map(t => t ? t.uuid : '').join(',');
       const _drawAtlasImage = (textureType, textures) => {
@@ -331,10 +325,6 @@ export class MeshLodder {
                 const tw = w * canvasScale;
                 const th = h * canvasScale;
                 ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
-
-                /* if (!originalTextures.has(canvas)) {
-                  originalTextures.set(canvas, texture);
-                } */
               }
             });
           });
@@ -350,7 +340,6 @@ export class MeshLodder {
       for (const textureType of textureTypes) {
         const textures = mergeable[`${textureType}s`];
         const key = _getTexturesKey(textures);
-        // console.log('textures key', key, textures);
 
         let atlasImage = atlasImagesMap.get(key);
         if (atlasImage === undefined) { // cache miss
@@ -365,7 +354,6 @@ export class MeshLodder {
       return atlasImages;
     };
     const atlasImages = _drawAtlasImages(atlas);
-    // window.atlasImages = atlasImages;
 
     const {material} = this;
     for (const textureType of textureTypes) {
@@ -387,10 +375,6 @@ export class MeshLodder {
     return this.mesh;
   }
   #getCurrentCoord(target) {
-    /* const position = localPlayer.position;
-    target.x = Math.floor(position.x / chunkWorldSize);
-    target.y = Math.floor(position.z / chunkWorldSize);
-    return target; */
     return target.set(0, 0);
   }
   #getContentIndexNames() {
@@ -411,7 +395,6 @@ export class MeshLodder {
         
         const rng = alea(`mesh-lodder:${currentCoord.x}:${currentCoord.y}`);
         const numObjects = minObjectsPerChunk + Math.floor(rng() * (maxObjectPerChunk - minObjectsPerChunk));
-        // console.log('num objects', numObjects);
         let positionIndex = 0;
         let indexIndex = 0;
         for (let i = 0; i < numObjects; i++) {
@@ -431,19 +414,35 @@ export class MeshLodder {
           const tw = w * canvasScale;
           const th = h * canvasScale;
 
+          const matrixWorld = localMatrix.copy(mesh.matrixWorld)
+            .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
+            .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ))
+            .premultiply(this.mesh.matrixWorld);
+
+          const _addPhysicsShape = () => {
+            const shapeAddress = this.shapeAddresses[name];
+            matrixWorld.decompose(localVector, localQuaternion, localVector2);
+            const position = localVector;
+            const quaternion = localQuaternion;
+            const scale = localVector2;
+            const shape = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale);
+            this.physicsObjects.push(shape);
+          };
+          _addPhysicsShape();
+
           const _mapPositions = (g, geometry) => {
             const count = g.attributes.position.count;
-            
+
+            const matrix = localMatrix.copy(mesh.matrixWorld)
+              .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
+              .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ));
+
             for (let i = 0; i < count; i++) {
               const srcIndex = i;
               const dstIndex = positionIndex + i;
 
-              localMatrix.copy(mesh.matrixWorld)
-                .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
-                .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ));
-
               localVector.fromArray(g.attributes.position.array, srcIndex * 3)
-                .applyMatrix4(localMatrix)
+                .applyMatrix4(matrix)
                 .toArray(geometry.attributes.position.array, dstIndex * 3);
             }
           };
@@ -474,14 +473,10 @@ export class MeshLodder {
           };
 
           _mapPositions(g, geometry);
-          // geometry.attributes.position.array.set(g.attributes.position.array, positionIndex * 3);
           geometry.attributes.normal.array.set(g.attributes.normal.array, positionIndex * 3);
           _mapUvs(g, geometry, 'originalUv', 'uv');
           _mapUvs(g, geometry, 'originalUv2', 'uv2');
-          // geometry.attributes.uv.array.set(g.attributes.uv.array, positionIndex * 2);
-          // geometry.attributes.uv2.array.set(g.attributes.uv2.array, positionIndex * 2);
           _mapIndices(g, geometry);
-          // geometry.index.array.set(g.index.array, indexIndex);
 
           geometry.attributes.position.needsUpdate = true;
           geometry.attributes.normal.needsUpdate = true;
@@ -494,7 +489,6 @@ export class MeshLodder {
         }
 
         geometry.setDrawRange(0, indexIndex);
-        // console.log('set draw range', geometry, indexIndex);
       }
     }
   }

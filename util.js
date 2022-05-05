@@ -344,7 +344,6 @@ export function convertMeshToPhysicsMesh(topMesh) {
   oldParent && oldParent.remove(topMesh);
 
   topMesh.updateMatrixWorld();
-  // localMatrix.copy(topMesh.matrix).invert();
 
   const meshes = [];
   topMesh.traverse(o => {
@@ -355,10 +354,6 @@ export function convertMeshToPhysicsMesh(topMesh) {
   const newGeometries = meshes.map(mesh => {
     const {geometry} = mesh;
     const newGeometry = new THREE.BufferGeometry();
-    /* if (mesh.isSkinnedMesh) {
-      console.log('compile skinned mesh', mesh);
-    } */
-    // localMatrix2.multiplyMatrices(localMatrix, mesh.isSkinnedMesh ? topMesh.matrixWorld : mesh.matrixWorld);
     if (mesh.isSkinnedMesh) {
       localMatrix2.identity();
     } else {
@@ -395,21 +390,25 @@ export function convertMeshToPhysicsMesh(topMesh) {
     oldParent.add(topMesh);
     topMesh.updateMatrixWorld();
   }
+  let physicsMesh;
   if (newGeometries.length > 0) {
     const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
-    const physicsMesh = new THREE.Mesh(newGeometry);
-    /* physicsMesh.position.copy(topMesh.position);
-    physicsMesh.quaternion.copy(topMesh.quaternion);
-    physicsMesh.scale.copy(topMesh.scale);
-    physicsMesh.matrix.copy(topMesh.matrix);
-    physicsMesh.matrixWorld.copy(topMesh.matrixWorld); */
-    physicsMesh.visible = false;
-    return physicsMesh;
+    physicsMesh = new THREE.Mesh(newGeometry);
   } else {
-    const physicsMesh = new THREE.Mesh();
-    physicsMesh.visible = false;
-    return physicsMesh;
+    physicsMesh = new THREE.Mesh();
   }
+  physicsMesh.visible = false;
+
+  if (topMesh.parent) {
+    topMesh.parent.matrixWorld.decompose(
+      physicsMesh.position,
+      physicsMesh.quaternion,
+      physicsMesh.scale
+    )
+    physicsMesh.updateMatrixWorld()
+  }
+
+  return physicsMesh;
   
 }
 
