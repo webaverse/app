@@ -14,6 +14,7 @@ const minObjectsPerChunk = 20;
 const maxObjectPerChunk = 50;
 
 const upVector = new THREE.Vector3(0, 1, 0);
+const oneVector = new THREE.Vector3(1, 1, 1);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -414,8 +415,8 @@ class MeshLodder {
       const {geometry} = this.mesh;
       _eraseVertices(
         geometry,
-        item.position.start,
-        item.position.count,
+        item.attributes.position.start,
+        item.attributes.position.count,
         // item.index.start,
         // item.index.count,
       );
@@ -483,10 +484,14 @@ class MeshLodder {
 
           const _addItemToRegistry = () => {
             const item = {
-              // physicsId: physicsObject.physicsId,
-              position: {
-                start: positionIndex * 3,
-                count: g.attributes.position.count * 3,
+              position: new THREE.Vector3(positionX, 2, positionZ),
+              quaternion: new THREE.Quaternion().setFromAxisAngle(upVector, rotationY),
+              scale: oneVector,
+              attributes: {
+                position: {
+                  start: positionIndex * 3,
+                  count: g.attributes.position.count * 3,
+                },
               },
               index: {
                 start: indexIndex,
