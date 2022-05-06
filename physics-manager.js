@@ -15,14 +15,14 @@ import { getNextPhysicsId, convertMeshToPhysicsMesh } from './util.js'
 // import {groundFriction} from './constants.js';
 import { CapsuleGeometry } from './geometries.js'
 
-const localVector = new THREE.Vector3()
+// const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
-const localVector3 = new THREE.Vector3()
+/* const localVector3 = new THREE.Vector3()
 const localVector4 = new THREE.Vector3()
 const localVector5 = new THREE.Vector3()
 const localQuaternion = new THREE.Quaternion()
 const localQuaternion2 = new THREE.Quaternion()
-const localMatrix = new THREE.Matrix4()
+const localMatrix = new THREE.Matrix4() */
 
 /* const redMaterial = new THREE.MeshBasicMaterial({
   color: 0xff0000,
@@ -634,6 +634,24 @@ physicsManager.sweepConvexShape = (
   )
 };
 
+const _updatePhysicsObjects = updatesOut => {
+  for (const updateOut of updatesOut) {
+    const { id, position, quaternion, collided, grounded } = updateOut
+    const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id)
+    if (physicsObject) {
+      // console.log('update physics object', id);
+
+      physicsObject.position.copy(position)
+      physicsObject.quaternion.copy(quaternion)
+      physicsObject.updateMatrixWorld()
+
+      physicsObject.collided = collided
+      physicsObject.grounded = grounded
+    } /* else {
+      console.warn('failed to update unknown physics id', id);
+    } */
+  }
+};
 physicsManager.simulatePhysics = (timeDiff) => {
   if (physicsEnabled) {
     const t = timeDiff / 1000
@@ -642,21 +660,8 @@ physicsManager.simulatePhysics = (timeDiff) => {
       physicsUpdates,
       t
     )
-    physicsUpdates.length = 0
-    for (const updateOut of updatesOut) {
-      const { id, position, quaternion, collided, grounded } = updateOut
-      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id)
-      if (physicsObject) {
-        physicsObject.position.copy(position)
-        physicsObject.quaternion.copy(quaternion)
-        physicsObject.updateMatrixWorld()
-
-        physicsObject.collided = collided
-        physicsObject.grounded = grounded
-      } /* else {
-        console.warn('failed to get physics object', id);
-      } */
-    }
+    // physicsUpdates.length = 0
+    _updatePhysicsObjects(updatesOut);
   }
 }
 
