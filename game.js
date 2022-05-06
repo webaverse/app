@@ -1,6 +1,7 @@
 /*
 this file contains the main game logic tying together the managers.
 general game logic goes here.
+usually, code starts here and is migrated to an appropriate manager.
 */
 
 import * as THREE from 'three';
