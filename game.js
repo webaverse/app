@@ -120,61 +120,66 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
 }
 
 const _getCurrentGrabAnimation = () => {
-  const grabUseMeshPosition = grabUseMesh.position;
-
-  let currentDistance = 100;
   let currentAnimation = '';
 
-  // Forward
-  {
-    localVector.set(0, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
-      .add(localPlayer.position);
-    const distance = grabUseMeshPosition.distanceTo(localVector);
-    currentDistance = distance;
-    currentAnimation = 'grab_forward';
-  }
+  const wearComponent = grabUseMesh.targetApp.getComponent('wear');
+  if (wearComponent && wearComponent.grabAnimation === 'pick_up') {
+    currentAnimation = wearComponent.grabAnimation;
+  } else {
+    const grabUseMeshPosition = grabUseMesh.position;
+    let currentDistance = 100;
 
-  // Down
-  {
-    localVector.set(0, -1.2, -0.5).applyQuaternion(localPlayer.quaternion)
-      .add(localPlayer.position);
-    const distance = grabUseMeshPosition.distanceTo(localVector);
-    if (distance < currentDistance) {
+    // Forward
+    {
+      localVector.set(0, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
       currentDistance = distance;
-      currentAnimation = 'grab_down';
+      currentAnimation = 'grab_forward';
     }
-  }
 
-  // Up
-  {
-    localVector.set(0, 0.0, -0.5).applyQuaternion(localPlayer.quaternion)
-      .add(localPlayer.position);
-    const distance = grabUseMeshPosition.distanceTo(localVector);
-    if (distance < currentDistance) {
-      currentDistance = distance;
-      currentAnimation = 'grab_up';
+    // Down
+    {
+      localVector.set(0, -1.2, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = 'grab_down';
+      }
     }
-  }
 
-  // Left
-  {
-    localVector.set(-0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
-      .add(localPlayer.position);
-    const distance = grabUseMeshPosition.distanceTo(localVector);
-    if (distance < currentDistance) {
-      currentDistance = distance;
-      currentAnimation = 'grab_left';
+    // Up
+    {
+      localVector.set(0, 0.0, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = 'grab_up';
+      }
     }
-  }
-  
-  // Right
-  {
-    localVector.set(0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
-      .add(localPlayer.position);
-    const distance = grabUseMeshPosition.distanceTo(localVector);
-    if (distance < currentDistance) {
-      currentDistance = distance;
-      currentAnimation = 'grab_right';
+
+    // Left
+    {
+      localVector.set(-0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = 'grab_left';
+      }
+    }
+    
+    // Right
+    {
+      localVector.set(0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = 'grab_right';
+      }
     }
   }
 
