@@ -1465,6 +1465,7 @@ const physxWorker = (() => {
 
     const materialAddress = w.getDefaultMaterial(physics)
 
+    const external = false;
     moduleInstance._addGeometryPhysics(
       physics,
       shape,
@@ -1473,6 +1474,7 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
+      +external,
       shape
     )
   }
@@ -1537,6 +1539,7 @@ const physxWorker = (() => {
 
     const materialAddress = w.getDefaultMaterial(physics)
 
+    const external = false;
     moduleInstance._addGeometryPhysics(
       physics,
       shape,
@@ -1545,12 +1548,13 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
+      +external,
       0
     )
     allocator.freeAll()
   }
 
-  w.addConvexGeometryPhysics = (physics, mesh, dynamic, id) => {
+  w.addConvexGeometryPhysics = (physics, mesh, dynamic, external, id) => {
     mesh.updateMatrixWorld()
     const { geometry } = mesh
 
@@ -1609,6 +1613,7 @@ const physxWorker = (() => {
       id,
       materialAddress,
       +dynamic,
+      +external,
       shape,
     )
   }
@@ -1652,6 +1657,7 @@ const physxWorker = (() => {
     quaternion,
     scale,
     dynamic,
+    external,
     id
   ) => {
     const allocator = new Allocator()
@@ -1683,12 +1689,13 @@ const physxWorker = (() => {
       id,
       materialAddress,
       +dynamic,
+      +external,
       0,
     )
     allocator.freeAll()
   }
 
-  w.addConvexShapePhysics = (physics, shape, position, quaternion, scale, dynamic, id) => {
+  w.addConvexShapePhysics = (physics, shape, position, quaternion, scale, dynamic, external, id) => {
     const positionBuffer = scratchStack.f32.subarray(3, 6)
     position.toArray(positionBuffer)
     const quaternionBuffer = scratchStack.f32.subarray(6, 10)
@@ -1707,6 +1714,7 @@ const physxWorker = (() => {
       id,
       materialAddress,
       +dynamic,
+      +external,
       shape
     )
   }
