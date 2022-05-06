@@ -73,6 +73,7 @@ const rayVectorZero = new THREE.Vector3(0,0,0);
   console.log('get signed angle', s, c, angle);
   return angle;
 } */
+
 const getSideOfY = (() => {
   const localVector = new THREE.Vector3();
   const localVector2 = new THREE.Vector3();
@@ -486,24 +487,33 @@ class CameraManager extends EventTarget {
       camera.updateMatrixWorld();
     } else {
       const _bumpCamera = () => {
-        const direction = localVector.copy(camera.position)
-          .sub(localPlayer.position);
-        const sweepDistance = direction.length();
-        direction.normalize();
-        const halfExtents = localVector2.set(0.5, 0.5, 0.1);
-        const maxHits = 1;
+        const direction = localVector.set(0, 0, 1)
+          .applyQuaternion(camera.quaternion);
+        const backOffset = 2;
 
-        const result = physicsManager.sweepBox(
-          localPlayer.position,
-          localPlayer.quaternion,
-          halfExtents,
-          direction,
-          sweepDistance,
-          maxHits,
-        );
-        if (result.length > 0) {
-          const distance = result[0].distance;
-          cameraOffsetTargetZ = distance < 0.5 ? 0 : -distance;
+        const delta = localVector2.copy(camera.position)
+          .sub(localPlayer.position);
+        const sweepDistance = Math.max(delta.length() - backOffset, 0);
+
+        // console.log('offset', cameraOffsetTargetZ);
+
+        if (sweepDistance > 0) {
+          const halfExtents = localVector2.set(0.5, 0.5, 0.1);
+          const maxHits = 1;
+
+          const result = physicsManager.sweepBox(
+            localVector3.copy(localPlayer.position)
+              .add(localVector4.copy(direction).multiplyScalar(backOffset)),
+            camera.quaternion,
+            halfExtents,
+            direction,
+            sweepDistance,
+            maxHits,
+          );
+          if (result.length > 0) {
+            const distance = result[0].distance;
+            cameraOffsetTargetZ = distance < 0.5 ? 0 : -distance;
+          }
         }
       };
       _bumpCamera();
