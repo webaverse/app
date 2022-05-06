@@ -313,6 +313,12 @@ export const CharacterSelect = () => {
         } else if (!opened && enabled) {
             setEnabled(false);
         }
+        if (!opened) {
+            setHighlightCharacter(null);
+            setSelectCharacter(null);
+            setArrowPosition(null);
+            setText('');
+        }
     }, [opened, enabled]);
     
     const onMouseMove = character => e => {
