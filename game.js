@@ -1614,11 +1614,10 @@ class GameManager extends EventTarget {
     if (grabUseMesh.visible) {
       const activateAction = localPlayer.getAction('activate');
       if (!activateAction) {
-        const grabAnimationName = _getCurrentGrabAnimation();
+        const animationName = _getCurrentGrabAnimation();
         const newActivateAction = {
           type: 'activate',
-          // time: 0,
-          grabAnimationName,
+          animationName,
         };
         localPlayer.addAction(newActivateAction);
       }
