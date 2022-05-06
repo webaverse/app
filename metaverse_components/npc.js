@@ -193,15 +193,7 @@ try {
           }
         }
 
-        app.npcPlayer.avatar.eyeTarget.copy(localPlayer.position);
-        app.npcPlayer.avatar.eyeTargetEnabled = true;
-        app.npcPlayer.avatar.eyeTargetInverted = true;
-        if (app.npcPlayer.avatar.lastNeedsEyeTarget) {
-          app.npcPlayer.eyeballTarget.copy(localPlayer.position);
-          app.npcPlayer.eyeballTargetEnabled = true;
-        } else {
-          app.npcPlayer.eyeballTargetEnabled = false;
-        }
+        app.npcPlayer.setTarget(localPlayer.position);
 
         app.npcPlayer.updatePhysics(timestamp, timeDiff);
         app.npcPlayer.updateAvatar(timestamp, timeDiff);
