@@ -492,8 +492,22 @@ class MeshLodder {
                 start: indexIndex,
                 count: g.index.count,
               },
-              cloneApp() {
-                return null; // XXX
+              cloneApp: () => {
+                const geometry = g.clone();
+
+                _mapUvs(g, geometry, 'originalUv', 'uv', 0, g.attributes.originalUv.count);
+                _mapUvs(g, geometry, 'originalUv2', 'uv2', 0, g.attributes.originalUv2.count);
+
+                const {material} = this;
+                const cloned = new THREE.Mesh(geometry, material);
+                cloned.matrixWorld.copy(mesh.matrixWorld)
+                  .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
+                  .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ))
+                  .premultiply(this.mesh.matrixWorld);
+                cloned.matrix.copy(cloned.matrixWorld)
+                  .decompose(cloned.position, cloned.quaternion, cloned.scale);
+                cloned.frustumCulled = false;
+                return cloned;
               },
             };
             this.itemRegistry.push(item);
