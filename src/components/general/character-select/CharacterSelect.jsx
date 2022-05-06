@@ -11,6 +11,8 @@ import { NpcPlayer } from '../../../../character-controller.js';
 import * as sounds from '../../../../sounds.js';
 import { chatManager } from '../../../../chat-manager.js';
 import musicManager from '../../../../music-manager.js';
+import { RpgText } from '../../../RpgText.jsx';
+import { chatTextSpeed } from '../../../../constants.js';
 
 //
 
@@ -137,6 +139,7 @@ export const CharacterSelect = () => {
     const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
     const [ themeSongCache, setThemeSongCache ] = useState(new Map());
     const [ characterIntroCache, setCharacterIntroCache ] = useState(new Map());
+    const [ text, setText ] = useState('');
 
     const refsMap = (() => {
         const map = new Map();
@@ -181,10 +184,11 @@ export const CharacterSelect = () => {
             (async () => {
                 sounds.playSoundName('menuClick');
                 
-                let [
-                    npcPlayer,
-                    themeSong,
-                    characterIntro,
+                let npcPlayer = null;
+                const [
+                    _npcPlayer,
+                    _themeSong,
+                    _characterIntro,
                 ] = await Promise.all([
                     (async () => {
                         let npcPlayer = npcPlayerCache.get(avatarUrl);
@@ -217,36 +221,44 @@ export const CharacterSelect = () => {
                             themeSongCache.set(targetCharacter.themeSongUrl, themeSong);
                             if (!live) return;
                         }
-                        musicManager.playCurrentMusic(themeSong);
                         return themeSong;
                     })(),
                     (async () => {
                         let characterIntro = characterIntroCache.get(targetCharacter.avatarUrl);
                         if (!characterIntro) {
                             const loreAIScene = metaversefile.useLoreAIScene();
-                            const response = await loreAIScene.generateCharacterIntroPrompt(targetCharacter.name, targetCharacter.bio);
-                            console.log('got character intro', response);
-                            characterIntroCache.set(targetCharacter.avatarUrl, response);
+                            characterIntro = await loreAIScene.generateCharacterIntroPrompt(targetCharacter.name, targetCharacter.bio);
+                            // console.log('got character intro', response);
+                            characterIntroCache.set(targetCharacter.avatarUrl, characterIntro);
                             if (!live) return;
-                            return response;
-                        } else {
-                            return characterIntro;
                         }
+                        return characterIntro;
                     })(),
                 ]);
+                npcPlayer = _npcPlayer;
+                const themeSong = _themeSong;
+                const characterIntro = _characterIntro;
 
+                if (!live) return;
                 (async () => {
                     if (characterIntro) {
-                        const {message, onselect} = characterIntro;
+                        const {message} = characterIntro;
+                        setText(message);
 
                         const preloadedMessage = npcPlayer.voicer.preloadMessage(message);
                         await chatManager.waitForVoiceTurn(() => {
                             return npcPlayer.voicer.start(preloadedMessage);
                         });
+                        if (!live) return;
                     } else {
                         console.warn('no character intro');
+
+                        setText('');
                     }
                 })();
+                if (themeSong) {
+                  musicManager.playCurrentMusic(themeSong);
+                }
 
                 setNpcPlayer(npcPlayer);
             })();
@@ -262,6 +274,9 @@ export const CharacterSelect = () => {
             return () => {
                 live = false;
                 world.appManager.removeEventListener('frame', frame);
+                if (npcPlayer) {
+                  npcPlayer.voicer.stop();
+                }
             };
         }
     }, [targetCharacter]);
@@ -311,6 +326,8 @@ export const CharacterSelect = () => {
                 if (characterIntro) {
                     const {onselect} = characterIntro;
                     const preloadedMessage = localPlayer.voicer.preloadMessage(onselect);
+                    npcPlayer.voicer.stop();
+                    localPlayer.voicer.stop();
                     await chatManager.waitForVoiceTurn(() => {
                         return localPlayer.voicer.start(preloadedMessage);
                     });
@@ -378,6 +395,10 @@ export const CharacterSelect = () => {
                     </ul>
                 </div>
             </div>
+
+            {(opened && text) ?
+              <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
+            : null}
 
             <MegaHup
               open={opened}
