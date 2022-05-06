@@ -15,6 +15,7 @@ import {
 } from './renderer.js';
 import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
+import gameManager from './game.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -59,6 +60,9 @@ export const listenHack = () => {
   let currentFieldMusic = null;
   let currentFieldMusicIndex = 0;
   window.document.addEventListener('keydown', async e => {
+
+    if ( gameManager.inputFocused() ) return;
+
     switch (e.which) {
       case 48: { // 0
         await musicManager.waitForLoad();
