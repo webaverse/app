@@ -6,7 +6,6 @@ import { world } from '../../../../world.js'
 import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
 import cameraManager from '../../../../camera-manager.js';
-import physicsManager from '../../../../physics-manager.js';
 
 import { Spritesheet } from '../spritesheet';
 import { AppContext } from '../../app';
@@ -17,7 +16,7 @@ import styles from './world-objects-list.module.css';
 
 //
 
-const NumberInput = ({ value, step, onChange, title }) => {
+const NumberInput = ({ value, step, onChange, title, minValue = null }) => {
 
     const handleInputKeyUp = ( event ) => {
 
@@ -37,7 +36,7 @@ const NumberInput = ({ value, step, onChange, title }) => {
 
         <div className={ styles.input } >
             <div className={ styles.inputTitle } >{ title }</div>
-            <input type="number" className={ styles.inputText } value={ value } onChange={ onChange } onKeyUp={ handleInputKeyUp } step={ step } />
+            <input type="number" min={ minValue } className={ styles.inputText } value={ value } onChange={ onChange } onKeyUp={ handleInputKeyUp } step={ step } />
         </div>
 
     );
@@ -111,13 +110,25 @@ export const WorldObjectsList = () => {
                 break;
 
             case 'sx':
-                setSx( value );
+                if ( value ) {
+
+                    setSx( value );
+
+                }
                 break;
             case 'sy':
-                setSy( value );
+                if ( value ) {
+
+                    setSy( value );
+
+                }
                 break;
             case 'sz':
-                setSz( value );
+                if ( value ) {
+
+                    setSz( value );
+
+                }
                 break;
 
         }
