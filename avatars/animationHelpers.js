@@ -372,6 +372,7 @@ export const loadPromise = (async () => {
     grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
     grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
+    pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
