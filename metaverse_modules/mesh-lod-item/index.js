@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useScene, useMeshLodder} = metaversefile;
+const {useApp, useFrame, useMeshLodder} = metaversefile;
 
 export default () => {
   const app = useApp();
@@ -15,29 +15,39 @@ export default () => {
   const physicsId = app.getComponent('physicsId');
 
   const meshLodder = meshLodManager.getMeshLodder(meshLodderId);
-  /* if (!meshLodder) {
-    debugger;
-  } */
   const item = meshLodder.getItemByPhysicsId(physicsId);
+
+  let itemMesh = null;
+  const physicsObjects = [];
   {
-    const itemMesh = item.cloneApp();
-    // console.log('got item mesh', itemMesh, itemMesh.position.toArray().join(','));
-    // itemMesh.position.y += 3;
+    itemMesh = item.cloneItemMesh();
     itemMesh.position.set(0, 0, 0);
     itemMesh.quaternion.identity();
     itemMesh.scale.set(1, 1, 1);
-    itemMesh.matrix.identity();
-    itemMesh.matrixWorld.identity();
+    // itemMesh.matrix.identity();
+    // itemMesh.matrixWorld.identity();
+
     app.add(itemMesh);
+    itemMesh.updateMatrixWorld();
+    // window.itemMesh = itemMesh;
+    // window.app = app;
   }
-  /* {
-    const meshLodItemApp = createApp();
-    (async () => {
-      const {modules} = useDefaultModules();
-      const m = modules['meshLodItem'];
-      await meshLodItemApp.addModule(m);
-    })();
-  } */
+  {
+    const physicsObject = item.clonePhysicsObject();
+    physicsObjects.push(physicsObject);
+    // console.log('item physics object', physicsObject.physicsId);
+  }
+
+  useFrame(() => {
+    const physicsObject = physicsObjects[0];
+    itemMesh.position.copy(physicsObject.position);
+    itemMesh.quaternion.copy(physicsObject.quaternion);
+    itemMesh.scale.copy(physicsObject.scale);
+    itemMesh.matrix.copy(physicsObject.matrix);
+    itemMesh.matrixWorld.copy(physicsObject.matrixWorld);
+  });
+
+  app.getPhysicsObjects = () => physicsObjects;
 
   return app;
 };
