@@ -1282,6 +1282,9 @@ class StaticUninterpolatedPlayer extends PlayerBase {
 class NpcPlayer extends StaticUninterpolatedPlayer {
   constructor(opts) {
     super(opts);
+    
+    if (!window.npcPlayers) window.npcPlayers = []
+    window.npcPlayers.push(this);
   
     this.isNpcPlayer = true;
     this.avatarApp = null;
