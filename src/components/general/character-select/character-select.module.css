@@ -97,3 +97,21 @@
   font-size: 20px;
   letter-spacing: 0.5px;
 }
+
+/* */
+
+.characterSelect .text {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: calc(100vw - 400px);
+  height: 300px;
+  padding: 30px;
+  background-image: radial-gradient(closest-side, rgba(101,101,184,1) 0%, rgba(0,212,255,0) 100%);
+  color: #FFF;
+  font-family: 'PlazaRegular';
+  font-size: 34px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px #000;
+  pointer-events: none;
+}
