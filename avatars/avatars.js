@@ -549,7 +549,6 @@ class Avatar {
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetInverted = false;
     this.eyeTargetEnabled = false;
-    this.needsEyeTarget = false;
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
@@ -1487,18 +1486,18 @@ class Avatar {
       // this.modelBoneOutputs.Root.updateMatrixWorld();
       this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-      this.needsEyeTarget = this.eyeTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI * 0.4;
-      if (this.needsEyeTarget && !this.lastNeedsEyeTarget) {
+      const needsEyeTarget = this.eyeTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI * 0.4;
+      if (needsEyeTarget && !this.lastNeedsEyeTarget) {
         this.startEyeTargetQuaternion.copy(localQuaternion);
         this.lastEyeTargetTime = now;
-      } else if (this.lastNeedsEyeTarget && !this.needsEyeTarget) {
+      } else if (this.lastNeedsEyeTarget && !needsEyeTarget) {
         this.startEyeTargetQuaternion.copy(localQuaternion);
         this.lastEyeTargetTime = now;
       }
-      this.lastNeedsEyeTarget = this.needsEyeTarget;
+      this.lastNeedsEyeTarget = needsEyeTarget;
 
       const eyeTargetFactor = Math.min(Math.max((now - this.lastEyeTargetTime) / maxEyeTargetTime, 0), 1);
-      if (this.needsEyeTarget) {
+      if (needsEyeTarget) {
         localQuaternion.copy(this.startEyeTargetQuaternion)
           .slerp(globalQuaternion, cubicBezier(eyeTargetFactor));
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, localQuaternion, localVector2)

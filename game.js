@@ -1006,7 +1006,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         localPlayer.avatar.eyeTarget.copy(zTargeting.focusTargetReticle.position);
         localPlayer.avatar.eyeTargetInverted = true;
         localPlayer.avatar.eyeTargetEnabled = true;
-        if (localPlayer.avatar.needsEyeTarget) {
+        if (localPlayer.avatar.lastNeedsEyeTarget) {
           localPlayer.eyeballTarget.copy(zTargeting.focusTargetReticle.position);
           localPlayer.eyeballTargetEnabled = true;
         } else {
