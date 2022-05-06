@@ -670,7 +670,7 @@ physicsManager.createSeamsWithDualContouring = (x, y, z) => physx.physxWorker.cr
 physicsManager.createShape = buffer => physx.physxWorker.createShapePhysics(physx.physics, buffer);
 physicsManager.createConvexShape = buffer => physx.physxWorker.createConvexShapePhysics(physx.physics, buffer);
 
-physicsManager.pushUpdate = (physicsObject) => {
+/* physicsManager.pushUpdate = (physicsObject) => {
   const { physicsId, physicsMesh } = physicsObject
   physicsMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2)
 
@@ -680,7 +680,7 @@ physicsManager.pushUpdate = (physicsObject) => {
     quaternion: localQuaternion.clone(),
     scale: localVector2.clone(),
   })
-}
+} */
 
 let physicsEnabled = false
 physicsManager.getPhysicsEnabled = () => physicsEnabled
