@@ -1142,8 +1142,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
       let defaultAnimation = 'grab_forward';
 
-      if (localPlayer.getAction('activate').animationName) {
-        defaultAnimation = localPlayer.getAction('activate').animationName;
+      const activateAction = localPlayer.getAction('activate');
+      if (activateAction.animationName) {
+        defaultAnimation = activateAction.animationName;
       }
 
       const activateAnimation = activateAnimations[defaultAnimation].animation;
