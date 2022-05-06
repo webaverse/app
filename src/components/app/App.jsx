@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef, createContext } from 'react';
+import * as THREE from 'three';
 
 import { defaultAvatarUrl } from '../../../constants';
 
@@ -37,8 +38,6 @@ import '../../fonts.css';
 
 const _startApp = async ( weba, canvas ) => {
 
-    weba.setContentLoaded();
-
     weba.bindInput();
     weba.bindInterface();
     weba.bindCanvas( canvas );
@@ -49,6 +48,8 @@ const _startApp = async ( weba, canvas ) => {
 
     const localPlayer = metaversefileApi.useLocalPlayer();
     await localPlayer.setAvatarUrl( defaultAvatarUrl );
+
+    weba.setContentLoaded();
 
 };
 
@@ -98,8 +99,8 @@ const useWebaverseApp = (() => {
 const playerPos = { x: -1000, z: -1000 };
 const loadedBlocks = {};
 const blockSize = 4.5;
-const itemsPerBlock = 3;
-const appsLoaded = [];
+const itemsPerBlock = 2;
+const blocks = new Map();
 
 export const App = () => {
 
@@ -138,9 +139,12 @@ export const App = () => {
 
     useEffect( () => {
 
+        if ( ! contractId ) return;
+
         const loop = async () => {
 
             requestAnimationFrame( loop );
+            if ( ! app.contentLoaded ) return;
 
             let x = Math.round( playerPos.x / blockSize );
             let z = Math.round( playerPos.z / blockSize );
@@ -153,26 +157,36 @@ export const App = () => {
                 x = playerPos.x;
                 z = playerPos.z;
 
-                if ( ! loadedBlocks[ x + '-' + z ] ) {
+                for ( let bi = x - 1; bi <= x + 1; bi ++ ) {
 
-                    loadedBlocks[ x + '-' + z ] = true;
+                    for ( let bj = z - 1; bj <= z + 1; bj ++ ) {
 
-                    x *= itemsPerBlock;
-                    z *= itemsPerBlock;
+                        if ( loadedBlocks[ bi + '=' + bj ] ) continue;
 
-                    for ( let i = x; i < x + itemsPerBlock; i ++ ) {
+                        loadedBlocks[ bi + '=' + bj ] = true;
 
-                        for ( let j = z; j < z + itemsPerBlock; j ++ ) {
+                        for ( let i = itemsPerBlock * bi; i < itemsPerBlock * bi + itemsPerBlock; i ++ ) {
 
-                            const app = await metaversefile.createAppAsync({
-                                start_url: '/@proxy/eth://' + contractId + '/' + ( 10 * i + j + 1000 )
-                            });
+                            for ( let j = itemsPerBlock * bj; j < itemsPerBlock * bj + itemsPerBlock; j ++ ) {
 
-                            app.position.set( i * ( blockSize / itemsPerBlock ) - 0.0 * blockSize + 100, 1, j * ( blockSize / itemsPerBlock ) - 0.0 * blockSize );
-                            app.userData.targetPos = { x: i * ( blockSize / itemsPerBlock ) - 0.0 * blockSize, z: j * ( blockSize / itemsPerBlock ) - 0.0 * blockSize };
-                            app.updateMatrixWorld( true );
-                            metaversefile.addApp( app );
-                            appsLoaded.push( app );
+                                ( async () => {
+
+                                    const app = await metaversefile.createAppAsync({
+                                        start_url: '/@proxy/eth://' + contractId + '/' + ( 10 * i + j + 1000 )
+                                    });
+
+                                    app.position.set( i * ( blockSize / itemsPerBlock ) - 0.0 * blockSize + 100, 1, j * ( blockSize / itemsPerBlock ) - 0.0 * blockSize );
+                                    app.userData.targetPos = { x: i * ( blockSize / itemsPerBlock ) - 0.5 * blockSize, z: j * ( blockSize / itemsPerBlock ) - 0.5 * blockSize };
+                                    app.updateMatrixWorld( true );
+                                    metaversefile.addApp( app );
+
+                                    const block = blocks.get( bi + '=' + bj ) ?? [];
+                                    block.push( app );
+                                    blocks.set( bi + '=' + bj, block );
+
+                                }) ();
+
+                            }
 
                         }
 
@@ -184,11 +198,43 @@ export const App = () => {
 
             //
 
-            appsLoaded.forEach( ( item ) => {
+            blocks.forEach( ( block, blockId ) => {
 
-                item.position.x = 0.95 * item.position.x + 0.05 * item.userData.targetPos.x;
-                item.position.z = 0.95 * item.position.z + 0.05 * item.userData.targetPos.z;
-                item.updateMatrixWorld( true );
+                const dist = new THREE.Vector3( ( + blockId.split('=')[0] ) * blockSize, 0, ( + blockId.split('=')[1] ) * blockSize ).sub( localPlayer.position ).length();
+                let hiden = ( dist > blockSize * 2 ) ? true : false;
+
+                block.forEach( ( item ) => {
+
+                    if ( dist > blockSize * 2 ) {
+
+                        item.userData.targetPos.x = 100;
+
+                        if ( item.position.x < 90 ) {
+
+                            hiden = false;
+
+                        }
+
+                    }
+
+                    item.position.x = 0.95 * item.position.x + 0.05 * item.userData.targetPos.x;
+                    item.position.z = 0.95 * item.position.z + 0.05 * item.userData.targetPos.z;
+                    item.updateMatrixWorld( true );
+
+                });
+
+                if ( hiden ) {
+
+                    block.forEach( ( item ) => {
+
+                        metaversefile.removeApp( item );
+
+                    });
+
+                    delete loadedBlocks[ blockId ];
+                    blocks.delete( blockId );
+
+                }
 
             });
 
