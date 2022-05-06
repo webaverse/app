@@ -48,7 +48,7 @@ const textureInitializers = {
 };
 
 const _eraseVertices = (geometry, positionStart, positionCount/*, indexStart, indexCount*/) => {
-  console.log('erase vertices', geometry, positionStart, positionCount/*, indexStart, indexCount*/);
+  // console.log('erase vertices', geometry, positionStart, positionCount/*, indexStart, indexCount*/);
   for (let i = 0; i < positionCount; i++) {
     geometry.attributes.position.array[positionStart + i] = 0;
     geometry.attributes.position.needsUpdate = true; // XXX needs to use update range
