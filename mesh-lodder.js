@@ -466,7 +466,7 @@ export class MeshLodder {
             const position = localVector;
             const quaternion = localQuaternion;
             const scale = localVector2;
-            const shape = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale);
+            const shape = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, false, true);
 
             this.physicsObjects.push(shape);
 
