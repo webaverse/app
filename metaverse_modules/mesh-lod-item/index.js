@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useScene, usePhysics, useWear, useMeshLodder} = metaversefile;
 
+const zeroVector = new THREE.Vector3(0, 0, 0);
+
 export default () => {
   const app = useApp();
   // const scene = useScene();
@@ -64,6 +66,8 @@ export default () => {
       physicsObject.scale.copy(app.scale);
       physicsObject.matrix.copy(app.matrix);
       physicsObject.matrixWorld.copy(app.matrixWorld);
+      physicsManager.setVelocity(physicsObject, zeroVector, true);
+      physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
       physicsManager.setTransform(physicsObject, true);
     }
   });
