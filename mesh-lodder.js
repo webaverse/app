@@ -579,13 +579,12 @@ class MeshLodder {
   }
 }
 
-const meshLods = [];
 const meshLodManager = {
   createMeshLodder() {
     return new MeshLodder();
   },
   getMeshLodder(id) {
-    return meshLods.find(meshLod => meshLod.id === id) ?? null;
+    return meshLodders.find(meshLod => meshLod.id === id) ?? null;
   },
 };
 export default meshLodManager;
