@@ -549,8 +549,10 @@ class Avatar {
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetInverted = false;
     this.eyeTargetEnabled = false;
+
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetPlane = new THREE.Plane();
+    this.needLimitEyeballTargetRange = false;
     this.eyeballTargetEnabled = false;
 
     if (options.hair) {
@@ -1520,7 +1522,9 @@ class Avatar {
       const rightEye = this.modelBoneOutputs['Eye_R'];
 
       const lookerEyeballTarget = this.looker.update(now);
-      const eyeballTarget = this.eyeballTargetEnabled ? this.eyeballTarget : lookerEyeballTarget;
+      let eyeballTargetEnabled = this.eyeballTargetEnabled;
+      if (this.needLimitEyeballTargetRange && !this.lastNeedsEyeTarget) eyeballTargetEnabled = false;
+      const eyeballTarget = eyeballTargetEnabled ? this.eyeballTarget : lookerEyeballTarget;
 
       if (eyeballTarget && this.firstPersonCurves) {
         const {

@@ -191,6 +191,7 @@ export function applyPlayerEyeTargetToAvatar(player, rig) {
 export function applyPlayerEyesToAvatar(player, rig) {
   if (player.eyeballTargetEnabled) {
     rig.eyeballTarget.copy(player.eyeballTarget);
+    rig.needLimitEyeballTargetRange = player.needLimitEyeballTargetRange;
     rig.eyeballTargetEnabled = true;
     return true;
   } else {
