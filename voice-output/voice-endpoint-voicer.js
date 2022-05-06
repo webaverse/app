@@ -25,7 +25,7 @@ class VoiceEndpointVoicer {
     this.voiceEndpoint = voiceEndpoint;
     this.player = player;
 
-    this.live = true;
+    // this.live = true;
     this.running = false;
     this.queue = [];
     this.cancel = null;
@@ -58,36 +58,60 @@ class VoiceEndpointVoicer {
         this.player.avatar.setAudioEnabled(true);
       }
 
+      const _next = () => {
+        const {endPromise} = this;
+        if (endPromise) {
+          this.endPromise = null;
+          endPromise.accept();
+        }
+      };
+
+      let live = true;
+      const cancelFns = [
+        () => {
+          live = false;
+          _next();
+        },
+      ];
+      this.cancel = () => {
+        for (const cancelFn of cancelFns) {
+          cancelFn();
+        }
+      };
+
       (async () => {
         const audioBuffer = await (text.isPreloadMessage ? text.waitForLoad() : this.loadAudioBuffer(text));
+        if (!live) {
+          console.log('bail on audio buffer');
+          return;
+        }
 
         const audioContext = Avatar.getAudioContext();
         const audioBufferSourceNode = audioContext.createBufferSource();
         audioBufferSourceNode.buffer = audioBuffer;
-        audioBufferSourceNode.addEventListener('ended', () => {
+        const ended = () => {
           this.cancel = null;
           this.running = false;
 
-          if (this.live) {
-            if (this.queue.length > 0) {
-              const text = this.queue.shift();
-              this.start(text);
-            } else {
-              const {endPromise} = this;
-              this.endPromise = null;
-              endPromise.accept();
-            }
+          if (this.queue.length > 0) {
+            const text = this.queue.shift();
+            this.start(text);
+          } else {
+            _next();
           }
-        }, {once: true});
+        };
+        audioBufferSourceNode.addEventListener('ended', ended, {once: true});
         audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
         audioBufferSourceNode.start();
 
-        this.cancel = () => {
+        cancelFns.push(() => {
+          console.log('audio node stop');
+
+          audioBufferSourceNode.removeEventListener('ended', ended);
+
           audioBufferSourceNode.stop();
           audioBufferSourceNode.disconnect();
-
-          this.cancel = null;
-        };
+        });
       })();
     } else {
       this.queue.push(text);
@@ -95,11 +119,13 @@ class VoiceEndpointVoicer {
     return this.endPromise;
   }
   stop() {
-    this.live = false;
+    // this.live = false;
+    this.queue.length = 0;
     if (this.cancel) {
       this.cancel();
       this.cancel = null;
     }
+    this.running = false;
   }
 }
 
