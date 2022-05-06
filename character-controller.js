@@ -161,6 +161,8 @@ class PlayerBase extends THREE.Object3D {
 
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
+    // this.target = new THREE.Vector3(); // target for both eye(head) and eyeball;
+    // this.targetEnabled = false;
     this.voicePack = null;
     this.voiceEndpoint = null;
   }
@@ -433,6 +435,24 @@ class PlayerBase extends THREE.Object3D {
       };
       _emitEvents();
     }
+  }
+  setTarget(target) { // set both eye(head) and eyeball target;
+    this.avatar.eyeTarget.copy(target);
+    this.avatar.eyeTargetEnabled = true;
+    this.avatar.eyeTargetInverted = true;
+    if (this.avatar.lastNeedsEyeTarget) {
+      this.eyeballTarget.copy(target);
+      this.eyeballTargetEnabled = true;
+    } else {
+      this.eyeballTargetEnabled = false;
+    }
+
+    // if (target) {
+    //   this.target.copy(target);
+    //   this.targetEnabled = true;
+    // } else {
+    //   this.targetEnabled = false;
+    // }
   }
   destroy() {
     // nothing
