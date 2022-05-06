@@ -138,14 +138,11 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
 physicsManager.addGeometry = (mesh) => {
   const physicsMesh = convertMeshToPhysicsMesh(mesh)
 
-  const physicsMaterial = [0.5, 0.5, 0] // staticFriction, dynamicFriction, restitution
-
   const physicsId = getNextPhysicsId()
   physx.physxWorker.addGeometryPhysics(
     physx.physics,
     physicsMesh,
-    physicsId,
-    physicsMaterial
+    physicsId
   )
   physicsMesh.geometry = _extractPhysicsGeometryForId(physicsId)
 
@@ -257,7 +254,7 @@ physicsManager.addCookedConvexGeometry = (
   return physicsObject
 }
 
-physicsManager.addShape = (shapeAddress, id) => {
+physicsManager.addShape = (shapeAddress, position, quaternion, scale, external) => {
   const physicsId = getNextPhysicsId()
 
   physx.physxWorker.addShapePhysics(
@@ -266,6 +263,7 @@ physicsManager.addShape = (shapeAddress, id) => {
     position,
     quaternion,
     scale,
+    external,
     physicsId
   );
 
@@ -282,7 +280,7 @@ physicsManager.addShape = (shapeAddress, id) => {
   physicsMesh.updateMatrixWorld()
   return physicsObject
 };
-physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dynamic) => {
+physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dynamic, external) => {
   const physicsId = getNextPhysicsId()
 
   physx.physxWorker.addConvexShapePhysics(
@@ -292,6 +290,7 @@ physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dyna
     quaternion,
     scale,
     dynamic,
+    external,
     physicsId
   );
 
