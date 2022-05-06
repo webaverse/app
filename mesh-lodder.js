@@ -58,8 +58,12 @@ const _eraseVertices = (geometry, positionStart, positionCount/*, indexStart, in
   } */
 };
 
-export class MeshLodder {
+const meshLodders = [];
+let ids = 0;
+class MeshLodder {
   constructor() {
+    this.id = ++ids;
+
     const positions = new Float32Array(bufferSize * 3);
     const normals = new Float32Array(bufferSize * 3);
     const uvs = new Float32Array(bufferSize * 2);
@@ -90,6 +94,8 @@ export class MeshLodder {
     this.physicsObjects = [];
     this.compiled = false;
     this.lastChunkCoord = new THREE.Vector2(NaN, NaN);
+
+    meshLodders.push(this);
   }
   registerLodMesh(name, meshes) {
     // console.log('register lod mesh', name, meshes);
@@ -486,6 +492,9 @@ export class MeshLodder {
                 start: indexIndex,
                 count: g.index.count,
               },
+              cloneApp() {
+                return null; // XXX
+              },
             };
             this.itemRegistry.push(item);
           };
@@ -553,4 +562,18 @@ export class MeshLodder {
       }
     }
   }
+  destroy() {
+    meshLodders.splice(meshLodders.indexOf(this), 1);
+  }
 }
+
+const meshLods = [];
+const meshLodManager = {
+  createMeshLodder() {
+    return new MeshLodder();
+  },
+  getMeshLodder(id) {
+    return meshLods.find(meshLod => meshLod.id === id) ?? null;
+  },
+};
+export default meshLodManager;
