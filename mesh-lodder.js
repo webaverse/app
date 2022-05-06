@@ -23,6 +23,7 @@ const localVector2D2 = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localMatrix3 = new THREE.Matrix4();
 
 const textureTypes = [
   'map',
@@ -462,10 +463,17 @@ class MeshLodder {
           const tw = w * canvasScale;
           const th = h * canvasScale;
 
-          const matrixWorld = localMatrix.copy(mesh.matrixWorld)
-            .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
-            .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ))
-            .premultiply(this.mesh.matrixWorld);
+
+          const _getMatrixWorld = target => {
+            return _getMatrix(target)
+              .premultiply(this.mesh.matrixWorld);
+          };
+          const _getMatrix = target => {
+            return target.copy(mesh.matrixWorld)
+              .premultiply(localMatrix3.makeRotationAxis(upVector, rotationY))
+              .premultiply(localMatrix3.makeTranslation(positionX, 0, positionZ));
+          };
+          const matrixWorld = _getMatrixWorld(localMatrix);
 
           const _addPhysicsShape = () => {
             const shapeAddress = this.shapeAddresses[name];
@@ -473,18 +481,19 @@ class MeshLodder {
             const position = localVector;
             const quaternion = localQuaternion;
             const scale = localVector2;
-            const shape = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, false, true);
+            const dynamic = false;
+            const external = true;
+            const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
 
-            this.physicsObjects.push(shape);
+            this.physicsObjects.push(physicsObject);
 
             // return shape;
           };
-          // const physicsObject = _addPhysicsShape();
           _addPhysicsShape();
 
           const _addItemToRegistry = () => {
             const item = {
-              position: new THREE.Vector3(positionX, 2, positionZ),
+              position: new THREE.Vector3(positionX, 0, positionZ),
               quaternion: new THREE.Quaternion().setFromAxisAngle(upVector, rotationY),
               scale: oneVector,
               attributes: {
@@ -497,7 +506,7 @@ class MeshLodder {
                 start: indexIndex,
                 count: g.index.count,
               },
-              cloneApp: () => {
+              cloneItemMesh: () => {
                 const geometry = g.clone();
 
                 _mapUvs(g, geometry, 'originalUv', 'uv', 0, g.attributes.originalUv.count);
@@ -505,14 +514,24 @@ class MeshLodder {
 
                 const {material} = this;
                 const cloned = new THREE.Mesh(geometry, material);
-                cloned.matrixWorld.copy(mesh.matrixWorld)
-                  .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
-                  .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ))
-                  .premultiply(this.mesh.matrixWorld);
+                _getMatrixWorld(cloned.matrixWorld);
                 cloned.matrix.copy(cloned.matrixWorld)
                   .decompose(cloned.position, cloned.quaternion, cloned.scale);
                 cloned.frustumCulled = false;
+
                 return cloned;
+              },
+              clonePhysicsObject: () => {
+                const shapeAddress = this.shapeAddresses[name];
+                _getMatrixWorld(localMatrix)
+                  .decompose(localVector, localQuaternion, localVector2);
+                const position = localVector;
+                const quaternion = localQuaternion;
+                const scale = localVector2;
+                const dynamic = true;
+                const external = true;
+                const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
+                return physicsObject;
               },
             };
             this.itemRegistry.push(item);
@@ -522,9 +541,7 @@ class MeshLodder {
           const _mapPositions = (g, geometry) => {
             const count = g.attributes.position.count;
 
-            const matrix = localMatrix.copy(mesh.matrixWorld)
-              .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
-              .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ));
+            const matrix = _getMatrix(localMatrix);
 
             for (let i = 0; i < count; i++) {
               const srcIndex = i;
