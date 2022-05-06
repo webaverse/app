@@ -437,13 +437,18 @@ class PlayerBase extends THREE.Object3D {
     }
   }
   setTarget(target) { // set both eye(head) and eyeball target;
-    this.avatar.eyeTarget.copy(target);
-    this.avatar.eyeTargetEnabled = true;
-    this.avatar.eyeTargetInverted = true;
-    if (this.avatar.lastNeedsEyeTarget) {
-      this.eyeballTarget.copy(target);
-      this.eyeballTargetEnabled = true;
+    if (target) {
+      this.avatar.eyeTarget.copy(target);
+      this.avatar.eyeTargetInverted = true;
+      this.avatar.eyeTargetEnabled = true;
+      if (this.avatar.lastNeedsEyeTarget) {
+        this.eyeballTarget.copy(target);
+        this.eyeballTargetEnabled = true;
+      } else {
+        this.eyeballTargetEnabled = false;
+      }
     } else {
+      this.avatar.eyeTargetEnabled = false;
       this.eyeballTargetEnabled = false;
     }
 
