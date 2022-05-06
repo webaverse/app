@@ -119,6 +119,68 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
   };
 }
 
+const _getCurrentGrabAnimation = () => {
+  const grabUseMeshPosition = grabUseMesh.position;
+
+  let currentDistance = 100;
+  let currentAnimation = '';
+
+  // Forward
+  {
+    localVector.set(0, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+      .add(localPlayer.position);
+    const distance = grabUseMeshPosition.distanceTo(localVector);
+    currentDistance = distance;
+    currentAnimation = 'grab_forward';
+  }
+
+  // Down
+  {
+    localVector.set(0, -1.2, -0.5).applyQuaternion(localPlayer.quaternion)
+      .add(localPlayer.position);
+    const distance = grabUseMeshPosition.distanceTo(localVector);
+    if (distance < currentDistance) {
+      currentDistance = distance;
+      currentAnimation = 'grab_down';
+    }
+  }
+
+  // Up
+  {
+    localVector.set(0, 0.0, -0.5).applyQuaternion(localPlayer.quaternion)
+      .add(localPlayer.position);
+    const distance = grabUseMeshPosition.distanceTo(localVector);
+    if (distance < currentDistance) {
+      currentDistance = distance;
+      currentAnimation = 'grab_up';
+    }
+  }
+
+  // Left
+  {
+    localVector.set(-0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+      .add(localPlayer.position);
+    const distance = grabUseMeshPosition.distanceTo(localVector);
+    if (distance < currentDistance) {
+      currentDistance = distance;
+      currentAnimation = 'grab_left';
+    }
+  }
+  
+  // Right
+  {
+    localVector.set(0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+      .add(localPlayer.position);
+    const distance = grabUseMeshPosition.distanceTo(localVector);
+    if (distance < currentDistance) {
+      currentDistance = distance;
+      currentAnimation = 'grab_right';
+    }
+  }
+
+  return currentAnimation;
+};
+
 const _makeTargetMesh = (() => {
   const targetMeshGeometry = (() => {
     const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -449,69 +511,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _handlePush();
 
-  const _updateActivateAnimation = grabUseMeshPosition => {
-    let currentDistance = 100;
-    let currentAnimation = "grab_forward";
-
-    // Forward
-    {
-      localVector.set(0, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
-        .add(localPlayer.position);
-      const distance = grabUseMeshPosition.distanceTo(localVector);
-      currentDistance = distance;
-    }
-
-    // Down
-    {
-      localVector.set(0, -1.2, -0.5).applyQuaternion(localPlayer.quaternion)
-        .add(localPlayer.position);
-      const distance = grabUseMeshPosition.distanceTo(localVector);
-      if (distance < currentDistance) {
-        currentDistance = distance;
-        currentAnimation = "grab_down";
-      }
-    }
-
-    // Up
-    {
-      localVector.set(0, 0.0, -0.5).applyQuaternion(localPlayer.quaternion)
-        .add(localPlayer.position);
-      const distance = grabUseMeshPosition.distanceTo(localVector);
-      if (distance < currentDistance) {
-        currentDistance = distance;
-        currentAnimation = "grab_up";
-      }
-    }
-
-    // Left
-    {
-      localVector.set(-0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
-        .add(localPlayer.position);
-      const distance = grabUseMeshPosition.distanceTo(localVector);
-      if (distance < currentDistance) {
-        currentDistance = distance;
-        currentAnimation = "grab_left";
-      }
-    }
-    
-    // Right
-    {
-      localVector.set(0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
-        .add(localPlayer.position);
-      const distance = grabUseMeshPosition.distanceTo(localVector);
-      if (distance < currentDistance) {
-        currentDistance = distance;
-        currentAnimation = "grab_right";
-      }
-    }
-
-    if (localPlayer.getAction('activate')) {
-      localPlayer.getAction('activate').animationName = currentAnimation;
-    }
-
-    // return (currentDistance < 0.8);
-  };
-
   const _updateGrab = () => {
     // moveMesh.visible = false;
 
@@ -542,7 +541,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.targetPhysicsId = physicsId;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
-          _updateActivateAnimation(grabUseMesh.position);
           grabUseMesh.visible = true;
         }
       }
@@ -1653,9 +1651,11 @@ class GameManager extends EventTarget {
       const localPlayer = metaversefileApi.useLocalPlayer();
       const activateAction = localPlayer.getAction('activate');
       if (!activateAction) {
+        const grabAnimationName = _getCurrentGrabAnimation();
         const newActivateAction = {
           type: 'activate',
           // time: 0,
+          grabAnimationName,
         };
         localPlayer.addAction(newActivateAction);
       }
