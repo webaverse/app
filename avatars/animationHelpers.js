@@ -63,6 +63,7 @@ let aimAnimations;
 let sitAnimations;
 let danceAnimations;
 let emoteAnimations;
+let pickUpAnimations;
 // let throwAnimations;
 // let crouchAnimations;
 let activateAnimations;
@@ -352,6 +353,12 @@ export const loadPromise = (async () => {
     surpriseSoft: animations.find(a => a.isSurpriseSoft),
     victory: animations.find(a => a.isVictory),
     victorySoft: animations.find(a => a.isVictorySoft),
+  };
+  pickUpAnimations = {
+    pickUp: animations.find(a => a.isPickUp),
+    pickUpIdle: animations.find(a => a.isPickUpIdle),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
+    putDown: animations.find(a => a.isPutDown),
   };
   // throwAnimations = {
   //   throw: animations.find(a => a.isThrow),
