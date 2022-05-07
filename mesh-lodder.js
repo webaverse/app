@@ -504,6 +504,8 @@ class MeshLodder {
           _addPhysicsShape();
 
           const _diceGeometry = g => {
+            // g = g.clone();
+            // g.setAttribute('uv', new THREE.BufferAttribute(g.attributes.originalUv.array.slice(), 2));
             let queue = [
               g,
             ];
@@ -513,8 +515,8 @@ class MeshLodder {
 
             const quaternions = [
               new THREE.Quaternion(), // forward
-              new THREE.Quaternion().setFromAxisAngle(upVector, Math.PI / 2), // left
-              new THREE.Quaternion().setFromAxisAngle(rightVector, Math.PI / 2), // up
+              // new THREE.Quaternion().setFromAxisAngle(upVector, Math.PI / 2), // left
+              // new THREE.Quaternion().setFromAxisAngle(rightVector, Math.PI / 2), // up
             ];
             for (let quaternionIndex = 0; quaternionIndex < quaternions.length; quaternionIndex++) {
               const planeQuaternion = quaternions[quaternionIndex];
@@ -529,8 +531,8 @@ class MeshLodder {
                   geometry.attributes.position.count * 3,
                   geometry.attributes.normal.array,
                   geometry.attributes.normal.count * 3,
-                  geometry.attributes.uv.array,
-                  geometry.attributes.uv.count * 2,
+                  geometry.attributes.originalUv.array,
+                  geometry.attributes.originalUv.count * 2,
                   geometry.index.array,
                   geometry.index.count,
                   planePosition,
@@ -541,29 +543,32 @@ class MeshLodder {
                   numOutNormals,
                   numOutPositions,
                   numOutUvs,
+                  // numOutUvs2,
                   // numOutIndices,
                   outNormals,
                   outPositions,
                   outUvs,
+                  // outUvs2,
                   // outIndices,
                 } = res;
 
                 for (let n = 0; n < 2; n++) {
                   const positions = new Float32Array(numOutPositions[n]);
                   const normals = new Float32Array(numOutNormals[n]);
-                  const uvs = new Float32Array(numOutUvs[n]);
+                  const originalUvs = new Float32Array(numOutUvs[n]);
 
                   const startPositions = n === 0 ? 0 : numOutPositions[n-1];
                   positions.set(outPositions.subarray(startPositions, startPositions + numOutPositions[n]));
                   const startNormals = n === 0 ? 0 : numOutNormals[n-1];
                   normals.set(outNormals.subarray(startNormals, startNormals + numOutNormals[n]));
                   const startUvs = n === 0 ? 0 : numOutUvs[n-1];
-                  uvs.set(outUvs.subarray(startUvs, startUvs + numOutUvs[n]));
+                  originalUvs.set(outUvs.subarray(startUvs, startUvs + numOutUvs[n]));
 
                   const localGeometry = new THREE.BufferGeometry();
                   localGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
                   localGeometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-                  localGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+                  localGeometry.setAttribute('originalUv', new THREE.BufferAttribute(originalUvs, 2));
+                  localGeometry.setAttribute('originalUv2', new THREE.BufferAttribute(originalUvs.slice(), 2));
 
                   const _makeIndices = numIndices => {
                     const indices = new Uint32Array(numIndices);
@@ -582,14 +587,16 @@ class MeshLodder {
             }
 
             const directionsOrder = [
-              new THREE.Vector3(-1, 1, -1).normalize(),
+              new THREE.Vector3(0, 0, -1).normalize(),
+              new THREE.Vector3(0, 0, 1).normalize(),
+              /* new THREE.Vector3(-1, 1, -1).normalize(),
               new THREE.Vector3(-1, -1, -1).normalize(),
               new THREE.Vector3(1, 1, -1).normalize(),
               new THREE.Vector3(1, -1, -1).normalize(),
               new THREE.Vector3(-1, 1, 1).normalize(),
               new THREE.Vector3(-1, -1, 1).normalize(),
               new THREE.Vector3(1, 1, 1).normalize(),
-              new THREE.Vector3(1, -1, 1).normalize(),
+              new THREE.Vector3(1, -1, 1).normalize(), */
             ];
             for (let i = 0; i < queue.length; i++) {
               const geometry = queue[i];
@@ -602,8 +609,8 @@ class MeshLodder {
             }
 
             const geometry = BufferGeometryUtils.mergeBufferGeometries(queue);
-            const uvs2 = geometry.attributes.uv.array.slice();
-            geometry.setAttribute('uv2', new THREE.BufferAttribute(uvs2, 2));
+            geometry.setAttribute('uv', new THREE.BufferAttribute(geometry.attributes.originalUv.array.slice(), 2));
+            geometry.setAttribute('uv2', new THREE.BufferAttribute(geometry.attributes.originalUv2.array.slice(), 2));
             return geometry;
           };
           const _postProcessGeometryUvs = geometry => {
