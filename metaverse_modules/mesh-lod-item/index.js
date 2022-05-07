@@ -59,17 +59,18 @@ export default () => {
     // console.log('use wear', e);
     wearing = e.wear;
 
-    if (!wearing) {
+    /* if (!wearing) {
       const physicsObject = physicsObjects[0];
       physicsObject.position.copy(app.position);
       physicsObject.quaternion.copy(app.quaternion);
       physicsObject.scale.copy(app.scale);
       physicsObject.matrix.copy(app.matrix);
       physicsObject.matrixWorld.copy(app.matrixWorld);
+      // console.log('set position', physicsObject.position.toArray().join(','));
+      physicsManager.setTransform(physicsObject, true);
       physicsManager.setVelocity(physicsObject, zeroVector, true);
       physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
-      physicsManager.setTransform(physicsObject, true);
-    }
+    } */
   });
 
   app.getPhysicsObjects = () => physicsObjects;
