@@ -56,6 +56,8 @@ const localMatrix2 = new THREE.Matrix4();
 const localArray3 = [0, 0, 0];
 const localArray4 = [0, 0, 0, 0];
 
+const zeroVector = new THREE.Vector3(0, 0, 0);
+
 function makeCancelFn() {
   let live = true;
   return {
@@ -370,6 +372,8 @@ class PlayerBase extends THREE.Object3D {
   }
   unwear(app, {
     destroy = false,
+    dropStartPosition = null,
+    dropDirection = null,
   } = {}) {
     const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
       return type === 'wear' && instanceId === app.instanceId;
@@ -379,14 +383,35 @@ class PlayerBase extends THREE.Object3D {
       const loadoutIndex = wearAction.loadoutIndex;
 
       const _setAppTransform = () => {
-        const wearComponent = app.getComponent('wear');
-        if (wearComponent) {
-          const avatarHeight = this.avatar ? this.avatar.height : 0;
-          app.position.copy(this.position)
-            .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
+        if (dropStartPosition && dropDirection) {
+          app.position.copy(dropStartPosition);
           app.quaternion.identity();
           app.scale.set(1, 1, 1);
           app.updateMatrixWorld();
+          app.lastMatrix.copy(app.matrixWorld);
+
+          const physicsObjects = app.getPhysicsObjects();
+          if (physicsObjects.length > 0) {
+            const physicsObject = physicsObjects[0];
+
+            physicsObject.position.copy(dropStartPosition);
+            physicsObject.quaternion.copy(this.quaternion);
+            physicsObject.updateMatrixWorld();
+
+            physicsManager.setTransform(physicsObject, true);
+            physicsManager.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5), true);
+            physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
+          }
+        } else {
+          // const wearComponent = app.getComponent('wear');
+          // if (wearComponent) {
+            const avatarHeight = this.avatar ? this.avatar.height : 0;
+            app.position.copy(this.position)
+              .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
+            app.quaternion.identity();
+            app.scale.set(1, 1, 1);
+            app.updateMatrixWorld();
+          // }
         }
       };
       _setAppTransform();
