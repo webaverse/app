@@ -31,12 +31,13 @@ export default (app, component) => {
       if (wearSpec) {
         // const {app, wearSpec} = e.data;
         // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
+        
+        const physicsObjects = app.getPhysicsObjects();
+        for (const physicsObject of physicsObjects) {
+          physicsManager.disableActor(physicsObject);
+        }
+        
         if (app.glb) {
-          const physicsObjects = app.getPhysicsObjects();
-          for (const physicsObject of physicsObjects) {
-            physicsManager.disableActor(physicsObject);
-          }
-
           if (wearSpec.skinnedMesh) {
             let skinnedMesh = null;
             app.glb.scene.traverse(o => {
