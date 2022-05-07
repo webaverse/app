@@ -609,12 +609,12 @@ class MeshLodder {
                 .toArray(geometry.attributes.position.array, dstIndex * 3);
             }
           };
-          const _mapUvs = (g, geometry, srcKey, dstKey, dstOffset, count) => {
+          const _mapUvs = (src, dst, dstOffset, count) => {
             for (let i = 0; i < count; i++) {
               const srcIndex = i;
               const dstIndex = dstOffset + i;
 
-              localVector2D.fromArray(g.attributes[srcKey].array, srcIndex * 2);
+              localVector2D.fromArray(src.array, srcIndex * 2);
               modUv(localVector2D);
               localVector2D
                 .multiply(
@@ -623,7 +623,7 @@ class MeshLodder {
                 .add(
                   localVector2D2.set(tx/canvasSize, ty/canvasSize)
                 );
-              localVector2D.toArray(geometry.attributes[dstKey].array, dstIndex * 2);
+              localVector2D.toArray(dst.array, dstIndex * 2);
             }
           };
           const _mapIndices = (g, geometry) => {
@@ -635,8 +635,8 @@ class MeshLodder {
 
           _mapPositions(g, geometry);
           geometry.attributes.normal.array.set(g.attributes.normal.array, positionIndex * 3);
-          _mapUvs(g, geometry, 'originalUv', 'uv', positionIndex, g.attributes.originalUv.count);
-          _mapUvs(g, geometry, 'originalUv2', 'uv2', positionIndex, g.attributes.originalUv2.count);
+          _mapUvs(g.attributes.originalUv, geometry.attributes.uv, positionIndex, g.attributes.originalUv.count);
+          _mapUvs(g.attributes.originalUv2, geometry.attributes.uv2, positionIndex, g.attributes.originalUv2.count);
           _mapIndices(g, geometry);
 
           geometry.attributes.position.needsUpdate = true;
