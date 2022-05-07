@@ -200,6 +200,7 @@ export const MapGen = () => {
     const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
     const [haloMeshApp, setHaloMeshApp] = useState(null);
+    const [magicMeshApp, setMagicMeshApp] = useState(null);
     const canvasRef = useRef();
 
     //
@@ -376,6 +377,29 @@ export const MapGen = () => {
 
                 }
 
+                case 78: { // N
+
+                  if (!magicMeshApp) {
+                    const magicMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['magic'];
+                      await magicMeshApp.addModule(m);
+                    })();
+                    scene.add(magicMeshApp);
+
+                    setMagicMeshApp(magicMeshApp);
+                  } else {
+                    scene.remove(magicMeshApp);
+                    magicMeshApp.destroy();
+
+                    setMagicMeshApp(null);
+                  }
+
+                  return false;
+
+                }
+
                 case 77: { // M
 
                     if ( state.openedPanel === 'MapGenPanel' ) {
@@ -418,7 +442,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel, haloMeshApp ]);
+    }, [ state.openedPanel, haloMeshApp, magicMeshApp ]);
 
     // resize
     useEffect(() => {
