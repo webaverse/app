@@ -938,7 +938,7 @@ const physxWorker = (() => {
     tail = head + (numOutUvsTypedArray[0] + numOutUvsTypedArray[1])
     const outUvs = moduleInstance.HEAPF32.slice(head, tail)
 
-    Module._free(outputBufferOffset)
+    moduleInstance._doFree(outputBufferOffset)
 
     const output = {
       numOutPositions: numOutPositionsTypedArray,
