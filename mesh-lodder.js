@@ -493,6 +493,128 @@ class MeshLodder {
           };
           _addPhysicsShape();
 
+          const _diceGeometry = g => {
+            let queue = [
+              g,
+            ];
+
+            const planePosition = new THREE.Vector3(0, 0, 0);
+            const planeScale = new THREE.Vector3(1, 1, 1);
+
+            const quaternions = [
+              new THREE.Quaternion(), // forward
+              new THREE.Quaternion().setFromAxisAngle(upVector, Math.PI / 2), // left
+              new THREE.Quaternion().setFromAxisAngle(rightVector, Math.PI / 2), // up
+            ];
+            for (let quaternionIndex = 0; quaternionIndex < quaternions.length; quaternionIndex++) {
+              const planeQuaternion = quaternions[quaternionIndex];
+
+              const currentQueue = queue.slice();
+              const nextQueue = [];
+
+              let geometry;
+              while (geometry = currentQueue.shift()) {
+                const res = physicsManager.cutMesh(
+                  geometry.attributes.position.array,
+                  geometry.attributes.position.count * 3,
+                  geometry.attributes.normal.array,
+                  geometry.attributes.normal.count * 3,
+                  geometry.attributes.uv.array,
+                  geometry.attributes.uv.count * 2,
+                  geometry.index.array,
+                  geometry.index.count,
+                  planePosition,
+                  planeQuaternion,
+                  planeScale
+                );
+                const {
+                  numOutNormals,
+                  numOutPositions,
+                  numOutUvs,
+                  // numOutIndices,
+                  outNormals,
+                  outPositions,
+                  outUvs,
+                  // outIndices,
+                } = res;
+
+                for (let n = 0; n < 2; n++) {
+                  const positions = new Float32Array(numOutPositions[n]);
+                  const normals = new Float32Array(numOutNormals[n]);
+                  const uvs = new Float32Array(numOutUvs[n]);
+
+                  const startPositions = n === 0 ? 0 : numOutPositions[n-1];
+                  positions.set(outPositions.subarray(startPositions, startPositions + numOutPositions[n]));
+                  const startNormals = n === 0 ? 0 : numOutNormals[n-1];
+                  normals.set(outNormals.subarray(startNormals, startNormals + numOutNormals[n]));
+                  const startUvs = n === 0 ? 0 : numOutUvs[n-1];
+                  uvs.set(outUvs.subarray(startUvs, startUvs + numOutUvs[n]));
+
+                  const localGeometry = new THREE.BufferGeometry();
+                  localGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                  localGeometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+                  localGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+
+                  /* const labels = new Float32Array(numOutPositions[n] / 3).fill(axisIndex);
+                  localGeometry.setAttribute('label', new THREE.BufferAttribute(labels, 1));
+
+                  axisIndex++; */
+
+                  const _makeIndices = numIndices => {
+                    const indices = new Uint32Array(numIndices);
+                    for (let i = 0; i < numIndices; i++) {
+                      indices[i] = i;
+                    }
+                    return indices;
+                  };
+                  localGeometry.setIndex(new THREE.BufferAttribute(_makeIndices(numOutPositions[n] / 3), 1));
+
+                  nextQueue.push(localGeometry);
+                }
+              }
+
+              queue = nextQueue;
+            }
+
+            const directionsOrder = [
+              new THREE.Vector3(-1, 1, -1).normalize(),
+              new THREE.Vector3(-1, -1, -1).normalize(),
+              new THREE.Vector3(1, 1, -1).normalize(),
+              new THREE.Vector3(1, -1, -1).normalize(),
+              new THREE.Vector3(-1, 1, 1).normalize(),
+              new THREE.Vector3(-1, -1, 1).normalize(),
+              new THREE.Vector3(1, 1, 1).normalize(),
+              new THREE.Vector3(1, -1, 1).normalize(),
+            ];
+            for (let i = 0; i < queue.length; i++) {
+              const geometry = queue[i];
+              const direction = directionsOrder[i];
+              const directions = new Float32Array(geometry.attributes.position.array.length);
+              for (let i = 0; i < geometry.attributes.position.count; i++) {
+                direction.toArray(directions, i * 3);
+              }
+              geometry.setAttribute('direction', new THREE.BufferAttribute(directions, 3));
+            }
+
+            const geometry = BufferGeometryUtils.mergeBufferGeometries(queue);
+            const uvs2 = geometry.attributes.uv.array.slice();
+            geometry.setAttribute('uv2', new THREE.BufferAttribute(uvs2, 2));
+            return geometry;
+          };
+          const _postProcessGeometry = geometry => {
+            _mapUvs(g.attributes.originalUv, geometry.attributes.uv, 0, g.attributes.originalUv.count);
+            _mapUvs(g.attributes.originalUv2, geometry.attributes.uv2, 0, g.attributes.originalUv2.count);
+          };
+          const _makeItemMesh = geometry => {
+            const {material} = this;
+            const cloned = new THREE.Mesh(geometry, material);
+            _getMatrixWorld(cloned.matrixWorld);
+            cloned.matrix.copy(cloned.matrixWorld)
+              .decompose(cloned.position, cloned.quaternion, cloned.scale);
+            cloned.frustumCulled = false;
+            return cloned;
+          };
+
           const _addItemToRegistry = () => {
             const item = {
               position: new THREE.Vector3(positionX, 0, positionZ),
@@ -508,128 +630,17 @@ class MeshLodder {
                 start: indexIndex,
                 count: g.index.count,
               },
-              cloneItemDiceMesh: () => {
-                let queue = [
-                  g,
-                ];
-
-                const planePosition = new THREE.Vector3(0, 0, 0);
-                const planeScale = new THREE.Vector3(1, 1, 1);
-
-                const quaternions = [
-                  new THREE.Quaternion(), // forward
-                  new THREE.Quaternion().setFromAxisAngle(upVector, Math.PI / 2), // left
-                  new THREE.Quaternion().setFromAxisAngle(rightVector, Math.PI / 2), // up
-                ];
-                for (let quaternionIndex = 0; quaternionIndex < quaternions.length; quaternionIndex++) {
-                  const planeQuaternion = quaternions[quaternionIndex];
-
-                  const currentQueue = queue.slice();
-                  const nextQueue = [];
-
-                  let geometry;
-                  while (geometry = currentQueue.shift()) {
-                    const res = physicsManager.cutMesh(
-                      geometry.attributes.position.array,
-                      geometry.attributes.position.count * 3,
-                      geometry.attributes.normal.array,
-                      geometry.attributes.normal.count * 3,
-                      geometry.attributes.uv.array,
-                      geometry.attributes.uv.count * 2,
-                      geometry.index.array,
-                      geometry.index.count,
-                      planePosition,
-                      planeQuaternion,
-                      planeScale
-                    );
-                    const {
-                      numOutNormals,
-                      numOutPositions,
-                      numOutUvs,
-                      // numOutIndices,
-                      outNormals,
-                      outPositions,
-                      outUvs,
-                      // outIndices,
-                    } = res;
-
-                    for (let n = 0; n < 2; n++) {
-                      const positions = new Float32Array(numOutPositions[n]);
-                      const normals = new Float32Array(numOutNormals[n]);
-                      const uvs = new Float32Array(numOutUvs[n]);
-
-                      const startPositions = n === 0 ? 0 : numOutPositions[n-1];
-                      positions.set(outPositions.subarray(startPositions, startPositions + numOutPositions[n]));
-                      const startNormals = n === 0 ? 0 : numOutNormals[n-1];
-                      normals.set(outNormals.subarray(startNormals, startNormals + numOutNormals[n]));
-                      const startUvs = n === 0 ? 0 : numOutUvs[n-1];
-                      uvs.set(outUvs.subarray(startUvs, startUvs + numOutUvs[n]));
-
-                      const localGeometry = new THREE.BufferGeometry();
-                      localGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                      localGeometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-                      localGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-
-                      /* const labels = new Float32Array(numOutPositions[n] / 3).fill(axisIndex);
-                      localGeometry.setAttribute('label', new THREE.BufferAttribute(labels, 1));
-
-                      axisIndex++; */
-
-                      const _makeIndices = numIndices => {
-                        const indices = new Uint32Array(numIndices);
-                        for (let i = 0; i < numIndices; i++) {
-                          indices[i] = i;
-                        }
-                        return indices;
-                      };
-                      localGeometry.setIndex(new THREE.BufferAttribute(_makeIndices(numOutPositions[n] / 3), 1));
-
-                      nextQueue.push(localGeometry);
-                    }
-                  }
-
-                  queue = nextQueue;
-                }
-
-                const directionsOrder = [
-                  new THREE.Vector3(-1, 1, -1).normalize(),
-                  new THREE.Vector3(-1, -1, -1).normalize(),
-                  new THREE.Vector3(1, 1, -1).normalize(),
-                  new THREE.Vector3(1, -1, -1).normalize(),
-                  new THREE.Vector3(-1, 1, 1).normalize(),
-                  new THREE.Vector3(-1, -1, 1).normalize(),
-                  new THREE.Vector3(1, 1, 1).normalize(),
-                  new THREE.Vector3(1, -1, 1).normalize(),
-                ];
-                /* if (queue.length !== directionsOrder.length) {
-                  debugger;
-                } */
-                for (let i = 0; i < queue.length; i++) {
-                  const geometry = queue[i];
-                  const direction = directionsOrder[i];
-                  const directions = new Float32Array(geometry.attributes.position.array.length);
-                  for (let i = 0; i < geometry.attributes.position.count; i++) {
-                    direction.toArray(directions, i * 3);
-                  }
-                  geometry.setAttribute('direction', new THREE.BufferAttribute(directions, 3));
-                }
-
-                return BufferGeometryUtils.mergeBufferGeometries(queue);
+              cloneItemDiceMesh: () => { // XXX should be broken out to its own module
+                const geometry = _diceGeometry(g);
+                _postProcessGeometry(geometry);
+                const mesh = _makeItemMesh(geometry);
+                return mesh;
               },
               cloneItemMesh: () => {
                 const geometry = g.clone();
-
-                _mapUvs(g.attributes.originalUv, geometry.attributes.uv, 0, g.attributes.originalUv.count);
-                _mapUvs(g.attributes.originalUv2, geometry.attributes.uv2, 0, g.attributes.originalUv2.count);
-
-                const {material} = this;
-                const cloned = new THREE.Mesh(geometry, material);
-                _getMatrixWorld(cloned.matrixWorld);
-                cloned.matrix.copy(cloned.matrixWorld)
-                  .decompose(cloned.position, cloned.quaternion, cloned.scale);
-                cloned.frustumCulled = false;
-
-                return cloned;
+                _postProcessGeometry(geometry);
+                const mesh = _makeItemMesh(geometry);
+                return mesh;
               },
               clonePhysicsObject: () => {
                 const shapeAddress = this.shapeAddresses[name];
