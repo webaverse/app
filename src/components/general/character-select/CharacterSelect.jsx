@@ -327,35 +327,37 @@ export const CharacterSelect = () => {
         }
     };
     const onClick = character => e => {
-        if (character && npcPlayer) {
+        if (character && !selectCharacter) {
             setSelectCharacter(character);
 
             sounds.playSoundName('menuBoop');
 
-            (async () => {
-                const localPlayer = metaversefile.useLocalPlayer();
-                await localPlayer.setPlayerSpec(character.avatarUrl, character);
-
-                const characterIntro = characterIntroCache.get(character.avatarUrl);
-                if (characterIntro) {
-                    const {onselect} = characterIntro;
-
-                    let preloadedMessage = selectAudioCache.get(targetCharacter.avatarUrl);
-                    if (!preloadedMessage) {
-                        preloadedMessage = npcPlayer.voicer.preloadMessage(onselect);
-                        selectAudioCache.set(targetCharacter.avatarUrl, preloadedMessage);
-                    }
-                    npcPlayer.voicer.stop();
-                    localPlayer.voicer.stop();
-                    await chatManager.waitForVoiceTurn(() => {
-                        return localPlayer.voicer.start(preloadedMessage);
-                    });
-                }
-            })();
-
             setTimeout(() => {
                 setState({ openedPanel: null });
             }, 1000);
+
+            if (npcPlayer) {
+                (async () => {
+                    const localPlayer = metaversefile.useLocalPlayer();
+                    await localPlayer.setPlayerSpec(character.avatarUrl, character);
+
+                    const characterIntro = characterIntroCache.get(character.avatarUrl);
+                    if (characterIntro) {
+                        const {onselect} = characterIntro;
+
+                        let preloadedMessage = selectAudioCache.get(targetCharacter.avatarUrl);
+                        if (!preloadedMessage) {
+                            preloadedMessage = npcPlayer.voicer.preloadMessage(onselect);
+                            selectAudioCache.set(targetCharacter.avatarUrl, preloadedMessage);
+                        }
+                        npcPlayer.voicer.stop();
+                        localPlayer.voicer.stop();
+                        await chatManager.waitForVoiceTurn(() => {
+                            return localPlayer.voicer.start(preloadedMessage);
+                        });
+                    }
+                })();
+            }
         }
     };
 
