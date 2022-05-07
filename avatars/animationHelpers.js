@@ -319,6 +319,7 @@ export const loadPromise = (async () => {
     swordSideSlashStep: animations.index['sword_side_slash_step.fbx'],
     swordTopDownSlash: animations.index['sword_topdown_slash.fbx'],
     swordTopDownSlashStep: animations.index['sword_topdown_slash_step.fbx'],
+    swordUpSlash: animations.index['sword_up_slash.fbx'],
     swordUndraw: animations.index['sword_undraw.fbx'],
   };
   useAnimations = mergeAnimations({
