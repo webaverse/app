@@ -476,7 +476,6 @@ class MeshLodder {
           const tw = w * canvasScale;
           const th = h * canvasScale;
 
-
           const _getMatrixWorld = target => {
             return _getMatrix(target)
               .premultiply(this.mesh.matrixWorld);
@@ -607,9 +606,9 @@ class MeshLodder {
             geometry.setAttribute('uv2', new THREE.BufferAttribute(uvs2, 2));
             return geometry;
           };
-          const _postProcessGeometry = geometry => {
-            _mapUvs(g.attributes.originalUv, geometry.attributes.uv, 0, g.attributes.originalUv.count);
-            _mapUvs(g.attributes.originalUv2, geometry.attributes.uv2, 0, g.attributes.originalUv2.count);
+          const _postProcessGeometryUvs = geometry => {
+            _mapWarpedUvs(g.attributes.originalUv, geometry.attributes.uv, 0, g.attributes.originalUv.count);
+            _mapWarpedUvs(g.attributes.originalUv2, geometry.attributes.uv2, 0, g.attributes.originalUv2.count);
           };
           const _makeItemMesh = geometry => {
             const {material} = this;
@@ -638,13 +637,13 @@ class MeshLodder {
               },
               cloneItemDiceMesh: () => { // XXX should be broken out to its own module
                 const geometry = _diceGeometry(g);
-                _postProcessGeometry(geometry);
+                _postProcessGeometryUvs(geometry);
                 const mesh = _makeItemMesh(geometry);
                 return mesh;
               },
               cloneItemMesh: () => {
                 const geometry = g.clone();
-                _postProcessGeometry(geometry);
+                _postProcessGeometryUvs(geometry);
                 const mesh = _makeItemMesh(geometry);
                 return mesh;
               },
@@ -665,7 +664,7 @@ class MeshLodder {
           };
           _addItemToRegistry();
 
-          const _mapPositions = (g, geometry) => {
+          const _mapOffsettedPositions = (g, geometry) => {
             const count = g.attributes.position.count;
 
             const matrix = _getMatrix(localMatrix);
@@ -679,7 +678,7 @@ class MeshLodder {
                 .toArray(geometry.attributes.position.array, dstIndex * 3);
             }
           };
-          const _mapUvs = (src, dst, dstOffset, count) => {
+          const _mapWarpedUvs = (src, dst, dstOffset, count) => {
             for (let i = 0; i < count; i++) {
               const srcIndex = i;
               const dstIndex = dstOffset + i;
@@ -696,24 +695,26 @@ class MeshLodder {
               localVector2D.toArray(dst.array, dstIndex * 2);
             }
           };
-          const _mapIndices = (g, geometry) => {
+          const _mapOffsettedIndices = (g, geometry) => {
             const count = g.index.count;
             for (let i = 0; i < count; i++) {
               geometry.index.array[indexIndex + i] = g.index.array[i] + positionIndex;
             }
           };
 
-          _mapPositions(g, geometry);
+          _mapOffsettedPositions(g, geometry);
           geometry.attributes.normal.array.set(g.attributes.normal.array, positionIndex * 3);
-          _mapUvs(g.attributes.originalUv, geometry.attributes.uv, positionIndex, g.attributes.originalUv.count);
-          _mapUvs(g.attributes.originalUv2, geometry.attributes.uv2, positionIndex, g.attributes.originalUv2.count);
-          _mapIndices(g, geometry);
+          _mapWarpedUvs(g.attributes.originalUv, geometry.attributes.uv, positionIndex, g.attributes.originalUv.count);
+          _mapWarpedUvs(g.attributes.originalUv2, geometry.attributes.uv2, positionIndex, g.attributes.originalUv2.count);
+          _mapOffsettedIndices(g, geometry);
 
           geometry.attributes.position.needsUpdate = true;
           geometry.attributes.normal.needsUpdate = true;
           geometry.attributes.uv.needsUpdate = true;
           geometry.attributes.uv2.needsUpdate = true;
           geometry.index.needsUpdate = true;
+
+          geometry.setAttribute('direction', new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.array.length), 3));
 
           positionIndex += g.attributes.position.count;
           indexIndex += g.index.count;
