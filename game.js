@@ -992,7 +992,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateBehavior();
   
-  const _updateMouseLook = () => {
+  const _updateLook = () => {
     if (localPlayer.avatar) {
       if (mouseSelectedObject && mouseSelectedPosition) {
         // console.log('got', mouseSelectedObject.position.toArray().join(','));
@@ -1014,7 +1014,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       }
     }
   };
-  _updateMouseLook();
+  _updateLook();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
