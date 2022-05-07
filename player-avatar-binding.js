@@ -175,15 +175,15 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
 }
-// returns whether eyeTarget(head) were applied
-export function applyPlayerEyeTargetToAvatar(player, rig) {
-  if (player.eyeTargetEnabled) {
-    rig.eyeTarget.copy(player.eyeTarget);
-    rig.eyeTargetInverted = player.eyeTargetInverted;
-    rig.eyeTargetEnabled = true;
+// returns whether headTarget were applied
+export function applyPlayerHeadTargetToAvatar(player, rig) {
+  if (player.headTargetEnabled) {
+    rig.headTarget.copy(player.headTarget);
+    rig.headTargetInverted = player.headTargetInverted;
+    rig.headTargetEnabled = true;
     return true;
   } else {
-    rig.eyeTargetEnabled = false;
+    rig.headTargetEnabled = false;
     return false;
   }
 }
@@ -244,7 +244,7 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
   
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
-  applyPlayerEyeTargetToAvatar(player, rig);
+  applyPlayerHeadTargetToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
   
   applyFacePoseToAvatar(player, rig);
