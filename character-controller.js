@@ -59,6 +59,12 @@ const localArray4 = [0, 0, 0, 0];
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const upVector = new THREE.Vector3(0, 1, 0);
 
+const _getSession = () => {
+  const renderer = getRenderer();
+  const session = renderer.xr.getSession();
+  return session;
+};
+
 function makeCancelFn() {
   let live = true;
   return {
@@ -1065,9 +1071,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.appManager.bindState(this.getAppsState());
   }
   grab(app, hand = 'left') {
-    const renderer = getRenderer();
     const localPlayer = metaversefile.useLocalPlayer();
-    const {position, quaternion} = renderer.xr.getSession() ?
+    const {position, quaternion} = _getSession() ?
       localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
     :
       camera;
@@ -1144,11 +1149,6 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.appManager.updatePhysics();
   }
-  getSession() {
-    const renderer = getRenderer();
-    const session = renderer.xr.getSession();
-    return session;
-  }
   updatePhysics(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
@@ -1164,7 +1164,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       this.updateInterpolation(timeDiff);
 
-      const session = this.getSession();
+      const session = _getSession();
       const mirrors = metaversefile.getMirrors();
       applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
@@ -1347,9 +1347,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.avatarApp = app;
     
     loadPhysxCharacterController.call(this);
-  }
-  getSession() {
-    return null;
   }
   updatePhysics = LocalPlayer.prototype.updatePhysics;
   updateAvatar = LocalPlayer.prototype.updateAvatar;
