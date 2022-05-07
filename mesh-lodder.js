@@ -86,6 +86,17 @@ class MeshLodder {
       side: THREE.DoubleSide,
       alphaTest: 0.1,
       transparent: true,
+      onBeforeCompile: shader => {
+        shader.vertexShader.replace('#include <common>\n', `\
+          #include <common>
+          attribute vec3 direction;
+        `);
+        shader.vertexShader.replace('#include <begin_vertex>\n', `\
+          #include <begin_vertex>
+          transformed += direction * 0.2;
+        `);
+        return shader;
+      },
     });
     this.material = material;
 
