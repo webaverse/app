@@ -361,9 +361,10 @@ export const loadPromise = (async () => {
     pickUpThrow: animations.find(a => a.isPickUpThrow),
     putDown: animations.find(a => a.isPutDown),
   };
-  // throwAnimations = {
-  //   throw: animations.find(a => a.isThrow),
-  // };
+  /* throwAnimations = {
+    throw: animations.find(a => a.isThrow),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
+  }; */
   /* crouchAnimations = {
       crouch: animations.find(a => a.isCrouch),
     }; */
