@@ -1347,7 +1347,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.avatarApp = app;
     
     loadPhysxCharacterController.call(this);
-    // loadPhysxAuxCharacterCapsule.call(this);
   }
   getSession() {
     return null;
