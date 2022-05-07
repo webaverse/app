@@ -1173,10 +1173,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterHups.update(timestamp);
     }
   }
-  resetPhysics() {
-    this.characterPhysics.reset();
-  }
-  teleportTo = (() => {
+  /* teleportTo = (() => {
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
     const localQuaternion = new THREE.Quaternion();
@@ -1208,7 +1205,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       this.resetPhysics();
     };
-  })()
+  })() */
   destroy() {
     this.characterPhysics.destroy();
     this.characterHups.destroy();
