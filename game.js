@@ -917,7 +917,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
         localPlayer.unwear(app, {
           dropStartPosition: localVector.copy(localPlayer.position)
-            .add(localVector2.set(0, 0.5, -2).applyQuaternion(localPlayer.quaternion)),
+            .add(localVector2.set(0, 0.5, -1).applyQuaternion(localPlayer.quaternion)),
           dropDirection: localVector2.set(0, 0.2, -1).normalize().applyQuaternion(localPlayer.quaternion),
         });
       }
