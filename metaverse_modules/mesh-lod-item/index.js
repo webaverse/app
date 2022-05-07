@@ -40,6 +40,7 @@ export default () => {
     itemMesh.quaternion.identity();
     itemMesh.scale.set(1, 1, 1);
 
+    app.add(itemMesh);
     itemMesh.updateMatrixWorld();
   }
   {
