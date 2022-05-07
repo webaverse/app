@@ -563,8 +563,8 @@ class MeshLodder {
                   const localGeometry = new THREE.BufferGeometry();
                   localGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
                   localGeometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-                  localGeometry.setAttribute('originalUv', new THREE.BufferAttribute(uvs, 2));
-                  localGeometry.setAttribute('originalUv2', new THREE.BufferAttribute(uvs.slice(), 2));
+                  localGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+                  localGeometry.setAttribute('uv2', new THREE.BufferAttribute(uvs.slice(), 2));
 
                   const _makeIndices = numIndices => {
                     const indices = new Uint32Array(numIndices);
@@ -605,8 +605,6 @@ class MeshLodder {
             }
 
             const geometry = BufferGeometryUtils.mergeBufferGeometries(queue);
-            geometry.setAttribute('uv', new THREE.BufferAttribute(geometry.attributes.originalUv.array.slice(), 2));
-            geometry.setAttribute('uv2', new THREE.BufferAttribute(geometry.attributes.originalUv2.array.slice(), 2));
             return geometry;
           };
           const _postProcessGeometryUvs = geometry => {
