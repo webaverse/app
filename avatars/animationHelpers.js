@@ -323,6 +323,7 @@ export const loadPromise = (async () => {
     eat: animations.find(a => a.isEating),
     drink: animations.find(a => a.isDrinking),
     throw: animations.find(a => a.isThrow),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
     bowDraw: animations.find(a => a.isBowDraw),
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
