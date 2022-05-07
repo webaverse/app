@@ -1354,43 +1354,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   }
   updatePhysics = LocalPlayer.prototype.updatePhysics;
   updateAvatar = LocalPlayer.prototype.updateAvatar;
-  /* detachState() {
-    return null;
-  }
-  attachState(oldState) {
-    let index = -1;
-    for (let i = 0; i < this.playersArray.length; i++) {
-      const player = this.playersArray.get(i, Z.Map);
-      if (player.get('playerId') === this.playerId) {
-        index = i;
-        break;
-      }
-    }
-    if (index !== -1) {
-      this.playerMap = this.playersArray.get(index, Z.Map);
-    } else {
-      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
-    }
-    
-    const observePlayerFn = e => {
-      this.position.fromArray(this.playerMap.get('position'));
-      this.quaternion.fromArray(this.playerMap.get('quaternion'));
-    };
-    this.playerMap.observe(observePlayerFn);
-    this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
-    
-    this.appManager.bindState(this.getAppsState());
-    this.appManager.syncApps();
-    
-    this.syncAvatar();
-  } */
   destroy() {
-    /* const npcs = metaversefile.useNpcs();
-    const index = npcs.indexOf(this);
-    if (index !== -1) {
-      npcs.splice(index, 1);
-    } */
-
     this.characterPhysics.destroy();
     this.characterHups.destroy();
     this.characterSfx.destroy();
