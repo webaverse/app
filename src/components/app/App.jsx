@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, createContext } from 'react';
 
-import { defaultAvatarUrl, defaultPlayerSpec } from '../../../constants';
+import { defaultPlayerSpec } from '../../../constants';
 
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
@@ -49,7 +49,7 @@ const _startApp = async ( weba, canvas ) => {
 
     const localPlayer = metaversefileApi.useLocalPlayer();
     // console.log('set player spec', defaultPlayerSpec);
-    await localPlayer.setPlayerSpec(defaultAvatarUrl, defaultPlayerSpec);
+    await localPlayer.setPlayerSpec(defaultPlayerSpec.avatarUrl, defaultPlayerSpec);
 
 };
 
