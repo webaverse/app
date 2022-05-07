@@ -336,11 +336,13 @@ export const CharacterSelect = () => {
                 setState({ openedPanel: null });
             }, 1000);
 
+            const localPlayer = metaversefile.useLocalPlayer();
+            (async () => {
+                await localPlayer.setPlayerSpec(character.avatarUrl, character);
+            })();
+
             if (npcPlayer) {
                 (async () => {
-                    const localPlayer = metaversefile.useLocalPlayer();
-                    await localPlayer.setPlayerSpec(character.avatarUrl, character);
-
                     const characterIntro = characterIntroCache.get(character.avatarUrl);
                     if (characterIntro) {
                         const {onselect} = characterIntro;
