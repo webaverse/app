@@ -5,21 +5,32 @@ const {useApp, useFrame, useScene, usePhysics, useWear, useMeshLodder} = metaver
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 const localMatrix = new THREE.Matrix4();
 
+const _copyTransform = (dst, src) => {
+  dst.position.copy(src.position);
+  dst.quaternion.copy(src.quaternion);
+  dst.scale.copy(src.scale);
+  dst.matrix.copy(src.matrix);
+  dst.matrixWorld.copy(src.matrixWorld);
+};
+
 export default () => {
   const app = useApp();
-  // const scene = useScene();
-  // const physicsManager = usePhysics();
   const meshLodManager = useMeshLodder();
 
   app.name = 'mesh-lod-item';
-
-  // console.log('mesh lod item app', app.components, app.getComponent('meshLodderId'), app.getComponent('physicsId'));
 
   const meshLodderId = app.getComponent('meshLodderId');
   const physicsId = app.getComponent('physicsId');
 
   const meshLodder = meshLodManager.getMeshLodder(meshLodderId);
   const item = meshLodder.getItemByPhysicsId(physicsId);
+
+  let itemDiceMesh = null;
+  {
+    itemDiceMesh = item.cloneItemDiceMesh();
+    app.add(itemDiceMesh);
+    itemDiceMesh.updateMatrixWorld();
+  }
 
   let itemMesh = null;
   const physicsObjects = [];
@@ -28,10 +39,7 @@ export default () => {
     itemMesh.position.set(0, 0, 0);
     itemMesh.quaternion.identity();
     itemMesh.scale.set(1, 1, 1);
-    // itemMesh.matrix.identity();
-    // itemMesh.matrixWorld.identity();
 
-    app.add(itemMesh);
     itemMesh.updateMatrixWorld();
   }
   {
@@ -47,34 +55,26 @@ export default () => {
       itemMesh.scale.copy(physicsObject.scale);
       itemMesh.matrix.copy(physicsObject.matrix);
       itemMesh.matrixWorld.copy(physicsObject.matrixWorld);
-      itemMesh.matrix.premultiply(localMatrix.copy(itemMesh.parent.matrixWorld).invert())
+      itemMesh.matrix
+        .premultiply(
+          localMatrix.copy(app.matrixWorld).invert()
+        )
         .decompose(itemMesh.position, itemMesh.quaternion, itemMesh.scale);
+
+      _copyTransform(itemDiceMesh, itemMesh);
     } else {
       itemMesh.position.set(0, 0, 0);
       itemMesh.quaternion.identity();
       itemMesh.scale.set(1, 1, 1);
       itemMesh.updateMatrixWorld();
+
+      _copyTransform(itemDiceMesh, itemMesh);
     }
-    // app.updateMatrixWorld();
   });
 
   let wearing = false;
   useWear(e => {
-    // console.log('use wear', e);
     wearing = e.wear;
-
-    /* if (!wearing) {
-      const physicsObject = physicsObjects[0];
-      physicsObject.position.copy(app.position);
-      physicsObject.quaternion.copy(app.quaternion);
-      physicsObject.scale.copy(app.scale);
-      physicsObject.matrix.copy(app.matrix);
-      physicsObject.matrixWorld.copy(app.matrixWorld);
-      // console.log('set position', physicsObject.position.toArray().join(','));
-      physicsManager.setTransform(physicsObject, true);
-      physicsManager.setVelocity(physicsObject, zeroVector, true);
-      physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
-    } */
   });
 
   app.getPhysicsObjects = () => physicsObjects;
