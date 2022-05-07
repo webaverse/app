@@ -1093,6 +1093,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
+      //physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
       physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
     }
 
@@ -1123,6 +1124,19 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
     }
   }
+  /* lookAt(p) {
+    const cameraOffset = cameraManager.getCameraOffset();
+    camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    camera.quaternion.setFromRotationMatrix(
+      localMatrix.lookAt(
+        camera.position,
+        p,
+        localVector2.set(0, 1, 0)
+      )
+    );
+    camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+    camera.updateMatrixWorld();
+  } */
   
   pushPlayerUpdates() {
     this.playersArray.doc.transact(() => {
