@@ -203,6 +203,11 @@
       "start_url": "https://webaverse.github.io/helm/"
     },
     {
+      "position": [-30, 0, -30],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "https://webaverse.github.io/plants/"
+    },
+    {
       "position": [
         -95,
         0,
