@@ -28,7 +28,7 @@ export default () => {
   let itemDiceMesh = null;
   {
     itemDiceMesh = item.cloneItemDiceMesh();
-    app.add(itemDiceMesh);
+    // app.add(itemDiceMesh);
     itemDiceMesh.updateMatrixWorld();
   }
 
