@@ -48,7 +48,7 @@ import overrides from './overrides.js';
 // import * as voices from './voices.js';
 
 const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
 // const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
@@ -57,6 +57,7 @@ const localArray3 = [0, 0, 0];
 const localArray4 = [0, 0, 0, 0];
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
+const upVector = new THREE.Vector3(0, 1, 0);
 
 function makeCancelFn() {
   let live = true;
@@ -384,12 +385,6 @@ class PlayerBase extends THREE.Object3D {
 
       const _setAppTransform = () => {
         if (dropStartPosition && dropDirection) {
-          app.position.copy(dropStartPosition);
-          app.quaternion.identity();
-          app.scale.set(1, 1, 1);
-          app.updateMatrixWorld();
-          app.lastMatrix.copy(app.matrixWorld);
-
           const physicsObjects = app.getPhysicsObjects();
           if (physicsObjects.length > 0) {
             const physicsObject = physicsObjects[0];
@@ -401,17 +396,32 @@ class PlayerBase extends THREE.Object3D {
             physicsManager.setTransform(physicsObject, true);
             physicsManager.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5), true);
             physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
-          }
-        } else {
-          // const wearComponent = app.getComponent('wear');
-          // if (wearComponent) {
-            const avatarHeight = this.avatar ? this.avatar.height : 0;
-            app.position.copy(this.position)
-              .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
-            app.quaternion.identity();
+
+            app.position.copy(physicsObject.position);
+            app.quaternion.copy(physicsObject.quaternion);
+            app.scale.copy(physicsObject.scale);
+            app.matrix.copy(physicsObject.matrix);
+            app.matrixWorld.copy(physicsObject.matrixWorld);
+          } else {
+            app.position.copy(dropStartPosition);
+            app.quaternion.setFromRotationMatrix(
+              localMatrix.lookAt(
+                localVector.set(0, 0, 0),
+                localVector2.set(dropDirection.x, 0, dropDirection.z).normalize(),
+                upVector
+              )
+            );
             app.scale.set(1, 1, 1);
             app.updateMatrixWorld();
-          // }
+          }
+          app.lastMatrix.copy(app.matrixWorld);
+        } else {
+          const avatarHeight = this.avatar ? this.avatar.height : 0;
+          app.position.copy(this.position)
+            .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
+          app.quaternion.identity();
+          app.scale.set(1, 1, 1);
+          app.updateMatrixWorld();
         }
       };
       _setAppTransform();
