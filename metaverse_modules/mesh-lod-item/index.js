@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useScene, usePhysics, useWear, useMeshLodder} = metaversefile;
 
-const zeroVector = new THREE.Vector3(0, 0, 0);
+// const zeroVector = new THREE.Vector3(0, 0, 0);
+const localMatrix = new THREE.Matrix4();
 
 export default () => {
   const app = useApp();
   // const scene = useScene();
-  const physicsManager = usePhysics();
+  // const physicsManager = usePhysics();
   const meshLodManager = useMeshLodder();
 
   app.name = 'mesh-lod-item';
@@ -46,12 +47,15 @@ export default () => {
       itemMesh.scale.copy(physicsObject.scale);
       itemMesh.matrix.copy(physicsObject.matrix);
       itemMesh.matrixWorld.copy(physicsObject.matrixWorld);
+      itemMesh.matrix.premultiply(localMatrix.copy(itemMesh.parent.matrixWorld).invert())
+        .decompose(itemMesh.position, itemMesh.quaternion, itemMesh.scale);
     } else {
       itemMesh.position.set(0, 0, 0);
       itemMesh.quaternion.identity();
       itemMesh.scale.set(1, 1, 1);
       itemMesh.updateMatrixWorld();
     }
+    // app.updateMatrixWorld();
   });
 
   let wearing = false;
