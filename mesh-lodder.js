@@ -15,6 +15,7 @@ const minObjectsPerChunk = 20;
 const maxObjectPerChunk = 50;
 
 const upVector = new THREE.Vector3(0, 1, 0);
+const rightVector = new THREE.Vector3(1, 0, 0);
 const oneVector = new THREE.Vector3(1, 1, 1);
 
 const localVector = new THREE.Vector3();
@@ -508,60 +509,89 @@ class MeshLodder {
                 count: g.index.count,
               },
               cloneItemDiceMesh: () => {
-                const geometry = g.clone();
+                let queue = [
+                  g,
+                ];
 
                 const planePosition = new THREE.Vector3(0, 0, 0);
-                const planeQuaternion = new THREE.Quaternion(0, 1, 0, 0);
                 const planeScale = new THREE.Vector3(1, 1, 1);
 
-                planeQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2);
-
-                const res = physicsManager.cutMesh(
-                  geometry.attributes.position.array,
-                  geometry.attributes.position.count * 3,
-                  geometry.attributes.normal.array,
-                  geometry.attributes.normal.count * 3,
-                  geometry.attributes.uv.array,
-                  geometry.attributes.uv.count * 2,
-                  geometry.index.array,
-                  geometry.index.count,
-                  planePosition,
-                  planeQuaternion,
-                  planeScale
-                );
-                const {
-                  numOutNormals,
-                  numOutPositions,
-                  numOutUvs,
-                  // numOutIndices,
-                  outNormals,
-                  outPositions,
-                  outUvs,
-                  // outIndices,
-                } = res;
-
-                const geometries = [
-                  new THREE.BufferGeometry(),
-                  new THREE.BufferGeometry(),
+                // let axisIndex = 0;
+                const quaternions = [
+                  new THREE.Quaternion(), // forward
+                  new THREE.Quaternion().setFromAxisAngle(upVector, Math.PI / 2), // left
+                  new THREE.Quaternion().setFromAxisAngle(rightVector, Math.PI / 2), // up
                 ];
-                for (let n = 0; n < geometries.length; n++) {
-                  const positions = new Float32Array(numOutPositions[n]);
-                  const normals = new Float32Array(numOutNormals[n]);
-                  const uvs = new Float32Array(numOutUvs[n]);
+                for (const planeQuaternion of quaternions) {
+                  // planeQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2);
 
-                  const startPositions = n === 0 ? 0 : numOutPositions[n-1];
-                  positions.set(outPositions.subarray(startPositions, startPositions + numOutPositions[n]));
-                  const startNormals = n === 0 ? 0 : numOutNormals[n-1];
-                  normals.set(outNormals.subarray(startNormals, startNormals + numOutNormals[n]));
-                  const startUvs = n === 0 ? 0 : numOutUvs[n-1];
-                  uvs.set(outUvs.subarray(startUvs, startUvs + numOutUvs[n]));
+                  const currentQueue = queue.slice();
+                  const nextQueue = [];
 
-                  const localGeometry = geometries[n];
-                  localGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                  localGeometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-                  localGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+                  let geometry;
+                  while (geometry = currentQueue.shift()) {
+                    const res = physicsManager.cutMesh(
+                      geometry.attributes.position.array,
+                      geometry.attributes.position.count * 3,
+                      geometry.attributes.normal.array,
+                      geometry.attributes.normal.count * 3,
+                      geometry.attributes.uv.array,
+                      geometry.attributes.uv.count * 2,
+                      geometry.index.array,
+                      geometry.index.count,
+                      planePosition,
+                      planeQuaternion,
+                      planeScale
+                    );
+                    const {
+                      numOutNormals,
+                      numOutPositions,
+                      numOutUvs,
+                      // numOutIndices,
+                      outNormals,
+                      outPositions,
+                      outUvs,
+                      // outIndices,
+                    } = res;
+
+                    for (let n = 0; n < 2; n++) {
+                      const positions = new Float32Array(numOutPositions[n]);
+                      const normals = new Float32Array(numOutNormals[n]);
+                      const uvs = new Float32Array(numOutUvs[n]);
+
+                      const startPositions = n === 0 ? 0 : numOutPositions[n-1];
+                      positions.set(outPositions.subarray(startPositions, startPositions + numOutPositions[n]));
+                      const startNormals = n === 0 ? 0 : numOutNormals[n-1];
+                      normals.set(outNormals.subarray(startNormals, startNormals + numOutNormals[n]));
+                      const startUvs = n === 0 ? 0 : numOutUvs[n-1];
+                      uvs.set(outUvs.subarray(startUvs, startUvs + numOutUvs[n]));
+
+                      const localGeometry = new THREE.BufferGeometry();
+                      localGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                      localGeometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+                      localGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+
+                      /* const labels = new Float32Array(numOutPositions[n] / 3).fill(axisIndex);
+                      localGeometry.setAttribute('label', new THREE.BufferAttribute(labels, 1));
+
+                      axisIndex++; */
+
+                      const _makeIndices = numIndices => {
+                        const indices = new Uint32Array(numIndices);
+                        for (let i = 0; i < numIndices; i++) {
+                          indices[i] = i;
+                        }
+                        return indices;
+                      };
+                      localGeometry.setIndex(new THREE.BufferAttribute(_makeIndices(numOutPositions[n] / 3), 1));
+
+                      nextQueue.push(localGeometry);
+                    }
+                  }
+
+                  queue = nextQueue;
                 }
-                return BufferGeometryUtils.mergeBufferGeometries(geometries);
+                return BufferGeometryUtils.mergeBufferGeometries(queue);
               },
               cloneItemMesh: () => {
                 const geometry = g.clone();
