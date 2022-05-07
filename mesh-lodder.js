@@ -5,6 +5,7 @@ import {alea} from './procgen/procgen.js';
 // import {getRenderer} from './renderer.js';
 import {mod, modUv, getNextPhysicsId} from './util.js';
 import physicsManager from './physics-manager.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const bufferSize = 2 * 1024 * 1024;
 const chunkWorldSize = 30;
@@ -506,11 +507,67 @@ class MeshLodder {
                 start: indexIndex,
                 count: g.index.count,
               },
+              cloneItemDiceMesh: () => {
+                const geometry = g.clone();
+
+                const planePosition = new THREE.Vector3(0, 0, 0);
+                const planeQuaternion = new THREE.Quaternion(0, 1, 0, 0);
+                const planeScale = new THREE.Vector3(1, 1, 1);
+
+                planeQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2);
+
+                const res = physicsManager.cutMesh(
+                  geometry.attributes.position.array,
+                  geometry.attributes.position.count * 3,
+                  geometry.attributes.normal.array,
+                  geometry.attributes.normal.count * 3,
+                  geometry.attributes.uv.array,
+                  geometry.attributes.uv.count * 2,
+                  geometry.index.array,
+                  geometry.index.count,
+                  planePosition,
+                  planeQuaternion,
+                  planeScale
+                );
+                const {
+                  numOutNormals,
+                  numOutPositions,
+                  numOutUvs,
+                  // numOutIndices,
+                  outNormals,
+                  outPositions,
+                  outUvs,
+                  // outIndices,
+                } = res;
+
+                const geometries = [
+                  new THREE.BufferGeometry(),
+                  new THREE.BufferGeometry(),
+                ];
+                for (let n = 0; n < geometries.length; n++) {
+                  const positions = new Float32Array(numOutPositions[n]);
+                  const normals = new Float32Array(numOutNormals[n]);
+                  const uvs = new Float32Array(numOutUvs[n]);
+
+                  const startPositions = n === 0 ? 0 : numOutPositions[n-1];
+                  positions.set(outPositions.subarray(startPositions, startPositions + numOutPositions[n]));
+                  const startNormals = n === 0 ? 0 : numOutNormals[n-1];
+                  normals.set(outNormals.subarray(startNormals, startNormals + numOutNormals[n]));
+                  const startUvs = n === 0 ? 0 : numOutUvs[n-1];
+                  uvs.set(outUvs.subarray(startUvs, startUvs + numOutUvs[n]));
+
+                  const localGeometry = geometries[n];
+                  localGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                  localGeometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+                  localGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+                }
+                return BufferGeometryUtils.mergeBufferGeometries(geometries);
+              },
               cloneItemMesh: () => {
                 const geometry = g.clone();
 
-                _mapUvs(g, geometry, 'originalUv', 'uv', 0, g.attributes.originalUv.count);
-                _mapUvs(g, geometry, 'originalUv2', 'uv2', 0, g.attributes.originalUv2.count);
+                _mapUvs(g.attributes.originalUv, geometry.attributes.uv, 0, g.attributes.originalUv.count);
+                _mapUvs(g.attributes.originalUv2, geometry.attributes.uv2, 0, g.attributes.originalUv2.count);
 
                 const {material} = this;
                 const cloned = new THREE.Mesh(geometry, material);
