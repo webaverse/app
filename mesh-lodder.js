@@ -516,14 +516,13 @@ class MeshLodder {
                 const planePosition = new THREE.Vector3(0, 0, 0);
                 const planeScale = new THREE.Vector3(1, 1, 1);
 
-                // let axisIndex = 0;
                 const quaternions = [
                   new THREE.Quaternion(), // forward
                   new THREE.Quaternion().setFromAxisAngle(upVector, Math.PI / 2), // left
                   new THREE.Quaternion().setFromAxisAngle(rightVector, Math.PI / 2), // up
                 ];
-                for (const planeQuaternion of quaternions) {
-                  // planeQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2);
+                for (let quaternionIndex = 0; quaternionIndex < quaternions.length; quaternionIndex++) {
+                  const planeQuaternion = quaternions[quaternionIndex];
 
                   const currentQueue = queue.slice();
                   const nextQueue = [];
@@ -591,6 +590,30 @@ class MeshLodder {
 
                   queue = nextQueue;
                 }
+
+                const directionsOrder = [
+                  new THREE.Vector3(-1, 1, -1).normalize(),
+                  new THREE.Vector3(-1, -1, -1).normalize(),
+                  new THREE.Vector3(1, 1, -1).normalize(),
+                  new THREE.Vector3(1, -1, -1).normalize(),
+                  new THREE.Vector3(-1, 1, 1).normalize(),
+                  new THREE.Vector3(-1, -1, 1).normalize(),
+                  new THREE.Vector3(1, 1, 1).normalize(),
+                  new THREE.Vector3(1, -1, 1).normalize(),
+                ];
+                /* if (queue.length !== directionsOrder.length) {
+                  debugger;
+                } */
+                for (let i = 0; i < queue.length; i++) {
+                  const geometry = queue[i];
+                  const direction = directionsOrder[i];
+                  const directions = new Float32Array(geometry.attributes.position.array.length);
+                  for (let i = 0; i < geometry.attributes.position.count; i++) {
+                    direction.toArray(directions, i * 3);
+                  }
+                  geometry.setAttribute('direction', new THREE.BufferAttribute(directions, 3));
+                }
+
                 return BufferGeometryUtils.mergeBufferGeometries(queue);
               },
               cloneItemMesh: () => {
