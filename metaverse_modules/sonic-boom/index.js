@@ -934,6 +934,7 @@ export default () => {
                     //gl_FragColor = vec4(vec3(texColor), texColor.b);
                     //gl_FragColor.a*=(vUv.x)*5.;
                     //gl_FragColor = vec4(vUv, 1.0, 1.0);
+                    // gl_FragColor = vec4(1,0,0,1);
                 ${THREE.ShaderChunk.logdepthbuf_fragment}
               }
             `,
@@ -975,6 +976,7 @@ export default () => {
         }
         if(material.uniforms.opacity.value>0){
             //console.log('sonic-boom-verticalPlane');
+            debugger
             for(let i=0;i<18;i++){
                 temp[i]=position[i];
             }
@@ -1172,6 +1174,7 @@ export default () => {
                   //gl_FragColor = vec4(vec3(texColor), texColor.b);
                   //gl_FragColor.a*=(vUv.x)*5.;
                   //gl_FragColor = vec4(vUv, 1.0, 1.0);
+                //   gl_FragColor = vec4(0,1,0,1);
                 ${THREE.ShaderChunk.logdepthbuf_fragment}
               }
             `,
