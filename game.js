@@ -55,6 +55,8 @@ const localMatrix3 = new THREE.Matrix4();
 const localRay = new THREE.Ray();
 // const localRaycaster = new THREE.Raycaster();
 
+const zeroVector = new THREE.Vector3(0, 0, 0);
+
 // const oneVector = new THREE.Vector3(1, 1, 1);
 
 // const cubicBezier = easing(0, 1, 0, 1);
@@ -913,7 +915,11 @@ const _gameUpdate = (timestamp, timeDiff) => {
         // console.log('got throw action', useAction, localPlayer);
 
         const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
-        localPlayer.unwear(app);
+        localPlayer.unwear(app, {
+          dropStartPosition: localVector.copy(localPlayer.position)
+            .add(localVector2.set(0, 0.5, -2).applyQuaternion(localPlayer.quaternion)),
+          dropDirection: localVector2.set(0, 0.2, -1).normalize().applyQuaternion(localPlayer.quaternion),
+        });
       }
       lastThrowing = currentThrowing;
     }
@@ -1246,7 +1252,11 @@ class GameManager extends EventTarget {
   dropSelectedApp() {
     const app = loadoutManager.getSelectedApp();
     if (app) {
-      localPlayer.unwear(app);
+      localPlayer.unwear(app, {
+        /* dropStartPosition: localVector.copy(localPlayer.position)
+          .add(localVector2.set(0, 0.5, -1).applyQuaternion(localPlayer.quaternion)),
+        dropDirection: zeroVector, */
+      });
     }
   }
   deleteSelectedApp() {
