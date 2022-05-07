@@ -566,11 +566,6 @@ class MeshLodder {
                   localGeometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
                   localGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 
-                  /* const labels = new Float32Array(numOutPositions[n] / 3).fill(axisIndex);
-                  localGeometry.setAttribute('label', new THREE.BufferAttribute(labels, 1));
-
-                  axisIndex++; */
-
                   const _makeIndices = numIndices => {
                     const indices = new Uint32Array(numIndices);
                     for (let i = 0; i < numIndices; i++) {
