@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useFrame, useMaterials, useLocalPlayer, useMathUtils} = metaversefile;
+const {useFrame, useMaterials, useLocalPlayer} = metaversefile;
 
 // const cardWidth = 0.063;
 // const cardHeight = cardWidth / 2.5 * 3.5;
@@ -153,7 +153,7 @@ const _makeCylindersMesh = () => {
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.update = (timestamp, timeDiff) => {
-    const maxTime = 500;
+    const maxTime = 300;
     const f = (timestamp % maxTime) / maxTime;
 
     mesh.visible = false;
