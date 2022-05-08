@@ -33,6 +33,7 @@ import {generateObjectUrlCard} from './card-generator.js';
 import * as sounds from './sounds.js';
 import {localPlayer} from './players.js';
 // import physicsManager from './physics-manager.js';
+import npcManager from './npc-manager.js';
 import zTargeting from './z-targeting.js';
 
 // const {contractNames} = metaversefileConstants;
@@ -1384,6 +1385,11 @@ class GameManager extends EventTarget {
     if (narutoRunAction) {
       localPlayer.removeAction('narutoRun');
     }
+  }
+  menuSwitchCharacter() {
+    sounds.playSoundName('menuReady');
+
+    console.log('check npcs', npcManager.npcs);
   }
   isFlying() {
     return localPlayer.hasAction('fly');
