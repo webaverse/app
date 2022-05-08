@@ -75,16 +75,15 @@ varying float vDistance;
 
 void main() {
   vec3 p = position;
-  float factor = uTime;
+  float factor = mod(uTime, 1.);
   float distance1 = length(vec2(p.xz));
   float distance2 = distance1 + ${minRadius.toFixed(8)};
   float distance = distance1 * (1.0 - factor) + distance2 * factor;
   p.xz *= distance / distance1;
   
-  float distanceFactor = (distance) / ${(maxRadius).toFixed(8)};
-  // p.y *= sin(distanceFactor * PI);
-
+  float distanceFactor = (distance - ${(minRadius).toFixed(8)}) / ${(maxRadius - minRadius).toFixed(8)};
   vDistance = sin(distanceFactor * PI);
+  p.y *= vDistance;
 
   vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mvPosition;
@@ -101,7 +100,7 @@ precision highp int;
 
 // uniform vec4 uBoundingBox;
 uniform float uTime;
-uniform float uTimeCubic;
+// uniform float uTimeCubic;
 varying vec2 vUv;
 // varying float vF;
 varying float vInstance;
@@ -145,12 +144,13 @@ void draw_auroras(inout vec4 color, vec2 uv) {
     
     float f = 200.0;
     
+    float factor = mod(uTime, 1.);
     float t = -1.5 +
-      nsin(-uTime + uv.x * f) * 0.075 +
-      nsin(uTime + uv.x * distance(uv.x, 0.5) * f) * 0.3 +
-      nsin(uTime + uv.x * distance(uv.x, 0.) * f * 0.25 + 100.) * 0.3 +
-      nsin(uTime + uv.x * distance(uv.x, 1.) * f * 0.25 + 200.) * 0.3 +
-      nsin(uTime + uv.x * distance(uv.x, 0.5) * f * 2. + 300.) * -0.2;
+      nsin(-factor + uv.x * f) * 0.075 +
+      nsin(factor + uv.x * distance(uv.x, 0.5) * f) * 0.3 +
+      nsin(factor + uv.x * distance(uv.x, 0.) * f * 0.25 + 100.) * 0.3 +
+      nsin(factor + uv.x * distance(uv.x, 1.) * f * 0.25 + 200.) * 0.3 +
+      nsin(factor + uv.x * distance(uv.x, 0.5) * f * 2. + 300.) * -0.2;
     // t += uv.y;
     // t = pow(t, 0.5);
     t = 1.0 - smoothstep(1.0 - uv.y - 4.0, 1.0 - uv.y * 2.0, t);
@@ -165,22 +165,26 @@ void main() {
   vec3 c1 = vec3(1., 1., 0.195);
   vec3 c2 = vec3(53./255., 254./255., 52./255.);
 
-  float lerpInstance = vInstance + uTime;
+  float factor = mod(uTime, 1.);
+  float lerpInstance = vInstance + factor;
   float dfa = (1. - lerpInstance/${numCylinders.toFixed(8)});
   float dfb = (1. - lerpInstance/${(numCylinders - 1).toFixed(8)});
 
-  float radiusFactor2 = vInstance / ${numCylinders.toFixed(8)};
+  float radiusFactor2 = vInstance - floor(uTime);
   // float radiusFactor = (lerpInstance + 1.) / ${numCylinders.toFixed(8)};
   // vec3 c = mix(c1, c2, radiusFactor);
   
   vec2 uv = vUv;
-  uv.y /= vDistance;
-  uv.y = min(max(uv.y, 0.), 1.);
-  uv.x = mod(uv.x + nsin(radiusFactor2 * 2. * PI), 1.);
+  // uv.y /= vDistance;
+  // uv.y = min(max(uv.y, 0.), 1.);
+  uv.x = mod(uv.x + rand(radiusFactor2), 1.);
   draw_auroras(gl_FragColor, uv);
-
   gl_FragColor.a *= dfa;
-  /* if (gl_FragColor.a <= 0.05) {
+  
+  /* float c = vUv.y > 0.9 ? 1. : 0.;
+  gl_FragColor.r = c;
+  gl_FragColor.a = c;
+  if (gl_FragColor.a <= 0.05) {
     discard;
   } */
 }
@@ -233,7 +237,7 @@ const _makeCylindersMesh = () => {
 
     if (localPlayer.avatar) {
       const maxTime = 300;
-      const f = (timestamp % maxTime) / maxTime;
+      const f = (timestamp / maxTime) % 100;
 
       const Root = localPlayer.avatar.modelBones.Root;
       object.position.setFromMatrixPosition(Root.matrixWorld);
