@@ -44,6 +44,7 @@ const maxFocusTime = 300;
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
+let cameraOffsetLimitZ = Infinity;
 
 // let cameraOffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
@@ -290,7 +291,7 @@ class CameraManager extends EventTarget {
   }
   handleWheelEvent(e) {
     if (!this.target) {
-      cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
+      cameraOffsetTargetZ = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
     }
   }
   addShake(position, intensity, radius, decay) {
@@ -489,13 +490,16 @@ class CameraManager extends EventTarget {
       const _bumpCamera = () => {
         const direction = localVector.set(0, 0, 1)
           .applyQuaternion(camera.quaternion);
-        const backOffset = 2;
+        const backOffset = 1;
+        // const cameraBackThickness = 0.5;
 
-        const delta = localVector2.copy(camera.position)
-          .sub(localPlayer.position);
-        const sweepDistance = Math.max(delta.length() - backOffset, 0);
+        /* const delta = localVector2.copy(camera.position)
+          .sub(localPlayer.position); */
+        const sweepDistance = Math.max(-cameraOffsetTargetZ, 0);
 
         // console.log('offset', cameraOffsetTargetZ);
+
+        cameraOffsetLimitZ = -Infinity;
 
         if (sweepDistance > 0) {
           const halfExtents = localVector2.set(0.5, 0.5, 0.1);
@@ -512,7 +516,7 @@ class CameraManager extends EventTarget {
           );
           if (result.length > 0) {
             const distance = result[0].distance;
-            cameraOffsetTargetZ = distance < 0.5 ? 0 : -distance;
+            cameraOffsetLimitZ = distance < 0.5 ? 0 : -distance;
           }
         }
       };
@@ -520,7 +524,8 @@ class CameraManager extends EventTarget {
 
       const _lerpCameraOffset = () => {
         const lerpFactor = 0.1;
-        cameraOffset.z = cameraOffset.z * (1-lerpFactor) + cameraOffsetTargetZ*lerpFactor;
+        const cameraOffsetZ = Math.max(cameraOffsetTargetZ, cameraOffsetLimitZ);
+        cameraOffset.z = cameraOffset.z * (1-lerpFactor) + cameraOffsetZ*lerpFactor;
       };
       _lerpCameraOffset();
 
