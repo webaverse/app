@@ -18,6 +18,7 @@ const {useFrame, useMaterials, useLocalPlayer} = metaversefile;
 const numCylinders = 5;
 const minRadius = 0.2;
 const radiusStep = minRadius;
+const maxRadius = minRadius + minRadius * numCylinders;
 
 function createCylindersGeometry() {
   const radiusTop = 1;
@@ -74,6 +75,8 @@ const _makeCylindersMesh = () => {
       // varying vec3 vNormal;
       // varying float vFactor;
 
+      // #define PI 3.1415926535897932384626433832795
+
       void main() {
         vec3 p = position;
         float factor = uTime;
@@ -81,6 +84,10 @@ const _makeCylindersMesh = () => {
         float distance2 = distance1 + ${minRadius.toFixed(8)};
         float distance = distance1 * (1.0 - factor) + distance2 * factor;
         p.xz *= distance / distance1;
+        
+        float distanceFactor = (distance) / ${(maxRadius).toFixed(8)};
+        p.y *= sin(distanceFactor * PI);
+
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         
@@ -129,23 +136,56 @@ const _makeCylindersMesh = () => {
 
       float rand(float n){return fract(sin(n) * 43758.5453123);}
 
+      #define nsin(x) (sin(x) * 0.5 + 0.5)
+
+      void draw_auroras(inout vec4 color, vec2 uv) {
+          color = vec4(0.0);
+
+          const vec4 aurora_color_a = vec4(0.0, 1.2, 0.5, 1.0);
+          const vec4 aurora_color_b = vec4(0.0, 0.4, 0.6, 1.0);
+          
+          float f = 200.0;
+          
+          float t = -1.5 +
+            nsin(-uTime + uv.x * f) * 0.075 +
+            nsin(uTime + uv.x * distance(uv.x, 0.5) * f) * 0.3 +
+            nsin(uTime + uv.x * distance(uv.x, 0.) * f * 0.25 + 100.) * 0.3 +
+            nsin(uTime + uv.x * distance(uv.x, 1.) * f * 0.25 + 200.) * 0.3 +
+            nsin(uTime + uv.x * distance(uv.x, 0.5) * f * 2. + 300.) * -0.2;
+          t += uv.y;
+          t = 1.0 - smoothstep(1.0 - uv.y - 4.0, 1.0 - uv.y * 2.0, t);
+          // t = pow(t, 2.);
+          
+          vec4 final_color = mix(aurora_color_a, aurora_color_b, clamp(uv.y * t, 0.0, 1.0));
+          final_color += final_color * final_color;
+          color += final_color * t * (t + 0.5) * 0.75;
+      }
+
       void main() {
         vec3 c1 = vec3(1., 1., 0.195);
         vec3 c2 = vec3(53./255., 254./255., 52./255.);
 
-        // float factor = ${minRadius.toFixed(8)} * uTime;
         float lerpInstance = vInstance + uTime;
+        float dfa = (1. - lerpInstance/${numCylinders.toFixed(8)});
+        float dfb = (1. - lerpInstance/${(numCylinders - 1).toFixed(8)});
 
         float radiusFactor = (lerpInstance + 1.) / ${numCylinders.toFixed(8)};
         vec3 c = mix(c1, c2, radiusFactor);
+
+        /* // float factor = ${minRadius.toFixed(8)} * uTime;
+
+        
         float f = (sin(vUv.x * 2. * PI * 200.) + 1.) / 2. * (1. - vUv.y);
-        float dfa = (1. - lerpInstance/5.);
-        float dfb = (1. - lerpInstance/4.);
         f *= dfa;
-        gl_FragColor = vec4(c * dfa, f);
-        if (f < 0.1) {
+        gl_FragColor = vec4(c * dfa, f); */
+        
+        draw_auroras(gl_FragColor, vUv);
+
+        gl_FragColor.a *= dfa;
+
+        /* if (gl_FragColor.a < 0.1) {
           discard;
-        }
+        } */
       }
     `,
     side: THREE.DoubleSide,
