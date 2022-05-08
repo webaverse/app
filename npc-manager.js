@@ -81,6 +81,7 @@ class NpcManager extends EventTarget {
 
   addNpcApp(app, srcUrl) {
     let live = true;
+    let json = null;
     let npcPlayer = null;
     let character = null;
     const cancelFns = [
@@ -164,7 +165,7 @@ class NpcManager extends EventTarget {
       if (mode === 'attached') {
         const res = await fetch(srcUrl);
         if (!live) return;
-        const json = await res.json();
+        json = await res.json();
         if (!live) return;
 
         const vrmApp = await metaversefile.createAppAsync({
