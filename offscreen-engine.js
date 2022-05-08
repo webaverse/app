@@ -84,6 +84,7 @@ export default _default_export_;`;
             if (!error) {
               accept(result);
             } else {
+              console.warn(error);
               reject(error);
             }
             this.port.removeEventListener('message', message);
