@@ -338,7 +338,7 @@ export const CharacterSelect = () => {
 
             const localPlayer = metaversefile.useLocalPlayer();
             (async () => {
-                await localPlayer.setPlayerSpec(character.avatarUrl, character);
+                await localPlayer.setPlayerSpec(character);
             })();
 
             if (npcPlayer) {

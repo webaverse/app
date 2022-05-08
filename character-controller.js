@@ -985,8 +985,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterFx = new CharacterFx(this);
     this.characterBehavior = new CharacterBehavior(this);
   }
-  async setPlayerSpec(u, playerSpec) {
-    const p = this.setAvatarUrl(u);
+  async setPlayerSpec(playerSpec) {
+    const p = this.setAvatarUrl(playerSpec.avatarUrl);
     
     overrides.userVoiceEndpoint.set(playerSpec.voice ?? null);
     overrides.userVoicePack.set(playerSpec.voicePack ?? null);
