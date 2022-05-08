@@ -8,7 +8,7 @@ const {useLocalPlayer, useLoreAIScene, useSceneCruncher} = metaversefile;
 import {registerIoEventHandler, unregisterIoEventHandler} from '../io-handler';
 import {MiniHup} from '../../../MiniHup.jsx';
 // import {RpgText} from '../../../RpgText.jsx';
-import {getRenderer, rootScene, scene} from '../../../../renderer.js';
+import {getRenderer, rootScene, scene, sceneLowPriority} from '../../../../renderer.js';
 import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
@@ -346,7 +346,7 @@ export const MapGen = () => {
 
                     setHaloMeshApp(haloMeshApp);
                   } else {
-                    scene.remove(haloMeshApp);
+                    haloMeshApp.parent.remove(haloMeshApp);
                     haloMeshApp.destroy();
 
                     setHaloMeshApp(null);
@@ -386,11 +386,11 @@ export const MapGen = () => {
                       const m = modules['magic'];
                       await magicMeshApp.addModule(m);
                     })();
-                    scene.add(magicMeshApp);
+                    sceneLowPriority.add(magicMeshApp);
 
                     setMagicMeshApp(magicMeshApp);
                   } else {
-                    scene.remove(magicMeshApp);
+                    magicMeshApp.parent.remove(magicMeshApp);
                     magicMeshApp.destroy();
 
                     setMagicMeshApp(null);
