@@ -79,23 +79,29 @@ class NpcManager extends EventTarget {
     }
   }
 
-  addNpcApp(app, json) {
+  addNpcApp(app, srcUrl) {
     let live = true;
     let npcPlayer = null;
     let character = null;
-    const cancelFn = () => {
-      live = false;
+    const cancelFns = [
+      () => {
+        live = false;
 
-      if (npcPlayer) {
-        npcManager.destroyNpc(npcPlayer);
-        npcPlayer = null;
+        if (npcPlayer) {
+          npcManager.destroyNpc(npcPlayer);
+          npcPlayer = null;
+        }
+        if (character) {
+          world.loreAIScene.removeCharacter(character);
+          character = null;
+        }
+      },
+    ];
+    cancelFnMap.set(app, () => {
+      for (const cancelFn of cancelFns) {
+        cancelFn();
       }
-      if (character) {
-        world.loreAIScene.removeCharacter(character);
-        character = null;
-      }
-    };
-    cancelFnMap.set(app, cancelFn);
+    });
 
     const mode = app.getComponent('mode') ?? 'attached';
     
@@ -113,9 +119,53 @@ class NpcManager extends EventTarget {
       }
     };
 
+    let targetSpec = null;
+    if (mode === 'attached') {
+      const _listenEvents = () => {
+        const hittrackeradd = e => {
+          app.hitTracker.addEventListener('hit', e => {
+            if (!npcPlayer.hasAction('hurt')) {
+              const newAction = {
+                type: 'hurt',
+                animation: 'pain_back',
+              };
+              npcPlayer.addAction(newAction);
+              
+              setTimeout(() => {
+                npcPlayer.removeAction('hurt');
+              }, hurtAnimationDuration * 1000);
+            }
+          });
+        };
+        app.addEventListener('hittrackeradded', hittrackeradd);
+
+        const activate = () => {
+          // console.log('activate npc');
+          if (targetSpec?.object !== localPlayer) {
+            targetSpec = {
+              type: 'follow',
+              object: localPlayer,
+            };
+          } else {
+            targetSpec = null;
+          }
+        };
+        app.addEventListener('activate', activate);
+
+        cancelFns.push(() => {
+          app.removeEventListener('hittrackeradded', hittrackeradd);
+          app.removeEventListener('activate', activate);
+        });
+      };
+      _listenEvents();
+    }
+
     (async () => {
       if (mode === 'attached') {
-        // console.log('npc app position', app.position.toArray().join(','));
+        const res = await fetch(srcUrl);
+        if (!live) return;
+        const json = await res.json();
+        if (!live) return;
 
         const vrmApp = await metaversefile.createAppAsync({
           start_url: json.avatarUrl,
@@ -123,8 +173,6 @@ class NpcManager extends EventTarget {
           quaternion: app.quaternion,
           scale: app.scale,
         });
-
-        // console.log('add vrm app', app, vrmApp, vrmApp.position.toArray().join(','));
 
         {
           app.position.set(0, 0, 0);
@@ -144,7 +192,6 @@ class NpcManager extends EventTarget {
           npcWear = [npcWear];
         }
 
-        let live = true;
         (async () => {
           const position = vrmApp.position.clone()
             .add(new THREE.Vector3(0, 1, 0));
@@ -186,37 +233,6 @@ class NpcManager extends EventTarget {
           
           npcPlayer = newNpcPlayer;
         })()
-
-        // vrmApp.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterController] : [];
-
-        vrmApp.addEventListener('hittrackeradded', e => {
-          vrmApp.hitTracker.addEventListener('hit', e => {
-            if (!npcPlayer.hasAction('hurt')) {
-              const newAction = {
-                type: 'hurt',
-                animation: 'pain_back',
-              };
-              npcPlayer.addAction(newAction);
-              
-              setTimeout(() => {
-                npcPlayer.removeAction('hurt');
-              }, hurtAnimationDuration * 1000);
-            }
-          });
-        });
-
-        let targetSpec = null;
-        app.addEventListener('activate', () => {
-          // console.log('activate npc');
-          if (targetSpec?.object !== localPlayer) {
-            targetSpec = {
-              type: 'follow',
-              object: localPlayer,
-            };
-          } else {
-            targetSpec = null;
-          }
-        });
 
         character = world.loreAIScene.addCharacter({
           name: npcName,
