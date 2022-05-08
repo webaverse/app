@@ -512,9 +512,8 @@ physicsManager.cutMesh = (
   faces,
   numFaces,
 
-  position,
-  quaternion,
-  scale
+  planeNormal, // normalized vector3 array
+  planeDistance // number
 ) =>
   physx.physxWorker.doCut(
     positions,
@@ -526,9 +525,8 @@ physicsManager.cutMesh = (
     faces,
     numFaces,
 
-    position,
-    quaternion,
-    scale
+    planeNormal,
+    planeDistance
   )
 physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setLinearLockFlags(physx.physics, physicsId, x, y, z)

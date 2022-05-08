@@ -876,9 +876,8 @@ const physxWorker = (() => {
     faces,
     numFaces,
 
-    position,
-    quaternion,
-    scale
+    planeNormal, // normalized vector3 array
+    planeDistance // number
   ) => {
     const allocator = new Allocator()
 
@@ -894,14 +893,8 @@ const physxWorker = (() => {
     const facesTypedArray = allocator.alloc(Uint32Array, numFaces)
     facesTypedArray.set(faces)
 
-    const positionTypedArray = allocator.alloc(Float32Array, 3)
-    positionTypedArray.set(position)
-
-    const quaternionTypedArray = allocator.alloc(Float32Array, 4)
-    quaternionTypedArray.set(quaternion)
-
-    const scaleTypedArray = allocator.alloc(Float32Array, 3)
-    scaleTypedArray.set(scale)
+    const planeNormalTypedArray = allocator.alloc(Float32Array, 3)
+    planeNormalTypedArray.set(planeNormal)
 
     const outputBufferOffset = moduleInstance._doCut(
       positionsTypedArray.byteOffset,
@@ -913,9 +906,8 @@ const physxWorker = (() => {
       facesTypedArray.byteOffset,
       numFaces,
 
-      positionTypedArray.byteOffset,
-      quaternionTypedArray.byteOffset,
-      scaleTypedArray.byteOffset
+      planeNormalTypedArray.byteOffset,
+      planeDistance
     )
     allocator.freeAll()
 
