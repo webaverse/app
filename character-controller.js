@@ -7,7 +7,7 @@ import * as Z from 'zjs';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-import cameraManager from './camera-manager.js';
+// import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
@@ -1317,6 +1317,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   
     this.isNpcPlayer = true;
     this.avatarApp = null;
+    this.npcApp = null;
 
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
