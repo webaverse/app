@@ -49,7 +49,7 @@ const _startApp = async ( weba, canvas ) => {
 
     const localPlayer = metaversefileApi.useLocalPlayer();
     // console.log('set player spec', defaultPlayerSpec);
-    await localPlayer.setPlayerSpec(defaultPlayerSpec.avatarUrl, defaultPlayerSpec);
+    await localPlayer.setPlayerSpec(defaultPlayerSpec);
 
 };
 
