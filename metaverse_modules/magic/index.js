@@ -144,7 +144,7 @@ void draw_auroras(inout vec4 color, vec2 uv) {
     
     float f = 200.0;
     
-    float factor = mod(uTime, 1.);
+    float factor = uTime; // mod(uTime, 1.);
     float t = -1.5 +
       nsin(-factor + uv.x * f) * 0.075 +
       nsin(factor + uv.x * distance(uv.x, 0.5) * f) * 0.3 +
@@ -236,8 +236,8 @@ const _makeCylindersMesh = () => {
     backMesh.visible = false;
 
     if (localPlayer.avatar) {
-      const maxTime = 300;
-      const f = (timestamp / maxTime) % 100;
+      const maxTime = 150;
+      const f = (timestamp / maxTime) % 1000;
 
       const Root = localPlayer.avatar.modelBones.Root;
       object.position.setFromMatrixPosition(Root.matrixWorld);
