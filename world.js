@@ -14,14 +14,16 @@ import {AppManager} from './app-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
 import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
-import metaversefileApi from 'metaversefile';
+// import metaversefileApi from 'metaversefile';
 import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
+import {localPlayer} from './players.js';
 // import * as metaverseModules from './metaverse-modules.js';
 import {createParticleSystem} from './particle-system.js';
 // import * as sounds from './sounds.js';
+// import loreAI from './ai/lore/lore-ai.js';
 
-const localEuler = new THREE.Euler();
+// const localEuler = new THREE.Euler();
 
 // world
 export const world = {};
@@ -62,7 +64,6 @@ world.connectState = state => {
   
   playersManager.bindState(state.getArray(playersMapName));
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
   localPlayer.bindState(state.getArray(playersMapName));
   
   // note: here we should load up the apps in the state since it won't happen automatically.
@@ -75,7 +76,6 @@ world.connectRoom = async u => {
   world.appManager.unbindState();
   world.appManager.clear();
 
-  const localPlayer = metaversefileApi.useLocalPlayer();
   const state = new Z.Doc();
   state.setResolvePriority(1);
   wsrtc = new WSRTC(u, {
