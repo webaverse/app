@@ -421,7 +421,7 @@ export const listenHack = () => {
     if (cameraManager.pointerLockElement) {
       if (e.button === 0 && (cameraManager.focus && zTargeting.focusTargetReticle)) {
         const app = metaversefile.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
-        const {name, description, appType} = app;
+        const {appType} = app;
 
         // cameraManager.setFocus(false);
         // zTargeting.focusTargetReticle = null;
@@ -432,8 +432,9 @@ export const listenHack = () => {
 
         (async () => {
           const aiScene = metaversefile.useLoreAIScene();
-          if (appType === 'vrm') {
-            const remotePlayer = npcManager.npcs.find(npc => npc.avatarApp === app);
+          if (appType === 'npc') {
+            const {name, description} = app.getLoreSpec();
+            const remotePlayer = npcManager.npcs.find(npc => npc.npcApp === app);
 
             if (remotePlayer) {
               const {
@@ -446,6 +447,7 @@ export const listenHack = () => {
               console.warn('no player associated with app', app);
             }
           } else {
+            const {name, description} = app;
             const comment = await aiScene.generateSelectTargetComment(name, description);
             const fakePlayer = {
               avatar: {
