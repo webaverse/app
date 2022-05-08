@@ -355,23 +355,32 @@ class PlayerBase extends THREE.Object3D {
       };
       _initPhysics();
 
-      const _emitEvents = () => {
+      const wearComponent = app.getComponent('wear');
+      const holdAnimation = wearComponent? wearComponent.holdAnimation : null;
+      const _addAction = () => {
         this.addAction({
           type: 'wear',
           instanceId: app.instanceId,
           loadoutIndex,
+          holdAnimation,
         });
+      };
+      _addAction();
+
+      const _emitEvents = () => {
         app.dispatchEvent({
           type: 'wearupdate',
           player: this,
           wear: true,
           loadoutIndex,
+          holdAnimation,
         });
         this.dispatchEvent({
           type: 'wearupdate',
           app,
           wear: true,
           loadoutIndex,
+          holdAnimation,
         });
       };
       _emitEvents();
