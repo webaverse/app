@@ -877,7 +877,9 @@ const physxWorker = (() => {
     numFaces,
 
     planeNormal, // normalized vector3 array
-    planeDistance // number
+    planeDistance, // number
+
+    isIndexed
   ) => {
     const allocator = new Allocator()
 
@@ -890,8 +892,11 @@ const physxWorker = (() => {
     const uvsTypedArray = allocator.alloc(Float32Array, numUvs)
     uvsTypedArray.set(uvs)
 
-    const facesTypedArray = allocator.alloc(Uint32Array, numFaces)
-    facesTypedArray.set(faces)
+    let facesTypedArray;
+    if (isIndexed) {
+      facesTypedArray = allocator.alloc(Uint32Array, numFaces)
+      facesTypedArray.set(faces)
+    }
 
     const planeNormalTypedArray = allocator.alloc(Float32Array, 3)
     planeNormalTypedArray.set(planeNormal)
@@ -903,11 +908,13 @@ const physxWorker = (() => {
       numNormals,
       uvsTypedArray.byteOffset,
       numUvs,
-      facesTypedArray.byteOffset,
-      numFaces,
+      isIndexed ? facesTypedArray.byteOffset : 0,
+      isIndexed ? numFaces : 0,
 
       planeNormalTypedArray.byteOffset,
-      planeDistance
+      planeDistance,
+
+      isIndexed
     )
     allocator.freeAll()
 
