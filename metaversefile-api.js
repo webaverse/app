@@ -217,6 +217,7 @@ const _bindAppManagerToLoreAIScene = (appManager, loreAIScene) => {
   });
 };
 _bindAppManagerToLoreAIScene(world.appManager, loreAIScene);
+world.loreAIScene = loreAIScene;
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
