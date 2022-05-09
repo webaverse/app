@@ -6,6 +6,7 @@ import React, {useState, useEffect, useRef} from 'react';
 // import dioramaManager from '../diorama.js';
 // import {NpcPlayer} from '../character-controller.js';
 // import {world} from '../world.js';
+import gameManager from '../game.js';
 // import styles from './MegaHup.module.css';
 import {scene, camera} from '../renderer.js';
 // import {RpgText} from './RpgText.jsx';
@@ -15,6 +16,12 @@ import {scene, camera} from '../renderer.js';
 // import {chatTextSpeed} from '../constants.js';
 
 const width = 400;
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 
 const _getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
 
@@ -113,8 +120,6 @@ class DomRenderFrame {
       object2.position.copy(object.position);
       object2.quaternion.copy(object.quaternion);
       object2.scale.copy(object.scale);
-      // object2.matrix.copy(object.matrix);
-      // object2.matrixWorld.copy(object.matrixWorld);
       object2.updateMatrixWorld();
       
       const cameraCSSMatrix =
@@ -147,7 +152,119 @@ class DomRenderEngine {
     this.iframeContainer = iframeContainer;
     this.scene = scene;
 
-    console.log('mutation observer', this.iframeContainer);
+    const object = new THREE.Object3D();
+    object.position.set(-9, 1, -1);
+    scene.add(object);
+    object.updateMatrixWorld();
+    
+    const _bindChild = iframeContainer2 => {
+      const iframe = iframeContainer2.firstChild;
+      const width = parseInt(iframe.getAttribute('width'), 10);
+      const height = parseInt(iframe.getAttribute('height'), 10);
+      const scale = Math.min(1/width, 1/height);
+
+
+      // console.log('got new child', {iframeContainer2, iframe});
+
+
+
+
+
+
+
+
+
+      const object2 = new IFrameMesh({
+        // iframe,
+        width: width * scale,
+        height: height * scale,
+      });
+      object2.frustumCulled = false;
+  
+      object2.onBeforeRender = (renderer) => {
+        const context = renderer.getContext();
+        context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+      };
+      object2.onAfterRender = (renderer) => {
+        const context = renderer.getContext();
+        context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+      };
+      object.add(object2);
+      object2.updateMatrixWorld();
+
+      // debugger;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      gameManager.addEventListener('render', e => {
+        /* object2.position.copy(object.position);
+        object2.quaternion.copy(object.quaternion);
+        object2.scale.copy(object.scale);
+        object2.updateMatrixWorld(); */
+
+        // camera.updateMatrixWorld();
+  
+        const fov = _getFov();
+        const cameraCSSMatrix =
+          // 'translateZ(' + fov + 'px) ' +
+          getCameraCSSMatrix(
+            localMatrix.copy(camera.matrixWorldInverse)
+              // .invert()
+              .premultiply(
+                localMatrix2.makeTranslation(0, 0, fov)
+              )
+              .multiply(
+                object.matrixWorld
+              )
+              /* .premultiply(
+                localMatrix2.makeScale(1/window.innerWidth, -1/window.innerHeight, 1)
+                  .invert()
+              ) */
+              // .invert()
+          );
+        iframeContainer2.style.transform = cameraCSSMatrix;
+        // iframeContainer2.style.visibility = null;
+      });
+    };
+
+    const children = Array.from(iframeContainer.childNodes);
+    for (const child of children) {
+      _bindChild(child);
+    }
+
+    // console.log('dom render got children', children);
+
+    // console.log('mutation observer', this.iframeContainer);
+    const _listen = () => {
+      const callback = function(mutationsList, observer) {
+        for (const mutation of mutationsList) {
+          if (mutation.type === 'childList') {
+            console.log('dom render childlist');
+          } else if (mutation.type === 'attributes') {
+            console.log('dom render attributes');
+          }
+        }
+      };
+      const observer = new MutationObserver(callback);
+      observer.observe(this.iframeContainer, {
+        // attributes: true,
+        childList: true,
+        // subtree: true,
+      });
+    };
+    _listen();
   }
 }
 
@@ -334,8 +451,8 @@ const TotumHtmlTypeTemplate = e => {
 
 
 const DomRenderer = props => {
-  const [width, setWidth] = useState(window.innerHeight);
-  const [height, setHeight] = useState(window.innerHeight);
+  const [innerWidth, setInnerWidth] = useState(window.innerWidth);
+  const [innerHeight, setInnerHeight] = useState(window.innerHeight);
   const [fov, setFov] = useState(_getFov());
   const iframeContainerRef = useRef();
   const [domRenderEngine, setDomRenderEngine] = useState(null);
@@ -343,8 +460,8 @@ const DomRenderer = props => {
 
   useEffect(() => {
     const resize = e => {
-      setWidth(window.innerWidth);
-      setHeight(window.innerHeight);
+      setInnerWidth(window.innerWidth);
+      setInnerHeight(window.innerHeight);
       setFov(_getFov());
     };
     window.addEventListener('resize', resize);
@@ -372,11 +489,12 @@ const DomRenderer = props => {
         position: 'fixed',
         left: 0,
         top: 0,
-        width,
-        height,
+        width: `${innerWidth}px`,
+        height: `${innerHeight}px`,
         perspective: `${fov}px`,
         pointerEvents: 'none',
         userSelect: 'none',
+        zIndex: -1,
       }}
       ref={iframeContainerRef}
     >
@@ -384,6 +502,7 @@ const DomRenderer = props => {
         children.map((child, i) => {
           const width = child.props.width;
           const height = child.props.height;
+          const scale = Math.min(1/width, 1/height);
 
           return (
             <div
@@ -399,12 +518,26 @@ const DomRenderer = props => {
             >
               <div
                 className={'iframe'}
+                width={width}
+                height={height}
                 style={{
+                  position: 'relative',
                   width: width + 'px',
                   height: height + 'px',
-                  basckground: 'white',
+                  // background: 'red',
                   border: '0',
+                  overflow: 'hidden',
+
                   // visibility: 'hidden',
+
+                  transform: 'translate(' + (innerWidth/2 - width/2) + 'px,' + (innerHeight/2 - height/2) + 'px) ' + getObjectCSSMatrix(
+                    localMatrix.compose(
+                      localVector.set(0, 0, 0),
+                      localQuaternion.set(0, 0, 0, 1),
+                      localVector2.setScalar(scale)
+                    )
+                  ),
+                  pointerEvents: 'auto',
                 }}
               >
                 {child}
