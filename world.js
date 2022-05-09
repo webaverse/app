@@ -295,6 +295,9 @@ const _bindHitTracker = app => {
   app.dispatchEvent({type: 'hittrackeradded'});
 
   const die = () => {
+    app.dispatchEvent({
+      type: 'die',
+    });
     world.appManager.removeTrackedApp(app.instanceId);
   };
   hitTracker.addEventListener('die', die);
