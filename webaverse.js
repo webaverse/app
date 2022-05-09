@@ -68,6 +68,7 @@ const frameEvent = new MessageEvent('frame', {
     // lastTimestamp: 0,
   },
 });
+const renderEvent = new MessageEvent('render');
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -336,6 +337,8 @@ export default class Webaverse extends EventTarget {
           lastTimestamp = timestamp;
         };
         _pre();
+
+        game.dispatchEvent(renderEvent);
 
         // render scenes
         performanceTracker.setGpuPrefix('diorama');
