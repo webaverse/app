@@ -95,9 +95,6 @@ class IFrameMesh extends THREE.Mesh {
     });
     super(geometry, material);
 
-    this.width = width;
-    this.height = height;
-
     this.enabled = false;
     this.value = 0;
     this.animation = null;
@@ -139,14 +136,12 @@ class IFrameMesh extends THREE.Mesh {
     }
 
     if (this.value > 0) {
-      //  this.scale.set(this.value, this.value, 1);
-      // this.updateMatrixWorld();
+      this.scale.set(this.value, this.value, 1);
+      this.updateMatrixWorld();
       this.material.opacity = 1 - this.value;
       this.visible = true;
-      // console.log('visible', this.value, this.enabled, this.animation);
     } else {
       this.visible = false;
-      // console.log('not visible', this.value, this.enabled, this.animation);
     }
   }
 }
@@ -165,10 +160,18 @@ class DomRenderEngine extends EventTarget {
     height,
     render,
   }) {
-    const dom = new IFrameMesh({
-      width: width,
-      height: height,
+    const dom = new THREE.Object3D();
+    dom.name = 'dom';
+    dom.width = width;
+    dom.height = height;
+    
+    const iframeMesh = new IFrameMesh({
+      width,
+      height,
     });
+    dom.add(iframeMesh);
+    dom.iframeMesh = iframeMesh;
+
     sceneLowerPriority.add(dom);
     dom.updateMatrixWorld();
 
@@ -257,18 +260,16 @@ const DomRendererChild = ({
         const isInRange = distance < range;
         if (isInRange && !visible) {
           setVisible(true);
-          // dom.enabled = true;
-          dom.startAnimation(true, startTime, endTime);
+          dom.iframeMesh.startAnimation(true, startTime, endTime);
         } else if (visible && !isInRange) {
           setVisible(false);
-          // dom.enabled = false;
-          dom.startAnimation(false, startTime, endTime);
+          dom.iframeMesh.startAnimation(false, startTime, endTime);
         }
       };
       _updateVisibility();
 
       const _updateAnimation = () => {
-        dom.update(timestamp)
+        dom.iframeMesh.update(timestamp)
       };
       _updateAnimation();
     };
