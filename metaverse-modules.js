@@ -20,6 +20,7 @@ const moduleUrls = {
   targetReticle: './metaverse_modules/target-reticle/',
   halo: './metaverse_modules/halo/',
   magic: './metaverse_modules/magic/',
+  limit: './metaverse_modules/limit/',
   meshLodItem: './metaverse_modules/mesh-lod-item/',
 };
 const modules = {};
