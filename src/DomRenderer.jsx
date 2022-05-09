@@ -79,34 +79,27 @@ function getCameraCSSMatrix( matrix ) {
   ')';
 }
 
-class IFrameMesh extends THREE.Mesh {
-  constructor({
-    width,
-    height,
-  }) {
-    const scaleFactor = _getScaleFactor(width, height);
-    const geometry = new THREE.PlaneBufferGeometry(width * scaleFactor, height * scaleFactor);
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xFFFFFF,
-      side: THREE.DoubleSide,
-      opacity: 0,
-      transparent: true,
-      blending: THREE.MultiplyBlending
-    });
-    super(geometry, material);
+class DomItem extends THREE.Object3D {
+  constructor(position, quaternion, scale, width, height, render) {
+    super();
+
+    this.width = width;
+    this.height = height;
+    this.basePosition = position.clone();
+    this.baseQuaternion = quaternion.clone();
+    this.baseScale = scale.clone();
+    this.render = render;
 
     this.enabled = false;
     this.value = 0;
     this.animation = null;
 
-    this.onBeforeRender = renderer => {
-      const context = renderer.getContext();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
-    this.onAfterRender = renderer => {
-      const context = renderer.getContext();
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
+    const iframeMesh = new IFrameMesh({
+      width,
+      height,
+    });
+    this.iframeMesh = iframeMesh;
+    this.add(iframeMesh);
   }
   startAnimation(enabled, startTime, endTime) {
     this.enabled = enabled;
@@ -136,14 +129,44 @@ class IFrameMesh extends THREE.Mesh {
     }
 
     if (this.value > 0) {
-      this.scale.set(this.value, this.value, 1);
-      this.updateMatrixWorld();
-      this.material.opacity = 1 - this.value;
+      this.iframeMesh.scale.set(this.value, 1, 1);
+      this.iframeMesh.updateMatrixWorld();
+      
+      this.iframeMesh.material.opacity = 1 - this.value;
+      
       this.visible = true;
     } else {
       this.visible = false;
     }
   }
+}
+
+class IFrameMesh extends THREE.Mesh {
+  constructor({
+    width,
+    height,
+  }) {
+    const scaleFactor = _getScaleFactor(width, height);
+    const geometry = new THREE.PlaneBufferGeometry(width * scaleFactor, height * scaleFactor);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+      side: THREE.DoubleSide,
+      opacity: 0,
+      transparent: true,
+      blending: THREE.MultiplyBlending
+    });
+    super(geometry, material);
+
+    this.onBeforeRender = renderer => {
+      const context = renderer.getContext();
+      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    };
+    this.onAfterRender = renderer => {
+      const context = renderer.getContext();
+      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    };
+  }
+  
 }
 
 class DomRenderEngine extends EventTarget {
@@ -160,25 +183,10 @@ class DomRenderEngine extends EventTarget {
     height,
     render,
   }) {
-    const dom = new THREE.Object3D();
-    dom.name = 'dom';
-    dom.width = width;
-    dom.height = height;
-    
-    const iframeMesh = new IFrameMesh({
-      width,
-      height,
-    });
-    dom.add(iframeMesh);
-    dom.iframeMesh = iframeMesh;
-
+    const dom = new DomItem(position, quaternion, scale, width, height, render);
     sceneLowerPriority.add(dom);
     dom.updateMatrixWorld();
-
-    dom.basePosition = position.clone();
-    dom.baseQuaternion = quaternion.clone();
-    dom.baseScale = scale.clone();
-    dom.render = render;
+    
     this.doms.push(dom);
 
     this.dispatchEvent(new MessageEvent('update'));
@@ -260,16 +268,16 @@ const DomRendererChild = ({
         const isInRange = distance < range;
         if (isInRange && !visible) {
           setVisible(true);
-          dom.iframeMesh.startAnimation(true, startTime, endTime);
+          dom.startAnimation(true, startTime, endTime);
         } else if (visible && !isInRange) {
           setVisible(false);
-          dom.iframeMesh.startAnimation(false, startTime, endTime);
+          dom.startAnimation(false, startTime, endTime);
         }
       };
       _updateVisibility();
 
       const _updateAnimation = () => {
-        dom.iframeMesh.update(timestamp)
+        dom.update(timestamp)
       };
       _updateAnimation();
     };
