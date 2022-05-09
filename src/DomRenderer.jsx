@@ -80,11 +80,12 @@ function getCameraCSSMatrix( matrix ) {
 }
 
 class DomItem extends THREE.Object3D {
-  constructor(position, quaternion, scale, width, height, render) {
+  constructor(position, quaternion, scale, width, height, worldWidth, render) {
     super();
 
     this.width = width;
     this.height = height;
+    this.worldWidth = worldWidth;
     this.basePosition = position.clone();
     this.baseQuaternion = quaternion.clone();
     this.baseScale = scale.clone();
@@ -130,8 +131,7 @@ class DomItem extends THREE.Object3D {
 
     if (this.value > 0) {
       const w = this.value;
-      const worldWidth = 1;
-      const shiftOffset = (1 - w) * worldWidth/2;
+      const shiftOffset = (1 - w) * this.worldWidth/2;
       this.iframeMesh.position.x = -shiftOffset;
       this.iframeMesh.scale.set(w, 1, 1);
       this.iframeMesh.updateMatrixWorld();
@@ -183,11 +183,12 @@ class DomRenderEngine extends EventTarget {
     position = new THREE.Vector3(),
     quaternion = new THREE.Quaternion(),
     scale = new THREE.Vector3(1, 1, 1),
-    width,
-    height,
-    render,
+    width = 600,
+    height = 400,
+    worldWidth = 1,
+    render = () => (<div />),
   }) {
-    const dom = new DomItem(position, quaternion, scale, width, height, render);
+    const dom = new DomItem(position, quaternion, scale, width, height, worldWidth, render);
     sceneLowerPriority.add(dom);
     dom.updateMatrixWorld();
     
@@ -205,6 +206,7 @@ domRenderEngine.addDom({
   quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2),
   width: 600,
   height: 400,
+  worldWidth: 1,
   render: () => (<CharacterBanner />),
 });
 
