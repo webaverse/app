@@ -63,12 +63,10 @@ const sessionOpts = {
 
 const frameEvent = new MessageEvent('frame', {
   data: {
-    now: 0,
+    timestamp: 0,
     timeDiff: 0,
-    // lastTimestamp: 0,
   },
 });
-const renderEvent = new MessageEvent('render');
 
 export default class Webaverse extends EventTarget {
   constructor() {
@@ -267,9 +265,9 @@ export default class Webaverse extends EventTarget {
     // console.log('frame 1');
 
     const renderer = getRenderer();
-    frameEvent.data.now = timestamp;
+    frameEvent.data.timestamp = timestamp;
     frameEvent.data.timeDiff = timeDiff;
-    this.dispatchEvent(frameEvent);
+    game.dispatchEvent(frameEvent);
 
     getComposer().render();
 
@@ -337,8 +335,6 @@ export default class Webaverse extends EventTarget {
           lastTimestamp = timestamp;
         };
         _pre();
-
-        game.dispatchEvent(renderEvent);
 
         // render scenes
         performanceTracker.setGpuPrefix('diorama');
