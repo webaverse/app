@@ -17,10 +17,10 @@
     },
     { "position": [ 0, 5, 0 ], "start_url": "http://localhost/lib/webaverse_resource/aurora-sky/" },
     { "position": [ 0, 0, 0 ], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/grid/grid.glb" },
-    { "position": [-3, 1, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
+    { "position": [0, 1, -3], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
     {
-      "position": [ 0, 3, -7 ],
-      "quaternion": [ 0, 0, 0, 1 ],
+      "position": [ 0, 3, -5 ],
+      "quaternion": [ 0, 1, 0, 0 ],
       "start_url": "/avatars/drake_hacker_v3_vian.vrm",
       "components": [
         {

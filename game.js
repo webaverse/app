@@ -429,6 +429,7 @@ const damageMeshOffsetDistance = 1.5;
 let grabUseMesh = null;
 const _gameInit = () => {
   grabUseMesh = metaversefileApi.createApp();
+  window.grabUseMesh = grabUseMesh;
   (async () => {
     await metaverseModules.waitForLoad();
     const {modules} = metaversefileApi.useDefaultModules();
@@ -564,6 +565,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       }
     }
     grabUseMesh.visible = false;
+    grabUseMesh._active = false; // test. E tag, button.
     if (!gameManager.editMode) {
       const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
       localVector.copy(localPlayer.position)
@@ -587,7 +589,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
           _updateActivateAnimation(grabUseMesh.position);
-          grabUseMesh.visible = true;
+          // grabUseMesh.visible = true; // formal. E tag, button.
+          grabUseMesh._active = true; // test
         }
       }
     }
@@ -950,7 +953,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
             const lastHitTime = lastHitTimes.get(app) ?? 0;
             const timeDiff = now - lastHitTime;
             if (timeDiff > 1000) {
-              const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
+              const damage = typeof useAction.damage === 'number' ? useAction.damage : 0 /* 10 */;
               const hitDirection = app.position.clone()
                 .sub(localPlayer.position);
               hitDirection.y = 0;
@@ -1663,7 +1666,8 @@ class GameManager extends EventTarget {
     return dragRightSpec;
   }
   menuActivateDown() {
-    if (grabUseMesh.visible) {
+    // if (grabUseMesh.visible) { // formal
+    if (grabUseMesh._active) { // test
       const localPlayer = metaversefileApi.useLocalPlayer();
       const activateAction = localPlayer.getAction('activate');
       if (!activateAction) {
