@@ -86,7 +86,6 @@ function getCameraCSSMatrix( matrix ) {
 
 class IFrameMesh extends THREE.Mesh {
   constructor({
-    // iframe,
     width,
     height,
   }) {
@@ -94,22 +93,12 @@ class IFrameMesh extends THREE.Mesh {
     const material = new THREE.MeshBasicMaterial({
       color: 0xFFFFFF,
       side: THREE.DoubleSide,
-      // colorWrite: false,
-      // depthWrite: true,
       opacity: 0,
       transparent: true,
       blending: THREE.MultiplyBlending
     });
     super(geometry, material);
-
-    // this.iframe = iframe;
   }
-  
-  /* onBeforeRender(renderer, scene, camera, geometry, material, group) {
-    super.onBeforeRender && super.onBeforeRender.apply(this, arguments);
-    
-    console.log('before render', this.iframe);
-  } */
 }
 
 
