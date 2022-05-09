@@ -1,13 +1,16 @@
 import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import gameManager from '../game.js';
-import {scene, camera} from '../renderer.js';
-// import scenePreview from '../metaverse_modules/scene-preview/index.js';
+import {sceneLowerPriority, camera} from '../renderer.js';
+import {localPlayer} from '../players.js';
+import easing from '../easing.js';
 
 import {CharacterBanner} from './CharacterBanner.jsx';
 
+const cubicBezier = easing(0, 1, 0, 1);
 const floatFactor = 0.05;
 const floatTime = 3000;
+const transtionTime = 1000;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -94,6 +97,35 @@ class IFrameMesh extends THREE.Mesh {
 
     this.width = width;
     this.height = height;
+
+    this.enabled = false;
+    this.animation = null;
+  }
+  startAnimation(startTime, endTime) {
+    const startValue = this.material.opacity;
+    const endValue = this.enabled ? 0 : 1;
+    this.animation = {
+      startTime,
+      endTime,
+      startValue,
+      endValue,
+    };
+  }
+  update(timestamp) {
+    if (this.animation) {
+      const {startTime, endTime, startValue, endValue} = this.animation;
+      if (timestamp < endTime) {
+        let factor = Math.min(Math.max((timestamp - startTime) / (endTime - startTime), 0), 1);
+        factor = cubicBezier(factor);
+        const value = startValue + (endValue - startValue) * factor;
+        this.material.opacity = value;
+      } else {
+        this.material.opacity = this.enabled ? 0 : 1;
+        this.animation = null;
+      }
+    } else {
+      this.material.opacity = this.enabled ? 0 : 1;
+    }
   }
 }
 
@@ -123,7 +155,7 @@ class DomRenderEngine extends EventTarget {
       const context = renderer.getContext();
       context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     };
-    scene.add(dom);
+    sceneLowerPriority.add(dom);
     dom.updateMatrixWorld();
 
     dom.basePosition = position.clone();
@@ -140,7 +172,8 @@ class DomRenderEngine extends EventTarget {
 }
 const domRenderEngine = new DomRenderEngine();
 domRenderEngine.addDom({
-  position: new THREE.Vector3(-9, 1, -1),
+  position: new THREE.Vector3(-9, 1.2, -1),
+  quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2),
   width: 600,
   height: 400,
   render: () => (<CharacterBanner />),
@@ -150,11 +183,14 @@ const DomRendererChild = ({
   dom,
   innerWidth,
   innerHeight,
+  range = 5,
 }) => {
   const {width, height} = dom;
   const scaleFactor = _getScaleFactor(width, height);
+  const [visible, setVisible] = useState(false);
   const iframeContainer2Ref = useRef();
 
+  // tracking
   useEffect(() => {
     const iframeContainer2 = iframeContainer2Ref.current;
 
@@ -166,6 +202,8 @@ const DomRendererChild = ({
           dom.position.y += Math.sin((now % floatTime)/floatTime * 2 * Math.PI) * floatFactor;
           dom.position.y += Math.cos(((now / 2) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/2;
           dom.position.y += Math.sin(((now / 4) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/4;
+          dom.quaternion.copy(dom.baseQuaternion);
+          dom.scale.copy(dom.baseScale);
           dom.updateMatrixWorld();
         };
         _animateMenuFloat();
@@ -192,6 +230,40 @@ const DomRendererChild = ({
       };
     }
   }, [iframeContainer2Ref]);
+
+  // visibility
+  useEffect(() => {
+    const render = e => {
+      const timestamp = performance.now(); // XXX pass this in from the event
+      const startTime = timestamp;
+      const endTime = startTime + transtionTime;
+
+      const _updateVisibility = () => {
+        const distance = localPlayer.position.distanceTo(dom.basePosition);
+        const isInRange = distance < range;
+        if (isInRange && !visible) {
+          setVisible(true);
+          dom.enabled = true;
+          dom.startAnimation(startTime, endTime);
+        } else if (visible && !isInRange) {
+          setVisible(false);
+          dom.enabled = false;
+          dom.startAnimation(startTime, endTime);
+        }
+      };
+      _updateVisibility();
+
+      const _updateAnimation = () => {
+        dom.update(timestamp)
+      };
+      _updateAnimation();
+    };
+    gameManager.addEventListener('render', render);
+
+    return () => {
+      gameManager.removeEventListener('render', render);
+    };
+  }, [visible]);
 
   return (
     <div
@@ -283,11 +355,6 @@ const DomRenderer = props => {
       window.removeEventListener('resize', resize);
     };
   }, []);
-
-  /* useEffect(() => {
-    const iframeContainer = iframeContainerRef.current;
-    domRenderEngine.setIframeContainer(iframeContainer);
-  }, [iframeContainerRef]); */
 
   return (
     <div
