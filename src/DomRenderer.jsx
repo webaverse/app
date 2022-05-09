@@ -129,7 +129,11 @@ class DomItem extends THREE.Object3D {
     }
 
     if (this.value > 0) {
-      this.iframeMesh.scale.set(this.value, 1, 1);
+      const w = this.value;
+      const worldWidth = 1;
+      const shiftOffset = (1 - w) * worldWidth/2;
+      this.iframeMesh.position.x = -shiftOffset;
+      this.iframeMesh.scale.set(w, 1, 1);
       this.iframeMesh.updateMatrixWorld();
       
       this.iframeMesh.material.opacity = 1 - this.value;
