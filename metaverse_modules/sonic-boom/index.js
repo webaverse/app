@@ -976,7 +976,7 @@ export default () => {
         }
         if(material.uniforms.opacity.value>0){
             //console.log('sonic-boom-verticalPlane');
-            debugger
+            // debugger
             for(let i=0;i<18;i++){
                 temp[i]=position[i];
             }

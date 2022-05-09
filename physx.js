@@ -653,6 +653,8 @@ const physxWorker = (() => {
         collided: !!(bitfields[i] & 0x1),
         grounded: !!(bitfields[i] & 0x2),
       }
+      if (newUpdates[i].collided) debugger;
+      if (newUpdates[i].grounded) debugger;
     }
     /* if (updates.length > 0) {
       console.log('updates', updates.slice());
