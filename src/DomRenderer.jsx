@@ -1,19 +1,7 @@
 import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
-// import classnames from 'classnames';
-// import dioramaManager from '../diorama.js';
-// import game from '../game.js';
-// import dioramaManager from '../diorama.js';
-// import {NpcPlayer} from '../character-controller.js';
-// import {world} from '../world.js';
 import gameManager from '../game.js';
-// import styles from './MegaHup.module.css';
 import {scene, camera} from '../renderer.js';
-// import {RpgText} from './RpgText.jsx';
-// import {chatTextSpeed} from '../constants.js';
-// import metaversefile from 'metaversefile';
-// const {useLocalPlayer} = metaversefile;
-// import {chatTextSpeed} from '../constants.js';
 
 const floatFactor = 0.05;
 const floatTime = 3000;
@@ -109,16 +97,12 @@ class DomRenderEngine {
     const basePosition = new THREE.Vector3(-9, 1, -1);
     
     const _bindChild = iframeContainer2 => {
+      // gather constants
+      
       const iframe = iframeContainer2.firstChild;
       const width = parseInt(iframe.getAttribute('width'), 10);
       const height = parseInt(iframe.getAttribute('height'), 10);
       const scale = Math.min(1/width, 1/height);
-
-
-
-
-
-
 
       // attach scene punch-through object
 
@@ -198,33 +182,6 @@ class DomRenderEngine {
     _listenForChildren();
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 const DomRenderer = props => {
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
