@@ -16,7 +16,7 @@ export const ObjectScreenshot = ({ app, startUrl, width, height, className = '' 
 
         if ( ! canvasRef.current ) return;
 
-        await screenshotObjectApp({ app, clearAlpha: 0, canvas: canvasRef.current, start_url: startUrl, width, height });
+        await screenshotObjectApp({ app, clearAlpha: 0, canvas: canvasRef.current, start_url: startUrl });
 
     }, [ startUrl, canvasRef.current ] );
 
@@ -24,7 +24,7 @@ export const ObjectScreenshot = ({ app, startUrl, width, height, className = '' 
 
     return (
         <div className={ classnames( className, styles.imgWrapper ) } >
-            <canvas ref={ canvasRef } />
+            <canvas ref={ canvasRef } width={ width } height={ height } />
             <div className={ styles.background } />
         </div>
     );

@@ -62,8 +62,8 @@ const sideCamera = new THREE.PerspectiveCamera();
 }); */
 export const screenshotObjectApp = async ({
   app,
-  width = 300,
-  height = 300,
+  width,
+  height,
   clearColor = 0xFFFFFF,
   clearAlpha = 1,
   canvas
@@ -71,6 +71,18 @@ export const screenshotObjectApp = async ({
   // const {devicePixelRatio: pixelRatio} = window;
 
   // console.log('create object sprite', app, size, numFrames);
+
+  if (canvas && (width || height)) {
+
+    throw( 'screenshotObjectApp method should receive only "canvas" or "width"/"height" arguments and not both.' );
+
+  }
+
+  if (!canvas && (!width || !height)) {
+
+    throw( 'screenshotObjectApp method should receive at least "canvas" or "width"/"height" arguments.' );
+
+  }
 
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D);
@@ -81,8 +93,19 @@ export const screenshotObjectApp = async ({
   // const frameSize = size / numFramesPerRow;
 
   const writeCanvas = canvas ?? document.createElement('canvas');
-  writeCanvas.width = width;
-  writeCanvas.height = height;
+
+  if (!canvas) {
+
+    writeCanvas.width = width ?? 80;
+    writeCanvas.height = height ?? 80;
+
+  } else {
+
+    width = writeCanvas.width;
+    height = writeCanvas.height;
+
+  }
+
   const writeCtx = writeCanvas.getContext('2d');
 
   {
