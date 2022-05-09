@@ -97,10 +97,47 @@ const useWebaverseApp = (() => {
 })();
 
 const playerPos = { x: -1000, z: -1000 };
-const loadedBlocks = {};
-const blockSize = 4.5;
-const itemsPerBlock = 2;
-const blocks = new Map();
+const gridCellSize = 1.5;
+const appsGrid = new Map();
+const loadedAppsPool = [];
+const _vec3 = new THREE.Vector3();
+let totalApps = 1;
+let lastAppAddTime = 0;
+let lastAppRemoveTime = 0;
+const appAddDelay = 100;
+
+const cubic = (P0, P1, P2, P3, t) => {
+
+    const x0 = P0.x;
+    const y0 = P0.y;
+
+    const x1 = P1.x;
+    const y1 = P1.y;
+
+    const x2 = P2.x;
+    const y2 = P2.y;
+
+    const x3 = P3.x;
+    const y3 = P3.y;
+
+    const y = (t) =>
+        Math.pow(1 - t, 3) * y0 +
+        3 * Math.pow(1 - t, 2) * t * y1 +
+        3 * (1 - t) * Math.pow(t, 2) * y2 +
+        Math.pow(t, 3) * y3;
+
+    const x = (t) =>
+        Math.pow(1 - t, 3) * x0 +
+        3 * Math.pow(1 - t, 2) * t * x1 +
+        3 * (1 - t) * Math.pow(t, 2) * x2 +
+        Math.pow(t, 3) * x3;
+
+    // const valX = x(t);
+    return y(t);
+
+};
+
+//
 
 export const App = () => {
 
@@ -137,6 +174,26 @@ export const App = () => {
 
     };
 
+    const loadFewApps = () => {
+
+        for ( let i = 0; i < 6; i ++ ) {
+
+            ( async () => {
+
+                const app = await metaversefile.createAppAsync({
+                    start_url: '/@proxy/eth://' + contractId + '/' + totalApps
+                });
+
+                loadedAppsPool.push( app );
+
+            }) ();
+
+            totalApps ++;
+
+        }
+
+    };
+
     useEffect( () => {
 
         if ( ! contractId ) return;
@@ -146,47 +203,33 @@ export const App = () => {
             requestAnimationFrame( loop );
             if ( ! app.contentLoaded ) return;
 
-            let x = Math.round( playerPos.x / blockSize );
-            let z = Math.round( playerPos.z / blockSize );
+            let x = Math.round( playerPos.x / gridCellSize );
+            let z = Math.round( playerPos.z / gridCellSize );
 
-            if ( x !== Math.round( localPlayer.position.x / blockSize ) || z !== Math.round( localPlayer.position.z / blockSize ) ) {
+            if ( x !== Math.round( localPlayer.position.x / gridCellSize ) || z !== Math.round( localPlayer.position.z / gridCellSize ) ) {
 
-                playerPos.x = Math.round( localPlayer.position.x / blockSize );
-                playerPos.z = Math.round( localPlayer.position.z / blockSize );
+                playerPos.x = Math.round( localPlayer.position.x / gridCellSize );
+                playerPos.z = Math.round( localPlayer.position.z / gridCellSize );
 
-                x = playerPos.x;
-                z = playerPos.z;
+                const cellX = playerPos.x;
+                const cellZ = playerPos.z;
 
-                for ( let bi = x - 1; bi <= x + 1; bi ++ ) {
+                const loadBlockSize = 1;
 
-                    for ( let bj = z - 1; bj <= z + 1; bj ++ ) {
+                for ( let bi = cellX - loadBlockSize; bi <= cellX + loadBlockSize; bi ++ ) {
 
-                        if ( loadedBlocks[ bi + '=' + bj ] ) continue;
+                    for ( let bj = cellZ - loadBlockSize; bj <= cellZ + loadBlockSize; bj ++ ) {
 
-                        loadedBlocks[ bi + '=' + bj ] = true;
+                        if ( appsGrid.has( bi + '=' + bj ) ) continue;
 
-                        for ( let i = itemsPerBlock * bi; i < itemsPerBlock * bi + itemsPerBlock; i ++ ) {
+                        if ( ! loadedAppsPool.length ) {
 
-                            for ( let j = itemsPerBlock * bj; j < itemsPerBlock * bj + itemsPerBlock; j ++ ) {
+                            appsGrid.set( bi + '=' + bj, { app: null, state: 'loading', animation: '', animationProgress: 0 } );
+                            loadFewApps();
 
-                                ( async () => {
+                        } else {
 
-                                    const app = await metaversefile.createAppAsync({
-                                        start_url: '/@proxy/eth://' + contractId + '/' + ( 10 * i + j + 1000 )
-                                    });
-
-                                    app.position.set( i * ( blockSize / itemsPerBlock ) - 0.0 * blockSize + 100, 1, j * ( blockSize / itemsPerBlock ) - 0.0 * blockSize );
-                                    app.userData.targetPos = { x: i * ( blockSize / itemsPerBlock ) - 0.5 * blockSize, z: j * ( blockSize / itemsPerBlock ) - 0.5 * blockSize };
-                                    app.updateMatrixWorld( true );
-                                    metaversefile.addApp( app );
-
-                                    const block = blocks.get( bi + '=' + bj ) ?? [];
-                                    block.push( app );
-                                    blocks.set( bi + '=' + bj, block );
-
-                                }) ();
-
-                            }
+                            appsGrid.set( bi + '=' + bj, { app: loadedAppsPool.pop(), state: 'prepared', animation: '', animationProgress: 0 } );
 
                         }
 
@@ -198,41 +241,98 @@ export const App = () => {
 
             //
 
-            blocks.forEach( ( block, blockId ) => {
+            appsGrid.forEach( ( item, blockId ) => {
 
-                const dist = new THREE.Vector3( ( + blockId.split('=')[0] ) * blockSize, 0, ( + blockId.split('=')[1] ) * blockSize ).sub( localPlayer.position ).length();
-                let hiden = ( dist > blockSize * 2 ) ? true : false;
+                let app = item.app;
+                const x = ( + blockId.split('=')[0] ) * gridCellSize;
+                const z = ( + blockId.split('=')[1] ) * gridCellSize;
 
-                block.forEach( ( item ) => {
+                _vec3.set( x, 0, z );
+                const dist = _vec3.sub( localPlayer.position ).length();
 
-                    if ( dist > blockSize * 2 ) {
+                if ( dist > 3 * gridCellSize ) {
 
-                        item.userData.targetPos.x = 100;
+                    // app needs to be hidden
 
-                        if ( item.position.x < 90 ) {
+                    if ( item.state !== 'hidden' && Date.now() - lastAppRemoveTime > appAddDelay && item.animation !== 'hiding' ) {
 
-                            hiden = false;
+                        app.userData.targetPos = { x: x - 100, z: z };
+                        item.state = 'hidden';
+                        item.animation = 'hiding';
+                        lastAppRemoveTime = Date.now();
+                        item.animationProgress = 0;
+                        console.log('remove');
+
+                    }
+
+                } else {
+
+                    if ( item.state === 'loading' && loadedAppsPool.length ) {
+
+                        item.app = loadedAppsPool.pop();
+                        item.state = 'prepared';
+                        app = item.app;
+
+                    }
+
+                    if ( Date.now() - lastAppAddTime > appAddDelay && item.animation !== 'showing' ) {
+
+                        if ( item.state === 'prepared' ) {
+
+                            app.position.set( x + 100, 1, z );
+                            app.updateMatrixWorld( true );
+                            lastAppAddTime = Date.now();
+                            console.log('add');
+
+                        }
+
+                        if ( item.state === 'prepared' || item.state === 'hidden' ) {
+
+                            app.userData.targetPos = { x: x, z: z };
+                            metaversefile.addApp( item.app );
+                            item.animation = 'showing';
+                            item.state = 'visible';
+                            item.animationProgress = 0;
 
                         }
 
                     }
 
-                    item.position.x = 0.95 * item.position.x + 0.05 * item.userData.targetPos.x;
-                    item.position.z = 0.95 * item.position.z + 0.05 * item.userData.targetPos.z;
-                    item.updateMatrixWorld( true );
+                }
 
-                });
+                if ( ! item.app ) return;
 
-                if ( hiden ) {
+                if ( item.animation === 'showing' || item.animation === 'hiding' ) {
 
-                    block.forEach( ( item ) => {
+                    item.animationProgress += 0.005;
+                    let coef = 0;
 
-                        metaversefile.removeApp( item );
+                    if ( item.animation === 'showing' ) {
 
-                    });
+                        coef = cubic( { x: 0, y: 0 }, { x: 0.85, y: 0.0 }, { x: 0.15, y: 1 }, { x: 1, y: 1 }, item.animationProgress );
 
-                    delete loadedBlocks[ blockId ];
-                    blocks.delete( blockId );
+                    } else {
+
+                        coef = 1 - cubic( { x: 1, y: 1 }, { x: 0.15, y: 1 }, { x: 0.85, y: 0.0 }, { x: 0, y: 0 }, item.animationProgress );
+
+                    }
+
+                    app.position.x = app.userData.targetPos.x * coef + ( 1 - coef ) * app.position.x;
+                    app.position.z = app.userData.targetPos.z * coef + ( 1 - coef ) * app.position.z;
+                    app.updateMatrixWorld( true );
+
+                }
+
+                if ( item.animationProgress >= 1 ) {
+
+                    item.animationProgress = 0;
+                    item.animation = '';
+
+                    if ( item.state === 'hidden' ) {
+
+                        metaversefile.removeApp( item.app );
+
+                    }
 
                 }
 
