@@ -20,7 +20,9 @@ html, body {
     --color: #ec407a;
     --color2: #ffa726;
     --color3: #42a5f5;
+}
 
+body {
     background-color: #000;
 }
 
