@@ -99,6 +99,7 @@ class IFrameMesh extends THREE.Mesh {
     this.height = height;
 
     this.enabled = false;
+    this.value = 0;
     this.animation = null;
 
     this.onBeforeRender = renderer => {
@@ -110,9 +111,11 @@ class IFrameMesh extends THREE.Mesh {
       context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     };
   }
-  startAnimation(startTime, endTime) {
-    const startValue = this.material.opacity;
-    const endValue = this.enabled ? 0 : 1;
+  startAnimation(enabled, startTime, endTime) {
+    this.enabled = enabled;
+    
+    const startValue = this.value;
+    const endValue = enabled ? 1 : 0;
     this.animation = {
       startTime,
       endTime,
@@ -123,17 +126,27 @@ class IFrameMesh extends THREE.Mesh {
   update(timestamp) {
     if (this.animation) {
       const {startTime, endTime, startValue, endValue} = this.animation;
-      if (timestamp < endTime) {
-        let factor = Math.min(Math.max((timestamp - startTime) / (endTime - startTime), 0), 1);
-        factor = cubicBezier(factor);
-        const value = startValue + (endValue - startValue) * factor;
-        this.material.opacity = value;
+      let factor = Math.min(Math.max((timestamp - startTime) / (endTime - startTime), 0), 1);
+      factor = cubicBezier(factor);
+      if (factor < 1) {
+        this.value = startValue + (endValue - startValue) * factor;
       } else {
-        this.material.opacity = this.enabled ? 0 : 1;
+        this.value = endValue;
         this.animation = null;
       }
     } else {
-      this.material.opacity = this.enabled ? 0 : 1;
+      this.value = this.enabled ? 1 : 0;
+    }
+
+    if (this.value > 0) {
+      //  this.scale.set(this.value, this.value, 1);
+      // this.updateMatrixWorld();
+      this.material.opacity = 1 - this.value;
+      this.visible = true;
+      // console.log('visible', this.value, this.enabled, this.animation);
+    } else {
+      this.visible = false;
+      // console.log('not visible', this.value, this.enabled, this.animation);
     }
   }
 }
@@ -244,12 +257,12 @@ const DomRendererChild = ({
         const isInRange = distance < range;
         if (isInRange && !visible) {
           setVisible(true);
-          dom.enabled = true;
-          dom.startAnimation(startTime, endTime);
+          // dom.enabled = true;
+          dom.startAnimation(true, startTime, endTime);
         } else if (visible && !isInRange) {
           setVisible(false);
-          dom.enabled = false;
-          dom.startAnimation(startTime, endTime);
+          // dom.enabled = false;
+          dom.startAnimation(false, startTime, endTime);
         }
       };
       _updateVisibility();
