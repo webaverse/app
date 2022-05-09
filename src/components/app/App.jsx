@@ -28,6 +28,7 @@ import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
+import {DomRenderer} from '../../DomRenderer.jsx';
 // import * as voices from '../../../voices';
 
 import styles from './App.module.css';
@@ -255,6 +256,17 @@ export const App = () => {
                 <FocusBar />
                 <DragAndDrop />
                 <Stats app={ app } />
+
+                {/* <DomRenderer>
+                    <div
+                        className={styles.menu}
+                        width={600}
+                        height={400}
+                    >
+                        <h1>Ann's shop</h1>
+                        <p>You break it you buy it!</p>
+                    </div>
+                </DomRenderer> */}
             </AppContext.Provider>
         </div>
     );
