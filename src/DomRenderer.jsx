@@ -212,7 +212,7 @@ const DomRendererChild = ({
     const iframeContainer2 = iframeContainer2Ref.current;
 
     if (iframeContainer2) {
-      const render = e => {
+      const frame = e => {
         const _animateMenuFloat = () => {
           const now = performance.now();
           dom.position.copy(dom.basePosition);
@@ -240,18 +240,18 @@ const DomRendererChild = ({
         };
         _updateCameraContainerMatrix();
       };
-      gameManager.addEventListener('render', render);
+      gameManager.addEventListener('frame', frame);
 
       return () => {
-        gameManager.removeEventListener('render', render);
+        gameManager.removeEventListener('frame', frame);
       };
     }
   }, [iframeContainer2Ref]);
 
   // visibility
   useEffect(() => {
-    const render = e => {
-      const timestamp = performance.now(); // XXX pass this in from the event
+    const frame = e => {
+      const {timestamp} = e.data;
       const startTime = timestamp;
       const endTime = startTime + transtionTime;
 
@@ -273,10 +273,10 @@ const DomRendererChild = ({
       };
       _updateAnimation();
     };
-    gameManager.addEventListener('render', render);
+    gameManager.addEventListener('frame', frame);
 
     return () => {
-      gameManager.removeEventListener('render', render);
+      gameManager.removeEventListener('frame', frame);
     };
   }, [visible]);
 
