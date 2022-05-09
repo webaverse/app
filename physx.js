@@ -591,6 +591,7 @@ const physxWorker = (() => {
   }; */
   w.makePhysics = () => moduleInstance._makePhysics()
   w.simulatePhysics = (physics, updates, elapsedTime) => {
+    // console.log('simulatePhysics')
     /* if (updates.length > maxNumUpdates) {
       throw new Error('too many updates to simulate step: ' + updates.length + ' (max: ' + maxNumUpdates + ')');
     } */

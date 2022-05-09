@@ -292,6 +292,13 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
+      // if (window.silsword) {
+      //   const physicsObject = window.silsword.getPhysicsObjects()[0];
+      //   if (physicsObject) {
+      //     console.log(physicsObject.collided);
+      //   }
+      // }
+
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
         const timeDiff = timestamp - lastTimestamp;
