@@ -613,6 +613,14 @@ const physxWorker = (() => {
     index += maxNumUpdates * 3
     const bitfields = scratchStack.u32.subarray(index, index + maxNumUpdates)
     index += maxNumUpdates
+    const collisionObjectIds = scratchStack.u32.subarray(index, index + maxNumUpdates)
+    index += maxNumUpdates
+    const collisionPositionXs = scratchStack.u32.subarray(index, index + maxNumUpdates)
+    index += maxNumUpdates
+    const collisionPositionYs = scratchStack.u32.subarray(index, index + maxNumUpdates)
+    index += maxNumUpdates
+    const collisionPositionZs = scratchStack.u32.subarray(index, index + maxNumUpdates)
+    index += maxNumUpdates
 
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i]
@@ -639,6 +647,10 @@ const physxWorker = (() => {
       quaternions.byteOffset,
       scales.byteOffset,
       bitfields.byteOffset,
+      collisionObjectIds.byteOffset,
+      collisionPositionXs.byteOffset,
+      collisionPositionYs.byteOffset,
+      collisionPositionZs.byteOffset,
       updates.length,
       elapsedTime
     )
@@ -650,11 +662,18 @@ const physxWorker = (() => {
         position: new THREE.Vector3().fromArray(positions, i * 3),
         quaternion: new THREE.Quaternion().fromArray(quaternions, i * 4),
         scale: new THREE.Vector3().fromArray(scales, i * 3),
+        collisionObjectId: collisionObjectIds[i],
+        collisionPosition: [
+          collisionPositionXs[i],
+          collisionPositionYs[i],
+          collisionPositionZs[i],
+        ],
         collided: !!(bitfields[i] & 0x1),
         grounded: !!(bitfields[i] & 0x2),
       }
-      if (newUpdates[i].collided) debugger;
-      if (newUpdates[i].grounded) debugger;
+      if (newUpdates[i].collided) {
+        console.log(newUpdates[i]);
+      }
     }
     /* if (updates.length > 0) {
       console.log('updates', updates.slice());

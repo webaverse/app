@@ -568,6 +568,7 @@ physicsManager.simulatePhysics = (timeDiff) => {
     for (const updateOut of updatesOut) {
       const { id, position, quaternion, collided, grounded } = updateOut
       const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id)
+      // if (physicsObject === window.body) debugger
       if (physicsObject) {
         physicsObject.position.copy(position)
         physicsObject.quaternion.copy(quaternion)
