@@ -90,79 +90,80 @@ class IFrameMesh extends THREE.Mesh {
 }
 
 class DomRenderEngine {
-  constructor(iframeContainer, scene) {
-    this.iframeContainer = iframeContainer;
-    this.scene = scene;
-
+  constructor() {
+    // this.iframeContainer = iframeContainer;
+  }
+  #bindChild(iframeContainer2) {
     const basePosition = new THREE.Vector3(-9, 1, -1);
-    
-    const _bindChild = iframeContainer2 => {
-      // gather constants
 
-      const iframe = iframeContainer2.firstChild;
-      const width = parseInt(iframe.getAttribute('width'), 10);
-      const height = parseInt(iframe.getAttribute('height'), 10);
-      const scale = Math.min(1/width, 1/height);
+    // gather constants
 
-      // attach scene punch-through object
+    const iframe = iframeContainer2.firstChild;
+    const width = parseInt(iframe.getAttribute('width'), 10);
+    const height = parseInt(iframe.getAttribute('height'), 10);
+    const scale = Math.min(1/width, 1/height);
 
-      const object = new THREE.Object3D();
-      object.position.copy(basePosition);
-      scene.add(object);
-      object.updateMatrixWorld();
+    // attach scene punch-through object
 
-      const object2 = new IFrameMesh({
-        // iframe,
-        width: width * scale,
-        height: height * scale,
-      });
-      object2.frustumCulled = false;
-  
-      object2.onBeforeRender = (renderer) => {
-        const context = renderer.getContext();
-        context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-      };
-      object2.onAfterRender = (renderer) => {
-        const context = renderer.getContext();
-        context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-      };
-      object.add(object2);
-      object2.updateMatrixWorld();
+    const object = new THREE.Object3D();
+    object.position.copy(basePosition);
+    scene.add(object);
+    object.updateMatrixWorld();
 
-      // listeners
+    const object2 = new IFrameMesh({
+      // iframe,
+      width: width * scale,
+      height: height * scale,
+    });
+    object2.frustumCulled = false;
 
-      gameManager.addEventListener('render', e => {
-        const _animateMenuFloat = () => {
-          const now = performance.now();
-          object.position.copy(basePosition);
-          object.position.y += Math.sin((now % floatTime)/floatTime * 2 * Math.PI) * floatFactor;
-          object.position.y += Math.cos(((now / 2) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/2;
-          object.position.y += Math.sin(((now / 4) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/4;
-          object.updateMatrixWorld();
-        };
-        _animateMenuFloat();
-        
-        const _updateCameraContainerMatrix = () => {
-          const fov = _getFov();
-          const cameraCSSMatrix = getCameraCSSMatrix(
-            localMatrix.copy(camera.matrixWorldInverse)
-              .premultiply(
-                localMatrix2.makeTranslation(0, 0, fov)
-              )
-              .multiply(
-                object.matrixWorld
-              )
-          );
-          iframeContainer2.style.transform = cameraCSSMatrix;
-        };
-        _updateCameraContainerMatrix();
-      });
+    object2.onBeforeRender = (renderer) => {
+      const context = renderer.getContext();
+      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
     };
+    object2.onAfterRender = (renderer) => {
+      const context = renderer.getContext();
+      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    };
+    object.add(object2);
+    object2.updateMatrixWorld();
+
+    // listeners
+
+    gameManager.addEventListener('render', e => {
+      const _animateMenuFloat = () => {
+        const now = performance.now();
+        object.position.copy(basePosition);
+        object.position.y += Math.sin((now % floatTime)/floatTime * 2 * Math.PI) * floatFactor;
+        object.position.y += Math.cos(((now / 2) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/2;
+        object.position.y += Math.sin(((now / 4) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/4;
+        object.updateMatrixWorld();
+      };
+      _animateMenuFloat();
+      
+      const _updateCameraContainerMatrix = () => {
+        const fov = _getFov();
+        const cameraCSSMatrix = getCameraCSSMatrix(
+          localMatrix.copy(camera.matrixWorldInverse)
+            .premultiply(
+              localMatrix2.makeTranslation(0, 0, fov)
+            )
+            .multiply(
+              object.matrixWorld
+            )
+        );
+        iframeContainer2.style.transform = cameraCSSMatrix;
+      };
+      _updateCameraContainerMatrix();
+    });
+  }
+  setIframeContainer(iframeContainer) {
+    // this.iframeContainer = iframeContainer;
 
     const _bindInitialChildren = () => {
       const children = Array.from(iframeContainer.childNodes);
       for (const child of children) {
-        _bindChild(child);
+        this.#bindChild(child);
       }
     };
     _bindInitialChildren();
@@ -178,7 +179,7 @@ class DomRenderEngine {
         }
       };
       const observer = new MutationObserver(callback);
-      observer.observe(this.iframeContainer, {
+      observer.observe(iframeContainer, {
         childList: true,
       });
     };
@@ -188,13 +189,14 @@ class DomRenderEngine {
     // XXX finish this
   }
 }
+const domRenderEngine = new DomRenderEngine();
 
 const DomRenderer = props => {
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   const [innerHeight, setInnerHeight] = useState(window.innerHeight);
   const [fov, setFov] = useState(_getFov());
   const iframeContainerRef = useRef();
-  const [domRenderEngine, setDomRenderEngine] = useState(null);
+  // const [domRenderEngine, setDomRenderEngine] = useState(null);
   const children = React.Children.toArray(props.children);
 
   useEffect(() => {
@@ -212,12 +214,14 @@ const DomRenderer = props => {
   useEffect(() => {
     const iframeContainer = iframeContainerRef.current;
     if (iframeContainer) {
-      const domRenderEngine = new DomRenderEngine(iframeContainer, scene);
-      setDomRenderEngine(domRenderEngine);
+      // const domRenderEngine = new DomRenderEngine(iframeContainer, scene);
+      // setDomRenderEngine(domRenderEngine);
 
-      return () => {
+      domRenderEngine.setIframeContainer(iframeContainer);
+
+      /* return () => {
         domRenderEngine.destroy();
-      };
+      }; */
     }
   }, [iframeContainerRef]);
 
