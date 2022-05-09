@@ -98,7 +98,7 @@ class DomRenderEngine {
     
     const _bindChild = iframeContainer2 => {
       // gather constants
-      
+
       const iframe = iframeContainer2.firstChild;
       const width = parseInt(iframe.getAttribute('width'), 10);
       const height = parseInt(iframe.getAttribute('height'), 10);
@@ -140,10 +140,11 @@ class DomRenderEngine {
           object.position.y += Math.sin(((now / 4) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/4;
           object.updateMatrixWorld();
         };
-
-        const fov = _getFov();
-        const cameraCSSMatrix =
-          getCameraCSSMatrix(
+        _animateMenuFloat();
+        
+        const _updateCameraContainerMatrix = () => {
+          const fov = _getFov();
+          const cameraCSSMatrix = getCameraCSSMatrix(
             localMatrix.copy(camera.matrixWorldInverse)
               .premultiply(
                 localMatrix2.makeTranslation(0, 0, fov)
@@ -152,7 +153,9 @@ class DomRenderEngine {
                 object.matrixWorld
               )
           );
-        iframeContainer2.style.transform = cameraCSSMatrix;
+          iframeContainer2.style.transform = cameraCSSMatrix;
+        };
+        _updateCameraContainerMatrix();
       });
     };
 
@@ -180,6 +183,9 @@ class DomRenderEngine {
       });
     };
     _listenForChildren();
+  }
+  destroy() {
+    // XXX finish this
   }
 }
 
