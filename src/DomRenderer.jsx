@@ -107,11 +107,6 @@ class DomRenderEngine {
     this.scene = scene;
 
     const basePosition = new THREE.Vector3(-9, 1, -1);
-
-    const object = new THREE.Object3D();
-    object.position.copy(basePosition);
-    scene.add(object);
-    object.updateMatrixWorld();
     
     const _bindChild = iframeContainer2 => {
       const iframe = iframeContainer2.firstChild;
@@ -120,15 +115,17 @@ class DomRenderEngine {
       const scale = Math.min(1/width, 1/height);
 
 
-      // console.log('got new child', {iframeContainer2, iframe});
 
 
 
 
 
+      // attach scene punch-through object
 
-
-
+      const object = new THREE.Object3D();
+      object.position.copy(basePosition);
+      scene.add(object);
+      object.updateMatrixWorld();
 
       const object2 = new IFrameMesh({
         // iframe,
@@ -148,69 +145,42 @@ class DomRenderEngine {
       object.add(object2);
       object2.updateMatrixWorld();
 
-      // debugger;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      // listeners
 
       gameManager.addEventListener('render', e => {
-        /* object2.position.copy(object.position);
-        object2.quaternion.copy(object.quaternion);
-        object2.scale.copy(object.scale);
-        object2.updateMatrixWorld(); */
+        const _animateMenuFloat = () => {
+          const now = performance.now();
+          object.position.copy(basePosition);
+          object.position.y += Math.sin((now % floatTime)/floatTime * 2 * Math.PI) * floatFactor;
+          object.position.y += Math.cos(((now / 2) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/2;
+          object.position.y += Math.sin(((now / 4) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/4;
+          object.updateMatrixWorld();
+        };
 
-        const now = performance.now();
-        object.position.copy(basePosition);
-        object.position.y += Math.sin((now % floatTime)/floatTime * 2 * Math.PI) * floatFactor;
-        object.position.y += Math.cos(((now / 2) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/2;
-        object.position.y += Math.sin(((now / 4) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/4;
-        object.updateMatrixWorld();
-
-        // camera.updateMatrixWorld();
-  
         const fov = _getFov();
         const cameraCSSMatrix =
-          // 'translateZ(' + fov + 'px) ' +
           getCameraCSSMatrix(
             localMatrix.copy(camera.matrixWorldInverse)
-              // .invert()
               .premultiply(
                 localMatrix2.makeTranslation(0, 0, fov)
               )
               .multiply(
                 object.matrixWorld
               )
-              /* .premultiply(
-                localMatrix2.makeScale(1/window.innerWidth, -1/window.innerHeight, 1)
-                  .invert()
-              ) */
-              // .invert()
           );
         iframeContainer2.style.transform = cameraCSSMatrix;
-        // iframeContainer2.style.visibility = null;
       });
     };
 
-    const children = Array.from(iframeContainer.childNodes);
-    for (const child of children) {
-      _bindChild(child);
-    }
+    const _bindInitialChildren = () => {
+      const children = Array.from(iframeContainer.childNodes);
+      for (const child of children) {
+        _bindChild(child);
+      }
+    };
+    _bindInitialChildren();
 
-    // console.log('dom render got children', children);
-
-    // console.log('mutation observer', this.iframeContainer);
-    const _listen = () => {
+    const _listenForChildren = () => {
       const callback = function(mutationsList, observer) {
         for (const mutation of mutationsList) {
           if (mutation.type === 'childList') {
@@ -222,12 +192,10 @@ class DomRenderEngine {
       };
       const observer = new MutationObserver(callback);
       observer.observe(this.iframeContainer, {
-        // attributes: true,
         childList: true,
-        // subtree: true,
       });
     };
-    _listen();
+    _listenForChildren();
   }
 }
 
