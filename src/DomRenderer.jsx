@@ -101,48 +101,6 @@ class IFrameMesh extends THREE.Mesh {
   }
 }
 
-
-
-
-
-
-
-
-
-/* class DomRenderFrame {
-  constructor(iframeContainer2) {
-    this.iframeContainer2 = iframeContainer2;
-  }
-  update() {
-    if (app.parent) {
-      object2.position.copy(object.position);
-      object2.quaternion.copy(object.quaternion);
-      object2.scale.copy(object.scale);
-      object2.updateMatrixWorld();
-      
-      const cameraCSSMatrix =
-        getCameraCSSMatrix(
-          localMatrix.copy(camera.matrixWorldInverse)
-            .premultiply(
-              localMatrix2.makeTranslation(0, 0, fov)
-            )
-            .multiply(
-              object.matrixWorld
-            )
-        );
-      this.iframeContainer2.style.transform = cameraCSSMatrix;
-      this.iframeContainer2.style.visibility = null;
-    } else {
-      this.iframeContainer2.style.visibility = 'hidden';
-    }
-  }
-} */
-
-
-
-
-
-
 class DomRenderEngine {
   constructor(iframeContainer, scene) {
     this.iframeContainer = iframeContainer;
