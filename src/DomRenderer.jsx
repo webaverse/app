@@ -103,67 +103,6 @@ class DomRenderEngine extends EventTarget {
 
     this.doms = [];
   }
-  #bindChild(object, iframeContainer2) {
-    // gather constants
-
-    const iframe = iframeContainer2.firstChild;
-    const width = parseInt(iframe.getAttribute('width'), 10);
-    const height = parseInt(iframe.getAttribute('height'), 10);
-    const scaleFactor = _getScaleFactor(width, height);
-
-    // attach scene punch-through object
-
-    // const object = new THREE.Object3D();
-    // object.position.copy(basePosition);
-    scene.add(object);
-    // object.updateMatrixWorld();
-
-    const object2 = new IFrameMesh({
-      width: width * scaleFactor,
-      height: height * scaleFactor,
-    });
-    // object2.frustumCulled = false;
-
-    object2.onBeforeRender = (renderer) => {
-      const context = renderer.getContext();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
-    object2.onAfterRender = (renderer) => {
-      const context = renderer.getContext();
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
-    object.add(object2);
-    object2.updateMatrixWorld();
-
-    // listeners
-
-    gameManager.addEventListener('render', e => {
-      const _animateMenuFloat = () => {
-        const now = performance.now();
-        object.position.copy(basePosition);
-        object.position.y += Math.sin((now % floatTime)/floatTime * 2 * Math.PI) * floatFactor;
-        object.position.y += Math.cos(((now / 2) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/2;
-        object.position.y += Math.sin(((now / 4) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/4;
-        object.updateMatrixWorld();
-      };
-      _animateMenuFloat();
-      
-      const _updateCameraContainerMatrix = () => {
-        const fov = _getFov();
-        const cameraCSSMatrix = getCameraCSSMatrix(
-          localMatrix.copy(camera.matrixWorldInverse)
-            .premultiply(
-              localMatrix2.makeTranslation(0, 0, fov)
-            )
-            .multiply(
-              object.matrixWorld
-            )
-        );
-        iframeContainer2.style.transform = cameraCSSMatrix;
-      };
-      _updateCameraContainerMatrix();
-    });
-  }
   addDom({
     position = new THREE.Vector3(),
     quaternion = new THREE.Quaternion(),
