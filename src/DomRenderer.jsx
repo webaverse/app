@@ -100,6 +100,15 @@ class IFrameMesh extends THREE.Mesh {
 
     this.enabled = false;
     this.animation = null;
+
+    this.onBeforeRender = renderer => {
+      const context = renderer.getContext();
+      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    };
+    this.onAfterRender = renderer => {
+      const context = renderer.getContext();
+      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    };
   }
   startAnimation(startTime, endTime) {
     const startValue = this.material.opacity;
@@ -147,14 +156,6 @@ class DomRenderEngine extends EventTarget {
       width: width,
       height: height,
     });
-    dom.onBeforeRender = renderer => {
-      const context = renderer.getContext();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
-    dom.onAfterRender = renderer => {
-      const context = renderer.getContext();
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
     sceneLowerPriority.add(dom);
     dom.updateMatrixWorld();
 
