@@ -930,9 +930,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
               localVector.copy(wearApp.position).add(localVector2.fromArray(damageBoxPosition).applyQuaternion(localQuaternion)),
               localQuaternion
             );
-            const objectIdsLength = collision.objectIds.length;
-            if (objectIdsLength > 0) {
-              const collisionId = collision.objectIds[objectIdsLength - 1];
+            collision.objectIds.forEach(objectId => {
+              const collisionId = objectId;
               const result = metaversefileApi.getPairByPhysicsId(collisionId);
               if (result) {
                 const [app, physicsObject] = result;
@@ -966,7 +965,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
                   lastHitTimes.set(app, now);
                 }
               }
-            }
+            });
           }
         }
       };
