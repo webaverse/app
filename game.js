@@ -391,6 +391,9 @@ const hitHeight = 0.2;
 const hitHalfHeight = hitHeight * 0.5;
 const hitboxOffsetDistance = 0.3;
 const damageMeshOffsetDistance = 1.5;
+const defaultDamageBoxSize = [0.21, 0.92, 0.03];
+const defaultDamageBoxPosition = [0, 1, 0];
+const defaultDamageBoxQuaternion = [0, 0, 0, 1];
 /* const cylinderMesh = (() => {
   const radius = 1;
   const height = 0.2;
@@ -914,47 +917,54 @@ const _gameUpdate = (timestamp, timeDiff) => {
       const _handleSword = () => {
         const wearApp = loadoutManager.getSelectedApp();
         if (wearApp) {
-          const sizeXHalf = 0.2 / 2;
-          const sizeYHalf = 1.47 / 2;
-          const sizeZHalf = 0.05 / 2;
-          const collision = physicsManager.overlapBox(sizeXHalf, sizeYHalf, sizeZHalf,
-            localVector.copy(wearApp.position).add(localVector2.set(0, sizeYHalf, 0).applyQuaternion(wearApp.quaternion)),
-            wearApp.quaternion
-          );
-          const objectIdsLength = collision.objectIds.length;
-          if (objectIdsLength > 0) {
-            const collisionId = collision.objectIds[objectIdsLength - 1];
-            const result = metaversefileApi.getPairByPhysicsId(collisionId);
-            if (result) {
-              const [app, physicsObject] = result;
-              const lastHitTime = lastHitTimes.get(app) ?? 0;
-              const timeDiff = now - lastHitTime;
-              if (timeDiff > 1000) {
-                const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
-                const hitDirection = app.position.clone()
-                  .sub(localPlayer.position);
-                hitDirection.y = 0;
-                hitDirection.normalize();
+          const useComponent = wearApp.getComponent('use');
+          if (useComponent) {
+            const damageBoxSize = useComponent.damageBoxSize ?? defaultDamageBoxSize;
+            const damageBoxPosition = useComponent.damageBoxPosition ?? defaultDamageBoxPosition;
+            const damageBoxQuaternion = useComponent.damageBoxQuaternion ?? defaultDamageBoxQuaternion;
+            const sizeXHalf = damageBoxSize[0] / 2;
+            const sizeYHalf = damageBoxSize[1] / 2;
+            const sizeZHalf = damageBoxSize[2] / 2;
+            localQuaternion.fromArray(damageBoxQuaternion).multiply(wearApp.quaternion);
+            const collision = physicsManager.overlapBox(sizeXHalf, sizeYHalf, sizeZHalf,
+              localVector.copy(wearApp.position).add(localVector2.fromArray(damageBoxPosition).applyQuaternion(localQuaternion)),
+              localQuaternion
+            );
+            const objectIdsLength = collision.objectIds.length;
+            if (objectIdsLength > 0) {
+              const collisionId = collision.objectIds[objectIdsLength - 1];
+              const result = metaversefileApi.getPairByPhysicsId(collisionId);
+              if (result) {
+                const [app, physicsObject] = result;
+                const lastHitTime = lastHitTimes.get(app) ?? 0;
+                const timeDiff = now - lastHitTime;
+                if (timeDiff > 1000) {
+                  const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
+                  const hitDirection = app.position.clone()
+                    .sub(localPlayer.position);
+                  hitDirection.y = 0;
+                  hitDirection.normalize();
 
-                const hitPosition = localVector.copy(localPlayer.position)
-                  .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(localPlayer.quaternion))
-                  .clone();
-                localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-                localEuler.x = 0;
-                localEuler.z = 0;
-                const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
+                  const hitPosition = localVector.copy(localPlayer.position)
+                    .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(localPlayer.quaternion))
+                    .clone();
+                  localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+                  localEuler.x = 0;
+                  localEuler.z = 0;
+                  const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
 
-                // const willDie = app.willDieFrom(damage);
-                app.hit(damage, {
-                  collisionId,
-                  physicsObject,
-                  hitPosition,
-                  hitQuaternion,
-                  hitDirection,
-                  // willDie,
-                });
-              
-                lastHitTimes.set(app, now);
+                  // const willDie = app.willDieFrom(damage);
+                  app.hit(damage, {
+                    collisionId,
+                    physicsObject,
+                    hitPosition,
+                    hitQuaternion,
+                    hitDirection,
+                    // willDie,
+                  });
+                
+                  lastHitTimes.set(app, now);
+                }
               }
             }
           }
