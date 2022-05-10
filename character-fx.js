@@ -235,7 +235,7 @@ class CharacterFx {
 
     this.lastSSS = isSSS;
     const _updateSonicBoomMesh = () => {
-      if ( this.player.isLocalPlayer && !this.sonicBoom ) {
+      if (this.player.isLocalPlayer && !this.sonicBoom ) {
         this.sonicBoom = metaversefile.createApp();
         (async () => {
           await metaverseModules.waitForLoad();
