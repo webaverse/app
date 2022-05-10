@@ -305,7 +305,7 @@ class CharacterPhysics {
       // const isPlayingEnvelopeIkAnimation = !!useAction && useAction.ik === 'bow';
       const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable)) /* && !isPlayingEnvelopeIkAnimation */;
       for (let i = 0; i < 2; i++) {
-        const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : 0);
+        const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : (aimComponent?.ikHand === 'right') ? 0 : null);
         const enabled = isHandEnabled && isExpectedHandIndex;
         this.player.hands[i].enabled = enabled;
       }
