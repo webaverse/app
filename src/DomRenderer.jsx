@@ -3,9 +3,9 @@ import React, {useState, useEffect, useRef} from 'react';
 import gameManager from '../game.js';
 import {camera} from '../renderer.js';
 import {localPlayer} from '../players.js';
-import metaversefile from 'metaversefile';
+// import metaversefile from 'metaversefile';
 
-import {CharacterBanner} from './CharacterBanner.jsx';
+// import {CharacterBanner} from './CharacterBanner.jsx';
 import domRenderEngine, {DomRenderEngine} from '../dom-renderer.js';
 
 const floatFactor = 0.05;
@@ -77,18 +77,6 @@ function getCameraCSSMatrix( matrix ) {
     epsilon( elements[ 15 ] ) +
   ')';
 }
-
-setTimeout(() => {
-  const domRenderEngine = metaversefile.useDomRenderer();
-  domRenderEngine.addDom({
-    position: new THREE.Vector3(-9, 1.2, -1),
-    quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2),
-    width: 600,
-    height: 400,
-    worldWidth: 1,
-    render: () => (<CharacterBanner />),
-  });
-}, 1000);
 
 const DomRendererChild = ({
   dom,
