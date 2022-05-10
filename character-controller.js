@@ -1156,10 +1156,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     const { oldActions, oldAvatar, oldApps } = oldState;
 
     const self = this;
-    if (window.lol3) {
-      debugger;
-    }
-    console.log('set players array', self.playersArray?.toJSON());
+    // console.log('set players array', self.playersArray?.toJSON());
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
 
