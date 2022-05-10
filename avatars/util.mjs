@@ -45,9 +45,20 @@ export const getHeight = (() => {
   const localVector = new THREE.Vector3();
   return function(object) {
     const modelBones = getModelBones(object);
-    return getEyePosition(modelBones)
-      .sub(modelBones.Root.getWorldPosition(localVector))
+    const result = getEyePosition(modelBones)
+      // .sub(localVector.setFromMatrixPosition(modelBones.Root.matrixWorld))
       .y;
+    /* console.log(
+      'get eye',
+      modelBones.Head,
+      getEyePosition(modelBones).toArray().join(', '),
+      localVector.setFromMatrixPosition(modelBones.Root.matrixWorld).toArray().join(', '),
+      result
+    ); */
+    if (result < 0) {
+      debugger;
+    }
+    return result;
   };
 })();
 export const makeBoneMap = object => {
