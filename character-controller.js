@@ -488,6 +488,8 @@ class StatePlayer extends PlayerBase {
     return !!this.playersArray;
   }
   unbindState() {
+    // console.log('character controller unbind state', new Error().stack);
+
     if (this.isBound()) {
       this.playersArray = null;
       this.playerMap = null;
@@ -496,6 +498,8 @@ class StatePlayer extends PlayerBase {
         unbindFn();
       }
       this.unbindFns.length = 0;
+    } else {
+      console.warn("Warning, calling unbindState on an unbound player")
     }
   }
   detachState() {
@@ -566,18 +570,23 @@ class StatePlayer extends PlayerBase {
     };
     this.unbindFns.push(_cancelSyncAvatar);
   }
-  bindState(nextPlayersArray) {
+  bindState(nextPlayersArray) {    
     // latch old state
     const oldState = this.detachState();
 
     // unbind
     this.unbindState();
-    this.appManager.unbindState();
+    if (this.isLocalPlayer) {
+      this.appManager.unbindStateLocal();
+    } else {
+      this.appManager.unbindStateRemote();
+    }
 
     // note: leave the old state as is. it is the host's responsibility to garbage collect us when we disconnect.
 
     // blindly add to new state
     this.playersArray = nextPlayersArray;
+    window.playersArray = this.playersArray;
     if (this.playersArray) {
       this.attachState(oldState);
       this.bindCommonObservers();
@@ -716,7 +725,7 @@ class StatePlayer extends PlayerBase {
     return avatarMap;
   }
   getAppsState() {
-    let appsArray = this.playerMap.has(avatarMapName)
+    let appsArray = this.playerMap.has(appsMapName)
       ? this.playerMap.get(appsMapName, Z.Array)
       : null;
     if (!appsArray) {
@@ -856,7 +865,11 @@ class StatePlayer extends PlayerBase {
     }
 
     this.unbindState();
-    this.appManager.unbindState();
+    if (this.isLocalPlayer) {
+      this.appManager.unbindStateLocal();
+    } else {
+      this.appManager.unbindStateRemote();
+    }
 
     this.appManager.destroy();
 
@@ -1128,6 +1141,9 @@ class LocalPlayer extends UninterpolatedPlayer {
     const oldApps = (
       this.playersArray ? this.getAppsState() : new Z.Array()
     ).toJSON();
+
+    // XXX need to unbind listeners when calling this
+
     return {
       oldActions,
       oldAvatar,
@@ -1138,10 +1154,13 @@ class LocalPlayer extends UninterpolatedPlayer {
     const { oldActions, oldAvatar, oldApps } = oldState;
 
     const self = this;
+    // console.log('set players array', self.playersArray?.toJSON());
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
-      self.playersArray.push([self.playerMap]);
-      self.playerMap.set("playerId", self.playerId);
+
+      self.playerMap.set('playerId', self.playerId);
+
+      // console.log('set player map', self.playerMap, self.playerMap?.toJSON(), self.playersArray?.toJSON());
 
       /* const packed = new Float32Array(11);
       const pack3 = (v, i) => {
@@ -1168,7 +1187,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         actions.push([oldAction]);
       }
 
-      const { instanceId } = oldAvatar;
+      const {instanceId} = oldAvatar;
       if (instanceId !== undefined) {
         avatar.set("instanceId", instanceId);
       }
@@ -1182,9 +1201,11 @@ class LocalPlayer extends UninterpolatedPlayer {
         }
         apps.push([mapApp]);
       }
+
+      self.playersArray.push([self.playerMap]);
     });
 
-    this.appManager.bindState(this.getAppsState());
+    this.appManager.bindStateLocal(this.getAppsState());
   }
   grab(app, hand = "left") {
     const renderer = getRenderer();
@@ -1401,6 +1422,8 @@ class RemotePlayer extends InterpolatedPlayer {
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
     this.characterBehavior = new CharacterBehavior(this);
+
+    console.log('new remote plater', this);
   }
   detachState() {
     const oldActions = this.playersArray
@@ -1412,6 +1435,9 @@ class RemotePlayer extends InterpolatedPlayer {
     const oldApps = (
       this.playersArray ? this.getAppsState() : new Z.Array()
     ).toJSON();
+    
+    // XXX need to unbind listeners when calling this
+    
     return {
       oldActions,
       oldAvatar,
@@ -1462,7 +1488,7 @@ class RemotePlayer extends InterpolatedPlayer {
 
     loadPhysxCharacterController.call(this);
 
-    let prevApps = [];
+    // let prevApps = [];
 
     const observePlayerFn = (e) => {
       if (e.changes.keys.get("playerId")) {
@@ -1488,8 +1514,7 @@ class RemotePlayer extends InterpolatedPlayer {
           this.positionInterpolant?.snapshot(remoteTimeDiff);
           this.quaternionInterpolant?.snapshot(remoteTimeDiff);
 
-          for (const actionBinaryInterpolant of this
-            .actionBinaryInterpolantsArray) {
+          for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
             actionBinaryInterpolant.snapshot(remoteTimeDiff);
           }
 
@@ -1522,7 +1547,7 @@ class RemotePlayer extends InterpolatedPlayer {
       this.playerMap.unobserve.bind(this.playerMap, observePlayerFn)
     );
 
-    this.appManager.bindState(this.getAppsState());
+    this.appManager.bindStateRemote(this.getAppsState());
     this.appManager.loadApps();
     this.appManager.callBackFn = (app, event, flag) => {
       if (event == "wear") {
@@ -1647,7 +1672,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     return this.avatarApp;
   }
   setAvatarApp(app) {
-    app.toggleBoneUpdates(true);
+    app.toggleneUpdates(true);
     const { skinnedVrm } = app;
     const avatar = new Avatar(skinnedVrm, {
       fingers: true,
