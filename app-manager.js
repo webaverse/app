@@ -453,14 +453,14 @@ class AppManager extends EventTarget {
     for (let i = 0; this.appsArray.length > i; i++) {
       const app = this.appsArray.get(i, Z.Map);
       if (app.get('instanceId') === instanceId) {
-        console.log('get or create tracked app 1', instanceId, this.appsArray.toJSON());
+        // console.log('get or create tracked app 1', instanceId, this.appsArray.toJSON());
         return app;
       }
     }
 
     const appMap = new Z.Map();
     this.appsArray.push([appMap]);
-    console.log('get or create tracked app 2', instanceId, this.appsArray.toJSON());
+    // console.log('get or create tracked app 2', instanceId, this.appsArray.toJSON());
     return appMap;
   }
   getTrackedApp(instanceId) {

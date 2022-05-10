@@ -488,9 +488,9 @@ class StatePlayer extends PlayerBase {
     return !!this.playersArray;
   }
   unbindState() {
-    console.log('character controller unbind state', new Error().stack);
+    // console.log('character controller unbind state', new Error().stack);
 
-    // if (this.isBound()) {
+    if (this.isBound()) {
       this.playersArray = null;
       this.playerMap = null;
 
@@ -498,7 +498,9 @@ class StatePlayer extends PlayerBase {
         unbindFn();
       }
       this.unbindFns.length = 0;
-    // }
+    } else {
+      console.warn("Warning, calling unbindState on an unbound player")
+    }
   }
   detachState() {
     throw new Error("called abstract method");
@@ -571,8 +573,6 @@ class StatePlayer extends PlayerBase {
   bindState(nextPlayersArray) {    
     // latch old state
     const oldState = this.detachState();
-
-    console.log('state player bind state', nextPlayersArray, oldState, new Error().stack);
 
     // unbind
     this.unbindState();
@@ -1119,8 +1119,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     return this.appManager.getAppByInstanceId(instanceId);
   }
   setAvatarApp(app) {
-    console.log('set avatar app', app, new Error().stack)
-
     const self = this;
     this.playersArray.doc.transact(function tx() {
       const avatar = self.getAvatarState();
