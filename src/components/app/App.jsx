@@ -11,6 +11,7 @@ import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
 import cameraManager from '../../../camera-manager';
 import { world } from '../../../world';
+import { handleStoryKeyControls } from '../../../story';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -21,6 +22,7 @@ import { ZoneTitleCard } from '../general/zone-title-card';
 import { Quests } from '../play-mode/quests';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
 import { LoadingBox } from '../../LoadingBox.jsx';
+import { FocusBar } from '../../FocusBar.jsx';
 import { DragAndDrop } from '../../DragAndDrop.jsx';
 import { Stats } from '../../Stats.jsx';
 import { PlayMode } from '../play-mode';
@@ -75,12 +77,30 @@ const _getCurrentRoom = () => {
 
 export const AppContext = createContext();
 
+const useWebaverseApp = (() => {
+
+    let webaverse = null;
+
+    return () => {
+
+        if ( webaverse === null ) {
+
+            webaverse = new Webaverse();
+
+        }
+
+        return webaverse;
+
+    };
+
+})();
+
 export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
 
     const canvasRef = useRef( null );
-    const [ app, setApp ] = useState( () => new Webaverse() );
+    const app = useWebaverseApp();
     const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
@@ -113,6 +133,25 @@ export const App = () => {
         }
 
     }, [ state.openedPanel ] );
+
+    useEffect( () => {
+
+        const handleStoryKeyUp = ( event ) => {
+
+            if ( game.inputFocused() ) return;
+            handleStoryKeyControls( event );
+
+        };
+
+        registerIoEventHandler( 'keyup', handleStoryKeyUp );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keyup', handleStoryKeyUp );
+
+        };
+
+    }, [] );
 
     useEffect( () => {
 
@@ -222,10 +261,7 @@ export const App = () => {
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
-                <WorldObjectsList
-                    setSelectedApp={ setSelectedApp }
-                    selectedApp={ selectedApp }
-                />
+                <WorldObjectsList />
                 <PlayMode />
                 <EditorMode
                     selectedScene={ selectedScene }
@@ -239,6 +275,7 @@ export const App = () => {
                 <MapGen />
                 <Quests />
                 <LoadingBox />
+                <FocusBar />
                 <DragAndDrop />
                 <Stats app={ app } />
             </AppContext.Provider>

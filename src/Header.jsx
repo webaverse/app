@@ -9,7 +9,7 @@ import ioManager from '../io-manager.js'
 
 import { Character } from './components/general/character';
 import { CharacterSelect } from './components/general/character-select';
-import { Inventory } from './components/general/inventory';
+import { Equipment } from './components/general/equipment';
 import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
@@ -153,11 +153,15 @@ export default function Header() {
 
                 case 9: { // tab
 
-                    setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+                    if ( !event.repeat ) {
 
-                    if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+                        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
 
-                        cameraManager.requestPointerLock();
+                        if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+
+                            cameraManager.requestPointerLock();
+
+                        }
 
                     }
 
@@ -166,8 +170,6 @@ export default function Header() {
                 }
 
             }
-
-            return false;
 
         };
 
@@ -276,9 +278,7 @@ export default function Header() {
                     <CharacterSelect
                         
                     />
-                    <Inventory
-                    
-                    />
+                    <Equipment />
                     {/* <Claims
                         open={ claimsOpen }
                         toggleOpen={ toggleClaimsOpen }

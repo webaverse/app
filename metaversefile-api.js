@@ -25,6 +25,7 @@ import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
+import {MeshLodder} from './mesh-lodder.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
@@ -46,6 +47,7 @@ import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
+import particleSystemManager from './particle-system.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -524,6 +526,9 @@ metaversefile.setApi({
   useLoaders() {
     return loaders;
   },
+  useMeshLodder() {
+    return MeshLodder;
+  },
   usePhysics() {
     const app = currentAppRender;
     if (app) {
@@ -741,7 +746,7 @@ metaversefile.setApi({
     return cameraManager;
   },
   useParticleSystem() {
-    return world.particleSystem;
+    return particleSystemManager;
   },
   useDefaultModules() {
     return defaultModules;
@@ -894,7 +899,6 @@ metaversefile.setApi({
         onWaitPromise(p);
       }
     }
-    
     return app;
   },
   createApp(spec) {

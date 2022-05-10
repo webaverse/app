@@ -111,8 +111,6 @@ const _updateVertical = direction => {
 const keysDirection = new THREE.Vector3();
 ioManager.keysDirection = keysDirection;
 
-const lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
-ioManager.lastNonzeroDirectionVector = lastNonzeroDirectionVector;
 const _updateIo = timeDiff => {
   const renderer = getRenderer();
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
@@ -217,10 +215,10 @@ const _updateIo = timeDiff => {
     _updateHorizontal(keysDirection);
     if (keysDirection.equals(zeroVector)) {
       if (localPlayer.hasAction('narutoRun')) {
-        keysDirection.copy(lastNonzeroDirectionVector);
+        keysDirection.copy(cameraManager.lastNonzeroDirectionVector);
       }
     } else {
-      lastNonzeroDirectionVector.copy(keysDirection);
+      cameraManager.lastNonzeroDirectionVector.copy(keysDirection);
     }
     
     if (localPlayer.hasAction('fly')) {
@@ -516,7 +514,7 @@ ioManager.keydown = e => {
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
-          game.jump();
+          game.jump('jump');
         } /* else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
         } */
@@ -836,6 +834,9 @@ ioManager.mousedown = e => {
   }
   if ((changedButtons & 4) && (e.buttons & 4)) { // middle
     e.preventDefault();
+    if (!cameraManager.pointerLockElement) {
+      cameraManager.requestPointerLock();
+    }
     game.menuDragdown();
   }
   lastMouseButtons = e.buttons;

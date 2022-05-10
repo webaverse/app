@@ -17,6 +17,7 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
+import particleSystemManager from './particle-system.js';
 import loadoutManager from './loadout-manager.js';
 import questManager from './quest-manager.js';
 import mobManager from './mob-manager.js';
@@ -40,7 +41,9 @@ import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-import {OffscreenEngine} from './offscreen-engine.js';
+import musicManager from './music-manager.js';
+
+// import {OffscreenEngine} from './offscreen-engine.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -77,9 +80,11 @@ export default class Webaverse extends EventTarget {
         Avatar.waitForLoad(),
         audioManager.waitForLoad(),
         sounds.waitForLoad(),
+        particleSystemManager.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
+        musicManager.waitForLoad(),
         WebaWallet.waitForLoad(),
       ]);
     })();
@@ -314,6 +319,7 @@ export default class Webaverse extends EventTarget {
           mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
           questManager.update(timestamp, timeDiffCapped);
+          particleSystemManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
@@ -554,20 +560,6 @@ const _startHacks = webaverse => {
           titleCardHack: webaverse.titleCardHack,
         }
       }));
-    } else if (e.which === 75) { // K
-      if (!haloMeshApp) {
-        haloMeshApp = metaversefileApi.createApp();
-        (async () => {
-          const {modules} = metaversefileApi.useDefaultModules();
-          const m = modules['halo'];
-          await haloMeshApp.addModule(m);
-        })();
-        scene.add(haloMeshApp);
-      } else {
-        scene.remove(haloMeshApp);
-        haloMeshApp.destroy();
-        haloMeshApp = null;
-      }
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {
