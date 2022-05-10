@@ -247,7 +247,7 @@ class CharacterFx {
     _updateSonicBoomMesh();
 
     const _updateHealEffectMesh = async () => {
-      if (this.player.isLocalPlayer && this.player.hasAction('cure')) {
+      if (this.player.hasAction('cure')) {
         let p = null;
         if (!this.healEffect) {
           this.healEffect = metaversefile.createApp();
