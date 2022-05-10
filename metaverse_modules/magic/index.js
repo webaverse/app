@@ -256,7 +256,7 @@ const _makeCylindersMesh = () => {
 };
 export default () => {
   const app = useApp();
-  app.setComponent('renderPriority', 'lower');
+  app.setComponent('renderPriority', 'lowest');
 
   const mesh = _makeCylindersMesh();
   app.add(mesh);
