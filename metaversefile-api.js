@@ -49,12 +49,7 @@ import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
 import domRenderEngine from './dom-renderer.js';
 
-// const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-// const localQuaternion = new THREE.Quaternion();
-// const localMatrix = new THREE.Matrix4();
-// const localMatrix2 = new THREE.Matrix4();
 
 class App extends THREE.Object3D {
   constructor() {
