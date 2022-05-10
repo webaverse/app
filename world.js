@@ -54,9 +54,9 @@ world.getConnection = () => wsrtc;
 world.connectState = state => {
   state.setResolvePriority(1);
 
-  world.appManager.unbindState();
+  world.appManager.unbindStateLocal();
   world.appManager.clear();
-  world.appManager.bindState(state.getArray(appsMapName));
+  world.appManager.bindStateLocal(state.getArray(appsMapName));
   
   playersManager.bindState(state.getArray(playersMapName));
   
@@ -70,25 +70,43 @@ world.isConnected = () => !!wsrtc;
 world.connectRoom = async u => {
   // await WSRTC.waitForReady();
   
-  world.appManager.unbindState();
+  const _sanityCheck = () => {
+    return;
+    const players = state.getArray(playersMapName);
+    // console.assert(players.length === 0, 'bad players length: ' + players.length);
+    console.log('got players length', players.length);
+    if (players.length > 0) {
+      console.log('nonzero players length', new Error().stack);
+      debugger;
+    }
+  };
+
+  world.appManager.unbindStateLocal();
   world.appManager.clear();
 
   const localPlayer = metaversefileApi.useLocalPlayer();
   const state = new Z.Doc();
+  _sanityCheck();
   state.setResolvePriority(1);
   wsrtc = new WSRTC(u, {
     localPlayer,
     crdtState: state,
   });
+  _sanityCheck();
   const open = e => {
     wsrtc.removeEventListener('open', open);
     
-    world.appManager.bindState(state.getArray(appsMapName));
+    _sanityCheck();
+    world.appManager.bindState2(state.getArray(appsMapName));
+    _sanityCheck();
     playersManager.bindState(state.getArray(playersMapName));
-    
+    _sanityCheck();
+
     const init = e => {
       wsrtc.removeEventListener('init', init);
       
+      _sanityCheck();
+
       localPlayer.bindState(state.getArray(playersMapName));
     };
     wsrtc.addEventListener('init', init);

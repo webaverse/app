@@ -245,7 +245,7 @@ class CharacterFx {
         sceneLowPriority.add(this.sonicBoom);
       }
     };
-    _updateSonicBoomMesh();
+    // _updateSonicBoomMesh();
   }
   destroy() {
     if (this.kiMesh) {
