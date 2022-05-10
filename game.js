@@ -912,18 +912,30 @@ const _gameUpdate = (timestamp, timeDiff) => {
     const useAction = localPlayer.getAction('use');
     if (useAction) {
       const _handleSword = () => {
-        localVector.copy(localPlayer.position)
-          .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
+        if (!window.silsword) return;
 
-        const collision = physx.physxWorker.getCollisionObjectPhysics(
-          physx.physics,
-          hitRadius,
-          hitHalfHeight,
-          localVector,
-          localPlayer.quaternion,
+        // localVector.copy(localPlayer.position)
+        //   .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
+
+        // const collision = physx.physxWorker.getCollisionObjectPhysics(
+        //   physx.physics,
+        //   0,
+        //   0,
+        //   localVector,
+        //   localPlayer.quaternion,
+        // );
+
+        const sizeXHalf = 0.2 / 2;
+        const sizeYHalf = 1.47 / 2;
+        const sizeZHalf = 0.05 / 2;
+        const collision = physicsManager.overlapBox(sizeXHalf, sizeYHalf, sizeZHalf, 
+          localVector.copy(window.silsword.position).add(localVector2.set(0, sizeYHalf, 0).applyQuaternion(window.silsword.quaternion)),
+          silsword.quaternion
         );
-        if (collision) {
-          const collisionId = collision.objectId;
+        const objectIdsLength = collision.objectIds.length;
+        if (objectIdsLength > 0) {
+          // const collisionId = collision.objectId;
+          const collisionId = collision.objectIds[objectIdsLength - 1];
           const result = metaversefileApi.getPairByPhysicsId(collisionId);
           if (result) {
             const [app, physicsObject] = result;
