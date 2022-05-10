@@ -331,6 +331,7 @@ class PlayerBase extends THREE.Object3D {
           physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
         }
       };
+      // vismark
       _initPhysics();
 
       const _emitEvents = () => {
