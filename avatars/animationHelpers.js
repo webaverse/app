@@ -75,6 +75,7 @@ let narutoRunAnimations;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
+let holdAnimations;
 
 const defaultSitAnimation = 'chair';
 // const defaultUseAnimation = 'combo';
@@ -382,6 +383,9 @@ export const loadPromise = (async () => {
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
+  };
+  holdAnimations = {
+    pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
   {
     const down10QuaternionArray = new Quaternion()
