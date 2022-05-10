@@ -13,7 +13,7 @@ import {AppManager} from './app-manager.js';
 // import {chatManager} from './chat-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
-import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
+import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority} from './renderer.js';
 // import metaversefileApi from 'metaversefile';
 import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
@@ -277,6 +277,12 @@ const _getBindSceneForRenderPriority = renderPriority => {
     }
     case 'low': {
       return sceneLowPriority;
+    }
+    case 'lower': {
+      return sceneLowerPriority;
+    }
+    case 'lowest': {
+      return sceneLowestPriority;
     }
     /* case 'postPerspectiveScene': {
       return postScenePerspective;
