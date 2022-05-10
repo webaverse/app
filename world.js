@@ -54,9 +54,9 @@ world.getConnection = () => wsrtc;
 world.connectState = state => {
   state.setResolvePriority(1);
 
-  world.appManager.unbindState();
+  world.appManager.unbindStateLocal();
   world.appManager.clear();
-  world.appManager.bindState(state.getArray(appsMapName));
+  world.appManager.bindStateLocal(state.getArray(appsMapName));
   
   playersManager.bindState(state.getArray(playersMapName));
   
@@ -68,9 +68,7 @@ world.connectState = state => {
 };
 world.isConnected = () => !!wsrtc;
 world.connectRoom = async u => {
-  // await WSRTC.waitForReady();
-  
-  world.appManager.unbindState();
+  world.appManager.unbindStateLocal();
   world.appManager.clear();
 
   const localPlayer = metaversefileApi.useLocalPlayer();
@@ -80,12 +78,13 @@ world.connectRoom = async u => {
     localPlayer,
     crdtState: state,
   });
+
   const open = e => {
     wsrtc.removeEventListener('open', open);
     
     world.appManager.bindState(state.getArray(appsMapName));
     playersManager.bindState(state.getArray(playersMapName));
-    
+
     const init = e => {
       wsrtc.removeEventListener('init', init);
       
