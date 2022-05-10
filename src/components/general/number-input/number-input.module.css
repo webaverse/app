@@ -1,0 +1,74 @@
+
+.inputWrapper {
+    position: relative;
+    width: calc( 100% - 40px );
+    padding-left: 20px;
+    outline: none;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    border-radius: 0px;
+    height: 29px;
+}
+
+.inputWrapper .input {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding-left: 40px;
+    width: 100%;
+    font-size: 12px;
+    line-height: 27px;
+    z-index: 1;
+    outline: none;
+    text-align: center;
+}
+
+.inputWrapper .inputTitle {
+    position: absolute;
+    left: 10px;
+    z-index: 2;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 32px;
+    font-family: 'GeoSans';
+}
+
+.inputWrapper .arrowLeft {
+    position: absolute;
+    left: 70px;
+    top: 11px;
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(135deg);
+    -webkit-transform: rotate(135deg);
+    z-index: 10;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 200ms ease;
+}
+
+.inputWrapper .arrowLeft:hover {
+    opacity: 1;
+}
+
+.inputWrapper .arrowRight {
+    position: absolute;
+    right: 30px;
+    top: 11px;
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+    z-index: 10;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 200ms ease;
+}
+
+.inputWrapper .arrowRight:hover {
+    opacity: 1;
+}
