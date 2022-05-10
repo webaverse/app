@@ -908,6 +908,7 @@ class Avatar {
     this.sitAnimation = null;
     // this.activateState = false;
     this.activateTime = 0;
+    this.pickUpState = false;
     // this.danceState = false;
     this.danceFactor = 0;
     this.danceAnimation = null;
