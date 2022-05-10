@@ -45,10 +45,6 @@ class PlayersManager {
           throw new Error('no remote player to destroy');
         }
       }
-      
-      /* if (window.lol) {
-        debugger;
-      } */
 
       this.unbindStateFn();
       this.playersArray = null;
@@ -66,17 +62,10 @@ class PlayersManager {
       const playersObserveFn = (e) => {
         const { added, deleted, delta, keys } = e.changes;
         
-        console.log('players delta', e.changes, added, deleted, new Error().stack);
-        if (window.lol) {
-          debugger;
-        }
         const values = Array.from(added.values());
         // if (values.length > 0) {
           console.log('got apps', values);
         // }
-        if (values[0]?.content?.type?.binding?.apps?.e?.length === 3) {
-          debugger;
-        }
 
         for (const item of added.values()) {
           let playerMap = item.content.type;

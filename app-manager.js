@@ -71,36 +71,20 @@ class AppManager extends EventTarget {
   isBound() {
     return !!this.appsArray;
   }
-  unbindState2() {
-    if (window.lol) {
-      debugger;
-    }
-    // console.log('unbind is bound', this.isBound(), new Error().stack);
-    // if (this.isBound()) {
-      // console.log('left during unbind', this.appsArray.toJSON());
-
+  unbindState() {
       this.unbindStateFn();
       this.appsArray = null;
       this.unbindStateFn = null;
     // }
   }
   unbindStateLocal() {
-    console.log('unbind state local', this.appsArray, this.appsArray && this.appsArray.toJSON(), new Error().stack);
-    if (window.lol) {
-      debugger;
-    }
-
+    // console.log('unbind state local', this.appsArray, this.appsArray && this.appsArray.toJSON(), new Error().stack);
     if (this.unbindStateFn) {
-      this.unbindState2();
+      this.unbindState();
     }
   }
   unbindStateRemote() {
     if (this.unbindStateFn) {
-      console.log('unbind state remote', this.appsArray, this.appsArray && this.appsArray.toJSON(), new Error().stack);
-      if (window.lol) {
-        debugger;
-      }
-
       // console.log('unbind player observers', lastPlayers, new Error().stack);
       // this is the point where we should destroy the remote players in a fake way
       console.log('got players array', this.appsArray);
@@ -116,10 +100,10 @@ class AppManager extends EventTarget {
         }
       }
 
-      this.unbindState2();
+      this.unbindState();
     }
   }
-  bindState2(nextAppsArray) {
+  bindState(nextAppsArray) {
     const observe = (e) => {
       const { added, deleted } = e.changes;
       for (const item of added.values()) {
@@ -219,11 +203,11 @@ class AppManager extends EventTarget {
   }
   bindStateLocal(nextAppsArray) {
     this.unbindStateLocal();
-    this.bindState2(nextAppsArray);
+    this.bindState(nextAppsArray);
   }
   bindStateRemote(nextAppsArray) {
     this.unbindStateRemote();
-    this.bindState2(nextAppsArray);
+    this.bindState(nextAppsArray);
   }
   loadApps() {
     console.log('load apps', this.appsArray);
@@ -285,12 +269,8 @@ class AppManager extends EventTarget {
         scale,
         components: componentsString,
       } = trackedAppJson;
-      console.log('tracked app add', instanceId, localBinder, new Error().stack);
-      if (m.has(instanceId)) {
-        debugger;
-      } else {
-        m.set(instanceId, true);
-      }
+      // console.log('tracked app add', instanceId, localBinder, new Error().stack);
+      m.set(instanceId, true);
       // console.log("trackedAppJson is", trackedAppJson)
       const components = JSON.parse(componentsString);
 
@@ -326,13 +306,6 @@ class AppManager extends EventTarget {
         p.reject(new Error('app cleared during load: ' + contentId));
       };
 
-      // console.log('tracked app add', contentId, trackedApp, trackedAppJson);
-      if (window.lol) {
-        if (/scillia_drophunter_v15_vian\.vrm/i.test(contentId)) {
-          debugger;
-        }
-      }
-
       // attempt to load app
       try {
         const m = await metaversefile.import(contentId);
@@ -341,7 +314,6 @@ class AppManager extends EventTarget {
         // create app
         // as an optimization, the app may be reused by calling addApp() before tracking it
         const app = metaversefile.createApp();
-
 
         // setup
         {
