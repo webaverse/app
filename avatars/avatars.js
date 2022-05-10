@@ -996,7 +996,7 @@ class Avatar {
 
     const armatureQuaternion = armature.quaternion.clone();
     const armatureMatrixInverse = armature.matrixWorld.clone().invert();
-    armature.position.set(0, 0, 0);
+    // armature.position.set(0, 0, 0);
     armature.quaternion.set(0, 0, 0, 1);
     armature.scale.set(1, 1, 1);
     armature.updateMatrix();
