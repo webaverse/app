@@ -38,8 +38,8 @@ const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
   physicsObject.updateMatrixWorld()
   physicsObject.physicsId = physicsId
   physicsObject.detached = false // detached physics objects do not get updated when the owning app moves
-  physicsObject.collided = false
-  physicsObject.grounded = false
+  physicsObject.collided = true
+  physicsObject.grounded = true
   return physicsObject
 }
 const _extractPhysicsGeometryForId = (physicsId) => {
