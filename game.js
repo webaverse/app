@@ -935,34 +935,36 @@ const _gameUpdate = (timestamp, timeDiff) => {
               const result = metaversefileApi.getPairByPhysicsId(collisionId);
               if (result) {
                 const [app, physicsObject] = result;
-                const lastHitTime = lastHitTimes.get(app) ?? 0;
-                const timeDiff = now - lastHitTime;
-                if (timeDiff > 1000) {
-                  const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
-                  const hitDirection = app.position.clone()
-                    .sub(localPlayer.position);
-                  hitDirection.y = 0;
-                  hitDirection.normalize();
+                if (app.getComponent('canGetHurt') !== false) {
+                  const lastHitTime = lastHitTimes.get(app) ?? 0;
+                  const timeDiff = now - lastHitTime;
+                  if (timeDiff > 1000) {
+                    const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
+                    const hitDirection = app.position.clone()
+                      .sub(localPlayer.position);
+                    hitDirection.y = 0;
+                    hitDirection.normalize();
 
-                  const hitPosition = localVector.copy(localPlayer.position)
-                    .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(localPlayer.quaternion))
-                    .clone();
-                  localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-                  localEuler.x = 0;
-                  localEuler.z = 0;
-                  const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
+                    const hitPosition = localVector.copy(localPlayer.position)
+                      .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(localPlayer.quaternion))
+                      .clone();
+                    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+                    localEuler.x = 0;
+                    localEuler.z = 0;
+                    const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
 
-                  // const willDie = app.willDieFrom(damage);
-                  app.hit(damage, {
-                    collisionId,
-                    physicsObject,
-                    hitPosition,
-                    hitQuaternion,
-                    hitDirection,
-                    // willDie,
-                  });
-                
-                  lastHitTimes.set(app, now);
+                    // const willDie = app.willDieFrom(damage);
+                    app.hit(damage, {
+                      collisionId,
+                      physicsObject,
+                      hitPosition,
+                      hitQuaternion,
+                      hitDirection,
+                      // willDie,
+                    });
+                  
+                    lastHitTimes.set(app, now);
+                  }
                 }
               }
             });
