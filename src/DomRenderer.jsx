@@ -1,13 +1,13 @@
 import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import gameManager from '../game.js';
-import {sceneLowerPriority, camera} from '../renderer.js';
+import {camera} from '../renderer.js';
 import {localPlayer} from '../players.js';
-import easing from '../easing.js';
+import metaversefile from 'metaversefile';
 
 import {CharacterBanner} from './CharacterBanner.jsx';
+import domRenderEngine, {DomRenderEngine} from '../dom-renderer.js';
 
-const cubicBezier = easing(0, 1, 0, 1);
 const floatFactor = 0.05;
 const floatTime = 3000;
 const transtionTime = 1000;
@@ -19,7 +19,6 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
 const _getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
-const _getScaleFactor = (width, height) => Math.min(1/width, 1/height);
 
 function epsilon(value) {
   return value;
@@ -79,136 +78,17 @@ function getCameraCSSMatrix( matrix ) {
   ')';
 }
 
-class DomItem extends THREE.Object3D {
-  constructor(position, quaternion, scale, width, height, worldWidth, render) {
-    super();
-
-    this.width = width;
-    this.height = height;
-    this.worldWidth = worldWidth;
-    this.basePosition = position.clone();
-    this.baseQuaternion = quaternion.clone();
-    this.baseScale = scale.clone();
-    this.render = render;
-
-    this.enabled = false;
-    this.value = 0;
-    this.animation = null;
-
-    const iframeMesh = new IFrameMesh({
-      width,
-      height,
-    });
-    this.iframeMesh = iframeMesh;
-    this.add(iframeMesh);
-  }
-  startAnimation(enabled, startTime, endTime) {
-    this.enabled = enabled;
-    
-    const startValue = this.value;
-    const endValue = enabled ? 1 : 0;
-    this.animation = {
-      startTime,
-      endTime,
-      startValue,
-      endValue,
-    };
-  }
-  update(timestamp) {
-    if (this.animation) {
-      const {startTime, endTime, startValue, endValue} = this.animation;
-      let factor = Math.min(Math.max((timestamp - startTime) / (endTime - startTime), 0), 1);
-      factor = cubicBezier(factor);
-      if (factor < 1) {
-        this.value = startValue + (endValue - startValue) * factor;
-      } else {
-        this.value = endValue;
-        this.animation = null;
-      }
-    } else {
-      this.value = this.enabled ? 1 : 0;
-    }
-
-    if (this.value > 0) {
-      const w = this.value;
-      const shiftOffset = (1 - w) * this.worldWidth/2;
-      this.iframeMesh.position.x = -shiftOffset;
-      this.iframeMesh.scale.set(w, 1, 1);
-      this.iframeMesh.updateMatrixWorld();
-      
-      this.iframeMesh.material.opacity = 1 - this.value;
-      
-      this.visible = true;
-    } else {
-      this.visible = false;
-    }
-  }
-}
-
-class IFrameMesh extends THREE.Mesh {
-  constructor({
-    width,
-    height,
-  }) {
-    const scaleFactor = _getScaleFactor(width, height);
-    const geometry = new THREE.PlaneBufferGeometry(width * scaleFactor, height * scaleFactor);
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xFFFFFF,
-      side: THREE.DoubleSide,
-      opacity: 0,
-      transparent: true,
-      blending: THREE.MultiplyBlending
-    });
-    super(geometry, material);
-
-    this.onBeforeRender = renderer => {
-      const context = renderer.getContext();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
-    this.onAfterRender = renderer => {
-      const context = renderer.getContext();
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
-  }
-  
-}
-
-class DomRenderEngine extends EventTarget {
-  constructor() {
-    super();
-
-    this.doms = [];
-  }
-  addDom({
-    position = new THREE.Vector3(),
-    quaternion = new THREE.Quaternion(),
-    scale = new THREE.Vector3(1, 1, 1),
-    width = 600,
-    height = 400,
-    worldWidth = 1,
-    render = () => (<div />),
-  }) {
-    const dom = new DomItem(position, quaternion, scale, width, height, worldWidth, render);
-    sceneLowerPriority.add(dom);
-    dom.updateMatrixWorld();
-    
-    this.doms.push(dom);
-
-    this.dispatchEvent(new MessageEvent('update'));
-  }
-  destroy() {
-    // XXX finish this
-  }
-}
-const domRenderEngine = new DomRenderEngine();
-domRenderEngine.addDom({
-  position: new THREE.Vector3(-9, 1.2, -1),
-  quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2),
-  width: 600,
-  height: 400,
-  worldWidth: 1,
-  render: () => (<CharacterBanner />),
-});
+setTimeout(() => {
+  const domRenderEngine = metaversefile.useDomRenderer();
+  domRenderEngine.addDom({
+    position: new THREE.Vector3(-9, 1.2, -1),
+    quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2),
+    width: 600,
+    height: 400,
+    worldWidth: 1,
+    render: () => (<CharacterBanner />),
+  });
+}, 1000);
 
 const DomRendererChild = ({
   dom,
@@ -217,7 +97,7 @@ const DomRendererChild = ({
   range = 5,
 }) => {
   const {width, height} = dom;
-  const scaleFactor = _getScaleFactor(width, height);
+  const scaleFactor = DomRenderEngine.getScaleFactor(width, height);
   const [visible, setVisible] = useState(false);
   const iframeContainer2Ref = useRef();
 
