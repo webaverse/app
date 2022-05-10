@@ -90,11 +90,11 @@ class NpcManager extends EventTarget {
 
         if (npcPlayer) {
           npcManager.destroyNpc(npcPlayer);
-          npcPlayer = null;
+          // npcPlayer = null;
         }
         if (character) {
           world.loreAIScene.removeCharacter(character);
-          character = null;
+          // character = null;
         }
       },
     ];
