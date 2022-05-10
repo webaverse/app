@@ -201,6 +201,7 @@ export const MapGen = () => {
     const [text, setText] = useState('');
     const [haloMeshApp, setHaloMeshApp] = useState(null);
     const [magicMeshApp, setMagicMeshApp] = useState(null);
+    const [limitMeshApp, setLimitMeshApp] = useState(null);
     const canvasRef = useRef();
 
     //
@@ -377,7 +378,7 @@ export const MapGen = () => {
 
                 }
 
-                case 78: { // N
+                case 188: { // ,
 
                   if (!magicMeshApp) {
                     const magicMeshApp = metaversefile.createApp();
@@ -394,6 +395,29 @@ export const MapGen = () => {
                     magicMeshApp.destroy();
 
                     setMagicMeshApp(null);
+                  }
+
+                  return false;
+
+                }
+
+                case 190: { // .
+
+                  if (!limitMeshApp) {
+                    const limitMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['limit'];
+                      await limitMeshApp.addModule(m);
+                    })();
+                    sceneLowPriority.add(limitMeshApp);
+
+                    setLimitMeshApp(limitMeshApp);
+                  } else {
+                    limitMeshApp.parent.remove(limitMeshApp);
+                    limitMeshApp.destroy();
+
+                    setLimitMeshApp(null);
                   }
 
                   return false;
@@ -442,7 +466,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel, haloMeshApp, magicMeshApp ]);
+    }, [ state.openedPanel, haloMeshApp, magicMeshApp, limitMeshApp ]);
 
     // resize
     useEffect(() => {
