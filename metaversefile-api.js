@@ -1022,7 +1022,7 @@ export default () => {
     return getHeight(obj);
   },
   useInternals() {
-    if (!iframeContainer) {
+    /* if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
       
       iframeContainer.getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
@@ -1040,7 +1040,7 @@ export default () => {
         `;
       };
       iframeContainer.updateSize();
-    }
+    } */
 
     const renderer = getRenderer();
     return {
