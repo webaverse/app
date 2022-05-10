@@ -615,11 +615,11 @@ const physxWorker = (() => {
     index += maxNumUpdates
     const collisionObjectIds = scratchStack.u32.subarray(index, index + maxNumUpdates)
     index += maxNumUpdates
-    const collisionPositionXs = scratchStack.u32.subarray(index, index + maxNumUpdates)
+    const collisionPositionXs = scratchStack.f32.subarray(index, index + maxNumUpdates)
     index += maxNumUpdates
-    const collisionPositionYs = scratchStack.u32.subarray(index, index + maxNumUpdates)
+    const collisionPositionYs = scratchStack.f32.subarray(index, index + maxNumUpdates)
     index += maxNumUpdates
-    const collisionPositionZs = scratchStack.u32.subarray(index, index + maxNumUpdates)
+    const collisionPositionZs = scratchStack.f32.subarray(index, index + maxNumUpdates)
     index += maxNumUpdates
 
     for (let i = 0; i < updates.length; i++) {
