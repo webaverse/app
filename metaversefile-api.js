@@ -47,6 +47,7 @@ import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
+import domRenderEngine from './dom-renderer.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -1085,6 +1086,9 @@ export default () => {
   },
   async waitForSceneLoaded() {
     await universe.waitForSceneLoaded();
+  },
+  useDomRenderer() {
+    return domRenderEngine;
   },
   useDebug() {
     return debug;
