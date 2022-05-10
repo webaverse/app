@@ -926,7 +926,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
             const sizeYHalf = damageBoxSize[1] / 2;
             const sizeZHalf = damageBoxSize[2] / 2;
             localQuaternion.fromArray(damageBoxQuaternion).multiply(wearApp.quaternion);
-            const collision = physicsManager.overlapBox(sizeXHalf, sizeYHalf, sizeZHalf,
+            const collision = physx.physxWorker.overlapBoxPhysics(physx.physics, sizeXHalf, sizeYHalf, sizeZHalf,
               localVector.copy(wearApp.position).add(localVector2.fromArray(damageBoxPosition).applyQuaternion(localQuaternion)),
               localQuaternion
             );
