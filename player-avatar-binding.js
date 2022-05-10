@@ -82,6 +82,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const throwAction = player.getAction('throw');
   const aimAction = player.getAction('aim');
   const crouchAction = player.getAction('crouch');
+  const wearAction = player.getAction('wear');
   // const chargeJump = player.getAction('chargeJump');
   // const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   // const standCharge = player.getAction('standCharge');
@@ -147,6 +148,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
   rig.sitAnimation = sitAnimation;
+
+  // XXX this needs to be based on the current loadout index
+  rig.pickUpState = wearAction?.holdAnimation === 'pick_up_idle';
   // rig.danceState = !!danceAction;
   rig.danceFactor = player.actionInterpolants.dance.get();
   if (danceAction) {
