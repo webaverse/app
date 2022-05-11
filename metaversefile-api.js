@@ -47,6 +47,7 @@ import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
+import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.js';
 
 const localVector2D = new THREE.Vector2();
@@ -745,7 +746,7 @@ metaversefile.setApi({
     return cameraManager;
   },
   useParticleSystem() {
-    return world.particleSystem;
+    return particleSystemManager;
   },
   useDefaultModules() {
     return defaultModules;
@@ -898,7 +899,6 @@ metaversefile.setApi({
         onWaitPromise(p);
       }
     }
-    
     return app;
   },
   createApp(spec) {
