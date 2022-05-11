@@ -159,8 +159,7 @@ try {
           }
         }
 
-        app.npcPlayer.eyeballTarget.copy(localPlayer.position);
-        app.npcPlayer.eyeballTargetEnabled = true;
+        app.npcPlayer.setTarget(localPlayer.position);
 
         app.npcPlayer.updatePhysics(timestamp, timeDiff);
         app.npcPlayer.updateAvatar(timestamp, timeDiff);
