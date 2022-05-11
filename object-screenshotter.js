@@ -25,6 +25,7 @@ export const screenshotObjectUrl = async ({
   start_url,
   width = 300,
   height = 300,
+  canvas
 }) => {
   const app = await metaversefile.createAppAsync({
     start_url,
@@ -33,6 +34,7 @@ export const screenshotObjectUrl = async ({
     app,
     width,
     height,
+    canvas
   });
 };
 
@@ -60,14 +62,27 @@ const sideCamera = new THREE.PerspectiveCamera();
 }); */
 export const screenshotObjectApp = async ({
   app,
-  width = 300,
-  height = 300,
+  width,
+  height,
   clearColor = 0xFFFFFF,
   clearAlpha = 1,
+  canvas
 } = {}) => {
   // const {devicePixelRatio: pixelRatio} = window;
 
   // console.log('create object sprite', app, size, numFrames);
+
+  if (canvas && (width || height)) {
+
+    throw( 'screenshotObjectApp method should receive only "canvas" or "width"/"height" arguments and not both.' );
+
+  }
+
+  if (!canvas && (!width || !height)) {
+
+    throw( 'screenshotObjectApp method should receive at least "canvas" or "width"/"height" arguments.' );
+
+  }
 
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D);
@@ -77,9 +92,20 @@ export const screenshotObjectApp = async ({
   // const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
   // const frameSize = size / numFramesPerRow;
 
-  const writeCanvas = document.createElement('canvas');
-  writeCanvas.width = width;
-  writeCanvas.height = height;
+  const writeCanvas = canvas ?? document.createElement('canvas');
+
+  if (!canvas) {
+
+    writeCanvas.width = width ?? 80;
+    writeCanvas.height = height ?? 80;
+
+  } else {
+
+    width = writeCanvas.width;
+    height = writeCanvas.height;
+
+  }
+
   const writeCtx = writeCanvas.getContext('2d');
 
   {
