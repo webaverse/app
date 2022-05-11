@@ -41,9 +41,9 @@ import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
+// import domRenderEngine from './dom-renderer.jsx';
 import musicManager from './music-manager.js';
-
-// import {OffscreenEngine} from './offscreen-engine.js';
+import story from './story.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -68,6 +68,8 @@ const frameEvent = new MessageEvent('frame', {
     timeDiff: 0,
   },
 });
+
+story.listenHack();
 
 export default class Webaverse extends EventTarget {
   constructor() {

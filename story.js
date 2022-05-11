@@ -348,59 +348,69 @@ const fieldMusicNames = [
 
 //
 
-export const listenHack = () => {
-  let currentFieldMusic = null;
-  let currentFieldMusicIndex = 0;
-  window.document.addEventListener('keydown', async e => {
-    const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
+let currentFieldMusic = null;
+let currentFieldMusicIndex = 0;
+export const handleStoryKeyControls = async (e) => {
 
-    if (!inputFocused) {
-      switch (e.which) {
-        case 48: { // 0
-          await musicManager.waitForLoad();
-
-          _stopSwirl() || _startSwirl();
-          break;
-        }
-        case 57: { // 9
-          await musicManager.waitForLoad();
-
-          _stopSwirl();
-          if (currentFieldMusic) {
-            musicManager.stopCurrentMusic();
-            currentFieldMusic = null;
-          } else {
-            const fieldMusicName = fieldMusicNames[currentFieldMusicIndex];
-            currentFieldMusicIndex = (currentFieldMusicIndex + 1) % fieldMusicNames.length;
-            
-            currentFieldMusic = musicManager.playCurrentMusicName(fieldMusicName, {
-              repeat: true,
-            });
-          }
-          break;
-        }
-        case 189: { // -
-          await musicManager.waitForLoad();
-          
-          _stopSwirl();
-          musicManager.playCurrentMusicName('victory', {
-            repeat: true,
-          });
-          break;
-        }
-        case 187: { // =
-          await musicManager.waitForLoad();
-
-          _stopSwirl();
-          musicManager.playCurrentMusicName('gameOver', {
-            repeat: true,
-          });
-          break;
-        }
-      }
+  switch (e.which) {
+    case 48: { // 0
+      await musicManager.waitForLoad();
+      _stopSwirl() || _startSwirl();
+      return false;
     }
-  });
+    case 57: { // 9
+      await musicManager.waitForLoad();
+      _stopSwirl();
+      if (currentFieldMusic) {
+        musicManager.stopCurrentMusic();
+        currentFieldMusic = null;
+      } else {
+        const fieldMusicName = fieldMusicNames[currentFieldMusicIndex];
+        currentFieldMusicIndex = (currentFieldMusicIndex + 1) % fieldMusicNames.length;
+        currentFieldMusic = musicManager.playCurrentMusic(fieldMusicName, {
+          repeat: true,
+        });
+      }
+      return false;
+    }
+    case 189: { // -
+      await musicManager.waitForLoad();
+      _stopSwirl();
+      musicManager.playCurrentMusic('victory', {
+        repeat: true,
+      });
+      return false;
+    }
+    case 187: { // =
+      await musicManager.waitForLoad();
 
+      _stopSwirl();
+      musicManager.playCurrentMusic('gameOver', {
+        repeat: true,
+      });
+      return false;
+    }
+  }
+
+  return true;
+
+};
+
+const story = new EventTarget();
+
+let currentConversation = null;
+story.getConversation = () => currentConversation;
+
+// returns whether the event was handled
+story.handleWheel = e => {
+  if (currentConversation) {
+    return currentConversation.handleWheel(e);
+  } else {
+    return false;
+  }
+};
+
+story.listenHack = () => {
   const _startConversation = (comment, remotePlayer, done) => {
     const localPlayer = metaversefile.useLocalPlayer();
     currentConversation = new Conversation(localPlayer, remotePlayer);
@@ -468,20 +478,6 @@ export const listenHack = () => {
       }
     }
   });
-};
-
-const story = new EventTarget();
-
-let currentConversation = null;
-story.getConversation = () => currentConversation;
-
-// returns whether the event was handled
-story.handleWheel = e => {
-  if (currentConversation) {
-    return currentConversation.handleWheel(e);
-  } else {
-    return false;
-  }
 };
 
 export default story;

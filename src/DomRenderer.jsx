@@ -6,7 +6,7 @@ import {localPlayer} from '../players.js';
 // import metaversefile from 'metaversefile';
 
 // import {CharacterBanner} from './CharacterBanner.jsx';
-import domRenderEngine, {DomRenderEngine} from '../dom-renderer.js';
+import domRenderEngine, {DomRenderEngine} from '../dom-renderer.jsx';
 
 const floatFactor = 0.05;
 const floatTime = 3000;
