@@ -76,7 +76,6 @@ function loadPhysxCharacterController() {
 
   const position = this.position.clone()
     .add(new THREE.Vector3(0, -avatarHeight/2, 0));
-  const physicsMaterial = new THREE.Vector3(0, 0, 0);
 
   if (this.characterController) {
     physicsManager.destroyCharacterController(this.characterController);
@@ -88,8 +87,7 @@ function loadPhysxCharacterController() {
     height,
     contactOffset,
     stepOffset,
-    position,
-    physicsMaterial
+    position
   );
   // this.characterControllerObject = new THREE.Object3D();
 }
