@@ -992,29 +992,31 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateBehavior();
   
-  const _updateLook = () => {
+  const _updateMouseLook = () => {
     if (localPlayer.avatar) {
       if (mouseSelectedObject && mouseSelectedPosition) {
         // console.log('got', mouseSelectedObject.position.toArray().join(','));
-        localPlayer.headTarget.copy(mouseSelectedPosition);
-        localPlayer.headTargetInverted = true;
-        localPlayer.headTargetEnabled = true;
+        localPlayer.avatar.eyeTarget.copy(mouseSelectedPosition);
+        localPlayer.avatar.eyeTargetInverted = true;
+        localPlayer.avatar.eyeTargetEnabled = true;
       } else if (!cameraManager.pointerLockElement && !cameraManager.target && lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
-        localPlayer.headTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
+        localPlayer.avatar.eyeTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
           .unproject(camera);
-        localPlayer.headTargetInverted = false;
-        localPlayer.headTargetEnabled = true;
+        localPlayer.avatar.eyeTargetInverted = false;
+        localPlayer.avatar.eyeTargetEnabled = true;
       } else if (zTargeting?.focusTargetReticle?.position) {
-        localPlayer.setTarget(zTargeting.focusTargetReticle.position);
+        localPlayer.avatar.eyeTarget.copy(zTargeting.focusTargetReticle.position);
+        localPlayer.avatar.eyeTargetInverted = true;
+        localPlayer.avatar.eyeTargetEnabled = true;
       } else {
-        localPlayer.setTarget(null);
+        localPlayer.avatar.eyeTargetEnabled = false;
       }
     }
   };
-  _updateLook();
+  _updateMouseLook();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
