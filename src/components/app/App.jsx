@@ -11,7 +11,6 @@ import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
 import cameraManager from '../../../camera-manager';
 import { world } from '../../../world';
-import { handleStoryKeyControls } from '../../../story';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -31,6 +30,7 @@ import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
 import {DomRenderer} from '../../DomRenderer.jsx';
 // import * as voices from '../../../voices';
+import {handleStoryKeyControls} from '../../../story';
 
 import styles from './App.module.css';
 import '../../fonts.css';
@@ -81,21 +81,13 @@ const _getCurrentRoom = () => {
 export const AppContext = createContext();
 
 const useWebaverseApp = (() => {
-
-    let webaverse = null;
-
-    return () => {
-
+  let webaverse = null;
+  return () => {
         if ( webaverse === null ) {
-
             webaverse = new Webaverse();
-
         }
-
         return webaverse;
-
-    };
-
+  };
 })();
 
 export const App = () => {
@@ -264,7 +256,10 @@ export const App = () => {
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
-                <WorldObjectsList />
+                <WorldObjectsList
+                    setSelectedApp={ setSelectedApp }
+                    selectedApp={ selectedApp }
+                />
                 <PlayMode />
                 <EditorMode
                     selectedScene={ selectedScene }
