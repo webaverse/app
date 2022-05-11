@@ -65,7 +65,6 @@ export const Spritesheet = ({
             const ctx = canvas.getContext('2d');
             const imageBitmap = spritesheet.result;
             let frameIndex = 0;
-            let interval;
 
             const _recurse = () => {
 
@@ -77,8 +76,7 @@ export const Spritesheet = ({
 
             };
 
-            setInterval( _recurse, frameTime );
-            _recurse();
+            const interval = setInterval( _recurse, frameTime );
 
             //
 
