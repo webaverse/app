@@ -3,7 +3,7 @@
         {
       "type": "application/spawnpoint",
       "content": {
-        "position": [15.58, 4, 5.08 ],
+        "position": [15.4, 4, -3.48 ],
         "quaternion": [0, 0.0,0, 0.0]
       }
     },
@@ -42,36 +42,15 @@
       },
     {
       "position": [
-        19,
-        0,
-        5
-      ],
-      "quaternion": [
-        0,
-        0.707,
-        0,
-        0.707
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "physics": true,
-      "start_url": "https://webaverse.github.io/spacepod/",
-      "dynamic": false
-    },
-    {
-      "position": [
         23,
         0,
         5
       ],
       "quaternion": [
         0,
-        -0.707,
         0,
-        0.707
+        0,
+        1
       ],
       "scale": [
         1,
@@ -79,7 +58,7 @@
         1
       ],
       "physics": true,
-      "start_url": "https://webaverse.github.io/Lootpod/",
+      "start_url": "https://webaverse.github.io/combined-pod/",
       "dynamic": false
     }
   ]
