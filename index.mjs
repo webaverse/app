@@ -7,7 +7,7 @@ import express from 'express';
 import vite from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
-const SERVER_ADDR = '127.0.0.1';
+const SERVER_ADDR = '0.0.0.0';
 const SERVER_NAME = 'local.webaverse.com';
 
 Error.stackTraceLimit = 300;
@@ -140,9 +140,9 @@ const _proxyUrl = (req, res, u) => {
   
   const wsServer = (() => {
     if (isHttps) {
-    return https.createServer(certs);
+     return https.createServer(certs);
     } else {
-    return http.createServer();
+     return http.createServer();
     }
   })();
   const initialRoomState = (() => {
