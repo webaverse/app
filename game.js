@@ -935,7 +935,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
               const result = metaversefileApi.getPairByPhysicsId(collisionId);
               if (result) {
                 const [app, physicsObject] = result;
-                if (app.getComponent('canGetHurt') !== false) {
+                if (app.getComponent('vincibility') !== 'invincible') {
                   const lastHitTime = lastHitTimes.get(app) ?? 0;
                   const timeDiff = now - lastHitTime;
                   if (timeDiff > 1000) {
