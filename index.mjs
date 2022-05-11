@@ -140,9 +140,9 @@ const _proxyUrl = (req, res, u) => {
   
   const wsServer = (() => {
     if (isHttps) {
-     return https.createServer(certs);
+      return https.createServer(certs);
     } else {
-     return http.createServer();
+      return http.createServer();
     }
   })();
   const initialRoomState = (() => {
