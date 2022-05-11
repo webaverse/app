@@ -220,7 +220,6 @@ class CharacterFx {
       if (isPowerup && !this.kiMesh) {
         this.kiMesh = metaversefile.createApp();
         (async () => {
-          await metaverseModules.waitForLoad();
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['ki'];
           await this.kiMesh.addModule(m);
@@ -235,10 +234,9 @@ class CharacterFx {
 
     this.lastSSS = isSSS;
     const _updateSonicBoomMesh = () => {
-      if (this.player.isLocalPlayer && !this.sonicBoom ) {
+      if (this.player.isLocalPlayer && !this.sonicBoom) {
         this.sonicBoom = metaversefile.createApp();
         (async () => {
-          await metaverseModules.waitForLoad();
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['sonicBoom'];
           await this.sonicBoom.addModule(m);
@@ -248,10 +246,9 @@ class CharacterFx {
     };
     _updateSonicBoomMesh();
     const _updateHealEffectMesh = () => {
-      if (!this.healEffect ) {
+      if (!this.healEffect) {
         this.healEffect = metaversefile.createApp();
         (async () => {
-          await metaverseModules.waitForLoad();
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['healEffect'];
           await this.healEffect.addModule(m);
