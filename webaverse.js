@@ -69,11 +69,11 @@ const frameEvent = new MessageEvent('frame', {
   },
 });
 
-story.listenHack();
-
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
+
+    story.listenHack();
 
     this.loadPromise = (async () => {
       await Promise.all([
