@@ -246,18 +246,24 @@ class CharacterFx {
     };
     _updateSonicBoomMesh();
     const _updateHealEffectMesh = () => {
-      if (!this.healEffect) {
-        this.healEffect = metaversefile.createApp();
-        (async () => {
-          const {modules} = metaversefile.useDefaultModules();
-          const m = modules['healEffect'];
-          await this.healEffect.addModule(m);
-        })();
-        sceneLowPriority.add(this.healEffect);
-      }
+      
       if(this.player.hasAction('cure')){
-        this.healEffect.playEffect(this.player);
-        this.player.removeAction('cure')
+        if (!this.healEffect) {
+          this.healEffect = metaversefile.createApp();
+          (async () => {
+            const {modules} = metaversefile.useDefaultModules();
+            const m = modules['healEffect'];
+            await this.healEffect.addModule(m);
+            this.healEffect.playEffect(this.player);
+            this.player.removeAction('cure')
+          })();
+          sceneLowPriority.add(this.healEffect);
+        }
+        else{
+          this.healEffect.playEffect(this.player);
+          this.player.removeAction('cure')
+        }
+        
       }
 
     };
