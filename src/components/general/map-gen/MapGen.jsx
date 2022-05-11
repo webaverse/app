@@ -216,7 +216,7 @@ export const MapGen = () => {
             musicManager.playCurrentMusicName('overworld', {
                 repeat: true,
             });
-        }
+        } else { musicManager.stopCurrentMusic(); }
     }, [open]);
 
     //
