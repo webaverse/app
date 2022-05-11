@@ -78,9 +78,7 @@ class Universe extends EventTarget {
       await this.sceneLoadedPromise;
       this.sceneLoadedPromise = null;
     };
-    await _doLoad().catch(err => {
-      console.warn(err);
-    });
+    await _doLoad();
 
     localPlayer.characterPhysics.reset();
     physicsManager.setPhysicsEnabled(true);
