@@ -9,24 +9,32 @@ class DomItem extends THREE.Object3D {
   constructor(position, quaternion, scale, width, height, worldWidth, render) {
     super();
 
+    this.position.copy(position);
+    this.quaternion.copy(quaternion);
+    this.scale.copy(scale);
+
     this.width = width;
     this.height = height;
     this.worldWidth = worldWidth;
-    this.basePosition = position.clone();
-    this.baseQuaternion = quaternion.clone();
-    this.baseScale = scale.clone();
+    // this.basePosition = position.clone();
+    // this.baseQuaternion = quaternion.clone();
+    // this.baseScale = scale.clone();
     this.render = render;
 
     this.enabled = false;
     this.value = 0;
     this.animation = null;
 
+    const floatNode = new THREE.Object3D();
+    this.floatNode = floatNode;
+    this.add(floatNode);
+
     const iframeMesh = new IFrameMesh({
       width,
       height,
     });
     this.iframeMesh = iframeMesh;
-    this.add(iframeMesh);
+    floatNode.add(iframeMesh);
   }
   startAnimation(enabled, startTime, endTime) {
     this.enabled = enabled;
@@ -87,6 +95,7 @@ class IFrameMesh extends THREE.Mesh {
     });
     super(geometry, material);
 
+    this.frustumCulled = false;
     this.onBeforeRender = renderer => {
       const context = renderer.getContext();
       context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
@@ -117,12 +126,12 @@ export class DomRenderEngine extends EventTarget {
     render = () => (<div />),
   }) {
     const dom = new DomItem(position, quaternion, scale, width, height, worldWidth, render);
-    sceneLowerPriority.add(dom);
-    dom.updateMatrixWorld();
     
     this.doms.push(dom);
 
     this.dispatchEvent(new MessageEvent('update'));
+
+    return dom;
   }
   removeDom(dom) {
     const index = this.doms.indexOf(dom);
