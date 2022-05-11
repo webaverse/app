@@ -38,8 +38,8 @@ const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
   physicsObject.updateMatrixWorld()
   physicsObject.physicsId = physicsId
   physicsObject.detached = false // detached physics objects do not get updated when the owning app moves
-  physicsObject.collided = false
-  physicsObject.grounded = false
+  physicsObject.collided = true
+  physicsObject.grounded = true
   return physicsObject
 }
 const _extractPhysicsGeometryForId = (physicsId) => {
@@ -512,9 +512,10 @@ physicsManager.cutMesh = (
   faces,
   numFaces,
 
-  position,
-  quaternion,
-  scale
+  planeNormal, // normalized vector3 array
+  planeDistance, // number
+
+  isIndexed
 ) =>
   physx.physxWorker.doCut(
     positions,
@@ -526,9 +527,10 @@ physicsManager.cutMesh = (
     faces,
     numFaces,
 
-    position,
-    quaternion,
-    scale
+    planeNormal,
+    planeDistance,
+
+    isIndexed
   )
 physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setLinearLockFlags(physx.physics, physicsId, x, y, z)

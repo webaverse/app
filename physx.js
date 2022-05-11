@@ -898,9 +898,10 @@ const physxWorker = (() => {
     faces,
     numFaces,
 
-    position,
-    quaternion,
-    scale
+    planeNormal, // normalized vector3 array
+    planeDistance, // number
+
+    isIndexed
   ) => {
     const allocator = new Allocator()
 
@@ -913,17 +914,14 @@ const physxWorker = (() => {
     const uvsTypedArray = allocator.alloc(Float32Array, numUvs)
     uvsTypedArray.set(uvs)
 
-    const facesTypedArray = allocator.alloc(Uint32Array, numFaces)
-    facesTypedArray.set(faces)
+    let facesTypedArray;
+    if (isIndexed) {
+      facesTypedArray = allocator.alloc(Uint32Array, numFaces)
+      facesTypedArray.set(faces)
+    }
 
-    const positionTypedArray = allocator.alloc(Float32Array, 3)
-    positionTypedArray.set(position)
-
-    const quaternionTypedArray = allocator.alloc(Float32Array, 4)
-    quaternionTypedArray.set(quaternion)
-
-    const scaleTypedArray = allocator.alloc(Float32Array, 3)
-    scaleTypedArray.set(scale)
+    const planeNormalTypedArray = allocator.alloc(Float32Array, 3)
+    planeNormalTypedArray.set(planeNormal)
 
     const outputBufferOffset = moduleInstance._doCut(
       positionsTypedArray.byteOffset,
@@ -932,12 +930,13 @@ const physxWorker = (() => {
       numNormals,
       uvsTypedArray.byteOffset,
       numUvs,
-      facesTypedArray.byteOffset,
-      numFaces,
+      isIndexed ? facesTypedArray.byteOffset : 0,
+      isIndexed ? numFaces : 0,
 
-      positionTypedArray.byteOffset,
-      quaternionTypedArray.byteOffset,
-      scaleTypedArray.byteOffset
+      planeNormalTypedArray.byteOffset,
+      planeDistance,
+
+      isIndexed
     )
     allocator.freeAll()
 
@@ -960,7 +959,7 @@ const physxWorker = (() => {
     tail = head + (numOutUvsTypedArray[0] + numOutUvsTypedArray[1])
     const outUvs = moduleInstance.HEAPF32.slice(head, tail)
 
-    Module._free(outputBufferOffset)
+    moduleInstance._doFree(outputBufferOffset)
 
     const output = {
       numOutPositions: numOutPositionsTypedArray,
