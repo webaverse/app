@@ -503,6 +503,7 @@ class PlayerBase extends THREE.Object3D {
     } else {
       this.headTargetEnabled = false;
       this.eyeballTargetEnabled = false;
+      this.needLimitEyeballTargetRange = false;
     }
   }
   destroy() {

@@ -196,9 +196,9 @@ export function applyPlayerHeadTargetToAvatar(player, rig) {
 }
 // returns whether eyes(eyeballs) were applied
 export function applyPlayerEyesToAvatar(player, rig) {
+  rig.needLimitEyeballTargetRange = player.needLimitEyeballTargetRange;
   if (player.eyeballTargetEnabled) {
     rig.eyeballTarget.copy(player.eyeballTarget);
-    rig.needLimitEyeballTargetRange = player.needLimitEyeballTargetRange;
     rig.eyeballTargetEnabled = true;
     return true;
   } else {
