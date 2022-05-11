@@ -1886,7 +1886,7 @@ class Avatar extends EventTarget {
       <div style="display:;">blendList.length: --- ${this.blendList?.length}</div>
       <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
     `
-    // _applyAnimation(this, now, moveFactors);
+    _applyAnimation(this, now, moveFactors);
     // console.log(window.logVector3(this.modelBoneOutputs.Hips.getWorldDirection(localVector)));
 
     if (this.poseAnimation) {

@@ -959,6 +959,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
               if (result) {
                 const [app, physicsObject] = result;
                 if (app.getComponent('vincibility') !== 'invincible') {
+                  console.log(useAction.index, now);
                   const lastHitTime = lastHitTimes.get(app) ?? 0;
                   const timeDiff = now - lastHitTime;
                   if (timeDiff > 1000) {
