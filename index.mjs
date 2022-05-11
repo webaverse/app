@@ -136,7 +136,7 @@ const _proxyUrl = (req, res, u) => {
     });
     httpServer.on('error', reject);
   });
-  console.log(`  > Local: http${isHttps ? 's' : ''}://${SERVER_NAME}:${port}`);
+  console.log(`  > Local: http${isHttps ? 's' : ''}://${SERVER_NAME}:${port}/`);
   
   const wsServer = (() => {
     if (isHttps) {
@@ -185,5 +185,5 @@ const _proxyUrl = (req, res, u) => {
     });
     wsServer.on('error', reject);
   });
-  console.log(`  > World: ws${isHttps ? 's' : ''}://${SERVER_NAME}:${wsPort}`);
+  console.log(`  > World: ws${isHttps ? 's' : ''}://${SERVER_NAME}:${wsPort}/`);
 })();
