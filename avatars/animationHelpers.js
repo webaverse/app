@@ -954,29 +954,33 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
+            dst.fromArray(v2);
 
-            dst
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
+            // const idleAnimation = _getIdleAnimation('walk');
+            // const t3 = 0;
+            // const src3 = idleAnimation.interpolants[k];
+            // const v3 = src3.evaluate(t3);
+
+            // dst
+            //   .premultiply(localQuaternion2.fromArray(v3).invert())
+            //   .premultiply(localQuaternion2.fromArray(v2));
           } else {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localVector2.fromArray(v2);
             _clearXZ(localVector2, isPosition);
 
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-            localVector3.fromArray(v3);
+            dst.copy(localVector2);
 
-            dst
-              .sub(localVector3)
-              .add(localVector2);
+            // const idleAnimation = _getIdleAnimation('walk');
+            // const t3 = 0;
+            // const src3 = idleAnimation.interpolants[k];
+            // const v3 = src3.evaluate(t3);
+            // localVector3.fromArray(v3);
+
+            // dst
+            //   .sub(localVector3)
+            //   .add(localVector2);
           }
         }
         return f;
