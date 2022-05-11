@@ -450,6 +450,7 @@ Promise.resolve()
 let lastActivated = false;
 let lastThrowing = false;
 let lastHitTimes = new WeakMap();
+let lastHitIndices = new WeakMap();
 const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
@@ -959,10 +960,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
               if (result) {
                 const [app, physicsObject] = result;
                 if (app.getComponent('vincibility') !== 'invincible') {
-                  console.log(useAction.index, now);
                   const lastHitTime = lastHitTimes.get(app) ?? 0;
+                  const lastHitIndex = lastHitIndices.get(app) ?? -1;
                   const timeDiff = now - lastHitTime;
-                  if (timeDiff > 1000) {
+                  if (useAction.index !== lastHitIndex || timeDiff > 1000) {
                     const damage = typeof useAction.damage === 'number' ? useAction.damage : 0 /* 10 */;
                     const hitDirection = app.position.clone()
                       .sub(localPlayer.position);
@@ -988,6 +989,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
                     });
                   
                     lastHitTimes.set(app, now);
+                    lastHitIndices.set(app, useAction.index);
                   }
                 }
               }
