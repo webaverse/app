@@ -9,6 +9,8 @@ class DomItem extends THREE.Object3D {
   constructor(position, quaternion, scale, width, height, worldWidth, render) {
     super();
 
+    this.name = 'domNode';
+
     this.position.copy(position);
     this.quaternion.copy(quaternion);
     this.scale.copy(scale);
@@ -26,6 +28,7 @@ class DomItem extends THREE.Object3D {
     this.animation = null;
 
     const floatNode = new THREE.Object3D();
+    floatNode.name = 'floatNode';
     this.floatNode = floatNode;
     this.add(floatNode);
 
@@ -33,6 +36,7 @@ class DomItem extends THREE.Object3D {
       width,
       height,
     });
+    iframeMesh.name = 'domPunchThroughNode';
     this.iframeMesh = iframeMesh;
     floatNode.add(iframeMesh);
   }
