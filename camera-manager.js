@@ -523,12 +523,12 @@ class CameraManager extends EventTarget {
       _bumpCamera();
 
       const _lerpCameraOffset = () => {
-        const lerpFactor = 0.5;
-        const cameraOffsetZ = Math.max(cameraOffsetTargetZ, cameraOffsetLimitZ);
-        cameraOffset.z = cameraOffset.z * (1-lerpFactor) + cameraOffsetZ*lerpFactor;
-        if (cameraOffset.z > -0.5) {
-          cameraOffset.z = 0;
+        const lerpFactor = 0.15;
+        let cameraOffsetZ = Math.max(cameraOffsetTargetZ, cameraOffsetLimitZ);
+        if (cameraOffsetZ > -0.5) {
+          cameraOffsetZ = 0;
         }
+        cameraOffset.z = cameraOffset.z * (1-lerpFactor) + cameraOffsetZ*lerpFactor;
       };
       _lerpCameraOffset();
 
