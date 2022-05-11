@@ -411,8 +411,8 @@ const hitHeight = 0.2;
 const hitHalfHeight = hitHeight * 0.5;
 const hitboxOffsetDistance = 0.3;
 const damageMeshOffsetDistance = 1.5;
-const defaultDamageBoxSize = [0.21, 0.92, 0.03];
-const defaultDamageBoxPosition = [0, 1, 0];
+const defaultDamageBoxSize = [0.21, 1.22, 0.03];
+const defaultDamageBoxPosition = [0, 0.86, 0];
 const defaultDamageBoxQuaternion = [0, 0, 0, 1];
 /* const cylinderMesh = (() => {
   const radius = 1;
