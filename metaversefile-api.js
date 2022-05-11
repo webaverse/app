@@ -48,7 +48,7 @@ import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
-import domRenderEngine from './dom-renderer.js';
+import domRenderEngine from './dom-renderer.jsx';
 
 const localVector2D = new THREE.Vector2();
 
