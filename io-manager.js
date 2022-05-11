@@ -834,6 +834,9 @@ ioManager.mousedown = e => {
   }
   if ((changedButtons & 4) && (e.buttons & 4)) { // middle
     e.preventDefault();
+    if (!cameraManager.pointerLockElement) {
+      cameraManager.requestPointerLock();
+    }
     game.menuDragdown();
   }
   lastMouseButtons = e.buttons;

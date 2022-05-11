@@ -19,6 +19,7 @@ import {
   crouchMaxTime,
   activateMaxTime,
   // useMaxTime,
+  aimTransitionMaxTime,
   avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
@@ -40,6 +41,7 @@ import {
   defaultPlayerName,
   defaultPlayerBio,
 } from './ai/lore/lore-model.js';
+import * as sounds from './sounds.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -74,7 +76,6 @@ function loadPhysxCharacterController() {
 
   const position = this.position.clone()
     .add(new THREE.Vector3(0, -avatarHeight/2, 0));
-  const physicsMaterial = new THREE.Vector3(0, 0, 0);
 
   if (this.characterController) {
     physicsManager.destroyCharacterController(this.characterController);
@@ -86,8 +87,7 @@ function loadPhysxCharacterController() {
     height,
     contactOffset,
     stepOffset,
-    position,
-    physicsMaterial
+    position
   );
   // this.characterControllerObject = new THREE.Object3D();
 }
@@ -889,6 +889,8 @@ class UninterpolatedPlayer extends StatePlayer {
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
+      aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
+      aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
