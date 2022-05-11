@@ -9,6 +9,7 @@ const moduleUrls = {
   damageMesh: `./metaverse_modules/damage-mesh/`,
   ki: `./metaverse_modules/ki/`,
   sonicBoom: `./metaverse_modules/sonic-boom/`,
+  healEffect: `./metaverse_modules/heal-effect/`,
   filter: './metaverse_modules/filter/',
   barrier: './metaverse_modules/barrier/',
   infinistreet: './metaverse_modules/infinistreet/',
@@ -19,6 +20,8 @@ const moduleUrls = {
   cameraPlaceholder: './metaverse_modules/camera-placeholder/',
   targetReticle: './metaverse_modules/target-reticle/',
   halo: './metaverse_modules/halo/',
+  magic: './metaverse_modules/magic/',
+  limit: './metaverse_modules/limit/',
   meshLodItem: './metaverse_modules/mesh-lod-item/',
 };
 const modules = {};

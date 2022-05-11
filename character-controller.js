@@ -7,7 +7,7 @@ import * as Z from 'zjs';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-import cameraManager from './camera-manager.js';
+// import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
@@ -19,6 +19,7 @@ import {
   crouchMaxTime,
   activateMaxTime,
   // useMaxTime,
+  aimTransitionMaxTime,
   avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
@@ -48,13 +49,22 @@ import overrides from './overrides.js';
 // import * as voices from './voices.js';
 
 const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
 // const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray3 = [0, 0, 0];
 const localArray4 = [0, 0, 0, 0];
+
+const zeroVector = new THREE.Vector3(0, 0, 0);
+const upVector = new THREE.Vector3(0, 1, 0);
+
+const _getSession = () => {
+  const renderer = getRenderer();
+  const session = renderer.xr.getSession();
+  return session;
+};
 
 function makeCancelFn() {
   let live = true;
@@ -352,23 +362,32 @@ class PlayerBase extends THREE.Object3D {
       };
       _initPhysics();
 
-      const _emitEvents = () => {
+      const wearComponent = app.getComponent('wear');
+      const holdAnimation = wearComponent? wearComponent.holdAnimation : null;
+      const _addAction = () => {
         this.addAction({
           type: 'wear',
           instanceId: app.instanceId,
           loadoutIndex,
+          holdAnimation,
         });
+      };
+      _addAction();
+
+      const _emitEvents = () => {
         app.dispatchEvent({
           type: 'wearupdate',
           player: this,
           wear: true,
           loadoutIndex,
+          holdAnimation,
         });
         this.dispatchEvent({
           type: 'wearupdate',
           app,
           wear: true,
           loadoutIndex,
+          holdAnimation,
         });
       };
       _emitEvents();
@@ -376,6 +395,8 @@ class PlayerBase extends THREE.Object3D {
   }
   unwear(app, {
     destroy = false,
+    dropStartPosition = null,
+    dropDirection = null,
   } = {}) {
     const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
       return type === 'wear' && instanceId === app.instanceId;
@@ -385,8 +406,38 @@ class PlayerBase extends THREE.Object3D {
       const loadoutIndex = wearAction.loadoutIndex;
 
       const _setAppTransform = () => {
-        const wearComponent = app.getComponent('wear');
-        if (wearComponent) {
+        if (dropStartPosition && dropDirection) {
+          const physicsObjects = app.getPhysicsObjects();
+          if (physicsObjects.length > 0) {
+            const physicsObject = physicsObjects[0];
+
+            physicsObject.position.copy(dropStartPosition);
+            physicsObject.quaternion.copy(this.quaternion);
+            physicsObject.updateMatrixWorld();
+
+            physicsManager.setTransform(physicsObject, true);
+            physicsManager.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5), true);
+            physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
+
+            app.position.copy(physicsObject.position);
+            app.quaternion.copy(physicsObject.quaternion);
+            app.scale.copy(physicsObject.scale);
+            app.matrix.copy(physicsObject.matrix);
+            app.matrixWorld.copy(physicsObject.matrixWorld);
+          } else {
+            app.position.copy(dropStartPosition);
+            app.quaternion.setFromRotationMatrix(
+              localMatrix.lookAt(
+                localVector.set(0, 0, 0),
+                localVector2.set(dropDirection.x, 0, dropDirection.z).normalize(),
+                upVector
+              )
+            );
+            app.scale.set(1, 1, 1);
+            app.updateMatrixWorld();
+          }
+          app.lastMatrix.copy(app.matrixWorld);
+        } else {
           const avatarHeight = this.avatar ? this.avatar.height : 0;
           app.position.copy(this.position)
             .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
@@ -931,6 +982,8 @@ class UninterpolatedPlayer extends StatePlayer {
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
+      aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
+      aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
@@ -971,8 +1024,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterFx = new CharacterFx(this);
     this.characterBehavior = new CharacterBehavior(this);
   }
-  async setPlayerSpec(u, playerSpec) {
-    const p = this.setAvatarUrl(u);
+  async setPlayerSpec(playerSpec) {
+    const p = this.setAvatarUrl(playerSpec.avatarUrl);
     
     overrides.userVoiceEndpoint.set(playerSpec.voice ?? null);
     overrides.userVoicePack.set(playerSpec.voicePack ?? null);
@@ -1057,9 +1110,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.appManager.bindState(this.getAppsState());
   }
   grab(app, hand = 'left') {
-    const renderer = getRenderer();
     const localPlayer = metaversefile.useLocalPlayer();
-    const {position, quaternion} = renderer.xr.getSession() ?
+    const {position, quaternion} = _getSession() ?
       localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
     :
       camera;
@@ -1136,11 +1188,6 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.appManager.updatePhysics();
   }
-  getSession() {
-    const renderer = getRenderer();
-    const session = renderer.xr.getSession();
-    return session;
-  }
   updatePhysics(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
@@ -1156,7 +1203,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       this.updateInterpolation(timeDiff);
 
-      const session = this.getSession();
+      const session = _getSession();
       const mirrors = metaversefile.getMirrors();
       applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
@@ -1165,10 +1212,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterHups.update(timestamp);
     }
   }
-  resetPhysics() {
-    this.characterPhysics.reset();
-  }
-  teleportTo = (() => {
+  /* teleportTo = (() => {
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
     const localQuaternion = new THREE.Quaternion();
@@ -1200,7 +1244,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       this.resetPhysics();
     };
-  })()
+  })() */
   destroy() {
     this.characterPhysics.destroy();
     this.characterHups.destroy();
@@ -1315,6 +1359,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   
     this.isNpcPlayer = true;
     this.avatarApp = null;
+    this.npcApp = null;
 
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
@@ -1342,50 +1387,10 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     this.avatarApp = app;
     
     loadPhysxCharacterController.call(this);
-    // loadPhysxAuxCharacterCapsule.call(this);
-  }
-  getSession() {
-    return null;
   }
   updatePhysics = LocalPlayer.prototype.updatePhysics;
   updateAvatar = LocalPlayer.prototype.updateAvatar;
-  /* detachState() {
-    return null;
-  }
-  attachState(oldState) {
-    let index = -1;
-    for (let i = 0; i < this.playersArray.length; i++) {
-      const player = this.playersArray.get(i, Z.Map);
-      if (player.get('playerId') === this.playerId) {
-        index = i;
-        break;
-      }
-    }
-    if (index !== -1) {
-      this.playerMap = this.playersArray.get(index, Z.Map);
-    } else {
-      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
-    }
-    
-    const observePlayerFn = e => {
-      this.position.fromArray(this.playerMap.get('position'));
-      this.quaternion.fromArray(this.playerMap.get('quaternion'));
-    };
-    this.playerMap.observe(observePlayerFn);
-    this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
-    
-    this.appManager.bindState(this.getAppsState());
-    this.appManager.syncApps();
-    
-    this.syncAvatar();
-  } */
   destroy() {
-    /* const npcs = metaversefile.useNpcs();
-    const index = npcs.indexOf(this);
-    if (index !== -1) {
-      npcs.splice(index, 1);
-    } */
-
     this.characterPhysics.destroy();
     this.characterHups.destroy();
     this.characterSfx.destroy();

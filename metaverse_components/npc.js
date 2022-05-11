@@ -6,7 +6,6 @@ const localVector = new THREE.Vector3();
 export default (app, component) => {
 try {
   const {useFrame, useActivate, useLocalPlayer, useVoices, useChatManager, useLoreAIScene, useAvatarAnimations, useNpcManager, usePhysics, useCleanup} = metaversefile;
-  // const scene = useScene();
   const npcManager = useNpcManager();
   const localPlayer = useLocalPlayer();
   const physics = usePhysics();
@@ -23,8 +22,6 @@ try {
     const npcName = component.name ?? 'Anon';
     const npcVoiceName = component.voice ?? 'Shining armor';
     const npcBio = component.bio ?? 'A generic avatar.';
-    // const npcAvatarUrl = app.getComponent('avatarUrl') ?? `/avatars/Drake_hacker_v6_Guilty.vrm`;
-    // const npcThemeSongUrl = component.themeSongUrl ?? '';
     const npcDetached = !!component.detached;
     let npcWear = component.wear ?? [];
     if (!Array.isArray(npcWear)) {
@@ -34,24 +31,7 @@ try {
     let live = true;
     let vrmApp = app;
     app.npcPlayer = null;
-    /* e.waitUntil(*/(async () => {
-      // const u2 = npcAvatarUrl;
-      // const m = await metaversefile.import(u2);
-      // if (!live) return;
-      
-      // vrmApp = metaversefile.createApp({
-      //   name: u2,
-      // });
-
-      /* vrmApp.matrixWorld.copy(app.matrixWorld);
-      vrmApp.matrix.copy(app.matrixWorld)
-        .decompose(vrmApp.position, vrmApp.quaternion, vrmApp.scale);
-      vrmApp.name = 'npc';
-      vrmApp.setComponent('physics', true); */
-
-      // await vrmApp.addModule(m);
-      // if (!live) return;
-
+    (async () => {
       const position = vrmApp.position.clone()
         .add(new THREE.Vector3(0, 1, 0));
       const {quaternion, scale} = vrmApp;
@@ -63,7 +43,6 @@ try {
         scale,
         detached: npcDetached,
       });
-      // if (!live) return;
 
       const _setVoiceEndpoint = () => {
         const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
@@ -89,11 +68,9 @@ try {
       };
       await _updateWearables();
       if (!live) return;
-
-      // scene.add(vrmApp);
       
       app.npcPlayer = newNpcPlayer;
-    })()// );
+    })()
 
     app.getPhysicsObjects = () => app.npcPlayer ? [app.npcPlayer.characterController] : [];
 
@@ -126,18 +103,10 @@ try {
       }
     });
 
-    /* console.log('got deets', {
-      npcName,
-      npcVoice,
-      npcBio,
-      npcAvatarUrl,
-    }); */
-
     const character = loreAIScene.addCharacter({
       name: npcName,
       bio: npcBio,
     });
-    // console.log('got character', character);
     character.addEventListener('say', e => {
       console.log('got character say', e.data);
       const {message, emote, action, object, target} = e.data;
@@ -156,10 +125,7 @@ try {
         targetSpec = null;
       } else if (action === 'moveto' || (object !== 'none' && target === 'none')) { // move to object
         console.log('move to object', object);
-        /* target = localPlayer;
-        targetType = 'follow'; */
       } else if (action === 'moveto' || (object === 'none' && target !== 'none')) { // move to player
-        // console.log('move to', object);
         targetSpec = {
           type: 'moveto',
           object: localPlayer,
@@ -202,8 +168,6 @@ try {
 
     useCleanup(() => {
       live = false;
-
-      // scene.remove(vrmApp);
 
       if (app.npcPlayer) {
         npcManager.destroyNpc(app.npcPlayer);

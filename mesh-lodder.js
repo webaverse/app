@@ -5,6 +5,7 @@ import {alea} from './procgen/procgen.js';
 // import {getRenderer} from './renderer.js';
 import {mod, modUv, getNextPhysicsId} from './util.js';
 import physicsManager from './physics-manager.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const bufferSize = 2 * 1024 * 1024;
 const chunkWorldSize = 30;
@@ -14,6 +15,7 @@ const minObjectsPerChunk = 20;
 const maxObjectPerChunk = 50;
 
 const upVector = new THREE.Vector3(0, 1, 0);
+// const rightVector = new THREE.Vector3(1, 0, 0);
 const oneVector = new THREE.Vector3(1, 1, 1);
 
 const localVector = new THREE.Vector3();
@@ -22,7 +24,8 @@ const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
+// const localMatrix2 = new THREE.Matrix4();
+const localMatrix3 = new THREE.Matrix4();
 
 const textureTypes = [
   'map',
@@ -83,6 +86,17 @@ class MeshLodder {
       side: THREE.DoubleSide,
       alphaTest: 0.1,
       transparent: true,
+      onBeforeCompile: shader => {
+        shader.vertexShader.replace('#include <common>\n', `\
+          #include <common>
+          attribute vec3 direction;
+        `);
+        shader.vertexShader.replace('#include <begin_vertex>\n', `\
+          #include <begin_vertex>
+          transformed += direction;
+        `);
+        return shader;
+      },
     });
     this.material = material;
 
@@ -99,15 +113,13 @@ class MeshLodder {
     meshLodders.push(this);
   }
   registerLodMesh(name, meshes) {
-    // console.log('register lod mesh', name, meshes);
-
     const newMeshes = meshes.map(mesh => {
       const {geometry} = mesh;
       
-      const uvs = geometry.attributes.uv.array.slice();
-      geometry.setAttribute('originalUv', new THREE.BufferAttribute(uvs, 2));
+      /* const uvs = geometry.attributes.uv.array.slice();
+      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
       const uvs2 = geometry.attributes.uv2 ? geometry.attributes.uv2.array.slice() : geometry.attributes.uv.array.slice();
-      geometry.setAttribute('originalUv2', new THREE.BufferAttribute(uvs2, 2));
+      geometry.setAttribute('uv2', new THREE.BufferAttribute(uvs2, 2)); */
 
       return mesh;
     });
@@ -462,10 +474,16 @@ class MeshLodder {
           const tw = w * canvasScale;
           const th = h * canvasScale;
 
-          const matrixWorld = localMatrix.copy(mesh.matrixWorld)
-            .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
-            .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ))
-            .premultiply(this.mesh.matrixWorld);
+          const _getMatrixWorld = target => {
+            return _getMatrix(target)
+              .premultiply(this.mesh.matrixWorld);
+          };
+          const _getMatrix = target => {
+            return target.copy(mesh.matrixWorld)
+              .premultiply(localMatrix3.makeRotationAxis(upVector, rotationY))
+              .premultiply(localMatrix3.makeTranslation(positionX, 0, positionZ));
+          };
+          const matrixWorld = _getMatrixWorld(localMatrix);
 
           const _addPhysicsShape = () => {
             const shapeAddress = this.shapeAddresses[name];
@@ -473,18 +491,139 @@ class MeshLodder {
             const position = localVector;
             const quaternion = localQuaternion;
             const scale = localVector2;
-            const shape = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, false, true);
+            const dynamic = false;
+            const external = true;
+            const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
 
-            this.physicsObjects.push(shape);
+            this.physicsObjects.push(physicsObject);
 
             // return shape;
           };
-          // const physicsObject = _addPhysicsShape();
           _addPhysicsShape();
+
+          const _diceGeometry = g => {
+            let queue = [
+              g,
+            ];
+
+            const planePosition = new THREE.Vector3(0, 0, 0);
+            const planeScale = new THREE.Vector3(1, 1, 1);
+
+            const quaternions = [
+              new THREE.Quaternion(), // forward
+              // new THREE.Quaternion().setFromAxisAngle(upVector, Math.PI / 2), // left
+              // new THREE.Quaternion().setFromAxisAngle(rightVector, Math.PI / 2), // up
+            ];
+            for (let quaternionIndex = 0; quaternionIndex < quaternions.length; quaternionIndex++) {
+              const planeQuaternion = quaternions[quaternionIndex];
+
+              const currentQueue = queue.slice();
+              const nextQueue = [];
+
+              let geometry;
+              while (geometry = currentQueue.shift()) {
+                const res = physicsManager.cutMesh(
+                  geometry.attributes.position.array,
+                  geometry.attributes.position.count * 3,
+                  geometry.attributes.normal.array,
+                  geometry.attributes.normal.count * 3,
+                  geometry.attributes.uv.array,
+                  geometry.attributes.uv.count * 2,
+                  geometry.index.array,
+                  geometry.index.count,
+                  planePosition,
+                  planeQuaternion,
+                  planeScale
+                );
+                const {
+                  numOutNormals,
+                  numOutPositions,
+                  numOutUvs,
+                  // numOutUvs2,
+                  // numOutIndices,
+                  outNormals,
+                  outPositions,
+                  outUvs,
+                  // outUvs2,
+                  // outIndices,
+                } = res;
+
+                for (let n = 0; n < 2; n++) {
+                  const positions = new Float32Array(numOutPositions[n]);
+                  const normals = new Float32Array(numOutNormals[n]);
+                  const uvs = new Float32Array(numOutUvs[n]);
+
+                  const startPositions = n === 0 ? 0 : numOutPositions[n-1];
+                  positions.set(outPositions.subarray(startPositions, startPositions + numOutPositions[n]));
+                  const startNormals = n === 0 ? 0 : numOutNormals[n-1];
+                  normals.set(outNormals.subarray(startNormals, startNormals + numOutNormals[n]));
+                  const startUvs = n === 0 ? 0 : numOutUvs[n-1];
+                  uvs.set(outUvs.subarray(startUvs, startUvs + numOutUvs[n]));
+
+                  const localGeometry = new THREE.BufferGeometry();
+                  localGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                  localGeometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+                  localGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+                  localGeometry.setAttribute('uv2', new THREE.BufferAttribute(uvs.slice(), 2));
+
+                  const _makeIndices = numIndices => {
+                    const indices = new Uint32Array(numIndices);
+                    for (let i = 0; i < numIndices; i++) {
+                      indices[i] = i;
+                    }
+                    return indices;
+                  };
+                  localGeometry.setIndex(new THREE.BufferAttribute(_makeIndices(numOutPositions[n] / 3), 1));
+
+                  nextQueue.push(localGeometry);
+                }
+              }
+
+              queue = nextQueue;
+            }
+
+            const directionsOrder = [
+              new THREE.Vector3(0, 0, -1).normalize(),
+              new THREE.Vector3(0, 0, 1).normalize(),
+              /* new THREE.Vector3(-1, 1, -1).normalize(),
+              new THREE.Vector3(-1, -1, -1).normalize(),
+              new THREE.Vector3(1, 1, -1).normalize(),
+              new THREE.Vector3(1, -1, -1).normalize(),
+              new THREE.Vector3(-1, 1, 1).normalize(),
+              new THREE.Vector3(-1, -1, 1).normalize(),
+              new THREE.Vector3(1, 1, 1).normalize(),
+              new THREE.Vector3(1, -1, 1).normalize(), */
+            ];
+            for (let i = 0; i < queue.length; i++) {
+              const geometry = queue[i];
+              const direction = directionsOrder[i];
+              const directions = new Float32Array(geometry.attributes.position.array.length);
+              for (let i = 0; i < geometry.attributes.position.count; i++) {
+                direction.toArray(directions, i * 3);
+              }
+              geometry.setAttribute('direction', new THREE.BufferAttribute(directions, 3));
+            }
+
+            const geometry = BufferGeometryUtils.mergeBufferGeometries(queue);
+            return geometry;
+          };
+          const _postProcessGeometryUvs = geometry => {
+            _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, 0, g.attributes.uv.count);
+            _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, 0, g.attributes.uv2.count);
+          };
+          const _makeItemMesh = geometry => {
+            const {material} = this;
+            const cloned = new THREE.Mesh(geometry, material);
+            _getMatrixWorld(cloned.matrixWorld);
+            cloned.matrix.copy(cloned.matrixWorld)
+              .decompose(cloned.position, cloned.quaternion, cloned.scale);
+            cloned.frustumCulled = false;
+            return cloned;
+          };
 
           const _addItemToRegistry = () => {
             const item = {
-              position: new THREE.Vector3(positionX, 2, positionZ),
+              position: new THREE.Vector3(positionX, 0, positionZ),
               quaternion: new THREE.Quaternion().setFromAxisAngle(upVector, rotationY),
               scale: oneVector,
               attributes: {
@@ -497,34 +636,39 @@ class MeshLodder {
                 start: indexIndex,
                 count: g.index.count,
               },
-              cloneApp: () => {
+              cloneItemDiceMesh: () => { // XXX should be broken out to its own module
+                const geometry = _diceGeometry(g);
+                _postProcessGeometryUvs(geometry);
+                const mesh = _makeItemMesh(geometry);
+                return mesh;
+              },
+              cloneItemMesh: () => {
                 const geometry = g.clone();
-
-                _mapUvs(g, geometry, 'originalUv', 'uv', 0, g.attributes.originalUv.count);
-                _mapUvs(g, geometry, 'originalUv2', 'uv2', 0, g.attributes.originalUv2.count);
-
-                const {material} = this;
-                const cloned = new THREE.Mesh(geometry, material);
-                cloned.matrixWorld.copy(mesh.matrixWorld)
-                  .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
-                  .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ))
-                  .premultiply(this.mesh.matrixWorld);
-                cloned.matrix.copy(cloned.matrixWorld)
-                  .decompose(cloned.position, cloned.quaternion, cloned.scale);
-                cloned.frustumCulled = false;
-                return cloned;
+                _postProcessGeometryUvs(geometry);
+                const mesh = _makeItemMesh(geometry);
+                return mesh;
+              },
+              clonePhysicsObject: () => {
+                const shapeAddress = this.shapeAddresses[name];
+                _getMatrixWorld(localMatrix)
+                  .decompose(localVector, localQuaternion, localVector2);
+                const position = localVector;
+                const quaternion = localQuaternion;
+                const scale = localVector2;
+                const dynamic = true;
+                const external = true;
+                const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
+                return physicsObject;
               },
             };
             this.itemRegistry.push(item);
           };
           _addItemToRegistry();
 
-          const _mapPositions = (g, geometry) => {
+          const _mapOffsettedPositions = (g, geometry) => {
             const count = g.attributes.position.count;
 
-            const matrix = localMatrix.copy(mesh.matrixWorld)
-              .premultiply(localMatrix2.makeRotationAxis(upVector, rotationY))
-              .premultiply(localMatrix2.makeTranslation(positionX, 0, positionZ));
+            const matrix = _getMatrix(localMatrix);
 
             for (let i = 0; i < count; i++) {
               const srcIndex = i;
@@ -535,12 +679,12 @@ class MeshLodder {
                 .toArray(geometry.attributes.position.array, dstIndex * 3);
             }
           };
-          const _mapUvs = (g, geometry, srcKey, dstKey, dstOffset, count) => {
+          const _mapWarpedUvs = (src, dst, dstOffset, count) => {
             for (let i = 0; i < count; i++) {
               const srcIndex = i;
               const dstIndex = dstOffset + i;
 
-              localVector2D.fromArray(g.attributes[srcKey].array, srcIndex * 2);
+              localVector2D.fromArray(src.array, srcIndex * 2);
               modUv(localVector2D);
               localVector2D
                 .multiply(
@@ -549,27 +693,29 @@ class MeshLodder {
                 .add(
                   localVector2D2.set(tx/canvasSize, ty/canvasSize)
                 );
-              localVector2D.toArray(geometry.attributes[dstKey].array, dstIndex * 2);
+              localVector2D.toArray(dst.array, dstIndex * 2);
             }
           };
-          const _mapIndices = (g, geometry) => {
+          const _mapOffsettedIndices = (g, geometry) => {
             const count = g.index.count;
             for (let i = 0; i < count; i++) {
               geometry.index.array[indexIndex + i] = g.index.array[i] + positionIndex;
             }
           };
 
-          _mapPositions(g, geometry);
+          _mapOffsettedPositions(g, geometry);
           geometry.attributes.normal.array.set(g.attributes.normal.array, positionIndex * 3);
-          _mapUvs(g, geometry, 'originalUv', 'uv', positionIndex, g.attributes.originalUv.count);
-          _mapUvs(g, geometry, 'originalUv2', 'uv2', positionIndex, g.attributes.originalUv2.count);
-          _mapIndices(g, geometry);
+          _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, positionIndex, g.attributes.uv.count);
+          _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, positionIndex, g.attributes.uv2.count);
+          _mapOffsettedIndices(g, geometry);
 
           geometry.attributes.position.needsUpdate = true;
           geometry.attributes.normal.needsUpdate = true;
           geometry.attributes.uv.needsUpdate = true;
           geometry.attributes.uv2.needsUpdate = true;
           geometry.index.needsUpdate = true;
+
+          geometry.setAttribute('direction', new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.array.length), 3));
 
           positionIndex += g.attributes.position.count;
           indexIndex += g.index.count;

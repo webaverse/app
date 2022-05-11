@@ -452,11 +452,12 @@ ioManager.keydown = e => {
       document.getElementById('key-r').click(); // equip
       break;
     } */
-    /* case 71: { // G
+    case 71: { // G
       // game.menuDrop();
-      game.menuGDown();
+      // game.menuGDown();
+      game.menuSwitchCharacter();
       break;
-    } */
+    }
     case 86: { // V
       // if (!_inputFocused()) {
         e.preventDefault();

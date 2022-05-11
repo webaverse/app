@@ -15,14 +15,14 @@ import { getNextPhysicsId, convertMeshToPhysicsMesh } from './util.js'
 // import {groundFriction} from './constants.js';
 import { CapsuleGeometry } from './geometries.js'
 
-const localVector = new THREE.Vector3()
+// const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
-const localVector3 = new THREE.Vector3()
+/* const localVector3 = new THREE.Vector3()
 const localVector4 = new THREE.Vector3()
 const localVector5 = new THREE.Vector3()
 const localQuaternion = new THREE.Quaternion()
 const localQuaternion2 = new THREE.Quaternion()
-const localMatrix = new THREE.Matrix4()
+const localMatrix = new THREE.Matrix4() */
 
 /* const redMaterial = new THREE.MeshBasicMaterial({
   color: 0xff0000,
@@ -43,8 +43,8 @@ const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
   physicsObject.updateMatrixWorld()
   physicsObject.physicsId = physicsId
   physicsObject.detached = false // detached physics objects do not get updated when the owning app moves
-  physicsObject.collided = false
-  physicsObject.grounded = false
+  physicsObject.collided = true
+  physicsObject.grounded = true
   return physicsObject
 }
 const _extractPhysicsGeometryForId = (physicsId) => {
@@ -568,12 +568,11 @@ physicsManager.cutMesh = (
   numNormals,
   uvs,
   numUvs,
-  faces,
+  faces, // Set to falsy to indicate that this is an non-indexed geometry
   numFaces,
 
-  position,
-  quaternion,
-  scale
+  planeNormal, // normalized vector3 array
+  planeDistance, // number
 ) =>
   physx.physxWorker.doCut(
     positions,
@@ -585,9 +584,8 @@ physicsManager.cutMesh = (
     faces,
     numFaces,
 
-    position,
-    quaternion,
-    scale
+    planeNormal,
+    planeDistance,
   )
 physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setLinearLockFlags(physx.physics, physicsId, x, y, z)
@@ -634,6 +632,24 @@ physicsManager.sweepConvexShape = (
   )
 };
 
+const _updatePhysicsObjects = updatesOut => {
+  for (const updateOut of updatesOut) {
+    const { id, position, quaternion, collided, grounded } = updateOut
+    const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id)
+    if (physicsObject) {
+      // console.log('update physics object', id);
+
+      physicsObject.position.copy(position)
+      physicsObject.quaternion.copy(quaternion)
+      physicsObject.updateMatrixWorld()
+
+      physicsObject.collided = collided
+      physicsObject.grounded = grounded
+    } /* else {
+      console.warn('failed to update unknown physics id', id);
+    } */
+  }
+};
 physicsManager.simulatePhysics = (timeDiff) => {
   if (physicsEnabled) {
     const t = timeDiff / 1000
@@ -642,21 +658,8 @@ physicsManager.simulatePhysics = (timeDiff) => {
       physicsUpdates,
       t
     )
-    physicsUpdates.length = 0
-    for (const updateOut of updatesOut) {
-      const { id, position, quaternion, collided, grounded } = updateOut
-      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id)
-      if (physicsObject) {
-        physicsObject.position.copy(position)
-        physicsObject.quaternion.copy(quaternion)
-        physicsObject.updateMatrixWorld()
-
-        physicsObject.collided = collided
-        physicsObject.grounded = grounded
-      } /* else {
-        console.warn('failed to get physics object', id);
-      } */
-    }
+    // physicsUpdates.length = 0
+    _updatePhysicsObjects(updatesOut);
   }
 }
 
@@ -670,7 +673,7 @@ physicsManager.createSeamsWithDualContouring = (x, y, z) => physx.physxWorker.cr
 physicsManager.createShape = buffer => physx.physxWorker.createShapePhysics(physx.physics, buffer);
 physicsManager.createConvexShape = buffer => physx.physxWorker.createConvexShapePhysics(physx.physics, buffer);
 
-physicsManager.pushUpdate = (physicsObject) => {
+/* physicsManager.pushUpdate = (physicsObject) => {
   const { physicsId, physicsMesh } = physicsObject
   physicsMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2)
 
@@ -680,7 +683,7 @@ physicsManager.pushUpdate = (physicsObject) => {
     quaternion: localQuaternion.clone(),
     scale: localVector2.clone(),
   })
-}
+} */
 
 let physicsEnabled = false
 physicsManager.getPhysicsEnabled = () => physicsEnabled

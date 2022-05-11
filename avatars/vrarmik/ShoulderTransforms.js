@@ -43,9 +43,17 @@ class ShoulderTransforms {
     this.rightShoulderAnchor = new THREE.Object3D();
     this.rightShoulderAnchor.name = 'ikRightShoulder';
     this.upperChest.add(this.rightShoulderAnchor);
+    this.nonIKLeftShoulderAnchor = new THREE.Object3D();
+    this.nonIKRightShoulderAnchor = new THREE.Object3D();
+    this.lastLeftShoulderAnchor = new THREE.Object3D();
+    this.lastRightShoulderAnchor = new THREE.Object3D();
 
     this.leftArm = new ArmTransforms();
     this.rightArm = new ArmTransforms();
+    this.nonIKLeftArm = new ArmTransforms();
+    this.nonIKRightArm = new ArmTransforms();
+    this.lastLeftArm = new ArmTransforms();
+    this.lastRightArm = new ArmTransforms();
 
     this.leftShoulderAnchor.add(this.leftArm.transform);
     this.rightShoulderAnchor.add(this.rightArm.transform);

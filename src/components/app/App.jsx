@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, createContext } from 'react';
 
-import { defaultAvatarUrl, defaultPlayerSpec } from '../../../constants';
+import { defaultPlayerSpec } from '../../../constants';
 
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
@@ -28,7 +28,9 @@ import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
+import {DomRenderer} from '../../DomRenderer.jsx';
 // import * as voices from '../../../voices';
+import {handleStoryKeyControls} from '../../../story';
 
 import styles from './App.module.css';
 import '../../fonts.css';
@@ -49,7 +51,7 @@ const _startApp = async ( weba, canvas ) => {
 
     const localPlayer = metaversefileApi.useLocalPlayer();
     // console.log('set player spec', defaultPlayerSpec);
-    await localPlayer.setPlayerSpec(defaultAvatarUrl, defaultPlayerSpec);
+    await localPlayer.setPlayerSpec(defaultPlayerSpec);
 
 };
 
@@ -126,6 +128,25 @@ export const App = () => {
         }
 
     }, [ state.openedPanel ] );
+
+    useEffect( () => {
+
+        const handleStoryKeyUp = ( event ) => {
+
+            if ( game.inputFocused() ) return;
+            handleStoryKeyControls( event );
+
+        };
+
+        registerIoEventHandler( 'keyup', handleStoryKeyUp );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keyup', handleStoryKeyUp );
+
+        };
+
+    }, [] );
 
     useEffect( () => {
 
@@ -255,6 +276,8 @@ export const App = () => {
                 <FocusBar />
                 <DragAndDrop />
                 <Stats app={ app } />
+
+                <DomRenderer />
             </AppContext.Provider>
         </div>
     );

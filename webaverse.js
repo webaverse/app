@@ -17,6 +17,7 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
+import particleSystemManager from './particle-system.js';
 import loadoutManager from './loadout-manager.js';
 import questManager from './quest-manager.js';
 import mobManager from './mob-manager.js';
@@ -40,9 +41,9 @@ import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
+// import domRenderEngine from './dom-renderer.jsx';
 import musicManager from './music-manager.js';
-import * as story from './story.js';
-// import {OffscreenEngine} from './offscreen-engine.js';
+import story from './story.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -63,9 +64,8 @@ const sessionOpts = {
 
 const frameEvent = new MessageEvent('frame', {
   data: {
-    now: 0,
+    timestamp: 0,
     timeDiff: 0,
-    // lastTimestamp: 0,
   },
 });
 
@@ -81,6 +81,7 @@ export default class Webaverse extends EventTarget {
         Avatar.waitForLoad(),
         audioManager.waitForLoad(),
         sounds.waitForLoad(),
+        particleSystemManager.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
@@ -266,9 +267,9 @@ export default class Webaverse extends EventTarget {
     // console.log('frame 1');
 
     const renderer = getRenderer();
-    frameEvent.data.now = timestamp;
+    frameEvent.data.timestamp = timestamp;
     frameEvent.data.timeDiff = timeDiff;
-    this.dispatchEvent(frameEvent);
+    game.dispatchEvent(frameEvent);
 
     getComposer().render();
 
@@ -319,6 +320,7 @@ export default class Webaverse extends EventTarget {
           mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
           questManager.update(timestamp, timeDiffCapped);
+          particleSystemManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
