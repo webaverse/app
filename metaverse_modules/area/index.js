@@ -63,8 +63,6 @@ const _makeAreaMesh = (width, height, depth) => {
 export default () => {
   const app = useApp();
 
-  app.name = 'area';
-
   const sizeArray = app.getComponent('size') ?? [4, 2, 4];
   const [width, height, depth] = sizeArray;
 

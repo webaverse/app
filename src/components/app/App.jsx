@@ -256,7 +256,16 @@ export const App = () => {
 
                     if ( item.state !== 'hidden' && Date.now() - lastAppRemoveTime > appAddDelay && item.animation !== 'hiding' ) {
 
-                        app.userData.targetPos = { x: x - 100, z: z };
+                        if ( x > localPlayer.position.x ) {
+
+                            app.userData.targetPos = { x: x + 100, z: z };
+
+                        } else {
+
+                            app.userData.targetPos = { x: x - 100, z: z };
+
+                        }
+
                         item.state = 'hidden';
                         item.animation = 'hiding';
                         lastAppRemoveTime = Date.now();
@@ -279,7 +288,16 @@ export const App = () => {
 
                         if ( item.state === 'prepared' ) {
 
-                            app.position.set( x + 100, 1, z );
+                            if ( x > localPlayer.position.x ) {
+
+                                app.position.set( x + 100, 1, z );
+
+                            } else {
+
+                                app.position.set( x - 100, 1, z );
+
+                            }
+
                             app.updateMatrixWorld( true );
                             lastAppAddTime = Date.now();
                             console.log('add');

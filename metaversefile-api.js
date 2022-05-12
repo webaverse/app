@@ -1094,6 +1094,7 @@ export default () => {
     app.description = m.description ?? '';
     app.appType = m.type ?? '';
     app.contentId = m.contentId ?? '';
+    app.meta = app.meta ?? m.meta;
     if (Array.isArray(m.components)) {
       for (const {key, value} of m.components) {
         if (!app.hasComponent(key)) {
