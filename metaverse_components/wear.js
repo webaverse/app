@@ -28,15 +28,17 @@ export default (app, component) => {
   const wearupdate = (e) => {
     if (e.wear) {
       const isLocal = e.player === metaversefile.useLocalPlayer();
-      if (e.player) {
-        localPlayer = e.player;
-      }
+
       wearSpec = app.getComponent("wear");
       initialScale.copy(app.scale);
-      
-      if (isLocal === false && lastWornApp !== app) {
-        e.player.wear(app);
+
+      if (e.player) {
+        localPlayer = e.player;
+        if (isLocal === false && lastWornApp !== app) {
+          e.player.wear(app);
+        }
       }
+
       lastWornApp = app;
       // console.log('activate component', app, wear);
       if (wearSpec) {
