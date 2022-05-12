@@ -1834,6 +1834,8 @@ class Avatar extends EventTarget {
       <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
       <div style="display:;">avatar.direction: --- ${window.logVector3(avatar.direction)}</div>
       <div style="display:;">localPlayer.direction: --- ${window.logVector3(localPlayer.getWorldDirection(localVector))}</div>
+      <div style="display:;">localPlayer.rotation: --- ${window.logVector3(localPlayer.rotation)}</div>
+      <div style="display:;">localPlayer.quaternion: --- ${window.logVector4(localPlayer.quaternion)}</div>
       <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
       <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>
       <div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
