@@ -596,19 +596,19 @@ class CameraManager extends EventTarget {
       
     const _setCameraFov = () => {
       if (!renderer.xr.getSession()) {
+        let newFov;
+
         const focusTime = Math.min((timestamp - this.lerpStartTime) / maxFocusTime, 1);
         if (focusTime < 1) {
           this.fovFactor = 0;
 
           const a = this.sourceFov;
           const b = this.targetFov;
-          camera.fov = a * (1 - focusTime) + focusTime * b;
-          camera.updateProjectionMatrix();
+          newFov = a * (1 - focusTime) + focusTime * b;
         } else if (this.focus) {
           this.fovFactor = 0;
 
-          camera.fov = midFov;
-          camera.updateProjectionMatrix();
+          newFov = midFov;
         } else {
           const fovInTime = 3;
           const fovOutTime = 0.3;
@@ -625,8 +625,18 @@ class CameraManager extends EventTarget {
           }
           this.fovFactor = Math.min(Math.max(this.fovFactor, 0), 1);
           
-          camera.fov = minFov + Math.pow(this.fovFactor, 0.75) * (maxFov - minFov);
+          newFov = minFov + Math.pow(this.fovFactor, 0.75) * (maxFov - minFov);
+        }
+
+        if (newFov !== camera.fov) {
+          camera.fov = newFov;
           camera.updateProjectionMatrix();
+
+          this.dispatchEvent(new MessageEvent('fovchange', {
+            data: {
+              fov: newFov,
+            },
+          }));
         }
       }
     };
