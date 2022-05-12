@@ -286,22 +286,25 @@ export const Equipment = () => {
                         menuLeft={menuLeft}
                         menuRight={menuRight}
                     />
+                    <EquipmentItems
+                        leftText="Season"
+                        rightText="Land"
+                        sections={[
+                            {
+                                name: 'Account',
+                                tokens: [],
+                            },
+                        ]}
+                        hoverObject={hoverObject}
+                        selectObject={selectObject}
+                        onMouseEnter={onMouseEnter}
+                        onMouseDown={onMouseDown}
+                        onDragStart={onDragStart}
+                        onDoubleClick={onDoubleClick}
+                        menuLeft={menuLeft}
+                        menuRight={menuRight}
+                    />
                     
-                    <div className={styles.menu}>
-                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                            <div className={styles.text}>Season</div>
-                        </div>
-                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                            <div className={styles.text}>Land</div>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                        </div>
-                        <div className={styles.section}>
-                            <div className={styles.subheading}>
-                                <h2>Account</h2>
-                            </div>
-                        </div>
-                    </div>
                     <div className={styles.menu}>
                         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
                             <img className={styles.arrow} src="./images/chevron3.svg" />
