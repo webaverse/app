@@ -94,7 +94,7 @@ export default function QuickMenu() {
         if (game.inputFocused()) return true;
 
         if (!e.repeat) {
-          if (e.keyCode === 81) { // Q
+          if (e.keyCode === 81 && !e.ctrlKey) { // Q
             cameraManager.requestPointerLock();
 
             setOpen(true);
