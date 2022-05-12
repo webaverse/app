@@ -28,6 +28,7 @@ import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
+import {ClaimsNotification} from '../../ClaimsNotification.jsx';
 import {DomRenderer} from '../../DomRenderer.jsx';
 // import * as voices from '../../../voices';
 import {handleStoryKeyControls} from '../../../story';
@@ -275,6 +276,7 @@ export const App = () => {
                 <LoadingBox />
                 <FocusBar />
                 <DragAndDrop />
+                <ClaimsNotification />
                 <Stats app={ app } />
 
                 <DomRenderer />
