@@ -18,9 +18,6 @@ class DomItem extends THREE.Object3D {
     this.width = width;
     this.height = height;
     this.worldWidth = worldWidth;
-    // this.basePosition = position.clone();
-    // this.baseQuaternion = quaternion.clone();
-    // this.baseScale = scale.clone();
     this.render = render;
 
     this.enabled = false;
