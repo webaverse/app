@@ -477,6 +477,7 @@ class CameraManager extends EventTarget {
   }
   updatePost(timestamp, timeDiff) {
     debugger
+    this.targetQuaternion.copy(camera.quaternion);
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
 
@@ -600,7 +601,7 @@ class CameraManager extends EventTarget {
 
         this.targetPosition.y -= crouchOffset;
         if (this.targetType === 'combat') {
-          this.sourcePosition.copy(localPlayer.position);
+          this.targetQuaternion.copy(localPlayer.position);
         }
         camera.position.copy(this.sourcePosition)
           .lerp(this.targetPosition, factor);
@@ -682,7 +683,7 @@ class CameraManager extends EventTarget {
     };
     _shakeCamera();
 
-    if (window.npcPlayers && window.npcPlayers[0]) {
+    if (window.isCombatFocus && window.npcPlayers && window.npcPlayers[0]) {
       this.focusCamera(window.npcPlayers[0].position);
     }
 

@@ -204,22 +204,23 @@ class ZTargeting extends THREE.Object3D {
     }
   }
   toggle() {
-    if (cameraManager.focus) {
-      this.handleUp();
-    } else {
-      this.handleDown(localPlayer);
+    window.isCombatFocus = true;
+    // if (cameraManager.focus) {
+    //   this.handleUp();
+    // } else {
+    //   this.handleDown(localPlayer);
       
-      if (this.queryResults.results.length === 0) {
-        setTimeout(() => {
-          this.handleUp();
-        }, 300);
-      }
+    //   if (this.queryResults.results.length === 0) {
+    //     setTimeout(() => {
+    //       this.handleUp();
+    //     }, 300);
+    //   }
 
-      // const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
-      // if (remoteApp) {
-      //   cameraManager.setCombatTarget(remoteApp);
-      // }
-    }
+    //   // const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
+    //   // if (remoteApp) {
+    //   //   cameraManager.setCombatTarget(remoteApp);
+    //   // }
+    // }
   }
 }
 const zTargeting = new ZTargeting();

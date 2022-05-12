@@ -227,6 +227,7 @@ const _updateIo = timeDiff => {
       keysDirection.applyQuaternion(camera.quaternion);
       _updateVertical(keysDirection);
     } else {
+      // vismark
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
       cameraEuler.z = 0;
