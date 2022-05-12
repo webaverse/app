@@ -749,7 +749,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    // if (true) { // play one animation purely.
+    // { // play one animation purely.
     //   return spec => {
     //     const {
     //       animationTrackName: k,
@@ -758,6 +758,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     //     } = spec;
 
     //     const animation = animations.index['walking.fbx']
+    //     // const animation = hurtAnimations.pain_arch;
     //     const t2 = timeSeconds;
     //     const src2 = animation.interpolants[k];
     //     const v2 = src2.evaluate(t2 % animation.duration);
