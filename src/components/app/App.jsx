@@ -257,6 +257,7 @@ export const App = () => {
                 <Crosshair />
                 <ActionMenu />
                 <Settings />
+                <ClaimsNotification />
                 <WorldObjectsList
                     setSelectedApp={ setSelectedApp }
                     selectedApp={ selectedApp }
@@ -276,7 +277,6 @@ export const App = () => {
                 <LoadingBox />
                 <FocusBar />
                 <DragAndDrop />
-                <ClaimsNotification />
                 <Stats app={ app } />
 
                 <DomRenderer />
