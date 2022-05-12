@@ -1,9 +1,20 @@
-import * as THREE from "three";
-import metaversefile from "metaversefile";
+// import * as THREE from "three";
+// import metaversefile from "metaversefile";
 
 class DropManager extends EventTarget {
   constructor() {
     super();
+
+    this.claims = [];
+  }
+  pickupApp(app) {
+    this.claims.push(app);
+
+    this.dispatchEvent(new MessageEvent('claimschange', {
+      data: {
+        claims: this.claims,
+      },
+    }));
   }
   dropToken(contractAddress, tokenId, voucher) {
     // XXX engine implements this
