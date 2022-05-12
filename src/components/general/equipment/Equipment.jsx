@@ -114,7 +114,7 @@ const EquipmentItems = ({
     menuLeft,
     menuRight,
 }) => {
-    return (<>
+    return (<div className={styles.menu}>
         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
             <img className={styles.arrow} src="./images/chevron3.svg" />
             <div className={styles.text}>{leftText}</div>
@@ -163,7 +163,7 @@ const EquipmentItems = ({
                 </div>
             );
         })}
-    </>);
+    </div>);
 };
 
 export const Equipment = () => {
@@ -263,30 +263,30 @@ export const Equipment = () => {
                             </div>
                         </div>
                     </div>
-                    <div className={styles.menu}>
-                        <EquipmentItems
-                            leftText="Inventory"
-                            rightText="Account"
-                            sections={[
-                                {
-                                    name: 'Season',
-                                    tokens: userTokenObjects,
-                                },
-                                {
-                                    name: 'From Upstreet',
-                                    tokens: objects.upstreet,
-                                },
-                            ]}
-                            hoverObject={hoverObject}
-                            selectObject={selectObject}
-                            onMouseEnter={onMouseEnter}
-                            onMouseDown={onMouseDown}
-                            onDragStart={onDragStart}
-                            onDoubleClick={onDoubleClick}
-                            menuLeft={menuLeft}
-                            menuRight={menuRight}
-                        />
-                    </div>
+                    
+                    <EquipmentItems
+                        leftText="Inventory"
+                        rightText="Account"
+                        sections={[
+                            {
+                                name: 'Season',
+                                tokens: userTokenObjects,
+                            },
+                            {
+                                name: 'From Upstreet',
+                                tokens: objects.upstreet,
+                            },
+                        ]}
+                        hoverObject={hoverObject}
+                        selectObject={selectObject}
+                        onMouseEnter={onMouseEnter}
+                        onMouseDown={onMouseDown}
+                        onDragStart={onDragStart}
+                        onDoubleClick={onDoubleClick}
+                        menuLeft={menuLeft}
+                        menuRight={menuRight}
+                    />
+                    
                     <div className={styles.menu}>
                         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
                             <img className={styles.arrow} src="./images/chevron3.svg" />
