@@ -56,7 +56,7 @@ const objects = {
 
 //
 
-const Item = forwardRef(({
+const EquipmentItem = forwardRef(({
     object,
     enabled,
     hovered,
@@ -213,7 +213,7 @@ export const Equipment = () => {
                             </div>
                             <ul className={styles.list}>
                                 {userTokenObjects.map((object, i) =>
-                                    <Item
+                                    <EquipmentItem
                                         object={object}
                                         enabled={open}
                                         hovered={object === hoverObject}
@@ -235,7 +235,7 @@ export const Equipment = () => {
                             <ul className={styles.list}>
                                 {objects.upstreet.map((object, i) => {
                                     return (
-                                        <Item
+                                        <EquipmentItem
                                             object={object}
                                             enabled={open}
                                             hovered={object === hoverObject}
