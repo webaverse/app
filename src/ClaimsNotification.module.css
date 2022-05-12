@@ -26,9 +26,9 @@
   bottom: -120px;
   height: var(--height);
   margin-bottom: 45px;
-  padding-right: 30px;
+  padding-right: 500px;
   background-image: linear-gradient(to bottom, #333, #111);
-  border-radius: 10px 0 0 10px;
+  border-radius: 10px;
   color: #FFF;
   font-size: 22px;
   font-family: 'WinchesterCaps';

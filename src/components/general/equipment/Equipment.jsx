@@ -101,6 +101,71 @@ const EquipmentItem = forwardRef(({
     );
 });
 
+const EquipmentItems = ({
+    leftText,
+    rightText,
+    sections,
+    hoverObject,
+    selectObject,
+    onMouseEnter,
+    onMouseDown,
+    onDragStart,
+    onDoubleClick,
+    menuLeft,
+    menuRight,
+}) => {
+    return (<>
+        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
+            <img className={styles.arrow} src="./images/chevron3.svg" />
+            <div className={styles.text}>{leftText}</div>
+        </div>
+        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
+            <div className={styles.text}>{rightText}</div>
+            <img className={styles.arrow} src="./images/chevron3.svg" />
+        </div>
+        {sections.map((section, i) => {
+            const {name, tokens} = section;
+
+            const refsMap = (() => {
+                const map = new Map();
+                for (const tokenObject of tokens) {
+                    map.set(tokenObject, useRef(null));
+                }
+                for (const k in objects) {
+                    for (const object of objects[k]) {
+                        map.set(object, useRef(null));
+                    }
+                }
+                return map;
+            })();
+
+            return (
+                <div className={styles.section} key={i}>
+                    <div className={styles.subheading}>
+                        <h2>{name}</h2>
+                    </div>
+                    <ul className={styles.list}>
+                        {tokens.map((object, i) =>
+                            <EquipmentItem
+                                object={object}
+                                enabled={open}
+                                hovered={object === hoverObject}
+                                selected={object === selectObject}
+                                onMouseEnter={onMouseEnter(object)}
+                                onMouseDown={onMouseDown(object)}
+                                onDragStart={onDragStart(object)}
+                                onDoubleClick={onDoubleClick(object)}
+                                key={i}
+                                ref={refsMap.get(object)}
+                            />
+                        )}
+                    </ul>
+                </div>
+            );
+        })}
+    </>);
+};
+
 export const Equipment = () => {
     const { state, setState } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
@@ -199,58 +264,28 @@ export const Equipment = () => {
                         </div>
                     </div>
                     <div className={styles.menu}>
-                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                            <div className={styles.text}>Inventory</div>
-                        </div>
-                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                            <div className={styles.text}>Account</div>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                        </div>
-                        <div className={styles.section}>
-                            <div className={styles.subheading}>
-                                <h2>Season</h2>
-                            </div>
-                            <ul className={styles.list}>
-                                {userTokenObjects.map((object, i) =>
-                                    <EquipmentItem
-                                        object={object}
-                                        enabled={open}
-                                        hovered={object === hoverObject}
-                                        selected={object === selectObject}
-                                        onMouseEnter={onMouseEnter(object)}
-                                        onMouseDown={onMouseDown(object)}
-                                        onDragStart={onDragStart(object)}
-                                        onDoubleClick={onDoubleClick(object)}
-                                        key={i}
-                                        ref={refsMap.get(object)}
-                                    />
-                                )}
-                            </ul>
-                        </div>
-                        <div className={styles.section}>
-                            <div className={styles.subheading}>
-                                <h2>From Upstreet</h2>
-                            </div>
-                            <ul className={styles.list}>
-                                {objects.upstreet.map((object, i) => {
-                                    return (
-                                        <EquipmentItem
-                                            object={object}
-                                            enabled={open}
-                                            hovered={object === hoverObject}
-                                            selected={object === selectObject}
-                                            onMouseEnter={onMouseEnter(object)}
-                                            onMouseDown={onMouseDown(object)}
-                                            onDragStart={onDragStart(object)}
-                                            onDoubleClick={onDoubleClick(object)}
-                                            key={i}
-                                            ref={refsMap.get(object)}
-                                        />
-                                    );
-                                })}
-                            </ul>
-                        </div>
+                        <EquipmentItems
+                            leftText="Inventory"
+                            rightText="Account"
+                            sections={[
+                                {
+                                    name: 'Season',
+                                    tokens: userTokenObjects,
+                                },
+                                {
+                                    name: 'From Upstreet',
+                                    tokens: objects.upstreet,
+                                },
+                            ]}
+                            hoverObject={hoverObject}
+                            selectObject={selectObject}
+                            onMouseEnter={onMouseEnter}
+                            onMouseDown={onMouseDown}
+                            onDragStart={onDragStart}
+                            onDoubleClick={onDoubleClick}
+                            menuLeft={menuLeft}
+                            menuRight={menuRight}
+                        />
                     </div>
                     <div className={styles.menu}>
                         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
