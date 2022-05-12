@@ -248,22 +248,24 @@ export const Equipment = () => {
                         transform: `translateX(300px) translateZ(-300px) rotateY(${-faceIndex * 90}deg) translateX(-300px)`,
                     }}
                 >
-                    <div className={styles.menu}>
-                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                            <div className={styles.text}>Land</div>
-                        </div>
-                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                            <div className={styles.text}>Season</div>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                        </div>
-                        <div className={styles.section}>
-                            <div className={styles.subheading}>
-                                <h2>Inventory</h2>
-                            </div>
-                        </div>
-                    </div>
-                    
+                    <EquipmentItems
+                        leftText="Land"
+                        rightText="Season"
+                        sections={[
+                            {
+                                name: 'Inventory',
+                                tokens: [],
+                            },
+                        ]}
+                        hoverObject={hoverObject}
+                        selectObject={selectObject}
+                        onMouseEnter={onMouseEnter}
+                        onMouseDown={onMouseDown}
+                        onDragStart={onDragStart}
+                        onDoubleClick={onDoubleClick}
+                        menuLeft={menuLeft}
+                        menuRight={menuRight}
+                    />
                     <EquipmentItems
                         leftText="Inventory"
                         rightText="Account"
@@ -304,22 +306,24 @@ export const Equipment = () => {
                         menuLeft={menuLeft}
                         menuRight={menuRight}
                     />
-                    
-                    <div className={styles.menu}>
-                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                            <div className={styles.text}>Account</div>
-                        </div>
-                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                            <div className={styles.text}>Inventory</div>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                        </div>
-                        <div className={styles.section}>
-                            <div className={styles.subheading}>
-                                <h2>Land</h2>
-                            </div>
-                        </div>
-                    </div>
+                    <EquipmentItems
+                        leftText="Account"
+                        rightText="Inventory"
+                        sections={[
+                            {
+                                name: 'Land',
+                                tokens: [],
+                            },
+                        ]}
+                        hoverObject={hoverObject}
+                        selectObject={selectObject}
+                        onMouseEnter={onMouseEnter}
+                        onMouseDown={onMouseDown}
+                        onDragStart={onDragStart}
+                        onDoubleClick={onDoubleClick}
+                        menuLeft={menuLeft}
+                        menuRight={menuRight}
+                    />
                 </div>
             </div>
 
