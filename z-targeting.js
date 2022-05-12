@@ -164,7 +164,7 @@ class ZTargeting extends THREE.Object3D {
     this.setQueryResult(timestamp);
   }
   handleDown(object = camera) {
-    if (!cameraManager.focus) {
+    // if (!cameraManager.focus) {
       this.queryResults.snapshot(object);
 
       if (this.queryResults.results.length > 0) {
@@ -184,10 +184,14 @@ class ZTargeting extends THREE.Object3D {
         sounds.playSoundName('zTargetCenter');
       }
 
-      cameraManager.setFocus(true);
+      // cameraManager.setFocus(true);
       const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
-      cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
-    }
+      // cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
+      if (remoteApp) {
+        // cameraManager.setCombatTarget(remoteApp);
+        cameraManager.focusCamera(remoteApp.position);
+      }
+    // }
   }
   handleUp() {
     if (cameraManager.focus) {
@@ -203,12 +207,17 @@ class ZTargeting extends THREE.Object3D {
     if (cameraManager.focus) {
       this.handleUp();
     } else {
-      // this.handleDown(localPlayer);
+      this.handleDown(localPlayer);
       
-      // if (this.queryResults.results.length === 0) {
-      //   setTimeout(() => {
-      //     this.handleUp();
-      //   }, 300);
+      if (this.queryResults.results.length === 0) {
+        setTimeout(() => {
+          this.handleUp();
+        }, 300);
+      }
+
+      // const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
+      // if (remoteApp) {
+      //   cameraManager.setCombatTarget(remoteApp);
       // }
     }
   }

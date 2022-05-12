@@ -449,6 +449,21 @@ class CameraManager extends EventTarget {
       this.setCameraToNullTarget();
     }
   }
+  setCombatTarget(target = null) {
+    // this.targetType = 'combat';
+    // this.target = target;
+    // if (this.target) {
+    //   const _setCameraToCombatTarget = () => {
+    //     cameraOffsetTargetZ = -1;
+    //     cameraOffset.z = cameraOffsetTargetZ;
+    //     target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    //     this.targetPosition.copy(localVector);
+    //   };
+    //   _setCameraToCombatTarget();
+    // } else {
+    //   this.setCameraToNullTarget();
+    // }
+  }
   setCameraToNullTarget() {
     this.sourcePosition.copy(camera.position);
     this.sourceQuaternion.copy(camera.quaternion);
@@ -461,6 +476,7 @@ class CameraManager extends EventTarget {
     this.lastTimestamp = timestamp;
   }
   updatePost(timestamp, timeDiff) {
+    debugger
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
 
@@ -583,6 +599,9 @@ class CameraManager extends EventTarget {
         const factor = Math.min((timestamp - this.lerpStartTime) / maxFocusTime, 1);
 
         this.targetPosition.y -= crouchOffset;
+        if (this.targetType === 'combat') {
+          this.sourcePosition.copy(localPlayer.position);
+        }
         camera.position.copy(this.sourcePosition)
           .lerp(this.targetPosition, factor);
 
@@ -662,6 +681,10 @@ class CameraManager extends EventTarget {
       }
     };
     _shakeCamera();
+
+    if (window.npcPlayers && window.npcPlayers[0]) {
+      this.focusCamera(window.npcPlayers[0].position);
+    }
 
     camera.updateMatrixWorld();
 
