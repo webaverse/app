@@ -1,12 +1,5 @@
 {
   "objects": [
-  {
-      "type": "application/spawnpoint",
-      "content": {
-        "position": [-8, -4 ,-52],
-        "quaternion": [0, 0.0,0, 0.0]
-      }
-    },
     {
       "type": "application/light",
       "content": {
@@ -19,8 +12,7 @@
       "content": {
         "lightType": "directional",
         "args": [[255, 255, 255], 5],
-        "position": [1, 2, 3],
-        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+        "position": [1, 2, 3]
       }
     },
     {
@@ -28,17 +20,12 @@
       "content": {
         "fog": {
           "fogType": "exp",
-          "args": [[255, 255, 255], 0.001]
+          "args": [[255, 255, 255], 0.0005]
         },
         "ssao": {
           "kernelRadius": 16,
           "minDistance": 0.005,
           "maxDistance": 0.1
-        },
-        "dof": {
-          "focus": 3.0,
-          "aperture": 0.00002,
-          "maxblur": 0.005
         },
         "hdr": {
           "adaptive": true,
@@ -49,9 +36,9 @@
           "middleGrey": 3
         },
         "bloom": {
-          "strength": 0.2,
+          "strength": 0.1,
           "radius": 0.5,
-          "threshold": 0.8
+          "threshold": 0.9
         }
       }
     },
@@ -61,31 +48,28 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/skybox-360/"
+      "start_url": "https://loryhoof.github.io/sky/"
     },
     {
-      "position": [
-        -26,
-        0,
-        -2
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "https://webaverse.github.io/app/public/avatars/scillia.vrm",
-      "dynamic": true
-    },
-    {
+      
       "position": [
         0,
         0,
         0
       ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
       "physics": true,
-      "start_url": "https://galadwarder.github.io/WebaParkour/Parkour_Arena_v5_KTX.glb",
+      "start_url": "https://webaverse.github.io/plaza/",
       "dynamic": false
     }
   ]
