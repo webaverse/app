@@ -8,6 +8,7 @@ import game from '../../../../game.js';
 import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
+import dropManager from '../../../../drop-manager';
 
 //
 
@@ -56,7 +57,7 @@ const objects = {
 
 //
 
-const EquipmentItem = forwardRef(({
+const EquipmentItem = ({
     object,
     enabled,
     hovered,
@@ -65,20 +66,22 @@ const EquipmentItem = forwardRef(({
     onMouseDown,
     onDragStart,
     onDoubleClick,
-}, ref) => {
+    highlight,
+}) => {
     return (
         <div
             className={classnames(
                 styles.item,
                 hovered ? styles.hovered : null,
                 selected ? styles.selected : null,
+                highlight ? styles.highlighted : null,
             )}
             draggable
             onMouseEnter={onMouseEnter}
             onMouseDown={onMouseDown}
             onDragStart={onDragStart}
             onDoubleClick={onDoubleClick}
-            ref={ref}
+            // ref={ref}
         >
 
             <div className={styles.background} />
@@ -99,7 +102,7 @@ const EquipmentItem = forwardRef(({
 
         </div>
     );
-});
+};
 
 const EquipmentItems = ({
     leftText,
@@ -113,6 +116,7 @@ const EquipmentItems = ({
     onDoubleClick,
     menuLeft,
     menuRight,
+    highlights,
 }) => {
     return (<div className={styles.menu}>
         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
@@ -126,7 +130,7 @@ const EquipmentItems = ({
         {sections.map((section, i) => {
             const {name, tokens} = section;
 
-            const refsMap = (() => {
+            /* const refsMap = (() => {
                 const map = new Map();
                 for (const tokenObject of tokens) {
                     map.set(tokenObject, useRef(null));
@@ -137,7 +141,7 @@ const EquipmentItems = ({
                     }
                 }
                 return map;
-            })();
+            })(); */
 
             return (
                 <div className={styles.section} key={i}>
@@ -151,12 +155,13 @@ const EquipmentItems = ({
                                 enabled={open}
                                 hovered={object === hoverObject}
                                 selected={object === selectObject}
+                                highlight={highlights}
                                 onMouseEnter={onMouseEnter(object)}
                                 onMouseDown={onMouseDown(object)}
                                 onDragStart={onDragStart(object)}
                                 onDoubleClick={onDoubleClick(object)}
                                 key={i}
-                                ref={refsMap.get(object)}
+                                // ref={refsMap.get(object)}
                             />
                         )}
                     </ul>
@@ -172,9 +177,10 @@ export const Equipment = () => {
     const [ selectObject, setSelectObject ] = useState(null);
     const [ spritesheet, setSpritesheet ] = useState(null);
     const [ faceIndex, setFaceIndex ] = useState(1);
+    const [ claims, setClaims ] = useState([]);
     const selectedMenuIndex = mod(faceIndex, 4);
 
-    const refsMap = (() => {
+    /* const refsMap = (() => {
         const map = new Map();
         for (const userTokenObject of userTokenObjects) {
             map.set(userTokenObject, useRef(null));
@@ -185,7 +191,7 @@ export const Equipment = () => {
             }
         }
         return map;
-    })();
+    })(); */
 
     const open = state.openedPanel === 'CharacterPanel';
 
@@ -235,6 +241,18 @@ export const Equipment = () => {
     };
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
+    useEffect(() => {
+        const claimschange = e => {
+            const {claims} = e.data;
+            console.log('set claims', claims);
+            setClaims(claims.slice());
+        };
+        dropManager.addEventListener('claimschange', claimschange);
+        return () => {
+            dropManager.removeEventListener('claimschange', claimschange);
+        };
+    }, [claims]);
+
     return (
         <div className={styles.equipment}>
             <div className={classnames(
@@ -254,7 +272,7 @@ export const Equipment = () => {
                         sections={[
                             {
                                 name: 'Inventory',
-                                tokens: [],
+                                tokens: claims,
                             },
                         ]}
                         hoverObject={hoverObject}
@@ -265,6 +283,7 @@ export const Equipment = () => {
                         onDoubleClick={onDoubleClick}
                         menuLeft={menuLeft}
                         menuRight={menuRight}
+                        highlights={true}
                     />
                     <EquipmentItems
                         leftText="Inventory"
@@ -287,6 +306,7 @@ export const Equipment = () => {
                         onDoubleClick={onDoubleClick}
                         menuLeft={menuLeft}
                         menuRight={menuRight}
+                        highlights={false}
                     />
                     <EquipmentItems
                         leftText="Season"
@@ -305,6 +325,7 @@ export const Equipment = () => {
                         onDoubleClick={onDoubleClick}
                         menuLeft={menuLeft}
                         menuRight={menuRight}
+                        highlights={false}
                     />
                     <EquipmentItems
                         leftText="Account"
@@ -323,6 +344,7 @@ export const Equipment = () => {
                         onDoubleClick={onDoubleClick}
                         menuLeft={menuLeft}
                         menuRight={menuRight}
+                        highlights={false}
                     />
                 </div>
             </div>
