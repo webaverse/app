@@ -546,12 +546,18 @@ ioManager.keydown = e => {
       break;
     } */
     case 81: { // Q
-      // game.setWeaponWheel(true);
-      if (game.canToggleAxis()) {
-        game.toggleAxis();
+      if (e.ctrlKey) {
+        if (cameraManager.pointerLockElement) {
+          cameraManager.exitPointerLock();
+        }
       } else {
-        // clear conflicting aim with quick menu
-        game.menuUnaim();
+        // game.setWeaponWheel(true);
+        if (game.canToggleAxis()) {
+          game.toggleAxis();
+        } else {
+          // clear conflicting aim with quick menu
+          game.menuUnaim();
+        }
       }
       break;
     }

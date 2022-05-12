@@ -22,9 +22,9 @@ html, body {
     --color3: #42a5f5;
 }
 
-body {
+/* body {
     background-color: #000;
-}
+} */
 
 .App {
     height: 100%;

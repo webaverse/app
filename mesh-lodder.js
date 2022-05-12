@@ -105,6 +105,7 @@ class MeshLodder {
 
     this.contentIndex = {};
     this.itemRegistry = [];
+    this.shapeSpecs = {};
     this.shapeAddresses = {};
     this.physicsObjects = [];
     this.compiled = false;
@@ -112,23 +113,24 @@ class MeshLodder {
 
     meshLodders.push(this);
   }
-  registerLodMesh(name, meshes) {
-    const newMeshes = meshes.map(mesh => {
+  registerLodMesh(name, shapeSpec) {
+    const {
+      type = 'object',
+      lods = [],
+    } = shapeSpec;
+
+    /* const newMeshes = meshes.map(mesh => {
       const {geometry} = mesh;
-      
-      /* const uvs = geometry.attributes.uv.array.slice();
-      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-      const uvs2 = geometry.attributes.uv2 ? geometry.attributes.uv2.array.slice() : geometry.attributes.uv.array.slice();
-      geometry.setAttribute('uv2', new THREE.BufferAttribute(uvs2, 2)); */
-
       return mesh;
-    });
-    this.contentIndex[name] = newMeshes;
+    }); */
+    this.contentIndex[name] = lods;
 
-    const lastMesh = newMeshes[newMeshes.length - 1];
+    const lastMesh = lods.findLast(lod => lod !== null) ?? null;
     const buffer = physicsManager.cookConvexGeometry(lastMesh);
     const shapeAddress = physicsManager.createConvexShape(buffer);
     this.shapeAddresses[name] = shapeAddress;
+
+    this.shapeSpecs[name] = shapeSpec;
   }
   getPhysicsObjects() {
     return this.physicsObjects;
@@ -146,7 +148,7 @@ class MeshLodder {
       const meshes = this.contentIndex[name];
 
       for (const mesh of meshes) {
-        mesh.traverse(o => {
+        mesh && mesh.traverse(o => {
           if (o.isMesh && o.geometry.type === 'BufferGeometry') {
             const objectGeometry = o.geometry;
             // const morphTargetDictionary = o.morphTargetDictionary;
@@ -607,6 +609,96 @@ class MeshLodder {
             const geometry = BufferGeometryUtils.mergeBufferGeometries(queue);
             return geometry;
           };
+          const _diceGeometry2 = g => {
+            const geometryToBeCut = g.clone(); // new THREE.BoxGeometry();
+            // const geometryToBeCut = new THREE.TorusKnotGeometry(); geometryToBeCut.scale(0.5, 0.5, 0.5);
+            /* const material = new THREE.MeshStandardMaterial({
+              map,
+              side: THREE.DoubleSide,
+            }); */
+            /* const meshToBeCut = new THREE.Mesh(geometryToBeCut, material)
+            meshes.push(meshToBeCut);
+            // app.add(meshToBeCut)
+            meshToBeCut.updateMatrixWorld() */
+
+            const getCutGeometries = (geometry, plane) => {
+              const res = physicsManager.cutMesh(
+                geometry.attributes.position.array, 
+                geometry.attributes.position.count * 3, 
+                geometry.attributes.normal.array, 
+                geometry.attributes.normal.count * 3, 
+                geometry.attributes.uv.array,
+                geometry.attributes.uv.count * 2,
+                geometry.index?.array, // Set to falsy to indicate that this is an non-indexed geometry
+                geometry.index?.count, 
+
+                plane.normal.toArray(), 
+                plane.constant,
+              )
+
+              const positions0 = res.outPositions.slice(0, res.numOutPositions[0])
+              const positions1 = res.outPositions.slice(res.numOutPositions[0], res.numOutPositions[0] + res.numOutPositions[1])
+
+              const normals0 = res.outNormals.slice(0, res.numOutNormals[0])
+              const normals1 = res.outNormals.slice(res.numOutNormals[0], res.numOutNormals[0] + res.numOutNormals[1])
+
+              const uvs0 = res.outUvs.slice(0, res.numOutUvs[0])
+              const uvs1 = res.outUvs.slice(res.numOutUvs[0], res.numOutUvs[0] + res.numOutUvs[1])
+
+              const geometry0 = new THREE.BufferGeometry()
+              geometry0.setAttribute('position', new THREE.Float32BufferAttribute(positions0, 3))
+              geometry0.setAttribute('normal', new THREE.Float32BufferAttribute(normals0, 3))
+              geometry0.setAttribute('uv', new THREE.Float32BufferAttribute(uvs0, 2))
+              geometry0.setAttribute('uv2', new THREE.Float32BufferAttribute(uvs0.slice(), 2))
+
+              const geometry1 = new THREE.BufferGeometry()
+              geometry1.setAttribute('position', new THREE.Float32BufferAttribute(positions1, 3))
+              geometry1.setAttribute('normal', new THREE.Float32BufferAttribute(normals1, 3))
+              geometry1.setAttribute('uv', new THREE.Float32BufferAttribute(uvs1, 2))
+              geometry1.setAttribute('uv2', new THREE.Float32BufferAttribute(uvs1.slice(), 2))
+
+              return [geometry0, geometry1];
+            }
+
+            const geometries2Parts = getCutGeometries(geometryToBeCut, new THREE.Plane(
+              new THREE.Vector3(1, 0, 0).normalize(),
+              0,
+            ));
+
+            const geometries4Parts = [];
+            geometries2Parts.forEach(geometryToBeCut => {
+              const geometries = getCutGeometries(geometryToBeCut, new THREE.Plane(
+                new THREE.Vector3(0, 1, 0).normalize(),
+                0,
+              ));
+              geometries4Parts.push(...geometries);
+            });
+
+            const geometries8Parts = [];
+            geometries4Parts.forEach(geometryToBeCut => {
+              const geometries = getCutGeometries(geometryToBeCut, new THREE.Plane(
+                new THREE.Vector3(0, 0, 1).normalize(),
+                0,
+              ));
+              geometries8Parts.push(...geometries);
+            });
+
+            //
+
+            // console.log('got 8 parts', geometries8Parts);
+            geometries8Parts.forEach((geometry, i) => {
+              // const mesh = new THREE.Mesh(geometry, material);
+              // meshes.push(mesh);
+              const x = i < 4 ? -0.5 : 0.5;
+              const y = i % 4 < 2 ? -0.5 : 0.5;
+              const z = i % 2 < 1 ? -0.5 : 0.5;
+              // mesh.position.set(x - 3, y, z);
+              geometry.translate(x - 3, y, z);
+              // app.add(mesh);
+              // mesh.updateMatrixWorld();
+            });
+            return BufferGeometryUtils.mergeBufferGeometries(geometries8Parts);
+          };
           const _postProcessGeometryUvs = geometry => {
             _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, 0, g.attributes.uv.count);
             _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, 0, g.attributes.uv2.count);
@@ -637,7 +729,7 @@ class MeshLodder {
                 count: g.index.count,
               },
               cloneItemDiceMesh: () => { // XXX should be broken out to its own module
-                const geometry = _diceGeometry(g);
+                const geometry = _diceGeometry2(g);
                 _postProcessGeometryUvs(geometry);
                 const mesh = _makeItemMesh(geometry);
                 return mesh;

@@ -18,16 +18,19 @@ export default (app, component) => {
   let wearSpec = null;
   let modelBones = null;
   let appAimAnimationMixers = null;
+  let player = null;
 
   const initialScale = app.scale.clone();
 
-  const localPlayer = metaversefile.useLocalPlayer();
+  // const localPlayer = metaversefile.useLocalPlayer();
 
   const wearupdate = e => {
     if (e.wear) {
+      player = e.player;
+
       wearSpec = app.getComponent('wear');
       initialScale.copy(app.scale);
-      // console.log('activate component', app, wear);
+      // console.log('wear activate', app, wearSpec, e);
       if (wearSpec) {
         // const {app, wearSpec} = e.data;
         // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
@@ -45,7 +48,7 @@ export default (app, component) => {
                 skinnedMesh = o;
               }
             });
-            if (skinnedMesh && localPlayer.avatar) {
+            if (skinnedMesh && player.avatar) {
               app.position.set(0, 0, 0);
               app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
               app.scale.copy(initialScale)//.multiplyScalar(wearableScale);
@@ -153,10 +156,9 @@ export default (app, component) => {
   };
   app.addEventListener('wearupdate', wearupdate);
   app.addEventListener('destroy', () => {
-    const localPlayer = metaversefile.useLocalPlayer();
     const remotePlayers = metaversefile.useRemotePlayers();
     const {npcs} = npcManager;
-    const players = [localPlayer]
+    const players = [player]
       .concat(remotePlayers)
       .concat(npcs);
     for (const player of players) {
@@ -187,7 +189,7 @@ export default (app, component) => {
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
     const boneName = Avatar.modelBoneRenames[boneAttachment];
-    const bone = localPlayer.avatar.foundModelBones[boneName];
+    const bone = player.avatar.foundModelBones[boneName];
     if (bone) {
       bone.matrixWorld
         .decompose(app.position, app.quaternion, app.scale);
@@ -201,18 +203,19 @@ export default (app, component) => {
         app.scale.multiply(localVector.fromArray(scale));
       }
       app.updateMatrixWorld();
+
+      // console.log('copy bone attachment', app, app.position.toArray().join(','), bone);
     } else {
       console.warn('invalid bone attachment', {app, boneAttachment});
     }
   };
   const frame = metaversefile.useFrame(({timestamp, timeDiff}) => {
-    // const localPlayer = metaversefile.useLocalPlayer();
-    if (wearSpec && localPlayer.avatar) {
+    if (wearSpec && player.avatar) {
       const {instanceId} = app;
 
       // animations
       if (app.glb) {
-        const appAimAction = Array.from(localPlayer.getActionsState())
+        const appAimAction = Array.from(player.getActionsState())
           .find(action => action.type === 'aim' && action.instanceId === instanceId);
         const {animations} = app.glb;
 
@@ -250,18 +253,18 @@ export default (app, component) => {
       }
       // bone bindings
       {
-        const appUseAction = Array.from(localPlayer.getActionsState())
+        const appUseAction = Array.from(player.getActionsState())
           .find(action => action.type === 'use' && action.instanceId === instanceId);
         if (appUseAction?.boneAttachment && wearSpec.boneAttachment) {
           _copyBoneAttachment(appUseAction);
         } else {
-          const appAimAction = Array.from(localPlayer.getActionsState())
+          const appAimAction = Array.from(player.getActionsState())
             .find(action => action.type === 'aim' && action.instanceId === instanceId);
           if (appAimAction?.boneAttachment && wearSpec.boneAttachment) {
             _copyBoneAttachment(appAimAction);
           } else {
             if (modelBones) {
-              Avatar.applyModelBoneOutputs(modelBones, localPlayer.avatar.modelBoneOutputs, localPlayer.avatar.getTopEnabled(), localPlayer.avatar.getBottomEnabled(), localPlayer.avatar.getHandEnabled(0), localPlayer.avatar.getHandEnabled(1));
+              Avatar.applyModelBoneOutputs(modelBones, player.avatar.modelBoneOutputs, player.avatar.getTopEnabled(), player.avatar.getBottomEnabled(), player.avatar.getHandEnabled(0), player.avatar.getHandEnabled(1));
               modelBones.Root.updateMatrixWorld();
             } else if (wearSpec.boneAttachment) {
               _copyBoneAttachment(wearSpec);
