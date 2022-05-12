@@ -357,7 +357,6 @@ class PlayerBase extends THREE.Object3D {
         });
         app.dispatchEvent({
           type: "wearupdate",
-          player: this,
           wear: true,
           loadoutIndex,
         });
