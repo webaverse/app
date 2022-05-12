@@ -3,11 +3,11 @@
     {
       "type": "application/spawnpoint",
       "content": {
-        "position": [-85.7,105,40],
+        "position": [-85.7,108,40],
         "quaternion": [0, 0.0,0, 0.0]
       }
     },
-     {
+    {
       "type": "application/light",
       "content": {
         "lightType": "ambient",
@@ -18,7 +18,7 @@
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[255, 255, 255], 5],
+        "args": [[255, 255, 255], 2],
         "position": [1, 100, 3],
         "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }
@@ -27,100 +27,28 @@
     {
       "position": [
         0,
-        100,
-        -5
-      ],
-      "start_url": "https://tcm390.github.io/mist/"
-    },
-    {
-      "position": [
-        0,
-        2,
-        50
-      ],
-      "physics": true,
-      "start_url": "https://tcm390.github.io/campfire/"
-    },
-    {
-      "position": [
-        0,
-        2,
-        50
-      ],
-      "physics": true,
-      "start_url": "https://tcm390.github.io/temp-greenhill-effect/"
-    },
-    {
-      "position": [
-        0,
         0,
         0
       ],
       "start_url": "https://webaverse.github.io/aurora-sky/"
     },
-    
-    
     {
       "position": [
         0,
-        50,
+        0,
         0
       ],
       "physics": true,
-      "start_url": "https://tcm390.github.io/greenhill/greenhill.glb",
+      "start_url": "https://webaverse.github.io/green-hill/",
       "dynamic": false
     },
-    {
-      "position": [-75.1,101,40.5],
-      "scale":[0.45,0.45,0.45],
-      "physics": true,
-      "start_url": "https://tcm390.github.io/temp_glb/campfire.glb",
-      "dynamic": false
-    },
-    {
-      "position": [-73.1,93.2,40.5],
-      "scale":[0.5,0.5,0.5],
-      "physics": true,
-      "start_url": "https://tcm390.github.io/temp_glb/camp.glb",
-      "dynamic": false
-    },
-    {
-      "position": [-78.1,101.2,43.5],
-      "physics": true,
-      "start_url": "https://tcm390.github.io/temp_glb/chest.glb",
-      "dynamic": false
-    },
-    {
-      "position": [-80.1,101.2,38.5],
-      "physics": true,
-      "start_url": "https://tcm390.github.io/temp_glb/half-tree.glb",
-      "dynamic": false
-    },
-    
     {
       "position": [
-        35,
-        49.5,
-        -30
+        0,
+        0,
+        0
       ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/hovercraft/"
-    },
-     {
-      "position": [-78.2,102.4,38.5],
-      "scale":[0.06,0.06,0.06],
-      "quaternion": [
-        0,
-        0,
-        2.7,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/sword/"
+      "start_url": "https://webaverse.github.io/dynamic-water/"
     }
     
   ]

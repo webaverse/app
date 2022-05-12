@@ -1,6 +1,12 @@
 {
   "objects": [
-
+{
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [14.63, 4 ,-5.37],
+        "quaternion": [0, 0.0,0, 0.0]
+      }
+    },
   {
       "type": "application/light",
       "content": {
@@ -52,9 +58,9 @@
         0
       ],
       "scale": [
-        10,
-       10,
-        10
+        1.5,
+       1.5,
+        1.5
       ],
       "physics": false,
       "start_url": "https://webaverse.github.io/sci-fi_neon_model/",
