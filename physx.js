@@ -723,7 +723,12 @@ const physxWorker = (() => {
   w.raycastPhysics = (physics, p, q) => {
     if (physics) {
       p.toArray(scratchStack.f32, 0)
-      localVector.set(0, 0, -1).applyQuaternion(q).toArray(scratchStack.f32, 3)
+      if (q.isQuaternion) {
+        localVector.set(0, 0, -1).applyQuaternion(q)
+      } else if (q.isVector3) {
+        localVector.copy(q)
+      }
+      localVector.toArray(scratchStack.f32, 3)
       // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       // localVector.set(0, 0, 0).toArray(scratchStack.f32, 6);
       // localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 9);
