@@ -1,5 +1,12 @@
 {
   "objects": [
+  {
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [-8, -4 ,-52],
+        "quaternion": [0, 0.0,0, 0.0]
+      }
+    },
     {
       "type": "application/light",
       "content": {
