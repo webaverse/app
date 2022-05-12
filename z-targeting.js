@@ -203,13 +203,13 @@ class ZTargeting extends THREE.Object3D {
     if (cameraManager.focus) {
       this.handleUp();
     } else {
-      this.handleDown(localPlayer);
+      // this.handleDown(localPlayer);
       
-      if (this.queryResults.results.length === 0) {
-        setTimeout(() => {
-          this.handleUp();
-        }, 300);
-      }
+      // if (this.queryResults.results.length === 0) {
+      //   setTimeout(() => {
+      //     this.handleUp();
+      //   }, 300);
+      // }
     }
   }
 }
