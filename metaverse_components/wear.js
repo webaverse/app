@@ -21,6 +21,7 @@ export default (app, component) => {
   let appAimAnimationMixers = null;
 
   const initialScale = app.scale.clone();
+  const initialQuaternion = new THREE.Quaternion();
 
   let localPlayer = metaversefile.useLocalPlayer();
   let lastWornApp = null;
@@ -170,7 +171,7 @@ export default (app, component) => {
         }
       }
     } else {
-      _unwear();
+      _unwear(e);
     }
   };
   app.addEventListener("wearupdate", wearupdate);
@@ -189,7 +190,8 @@ export default (app, component) => {
     }
   });
 
-  const _unwear = () => {
+  const _unwear = (e) => {
+    console.log('unwear called by e', e)
     if (wearSpec) {
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
@@ -197,8 +199,22 @@ export default (app, component) => {
       }
 
       app.scale.copy(initialScale);
-      app.updateMatrixWorld();
+      app.quaternion.copy(initialQuaternion);
 
+      // Place the app in front of the player when they drop it, and reset the position
+      {
+        const localPlayer = metaversefile.useLocalPlayer();
+        const avatar = localPlayer.avatar;
+        const height = avatar.height;
+        const forward = new THREE.Vector3();
+        localPlayer.getWorldDirection(forward);
+        forward.setY(0);
+        forward.normalize();
+        const depthFactor = 1;
+        app.position.set(localPlayer.position.x - forward.x * depthFactor, height / 2, localPlayer.position.z - forward.z * depthFactor);
+      }
+
+      app.updateMatrixWorld();
       wearSpec = null;
       modelBones = null;
     }
