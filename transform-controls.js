@@ -63,7 +63,7 @@ const transformControls = {
     binding = o;
   }, */
   handleMouseDown(raycaster) {
-    this.transformAxis = this.transformGizmo.selectAxisWithRaycaster(raycaster);
+    this.transformAxis = this.transformGizmo?.selectAxisWithRaycaster(raycaster);
     if (this.transformAxis) {
       console.log('yes transform axis');
       
