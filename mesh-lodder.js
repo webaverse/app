@@ -105,6 +105,7 @@ class MeshLodder {
 
     this.contentIndex = {};
     this.itemRegistry = [];
+    window.itemRegistry = this.itemRegistry;
     this.shapeSpecs = {};
     this.shapeAddresses = {};
     this.physicsObjects = [];
@@ -444,9 +445,11 @@ class MeshLodder {
   }
   update() {
     if (this.compiled) {
+      // console.log('compiled')
       const currentCoord = this.#getCurrentCoord(localVector2D);
       
       if (!currentCoord.equals(this.lastChunkCoord)) {
+        // console.log('currentCoord')
         this.lastChunkCoord.copy(currentCoord);
 
         const {geometry} = this.mesh;
@@ -610,6 +613,7 @@ class MeshLodder {
             return geometry;
           };
           const _diceGeometry2 = g => {
+            // console.log('_diceGeometry2')
             const geometryToBeCut = g.clone(); // new THREE.BoxGeometry();
             // const geometryToBeCut = new THREE.TorusKnotGeometry(); geometryToBeCut.scale(0.5, 0.5, 0.5);
             /* const material = new THREE.MeshStandardMaterial({
@@ -729,6 +733,7 @@ class MeshLodder {
                 count: g.index.count,
               },
               cloneItemDiceMesh: () => { // XXX should be broken out to its own module
+                // console.log('cloneItemDiceMesh')
                 const geometry = _diceGeometry2(g);
                 _postProcessGeometryUvs(geometry);
                 const mesh = _makeItemMesh(geometry);
@@ -755,6 +760,7 @@ class MeshLodder {
             };
             this.itemRegistry.push(item);
           };
+          // console.log('_addItemToRegistry')
           _addItemToRegistry();
 
           const _mapOffsettedPositions = (g, geometry) => {
