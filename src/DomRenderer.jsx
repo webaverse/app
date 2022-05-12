@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import gameManager from '../game.js';
 import {camera} from '../renderer.js';
+import cameraManager from '../camera-manager.js';
 import {localPlayer} from '../players.js';
-// import metaversefile from 'metaversefile';
 
 // import {CharacterBanner} from './CharacterBanner.jsx';
 import domRenderEngine, {DomRenderEngine} from '../dom-renderer.jsx';
@@ -246,7 +246,7 @@ const DomRendererChildren = ({
 const DomRenderer = props => {
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   const [innerHeight, setInnerHeight] = useState(window.innerHeight);
-  const [fov, setFov] = useState(_getFov());
+  const [fov, setFov] = useState(_getFov);
   const iframeContainerRef = useRef();
 
   useEffect(() => {
@@ -256,8 +256,14 @@ const DomRenderer = props => {
       setFov(_getFov());
     };
     window.addEventListener('resize', resize);
+    const fovchange = (/*e*/) => {
+      // const {fov} = e.data;
+      setFov(_getFov());
+    };
+    cameraManager.addEventListener('fovchange', fovchange);
     return () => {
       window.removeEventListener('resize', resize);
+      cameraManager.removeEventListener('fovchange', fovchange);
     };
   }, []);
 
