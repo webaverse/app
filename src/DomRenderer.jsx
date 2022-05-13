@@ -11,7 +11,7 @@ import domRenderEngine, {DomRenderEngine} from '../dom-renderer.jsx';
 const floatFactor = 0.05;
 const floatTime = 3000;
 const transtionTime = 1000;
-const scaleEpsilon = 0.01;
+const scaleEpsilon = 0.02;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
