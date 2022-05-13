@@ -3,7 +3,7 @@
     {
       "type": "application/spawnpoint",
       "content": {
-        "position": [-85.7,105,40],
+        "position": [-85.7,108,40],
         "quaternion": [0, 0.0,0, 0.0]
       }
     },

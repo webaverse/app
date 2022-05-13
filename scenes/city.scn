@@ -1,6 +1,12 @@
 {
   "objects": [
-
+{
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [17.61, 8 ,11.18],
+        "quaternion": [0, 0.0,0, 0.0]
+      }
+    },
   {
       "type": "application/light",
       "content": {
@@ -40,9 +46,9 @@
         0
       ],
       "scale": [
-        0.004,
-        0.004,
-        0.004
+        0.002,
+        0.002,
+        0.002
       ],
       "physics": false,
       "start_url": "https://webaverse.github.io/city-scene/",
