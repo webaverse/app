@@ -285,9 +285,9 @@ const DomRenderer = props => {
         width: `${innerWidth}px`,
         height: `${innerHeight}px`,
         perspective: `${fov}px`,
-        pointerEvents: 'none',
-        userSelect: 'none',
-        zIndex: -1,
+        // pointerEvents: 'none',
+        // userSelect: 'none',
+        // zIndex: -1,
       }}
       ref={iframeContainerRef}
     >
