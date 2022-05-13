@@ -10,3 +10,6 @@
 .hotbar.open {
     transform: translateY(calc(-100vh + 160px));
 }
+.hotbar.hiddenUI {
+    transform: translateY( 120% );
+}

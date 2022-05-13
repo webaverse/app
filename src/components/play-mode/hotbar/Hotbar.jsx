@@ -10,7 +10,7 @@ import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io
 import {hotbarSize, numLoadoutSlots} from '../../../../constants.js';
 
 export const Hotbar = () => {
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, uiMode } = useContext( AppContext );
     const open =  state.openedPanel === 'CharacterPanel';
 
     useEffect(() => {
@@ -60,7 +60,7 @@ export const Hotbar = () => {
 
     return (
         <div
-            className={ classnames(styles.hotbar, open ? styles.open : null) }
+            className={ classnames(styles.hotbar, open ? styles.open : null, uiMode === 'none' ? styles.hiddenUI : null) }
             onClick={onTopClick}
         >
 
