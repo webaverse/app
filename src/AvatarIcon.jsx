@@ -108,7 +108,7 @@ const CharacterIcon = () => {
 };
 
 export const AvatarIcon = () => {
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, uiMode } = useContext( AppContext );
 
     const handleCharacterBtnClick = () => {
 
@@ -124,7 +124,7 @@ export const AvatarIcon = () => {
 
     return (
         <div
-            className={styles.avatarIcon}
+            className={ classnames( styles.avatarIcon, uiMode === 'none' ? styles.hiddenUI : null ) }
             onClick={handleCharacterBtnClick}
         >
             {/* <a href="/" className={styles.logo}>

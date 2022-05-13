@@ -31,6 +31,7 @@ import QuickMenu from '../../QuickMenu.jsx';
 
 import styles from './App.module.css';
 import '../../fonts.css';
+import classNames from 'classnames';
 
 //
 
@@ -89,6 +90,7 @@ const useWebaverseApp = (() => {
 export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
+    const [ uiMode, setUIMode ] = useState( 'normal' );
 
     const canvasRef = useRef( null );
     const app = useWebaverseApp();
@@ -124,6 +126,31 @@ export const App = () => {
         }
 
     }, [ state.openedPanel ] );
+
+    useEffect( () => {
+
+        const handleKeyDown = ( event ) => {
+
+            if ( event.ctrlKey && event.code === 'KeyH' ) {
+
+                setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
+                return false;
+
+            }
+
+            return true;
+
+        };
+
+        registerIoEventHandler( 'keydown', handleKeyDown );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keydown', handleKeyDown );
+
+        };
+
+    }, [ uiMode ] );
 
     useEffect( () => {
 
@@ -221,17 +248,17 @@ export const App = () => {
 
     return (
         <div
-            className={ styles.App }
+            className={ classNames( styles.App, uiMode === 'normal' ? styles.normalUIMode : styles.noneUIMode ) }
             id="app"
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
-                <ActionMenu />
+                <ActionMenu setUIMode={ setUIMode } />
                 <Settings />
                 <WorldObjectsList
                     setSelectedApp={ setSelectedApp }

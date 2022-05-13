@@ -8,9 +8,9 @@ import styles from './action-menu.module.css';
 
 //
 
-export const ActionMenu = () => {
+export const ActionMenu = ({ setUIMode }) => {
 
-    const { state, setState, app } = useContext( AppContext );
+    const { state, setState, app, uiMode } = useContext( AppContext );
     const [ xrSupported, setXrSupported ] = useState( false );
 
     //
@@ -41,7 +41,7 @@ export const ActionMenu = () => {
 
     const handleModeBtnClick = () => {
 
-        // todo
+        setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
 
     };
 
@@ -64,7 +64,7 @@ export const ActionMenu = () => {
     //
 
     return (
-        <div className={ styles.actionMenu } onClick={ stopPropagation } >
+        <div className={ classnames( styles.actionMenu, uiMode === 'none' ? styles.hiddenUI : null ) } onClick={ stopPropagation } >
 
             <div className={ classnames( styles.btn, state.openedPanel === 'WorldPanel' ? styles.wpOpened : null ) } onClick={ handleWorldBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
@@ -81,7 +81,7 @@ export const ActionMenu = () => {
             </div>
             <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
-                <span className={ styles.text } >隠れる Hide</span>
+                <span className={ styles.text } >隠れる { uiMode === 'normal' ? 'Hide' : 'Show' }</span>
             </div>
             <div className={ classnames( styles.btn, styles.vr, xrSupported ? null : styles.disabled ) } onClick={ handleVRBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />

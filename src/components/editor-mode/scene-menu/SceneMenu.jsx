@@ -25,7 +25,7 @@ sceneNames.forEach( ( name ) => {
 
 export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, uiMode } = useContext( AppContext );
     const sceneNameInputRef = useRef( null );
     const [ rooms, setRooms ] = useState([]);
     const [ micEnabled, setMicEnabled ] = useState( false );
@@ -261,7 +261,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     //
 
     return (
-        <div className={ styles.location } onClick={ stopPropagation } >
+        <div className={ classnames( styles.location, uiMode === 'none' ? styles.hiddenUI : null ) } onClick={ stopPropagation } >
             <div className={ styles.row }>
                 <div className={ styles.buttonWrap } onClick={ handleSceneMenuOpen.bind( this, null ) } >
                     <button className={ classnames( styles.button, styles.primary, state.openedPanel === 'SceneMenuPanel' ? null : styles.disabled ) } >

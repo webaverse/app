@@ -1,6 +1,9 @@
 
-import React, {useState, useRef, useEffect} from 'react';
+import classNames from 'classnames';
+import React, {useState, useRef, useEffect, useContext} from 'react';
+
 import minimapManager from '../../../../minimap.js';
+import { AppContext } from '../../app/index.jsx';
 
 import styles from './minimap.module.css';
 
@@ -14,6 +17,8 @@ const minimapMinZoom = 0.1;
 const minimapBaseSpeed = 30;
 
 export const Minimap = () => {
+
+    const { uiMode } = useContext( AppContext );
     const canvasRef = useRef();
 
     useEffect(() => {
@@ -34,7 +39,7 @@ export const Minimap = () => {
       }, [canvasRef.current]);
 
     return (
-        <div className={ styles.locationMenu } >
+        <div className={ classNames( styles.locationMenu, uiMode === 'none' ? styles.hiddenUI : null ) } >
 
             <canvas width={canvasSize} height={canvasSize} className={ styles.map } ref={canvasRef} />
 
