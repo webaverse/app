@@ -400,6 +400,7 @@ const _getNextUseIndex = animationCombo => {
   }
 }
 const _startUse = () => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
   const wearApp = loadoutManager.getSelectedApp();
   if (wearApp) {
     const useComponent = wearApp.getComponent('use');
@@ -1147,6 +1148,7 @@ class GameManager extends EventTarget {
     _mouseup();
   }
   menuAim() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
       const wearApp = loadoutManager.getSelectedApp();
       const wearAimApp = (() => {

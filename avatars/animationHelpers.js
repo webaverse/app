@@ -1015,38 +1015,35 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           // isTop,
+          isArm,
           isPosition,
         } = spec;
 
-        const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
         _handleDefault(spec);
-        const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
-        if (!isPosition) {
-          if (aimAnimation) {
+
+        const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
+        if (aimAnimation) {
+          const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
+          const transitionFactor = Math.min(1, avatar.aimTime / 200);
+          if (!isPosition) {
             const src2 = aimAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
+            localQuaternion2.fromArray(v2);
 
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
+            if (isArm) {
+              dst.slerp(localQuaternion2, transitionFactor * 0.5);
+            } else {
+              const t = (0.5 - idleWalkFactor * 0.5) * transitionFactor;
+              dst.slerp(localQuaternion2, t);
+            }
+          } else {
+            const src2 = aimAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            localVector2.fromArray(v2);
+            _clearXZ(localVector2, isPosition);
 
-            dst
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
+            dst.lerp(localVector2, crouchFactor * transitionFactor);
           }
-        } else {
-          const src2 = aimAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          dst
-            .sub(localVector2.fromArray(v3))
-            .add(localVector2.fromArray(v2));
         }
       };
     } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
