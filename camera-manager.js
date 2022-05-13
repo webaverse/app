@@ -484,6 +484,9 @@ class CameraManager extends EventTarget {
         localVector3.set(0, 0, -1),
         localVector.copy(window.npcPlayers[0].position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
       )
+      localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
+      localEuler.x = camera.rotation.x;
+      this.targetQuaternion.setFromEuler(localEuler);
     }
 
     const renderer = getRenderer();

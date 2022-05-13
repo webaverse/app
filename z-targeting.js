@@ -209,9 +209,13 @@ class ZTargeting extends THREE.Object3D {
   toggle() {
     // window.isCombatFocus = true;
 
+    if (localPlayer.combatTargetEnabled) {
+      localPlayer.combatTargetEnabled = false;
+    } else {
       cameraManager.focusCamera(window.npcPlayers[0].position);
       localPlayer.combatTarget.copy(window.npcPlayers[0].position);
       localPlayer.combatTargetEnabled = true;
+    }
 
 
     // if (cameraManager.focus) {
