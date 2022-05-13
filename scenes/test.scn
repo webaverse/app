@@ -17,7 +17,7 @@
     },
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/grid/" },
     { "position": [ -20, 0, 5 ], "scale": [7, 7, 7], "start_url": "http://localhost/lib/webaverse_resource/ramp/" },
-    { "position": [0, 1, -1], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
+    { "position": [0, 1, 10], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
     {
       "position": [ 0, 3, -5 ],
       "quaternion": [ 0, 1, 0, 0 ],
