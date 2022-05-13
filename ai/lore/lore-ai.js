@@ -317,7 +317,7 @@ class LoreAI {
     query.characterList = characters;
     query.conversationLogs = messages;
 
-    console.log("ConvAi Request Body: ", query);
+    // console.log("ConvAi Request Body: ", query);
     let response = await fetch(
       actionGenerationURl,
       {
@@ -330,7 +330,7 @@ class LoreAI {
     ).then((response) => 
       response.json()
     ).then((response) => {
-      console.log("ConvAI Response: ", response);
+      // console.log("ConvAI Response: ", response);
       return response['response'];
     })
     .catch((error) =>{
