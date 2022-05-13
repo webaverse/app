@@ -125,9 +125,21 @@ export const App = () => {
 
         }
 
+        if ( state.openedPanel ) {
+
+            setUIMode( 'normal' );
+
+        }
+
     }, [ state.openedPanel ] );
 
     useEffect( () => {
+
+        if ( uiMode === 'none' ) {
+
+            setState({ openedPanel: null });
+
+        }
 
         const handleKeyDown = ( event ) => {
 
