@@ -499,22 +499,11 @@ class MeshLodder {
             const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
 
             this.physicsObjects.push(physicsObject);
-
-            // return shape;
           };
           _addPhysicsShape();
 
           const _diceGeometry = g => {
-            const geometryToBeCut = g; // new THREE.BoxGeometry();
-            // const geometryToBeCut = new THREE.TorusKnotGeometry(); geometryToBeCut.scale(0.5, 0.5, 0.5);
-            /* const material = new THREE.MeshStandardMaterial({
-              map,
-              side: THREE.DoubleSide,
-            }); */
-            /* const meshToBeCut = new THREE.Mesh(geometryToBeCut, material)
-            meshes.push(meshToBeCut);
-            // app.add(meshToBeCut)
-            meshToBeCut.updateMatrixWorld() */
+            const geometryToBeCut = g;
 
             const getCutGeometries = (geometry, plane) => {
               const res = physicsManager.cutMesh(
@@ -524,7 +513,7 @@ class MeshLodder {
                 geometry.attributes.normal.count * 3, 
                 geometry.attributes.uv.array,
                 geometry.attributes.uv.count * 2,
-                geometry.index?.array, // Set to falsy to indicate that this is an non-indexed geometry
+                geometry.index?.array,
                 geometry.index?.count, 
 
                 plane.normal.toArray(), 
@@ -580,17 +569,11 @@ class MeshLodder {
 
             //
 
-            // console.log('got 8 parts', geometries8Parts);
             geometries8Parts.forEach((geometry, i) => {
-              // const mesh = new THREE.Mesh(geometry, material);
-              // meshes.push(mesh);
               const x = i < 4 ? -0.5 : 0.5;
               const y = i % 4 < 2 ? -0.5 : 0.5;
               const z = i % 2 < 1 ? -0.5 : 0.5;
-              // mesh.position.set(x - 3, y, z);
               geometry.translate(x, y, z);
-              // app.add(mesh);
-              // mesh.updateMatrixWorld();
             });
             return BufferGeometryUtils.mergeBufferGeometries(geometries8Parts);
           };
