@@ -106,50 +106,6 @@ class AppManager extends EventTarget {
   bindState(nextAppsArray) {
     const observe = (e) => {
       const { added, deleted } = e.changes;
-      for (const item of deleted.values()) {
-        const appMap = item.content.type;
-        const instanceId =
-          item.content.type._map.get('instanceId').content.arr[0]; // needed to get the old data
-
-        const app = this.getAppByInstanceId(instanceId);
-        let migrated = false;
-        const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
-
-        if (peerOwnerAppManager) {
-          console.log('detected migrate app 1', instanceId, appManagers.length);
-          const e = new MessageEvent('trackedappexport', {
-            data: {
-              instanceId,
-              app,
-              sourceAppManager: this,
-              destinationAppManager: peerOwnerAppManager,
-            },
-          });
-          this.dispatchEvent(e);
-          peerOwnerAppManager.dispatchEvent(e);
-          migrated = true;
-          
-          if(app.getComponent('wear') && this.callBackFn) {
-            this.callBackFn(app, 'wear', 'remove')
-          }
-          break;
-        }
-
-        // console.log('detected remove app 2', instanceId, appManagers.length);
-
-        if (!migrated) {
-          // console.log('detected remove app 3', instanceId, appManagers.length);
-
-          this.dispatchEvent(
-            new MessageEvent('trackedappremove', {
-              data: {
-                instanceId,
-                app,
-              },
-            })
-          );
-        }
-      }
       for (const item of added.values()) {
         let appMap = item.content.type;
         if (appMap.constructor === Object) {
@@ -184,6 +140,49 @@ class AppManager extends EventTarget {
           // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
           this.dispatchEvent(
             new MessageEvent('trackedappadd', {
+              data: {
+                trackedApp,
+              },
+            })
+          );
+        }
+      }
+      for (const item of deleted.values()) {
+        const appMap = item.content.type;
+        const instanceId =
+          item.content.type._map.get('instanceId').content.arr[0]; // needed to get the old data
+
+        const app = this.getAppByInstanceId(instanceId);
+        let migrated = false;
+        const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
+
+        if (peerOwnerAppManager) {
+          // console.log('detected migrate app 1', instanceId, appManagers.length);
+          const e = new MessageEvent('trackedappexport', {
+            data: {
+              instanceId,
+              app,
+              sourceAppManager: this,
+              destinationAppManager: peerOwnerAppManager,
+            },
+          });
+          this.dispatchEvent(e);
+          peerOwnerAppManager.dispatchEvent(e);
+          migrated = true;
+          
+          if(app.getComponent('wear') && this.callBackFn) {
+            this.callBackFn(app, 'wear', 'remove')
+          }
+          break;
+        }
+
+        // console.log('detected remove app 2', instanceId, appManagers.length);
+
+        if (!migrated) {
+          // console.log('detected remove app 3', instanceId, appManagers.length);
+
+          this.dispatchEvent(
+            new MessageEvent('trackedappremove', {
               data: {
                 trackedApp,
               },
@@ -625,6 +624,7 @@ class AppManager extends EventTarget {
 
     if (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) {
       if(this.isBound()){
+        console.warn("Calling unbind tracked app, but the app is already unbound:", instanceId)
         this.unbindTrackedApp(instanceId);
       }
 
