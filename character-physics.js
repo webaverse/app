@@ -105,6 +105,7 @@ class CharacterPhysics {
           localVector8.copy(destVector).sub(distanceVector);
         }
         localVector3.addVectors(localVector7, localVector8);
+        localVector3.normalize().multiplyScalar(moveDistance);
         localVector3.y = this.velocity.y * timeDiffS;
       } else {
         localVector3.copy(this.velocity)
