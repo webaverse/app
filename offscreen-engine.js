@@ -1,5 +1,5 @@
 import {getRandomString} from './util.js';
-import {inappPreviewHost} from './constants.js';
+import {checkOriginAllow, inappPreviewHost} from './constants.js';
 
 class OffscreenEngine {
   constructor() {
@@ -18,6 +18,7 @@ class OffscreenEngine {
 
     const setport = new Promise((resolve, reject) => {
       const message = (e) => {
+        checkOriginAllow(e.origin);
         if (e.data?.method === 'engineReady' && e.data.id === id && e.data.port instanceof MessagePort){
           window.removeEventListener('message', message);
           resolve(e.data.port);
