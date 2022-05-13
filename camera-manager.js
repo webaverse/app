@@ -476,7 +476,6 @@ class CameraManager extends EventTarget {
     this.lastTimestamp = timestamp;
   }
   updatePost(timestamp, timeDiff) {
-    debugger
     this.targetQuaternion.copy(camera.quaternion);
     const renderer = getRenderer();
     const session = renderer.xr.getSession();

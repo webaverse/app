@@ -171,6 +171,8 @@ class PlayerBase extends THREE.Object3D {
 
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
+    this.combatTarget = new THREE.Vector3();
+    this.combatTargetEnabled = false;
     this.voicePack = null;
     this.voiceEndpoint = null;
   }

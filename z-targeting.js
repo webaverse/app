@@ -188,8 +188,11 @@ class ZTargeting extends THREE.Object3D {
       const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
       // cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
       if (remoteApp) {
+        debugger
         // cameraManager.setCombatTarget(remoteApp);
-        cameraManager.focusCamera(remoteApp.position);
+        cameraManager.focusCamera(remoteApp.position); // todo: can't use reomteApp.position, need find npcPlayer etc.
+        localPlayer.combatTarget.copy(remoteApp.position);
+        localPlayer.combatTargetEnabled = true;
       }
     // }
   }
@@ -204,11 +207,17 @@ class ZTargeting extends THREE.Object3D {
     }
   }
   toggle() {
-    window.isCombatFocus = true;
+    // window.isCombatFocus = true;
+
+      cameraManager.focusCamera(window.npcPlayers[0].position);
+      localPlayer.combatTarget.copy(window.npcPlayers[0].position);
+      localPlayer.combatTargetEnabled = true;
+
+
     // if (cameraManager.focus) {
     //   this.handleUp();
     // } else {
-    //   this.handleDown(localPlayer);
+      // this.handleDown(localPlayer);
       
     //   if (this.queryResults.results.length === 0) {
     //     setTimeout(() => {

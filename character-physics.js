@@ -18,6 +18,7 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
+const localVector6 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localEuler = new THREE.Euler();
@@ -81,8 +82,24 @@ class CharacterPhysics {
       // console.log('apply avatar physics', this.player);
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.velocity)
-        .multiplyScalar(timeDiffS);
+
+      if (this.player.combatTargetEnabled) {
+        const arcLength = localVector.copy(this.velocity).setY(0).length() * timeDiffS;
+        debugger
+        const playerPosition = localVector.copy(this.player.position).setY(0);
+        const targetPosition = localVector2.copy(this.player.combatTarget).setY(0)
+        const startVector = localVector4.copy(playerPosition).sub(targetPosition);
+        const radius = startVector.length();
+        const radian = arcLength / radius;
+        const destVector = localVector5.copy(startVector).applyAxisAngle(localVector6.set(0, 1, 0), radian);
+        localVector3.copy(destVector).sub(startVector);
+        localVector3.y = this.velocity.y * timeDiffS;
+      } else {
+        localVector3.copy(this.velocity)
+          .multiplyScalar(timeDiffS);
+      }
+      if(this.player === window.localPlayer) console.log(window.logVector3(localVector3));
+
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
       const flags = physicsManager.moveCharacterController(
         this.player.characterController,
