@@ -377,13 +377,16 @@ export const loadPromise = (async () => {
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
     pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
+  window.activateAnimations = activateAnimations;
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
   };
+  window.narutoRunAnimations = narutoRunAnimations;
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
   };
+  window.hurtAnimations = hurtAnimations;
   holdAnimations = {
     pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
