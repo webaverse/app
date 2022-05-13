@@ -170,6 +170,11 @@ const DomRendererChild = ({
     };
   }, [visible]);
 
+  const preventDefault = e => {
+    // e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
     <div
       className={'iframe-container-2'}
@@ -180,6 +185,9 @@ const DomRendererChild = ({
         left: 0,
         right: 0,
       }}
+      onMouseDown={preventDefault}
+      onClick={preventDefault}
+      onMouseUp={preventDefault}
       ref={iframeContainer2Ref}
     >
       <div
