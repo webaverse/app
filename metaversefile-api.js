@@ -349,7 +349,7 @@ metaversefile.setApi({
       }
       s = `/@proxy/${s}`;
     }
-    // console.log('do import', s);
+    // console.log('js import', s);
     try {
       const m = await import(s);
       return m;
