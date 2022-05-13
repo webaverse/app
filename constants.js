@@ -40,7 +40,7 @@ let _inappPreviewHost = '';
 
 switch ( origin ) {
     case 'https://local.webaverse.com': {
-        _inappPreviewHost = `https://local.webaverse.com:${window.location.port}`;
+        _inappPreviewHost = `https://local.webaverse.online:${window.location.port}`;
         break;
     }
     case 'https://dev.webaverse.com': {
