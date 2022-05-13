@@ -84,21 +84,27 @@ class CharacterPhysics {
       const minDist = 0;
 
       if (this.player.combatTargetEnabled) {
-        const arcLength = localVector.copy(this.velocity).setY(0).length() * timeDiffS;
-        debugger
+        const moveDistance = localVector.copy(this.velocity).setY(0).length() * timeDiffS;
         const playerPosition = localVector.copy(this.player.position).setY(0);
         const targetPosition = localVector2.copy(this.player.combatTarget).setY(0)
-        const startVector = localVector4.copy(playerPosition).sub(targetPosition);
-        const radius = startVector.length();
-        const radian = arcLength / radius;
-        const destVector = localVector5.copy(startVector).applyAxisAngle(localVector6.set(0, 1, 0), radian);
-        localVector3.copy(destVector).sub(startVector);
+        const distanceVector = localVector4.copy(playerPosition).sub(targetPosition);
+        if (window.ioManager.keys.up || window.ioManager.keys.down) {
+          const sign = window.ioManager.keys.down ? 1 : -1;
+          localVector3.copy(distanceVector).normalize().multiplyScalar(sign * moveDistance);
+        } else if (window.ioManager.keys.left || window.ioManager.keys.right) {
+          const arcLength = moveDistance
+          const radius = distanceVector.length();
+          const radian = arcLength / radius;
+          const sign = window.ioManager.keys.right ? 1 : -1;
+          const destVector = localVector5.copy(distanceVector).applyAxisAngle(localVector6.set(0, 1, 0), sign * radian);
+          localVector3.copy(destVector).sub(distanceVector);
+        }
         localVector3.y = this.velocity.y * timeDiffS;
       } else {
         localVector3.copy(this.velocity)
           .multiplyScalar(timeDiffS);
       }
-      if(this.player === window.localPlayer) console.log(window.logVector3(localVector3));
+      // if(this.player === window.localPlayer) console.log(window.logVector3(localVector3));
 
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
       const flags = physicsManager.moveCharacterController(

@@ -240,6 +240,7 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled()) {
+      // console.log(JSON.stringify(ioManager.keys));
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
           .multiplyScalar(game.getSpeed() * timeDiff)
