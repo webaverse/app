@@ -33,7 +33,7 @@ import loreAI from './ai/lore/lore-ai.js';
 import npcManager from './npc-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
-import {localPlayer, remotePlayers} from './players.js';
+import {localPlayer} from './players.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
@@ -47,6 +47,7 @@ import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
+import {playersManager} from './players-manager.js';
 import particleSystemManager from './particle-system.js';
 
 // const localVector = new THREE.Vector3();
@@ -508,14 +509,14 @@ metaversefile.setApi({
     return localPlayer;
   },
   useRemotePlayer(playerId) {
-    let player = remotePlayers.get(playerId);
+    let player = playersManager.remotePlayers.get(playerId);
     /* if (!player) {
       player = new RemotePlayer();
     } */
     return player;
   },
   useRemotePlayers() {
-    return Array.from(remotePlayers.values());
+    return Array.from(playersManager.remotePlayers.values());
   },
   useNpcManager() {
     return npcManager;
@@ -966,6 +967,21 @@ export default () => {
         const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
         if (remoteApp) {
           return remoteApp;
+        }
+      }
+      return null;
+    }
+  },
+  getPlayerByInstanceId(instanceId) {
+    let result = localPlayer.appManager.getAppByInstanceId(instanceId);
+    if (result) {
+      return localPlayer;
+    } else {
+      const remotePlayers = metaversefile.useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return remotePlayer;
         }
       }
       return null;

@@ -87,9 +87,17 @@ class CharacterSfx {
       player.removeEventListener('wearupdate', wearupdate);
     };
   }
-  update(timestamp, timeDiffS) {
+  update(timestamp, timeDiffS, actions = []) {
     if (!this.player.avatar) {
       return;
+    }
+
+    //check current actions has sit action
+    let hasSitAction = false
+    for (const action of actions) {
+      if (action.type === 'sit') {
+        hasSitAction = true
+      }
     }
 
     const timeSeconds = timestamp/1000;
@@ -204,7 +212,10 @@ class CharacterSfx {
       }
       
     };
-    _handleStep();
+
+    if (!hasSitAction) {
+      _handleStep();
+    }
 
     const _handleNarutoRun = () => {
       
@@ -352,37 +363,38 @@ class CharacterSfx {
     _handleFood();
   }
   playGrunt(type, index){
-    if (this.player.voicePack) { // ensure voice pack loaded
-      let voiceFiles, offset, duration;
-      switch (type) {
-        case 'pain': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
-          break;
-        }
-        case 'scream': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
-          break;
-        }
-        case 'attack': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
-          break;
-        }
-        case 'angry': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
-          break;
-        }
-        case 'gasp': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
-          break;
-        }
-        case 'jump': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
-          break;
-        }
-        case 'narutoRun': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
-          break;
-        }
+    if(!this.player.voicePack){
+      return console.warn("Skipping grunt since voicePack not set on player (needs to be added to multiplayer)")
+    }
+    let voiceFiles, offset, duration;
+    switch (type) {
+      case 'pain': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
+        break;
+      }
+      case 'scream': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
+        break;
+      }
+      case 'attack': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
+        break;
+      }
+      case 'angry': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
+        break;
+      }
+      case 'gasp': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
+        break;
+      }
+      case 'jump': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
+        break;
+      }
+      case 'narutoRun': {
+        voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
+        break;
       }
       
       if(index===undefined){
