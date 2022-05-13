@@ -51,7 +51,7 @@ class PlayersManager {
     }
   }
   bindState(nextPlayersArray) {
-    // this.unbindState();
+    this.unbindState();
 
     this.playersArray = nextPlayersArray;
 
