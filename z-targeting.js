@@ -9,7 +9,7 @@ import {localPlayer} from './players.js';
 
 const localVector = new THREE.Vector3();
 
-const maxResults = 16;
+// const maxResults = 16;
 
 const getPyramidConvexGeometry = (() => {
   const radius = 0.5;
