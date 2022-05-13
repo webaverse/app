@@ -476,7 +476,16 @@ class CameraManager extends EventTarget {
     this.lastTimestamp = timestamp;
   }
   updatePost(timestamp, timeDiff) {
-    this.targetQuaternion.copy(camera.quaternion);
+    
+    if (localPlayer.combatTargetEnabled) {
+      // this.targetQuaternion.copy(camera.quaternion);
+      // this.targetQuaternion.identity();
+      this.targetQuaternion.setFromUnitVectors(
+        localVector3.set(0, 0, -1),
+        localVector.copy(window.npcPlayers[0].position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
+      )
+    }
+
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
 
@@ -599,9 +608,6 @@ class CameraManager extends EventTarget {
         const factor = Math.min((timestamp - this.lerpStartTime) / maxFocusTime, 1);
 
         this.targetPosition.y -= crouchOffset;
-        if (this.targetType === 'combat') {
-          this.targetQuaternion.copy(localPlayer.position);
-        }
         camera.position.copy(this.sourcePosition)
           .lerp(this.targetPosition, factor);
 
