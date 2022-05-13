@@ -34,6 +34,7 @@ import * as sounds from './sounds.js';
 import {localPlayer} from './players.js';
 // import physicsManager from './physics-manager.js';
 import npcManager from './npc-manager.js';
+import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 
 // const {contractNames} = metaversefileConstants;
@@ -54,14 +55,10 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
-// const localRaycaster = new THREE.Raycaster();
 
-const zeroVector = new THREE.Vector3(0, 0, 0);
-
+// const zeroVector = new THREE.Vector3(0, 0, 0);
 // const oneVector = new THREE.Vector3(1, 1, 1);
-
 // const cubicBezier = easing(0, 1, 0, 1);
-
 // let redMesh = null;
 
 const _getGrabAction = i => {
@@ -581,17 +578,12 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateGrab();
 
+  zTargeting.update(timestamp, timeDiff);
+
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
 
     if (gameManager.editMode) {
-      /* const grabbedObject = _getGrabbedObject(0);
-      const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
-      for (const physicsId of grabbedPhysicsIds) {
-        // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsId);
-        physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsId);
-      } */
-
       const {position, quaternion} = renderer.xr.getSession() ? localPlayer.leftHand : camera;
       const collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
       if (collision) {
@@ -599,11 +591,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
         highlightedPhysicsObject = metaversefileApi.getAppByPhysicsId(physicsId);
         highlightedPhysicsId = physicsId;
       }
-
-      /* for (const physicsId of grabbedPhysicsIds) {
-        // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsId);
-        physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsId);
-      } */
     }
   };
   _handlePhysicsHighlight();
@@ -616,7 +603,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
       highlightedPhysicsObject.updateMatrixWorld();
 
-      const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         highlightPhysicsMesh.geometry = physicsMesh.geometry;
@@ -634,17 +621,13 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updatePhysicsHighlight();
 
-  zTargeting.update(timestamp, timeDiff);
-
   const _updateMouseHighlight = () => {
     mouseHighlightPhysicsMesh.visible = false;
 
-    const h = mouseHoverObject;
-    if (h /*&& !gameManager.dragging*/) {
-      const physicsId = mouseHoverPhysicsId;
-
-      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
-      if (physicsObject) {
+    if (gameManager.hoverEnabled) {
+      const collision = raycastManager.getCollision();
+      if (collision) {
+        const {physicsObject/*, physicsId*/} = collision;
         const {physicsMesh} = physicsObject;
         mouseHighlightPhysicsMesh.geometry = physicsMesh.geometry;
         localMatrix2.copy(physicsMesh.matrixWorld)
@@ -652,8 +635,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
           .decompose(mouseHighlightPhysicsMesh.position, mouseHighlightPhysicsMesh.quaternion, mouseHighlightPhysicsMesh.scale);
         mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-        mouseHighlightPhysicsMesh.visible = true;
         mouseHighlightPhysicsMesh.updateMatrixWorld();
+
+        mouseHighlightPhysicsMesh.visible = true;
       }
     }
   };
@@ -670,7 +654,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseSelectPhysicsMesh.geometry = physicsMesh.geometry;
-        // window.geometry = mouseSelectPhysicsMesh.geometry;
         
         // update matrix
         {
@@ -1518,7 +1501,7 @@ class GameManager extends EventTarget {
   setHoverEnabled(hoverEnabled) {
     this.hoverEnabled = hoverEnabled;
   }
-  setMouseHoverObject(o, physicsId, position) {
+  setMouseHoverObject(o, physicsId, position) { // XXX must be triggered
     mouseHoverObject = o;
     mouseHoverPhysicsId = physicsId;
     if (mouseHoverObject && position) {
@@ -1608,25 +1591,6 @@ class GameManager extends EventTarget {
   }
   getUsableObject() {
     return gameManager.usableObject;
-  }
-  getLastMouseEvent() {
-    return lastMouseEvent;
-  }
-  setLastMouseEvent(e) {
-    if (!lastMouseEvent) {
-      lastMouseEvent = {
-        clientX: 0,
-        clientY: 0,
-        inside: false,
-      };
-    }
-    if (e) {
-      lastMouseEvent.clientX = e.clientX;
-      lastMouseEvent.clientY = e.clientY;
-      lastMouseEvent.inside = true;
-    } else {
-      lastMouseEvent.inside = false;
-    }
   }
   getDragRightSpec() {
     return dragRightSpec;
