@@ -394,6 +394,7 @@ class MeshLodder {
       if (atlasImage) {
         const texture = new THREE.Texture(atlasImage);
         texture.flipY = false;
+        texture.encoding = THREE.sRGBEncoding;
         texture.needsUpdate = true;
         material[textureType] = texture;
       }
