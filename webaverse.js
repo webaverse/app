@@ -301,11 +301,12 @@ export default class Webaverse extends EventTarget {
 
         performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
+          if(!this.contentLoaded) return
           ioManager.update(timeDiffCapped);
           // this.injectRigInput();
           
           const localPlayer = metaversefileApi.useLocalPlayer();
-          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
+          if (physicsManager.getPhysicsEnabled()) {
             physicsManager.simulatePhysics(timeDiffCapped);
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
@@ -317,6 +318,7 @@ export default class Webaverse extends EventTarget {
           playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
+          localPlayer.appManager.tick(timestamp, timeDiffCapped, frame);
 
           mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
@@ -326,8 +328,10 @@ export default class Webaverse extends EventTarget {
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
 
-          game.pushAppUpdates();
-          game.pushPlayerUpdates();
+          // TODO: This is brought in from multiplayer fixes-- verify that it's still needed
+          world.appManager.pushAppUpdates();
+          localPlayer.pushPlayerUpdates(timeDiff);
+          localPlayer.appManager.pushAppUpdates();
 
           const session = renderer.xr.getSession();
           const xrCamera = session ? renderer.xr.getCamera(camera) : camera;

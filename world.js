@@ -26,9 +26,7 @@ const localEuler = new THREE.Euler();
 // world
 export const world = {};
 
-const appManager = new AppManager({
-  appsMap: null,
-});
+const appManager = new AppManager();
 world.appManager = appManager;
 
 // world.particleSystem = createParticleSystem();
@@ -53,12 +51,19 @@ const extra = {
 
 world.getConnection = () => wsrtc;
 
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    console.log((new Z.Doc()).getArray('world'))
+    console.log((new Z.Doc()).getArray('players'))
+  }
+});
+
 world.connectState = state => {
   state.setResolvePriority(1);
 
-  world.appManager.unbindState();
+  world.appManager.unbindStateLocal();
   world.appManager.clear();
-  world.appManager.bindState(state.getArray(appsMapName));
+  world.appManager.bindStateLocal(state.getArray(appsMapName));
   
   playersManager.bindState(state.getArray(playersMapName));
   
@@ -70,9 +75,7 @@ world.connectState = state => {
 };
 world.isConnected = () => !!wsrtc;
 world.connectRoom = async u => {
-  // await WSRTC.waitForReady();
-  
-  world.appManager.unbindState();
+  world.appManager.unbindStateLocal();
   world.appManager.clear();
 
   const localPlayer = metaversefileApi.useLocalPlayer();
@@ -82,19 +85,17 @@ world.connectRoom = async u => {
     localPlayer,
     crdtState: state,
   });
+
   const open = e => {
     wsrtc.removeEventListener('open', open);
     
     world.appManager.bindState(state.getArray(appsMapName));
     playersManager.bindState(state.getArray(playersMapName));
-    
+
     const init = e => {
       wsrtc.removeEventListener('init', init);
       
       localPlayer.bindState(state.getArray(playersMapName));
-      if (mediaStream) {
-        wsrtc.enableMic(mediaStream);
-      }
     };
     wsrtc.addEventListener('init', init);
   };
@@ -180,6 +181,8 @@ world.connectRoom = async u => {
   }, {once: true});
 
   wsrtc.addEventListener('close', e => {
+    playersManager.unbindState();
+    world.appManager.unbindState();
     console.log('Channel Close!');
 
     /* const peerRigIds = rigManager.peerRigs.keys();
@@ -306,14 +309,17 @@ appManager.addEventListener('appadd', e => {
 
   _bindHitTracker(app);
 });
-appManager.addEventListener('trackedappmigrate', async e => {
-  const {app, sourceAppManager, destinationAppManager} = e.data;
-  if (this === sourceAppManager) {
-    app.hitTracker.unbind();
-  } else if (this === destinationAppManager) {
-    _bindHitTracker(app);
-  }
-});
+
+// appManager.addEventListener('trackedappexport', async e => {
+//   const {app} = e.data;
+//   app.hitTracker.unbind();
+// });
+
+// appManager.addEventListener('trackedappimport', async e => {
+//   const {app} = e.data;
+//   _bindHitTracker(app);
+// });
+
 appManager.addEventListener('appremove', async e => {
   const app = e.data;
   app.hitTracker.unbind();

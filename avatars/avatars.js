@@ -1411,6 +1411,24 @@ class Avatar {
       }
     }
   }
+  lastVelocity = new THREE.Vector3();
+  setVelocity(timeDiffS, lastPosition, currentPosition, currentQuaternion){    
+    // Set the velocity, which will be considered by the animation controller
+    const positionDiff = localVector.copy(lastPosition)
+      .sub(currentPosition)
+      .divideScalar(timeDiffS)
+      .multiplyScalar(0.1);
+    localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    localEuler.y += Math.PI;
+    localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
+    positionDiff.applyEuler(localEuler2);
+    this.velocity.copy(positionDiff).add(this.lastVelocity).divideScalar(2);
+    this.lastVelocity.copy(this.velocity)
+    this.direction.copy(positionDiff).normalize();
+  }
+
   lerpShoulderTransforms() {
     if (this.shoulderTransforms.handsEnabled[0]) {
       this.shoulderTransforms.nonIKLeftShoulderAnchor.quaternion.copy(this.shoulderTransforms.leftShoulderAnchor.quaternion);
@@ -1468,7 +1486,7 @@ class Avatar {
     }
   }
 
-  update(timestamp, timeDiff) {
+  update(timestamp, timeDiff, updateHmdPosition) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
 
@@ -1485,27 +1503,20 @@ class Avatar {
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
 
     const _updateHmdPosition = () => {
+      // Update the HMD position manually
+      // This works totally fine for local player, where we don't need interpolation
+      // However, for remote players, we can get invalid velocity values, so we want to calculate velocity externally
       const currentPosition = this.inputs.hmd.position;
       const currentQuaternion = this.inputs.hmd.quaternion;
       
-      const positionDiff = localVector.copy(this.lastPosition)
-        .sub(currentPosition)
-        .divideScalar(timeDiffS)
-        .multiplyScalar(0.1);
-      localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      localEuler.y += Math.PI;
-      localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
-      positionDiff.applyEuler(localEuler2);
-      this.velocity.copy(positionDiff);
-      this.lastPosition.copy(currentPosition);
-      this.direction.copy(positionDiff).normalize();
+      this.setVelocity(timeDiffS, this.lastPosition, currentPosition, currentQuaternion);
 
-      if (this.velocity.length() > maxIdleVelocity) {
-        this.lastMoveTime = now;
-      }
+      this.lastPosition.copy(currentPosition);
     };
+
+    if (this.velocity.length() > maxIdleVelocity) {
+      this.lastMoveTime = now;
+    }
     
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
@@ -1893,8 +1904,8 @@ class Avatar {
     }
     
     
-
-    _updateHmdPosition();
+    if(updateHmdPosition)
+      _updateHmdPosition();
     _applyAnimation(this, now, moveFactors);
 
     if (this.poseAnimation) {

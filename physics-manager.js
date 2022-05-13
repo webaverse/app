@@ -168,8 +168,10 @@ physicsManager.addGeometry = (mesh) => {
 }
 physicsManager.createMaterial = physicsMaterial =>
   physx.physxWorker.createMaterial(physx.physics, physicsMaterial);
-physicsManager.destroyMaterial = materialAddress =>
+physicsManager.destroyMaterial = materialAddress => {
+  console.log("Material destroyed", new Error().stack)
   physx.physxWorker.destroyMaterial(physx.physics, materialAddress);
+}
 physicsManager.cookGeometry = (mesh) =>
   physx.physxWorker.cookGeometryPhysics(physx.physics, mesh)
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {

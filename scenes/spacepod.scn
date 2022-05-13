@@ -7,29 +7,20 @@
         "quaternion": [0, 0.0,0, 0.0]
       }
     },
-    {
+   {
       "type": "application/light",
       "content": {
         "lightType": "ambient",
-        "args": [[100, 255, 255], 0.1]
+        "args": [[255, 255, 255], 0.5]
       }
     },
     {
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[100, 255, 255], 0.7],
-        "position": [0, 10, 0],
-        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
-      }
-    },
-    {
-      "type": "application/rendersettings",
-      "content": {
-        "fog": {
-          "fogType": "linear",
-          "args": [[0, 5, 10], 50, 350]
-        }
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3],
+        "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }
     },
       {
