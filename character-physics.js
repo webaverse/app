@@ -19,6 +19,8 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
+const localVector7 = new THREE.Vector3();
+const localVector8 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localEuler = new THREE.Euler();
@@ -88,17 +90,21 @@ class CharacterPhysics {
         const playerPosition = localVector.copy(this.player.position).setY(0);
         const targetPosition = localVector2.copy(this.player.combatTarget).setY(0)
         const distanceVector = localVector4.copy(playerPosition).sub(targetPosition);
+        localVector7.set(0, 0, 0);
+        localVector8.set(0, 0, 0);
         if (window.ioManager.keys.up || window.ioManager.keys.down) {
           const sign = window.ioManager.keys.down ? 1 : -1;
-          localVector3.copy(distanceVector).normalize().multiplyScalar(sign * moveDistance);
-        } else if (window.ioManager.keys.left || window.ioManager.keys.right) {
+          localVector7.copy(distanceVector).normalize().multiplyScalar(sign * moveDistance);
+        }
+        if (window.ioManager.keys.left || window.ioManager.keys.right) {
           const arcLength = moveDistance
           const radius = distanceVector.length();
           const radian = arcLength / radius;
           const sign = window.ioManager.keys.right ? 1 : -1;
           const destVector = localVector5.copy(distanceVector).applyAxisAngle(localVector6.set(0, 1, 0), sign * radian);
-          localVector3.copy(destVector).sub(distanceVector);
+          localVector8.copy(destVector).sub(distanceVector);
         }
+        localVector3.addVectors(localVector7, localVector8);
         localVector3.y = this.velocity.y * timeDiffS;
       } else {
         localVector3.copy(this.velocity)
