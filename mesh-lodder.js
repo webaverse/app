@@ -51,15 +51,13 @@ const textureInitializers = {
   }, */
 };
 
-const _eraseVertices = (geometry, positionStart, positionCount/*, indexStart, indexCount*/) => {
-  // console.log('erase vertices', geometry, positionStart, positionCount/*, indexStart, indexCount*/);
+const _eraseVertices = (geometry, positionStart, positionCount) => {
   for (let i = 0; i < positionCount; i++) {
     geometry.attributes.position.array[positionStart + i] = 0;
-    geometry.attributes.position.needsUpdate = true; // XXX needs to use update range
   }
-  /* for (let i = 0; i < indexCount; i++) {
-    geometry.index.array[indexStart + i] = 0;
-  } */
+  geometry.attributes.position.updateRange.offset = positionStart;
+  geometry.attributes.position.updateRange.count = positionCount;
+  geometry.attributes.position.needsUpdate = true;
 };
 
 const meshLodders = [];
@@ -432,8 +430,6 @@ class MeshLodder {
         geometry,
         item.attributes.position.start,
         item.attributes.position.count,
-        // item.index.start,
-        // item.index.count,
       );
 
       const physicsObject = this.physicsObjects[index];
