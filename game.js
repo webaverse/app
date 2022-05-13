@@ -743,14 +743,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateMouseDomEquipmentHover();
 
-  const _handleTeleport = () => {
+  /* const _handleTeleport = () => {
     if (localPlayer.avatar) {
       teleportMeshes[1].update(localPlayer.avatar.inputs.leftGamepad.position, localPlayer.avatar.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.physxWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
         localPlayer.teleportTo(position, quaternion);
       });
     }
   };
-  _handleTeleport();
+  _handleTeleport(); */
 
   const _handleClosestObject = () => {
     const apps = world.appManager.apps;
