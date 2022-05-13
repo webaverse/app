@@ -32,10 +32,7 @@ class OffscreenEngine {
         iframe.onload = null;
         iframe.onerror = null;
       };
-      iframe.onerror = (e)=>{
-        console.log(e)
-        reject()
-      };
+      iframe.onerror = reject;
     });
 
     this.loadPromise = Promise.all([loading, setport]);
