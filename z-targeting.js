@@ -6,6 +6,7 @@ import * as sounds from './sounds.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import {localPlayer} from './players.js';
+import game from './game.js';
 
 const localVector = new THREE.Vector3();
 
@@ -210,10 +211,12 @@ class ZTargeting extends THREE.Object3D {
     // window.isCombatFocus = true;
 
     if (localPlayer.combatTargetEnabled) {
+      game.menuUnaim();
       localPlayer.combatTargetEnabled = false;
     } else {
       cameraManager.focusCamera(window.npcPlayers[0].position);
       localPlayer.combatTarget.copy(window.npcPlayers[0].position);
+      game.menuAim();
       localPlayer.combatTargetEnabled = true;
     }
 
