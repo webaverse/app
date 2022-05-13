@@ -55,6 +55,7 @@ import Emoter from './Emoter.js'
 import Blinker from './Blinker.js'
 import Nodder from './Nodder.js'
 import Looker from './Looker.js'
+import { localPlayer } from '../players.js';
 
 
 const localVector = new THREE.Vector3();
@@ -1896,65 +1897,68 @@ class Avatar {
     
 
     _updateHmdPosition();
-    /*
-      <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
-    */
-    window.domInfo.innerHTML = ` 
-      <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
-      <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
-      <div style="display:;">localPlayer.direction: --- ${window.logVector3(localPlayer.getWorldDirection(localVector))}</div>
-      <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
-      <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>
-      <div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
-      <div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
-      <div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
-      <div style="display:;">jumpState: --- ${this.jumpState}</div>
-      <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
-      <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
-      <div style="display:;">flyState: --- ${this.flyState}</div>
-      <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
-      <div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>
-      <div style="display:;">landState: --- ${this.landState}</div>
-      <div style="display:;">landFactor: --- ${moveFactors.landFactor?.toFixed(2)}</div>
-      <div style="display:none;">landTime: --- ${Math.floor(this.landTime)}</div>
-      <div style="display:none;">landTransitionTime: --- ${Math.floor(this.landTransitionTime)}</div>
-      <div style="display:;">sitState: --- ${this.sitState}</div>
-      <div style="display:;">sitFactor: --- ${moveFactors.sitFactor?.toFixed(2)}</div>
-      <div style="display:none;">sitTime: --- ${Math.floor(this.sitTime)}</div>
-      <div style="display:;">chargeJumpState: --- ${this.chargeJumpState}</div>
-      <div style="display:;">danceState: --- ${this.danceState}</div>
-      <div style="display:;">fallLoopState: --- ${this.fallLoopState}</div>
-      <div style="display:;">narutoRunState: --- ${this.narutoRunState}</div>
-      <div style="display:;">sitState: --- ${this.sitState}</div>
-      <div style="display:;">aimAnimation: --- ${this.aimAnimation}</div>
-      <div style="display:;">danceAnimation: --- ${this.danceAnimation}</div>
-      <div style="display:;">hurtAnimation: --- ${this.hurtAnimation}</div>
-      <div style="display:;">poseAnimation: --- ${this.poseAnimation}</div>
-      <div style="display:;">sitAnimation: --- ${this.sitAnimation}</div>
-      <div style="display:;">useFactor: --- ${moveFactors.useFactor?.toFixed(2)}</div>
-      <div style="display:;">useTransitionTime: --- ${Math.floor(this.useTransitionTime)}</div>
-      <div style="display:;">useTime: --- ${Math.floor(this.useTime)}</div>
-      <div style="display:;">useAnimation: --- ${this.useAnimation}</div>
-      <div style="display:;">useAnimationCombo: --- </div>  
-      <div style="display:;">${this.useAnimationCombo}&nbsp;</div>
-      <div style="display:;">useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
-      <div style="display:;">useAnimationIndex: --- ${this.useAnimationIndex}</div>
-      <div style="display:;">unuseFactor: --- ${this.unuseFactor?.toFixed(2)}</div>
-      <div style="display:;">unuseAnimation: --- ${this.unuseAnimation}</div>
-      <div style="display:;">activateTime: --- ${Math.floor(this.activateTime)}</div>
-      <div style="display:;">aimTime: --- ${Math.floor(this.aimTime)}</div>
-      <div style="display:none;">chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>
-      <div style="display:none;">crouchTime: --- ${Math.floor(this.crouchTime)}</div>
-      <div style="display:;">danceTime: --- ${Math.floor(this.danceTime)}</div>
-      <div style="display:none;">fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>
-      <div style="display:;">hurtTime: --- ${Math.floor(this.hurtTime)}</div>
-      <div style="display:;">unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
-      <div style="display:;">lastEyeTargetTime: --- ${Math.floor(this.lastEyeTargetTime)}</div>
-      <div style="display:;">lastMoveTime: --- ${Math.floor(this.lastMoveTime)}</div>
-      <div style="display:;">narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>
-      <div style="display:;">blendList.length: --- ${this.blendList?.length}</div>
-      <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
-    `
+    if (this === window.localPlayer.avatar) {
+      /*
+        <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
+      */
+      window.domInfo.innerHTML = `
+        <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
+        <div style="display:;">idleWalkFactor: --- ${window.logNum(moveFactors.idleWalkFactor)}</div>
+        <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
+        <div style="display:;">localPlayer.direction: --- ${window.logVector3(localPlayer.getWorldDirection(localVector))}</div>
+        <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
+        <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>
+        <div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
+        <div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
+        <div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
+        <div style="display:;">jumpState: --- ${this.jumpState}</div>
+        <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
+        <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
+        <div style="display:;">flyState: --- ${this.flyState}</div>
+        <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
+        <div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>
+        <div style="display:;">landState: --- ${this.landState}</div>
+        <div style="display:;">landFactor: --- ${moveFactors.landFactor?.toFixed(2)}</div>
+        <div style="display:none;">landTime: --- ${Math.floor(this.landTime)}</div>
+        <div style="display:none;">landTransitionTime: --- ${Math.floor(this.landTransitionTime)}</div>
+        <div style="display:;">sitState: --- ${this.sitState}</div>
+        <div style="display:;">sitFactor: --- ${moveFactors.sitFactor?.toFixed(2)}</div>
+        <div style="display:none;">sitTime: --- ${Math.floor(this.sitTime)}</div>
+        <div style="display:;">chargeJumpState: --- ${this.chargeJumpState}</div>
+        <div style="display:;">danceState: --- ${this.danceState}</div>
+        <div style="display:;">fallLoopState: --- ${this.fallLoopState}</div>
+        <div style="display:;">narutoRunState: --- ${this.narutoRunState}</div>
+        <div style="display:;">sitState: --- ${this.sitState}</div>
+        <div style="display:;">aimAnimation: --- ${this.aimAnimation}</div>
+        <div style="display:;">danceAnimation: --- ${this.danceAnimation}</div>
+        <div style="display:;">hurtAnimation: --- ${this.hurtAnimation}</div>
+        <div style="display:;">poseAnimation: --- ${this.poseAnimation}</div>
+        <div style="display:;">sitAnimation: --- ${this.sitAnimation}</div>
+        <div style="display:;">useFactor: --- ${moveFactors.useFactor?.toFixed(2)}</div>
+        <div style="display:;">useTransitionTime: --- ${Math.floor(this.useTransitionTime)}</div>
+        <div style="display:;">useTime: --- ${Math.floor(this.useTime)}</div>
+        <div style="display:;">useAnimation: --- ${this.useAnimation}</div>
+        <div style="display:;">useAnimationCombo: --- </div>  
+        <div style="display:;">${this.useAnimationCombo}&nbsp;</div>
+        <div style="display:;">useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
+        <div style="display:;">useAnimationIndex: --- ${this.useAnimationIndex}</div>
+        <div style="display:;">unuseFactor: --- ${this.unuseFactor?.toFixed(2)}</div>
+        <div style="display:;">unuseAnimation: --- ${this.unuseAnimation}</div>
+        <div style="display:;">activateTime: --- ${Math.floor(this.activateTime)}</div>
+        <div style="display:;">aimTime: --- ${Math.floor(this.aimTime)}</div>
+        <div style="display:none;">chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>
+        <div style="display:none;">crouchTime: --- ${Math.floor(this.crouchTime)}</div>
+        <div style="display:;">danceTime: --- ${Math.floor(this.danceTime)}</div>
+        <div style="display:none;">fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>
+        <div style="display:;">hurtTime: --- ${Math.floor(this.hurtTime)}</div>
+        <div style="display:;">unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
+        <div style="display:;">lastEyeTargetTime: --- ${Math.floor(this.lastEyeTargetTime)}</div>
+        <div style="display:;">lastMoveTime: --- ${Math.floor(this.lastMoveTime)}</div>
+        <div style="display:;">narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>
+        <div style="display:;">blendList.length: --- ${this.blendList?.length}</div>
+        <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
+      `
+    }
     _applyAnimation(this, now, moveFactors);
 
     if (this.poseAnimation) {

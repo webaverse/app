@@ -694,6 +694,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   } else {
     mirrorFactor = isBackward ? 1 : 0;
   }
+  // if (avatar === window.localPlayer.avatar) console.log(window.logNum(angleFactor), window.logNum(mirrorFactor));
   avatar.lastBackwardFactor = mirrorFactor;
 
   if (avatar.emoteAnimation !== avatar.lastEmoteAnimation) {
