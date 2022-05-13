@@ -549,6 +549,8 @@ ioManager.keydown = e => {
       if (e.ctrlKey) {
         if (cameraManager.pointerLockElement) {
           cameraManager.exitPointerLock();
+        } else {
+          cameraManager.requestPointerLock();
         }
       } else {
         // game.setWeaponWheel(true);
