@@ -545,19 +545,18 @@ class LodChunkGenerator {
       for (let i = 0; i < numObjects; i++) {
         const name = names[Math.floor(rng() * names.length)];
         const meshes = this.#getContent(name);
-        // const mesh = meshes[0];
 
-        const totalPositionsArray = [];
-        const totalIndicesArray = [];
+        const totalPositions = 0;
+        const totalIndices = 0;
         for (let lod = 0; lod < meshes.length; lod++) {
           const mesh = meshes[lod];
-          totalPositionsArray.push(mesh.geometry.attributes.position.count * mesh.geometry.attributes.position.itemSize);
-          totalIndicesArray.push(mesh.geometry.index.count * mesh.geometry.index.itemSize);
+          totalPositions += mesh.attributes.position.count * mesh.attributes.position.itemSize;
+          totalIndices += mesh.index.count;
         }
 
         contents.push(meshes);
-        totalNumPositions.push(totalPositionsArray);
-        totalNumIndices.push(totalIndicesArray);
+        totalNumPositions.push(totalPositions);
+        totalNumIndices.push(totalIndices);
       }
 
       return {
@@ -566,25 +565,22 @@ class LodChunkGenerator {
         totalNumIndices,
       };
     };
-    const _renderContentsRenderList = (contents, geometryBinding) => {
+    const _renderContentsRenderList = (meshes, geometryBinding) => {
       {
         let positionOffset = geometryBinding.getAttributeOffset('position');
         let uvOffset = geometryBinding.getAttributeOffset('uv');
         let indexOffset = geometryBinding.getIndexOffset();
 
         // render geometries to allocated geometry binding
-        for (let i = 0; i < contents.length; i++) {
-          const content = contents[i];
+        for (let i = 0; i < meshes.length; i++) {
+          const mesh = meshes[i];
           const {
             name,
-          } = content;
-          // const name = names[Math.floor(rng() * names.length)];
+          } = mesh;
           const positionX = (chunk.x + rng()) * chunkWorldSize;
           const positionZ = (chunk.z + rng()) * chunkWorldSize;
           const rotationY = rng() * Math.PI * 2;
 
-          const meshes = this.#getContent(name);
-          const mesh = meshes[0];
           const g = mesh.geometry;
           const meshIndex = this.#getMeshIndex(mesh);
           const rect = atlas.rectIndexCache.get(meshIndex);
@@ -646,10 +642,11 @@ class LodChunkGenerator {
       totalNumPositions,
       totalNumIndices,
     } = _collectContentsRenderList();
+    const contentsLod0 = contents.map(meshes => meshes[0]);
     const totalNumPositionsLod0 = totalNumPositions[0];
     const totalNumIndicesLod0 = totalNumIndices[0];
     const geometryBinding = this.allocator.alloc(totalNumPositionsLod0, totalNumIndicesLod0);
-    _renderContentsRenderList(contents, geometryBinding);
+    _renderContentsRenderList(contentsLod0, geometryBinding);
   }
 }
 
