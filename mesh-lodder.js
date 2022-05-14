@@ -167,7 +167,7 @@ class LodChunkTracker {
       const neededChunks = [];
       for (let dcx = -1; dcx <= 1; dcx++) {
         for (let dcz = -1; dcz <= 1; dcz++) {
-          const chunk = new LodChunk(currentCoord.x, 0, currentCoord.y, lod);
+          const chunk = new LodChunk(currentCoord.x + dcx, 0, currentCoord.y + dcz, lod);
           neededChunks.push(chunk);
         }
       }
@@ -567,7 +567,7 @@ class LodChunkGenerator {
     this.itemRegistry.push(item);
   }
   generateChunk(chunk) { // XXX finish this
-    // console.log('generate chunk', chunk);
+    // console.log('generate chunk', chunk.x, chunk.z);
 
     // collect geometries
     const _collectContentsRenderList = () => {
