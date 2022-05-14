@@ -130,6 +130,28 @@ class LodTracker {
   }
 }
 
+class GeometryAllocator { // XXX allocate from this
+  constructor(attributeSpecs, {
+    bufferSize,
+  }) {
+    this.geometry = new THREE.BufferGeometry();
+    for (const attributeSpec of attributeSpecs) {
+      const {
+        name,
+        Type,
+        itemSize,
+      } = attributeSpec;
+
+      const array = new Type(bufferSize * itemSize);
+      this.geometry.setAttribute(name, new THREE.BufferAttribute(array, itemSize));
+    }
+
+    const indices = new Uint32Array(bufferSize);
+    this.geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    this.geometry.setDrawRange(0, 0);
+  }
+}
+
 class LodGenerator {
   constructor(parent) {
     this.parent = parent;
@@ -137,27 +159,35 @@ class LodGenerator {
     // members
     this.itemRegistry = [];
     this.physicsObjects = [];
+    this.allocator = new GeometryAllocator([
+      {
+        name: 'position',
+        Type: Float32Array,
+        itemSize: 3,
+      },
+      {
+        name: 'normal',
+        Type: Float32Array,
+        itemSize: 3,
+      },
+      {
+        name: 'uv',
+        Type: Float32Array,
+        itemSize: 2,
+      },
+      {
+        name: 'uv2',
+        Type: Float32Array,
+        itemSize: 2,
+      },
+    ], {
+      bufferSize,
+    });
 
     // mesh
-    {
-      const positions = new Float32Array(bufferSize * 3);
-      const normals = new Float32Array(bufferSize * 3);
-      const uvs = new Float32Array(bufferSize * 2);
-      const uvs2 = new Float32Array(bufferSize * 2);
-      const geometry = new THREE.BufferGeometry();
-      const indices = new Uint32Array(bufferSize);
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-      geometry.setAttribute('uv2', new THREE.BufferAttribute(uvs2, 2));
-      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-      geometry.setDrawRange(0, 0);
-      this.geometry = geometry;
-
-      this.mesh = new THREE.Mesh(geometry, this.parent.material);
-      this.mesh.frustumCulled = false;
-      this.mesh.visible = false;
-    }
+    this.mesh = new THREE.Mesh(this.allocator.geometry, this.parent.material);
+    this.mesh.frustumCulled = false;
+    this.mesh.visible = false;
   }
   getItemByPhysicsId(physicsId) {
     const physicsObjectIndex = this.physicsObjects.findIndex(p => p.physicsId === physicsId);
@@ -216,8 +246,8 @@ class LodGenerator {
     let indexIndex = 0;
     for (let i = 0; i < numObjects; i++) {
       const name = names[Math.floor(rng() * names.length)];
-      const positionX = rng() * chunkWorldSize;
-      const positionZ = rng() * chunkWorldSize;
+      const positionX = (chunk.x + rng()) * chunkWorldSize;
+      const positionZ = (chunk.z + rng()) * chunkWorldSize;
       const rotationY = rng() * Math.PI * 2;
 
       const meshes = this.#getContent(name);
