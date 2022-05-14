@@ -226,7 +226,7 @@ class FreeListSlot {
       // console.log('alloc sub', size, this.count);
       this.used = true;
       const newSlot = new FreeListSlot(this.start + size, this.count - size, false);
-      this.count -= size;
+      this.count = size;
       return [
         this,
         newSlot,
@@ -461,6 +461,7 @@ class LodChunkGenerator {
     ], {
       bufferSize,
     });
+    // window.allocator = this.allocator;
 
     // mesh
     this.mesh = new THREE.Mesh(this.allocator.geometry, this.parent.material);
@@ -616,6 +617,8 @@ class LodChunkGenerator {
         let positionOffset = geometryBinding.getAttributeOffset('position');
         let uvOffset = geometryBinding.getAttributeOffset('uv');
         let indexOffset = geometryBinding.getIndexOffset();
+
+        console.log('render geometry', positionOffset, uvOffset, indexOffset);
 
         // render geometries to allocated geometry binding
         for (let i = 0; i < contentMeshes.length; i++) {
