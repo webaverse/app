@@ -315,9 +315,6 @@ class FreeList {
 
 class GeometryBinding {
   constructor(positionFreeListEntry, indexFreeListEntry, geometry) {
-    if (!positionFreeListEntry) {
-      debugger;
-    }
     this.positionFreeListEntry = positionFreeListEntry;
     this.indexFreeListEntry = indexFreeListEntry;
     this.geometry = geometry;
