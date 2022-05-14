@@ -481,8 +481,8 @@ class LodChunkGenerator {
       const {geometry} = this.mesh;
       _eraseVertices(
         geometry,
-        item.geometryBinding.positionFreeListEntry.start,
-        item.geometryBinding.positionFreeListEntry.count,
+        item.positionOffset,
+        item.positionCount,
       );
 
       const physicsObject = this.physicsObjects[index];
@@ -526,7 +526,7 @@ class LodChunkGenerator {
   
     this.physicsObjects.push(physicsObject);
   }
-  #addItemToRegistry(g, contentMesh, contentName, geometryBinding, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize) {
+  #addItemToRegistry(g, contentMesh, contentName, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize) {
     const item = {
       position: new THREE.Vector3(positionX, 0, positionZ),
       quaternion: new THREE.Quaternion().setFromAxisAngle(upVector, rotationY),
@@ -541,7 +541,9 @@ class LodChunkGenerator {
         start: indexIndex,
         count: g.index.count,
       }, */
-      geometryBinding,
+      // geometryBinding,
+      positionOffset,
+      positionCount,
       cloneItemDiceMesh: () => {
         let geometry = g.clone();
         _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
@@ -571,7 +573,7 @@ class LodChunkGenerator {
     this.itemRegistry.push(item);
   }
   generateChunk(chunk) { // XXX finish this
-    // console.log('generate chunk', chunk.x, chunk.z);
+    console.log('generate chunk', chunk.x, chunk.z);
 
     // collect geometries
     const _collectContentsRenderList = () => {
@@ -586,20 +588,20 @@ class LodChunkGenerator {
         const contentName = contentIndexNames[Math.floor(rng() * contentIndexNames.length)];
         const meshes = this.#getContent(contentName);
 
-        let totalPositions = 0;
-        let totalIndices = 0;
+        let totalPositionsArray = [];
+        let totalIndicesArray = [];
         for (let lod = 0; lod < meshes.length; lod++) {
           const mesh = meshes[lod];
           if (mesh) {
-            totalPositions += mesh.geometry.attributes.position.count * mesh.geometry.attributes.position.itemSize;
-            totalIndices += mesh.geometry.index.count;
+            totalPositionsArray.push(mesh.geometry.attributes.position.count * mesh.geometry.attributes.position.itemSize);
+            totalIndicesArray.push(mesh.geometry.index.count);
           }
         }
 
         contentNames.push(contentName);
         contents.push(meshes);
-        totalNumPositions.push(totalPositions);
-        totalNumIndices.push(totalIndices);
+        totalNumPositions.push(totalPositionsArray);
+        totalNumIndices.push(totalIndicesArray);
       }
 
       return {
@@ -615,7 +617,7 @@ class LodChunkGenerator {
         let uvOffset = geometryBinding.getAttributeOffset('uv');
         let indexOffset = geometryBinding.getIndexOffset();
 
-        console.log('render geometry', positionOffset, uvOffset, indexOffset);
+        // console.log('render geometry', positionOffset, uvOffset, indexOffset);
 
         // render geometries to allocated geometry binding
         for (let i = 0; i < contentMeshes.length; i++) {
@@ -659,7 +661,8 @@ class LodChunkGenerator {
 
           // tracking
           {
-            this.#addItemToRegistry(g, contentMesh, contentName, geometryBinding, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
+            const positionCount = g.attributes.position.count * g.attributes.position.itemSize;
+            this.#addItemToRegistry(g, contentMesh, contentName, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
           }
           
           positionOffset += g.attributes.position.count * g.attributes.position.itemSize;
@@ -670,6 +673,7 @@ class LodChunkGenerator {
         // XXX set draw range
         // geometry.setDrawRange(0, indexIndex);
         geometry.groups = this.allocator.indexFreeList.getGeometryGroups();
+        // window.groups = geometry.groups;
       }
     };
 
@@ -685,8 +689,8 @@ class LodChunkGenerator {
       totalNumIndices,
     } = _collectContentsRenderList();
     const contentsLod0 = contents.map(meshes => meshes[0]);
-    const totalNumPositionsLod0 = totalNumPositions[0];
-    const totalNumIndicesLod0 = totalNumIndices[0];
+    const totalNumPositionsLod0 = totalNumPositions.reduce((a, b) => a + b[0], 0);
+    const totalNumIndicesLod0 = totalNumIndices.reduce((a, b) => a + b[0], 0);
     const geometryBinding = this.allocator.alloc(totalNumPositionsLod0, totalNumIndicesLod0);
     _renderContentsRenderList(contentsLod0, contentNames, this.allocator.geometry, geometryBinding);
     this.mesh.visible = true;
