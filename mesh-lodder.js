@@ -7,7 +7,7 @@ import {mod, modUv, getNextPhysicsId} from './util.js';
 import physicsManager from './physics-manager.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-const bufferSize = 2 * 1024 * 1024;
+const bufferSize = 20 * 1024 * 1024;
 const chunkWorldSize = 30;
 const defaultTextureSize = 4096;
 const startAtlasSize = 512;
@@ -142,6 +142,8 @@ class LodChunk extends THREE.Vector3 {
 
     this.name = `chunk:${this.x}:${this.z}`;
     this.geometryBinding = null;
+    this.items = [];
+    this.physicsObjects = [];
   }
   equals(chunk) {
     return this.x === chunk.x && this.y === chunk.y && this.z === chunk.z;
@@ -153,7 +155,7 @@ class LodChunkTracker {
 
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector2(NaN, NaN);
-    this.first = true;
+    // this.first = true;
   }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / chunkWorldSize);
@@ -161,14 +163,15 @@ class LodChunkTracker {
     return target.set(cx, cz);
   }
   update(position) {
-    if (this.first) {
-      this.first = false;
+    // if (this.first) {
+      // this.first = false;
 
-      const zeroPosition = new THREE.Vector3(0, 0, 0);
-      const currentCoord = this.#getCurrentCoord(zeroPosition, localVector2D);
+      // const zeroPosition = new THREE.Vector3(0, 0, 0);
+      const currentCoord = this.#getCurrentCoord(position, localVector2D);
 
-      const lod = 0;
       if (!currentCoord.equals(this.lastUpdateCoord)) {
+        // console.log('got current coord', [currentCoord.x, currentCoord.y]);
+        const lod = 0;
         const neededChunks = [];
         for (let dcx = -1; dcx <= 1; dcx++) {
           for (let dcz = -1; dcz <= 1; dcz++) {
@@ -200,17 +203,22 @@ class LodChunkTracker {
           }
         }
 
-        for (const chunk of addedChunks) {
-          this.generator.generateChunk(chunk);
-          this.chunks.push(chunk);
-        }
+        // console.log('add remove', addedChunks.length, removedChunks.length);
 
-        // console.log('added removed', addedChunks.length, removedChunks.length, currentCoord.toArray(), this.lastUpdateCoord.toArray());
+        for (const removedChunk of removedChunks) {
+          this.generator.disposeChunk(removedChunk);
+          const index = this.chunks.indexOf(removedChunk);
+          this.chunks.splice(index, 1);
+        }
+        for (const addedChunk of addedChunks) {
+          this.generator.generateChunk(addedChunk);
+          this.chunks.push(addedChunk);
+        }
       
         this.lastUpdateCoord.copy(currentCoord);
       }
     }
-  }
+  // }
 }
 
 class FreeListSlot {
@@ -283,7 +291,7 @@ class FreeList {
     if (index !== -1) {
       const replacementArray = slot.free();
       this.slots.splice.apply(this.slots, [index, 1].concat(replacementArray));
-      this.#mergeAdjacentSlots();
+      // this.#mergeAdjacentSlots();
     } else {
       throw new Error('invalid free');
     }
@@ -348,7 +356,7 @@ class GeometryAllocator {
       // this.geometry.setDrawRange(0, 0);
     }
 
-    this.positionFreeList = new FreeList(bufferSize);
+    this.positionFreeList = new FreeList(bufferSize * 3);
     this.indexFreeList = new FreeList(bufferSize);
   }
   alloc(numPositions, numIndices) {
@@ -460,7 +468,7 @@ class LodChunkGenerator {
     });
 
     // mesh
-    this.mesh = new THREE.Mesh(this.allocator.geometry, this.parent.material);
+    this.mesh = new THREE.Mesh(this.allocator.geometry, [this.parent.material]);
     this.mesh.frustumCulled = false;
     this.mesh.visible = false;
   }
@@ -521,6 +529,8 @@ class LodChunkGenerator {
     const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
   
     this.physicsObjects.push(physicsObject);
+
+    return physicsObject;
   }
   #addItemToRegistry(g, contentMesh, contentName, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize) {
     const item = {
@@ -567,6 +577,8 @@ class LodChunkGenerator {
       },
     };
     this.itemRegistry.push(item);
+
+    return item;
   }
   generateChunk(chunk) {
     // console.log('generate chunk', chunk.x, chunk.z);
@@ -591,6 +603,9 @@ class LodChunkGenerator {
           if (mesh) {
             totalPositionsArray.push(mesh.geometry.attributes.position.count * mesh.geometry.attributes.position.itemSize);
             totalIndicesArray.push(mesh.geometry.index.count);
+          } else {
+            totalPositionsArray.push(0);
+            totalIndicesArray.push(0);
           }
         }
 
@@ -608,6 +623,9 @@ class LodChunkGenerator {
       };
     };
     const _renderContentsRenderList = (contentMeshes, contentNames, geometry, geometryBinding) => {
+      const items = [];
+      const physicsObjects = [];
+
       {
         let positionOffset = geometryBinding.getAttributeOffset('position');
         let uvOffset = geometryBinding.getAttributeOffset('uv');
@@ -615,10 +633,19 @@ class LodChunkGenerator {
 
         // render geometries to allocated geometry binding
         for (let i = 0; i < contentMeshes.length; i++) {
+          if (positionOffset > geometryBinding.positionFreeListEntry.start + geometryBinding.positionFreeListEntry.count) {
+            debugger;
+            throw new Error('overflow');
+          }
+          if (indexOffset > geometryBinding.indexFreeListEntry.start + geometryBinding.indexFreeListEntry.count) {
+            debugger;
+            throw new Error('overflow');
+          }
+
           const contentMesh = contentMeshes[i];
           const contentName = contentNames[i];
-          const positionX = (chunk.x + rng()) * chunkWorldSize;
-          const positionZ = (chunk.z + rng()) * chunkWorldSize;
+          const positionX = (chunk.x + 1 + rng()) * chunkWorldSize;
+          const positionZ = (chunk.z + 1 + rng()) * chunkWorldSize;
           const rotationY = rng() * Math.PI * 2;
 
           const g = contentMesh.geometry;
@@ -647,22 +674,27 @@ class LodChunkGenerator {
           // physics
           {
             const shapeAddress = this.#getShapeAddress(contentName);
-            this.#addPhysicsShape(shapeAddress, contentMesh, positionX, positionZ, rotationY);
+            const physicsObject = this.#addPhysicsShape(shapeAddress, contentMesh, positionX, positionZ, rotationY);
+            physicsObjects.push(physicsObject);
           }
 
           // tracking
           {
             const positionCount = g.attributes.position.count * g.attributes.position.itemSize;
-            this.#addItemToRegistry(g, contentMesh, contentName, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
+            const item = this.#addItemToRegistry(g, contentMesh, contentName, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
+            items.push(item);
           }
           
           positionOffset += g.attributes.position.count * g.attributes.position.itemSize;
           uvOffset += g.attributes.uv.count * g.attributes.uv.itemSize;
           indexOffset += g.index.count;
         }
-
-        geometry.groups = this.allocator.indexFreeList.getGeometryGroups();
       }
+
+      return {
+        items,
+        physicsObjects,
+      };
     };
 
     const atlas = this.#getAtlas();
@@ -679,9 +711,24 @@ class LodChunkGenerator {
     const contentsLod0 = contents.map(meshes => meshes[0]);
     const totalNumPositionsLod0 = totalNumPositions.reduce((a, b) => a + b[0], 0);
     const totalNumIndicesLod0 = totalNumIndices.reduce((a, b) => a + b[0], 0);
+    // console.log('allocate', totalNumPositionsLod0, totalNumIndicesLod0);
     const geometryBinding = this.allocator.alloc(totalNumPositionsLod0, totalNumIndicesLod0);
-    _renderContentsRenderList(contentsLod0, contentNames, this.allocator.geometry, geometryBinding);
+    const {
+      items,
+      physicsObjects,
+    } = _renderContentsRenderList(contentsLod0, contentNames, this.allocator.geometry, geometryBinding);
+
+    chunk.geometryBinding = geometryBinding;
+    chunk.items = items;
+    chunk.physicsObjects = physicsObjects;
+    this.allocator.geometry.groups = this.allocator.indexFreeList.getGeometryGroups();
     this.mesh.visible = true;
+  }
+  disposeChunk(chunk) {
+    this.allocator.free(chunk.geometryBinding);
+    chunk.geometryBinding = null;
+
+    // XXX destroy items and physics objects here
   }
 }
 
