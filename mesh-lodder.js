@@ -572,8 +572,8 @@ class LodChunkGenerator {
     };
     this.itemRegistry.push(item);
   }
-  generateChunk(chunk) { // XXX finish this
-    console.log('generate chunk', chunk.x, chunk.z);
+  generateChunk(chunk) {
+    // console.log('generate chunk', chunk.x, chunk.z);
 
     // collect geometries
     const _collectContentsRenderList = () => {
