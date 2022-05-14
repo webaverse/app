@@ -5,7 +5,7 @@ import {alea} from './procgen/procgen.js';
 // import {getRenderer} from './renderer.js';
 import {mod, modUv, getNextPhysicsId} from './util.js';
 import physicsManager from './physics-manager.js';
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const bufferSize = 2 * 1024 * 1024;
 const chunkWorldSize = 30;
@@ -130,8 +130,8 @@ const _eraseVertices = (geometry, positionStart, positionCount) => {
   for (let i = 0; i < positionCount; i++) {
     geometry.attributes.position.array[positionStart + i] = 0;
   }
-  geometry.attributes.position.updateRange.offset = positionStart;
-  geometry.attributes.position.updateRange.count = positionCount;
+  /* geometry.attributes.position.updateRange.offset = positionStart;
+  geometry.attributes.position.updateRange.count = positionCount; */
   geometry.attributes.position.needsUpdate = true;
 };
 
@@ -380,7 +380,7 @@ const _mapGeometryUvs = (g, geometry, tx, ty, tw, th, canvasSize) => {
   _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
   _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, 0, tx, ty, tw, th, canvasSize);
 };
-const _makeItemMesh = (rootMesh, contentMesh, geometry, material) => {
+const _makeItemMesh = (rootMesh, contentMesh, geometry, material, positionX, positionZ, rotationY) => {
   const cloned = new THREE.Mesh(geometry, material);
   _getMatrixWorld(rootMesh, contentMesh, cloned.matrixWorld, positionX, positionZ, rotationY);
   cloned.matrix.copy(cloned.matrixWorld)
@@ -483,8 +483,8 @@ class LodChunkGenerator {
       const {geometry} = this.mesh;
       _eraseVertices(
         geometry,
-        item.attributes.position.start,
-        item.attributes.position.count,
+        item.geometryBinding.positionFreeListEntry.start,
+        item.geometryBinding.positionFreeListEntry.count,
       );
 
       const physicsObject = this.physicsObjects[index];
@@ -528,7 +528,7 @@ class LodChunkGenerator {
   
     this.physicsObjects.push(physicsObject);
   }
-  #addItemToRegistry(g, contentMesh, geometryBinding, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize) {
+  #addItemToRegistry(g, contentMesh, contentName, geometryBinding, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize) {
     const item = {
       position: new THREE.Vector3(positionX, 0, positionZ),
       quaternion: new THREE.Quaternion().setFromAxisAngle(upVector, rotationY),
@@ -548,18 +548,18 @@ class LodChunkGenerator {
         let geometry = g.clone();
         _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
         geometry = _diceGeometry(geometry);
-        const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material);
+        const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material, positionX, positionZ, rotationY);
         return itemMesh;
       },
       cloneItemMesh: () => {
         const geometry = g.clone();
         _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
-        const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material);
+        const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material, positionX, positionZ, rotationY);
         return itemMesh;
       },
       clonePhysicsObject: () => {
-        const shapeAddress = this.shapeAddresses[name];
-        _getMatrixWorld(this.mesh, localMatrix, positionX, positionZ, rotationY)
+        const shapeAddress = this.parent.shapeAddresses[contentName];
+        _getMatrixWorld(this.mesh, contentMesh, localMatrix, positionX, positionZ, rotationY)
           .decompose(localVector, localQuaternion, localVector2);
         const position = localVector;
         const quaternion = localQuaternion;
@@ -623,7 +623,7 @@ class LodChunkGenerator {
           /* const {
             name,
           } = mesh; */
-          const name = contentNames[i];
+          const contentName = contentNames[i];
           const positionX = (chunk.x + rng()) * chunkWorldSize;
           const positionZ = (chunk.z + rng()) * chunkWorldSize;
           const rotationY = rng() * Math.PI * 2;
@@ -653,13 +653,13 @@ class LodChunkGenerator {
 
           // physics
           {
-            const shapeAddress = this.#getShapeAddress(name);
+            const shapeAddress = this.#getShapeAddress(contentName);
             this.#addPhysicsShape(shapeAddress, contentMesh, positionX, positionZ, rotationY);
           }
 
           // tracking
           {
-            this.#addItemToRegistry(g, contentMesh, geometryBinding, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
+            this.#addItemToRegistry(g, contentMesh, contentName, geometryBinding, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
           }
           
           positionOffset += g.attributes.position.count * g.attributes.position.itemSize;
@@ -1026,7 +1026,7 @@ class MeshLodManager {
     return this.generator.getItemByPhysicsId(physicsId);
   }
   deleteItem(item) {
-    return this.generator.deleteItem(physicsId);
+    return this.generator.deleteItem(item);
   }
   update() {
     if (this.compiled) {
