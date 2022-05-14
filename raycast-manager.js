@@ -79,11 +79,11 @@ class RaycastManager extends EventTarget {
           // console.log('return raycaster', result);
           return localRaycaster;
         } else {
-          console.log('out of range');
+          // console.log('out of range');
           return null;
         }
       } else {
-        console.log('no renderer');
+        // console.log('no renderer');
         return null;
       }
     };
