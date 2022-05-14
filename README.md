@@ -1,7 +1,7 @@
 # Webaverse client app
 
 Uses NodeJS, with vite.js on the backend, serving up index.js and index.html and other types of imports to the end-client. We also have [Totum](https://github.com/webaverse/Totum/) which accepts requests to decode or load various types of files and represent it as a javascript file, and [wsrtc](https://github.com/webaverse/wsrtc/) handling the multiplayer over websockets. Users can join rooms and share CRDT [z.js](https://github.com/webaverse/zjs) state data to one another across the network. Also utilised by wsrtc are web codecs used to perform voice encoding and decoding.
-Once the app is installed all you need to do is go to localhost:3000 to launch the client. ThreeJS is used as a Renderer, physx-wasm for physics calculations as well as VRM models for avatars.
+Once the app is installed all you need to do is go to local.webaverse.com:3000 to launch the client. ThreeJS is used as a Renderer, physx-wasm for physics calculations as well as VRM models for avatars.
 
 ## Client Quick Start
 
