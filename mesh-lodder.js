@@ -153,6 +153,7 @@ class LodChunkTracker {
 
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector2(NaN, NaN);
+    this.first = true;
   }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / chunkWorldSize);
@@ -160,49 +161,54 @@ class LodChunkTracker {
     return target.set(cx, cz);
   }
   update(position) {
-    const currentCoord = this.#getCurrentCoord(position, localVector2D);
+    if (this.first) {
+      this.first = false;
 
-    const lod = 0;
-    if (!currentCoord.equals(this.lastUpdateCoord)) {
-      const neededChunks = [];
-      for (let dcx = -1; dcx <= 1; dcx++) {
-        for (let dcz = -1; dcz <= 1; dcz++) {
-          const chunk = new LodChunk(currentCoord.x + dcx, 0, currentCoord.y + dcz, lod);
-          neededChunks.push(chunk);
-        }
-      }
+      const zeroPosition = new THREE.Vector3(0, 0, 0);
+      const currentCoord = this.#getCurrentCoord(zeroPosition, localVector2D);
 
-      const addedChunks = [];
-      const removedChunks = [];
-      const reloddedChunks = [];
-      for (const chunk of this.chunks) {
-        const matchingNeededChunk = neededChunks.find(nc => nc.equals(chunk));
-        if (!matchingNeededChunk) {
-          removedChunks.push(chunk);
-        }
-      }
-      for (const chunk of neededChunks) {
-        const matchingExistingChunk = this.chunks.find(ec => ec.equals(chunk));
-        if (matchingExistingChunk) {
-          if (matchingExistingChunk.lod !== chunk.lod) {
-            reloddedChunks.push({
-              oldChunk: matchingExistingChunk,
-              newChunk: chunk,
-            });
+      const lod = 0;
+      if (!currentCoord.equals(this.lastUpdateCoord)) {
+        const neededChunks = [];
+        for (let dcx = -1; dcx <= 1; dcx++) {
+          for (let dcz = -1; dcz <= 1; dcz++) {
+            const chunk = new LodChunk(currentCoord.x + dcx, 0, currentCoord.y + dcz, lod);
+            neededChunks.push(chunk);
           }
-        } else {
-          addedChunks.push(chunk);
         }
-      }
 
-      for (const chunk of addedChunks) {
-        this.generator.generateChunk(chunk);
-        this.chunks.push(chunk);
-      }
+        const addedChunks = [];
+        const removedChunks = [];
+        const reloddedChunks = [];
+        for (const chunk of this.chunks) {
+          const matchingNeededChunk = neededChunks.find(nc => nc.equals(chunk));
+          if (!matchingNeededChunk) {
+            removedChunks.push(chunk);
+          }
+        }
+        for (const chunk of neededChunks) {
+          const matchingExistingChunk = this.chunks.find(ec => ec.equals(chunk));
+          if (matchingExistingChunk) {
+            if (matchingExistingChunk.lod !== chunk.lod) {
+              reloddedChunks.push({
+                oldChunk: matchingExistingChunk,
+                newChunk: chunk,
+              });
+            }
+          } else {
+            addedChunks.push(chunk);
+          }
+        }
 
-      // console.log('added removed', addedChunks.length, removedChunks.length, currentCoord.toArray(), this.lastUpdateCoord.toArray());
-    
-      this.lastUpdateCoord.copy(currentCoord);
+        for (const chunk of addedChunks) {
+          this.generator.generateChunk(chunk);
+          this.chunks.push(chunk);
+        }
+
+        // console.log('added removed', addedChunks.length, removedChunks.length, currentCoord.toArray(), this.lastUpdateCoord.toArray());
+      
+        this.lastUpdateCoord.copy(currentCoord);
+      }
     }
   }
 }
