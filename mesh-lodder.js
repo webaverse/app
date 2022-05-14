@@ -594,7 +594,7 @@ class LodChunkGenerator {
           const tw = w * canvasScale;
           const th = h * canvasScale;
 
-          // XXX write to geometry here
+          // XXX write out the geometry binding here
 
           _mapOffsettedPositions(g, geometry, positionOffset, positionX, positionZ, rotationY);
           geometry.attributes.normal.array.set(g.attributes.normal.array, positionOffset);
@@ -646,7 +646,9 @@ class LodChunkGenerator {
       totalNumPositions,
       totalNumIndices,
     } = _collectContentsRenderList();
-    const geometryBinding = this.allocator.alloc(totalNumPositions, totalNumIndices);
+    const totalNumPositionsLod0 = totalNumPositions[0];
+    const totalNumIndicesLod0 = totalNumIndices[0];
+    const geometryBinding = this.allocator.alloc(totalNumPositionsLod0, totalNumIndicesLod0);
     _renderContentsRenderList(contents, geometryBinding);
   }
 }
