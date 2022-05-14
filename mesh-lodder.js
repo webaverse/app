@@ -458,7 +458,6 @@ class LodChunkGenerator {
     ], {
       bufferSize,
     });
-    // window.allocator = this.allocator;
 
     // mesh
     this.mesh = new THREE.Mesh(this.allocator.geometry, this.parent.material);
@@ -519,9 +518,6 @@ class LodChunkGenerator {
     const scale = localVector2;
     const dynamic = false;
     const external = true;
-    /* console.log('add convex shape', {
-      shapeAddress, position, quaternion, scale, dynamic, external,
-    }); */
     const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
   
     this.physicsObjects.push(physicsObject);
@@ -617,14 +613,9 @@ class LodChunkGenerator {
         let uvOffset = geometryBinding.getAttributeOffset('uv');
         let indexOffset = geometryBinding.getIndexOffset();
 
-        // console.log('render geometry', positionOffset, uvOffset, indexOffset);
-
         // render geometries to allocated geometry binding
         for (let i = 0; i < contentMeshes.length; i++) {
           const contentMesh = contentMeshes[i];
-          /* const {
-            name,
-          } = mesh; */
           const contentName = contentNames[i];
           const positionX = (chunk.x + rng()) * chunkWorldSize;
           const positionZ = (chunk.z + rng()) * chunkWorldSize;
@@ -670,10 +661,7 @@ class LodChunkGenerator {
           indexOffset += g.index.count;
         }
 
-        // XXX set draw range
-        // geometry.setDrawRange(0, indexIndex);
         geometry.groups = this.allocator.indexFreeList.getGeometryGroups();
-        // window.groups = geometry.groups;
       }
     };
 
@@ -737,10 +725,6 @@ class MeshLodManager {
       lods = [],
     } = shapeSpec;
 
-    /* const newMeshes = meshes.map(mesh => {
-      const {geometry} = mesh;
-      return mesh;
-    }); */
     this.contentIndex[name] = lods;
 
     const lastMesh = lods.findLast(lod => lod !== null) ?? null;
@@ -754,10 +738,6 @@ class MeshLodManager {
     return this.generator.physicsObjects;
   }
   #getContentMergeable()  {
-    /* const getObjectKey = (object, material) => {
-      const renderer = getRenderer();
-      return renderer.getProgramCacheKey(object, material);
-    }; */
     const getObjectKey = () => '';
 
     const mergeables = new Map();
