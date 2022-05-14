@@ -301,7 +301,7 @@ class FreeList {
   getGeometryGroups() {
     const groups = [];
     for (const slot of this.slots) {
-      if (!slot.used) {
+      if (slot.used) {
         groups.push({
           start: slot.start,
           count: slot.count,
