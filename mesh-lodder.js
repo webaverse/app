@@ -5,7 +5,7 @@ import {alea} from './procgen/procgen.js';
 // import {getRenderer} from './renderer.js';
 import {mod, modUv, getNextPhysicsId} from './util.js';
 import physicsManager from './physics-manager.js';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const bufferSize = 2 * 1024 * 1024;
 const chunkWorldSize = 30;
@@ -51,6 +51,81 @@ const textureInitializers = {
   }, */
 };
 
+const _diceGeometry = g => {
+  const geometryToBeCut = g;
+
+  const getCutGeometries = (geometry, plane) => {
+    const res = physicsManager.cutMesh(
+      geometry.attributes.position.array, 
+      geometry.attributes.position.count * 3, 
+      geometry.attributes.normal.array, 
+      geometry.attributes.normal.count * 3, 
+      geometry.attributes.uv.array,
+      geometry.attributes.uv.count * 2,
+      geometry.index?.array,
+      geometry.index?.count, 
+
+      plane.normal.toArray(), 
+      plane.constant,
+    )
+
+    const positions0 = res.outPositions.slice(0, res.numOutPositions[0])
+    const positions1 = res.outPositions.slice(res.numOutPositions[0], res.numOutPositions[0] + res.numOutPositions[1])
+
+    const normals0 = res.outNormals.slice(0, res.numOutNormals[0])
+    const normals1 = res.outNormals.slice(res.numOutNormals[0], res.numOutNormals[0] + res.numOutNormals[1])
+
+    const uvs0 = res.outUvs.slice(0, res.numOutUvs[0])
+    const uvs1 = res.outUvs.slice(res.numOutUvs[0], res.numOutUvs[0] + res.numOutUvs[1])
+
+    const geometry0 = new THREE.BufferGeometry()
+    geometry0.setAttribute('position', new THREE.Float32BufferAttribute(positions0, 3))
+    geometry0.setAttribute('normal', new THREE.Float32BufferAttribute(normals0, 3))
+    geometry0.setAttribute('uv', new THREE.Float32BufferAttribute(uvs0, 2))
+    geometry0.setAttribute('uv2', new THREE.Float32BufferAttribute(uvs0.slice(), 2))
+
+    const geometry1 = new THREE.BufferGeometry()
+    geometry1.setAttribute('position', new THREE.Float32BufferAttribute(positions1, 3))
+    geometry1.setAttribute('normal', new THREE.Float32BufferAttribute(normals1, 3))
+    geometry1.setAttribute('uv', new THREE.Float32BufferAttribute(uvs1, 2))
+    geometry1.setAttribute('uv2', new THREE.Float32BufferAttribute(uvs1.slice(), 2))
+
+    return [geometry0, geometry1];
+  }
+
+  const geometries2Parts = getCutGeometries(geometryToBeCut, new THREE.Plane(
+    new THREE.Vector3(1, 0, 0).normalize(),
+    0,
+  ));
+
+  const geometries4Parts = [];
+  geometries2Parts.forEach(geometryToBeCut => {
+    const geometries = getCutGeometries(geometryToBeCut, new THREE.Plane(
+      new THREE.Vector3(0, 1, 0).normalize(),
+      0,
+    ));
+    geometries4Parts.push(...geometries);
+  });
+
+  const geometries8Parts = [];
+  geometries4Parts.forEach(geometryToBeCut => {
+    const geometries = getCutGeometries(geometryToBeCut, new THREE.Plane(
+      new THREE.Vector3(0, 0, 1).normalize(),
+      0,
+    ));
+    geometries8Parts.push(...geometries);
+  });
+
+  //
+
+  geometries8Parts.forEach((geometry, i) => {
+    const x = i < 4 ? -0.5 : 0.5;
+    const y = i % 4 < 2 ? -0.5 : 0.5;
+    const z = i % 2 < 1 ? -0.5 : 0.5;
+    geometry.translate(x, y, z);
+  });
+  return BufferGeometryUtils.mergeBufferGeometries(geometries8Parts);
+};
 const _eraseVertices = (geometry, positionStart, positionCount) => {
   for (let i = 0; i < positionCount; i++) {
     geometry.attributes.position.array[positionStart + i] = 0;
@@ -64,13 +139,15 @@ class LodChunk extends THREE.Vector3 {
   constructor(x, y, z, lod) {
     super(x, y, z);
     this.lod = lod;
+
+    this.name = `chunk:${this.x}:${this.z}`;
     this.geometryBinding = null;
   }
   equals(chunk) {
     return this.x === chunk.x && this.y === chunk.y && this.z === chunk.z;
   }
 }
-class LodTracker {
+class LodChunkTracker {
   constructor(generator) {
     this.generator = generator;
 
@@ -84,12 +161,13 @@ class LodTracker {
   }
   update(position) {
     const currentCoord = this.#getCurrentCoord(position, localVector2D);
-      
+
+    const lod = 0;
     if (!currentCoord.equals(this.lastUpdateCoord)) {
       const neededChunks = [];
       for (let dcx = -1; dcx <= 1; dcx++) {
         for (let dcz = -1; dcz <= 1; dcz++) {
-          const chunk = new LodChunk(currentCoord.x, 0, currentCoord.y, 0);
+          const chunk = new LodChunk(currentCoord.x, 0, currentCoord.y, lod);
           neededChunks.push(chunk);
         }
       }
@@ -116,7 +194,6 @@ class LodTracker {
           addedChunks.push(chunk);
         }
       }
-      // XXX reloddedChunks
 
       for (const chunk of addedChunks) {
         this.generator.generateChunk(chunk);
@@ -130,30 +207,129 @@ class LodTracker {
   }
 }
 
+class FreeListSlot {
+  constructor(start, count, used) {
+    this.start = start;
+    this.count = count;
+    this.used = used;
+  }
+  alloc(size) {
+    this.used = true;
+    if (size < this.count) {
+      const newSlot = new FreeListSlot(this.start + size, this.count - size, false);
+      this.count -= size;
+      return [
+        this,
+        newSlot,
+      ]
+    } else if (this.size === this.count) {
+      return [this];
+    } else {
+      throw new Error('could not allocate: ' + size + ' : ' + this.count);
+    }
+  }
+  free() {
+    this.used = false;
+    return [this];
+  }
+}
+
+class FreeList {
+  constructor(length) {
+    this.slots = [
+      new FreeListSlot(0, this.length, false),
+    ];
+    this.length = length;
+  }
+  findFirstFreeSlotIndexWithSize(size) {
+    for (let i = 0; i < this.slots.length; i++) {
+      const slot = this.slots[i];
+      if (!slot.used && slot.count >= size) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  alloc(size) {
+    if (size >= 0) {
+      const index = this.findFirstFreeSlotIndexWithSize(size);
+      if (index !== -1) {
+        const slot = this.slots[index];
+        const replacement = slot.alloc(size);
+        this.slots.splice.apply(index, [1].concat(replacement));
+        return replacement;
+      }
+    } else {
+      return null;
+    }
+  }
+  free(slot) {
+    const index = this.slots.indexOf(slot);
+    if (index !== -1) {
+      const replacement = slot.free();
+      this.slots.splice.apply(index, [1].concat(replacement));
+      this.#mergeAdjacentSlots();
+    }
+  }
+  #mergeAdjacentSlots() {
+    for (let i = this.slots.length - 2; i >= 0; i--) {
+      const slot = this.slots[i];
+      const nextSlot = this.slots[i + 1];
+      if (!slot.used && !nextSlot.used) {
+        slot.count += nextSlot.count;
+        this.slots.splice(i + 1, 1);
+      }
+    }
+  }
+}
+
+class GeometryBinding {
+  constructor(positionFreeListEntry, indexFreeListEntry, geometry) {
+    this.positionFreeListEntry = positionFreeListEntry;
+    this.indexFreeListEntry = indexFreeListEntry;
+    this.geometry = geometry;
+  }
+}
+
 class GeometryAllocator { // XXX allocate from this
   constructor(attributeSpecs, {
     bufferSize,
   }) {
-    this.geometry = new THREE.BufferGeometry();
-    for (const attributeSpec of attributeSpecs) {
-      const {
-        name,
-        Type,
-        itemSize,
-      } = attributeSpec;
+    {
+      this.geometry = new THREE.BufferGeometry();
+      for (const attributeSpec of attributeSpecs) {
+        const {
+          name,
+          Type,
+          itemSize,
+        } = attributeSpec;
 
-      const array = new Type(bufferSize * itemSize);
-      this.geometry.setAttribute(name, new THREE.BufferAttribute(array, itemSize));
+        const array = new Type(bufferSize * itemSize);
+        this.geometry.setAttribute(name, new THREE.BufferAttribute(array, itemSize));
+      }
+      const indices = new Uint32Array(bufferSize);
+      this.geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      this.geometry.setDrawRange(0, 0);
     }
 
-    const indices = new Uint32Array(bufferSize);
-    this.geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-    this.geometry.setDrawRange(0, 0);
+    this.positionFreeList = new FreeList(bufferSize);
+    this.indexFreeList = new FreeList(bufferSize);
+  }
+  alloc(numPositions, numIndices) {
+    const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
+    const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
+    const geometryBinding = new GeometryBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
+    return geometryBinding;
+  }
+  free(geometryBinding) {
+    this.positionFreeList.free(geometryBinding.positionFreeListEntry);
+    this.indexFreeList.free(geometryBinding.indexFreeListEntry);
   }
 }
 
-class LodGenerator {
+class LodChunkGenerator {
   constructor(parent) {
+    // parameters
     this.parent = parent;
 
     // members
@@ -240,7 +416,7 @@ class LodGenerator {
     const canvasSize = Math.min(atlas.width, defaultTextureSize);
     const canvasScale = canvasSize / atlas.width;
     
-    const rng = alea(`mesh-lodder:${chunk.x}:${chunk.z}`);
+    const rng = alea(chunk.name);
     const numObjects = minObjectsPerChunk + Math.floor(rng() * (maxObjectPerChunk - minObjectsPerChunk));
     let positionIndex = 0;
     let indexIndex = 0;
@@ -294,81 +470,6 @@ class LodGenerator {
       };
       _addPhysicsShape();
 
-      const _diceGeometry = g => {
-        const geometryToBeCut = g;
-
-        const getCutGeometries = (geometry, plane) => {
-          const res = physicsManager.cutMesh(
-            geometry.attributes.position.array, 
-            geometry.attributes.position.count * 3, 
-            geometry.attributes.normal.array, 
-            geometry.attributes.normal.count * 3, 
-            geometry.attributes.uv.array,
-            geometry.attributes.uv.count * 2,
-            geometry.index?.array,
-            geometry.index?.count, 
-
-            plane.normal.toArray(), 
-            plane.constant,
-          )
-
-          const positions0 = res.outPositions.slice(0, res.numOutPositions[0])
-          const positions1 = res.outPositions.slice(res.numOutPositions[0], res.numOutPositions[0] + res.numOutPositions[1])
-
-          const normals0 = res.outNormals.slice(0, res.numOutNormals[0])
-          const normals1 = res.outNormals.slice(res.numOutNormals[0], res.numOutNormals[0] + res.numOutNormals[1])
-
-          const uvs0 = res.outUvs.slice(0, res.numOutUvs[0])
-          const uvs1 = res.outUvs.slice(res.numOutUvs[0], res.numOutUvs[0] + res.numOutUvs[1])
-
-          const geometry0 = new THREE.BufferGeometry()
-          geometry0.setAttribute('position', new THREE.Float32BufferAttribute(positions0, 3))
-          geometry0.setAttribute('normal', new THREE.Float32BufferAttribute(normals0, 3))
-          geometry0.setAttribute('uv', new THREE.Float32BufferAttribute(uvs0, 2))
-          geometry0.setAttribute('uv2', new THREE.Float32BufferAttribute(uvs0.slice(), 2))
-
-          const geometry1 = new THREE.BufferGeometry()
-          geometry1.setAttribute('position', new THREE.Float32BufferAttribute(positions1, 3))
-          geometry1.setAttribute('normal', new THREE.Float32BufferAttribute(normals1, 3))
-          geometry1.setAttribute('uv', new THREE.Float32BufferAttribute(uvs1, 2))
-          geometry1.setAttribute('uv2', new THREE.Float32BufferAttribute(uvs1.slice(), 2))
-
-          return [geometry0, geometry1];
-        }
-
-        const geometries2Parts = getCutGeometries(geometryToBeCut, new THREE.Plane(
-          new THREE.Vector3(1, 0, 0).normalize(),
-          0,
-        ));
-
-        const geometries4Parts = [];
-        geometries2Parts.forEach(geometryToBeCut => {
-          const geometries = getCutGeometries(geometryToBeCut, new THREE.Plane(
-            new THREE.Vector3(0, 1, 0).normalize(),
-            0,
-          ));
-          geometries4Parts.push(...geometries);
-        });
-
-        const geometries8Parts = [];
-        geometries4Parts.forEach(geometryToBeCut => {
-          const geometries = getCutGeometries(geometryToBeCut, new THREE.Plane(
-            new THREE.Vector3(0, 0, 1).normalize(),
-            0,
-          ));
-          geometries8Parts.push(...geometries);
-        });
-
-        //
-
-        geometries8Parts.forEach((geometry, i) => {
-          const x = i < 4 ? -0.5 : 0.5;
-          const y = i % 4 < 2 ? -0.5 : 0.5;
-          const z = i % 2 < 1 ? -0.5 : 0.5;
-          geometry.translate(x, y, z);
-        });
-        return BufferGeometryUtils.mergeBufferGeometries(geometries8Parts);
-      };
       const _mapGeometryUvs = geometry => {
         _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, 0, g.attributes.uv.count);
         _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, 0, g.attributes.uv2.count);
@@ -398,7 +499,7 @@ class LodGenerator {
             start: indexIndex,
             count: g.index.count,
           },
-          cloneItemDiceMesh: () => { // XXX should be broken out to its own module
+          cloneItemDiceMesh: () => {
             let geometry = g.clone();
             _mapGeometryUvs(geometry);
             geometry = _diceGeometry(geometry);
@@ -521,8 +622,8 @@ class MeshLodManager {
 
     meshLodders.push(this);
 
-    this.generator = new LodGenerator(this);
-    this.tracker = new LodTracker(this.generator);
+    this.generator = new LodChunkGenerator(this);
+    this.tracker = new LodChunkTracker(this.generator);
   }
   registerLodMesh(name, shapeSpec) {
     const {
