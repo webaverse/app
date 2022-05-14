@@ -93,6 +93,13 @@ class CharacterPhysics {
         localVector3.z = 0;
       }
 
+      if (window.isDebugger) debugger
+
+      localVector3.x += window.moveX || 0;
+      localVector3.z += window.moveZ || 0;
+      window.moveX = 0;
+      window.moveZ = 0;
+
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
       const flags = physicsManager.moveCharacterController(
         this.player.characterController,

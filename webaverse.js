@@ -292,6 +292,8 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
+      if (window.isDebugger) debugger;
+
       // if (window.silsword) {
       //   const physicsObject = window.silsword.getPhysicsObjects()[0];
       //   if (physicsObject) {

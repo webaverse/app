@@ -966,12 +966,24 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             //   .premultiply(localQuaternion2.fromArray(v3).invert())
             //   .premultiply(localQuaternion2.fromArray(v2));
           } else {
+            // window.isDebugger = true; debugger
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localVector2.fromArray(v2);
+            if (spec.boneName === 'Hips') {
+              if (!window.lastV2) {
+                window.lastV2 = [v2[0], 0, v2[2]];
+              }
+              // console.log(window.logVector3(localVector2));
+              window.moveX = v2[0] - window.lastV2[0];
+              window.moveZ = v2[2] - window.lastV2[2];
+              window.lastV2[0] = v2[0];
+              window.lastV2[2] = v2[2];
+            }
             _clearXZ(localVector2, isPosition);
 
             dst.copy(localVector2);
+            // dst.fromArray(v2);
 
             // const idleAnimation = _getIdleAnimation('walk');
             // const t3 = 0;
