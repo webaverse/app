@@ -353,7 +353,6 @@ class GeometryAllocator {
       }
       const indices = new Uint32Array(bufferSize);
       this.geometry.setIndex(new ExtendedGLBufferAttribute(indices, 1, true));
-      // this.geometry.setDrawRange(0, 0);
     }
 
     this.positionFreeList = new FreeList(bufferSize * 3);
@@ -487,7 +486,7 @@ class ExtendedGLBufferAttribute extends THREE.GLBufferAttribute {
     const renderer = getRenderer();
     const gl = renderer.getContext();
     
-    const arrayBufferBinding = gl.getParameter(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING);
+    const arrayBufferBinding = gl.getParameter(WebGLRenderingContext.ARRAY_BUFFER_BINDING);
     const elementArrayBufferBinding = gl.getParameter(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING);
     
     const popUpdate = () => {
