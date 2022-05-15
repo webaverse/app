@@ -28,10 +28,10 @@ import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
+import { UIMode } from '../general/ui-mode';
 
 import styles from './App.module.css';
 import '../../fonts.css';
-import classNames from 'classnames';
 
 //
 
@@ -260,7 +260,7 @@ export const App = () => {
 
     return (
         <div
-            className={ classNames( styles.App, uiMode === 'normal' ? styles.normalUIMode : styles.noneUIMode ) }
+            className={ styles.App }
             id="app"
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
@@ -270,7 +270,9 @@ export const App = () => {
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
-                <ActionMenu setUIMode={ setUIMode } />
+                <UIMode hideDirection='right'>
+                    <ActionMenu setUIMode={ setUIMode } />
+                </UIMode>
                 <Settings />
                 <WorldObjectsList
                     setSelectedApp={ setSelectedApp }
