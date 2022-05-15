@@ -24,6 +24,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
+const localVector4D = new THREE.Vector4();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
@@ -157,7 +158,6 @@ class LodChunkTracker {
 
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector2(NaN, NaN);
-    // this.first = true;
   }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / chunkWorldSize);
@@ -165,62 +165,61 @@ class LodChunkTracker {
     return target.set(cx, cz);
   }
   update(position) {
-    // if (this.first) {
-      // this.first = false;
+    const currentCoord = this.#getCurrentCoord(position, localVector2D);
 
-      // const zeroPosition = new THREE.Vector3(0, 0, 0);
-      const currentCoord = this.#getCurrentCoord(position, localVector2D);
-
-      if (!currentCoord.equals(this.lastUpdateCoord)) {
-        // console.log('got current coord', [currentCoord.x, currentCoord.y]);
-        const lod = 0;
-        const neededChunks = [];
-        for (let dcx = -1; dcx <= 1; dcx++) {
-          for (let dcz = -1; dcz <= 1; dcz++) {
-            const chunk = new LodChunk(currentCoord.x + dcx, 0, currentCoord.y + dcz, lod);
-            neededChunks.push(chunk);
-          }
+    if (!currentCoord.equals(this.lastUpdateCoord)) {
+      // console.log('got current coord', [currentCoord.x, currentCoord.y]);
+      const lod = 0;
+      const neededChunks = [];
+      for (let dcx = -1; dcx <= 1; dcx++) {
+        for (let dcz = -1; dcz <= 1; dcz++) {
+          const chunk = new LodChunk(currentCoord.x + dcx, 0, currentCoord.y + dcz, lod);
+          neededChunks.push(chunk);
         }
-
-        const addedChunks = [];
-        const removedChunks = [];
-        const reloddedChunks = [];
-        for (const chunk of this.chunks) {
-          const matchingNeededChunk = neededChunks.find(nc => nc.equals(chunk));
-          if (!matchingNeededChunk) {
-            removedChunks.push(chunk);
-          }
-        }
-        for (const chunk of neededChunks) {
-          const matchingExistingChunk = this.chunks.find(ec => ec.equals(chunk));
-          if (matchingExistingChunk) {
-            if (matchingExistingChunk.lod !== chunk.lod) {
-              reloddedChunks.push({
-                oldChunk: matchingExistingChunk,
-                newChunk: chunk,
-              });
-            }
-          } else {
-            addedChunks.push(chunk);
-          }
-        }
-
-        // console.log('add remove', addedChunks.length, removedChunks.length);
-
-        for (const removedChunk of removedChunks) {
-          this.generator.disposeChunk(removedChunk);
-          const index = this.chunks.indexOf(removedChunk);
-          this.chunks.splice(index, 1);
-        }
-        for (const addedChunk of addedChunks) {
-          this.generator.generateChunk(addedChunk);
-          this.chunks.push(addedChunk);
-        }
-      
-        this.lastUpdateCoord.copy(currentCoord);
       }
+
+      const addedChunks = [];
+      const removedChunks = [];
+      const reloddedChunks = [];
+      for (const chunk of this.chunks) {
+        const matchingNeededChunk = neededChunks.find(nc => nc.equals(chunk));
+        if (!matchingNeededChunk) {
+          removedChunks.push(chunk);
+        }
+      }
+      for (const chunk of neededChunks) {
+        const matchingExistingChunk = this.chunks.find(ec => ec.equals(chunk));
+        if (matchingExistingChunk) {
+          if (matchingExistingChunk.lod !== chunk.lod) {
+            reloddedChunks.push({
+              oldChunk: matchingExistingChunk,
+              newChunk: chunk,
+            });
+          }
+        } else {
+          addedChunks.push(chunk);
+        }
+      }
+
+      for (const removedChunk of removedChunks) {
+        this.generator.disposeChunk(removedChunk);
+        const index = this.chunks.indexOf(removedChunk);
+        this.chunks.splice(index, 1);
+      }
+      for (const addedChunk of addedChunks) {
+        this.generator.generateChunk(addedChunk);
+        this.chunks.push(addedChunk);
+      }
+    
+      this.lastUpdateCoord.copy(currentCoord);
     }
-  // }
+  }
+  destroy() {
+    for (const chunk of this.chunks) {
+      this.generator.disposeChunk(chunk);
+    }
+    this.chunks.length = 0;
+  }
 }
 
 class FreeListSlot {
@@ -560,6 +559,7 @@ class LodChunkGenerator {
     this.itemQuaternions = new Float32Array(maxNumItems * 4);
     this.itemPositionOffsets = new Uint32Array(maxNumItems);
     this.itemPositionCounts = new Uint32Array(maxNumItems);
+    this.itemRects = new Uint32Array(maxNumItems * 4);
 
     // mesh
     this.mesh = new THREE.Mesh(this.allocator.geometry, [this.parent.material]);
@@ -602,9 +602,9 @@ class LodChunkGenerator {
   }
   #getShapeAddress(name) {
     const result = this.parent.shapeAddresses[name];
-    if (!result) {
+    /* if (!result) {
       debugger;
-    }
+    } */
     return result;
   }
   #getContentMeshIndex(mesh) {
@@ -624,8 +624,33 @@ class LodChunkGenerator {
 
     return physicsObject;
   }
+  cloneItemDiceMesh(itemId) {
+    let geometry = g.clone();
+    _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
+    geometry = _diceGeometry(geometry);
+    const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material, positionX, positionZ, rotationY);
+    return itemMesh;
+  }
+  cloneItemMesh(itemId) {
+    const geometry = g.clone();
+    _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
+    const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material, positionX, positionZ, rotationY);
+    return itemMesh;
+  }
+  clonePhysicsObject(itemId) {
+    const shapeAddress = this.parent.shapeAddresses[contentName];
+    _getMatrixWorld(this.mesh, contentMesh, localMatrix, positionX, positionZ, rotationY)
+      .decompose(localVector, localQuaternion, localVector2);
+    const position = localVector;
+    const quaternion = localQuaternion;
+    const scale = localVector2;
+    const dynamic = true;
+    const external = true;
+    const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
+    return physicsObject;
+  }
   #addItemToRegistry(g, contentMesh, contentName, physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize) {
-    const item = {
+    /* const item = {
       // position: new THREE.Vector3(positionX, 0, positionZ),
       // quaternion: new THREE.Quaternion().setFromAxisAngle(upVector, rotationY),
       // scale: oneVector,
@@ -656,20 +681,19 @@ class LodChunkGenerator {
         const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
         return physicsObject;
       },
-    };
+    }; */
     localVector.set(positionX, 0, positionZ)
       .toArray(this.itemPositions, physicsId * 3);
     localQuaternion.setFromAxisAngle(upVector, rotationY)
       .toArray(this.itemQuaternions, physicsId * 4);
     this.itemPositionOffsets[physicsId] = positionOffset;
     this.itemPositionCounts[physicsId] = positionCount;
+    localVector4D.set(tx, ty, tw, th)
+      .toArray(this.itemRects, physicsId * 4);
 
-    return item;
+    // return item;
   }
   generateChunk(chunk) {
-    // console.log('generate chunk', chunk.x, chunk.z);
-
-    // collect geometries
     const _collectContentsRenderList = () => {
       const contentNames = [];
       const contents = [];
@@ -709,7 +733,6 @@ class LodChunkGenerator {
       };
     };
     const _renderContentsRenderList = (contentMeshes, contentNames, geometry, geometryBinding) => {
-      // const items = [];
       const physicsObjects = [];
 
       const popUpdate = ExtendedGLBufferAttribute.pushUpdate();
@@ -762,8 +785,7 @@ class LodChunkGenerator {
 
             // tracking
             const positionCount = g.attributes.position.count * g.attributes.position.itemSize;
-            /*const item = */this.#addItemToRegistry(g, contentMesh, contentName, physicsObject.physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
-            // items.push(item);
+            this.#addItemToRegistry(g, contentMesh, contentName, physicsObject.physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
           }
           
           positionOffset += g.attributes.position.count * g.attributes.position.itemSize;
@@ -774,7 +796,6 @@ class LodChunkGenerator {
       popUpdate();
 
       return {
-        // items,
         physicsObjects,
       };
     };
@@ -793,15 +814,12 @@ class LodChunkGenerator {
     const contentsLod0 = contents.map(meshes => meshes[0]);
     const totalNumPositionsLod0 = totalNumPositions.reduce((a, b) => a + b[0], 0);
     const totalNumIndicesLod0 = totalNumIndices.reduce((a, b) => a + b[0], 0);
-    // console.log('allocate', totalNumPositionsLod0, totalNumIndicesLod0);
     const geometryBinding = this.allocator.alloc(totalNumPositionsLod0, totalNumIndicesLod0);
     const {
-      // items,
       physicsObjects,
     } = _renderContentsRenderList(contentsLod0, contentNames, this.allocator.geometry, geometryBinding);
 
     chunk.geometryBinding = geometryBinding;
-    // chunk.items = items;
     chunk.physicsObjects = physicsObjects;
     this.allocator.geometry.groups = this.allocator.indexFreeList.getGeometryGroups(); // XXX memory for this can be optimized
     this.mesh.visible = true;
@@ -814,6 +832,9 @@ class LodChunkGenerator {
       physicsManager.removeGeometry(physicsObject);
     }
     chunk.physicsObjects.length = 0;
+  }
+  destroy() {
+    // nothing; the owning lod tracker disposes of our contents
   }
 }
 
