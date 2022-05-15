@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import {MaxRectsPacker} from 'maxrects-packer';
 import {localPlayer} from './players.js';
 import {alea} from './procgen/procgen.js';
-import {getRenderer, rootScene, camera} from './renderer.js';
-import {mod, modUv, getNextPhysicsId} from './util.js';
+import {getRenderer} from './renderer.js';
+import {modUv} from './util.js';
 import physicsManager from './physics-manager.js';
 import {defaultMaxId} from './constants.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -18,7 +18,7 @@ const maxObjectPerChunk = 50;
 
 const upVector = new THREE.Vector3(0, 1, 0);
 // const rightVector = new THREE.Vector3(1, 0, 0);
-const oneVector = new THREE.Vector3(1, 1, 1);
+// const oneVector = new THREE.Vector3(1, 1, 1);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -818,6 +818,9 @@ class LodChunkGenerator {
 
     for (const physicsObject of chunk.physicsObjects) {
       physicsManager.removeGeometry(physicsObject);
+      
+      const index = this.physicsObjects.findIndex(po => po.physicsId === physicsObject.physicsId);
+      this.physicsObjects.splice(index, 1);
     }
     chunk.physicsObjects.length = 0;
   }
