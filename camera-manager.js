@@ -486,10 +486,6 @@ class CameraManager extends EventTarget {
         localVector3.set(0, 0, -1),
         localVector.copy(window.npcPlayers[0].position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
       )
-      localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
-      localEuler.x = camera.rotation.x;
-      // this.targetQuaternion.multiply(combatLockBiasQuaternion);
-      this.targetQuaternion.setFromEuler(localEuler);
     }
 
     const renderer = getRenderer();
@@ -619,6 +615,11 @@ class CameraManager extends EventTarget {
 
             localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
             this.targetQuaternion.setFromRotationMatrix(localMatrix);
+              
+            localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
+            localEuler.x = camera.rotation.x;
+            // this.targetQuaternion.multiply(combatLockBiasQuaternion);
+            this.targetQuaternion.setFromEuler(localEuler);
       
             break;
           }
