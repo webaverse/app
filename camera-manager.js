@@ -610,7 +610,14 @@ class CameraManager extends EventTarget {
 
             // this.targetPosition.copy(localVector)
 
-            localMatrix.lookAt(this.targetPosition, new THREE.Vector3(-2, 1, -5), new THREE.Vector3(0, 1, 0));
+            localVector.copy(localPlayer.position).sub(npcPlayers[0].position).setY(0)
+              .applyAxisAngle(new THREE.Vector3(0, 1, 0), - Math.PI / 2)
+              .normalize().multiplyScalar(2)
+              .add(npcPlayers[0].position)
+
+            // console.log(window.logVector3(localVector));
+
+            localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
             this.targetQuaternion.setFromRotationMatrix(localMatrix);
       
             break;
