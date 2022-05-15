@@ -166,7 +166,11 @@ class CharacterPhysics {
             );
           }
         } else {
-          localQuaternion.copy(camera.quaternion);
+          // localQuaternion.copy(camera.quaternion);
+          localQuaternion.setFromUnitVectors(
+            new THREE.Vector3(0, 0, -1),
+            new THREE.Vector3().copy(window.npcPlayers[0].position).sub(window.localPlayer.position).setY(0).normalize()
+          )
         }
 
         const jumpAction = this.player.getAction('jump');
