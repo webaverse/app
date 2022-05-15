@@ -16,9 +16,9 @@ import * as sounds from '../sounds.js';
 
 //
 
-export const User = ({ address, setAddress, setLoginFrom }) => {
+export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
-    const { state, setState, uiMode } = useContext( AppContext );
+    const { state, setState } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
@@ -223,10 +223,11 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                 styles.user,
                 open ? styles.open : null,
                 loggedIn ? styles.loggedIn : null,
-                loggingIn ? styles.loggingIn : null
+                loggingIn ? styles.loggingIn : null,
+                className
             ) }
         >
-            <div className={ classnames( styles.keyWrap, uiMode === 'none' ? styles.hiddenUI : null ) } onClick={e => {
+            <div className={ styles.keyWrap } onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
 
