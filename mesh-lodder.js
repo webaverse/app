@@ -126,15 +126,15 @@ const _diceGeometry = g => {
   });
   return BufferGeometryUtils.mergeBufferGeometries(geometries8Parts);
 };
-const _eraseVertices = (mesh, positionStart, positionCount) => {
-  const {geometry} = mesh;
+const _eraseVertices = (geometry, positionStart, positionCount) => {
   for (let i = 0; i < positionCount; i++) {
     geometry.attributes.position.array[positionStart + i] = 0;
   }
-  geometry.attributes.position.updateRange.offset = positionStart;
+  geometry.attributes.position.update(positionStart, positionCount);
+  /* geometry.attributes.position.updateRange.offset = positionStart;
   geometry.attributes.position.updateRange.count = positionCount;
   geometry.attributes.position.needsUpdate = true;
-  uploadGeometry(geometry);
+  uploadGeometry(geometry); */
 };
 
 class LodChunk extends THREE.Vector3 {
@@ -551,7 +551,7 @@ class LodChunkGenerator {
     if (index !== -1) {
       const item = this.itemRegistry[index];
       _eraseVertices(
-        this.mesh,
+        this.allocator.geometry,
         item.positionOffset,
         item.positionCount,
       );
