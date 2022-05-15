@@ -3,11 +3,6 @@
     position: absolute;
     top: 55px;
     right: 0px;
-    transition: transform 300ms cubic-bezier( 0, 1, 0, 1 );
-}
-
-.actionMenu.hiddenUI {
-    transform: translateX( 100% );
 }
 
 .btn {
