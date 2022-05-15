@@ -53,6 +53,7 @@ const localQuaternion3 = new Quaternion();
 const localQuaternion4 = new Quaternion();
 const localQuaternion5 = new Quaternion();
 const localQuaternion6 = new Quaternion();
+const identityQuaternion = new Quaternion();
 
 let animations;
 let animationStepIndices;
@@ -977,16 +978,17 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               // }
               // console.log(window.logVector3(localVector2));
 
-              // localVector4.x = v2[0] - window.lastV2[0];
-              // localVector4.z = v2[2] - window.lastV2[2];
-              // // localVector4.z *= -1;
-              // localVector4.z = 0;
-              // localVector4.applyQuaternion(window.localPlayer.quaternion);
-              // window.moveX = localVector4.x;
-              // window.moveZ = localVector4.z;
+              localVector4.x = v2[0] - window.lastV2[0];
+              localVector4.z = v2[2] - window.lastV2[2];
+              localVector4.z *= -1;
+              localVector4.y = 0;
+              localVector4.applyQuaternion(window.localPlayer.quaternion);
+              // localVector4.applyQuaternion(identityQuaternion);
+              window.moveX = localVector4.x;
+              window.moveZ = localVector4.z;
 
-              window.moveX = v2[0] - window.lastV2[0];
-              window.moveZ = v2[2] - window.lastV2[2];
+              // window.moveX = v2[0] - window.lastV2[0];
+              // window.moveZ = v2[2] - window.lastV2[2];
 
               console.log(window.moveX, window.moveZ);
 
