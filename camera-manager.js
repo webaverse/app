@@ -270,7 +270,7 @@ class CameraManager extends EventTarget {
     return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
   }
   getCameraOffset() {
-    cameraOffset.x = -3;
+    cameraOffset.x = -2;
     return cameraOffset;
   }
   handleMouseMove(e) {
@@ -488,7 +488,7 @@ class CameraManager extends EventTarget {
       )
       localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
       localEuler.x = camera.rotation.x;
-      this.targetQuaternion.multiply(combatLockBiasQuaternion);
+      // this.targetQuaternion.multiply(combatLockBiasQuaternion);
       this.targetQuaternion.setFromEuler(localEuler);
     }
 
@@ -609,6 +609,9 @@ class CameraManager extends EventTarget {
             //   .multiplyScalar(avatarCameraOffset)
 
             // this.targetPosition.copy(localVector)
+
+            localMatrix.lookAt(this.targetPosition, new THREE.Vector3(-2, 1, -5), new THREE.Vector3(0, 1, 0));
+            this.targetQuaternion.setFromRotationMatrix(localMatrix);
       
             break;
           }
