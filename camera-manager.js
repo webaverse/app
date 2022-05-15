@@ -271,6 +271,7 @@ class CameraManager extends EventTarget {
   }
   getCameraOffset() {
     cameraOffset.x = -2;
+    cameraOffset.y = -2.7;
     return cameraOffset;
   }
   handleMouseMove(e) {
@@ -480,8 +481,6 @@ class CameraManager extends EventTarget {
   updatePost(timestamp, timeDiff) {
     
     if (localPlayer.combatTargetEnabled) {
-      // this.targetQuaternion.copy(camera.quaternion);
-      // this.targetQuaternion.identity();
       this.targetQuaternion.setFromUnitVectors(
         localVector3.set(0, 0, -1),
         localVector.copy(window.npcPlayers[0].position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
@@ -600,26 +599,26 @@ class CameraManager extends EventTarget {
                   .applyQuaternion(this.targetQuaternion)
               );
 
-            // localVector.copy(window.npcPlayers[0].position)
-            //   .sub(window.localPlayer.position)
-            //   .multiplyScalar(avatarCameraOffset)
-
-            // this.targetPosition.copy(localVector)
-
+            // look at npcPlayer's side
             localVector.copy(localPlayer.position).sub(npcPlayers[0].position).setY(0)
               .applyAxisAngle(new THREE.Vector3(0, 1, 0), - Math.PI / 2)
               .normalize().multiplyScalar(2)
               .add(npcPlayers[0].position)
-
             // console.log(window.logVector3(localVector));
 
             localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
             this.targetQuaternion.setFromRotationMatrix(localMatrix);
               
-            localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
-            localEuler.x = camera.rotation.x;
-            // this.targetQuaternion.multiply(combatLockBiasQuaternion);
-            this.targetQuaternion.setFromEuler(localEuler);
+            // // free camera.rotation.x
+            // localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
+            // localEuler.x = camera.rotation.x;
+            // // this.targetQuaternion.multiply(combatLockBiasQuaternion);
+            // this.targetQuaternion.setFromEuler(localEuler);
+
+            // move up whole viewport (move down camera)
+            this.targetPosition.add(
+              new THREE.Vector3(0, -2, 0).applyQuaternion(this.targetQuaternion)
+            );
       
             break;
           }
