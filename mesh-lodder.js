@@ -5,9 +5,11 @@ import {alea} from './procgen/procgen.js';
 import {getRenderer, rootScene, camera} from './renderer.js';
 import {mod, modUv, getNextPhysicsId} from './util.js';
 import physicsManager from './physics-manager.js';
+import {defaultMaxId} from './constants.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const bufferSize = 20 * 1024 * 1024;
+const maxNumItems = defaultMaxId;
 const chunkWorldSize = 30;
 const defaultTextureSize = 4096;
 const startAtlasSize = 512;
@@ -529,7 +531,6 @@ class LodChunkGenerator {
     this.parent = parent;
 
     // members
-    this.itemRegistry = [];
     this.physicsObjects = [];
     this.allocator = new GeometryAllocator([
       {
@@ -555,47 +556,40 @@ class LodChunkGenerator {
     ], {
       bufferSize,
     });
+    this.itemPositions = new Float32Array(maxNumItems * 3);
+    this.itemQuaternions = new Float32Array(maxNumItems * 4);
+    this.itemPositionOffsets = new Uint32Array(maxNumItems);
+    this.itemPositionCounts = new Uint32Array(maxNumItems);
 
     // mesh
     this.mesh = new THREE.Mesh(this.allocator.geometry, [this.parent.material]);
     this.mesh.frustumCulled = false;
     this.mesh.visible = false;
   }
-  getItemByPhysicsId(physicsId) {
-    const physicsObjectIndex = this.physicsObjects.findIndex(p => p.physicsId === physicsId);
-    if (physicsObjectIndex !== -1) {
-      const item = this.itemRegistry[physicsObjectIndex];
-      return item;
-    } else {
-      return null;
-    }
+  /* getItemIdByPhysicsId(physicsId) {
+    return this.physicsObjects.findIndex(o => o.physicsId === physicsId);
+  } */
+  getItemTransformByItemId(itemId, p, q, s) {
+    p.fromArray(this.itemPositions, itemId * 3);
+    q.fromArray(this.itemQuaternions, itemId * 4);
+    s.set(1, 1, 1);
   }
-  deleteItem(item) {
-    const index = this.itemRegistry.indexOf(item);
-    if (index !== -1) {
-      const item = this.itemRegistry[index];
+  deleteItem(itemId) {
+    // const index = this.itemRegistry.indexOf(item);
+    // if (index !== -1) {
+      // const item = this.itemRegistry[index];
       _eraseVertices(
         this.allocator.geometry,
-        item.positionOffset,
-        item.positionCount,
+        this.itemPositionOffsets[itemId],
+        this.itemPositionCounts[itemId],
       );
 
       const physicsObject = this.physicsObjects[index];
       physicsManager.removeGeometry(physicsObject);
       
-      this.itemRegistry.splice(index, 1);
+      // this.itemRegistry.splice(index, 1);
       this.physicsObjects.splice(index, 1);
-    }
-  }
-  #destroyItem(item) {
-    const index = this.itemRegistry.indexOf(item);
-    if (index !== -1) {
-      const physicsObject = this.physicsObjects[index];
-      physicsManager.removeGeometry(physicsObject);
-      
-      this.itemRegistry.splice(index, 1);
-      this.physicsObjects.splice(index, 1);
-    }
+    // }
   }
   #getContentIndexNames() {
     return Object.keys(this.parent.contentIndex).sort();
@@ -630,24 +624,13 @@ class LodChunkGenerator {
 
     return physicsObject;
   }
-  #addItemToRegistry(g, contentMesh, contentName, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize) {
+  #addItemToRegistry(g, contentMesh, contentName, physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize) {
     const item = {
-      position: new THREE.Vector3(positionX, 0, positionZ),
-      quaternion: new THREE.Quaternion().setFromAxisAngle(upVector, rotationY),
-      scale: oneVector,
-      /* attributes: {
-        position: {
-          start: positionIndex * 3,
-          count: g.attributes.position.count * 3,
-        },
-      },
-      index: {
-        start: indexIndex,
-        count: g.index.count,
-      }, */
-      // geometryBinding,
-      positionOffset,
-      positionCount,
+      // position: new THREE.Vector3(positionX, 0, positionZ),
+      // quaternion: new THREE.Quaternion().setFromAxisAngle(upVector, rotationY),
+      // scale: oneVector,
+      // positionOffset,
+      // positionCount,
       cloneItemDiceMesh: () => {
         let geometry = g.clone();
         _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
@@ -674,7 +657,12 @@ class LodChunkGenerator {
         return physicsObject;
       },
     };
-    this.itemRegistry.push(item);
+    localVector.set(positionX, 0, positionZ)
+      .toArray(this.itemPositions, physicsId * 3);
+    localQuaternion.setFromAxisAngle(upVector, rotationY)
+      .toArray(this.itemQuaternions, physicsId * 4);
+    this.itemPositionOffsets[physicsId] = positionOffset;
+    this.itemPositionCounts[physicsId] = positionCount;
 
     return item;
   }
@@ -721,7 +709,7 @@ class LodChunkGenerator {
       };
     };
     const _renderContentsRenderList = (contentMeshes, contentNames, geometry, geometryBinding) => {
-      const items = [];
+      // const items = [];
       const physicsObjects = [];
 
       const popUpdate = ExtendedGLBufferAttribute.pushUpdate();
@@ -732,15 +720,6 @@ class LodChunkGenerator {
 
         // render geometries to allocated geometry binding
         for (let i = 0; i < contentMeshes.length; i++) {
-          /* if (positionOffset > geometryBinding.positionFreeListEntry.start + geometryBinding.positionFreeListEntry.count) {
-            debugger;
-            throw new Error('overflow');
-          }
-          if (indexOffset > geometryBinding.indexFreeListEntry.start + geometryBinding.indexFreeListEntry.count) {
-            debugger;
-            throw new Error('overflow');
-          } */
-
           const contentMesh = contentMeshes[i];
           const contentName = contentNames[i];
           const positionX = (chunk.x + 1 + rng()) * chunkWorldSize;
@@ -775,18 +754,16 @@ class LodChunkGenerator {
             geometry.index.update(indexOffset, g.index.count);
           }
 
-          // physics
           {
+            // physics
             const shapeAddress = this.#getShapeAddress(contentName);
             const physicsObject = this.#addPhysicsShape(shapeAddress, contentMesh, positionX, positionZ, rotationY);
             physicsObjects.push(physicsObject);
-          }
 
-          // tracking
-          {
+            // tracking
             const positionCount = g.attributes.position.count * g.attributes.position.itemSize;
-            const item = this.#addItemToRegistry(g, contentMesh, contentName, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
-            items.push(item);
+            /*const item = */this.#addItemToRegistry(g, contentMesh, contentName, physicsObject.physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
+            // items.push(item);
           }
           
           positionOffset += g.attributes.position.count * g.attributes.position.itemSize;
@@ -797,7 +774,7 @@ class LodChunkGenerator {
       popUpdate();
 
       return {
-        items,
+        // items,
         physicsObjects,
       };
     };
@@ -819,12 +796,12 @@ class LodChunkGenerator {
     // console.log('allocate', totalNumPositionsLod0, totalNumIndicesLod0);
     const geometryBinding = this.allocator.alloc(totalNumPositionsLod0, totalNumIndicesLod0);
     const {
-      items,
+      // items,
       physicsObjects,
     } = _renderContentsRenderList(contentsLod0, contentNames, this.allocator.geometry, geometryBinding);
 
     chunk.geometryBinding = geometryBinding;
-    chunk.items = items;
+    // chunk.items = items;
     chunk.physicsObjects = physicsObjects;
     this.allocator.geometry.groups = this.allocator.indexFreeList.getGeometryGroups(); // XXX memory for this can be optimized
     this.mesh.visible = true;
@@ -833,9 +810,10 @@ class LodChunkGenerator {
     this.allocator.free(chunk.geometryBinding);
     chunk.geometryBinding = null;
 
-    for (const item of chunk.items) {
-      this.#destroyItem(item);
+    for (const physicsObject of chunk.physicsObjects) {
+      physicsManager.removeGeometry(physicsObject);
     }
+    chunk.physicsObjects.length = 0;
   }
 }
 
@@ -1160,11 +1138,14 @@ class MeshLodManager {
   getChunks() {
     return this.generator.mesh;
   }
-  getItemByPhysicsId(physicsId) {
-    return this.generator.getItemByPhysicsId(physicsId);
+  /* getItemIdByPhysicsId(physicsId) {
+    return this.generator.getItemIdByPhysicsId(physicsId); 
+  } */
+  getItemTransformByItemId(itemId) {
+    return this.generator.getItemTransformByItemId(itemId);
   }
-  deleteItem(item) {
-    return this.generator.deleteItem(item);
+  deleteItem(itemId) {
+    return this.generator.deleteItem(itemId);
   }
   update() {
     if (this.compiled) {
