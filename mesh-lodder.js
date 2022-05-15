@@ -733,26 +733,6 @@ class LodChunkGenerator {
 
           // upload geometry
           {
-            /* geometry.attributes.position.updateRange.offset = positionOffset;
-            geometry.attributes.position.updateRange.count = g.attributes.position.count * g.attributes.position.itemSize;
-            geometry.attributes.position.needsUpdate = true;
-            geometry.attributes.normal.updateRange.offset = positionOffset;
-            geometry.attributes.normal.updateRange.count = g.attributes.normal.count * g.attributes.normal.itemSize;
-            geometry.attributes.normal.needsUpdate = true;
-            geometry.attributes.uv.updateRange.offset = uvOffset;
-            geometry.attributes.uv.updateRange.count = g.attributes.uv.count * g.attributes.uv.itemSize;
-            geometry.attributes.uv.needsUpdate = true;
-            geometry.attributes.uv2.updateRange.offset = uvOffset;
-            geometry.attributes.uv2.updateRange.count = g.attributes.uv2.count * g.attributes.uv.itemSize;
-            geometry.attributes.uv2.needsUpdate = true;
-            // geometry.attributes.direction.updateRange.offset = positionOffset;
-            // geometry.attributes.direction.updateRange.count = g.attributes.position.count;
-            // geometry.attributes.direction.needsUpdate = true;
-            geometry.index.updateRange.offset = indexOffset;
-            geometry.index.updateRange.count = g.index.count;
-            geometry.index.needsUpdate = true;
-            uploadGeometry(geometry); */
-
             geometry.attributes.position.update(positionOffset, g.attributes.position.count * g.attributes.position.itemSize);
             geometry.attributes.normal.update(positionOffset, g.attributes.normal.count * g.attributes.normal.itemSize);
             geometry.attributes.uv.update(uvOffset, g.attributes.uv.count * g.attributes.uv.itemSize);
