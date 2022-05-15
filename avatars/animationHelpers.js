@@ -45,6 +45,7 @@ import {
 const localVector = new Vector3();
 const localVector2 = new Vector3();
 const localVector3 = new Vector3();
+const localVector4 = new Vector3();
 
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
@@ -975,8 +976,18 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
                 window.lastV2 = [v2[0], 0, v2[2]];
               }
               // console.log(window.logVector3(localVector2));
+
+              // localVector4.x = v2[0] - window.lastV2[0];
+              // localVector4.z = v2[2] - window.lastV2[2];
+              // localVector4.z *= -1;
+              // localVector4.z = 0;
+              // localVector4.applyQuaternion(window.localPlayer.quaternion);
+              // window.moveX = localVector4.x;
+              // window.moveZ = localVector4.z;
+
               window.moveX = v2[0] - window.lastV2[0];
               window.moveZ = v2[2] - window.lastV2[2];
+
               window.lastV2[0] = v2[0];
               window.lastV2[2] = v2[2];
             }
