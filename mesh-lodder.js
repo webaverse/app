@@ -560,6 +560,7 @@ class LodChunkGenerator {
     this.itemPositionOffsets = new Uint32Array(maxNumItems);
     this.itemPositionCounts = new Uint32Array(maxNumItems);
     this.itemRects = new Uint32Array(maxNumItems * 4);
+    this.itemShapeAddresses = new Uint32Array(maxNumItems);
 
     // mesh
     this.mesh = new THREE.Mesh(this.allocator.geometry, [this.parent.material]);
@@ -625,6 +626,15 @@ class LodChunkGenerator {
     return physicsObject;
   }
   cloneItemDiceMesh(itemId) {
+    localVector4D.fromArray(this.itemRects, itemId * 4);
+    const tx = localVector4D.x;
+    const ty = localVector4D.y;
+    const tw = localVector4D.z;
+    const th = localVector4D.w;
+
+    const atlas = this.#getAtlas();
+    const canvasSize = Math.min(atlas.width, defaultTextureSize);
+
     let geometry = g.clone();
     _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
     geometry = _diceGeometry(geometry);
@@ -632,13 +642,22 @@ class LodChunkGenerator {
     return itemMesh;
   }
   cloneItemMesh(itemId) {
+    localVector4D.fromArray(this.itemRects, itemId * 4);
+    const tx = localVector4D.x;
+    const ty = localVector4D.y;
+    const tw = localVector4D.z;
+    const th = localVector4D.w;
+
+    const atlas = this.#getAtlas();
+    const canvasSize = Math.min(atlas.width, defaultTextureSize);
+
     const geometry = g.clone();
     _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
     const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material, positionX, positionZ, rotationY);
     return itemMesh;
   }
   clonePhysicsObject(itemId) {
-    const shapeAddress = this.parent.shapeAddresses[contentName];
+    const shapeAddress = this.itemShapeAddresses[itemId];
     _getMatrixWorld(this.mesh, contentMesh, localMatrix, positionX, positionZ, rotationY)
       .decompose(localVector, localQuaternion, localVector2);
     const position = localVector;
@@ -690,6 +709,7 @@ class LodChunkGenerator {
     this.itemPositionCounts[physicsId] = positionCount;
     localVector4D.set(tx, ty, tw, th)
       .toArray(this.itemRects, physicsId * 4);
+    this.itemShapeAddresses[physicsId] = this.parent.shapeAddresses[contentName];
 
     // return item;
   }
