@@ -67,23 +67,18 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/model49.vrm",
-      "dynamic": true
-    },
-    {
-      "position": [
-        -26,
-        0,
-        -2
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "http://localhost/lib/webaverse_resource/app/public/avatars/scillia_drophunter_v15_vian.vrm",
-      "dynamic": true
+      "type": "application/npc",
+      "content": {
+        "name": "Ann",
+        "avatarUrl": "/avatars/ann.vrm",
+        "voice": "Maud Pie",
+        "bio": "13/F Lisk Witch (black mage). She is 100% quirky and is always creating crazy new potions. She has a dark streak and is known to torment her teachers when they give her bad grades.",
+        "wear": [
+          {
+            "start_url": "https://webaverse.github.io/character-stats-banner/"
+          }
+        ]
+      }
     },
     {
       "position": [
@@ -202,7 +197,36 @@
     {
       "position": [-2, 1, 2],
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
-      "start_url": "http://localhost/lib/webaverse_resource/helm/"
+      "start_url": "https://webaverse.github.io/helm/"
+    },
+    {
+      "position": [-2, 1, 3],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
+      "start_url": "https://webaverse.github.io/morpher/"
+    },
+    {
+      "position": [-2, 1, 4],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
+      "start_url": "https://webaverse.github.io/flower/"
+    },
+    {
+      "position": [-30, 0, -30],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "https://webaverse.github.io/plants/"
+    },
+    {
+      "position": [
+        -95,
+        0,
+        55
+      ],
+      "start_url": "../metaverse_modules/spawner/",
+      "components": [
+        {
+          "key": "spawnUrl",
+          "value": "https://webaverse.github.io/ghost/"
+        }
+      ]
     }
   ]
 }

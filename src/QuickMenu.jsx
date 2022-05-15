@@ -51,12 +51,20 @@ const chevronSize = 50;
 export default function QuickMenu() {
   const [open, setOpen] = useState(false);
   const [down, setDown] = useState(false);
-  const [selectedSlice, setSelectedSlice] = useState(-1);
+  const [selectedSlice, _setSelectedSlice] = useState(-1);
   const [selectedDepth, setSelectedDepth] = useState(-1);
   const [coords, setCoords] = useState([0, 0]);
   const [emoteIconImages, setEmoteIconImages] = useState(null);
   const [chevronImage, setChevronImage] = useState(null);
   const canvasRef = useRef();
+
+  const setSelectedSlice = v => {
+    if (v !== selectedSlice) {
+      _setSelectedSlice(v);
+      // XXX this needs to be quieter (configurable per-sound volume)
+      // sounds.playSoundName('menuClick');
+    }
+  };
 
   const _getSelectedEmote = () => {
     if (selectedSlice !== -1 && selectedDepth !== -1) {
@@ -86,7 +94,7 @@ export default function QuickMenu() {
         if (game.inputFocused()) return true;
 
         if (!e.repeat) {
-          if (e.keyCode === 81) { // Q
+          if (e.keyCode === 81 && !e.ctrlKey) { // Q
             cameraManager.requestPointerLock();
 
             setOpen(true);

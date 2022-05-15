@@ -185,6 +185,12 @@
 .item.selected .highlight {
   background-image: radial-gradient(#7e57c2, #512da8);
 }
+.item.highlighted {
+  background-image: linear-gradient(to bottom, #ff7043, #e64a19);
+}
+.item.highlighted .background {
+  background-color: #7e57c2;
+}
 .item .canvas,
 .item .name,
 .item .level {

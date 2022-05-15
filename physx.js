@@ -873,12 +873,11 @@ const physxWorker = (() => {
     numNormals,
     uvs,
     numUvs,
-    faces,
+    faces, // Set to falsy to indicate that this is an non-indexed geometry
     numFaces,
 
-    position,
-    quaternion,
-    scale
+    planeNormal, // normalized vector3 array
+    planeDistance, // number
   ) => {
     const allocator = new Allocator()
 
@@ -891,17 +890,14 @@ const physxWorker = (() => {
     const uvsTypedArray = allocator.alloc(Float32Array, numUvs)
     uvsTypedArray.set(uvs)
 
-    const facesTypedArray = allocator.alloc(Uint32Array, numFaces)
-    facesTypedArray.set(faces)
+    let facesTypedArray;
+    if (faces) {
+      facesTypedArray = allocator.alloc(Uint32Array, numFaces)
+      facesTypedArray.set(faces)
+    }
 
-    const positionTypedArray = allocator.alloc(Float32Array, 3)
-    positionTypedArray.set(position)
-
-    const quaternionTypedArray = allocator.alloc(Float32Array, 4)
-    quaternionTypedArray.set(quaternion)
-
-    const scaleTypedArray = allocator.alloc(Float32Array, 3)
-    scaleTypedArray.set(scale)
+    const planeNormalTypedArray = allocator.alloc(Float32Array, 3)
+    planeNormalTypedArray.set(planeNormal)
 
     const outputBufferOffset = moduleInstance._doCut(
       positionsTypedArray.byteOffset,
@@ -910,12 +906,11 @@ const physxWorker = (() => {
       numNormals,
       uvsTypedArray.byteOffset,
       numUvs,
-      facesTypedArray.byteOffset,
-      numFaces,
+      faces ? facesTypedArray.byteOffset : null,
+      faces ? numFaces : null,
 
-      positionTypedArray.byteOffset,
-      quaternionTypedArray.byteOffset,
-      scaleTypedArray.byteOffset
+      planeNormalTypedArray.byteOffset,
+      planeDistance,
     )
     allocator.freeAll()
 
@@ -938,7 +933,7 @@ const physxWorker = (() => {
     tail = head + (numOutUvsTypedArray[0] + numOutUvsTypedArray[1])
     const outUvs = moduleInstance.HEAPF32.slice(head, tail)
 
-    Module._free(outputBufferOffset)
+    moduleInstance._doFree(outputBufferOffset)
 
     const output = {
       numOutPositions: numOutPositionsTypedArray,
@@ -1465,6 +1460,7 @@ const physxWorker = (() => {
 
     const materialAddress = w.getDefaultMaterial(physics)
 
+    const external = false;
     moduleInstance._addGeometryPhysics(
       physics,
       shape,
@@ -1473,6 +1469,7 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
+      +external,
       shape
     )
   }
@@ -1537,6 +1534,7 @@ const physxWorker = (() => {
 
     const materialAddress = w.getDefaultMaterial(physics)
 
+    const external = false;
     moduleInstance._addGeometryPhysics(
       physics,
       shape,
@@ -1545,12 +1543,13 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
+      +external,
       0
     )
     allocator.freeAll()
   }
 
-  w.addConvexGeometryPhysics = (physics, mesh, dynamic, id) => {
+  w.addConvexGeometryPhysics = (physics, mesh, dynamic, external, id) => {
     mesh.updateMatrixWorld()
     const { geometry } = mesh
 
@@ -1609,6 +1608,7 @@ const physxWorker = (() => {
       id,
       materialAddress,
       +dynamic,
+      +external,
       shape,
     )
   }
@@ -1652,6 +1652,7 @@ const physxWorker = (() => {
     quaternion,
     scale,
     dynamic,
+    external,
     id
   ) => {
     const allocator = new Allocator()
@@ -1683,12 +1684,13 @@ const physxWorker = (() => {
       id,
       materialAddress,
       +dynamic,
+      +external,
       0,
     )
     allocator.freeAll()
   }
 
-  w.addConvexShapePhysics = (physics, shape, position, quaternion, scale, dynamic, id) => {
+  w.addConvexShapePhysics = (physics, shape, position, quaternion, scale, dynamic, external, id) => {
     const positionBuffer = scratchStack.f32.subarray(3, 6)
     position.toArray(positionBuffer)
     const quaternionBuffer = scratchStack.f32.subarray(6, 10)
@@ -1707,6 +1709,7 @@ const physxWorker = (() => {
       id,
       materialAddress,
       +dynamic,
+      +external,
       shape
     )
   }

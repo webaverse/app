@@ -3,6 +3,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import atlaspack from './atlaspack.js';
 import { getAddressFromMnemonic } from './blockchain.js';
 import {playersMapName, tokensHost, storageHost, accountsHost, loginEndpoint, audioTimeoutTime} from './constants.js';
+import { getRenderer } from './renderer.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();

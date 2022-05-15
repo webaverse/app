@@ -8,6 +8,7 @@ import game from '../../../../game.js';
 import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
+import dropManager from '../../../../drop-manager';
 
 //
 
@@ -56,7 +57,7 @@ const objects = {
 
 //
 
-const Item = forwardRef(({
+const EquipmentItem = ({
     object,
     enabled,
     hovered,
@@ -65,20 +66,22 @@ const Item = forwardRef(({
     onMouseDown,
     onDragStart,
     onDoubleClick,
-}, ref) => {
+    highlight,
+}) => {
     return (
         <div
             className={classnames(
                 styles.item,
                 hovered ? styles.hovered : null,
                 selected ? styles.selected : null,
+                highlight ? styles.highlighted : null,
             )}
             draggable
             onMouseEnter={onMouseEnter}
             onMouseDown={onMouseDown}
             onDragStart={onDragStart}
             onDoubleClick={onDoubleClick}
-            ref={ref}
+            // ref={ref}
         >
 
             <div className={styles.background} />
@@ -99,7 +102,74 @@ const Item = forwardRef(({
 
         </div>
     );
-});
+};
+
+const EquipmentItems = ({
+    leftText,
+    rightText,
+    sections,
+    hoverObject,
+    selectObject,
+    onMouseEnter,
+    onMouseDown,
+    onDragStart,
+    onDoubleClick,
+    menuLeft,
+    menuRight,
+    highlights,
+}) => {
+    return (<div className={styles.menu}>
+        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
+            <img className={styles.arrow} src="./images/chevron3.svg" />
+            <div className={styles.text}>{leftText}</div>
+        </div>
+        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
+            <div className={styles.text}>{rightText}</div>
+            <img className={styles.arrow} src="./images/chevron3.svg" />
+        </div>
+        {sections.map((section, i) => {
+            const {name, tokens} = section;
+
+            /* const refsMap = (() => {
+                const map = new Map();
+                for (const tokenObject of tokens) {
+                    map.set(tokenObject, useRef(null));
+                }
+                for (const k in objects) {
+                    for (const object of objects[k]) {
+                        map.set(object, useRef(null));
+                    }
+                }
+                return map;
+            })(); */
+
+            return (
+                <div className={styles.section} key={i}>
+                    <div className={styles.subheading}>
+                        <h2>{name}</h2>
+                    </div>
+                    <ul className={styles.list}>
+                        {tokens.map((object, i) =>
+                            <EquipmentItem
+                                object={object}
+                                enabled={open}
+                                hovered={object === hoverObject}
+                                selected={object === selectObject}
+                                highlight={highlights}
+                                onMouseEnter={onMouseEnter(object)}
+                                onMouseDown={onMouseDown(object)}
+                                onDragStart={onDragStart(object)}
+                                onDoubleClick={onDoubleClick(object)}
+                                key={i}
+                                // ref={refsMap.get(object)}
+                            />
+                        )}
+                    </ul>
+                </div>
+            );
+        })}
+    </div>);
+};
 
 export const Equipment = () => {
     const { state, setState } = useContext( AppContext );
@@ -107,9 +177,10 @@ export const Equipment = () => {
     const [ selectObject, setSelectObject ] = useState(null);
     const [ spritesheet, setSpritesheet ] = useState(null);
     const [ faceIndex, setFaceIndex ] = useState(1);
+    const [ claims, setClaims ] = useState([]);
     const selectedMenuIndex = mod(faceIndex, 4);
 
-    const refsMap = (() => {
+    /* const refsMap = (() => {
         const map = new Map();
         for (const userTokenObject of userTokenObjects) {
             map.set(userTokenObject, useRef(null));
@@ -120,7 +191,7 @@ export const Equipment = () => {
             }
         }
         return map;
-    })();
+    })(); */
 
     const open = state.openedPanel === 'CharacterPanel';
 
@@ -170,6 +241,18 @@ export const Equipment = () => {
     };
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
+    useEffect(() => {
+        const claimschange = e => {
+            const {claims} = e.data;
+            console.log('set claims', claims);
+            setClaims(claims.slice());
+        };
+        dropManager.addEventListener('claimschange', claimschange);
+        return () => {
+            dropManager.removeEventListener('claimschange', claimschange);
+        };
+    }, [claims]);
+
     return (
         <div className={styles.equipment}>
             <div className={classnames(
@@ -183,105 +266,86 @@ export const Equipment = () => {
                         transform: `translateX(300px) translateZ(-300px) rotateY(${-faceIndex * 90}deg) translateX(-300px)`,
                     }}
                 >
-                    <div className={styles.menu}>
-                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                            <div className={styles.text}>Land</div>
-                        </div>
-                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                            <div className={styles.text}>Season</div>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                        </div>
-                        <div className={styles.section}>
-                            <div className={styles.subheading}>
-                                <h2>Inventory</h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div className={styles.menu}>
-                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                            <div className={styles.text}>Inventory</div>
-                        </div>
-                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                            <div className={styles.text}>Account</div>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                        </div>
-                        <div className={styles.section}>
-                            <div className={styles.subheading}>
-                                <h2>Season</h2>
-                            </div>
-                            <ul className={styles.list}>
-                                {userTokenObjects.map((object, i) =>
-                                    <Item
-                                        object={object}
-                                        enabled={open}
-                                        hovered={object === hoverObject}
-                                        selected={object === selectObject}
-                                        onMouseEnter={onMouseEnter(object)}
-                                        onMouseDown={onMouseDown(object)}
-                                        onDragStart={onDragStart(object)}
-                                        onDoubleClick={onDoubleClick(object)}
-                                        key={i}
-                                        ref={refsMap.get(object)}
-                                    />
-                                )}
-                            </ul>
-                        </div>
-                        <div className={styles.section}>
-                            <div className={styles.subheading}>
-                                <h2>From Upstreet</h2>
-                            </div>
-                            <ul className={styles.list}>
-                                {objects.upstreet.map((object, i) => {
-                                    return (
-                                        <Item
-                                            object={object}
-                                            enabled={open}
-                                            hovered={object === hoverObject}
-                                            selected={object === selectObject}
-                                            onMouseEnter={onMouseEnter(object)}
-                                            onMouseDown={onMouseDown(object)}
-                                            onDragStart={onDragStart(object)}
-                                            onDoubleClick={onDoubleClick(object)}
-                                            key={i}
-                                            ref={refsMap.get(object)}
-                                        />
-                                    );
-                                })}
-                            </ul>
-                        </div>
-                    </div>
-                    <div className={styles.menu}>
-                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                            <div className={styles.text}>Season</div>
-                        </div>
-                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                            <div className={styles.text}>Land</div>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                        </div>
-                        <div className={styles.section}>
-                            <div className={styles.subheading}>
-                                <h2>Account</h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div className={styles.menu}>
-                        <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                            <div className={styles.text}>Account</div>
-                        </div>
-                        <div className={classnames(styles.wing, styles.right)} onClick={menuRight}>
-                            <div className={styles.text}>Inventory</div>
-                            <img className={styles.arrow} src="./images/chevron3.svg" />
-                        </div>
-                        <div className={styles.section}>
-                            <div className={styles.subheading}>
-                                <h2>Land</h2>
-                            </div>
-                        </div>
-                    </div>
+                    <EquipmentItems
+                        leftText="Land"
+                        rightText="Season"
+                        sections={[
+                            {
+                                name: 'Inventory',
+                                tokens: claims,
+                            },
+                        ]}
+                        hoverObject={hoverObject}
+                        selectObject={selectObject}
+                        onMouseEnter={onMouseEnter}
+                        onMouseDown={onMouseDown}
+                        onDragStart={onDragStart}
+                        onDoubleClick={onDoubleClick}
+                        menuLeft={menuLeft}
+                        menuRight={menuRight}
+                        highlights={true}
+                    />
+                    <EquipmentItems
+                        leftText="Inventory"
+                        rightText="Account"
+                        sections={[
+                            {
+                                name: 'Season',
+                                tokens: userTokenObjects,
+                            },
+                            {
+                                name: 'From Upstreet',
+                                tokens: objects.upstreet,
+                            },
+                        ]}
+                        hoverObject={hoverObject}
+                        selectObject={selectObject}
+                        onMouseEnter={onMouseEnter}
+                        onMouseDown={onMouseDown}
+                        onDragStart={onDragStart}
+                        onDoubleClick={onDoubleClick}
+                        menuLeft={menuLeft}
+                        menuRight={menuRight}
+                        highlights={false}
+                    />
+                    <EquipmentItems
+                        leftText="Season"
+                        rightText="Land"
+                        sections={[
+                            {
+                                name: 'Account',
+                                tokens: [],
+                            },
+                        ]}
+                        hoverObject={hoverObject}
+                        selectObject={selectObject}
+                        onMouseEnter={onMouseEnter}
+                        onMouseDown={onMouseDown}
+                        onDragStart={onDragStart}
+                        onDoubleClick={onDoubleClick}
+                        menuLeft={menuLeft}
+                        menuRight={menuRight}
+                        highlights={false}
+                    />
+                    <EquipmentItems
+                        leftText="Account"
+                        rightText="Inventory"
+                        sections={[
+                            {
+                                name: 'Land',
+                                tokens: [],
+                            },
+                        ]}
+                        hoverObject={hoverObject}
+                        selectObject={selectObject}
+                        onMouseEnter={onMouseEnter}
+                        onMouseDown={onMouseDown}
+                        onDragStart={onDragStart}
+                        onDoubleClick={onDoubleClick}
+                        menuLeft={menuLeft}
+                        menuRight={menuRight}
+                        highlights={false}
+                    />
                 </div>
             </div>
 

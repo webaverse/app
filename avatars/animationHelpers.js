@@ -63,6 +63,7 @@ let aimAnimations;
 let sitAnimations;
 let danceAnimations;
 let emoteAnimations;
+let pickUpAnimations;
 // let throwAnimations;
 // let crouchAnimations;
 let activateAnimations;
@@ -74,6 +75,7 @@ let narutoRunAnimations;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
+let holdAnimations;
 
 const defaultSitAnimation = 'chair';
 // const defaultUseAnimation = 'combo';
@@ -322,6 +324,7 @@ export const loadPromise = (async () => {
     eat: animations.find(a => a.isEating),
     drink: animations.find(a => a.isDrinking),
     throw: animations.find(a => a.isThrow),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
     bowDraw: animations.find(a => a.isBowDraw),
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
@@ -353,9 +356,16 @@ export const loadPromise = (async () => {
     victory: animations.find(a => a.isVictory),
     victorySoft: animations.find(a => a.isVictorySoft),
   };
-  // throwAnimations = {
-  //   throw: animations.find(a => a.isThrow),
-  // };
+  pickUpAnimations = {
+    pickUp: animations.find(a => a.isPickUp),
+    pickUpIdle: animations.find(a => a.isPickUpIdle),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
+    putDown: animations.find(a => a.isPutDown),
+  };
+  /* throwAnimations = {
+    throw: animations.find(a => a.isThrow),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
+  }; */
   /* crouchAnimations = {
       crouch: animations.find(a => a.isCrouch),
     }; */
@@ -365,6 +375,7 @@ export const loadPromise = (async () => {
     grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
     grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
+    pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
@@ -372,6 +383,9 @@ export const loadPromise = (async () => {
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
+  };
+  holdAnimations = {
+    pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
   {
     const down10QuaternionArray = new Quaternion()
@@ -1094,6 +1108,33 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           avatar.useAnimation = '';
         }
       };
+    } else if (avatar.pickUpState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          lerpFn,
+          isTop,
+          isPosition,
+        } = spec;
+
+        _handleDefault(spec);
+
+        const holdAnimation = holdAnimations['pick_up_idle'];
+        const src2 = holdAnimation.interpolants[k];
+        const t2 = (now / 1000) % holdAnimation.duration;
+        const v2 = src2.evaluate(t2);
+
+        if (isTop) {
+          if (isPosition) {
+            dst.fromArray(v2);
+          } else {
+            dst.premultiply(localQuaternion2.fromArray(v2));
+          }
+        }
+
+        // _clearXZ(dst, isPosition);
+      };
     }
     return _handleDefault;
   };
@@ -1134,8 +1175,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
       let defaultAnimation = 'grab_forward';
 
-      if (localPlayer.getAction('activate').animationName) {
-        defaultAnimation = localPlayer.getAction('activate').animationName;
+      const activateAction = localPlayer.getAction('activate');
+      if (activateAction.animationName) {
+        defaultAnimation = activateAction.animationName;
       }
 
       const activateAnimation = activateAnimations[defaultAnimation].animation;

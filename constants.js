@@ -40,7 +40,7 @@ let _inappPreviewHost = '';
 
 switch ( origin ) {
     case 'https://local.webaverse.com': {
-        _inappPreviewHost = 'https://local.webaverse.online';
+        _inappPreviewHost = `https://local.webaverse.online:${window.location.port}`;
         break;
     }
     case 'https://dev.webaverse.com': {
@@ -99,6 +99,7 @@ export const initialPosY = 1.5;
 export const groundFriction = 0.28;
 export const airFriction = groundFriction;
 export const flyFriction = 0.5;
+export const aimTransitionMaxTime = 150;
 
 export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
@@ -127,13 +128,15 @@ export const defaultDioramaSize = 512;
 export const defaultVoiceEndpoint = `Sweetie Belle`;
 export const defaultVoicePackName = `ShiShi voice pack`;
 
-export const defaultAvatarUrl = './avatars/scilly_drophunter_v30.5_Guilty.vrm';
+// export const defaultAvatarUrl = './avatars/scilly_drophunter_v30.5_Guilty.vrm';
+// export const defaultAvatarUrl = './avatars/scilly_drophunter_v31_Guilty.vrm';
+// export const defaultAvatarUrl = './avatars/ann_liskwitch_v3.1_guiltyallShapeKeys.vrm';
 // export const defaultAvatarUrl = './avatars/scillia_drophunter_v25_gloria_vian.vrm';
 // export const defaultAvatarUrl = './avatars/ann.vrm';
 export const defaultPlayerSpec = {
   name: 'Scillia',
   previewUrl: './images/characters/upstreet/small/scillia.png',
-  avatarUrl: './avatars/scillia_drophunter_v15_vian.vrm',
+  avatarUrl: './avatars/scilly_drophunter_v31_Guilty.vrm',
   voice: defaultVoiceEndpoint,
   voicePack: defaultVoicePackName,
   class: 'Drop Hunter',
