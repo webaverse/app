@@ -130,11 +130,9 @@ const _eraseVertices = (geometry, positionStart, positionCount) => {
   for (let i = 0; i < positionCount; i++) {
     geometry.attributes.position.array[positionStart + i] = 0;
   }
+  const popUpdate = ExtendedGLBufferAttribute.pushUpdate();
   geometry.attributes.position.update(positionStart, positionCount);
-  /* geometry.attributes.position.updateRange.offset = positionStart;
-  geometry.attributes.position.updateRange.count = positionCount;
-  geometry.attributes.position.needsUpdate = true;
-  uploadGeometry(geometry); */
+  popUpdate();
 };
 
 class LodChunk extends THREE.Vector3 {
@@ -479,23 +477,38 @@ class ExtendedGLBufferAttribute extends THREE.GLBufferAttribute {
   getTarget() {
     return ExtendedGLBufferAttribute.getTarget(this.isIndex);
   }
+  static getTargetBinding(isIndex) {
+    return isIndex ? WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING : WebGLRenderingContext.ARRAY_BUFFER_BINDING;
+  }
+  getTargetBinding() {
+    return ExtendedGLBufferAttribute.getTargetBinding(this.isIndex);
+  }
+  static pushUpdate() {
+    const renderer = getRenderer();
+    const gl = renderer.getContext();
+    
+    const arrayBufferBinding = gl.getParameter(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING);
+    const elementArrayBufferBinding = gl.getParameter(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING);
+    
+    const popUpdate = () => {
+      gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, arrayBufferBinding);
+      gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, elementArrayBufferBinding);
+    };
+    return popUpdate;
+  }
   update(offset, count) {
-    // if (this.updateRange.count !== -1) {
-      const renderer = getRenderer();
-      const gl = renderer.getContext();
-      const target = this.getTarget();
-      gl.bindBuffer(target, this.buffer);
-      gl.bufferSubData(
-        target,
-        offset * this.elementSize,
-        this.array,
-        offset,
-        count
-      );
-      gl.bindBuffer(target, null);
-
-      // this.updateRange.count = -1;
-    // }
+    const renderer = getRenderer();
+    const gl = renderer.getContext();
+    const target = this.getTarget();
+    
+    gl.bindBuffer(target, this.buffer);
+    gl.bufferSubData(
+      target,
+      offset * this.elementSize,
+      this.array,
+      offset,
+      count
+    );
   }
 }
 
@@ -700,6 +713,7 @@ class LodChunkGenerator {
       const items = [];
       const physicsObjects = [];
 
+      const popUpdate = ExtendedGLBufferAttribute.pushUpdate();
       {
         let positionOffset = geometryBinding.getAttributeOffset('position');
         let uvOffset = geometryBinding.getAttributeOffset('uv');
@@ -769,6 +783,7 @@ class LodChunkGenerator {
           indexOffset += g.index.count;
         }
       }
+      popUpdate();
 
       return {
         items,
