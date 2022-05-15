@@ -18,7 +18,7 @@ const top_p = 1;
 
 //--------------------------------- ConvAI Mods ------------------------------
 // Initializing the action generation URL from ConvAI
-const actionGenerationURl = `https://te-apis.convai.com/getActions`
+const actionGenerationURl = `https://test.convai.com/getActions`
 //----------------------------------------------------------------------------
 
 class AICharacter extends EventTarget {
