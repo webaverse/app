@@ -1,6 +1,6 @@
 
+import React, { useRef, useEffect } from 'react';
 import classNames from 'classnames';
-import React, {useState, useRef, useEffect, useContext} from 'react';
 
 import minimapManager from '../../../../minimap.js';
 
