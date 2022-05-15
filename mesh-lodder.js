@@ -668,39 +668,7 @@ class LodChunkGenerator {
     const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
     return physicsObject;
   }
-  #addItemToRegistry(g, contentMesh, contentName, physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize) {
-    /* const item = {
-      // position: new THREE.Vector3(positionX, 0, positionZ),
-      // quaternion: new THREE.Quaternion().setFromAxisAngle(upVector, rotationY),
-      // scale: oneVector,
-      // positionOffset,
-      // positionCount,
-      cloneItemDiceMesh: () => {
-        let geometry = g.clone();
-        _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
-        geometry = _diceGeometry(geometry);
-        const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material, positionX, positionZ, rotationY);
-        return itemMesh;
-      },
-      cloneItemMesh: () => {
-        const geometry = g.clone();
-        _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
-        const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material, positionX, positionZ, rotationY);
-        return itemMesh;
-      },
-      clonePhysicsObject: () => {
-        const shapeAddress = this.parent.shapeAddresses[contentName];
-        _getMatrixWorld(this.mesh, contentMesh, localMatrix, positionX, positionZ, rotationY)
-          .decompose(localVector, localQuaternion, localVector2);
-        const position = localVector;
-        const quaternion = localQuaternion;
-        const scale = localVector2;
-        const dynamic = true;
-        const external = true;
-        const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
-        return physicsObject;
-      },
-    }; */
+  #addItemToRegistry(contentName, physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th) {
     localVector.set(positionX, 0, positionZ)
       .toArray(this.itemPositions, physicsId * 3);
     localQuaternion.setFromAxisAngle(upVector, rotationY)
@@ -710,8 +678,6 @@ class LodChunkGenerator {
     localVector4D.set(tx, ty, tw, th)
       .toArray(this.itemRects, physicsId * 4);
     this.itemShapeAddresses[physicsId] = this.parent.shapeAddresses[contentName];
-
-    // return item;
   }
   generateChunk(chunk) {
     const _collectContentsRenderList = () => {
@@ -805,7 +771,7 @@ class LodChunkGenerator {
 
             // tracking
             const positionCount = g.attributes.position.count * g.attributes.position.itemSize;
-            this.#addItemToRegistry(g, contentMesh, contentName, physicsObject.physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th, canvasSize);
+            this.#addItemToRegistry(contentName, physicsObject.physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th);
           }
           
           positionOffset += g.attributes.position.count * g.attributes.position.itemSize;
