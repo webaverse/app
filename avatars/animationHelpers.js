@@ -751,6 +751,24 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
+    // { // play one animation purely.
+    //   return spec => {
+    //     const {
+    //       animationTrackName: k,
+    //       dst,
+    //       // isTop,
+    //     } = spec;
+
+    //     // const animation = animations.index['walking.fbx']
+    //     const animation = animations.index['pick_up_idle.fbx']
+    //     // debugger
+    //     const t2 = timeSeconds;
+    //     const src2 = animation.interpolants[k];
+    //     const v2 = src2.evaluate(t2 % animation.duration);
+
+    //     dst.fromArray(v2);
+    //   };
+    // }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -1125,13 +1143,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const t2 = (now / 1000) % holdAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        if (isTop) {
-          if (isPosition) {
-            dst.fromArray(v2);
-          } else {
-            dst.premultiply(localQuaternion2.fromArray(v2));
-          }
-        }
+        dst.fromArray(v2);
+
+        // if (isTop) {
+        //   if (isPosition) {
+        //     dst.fromArray(v2);
+        //   } else {
+        //     dst.premultiply(localQuaternion2.fromArray(v2));
+        //   }
+        // }
 
         // _clearXZ(dst, isPosition);
       };
