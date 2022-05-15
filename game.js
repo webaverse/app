@@ -337,6 +337,7 @@ const _startUse = () => {
         const {instanceId} = wearApp;
         const {boneAttachment, animation, animationCombo, animationEnvelope, ik, behavior, position, quaternion, scale} = useComponent;
         const index = _getNextUseIndex(animationCombo);
+        window.lastV2 = [0, 0, 0];
         const newUseAction = {
           type: 'use',
           instanceId,

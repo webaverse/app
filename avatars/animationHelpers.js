@@ -972,14 +972,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const v2 = src2.evaluate(t2);
             localVector2.fromArray(v2);
             if (spec.boneName === 'Hips') {
-              if (!window.lastV2) {
-                window.lastV2 = [v2[0], 0, v2[2]];
-              }
+              // if (!window.lastV2) {
+              //   window.lastV2 = [v2[0], 0, v2[2]];
+              // }
               // console.log(window.logVector3(localVector2));
 
               // localVector4.x = v2[0] - window.lastV2[0];
               // localVector4.z = v2[2] - window.lastV2[2];
-              // localVector4.z *= -1;
+              // // localVector4.z *= -1;
               // localVector4.z = 0;
               // localVector4.applyQuaternion(window.localPlayer.quaternion);
               // window.moveX = localVector4.x;
@@ -987,6 +987,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
               window.moveX = v2[0] - window.lastV2[0];
               window.moveZ = v2[2] - window.lastV2[2];
+
+              console.log(window.moveX, window.moveZ);
 
               window.lastV2[0] = v2[0];
               window.lastV2[2] = v2[2];
