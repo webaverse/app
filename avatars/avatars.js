@@ -1904,7 +1904,12 @@ class Avatar {
       window.domInfo.innerHTML = `
         <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
         <div style="display:;">idleWalkFactor: --- ${window.logNum(moveFactors.idleWalkFactor)}</div>
+        <div style="display:;">---</div>
+        <div style="display:;">currentPosition: --- ${window.logVector3(this.inputs.hmd.position)}</div>
+        <div style="display:;">currentQuaternion: --- ${window.logVector4(this.inputs.hmd.quaternion)}</div>
+        <div style="display:;">localPlayer.quate: --- ${window.logVector4(localPlayer.quaternion)}</div>
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
+        <div style="display:;">---</div>
         <div style="display:;">localPlayer.direction: --- ${window.logVector3(localPlayer.getWorldDirection(localVector))}</div>
         <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
         <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>

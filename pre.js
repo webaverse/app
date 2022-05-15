@@ -7,3 +7,7 @@ window.logNum = function(n) {
 window.logVector3 = function(v) {
   return window.logNum(v.x) + ' ' + window.logNum(v.y) + ' ' + window.logNum(v.z);
 }
+
+window.logVector4 = function(v) {
+  return window.logNum(v.x) + ' ' + window.logNum(v.y) + ' ' + window.logNum(v.z) + ' ' + window.logNum(v.w);
+}
