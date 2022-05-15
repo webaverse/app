@@ -482,32 +482,44 @@ class ExtendedGLBufferAttribute extends THREE.GLBufferAttribute {
   getTargetBinding() {
     return ExtendedGLBufferAttribute.getTargetBinding(this.isIndex);
   }
+  pushed = false;
   static pushUpdate() {
     const renderer = getRenderer();
     const gl = renderer.getContext();
     
     const arrayBufferBinding = gl.getParameter(WebGLRenderingContext.ARRAY_BUFFER_BINDING);
     const elementArrayBufferBinding = gl.getParameter(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING);
-    
+    this.pushed = true;
+
     const popUpdate = () => {
       gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, arrayBufferBinding);
       gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, elementArrayBufferBinding);
+      this.pushed = false;
     };
     return popUpdate;
   }
   update(offset, count) {
-    const renderer = getRenderer();
-    const gl = renderer.getContext();
-    const target = this.getTarget();
-    
-    gl.bindBuffer(target, this.buffer);
-    gl.bufferSubData(
-      target,
-      offset * this.elementSize,
-      this.array,
-      offset,
-      count
-    );
+    let popUpdate = null;
+    if (!ExtendedGLBufferAttribute.pushed) {
+      popUpdate = ExtendedGLBufferAttribute.pushUpdate();
+    }
+   
+    {
+      const renderer = getRenderer();
+      const gl = renderer.getContext();
+      const target = this.getTarget();
+      
+      gl.bindBuffer(target, this.buffer);
+      gl.bufferSubData(
+        target,
+        offset * this.elementSize,
+        this.array,
+        offset,
+        count
+      );
+    }
+
+    popUpdate && popUpdate();
   }
 }
 
@@ -814,7 +826,7 @@ class LodChunkGenerator {
     chunk.geometryBinding = geometryBinding;
     chunk.items = items;
     chunk.physicsObjects = physicsObjects;
-    this.allocator.geometry.groups = this.allocator.indexFreeList.getGeometryGroups();
+    this.allocator.geometry.groups = this.allocator.indexFreeList.getGeometryGroups(); // XXX memory for this can be optimized
     this.mesh.visible = true;
   }
   disposeChunk(chunk) {
