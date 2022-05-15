@@ -96,10 +96,19 @@ world.connectRoom = async u => {
       wsrtc.removeEventListener('init', init);
       
       localPlayer.bindState(state.getArray(playersMapName));
+
+      wsrtc.addEventListener('audio', e => {
+        console.log('player is', e.data.playerId);
+        const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
+        console.log("player is", player)
+        player.processAudioData(e.data);
+      })
     };
     wsrtc.addEventListener('init', init);
   };
   wsrtc.addEventListener('open', open);
+
+
 
   /* const sendUpdate = () => {
     const rig = localPlayer.avatar;

@@ -133,6 +133,7 @@ class AppManager extends EventTarget {
           }));
 
           if(oldApp.getComponent('wear') && this.callBackFn) {
+            console.log("Wear callback function called")
             this.callBackFn(oldApp, 'wear', 'add')
           }
         } else {
@@ -255,9 +256,7 @@ class AppManager extends EventTarget {
   bindEvents() {
     const localBinder = ++binder;
     console.log('app bind events', this.apps, localBinder, new Error().stack);
-    
-    const m = new Map();
-    this.addEventListener('trackedappadd', async (e) => {
+        this.addEventListener('trackedappadd', async (e) => {
       const { trackedApp } = e.data;
       const trackedAppJson = trackedApp.toJSON();
       const {
@@ -270,8 +269,6 @@ class AppManager extends EventTarget {
         components: componentsString,
       } = trackedAppJson;
       // console.log('tracked app add', instanceId, localBinder, new Error().stack);
-      m.set(instanceId, true);
-      // console.log("trackedAppJson is", trackedAppJson)
       const components = JSON.parse(componentsString);
 
       const p = makePromise();
@@ -552,7 +549,7 @@ class AppManager extends EventTarget {
     return -1;
   }
   removeTrackedAppInternal(instanceId) {
-    console.log('remove tracked app internal', instanceId);
+    console.log('remove tracked app internal', instanceId, new Error().stack);
 
     const removeIndex = this.getTrackedAppIndex(instanceId);
     if (removeIndex !== -1) {
@@ -668,7 +665,7 @@ class AppManager extends EventTarget {
         );
       });
 
-      // dstAppManager.bindTrackedApp(dstTrackedApp, app);
+      dstAppManager.bindTrackedApp(dstTrackedApp, app);
     } else {
       throw new Error('cannot transplant apps between app manager with different state binding');
     }
@@ -788,8 +785,7 @@ class AppManager extends EventTarget {
       const position = trackedApp.get('position');
       const quaternion = trackedApp.get('quaternion');
       const scale = trackedApp.get('scale');
-      const componentsString = trackedApp.get('components');
-      const components = jsonParse(componentsString) ?? [];
+      const components = trackedApp.get('components') ?? [];
       const object = {
         position,
         quaternion,
