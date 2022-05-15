@@ -8,7 +8,7 @@ const {useLocalPlayer, useLoreAIScene, useSceneCruncher} = metaversefile;
 import {registerIoEventHandler, unregisterIoEventHandler} from '../io-handler';
 import {MiniHup} from '../../../MiniHup.jsx';
 // import {RpgText} from '../../../RpgText.jsx';
-import {getRenderer, rootScene, scene} from '../../../../renderer.js';
+import {getRenderer, rootScene, scene, sceneLowPriority} from '../../../../renderer.js';
 import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
@@ -200,6 +200,8 @@ export const MapGen = () => {
     const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
     const [haloMeshApp, setHaloMeshApp] = useState(null);
+    const [magicMeshApp, setMagicMeshApp] = useState(null);
+    const [limitMeshApp, setLimitMeshApp] = useState(null);
     const canvasRef = useRef();
 
     //
@@ -214,7 +216,7 @@ export const MapGen = () => {
             musicManager.playCurrentMusicName('overworld', {
                 repeat: true,
             });
-        }
+        } else { musicManager.stopCurrentMusic(); }
     }, [open]);
 
     //
@@ -345,7 +347,7 @@ export const MapGen = () => {
 
                     setHaloMeshApp(haloMeshApp);
                   } else {
-                    scene.remove(haloMeshApp);
+                    haloMeshApp.parent.remove(haloMeshApp);
                     haloMeshApp.destroy();
 
                     setHaloMeshApp(null);
@@ -373,6 +375,52 @@ export const MapGen = () => {
                     })();
         
                     return false;
+
+                }
+
+                case 188: { // ,
+
+                  if (!magicMeshApp) {
+                    const magicMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['magic'];
+                      await magicMeshApp.addModule(m);
+                    })();
+                    sceneLowPriority.add(magicMeshApp);
+
+                    setMagicMeshApp(magicMeshApp);
+                  } else {
+                    magicMeshApp.parent.remove(magicMeshApp);
+                    magicMeshApp.destroy();
+
+                    setMagicMeshApp(null);
+                  }
+
+                  return false;
+
+                }
+
+                case 190: { // .
+
+                  if (!limitMeshApp) {
+                    const limitMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['limit'];
+                      await limitMeshApp.addModule(m);
+                    })();
+                    sceneLowPriority.add(limitMeshApp);
+
+                    setLimitMeshApp(limitMeshApp);
+                  } else {
+                    limitMeshApp.parent.remove(limitMeshApp);
+                    limitMeshApp.destroy();
+
+                    setLimitMeshApp(null);
+                  }
+
+                  return false;
 
                 }
 
@@ -418,7 +466,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel, haloMeshApp ]);
+    }, [ state.openedPanel, haloMeshApp, magicMeshApp, limitMeshApp ]);
 
     // resize
     useEffect(() => {

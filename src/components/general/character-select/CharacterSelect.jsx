@@ -7,9 +7,12 @@ import { AppContext } from '../../app';
 import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
 import { world } from '../../../../world.js';
-// import { NpcPlayer } from '../../../../character-controller.js';
+import { NpcPlayer } from '../../../../character-controller.js';
 import * as sounds from '../../../../sounds.js';
+import { chatManager } from '../../../../chat-manager.js';
 import musicManager from '../../../../music-manager.js';
+import { RpgText } from '../../../RpgText.jsx';
+import { chatTextSpeed } from '../../../../constants.js';
 
 //
 
@@ -35,6 +38,9 @@ const characters = {
             class: 'Drop Hunter',
             bio: `Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan.`,
             themeSongUrl: `https://webaverse.github.io/music/themes/149274046-smooth-adventure-quest.mp3`,
+            // "Scilly is short for "Saga Cybernetic Lifeform Interface" or SLY. It's a complicated name, but it means I'm the best at what I do: Collecting data from living organisms and machines to help my development.)"
+            // "She's not like other girls. She doesn't spend her time talking about boys, or clothes, or anything else that isn't important. No, she spends her time adventuring, swordfighting and looking for new and interesting potions to try."
+            // "I'm not saying I don't like boys, but they're just not as interesting as swords."
             detached: true,
         },
         {
@@ -131,7 +137,11 @@ export const CharacterSelect = () => {
     const [ npcPlayer, setNpcPlayer ] = useState(null);
     const [ enabled, setEnabled ] = useState(false);
     const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
-    const [ themeSongCache, setThemeSongCache ] = useState(new WeakMap());
+    const [ themeSongCache, setThemeSongCache ] = useState(new Map());
+    const [ characterIntroCache, setCharacterIntroCache ] = useState(new Map());
+    const [ messageAudioCache, setMessageAudioCache ] = useState(new Map());
+    const [ selectAudioCache, setSelectAudioCache ] = useState(new Map());
+    const [ text, setText ] = useState('');
 
     const refsMap = (() => {
         const map = new Map();
@@ -154,8 +164,6 @@ export const CharacterSelect = () => {
             if (el) {
                 const rect = el.getBoundingClientRect();
                 const parentRect = el.offsetParent.getBoundingClientRect();
-                // window.rect = rect;
-                // window.parentRect = parentRect;
                 setArrowPosition([
                     Math.floor(rect.left - parentRect.left + rect.width / 2 + 40),
                     Math.floor(rect.top - parentRect.top + rect.height / 2),
@@ -163,8 +171,6 @@ export const CharacterSelect = () => {
             } else {
                 setArrowPosition(null);
             }
-            // console.log('got ref', ref);
-            // setArrowPosition([highlightCharacter.x, highlightCharacter.y]);
         } else {
             setArrowPosition(null);
         }
@@ -177,42 +183,88 @@ export const CharacterSelect = () => {
             const {avatarUrl} = targetCharacter;
 
             let live = true;
-            let npcPlayer = npcPlayerCache.get(avatarUrl);
+            let npcPlayer = null;
             (async () => {
-                if (!npcPlayer) {
-                    const avatarApp = await metaversefile.createAppAsync({
-                        // type: 'application/npc',
-                        // content: targetCharacter,
-                        start_url: targetCharacter.avatarUrl,
-                        components: [
-                            {
-                              key: 'npc',
-                              value: targetCharacter,
-                            },
-                        ],
-                    });
-                    if (!live) {
-                        avatarApp.destroy();
-                        return;
-                    }
-                    // console.log('got avatar app', avatarApp, targetCharacter);
-                    // debugger;
-                    npcPlayer = avatarApp.npcPlayer;
-                    // npcPlayer = new NpcPlayer();
-                    // npcPlayer.setAvatarApp(avatarApp);
-
-                    npcPlayerCache.set(avatarUrl, npcPlayer);
-                }
-
                 sounds.playSoundName('menuClick');
+                
+                const [
+                    _npcPlayer,
+                    _themeSong,
+                    _characterIntro,
+                ] = await Promise.all([
+                    (async () => {
+                        let npcPlayer = npcPlayerCache.get(avatarUrl);
+                        if (!npcPlayer) {
+                            const avatarApp = await metaversefile.createAppAsync({
+                                // type: 'application/npc',
+                                // content: targetCharacter,
+                                start_url: targetCharacter.avatarUrl,
+                                components: [
+                                    {
+                                      key: 'npc',
+                                      value: targetCharacter,
+                                    },
+                                ],
+                            });
+                            if (!live) {
+                                avatarApp.destroy();
+                                return;
+                            }
+                            npcPlayer = avatarApp.npcPlayer;
+        
+                            npcPlayerCache.set(avatarUrl, npcPlayer);
+                        }
+                        return npcPlayer;
+                    })(),
+                    (async () => {
+                        let themeSong = themeSongCache.get(targetCharacter.themeSongUrl);
+                        if (!themeSong) {
+                            themeSong = await NpcPlayer.fetchThemeSong(targetCharacter.themeSongUrl);
+                            themeSongCache.set(targetCharacter.themeSongUrl, themeSong);
+                            if (!live) return;
+                        }
+                        return themeSong;
+                    })(),
+                    (async () => {
+                        let characterIntro = characterIntroCache.get(targetCharacter.avatarUrl);
+                        if (!characterIntro) {
+                            const loreAIScene = metaversefile.useLoreAIScene();
+                            characterIntro = await loreAIScene.generateCharacterIntroPrompt(targetCharacter.name, targetCharacter.bio);
+                            characterIntroCache.set(targetCharacter.avatarUrl, characterIntro);
+                            if (!live) return;
+                        }
+                        return characterIntro;
+                    })(),
+                ]);
+                npcPlayer = _npcPlayer;
+                const themeSong = _themeSong;
+                const characterIntro = _characterIntro;
 
-                let themeSong = themeSongCache.get(npcPlayer);
-                if (!themeSong) {
-                    themeSong = await npcPlayer.fetchThemeSong();
-                    themeSongCache.set(npcPlayer, themeSong);
-                    if (!live) return;
+                if (!live) return;
+                (async () => {
+                    if (characterIntro) {
+                        const {message} = characterIntro;
+                        setText(message);
+
+                        let preloadedMessage = messageAudioCache.get(targetCharacter.avatarUrl);
+                        if (!preloadedMessage) {
+                            preloadedMessage = npcPlayer.voicer.preloadMessage(message);
+                            messageAudioCache.set(targetCharacter.avatarUrl, preloadedMessage);
+                        }
+                        npcPlayer.voicer.stop();
+                        await chatManager.waitForVoiceTurn(() => {
+                            return npcPlayer.voicer.start(preloadedMessage);
+                        });
+                        if (!live) return;
+                    } else {
+                        console.warn('no character intro');
+
+                        setText('');
+                    }
+                })();
+                if (themeSong) {
+                  musicManager.playCurrentMusic(themeSong);
                 }
-                musicManager.playCurrentMusic(themeSong);
 
                 setNpcPlayer(npcPlayer);
             })();
@@ -228,6 +280,11 @@ export const CharacterSelect = () => {
             return () => {
                 live = false;
                 world.appManager.removeEventListener('frame', frame);
+                if (npcPlayer) {
+                    npcPlayer.voicer.stop();
+                } else {
+                    console.log('no stop');
+                }
             };
         }
     }, [targetCharacter]);
@@ -256,6 +313,12 @@ export const CharacterSelect = () => {
         } else if (!opened && enabled) {
             setEnabled(false);
         }
+        if (!opened) {
+            setHighlightCharacter(null);
+            setSelectCharacter(null);
+            setArrowPosition(null);
+            setText('');
+        }
     }, [opened, enabled]);
     
     const onMouseMove = character => e => {
@@ -264,19 +327,39 @@ export const CharacterSelect = () => {
         }
     };
     const onClick = character => e => {
-        if (character && npcPlayer) {
+        if (character && !selectCharacter) {
             setSelectCharacter(character);
 
             sounds.playSoundName('menuBoop');
 
-            (async () => {
-                const localPlayer = metaversefile.useLocalPlayer();
-                await localPlayer.setPlayerSpec(character.avatarUrl, character);
-            })();
-
             setTimeout(() => {
                 setState({ openedPanel: null });
             }, 1000);
+
+            const localPlayer = metaversefile.useLocalPlayer();
+            (async () => {
+                await localPlayer.setPlayerSpec(character);
+            })();
+
+            if (npcPlayer) {
+                (async () => {
+                    const characterIntro = characterIntroCache.get(character.avatarUrl);
+                    if (characterIntro) {
+                        const {onselect} = characterIntro;
+
+                        let preloadedMessage = selectAudioCache.get(targetCharacter.avatarUrl);
+                        if (!preloadedMessage) {
+                            preloadedMessage = npcPlayer.voicer.preloadMessage(onselect);
+                            selectAudioCache.set(targetCharacter.avatarUrl, preloadedMessage);
+                        }
+                        npcPlayer.voicer.stop();
+                        localPlayer.voicer.stop();
+                        await chatManager.waitForVoiceTurn(() => {
+                            return localPlayer.voicer.start(preloadedMessage);
+                        });
+                    }
+                })();
+            }
         }
     };
 
@@ -335,6 +418,10 @@ export const CharacterSelect = () => {
                     </ul>
                 </div>
             </div>
+
+            {(opened && text) ?
+              <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
+            : null}
 
             <MegaHup
               open={opened}

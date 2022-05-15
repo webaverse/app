@@ -44,6 +44,7 @@ const maxFocusTime = 300;
 
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
+let cameraOffsetLimitZ = Infinity;
 
 // let cameraOffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
@@ -73,6 +74,7 @@ const rayVectorZero = new THREE.Vector3(0,0,0);
   console.log('get signed angle', s, c, angle);
   return angle;
 } */
+
 const getSideOfY = (() => {
   const localVector = new THREE.Vector3();
   const localVector2 = new THREE.Vector3();
@@ -289,7 +291,7 @@ class CameraManager extends EventTarget {
   }
   handleWheelEvent(e) {
     if (!this.target) {
-      cameraOffsetTargetZ = Math.min(cameraOffsetTargetZ - e.deltaY * 0.01, 0);
+      cameraOffsetTargetZ = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
     }
   }
   addShake(position, intensity, radius, decay) {
@@ -486,31 +488,47 @@ class CameraManager extends EventTarget {
       camera.updateMatrixWorld();
     } else {
       const _bumpCamera = () => {
-        const direction = localVector.copy(camera.position)
-          .sub(localPlayer.position);
-        const sweepDistance = direction.length();
-        direction.normalize();
-        const halfExtents = localVector2.set(0.5, 0.5, 0.1);
-        const maxHits = 1;
+        const direction = localVector.set(0, 0, 1)
+          .applyQuaternion(camera.quaternion);
+        const backOffset = 1;
+        // const cameraBackThickness = 0.5;
 
-        const result = physicsManager.sweepBox(
-          localPlayer.position,
-          localPlayer.quaternion,
-          halfExtents,
-          direction,
-          sweepDistance,
-          maxHits,
-        );
-        if (result.length > 0) {
-          const distance = result[0].distance;
-          cameraOffsetTargetZ = distance < 0.5 ? 0 : -distance;
+        /* const delta = localVector2.copy(camera.position)
+          .sub(localPlayer.position); */
+        const sweepDistance = Math.max(-cameraOffsetTargetZ, 0);
+
+        // console.log('offset', cameraOffsetTargetZ);
+
+        cameraOffsetLimitZ = -Infinity;
+
+        if (sweepDistance > 0) {
+          const halfExtents = localVector2.set(0.5, 0.5, 0.1);
+          const maxHits = 1;
+
+          const result = physicsManager.sweepBox(
+            localVector3.copy(localPlayer.position)
+              .add(localVector4.copy(direction).multiplyScalar(backOffset)),
+            camera.quaternion,
+            halfExtents,
+            direction,
+            sweepDistance,
+            maxHits,
+          );
+          if (result.length > 0) {
+            const distance = result[0].distance;
+            cameraOffsetLimitZ = distance < 0.5 ? 0 : -distance;
+          }
         }
       };
       _bumpCamera();
 
       const _lerpCameraOffset = () => {
-        const lerpFactor = 0.1;
-        cameraOffset.z = cameraOffset.z * (1-lerpFactor) + cameraOffsetTargetZ*lerpFactor;
+        const lerpFactor = 0.15;
+        let cameraOffsetZ = Math.max(cameraOffsetTargetZ, cameraOffsetLimitZ);
+        if (cameraOffsetZ > -0.5) {
+          cameraOffsetZ = 0;
+        }
+        cameraOffset.z = cameraOffset.z * (1-lerpFactor) + cameraOffsetZ*lerpFactor;
       };
       _lerpCameraOffset();
 
@@ -578,19 +596,19 @@ class CameraManager extends EventTarget {
       
     const _setCameraFov = () => {
       if (!renderer.xr.getSession()) {
+        let newFov;
+
         const focusTime = Math.min((timestamp - this.lerpStartTime) / maxFocusTime, 1);
         if (focusTime < 1) {
           this.fovFactor = 0;
 
           const a = this.sourceFov;
           const b = this.targetFov;
-          camera.fov = a * (1 - focusTime) + focusTime * b;
-          camera.updateProjectionMatrix();
+          newFov = a * (1 - focusTime) + focusTime * b;
         } else if (this.focus) {
           this.fovFactor = 0;
 
-          camera.fov = midFov;
-          camera.updateProjectionMatrix();
+          newFov = midFov;
         } else {
           const fovInTime = 3;
           const fovOutTime = 0.3;
@@ -607,8 +625,18 @@ class CameraManager extends EventTarget {
           }
           this.fovFactor = Math.min(Math.max(this.fovFactor, 0), 1);
           
-          camera.fov = minFov + Math.pow(this.fovFactor, 0.75) * (maxFov - minFov);
+          newFov = minFov + Math.pow(this.fovFactor, 0.75) * (maxFov - minFov);
+        }
+
+        if (newFov !== camera.fov) {
+          camera.fov = newFov;
           camera.updateProjectionMatrix();
+
+          this.dispatchEvent(new MessageEvent('fovchange', {
+            data: {
+              fov: newFov,
+            },
+          }));
         }
       }
     };

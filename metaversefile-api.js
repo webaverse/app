@@ -9,7 +9,7 @@ import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, sceneLowPriority, rootScene, camera} from './renderer.js';
+import {getRenderer, scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority, rootScene, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
@@ -25,7 +25,7 @@ import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
 import * as materials from './materials.js';
 import * as geometries from './geometries.js';
-import {MeshLodder} from './mesh-lodder.js';
+import meshLodManager from './mesh-lodder.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
@@ -47,13 +47,10 @@ import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
+import particleSystemManager from './particle-system.js';
+import domRenderEngine from './dom-renderer.jsx';
 
-// const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-// const localQuaternion = new THREE.Quaternion();
-// const localMatrix = new THREE.Matrix4();
-// const localMatrix2 = new THREE.Matrix4();
 
 class App extends THREE.Object3D {
   constructor() {
@@ -166,9 +163,12 @@ class App extends THREE.Object3D {
       return null;
     }
   }
-  activate() {
+  activate({
+    physicsId = -1,
+  } = {}) {
     this.dispatchEvent({
       type: 'activate',
+      physicsId,
     });
   }
   wear() {
@@ -214,6 +214,7 @@ const _bindAppManagerToLoreAIScene = (appManager, loreAIScene) => {
   });
 };
 _bindAppManagerToLoreAIScene(world.appManager, loreAIScene);
+world.loreAIScene = loreAIScene;
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -348,7 +349,7 @@ metaversefile.setApi({
       }
       s = `/@proxy/${s}`;
     }
-    // console.log('do import', s);
+    // console.log('js import', s);
     try {
       const m = await import(s);
       return m;
@@ -526,7 +527,7 @@ metaversefile.setApi({
     return loaders;
   },
   useMeshLodder() {
-    return MeshLodder;
+    return meshLodManager;
   },
   usePhysics() {
     const app = currentAppRender;
@@ -745,7 +746,7 @@ metaversefile.setApi({
     return cameraManager;
   },
   useParticleSystem() {
-    return world.particleSystem;
+    return particleSystemManager;
   },
   useDefaultModules() {
     return defaultModules;
@@ -1022,7 +1023,7 @@ export default () => {
     return getHeight(obj);
   },
   useInternals() {
-    if (!iframeContainer) {
+    /* if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
       
       iframeContainer.getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
@@ -1040,7 +1041,7 @@ export default () => {
         `;
       };
       iframeContainer.updateSize();
-    }
+    } */
 
     const renderer = getRenderer();
     return {
@@ -1052,6 +1053,8 @@ export default () => {
       camera,
       sceneHighPriority,
       sceneLowPriority,
+      sceneLowerPriority,
+      sceneLowestPriority,
       iframeContainer,
     };
   },
@@ -1081,6 +1084,9 @@ export default () => {
   },
   async waitForSceneLoaded() {
     await universe.waitForSceneLoaded();
+  },
+  useDomRenderer() {
+    return domRenderEngine;
   },
   useDebug() {
     return debug;

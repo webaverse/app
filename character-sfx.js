@@ -79,13 +79,15 @@ class CharacterSfx {
 
     this.oldNarutoRunSound = null;
 
-    const wearupdate = e => {
-      sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
-    };
-    player.addEventListener('wearupdate', wearupdate);
-    this.cleanup = () => {
-      player.removeEventListener('wearupdate', wearupdate);
-    };
+    if (this.player.isLocalPlayer) {
+      const wearupdate = e => {
+        sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
+      };
+      player.addEventListener('wearupdate', wearupdate);
+      this.cleanup = () => {
+        player.removeEventListener('wearupdate', wearupdate);
+      };
+    }
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -423,7 +425,7 @@ class CharacterSfx {
     }
   }
   destroy() {
-    this.cleanup();
+    this.cleanup && this.cleanup();
   }
 }
 

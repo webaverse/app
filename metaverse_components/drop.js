@@ -6,6 +6,7 @@ import physicsManager from '../physics-manager.js';
 import {glowMaterial} from '../shaders.js';
 import easing from '../easing.js';
 import {rarityColors} from '../constants.js';
+import dropManager from '../drop-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -41,8 +42,7 @@ export default app => {
     let grounded = false;
     const startTime = performance.now();
     let animation = null;
-    const timeOffset = Math.random() * 10;
-    const frame = metaversefile.useFrame(e => {
+    metaversefile.useFrame(e => {
       const {timestamp, timeDiff} = e;
       const timeDiffS = timeDiff/1000;
       const dropComponent = app.getComponent('drop');
@@ -118,11 +118,14 @@ export default app => {
             }
           }
         } else {
-          world.appManager.dispatchEvent(new MessageEvent('pickup', {
+          /* world.appManager.dispatchEvent(new MessageEvent('pickup', {
             data: {
               app,
             },
-          }));
+          })); */
+
+          dropManager.pickupApp(app);
+
           world.appManager.removeApp(app);
           app.destroy();
         }

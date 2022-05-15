@@ -28,6 +28,10 @@ import {
   makeOptionsPrompt,
   makeOptionsStop,
   parseOptionsResponse,
+
+  makeCharacterIntroPrompt,
+  makeCharacterIntroStop,
+  parseCharacterIntroResponse,
 } from './lore-model.js'
 
 const numGenerateTries = 5;
@@ -278,6 +282,19 @@ class AIScene {
     let response = await this.generateFn(prompt, stop);
     console.log('dialogue options response', {prompt, response});
     const response2 = parseOptionsResponse(response);
+    console.log('dialogue options parsed', {response2});
+    return response2;
+  }
+  async generateCharacterIntroPrompt(name, bio) {
+    const prompt = makeCharacterIntroPrompt({
+      name,
+      bio,
+    });
+    console.log('dialogue options prompt', {prompt});
+    const stop = makeCharacterIntroStop();
+    let response = await this.generateFn(prompt, stop);
+    console.log('dialogue options response', {prompt, response});
+    const response2 = parseCharacterIntroResponse(response);
     console.log('dialogue options parsed', {response2});
     return response2;
   }

@@ -50,7 +50,7 @@ const CharacterIcon = () => {
         avatarIconer.removeEventListener('enabledchange', enabledchange);
       };
     }
-  }, [canvasRef.current]);
+  }, [canvasRef]);
 
   return (
       <div
