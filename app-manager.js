@@ -26,6 +26,7 @@ const localData = {
 const localFrameOpts = {
   data: localData,
 };
+const frameEvent = new MessageEvent('frame', localFrameOpts);
 
 const appManagers = [];
 class AppManager extends EventTarget {
@@ -51,7 +52,7 @@ class AppManager extends EventTarget {
     localData.timestamp = timestamp;
     localData.frame = frame;
     localData.timeDiff = timeDiff;
-    this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
+    this.dispatchEvent(frameEvent);
   }
   /* setPushingLocalUpdates(pushingLocalUpdates) {
     this.pushingLocalUpdates = pushingLocalUpdates;
