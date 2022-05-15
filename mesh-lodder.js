@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import {MaxRectsPacker} from 'maxrects-packer';
 import {localPlayer} from './players.js';
 import {alea} from './procgen/procgen.js';
-// import {getRenderer} from './renderer.js';
-import {mod, modUv, getNextPhysicsId, uploadGeometry} from './util.js';
+import {getRenderer, rootScene, camera} from './renderer.js';
+import {mod, modUv, getNextPhysicsId} from './util.js';
 import physicsManager from './physics-manager.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
@@ -126,7 +126,8 @@ const _diceGeometry = g => {
   });
   return BufferGeometryUtils.mergeBufferGeometries(geometries8Parts);
 };
-const _eraseVertices = (geometry, positionStart, positionCount) => {
+const _eraseVertices = (mesh, positionStart, positionCount) => {
+  const {geometry} = mesh;
   for (let i = 0; i < positionCount; i++) {
     geometry.attributes.position.array[positionStart + i] = 0;
   }
@@ -350,10 +351,10 @@ class GeometryAllocator {
         } = attributeSpec;
 
         const array = new Type(bufferSize * itemSize);
-        this.geometry.setAttribute(name, new THREE.BufferAttribute(array, itemSize));
+        this.geometry.setAttribute(name, new ExtendedGLBufferAttribute(array, itemSize, false));
       }
       const indices = new Uint32Array(bufferSize);
-      this.geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      this.geometry.setIndex(new ExtendedGLBufferAttribute(indices, 1, true));
       // this.geometry.setDrawRange(0, 0);
     }
 
@@ -435,6 +436,69 @@ const _mapOffsettedIndices = (g, geometry, dstOffset, positionOffset) => {
   }
 };
 
+class ExtendedGLBufferAttribute extends THREE.GLBufferAttribute {
+  constructor(array, itemSize, isIndex = false) {
+    const Type = array.constructor;
+    let glType;
+    switch (Type) {
+      case Float32Array: {
+        glType = WebGLRenderingContext.FLOAT;
+        break;
+      }
+      case Uint16Array: {
+        glType = WebGLRenderingContext.UNSIGNED_SHORT;
+        break;
+      }
+      case Uint32Array: {
+        glType = WebGLRenderingContext.UNSIGNED_INT;
+        break;
+      }
+      default: {
+        throw new Error(`Unsupported array type: ${Type}`);
+      }
+    }
+    const renderer = getRenderer();
+    const gl = renderer.getContext();
+    const buffer = gl.createBuffer();
+    const target = ExtendedGLBufferAttribute.getTarget(isIndex);
+    gl.bindBuffer(target, buffer);
+    gl.bufferData(target, array.byteLength, gl.STATIC_DRAW);
+    gl.bindBuffer(target, null);
+    super(buffer, glType, itemSize, Type.BYTES_PER_ELEMENT, array.length / itemSize);
+    
+    this.array = array;
+    this.isIndex = isIndex;
+    /* this.updateRange = {
+      offset: 0,
+      count: -1,
+    }; */
+  }
+  static getTarget(isIndex) {
+    return isIndex ? WebGLRenderingContext.ELEMENT_ARRAY_BUFFER : WebGLRenderingContext.ARRAY_BUFFER;
+  }
+  getTarget() {
+    return ExtendedGLBufferAttribute.getTarget(this.isIndex);
+  }
+  update(offset, count) {
+    // if (this.updateRange.count !== -1) {
+      const renderer = getRenderer();
+      const gl = renderer.getContext();
+      const target = this.getTarget();
+      gl.bindBuffer(target, this.buffer);
+      gl.bufferSubData(
+        target,
+        offset * this.elementSize,
+        this.array,
+        offset,
+        count
+      );
+      gl.bindBuffer(target, null);
+
+      // this.updateRange.count = -1;
+    // }
+  }
+}
+
 class LodChunkGenerator {
   constructor(parent) {
     // parameters
@@ -486,9 +550,8 @@ class LodChunkGenerator {
     const index = this.itemRegistry.indexOf(item);
     if (index !== -1) {
       const item = this.itemRegistry[index];
-      const {geometry} = this.mesh;
       _eraseVertices(
-        geometry,
+        this.mesh,
         item.positionOffset,
         item.positionCount,
       );
@@ -634,14 +697,14 @@ class LodChunkGenerator {
 
         // render geometries to allocated geometry binding
         for (let i = 0; i < contentMeshes.length; i++) {
-          if (positionOffset > geometryBinding.positionFreeListEntry.start + geometryBinding.positionFreeListEntry.count) {
+          /* if (positionOffset > geometryBinding.positionFreeListEntry.start + geometryBinding.positionFreeListEntry.count) {
             debugger;
             throw new Error('overflow');
           }
           if (indexOffset > geometryBinding.indexFreeListEntry.start + geometryBinding.indexFreeListEntry.count) {
             debugger;
             throw new Error('overflow');
-          }
+          } */
 
           const contentMesh = contentMeshes[i];
           const contentName = contentNames[i];
@@ -658,19 +721,44 @@ class LodChunkGenerator {
           const tw = w * canvasScale;
           const th = h * canvasScale;
 
-          _mapOffsettedPositions(g, geometry, positionOffset, positionX, positionZ, rotationY, contentMesh);
-          geometry.attributes.normal.array.set(g.attributes.normal.array, positionOffset);
-          _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, uvOffset, tx, ty, tw, th, canvasSize);
-          _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, uvOffset, tx, ty, tw, th, canvasSize);
-          _mapOffsettedIndices(g, geometry, indexOffset, positionOffset);
-          geometry.setAttribute('direction', new THREE.BufferAttribute(new Float32Array(g.attributes.position.array.length), 3));
+          // render geometry
+          {
+            _mapOffsettedPositions(g, geometry, positionOffset, positionX, positionZ, rotationY, contentMesh);
+            geometry.attributes.normal.array.set(g.attributes.normal.array, positionOffset);
+            _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, uvOffset, tx, ty, tw, th, canvasSize);
+            _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, uvOffset, tx, ty, tw, th, canvasSize);
+            _mapOffsettedIndices(g, geometry, indexOffset, positionOffset);
+            geometry.setAttribute('direction', new THREE.BufferAttribute(new Float32Array(g.attributes.position.array.length), 3));
+          }
 
-          geometry.attributes.position.needsUpdate = true;
-          geometry.attributes.normal.needsUpdate = true;
-          geometry.attributes.uv.needsUpdate = true;
-          geometry.attributes.uv2.needsUpdate = true;
-          geometry.attributes.direction.needsUpdate = true;
-          geometry.index.needsUpdate = true;
+          // upload geometry
+          {
+            /* geometry.attributes.position.updateRange.offset = positionOffset;
+            geometry.attributes.position.updateRange.count = g.attributes.position.count * g.attributes.position.itemSize;
+            geometry.attributes.position.needsUpdate = true;
+            geometry.attributes.normal.updateRange.offset = positionOffset;
+            geometry.attributes.normal.updateRange.count = g.attributes.normal.count * g.attributes.normal.itemSize;
+            geometry.attributes.normal.needsUpdate = true;
+            geometry.attributes.uv.updateRange.offset = uvOffset;
+            geometry.attributes.uv.updateRange.count = g.attributes.uv.count * g.attributes.uv.itemSize;
+            geometry.attributes.uv.needsUpdate = true;
+            geometry.attributes.uv2.updateRange.offset = uvOffset;
+            geometry.attributes.uv2.updateRange.count = g.attributes.uv2.count * g.attributes.uv.itemSize;
+            geometry.attributes.uv2.needsUpdate = true;
+            // geometry.attributes.direction.updateRange.offset = positionOffset;
+            // geometry.attributes.direction.updateRange.count = g.attributes.position.count;
+            // geometry.attributes.direction.needsUpdate = true;
+            geometry.index.updateRange.offset = indexOffset;
+            geometry.index.updateRange.count = g.index.count;
+            geometry.index.needsUpdate = true;
+            uploadGeometry(geometry); */
+
+            geometry.attributes.position.update(positionOffset, g.attributes.position.count * g.attributes.position.itemSize);
+            geometry.attributes.normal.update(positionOffset, g.attributes.normal.count * g.attributes.normal.itemSize);
+            geometry.attributes.uv.update(uvOffset, g.attributes.uv.count * g.attributes.uv.itemSize);
+            geometry.attributes.uv2.update(uvOffset, g.attributes.uv2.count * g.attributes.uv.itemSize);
+            geometry.index.update(indexOffset, g.index.count);
+          }
 
           // physics
           {
