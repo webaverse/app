@@ -376,9 +376,11 @@ const _getMatrixWorld = (rootMesh, contentMesh, target, positionX, positionZ, ro
     .premultiply(rootMesh.matrixWorld);
 };
 const _getMatrix = (contentMesh, target, positionX, positionZ, rotationY) => {
+  localVector.set(positionX, 0, positionZ)
+  localQuaternion.setFromAxisAngle(upVector, rotationY)
+  
   return target.copy(contentMesh.matrixWorld)
-    .premultiply(localMatrix3.makeRotationAxis(upVector, rotationY))
-    .premultiply(localMatrix3.makeTranslation(positionX, 0, positionZ));
+    .premultiply(localMatrix3.compose(localVector, localQuaternion, localVector2.set(1, 1, 1)));
 };
 
 const _mapGeometryUvs = (g, geometry, tx, ty, tw, th, canvasSize) => {
