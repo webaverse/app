@@ -35,16 +35,6 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
     'Crouched Sneaking Left.fbx',
     'Crouched Sneaking Right.fbx',
   ];
-  const trimClip = (clip, startTime, endTime) => {
-    for (let i = 0; i < clip.tracks.length; i++) {
-      clip.tracks[i].trim(startTime, endTime);
-      for (let j = 0; j < clip.tracks[i].times.length; j++) {
-        clip.tracks[i].times[j] -= startTime;
-      }
-    }
-    clip.resetDuration();
-    return clip;
-  };
   const findFilesWithExtension = (baseDir, subDir, ext) => {
     const files = [];
     const dotExt = `.${ext}`;
@@ -254,7 +244,6 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
 
       // scale position tracks by height
       for (const track of animation.tracks) {
-        if (track.name.indexOf('mixamorig') !== 0) track.name = 'mixamorig' + track.name;
         if (/\.position/.test(track.name)) {
           const values2 = new track.values.constructor(track.values.length);
           const valueSize = track.getValueSize();
@@ -271,22 +260,6 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
 
       animations.push(animation);
     }
-
-    const swordStrikeContinuousAnimation = animations.filter(a => a.name === 'two_handed_heavy_sword_attack.fbx')[0];
-    let animation;
-    animation = trimClip(swordStrikeContinuousAnimation.clone(), 0, 143 / 30);
-    animation.name = 'sword_side_slash.fbx';
-    animations.push(animation);
-    animation = trimClip(swordStrikeContinuousAnimation.clone(), 143 / 30, 260 / 30);
-    animation.name = 'sword_side_slash_step.fbx';
-    animations.push(animation);
-    animation = trimClip(swordStrikeContinuousAnimation.clone(), 260 / 30, 367 / 30);
-    animation.name = 'sword_topdown_slash.fbx';
-    animations.push(animation);
-    animation = trimClip(swordStrikeContinuousAnimation.clone(), 367 / 30, 500 / 30);
-    animation.name = 'sword_topdown_slash_step.fbx';
-    animations.push(animation);
-
     const _reverseAnimation = animation => {
       animation = animation.clone();
       for (const track of animation.tracks) {
