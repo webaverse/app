@@ -10,7 +10,7 @@ import physx from './physx.js'
 // import ioManager from './io-manager.js';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import metaversefileApi from 'metaversefile'
-import { getNextPhysicsId, convertMeshToPhysicsMesh } from './util.js'
+import { getNextPhysicsId, freePhysicsId, convertMeshToPhysicsMesh } from './util.js'
 // import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
 import { CapsuleGeometry } from './geometries.js'
@@ -370,18 +370,13 @@ physicsManager.setGravityEnabled = (physicsObject, enabled) => {
   )
 }
 physicsManager.removeGeometry = (physicsObject) => {
-  // try {
   physx.physxWorker.removeGeometryPhysics(
     physx.physics,
     physicsObject.physicsId
   )
-  /* } catch(err) {
-    console.warn('failed to remove geometry', err.stack);
-  } */
+
+  freePhysicsId(physicsObject.physicsId)
 }
-/* physicsManager.getVelocity = (physicsObject, velocity) => {
-  physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
-}; */
 physicsManager.getGlobalPosition = (physicsObject, position) => {
   physx.physxWorker.getGlobalPositionPhysics(
     physx.physics,
