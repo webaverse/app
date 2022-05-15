@@ -563,6 +563,16 @@ class LodChunkGenerator {
       this.physicsObjects.splice(index, 1);
     }
   }
+  #destroyItem(item) {
+    const index = this.itemRegistry.indexOf(item);
+    if (index !== -1) {
+      const physicsObject = this.physicsObjects[index];
+      physicsManager.removeGeometry(physicsObject);
+      
+      this.itemRegistry.splice(index, 1);
+      this.physicsObjects.splice(index, 1);
+    }
+  }
   #getContentIndexNames() {
     return Object.keys(this.parent.contentIndex).sort();
   }
@@ -797,7 +807,9 @@ class LodChunkGenerator {
     this.allocator.free(chunk.geometryBinding);
     chunk.geometryBinding = null;
 
-    // XXX destroy items and physics objects here
+    for (const item of chunk.items) {
+      this.#destroyItem(item);
+    }
   }
 }
 
