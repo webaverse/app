@@ -270,6 +270,7 @@ class CameraManager extends EventTarget {
     return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
   }
   getCameraOffset() {
+    cameraOffset.x = -3;
     return cameraOffset;
   }
   handleMouseMove(e) {
@@ -603,7 +604,11 @@ class CameraManager extends EventTarget {
                   .applyQuaternion(this.targetQuaternion)
               );
 
-            // localVector
+            // localVector.copy(window.npcPlayers[0].position)
+            //   .sub(window.localPlayer.position)
+            //   .multiplyScalar(avatarCameraOffset)
+
+            // this.targetPosition.copy(localVector)
       
             break;
           }
