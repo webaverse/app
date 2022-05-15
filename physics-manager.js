@@ -301,23 +301,13 @@ physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dyna
     quaternion,
     scale
   )
-  // console.log('extract 1');
   const geometry = _extractPhysicsGeometryForId(physicsId);
   const physicsMesh = new THREE.Mesh(geometry, redMaterial);
-  /* console.log('convex shape', physicsMesh.geometry.boundingBox.getSize(localVector).toArray().join(','), {
-    physicsMesh,
-    sourceMesh: window.shapeMeshes[shapeAddress],
-  }); */
-  /* if (physicsMesh.geometry.attributes.position.array.some(v => isNaN(v))) {
-    console.log('bad position array', physicsMesh.geometry.attributes.position.array, physicsMesh.geometry.index.array);
-    debugger;
-  } */
+
   physicsMesh.visible = false
-  // physicsMesh.visible = true
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh;
   physicsMesh.updateMatrixWorld();
-  // scene.add(physicsMesh);
   return physicsObject
 };
 physicsManager.getGeometryForPhysicsId = (physicsId) =>
