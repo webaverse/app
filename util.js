@@ -3,7 +3,8 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import atlaspack from './atlaspack.js';
 import { getAddressFromMnemonic } from './blockchain.js';
 import {playersMapName, tokensHost, storageHost, accountsHost, loginEndpoint, audioTimeoutTime} from './constants.js';
-import { getRenderer } from './renderer.js';
+// import { getRenderer } from './renderer.js';
+import {IdAllocator} from './id-allocator';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -98,8 +99,8 @@ export function makePromise() {
   return p;
 }
 
-let nextMeshId = 0;
-export const getNextMeshId = () => ++nextMeshId;
+// const meshIdAllcator = new IdAllocator();
+// export const getNextMeshId = meshIdAllcator.alloc.bind(meshIdAllcator);
 
 export function clone(o) {
   return JSON.parse(JSON.stringify(o));
@@ -335,10 +336,13 @@ export function mergeMeshes(meshes, geometries, textures) {
   return mesh;
 }
 
-let nextPhysicsId = 0;
+/* let nextPhysicsId = 0;
 export function getNextPhysicsId() {
   return ++nextPhysicsId;
-}
+} */
+const physicsIdAllcator = new IdAllocator();
+export const getNextPhysicsId = physicsIdAllcator.alloc.bind(physicsIdAllcator);
+export const freePhysicsId = physicsIdAllcator.free.bind(physicsIdAllcator);
 
 export function convertMeshToPhysicsMesh(topMesh) {
   const oldParent = topMesh.parent;
