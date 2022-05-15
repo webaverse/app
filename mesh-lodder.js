@@ -3,7 +3,7 @@ import {MaxRectsPacker} from 'maxrects-packer';
 import {localPlayer} from './players.js';
 import {alea} from './procgen/procgen.js';
 // import {getRenderer} from './renderer.js';
-import {mod, modUv, getNextPhysicsId} from './util.js';
+import {mod, modUv, getNextPhysicsId, uploadGeometry} from './util.js';
 import physicsManager from './physics-manager.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
@@ -130,9 +130,10 @@ const _eraseVertices = (geometry, positionStart, positionCount) => {
   for (let i = 0; i < positionCount; i++) {
     geometry.attributes.position.array[positionStart + i] = 0;
   }
-  /* geometry.attributes.position.updateRange.offset = positionStart;
-  geometry.attributes.position.updateRange.count = positionCount; */
+  geometry.attributes.position.updateRange.offset = positionStart;
+  geometry.attributes.position.updateRange.count = positionCount;
   geometry.attributes.position.needsUpdate = true;
+  uploadGeometry(geometry);
 };
 
 class LodChunk extends THREE.Vector3 {
