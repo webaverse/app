@@ -912,8 +912,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const useTimeS = avatar.useTime / 1000;
         let f;
         if (avatar.useAnimation) {
-          const useAnimationName = avatar.useAnimation;
-          useAnimation = useAnimations[useAnimationName];
+          // const useAnimationName = avatar.useAnimation; // formal
+          // useAnimation = useAnimations[useAnimationName]; // formal
+          useAnimation = animations.index['Skateboarding.fbx']; // test
           t2 = Math.min(useTimeS, useAnimation.duration);
           f = useTimeS / useAnimation.duration;
         } else if (avatar.useAnimationCombo.length > 0) {
@@ -990,7 +991,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               // window.moveX = v2[0] - window.lastV2[0];
               // window.moveZ = v2[2] - window.lastV2[2];
 
-              console.log(window.moveX, window.moveZ);
+              // console.log(window.moveX, window.moveZ);
 
               window.lastV2[0] = v2[0];
               window.lastV2[2] = v2[2];
