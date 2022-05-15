@@ -564,6 +564,7 @@ class LodChunkGenerator {
     this.itemPositionCounts = new Uint32Array(maxNumItems);
     this.itemRects = new Uint32Array(maxNumItems * 4);
     this.itemShapeAddresses = new Uint32Array(maxNumItems);
+    this.itemPositionsXZY = new Float32Array(maxNumItems * 3);
 
     // mesh
     this.mesh = new THREE.Mesh(this.allocator.geometry, [this.parent.material]);
@@ -630,6 +631,10 @@ class LodChunkGenerator {
     const tw = localVector4D.z;
     const th = localVector4D.w;
 
+    const positionX = this.itemPositionsXZY[itemId * 3];
+    const positionZ = this.itemPositionsXZY[itemId * 3 + 1];
+    const rotationY = this.itemPositionsXZY[itemId * 3 + 2];
+
     const atlas = this.#getAtlas();
     const canvasSize = Math.min(atlas.width, defaultTextureSize);
 
@@ -648,6 +653,10 @@ class LodChunkGenerator {
     const tw = localVector4D.z;
     const th = localVector4D.w;
 
+    const positionX = this.itemPositionsXZY[itemId * 3];
+    const positionZ = this.itemPositionsXZY[itemId * 3 + 1];
+    const rotationY = this.itemPositionsXZY[itemId * 3 + 2];
+
     const atlas = this.#getAtlas();
     const canvasSize = Math.min(atlas.width, defaultTextureSize);
 
@@ -659,7 +668,13 @@ class LodChunkGenerator {
     return itemMesh;
   }
   clonePhysicsObject(itemId) {
+    const positionX = this.itemPositionsXZY[itemId * 3];
+    const positionZ = this.itemPositionsXZY[itemId * 3 + 1];
+    const rotationY = this.itemPositionsXZY[itemId * 3 + 2];
+
+    const contentMesh = this.itemContentMeshes[itemId];
     const shapeAddress = this.itemShapeAddresses[itemId];
+
     _getMatrixWorld(this.mesh, contentMesh, localMatrix, positionX, positionZ, rotationY)
       .decompose(localVector, localQuaternion, localVector2);
     const position = localVector;
@@ -681,6 +696,10 @@ class LodChunkGenerator {
     localVector4D.set(tx, ty, tw, th)
       .toArray(this.itemRects, physicsId * 4);
     this.itemShapeAddresses[physicsId] = this.parent.shapeAddresses[contentName];
+    
+    this.itemPositionsXZY[physicsId * 3] = positionX;
+    this.itemPositionsXZY[physicsId * 3 + 1] = positionZ;
+    this.itemPositionsXZY[physicsId * 3 + 2] = rotationY;
   }
   generateChunk(chunk) {
     const _collectContentsRenderList = () => {
