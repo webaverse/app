@@ -557,6 +557,7 @@ class LodChunkGenerator {
     ], {
       bufferSize,
     });
+    this.itemContentMeshes = Array(maxNumItems).fill(null);
     this.itemPositions = new Float32Array(maxNumItems * 3);
     this.itemQuaternions = new Float32Array(maxNumItems * 4);
     this.itemPositionOffsets = new Uint32Array(maxNumItems);
@@ -578,21 +579,16 @@ class LodChunkGenerator {
     s.set(1, 1, 1);
   }
   deleteItem(itemId) {
-    // const index = this.itemRegistry.indexOf(item);
-    // if (index !== -1) {
-      // const item = this.itemRegistry[index];
-      _eraseVertices(
-        this.allocator.geometry,
-        this.itemPositionOffsets[itemId],
-        this.itemPositionCounts[itemId],
-      );
+    _eraseVertices(
+      this.allocator.geometry,
+      this.itemPositionOffsets[itemId],
+      this.itemPositionCounts[itemId],
+    );
 
-      const physicsObject = this.physicsObjects[index];
-      physicsManager.removeGeometry(physicsObject);
-      
-      // this.itemRegistry.splice(index, 1);
-      this.physicsObjects.splice(index, 1);
-    // }
+    const index = this.physicsObjects.findIndex(po => po.physicsId === itemId);
+    const physicsObject = this.physicsObjects[index];
+    physicsManager.removeGeometry(physicsObject);      
+    this.physicsObjects.splice(index, 1);
   }
   #getContentIndexNames() {
     return Object.keys(this.parent.contentIndex).sort();
@@ -637,6 +633,8 @@ class LodChunkGenerator {
     const atlas = this.#getAtlas();
     const canvasSize = Math.min(atlas.width, defaultTextureSize);
 
+    const contentMesh = this.itemContentMeshes[itemId];
+    const g = contentMesh.geometry;
     let geometry = g.clone();
     _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
     geometry = _diceGeometry(geometry);
@@ -653,6 +651,8 @@ class LodChunkGenerator {
     const atlas = this.#getAtlas();
     const canvasSize = Math.min(atlas.width, defaultTextureSize);
 
+    const contentMesh = this.itemContentMeshes[itemId];
+    const g = contentMesh.geometry;
     const geometry = g.clone();
     _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
     const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material, positionX, positionZ, rotationY);
@@ -670,7 +670,8 @@ class LodChunkGenerator {
     const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
     return physicsObject;
   }
-  #addItemToRegistry(contentName, physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th) {
+  #addItemToRegistry(contentName, contentMesh, physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th) {
+    this.itemContentMeshes[physicsId] = contentMesh;
     localVector.set(positionX, 0, positionZ)
       .toArray(this.itemPositions, physicsId * 3);
     localQuaternion.setFromAxisAngle(upVector, rotationY)
@@ -773,7 +774,7 @@ class LodChunkGenerator {
 
             // tracking
             const positionCount = g.attributes.position.count * g.attributes.position.itemSize;
-            this.#addItemToRegistry(contentName, physicsObject.physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th);
+            this.#addItemToRegistry(contentName, contentMesh, physicsObject.physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th);
           }
           
           positionOffset += g.attributes.position.count * g.attributes.position.itemSize;
@@ -818,7 +819,7 @@ class LodChunkGenerator {
 
     for (const physicsObject of chunk.physicsObjects) {
       physicsManager.removeGeometry(physicsObject);
-      
+
       const index = this.physicsObjects.findIndex(po => po.physicsId === physicsObject.physicsId);
       this.physicsObjects.splice(index, 1);
     }
@@ -1153,8 +1154,17 @@ class MeshLodManager {
   /* getItemIdByPhysicsId(physicsId) {
     return this.generator.getItemIdByPhysicsId(physicsId); 
   } */
-  getItemTransformByItemId(itemId) {
-    return this.generator.getItemTransformByItemId(itemId);
+  getItemTransformByItemId() {
+    return this.generator.getItemTransformByItemId.apply(this.generator, arguments);
+  }
+  cloneItemDiceMesh() {
+    return this.generator.cloneItemDiceMesh.apply(this.generator, arguments);
+  }
+  cloneItemMesh() {
+    return this.generator.cloneItemMesh.apply(this.generator, arguments);
+  }
+  clonePhysicsObject() {
+    return this.generator.clonePhysicsObject.apply(this.generator, arguments);
   }
   deleteItem(itemId) {
     return this.generator.deleteItem(itemId);
