@@ -24,10 +24,10 @@ const localQuaternion = new THREE.Quaternion()
 const localQuaternion2 = new THREE.Quaternion()
 const localMatrix = new THREE.Matrix4() */
 
-/* const redMaterial = new THREE.MeshBasicMaterial({
+const redMaterial = new THREE.MeshBasicMaterial({
   color: 0xff0000,
-  side: THREE.DoubleSide,
-}); */
+  // side: THREE.DoubleSide,
+});
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const upVector = new THREE.Vector3(0, 1, 0);
@@ -91,7 +91,8 @@ physicsManager.addCapsuleGeometry = (
     localVector2.set(1, 1, 1)
   )
   const physicsMesh = new THREE.Mesh(
-    new CapsuleGeometry(radius, radius, halfHeight * 2)
+    new CapsuleGeometry(radius, radius, halfHeight * 2),
+    redMaterial
   )
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
@@ -122,7 +123,7 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
     quaternion,
     localVector2.set(1, 1, 1)
   )
-  const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2))
+  const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), redMaterial)
   physicsMesh.scale.copy(size)
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
@@ -186,7 +187,7 @@ physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
     quaternion,
     scale
   )
-  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
+  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId), redMaterial)
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh
@@ -246,7 +247,7 @@ physicsManager.addCookedConvexGeometry = (
     quaternion,
     scale
   )
-  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
+  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId), redMaterial)
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh;
@@ -273,7 +274,7 @@ physicsManager.addShape = (shapeAddress, position, quaternion, scale, external) 
     quaternion,
     scale
   )
-  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
+  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId), redMaterial)
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh;
@@ -302,7 +303,7 @@ physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dyna
   )
   // console.log('extract 1');
   const geometry = _extractPhysicsGeometryForId(physicsId);
-  const physicsMesh = new THREE.Mesh(geometry/*, redMaterial*/)
+  const physicsMesh = new THREE.Mesh(geometry, redMaterial);
   /* console.log('convex shape', physicsMesh.geometry.boundingBox.getSize(localVector).toArray().join(','), {
     physicsMesh,
     sourceMesh: window.shapeMeshes[shapeAddress],
@@ -491,7 +492,8 @@ physicsManager.createCharacterController = (
   const halfHeight = height / 2
   const physicsObject = new THREE.Object3D()
   const physicsMesh = new THREE.Mesh(
-    new CapsuleGeometry(radius, radius, halfHeight * 2)
+    new CapsuleGeometry(radius, radius, halfHeight * 2),
+    redMaterial
   )
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
