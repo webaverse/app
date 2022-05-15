@@ -8,10 +8,10 @@ import metaversefile from '../../../../metaversefile-api.js';
 import cameraManager from '../../../../camera-manager.js';
 
 import { NumberInput } from '../number-input';
-import { Spritesheet } from '../spritesheet';
 import { AppContext } from '../../app';
 import { ObjectScreenshot } from '../object-screenshot';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
+import { ComponentEditor } from './ComponentEditor.jsx';
 
 import styles from './world-objects-list.module.css';
 
@@ -458,6 +458,7 @@ export const WorldObjectsList = () => {
                                         <NumberInput title="Y" zeroValue={ false } initalValue={ sy } onChange={ handleAppTransformChange.bind( this, 'sy' ) } step={ 0.1 } />
                                         <NumberInput title="Z" zeroValue={ false } initalValue={ sz } onChange={ handleAppTransformChange.bind( this, 'sz' ) } step={ 0.1 } />
                                     </div>
+                                    <ComponentEditor />
                                 </div>
                                 {
                                     ( [ 'glb', 'html', 'gltf', 'gif', 'vrm' ].indexOf( selectedApp.appType ) !== -1 ) ? (
