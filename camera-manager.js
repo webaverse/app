@@ -45,6 +45,7 @@ const maxFocusTime = 300;
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 let cameraOffsetLimitZ = Infinity;
+const combatLockBiasQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0.5, 0));
 
 // let cameraOffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
@@ -486,6 +487,7 @@ class CameraManager extends EventTarget {
       )
       localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
       localEuler.x = camera.rotation.x;
+      this.targetQuaternion.multiply(combatLockBiasQuaternion);
       this.targetQuaternion.setFromEuler(localEuler);
     }
 
@@ -600,6 +602,8 @@ class CameraManager extends EventTarget {
                 localVector2.copy(avatarCameraOffset)
                   .applyQuaternion(this.targetQuaternion)
               );
+
+            // localVector
       
             break;
           }
