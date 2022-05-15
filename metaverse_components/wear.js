@@ -29,6 +29,7 @@ export default (app, component) => {
       player = e.player;
 
       wearSpec = app.getComponent('wear');
+      // window.wearSpec = wearSpec
       initialScale.copy(app.scale);
       // console.log('wear activate', app, wearSpec, e);
       if (wearSpec) {
@@ -256,17 +257,20 @@ export default (app, component) => {
         const appUseAction = Array.from(player.getActionsState())
           .find(action => action.type === 'use' && action.instanceId === instanceId);
         if (appUseAction?.boneAttachment && wearSpec.boneAttachment) {
+          // console.log(1)
           _copyBoneAttachment(appUseAction);
         } else {
           const appAimAction = Array.from(player.getActionsState())
             .find(action => action.type === 'aim' && action.instanceId === instanceId);
           if (appAimAction?.boneAttachment && wearSpec.boneAttachment) {
+            // console.log(2)
             _copyBoneAttachment(appAimAction);
           } else {
             if (modelBones) {
               Avatar.applyModelBoneOutputs(modelBones, player.avatar.modelBoneOutputs, player.avatar.getTopEnabled(), player.avatar.getBottomEnabled(), player.avatar.getHandEnabled(0), player.avatar.getHandEnabled(1));
               modelBones.Root.updateMatrixWorld();
             } else if (wearSpec.boneAttachment) {
+              // console.log(3)
               _copyBoneAttachment(wearSpec);
             }
           }
