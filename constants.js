@@ -108,6 +108,8 @@ export const avatarInterpolationNumFrames = 4;
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
 
+export const defaultMaxId = 8192;
+
 export const defaultMusicVolume = 0.35;
 
 export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
