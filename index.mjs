@@ -7,6 +7,9 @@ import express from 'express';
 import vite from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
+const SERVER_ADDR = '0.0.0.0';
+const SERVER_NAME = 'local.webaverse.com';
+
 Error.stackTraceLimit = 300;
 const cwd = process.cwd();
 
@@ -128,12 +131,12 @@ const _proxyUrl = (req, res, u) => {
   app.use(viteServer.middlewares);
   
   await new Promise((accept, reject) => {
-    httpServer.listen(port, '0.0.0.0', () => {
+    httpServer.listen(port, SERVER_ADDR, () => {
       accept();
     });
     httpServer.on('error', reject);
   });
-  console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
+  console.log(`  > Local: http${isHttps ? 's' : ''}://${SERVER_NAME}:${port}/`);
   
   const wsServer = (() => {
     if (isHttps) {
@@ -177,10 +180,10 @@ const _proxyUrl = (req, res, u) => {
     initialRoomNames,
   });
   await new Promise((accept, reject) => {
-    wsServer.listen(wsPort, '0.0.0.0', () => {
+    wsServer.listen(wsPort, SERVER_ADDR, () => {
       accept();
     });
     wsServer.on('error', reject);
   });
-  console.log(`  > World: ws${isHttps ? 's' : ''}://localhost:${wsPort}/`);
+  console.log(`  > World: ws${isHttps ? 's' : ''}://${SERVER_NAME}:${wsPort}/`);
 })();

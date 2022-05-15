@@ -17,6 +17,7 @@ class PlayersManager {
     this.playersArray = null;
 
     this.remotePlayers = new Map();
+    this.remotePlayersByInteger = new Map();
     window.remotePlayers = this.remotePlayers;
 
     this.unbindStateFn = null;
@@ -88,6 +89,7 @@ class PlayersManager {
               playersArray: this.playersArray,
             });
             this.remotePlayers.set(playerId, remotePlayer);
+            this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
           }
         }
         // console.log('players observe', added, deleted);
@@ -101,6 +103,9 @@ class PlayersManager {
 
             const remotePlayer = this.remotePlayers.get(playerId);
             this.remotePlayers.delete(playerId);
+            console.log("deleting remote player", remotePlayer);
+            this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
+            
             remotePlayer.destroy();
           }
         }
