@@ -2,18 +2,23 @@ import {defaultMaxId} from './constants.js';
 
 export class IdAllocator {
   constructor(maxSize = defaultMaxId) {
-    this.usedList = new Uint8Array(maxSize);
+    this.stack = new Uint32Array(maxSize);
+    for (let i = 0; i < maxSize; i++) {
+      this.stack[i] = i + 1;
+    }
+    this.stackIndex = 0;
   }
   alloc() {
-    for (let i = 0; i < this.usedList.length; i++) {
-      if (this.usedList[i] === 0) {
-        this.usedList[i] = 1;
-        return i;
-      }
+    if (this.stackIndex < this.stack.length) {
+      const index = this.stack[this.stackIndex];
+      this.stackIndex++;
+      return index;
+    } else {
+      return -1;
     }
-    return -1;
   }
   free(index) {
-    this.usedList[index] = 0;
+    this.stackIndex--;
+    this.stack[this.stackIndex] = index;
   }
 }
