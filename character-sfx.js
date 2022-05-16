@@ -437,36 +437,48 @@ class CharacterSfx {
     if (this.player.voicePack) { // ensure voice pack loaded
       let voiceFiles, offset, duration;
       switch (type) {
+        case 'alertSoft':
         case 'alert': {
           voiceFiles = this.player.voicePack.emoteVoices.filter(f => /alert/i.test(f.name));
           break;
         }
+        case 'angrySoft':
         case 'angry': {
           voiceFiles = this.player.voicePack.emoteVoices.filter(f => /angry/i.test(f.name));
           break;
         }
+        case 'embarrassedSoft':
         case 'embarrassed': {
           voiceFiles = this.player.voicePack.emoteVoices.filter(f => /emba/i.test(f.name));
           break;
         }
+        case 'headNodSoft':
         case 'headNod': {
           voiceFiles = this.player.voicePack.emoteVoices.filter(f => /nod/i.test(f.name));
           break;
         }
+        case 'headShakeSoft':
         case 'headShake': {
           voiceFiles = this.player.voicePack.emoteVoices.filter(f => /shake/i.test(f.name));
           break;
         }
+        case 'sadSoft':
         case 'sad': {
           voiceFiles = this.player.voicePack.emoteVoices.filter(f => /sad/i.test(f.name));
           break;
         }
+        case 'surpriseSoft':
         case 'surprise': {
           voiceFiles = this.player.voicePack.emoteVoices.filter(f => /surprise/i.test(f.name));
           break;
         }
+        case 'victorySoft':
         case 'victory': {
           voiceFiles = this.player.voicePack.emoteVoices.filter(f => /victory/i.test(f.name));
+          break;
+        }
+        default: {
+          voiceFiles = this.player.voicePack.emoteVoices;
           break;
         }
       }
