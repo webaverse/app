@@ -302,7 +302,7 @@ const _bindHitTracker = app => {
       app.npcPlayer.avatar.ragdoll = true;
       setTimeout(() => {
         world.appManager.removeTrackedApp(app.instanceId);
-      }, 5000);
+      }, 15000);
     } else {
       world.appManager.removeTrackedApp(app.instanceId);
     }
