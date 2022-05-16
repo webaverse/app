@@ -270,8 +270,8 @@ class CameraManager extends EventTarget {
     return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
   }
   getCameraOffset() {
-    cameraOffset.x = -2;
-    cameraOffset.y = -2.7;
+    // cameraOffset.x = -2;
+    // cameraOffset.y = -2.7;
     return cameraOffset;
   }
   handleMouseMove(e) {
@@ -480,12 +480,12 @@ class CameraManager extends EventTarget {
   }
   updatePost(timestamp, timeDiff) {
     
-    if (localPlayer.combatTargetEnabled) {
-      this.targetQuaternion.setFromUnitVectors(
-        localVector3.set(0, 0, -1),
-        localVector.copy(window.npcPlayers[0].position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
-      )
-    }
+    // if (localPlayer.combatTargetEnabled) {
+    //   this.targetQuaternion.setFromUnitVectors(
+    //     localVector3.set(0, 0, -1),
+    //     localVector.copy(window.npcPlayers[0].position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
+    //   )
+    // }
 
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -599,26 +599,26 @@ class CameraManager extends EventTarget {
                   .applyQuaternion(this.targetQuaternion)
               );
 
-            // look at npcPlayer's side
-            localVector.copy(localPlayer.position).sub(npcPlayers[0].position).setY(0)
-              .applyAxisAngle(new THREE.Vector3(0, 1, 0), - Math.PI / 2)
-              .normalize().multiplyScalar(2)
-              .add(npcPlayers[0].position)
-            // console.log(window.logVector3(localVector));
+            // // look at npcPlayer's side
+            // localVector.copy(localPlayer.position).sub(npcPlayers[0].position).setY(0)
+            //   .applyAxisAngle(new THREE.Vector3(0, 1, 0), - Math.PI / 2)
+            //   .normalize().multiplyScalar(2)
+            //   .add(npcPlayers[0].position)
+            // // console.log(window.logVector3(localVector));
 
-            localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
-            this.targetQuaternion.setFromRotationMatrix(localMatrix);
+            // localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
+            // this.targetQuaternion.setFromRotationMatrix(localMatrix);
               
-            // // free camera.rotation.x
-            // localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
-            // localEuler.x = camera.rotation.x;
-            // // this.targetQuaternion.multiply(combatLockBiasQuaternion);
-            // this.targetQuaternion.setFromEuler(localEuler);
+            // // // free camera.rotation.x
+            // // localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
+            // // localEuler.x = camera.rotation.x;
+            // // // this.targetQuaternion.multiply(combatLockBiasQuaternion);
+            // // this.targetQuaternion.setFromEuler(localEuler);
 
-            // move up whole viewport (move down camera)
-            this.targetPosition.add(
-              new THREE.Vector3(0, -2, 0).applyQuaternion(this.targetQuaternion)
-            );
+            // // move up whole viewport (move down camera)
+            // this.targetPosition.add(
+            //   new THREE.Vector3(0, -2, 0).applyQuaternion(this.targetQuaternion)
+            // );
       
             break;
           }
@@ -710,9 +710,9 @@ class CameraManager extends EventTarget {
     };
     _shakeCamera();
 
-    if (window.isCombatFocus && window.npcPlayers && window.npcPlayers[0]) {
-      this.focusCamera(window.npcPlayers[0].position);
-    }
+    // if (window.isCombatFocus && window.npcPlayers && window.npcPlayers[0]) {
+    //   this.focusCamera(window.npcPlayers[0].position);
+    // }
 
     camera.updateMatrixWorld();
 

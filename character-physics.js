@@ -85,7 +85,7 @@ class CharacterPhysics {
       // move character controller
       const minDist = 0;
 
-      if (this.player.combatTargetEnabled) {
+      if (false && this.player.combatTargetEnabled) {
         const moveDistance = localVector.copy(this.velocity).setY(0).length() * timeDiffS;
         const playerPosition = localVector.copy(this.player.position).setY(0);
         const targetPosition = localVector2.copy(this.player.combatTarget).setY(0)
@@ -166,11 +166,12 @@ class CharacterPhysics {
             );
           }
         } else {
-          // localQuaternion.copy(camera.quaternion);
-          localQuaternion.setFromUnitVectors(
-            new THREE.Vector3(0, 0, -1),
-            new THREE.Vector3().copy(window.npcPlayers[0].position).sub(window.localPlayer.position).setY(0).normalize()
-          )
+          localQuaternion.copy(camera.quaternion);
+
+          // localQuaternion.setFromUnitVectors(
+          //   new THREE.Vector3(0, 0, -1),
+          //   new THREE.Vector3().copy(window.npcPlayers[0].position).sub(window.localPlayer.position).setY(0).normalize()
+          // )
         }
 
         const jumpAction = this.player.getAction('jump');
