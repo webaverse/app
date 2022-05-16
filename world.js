@@ -20,6 +20,7 @@ import {playersManager} from './players-manager.js';
 // import * as metaverseModules from './metaverse-modules.js';
 import {createParticleSystem} from './particle-system.js';
 // import * as sounds from './sounds.js';
+import physicsManager from './physics-manager.js';
 
 const localEuler = new THREE.Euler();
 
@@ -295,7 +296,16 @@ const _bindHitTracker = app => {
   app.dispatchEvent({type: 'hittrackeradded'});
 
   const die = () => {
-    world.appManager.removeTrackedApp(app.instanceId);
+    if (app.npcPlayer?.avatar) {
+      physicsManager.disableGeometry(app.npcPlayer.characterController);
+      physicsManager.disableGeometryQueries(app.npcPlayer.characterController);
+      app.npcPlayer.avatar.ragdoll = true;
+      setTimeout(() => {
+        world.appManager.removeTrackedApp(app.instanceId);
+      }, 5000);
+    } else {
+      world.appManager.removeTrackedApp(app.instanceId);
+    }
   };
   hitTracker.addEventListener('die', die);
 };

@@ -100,7 +100,7 @@ physicsManager.addCapsuleGeometry = (
   return physicsObject
 }
 
-physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
+physicsManager.addBoxGeometry = (position, quaternion, size, dynamic, groupId) => {
   const physicsId = getNextPhysicsId()
   physx.physxWorker.addBoxGeometryPhysics(
     physx.physics,
@@ -108,7 +108,8 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
     quaternion,
     size,
     physicsId,
-    dynamic
+    dynamic,
+    groupId
   )
 
   const physicsObject = _makePhysicsObject(
@@ -558,6 +559,25 @@ physicsManager.sweepBox = (
   )
 };
 
+physicsManager.addJoint = (physicsObject1, physicsObject2, position1, position2, quaternion1, quaternion2) => {
+  const joint = physx.physxWorker.addJointPhysics(physx.physics, physicsObject1.physicsId, physicsObject2.physicsId, position1, position2, quaternion1, quaternion2);
+  return joint;
+}
+physicsManager.setJointMotion = (joint, axis, motion) => {
+  return physx.physxWorker.setJointMotionPhysics(physx.physics, joint, axis, motion);
+}
+physicsManager.setJointTwistLimit = (joint, lowerLimit, upperLimit, contactDist) => {
+  return physx.physxWorker.setJointTwistLimitPhysics(physx.physics, joint, lowerLimit, upperLimit, contactDist);
+}
+physicsManager.setJointSwingLimit = (joint, yLimitAngle, zLimitAngle, contactDist) => {
+  return physx.physxWorker.setJointSwingLimitPhysics(physx.physics, joint, yLimitAngle, zLimitAngle, contactDist);
+}
+physicsManager.updateMassAndInertia = (physicsObject, shapeDensities) => {
+  return physx.physxWorker.updateMassAndInertiaPhysics(physx.physics, physicsObject.physicsId, shapeDensities);
+}
+physicsManager.getBodyMass = (physicsObject) => {
+  return physx.physxWorker.getBodyMassPhysics(physx.physics, physicsObject.physicsId);
+}
 physicsManager.simulatePhysics = (timeDiff) => {
   if (physicsEnabled) {
     const t = timeDiff / 1000

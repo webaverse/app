@@ -556,6 +556,21 @@ ioManager.keydown = e => {
       debug.toggle();
       break;
     }
+    case 78: { // N
+      const localPlayer = metaversefile.useLocalPlayer();
+      if (localPlayer.avatar) {
+        if (localPlayer.avatar.ragdoll) {
+          localPlayer.avatar.ragdoll = false;
+          physicsManager.enableGeometry(localPlayer.characterController);
+          physicsManager.enableGeometryQueries(localPlayer.characterController);
+        } else {
+          localPlayer.avatar.ragdoll = true;
+          physicsManager.disableGeometry(localPlayer.characterController);
+          physicsManager.disableGeometryQueries(localPlayer.characterController);
+        }
+      }
+      break;
+    }
     case 192: { // tilde
       game.toggleEditMode();
       break;

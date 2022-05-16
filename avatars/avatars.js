@@ -54,7 +54,7 @@ import Emoter from './Emoter.js'
 import Blinker from './Blinker.js'
 import Nodder from './Nodder.js'
 import Looker from './Looker.js'
-
+import { makeRagdollMesh } from './ragdoll.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -566,7 +566,7 @@ class Avatar {
 
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
-    this.initializeBonePositions({
+    this.setups = {
       hips: _getOffset(modelBones.Hips),
       spine: _getOffset(modelBones.Spine),
       chest: _getOffset(modelBones.Chest),
@@ -627,7 +627,8 @@ class Avatar {
 
       leftToe: _getOffset(modelBones.Left_toe),
       rightToe: _getOffset(modelBones.Right_toe),
-    });
+    }
+    this.initializeBonePositions(this.setups);
 
     // height is defined as eyes to root
     this.height = getHeight(object);
@@ -938,6 +939,7 @@ class Avatar {
     // this.aimDirection = new THREE.Vector3();
     this.hurtTime = NaN;
     this.hurtAnimation = null;
+    this.ragdoll = false;
 
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -951,6 +953,7 @@ class Avatar {
     this.startEyeTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
+    this.prevRagdoll = false;
 
     this.manuallySetMouth=false;
   }
@@ -1821,33 +1824,47 @@ class Avatar {
     
     
 
-    _updateHmdPosition();
-    _applyAnimation(this, now, moveFactors);
+    if (this.ragdoll) {
+      if (this.ragdoll !== this.prevRagdoll) {
+        if (!this.ragdollMesh) {
+          this.ragdollMesh = makeRagdollMesh(this);
+          this.ragdollMesh.visible = false;
+          this.model.add(this.ragdollMesh);
+        }
+        this.ragdollMesh.setFromAvatar(this);
+      }
 
-    if (this.poseAnimation) {
-      _overwritePose(this.poseAnimation);
+      this.ragdollMesh.toAvatar(this);
+    } else {
+      _updateHmdPosition();
+      _applyAnimation(this, now, moveFactors);
+
+      if (this.poseAnimation) {
+        _overwritePose(this.poseAnimation);
+      }
+
+      // if (!this.getBottomEnabled()) {
+      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      localEuler.y += Math.PI;
+      this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
+
+      this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
+        .sub(localVector.set(0, this.height, 0));
+      // }
+      /* if (!this.getTopEnabled() && this.debugMeshes) {
+        this.modelBoneOutputs.Hips.updateMatrixWorld();
+      } */
+
+  
+      this.shoulderTransforms.Update();
+      this.legsManager.Update();
+
+      _updateEyeTarget();
+      _updateEyeballTarget();
     }
-
-    // if (!this.getBottomEnabled()) {
-    localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.z = 0;
-    localEuler.y += Math.PI;
-    this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
-
-    this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
-      .sub(localVector.set(0, this.height, 0));
-    // }
-    /* if (!this.getTopEnabled() && this.debugMeshes) {
-      this.modelBoneOutputs.Hips.updateMatrixWorld();
-    } */
-
-
-    this.shoulderTransforms.Update();
-    this.legsManager.Update();
-
-    _updateEyeTarget();
-    _updateEyeballTarget();
+    this.prevRagdoll = this.ragdoll;
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
     Avatar.applyModelBoneOutputs(

@@ -1094,6 +1094,13 @@ export const getTransferables = o => {
   _recurse(o);
   return result;
 };
+export function getDiffQuaternion(target, quaternionA, quaternionB) {
+  // Purpose: Get a diffQuaternion which can rotate quaternionA to quaternionB.
+  // i.e. quaternionA * diffQuaternion = quaternionB .
+  // https://forum.unity.com/threads/subtracting-quaternions.317649/
+  // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/functions/index.htm
+  target.copy(quaternionB).invert().multiply(quaternionA).invert();
+}
 export const selectVoice = (voicer) => {
   const weightedRandom = (weights) => {
     let totalWeight = 0;

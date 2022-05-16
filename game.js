@@ -944,6 +944,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
               const result = metaversefileApi.getPairByPhysicsId(collisionId);
               if (result) {
                 const [app, physicsObject] = result;
+                if (app.npcPlayer?.avatar?.ragdoll) return; // npcPlayer already die and in ragdoll
                 if (app.getComponent('vincibility') !== 'invincible') {
                   const lastHitTime = lastHitTimes.get(app) ?? 0;
                   const lastHitIndex = lastHitIndices.get(app) ?? -1;

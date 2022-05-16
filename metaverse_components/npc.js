@@ -61,6 +61,9 @@ try {
         scale,
       });
       // if (!live) return;
+      newNpcPlayer.appManager.apps.push(app);
+      newNpcPlayer.avatar.app = app;
+      app.npcPlayer = newNpcPlayer;
 
       const _setVoice = () => {
         const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
@@ -92,7 +95,16 @@ try {
       npcPlayer = newNpcPlayer;
     })()// );
 
-    app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterController] : [];
+    app.getPhysicsObjects = () => {
+      const physicsObjects = [];
+      if (npcPlayer) {
+        physicsObjects.push(npcPlayer.characterController);
+        npcPlayer.appManager.apps.forEach(app => {
+          physicsObjects.push(...app.physicsObjects);
+        })
+      }
+      return physicsObjects;
+    }
 
     app.addEventListener('hittrackeradded', e => {
       app.hitTracker.addEventListener('hit', e => {
