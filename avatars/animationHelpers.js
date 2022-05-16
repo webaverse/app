@@ -372,6 +372,10 @@ export const loadPromise = (async () => {
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
+    pain_front: animations.index['pain_front.fbx'],
+    hit_sword_topdown: animations.index['hit_sword_topdown.fbx'],
+    hit_sword_horizontal: animations.index['hit_sword_horizontal.fbx'],
+    hit_mid_l: animations.index['hit_mid_l.fbx'],
   };
   {
     const down10QuaternionArray = new Quaternion()
@@ -737,6 +741,23 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
+    // { // play one animation purely.
+    //   return spec => {
+    //     const {
+    //       animationTrackName: k,
+    //       dst,
+    //       // isTop,
+    //     } = spec;
+
+    //     // const animation = animations.index['walking.fbx']
+    //     const animation = animations.index['hit_sword_topdown.fbx']
+    //     const t2 = timeSeconds;
+    //     const src2 = animation.interpolants[k];
+    //     const v2 = src2.evaluate(t2 % animation.duration);
+
+    //     dst.fromArray(v2);
+    //   };
+    // }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -958,7 +979,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -967,8 +988,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const hurtTimeS = avatar.hurtTime / 1000;
         const t2 = Math.min(hurtTimeS, hurtAnimation.duration);
         // console.log('hurtAnimation', avatar.hurtAnimation, avatar.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
-        if (!isPosition) {
-          if (hurtAnimation) {
+
+        if (hurtAnimation === hurtAnimations.hit_sword_topdown) {
+          if (isTop) {
+            const src2 = hurtAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            dst.fromArray(v2);
+          }
+        } else {
+          if (!isPosition) {
             const src2 = hurtAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
@@ -980,19 +1008,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             dst
               .premultiply(localQuaternion2.fromArray(v3).invert())
               .premultiply(localQuaternion2.fromArray(v2));
+          } else {
+            const src2 = hurtAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+
+            dst
+              .sub(localVector2.fromArray(v3))
+              .add(localVector2.fromArray(v2));
           }
-        } else {
-          const src2 = hurtAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          dst
-            .sub(localVector2.fromArray(v3))
-            .add(localVector2.fromArray(v2));
         }
       };
     } else if (avatar.aimAnimation) {

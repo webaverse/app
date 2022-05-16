@@ -97,9 +97,22 @@ try {
     app.addEventListener('hittrackeradded', e => {
       app.hitTracker.addEventListener('hit', e => {
         if (!npcPlayer.hasAction('hurt')) {
+          const playerUseAction = localPlayer.getAction('use');
+          let animation = '';
+          if (playerUseAction.index === 0) {
+            animation = 'pain_front';
+          } else if (playerUseAction.index === 1) {
+            animation = 'hit_mid_l';
+          } else if (playerUseAction.index === 2) {
+            animation = 'hit_sword_topdown';
+          } else if (playerUseAction.index === 3) {
+            animation = 'pain_arch';
+          } else {
+            animation = 'pain_back';
+          }
           const newAction = {
             type: 'hurt',
-            animation: 'pain_back',
+            animation,
           };
           npcPlayer.addAction(newAction);
           
