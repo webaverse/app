@@ -541,10 +541,10 @@ class CameraManager extends EventTarget {
               camera.quaternion.copy(previousLine.quaternion).slerp(currentLine.quaternion, factor);
               camera.updateMatrixWorld();
 
-              console.log('previous line', previousLine, camera.position.toArray().join(','), camera.quaternion.toArray().join(','), factor);
-              if (isNaN(camera.position.x)) {
+              // console.log('previous line', previousLine, camera.position.toArray().join(','), camera.quaternion.toArray().join(','), factor);
+              /* if (isNaN(camera.position.x)) {
                 debugger;
-              }
+              } */
             } else {
               this.cinematicScript = null;
             }
