@@ -1336,6 +1336,17 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.avatar.update(timestamp, timeDiff, true);
       this.characterHups?.update(timestamp);
     }
+    this.updateWearables();
+  }
+  updateWearables() {
+    this.wornApps.forEach(app => {
+      app.dispatchEvent({
+        type: 'wearupdate',
+        player: this,
+        app,
+        wear: true
+      });
+    })
   }
   resetPhysics() {
     this.characterPhysics.reset();
@@ -1579,14 +1590,12 @@ this.dataArray = new Uint8Array(bufferLength);
       }
       
       this.wornApps.forEach(app => {
-      if (app.getComponent("wear") || app.getComponent("pet")) {
         app.dispatchEvent({
           type: 'wearupdate',
           player: this,
           app,
           wear: true
         });
-      }
       })
     };
 
