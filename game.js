@@ -1422,6 +1422,9 @@ class GameManager extends EventTarget {
   isCrouched() {
     return metaversefileApi.useLocalPlayer().hasAction('crouch');
   }
+  isBowing() {
+    return metaversefileApi.useLocalPlayer().getAction('use')?.animationEnvelope?.length > 0;
+  }
   toggleCrouch() {
     const localPlayer = metaversefileApi.useLocalPlayer();
     let crouchAction = localPlayer.getAction('crouch');
@@ -1601,8 +1604,9 @@ class GameManager extends EventTarget {
     const flySpeed = walkSpeed * 2;
     const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
+    const isBowing = gameManager.isBowing();
     const isMovingBackward = gameManager.isMovingBackward();
-    if (isCrouched && !isMovingBackward) {
+    if ((isCrouched || isBowing) && !isMovingBackward) {
       speed = defaultCrouchSpeed;
     } else if (gameManager.isFlying()) {
       speed = flySpeed;
@@ -1610,7 +1614,7 @@ class GameManager extends EventTarget {
       speed = walkSpeed;
     }
     
-    const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
+    const sprintMultiplier = (ioManager.keys.shift && !isCrouched && !isBowing) ?
       (ioManager.keys.doubleTap ? 20 : 3)
     :
       1;

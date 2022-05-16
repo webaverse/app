@@ -545,7 +545,7 @@ export const decorateAnimation = animation => {
   animation.isDrinking = /drinking/i.test(animation.name);
   animation.isCrouch = /crouch|sneak/i.test(animation.name);
   animation.isForward = /forward/i.test(animation.name);
-  animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
+  animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name) || /Standing Aim Walk Back/i.test(animation.name);
   animation.isLeft = /left/i.test(animation.name);
   animation.isRight = /right/i.test(animation.name);
   animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
