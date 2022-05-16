@@ -917,7 +917,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (useAction) {
       const _handleSword = () => {
         const wearApp = loadoutManager.getSelectedApp();
-        if (wearApp) {
+        if (wearApp && localPlayer.avatar?.useTime > 100) {
           const useComponent = wearApp.getComponent('use');
           if (useComponent) {
             const damageBoxSize = useComponent.damageBoxSize ?? defaultDamageBoxSize;
