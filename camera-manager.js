@@ -12,6 +12,7 @@ import {minFov, maxFov, midFov} from './constants.js';
 import easing from './easing.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
+const cubicBezier2 = easing(0.5, 0, 0.5, 1);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -188,6 +189,8 @@ class CameraManager extends EventTarget {
     this.sourceFov = camera.fov;
     this.lerpStartTime = 0;
     this.lastTimestamp = 0;
+    this.cinematicScript = null;
+    this.cinematicScriptStartTime = -1;
 
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
@@ -266,7 +269,11 @@ class CameraManager extends EventTarget {
     document.exitPointerLock();
   }
   getMode() {
-    return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
+    if (this.target || this.cinematicScript) {
+      return 'isometric';
+    } else {
+      return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
+    }
   }
   getCameraOffset() {
     return cameraOffset;
@@ -460,6 +467,10 @@ class CameraManager extends EventTarget {
     this.lerpStartTime = timestamp;
     this.lastTimestamp = timestamp;
   }
+  startCinematicScript(cinematicScript) {
+    this.cinematicScript = cinematicScript;
+    this.cinematicScriptStartTime = performance.now();
+  }
   updatePost(timestamp, timeDiff) {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -486,6 +497,67 @@ class CameraManager extends EventTarget {
       };
       _setLerpDelta(camera.position, camera.quaternion);
       camera.updateMatrixWorld();
+    } else if (this.cinematicScript) {
+      const timeDiff = timestamp - this.cinematicScriptStartTime;
+      // find the line in the script that we are currently on
+      let currentDuration = 0;
+      const currentLineIndex = (() => {
+        let i;
+        for (i = 0; i < this.cinematicScript.length; i++) {
+          const currentLine = this.cinematicScript[i];
+          // const nextLine = this.cinematicScript[i + 1];
+
+          if (currentDuration + currentLine.duration > timeDiff) {
+            // return currentLine;
+            break;
+          } else {
+            currentDuration += currentLine.duration;
+          }
+
+          // const lineDuration = this.cinematicScript[i].duration;
+          // currentDuration += lineDuration;
+        }
+        return i < this.cinematicScript.length ? i : -1;
+      })();
+
+      if (currentLineIndex !== -1) {
+        // calculate how far into the line we are, in 0..1
+        const currentLine = this.cinematicScript[currentLineIndex];
+        const {type} = currentLine;
+        switch (type) {
+          case 'set': {
+            camera.position.copy(currentLine.position);
+            camera.quaternion.copy(currentLine.quaternion);
+            camera.updateMatrixWorld();
+            break;
+          }
+          case 'move': {
+            let factor = Math.min(Math.max((timeDiff - currentDuration) / currentLine.duration, 0), 1);
+            if (factor < 1) {
+              factor = cubicBezier2(factor);
+              const previousLine = this.cinematicScript[currentLineIndex - 1];
+              
+              camera.position.copy(previousLine.position).lerp(currentLine.position, factor);
+              camera.quaternion.copy(previousLine.quaternion).slerp(currentLine.quaternion, factor);
+              camera.updateMatrixWorld();
+
+              console.log('previous line', previousLine, camera.position.toArray().join(','), camera.quaternion.toArray().join(','), factor);
+              if (isNaN(camera.position.x)) {
+                debugger;
+              }
+            } else {
+              this.cinematicScript = null;
+            }
+            break;
+          }
+          default: {
+            throw new Error('unknown cinematic script line type: ' + type);
+          }
+        }
+      } else {
+        console.log('no line', timeDiff, this.cinematicScript.slice());
+        this.cinematicScript = null;
+      }
     } else {
       const _bumpCamera = () => {
         const direction = localVector.set(0, 0, 1)

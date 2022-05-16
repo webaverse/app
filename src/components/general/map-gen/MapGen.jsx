@@ -13,6 +13,7 @@ import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
 import cameraManager from '../../../../camera-manager.js';
+import story from '../../../../story.js';
 import {snapshotMapChunk} from '../../../../scene-cruncher.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
@@ -450,6 +451,13 @@ export const MapGen = () => {
 
                     return false;
 
+                }
+
+                case 219: { // [
+
+                  story.startCinematicIntro();
+                
+                  return false;
                 }
 
             }
