@@ -15,8 +15,8 @@ const {useApp, useFrame, useMaterials, useLocalPlayer} = metaversefile;
   return (a % n + n) % n;
 } */
 
-const numCylinders = 5;
-const minRadius = 0.2;
+const numCylinders = 3;
+const minRadius = 0.4;
 const radiusStep = minRadius;
 const maxRadius = minRadius + minRadius * numCylinders;
 
@@ -76,14 +76,21 @@ varying float vDistance;
 void main() {
   vec3 p = position;
   float factor = mod(uTime, 1.);
-  float distance1 = length(vec2(p.xz));
+  // float distance1 = length(p.xz);
+  float distance1 = ${minRadius.toFixed(8)} + instance * ${(minRadius).toFixed(8)};;
   float distance2 = distance1 + ${minRadius.toFixed(8)};
-  float distance = distance1 * (1.0 - factor) + distance2 * factor;
+  float distance = distance1 * (1.0 - factor) + distance2 * factor - ${(minRadius).toFixed(8)};
   p.xz *= distance / distance1;
   
-  float distanceFactor = (distance - ${(minRadius).toFixed(8)}) / ${(maxRadius - minRadius).toFixed(8)};
-  vDistance = sin(distanceFactor * PI);
-  p.y *= vDistance;
+  float distanceFactor = (distance) / ${(maxRadius - minRadius).toFixed(8)};
+  distanceFactor = mod(distanceFactor, 1.);
+  vDistance = distanceFactor; // sin(distanceFactor * PI);
+  float vDistance2 = sin(distanceFactor * PI * 0.8);
+  p.y *= vDistance2;
+
+  /* if (position.y > 1.) {
+    p.xz *= 1.5;
+  } */
 
   vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mvPosition;
@@ -93,101 +100,113 @@ void main() {
 }
 `;
 const fragmentShader = `\
-precision highp float;
-precision highp int;
-
-#define PI 3.1415926535897932384626433832795
-
-// uniform vec4 uBoundingBox;
 uniform float uTime;
-// uniform float uTimeCubic;
 varying vec2 vUv;
-// varying float vF;
-varying float vInstance;
 varying float vDistance;
-// varying vec3 vNormal;
-
-vec3 hueShift( vec3 color, float hueAdjust ){
-  const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
-  const vec3  kRGBToI      = vec3 (0.596, -0.275, -0.321);
-  const vec3  kRGBToQ      = vec3 (0.212, -0.523, 0.311);
-
-  const vec3  kYIQToR     = vec3 (1.0, 0.956, 0.621);
-  const vec3  kYIQToG     = vec3 (1.0, -0.272, -0.647);
-  const vec3  kYIQToB     = vec3 (1.0, -1.107, 1.704);
-
-  float   YPrime  = dot (color, kRGBToYPrime);
-  float   I       = dot (color, kRGBToI);
-  float   Q       = dot (color, kRGBToQ);
-  float   hue     = atan (Q, I);
-  float   chroma  = sqrt (I * I + Q * Q);
-
-  hue += hueAdjust;
-
-  Q = chroma * sin (hue);
-  I = chroma * cos (hue);
-
-  vec3    yIQ   = vec3 (YPrime, I, Q);
-
-  return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );
-}
-
-float rand(float n){return fract(sin(n) * 43758.5453123);}
+varying float vInstance;
 
 #define nsin(x) (sin(x) * 0.5 + 0.5)
+#define PI 3.1415926535897932384626433832795
 
-void draw_auroras(inout vec4 color, vec2 uv) {
-    color = vec4(0.0);
-
-    const vec4 aurora_color_a = vec4(0.0, 1.2, 0.5, 1.0);
+float cnoise(vec2 uv) {
+    const vec4 noise = vec4(0.0, 1.2, 0.5, 1.0);
     const vec4 aurora_color_b = vec4(0.0, 0.4, 0.6, 1.0);
     
     float f = 200.0;
     
-    float factor = uTime; // mod(uTime, 1.);
-    float t = -1.5 +
-      nsin(-factor + uv.x * f) * 0.075 +
-      nsin(factor + uv.x * distance(uv.x, 0.5) * f) * 0.3 +
-      nsin(factor + uv.x * distance(uv.x, 0.) * f * 0.25 + 100.) * 0.3 +
-      nsin(factor + uv.x * distance(uv.x, 1.) * f * 0.25 + 200.) * 0.3 +
-      nsin(factor + uv.x * distance(uv.x, 0.5) * f * 2. + 300.) * -0.2;
-    // t += uv.y;
-    // t = pow(t, 0.5);
-    t = 1.0 - smoothstep(1.0 - uv.y - 4.0, 1.0 - uv.y * 2.0, t);
-    // t = pow(t, 2.);
-    
-    vec4 final_color = mix(aurora_color_a, aurora_color_b, clamp(uv.y * t, 0.0, 1.0));
-    final_color += final_color * final_color;
-    color += final_color * t * (t + 0.5) * 0.75;
+    float t =
+      nsin(-uTime + uv.x * f + vInstance * PI * .2) * 0.075 +
+      nsin(uTime + uv.x * distance(uv.x, 0.5) * f + vInstance * PI * .2) * 0.3 +
+      nsin(uTime + uv.x * distance(uv.x, 0.) * f * 0.25 + 100. + vInstance * PI * .2) * 0.3 +
+      nsin(uTime + uv.x * distance(uv.x, 1.) * f * 0.25 + 200. + vInstance * PI * .2) * 0.3 +
+      nsin(uTime + uv.x * distance(uv.x, 0.5) * f * 2. + 300. + vInstance * PI * .2) * -0.2;
+    return t;
+}
+
+
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float hermite(float t)
+{
+  return t * t * (3.0 - 2.0 * t);
+}
+
+float noise(vec2 co, float frequency)
+{
+  vec2 v = vec2(co.x * frequency, co.y * frequency);
+
+  float ix1 = floor(v.x);
+  float iy1 = floor(v.y);
+  float ix2 = floor(v.x + 1.0);
+  float iy2 = floor(v.y + 1.0);
+
+  float fx = hermite(fract(v.x));
+  float fy = hermite(fract(v.y));
+
+  float fade1 = mix(rand(vec2(ix1, iy1)), rand(vec2(ix2, iy1)), fx);
+  float fade2 = mix(rand(vec2(ix1, iy2)), rand(vec2(ix2, iy2)), fx);
+
+  return mix(fade1, fade2, fy);
+}
+
+float pnoise(vec2 co, float freq, int steps, float persistence)
+{
+  float value = 0.0;
+  float ampl = 1.0;
+  float sum = 0.0;
+  for(int i=0 ; i<steps ; i++)
+  {
+    sum += ampl;
+    value += noise(co, freq) * ampl;
+    freq *= 2.0;
+    ampl *= persistence;
+  }
+  return value / sum;
+}
+
+void mainImage( out vec4 fragColor, in vec2 uv ) {
+  // vec2 uv = fragCoord.xy / iResolution.xy;
+  float gradient = 1.0 - uv.y;
+  float gradientStep = 0.2;
+  
+  vec2 pos = uv;
+  pos.y -= uTime * 0.1;
+  
+  vec4 brighterColor = vec4(1.0, 0.65, 0.1, 0.25);
+  vec4 darkerColor = vec4(1.0, 0.0, 0.15, 0.0625);
+  vec4 middleColor = mix(brighterColor, darkerColor, 0.5);
+
+  float noiseTexel = pnoise(pos, 10.0, 5, 0.5);
+  
+  float firstStep = smoothstep(0.0, noiseTexel, gradient);
+  float darkerColorStep = smoothstep(0.0, noiseTexel, gradient - gradientStep);
+  float darkerColorPath = firstStep - darkerColorStep;
+  vec4 color = mix(brighterColor, darkerColor, darkerColorPath);
+
+  float middleColorStep = smoothstep(0.0, noiseTexel, gradient - 0.2 * 2.0);
+  
+  color = mix(color, middleColor, darkerColorStep - middleColorStep);
+  color = mix(vec4(0.0), color, firstStep);
+  // color *= cnoise(uv);
+  color *= 1.5;
+	fragColor = color;
+
+  fragColor.a *= (1. - vDistance) * 2.;
 }
 
 void main() {
-  vec3 c1 = vec3(1., 1., 0.195);
-  vec3 c2 = vec3(53./255., 254./255., 52./255.);
-
-  float factor = mod(uTime, 1.);
-  float lerpInstance = vInstance + factor;
-  float dfa = (1. - lerpInstance/${numCylinders.toFixed(8)});
-  float dfb = (1. - lerpInstance/${(numCylinders - 1).toFixed(8)});
-
-  float radiusFactor2 = vInstance - floor(uTime);
-  // float radiusFactor = (lerpInstance + 1.) / ${numCylinders.toFixed(8)};
-  // vec3 c = mix(c1, c2, radiusFactor);
-  
-  vec2 uv = vUv;
-  // uv.y /= vDistance;
-  // uv.y = min(max(uv.y, 0.), 1.);
-  uv.x = mod(uv.x + rand(radiusFactor2), 1.);
-  draw_auroras(gl_FragColor, uv);
-  gl_FragColor.a *= dfa;
-  
-  /* float c = vUv.y > 0.9 ? 1. : 0.;
-  gl_FragColor.r = c;
-  gl_FragColor.a = c;
-  if (gl_FragColor.a <= 0.05) {
-    discard;
-  } */
+  mainImage(gl_FragColor, vUv);
 }
+
+/** SHADERDATA
+{
+	"title": "Fire shader",
+	"description": "Fire shader after @febucci",
+	"model": "nothing"
+}
+*/
 `;
 const _makeCylindersMesh = () => {
   const {WebaverseShaderMaterial} = useMaterials();
@@ -236,8 +255,8 @@ const _makeCylindersMesh = () => {
     backMesh.visible = false;
 
     if (localPlayer.avatar) {
-      const maxTime = 150;
-      const f = (timestamp / maxTime) % 1000;
+      const maxTime = 400;
+      const f = (timestamp / maxTime) % maxTime;
 
       const Root = localPlayer.avatar.modelBones.Root;
       object.position.setFromMatrixPosition(Root.matrixWorld);
