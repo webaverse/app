@@ -32,10 +32,6 @@ export default (app, component) => {
       initialScale.copy(app.scale);
 
       localPlayer = e.player;
-      //   if (isLocal === false && lastWornApp !== app) {
-      //     e.player.wear(app);
-      //   }
-
       lastWornApp = app;
       // console.log('activate component', app, wear);
       if (wearSpec) {
@@ -59,9 +55,6 @@ export default (app, component) => {
               }
             });
             if (skinnedMesh && localPlayer.avatar) {
-              app.position.set(0, 0, 0);
-              app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-              app.scale.copy(initialScale); //.multiplyScalar(wearableScale);
               app.updateMatrix();
               app.matrixWorld.copy(app.matrix);
 
