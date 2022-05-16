@@ -49,6 +49,7 @@ import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
+import zTargeting from './z-targeting.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -503,6 +504,9 @@ metaversefile.setApi({
     } else {
       throw new Error('useCleanup cannot be called outside of render()');
     }
+  },
+  useZTargeting() {
+    return zTargeting;
   },
   useLocalPlayer() {
     return localPlayer;

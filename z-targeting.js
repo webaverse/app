@@ -188,6 +188,9 @@ class ZTargeting extends THREE.Object3D {
       cameraManager.setFocus(true);
       const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
       cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
+      if (remoteApp) {
+        game.menuAim();
+      }
       // if (remoteApp) {
       //   debugger
       //   // cameraManager.setCombatTarget(remoteApp);
@@ -201,6 +204,7 @@ class ZTargeting extends THREE.Object3D {
     if (cameraManager.focus) {
       cameraManager.setFocus(false);
       cameraManager.setStaticTarget();
+      game.menuUnaim();
 
       if (this.focusTargetReticle) {
         sounds.playSoundName('zTargetCancel');

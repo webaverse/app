@@ -85,28 +85,37 @@ class CharacterPhysics {
       // move character controller
       const minDist = 0;
 
-      if (false && this.player.combatTargetEnabled) {
+      // if (cameraManager.focus && cameraManager.target2) {
+      //   const target2Position = cameraManager.target2.npcPlayer ? cameraManager.target2.npcPlayer.position : cameraManager.target2.position;
+      const zTargeting = metaversefileApi.useZTargeting();
+      if (zTargeting?.focusTargetReticle?.position) {
         const moveDistance = localVector.copy(this.velocity).setY(0).length() * timeDiffS;
-        const playerPosition = localVector.copy(this.player.position).setY(0);
-        const targetPosition = localVector2.copy(this.player.combatTarget).setY(0)
-        const distanceVector = localVector4.copy(playerPosition).sub(targetPosition);
-        localVector7.set(0, 0, 0);
-        localVector8.set(0, 0, 0);
-        if (window.ioManager.keys.up || window.ioManager.keys.down) {
-          const sign = window.ioManager.keys.down ? 1 : -1;
-          localVector7.copy(distanceVector).normalize().multiplyScalar(sign * moveDistance);
+        if (moveDistance !== 0) {
+          const playerPosition = localVector.copy(this.player.position).setY(0);
+          const targetPosition = localVector2.copy(zTargeting.focusTargetReticle.position).setY(0)
+          const distanceVector = localVector4.copy(playerPosition).sub(targetPosition);
+          localVector7.set(0, 0, 0);
+          localVector8.set(0, 0, 0);
+          if (window.ioManager.keys.up || window.ioManager.keys.down) {
+            const sign = window.ioManager.keys.down ? 1 : -1;
+            localVector7.copy(distanceVector).normalize().multiplyScalar(sign * moveDistance);
+          }
+          if (window.ioManager.keys.left || window.ioManager.keys.right) {
+            debugger
+            const arcLength = moveDistance
+            const radius = distanceVector.length();
+            const radian = arcLength / radius;
+            const sign = window.ioManager.keys.right ? 1 : -1;
+            const destVector = localVector5.copy(distanceVector).applyAxisAngle(localVector6.set(0, 1, 0), sign * radian);
+            localVector8.copy(destVector).sub(distanceVector);
+          }
+          localVector3.addVectors(localVector7, localVector8);
+          localVector3.normalize().multiplyScalar(moveDistance);
+          localVector3.y = this.velocity.y * timeDiffS;
+        } else {
+          localVector3.copy(this.velocity) // todo: duplicated
+            .multiplyScalar(timeDiffS);
         }
-        if (window.ioManager.keys.left || window.ioManager.keys.right) {
-          const arcLength = moveDistance
-          const radius = distanceVector.length();
-          const radian = arcLength / radius;
-          const sign = window.ioManager.keys.right ? 1 : -1;
-          const destVector = localVector5.copy(distanceVector).applyAxisAngle(localVector6.set(0, 1, 0), sign * radian);
-          localVector8.copy(destVector).sub(distanceVector);
-        }
-        localVector3.addVectors(localVector7, localVector8);
-        localVector3.normalize().multiplyScalar(moveDistance);
-        localVector3.y = this.velocity.y * timeDiffS;
       } else {
         localVector3.copy(this.velocity)
           .multiplyScalar(timeDiffS);
@@ -166,12 +175,18 @@ class CharacterPhysics {
             );
           }
         } else {
-          localQuaternion.copy(camera.quaternion);
+          // if (cameraManager.focus && cameraManager.target2) {
+          //   const target2Position = cameraManager.target2.npcPlayer ? cameraManager.target2.npcPlayer.position : cameraManager.target2.position;
+          const zTargeting = metaversefileApi.useZTargeting();
+          if (zTargeting?.focusTargetReticle?.position) {
+            localQuaternion.setFromUnitVectors(
+              new THREE.Vector3(0, 0, -1),
+              new THREE.Vector3().copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
+            )
+          } else {
+            localQuaternion.copy(camera.quaternion);
+          }
 
-          // localQuaternion.setFromUnitVectors(
-          //   new THREE.Vector3(0, 0, -1),
-          //   new THREE.Vector3().copy(window.npcPlayers[0].position).sub(window.localPlayer.position).setY(0).normalize()
-          // )
         }
 
         const jumpAction = this.player.getAction('jump');
