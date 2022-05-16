@@ -9,20 +9,67 @@ const playerCenterRadius = 0.3;
 const height = 1;
 const radialSegments = 8;
 const heightSegments = 16;
+const openEnded = true;
 
 const localVector2D = new THREE.Vector2();
+
+const _setPoints = (geometry, points, partCount) => {
+  /*
+  for ( let y = 0; y <= heightSegments; y ++ ) {
+
+    const indexRow = [];
+
+    const v = y / heightSegments;
+
+    // calculate the radius of the current row
+
+    const radius = v * ( radiusBottom - radiusTop ) + radiusTop;
+
+    for ( let x = 0; x <= radialSegments; x ++ ) {
+  */
+  // extracted from the above code
+
+  const verticesPerHeightSegment = radialSegments + 1;
+  const verticesPerPart = verticesPerHeightSegment * (heightSegments + 1);
+
+  for (let part = 0; part < partCount; part++) {
+    const partVertexOffset = part * verticesPerPart;
+    
+    for (let heightSegment = 0; heightSegment < points.length; heightSegment++) {
+      const {
+        position,
+        quaternion,
+      } = points[heightSegment];
+      for (let j = 0; j < verticesPerHeightSegment; j++) {
+        position.toArray(geometry.attributes.p.array, heightSegment * verticesPerHeightSegment * 3 + j * 3 + partVertexOffset * 3);
+        quaternion.toArray(geometry.attributes.q.array, heightSegment * verticesPerHeightSegment * 4 + j * 4 + partVertexOffset * 4);
+      }
+    }
+    geometry.attributes.p.needsUpdate = true;
+    geometry.attributes.q.needsUpdate = true;
+  }
+};
 
 function createSilksGeometry() {
   const geometry = new THREE.CylinderGeometry(
     radiusTop,
     radiusBottom,
-    height,
+    0, // height,
     radialSegments,
     heightSegments,
-  );
+    openEnded,
+  ).rotateX(-Math.PI / 2);
   geometry.setAttribute(
     'offset',
-    new THREE.Float32BufferAttribute(geometry.attributes.position.count, 1)
+    new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count), 1)
+  );
+  geometry.setAttribute(
+    'p',
+    new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 3), 3)
+  );
+  geometry.setAttribute(
+    'q',
+    new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 4), 4)
   );
   return geometry;
 };
@@ -34,18 +81,21 @@ function createSilksGeometry() {
   }
 }; */
 const _setOffsets = (geometry, offsetValue) => {
-  for (let i = 0; i < geometry.attributes.offset.count; i++) {
+  for (let i = 0; i < geometry.attributes.offset.array.length; i++) {
     geometry.attributes.offset.array[i] = offsetValue;
   }
+  geometry.attributes.offset.needsUpdate = true;
 };
 const _makeSilksMesh = () => {
   const {WebaverseShaderMaterial} = useMaterials();
 
   const geometry1 = createSilksGeometry();
-  const geometry2 = geometry1.clone();
+  const geometry2 = createSilksGeometry();
   // _incrementUvs(geometry2, new THREE.Vector2(0, 1));
+  _setOffsets(geometry1, -1);
   _setOffsets(geometry2, 1);
-  const geometry = BufferGeometryUtils.mergeBufferGeometries([geometry1, geometry2]); 
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([geometry1, geometry2]);
+  // _setOffsets(geometry, 1);
   
   const material = new WebaverseShaderMaterial({
     uniforms: {
@@ -60,6 +110,8 @@ const _makeSilksMesh = () => {
       precision highp int;
 
       uniform float uTime;
+      attribute vec3 p;
+      attribute vec4 q;
       attribute float offset;
       varying float vOffset;
       varying vec2 vUv;
@@ -82,15 +134,21 @@ const _makeSilksMesh = () => {
       }
 
       void main() {
-        vec3 p = position;
-        if (offset == 0.0) {
-          p.x -= radius;
-        } else {
-          p.x += radius;
+        vec3 pos = position;
+        
+        {
+          pos = rotate_vertex_position(pos, q);
+          pos += p;
         }
-        vec4 q = quat_from_axis_angle(vec3(0.0, 1.0, 0.0), uTime * PI * 2.);
-        p = rotate_vertex_position(p, q);
-        vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+        
+        pos.x += radius * offset;
+
+        {
+          vec4 qt = quat_from_axis_angle(vec3(0.0, 1.0, 0.0), uTime * PI * 2.);
+          pos = rotate_vertex_position(pos, qt);
+        }
+        
+        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         
         vOffset = offset;
@@ -153,9 +211,20 @@ const _makeSilksMesh = () => {
     // side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
+
+  const points = Array(heightSegments + 1);
+  for (let i = 0; i < heightSegments + 1; i++) {
+    points[i] = {
+      position: new THREE.Vector3(0, 0, i / heightSegments),
+      quaternion: new THREE.Quaternion(),
+    };
+  }
+
   mesh.update = (timestamp, timeDiff) => {
     const maxTime = 3000;
     const f = (timestamp % maxTime) / maxTime;
+
+    _setPoints(geometry, points, 2);
 
     const localPlayer = useLocalPlayer();
     mesh.position.copy(localPlayer.position);
