@@ -17,6 +17,7 @@ class PlayersManager {
     this.playersArray = null;
 
     this.remotePlayers = new Map();
+    this.remotePlayersByInteger = new Map();
     window.remotePlayers = this.remotePlayers;
 
     this.unbindStateFn = null;
@@ -28,7 +29,6 @@ class PlayersManager {
     const lastPlayers = this.playersArray;
     if (lastPlayers) {
       console.log('unbind player observers', lastPlayers, new Error().stack);
-      // this is the point where we should destroy the remote players in a fake way
       console.log('got players array', this.playersArray);
       const playerSpecs = this.playersArray.toJSON();
       const nonLocalPlayerSpecs = playerSpecs.filter(p => {
@@ -89,6 +89,7 @@ class PlayersManager {
               playersArray: this.playersArray,
             });
             this.remotePlayers.set(playerId, remotePlayer);
+            this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
           }
         }
         // console.log('players observe', added, deleted);
@@ -102,6 +103,9 @@ class PlayersManager {
 
             const remotePlayer = this.remotePlayers.get(playerId);
             this.remotePlayers.delete(playerId);
+            console.log("deleting remote player", remotePlayer);
+            this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
+            
             remotePlayer.destroy();
           }
         }

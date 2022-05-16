@@ -78,14 +78,14 @@ class AppManager extends EventTarget {
     // }
   }
   unbindStateLocal() {
-    // console.log('unbind state local', this.appsArray, this.appsArray && this.appsArray.toJSON(), new Error().stack);
+    // console.log('unbind state local', this.appsArray, this.appsArray && this.appsArray.toJSON());
     if (this.unbindStateFn) {
       this.unbindState();
     }
   }
   unbindStateRemote() {
     if (this.unbindStateFn) {
-      // console.log('unbind player observers', lastPlayers, new Error().stack);
+      // console.log('unbind player observers', lastPlayers);
       // this is the point where we should destroy the remote players in a fake way
       console.log('got players array', this.appsArray);
       const appSpecs = this.appsArray.toJSON();
@@ -132,12 +132,9 @@ class AppManager extends EventTarget {
             },
           }));
 
-          if(oldApp.getComponent('wear') && this.callBackFn) {
-            this.callBackFn(oldApp, 'wear', 'add')
-          }
         } else {
           const trackedApp = this.getOrCreateTrackedApp(instanceId);
-          // console.log('detected add app', instanceId, trackedApp.toJSON(), new Error().stack);
+          // console.log('detected add app', instanceId, trackedApp.toJSON());
           this.dispatchEvent(
             new MessageEvent('trackedappadd', {
               data: {
@@ -169,10 +166,6 @@ class AppManager extends EventTarget {
           this.dispatchEvent(e);
           peerOwnerAppManager.dispatchEvent(e);
           migrated = true;
-          
-          if(app.getComponent('wear') && this.callBackFn) {
-            this.callBackFn(app, 'wear', 'remove')
-          }
           break;
         }
 
@@ -184,8 +177,7 @@ class AppManager extends EventTarget {
           this.dispatchEvent(
             new MessageEvent('trackedappremove', {
               data: {
-                instanceId,
-                app,
+                trackedApp,
               },
             })
           );
@@ -243,6 +235,7 @@ class AppManager extends EventTarget {
     );
   }
   unbindTrackedApp(instanceId) {
+    console.log("unbindTrackedApp")
     const fn = this.trackedAppUnobserveMap.get(instanceId);
 
     if (fn) {
@@ -254,10 +247,8 @@ class AppManager extends EventTarget {
   }
   bindEvents() {
     const localBinder = ++binder;
-    console.log('app bind events', this.apps, localBinder, new Error().stack);
-    
-    const m = new Map();
-    this.addEventListener('trackedappadd', async (e) => {
+    console.log('app bind events', this.apps, localBinder);
+        this.addEventListener('trackedappadd', async (e) => {
       const { trackedApp } = e.data;
       const trackedAppJson = trackedApp.toJSON();
       const {
@@ -269,9 +260,7 @@ class AppManager extends EventTarget {
         scale,
         components: componentsString,
       } = trackedAppJson;
-      // console.log('tracked app add', instanceId, localBinder, new Error().stack);
-      m.set(instanceId, true);
-      // console.log("trackedAppJson is", trackedAppJson)
+      // console.log('tracked app add', instanceId, localBinder);
       const components = JSON.parse(componentsString);
 
       const p = makePromise();
@@ -366,38 +355,37 @@ class AppManager extends EventTarget {
       this.removeApp(app);
     });
     this.addEventListener('trackedappimport', async e => {
-      // console.log("trackedappimport is", e)
-      const {
-        instanceId,
-        app,
-      } = e.data;
+      console.log("trackedappimport is", e)
+      const {instanceId, app} = e.data;
 
       const trackedApp = this.getTrackedApp(instanceId);
 
-      const wear = trackedApp.get('wear')
-
       this.bindTrackedApp(trackedApp, app);
-    
-      /* if (!this.apps.includes(app)) {
-        this.apps.push(app);
-      } */
     });
     this.addEventListener('trackedappexport', async e => {
+      console.log("trackedappexport is", e)
       const {
         instanceId,
         app,
         sourceAppManager,
         destinationAppManager,
       } = e.data;
-      // console.log('handle migrate', sourceAppManager === this, destinationAppManager === this);
       if (sourceAppManager === this) {
         const index = this.apps.indexOf(app);
         if (index !== -1) {
           this.apps.splice(index, 1);
         }
+        if(app.getComponent('wear') && this.callBackFn) {
+          // console.log("Wear callback function called")
+          this.callBackFn(app, 'wear', 'remove')
+        }
       } else if (destinationAppManager === this) {
         if (!this.apps.includes(app)) {
           this.apps.push(app);
+        }
+        if(app.getComponent('wear') && this.callBackFn) {
+          // console.log("Wear callback function called")
+          this.callBackFn(app, 'wear', 'add')
         }
       }
     });
@@ -552,7 +540,7 @@ class AppManager extends EventTarget {
     return -1;
   }
   removeTrackedAppInternal(instanceId) {
-    // console.log('remove tracked app internal', removeInstanceId);
+    console.log('remove tracked app internal', instanceId);
 
     const removeIndex = this.getTrackedAppIndex(instanceId);
     if (removeIndex !== -1) {
@@ -571,6 +559,7 @@ class AppManager extends EventTarget {
     });
   }
   addApp(app) {
+    console.log("addApp called", app)
     this.apps.push(app);
 
     this.dispatchEvent(
@@ -580,8 +569,9 @@ class AppManager extends EventTarget {
     );
   }
   removeApp(app) {
+    console.log("removeApp called", app)
     const index = this.apps.indexOf(app);
-    // console.log('remove app', app.instanceId, app.contentId, index, this.apps.map(a => a.instanceId), new Error().stack);
+    // console.log('remove app', app.instanceId, app.contentId, index, this.apps.map(a => a.instanceId));
     if (index !== -1) {
       this.apps.splice(index, 1);
 
@@ -623,7 +613,10 @@ class AppManager extends EventTarget {
     // dstAppManager.setBlindStateMode(true);
 
     if (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) {
-      this.unbindTrackedApp(instanceId);
+      if(this.isBound()){
+        console.warn("Calling unbind tracked app, but the app is already unbound:", instanceId)
+        this.unbindTrackedApp(instanceId);
+      }
 
       let dstTrackedApp = null;
       srcAppManager.appsArray.doc.transact(() => {
@@ -665,7 +658,7 @@ class AppManager extends EventTarget {
         );
       });
 
-      // dstAppManager.bindTrackedApp(dstTrackedApp, app);
+      dstAppManager.bindTrackedApp(dstTrackedApp, app);
     } else {
       throw new Error('cannot transplant apps between app manager with different state binding');
     }
@@ -688,7 +681,7 @@ class AppManager extends EventTarget {
         components,
       );
 
-      this.addApp(app);
+      // this.addApp(app);
     });
     
     this.bindTrackedApp(dstTrackedApp, app);
@@ -701,12 +694,12 @@ class AppManager extends EventTarget {
   pushAppUpdates() {
     if (this.appsArray) {
       this.appsArray.doc.transact(() => {
-        this.updatePhysics();
+        this.update();
       }, 'push');
     }
   }
   packed = new Float32Array(11);
-  updatePhysics() {
+  update() {
     for (const app of this.apps) {
       if (!app.matrix.equals(app.lastMatrix)) {
         const _updateTrackedApp = () => {
@@ -772,6 +765,11 @@ class AppManager extends EventTarget {
         };
         _updatePhysicsObjects();
 
+        // if(app.getComponent('wear') && this.callBackFn) {
+        //   // console.log("Wear callback function called")
+        //   this.callBackFn(app, 'wear', 'update')
+        // }
+
         app.lastMatrix.copy(app.matrix);
       }
     }
@@ -785,8 +783,7 @@ class AppManager extends EventTarget {
       const position = trackedApp.get('position');
       const quaternion = trackedApp.get('quaternion');
       const scale = trackedApp.get('scale');
-      const componentsString = trackedApp.get('components');
-      const components = jsonParse(componentsString) ?? [];
+      const components = trackedApp.get('components') ?? [];
       const object = {
         position,
         quaternion,

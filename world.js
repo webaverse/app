@@ -73,6 +73,14 @@ world.connectRoom = async u => {
 
   const localPlayer = metaversefileApi.useLocalPlayer();
   const state = new Z.Doc();
+  
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      console.log(state.getArray('world'))
+      console.log(state.getArray('players'))
+    }
+  });
+
   state.setResolvePriority(1);
   wsrtc = new WSRTC(u, {
     localPlayer,
@@ -89,10 +97,19 @@ world.connectRoom = async u => {
       wsrtc.removeEventListener('init', init);
       
       localPlayer.bindState(state.getArray(playersMapName));
+
+      wsrtc.addEventListener('audio', e => {
+        console.log('player is', e.data.playerId);
+        const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
+        console.log("player is", player)
+        player.processAudioData(e.data);
+      })
     };
     wsrtc.addEventListener('init', init);
   };
   wsrtc.addEventListener('open', open);
+
+
 
   /* const sendUpdate = () => {
     const rig = localPlayer.avatar;
@@ -174,6 +191,8 @@ world.connectRoom = async u => {
   }, {once: true});
 
   wsrtc.addEventListener('close', e => {
+    playersManager.unbindState();
+    world.appManager.unbindState();
     console.log('Channel Close!');
 
     /* const peerRigIds = rigManager.peerRigs.keys();
@@ -300,14 +319,17 @@ appManager.addEventListener('appadd', e => {
 
   _bindHitTracker(app);
 });
-appManager.addEventListener('trackedappmigrate', async e => {
-  const {app, sourceAppManager, destinationAppManager} = e.data;
-  if (this === sourceAppManager) {
-    app.hitTracker.unbind();
-  } else if (this === destinationAppManager) {
-    _bindHitTracker(app);
-  }
-});
+
+// appManager.addEventListener('trackedappexport', async e => {
+//   const {app} = e.data;
+//   app.hitTracker.unbind();
+// });
+
+// appManager.addEventListener('trackedappimport', async e => {
+//   const {app} = e.data;
+//   _bindHitTracker(app);
+// });
+
 appManager.addEventListener('appremove', async e => {
   const app = e.data;
   app.hitTracker.unbind();
