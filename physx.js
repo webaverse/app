@@ -673,7 +673,7 @@ const physxWorker = (() => {
     return materialAddress;
   };
   w.destroyMaterial = (physics, materialAddress) => {
-    moduleInstance._destroyMaterial(physics, materialAddress);
+    moduleInstance._destroyMaterial && moduleInstance._destroyMaterial(physics, materialAddress);
   };
   w.getDefaultMaterial = (() => {
     let defaultMaterial = null;
@@ -1842,6 +1842,7 @@ const physxWorker = (() => {
     flags = {}
   ) => {
     if (typeof materialAddress !== 'number') {
+      console.error("typeof materialAddress !== 'number'")
       debugger;
     }
 

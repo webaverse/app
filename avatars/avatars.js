@@ -7,6 +7,7 @@ import LegsManager from './vrarmik/LegsManager.js';
 import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
+import { getAudioContext } from 'wsrtc/ws-audio-context.js';
 import {
   // angleDifference,
   // getVelocityDampingFactor,
@@ -2085,13 +2086,6 @@ Avatar.getAnimations = () => animations;
 Avatar.getAnimationStepIndices = () => animationStepIndices;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
 let avatarAudioContext = null;
-const getAudioContext = () => {
-  if (!avatarAudioContext) {
-    console.warn('using default audio context; setAudioContext was not called');
-    setAudioContext(new AudioContext());
-  }
-  return avatarAudioContext;
-};
 Avatar.getAudioContext = getAudioContext;
 const setAudioContext = newAvatarAudioContext => {
   avatarAudioContext = newAvatarAudioContext;
