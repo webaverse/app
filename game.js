@@ -55,6 +55,8 @@ const localRay = new THREE.Ray();
 
 // const cubicBezier = easing(0, 1, 0, 1);
 
+let canGrab = false;
+
 const _getGrabAction = i => {
   const targetHand = i === 0 ? 'left' : 'right';
   const localPlayer = metaversefileApi.useLocalPlayer();
@@ -417,6 +419,9 @@ const _gameInit = () => {
     const {modules} = metaversefileApi.useDefaultModules();
     const m = modules['button'];
     await grabUseMesh.addModule(m);
+    // grabUseMesh.children.forEach(child => child.material.opacity = 0); // test
+    // grabUseMesh.children.forEach(child => child.visibile = false); // test
+    window.grabUseMesh = grabUseMesh;
   })();
   grabUseMesh.targetApp = null;
   sceneLowPriority.add(grabUseMesh);
@@ -548,6 +553,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       }
     }
     grabUseMesh.visible = false;
+    canGrab = false;
     if (!gameManager.editMode) {
       const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
       localVector.copy(localPlayer.position)
@@ -571,7 +577,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
           _updateActivateAnimation(grabUseMesh.position);
-          grabUseMesh.visible = true;
+          // grabUseMesh.visible = true; // formal
+          grabUseMesh.visible = false; // test
+          canGrab = true;
         }
       }
     }
@@ -1641,7 +1649,8 @@ class GameManager extends EventTarget {
     return dragRightSpec;
   }
   menuActivateDown() {
-    if (grabUseMesh.visible) {
+    // if (grabUseMesh.visible) { // formal
+    if (canGrab) { // test
       const localPlayer = metaversefileApi.useLocalPlayer();
       const activateAction = localPlayer.getAction('activate');
       if (!activateAction) {

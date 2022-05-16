@@ -362,6 +362,15 @@ export default class Webaverse extends EventTarget {
       };
       _frame();
 
+      // if (window.grabUseMesh) { // test: hide grabUseMesh
+      //   window.grabUseMesh.children.forEach(child => {
+      //     child.material.opacity = 0;
+      //   });
+      //   window.grabUseMesh.children.forEach(child => {
+      //     child.visibile = false;
+      //   });
+      // }
+
       performanceTracker.endFrame();
     }
     renderer.setAnimationLoop(animate);
