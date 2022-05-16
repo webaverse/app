@@ -881,8 +881,6 @@ class StatePlayer extends PlayerBase {
     }
 
     this.appManager.destroy();
-
-    super.destroy();
   }
 }
 class InterpolatedPlayer extends StatePlayer {
