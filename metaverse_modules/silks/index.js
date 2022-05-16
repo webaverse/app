@@ -1,14 +1,18 @@
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
 const {useFrame, useMaterials, useLocalPlayer, useMathUtils} = metaversefile;
 
-function createSilksGeometry() {
-  const radiusTop = 0.01;
-  const radiusBottom = radiusTop;
-  const height = 1;
-  const radialSegments = 8;
-  const heightSegments = 16;
+const radiusTop = 0.005;
+const radiusBottom = radiusTop;
+const playerCenterRadius = 0.3;
+const height = 1;
+const radialSegments = 8;
+const heightSegments = 16;
 
+const localVector2D = new THREE.Vector2();
+
+function createSilksGeometry() {
   const geometry = new THREE.CylinderGeometry(
     radiusTop,
     radiusBottom,
@@ -16,13 +20,22 @@ function createSilksGeometry() {
     radialSegments,
     heightSegments,
   );
+  geometry.setAttribute(
+    'offset',
+    new THREE.Float32BufferAttribute(geometry.attributes.position.count, 1)
+  );
   return geometry;
 };
-const _incrementUvs = (geometry, duv) => {
+/* const _incrementUvs = (geometry, duv) => {
   for (let i = 0; i < geometry.attributes.uv.count; i++) {
     localVector2D.fromArray(geometry.attributes.uv.array, i * 2)
       .add(duv)
       .toArray(geometry.attributes.uv.array, i * 2);
+  }
+}; */
+const _setOffsets = (geometry, offsetValue) => {
+  for (let i = 0; i < geometry.attributes.offset.count; i++) {
+    geometry.attributes.offset.array[i] = offsetValue;
   }
 };
 const _makeSilksMesh = () => {
@@ -30,51 +43,58 @@ const _makeSilksMesh = () => {
 
   const geometry1 = createSilksGeometry();
   const geometry2 = geometry1.clone();
-  _incrementUvs(geometry2, new THREE.Vector2(0, 1));
+  // _incrementUvs(geometry2, new THREE.Vector2(0, 1));
+  _setOffsets(geometry2, 1);
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([geometry1, geometry2]); 
   
   const material = new WebaverseShaderMaterial({
     uniforms: {
-      /* uBoundingBox: {
-        type: 'vec4',
-        value: new THREE.Vector4(
-          boundingBox.min.x,
-          boundingBox.min.y,
-          boundingBox.max.x - boundingBox.min.x,
-          boundingBox.max.y - boundingBox.min.y
-        ),
-        needsUpdate: true,
-      }, */
       uTime: {
         type: 'f',
         value: 0,
         needsUpdate: true,
       },
-      /* uTimeCubic: {
-        type: 'f',
-        value: 0,
-        needsUpdate: true,
-      }, */
     },
     vertexShader: `\
       precision highp float;
       precision highp int;
 
-      attribute float f;
-      // uniform float uTime;
-      // uniform vec4 uBoundingBox;
-      varying vec3 vColor;
-      varying float vF;
-      // varying vec3 vNormal;
+      uniform float uTime;
+      attribute float offset;
+      varying float vOffset;
+      varying vec2 vUv;
+
+      const float radius = ${playerCenterRadius.toFixed(8)};
+
+      vec4 quat_from_axis_angle(vec3 axis, float angle) { 
+        vec4 qr;
+        float half_angle = (angle * 0.5);
+        qr.x = axis.x * sin(half_angle);
+        qr.y = axis.y * sin(half_angle);
+        qr.z = axis.z * sin(half_angle);
+        qr.w = cos(half_angle);
+        return qr;
+      }
+
+      vec3 rotate_vertex_position(vec3 position, vec4 q) { 
+        vec3 v = position.xyz;
+        return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+      }
 
       void main() {
-        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vec3 p = position;
+        if (offset == 0.0) {
+          p.x -= radius;
+        } else {
+          p.x += radius;
+        }
+        vec4 q = quat_from_axis_angle(vec3(0.0, 1.0, 0.0), uTime * PI * 2.);
+        p = rotate_vertex_position(p, q);
+        vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         
-        const float radius = 0.175;
-        vColor = abs(position) / radius;
-        // vColor = normalize(vColor);
-        vF = f;
-        // vNormal = normal;
+        vOffset = offset;
+        vUv = uv;
       }
     `,
     fragmentShader: `\
@@ -83,12 +103,9 @@ const _makeSilksMesh = () => {
 
       #define PI 3.1415926535897932384626433832795
 
-      // uniform vec4 uBoundingBox;
       uniform float uTime;
-      uniform float uTimeCubic;
-      varying vec3 vColor;
-      varying float vF;
-      // varying vec3 vNormal;
+      varying float vOffset;
+      varying vec2 vUv;
 
       vec3 hueShift( vec3 color, float hueAdjust ){
         const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
@@ -113,12 +130,14 @@ const _makeSilksMesh = () => {
         vec3    yIQ   = vec3 (YPrime, I, Q);
 
         return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );
-    }
+      }
 
       void main() {
         float t = pow(uTime, 0.5)/2. + 0.5;
 
-        bool draw;
+        gl_FragColor = vec4(hueShift(vec3(1., 0., 0.), vUv.y * PI * 2.), 1.);
+
+        /* bool draw;
         if (vF > 0.5) {
           draw = vF < t;
         } else {
@@ -128,14 +147,14 @@ const _makeSilksMesh = () => {
           gl_FragColor = vec4(hueShift(vec3(1., 0., 0.), vF * PI * 3.), 1.);
         } else {
           discard;
-        }
+        } */
       }
     `,
     // side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.update = (timestamp, timeDiff) => {
-    const maxTime = 2000;
+    const maxTime = 3000;
     const f = (timestamp % maxTime) / maxTime;
 
     const localPlayer = useLocalPlayer();
