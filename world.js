@@ -51,13 +51,6 @@ const extra = {
 
 world.getConnection = () => wsrtc;
 
-document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') {
-    console.log((new Z.Doc()).getArray('world'))
-    console.log((new Z.Doc()).getArray('players'))
-  }
-});
-
 world.connectState = state => {
   state.setResolvePriority(1);
 
@@ -80,6 +73,14 @@ world.connectRoom = async u => {
 
   const localPlayer = metaversefileApi.useLocalPlayer();
   const state = new Z.Doc();
+  
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      console.log(state.getArray('world'))
+      console.log(state.getArray('players'))
+    }
+  });
+
   state.setResolvePriority(1);
   wsrtc = new WSRTC(u, {
     localPlayer,

@@ -154,7 +154,7 @@ class PlayerBase extends THREE.Object3D {
     this.leftHand = new PlayerHand();
     this.rightHand = new PlayerHand();
     this.hands = [this.leftHand, this.rightHand];
-
+    this.wornApps = []
     this.avatar = null;
 
     this.appManager = new AppManager();
@@ -283,7 +283,7 @@ class PlayerBase extends THREE.Object3D {
     return factor; */
   }
   wear(app, { loadoutIndex = -1 } = {}) {
-    console.log("Wear callback function called", new Error().stack)
+    console.log("Wearx called in PlayerBase of Character Controller", app, loadoutIndex);
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -303,6 +303,7 @@ class PlayerBase extends THREE.Object3D {
     if (loadoutIndex === -1) {
       loadoutIndex = _getNextLoadoutIndex();
     }
+    this.wornApps.push(app);
 
     if (loadoutIndex >= 0 && loadoutIndex < numLoadoutSlots) {
       const _removeOldApp = () => {
@@ -355,29 +356,30 @@ class PlayerBase extends THREE.Object3D {
       };
       _initPhysics();
 
-      const _emitEvents = () => {
-        this.addAction({
-          type: "wear",
-          instanceId: app.instanceId,
-          loadoutIndex,
-        });
-        app.dispatchEvent({
-          type: "wearupdate",
-          wear: true,
-          loadoutIndex,
-        });
-        this.dispatchEvent({
-          type: "wearupdate",
-          app,
-          wear: true,
-          loadoutIndex,
-        });
-      };
-      _emitEvents();
-    }
+      this.addAction({
+        type: "wear",
+        instanceId: app.instanceId,
+        loadoutIndex,
+      });
+
+      this.dispatchEvent({
+        type: 'wearupdate',
+        player: this,
+        app,
+        wear: true,
+        loadoutIndex,
+      });
+    } else {
+      this.dispatchEvent({
+        type: 'wearupdate',
+        player: this,
+        app,
+        wear: true
+      });
+      }
   }
   unwear(app, { destroy = false } = {}) {
-    console.log("Calling unwear on app", new Error().stack);
+    console.log("Unwear called in PlayerBase of Character Controller", app, destroy);
     const wearActionIndex = this.findActionIndex(({ type, instanceId }) => {
       return type === "wear" && instanceId === app.instanceId;
     });
@@ -427,47 +429,47 @@ class PlayerBase extends THREE.Object3D {
             this.appManager.transplantApp(app, world.appManager);
           }
         } else {
-          // console.warn('need to transplant unowned app', app, this.appManager, world.appManager);
+          console.warn('need to transplant unowned app', app, this.appManager, world.appManager);
           // debugger;
         }
       };
       _removeApp();
-
       const _emitEvents = () => {
-        app.dispatchEvent({
-          type: "wearupdate",
+        this.dispatchEvent({
+          type: 'wearupdate',
           player: this,
           wear: false,
-          loadoutIndex,
+          loadoutIndex
         });
-        this.dispatchEvent({
-          type: "wearupdate",
-          app,
+        app.dispatchEvent({
+          type: 'wearupdate',
+          player: this,
           wear: false,
-          loadoutIndex,
+          loadoutIndex
         });
       };
       _emitEvents();
-    } else {
-      const _emitEvents = () => {
-        app.dispatchEvent({
-          type: "wearupdate",
-          player: this,
-          wear: false,
-        });
-        this.dispatchEvent({
-          type: "wearupdate",
-          app,
-          wear: false,
-        });
-      };
-      _emitEvents();
+      
     }
+    
+    const _emitEvents = () => {
+      this.dispatchEvent({
+        type: 'wearupdate',
+        player: this,
+        wear: false
+      });
+      app.dispatchEvent({
+        type: 'wearupdate',
+        player: this,
+        wear: false
+      });
+    };
+    _emitEvents();
+    this.wornApps.splice(this.wornApps.indexOf(app));
   }
-  destroy() {
-    // nothing
-  }
+
 }
+
 const controlActionTypes = ["jump", "crouch", "fly", "sit"];
 class StatePlayer extends PlayerBase {
   constructor({
@@ -496,7 +498,7 @@ class StatePlayer extends PlayerBase {
     return !!this.playersArray;
   }
   unbindState() {
-    // console.log('character controller unbind state', new Error().stack);
+    // console.log('character controller unbind state');
 
     if (this.isBound()) {
       this.playersArray = null;
@@ -752,10 +754,6 @@ class StatePlayer extends PlayerBase {
     return action;
   }
   removeAction(type) {
-    //     if (type == 'wear') {
-    //       debugger
-    //     }
-
     const actions = this.getActionsState();
     let i = 0;
     for (const action of actions) {
@@ -1579,6 +1577,17 @@ this.dataArray = new Uint8Array(bufferLength);
           }
         }
       }
+      
+      this.wornApps.forEach(app => {
+      if (app.getComponent("wear") || app.getComponent("pet")) {
+        app.dispatchEvent({
+          type: 'wearupdate',
+          player: this,
+          app,
+          wear: true
+        });
+      }
+      })
     };
 
     this.playerMap.observe(observePlayerFn);
@@ -1591,9 +1600,9 @@ this.dataArray = new Uint8Array(bufferLength);
     this.appManager.callBackFn = (app, event, flag) => {
       if (event == "wear") {
         console.log("********* WEAR -- ", app, event, flag)
-        if (flag == "remove") {
+        if (flag === "remove") {
           this.unwear(app);
-        } else {
+        } if (flag === "add") {
           this.wear(app);
         }
       }

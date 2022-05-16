@@ -23,22 +23,18 @@ export default (app, component) => {
   const initialScale = app.scale.clone();
   const initialQuaternion = new THREE.Quaternion();
 
-  let localPlayer = metaversefile.useLocalPlayer();
   let lastWornApp = null;
+  let localPlayer = null;
 
   const wearupdate = (e) => {
     if (e.wear) {
-      const isLocal = e.player === metaversefile.useLocalPlayer();
-
       wearSpec = app.getComponent("wear");
       initialScale.copy(app.scale);
 
-      if (e.player) {
-        localPlayer = e.player;
-        if (isLocal === false && lastWornApp !== app) {
-          e.player.wear(app);
-        }
-      }
+      localPlayer = e.player;
+      //   if (isLocal === false && lastWornApp !== app) {
+      //     e.player.wear(app);
+      //   }
 
       lastWornApp = app;
       // console.log('activate component', app, wear);
