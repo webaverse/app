@@ -30,11 +30,10 @@ export default () => {
   const physicsId = app.getComponent('physicsId');
   
   const meshLodder = meshLodManager.getMeshLodder(meshLodderId);
-  const item = meshLodder.getItemByPhysicsId(physicsId);
 
   let itemDiceMesh = null;
   {
-    itemDiceMesh = item.cloneItemDiceMesh();
+    itemDiceMesh = meshLodder.cloneItemDiceMesh(physicsId);
     app.add(itemDiceMesh);
     itemDiceMesh.updateMatrixWorld();
   }
@@ -42,7 +41,7 @@ export default () => {
   let itemMesh = null;
   const physicsObjects = [];
   {
-    itemMesh = item.cloneItemMesh();
+    itemMesh = meshLodder.cloneItemMesh(physicsId);
     itemMesh.position.set(0, 0, 0);
     itemMesh.quaternion.identity();
     itemMesh.scale.set(1, 1, 1);
@@ -51,7 +50,7 @@ export default () => {
     itemMesh.updateMatrixWorld();
   }
   {
-    const physicsObject = item.clonePhysicsObject();
+    const physicsObject = meshLodder.clonePhysicsObject(physicsId);
     physicsObjects.push(physicsObject);
   }
 

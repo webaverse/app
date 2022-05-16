@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef, createContext } from 'react';
+import classnames from 'classnames';
 
 import { defaultPlayerSpec } from '../../../constants';
 
@@ -35,6 +36,7 @@ import {handleStoryKeyControls} from '../../../story';
 
 import styles from './App.module.css';
 import '../../fonts.css';
+import raycastManager from '../../../raycast-manager';
 
 //
 
@@ -91,11 +93,44 @@ const useWebaverseApp = (() => {
   };
 })();
 
+const Canvas = ({
+    app,
+}) => {
+    const canvasRef = useRef( null );
+    const [domHover, setDomHover] = useState( null );
+
+    useEffect( () => {
+
+        if ( canvasRef.current ) {
+
+            _startApp( app, canvasRef.current );
+
+        }
+
+    }, [ app, canvasRef ] );
+
+    useEffect( () => {
+        const domhoverchange = e => {
+            const {domHover} = e.data;
+            // console.log('dom hover change', domHover);
+            setDomHover( domHover );
+        };
+        raycastManager.addEventListener('domhoverchange', domhoverchange);
+
+        return () => {
+            raycastManager.removeEventListener('domhoverchange', domhoverchange);
+        };
+    }, []);
+
+    return (
+        <canvas className={ classnames( styles.canvas, domHover ? styles.domHover : null ) } ref={ canvasRef } />
+    );
+};
+
 export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
 
-    const canvasRef = useRef( null );
     const app = useWebaverseApp();
     const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
@@ -220,16 +255,6 @@ export const App = () => {
 
     useEffect( _loadUrlState, [] );
 
-    useEffect( () => {
-
-        if ( canvasRef.current ) {
-
-            _startApp( app, canvasRef.current );
-
-        }
-
-    }, [ canvasRef ] );
-
     //
 
     const onDragOver = e => {
@@ -253,8 +278,11 @@ export const App = () => {
         >
             <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
-                <canvas className={ styles.canvas } ref={ canvasRef } />
+                
+                <DomRenderer />
+                <Canvas app={app} />
                 <Crosshair />
+                
                 <ActionMenu />
                 <Settings />
                 <ClaimsNotification />
@@ -278,8 +306,6 @@ export const App = () => {
                 <FocusBar />
                 <DragAndDrop />
                 <Stats app={ app } />
-
-                <DomRenderer />
             </AppContext.Provider>
         </div>
     );

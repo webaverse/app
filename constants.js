@@ -40,7 +40,7 @@ let _inappPreviewHost = '';
 
 switch ( origin ) {
     case 'https://local.webaverse.com': {
-        _inappPreviewHost = 'https://local.webaverse.online';
+        _inappPreviewHost = `https://local.webaverse.online:${window.location.port}`;
         break;
     }
     case 'https://dev.webaverse.com': {
@@ -107,6 +107,8 @@ export const avatarInterpolationNumFrames = 4;
 
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
+
+export const defaultMaxId = 8192;
 
 export const defaultMusicVolume = 0.35;
 
