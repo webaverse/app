@@ -292,6 +292,10 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
+      if (window.npcPlayers?.length > 0) {
+        console.log(window.npcPlayers[0].avatar.hurtAnimation);
+      }
+
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
         const timeDiff = timestamp - lastTimestamp;
