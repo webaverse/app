@@ -201,6 +201,7 @@ export const MapGen = () => {
     const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
     const [haloMeshApp, setHaloMeshApp] = useState(null);
+    const [silksMeshApp, setSilksMeshApp] = useState(null);
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
     const canvasRef = useRef();
@@ -359,23 +360,46 @@ export const MapGen = () => {
 
                 case 76: { // L
                 
-                    (async () => {
-                      const chunkWorldSize = new THREE.Vector3(64, 64, 64);
-                      const chunkWorldResolution = new THREE.Vector2(2048, 2048);
-                      const chunkWorldDepthResolution = new THREE.Vector2(256, 256);
-                  
-                      const localPlayer = useLocalPlayer();
-                      const mesh = snapshotMapChunk(
-                        rootScene,
-                        localPlayer.position,
-                        chunkWorldSize,
-                        chunkWorldResolution,
-                        chunkWorldDepthResolution
-                      );
-                      scene.add(mesh);
-                    })();
+                    if (!silksMeshApp) {
+                      const silksMeshApp = metaversefile.createApp();
+                      (async () => {
+                        const {modules} = metaversefile.useDefaultModules();
+                        const m = modules['silks'];
+                        await silksMeshApp.addModule(m);
+                      })();
+                      scene.add(silksMeshApp);
+
+                      setSilksMeshApp(silksMeshApp);
+                    } else {
+                      silksMeshApp.parent.remove(silksMeshApp);
+                      silksMeshApp.destroy();
+
+                      setSilksMeshApp(null);
+                    }
         
                     return false;
+
+                }
+
+                case 186: { // ;
+
+                  (async () => {
+                    const chunkWorldSize = new THREE.Vector3(64, 64, 64);
+                    const chunkWorldResolution = new THREE.Vector2(2048, 2048);
+                    const chunkWorldDepthResolution = new THREE.Vector2(256, 256);
+                
+                    const localPlayer = useLocalPlayer();
+                    const mesh = snapshotMapChunk(
+                      rootScene,
+                      localPlayer.position,
+                      chunkWorldSize,
+                      chunkWorldResolution,
+                      chunkWorldDepthResolution
+                    );
+                    scene.add(mesh);
+                  })();
+                
+                  return false;
 
                 }
 
@@ -474,7 +498,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel, haloMeshApp, magicMeshApp, limitMeshApp ]);
+    }, [ state.openedPanel, haloMeshApp, silksMeshApp, magicMeshApp, limitMeshApp ]);
 
     // resize
     useEffect(() => {
