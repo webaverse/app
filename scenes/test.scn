@@ -16,7 +16,7 @@
       }
     },
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/atmospheric-sky/" },
-    { "position": [ 0, 0, 0 ], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/block/grid.glb" },
+    { "position": [ 0, 0, 0 ], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/block/" },
     { "position": [ 0, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/bow/" },
     { "position": [ 1.5, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/pistol/" },
     { "position": [ 3, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/rifle/" },
