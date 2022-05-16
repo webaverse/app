@@ -534,9 +534,10 @@ story.startCinematicIntro = () => {
         new THREE.Euler(-rp(Math.PI * 0.2), r(Math.PI * 0.2), 0, 'YXZ')
       )
     );
+
   const sp2x = r(1);
   const startPosition2 = localPlayer.position.clone()
-    .add(new THREE.Vector3(sp2x, r(1), 1).applyQuaternion(localPlayer.quaternion));
+    .add(new THREE.Vector3(sp2x, r(1) - 0.5, 1).applyQuaternion(localPlayer.quaternion));
   const startQuaternion2 = localPlayer.quaternion.clone();
   const endPosition2 = startPosition2.clone()
     .add(
@@ -574,12 +575,12 @@ story.startCinematicIntro = () => {
       type: 'move',
       position: endPosition2,
       quaternion: endQuaternion2,
-      duration: 5000,
+      duration: 3000,
     },
   ];
   cameraManager.startCinematicScript(cinematicScript);
 
-  console.log('start cinematic intro');
+  // console.log('start cinematic intro');
 };
 
 export default story;
