@@ -7,7 +7,8 @@ import {generateObjectUrlCard} from '../../../../card-generator.js';
 const width = 400;
 
 const HoverableCard = ({
-  imgUrl,
+  imgUrl = '',
+  // open = false,
 }) => {
   const [hovered, setHovered] = useState(false);
   const [rotateX, setRotateX] = useState(0);
@@ -45,6 +46,12 @@ const HoverableCard = ({
     }
   }, [animate]);
 
+  /* useEffect(() => {
+    if (open && flip) {
+      setFlip(false);
+    }
+  }, [open, flip]); */
+
   return (
     <div
       className={styles.hoverableCard}
@@ -59,13 +66,13 @@ const HoverableCard = ({
       onMouseEnter={e => {
         setHovered(true);
         _setFromEvent(e);
-        // setAnimate(false);
+        setAnimate(false);
       }}
       onMouseLeave={e => {
         setHovered(false);
         setRotateX(0);
         setRotateY(0);
-        // setAnimate(false);
+        // setAnimate(true);
       }}
     >
       {imgUrl ? (
@@ -118,7 +125,7 @@ export const MegaHotBox = ({
     return (
       <div className={ classnames(styles.megaHotBox, open ? styles.open : null) } >
         <div className={ styles.box } />
-        <HoverableCard imgUrl={imgUrl} />
+        <HoverableCard imgUrl={imgUrl} /*open={open}*/ />
         <div className={ styles.label }>
           <div className={ styles.background } />
           <div className={ styles.name }>{name}</div>
