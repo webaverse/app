@@ -95,7 +95,7 @@ class AvatarIconer extends EventTarget {
     if (srcAvatarApp) {
       const start_url = srcAvatarApp.contentId;
 
-      this.emotionCanvases = await this.getEmotionCanvases(start_url, this.width, this.height);
+      this.emotionCanvases = await this.getEmotionCanvases([start_url, this.width, this.height]);
 
       this.enabled = true;
     } else {
