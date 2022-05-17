@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
 
@@ -20,6 +19,7 @@ import { AppContext } from '../../app';
 
 import { Emotions } from './Emotions';
 import { Poses } from './Poses';
+import { BigButton } from '../../../BigButton';
 
 import styles from './character.module.css';
 
@@ -99,23 +99,6 @@ const Stat = ({
                     <progress className={styles.progress} value={statSpec.progress} />
                 )  : null}
             </div>
-        </div>
-    );
-};
-
-//
-
-const BigButton = ({
-    highlight = false,
-    onClick,
-    children,
-}) => {
-    return (
-        <div
-            className={classnames(styles.bigButton, highlight ? styles.highlight : null)}
-            onClick={onClick}
-        >
-            {children}
         </div>
     );
 };
@@ -225,12 +208,6 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
             className={ classnames( styles.characterWrapper, open ? styles.opened : null ) }
             onDrop={onDrop}
         >
-            {/* <div className={ styles.characterBtn } onClick={ handleCharacterBtnClick } >
-                <img src="images/webpencil.svg" className={ styles.background } />
-                <span className={ styles.btnText } >人 Character</span>
-                <span className={ styles.btnShortKey } >Tab</span>
-            </div> */}
-
             <div className={ styles.characterPanel } >
                 <Poses
                     parentOpened={open}
