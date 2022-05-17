@@ -23,7 +23,9 @@ export const PlayMode = () => {
             <UIMode hideDirection='bottom'>
                 <Hotbar />
             </UIMode>
-            <Infobox />
+            <UIMode hideDirection='right'>
+                <Infobox />
+            </UIMode>
             <Chat />
         </div>
     );
