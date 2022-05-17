@@ -313,6 +313,10 @@ export const Equipment = () => {
         }
     }, [open, selectObject]);
 
+    useEffect(() => {
+        setSelectObject(null);
+    }, [faceIndex]);
+
     return (
         <div className={styles.equipment}>
             <div className={classnames(
@@ -429,7 +433,6 @@ export const Equipment = () => {
                                 onClick={e => {
                                     const delta = i - selectedMenuIndex;
                                     setFaceIndex(faceIndex + delta);
-                                    setSelectObject(null);
 
                                     sounds.playSoundName('menuNext');
                                 }}
