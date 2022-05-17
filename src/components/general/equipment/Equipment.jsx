@@ -189,19 +189,56 @@ class ItemLoader extends EventTarget {
         super();
 
         this.loadFn = loadFn;
+        this.loading = false;
         this.cache = new Map();
         this.promiseCache = new Map();
     }
-    async loadItem(key, value, {signal = null} = {}) {
-        let promise = this.promiseCache.get(key);
-        if (!promise) {
-            promise = this.loadFn(key, value, {signal});
-            this.promiseCache.set(key, promise);
+    async loadItem(url, value, {signal = null} = {}) {
+        {
+            this.loading = true;
+            this.dispatchEvent(new MessageEvent('loading', {
+                data: {
+                    loading: this.loading,
+                },
+            }));
         }
-        return await promise;
+
+        let promise = this.promiseCache.get(url);
+        if (!promise) {
+            promise = this.loadFn(url, value, {signal})
+                .catch(err => {
+                    // console.warn(err);
+                    return null;
+                })
+                .then(result => {
+                    signal.removeEventListener('abort', abort);
+                    return result;
+                });
+            this.promiseCache.set(url, promise);
+            const abort = () => {
+                this.promiseCache.delete(url);
+            };
+            signal.addEventListener('abort', abort);
+        }
+
+        const result = await promise;
+        {
+            this.loading = false;
+            this.dispatchEvent(new MessageEvent('loading', {
+                data: {
+                    loading: this.loading,
+                },
+            }));
+        }
+        return result;
+    }
+    destroy() {
+        for (const url of this.promiseCache.keys()) {
+            URL.revokeObjectURL(url);
+        }
     }
 }
-const itemLoadFn = async (key, value, {signal}) => {
+const itemLoadFn = async (url, value, {signal}) => {
     const {start_url} = value;
     const imgUrl = await generateObjectUrlCard({
         start_url,
@@ -299,12 +336,13 @@ export const Equipment = () => {
         const start_url = selectObject ? selectObject.start_url : '';
         if (start_url) {
             const abortController = new AbortController();
-
             (async () => {
-                const imgUrl = await itemLoader.loadItem(start_url, selectObject, {signal: abortController.signal});
+                const imgUrl = await itemLoader.loadItem(start_url, selectObject, {
+                    signal: abortController.signal,
+                });
                 setImgUrl(imgUrl);
             })();
-
+            setImgUrl(null);
             return () => {
                 abortController.abort();
             };
