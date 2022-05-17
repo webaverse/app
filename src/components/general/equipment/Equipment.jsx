@@ -271,10 +271,10 @@ export const Equipment = () => {
         sounds.playSoundName('menuClick');
     };
     const onMouseDown = object => () => {
-        const newSelectObject = selectObject !== object ? object : null;
-        setSelectObject(newSelectObject);
+        // const newSelectObject = selectObject !== object ? object : null;
+        setSelectObject(object);
 
-        if (newSelectObject) {
+        if (object) {
             sounds.playSoundName('menuNext');
         } /* else {
             const audioSpec = soundFiles.menuBack[Math.floor(Math.random() * soundFiles.menuBack.length)];
@@ -488,7 +488,9 @@ export const Equipment = () => {
                 description={selectObject ? selectObject.description : null}
                 imgUrl={imgUrl}
                 onActivate={onDoubleClick(selectObject)}
-                onClose={onMouseDown(selectObject)}
+                onClose={e => {
+                    setSelectObject(null);
+                }}
             />
         </div>
     );
