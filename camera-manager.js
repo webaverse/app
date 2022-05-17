@@ -555,7 +555,7 @@ class CameraManager extends EventTarget {
           }
         }
       } else {
-        console.log('no line', timeDiff, this.cinematicScript.slice());
+        // console.log('no line', timeDiff, this.cinematicScript.slice());
         this.cinematicScript = null;
       }
     } else {
