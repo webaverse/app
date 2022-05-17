@@ -751,23 +751,23 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    { // play one animation purely.
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
+    // { // play one animation purely.
+    //   return spec => {
+    //     const {
+    //       animationTrackName: k,
+    //       dst,
+    //       // isTop,
+    //     } = spec;
  
-        // const animation = animations.index['walking.fbx']
-        const animation = animations.index['pick_up_idle.fbx']
-        const t2 = timeSeconds;
-        const src2 = animation.interpolants[k];
-        const v2 = src2.evaluate(t2 % animation.duration);
+    //     // const animation = animations.index['walking.fbx']
+    //     const animation = animations.index['pick_up_idle.fbx']
+    //     const t2 = timeSeconds;
+    //     const src2 = animation.interpolants[k];
+    //     const v2 = src2.evaluate(t2 % animation.duration);
 
-        dst.fromArray(v2);
-      };
-    }
+    //     dst.fromArray(v2);
+    //   };
+    // }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -1143,20 +1143,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const t2 = (now / 1000) % holdAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        // dst.fromArray(v2);
-
         if (isTop) {
-          if (boneName === 'Left_arm' || boneName === 'Right_arm') {
-            dst.fromArray(v2);
-          } else {
+          // // #version 1
+          // if (boneName === 'Left_arm' || boneName === 'Right_arm') {
+          //   dst.fromArray(v2);
+          // } else {
+          //   dst.premultiply(localQuaternion2.fromArray(v2));
+          // }
+
+          // #version 2
+          if (['Spine', 'Chest', 'UpperChest', 'Neck', 'Head'].includes(boneName)) {
             dst.premultiply(localQuaternion2.fromArray(v2));
+          } else {
+            dst.fromArray(v2);
           }
 
-          // if (['Spine', 'Chest', 'UpperChest', 'Neck', 'Head'].includes(boneName)) {
-          //   dst.premultiply(localQuaternion2.fromArray(v2));
-          // } else {
-          //   dst.fromArray(v2);
-          // }
+          //
 
           // if (isPosition) {
           //   dst.fromArray(v2);
