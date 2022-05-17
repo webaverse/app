@@ -184,15 +184,23 @@ const EquipmentItems = ({
     </div>);
 };
 
-const generateObjectUrlCardRemote = offscreenEngineManager.createFunction([
-    `\
-    import {generateObjectUrlCard} from './card-generator.js';
-    `,
-    async function(o) {
-        const imageBitmap = await generateObjectUrlCard(o);
-        return imageBitmap;
-    }
-]);
+const _generateObjectUrlCardRemote = (() => {
+    let generateObjectUrlCardRemoteFn = null;
+    return async function() {
+        if (!generateObjectUrlCardRemoteFn) {
+            generateObjectUrlCardRemoteFn = offscreenEngineManager.createFunction([
+                `\
+                import {generateObjectUrlCard} from './card-generator.js';
+                `,
+                async function(o) {
+                    const imageBitmap = await generateObjectUrlCard(o);
+                    return imageBitmap;
+                }
+            ]);
+        }
+        return await generateObjectUrlCardRemoteFn.apply(this, arguments);
+    };
+})();
 export const Equipment = () => {
     const { state, setState } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
@@ -201,9 +209,9 @@ export const Equipment = () => {
     const [ faceIndex, setFaceIndex ] = useState(1);
     const [ claims, setClaims ] = useState([]);
     const [ itemLoader, setItemLoader ] = useState(() => new ItemLoader({
-        async loadFn(url, value, {signal}) {
+        async loadFn(url, value, {signal}) {            
             const {start_url} = value;
-            const imageBitmap = await generateObjectUrlCardRemote([
+            const imageBitmap = await _generateObjectUrlCardRemote([
                 {
                     start_url,
                     width,
