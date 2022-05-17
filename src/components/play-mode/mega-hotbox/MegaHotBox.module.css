@@ -6,7 +6,7 @@
   height: 100%;
   background-image: linear-gradient(to right, transparent, #000 50%);
   transform: none;
-  /* transition: 1s transform cubic-bezier(0, 1, 0, 1); */
+  transition: 2s transform cubic-bezier(0, 1, 0, 1);
   /* pointer-events: none; */
   color: #FFF;
 }
