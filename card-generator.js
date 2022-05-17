@@ -76,7 +76,7 @@ const _previewImage = (image, width, height) => {
 export const generateObjectUrlCard = async ({
   start_url,
   width = 300,
-  height = 300,
+  // height = width,
 }) => {
   const app = await metaversefile.createAppAsync({
     start_url,
@@ -84,13 +84,13 @@ export const generateObjectUrlCard = async ({
   return await generateObjectCard({
     app,
     width,
-    height,
+    // height,
   });
 };
 export const generateObjectCard = async ({
   app,
   width = 300,
-  height = 300,
+  // height = width,
 }) => {
   const stats = generateStats(app.contentId);
   const {
