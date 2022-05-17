@@ -13,9 +13,10 @@ esbuild
     define: {
       this: 'window',
     },
+    external: ['require', 'fs', 'path', 'module', '/public/*', '/public/bin/*'],
     target: ['chrome80', 'firefox72', 'safari13', 'edge80'],
     outfile: 'dist/out.js',
-    watch: true,
+    watch: false,
     loader: {
       '.png': 'dataurl',
       '.svg': 'text',
@@ -24,6 +25,7 @@ esbuild
       '.woff2': 'file',
       '.gltf': 'file',
       '.glb': 'file',
+      '.jpg': 'file',
     },
     plugins: [
       cssModulesPlugin({
