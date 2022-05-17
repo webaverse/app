@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import styles from './equipment.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
-import {EquipmentPopover} from '../../play-mode/equipment-popover';
+// import {EquipmentPopover} from '../../play-mode/equipment-popover';
 import { Spritesheet } from '../spritesheet';
 import game from '../../../../game.js';
 import {transparentPngUrl} from '../../../../constants.js';
@@ -107,7 +107,7 @@ const EquipmentItem = ({
                 <div className={styles.level}>Lv. {object?.level}</div>
             </div>
 
-            {selected && loading ? <EquipmentPopover /> : null}
+            {/* selected && loading ? <EquipmentPopover /> : null */}
 
         </div>
     );
@@ -340,7 +340,9 @@ export const Equipment = () => {
                 const imgUrl = await itemLoader.loadItem(start_url, selectObject, {
                     signal: abortController.signal,
                 });
-                setImgUrl(imgUrl);
+                if (imgUrl !== null) {
+                    setImgUrl(imgUrl);
+                }
             })();
             setImgUrl(null);
             return () => {
@@ -465,6 +467,7 @@ export const Equipment = () => {
                                 onClick={e => {
                                     const delta = i - selectedMenuIndex;
                                     setFaceIndex(faceIndex + delta);
+                                    setSelectObject(null);
 
                                     sounds.playSoundName('menuNext');
                                 }}
