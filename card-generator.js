@@ -128,7 +128,7 @@ export const generateObjectCard = async ({
     minterAvatarPreview,
     glyphImage,
   });
-  _previewImage(cardImg, width, height);
+  // _previewImage(cardImg, width, height);
   return cardImg;
 };
 
