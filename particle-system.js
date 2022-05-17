@@ -292,10 +292,6 @@ class Particle extends THREE.Object3D {
     this.startTime = startTime;
     this.endTime = endTime;
     this.parent = parent;
-
-    /* if (isNaN(index) || isNaN(textureIndex) || !this.parent) {
-      debugger;
-    } */
   }
   update() {
     this.parent.needsUpdate = true;
@@ -323,19 +319,18 @@ class ParticleSystem extends THREE.InstancedMesh {
     });
     this.particles = Array(maxParticles).fill(null);
     this.count = 0;
-
-    // window.particleSystem = this;
   }
   #getParticleTextureIndex(name) {
     return this.textures.findIndex(t => t.name === name);
   }
   addParticle(name, {
-    lifetime = 1000,
+    offsetTime = 0,
+    duration = 1000,
   } = {}) {
     const textureIndex = name ? this.#getParticleTextureIndex(name) : -1;
     if (textureIndex !== -1) {
-      const startTime = performance.now();
-      const endTime = startTime + lifetime;
+      const startTime = performance.now() + offsetTime;
+      const endTime = startTime + duration;
 
       for (let i = 0; i < this.particles.length; i++) {
         let particle = this.particles[i];
@@ -343,7 +338,6 @@ class ParticleSystem extends THREE.InstancedMesh {
           particle = new Particle(i, textureIndex, startTime, endTime, this);
           this.particles[i] = particle;
           this.needsUpdate = true;
-          // this.updateGeometry();
           return particle;
         }
       }
@@ -356,7 +350,6 @@ class ParticleSystem extends THREE.InstancedMesh {
   removeParticle(particle) {
     this.particles[particle.index] = null;
     this.needsUpdate = true;
-    // this.updateGeometry();
   }
   update(timestamp, timeDiff) {
     if (this.needsUpdate) {
@@ -370,12 +363,7 @@ class ParticleSystem extends THREE.InstancedMesh {
     this.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
   }
   updateGeometry() {
-    /* if (window.lol) {
-      return;
-    } */
-
     let index = 0;
-    // console.log('update geometry', this.particles, this);
     for (const particle of this.particles) {
       if (particle !== null) {
         this.geometry.attributes.p.array[index*3 + 0] = particle.position.x;
@@ -423,39 +411,6 @@ const destroyParticleSystem = particleSystem => {
     particleSystem.destroy();
   }
 };
-/* const rootParticleMesh = new ParticleSystem(particleNames);
-const particleMeshes = [];
-rootParticleMesh.addParticle = (name, {
-  lifetime,
-}) => {
-  let particleMesh = particleMeshes.find(m => m.name === name);
-  if (!particleMesh) {
-    particleMesh = new ParticleMesh(name);
-    rootParticleMesh.add(particleMesh);
-    particleMeshes.push(particleMesh);
-  }
-  const particle = particleMesh.addParticle({
-    lifetime,
-  });
-  return particle;
-};
-
-world.appManager.addEventListener('frame', e => {
-  const {timestamp} = e.data;
-  for (const particleMesh of particleMeshes) {
-    particleMesh.material.uniforms.uTime.value = timestamp;
-    particleMesh.material.uniforms.uTime.needsUpdate = true;
-    particleMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
-    particleMesh.material.uniforms.uNumFrames.needsUpdate = true;
-  }
-});
-
-rootParticleMesh.preload = async name => {
-  const material = particleSet.getParticleMaterial(name);
-  await material.promise;
-};
-
-return rootParticleMesh; */
 const update = (timestamp, timeDiff) => {
   for (const particleSystem of particleSystems) {
     particleSystem.update(timestamp, timeDiff);
