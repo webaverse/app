@@ -380,7 +380,8 @@ export const Equipment = () => {
 
             <MegaHotBox
                 open={open}
-                spritesheet={spritesheet}
+                // spritesheet={spritesheet}
+                start_url={selectObject ? selectObject.start_url : ''}
             />
         </div>
     );

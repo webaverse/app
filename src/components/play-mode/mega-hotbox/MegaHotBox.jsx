@@ -2,63 +2,37 @@ import React, {useState, useRef, useEffect} from 'react';
 import classnames from 'classnames';
 import styles from './MegaHotBox.module.css';
 
+import {generateObjectUrlCard} from '../../../../card-generator.js';
+
 const width = 400;
 
 export const MegaHotBox = ({
   open = true,
-  spritesheet = null,
+  start_url = '',
 }) => {
-    const canvasRef = useRef();
-    const [height, setHeight] = useState(window.innerHeight);
-    // const [selected, setSelected] = useState(false);
+    const [imgUrl, setImgUrl] = useState(null);
 
-    /* useEffect(() => {
-      const canvas = canvasRef.current;
-      if (canvas && npcPlayer) {
+    useEffect(() => {
+      if (start_url) {
         let live = true;
-        let diorama = null;
-        {
-          diorama = dioramaManager.createPlayerDiorama({
-            target: npcPlayer,
-            objects: [
-              npcPlayer.avatar.model,
-            ],
-            cameraOffset: new THREE.Vector3(-0.8, 0, -0.4),
-            // label: true,
-            // outline: true,
-            // grassBackground: true,
-            // glyphBackground: true,
-            dotsBackground: true,
+        (async () => {
+          const imgUrl = await generateObjectUrlCard({
+            start_url,
+            width,
           });
-          diorama.addCanvas(canvas);
-          diorama.enabled = true;
-        }
-  
-        const frame = e => {
-          const {timestamp, timeDiff} = e.data;
-          if (diorama) {
-            diorama.update(timestamp, timeDiff);
-          }
-        };
-        world.appManager.addEventListener('frame', frame);
-        const resize = e => {
-          diorama.setSize(width, window.innerHeight);
-        };
-        window.addEventListener('resize', resize);
-  
+          if (!live) return;
+          setImgUrl(imgUrl);
+        })();
+
         return () => {
-          if (diorama) {
-            diorama.removeCanvas(canvas);
-            diorama.destroy();
-          }
-          world.appManager.removeEventListener('frame', frame);
-          window.removeEventListener('resize', resize);
           live = false;
         };
       }
-    }, []); */
-    
-    const pixelRatio = window.devicePixelRatio;
+    }, [start_url]);
+
+    const revokeObjectUrl = e => {
+      URL.revokeObjectURL(imgUrl);
+    };
 
     return (
       <div className={ classnames(styles.megaHotBox, open ? styles.open : null) } >
@@ -67,12 +41,9 @@ export const MegaHotBox = ({
           <div className={ styles.background } />
           <div className={ styles.text }>{''}</div>
         </div>
-        <canvas
-          className={ styles.canvas }
-          width={width * pixelRatio}
-          height={height * pixelRatio}
-          ref={canvasRef}
-        />
+        {imgUrl ? (
+          <img src={imgUrl} className={ styles.image } onLoad={revokeObjectUrl} onError={revokeObjectUrl} />
+        ) : null}
       </div>
     );
 };
