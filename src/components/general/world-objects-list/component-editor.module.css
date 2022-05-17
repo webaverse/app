@@ -119,6 +119,18 @@
     outline: none;
 }
 
+.itemValue.valueError {
+    border-color: #f00;
+}
+
+.itemType {
+    position: absolute;
+    right: 20px;
+    z-index: 1;
+    outline: none;
+    height: 33px;
+}
+
 .clearfix {
     clear: both;
 }

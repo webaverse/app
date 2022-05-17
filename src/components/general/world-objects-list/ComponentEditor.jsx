@@ -17,13 +17,19 @@ export const ComponentEditor = () => {
 
     //
 
-    const update = () => {
+    const initComponentsList = () => {
 
         const newComponents = [];
 
         selectedApp.components.forEach( ( component ) => {
 
-            newComponents.push( component );
+            let type = 'json';
+
+            if ( typeof component.value === 'string' ) type = 'string';
+            if ( typeof component.value === 'number' ) type = 'number';
+            if ( typeof component.value === 'boolean' ) type = 'bool';
+
+            newComponents.push({ key: component.key, value: ( type === 'json' ? JSON.stringify( component.value ) : component.value.toString() ), type: component.type ?? type, error: false });
 
         });
 
@@ -31,10 +37,76 @@ export const ComponentEditor = () => {
 
     };
 
+    const updateState = () => {
+
+        setComponents( [ ...components ] );
+
+    };
+
+    const validateValues = () => {
+
+        for ( let i = 0; i < selectedApp.components.length; i ++ ) {
+
+            const value = components[ i ].value;
+            components[ i ].error = false;
+
+            if ( components[ i ].type === 'number' ) {
+
+                if ( value.match(/^-?\d+$/) || value.match(/^\d+\.\d+$/) ) {
+
+                    selectedApp.components[ i ].value = parseFloat( value );
+
+                } else {
+
+                    components[ i ].error = true;
+
+                }
+
+            } else if ( components[ i ].type === 'bool' ) {
+
+                if ( value === 'true' ) {
+
+                    selectedApp.components[ i ].value = true;
+
+                } else if ( value === 'false' ) {
+
+                    selectedApp.components[ i ].value = false;
+
+                } else {
+
+                    components[ i ].error = true;
+
+                }
+
+            } else if ( components[ i ].type === 'json' ) {
+
+                try {
+
+                    selectedApp.components[ i ].value = JSON.parse( value );
+
+                } catch ( err ) {
+
+                    components[ i ].error = true;
+
+                }
+
+            } else {
+
+                selectedApp.components[ i ].value = value.toString();
+
+            }
+
+
+        }
+
+    };
+
+    //
+
     const handleAddNewBtnClick = () => {
 
-        selectedApp.components.push({ key: 'New item', value: '' });
-        update();
+        selectedApp.components.push({ key: 'New item', value: '', type: 'string' });
+        components.push({ key: 'New item', value: '', type: 'string', error: false });
 
     };
 
@@ -50,7 +122,7 @@ export const ComponentEditor = () => {
         }
 
         selectedApp.components = newList;
-        update();
+        initComponentsList();
 
     };
 
@@ -63,17 +135,18 @@ export const ComponentEditor = () => {
 
     const handleValueInputChange = ( key, event ) => {
 
+        const value = event.target.value;
+
         for ( let i = 0; i < selectedApp.components.length; i ++ ) {
 
-            if ( selectedApp.components[ i ].key === key ) {
-
-                selectedApp.components[ i ].value = event.target.value;
-
-            }
+            if ( selectedApp.components[ i ].key !== key ) continue;
+            components[ i ].value = value;
+            break;
 
         }
 
-        update();
+        validateValues();
+        updateState();
 
     };
 
@@ -96,13 +169,29 @@ export const ComponentEditor = () => {
 
     };
 
-    const handleApplyItemKeyBtnClick = ( key, event ) => {
+    const handleTypeSelectChange = ( key, event ) => {
+
+        for ( let i = 0; i < selectedApp.components.length; i ++ ) {
+
+            if ( key !== selectedApp.components[ i ].key ) continue;
+            components[ i ].type = event.target.value;
+            break;
+
+        }
+
+        validateValues();
+        updateState();
+
+    };
+
+    const handleApplyItemKeyBtnClick = () => {
 
         for ( let i = 0; i < selectedApp.components.length; i ++ ) {
 
             if ( editComponentKey === selectedApp.components[ i ].key ) {
 
                 selectedApp.components[ i ].key = editComponentKeyNewValue;
+                components[ i ].key = editComponentKeyNewValue;
                 break;
 
             }
@@ -110,7 +199,7 @@ export const ComponentEditor = () => {
         }
 
         setEditComponentKey( null );
-        update();
+        updateState();
 
     };
 
@@ -118,7 +207,7 @@ export const ComponentEditor = () => {
 
     useEffect( () => {
 
-        update();
+        initComponentsList();
 
     }, [ selectedApp ] );
 
@@ -149,7 +238,17 @@ export const ComponentEditor = () => {
                                     </>
                                 )
                             }
-                            <input className={ styles.itemValue } disabled={ ! isEditable } type="text" value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />
+                            <input className={ classNames( styles.itemValue, ( isEditable && component.error ? styles.valueError : null ) ) } disabled={ ! isEditable } type="text" value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />
+                            {
+                                isEditable ? (
+                                    <select className={ styles.itemType } value={ component.type } onChange={ handleTypeSelectChange.bind( this, component.key ) } >
+                                        <option value='string' >string</option>
+                                        <option value='number' >number</option>
+                                        <option value='bool' >bool</option>
+                                        <option value='json' >json</option>
+                                    </select>
+                                ) : null
+                            }
                             <div className={ styles.clearfix } />
                         </div>
                     );
