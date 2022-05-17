@@ -333,23 +333,29 @@ export const Equipment = () => {
     }, [itemLoader]);
 
     useEffect(() => {
-        const start_url = selectObject ? selectObject.start_url : '';
-        if (start_url) {
-            const abortController = new AbortController();
-            (async () => {
-                const imgUrl = await itemLoader.loadItem(start_url, selectObject, {
-                    signal: abortController.signal,
-                });
-                if (imgUrl !== null) {
-                    setImgUrl(imgUrl);
-                }
-            })();
-            setImgUrl(null);
-            return () => {
-                abortController.abort();
-            };
+        if (open) {
+            const start_url = selectObject ? selectObject.start_url : '';
+            if (start_url) {
+                const abortController = new AbortController();
+                (async () => {
+                    const imgUrl = await itemLoader.loadItem(start_url, selectObject, {
+                        signal: abortController.signal,
+                    });
+                    if (imgUrl !== null) {
+                        setImgUrl(imgUrl);
+                    }
+                })();
+                setImgUrl(null);
+                return () => {
+                    abortController.abort();
+                };
+            }
+        } else {
+            if (selectObject) {
+                setSelectObject(null);
+            }
         }
-    }, [selectObject]);
+    }, [open, selectObject]);
 
     return (
         <div className={styles.equipment}>
@@ -482,7 +488,7 @@ export const Equipment = () => {
             </div>
 
             <MegaHotBox
-                open={open && !!selectObject}
+                open={!!selectObject}
                 loading={loading}
                 name={selectObject ? selectObject.name : null}
                 description={selectObject ? selectObject.description : null}
