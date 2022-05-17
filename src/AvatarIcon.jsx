@@ -19,6 +19,11 @@ import * as sounds from '../sounds.js'
 const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;
 
+const PlaceholderImg = () => {
+  return (
+    <img className={styles.placeholderImg} src="./images/arc.svg" />
+  );
+};
 const CharacterIcon = () => {
   const [loaded, setLoaded] = useState(false);
   const canvasRef = useRef();
@@ -69,7 +74,7 @@ const CharacterIcon = () => {
                 height={characterIconSize * pixelRatio}
                 ref={canvasRef}
               />
-              <img className={styles.placeholderImg} src="./images/arc.svg" />
+              <PlaceholderImg />
               <div className={styles.meta}>
                   <div className={styles.text}>
                       <div className={styles.background} />
