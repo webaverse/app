@@ -20,6 +20,7 @@
 .megaHotBox .hoverableCard {
   width: 300px;
   height: 420px;
+  user-select: none;
   perspective: 1200px;
   perspective-origin: 50% 50%;
 }
