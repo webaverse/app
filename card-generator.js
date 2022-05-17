@@ -254,7 +254,13 @@ export const generateCard = async ({
     }
   }
 
-  const image = await new Promise((accept, reject) => {
+  const blob = new Blob([svg.outerHTML], {
+    type: 'image/svg+xml',
+  });
+  const objectUrl = URL.createObjectURL(blob);
+  return objectUrl;
+
+  /* const image = await new Promise((accept, reject) => {
     const image = document.createElement('img');
     image.onload = () => {
       accept(image);
@@ -266,8 +272,7 @@ export const generateCard = async ({
     };
     image.crossOrigin = 'Anonymous';
 
-    const outerHTML = svg.outerHTML;
-    const blob = new Blob([outerHTML], {
+    const blob = new Blob([svg.outerHTML], {
       type: 'image/svg+xml',
     });
     const url = URL.createObjectURL(blob);
@@ -278,5 +283,5 @@ export const generateCard = async ({
     }
   });
 
-  return image;
+  return image; */
 };
