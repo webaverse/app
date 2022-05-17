@@ -6,7 +6,6 @@ import * as sounds from './sounds.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import {localPlayer} from './players.js';
-import game from './game.js';
 
 const localVector = new THREE.Vector3();
 
@@ -132,7 +131,6 @@ class ZTargeting extends THREE.Object3D {
   }
   setQueryResult(timestamp) {
     let reticles;
-    if (cameraManager.focus) return;
     if (localPlayer.hasAction('aim')) {
       this.queryResults.snapshot(camera);
       reticles = this.queryResults.results;
@@ -187,9 +185,8 @@ class ZTargeting extends THREE.Object3D {
       }
 
       cameraManager.setFocus(true);
-      // const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
-      // if (this.focusTargetReticle) debugger
-      // cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
+      const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
+      cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
     }
   }
   handleUp() {
@@ -200,8 +197,6 @@ class ZTargeting extends THREE.Object3D {
       if (this.focusTargetReticle) {
         sounds.playSoundName('zTargetCancel');
       }
-
-      game.menuUnaim();
     }
   }
   toggle() {
@@ -209,7 +204,6 @@ class ZTargeting extends THREE.Object3D {
       this.handleUp();
     } else {
       this.handleDown(localPlayer);
-      game.menuAim();
       
       if (this.queryResults.results.length === 0) {
         setTimeout(() => {
