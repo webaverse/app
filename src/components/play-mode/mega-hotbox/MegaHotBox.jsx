@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import styles from './MegaHotBox.module.css';
 import { BigButton } from '../../../BigButton';
 
-const width = 400;
+// const width = 400;
 
 const HoverableCard = ({
   imgUrl = '',
@@ -45,11 +45,12 @@ const HoverableCard = ({
     }
   }, [animate]);
 
-  /* useEffect(() => {
-    if (open && flip) {
+  useEffect(() => {
+    // console.log('check', !imgUrl, !!flip);
+    if (!imgUrl && flip) {
       setFlip(false);
     }
-  }, [open, flip]); */
+  }, [imgUrl, flip]);
 
   return (
     <div
