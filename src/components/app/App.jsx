@@ -29,6 +29,7 @@ import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
+import { UIMode } from '../general/ui-mode';
 
 import styles from './App.module.css';
 import '../../fonts.css';
@@ -98,6 +99,7 @@ const useWebaverseApp = (() => {
 export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
+    const [ uiMode, setUIMode ] = useState( 'normal' );
 
     const canvasRef = useRef( null );
     const app = useWebaverseApp();
@@ -132,6 +134,12 @@ export const App = () => {
 
         }
 
+        if ( state.openedPanel ) {
+
+            setUIMode( 'normal' );
+
+        }
+
     }, [ state.openedPanel ] );
 
     useEffect( () => {
@@ -152,6 +160,37 @@ export const App = () => {
         };
 
     }, [] );
+
+    useEffect( () => {
+
+        if ( uiMode === 'none' ) {
+
+            setState({ openedPanel: null });
+
+        }
+
+        const handleKeyDown = ( event ) => {
+
+            if ( event.ctrlKey && event.code === 'KeyH' ) {
+
+                setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
+                return false;
+
+            }
+
+            return true;
+
+        };
+
+        registerIoEventHandler( 'keydown', handleKeyDown );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keydown', handleKeyDown );
+
+        };
+
+    }, [ uiMode ] );
 
     useEffect( () => {
 
@@ -255,11 +294,13 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
-                <ActionMenu />
+                <UIMode hideDirection='right'>
+                    <ActionMenu setUIMode={ setUIMode } />
+                </UIMode>
                 <Settings />
                 <WorldObjectsList />
                 <PlayMode />
