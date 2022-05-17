@@ -3,8 +3,6 @@ import classnames from 'classnames';
 import styles from './MegaHotBox.module.css';
 import { BigButton } from '../../../BigButton';
 
-import {generateObjectUrlCard} from '../../../../card-generator.js';
-
 const width = 400;
 
 const HoverableCard = ({
@@ -17,9 +15,9 @@ const HoverableCard = ({
   const [flip, setFlip] = useState(false);
   const [animate, setAnimate] = useState(false);
 
-  const revokeObjectUrl = () => {
+  /* const revokeObjectUrl = () => {
     URL.revokeObjectURL(imgUrl);
-  };
+  }; */
   const _setFromEvent = e => {
     if (!animate) {
       // get the offest from the top left corner of this element
@@ -89,8 +87,8 @@ const HoverableCard = ({
           style={{
             transform: `rotateY(${(rotateY + (flip ? Math.PI : 0)).toFixed(8)}rad) rotateX(${rotateX.toFixed(8)}rad)`,
           }}
-          onLoad={revokeObjectUrl}
-          onError={revokeObjectUrl}
+          // onLoad={revokeObjectUrl}
+          // onError={revokeObjectUrl}
         />
       ) : null}
     </div>
@@ -101,30 +99,10 @@ export const MegaHotBox = ({
   open = true,
   name = '',
   description = '',
-  start_url = '',
+  imgUrl = '',
   onActivate = null,
   onClose = null,
 }) => {
-    const [imgUrl, setImgUrl] = useState(null);
-
-    useEffect(() => {
-      if (start_url) {
-        let live = true;
-        (async () => {
-          const imgUrl = await generateObjectUrlCard({
-            start_url,
-            width,
-          });
-          if (!live) return;
-          setImgUrl(imgUrl);
-        })();
-
-        return () => {
-          live = false;
-        };
-      }
-    }, [start_url]);
-
     return (
       <div className={ classnames(styles.megaHotBox, open ? styles.open : null) } >
         <div className={ styles.box } />

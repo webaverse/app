@@ -10,11 +10,13 @@ import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
 import dropManager from '../../../../drop-manager';
+import {generateObjectUrlCard} from '../../../../card-generator.js';
 
 //
 
 const size = 2048;
 const numFrames = 128;
+const width = 400;
 
 const equipmentTabs = [
     `noun-backpack-16741.svg`,
@@ -66,6 +68,7 @@ const EquipmentItem = ({
     enabled,
     hovered,
     selected,
+    loading,
     onMouseEnter,
     onMouseDown,
     onDragStart,
@@ -104,7 +107,7 @@ const EquipmentItem = ({
                 <div className={styles.level}>Lv. {object?.level}</div>
             </div>
 
-            {selected? <EquipmentPopover /> : null}
+            {selected && loading ? <EquipmentPopover /> : null}
 
         </div>
     );
@@ -116,6 +119,7 @@ const EquipmentItems = ({
     sections,
     hoverObject,
     selectObject,
+    loading,
     onMouseEnter,
     onMouseDown,
     onDragStart,
@@ -161,6 +165,7 @@ const EquipmentItems = ({
                                 enabled={open}
                                 hovered={object === hoverObject}
                                 selected={object === selectObject}
+                                loading={loading}
                                 highlight={highlights}
                                 onMouseEnter={onMouseEnter(object)}
                                 onMouseDown={onMouseDown(object)}
@@ -177,6 +182,35 @@ const EquipmentItems = ({
     </div>);
 };
 
+class ItemLoader extends EventTarget { 
+    constructor({
+        loadFn,
+    }) {
+        super();
+
+        this.loadFn = loadFn;
+        this.cache = new Map();
+        this.promiseCache = new Map();
+    }
+    async loadItem(key, value, {signal = null} = {}) {
+        let promise = this.promiseCache.get(key);
+        if (!promise) {
+            promise = this.loadFn(key, value, {signal});
+            this.promiseCache.set(key, promise);
+        }
+        return await promise;
+    }
+}
+const itemLoadFn = async (key, value, {signal}) => {
+    const {start_url} = value;
+    const imgUrl = await generateObjectUrlCard({
+        start_url,
+        width,
+        signal,
+    });
+    return imgUrl;
+};
+
 export const Equipment = () => {
     const { state, setState } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
@@ -184,20 +218,13 @@ export const Equipment = () => {
     const [ spritesheet, setSpritesheet ] = useState(null);
     const [ faceIndex, setFaceIndex ] = useState(1);
     const [ claims, setClaims ] = useState([]);
-    const selectedMenuIndex = mod(faceIndex, 4);
+    const [ itemLoader, setItemLoader ] = useState(() => new ItemLoader({
+        loadFn: itemLoadFn,
+    }));
+    const [ loading, setLoading ] = useState(false);
+    const [ imgUrl, setImgUrl ] = useState('');
 
-    /* const refsMap = (() => {
-        const map = new Map();
-        for (const userTokenObject of userTokenObjects) {
-            map.set(userTokenObject, useRef(null));
-        }
-        for (const k in objects) {
-            for (const object of objects[k]) {
-                map.set(object, useRef(null));
-            }
-        }
-        return map;
-    })(); */
+    const selectedMenuIndex = mod(faceIndex, 4);
 
     const open = state.openedPanel === 'CharacterPanel';
 
@@ -209,8 +236,6 @@ export const Equipment = () => {
     const onMouseDown = object => () => {
         const newSelectObject = selectObject !== object ? object : null;
         setSelectObject(newSelectObject);
-
-        // game.renderCard(object);
 
         if (newSelectObject) {
             sounds.playSoundName('menuNext');
@@ -258,6 +283,34 @@ export const Equipment = () => {
         };
     }, [claims]);
 
+    useEffect(() => {
+        if (itemLoader) {
+            const loadingchange = e => {
+                setLoading(e.data.loading);
+            };
+            itemLoader.addEventListener('loadingchange', loadingchange);
+            return () => {
+                itemLoader.removeEventListener('loadingchange', loadingchange);
+            };
+        }
+    }, [itemLoader]);
+
+    useEffect(() => {
+        const start_url = selectObject ? selectObject.start_url : '';
+        if (start_url) {
+            const abortController = new AbortController();
+
+            (async () => {
+                const imgUrl = await itemLoader.loadItem(start_url, selectObject, {signal: abortController.signal});
+                setImgUrl(imgUrl);
+            })();
+
+            return () => {
+                abortController.abort();
+            };
+        }
+    }, [selectObject]);
+
     return (
         <div className={styles.equipment}>
             <div className={classnames(
@@ -282,6 +335,7 @@ export const Equipment = () => {
                         ]}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
+                        loading={loading}
                         onMouseEnter={onMouseEnter}
                         onMouseDown={onMouseDown}
                         onDragStart={onDragStart}
@@ -305,6 +359,7 @@ export const Equipment = () => {
                         ]}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
+                        loading={loading}
                         onMouseEnter={onMouseEnter}
                         onMouseDown={onMouseDown}
                         onDragStart={onDragStart}
@@ -324,6 +379,7 @@ export const Equipment = () => {
                         ]}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
+                        loading={loading}
                         onMouseEnter={onMouseEnter}
                         onMouseDown={onMouseDown}
                         onDragStart={onDragStart}
@@ -343,6 +399,7 @@ export const Equipment = () => {
                         ]}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
+                        loading={loading}
                         onMouseEnter={onMouseEnter}
                         onMouseDown={onMouseDown}
                         onDragStart={onDragStart}
@@ -385,9 +442,10 @@ export const Equipment = () => {
 
             <MegaHotBox
                 open={open && !!selectObject}
+                loading={loading}
                 name={selectObject ? selectObject.name : null}
                 description={selectObject ? selectObject.description : null}
-                start_url={selectObject ? selectObject.start_url : ''}
+                imgUrl={imgUrl}
                 onActivate={onDoubleClick(selectObject)}
                 onClose={onMouseDown(selectObject)}
             />
