@@ -196,7 +196,7 @@ class ItemLoader extends EventTarget {
     async loadItem(url, value, {signal = null} = {}) {
         {
             this.loading = true;
-            this.dispatchEvent(new MessageEvent('loading', {
+            this.dispatchEvent(new MessageEvent('loadingchange', {
                 data: {
                     loading: this.loading,
                 },
@@ -224,7 +224,7 @@ class ItemLoader extends EventTarget {
         const result = await promise;
         {
             this.loading = false;
-            this.dispatchEvent(new MessageEvent('loading', {
+            this.dispatchEvent(new MessageEvent('loadingchange', {
                 data: {
                     loading: this.loading,
                 },
@@ -252,7 +252,7 @@ export const Equipment = () => {
     const { state, setState } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
-    const [ spritesheet, setSpritesheet ] = useState(null);
+    // const [ spritesheet, setSpritesheet ] = useState(null);
     const [ faceIndex, setFaceIndex ] = useState(1);
     const [ claims, setClaims ] = useState([]);
     const [ itemLoader, setItemLoader ] = useState(() => new ItemLoader({

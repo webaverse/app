@@ -42,6 +42,25 @@
 
 /* */
 
+.megaHotBox .hoverableCard .placeholderImgWrap {
+  position: absolute;
+  width: 300px;
+  height: 420px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.megaHotBox .hoverableCard .placeholderImgWrap:not(.loading) {
+  visibility: hidden;
+}
+.megaHotBox .hoverableCard .placeholderImgWrap .placeholderImg {
+  width: 100px;
+  height: 100px;
+  opacity: 0.2;
+}
+
+/* */
+
 .megaHotBox .name,
 .megaHotBox .description {
   padding: 5px 20px;
