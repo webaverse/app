@@ -53,6 +53,8 @@ const localQuaternion4 = new Quaternion();
 const localQuaternion5 = new Quaternion();
 const localQuaternion6 = new Quaternion();
 
+const identityQuaternion = new Quaternion();
+
 let animations;
 let animationStepIndices;
 // let animationsBaseModel;
@@ -1134,6 +1136,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           boneName,
           isTop,
           isPosition,
+          isArm,
         } = spec;
 
         _handleDefault(spec);
@@ -1148,7 +1151,16 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           if (boneName === 'Left_arm' || boneName === 'Right_arm') {
             dst.fromArray(v2);
           } else {
-            dst.premultiply(localQuaternion2.fromArray(v2));
+            // if (boneName === 'Left_elbow' || boneName === 'Right_elbow') {
+            // if (['Left_elbow', 'Right_elbow', 'Left_arm', 'Right_arm', 'Left_shoulder', 'Right_shoulder'].includes(boneName)) {
+            if (isArm) {
+              dst
+                .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
+                .premultiply(localQuaternion2.fromArray(v2));
+            } else {
+              dst
+                .premultiply(localQuaternion2.fromArray(v2));
+            }
           }
 
           // // #version 2
