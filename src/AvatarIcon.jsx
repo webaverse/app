@@ -11,6 +11,7 @@ import {
 } from '../player-stats.js';
 
 import styles from './AvatarIcon.module.css';
+import {PlaceholderImg} from './PlaceholderImg.jsx';
 import { localPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
 import cameraManager from '../camera-manager.js'
@@ -19,11 +20,6 @@ import * as sounds from '../sounds.js'
 const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;
 
-const PlaceholderImg = () => {
-  return (
-    <img className={styles.placeholderImg} src="./images/arc.svg" />
-  );
-};
 const CharacterIcon = () => {
   const [loaded, setLoaded] = useState(false);
   const canvasRef = useRef();
@@ -74,7 +70,7 @@ const CharacterIcon = () => {
                 height={characterIconSize * pixelRatio}
                 ref={canvasRef}
               />
-              <PlaceholderImg />
+              <PlaceholderImg className={styles.placeholderImg} />
               <div className={styles.meta}>
                   <div className={styles.text}>
                       <div className={styles.background} />

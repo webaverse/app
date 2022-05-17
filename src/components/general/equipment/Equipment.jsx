@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import styles from './equipment.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
+import {EquipmentPopover} from '../../play-mode/equipment-popover';
 import { Spritesheet } from '../spritesheet';
 import game from '../../../../game.js';
 import {transparentPngUrl} from '../../../../constants.js';
@@ -99,6 +100,8 @@ const EquipmentItem = ({
                 <div className={styles.name}>{object?.name}</div>
                 <div className={styles.level}>Lv. {object?.level}</div>
             </div>
+
+            {selected? <EquipmentPopover /> : null}
 
         </div>
     );
@@ -379,8 +382,9 @@ export const Equipment = () => {
             </div>
 
             <MegaHotBox
-                open={open}
-                // spritesheet={spritesheet}
+                open={open && !!selectObject}
+                name={selectObject ? selectObject.name : null}
+                description={selectObject ? selectObject.description : null}
                 start_url={selectObject ? selectObject.start_url : ''}
             />
         </div>
