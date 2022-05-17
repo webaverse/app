@@ -227,6 +227,8 @@ export default (app, component) => {
     }
     app.updateMatrixWorld();
 
+    // console.log(window.logVector4(app.quaternion));
+
     // console.log('copy bone attachment', app, app.position.toArray().join(','), bone);
   };
   const frame = metaversefile.useFrame(({timestamp, timeDiff}) => {
