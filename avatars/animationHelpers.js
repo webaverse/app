@@ -1130,12 +1130,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         if (isTop) {
-          // #version 1
           if (boneName === 'Left_arm' || boneName === 'Right_arm') {
             dst.fromArray(v2);
           } else {
-            // if (boneName === 'Left_elbow' || boneName === 'Right_elbow') {
-            // if (['Left_elbow', 'Right_elbow', 'Left_arm', 'Right_arm', 'Left_shoulder', 'Right_shoulder'].includes(boneName)) {
             if (isArm) {
               dst
                 .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
@@ -1145,25 +1142,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
                 .premultiply(localQuaternion2.fromArray(v2));
             }
           }
-
-          // // #version 2
-          // if (['Spine', 'Chest', 'UpperChest', 'Neck', 'Head'].includes(boneName)) {
-          //   dst.premultiply(localQuaternion2.fromArray(v2));
-          // } else {
-          //   dst.fromArray(v2);
-          // }
-
-          //
-
-          // if (isPosition) {
-          //   dst.fromArray(v2);
-          // } else {
-          //   dst.premultiply(localQuaternion2.fromArray(v2));
-          //   // dst.multiply(localQuaternion2.fromArray(v2));
-          // }
         }
-
-        // _clearXZ(dst, isPosition);
       };
     }
     return _handleDefault;
