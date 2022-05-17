@@ -9,44 +9,41 @@ export class ItemLoader extends EventTarget {
       this.cache = new Map();
       this.promiseCache = new Map();
   }
+  #setLoading(loading) {
+      this.loading = loading;
+      this.dispatchEvent(new MessageEvent('loadingchange', {
+          data: {
+              loading,
+          },
+      }));
+  }
   async loadItem(url, value, {signal = null} = {}) {
-      {
-          this.loading = true;
-          this.dispatchEvent(new MessageEvent('loadingchange', {
-              data: {
-                  loading: this.loading,
-              },
-          }));
-      }
+      this.#setLoading(true);
 
-      let promise = this.promiseCache.get(url);
-      if (!promise) {
-          promise = this.loadFn(url, value, {signal})
-              .catch(err => {
-                  // console.warn(err);
-                  return null;
-              })
-              .then(result => {
-                  signal.removeEventListener('abort', abort);
-                  return result;
-              });
-          this.promiseCache.set(url, promise);
-          const abort = () => {
-              this.promiseCache.delete(url);
-          };
-          signal.addEventListener('abort', abort);
-      }
+      try {
+        let promise = this.promiseCache.get(url);
+        if (!promise) {
+            promise = this.loadFn(url, value, {signal})
+                .catch(err => {
+                    // console.warn(err);
+                    return null;
+                })
+                .then(result => {
+                    signal.removeEventListener('abort', abort);
+                    return result;
+                });
+            this.promiseCache.set(url, promise);
+            const abort = () => {
+                this.promiseCache.delete(url);
+            };
+            signal.addEventListener('abort', abort);
+        }
 
-      const result = await promise;
-      {
-          this.loading = false;
-          this.dispatchEvent(new MessageEvent('loadingchange', {
-              data: {
-                  loading: this.loading,
-              },
-          }));
+        const result = await promise;
+        return result;
+      } finally {
+        this.#setLoading(false);
       }
-      return result;
   }
   destroy() {
       for (const url of this.promiseCache.keys()) {
