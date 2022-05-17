@@ -202,6 +202,7 @@ export const MapGen = () => {
     const [text, setText] = useState('');
     const [haloMeshApp, setHaloMeshApp] = useState(null);
     const [silksMeshApp, setSilksMeshApp] = useState(null);
+    const [flareMeshApp, setFlareMeshApp] = useState(null);
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
     const canvasRef = useRef();
@@ -383,6 +384,28 @@ export const MapGen = () => {
 
                 case 186: { // ;
 
+                  if (!flareMeshApp) {
+                    const flareMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['flare'];
+                      await flareMeshApp.addModule(m);
+                    })();
+                    scene.add(flareMeshApp);
+
+                    setFlareMeshApp(flareMeshApp);
+                  } else {
+                    flareMeshApp.parent.remove(flareMeshApp);
+                    flareMeshApp.destroy();
+
+                    setFlareMeshApp(null);
+                  }
+                
+                  return false;
+
+                }
+                case 222: { // '
+
                   (async () => {
                     const chunkWorldSize = new THREE.Vector3(64, 64, 64);
                     const chunkWorldResolution = new THREE.Vector2(2048, 2048);
@@ -498,7 +521,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel, haloMeshApp, silksMeshApp, magicMeshApp, limitMeshApp ]);
+    }, [ state.openedPanel, haloMeshApp, silksMeshApp, flareMeshApp, magicMeshApp, limitMeshApp ]);
 
     // resize
     useEffect(() => {
