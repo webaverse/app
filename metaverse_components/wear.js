@@ -224,10 +224,6 @@ export default (app, component) => {
       app.scale.multiply(localVector.fromArray(scale));
     }
     app.updateMatrixWorld();
-
-    // console.log(window.logVector4(app.quaternion));
-
-    // console.log('copy bone attachment', app, app.position.toArray().join(','), bone);
   };
   const frame = metaversefile.useFrame(({timestamp, timeDiff}) => {
     if (wearSpec && player.avatar) {
