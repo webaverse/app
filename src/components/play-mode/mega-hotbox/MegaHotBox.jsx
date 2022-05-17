@@ -6,14 +6,55 @@ import { PlaceholderImg } from '../../../PlaceholderImg';
 
 // const width = 400;
 
+const ImageBitmapCanvas = ({
+  imageBitmap = null,
+  rotateX = 0,
+  rotateY = 0,
+  flip = false,
+  hovered = false,
+  animate = false,
+}) => {
+  const canvasRef = useRef();
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (imageBitmap) {
+        ctx.drawImage(imageBitmap, 0, 0);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    } 
+  }, [canvasRef, imageBitmap]);
+  
+  return imageBitmap ? (
+    <canvas
+      width={imageBitmap.width}
+      height={imageBitmap.height}
+      className={
+        classnames(
+          styles.image,
+          hovered ? styles.hovered : null,
+          animate ? styles.animate : null,
+        )
+      }
+      style={{
+        transform: `rotateY(${(rotateY + (flip ? Math.PI : 0)).toFixed(8)}rad) rotateX(${rotateX.toFixed(8)}rad)`,
+      }}
+      ref={canvasRef}
+    />
+  ) : null;
+}
+
 const HoverableCard = ({
-  imgUrl = '',
+  imageBitmap = null,
   // open = false,
 }) => {
-  const [hovered, setHovered] = useState(false);
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
   const [flip, setFlip] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const [animate, setAnimate] = useState(false);
 
   /* const revokeObjectUrl = () => {
@@ -48,10 +89,10 @@ const HoverableCard = ({
 
   useEffect(() => {
     // console.log('check', !imgUrl, !!flip);
-    if (!imgUrl && flip) {
+    if (!imageBitmap && flip) {
       setFlip(false);
     }
-  }, [imgUrl, flip]);
+  }, [imageBitmap, flip]);
 
   return (
     <div
@@ -79,28 +120,19 @@ const HoverableCard = ({
       <div
         className={classnames(
           styles.placeholderImgWrap,
-          imgUrl ? null : styles.loading,
+          imageBitmap ? null : styles.loading,
         )}
       >
         <PlaceholderImg className={styles.placeholderImg} src='./images/arc-white.svg' />
       </div>
-      {imgUrl ? (
-        <img
-          src={imgUrl}
-          className={
-            classnames(
-              styles.image,
-              hovered ? styles.hovered : null,
-              animate ? styles.animate : null,
-            )
-          }
-          style={{
-            transform: `rotateY(${(rotateY + (flip ? Math.PI : 0)).toFixed(8)}rad) rotateX(${rotateX.toFixed(8)}rad)`,
-          }}
-          // onLoad={revokeObjectUrl}
-          // onError={revokeObjectUrl}
-        />
-      ) : null}
+      <ImageBitmapCanvas
+        imageBitmap={imageBitmap}
+        rotateX={rotateX}
+        rotateY={rotateY}
+        flip={flip}
+        hovered={hovered}
+        animate={animate}
+      />
     </div>
   );
 };
@@ -109,8 +141,7 @@ export const MegaHotBox = ({
   open = true,
   name = '',
   description = '',
-  imgUrl = '',
-  loading = false,
+  imageBitmap = null,
   onActivate = null,
   onClose = null,
 }) => {
@@ -119,7 +150,7 @@ export const MegaHotBox = ({
         <div className={ styles.box } />
 
         <HoverableCard
-          imgUrl={imgUrl}
+          imageBitmap={imageBitmap}
         />
 
         <div className={ styles.label }>
