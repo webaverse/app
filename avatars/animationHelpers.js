@@ -1143,15 +1143,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const t2 = (now / 1000) % holdAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        dst.fromArray(v2);
-
-        // if (isTop) {
-        //   if (isPosition) {
-        //     dst.fromArray(v2);
-        //   } else {
-        //     dst.premultiply(localQuaternion2.fromArray(v2));
-        //   }
-        // }
+        if (isTop) {
+          if (isPosition) {
+            dst.fromArray(v2);
+          } else {
+            dst.premultiply(localQuaternion2.fromArray(v2));
+          }
+        }
 
         // _clearXZ(dst, isPosition);
       };
