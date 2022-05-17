@@ -192,7 +192,7 @@ export default (app, component) => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
     const boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
 
-    // lerp app.position to average position/quaternion/scale of boneAttachments.
+    // lerp app's transform to average position/quaternion/scale of boneAttachments.
     let count = 0;
     boneAttachments.forEach((boneAttachment, i) => {
       const boneName = Avatar.modelBoneRenames[boneAttachment];
