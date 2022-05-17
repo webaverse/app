@@ -36,7 +36,6 @@ import {localPlayer} from './players.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
-window.zTargeting = zTargeting;
 
 // const {contractNames} = metaversefileConstants;
 
@@ -498,7 +497,6 @@ let lastHitTimes = new WeakMap();
 const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
-  // console.log(cameraManager.focus, zTargeting?.focusTargetReticle?.position?.x, zTargeting?.focusTargetReticle?.position?.y, zTargeting?.focusTargetReticle?.position?.z);
 
   const _handlePush = () => {
     if (gameManager.canPush()) {

@@ -21,15 +21,7 @@
         0,
         0
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/street/"
-    },
-    {
-      "position": [
-        -20,
-        30,
-        -30
-      ],
-      "start_url": "http://localhost/lib/webaverse_resource/floating-island/"
+      "start_url": "https://webaverse.github.io/street-base/"
     },
     {
       "position": [
@@ -37,7 +29,23 @@
         0,
         0
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/skybox/"
+      "start_url": "https://webaverse.github.io/street/"
+    },
+    {
+      "position": [
+        -20,
+        30,
+        -30
+      ],
+      "start_url": "https://webaverse.github.io/floating-island/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/skybox/"
     },
     {
       "position": [
@@ -45,7 +53,7 @@
         0,
         -2
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/mirror/"
+      "start_url": "https://webaverse.github.io/mirror/"
     },
     {
       "position": [
@@ -53,7 +61,7 @@
         0,
         -30
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/shield/index.js"
+      "start_url": "https://avaer.github.io/shield/index.js"
     },
     {
       "position": [
@@ -98,7 +106,7 @@
         2
       ],
       "physics": false,
-      "start_url": "http://localhost/lib/webaverse_resource/sakura/index.glbb",
+      "start_url": "https://avaer.github.io/sakura/index.glbb",
       "dynamic": true
     },
     {
@@ -114,7 +122,7 @@
         0.7071067811865475
       ],
       "physics": false,
-      "start_url": "http://localhost/lib/webaverse_resource/rainbow-dash/",
+      "start_url": "https://avaer.github.io/rainbow-dash/",
       "dynamic": true
     },
     {
@@ -129,7 +137,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/homespace/.metaversefile"
+      "start_url": "https://webaverse.github.io/homespace/.metaversefile"
     },
     {
       "position": [
@@ -143,8 +151,8 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/street-assets/station.glb",
-      "physics_url": "http://localhost/lib/webaverse_resource/street-assets/station.bin"
+      "start_url": "https://webaverse.github.io/street-assets/station.glb",
+      "physics_url": "https://webaverse.github.io/street-assets/station.bin"
     },
     {
       "position": [
@@ -158,7 +166,7 @@
         0,
         1
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/stacks/index.js"
+      "start_url": "https://webaverse.github.io/stacks/index.js"
     },
     {
       "position": [
@@ -172,27 +180,32 @@
         0,
         1
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/parcels/index.js"
+      "start_url": "https://webaverse.github.io/parcels/index.js"
     },
     {
       "position": [-9, 0, -1],
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
-      "start_url": "http://localhost/lib/webaverse_resource/chest/"
+      "start_url": "https://webaverse.github.io/chest/"
     },
     {
       "position": [-2, 1, -1],
       "quaternion": [0, 0, 0, 1],
-      "start_url": "http://localhost/lib/webaverse_resource/poster/.metaversefile"
+      "start_url": "https://avaer.github.io/poster/.metaversefile"
     },
     {
-      "position": [-1, 1, -1],
-      "quaternion": [0, 0, 0, 1],
-      "start_url": "http://localhost/lib/webaverse_resource/arrow-loader/"
+      "position": [-5, 4, -6],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://avaer.github.io/physicscube/"
     },
     {
       "position": [-2, 1, 1],
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
-      "start_url": "http://localhost/lib/webaverse_resource/sword/"
+      "start_url": "https://webaverse.github.io/sword/"
     },
     {
       "position": [-2, 1, 2],
