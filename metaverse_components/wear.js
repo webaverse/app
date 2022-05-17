@@ -10,7 +10,6 @@ import npcManager from '../npc-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 
 export default (app, component) => {
@@ -204,9 +203,9 @@ export default (app, component) => {
             .decompose(app.position, app.quaternion, app.scale);
           count++;
         } else {
-          const t = 1 / (count + 1);
           bone.matrixWorld
             .decompose(localVector, localQuaternion, localVector2);
+          const t = 1 / (count + 1);
           app.position.lerp(localVector, t);
           app.quaternion.slerp(localQuaternion, t);
           app.scale.lerp(localVector2, t);
@@ -218,13 +217,13 @@ export default (app, component) => {
     });
 
     if (Array.isArray(position)) {
-      app.position.add(localVector3.fromArray(position).applyQuaternion(app.quaternion));
+      app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
     }
     if (Array.isArray(quaternion)) {
       app.quaternion.multiply(localQuaternion.fromArray(quaternion));
     }
     if (Array.isArray(scale)) {
-      app.scale.multiply(localVector3.fromArray(scale));
+      app.scale.multiply(localVector.fromArray(scale));
     }
     app.updateMatrixWorld();
 
