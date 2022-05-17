@@ -1,6 +1,7 @@
 import React, {useState, useRef, useEffect} from 'react';
 import classnames from 'classnames';
 import styles from './MegaHotBox.module.css';
+import { BigButton } from '../../../BigButton';
 
 import {generateObjectUrlCard} from '../../../../card-generator.js';
 
@@ -101,6 +102,8 @@ export const MegaHotBox = ({
   name = '',
   description = '',
   start_url = '',
+  onActivate = null,
+  onClose = null,
 }) => {
     const [imgUrl, setImgUrl] = useState(null);
 
@@ -130,6 +133,21 @@ export const MegaHotBox = ({
           <div className={ styles.background } />
           <div className={ styles.name }>{name}</div>
           <div className={ styles.description }>{description}</div>
+        </div>
+        <div className={ styles.buttons }>
+          <BigButton
+            highlight={false}
+            onClick={e => {
+              onActivate && onActivate(e);
+              onClose && onClose(e);
+            }}
+          >Equip</BigButton>
+          <BigButton
+            highlight={false}
+            onClick={e => {
+              onClose && onClose(e);
+            }}
+          >Close</BigButton>
         </div>
       </div>
     );

@@ -250,7 +250,6 @@ export const Equipment = () => {
     useEffect(() => {
         const claimschange = e => {
             const {claims} = e.data;
-            console.log('set claims', claims);
             setClaims(claims.slice());
         };
         dropManager.addEventListener('claimschange', claimschange);
@@ -389,6 +388,8 @@ export const Equipment = () => {
                 name={selectObject ? selectObject.name : null}
                 description={selectObject ? selectObject.description : null}
                 start_url={selectObject ? selectObject.start_url : ''}
+                onActivate={onDoubleClick(selectObject)}
+                onClose={onMouseDown(selectObject)}
             />
         </div>
     );
