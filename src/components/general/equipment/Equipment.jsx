@@ -3,12 +3,13 @@ import classnames from 'classnames';
 import styles from './equipment.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
+import { ItemLoader } from '../../../ItemLoader.jsx';
 // import {EquipmentPopover} from '../../play-mode/equipment-popover';
 import { Spritesheet } from '../spritesheet';
 import game from '../../../../game.js';
-import {transparentPngUrl} from '../../../../constants.js';
+import { transparentPngUrl } from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
-import {mod} from '../../../../util.js';
+import { mod } from '../../../../util.js';
 import dropManager from '../../../../drop-manager';
 // import {generateObjectUrlCard} from '../../../../card-generator.js';
 import offscreenEngineManager from '../../../../offscreen-engine-manager.js';
@@ -183,86 +184,15 @@ const EquipmentItems = ({
     </div>);
 };
 
-class ItemLoader extends EventTarget { 
-    constructor({
-        loadFn,
-    }) {
-        super();
-
-        this.loadFn = loadFn;
-        this.loading = false;
-        this.cache = new Map();
-        this.promiseCache = new Map();
+const generateObjectUrlCardRemote = offscreenEngineManager.createFunction([
+    `\
+    import {generateObjectUrlCard} from './card-generator.js';
+    `,
+    async function(o) {
+        const imageBitmap = await generateObjectUrlCard(o);
+        return imageBitmap;
     }
-    async loadItem(url, value, {signal = null} = {}) {
-        {
-            this.loading = true;
-            this.dispatchEvent(new MessageEvent('loadingchange', {
-                data: {
-                    loading: this.loading,
-                },
-            }));
-        }
-
-        let promise = this.promiseCache.get(url);
-        if (!promise) {
-            promise = this.loadFn(url, value, {signal})
-                .catch(err => {
-                    // console.warn(err);
-                    return null;
-                })
-                .then(result => {
-                    signal.removeEventListener('abort', abort);
-                    return result;
-                });
-            this.promiseCache.set(url, promise);
-            const abort = () => {
-                this.promiseCache.delete(url);
-            };
-            signal.addEventListener('abort', abort);
-        }
-
-        const result = await promise;
-        {
-            this.loading = false;
-            this.dispatchEvent(new MessageEvent('loadingchange', {
-                data: {
-                    loading: this.loading,
-                },
-            }));
-        }
-        return result;
-    }
-    destroy() {
-        for (const url of this.promiseCache.keys()) {
-            URL.revokeObjectURL(url);
-        }
-    }
-}
-const itemLoadFn = async (url, value, {signal}) => {
-    const generateObjectUrlCardRemote = offscreenEngineManager.createFunction([
-        `\
-        import {generateObjectUrlCard} from './card-generator.js';
-        `,
-        async function(o) {
-            const imageBitmap = await generateObjectUrlCard(o);
-            return imageBitmap;
-
-        }
-    ]);
-
-    const {start_url} = value;
-    const imageBitmap = await generateObjectUrlCardRemote([
-        {
-            start_url,
-            width,
-        }
-    ], {
-        signal,
-    });
-    return imageBitmap;
-};
-
+]);
 export const Equipment = () => {
     const { state, setState } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
@@ -271,7 +201,18 @@ export const Equipment = () => {
     const [ faceIndex, setFaceIndex ] = useState(1);
     const [ claims, setClaims ] = useState([]);
     const [ itemLoader, setItemLoader ] = useState(() => new ItemLoader({
-        loadFn: itemLoadFn,
+        async loadFn(url, value, {signal}) {
+            const {start_url} = value;
+            const imageBitmap = await generateObjectUrlCardRemote([
+                {
+                    start_url,
+                    width,
+                }
+            ], {
+                signal,
+            });
+            return imageBitmap;
+        },
     }));
     const [ loading, setLoading ] = useState(false);
     const [ imageBitmap, setImageBitmap ] = useState(null);
