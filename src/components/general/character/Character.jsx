@@ -105,6 +105,23 @@ const Stat = ({
 
 //
 
+const BigButton = ({
+    highlight = false,
+    onClick,
+    children,
+}) => {
+    return (
+        <div
+            className={classnames(styles.bigButton, highlight ? styles.highlight : null)}
+            onClick={onClick}
+        >
+            {children}
+        </div>
+    );
+};
+
+//
+
 export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
     const { state, setState } = useContext( AppContext );
@@ -249,12 +266,10 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
                     </div>
                 </div>
 
-                <div
-                    className={classnames(styles.selectButton, characterSelectOpen ? styles.highlight : null)}
-                    onClick={onCharacterSelectClick}
-                >
-                    Character Select
-                </div>
+                <BigButton
+                  highlight={characterSelectOpen}
+                  onClick={onCharacterSelectClick}
+                >Character Select</BigButton>
 
             </div>
 

@@ -180,7 +180,7 @@
 
 /* */
 
-.characterPanel .selectButton {
+.bigButton {
   display: flex;
   margin: 15px 30px;
   margin-top: auto;
@@ -219,14 +219,14 @@
     color: #FFF;
   }
 }
-.characterPanel .selectButton {
+.bigButton {
   animation: highlight 1s step-end infinite;
 }
-.characterPanel .selectButton.highlight {
+.bigButton.highlight {
   animation: highlight2 0.15s step-end infinite;
   opacity: 1;
 }
-.characterPanel .selectButton:hover {
+.bigButton:hover {
   animation: none;
   opacity: 1;
   transition: opacity 1s cubic-bezier(0, 1, 0, 1);
