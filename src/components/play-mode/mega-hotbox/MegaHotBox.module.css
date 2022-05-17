@@ -1,22 +1,53 @@
-
 .megaHotBox {
   position: fixed;
   top: 0;
   right: 0;
+  width: 350px;
+  height: 100%;
+  background-image: linear-gradient(to right, transparent, #000 50%);
   transform: none;
-  transition: 1s transform cubic-bezier(0, 1, 0, 1);
-  pointer-events: none;
+  /* transition: 1s transform cubic-bezier(0, 1, 0, 1); */
+  /* pointer-events: none; */
+  color: #FFF;
 }
 
 .megaHotBox:not(.open) {
   transform: translateX(100%);
 }
 
-.megaHotBox .canvas {
-  width: 400px;
-  height: 100vh;
+/* */
+
+.megaHotBox .hoverableCard {
+  width: 300px;
+  height: 420px;
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+}
+.megaHotBox .hoverableCard .image {
+  width: inherit;
+  height: inherit;
+  padding: 20px;
+  transform-origin: 50% 50%;
+  transform: translateX(0);
+  transition: transform 0.15s cubic-bezier(0, 1, 0, 1);
+  backface-visibility: visible;
+}
+.megaHotBox .hoverableCard .image.hovered:not(.animate)
+{
+  transition: none;
 }
 
-.megaHotBox .image {
-  width: 300px;
+/* */
+
+.megaHotBox .name,
+.megaHotBox .description {
+  padding: 5px 20px;
+}
+.megaHotBox .name {
+  font-family: 'WinchesterCaps';
+  font-size: 32px;
+}
+.megaHotBox .description {
+  font-family: 'PlazaRegular';
+  font-size: 20px;
 }

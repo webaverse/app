@@ -1,0 +1,21 @@
+
+.equipmentPopover {
+  /* position: fixed;
+  top: 0;
+  right: 0; */
+  position: absolute;
+  left: 50px;
+  top: 50px;
+  background-color: #FFF;
+  border-radius: 10px;
+  transform: none;
+  transition: 1s transform cubic-bezier(0, 1, 0, 1);
+  pointer-events: none;
+}
+
+.equipmentPopover .placeholderImg {
+  width: 50px;
+  height: 50px;
+  /* object-fit: cover;
+  pointer-events: none; */
+}
