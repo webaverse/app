@@ -10,7 +10,8 @@ import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
 import dropManager from '../../../../drop-manager';
-import {generateObjectUrlCard} from '../../../../card-generator.js';
+// import {generateObjectUrlCard} from '../../../../card-generator.js';
+import offscreenEngineManager from '../../../../offscreen-engine-manager.js';
 
 //
 
@@ -68,7 +69,7 @@ const EquipmentItem = ({
     enabled,
     hovered,
     selected,
-    loading,
+    // loading,
     onMouseEnter,
     onMouseDown,
     onDragStart,
@@ -239,13 +240,27 @@ class ItemLoader extends EventTarget {
     }
 }
 const itemLoadFn = async (url, value, {signal}) => {
+    const generateObjectUrlCardRemote = offscreenEngineManager.createFunction([
+        `\
+        import {generateObjectUrlCard} from './card-generator.js';
+        `,
+        async function(o) {
+            const imageBitmap = await generateObjectUrlCard(o);
+            return imageBitmap;
+
+        }
+    ]);
+
     const {start_url} = value;
-    const imgUrl = await generateObjectUrlCard({
-        start_url,
-        width,
+    const imageBitmap = await generateObjectUrlCardRemote([
+        {
+            start_url,
+            width,
+        }
+    ], {
         signal,
     });
-    return imgUrl;
+    return imageBitmap;
 };
 
 export const Equipment = () => {
@@ -259,7 +274,7 @@ export const Equipment = () => {
         loadFn: itemLoadFn,
     }));
     const [ loading, setLoading ] = useState(false);
-    const [ imgUrl, setImgUrl ] = useState('');
+    const [ imageBitmap, setImageBitmap ] = useState(null);
 
     const selectedMenuIndex = mod(faceIndex, 4);
 
@@ -338,14 +353,14 @@ export const Equipment = () => {
             if (start_url) {
                 const abortController = new AbortController();
                 (async () => {
-                    const imgUrl = await itemLoader.loadItem(start_url, selectObject, {
+                    const imageBitmap = await itemLoader.loadItem(start_url, selectObject, {
                         signal: abortController.signal,
                     });
-                    if (imgUrl !== null) {
-                        setImgUrl(imgUrl);
+                    if (imageBitmap !== null) {
+                        setImageBitmap(imageBitmap);
                     }
                 })();
-                setImgUrl(null);
+                setImageBitmap(null);
                 return () => {
                     abortController.abort();
                 };
@@ -492,7 +507,7 @@ export const Equipment = () => {
                 loading={loading}
                 name={selectObject ? selectObject.name : null}
                 description={selectObject ? selectObject.description : null}
-                imgUrl={imgUrl}
+                imageBitmap={imageBitmap}
                 onActivate={onDoubleClick(selectObject)}
                 onClose={e => {
                     setSelectObject(null);
