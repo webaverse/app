@@ -2,6 +2,7 @@ import React, {useState, useRef, useEffect} from 'react';
 import classnames from 'classnames';
 import styles from './MegaHotBox.module.css';
 import { BigButton } from '../../../BigButton';
+import { PlaceholderImg } from '../../../PlaceholderImg';
 
 // const width = 400;
 
@@ -75,6 +76,14 @@ const HoverableCard = ({
         // setAnimate(true);
       }}
     >
+      <div
+        className={classnames(
+          styles.placeholderImgWrap,
+          imgUrl ? null : styles.loading,
+        )}
+      >
+        <PlaceholderImg className={styles.placeholderImg} src='./images/arc-white.svg' />
+      </div>
       {imgUrl ? (
         <img
           src={imgUrl}
@@ -101,13 +110,18 @@ export const MegaHotBox = ({
   name = '',
   description = '',
   imgUrl = '',
+  loading = false,
   onActivate = null,
   onClose = null,
 }) => {
     return (
       <div className={ classnames(styles.megaHotBox, open ? styles.open : null) } >
         <div className={ styles.box } />
-        <HoverableCard imgUrl={imgUrl} /*open={open}*/ />
+
+        <HoverableCard
+          imgUrl={imgUrl}
+        />
+
         <div className={ styles.label }>
           <div className={ styles.background } />
           <div className={ styles.name }>{name}</div>
