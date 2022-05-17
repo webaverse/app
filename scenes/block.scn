@@ -17,6 +17,41 @@
       }
     },
     {
+      "type": "application/wind",
+      "content": {
+        "windType": "directional",
+        "direction": [1, 0, 0],
+        "Radius": 10,
+        "mainPower": 1,
+        "noiseScale": 1,
+        "windFrequency": 1
+      }
+    },
+    {
+      "position": [
+        3,
+        0,
+        -2
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "/avatars/scillia_drophunter_v15_vian.vrm",
+      "components": [
+        {
+          "key": "npc",
+          "value": {
+            "name": "Scillia",
+            "voice": "Sweetie Belle",
+            "bio": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+          }
+        }
+      ]
+    },
+    {
       "position": [
         0,
         0,

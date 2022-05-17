@@ -9,6 +9,7 @@ const moduleUrls = {
   damageMesh: `./metaverse_modules/damage-mesh/`,
   ki: `./metaverse_modules/ki/`,
   sonicBoom: `./metaverse_modules/sonic-boom/`,
+  wind: `./metaverse_modules/wind/`,
   healEffect: `./metaverse_modules/heal-effect/`,
   filter: './metaverse_modules/filter/',
   barrier: './metaverse_modules/barrier/',
