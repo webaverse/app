@@ -1144,19 +1144,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         if (isTop) {
-          // // #version 1
-          // if (boneName === 'Left_arm' || boneName === 'Right_arm') {
-          //   dst.fromArray(v2);
-          // } else {
-          //   dst.premultiply(localQuaternion2.fromArray(v2));
-          // }
-
-          // #version 2
-          if (['Spine', 'Chest', 'UpperChest', 'Neck', 'Head'].includes(boneName)) {
-            dst.premultiply(localQuaternion2.fromArray(v2));
-          } else {
+          // #version 1
+          if (boneName === 'Left_arm' || boneName === 'Right_arm') {
             dst.fromArray(v2);
+          } else {
+            dst.premultiply(localQuaternion2.fromArray(v2));
           }
+
+          // // #version 2
+          // if (['Spine', 'Chest', 'UpperChest', 'Neck', 'Head'].includes(boneName)) {
+          //   dst.premultiply(localQuaternion2.fromArray(v2));
+          // } else {
+          //   dst.fromArray(v2);
+          // }
 
           //
 
