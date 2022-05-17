@@ -95,6 +95,8 @@ class CharacterFx {
     this.healEffect = null;
     this.hairMeshes = null;
     this.lastSSS = false;
+
+    this.windApp = null;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -268,7 +270,39 @@ class CharacterFx {
 
     };
     _updateHealEffectMesh();
+
+    const _updateWindApp = () => {
+      if(!this.windApp){
+        
+        this.windApp = metaversefile.createApp();
+          (async () => {
+            const {modules} = metaversefile.useDefaultModules();
+            const m = modules['wind'];
+            await this.windApp.addModule(m);
+            // // if scene already set windType but the windApp hasn't loaded
+            // if(this.windType){
+            //   this.windApp.playEffect(this.windType, this.player);
+            // }
+          })();
+          sceneLowPriority.add(this.windApp); 
+          // console.log(this.lastWindType , this.windType)
+      }
+      else if(this.windApp && this.lastWindType !== this.windType){
+        // console.log(this.player)
+        this.windApp.playEffect(this.windType, this.player);
+        this.lastWindType = this.windType;
+      }
+    };
+    _updateWindApp();
   }
+  // setWind(windType){    
+  //   this.windType = windType;
+  //   console.log(this.windType)
+  //   if(this.windApp){
+  //     this.windApp.playEffect(this.windType, this.player);
+  //   }
+      
+  // }
   destroy() {
     if (this.kiMesh) {
       sceneLowPriority.remove(this.kiMesh);
@@ -281,6 +315,10 @@ class CharacterFx {
     if (this.healEffect) {
       sceneLowPriority.remove(this.healEffect);
       this.healEffect = null;
+    }
+    if (this.windApp) {
+      sceneLowPriority.remove(this.windApp);
+      this.windApp = null;
     }
   }
 }
