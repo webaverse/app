@@ -8,11 +8,8 @@ import { PlaceholderImg } from '../../../PlaceholderImg';
 
 const ImageBitmapCanvas = ({
   imageBitmap = null,
-  rotateX = 0,
-  rotateY = 0,
-  flip = false,
-  hovered = false,
-  animate = false,
+  className,
+  style,
 }) => {
   const canvasRef = useRef();
 
@@ -32,16 +29,8 @@ const ImageBitmapCanvas = ({
     <canvas
       width={imageBitmap.width}
       height={imageBitmap.height}
-      className={
-        classnames(
-          styles.image,
-          hovered ? styles.hovered : null,
-          animate ? styles.animate : null,
-        )
-      }
-      style={{
-        transform: `rotateY(${(rotateY + (flip ? Math.PI : 0)).toFixed(8)}rad) rotateX(${rotateX.toFixed(8)}rad)`,
-      }}
+      className={className}
+      style={style}
       ref={canvasRef}
     />
   ) : null;
@@ -88,7 +77,6 @@ const HoverableCard = ({
   }, [animate]);
 
   useEffect(() => {
-    // console.log('check', !imgUrl, !!flip);
     if (!imageBitmap && flip) {
       setFlip(false);
     }
@@ -127,11 +115,16 @@ const HoverableCard = ({
       </div>
       <ImageBitmapCanvas
         imageBitmap={imageBitmap}
-        rotateX={rotateX}
-        rotateY={rotateY}
-        flip={flip}
-        hovered={hovered}
-        animate={animate}
+        className={
+          classnames(
+            styles.image,
+            hovered ? styles.hovered : null,
+            animate ? styles.animate : null,
+          )
+        }
+        style={{
+          transform: `rotateY(${(rotateY + (flip ? Math.PI : 0)).toFixed(8)}rad) rotateX(${rotateX.toFixed(8)}rad)`,
+        }}
       />
     </div>
   );
