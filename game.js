@@ -17,7 +17,7 @@ import dioramaManager from './diorama.js';
 import {world} from './world.js';
 // import * as universe from './universe.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
-import {teleportMeshes} from './teleport.js';
+// import {teleportMeshes} from './teleport.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
 import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
@@ -29,7 +29,6 @@ import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
-import {generateObjectUrlCard} from './card-generator.js';
 import * as sounds from './sounds.js';
 import {localPlayer} from './players.js';
 // import physicsManager from './physics-manager.js';
@@ -1649,21 +1648,6 @@ class GameManager extends EventTarget {
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
   pushPlayerUpdates = _pushPlayerUpdates;
-  async renderCard(object) { // HACK: this should be moved to a UI component
-    const start_url = object?.start_url;
-    if (start_url) {
-      // console.log('render card 1', start_url);
-      const cardImg = await generateObjectUrlCard({
-        start_url,
-      });
-      // console.log('render card 2', start_url, cardImg);
-      // const stats = procgen.generateStats();
-      /* console.log('render start url', {
-        start_url,
-        stats,
-      }); */
-    }
-  }
 }
 const gameManager = new GameManager();
 export default gameManager;

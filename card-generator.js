@@ -77,15 +77,19 @@ export const generateObjectUrlCard = async ({
   start_url,
   width = 300,
   // height = width,
+  signal = null,
 }) => {
   const app = await metaversefile.createAppAsync({
     start_url,
   });
-  return await generateObjectCard({
+  if (signal?.aborted) throw new Error();
+  const result = await generateObjectCard({
     app,
     width,
     // height,
   });
+  if (signal?.aborted) throw new Error();
+  return result;
 };
 export const generateObjectCard = async ({
   app,
@@ -254,13 +258,13 @@ export const generateCard = async ({
     }
   }
 
-  const blob = new Blob([svg.outerHTML], {
+  /* const blob = new Blob([svg.outerHTML], {
     type: 'image/svg+xml',
   });
   const objectUrl = URL.createObjectURL(blob);
-  return objectUrl;
+  return objectUrl; */
 
-  /* const image = await new Promise((accept, reject) => {
+  const image = await new Promise((accept, reject) => {
     const image = document.createElement('img');
     image.onload = () => {
       accept(image);
@@ -282,6 +286,6 @@ export const generateCard = async ({
       URL.revokeObjectURL(url);
     }
   });
-
-  return image; */
+  const imageBitmap = await createImageBitmap(image);
+  return imageBitmap;
 };
