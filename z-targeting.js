@@ -244,5 +244,6 @@ class ZTargeting extends THREE.Object3D {
   }
 }
 const zTargeting = new ZTargeting();
+window.zTargeting = zTargeting;
 scene.add(zTargeting);
 export default zTargeting;

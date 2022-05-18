@@ -277,8 +277,8 @@ class CameraManager extends EventTarget {
     }
   }
   getCameraOffset() {
-    // cameraOffset.x = -2;
-    // cameraOffset.y = -2.7;
+    cameraOffset.x = -2;
+    cameraOffset.y = -2.7;
     return cameraOffset;
   }
   handleMouseMove(e) {
@@ -490,14 +490,6 @@ class CameraManager extends EventTarget {
     this.cinematicScriptStartTime = performance.now();
   }
   updatePost(timestamp, timeDiff) {
-    
-    // if (localPlayer.combatTargetEnabled) {
-    //   this.targetQuaternion.setFromUnitVectors(
-    //     localVector3.set(0, 0, -1),
-    //     localVector.copy(window.npcPlayers[0].position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
-    //   )
-    // }
-
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
 
@@ -522,6 +514,48 @@ class CameraManager extends EventTarget {
         this.lastTimestamp = timestamp;
       };
       _setLerpDelta(camera.position, camera.quaternion);
+
+      //
+
+      const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
+
+      this.targetQuaternion.setFromUnitVectors(
+        localVector3.set(0, 0, -1),
+        localVector.copy(window.npcPlayers[0].position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
+      )
+
+      this.targetPosition.copy(localPlayer.position)
+      .sub(
+        localVector2.copy(avatarCameraOffset)
+          .applyQuaternion(this.targetQuaternion)
+      );
+
+      // look at npcPlayer's side
+      localVector.copy(localPlayer.position).sub(npcPlayers[0].position).setY(0)
+        .applyAxisAngle(new THREE.Vector3(0, 1, 0), - Math.PI / 2)
+        .normalize().multiplyScalar(2)
+        .add(npcPlayers[0].position)
+      // console.log(window.logVector3(localVector));
+
+      localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
+      this.targetQuaternion.setFromRotationMatrix(localMatrix);
+        
+      // // free camera.rotation.x
+      // localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
+      // localEuler.x = camera.rotation.x;
+      // // this.targetQuaternion.multiply(combatLockBiasQuaternion);
+      // this.targetQuaternion.setFromEuler(localEuler);
+
+      // move up whole viewport (move down camera)
+      this.targetPosition.add(
+        new THREE.Vector3(0, -2, 0).applyQuaternion(this.targetQuaternion)
+      );
+
+      camera.position.copy(this.targetPosition);
+      camera.quaternion.copy(this.targetQuaternion);
+
+      //
+
       camera.updateMatrixWorld();
     } else if (this.cinematicScript) {
       const timeDiff = timestamp - this.cinematicScriptStartTime;
@@ -670,27 +704,6 @@ class CameraManager extends EventTarget {
                 localVector2.copy(avatarCameraOffset)
                   .applyQuaternion(this.targetQuaternion)
               );
-
-            // // look at npcPlayer's side
-            // localVector.copy(localPlayer.position).sub(npcPlayers[0].position).setY(0)
-            //   .applyAxisAngle(new THREE.Vector3(0, 1, 0), - Math.PI / 2)
-            //   .normalize().multiplyScalar(2)
-            //   .add(npcPlayers[0].position)
-            // // console.log(window.logVector3(localVector));
-
-            // localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
-            // this.targetQuaternion.setFromRotationMatrix(localMatrix);
-              
-            // // // free camera.rotation.x
-            // // localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
-            // // localEuler.x = camera.rotation.x;
-            // // // this.targetQuaternion.multiply(combatLockBiasQuaternion);
-            // // this.targetQuaternion.setFromEuler(localEuler);
-
-            // // move up whole viewport (move down camera)
-            // this.targetPosition.add(
-            //   new THREE.Vector3(0, -2, 0).applyQuaternion(this.targetQuaternion)
-            // );
       
             break;
           }
