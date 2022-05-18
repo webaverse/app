@@ -6,7 +6,6 @@ import physicsManager from '../physics-manager.js';
 // import {glowMaterial} from '../shaders.js';
 // import easing from '../easing.js';
 import npcManager from '../npc-manager.js';
-import { localPlayer } from '../players.js';
 // import {rarityColors} from '../constants.js';
 
 const localVector = new THREE.Vector3();
@@ -231,10 +230,10 @@ export default (app, component) => {
 
     if (quaternion === 'upVectorHipsToPosition') {
       localEuler.order = 'YXZ';
-      localEuler.setFromQuaternion(localPlayer.quaternion);
+      localEuler.setFromQuaternion(player.quaternion);
       localEuler.x = 0;
       localEuler.z = 0;
-      const localPlayerQuaternion = localQuaternion2.setFromEuler(localEuler);
+      const playerQuaternion = localQuaternion2.setFromEuler(localEuler);
 
       const eyeVector = identityVector;
       const upVector = localVector3.copy(app.position).sub(hipsPostion).normalize();
@@ -248,7 +247,7 @@ export default (app, component) => {
         .lookAt(eyeVector, targetVector, upVector)
         .decompose(localVector, app.quaternion, localVector2);
 
-      app.quaternion.multiply(localPlayerQuaternion);
+      app.quaternion.multiply(playerQuaternion);
     }
 
     if (Array.isArray(position)) {
