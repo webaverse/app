@@ -5,8 +5,12 @@ const cssModulesPlugin = require('esbuild-css-modules-plugin');
 
 const wasmPlugin = require('./plugins/wasm.js');
 const metaverseFile = require('./plugins/metaversefile.js');
+const scn = require('./plugins/scn.js');
 
+const transferFolders = require('./copyDir.json');
 const transferFiles = require('./copyFiles.json');
+
+const {copyFileSync, copyFolderRecursiveSync} = require('./file-management.js');
 
 if (!fs.existsSync('./dist')) {
   fs.mkdirSync('./dist');
@@ -14,35 +18,6 @@ if (!fs.existsSync('./dist')) {
 
 if (!fs.existsSync('./dist/public')) {
   fs.mkdirSync('./dist/public');
-}
-
-function copyFileSync(source, target) {
-  var targetFile = target;
-  if (fs.existsSync(target)) {
-    if (fs.lstatSync(target).isDirectory()) {
-      targetFile = path.join(target, path.basename(source));
-    }
-  }
-  fs.writeFileSync(targetFile, fs.readFileSync(source), {});
-}
-
-function copyFolderRecursiveSync(source, target) {
-  var files = [];
-  var targetFolder = path.join(target, path.basename(source));
-  if (!fs.existsSync(targetFolder)) {
-    fs.mkdirSync(targetFolder);
-  }
-  if (fs.lstatSync(source).isDirectory()) {
-    files = fs.readdirSync(source);
-    files.forEach(function(file) {
-      var curSource = path.join(source, file);
-      if (fs.lstatSync(curSource).isDirectory()) {
-        copyFolderRecursiveSync(curSource, targetFolder);
-      } else {
-        copyFileSync(curSource, targetFolder);
-      }
-    });
-  }
 }
 
 (async () => {
@@ -67,37 +42,37 @@ function copyFolderRecursiveSync(source, target) {
         this: 'window',
       },
       external: [
-        'require',
-        'fs',
+        // 'require',
+        // 'fs',
         'path',
         'module',
         '/public/*',
         '/public/bin/*',
-        'pre.js',
       ],
+      drop: ['debugger'],
       target: ['chrome80', 'firefox72', 'safari13', 'edge80'],
       outdir: 'dist',
       watch: false,
       assetNames: 'assets/[name]-[hash]',
-      // loader: {
-      //   '.json': 'json',
-      //   '.png': 'file',
-      //   '.svg': 'text',
-      //   '.ttf': 'file',
-      //   '.woff': 'file',
-      //   '.woff2': 'file',
-      //   '.gltf': 'json',
-      //   '.glb': 'file',
-      //   '.jpg': 'file',
-      //   '.mp3': 'file',
-      //   '.mp4': 'file',
-      //   '.ogg': 'file',
-      //   '.wav': 'file',
-      //   '.m4a': 'file',
-      //   '.mov': 'file',
-      //   '.scn': 'json',
-      //   '.metaversefile': 'json',
-      // },
+      loader: {
+        // '.json': 'json',
+        '.png': 'file',
+        '.svg': 'text',
+        '.ttf': 'file',
+        '.woff': 'file',
+        '.woff2': 'file',
+        '.gltf': 'json',
+        '.glb': 'file',
+        '.jpg': 'file',
+        '.mp3': 'file',
+        '.mp4': 'file',
+        '.ogg': 'file',
+        '.wav': 'file',
+        '.m4a': 'file',
+        '.mov': 'file',
+        '.scn': 'json',
+        '.metaversefile': 'json',
+      },
       plugins: [
         cssModulesPlugin({
           inject: false,
@@ -106,12 +81,13 @@ function copyFolderRecursiveSync(source, target) {
           cssModulesOption: {},
           v2: true,
         }),
-        metaverseFile,
-        wasmPlugin,
+        // metaverseFile,
+        // wasmPlugin,
+        scn,
       ],
     });
 
-  const text = await esbuild.analyzeMetafile(result.metafile);
+  const report = await esbuild.analyzeMetafile(result.metafile);
 
   fs.readFile('./index.html', function(err, html) {
     if (err) {
@@ -126,8 +102,16 @@ function copyFolderRecursiveSync(source, target) {
     }, function(err) {});
   });
 
+  fs.writeFile('./build-system/report.txt', report, {
+    encoding: 'utf8',
+  }, function(err) {});
+
   transferFiles.forEach((file) => {
     copyFileSync(file, `./dist/${file.replace('./', '')}`);
+  });
+
+  transferFiles.forEach((folder) => {
+    copyFolderRecursiveSync(folder, './dist');
   });
 
   copyFolderRecursiveSync('./public', './dist');
