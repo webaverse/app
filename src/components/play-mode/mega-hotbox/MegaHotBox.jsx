@@ -3,38 +3,7 @@ import classnames from 'classnames';
 import styles from './MegaHotBox.module.css';
 import { BigButton } from '../../../BigButton';
 import { PlaceholderImg } from '../../../PlaceholderImg';
-
-// const width = 400;
-
-const ImageBitmapCanvas = ({
-  imageBitmap = null,
-  className,
-  style,
-}) => {
-  const canvasRef = useRef();
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (imageBitmap) {
-        ctx.drawImage(imageBitmap, 0, 0);
-      } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-    } 
-  }, [canvasRef, imageBitmap]);
-  
-  return imageBitmap ? (
-    <canvas
-      width={imageBitmap.width}
-      height={imageBitmap.height}
-      className={className}
-      style={style}
-      ref={canvasRef}
-    />
-  ) : null;
-}
+import { ImageBitmapCanvas } from '../../../ImageBitmapCanvas';
 
 const HoverableCard = ({
   imageBitmap = null,
