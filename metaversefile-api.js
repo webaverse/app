@@ -390,6 +390,9 @@ metaversefile.setApi({
   getMirrors() {
     return mirrors;
   },
+  getWinds() {
+    return world.winds;
+  },
   registerMirror(mirror) {
     mirrors.push(mirror);
   },
