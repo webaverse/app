@@ -19,30 +19,34 @@
 
 /* */
 
-.megaHotBox .hoverableCard {
+.megaHotBox .card {
   width: 300px;
   height: 420px;
+  margin: 20px;
   user-select: none;
+}
+.megaHotBox .card .imageBitmapCanvas {
+  width: inherit;
+  height: inherit;
   perspective: 1200px;
   perspective-origin: 50% 50%;
 }
-.megaHotBox .hoverableCard .image {
+.megaHotBox .card .imageBitmapCanvas .canvas {
   width: inherit;
   height: inherit;
   padding: 20px;
   transform-origin: 50% 50%;
   transform: translateX(0);
-  transition: transform 0.15s cubic-bezier(0, 1, 0, 1);
-  backface-visibility: visible;
+  transition: transform 200ms cubic-bezier(0, 1, 0, 1);
 }
-.megaHotBox .hoverableCard .image.hovered:not(.animate)
+.megaHotBox .card .imageBitmapCanvas .canvas.hovered:not(.animate)
 {
   transition: none;
 }
 
 /* */
 
-.megaHotBox .hoverableCard .placeholderImgWrap {
+.megaHotBox .card .placeholderImgWrap {
   position: absolute;
   width: 300px;
   height: 420px;
@@ -50,10 +54,10 @@
   justify-content: center;
   align-items: center;
 }
-.megaHotBox .hoverableCard .placeholderImgWrap:not(.loading) {
+.megaHotBox .card .placeholderImgWrap:not(.loading) {
   visibility: hidden;
 }
-.megaHotBox .hoverableCard .placeholderImgWrap .placeholderImg {
+.megaHotBox .card .placeholderImgWrap .placeholderImg {
   width: 100px;
   height: 100px;
   opacity: 0.2;
