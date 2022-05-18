@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
-import {NpcPlayer} from './character-controller.js';
+import {LocalPlayer} from './character-controller.js';
 import {localPlayer} from './players.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
@@ -29,7 +29,9 @@ class NpcManager extends EventTarget {
     scale,
     detached,
   }) {
-    const npcPlayer = new NpcPlayer();
+    const npcPlayer = new LocalPlayer({
+      npc: true,
+    });
     npcPlayer.name = name;
 
     let matrixNeedsUpdate = false;
