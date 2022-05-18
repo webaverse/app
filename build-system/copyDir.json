@@ -1,6 +1,9 @@
 [
     "./public/textures",
+    "./public/animations",
     "./public/sounds",
     "./public/images",
-    "./metaverse_modules"
+    "./metaverse_modules",
+    "./public/bin",
+    "./public/assets"
 ]
