@@ -47,6 +47,7 @@ import loadoutManager from "./loadout-manager.js";
 // import soundManager from './sound-manager.js';
 import { generateObjectUrlCard } from "./card-generator.js";
 import * as sounds from "./sounds.js";
+import { Vector3 } from "three";
 
 // const {contractNames} = metaversefileConstants;
 
@@ -1197,6 +1198,58 @@ const _gameUpdate = (timestamp, timeDiff) => {
           localVector,
           localPlayer.quaternion
         );
+
+        const players = metaversefileApi.useRemotePlayers();
+        for (let i = 0; i < players.length; i++) {
+          const distance = players[i].position.distanceTo(localPlayer.position);
+          if (distance <= hitRadius) {
+            const collisionId =
+              players[i].appManager.apps[0].physicsObjects[0].physicsId;
+            const result = metaversefileApi.getPairByPhysicsId(collisionId);
+            if (result) {
+              const [app, physicsObject] = result;
+              const lastHitTime = lastHitTimes.get(app) ?? 0;
+              const timeDiff = now - lastHitTime;
+              if (timeDiff > 1000) {
+                const damage =
+                  typeof useAction.damage === "number" ? useAction.damage : 10;
+                const hitDirection = app.position
+                  .clone()
+                  .sub(localPlayer.position);
+                hitDirection.y = 0;
+                hitDirection.normalize();
+
+                const hitPosition = localVector
+                  .copy(localPlayer.position)
+                  .add(
+                    localVector2
+                      .set(0, 0, -damageMeshOffsetDistance)
+                      .applyQuaternion(localPlayer.quaternion)
+                  )
+                  .clone();
+                localEuler.setFromQuaternion(camera.quaternion, "YXZ");
+                localEuler.x = 0;
+                localEuler.z = 0;
+                const hitQuaternion = new THREE.Quaternion().setFromEuler(
+                  localEuler
+                );
+
+                // const willDie = app.willDieFrom(damage);
+                app.hit(damage, {
+                  collisionId,
+                  physicsObject,
+                  hitPosition,
+                  hitQuaternion,
+                  hitDirection,
+                  // willDie,
+                });
+
+                lastHitTimes.set(app, now);
+              }
+            }
+          }
+        }
+
         if (collision) {
           const collisionId = collision.objectId;
           const result = metaversefileApi.getPairByPhysicsId(collisionId);
