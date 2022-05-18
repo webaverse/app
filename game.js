@@ -488,8 +488,6 @@ const _gameInit = () => {
 Promise.resolve()
   .then(_gameInit);
 
-// let lastDraggingRight = false;
-// let dragRightSpec = null;
 let lastActivated = false;
 let lastThrowing = false;
 let lastHitTimes = new WeakMap();
@@ -509,8 +507,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _handlePush();
 
   const _updateGrab = () => {
-    // moveMesh.visible = false;
-
     const renderer = getRenderer();
     const _isWear = o => localPlayer.findAction(action => action.type === 'wear' && action.instanceId === o.instanceId);
 
@@ -526,14 +522,12 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (collision) {
         const physicsId = collision.objectId;
         const object = metaversefileApi.getAppByPhysicsId(physicsId);
+        // console.log('got collision', physicsId, object);
         const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
-        // console.log('got object', physicsId, object);
         if (object && !_isWear(object) && physicsObject) {
           grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
           grabUseMesh.quaternion.copy(camera.quaternion);
-          // grabUseMesh.scale.copy(grabbedObject.scale);
           grabUseMesh.updateMatrixWorld();
-          //grabUseMesh.visible = true;
           grabUseMesh.targetApp = object;
           grabUseMesh.targetPhysicsId = physicsId;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
@@ -551,26 +545,13 @@ const _gameUpdate = (timestamp, timeDiff) => {
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
         grabbedObject.updateMatrixWorld();
 
-        /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
+        updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
           handSnapEnabled: true,
           physx,
           gridSnap: gameManager.getGridSnap(),
         });
-
-        /* grabbedObject.updateMatrixWorld();
         
-        grabUseMesh.position.copy(camera.position)
-          .add(
-            localVector.copy(grabbedObject.position)
-              .sub(camera.position)
-              .normalize()
-              .multiplyScalar(3)
-          );
-        grabUseMesh.quaternion.copy(camera.quaternion);
-        grabUseMesh.updateMatrixWorld();
-        // grabUseMesh.visible = true;
-        grabUseMesh.targetApp = grabbedObject; */
         grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
       }
     }
