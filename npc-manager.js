@@ -19,10 +19,11 @@ class NpcManager extends EventTarget {
     this.npcs = [];
   }
 
-  createNpc({
+  async createNpcAsync({
     name,
     npcApp,
-    avatarApp,
+    // avatarApp,
+    avatarUrl,
     position,
     quaternion,
     scale,
@@ -50,8 +51,7 @@ class NpcManager extends EventTarget {
 
     npcPlayer.npcApp = npcApp;
 
-    npcPlayer.setAvatarApp(avatarApp);
-    // npcPlayer.importAvatarApp(avatarApp);
+    await npcPlayer.setAvatarUrl(avatarUrl);
 
     if (!detached) {
       this.npcs.push(npcPlayer);
@@ -168,22 +168,7 @@ class NpcManager extends EventTarget {
         json = await res.json();
         if (!live) return;
 
-        const vrmApp = await metaversefile.createAppAsync({
-          start_url: json.avatarUrl,
-          position: app.position,
-          quaternion: app.quaternion,
-          scale: app.scale,
-        });
-
-        {
-          app.position.set(0, 0, 0);
-          app.quaternion.identity();
-          app.scale.set(1, 1, 1);
-
-          app.add(vrmApp);
-          app.updateMatrixWorld();
-        }
-
+        const avatarUrl = json.avatarUrl;
         const npcName = json.name ?? 'Anon';
         const npcVoiceName = json.voice ?? 'Shining armor';
         const npcBio = json.bio ?? 'A generic avatar.';
@@ -193,19 +178,39 @@ class NpcManager extends EventTarget {
           npcWear = [npcWear];
         }
 
+        /* const vrmApp = await metaversefile.createAppAsync({
+          start_url: json.avatarUrl,
+          position: app.position,
+          quaternion: app.quaternion,
+          scale: app.scale,
+        }); */
+
         (async () => {
-          const position = vrmApp.position.clone()
-            .add(new THREE.Vector3(0, 1, 0));
-          const {quaternion, scale} = vrmApp;
-          const newNpcPlayer = npcManager.createNpc({
+          // const position = vrmApp.position.clone()
+          //   .add(new THREE.Vector3(0, 1, 0));
+          // const {quaternion, scale} = vrmApp;
+          const newNpcPlayer = await npcManager.createNpcAsync({
             name: npcName,
             npcApp: app,
-            avatarApp: vrmApp,
-            position,
-            quaternion,
-            scale,
+            // avatarApp: vrmApp,
+            avatarUrl,
+            wear: npcWear,
+            position: app.position.clone()
+              .add(new THREE.Vector3(0, 1, 0)),
+            quaternion: app.quaternion,
+            scale: app.scale,
             detached: npcDetached,
           });
+
+          const _addPlayerAvatarToApp = () => {
+            app.position.set(0, 0, 0);
+            app.quaternion.identity();
+            app.scale.set(1, 1, 1);
+  
+            // app.add(vrmApp);
+            app.updateMatrixWorld();
+          };
+          _addPlayerAvatarToApp();
 
           const _setVoiceEndpoint = () => {
             const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
