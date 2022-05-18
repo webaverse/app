@@ -16,6 +16,9 @@ const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
+
+const identityVector = new THREE.Vector3();
 
 export default (app, component) => {
   window.tree = app;
@@ -222,28 +225,28 @@ export default (app, component) => {
       }
     });
 
-    const averagePosition = new THREE.Vector3().copy(app.position);
-    const hipsPostion = new THREE.Vector3();
+    const hipsPostion = localVector;
     player.avatar.foundModelBones.Hips.matrixWorld
-      .decompose(hipsPostion, localQuaternion, localVector);
+      .decompose(localVector, localQuaternion, localVector2);
 
     if (quaternion === 'upVectorHipsToPosition') {
       localEuler.order = 'YXZ';
       localEuler.setFromQuaternion(localPlayer.quaternion);
       localEuler.x = 0;
       localEuler.z = 0;
-      const localPlayerQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
+      const localPlayerQuaternion = localQuaternion2.setFromEuler(localEuler);
 
-      const eyeVector = new THREE.Vector3();
-      const upVector = localVector3.copy(averagePosition).sub(hipsPostion).normalize();
-      const targetVector = new THREE.Vector3().set(0, 0, -1);
+      const eyeVector = identityVector;
+      const upVector = localVector3.copy(app.position).sub(hipsPostion).normalize();
+      const targetVector = localVector4.set(0, 0, -1);
       targetVector.applyQuaternion(localQuaternion.setFromUnitVectors(
         localVector.set(0, 1, 0),
         localVector2.copy(upVector).normalize(),
       ));
 
-      const matrix = new THREE.Matrix4().lookAt(eyeVector, targetVector, upVector);
-      matrix.decompose(localVector, app.quaternion, localVector2);
+      localMatrix
+        .lookAt(eyeVector, targetVector, upVector)
+        .decompose(localVector, app.quaternion, localVector2);
 
       app.quaternion.multiply(localPlayerQuaternion);
     }
