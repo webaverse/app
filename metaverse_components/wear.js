@@ -257,13 +257,15 @@ export default (app, component) => {
       targetVector.set(0, 0, -1);
       targetVector.applyQuaternion(localQuaternion.setFromUnitVectors(
         localVector.set(0, 1, 0),
-        localVector2.copy(upVector).setX(0).normalize(),
+        localVector2.copy(upVector).normalize(),
       ));
       // targetVector.applyQuaternion(localPlayerQuaternion);
       console.log(window.logVector3(targetVector));
 
       const matrix = new THREE.Matrix4().lookAt(eyeVector, targetVector, upVector);
       matrix.decompose(app.position, app.quaternion, app.scale);
+
+      // app.quaternion.premultiply(localPlayerQuaternion);
     }
 
     // app.quaternion.copy(averageQuaternion);
