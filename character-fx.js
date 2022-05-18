@@ -97,6 +97,8 @@ class CharacterFx {
     this.lastSSS = false;
 
     this.windApp = null;
+    this.winds = [];
+    this.lastWindsLength = 0;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -279,30 +281,28 @@ class CharacterFx {
             const {modules} = metaversefile.useDefaultModules();
             const m = modules['wind'];
             await this.windApp.addModule(m);
-            // // if scene already set windType but the windApp hasn't loaded
-            // if(this.windType){
-            //   this.windApp.playEffect(this.windType, this.player);
-            // }
           })();
           sceneLowPriority.add(this.windApp); 
-          // console.log(this.lastWindType , this.windType)
       }
-      else if(this.windApp && this.lastWindType !== this.windType){
-        // console.log(this.player)
-        this.windApp.playEffect(this.windType, this.player);
-        this.lastWindType = this.windType;
+      else if(this.windApp && this.lastWindsLength !== this.winds.length){
+        this.windApp.playEffect(this.winds, this.player);
+        this.lastWindsLength = this.winds.length;
       }
+      
     };
     _updateWindApp();
   }
-  // setWind(windType){    
-  //   this.windType = windType;
-  //   console.log(this.windType)
-  //   if(this.windApp){
-  //     this.windApp.playEffect(this.windType, this.player);
-  //   }
+  setWind(wind){    
+    
+    if(wind === null){
+      this.winds = []
+    }
+    else{
+      this.winds.push(wind);
+    }
+    console.log(this.winds);
       
-  // }
+  }
   destroy() {
     if (this.kiMesh) {
       sceneLowPriority.remove(this.kiMesh);

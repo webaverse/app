@@ -1,64 +1,50 @@
 import * as THREE from 'three';
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useInternals} = metaversefile;
-import {WebaverseShaderMaterial} from '../../materials.js';
-const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+const {useApp, useFrame} = metaversefile;
 
-const textureLoader = new THREE.TextureLoader();
 
 export default () => {
   let player = null;
-  let windType = null;
   const app = useApp();
-  const {camera} = useInternals();
-  let currentDir=new THREE.Vector3();
-    //################################################ trace narutoRun Time ########################################
-    {
-        let localVector = new THREE.Vector3();
-        useFrame(() => {
-            if(player !== null){
-                localVector.x=0;
-                localVector.y=0;
-                localVector.z=-1;
-                currentDir = localVector.applyQuaternion( player.quaternion );
-                currentDir.normalize();
-            }
+  let winds = null;
+//   let currentDir=new THREE.Vector3();
+//     //################################################ trace narutoRun Time ########################################
+//     {
+//         let localVector = new THREE.Vector3();
+//         useFrame(() => {
+//             if(player !== null){
+//                 localVector.x=0;
+//                 localVector.y=0;
+//                 localVector.z=-1;
+//                 currentDir = localVector.applyQuaternion( player.quaternion );
+//                 currentDir.normalize();
+//             }
             
             
-        });
-    }
-  app.playEffect = (type, p) =>{
-    console.log('wind type: ' + type)
+//         });
+//     }
+  app.playEffect = (w, p) =>{
+    //console.log('wind type: ' + w)
     player = p;
-    console.log(player)
-    windType = type;
+    //console.log(player)
+    winds = w;
   }
 
   {
         let currentModel = null;
         let originPos = [];
-        // let hairMeshes = [];
+        
         let localVector = new THREE.Vector3();
         let localVector2 = new THREE.Vector3();
         let localVector3 = new THREE.Vector3();
-        let tempPos = new THREE.Vector3();
-        let rot = new THREE.Vector3( 0, 1, 0 );
-        let initRot = Math.PI / 2;
-        const quaternion = new THREE.Quaternion();
+        
         const simplex = new SimplexNoise();
 
-        const noiseScale = 1;
-        const windFrequency = 1.5;
-        const mainPower = 1;
-        const windDirection = new THREE.Vector3(1, 0, 1);
+        
+        const windDirection = new THREE.Vector3();
+        const windPosition = new THREE.Vector3();
 
-        const sphereNoiseScale = 1;
-        const sphereWindFrequency = 10;
-        const sphereMainPower = 10;
-        const sphereWindDirection = new THREE.Vector3(1, 0, 1);
-        const spherePos = new THREE.Vector3(0, 0, 0); 
-        const sphereRadius = 5;
         useFrame(({timestamp}) => {
             if(player){
                 if(player.avatar && currentModel !== player.avatar.model.uuid){
@@ -79,40 +65,49 @@ export default () => {
                 }
                 const timeS = timestamp/1000;
                 if(player.avatar){
-                    
-                    const _handleDirectional = () =>{
+                    const _handleDirectional = (wind) =>{
                         const headPosition = localVector.setFromMatrixPosition(player.avatar.modelBoneOutputs.Head.matrixWorld);
+                        windDirection.x = wind.direction[0];
+                        windDirection.y = wind.direction[1];
+                        windDirection.z = wind.direction[2];
                         for (const springBones of player.avatar.springBoneManager.springBoneGroupList) {
                             let i = 0;
                             for (const o of springBones) {
-                                const t = timeS * windFrequency;
-                                const n = simplex.noise3d(originPos[i].x * noiseScale + t, originPos[i].y * noiseScale + t, originPos[i].z * noiseScale + t);
+                                const t = timeS * wind.windFrequency;
+                                const n = simplex.noise3d(originPos[i].x * wind.noiseScale + t, originPos[i].y * wind.noiseScale + t, originPos[i].z * wind.noiseScale + t);
                                 
                                 const gravityDir = localVector2.setFromMatrixPosition(o.bone.matrixWorld)
                                     .sub(headPosition)
                                     .normalize()
                                     .lerp(windDirection.normalize(), ((n + 1) / 2));
                                 o.gravityDir.copy(gravityDir);
-                                o.gravityPower = ((n + 1) / 2) * mainPower;
+                                o.gravityPower = ((n + 1) / 2) * wind.mainPower;
                                 i++
                             }
                         }
                     }
-                    const _handleSpherical = () =>{
-                        if(player.position.distanceTo(spherePos) <= sphereRadius){
+                    const _handleSpherical = (wind) =>{ 
+                        windPosition.x = wind.position[0];
+                        windPosition.y = wind.position[1];
+                        windPosition.z = wind.position[2];
+                        if(player.position.distanceTo(windPosition) <= wind.radius){
                             const headPosition = localVector.setFromMatrixPosition(player.avatar.modelBoneOutputs.Head.matrixWorld);
+                            windDirection.x = wind.direction[0];
+                            windDirection.y = wind.direction[1];
+                            windDirection.z = wind.direction[2];
                             for (const springBones of player.avatar.springBoneManager.springBoneGroupList) {
                                 let i = 0;
                                 for (const o of springBones) {
-                                    const t = timeS * sphereWindFrequency;
-                                    const n = simplex.noise3d(originPos[i].x * sphereNoiseScale + t, originPos[i].y * sphereNoiseScale + t, originPos[i].z * sphereNoiseScale + t);
+                                    const t = timeS * wind.windFrequency;
+                                   
+                                    const n = simplex.noise3d(originPos[i].x * wind.noiseScale + t, originPos[i].y * wind.noiseScale + t, originPos[i].z * wind.noiseScale + t);
                                     
                                     const gravityDir = localVector2.setFromMatrixPosition(o.bone.matrixWorld)
                                         .sub(headPosition)
                                         .normalize()
-                                        .lerp(sphereWindDirection.normalize(), ((n + 1) / 2));
+                                        .lerp(windDirection.normalize(), ((n + 1) / 2));
                                     o.gravityDir.copy(gravityDir);
-                                    o.gravityPower = ((n + 1) / 2) * sphereMainPower;
+                                    o.gravityPower = ((n + 1) / 2) * (wind.mainPower * ( 1 - player.position.distanceTo(windPosition) / wind.radius));
                                     i++
                                 }
                             }
@@ -140,24 +135,37 @@ export default () => {
                             }
                         }
                     }
-                    switch (windType) {
-                        case 'directional': {
-                            _handleDirectional();
-                            break;
+                    if(winds){
+                        for(const wind of winds){
+                            if(wind.windType === 'directional')
+                                _handleDirectional(wind);
                         }
-                        case 'spherical': {
-                            _handleSpherical();
-                            break;
+                        for(const wind of winds){
+                            if(wind.windType === 'spherical')
+                                _handleSpherical(wind);
                         }
-                        case 'ki': {
-                            _handleKi();
-                            break;
-                        }
-                        default: {
-                            _handleNull();
-                            break;
-                        }
+                        // for(const wind of winds){
+                        //     switch (wind) {
+                        //         case 'directional': {
+                        //             _handleDirectional();
+                        //             break;
+                        //         }
+                        //         case 'spherical': {
+                        //             _handleSpherical();
+                        //             break;
+                        //         }
+                        //         case 'ki': {
+                        //             _handleKi();
+                        //             break;
+                        //         }
+                        //         default: {
+                        //             _handleNull();
+                        //             break;
+                        //         }
+                        //     }
+                        // }
                     }
+                    
                     
                 }
             }
