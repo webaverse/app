@@ -265,8 +265,10 @@ export default (app, component) => {
       const matrix = new THREE.Matrix4().lookAt(eyeVector, targetVector, upVector);
       matrix.decompose(app.position, app.quaternion, app.scale);
 
-      // app.quaternion.premultiply(localPlayerQuaternion);
+      app.quaternion.multiply(localPlayerQuaternion);
     }
+
+    app.position.copy(averagePosition);
 
     // app.quaternion.copy(averageQuaternion);
 
