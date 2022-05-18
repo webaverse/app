@@ -1271,11 +1271,9 @@ class RemotePlayer extends InterpolatedPlayer {
     this.syncAvatar();
   }
 }
-class StaticUninterpolatedPlayer extends PlayerBase {
+/* class StaticUninterpolatedPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
-
-    UninterpolatedPlayer.init.apply(this, arguments);
 
     this.actions = [];
   }
@@ -1328,22 +1326,23 @@ class StaticUninterpolatedPlayer extends PlayerBase {
     }
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
-}
-class NpcPlayer extends StaticUninterpolatedPlayer {
+} */
+class NpcPlayer extends LocalPlayer {
   constructor(opts) {
     super(opts);
   
+    this.isLocalPlayer = false;
     this.isNpcPlayer = true;
-    this.avatarApp = null;
+    /* this.avatarApp = null;
     this.npcApp = null;
 
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
-    this.characterBehavior = new CharacterBehavior(this);
+    this.characterBehavior = new CharacterBehavior(this); */
   }
-  getAvatarApp() {
+  /* getAvatarApp() {
     return this.avatarApp;
   }
   setAvatarApp(app) {
@@ -1379,7 +1378,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
 
     super.destroy();
   }
-  updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
+  updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation; */
 }
 
 export {
