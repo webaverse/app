@@ -198,7 +198,6 @@ class NpcManager extends EventTarget {
             npcApp: app,
             // avatarApp: vrmApp,
             avatarUrl,
-            wear: npcWear,
             position: app.position.clone()
               .add(new THREE.Vector3(0, 1, 0)),
             quaternion: app.quaternion,
@@ -229,9 +228,10 @@ class NpcManager extends EventTarget {
           const _updateWearables = async () => {
             const wearablePromises = npcWear.map(wear => (async () => {
               const {start_url} = wear;
-              const app = await metaversefile.createAppAsync({
+              const app = await newNpcPlayer.appManager.addTrackedApp(start_url);
+              /* const app = await metaversefile.createAppAsync({
                 start_url,
-              });
+              }); */
               // if (!live) return;
 
               newNpcPlayer.wear(app);
