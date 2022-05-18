@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {localPlayer} from './players.js';
+import {getLocalPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
@@ -108,7 +108,7 @@ class Mob {
 
       let animation = null;
       this.updateFns.push((timestamp, timeDiff) => {
-        // console.log('update');
+        const localPlayer = getLocalPlayer();
         const timeDiffS = timeDiff / 1000;
         // console.log('do update');
 

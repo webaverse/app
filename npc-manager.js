@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
 import {LocalPlayer} from './character-controller.js';
-import {localPlayer} from './players.js';
+import {getLocalPlayer} from './players.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
@@ -82,6 +82,8 @@ class NpcManager extends EventTarget {
   }
 
   addNpcApp(app, srcUrl) {
+    const localPlayer = getLocalPlayer();
+
     let live = true;
     let json = null;
     let npcPlayer = null;

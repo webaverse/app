@@ -33,7 +33,7 @@ import loreAI from './ai/lore/lore-ai.js';
 import npcManager from './npc-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
-import {localPlayer, remotePlayers} from './players.js';
+import {getLocalPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
@@ -174,9 +174,11 @@ class App extends THREE.Object3D {
     });
   }
   wear() {
+    const localPlayer = getLocalPlayer();
     localPlayer.wear(this);
   }
   unwear() {
+    const localPlayer = getLocalPlayer();
     localPlayer.unwear(this);
   }
   use() {
@@ -197,6 +199,7 @@ const defaultModules = {
   modules,
 };
 
+const localPlayer = getLocalPlayer();
 const loreAIScene = loreAI.createScene(localPlayer);
 const _bindAppManagerToLoreAIScene = (appManager, loreAIScene) => {
   const bindings = new WeakMap();
@@ -480,6 +483,7 @@ metaversefile.setApi({
     recursion++;
     if (recursion === 1) {
       // scene.directionalLight.castShadow = false;
+      const localPlayer = getLocalPlayer();
       if (localPlayer.avatar) {
         wasDecapitated = localPlayer.avatar.decapitated;
         localPlayer.avatar.undecapitate();
@@ -490,6 +494,7 @@ metaversefile.setApi({
     recursion--;
     if (recursion === 0) {
       // console.log('was decap', wasDecapitated);
+      const localPlayer = getLocalPlayer();
       if (localPlayer.avatar && wasDecapitated) {
         localPlayer.avatar.decapitate();
         localPlayer.avatar.skeleton.update();
@@ -507,7 +512,7 @@ metaversefile.setApi({
     }
   },
   useLocalPlayer() {
-    return localPlayer;
+    return getLocalPlayer();
   },
   useRemotePlayer(playerId) {
     let player = remotePlayers.get(playerId);
@@ -854,6 +859,7 @@ metaversefile.setApi({
         matrixNeedsUpdate = true;
       }
       if (in_front) {
+        const localPlayer = getLocalPlayer();
         app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
         app.quaternion.copy(localPlayer.quaternion);
         app.scale.setScalar(1);
@@ -958,8 +964,9 @@ export default () => {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
   getAppByInstanceId(instanceId) {
-    let result = world.appManager.getAppByInstanceId(instanceId) ||
-      localPlayer.appManager.getAppByInstanceId(instanceId);
+    // local
+    const localPlayer = getLocalPlayer();
+    let result = world.appManager.getAppByInstanceId(instanceId) || localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return result;
     } else {
@@ -974,8 +981,8 @@ export default () => {
     }
   },
   getAppByPhysicsId(physicsId) {
-    let result = world.appManager.getAppByPhysicsId(physicsId) ||
-      localPlayer.appManager.getAppByPhysicsId(physicsId);
+    const localPlayer = getLocalPlayer();
+    let result = world.appManager.getAppByPhysicsId(physicsId) || localPlayer.appManager.getAppByPhysicsId(physicsId);
     if (result) {
       return result;
     } else {
@@ -990,8 +997,8 @@ export default () => {
     }
   },
   getPhysicsObjectByPhysicsId(physicsId) {
-    let result = world.appManager.getPhysicsObjectByPhysicsId(physicsId) ||
-      localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+    const localPlayer = getLocalPlayer();
+    let result = world.appManager.getPhysicsObjectByPhysicsId(physicsId) || localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
     if (result) {
       return result;
     } else {
@@ -1006,8 +1013,8 @@ export default () => {
     }
   },
   getPairByPhysicsId(physicsId) {
-    let result = world.appManager.getPairByPhysicsId(physicsId) ||
-      localPlayer.appManager.getPairByPhysicsId(physicsId);
+    const localPlayer = getLocalPlayer();
+    let result = world.appManager.getPairByPhysicsId(physicsId) || localPlayer.appManager.getPairByPhysicsId(physicsId);
     if (result) {
       return result;
     } else {

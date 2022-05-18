@@ -4,7 +4,7 @@ import {getRenderer, camera, scene} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
-import {localPlayer} from './players.js';
+import {getLocalPlayer} from './players.js';
 // import alea from './alea.js';
 // import * as sounds from './sounds.js';
 import {minFov, maxFov, midFov} from './constants.js';
@@ -432,6 +432,7 @@ class CameraManager extends EventTarget {
         cameraOffsetTargetZ = -1;
         cameraOffset.z = cameraOffsetTargetZ;
 
+        const localPlayer = getLocalPlayer();
         const targetPosition = localVector.copy(localPlayer.position)
           .add(localVector2.set(0, 0, -cameraOffsetTargetZ).applyQuaternion(localPlayer.quaternion));
         const targetQuaternion = localPlayer.quaternion;
@@ -474,6 +475,7 @@ class CameraManager extends EventTarget {
   updatePost(timestamp, timeDiff) {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
+    const localPlayer = getLocalPlayer();
 
     if (this.target) {
       const _setLerpDelta = (position, quaternion) => {

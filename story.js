@@ -21,7 +21,7 @@ import cameraManager from './camera-manager.js';
 import npcManager from './npc-manager.js';
 import {chatManager} from './chat-manager.js';
 import {mod} from './util.js';
-import {localPlayer} from './players.js';
+import {getLocalPlayer} from './players.js';
 import {alea} from './procgen/procgen.js';
 
 const localVector2D = new THREE.Vector2();
@@ -416,7 +416,7 @@ story.handleWheel = e => {
 
 story.listenHack = () => {
   const _startConversation = (comment, remotePlayer, done) => {
-    const localPlayer = metaversefile.useLocalPlayer();
+    const localPlayer = getLocalPlayer();
     currentConversation = new Conversation(localPlayer, remotePlayer);
     currentConversation.addEventListener('close', () => {
       currentConversation = null;
@@ -496,6 +496,7 @@ story.startCinematicIntro = () => {
   };
 
   const range = 30;
+  const localPlayer = getLocalPlayer();
   const center = localPlayer.position.clone()
     .add(
       new THREE.Vector3(0, range/4, 0)
