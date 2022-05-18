@@ -11,6 +11,7 @@ import {
 } from '../player-stats.js';
 
 import styles from './AvatarIcon.module.css';
+import {PlaceholderImg} from './PlaceholderImg.jsx';
 import { localPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
 import cameraManager from '../camera-manager.js'
@@ -69,7 +70,7 @@ const CharacterIcon = () => {
                 height={characterIconSize * pixelRatio}
                 ref={canvasRef}
               />
-              <img className={styles.placeholderImg} src="./images/arc.svg" />
+              <PlaceholderImg className={styles.placeholderImg} />
               <div className={styles.meta}>
                   <div className={styles.text}>
                       <div className={styles.background} />

@@ -96,20 +96,34 @@ export default _default_export_;`;
     })();
     
     const self = this;
-    async function callRemoteFn() {
-      const args = Array.from(arguments);
-
+    async function callRemoteFn(args = [], {
+      signal = null,
+    } = {}) {
       await loadPromise;
 
       const id = getRandomString();
-      self.port.postMessage({
-        method: 'callHandler',
-        id,
-        handlerId,
-        args,
-      });
-
+      const _postMessage = () => {
+        try {
+          self.port.postMessage({
+            method: 'callHandler',
+            id,
+            handlerId,
+            args,
+          });
+        } catch(err) {
+          console.warn('post message error', err);
+          throw err;
+        }
+      };
+      _postMessage();
       const result = await new Promise((accept, reject) => {
+        const cleanups = [];
+        const _cleanup = () => {
+          for (const cleanupFn of cleanups) {
+            cleanupFn();
+          }
+        };
+
         const message = e => {
           const {method, id: localId} = e.data;
           if (method === 'response' && localId === id) {
@@ -119,10 +133,25 @@ export default _default_export_;`;
             } else {
               reject(error);
             }
-            self.port.removeEventListener('message', message);
+            _cleanup();
           }
         };
         self.port.addEventListener('message', message);
+        cleanups.push(() => {
+          self.port.removeEventListener('message', message);
+        });
+
+        if (signal) {
+          const abort = () => {
+            // XXX we can post the abort to the worker process to make it stop faster
+            reject(new Error('abort'));
+            _cleanup();
+          };
+          signal.addEventListener('abort', abort);
+          cleanups.push(() => {
+            signal.removeEventListener('abort', abort);
+          });
+        }
       });
       return result;
     }

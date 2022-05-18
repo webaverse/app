@@ -76,21 +76,25 @@ const _previewImage = (image, width, height) => {
 export const generateObjectUrlCard = async ({
   start_url,
   width = 300,
-  height = 300,
+  // height = width,
+  signal = null,
 }) => {
   const app = await metaversefile.createAppAsync({
     start_url,
   });
-  return await generateObjectCard({
+  if (signal?.aborted) throw new Error();
+  const result = await generateObjectCard({
     app,
     width,
-    height,
+    // height,
   });
+  if (signal?.aborted) throw new Error();
+  return result;
 };
 export const generateObjectCard = async ({
   app,
   width = 300,
-  height = 300,
+  // height = width,
 }) => {
   const stats = generateStats(app.contentId);
   const {
@@ -128,7 +132,7 @@ export const generateObjectCard = async ({
     minterAvatarPreview,
     glyphImage,
   });
-  _previewImage(cardImg, width, height);
+  // _previewImage(cardImg, width, height);
   return cardImg;
 };
 
@@ -254,6 +258,12 @@ export const generateCard = async ({
     }
   }
 
+  /* const blob = new Blob([svg.outerHTML], {
+    type: 'image/svg+xml',
+  });
+  const objectUrl = URL.createObjectURL(blob);
+  return objectUrl; */
+
   const image = await new Promise((accept, reject) => {
     const image = document.createElement('img');
     image.onload = () => {
@@ -266,8 +276,7 @@ export const generateCard = async ({
     };
     image.crossOrigin = 'Anonymous';
 
-    const outerHTML = svg.outerHTML;
-    const blob = new Blob([outerHTML], {
+    const blob = new Blob([svg.outerHTML], {
       type: 'image/svg+xml',
     });
     const url = URL.createObjectURL(blob);
@@ -277,6 +286,6 @@ export const generateCard = async ({
       URL.revokeObjectURL(url);
     }
   });
-
-  return image;
+  const imageBitmap = await createImageBitmap(image);
+  return imageBitmap;
 };
