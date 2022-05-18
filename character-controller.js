@@ -173,6 +173,10 @@ class PlayerBase extends THREE.Object3D {
     this.eyeballTargetEnabled = false;
     this.voicePack = null;
     this.voiceEndpoint = null;
+
+    this.needEndUse = false;
+    this.needContinueCombo = false;
+    this.needResetUseTime = false;
   }
   findAction(fn) {
     const actions = this.getActionsState();
@@ -638,9 +642,11 @@ class StatePlayer extends PlayerBase {
     
     const _setNextAvatarApp = app => {
       (() => {
+        this.avatar && this.avatar.removeEventListener('animationEnd', this.handleAnimationEnd);
         const avatar = switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
         this.avatar = avatar;
+        this.avatar.addEventListener('animationEnd', this.handleAnimationEnd.bind(this));
 
         this.dispatchEvent({
           type: 'avatarchange',
@@ -952,7 +958,16 @@ class UninterpolatedPlayer extends StatePlayer {
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
-      use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
+      use: new InfiniteActionInterpolant(() => {
+        if (this.hasAction('use')) {
+          if (this.needResetUseTime) {
+            this.needResetUseTime = false;
+            return false;
+          }
+          return true;
+        }
+        return false;
+      }, 0),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
       aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
@@ -1183,6 +1198,12 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.avatar.update(timestamp, timeDiff);
 
       this.characterHups.update(timestamp);
+    }
+  }
+  handleAnimationEnd(e) {
+    // const avatar = e.target;
+    if (this.hasAction('use')) {
+      this.needEndUse = true; // tell next frame need endUse();
     }
   }
   /* teleportTo = (() => {
