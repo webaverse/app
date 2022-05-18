@@ -102,9 +102,9 @@ function ChatInput () {
 
                         }
 
-                    }
+                        return true;
 
-                    return true;
+                    }
 
                 }
 

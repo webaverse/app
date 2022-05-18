@@ -3,17 +3,21 @@ import classnames from 'classnames';
 import styles from './equipment.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
+import { ItemLoader } from '../../../ItemLoader.jsx';
+// import {EquipmentPopover} from '../../play-mode/equipment-popover';
 import { Spritesheet } from '../spritesheet';
 import game from '../../../../game.js';
-import {transparentPngUrl} from '../../../../constants.js';
+import { transparentPngUrl } from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
-import {mod} from '../../../../util.js';
+import { mod } from '../../../../util.js';
 import dropManager from '../../../../drop-manager';
+import offscreenEngineManager from '../../../../offscreen-engine-manager.js';
 
 //
 
 const size = 2048;
 const numFrames = 128;
+const width = 400;
 
 const equipmentTabs = [
     `noun-backpack-16741.svg`,
@@ -35,16 +39,19 @@ const objects = {
         {
             name: 'Silsword',
             start_url: 'https://webaverse.github.io/silsword/',
+            description: 'A sword of great lore.',
             level: 6,
         },
         {
             name: 'Dragon',
             start_url: 'https://webaverse.github.io/dragon-mount/',
+            description: 'A cute dragon. But something is wrong with it...',
             level: 5,
         },
         {
             name: 'Bow',
             start_url: 'https://webaverse.github.io/bow/',
+            description: 'A nature-themed bow. It seems unbelievably magical for some reason.',
             level: 9,
         },
         /* {
@@ -62,6 +69,7 @@ const EquipmentItem = ({
     enabled,
     hovered,
     selected,
+    // loading,
     onMouseEnter,
     onMouseDown,
     onDragStart,
@@ -100,6 +108,8 @@ const EquipmentItem = ({
                 <div className={styles.level}>Lv. {object?.level}</div>
             </div>
 
+            {/* selected && loading ? <EquipmentPopover /> : null */}
+
         </div>
     );
 };
@@ -110,6 +120,7 @@ const EquipmentItems = ({
     sections,
     hoverObject,
     selectObject,
+    loading,
     onMouseEnter,
     onMouseDown,
     onDragStart,
@@ -155,6 +166,7 @@ const EquipmentItems = ({
                                 enabled={open}
                                 hovered={object === hoverObject}
                                 selected={object === selectObject}
+                                loading={loading}
                                 highlight={highlights}
                                 onMouseEnter={onMouseEnter(object)}
                                 onMouseDown={onMouseDown(object)}
@@ -171,27 +183,49 @@ const EquipmentItems = ({
     </div>);
 };
 
+const _generateObjectUrlCardRemote = (() => {
+    let generateObjectUrlCardRemoteFn = null;
+    return async function() {
+        if (!generateObjectUrlCardRemoteFn) {
+            generateObjectUrlCardRemoteFn = offscreenEngineManager.createFunction([
+                `\
+                import {generateObjectUrlCard} from './card-generator.js';
+                `,
+                async function(o) {
+                    const imageBitmap = await generateObjectUrlCard(o);
+                    return imageBitmap;
+                }
+            ]);
+        }
+        const result = await generateObjectUrlCardRemoteFn.apply(this, arguments);
+        return result;
+    };
+})();
 export const Equipment = () => {
     const { state, setState } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
-    const [ spritesheet, setSpritesheet ] = useState(null);
+    // const [ spritesheet, setSpritesheet ] = useState(null);
     const [ faceIndex, setFaceIndex ] = useState(1);
     const [ claims, setClaims ] = useState([]);
-    const selectedMenuIndex = mod(faceIndex, 4);
+    const [ itemLoader, setItemLoader ] = useState(() => new ItemLoader({
+        async loadFn(url, value, {signal}) {            
+            const {start_url} = value;
+            const imageBitmap = await _generateObjectUrlCardRemote([
+                {
+                    start_url,
+                    width,
+                }
+            ], {
+                signal,
+            });
+            return imageBitmap;
+        },
+    }));
+    const [ loading, setLoading ] = useState(false);
+    const [ imageBitmap, setImageBitmap ] = useState(null);
 
-    /* const refsMap = (() => {
-        const map = new Map();
-        for (const userTokenObject of userTokenObjects) {
-            map.set(userTokenObject, useRef(null));
-        }
-        for (const k in objects) {
-            for (const object of objects[k]) {
-                map.set(object, useRef(null));
-            }
-        }
-        return map;
-    })(); */
+    const selectedMenuIndex = mod(faceIndex, 4);
 
     const open = state.openedPanel === 'CharacterPanel';
 
@@ -201,12 +235,10 @@ export const Equipment = () => {
         sounds.playSoundName('menuClick');
     };
     const onMouseDown = object => () => {
-        const newSelectObject = selectObject !== object ? object : null;
-        setSelectObject(newSelectObject);
+        // const newSelectObject = selectObject !== object ? object : null;
+        setSelectObject(object);
 
-        // game.renderCard(object);
-
-        if (newSelectObject) {
+        if (object) {
             sounds.playSoundName('menuNext');
         } /* else {
             const audioSpec = soundFiles.menuBack[Math.floor(Math.random() * soundFiles.menuBack.length)];
@@ -244,7 +276,6 @@ export const Equipment = () => {
     useEffect(() => {
         const claimschange = e => {
             const {claims} = e.data;
-            console.log('set claims', claims);
             setClaims(claims.slice());
         };
         dropManager.addEventListener('claimschange', claimschange);
@@ -252,6 +283,47 @@ export const Equipment = () => {
             dropManager.removeEventListener('claimschange', claimschange);
         };
     }, [claims]);
+
+    useEffect(() => {
+        if (itemLoader) {
+            const loadingchange = e => {
+                setLoading(e.data.loading);
+            };
+            itemLoader.addEventListener('loadingchange', loadingchange);
+            return () => {
+                itemLoader.removeEventListener('loadingchange', loadingchange);
+            };
+        }
+    }, [itemLoader]);
+
+    useEffect(() => {
+        if (open) {
+            const start_url = selectObject ? selectObject.start_url : '';
+            if (start_url) {
+                const abortController = new AbortController();
+                (async () => {
+                    const imageBitmap = await itemLoader.loadItem(start_url, selectObject, {
+                        signal: abortController.signal,
+                    });
+                    if (imageBitmap !== null) {
+                        setImageBitmap(imageBitmap);
+                    }
+                })();
+                setImageBitmap(null);
+                return () => {
+                    abortController.abort();
+                };
+            }
+        } else {
+            if (selectObject) {
+                setSelectObject(null);
+            }
+        }
+    }, [open, selectObject]);
+
+    useEffect(() => {
+        setSelectObject(null);
+    }, [faceIndex]);
 
     return (
         <div className={styles.equipment}>
@@ -277,6 +349,7 @@ export const Equipment = () => {
                         ]}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
+                        loading={loading}
                         onMouseEnter={onMouseEnter}
                         onMouseDown={onMouseDown}
                         onDragStart={onDragStart}
@@ -300,6 +373,7 @@ export const Equipment = () => {
                         ]}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
+                        loading={loading}
                         onMouseEnter={onMouseEnter}
                         onMouseDown={onMouseDown}
                         onDragStart={onDragStart}
@@ -319,6 +393,7 @@ export const Equipment = () => {
                         ]}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
+                        loading={loading}
                         onMouseEnter={onMouseEnter}
                         onMouseDown={onMouseDown}
                         onDragStart={onDragStart}
@@ -338,6 +413,7 @@ export const Equipment = () => {
                         ]}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
+                        loading={loading}
                         onMouseEnter={onMouseEnter}
                         onMouseDown={onMouseDown}
                         onDragStart={onDragStart}
@@ -379,8 +455,15 @@ export const Equipment = () => {
             </div>
 
             <MegaHotBox
-                open={open}
-                spritesheet={spritesheet}
+                open={!!selectObject}
+                loading={loading}
+                name={selectObject ? selectObject.name : null}
+                description={selectObject ? selectObject.description : null}
+                imageBitmap={imageBitmap}
+                onActivate={onDoubleClick(selectObject)}
+                onClose={e => {
+                    setSelectObject(null);
+                }}
             />
         </div>
     );

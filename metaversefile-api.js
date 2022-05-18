@@ -127,13 +127,15 @@ class App extends THREE.Object3D {
     }
   }
   get contentId() {
-    return this.getComponent('contentId') + '';
+    const contentIdComponent = this.getComponent('contentId');
+    return (contentIdComponent !== null) ? contentIdComponent : '';
   }
   set contentId(contentId) {
     this.setComponent('contentId', contentId + '');
   }
   get instanceId() {
-    return this.getComponent('instanceId') + '';
+    const instanceIdComponent = this.getComponent('instanceId');
+    return (instanceIdComponent !== null) ? instanceIdComponent : '';
   }
   set instanceId(instanceId) {
     this.setComponent('instanceId', instanceId + '');

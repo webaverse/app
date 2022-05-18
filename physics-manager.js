@@ -10,7 +10,7 @@ import physx from './physx.js'
 // import ioManager from './io-manager.js';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import metaversefileApi from 'metaversefile'
-import { getNextPhysicsId, convertMeshToPhysicsMesh } from './util.js'
+import { getNextPhysicsId, freePhysicsId, convertMeshToPhysicsMesh } from './util.js'
 // import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
 import { CapsuleGeometry } from './geometries.js'
@@ -24,10 +24,10 @@ const localQuaternion = new THREE.Quaternion()
 const localQuaternion2 = new THREE.Quaternion()
 const localMatrix = new THREE.Matrix4() */
 
-/* const redMaterial = new THREE.MeshBasicMaterial({
+const redMaterial = new THREE.MeshBasicMaterial({
   color: 0xff0000,
-  side: THREE.DoubleSide,
-}); */
+  // side: THREE.DoubleSide,
+});
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const upVector = new THREE.Vector3(0, 1, 0);
@@ -91,7 +91,8 @@ physicsManager.addCapsuleGeometry = (
     localVector2.set(1, 1, 1)
   )
   const physicsMesh = new THREE.Mesh(
-    new CapsuleGeometry(radius, radius, halfHeight * 2)
+    new CapsuleGeometry(radius, radius, halfHeight * 2),
+    redMaterial
   )
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
@@ -122,7 +123,7 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
     quaternion,
     localVector2.set(1, 1, 1)
   )
-  const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2))
+  const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), redMaterial)
   physicsMesh.scale.copy(size)
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
@@ -186,7 +187,7 @@ physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
     quaternion,
     scale
   )
-  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
+  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId), redMaterial)
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh
@@ -246,7 +247,7 @@ physicsManager.addCookedConvexGeometry = (
     quaternion,
     scale
   )
-  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
+  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId), redMaterial)
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh;
@@ -273,7 +274,7 @@ physicsManager.addShape = (shapeAddress, position, quaternion, scale, external) 
     quaternion,
     scale
   )
-  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
+  const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId), redMaterial)
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh;
@@ -300,23 +301,13 @@ physicsManager.addConvexShape = (shapeAddress, position, quaternion, scale, dyna
     quaternion,
     scale
   )
-  // console.log('extract 1');
   const geometry = _extractPhysicsGeometryForId(physicsId);
-  const physicsMesh = new THREE.Mesh(geometry/*, redMaterial*/)
-  /* console.log('convex shape', physicsMesh.geometry.boundingBox.getSize(localVector).toArray().join(','), {
-    physicsMesh,
-    sourceMesh: window.shapeMeshes[shapeAddress],
-  }); */
-  /* if (physicsMesh.geometry.attributes.position.array.some(v => isNaN(v))) {
-    console.log('bad position array', physicsMesh.geometry.attributes.position.array, physicsMesh.geometry.index.array);
-    debugger;
-  } */
+  const physicsMesh = new THREE.Mesh(geometry, redMaterial);
+
   physicsMesh.visible = false
-  // physicsMesh.visible = true
   physicsObject.add(physicsMesh)
   physicsObject.physicsMesh = physicsMesh;
   physicsMesh.updateMatrixWorld();
-  // scene.add(physicsMesh);
   return physicsObject
 };
 physicsManager.getGeometryForPhysicsId = (physicsId) =>
@@ -369,18 +360,13 @@ physicsManager.setGravityEnabled = (physicsObject, enabled) => {
   )
 }
 physicsManager.removeGeometry = (physicsObject) => {
-  // try {
   physx.physxWorker.removeGeometryPhysics(
     physx.physics,
     physicsObject.physicsId
   )
-  /* } catch(err) {
-    console.warn('failed to remove geometry', err.stack);
-  } */
+
+  freePhysicsId(physicsObject.physicsId)
 }
-/* physicsManager.getVelocity = (physicsObject, velocity) => {
-  physx.physxWorker.getVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
-}; */
 physicsManager.getGlobalPosition = (physicsObject, position) => {
   physx.physxWorker.getGlobalPositionPhysics(
     physx.physics,
@@ -491,7 +477,8 @@ physicsManager.createCharacterController = (
   const halfHeight = height / 2
   const physicsObject = new THREE.Object3D()
   const physicsMesh = new THREE.Mesh(
-    new CapsuleGeometry(radius, radius, halfHeight * 2)
+    new CapsuleGeometry(radius, radius, halfHeight * 2),
+    redMaterial
   )
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)

@@ -13,6 +13,7 @@ import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
 import cameraManager from '../../../../camera-manager.js';
+import story from '../../../../story.js';
 import {snapshotMapChunk} from '../../../../scene-cruncher.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
@@ -200,6 +201,8 @@ export const MapGen = () => {
     const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
     const [haloMeshApp, setHaloMeshApp] = useState(null);
+    const [silksMeshApp, setSilksMeshApp] = useState(null);
+    const [flareMeshApp, setFlareMeshApp] = useState(null);
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
     const canvasRef = useRef();
@@ -358,23 +361,68 @@ export const MapGen = () => {
 
                 case 76: { // L
                 
-                    (async () => {
-                      const chunkWorldSize = new THREE.Vector3(64, 64, 64);
-                      const chunkWorldResolution = new THREE.Vector2(2048, 2048);
-                      const chunkWorldDepthResolution = new THREE.Vector2(256, 256);
-                  
-                      const localPlayer = useLocalPlayer();
-                      const mesh = snapshotMapChunk(
-                        rootScene,
-                        localPlayer.position,
-                        chunkWorldSize,
-                        chunkWorldResolution,
-                        chunkWorldDepthResolution
-                      );
-                      scene.add(mesh);
-                    })();
+                    if (!silksMeshApp) {
+                      const silksMeshApp = metaversefile.createApp();
+                      (async () => {
+                        const {modules} = metaversefile.useDefaultModules();
+                        const m = modules['silks'];
+                        await silksMeshApp.addModule(m);
+                      })();
+                      scene.add(silksMeshApp);
+
+                      setSilksMeshApp(silksMeshApp);
+                    } else {
+                      silksMeshApp.parent.remove(silksMeshApp);
+                      silksMeshApp.destroy();
+
+                      setSilksMeshApp(null);
+                    }
         
                     return false;
+
+                }
+
+                case 186: { // ;
+
+                  if (!flareMeshApp) {
+                    const flareMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['flare'];
+                      await flareMeshApp.addModule(m);
+                    })();
+                    scene.add(flareMeshApp);
+
+                    setFlareMeshApp(flareMeshApp);
+                  } else {
+                    flareMeshApp.parent.remove(flareMeshApp);
+                    flareMeshApp.destroy();
+
+                    setFlareMeshApp(null);
+                  }
+                
+                  return false;
+
+                }
+                case 222: { // '
+
+                  (async () => {
+                    const chunkWorldSize = new THREE.Vector3(64, 64, 64);
+                    const chunkWorldResolution = new THREE.Vector2(2048, 2048);
+                    const chunkWorldDepthResolution = new THREE.Vector2(256, 256);
+                
+                    const localPlayer = useLocalPlayer();
+                    const mesh = snapshotMapChunk(
+                      rootScene,
+                      localPlayer.position,
+                      chunkWorldSize,
+                      chunkWorldResolution,
+                      chunkWorldDepthResolution
+                    );
+                    scene.add(mesh);
+                  })();
+                
+                  return false;
 
                 }
 
@@ -452,6 +500,13 @@ export const MapGen = () => {
 
                 }
 
+                case 219: { // [
+
+                  story.startCinematicIntro();
+                
+                  return false;
+                }
+
             }
 
             return true;
@@ -466,7 +521,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel, haloMeshApp, magicMeshApp, limitMeshApp ]);
+    }, [ state.openedPanel, haloMeshApp, silksMeshApp, flareMeshApp, magicMeshApp, limitMeshApp ]);
 
     // resize
     useEffect(() => {
