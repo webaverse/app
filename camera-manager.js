@@ -277,8 +277,6 @@ class CameraManager extends EventTarget {
     }
   }
   getCameraOffset() {
-    cameraOffset.x = -2;
-    cameraOffset.y = -2.7;
     return cameraOffset;
   }
   handleMouseMove(e) {
@@ -450,6 +448,8 @@ class CameraManager extends EventTarget {
         const timestamp = performance.now();
         this.lerpStartTime = timestamp;
         this.lastTimestamp = timestamp;
+        cameraOffset.x = -2;
+        cameraOffset.y = -2.7;
 
         // cameraOffsetZ = -cameraOffsetDefault;
         // cameraOffset.z = -cameraOffsetDefault;
@@ -484,6 +484,8 @@ class CameraManager extends EventTarget {
     const timestamp = performance.now();
     this.lerpStartTime = timestamp;
     this.lastTimestamp = timestamp;
+    cameraOffset.x = 0;
+    cameraOffset.y = 0;
   }
   startCinematicScript(cinematicScript) {
     this.cinematicScript = cinematicScript;
