@@ -20,7 +20,7 @@
       "content": {
         "windType": "directional",
         "direction": [1, 0, 0],
-        "mainPower": 0.5,
+        "mainPower": 5,
         "noiseScale": 1,
         "windFrequency": 0.5
       }

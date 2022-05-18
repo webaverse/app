@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
 import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
@@ -80,6 +81,10 @@ const textEncoder = new TextEncoder();
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
+
+const simplex = new SimplexNoise();      
+const windDirection = new THREE.Vector3();
+const windPosition = new THREE.Vector3();
 
 /* VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -1935,6 +1940,87 @@ class Avatar {
 
     // this.springBoneTimeStep.update(timeDiff);
     this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
+    
+    if(this.currentModel !== this.model.uuid){
+      this.originPos = [];
+      console.log('model: ' + this.model.parent.name)
+      this.currentModel = this.model.uuid;
+      for (const springBones of this.springBoneManager.springBoneGroupList) {
+          for (const o of springBones) {
+              localVector2.setFromMatrixPosition(o.bone.matrixWorld);
+              let pos = new THREE.Vector3();
+              pos.x = localVector2.x;
+              pos.y = localVector2.y;
+              pos.z = localVector2.z;
+
+              this.originPos.push(pos);
+          }
+      }
+      
+    }
+
+    const _applyWind = () => {
+      const winds = metaversefile.getWinds();
+      //console.log(winds)
+      const timeS = performance.now() / 1000;
+      const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
+      const _handleDirectional = (wind) =>{
+          windDirection.x = wind.direction[0];
+          windDirection.y = wind.direction[1];
+          windDirection.z = wind.direction[2];
+          for (const springBones of this.springBoneManager.springBoneGroupList) {
+              let i = 0;
+              for (const o of springBones) {
+                  const t = timeS * wind.windFrequency;
+                  const n = simplex.noise3d(this.originPos[i].x * wind.noiseScale + t, this.originPos[i].y * wind.noiseScale + t, this.originPos[i].z * wind.noiseScale + t);
+                  
+                  const gravityDir = localVector2.setFromMatrixPosition(o.bone.matrixWorld)
+                      .sub(headPosition)
+                      .normalize()
+                      .lerp(windDirection.normalize(), ((n + 1) / 2));
+                  o.gravityDir.copy(gravityDir);
+                  o.gravityPower = ((n + 1) / 2) * wind.mainPower;
+                  i++
+              }
+          }
+      }
+      const _handleSpherical = (wind) =>{ 
+          windPosition.x = wind.position[0];
+          windPosition.y = wind.position[1];
+          windPosition.z = wind.position[2];
+          if(headPosition.distanceTo(windPosition) <= wind.radius){
+              windDirection.x = wind.direction[0];
+              windDirection.y = wind.direction[1];
+              windDirection.z = wind.direction[2];
+              for (const springBones of this.springBoneManager.springBoneGroupList) {
+                  let i = 0;
+                  for (const o of springBones) {
+                      const t = timeS * wind.windFrequency;
+                      const n = simplex.noise3d(this.originPos[i].x * wind.noiseScale + t, this.originPos[i].y * wind.noiseScale + t, this.originPos[i].z * wind.noiseScale + t);
+                      
+                      const gravityDir = localVector2.setFromMatrixPosition(o.bone.matrixWorld)
+                          .sub(headPosition)
+                          .normalize()
+                          .lerp(windDirection.normalize(), ((n + 1) / 2));
+                      o.gravityDir.copy(gravityDir);
+                      o.gravityPower = ((n + 1) / 2) * (wind.mainPower * ( 1 - headPosition.distanceTo(windPosition) / wind.radius));
+                      i++
+                  }
+              }
+          }
+      }
+      if(winds){
+          for(const wind of winds){
+              if(wind.windType === 'directional')
+                  _handleDirectional(wind);
+          }
+          for(const wind of winds){
+              if(wind.windType === 'spherical')
+                  _handleSpherical(wind);
+          }
+      }
+    };      
+    _applyWind();
 
     // XXX hook these up
     this.nodder.update(now);
