@@ -73,6 +73,7 @@ export function makeAvatar(app) {
         world.appManager.removeTrackedApp(app.instanceId);
       };
       hitTracker.addEventListener('die', die);
+      
       app.addEventListener('hittrackeradded', e => {
         app.hitTracker.addEventListener('hit', e => {
           if (!npcPlayer.hasAction('hurt')) {
