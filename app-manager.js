@@ -703,6 +703,8 @@ class AppManager extends EventTarget {
       } else {
         throw new Error('double destroy of app manager');
       }
+    } else {
+      throw new Error('destroy of bound app manager');
     }
   }
 }
