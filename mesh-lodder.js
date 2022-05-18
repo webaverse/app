@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {MaxRectsPacker} from 'maxrects-packer';
-import {localPlayer} from './players.js';
+import {getLocalPlayer} from './players.js';
 import {alea} from './procgen/procgen.js';
 import {getRenderer} from './renderer.js';
 import {modUv} from './util.js';
@@ -1189,6 +1189,7 @@ class MeshLodManager {
     return this.generator.deleteItem(itemId);
   }
   update() {
+    const localPlayer = getLocalPlayer();
     if (this.compiled) {
       this.tracker.update(localPlayer.position);
     }

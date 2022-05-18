@@ -12,7 +12,7 @@ import {
 
 import styles from './AvatarIcon.module.css';
 import {PlaceholderImg} from './PlaceholderImg.jsx';
-import { localPlayer } from '../players.js';
+import { getLocalPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
 import cameraManager from '../camera-manager.js'
 import * as sounds from '../sounds.js'
@@ -27,6 +27,7 @@ const CharacterIcon = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
+      const localPlayer = getLocalPlayer();
       const avatarIconer = new AvatarIconer(localPlayer, {
         width: characterIconSize * pixelRatio,
         height: characterIconSize * pixelRatio,
