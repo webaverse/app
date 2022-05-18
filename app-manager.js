@@ -177,7 +177,8 @@ class AppManager extends EventTarget {
           this.dispatchEvent(
             new MessageEvent('trackedappremove', {
               data: {
-                trackedApp,
+                instanceId: instanceId,
+                app: app,
               },
             })
           );
