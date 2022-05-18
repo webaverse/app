@@ -1284,19 +1284,6 @@ class GameManager extends EventTarget {
     }
   }
 
-  /* menuGDown() {
-    localPlayer.removeAction('emote');
-
-    const newAction = {
-      type: 'emote',
-      animation: 'angry',
-    };
-    localPlayer.addAction(newAction);
-  }
-  menuGUp() {
-    localPlayer.removeAction('emote');
-  } */
-
   menuVDown() {
     const localPlayer = getLocalPlayer();
     if (_getGrabbedObject(0)) {
