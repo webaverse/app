@@ -223,21 +223,19 @@ export default (app, component) => {
     });
 
     const averagePosition = new THREE.Vector3().copy(app.position);
-    const averageQuaternion = new THREE.Quaternion().copy(app.quaternion);
-    // averageQuaternion.invert();
     const hipsPostion = new THREE.Vector3();
     player.avatar.foundModelBones.Hips.matrixWorld
       .decompose(hipsPostion, localQuaternion, localVector);
 
-    // if (Array.isArray(position)) {
-    //   app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
-    // }
-    // if (Array.isArray(quaternion)) {
-    //   app.quaternion.multiply(localQuaternion.fromArray(quaternion));
-    // }
-    // if (Array.isArray(scale)) {
-    //   app.scale.multiply(localVector.fromArray(scale));
-    // }
+    if (Array.isArray(position)) {
+      app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
+    }
+    if (Array.isArray(quaternion)) {
+      app.quaternion.multiply(localQuaternion.fromArray(quaternion));
+    }
+    if (Array.isArray(scale)) {
+      app.scale.multiply(localVector.fromArray(scale));
+    }
 
     app.matrixWorld.identity()
     app.matrixWorld.decompose(app.position, app.quaternion, app.scale);
@@ -250,17 +248,12 @@ export default (app, component) => {
 
     {
       const eyeVector = new THREE.Vector3();
-      const targetVector = new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayerQuaternion);
       const upVector = localVector3.copy(averagePosition).sub(hipsPostion).normalize();
-
-      // targetVector.applyQuaternion(localQuaternion.copy(localPlayerQuaternion).invert())
-      targetVector.set(0, 0, -1);
+      const targetVector = new THREE.Vector3().set(0, 0, -1);
       targetVector.applyQuaternion(localQuaternion.setFromUnitVectors(
         localVector.set(0, 1, 0),
         localVector2.copy(upVector).normalize(),
       ));
-      // targetVector.applyQuaternion(localPlayerQuaternion);
-      console.log(window.logVector3(targetVector));
 
       const matrix = new THREE.Matrix4().lookAt(eyeVector, targetVector, upVector);
       matrix.decompose(app.position, app.quaternion, app.scale);
@@ -270,47 +263,7 @@ export default (app, component) => {
 
     app.position.copy(averagePosition);
 
-    // app.quaternion.copy(averageQuaternion);
-
-    // {
-    //   player.avatar.foundModelBones.Hips.matrixWorld
-    //     .decompose(localVector, localQuaternion, localVector2);
-    //   localQuaternion.setFromUnitVectors(
-    //     localVector2.set(0, 1, 0).applyQuaternion(averageQuaternion),
-    //     localVector3.copy(averagePosition).sub(localVector).normalize(),
-    //   )
-    //   console.log(window.logVector3(localVector3));
-    //   app.quaternion.multiply(localQuaternion);
-    // }
-
-    // {
-    //   player.avatar.foundModelBones.Hips.matrixWorld
-    //     .decompose(localVector, localQuaternion, localVector2);
-    //   localQuaternion.setFromUnitVectors(
-    //     localVector2.set(0, 1, 0),
-    //     localVector3.copy(averagePosition).sub(localVector).normalize(),
-    //   )
-    //   console.log(window.logVector3(localVector3));
-    //   localEuler.order = 'YXZ';
-    //   localEuler.setFromQuaternion(localPlayer.quaternion);
-    //   localEuler.x = 0;
-    //   localEuler.z = 0;
-    //   app.quaternion.setFromEuler(localEuler);
-    //   app.quaternion.multiply(localQuaternion);
-    // }
-
-    // {
-    //   localEuler.order = 'YXZ';
-    //   localEuler.setFromQuaternion(localPlayer.quaternion);
-    //   localEuler.x = 0;
-    //   localEuler.z = 0;
-    //   app.quaternion.setFromEuler(localEuler);
-    // }
-    // console.log(localPlayer.rotation.y);
- 
     app.updateMatrixWorld();
-
-    // console.log(window.logVector4(app.quaternion));
 
     // console.log('copy bone attachment', app, app.position.toArray().join(','), bone);
   };
