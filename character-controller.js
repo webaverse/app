@@ -991,7 +991,8 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
-    this.isLocalPlayer = true;
+    this.isLocalPlayer = !opts.npc;
+    this.isNpcPlayer = !!opts.npc;
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
@@ -1327,62 +1328,17 @@ class RemotePlayer extends InterpolatedPlayer {
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
 } */
-class NpcPlayer extends LocalPlayer {
+/* class NpcPlayer extends LocalPlayer {
   constructor(opts) {
     super(opts);
   
     this.isLocalPlayer = false;
     this.isNpcPlayer = true;
-    /* this.avatarApp = null;
-    this.npcApp = null;
-
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
-    this.characterBehavior = new CharacterBehavior(this); */
   }
-  /* getAvatarApp() {
-    return this.avatarApp;
-  }
-  setAvatarApp(app) {
-    app.toggleBoneUpdates(true);
-    const {skinnedVrm} = app;
-    const avatar = new Avatar(skinnedVrm, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      debug: false,
-    });
-
-    unFrustumCull(app);
-    enableShadows(app);
-  
-    this.avatar = avatar;
-    this.avatarApp = app;
-    
-    loadPhysxCharacterController.call(this);
-  }
-  updatePhysics = LocalPlayer.prototype.updatePhysics;
-  updateAvatar = LocalPlayer.prototype.updateAvatar;
-  destroy() {
-    this.characterPhysics.destroy();
-    this.characterHups.destroy();
-    this.characterSfx.destroy();
-    this.characterFx.destroy();
-    this.characterBehavior.destroy();
-
-    if (this.avatarApp) {
-      this.avatarApp.toggleBoneUpdates(false);
-    }
-
-    super.destroy();
-  }
-  updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation; */
-}
+} */
 
 export {
   LocalPlayer,
   RemotePlayer,
-  NpcPlayer,
+  // NpcPlayer,
 };
