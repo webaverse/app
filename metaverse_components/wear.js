@@ -10,9 +10,17 @@ import npcManager from '../npc-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
+
+const identityVector = new THREE.Vector3();
 
 export default (app, component) => {
+  window.tree = app;
   const {useActivate} = metaversefile;
   
   let wearSpec = null;
@@ -213,6 +221,32 @@ export default (app, component) => {
         console.warn('invalid bone attachment', {app, boneAttachment});
       }
     });
+
+    const hipsPostion = localVector;
+    player.avatar.foundModelBones.Hips.matrixWorld
+      .decompose(localVector, localQuaternion, localVector2);
+
+    if (quaternion === 'upVectorHipsToPosition') {
+      localEuler.order = 'YXZ';
+      localEuler.setFromQuaternion(player.quaternion);
+      localEuler.x = 0;
+      localEuler.z = 0;
+      const playerQuaternion = localQuaternion2.setFromEuler(localEuler);
+
+      const eyeVector = identityVector;
+      const upVector = localVector3.copy(app.position).sub(hipsPostion).normalize();
+      const targetVector = localVector4.set(0, 0, -1);
+      targetVector.applyQuaternion(localQuaternion.setFromUnitVectors(
+        localVector.set(0, 1, 0),
+        localVector2.copy(upVector).normalize(),
+      ));
+
+      localMatrix
+        .lookAt(eyeVector, targetVector, upVector)
+        .decompose(localVector, app.quaternion, localVector2);
+
+      app.quaternion.multiply(playerQuaternion);
+    }
 
     if (Array.isArray(position)) {
       app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
