@@ -7,6 +7,8 @@ import {unFrustumCull, enableShadows} from './util.js';
 import {
   getEyePosition,
 } from './avatars/util.mjs';
+import { world } from './world.js';
+import hpManager from './hp-manager.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -63,6 +65,30 @@ export function makeAvatar(app) {
       unFrustumCull(app);
       enableShadows(app);
       
+      const hitTracker = hpManager.makeHitTracker();
+      hitTracker.bind(app);
+      app.dispatchEvent({type: 'hittrackeradded'});
+    
+      const die = () => {
+        world.appManager.removeTrackedApp(app.instanceId);
+      };
+      hitTracker.addEventListener('die', die);
+      app.addEventListener('hittrackeradded', e => {
+        app.hitTracker.addEventListener('hit', e => {
+          if (!npcPlayer.hasAction('hurt')) {
+            const newAction = {
+              type: 'hurt',
+              animation: 'pain_back',
+            };
+            npcPlayer.addAction(newAction);
+            
+            setTimeout(() => {
+              npcPlayer.removeAction('hurt');
+            }, hurtAnimationDuration * 1000);
+          }
+        });
+      })
+
       return avatar;
     }
   }
