@@ -567,8 +567,6 @@ class CameraManager extends EventTarget {
         const backOffset = 1;
         // const cameraBackThickness = 0.5;
 
-        /* const delta = localVector2.copy(camera.position)
-          .sub(localPlayer.position); */
         const sweepDistance = Math.max(-cameraOffsetTargetZ, 0);
 
         // console.log('offset', cameraOffsetTargetZ);
