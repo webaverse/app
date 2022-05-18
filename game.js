@@ -17,7 +17,7 @@ import dioramaManager from './diorama.js';
 import {world} from './world.js';
 // import * as universe from './universe.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
-import {teleportMeshes} from './teleport.js';
+// import {teleportMeshes} from './teleport.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
 import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
@@ -29,7 +29,6 @@ import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 // import soundManager from './sound-manager.js';
-import {generateObjectUrlCard} from './card-generator.js';
 import * as sounds from './sounds.js';
 import {localPlayer} from './players.js';
 // import physicsManager from './physics-manager.js';
@@ -508,8 +507,6 @@ const _gameInit = () => {
 Promise.resolve()
   .then(_gameInit);
 
-// let lastDraggingRight = false;
-// let dragRightSpec = null;
 let lastActivated = false;
 let lastThrowing = false;
 let lastHitTimes = new WeakMap();
@@ -529,8 +526,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _handlePush();
 
   const _updateGrab = () => {
-    // moveMesh.visible = false;
-
     const renderer = getRenderer();
     const _isWear = o => localPlayer.findAction(action => action.type === 'wear' && action.instanceId === o.instanceId);
 
@@ -546,14 +541,12 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (collision) {
         const physicsId = collision.objectId;
         const object = metaversefileApi.getAppByPhysicsId(physicsId);
+        // console.log('got collision', physicsId, object);
         const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
-        // console.log('got object', physicsId, object);
         if (object && !_isWear(object) && physicsObject) {
           grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
           grabUseMesh.quaternion.copy(camera.quaternion);
-          // grabUseMesh.scale.copy(grabbedObject.scale);
           grabUseMesh.updateMatrixWorld();
-          //grabUseMesh.visible = true;
           grabUseMesh.targetApp = object;
           grabUseMesh.targetPhysicsId = physicsId;
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
@@ -571,26 +564,13 @@ const _gameUpdate = (timestamp, timeDiff) => {
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
         grabbedObject.updateMatrixWorld();
 
-        /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
+        updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
           handSnapEnabled: true,
           physx,
           gridSnap: gameManager.getGridSnap(),
         });
-
-        /* grabbedObject.updateMatrixWorld();
         
-        grabUseMesh.position.copy(camera.position)
-          .add(
-            localVector.copy(grabbedObject.position)
-              .sub(camera.position)
-              .normalize()
-              .multiplyScalar(3)
-          );
-        grabUseMesh.quaternion.copy(camera.quaternion);
-        grabUseMesh.updateMatrixWorld();
-        // grabUseMesh.visible = true;
-        grabUseMesh.targetApp = grabbedObject; */
         grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
       }
     }
@@ -1684,21 +1664,6 @@ class GameManager extends EventTarget {
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
   pushPlayerUpdates = _pushPlayerUpdates;
-  async renderCard(object) { // HACK: this should be moved to a UI component
-    const start_url = object?.start_url;
-    if (start_url) {
-      // console.log('render card 1', start_url);
-      const cardImg = await generateObjectUrlCard({
-        start_url,
-      });
-      // console.log('render card 2', start_url, cardImg);
-      // const stats = procgen.generateStats();
-      /* console.log('render start url', {
-        start_url,
-        stats,
-      }); */
-    }
-  }
 }
 const gameManager = new GameManager();
 export default gameManager;

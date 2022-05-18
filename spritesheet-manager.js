@@ -29,7 +29,7 @@ class SpritesheetManager {
   async getSpriteSheetForAppUrlAsync(appUrl, opts) {
     let spritesheet = this.spritesheetCache.get(appUrl);
     if (!spritesheet) {
-      spritesheet = await this.getSpriteSheetForAppUrlInternal(appUrl, opts);
+      spritesheet = await this.getSpriteSheetForAppUrlInternal([appUrl, opts]);
       this.spritesheetCache.set(appUrl, spritesheet);
     }
     return spritesheet;
