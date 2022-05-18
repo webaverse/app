@@ -227,26 +227,13 @@ export default (app, component) => {
     player.avatar.foundModelBones.Hips.matrixWorld
       .decompose(hipsPostion, localQuaternion, localVector);
 
-    if (Array.isArray(position)) {
-      app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
-    }
-    if (Array.isArray(quaternion)) {
-      app.quaternion.multiply(localQuaternion.fromArray(quaternion));
-    }
-    if (Array.isArray(scale)) {
-      app.scale.multiply(localVector.fromArray(scale));
-    }
+    if (quaternion === 'upVectorHipsToPosition') {
+      localEuler.order = 'YXZ';
+      localEuler.setFromQuaternion(localPlayer.quaternion);
+      localEuler.x = 0;
+      localEuler.z = 0;
+      const localPlayerQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
 
-    app.matrixWorld.identity()
-    app.matrixWorld.decompose(app.position, app.quaternion, app.scale);
-
-    localEuler.order = 'YXZ';
-    localEuler.setFromQuaternion(localPlayer.quaternion);
-    localEuler.x = 0;
-    localEuler.z = 0;
-    const localPlayerQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
-
-    {
       const eyeVector = new THREE.Vector3();
       const upVector = localVector3.copy(averagePosition).sub(hipsPostion).normalize();
       const targetVector = new THREE.Vector3().set(0, 0, -1);
@@ -256,12 +243,20 @@ export default (app, component) => {
       ));
 
       const matrix = new THREE.Matrix4().lookAt(eyeVector, targetVector, upVector);
-      matrix.decompose(app.position, app.quaternion, app.scale);
+      matrix.decompose(localVector, app.quaternion, localVector2);
 
       app.quaternion.multiply(localPlayerQuaternion);
     }
 
-    app.position.copy(averagePosition);
+    if (Array.isArray(position)) {
+      app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
+    }
+    if (Array.isArray(quaternion)) {
+      app.quaternion.multiply(localQuaternion.fromArray(quaternion));
+    }
+    if (Array.isArray(scale)) {
+      app.scale.multiply(localVector.fromArray(scale));
+    }
 
     app.updateMatrixWorld();
 
