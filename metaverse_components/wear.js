@@ -20,7 +20,6 @@ const localMatrix = new THREE.Matrix4();
 const identityVector = new THREE.Vector3();
 
 export default (app, component) => {
-  window.tree = app;
   const {useActivate} = metaversefile;
   
   let wearSpec = null;
