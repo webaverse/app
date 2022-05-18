@@ -969,16 +969,27 @@ export default () => {
     let result = world.appManager.getAppByInstanceId(instanceId) || localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return result;
-    } else {
-      const remotePlayers = metaversefile.useRemotePlayers();
-      for (const remotePlayer of remotePlayers) {
-        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
-        if (remoteApp) {
-          return remoteApp;
-        }
-      }
-      return null;
     }
+
+    // npc
+    for (const npc of npcManager.npcs) {
+      const npcApp = npc.appManager.getAppByInstanceId(instanceId);
+      if (npcApp) {
+        return npcApp;
+      }
+    }
+
+    // remote
+    const remotePlayers = metaversefile.useRemotePlayers();
+    for (const remotePlayer of remotePlayers) {
+      const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
+      if (remoteApp) {
+        return remoteApp;
+      }
+    }
+
+    // default
+    return null;
   },
   getAppByPhysicsId(physicsId) {
     const localPlayer = getLocalPlayer();
