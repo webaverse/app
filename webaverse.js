@@ -21,6 +21,7 @@ import particleSystemManager from './particle-system.js';
 import loadoutManager from './loadout-manager.js';
 import questManager from './quest-manager.js';
 import mobManager from './mob-manager.js';
+import xrManager from './xr-manager.js';
 import {
   getRenderer,
   scene,
@@ -272,8 +273,17 @@ export default class Webaverse extends EventTarget {
     frameEvent.data.timeDiff = timeDiff;
     this.dispatchEvent(frameEvent);
 
-    getComposer().render();
+    const session = renderer.xr.getSession();
+    const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
 
+    if(session) {
+      renderer.render(rootScene, camera);
+      renderer.render(scene, camera);
+    }
+    else {
+      getComposer().render();
+    }
+    
     this.dispatchEvent(new MessageEvent('frameend', {
       data: {
         canvas: renderer.domElement,
@@ -302,7 +312,7 @@ export default class Webaverse extends EventTarget {
         performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
           ioManager.update(timeDiffCapped);
-          // this.injectRigInput();
+          xrManager.injectRigInput(frame);
           
           const localPlayer = metaversefileApi.useLocalPlayer();
           if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
