@@ -1372,7 +1372,6 @@ class GameManager extends EventTarget {
       npc.isNpcPlayer = false;
 
       const npcIndex = npcManager.npcs.indexOf(npc);
-      console.log('npc index', npcIndex);
       npcManager.npcs[npcIndex] = localPlayer;
 
       setLocalPlayer(npc);
