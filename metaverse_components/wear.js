@@ -6,13 +6,19 @@ import physicsManager from '../physics-manager.js';
 // import {glowMaterial} from '../shaders.js';
 // import easing from '../easing.js';
 import npcManager from '../npc-manager.js';
+import { localPlayer } from '../players.js';
 // import {rarityColors} from '../constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 
 export default (app, component) => {
+  window.tree = app;
   const {useActivate} = metaversefile;
   
   let wearSpec = null;
@@ -216,15 +222,88 @@ export default (app, component) => {
       }
     });
 
-    if (Array.isArray(position)) {
-      app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
+    const averagePosition = new THREE.Vector3().copy(app.position);
+    const averageQuaternion = new THREE.Quaternion().copy(app.quaternion);
+    // averageQuaternion.invert();
+    const hipsPostion = new THREE.Vector3();
+    player.avatar.foundModelBones.Hips.matrixWorld
+      .decompose(hipsPostion, localQuaternion, localVector);
+
+    // if (Array.isArray(position)) {
+    //   app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
+    // }
+    // if (Array.isArray(quaternion)) {
+    //   app.quaternion.multiply(localQuaternion.fromArray(quaternion));
+    // }
+    // if (Array.isArray(scale)) {
+    //   app.scale.multiply(localVector.fromArray(scale));
+    // }
+
+    app.matrixWorld.identity()
+    app.matrixWorld.decompose(app.position, app.quaternion, app.scale);
+
+    localEuler.order = 'YXZ';
+    localEuler.setFromQuaternion(localPlayer.quaternion);
+    localEuler.x = 0;
+    localEuler.z = 0;
+    const localPlayerQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
+
+    {
+      const eyeVector = new THREE.Vector3();
+      const targetVector = new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayerQuaternion);
+      const upVector = localVector3.copy(averagePosition).sub(hipsPostion).normalize();
+
+      // targetVector.applyQuaternion(localQuaternion.copy(localPlayerQuaternion).invert())
+      targetVector.set(0, 0, -1);
+      targetVector.applyQuaternion(localQuaternion.setFromUnitVectors(
+        localVector.set(0, 1, 0),
+        localVector2.copy(upVector).setX(0).normalize(),
+      ));
+      // targetVector.applyQuaternion(localPlayerQuaternion);
+      console.log(window.logVector3(targetVector));
+
+      const matrix = new THREE.Matrix4().lookAt(eyeVector, targetVector, upVector);
+      matrix.decompose(app.position, app.quaternion, app.scale);
     }
-    if (Array.isArray(quaternion)) {
-      app.quaternion.multiply(localQuaternion.fromArray(quaternion));
-    }
-    if (Array.isArray(scale)) {
-      app.scale.multiply(localVector.fromArray(scale));
-    }
+
+    // app.quaternion.copy(averageQuaternion);
+
+    // {
+    //   player.avatar.foundModelBones.Hips.matrixWorld
+    //     .decompose(localVector, localQuaternion, localVector2);
+    //   localQuaternion.setFromUnitVectors(
+    //     localVector2.set(0, 1, 0).applyQuaternion(averageQuaternion),
+    //     localVector3.copy(averagePosition).sub(localVector).normalize(),
+    //   )
+    //   console.log(window.logVector3(localVector3));
+    //   app.quaternion.multiply(localQuaternion);
+    // }
+
+    // {
+    //   player.avatar.foundModelBones.Hips.matrixWorld
+    //     .decompose(localVector, localQuaternion, localVector2);
+    //   localQuaternion.setFromUnitVectors(
+    //     localVector2.set(0, 1, 0),
+    //     localVector3.copy(averagePosition).sub(localVector).normalize(),
+    //   )
+    //   console.log(window.logVector3(localVector3));
+    //   localEuler.order = 'YXZ';
+    //   localEuler.setFromQuaternion(localPlayer.quaternion);
+    //   localEuler.x = 0;
+    //   localEuler.z = 0;
+    //   app.quaternion.setFromEuler(localEuler);
+    //   app.quaternion.multiply(localQuaternion);
+    // }
+
+    // {
+    //   localEuler.order = 'YXZ';
+    //   localEuler.setFromQuaternion(localPlayer.quaternion);
+    //   localEuler.x = 0;
+    //   localEuler.z = 0;
+    //   app.quaternion.setFromEuler(localEuler);
+    // }
+    // console.log(localPlayer.rotation.y);
+ 
     app.updateMatrixWorld();
 
     // console.log(window.logVector4(app.quaternion));
