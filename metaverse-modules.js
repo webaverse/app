@@ -23,6 +23,7 @@ const moduleUrls = {
   silks: './metaverse_modules/silks/',
   magic: './metaverse_modules/magic/',
   limit: './metaverse_modules/limit/',
+  flare: './metaverse_modules/flare/',
   meshLodItem: './metaverse_modules/mesh-lod-item/',
 };
 const modules = {};

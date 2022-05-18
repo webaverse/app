@@ -1,11 +1,14 @@
 import * as Z from 'zjs';
+// import metaversefile from 'metaversefile';
 import {LocalPlayer} from './character-controller.js';
-import {makeId, getRandomString, getPlayerPrefix, memoize} from './util.js';
-import {initialPosY} from './constants.js';
+import {makeId} from './util.js';
+import {initialPosY, playersMapName} from './constants.js';
 
+const localPlayerId = makeId(5);
+const localPlayersArray = new Z.Doc().getArray(playersMapName);
 export const localPlayer = new LocalPlayer({
-  prefix: getPlayerPrefix(makeId(5)),
-  state: new Z.Doc(),
+  playerId: localPlayerId,
+  playersArray: localPlayersArray,
 });
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();

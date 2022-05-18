@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {camera} from './renderer.js';
 import {WebaverseShaderMaterial} from './materials.js';
-import {world} from './world.js';
+// import {world} from './world.js';
 import loaders from './loaders.js';
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
