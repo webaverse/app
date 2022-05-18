@@ -1,7 +1,8 @@
 window.global = window.globalThis;
 
 window.logNum = function(n) {
-  n = parseFloat(n.toFixed(2));
+  // n = parseFloat(n.toFixed(2));
+  n = n.toFixed(2);
   return (n < 0 ? '' : '+') + n;
 }
 
