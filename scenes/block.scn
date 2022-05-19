@@ -21,7 +21,7 @@
       "content": {
         "windType": "directional",
         "direction": [1, 0, 0.8],
-        "mainPower": 0.8,
+        "windForce": 0.8,
         "noiseScale": 1,
         "windFrequency": 1
       }
@@ -33,7 +33,7 @@
         "direction": [0, 1, 0],
         "radius": 5,
         "position": [0, 0, 0],
-        "mainPower": 5,
+        "windForce": 5,
         "noiseScale": 5,
         "windFrequency": 5
       }
@@ -53,7 +53,7 @@
         "direction": [0, 1, 0],
         "radius": 5,
         "position": [10, 0, 10],
-        "mainPower": 5,
+        "windForce": 5,
         "noiseScale": 5,
         "windFrequency": 5
       }
