@@ -14,6 +14,7 @@ import { ObjectScreenshot } from '../object-screenshot';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 
 import styles from './world-objects-list.module.css';
+import physicsManager from '../../../../physics-manager.js';
 
 //
 
@@ -80,30 +81,28 @@ export const WorldObjectsList = () => {
                 break;
 
             case 'sx':
-                if ( value ) {
-
-                    setSx( value );
-
-                }
+                setSx( value );
+                updatePhysics();
                 break;
             case 'sy':
-                if ( value ) {
-
-                    setSy( value );
-
-                }
+                setSy( value );
+                updatePhysics();
                 break;
             case 'sz':
-                if ( value ) {
-
-                    setSz( value );
-
-                }
+                setSz( value );
+                updatePhysics();
                 break;
 
         }
 
         setNeedsUpdate( true );
+
+    };
+
+    const updatePhysics = () => {
+
+        const physicsObjects = selectedApp.getPhysicsObjects();
+        physicsManager.setGeometryScale( physicsObjects[0].physicsId, selectedApp.scale );
 
     };
 
