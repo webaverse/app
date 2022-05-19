@@ -52,7 +52,7 @@
         "windType": "spherical",
         "direction": [0, 1, 0],
         "radius": 5,
-        "position": [0, 0, 0],
+        "position": [10, 0, 10],
         "mainPower": 5,
         "noiseScale": 5,
         "windFrequency": 5
