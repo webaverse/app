@@ -45,7 +45,7 @@ export class CharacterHitter {
               const useAction = this.player.getAction('use');
               const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
               const hitDirection = app.position.clone()
-                .sub(this.position);
+                .sub(this.player.position);
               hitDirection.y = 0;
               hitDirection.normalize();
     
