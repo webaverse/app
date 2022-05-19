@@ -22,6 +22,10 @@ html, body {
     --color3: #42a5f5;
 }
 
+body {
+    background-color: #000;
+}
+
 .App {
     height: 100%;
     width: 100%;

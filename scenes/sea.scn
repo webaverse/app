@@ -3,7 +3,7 @@
 {
       "type": "application/spawnpoint",
       "content": {
-        "position": [9.87,7,42.84]
+        "position": [-64.26,25,139.23]
       }
     },
 
@@ -103,7 +103,7 @@
         0
       ],
       "physics": true,
-      "start_url": "https://alisaad673.github.io/Dynamic-water/",
+      "start_url": "https://webaverse.github.io/dynamic-water/",
       "dynamic": false
     },
     {
