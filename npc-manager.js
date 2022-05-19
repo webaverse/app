@@ -6,7 +6,7 @@ import {getLocalPlayer} from './players.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
-import metaversefile from 'metaversefile';
+import {createRelativeUrl} from './util.js';
 
 const localVector = new THREE.Vector3();
 
@@ -172,7 +172,8 @@ class NpcManager extends EventTarget {
         json = await res.json();
         if (!live) return;
 
-        const avatarUrl = json.avatarUrl;
+        let avatarUrl = json.avatarUrl;
+        avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
         const npcName = json.name ?? 'Anon';
         const npcVoiceName = json.voice ?? 'Shining armor';
         const npcBio = json.bio ?? 'A generic avatar.';
