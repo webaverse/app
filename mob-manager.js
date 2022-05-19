@@ -1,6 +1,11 @@
 import * as THREE from 'three';
+import metaversefile from 'metaversefile';
+import {scene} from './renderer.js';
 import {getLocalPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
+import {LodChunkTracker} from './lod.js';
+import {alea} from './procgen/procgen.js';
+import {createRelativeUrl} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -14,6 +19,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const upVector = new THREE.Vector3(0, 1, 0);
+const chunkWorldSize = 30;
 
 const _zeroY = v => {
   v.y = 0;
@@ -23,7 +29,7 @@ const _zeroY = v => {
 function makeCharacterController(app, {
   radius,
   height,
-  position,
+  offset,
 }) {
   // const radius = 0.2;
   const innerHeight = height - radius * 2;
@@ -33,7 +39,7 @@ function makeCharacterController(app, {
   app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   const characterPosition = localVector.setFromMatrixPosition(app.matrixWorld)
     .add(
-      localVector3.copy(position)
+      localVector3.copy(offset)
         .applyQuaternion(localQuaternion)
     );
 
@@ -49,23 +55,59 @@ function makeCharacterController(app, {
 }
 
 class Mob {
-  constructor(app) {
+  constructor(app = null, srcUrl = '') {
     this.app = app;
-    
+    // this.srcUrl = srcUrl;
+    this.subApp = null;
+
     this.updateFns = [];
     this.cleanupFns = [];
 
-    const mobComponent = app.getComponent('mob');
+    if (srcUrl) {
+      (async () => {
+        await this.loadApp(srcUrl);
+      })();
+    }
+  }
+  async loadApp(mobJsonUrl) {
+    let live = true;
+    this.cleanupFns.push(() => {
+      live = false;
+    });
+
+    const res = await fetch(mobJsonUrl);
+    if (!live) return;
+    const json = await res.json();
+    if (!live) return;
+
+    const mobComponent = json;
     if (mobComponent) {
-      const {
+      let {
+        mobUrl = '',
         radius = 0.3,
         height = 1,
         position = [0, 0, 0],
       } = mobComponent;
+      mobUrl = createRelativeUrl(mobUrl, mobJsonUrl);
       const offset = new THREE.Vector3().fromArray(position);
 
-      const mesh = app;
-      const animations = app.glb.animations;
+      const subApp = await metaversefile.createAppAsync({
+        start_url: mobUrl,
+        position: this.app.position,
+        quaternion: this.app.quaternion,
+        scale: this.app.scale,
+      });
+      if (!live) return;
+      scene.add(subApp);
+      subApp.updateMatrixWorld();
+      this.subApp = subApp;
+
+      this.cleanupFns.push(() => {
+        scene.remove(subApp);
+      });
+
+      const mesh = subApp;
+      const animations = subApp.glb.animations;
       let  {idleAnimation = ['idle'], aggroDistance, walkSpeed = 1} = mobComponent;
       if (idleAnimation) {
         if (!Array.isArray(idleAnimation)) {
@@ -75,13 +117,13 @@ class Mob {
         idleAnimation = [];
       }
 
-      const characterController = makeCharacterController(app, {
+      const characterController = makeCharacterController(subApp, {
         radius,
         height,
-        position: offset,
+        offset,
       });
       const physicsObjects = [characterController];
-      app.getPhysicsObjects = () => physicsObjects;
+      subApp.getPhysicsObjects = () => physicsObjects;
 
       const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
       if (idleAnimationClips.length > 0) {
@@ -205,9 +247,9 @@ class Mob {
           velocity: new THREE.Vector3(0, 6, -5).applyQuaternion(quaternion).multiplyScalar(hitSpeed),
         };
       };
-      app.addEventListener('hit', hit);
+      subApp.addEventListener('hit', hit);
       this.cleanupFns.push(() => {
-        app.removeEventListener('hit', hit);
+        subApp.removeEventListener('hit', hit);
       });
     }
   }
@@ -217,25 +259,136 @@ class Mob {
     }
   }
   destroy() {
+    console.log('destroy mob', this);
     for (const fn of this.cleanupFns) {
       fn();
     }
   }
 }
 
-class MobManager {
-  constructor() {
-    this.mobs = [];
+class MobGenerator {
+  constructor(parent) {
+    // parameters
+    this.parent = parent;
+
+    // members
+    // this.physicsObjects = [];
   }
-  async addMob(app) {
-    if (app.appType !== 'glb') {
-      throw new Error('only glb apps can be mobs');
+  generateChunk(chunk) {
+    const rng = alea(chunk.name);
+
+    if (rng() < 0.2) {
+      const mobModule = this.parent.mobModules[Math.floor(rng() * this.parent.mobModules.length)];
+
+      const r = n => -n + rng() * n * 2;
+      const app = metaversefile.createApp({
+        position: chunk.clone()
+          .multiplyScalar(chunkWorldSize)
+          .add(new THREE.Vector3(r(chunkWorldSize), 0, r(chunkWorldSize))),
+      });
+      console.log('create app', app.position.toArray().join(','));
+      (async () => {
+        await app.addModule(mobModule);
+      })();
+
+      if (!chunk.binding) {
+        chunk.binding = {
+          apps: [],
+        };
+      }
+      chunk.binding.apps.push(app);
+    }
+  }
+  disposeChunk(chunk) {
+    if (chunk.binding) {
+      for (const app of chunk.binding.apps) {
+        app.destroy();
+      }
+      chunk.binding = null;
     }
 
-    const mob = new Mob(app);
+    /* for (const physicsObject of chunk.physicsObjects) {
+      physicsManager.removeGeometry(physicsObject);
+
+      const index = this.physicsObjects.findIndex(po => po.physicsId === physicsObject.physicsId);
+      this.physicsObjects.splice(index, 1);
+    }
+    chunk.physicsObjects.length = 0; */
+  }
+  /* update(timestamp, timeDiff) {
+    // nothing
+  } */
+  destroy() {
+    // nothing; the owning lod tracker disposes of our contents
+  }
+}
+
+class Mobber {
+  constructor() {
+    this.object = new THREE.Object3D();
+    scene.add(this.object);
+
+    this.mobModules = [];
+    this.compiled = false;
+    
+    this.generator = new MobGenerator(this);
+    this.tracker = new LodChunkTracker(this.generator, {
+      chunkWorldSize,
+    });
+  }
+  async addMobModule(srcUrl) {
+    const m = await metaversefile.import(srcUrl);
+    this.mobModules.push(m);
+  }
+  compile() {
+    this.compiled = true;
+  }
+  getPhysicsObjects() {
+    return [];
+  }
+  update(timestamp, timeDiff) {
+    if (this.compiled) {
+      const localPlayer = getLocalPlayer();
+      this.tracker.update(localPlayer.position);
+    }
+  }
+  destroy() {
+    this.tracker.destroy();
+    this.generator.destroy();
+    scene.remove(this.object);
+  }
+}
+
+class MobManager {
+  constructor() {
+    this.mobbers = [];
+    this.mobs = [];
+  }
+  createMobber() {
+    const mobber = new Mobber();
+    this.mobbers.push(mobber);
+    return mobber;
+  }
+  destroyMobber(mobber) {
+    mobber.destroy();
+    this.mobbers.splice(this.mobbers.indexOf(mobber), 1);
+  }
+  addMobApp(app, srcUrl) {
+    console.log('add app', app.position.toArray().join(','));
+
+    if (app.appType !== 'mob') {
+      console.warn('not a mob app', app);
+      throw new Error('only mob apps can be mobs');
+    }
+    if (!srcUrl) {
+      console.warn('no srcUrl', app);
+      throw new Error('srcUrl is required');
+    }
+
+    const mob = new Mob(app, srcUrl);
     this.mobs.push(mob);
   }
-  removeMob(app) {
+  removeMobApp(app) {
     const index = this.mobs.findIndex(mob => mob.app === app);
     if (index !== -1) {
       const mob = this.mobs[index];
@@ -244,6 +397,9 @@ class MobManager {
     }
   }
   update(timestamp, timeDiff) {
+    for (const mobber of this.mobbers) {
+      mobber.update(timestamp, timeDiff);
+    }
     for (const mob of this.mobs) {
       mob.update(timestamp, timeDiff);
     }
