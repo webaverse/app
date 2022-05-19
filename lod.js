@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 
-const chunkWorldSize = 30;
-
 const localVector2D = new THREE.Vector2();
 
 export class LodChunk extends THREE.Vector3 {
@@ -11,7 +9,7 @@ export class LodChunk extends THREE.Vector3 {
     this.lod = lod;
 
     this.name = `chunk:${this.x}:${this.z}`;
-    this.geometryBinding = null;
+    this.binding = null;
     this.items = [];
     this.physicsObjects = [];
   }
@@ -20,15 +18,18 @@ export class LodChunk extends THREE.Vector3 {
   }
 }
 export class LodChunkTracker {
-  constructor(generator) {
+  constructor(generator, {
+    chunkWorldSize = 10,
+  } = {}) {
     this.generator = generator;
+    this.chunkWorldSize = chunkWorldSize;
 
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector2(NaN, NaN);
   }
   #getCurrentCoord(position, target) {
-    const cx = Math.floor(position.x / chunkWorldSize);
-    const cz = Math.floor(position.z / chunkWorldSize);
+    const cx = Math.floor(position.x / this.chunkWorldSize);
+    const cz = Math.floor(position.z / this.chunkWorldSize);
     return target.set(cx, cz);
   }
   update(position) {
