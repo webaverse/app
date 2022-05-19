@@ -1,6 +1,8 @@
 // import * as THREE from 'three';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
+import lottie from 'lottie-web';
+
 import {RpgText} from './RpgText.jsx';
 import {LightArrow} from './LightArrow.jsx';
 import styles from './StoryTime.module.css';
@@ -19,6 +21,8 @@ const _progressConversation = () => {
   sounds.playSoundName('menuNext');
 };
 
+let openTimeoutId = null;
+
 const MegaChatBox = ({
   message,
   options,
@@ -30,11 +34,72 @@ const MegaChatBox = ({
 }) => {
   const [currentMessage, setCurrentMessage] = useState(message);
   const selectedOptionIndex = options ? options.indexOf(option) : -1;
+  const [ opened, setOpened ] = useState( false );
+
+  const boxTopRef = useRef( null );
+  const boxBottomRef = useRef( null );
+  const boxLeftRef = useRef( null );
+  const boxRightRef = useRef( null );
 
   useEffect(() => {
     if (message && currentMessage !== message) {
-      setCurrentMessage(message);
+        setCurrentMessage(message);
     }
+
+    //
+
+    boxBottomRef.current.innerHTML = '';
+    boxTopRef.current.innerHTML = '';
+    boxLeftRef.current.innerHTML = '';
+    boxRightRef.current.innerHTML = '';
+
+    const type = ( message ? 'Opening' : 'Closing' );
+
+    lottie.loadAnimation({
+        container: boxBottomRef.current,
+        renderer: 'svg',
+        loop: false,
+        autoplay: true,
+        path: `./lottie/modal/${ type }/bottom.json`
+    });
+
+    lottie.loadAnimation({
+        container: boxTopRef.current,
+        renderer: 'svg',
+        loop: false,
+        autoplay: true,
+        path: `./lottie/modal/${ type }/top.json`
+    });
+
+    lottie.loadAnimation({
+        container: boxLeftRef.current,
+        renderer: 'svg',
+        loop: false,
+        autoplay: true,
+        path: `./lottie/modal/${ type }/left.json`
+    });
+
+    lottie.loadAnimation({
+        container: boxRightRef.current,
+        renderer: 'svg',
+        loop: false,
+        autoplay: true,
+        path: `./lottie/modal/${ type }/right.json`
+    });
+
+    if ( openTimeoutId !== null ) clearTimeout( openTimeoutId );
+    openTimeoutId = null;
+
+    if ( ! message ) {
+
+        openTimeoutId = setTimeout(() => { setOpened( false ); }, 2000 );
+
+    } else {
+
+        setOpened( true );
+
+    }
+
   }, [message, currentMessage]);
 
   const _continue = () => {
@@ -47,8 +112,12 @@ const MegaChatBox = ({
     <div className={classnames(
       styles.megaChatBox,
       styles.outer,
-      message ? styles.open : null,
+      opened ? styles.open : null,
     )}>
+        <div ref={ boxTopRef } className={ styles.topAnimation } />
+        <div ref={ boxBottomRef } className={ styles.bottomAnimation } />
+        <div ref={ boxRightRef } className={ styles.rightAnimation } />
+        <div ref={ boxLeftRef } className={ styles.leftAnimation } />
       <div className={styles.inner}>
         <div className={styles.row}>
           <div className={styles.name}>{currentMessage ? currentMessage.name : ''}</div>
