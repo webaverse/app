@@ -50,8 +50,8 @@ export class CharacterHitter {
               hitDirection.normalize();
     
               const damageMeshOffsetDistance = 1.5;
-              const hitPosition = localVector.copy(this.position)
-                .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.quaternion))
+              const hitPosition = localVector.copy(this.player.position)
+                .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.player.quaternion))
                 .clone();
               localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
               localEuler.x = 0;
@@ -88,14 +88,14 @@ export class CharacterHitter {
               const hitPosition = new THREE.Vector3().fromArray(result.point);
               const hitQuaternion = new THREE.Quaternion().setFromRotationMatrix(
                 localMatrix.lookAt(
-                  this.position,
+                  this.player.position,
                   hitPosition,
                   localVector.set(0, 1, 0)
                 )
               );
 
               const hitDirection = targetApp.position.clone()
-                .sub(this.position);
+                .sub(this.player.position);
               // hitDirection.y = 0;
               hitDirection.normalize();
               
