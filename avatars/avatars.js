@@ -1968,11 +1968,9 @@ class Avatar {
                   windDirection.y = wind.direction[1];
                   windDirection.z = wind.direction[2];
 
-                  const gravityDir = o.gravityDir
-                            .normalize()
-                            .lerp(windDirection.normalize(), 0.5);
-                  //const gravityDir = windDirection.normalize();
-                  o.gravityDir.copy(gravityDir);
+                  o.gravityDir
+                      .normalize()
+                      .lerp(windDirection.normalize(), 0.5);
                   
                   o.gravityPower = windNoise * wind.windForce;
                   i++
@@ -2004,11 +2002,9 @@ class Avatar {
                       windDirection.y = wind.direction[1];
                       windDirection.z = wind.direction[2];
     
-                      const gravityDir = o.gravityDir
-                                .normalize()
-                                .lerp(windDirection.normalize(), 0.5);
-                      //const gravityDir = windDirection.normalize();
-                      o.gravityDir.copy(gravityDir);
+                      o.gravityDir
+                          .normalize()
+                          .lerp(windDirection.normalize(), 0.5);
                       
                       o.gravityPower = windNoise * (wind.windForce * ( 1.1 - headPosition.distanceTo(windPosition) / wind.radius));
                       i++
