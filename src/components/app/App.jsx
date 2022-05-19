@@ -12,7 +12,6 @@ import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
 import cameraManager from '../../../camera-manager';
 import { world } from '../../../world';
-import { handleStoryKeyControls, handleStoryMouseClick } from '../../../story';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -30,9 +29,10 @@ import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
+import {ClaimsNotification} from '../../ClaimsNotification.jsx';
 import {DomRenderer} from '../../DomRenderer.jsx';
 // import * as voices from '../../../voices';
-import { UIMode } from '../general/ui-mode';
+import {handleStoryKeyControls} from '../../../story';
 
 import styles from './App.module.css';
 import '../../fonts.css';
@@ -84,21 +84,13 @@ const _getCurrentRoom = () => {
 export const AppContext = createContext();
 
 const useWebaverseApp = (() => {
-
-    let webaverse = null;
-
-    return () => {
-
+  let webaverse = null;
+  return () => {
         if ( webaverse === null ) {
-
             webaverse = new Webaverse();
-
         }
-
         return webaverse;
-
-    };
-
+  };
 })();
 
 const Canvas = ({
@@ -138,7 +130,6 @@ const Canvas = ({
 export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
-    const [ uiMode, setUIMode ] = useState( 'normal' );
 
     const app = useWebaverseApp();
     const [ selectedApp, setSelectedApp ] = useState( null );
@@ -172,24 +163,13 @@ export const App = () => {
 
         }
 
-        if ( state.openedPanel ) {
-
-            setUIMode( 'normal' );
-
-        }
-
     }, [ state.openedPanel ] );
 
     useEffect( () => {
 
         const handleStoryKeyUp = ( event ) => {
 
-            if ( game.inputFocused() ) {
-
-                return;
-
-            }
-
+            if ( game.inputFocused() ) return;
             handleStoryKeyControls( event );
 
         };
@@ -206,40 +186,7 @@ export const App = () => {
 
     useEffect( () => {
 
-        if ( uiMode === 'none' ) {
-
-            setState({ openedPanel: null });
-
-        }
-
-        const handleKeyDown = ( event ) => {
-
-            if ( event.ctrlKey && event.code === 'KeyH' ) {
-
-                setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
-                return false;
-
-            }
-
-            return true;
-
-        };
-
-        registerIoEventHandler( 'keydown', handleKeyDown );
-
-        return () => {
-
-            unregisterIoEventHandler( 'keydown', handleKeyDown );
-
-        };
-
-    }, [ uiMode ] );
-
-    useEffect( () => {
-
-        const handleClick = ( event ) => {
-
-            handleStoryMouseClick( event );
+        const handleClick = () => {
 
             const hoverObject = game.getMouseHoverObject();
 
@@ -329,20 +276,20 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode }}>
-
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
-
+                
                 <DomRenderer />
                 <Canvas app={app} />
                 <Crosshair />
-
-                <UIMode hideDirection='right'>
-                    <ActionMenu setUIMode={ setUIMode } />
-                </UIMode>
+                
+                <ActionMenu />
                 <Settings />
-                <WorldObjectsList />
-
+                <ClaimsNotification />
+                <WorldObjectsList
+                    setSelectedApp={ setSelectedApp }
+                    selectedApp={ selectedApp }
+                />
                 <PlayMode />
                 <EditorMode
                     selectedScene={ selectedScene }
@@ -359,7 +306,6 @@ export const App = () => {
                 <FocusBar />
                 <DragAndDrop />
                 <Stats app={ app } />
-
             </AppContext.Provider>
         </div>
     );

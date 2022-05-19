@@ -16,7 +16,7 @@ import * as sounds from '../sounds.js';
 
 //
 
-export const User = ({ className, address, setAddress, setLoginFrom }) => {
+export const User = ({ address, setAddress, setLoginFrom }) => {
 
     const { state, setState } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
@@ -224,10 +224,9 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                 open ? styles.open : null,
                 loggedIn ? styles.loggedIn : null,
                 loggingIn ? styles.loggingIn : null,
-                className
             ) }
         >
-            <div className={ styles.keyWrap } onClick={e => {
+            <div className={styles.keyWrap} onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
 
