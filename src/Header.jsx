@@ -18,6 +18,7 @@ import { StoryTime } from './StoryTime';
 import { User } from './User';
 
 import styles from './Header.module.css';
+import { UIMode } from './components/general/ui-mode/index.jsx';
 
 //
 
@@ -264,12 +265,16 @@ export default function Header() {
             />
             <StoryTime />
             {/* <div className={styles.inner}> */}
-                <AvatarIcon />
-                <User
-                    address={address}
-                    setAddress={setAddress}
-                    setLoginFrom={setLoginFrom}
-                />
+                <UIMode hideDirection='left' >
+                    <AvatarIcon />
+                </UIMode>
+                <UIMode hideDirection='right' >
+                    <User
+                        address={address}
+                        setAddress={setAddress}
+                        setLoginFrom={setLoginFrom}
+                    />
+                </UIMode>
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}
