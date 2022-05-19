@@ -226,8 +226,11 @@ export const WorldObjectsList = () => {
 
         const handleKeyUp = ( event ) => {
 
-            const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
-            if ( inputFocused ) return true;
+            if ( game.inputFocused() ) {
+
+                return true;
+
+            }
 
             switch ( event.which ) {
 
