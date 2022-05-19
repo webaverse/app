@@ -7,6 +7,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
 
 export class CharacterHitter {
   constructor(player) {
