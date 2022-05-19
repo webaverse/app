@@ -46,14 +46,19 @@
 /* */
 
 .user .keyWrap {
-  position: absolute;
   top: 0;
   right: 0;
   width: 180px;
   perspective: 400px;
   perspective-origin: -100px 100px;
   pointer-events: all;
+  transition: transform 200ms cubic-bezier( 0, 1, 0, 1 );
 }
+
+.user .keyWrap.hiddenUI {
+    transform: translateX( 100% );
+}
+
 .user:not(.loggedIn) .keyWrap {
   cursor: pointer;
 }

@@ -205,9 +205,8 @@ class AppManager extends EventTarget {
   bindEvents() {
     this.addEventListener('trackedappadd', async e => {
       const {trackedApp} = e.data;
-      const trackedAppJson = trackedApp.toJSON();
-      const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedAppJson;
-      const components = JSON.parse(componentsString);
+      const trackedAppBinding = trackedApp.toJSON();
+      const {instanceId, contentId, position, quaternion, scale, components} = trackedAppBinding;
       
       const p = makePromise();
       p.instanceId = instanceId;
@@ -245,13 +244,11 @@ class AppManager extends EventTarget {
       // attempt to load app
       try {
         const m = await metaversefile.import(contentId);
-
         if (!live) return _bailout(null);
 
         // create app
         // as an optimization, the app may be reused by calling addApp() before tracking it
         const app = metaversefile.createApp();
-        app.contentId = contentId;
 
         // setup
         {
@@ -428,7 +425,7 @@ class AppManager extends EventTarget {
     trackedApp.set('position', position);
     trackedApp.set('quaternion', quaternion);
     trackedApp.set('scale', scale);
-    trackedApp.set('components', JSON.stringify(components));
+    trackedApp.set('components', components);
     return trackedApp;
   }
   addTrackedApp(
@@ -658,8 +655,7 @@ class AppManager extends EventTarget {
       const position = trackedApp.get('position');
       const quaternion = trackedApp.get('quaternion');
       const scale = trackedApp.get('scale');
-      const componentsString = trackedApp.get('components');
-      const components = jsonParse(componentsString) ?? [];
+      const components = trackedApp.get('components') ?? [];
       const object = {
         position,
         quaternion,

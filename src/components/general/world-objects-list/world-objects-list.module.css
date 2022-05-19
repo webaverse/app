@@ -55,19 +55,26 @@
 
 .objects .object .img {
     position: relative;
-    min-width: 80px;
+    width: 80px;
     height: 80px;
     margin: 0 10px;
     object-fit: cover;
-    border: 1px solid #222;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.objects .object .gearsPlaceHolder {
+.objects .object:hover .img div, .objects .object:hover .defaultPlaceHolder {
+    background-image: radial-gradient(#0ab213, #014a13);
+}
+
+.objects .object .defaultPlaceHolder {
     position: relative;
     min-width: 80px;
     height: 80px;
     margin: 0 10px;
-    border: 1px solid #222;
+    background-image: radial-gradient(#444, #222);
+    padding: 20px;
+    border-radius: 10px;
 }
 
 .objects .object .wrap {
@@ -124,7 +131,6 @@
     width: 350px;
     height: 100%;
     background-color: #000;
-    border-left: 3px solid #aaa;
     transform: translateX( -100% );
     transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
@@ -182,10 +188,12 @@
     position: absolute;
     top: 0px;
     left: 0px;
-    padding-left: 120px;
     width: 100%;
     z-index: 0;
     height: 33px;
+    text-align: center;
+    padding-left: 50px;
+    font-weight: 12px;
 }
 
 .objectProperties .selectWrapperTitle {
@@ -204,40 +212,4 @@
     bottom: 0px;
     width: 350px;
     height: 350px;
-}
-
-/*  */
-
-.objectProperties .inputs .input {
-    position: relative;
-    width: 100%;
-    padding-left: 20px;
-    outline: none;
-    margin-left: 20px;
-    margin-bottom: 10px;
-    border-radius: 0px;
-    border: 1px solid #000;
-    height: 29px;
-}
-
-.objectProperties .inputs .inputText {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    padding-left: 40px;
-    width: calc( 100% - 40px );
-    font-size: 15px;
-    line-height: 27px;
-    z-index: 1;
-    outline: none;
-}
-
-.objectProperties .inputs .inputTitle {
-    position: absolute;
-    left: 10px;
-    z-index: 2;
-    font-size: 18px;
-    font-weight: bold;
-    line-height: 32px;
-    font-family: 'GeoSans';
 }

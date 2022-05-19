@@ -7,8 +7,10 @@ import game from '../../../../game.js'
 import metaversefile from '../../../../metaversefile-api.js';
 import cameraManager from '../../../../camera-manager.js';
 
+import { NumberInput } from '../number-input';
 import { Spritesheet } from '../spritesheet';
 import { AppContext } from '../../app';
+import { ObjectScreenshot } from '../object-screenshot';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 
 import styles from './world-objects-list.module.css';
@@ -16,39 +18,11 @@ import physicsManager from '../../../../physics-manager.js';
 
 //
 
-const NumberInput = ({ value, step, onChange, title }) => {
-
-    const handleInputKeyUp = ( event ) => {
-
-        if ( event.which === 13 ) { // enter
-
-            event.preventDefault();
-            event.stopPropagation();
-            event.target.blur();
-
-        }
-
-    };
-
-    //
-
-    return (
-
-        <div className={ styles.input } >
-            <div className={ styles.inputTitle } >{ title }</div>
-            <input type="number" className={ styles.inputText } value={ value } onChange={ onChange } onKeyUp={ handleInputKeyUp } step={ step } />
-        </div>
-
-    );
-
-};
-
-//
-
 export const WorldObjectsList = () => {
 
     const { state, setState, setSelectedApp, selectedApp } = useContext( AppContext );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
+    const [ sortedApps, setSortedApps ] = useState( [] );
     const [ rotationMode, setRotationMode ] = useState( 'euler' );
     const [ rotationEulerOrder, setRotationEulerOrder ] = useState( 'YXZ' );
     const [ needsUpdate, setNeedsUpdate ] = useState( false );
@@ -69,9 +43,7 @@ export const WorldObjectsList = () => {
 
     //
 
-    const handleAppTransformChange = ( paramName, event ) => {
-
-        const value = + event.target.value;
+    const handleAppTransformChange = ( paramName, value ) => {
 
         switch ( paramName ) {
 
@@ -253,8 +225,11 @@ export const WorldObjectsList = () => {
 
         const handleKeyUp = ( event ) => {
 
-            const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes( document.activeElement.nodeName );
-            if ( inputFocused ) return true;
+            if ( game.inputFocused() ) {
+
+                return true;
+
+            }
 
             switch ( event.which ) {
 
@@ -333,6 +308,36 @@ export const WorldObjectsList = () => {
 
     }, [ selectedApp ] );
 
+    useEffect( () => {
+
+        if ( ! apps ) return;
+
+        const sortedApps = [];
+
+        apps.forEach( ( app ) => {
+
+            if ( [ 'glb', 'html', 'gltf', 'vrm', 'gif' ].indexOf( app.appType ) !== -1 ) {
+
+                sortedApps.push( app );
+
+            }
+
+        });
+
+        apps.forEach( ( app ) => {
+
+            if ( [ 'glb', 'html', 'gltf', 'vrm', 'gif' ].indexOf( app.appType ) === -1 ) {
+
+                sortedApps.push( app );
+
+            }
+
+        });
+
+        setSortedApps( sortedApps );
+
+    }, [ apps ] );
+
     //
 
     const appTypeIcons = { 'js': 'script', 'light': 'light' };
@@ -348,22 +353,19 @@ export const WorldObjectsList = () => {
                 {
                     <div className={ styles.objects } >
                     {
-                        apps.map( ( app, i ) => (
+                        sortedApps.map( ( app, i ) => (
                             <div className={ classnames( styles.object, app === selectedApp ? styles.selected : null ) } key={ i } onClick={ handleItemClick.bind( this, app ) } onMouseEnter={ handleItemMouseEnter.bind( this, app ) } onMouseLeave={ handleItemMouseLeave.bind( this, app ) } >
                                 <img src="images/webpencil.svg" className={ classnames( styles.backgroundInner, styles.lime ) } />
                                 {
                                     ( [ 'glb', 'html', 'gltf', 'gif', 'vrm' ].indexOf( app.appType ) !== -1 ) ? (
-                                        <Spritesheet
+                                        <ObjectScreenshot
                                             className={ styles.img }
-                                            startUrl={ app.contentId }
-                                            enabled={ true }
-                                            size={ 2048 }
-                                            numFrames={ 1 }
-                                            animated={ false }
-                                            background={ '#000' }
+                                            width={ 80 }
+                                            height={ 80 }
+                                            app={ app }
                                         />
                                     ) : (
-                                        <img src={ `./images/ui/${ appTypeIcons[ app.appType ] ?? 'gears' }-icon.png` } className={ styles.gearsPlaceHolder } />
+                                        <img src={ `./images/ui/${ appTypeIcons[ app.appType ] ?? 'gears' }-icon.svg` } className={ styles.defaultPlaceHolder } />
                                     )
                                 }
                                 <div className={ styles.wrap } >
@@ -389,9 +391,9 @@ export const WorldObjectsList = () => {
                                 <div className={ styles.settingsBlock } >
                                     <div className={ styles.subheader } >Position</div>
                                     <div className={ classnames( styles.inputs, styles.pos ) } >
-                                        <NumberInput title="X" value={ px } onChange={ handleAppTransformChange.bind( this, 'px' ) } step={ 1 } />
-                                        <NumberInput title="Y" value={ py } onChange={ handleAppTransformChange.bind( this, 'py' ) } step={ 1 } />
-                                        <NumberInput title="Z" value={ pz } onChange={ handleAppTransformChange.bind( this, 'pz' ) } step={ 1 } />
+                                        <NumberInput title="X" initalValue={ px } onChange={ handleAppTransformChange.bind( this, 'px' ) } step={ 1 } />
+                                        <NumberInput title="Y" initalValue={ py } onChange={ handleAppTransformChange.bind( this, 'py' ) } step={ 1 } />
+                                        <NumberInput title="Z" initalValue={ pz } onChange={ handleAppTransformChange.bind( this, 'pz' ) } step={ 1 } />
                                     </div>
                                     <div className={ styles.subheader } >Rotation</div>
                                     <div className={ styles.selectWrapper } >
@@ -417,58 +419,64 @@ export const WorldObjectsList = () => {
                                                 </div>
                                                 {
                                                     ( rotationEulerOrder[0] === 'X' ) ? (
-                                                        <NumberInput title="X" value={ rex.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rex' ) } step={ Math.PI / 2 } />
+                                                        <NumberInput title="X" initalValue={ rex } onChange={ handleAppTransformChange.bind( this, 'rex' ) } step={ Math.PI / 2 } />
                                                     ) : ( rotationEulerOrder[0] === 'Y' ) ? (
-                                                        <NumberInput title="Y" value={ rey.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rey' ) } step={ Math.PI / 2 } />
+                                                        <NumberInput title="Y" initalValue={ rey } onChange={ handleAppTransformChange.bind( this, 'rey' ) } step={ Math.PI / 2 } />
                                                     ) : (
-                                                        <NumberInput title="Z" value={ rez.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rez' ) } step={ Math.PI / 2 } />
+                                                        <NumberInput title="Z" initalValue={ rez } onChange={ handleAppTransformChange.bind( this, 'rez' ) } step={ Math.PI / 2 } />
                                                     )
                                                 }
                                                 {
                                                     ( rotationEulerOrder[1] === 'X' ) ? (
-                                                        <NumberInput title="X" value={ rex.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rex' ) } step={ Math.PI / 2 } />
+                                                        <NumberInput title="X" initalValue={ rex } onChange={ handleAppTransformChange.bind( this, 'rex' ) } step={ Math.PI / 2 } />
                                                     ) : ( rotationEulerOrder[1] === 'Y' ) ? (
-                                                        <NumberInput title="Y" value={ rey.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rey' ) } step={ Math.PI / 2 } />
+                                                        <NumberInput title="Y" initalValue={ rey } onChange={ handleAppTransformChange.bind( this, 'rey' ) } step={ Math.PI / 2 } />
                                                     ) : (
-                                                        <NumberInput title="Z" alue={ rez.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rez' ) } step={ Math.PI / 2 } />
+                                                        <NumberInput title="Z" initalValue={ rez } onChange={ handleAppTransformChange.bind( this, 'rez' ) } step={ Math.PI / 2 } />
                                                     )
                                                 }
                                                 {
                                                     ( rotationEulerOrder[2] === 'X' ) ? (
-                                                        <NumberInput title="X" value={ rex.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rex' ) } step={ Math.PI / 2 } />
+                                                        <NumberInput title="X" initalValue={ rex } onChange={ handleAppTransformChange.bind( this, 'rex' ) } step={ Math.PI / 2 } />
                                                     ) : ( rotationEulerOrder[2] === 'Y' ) ? (
-                                                        <NumberInput title="Y" value={ rey.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rey' ) } step={ Math.PI / 2 } />
+                                                        <NumberInput title="Y" initalValue={ rey } onChange={ handleAppTransformChange.bind( this, 'rey' ) } step={ Math.PI / 2 } />
                                                     ) : (
-                                                        <NumberInput title="Z" value={ rez.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rez' ) } step={ Math.PI / 2 } />
+                                                        <NumberInput title="Z" initalValue={ rez } onChange={ handleAppTransformChange.bind( this, 'rez' ) } step={ Math.PI / 2 } />
                                                     )
                                                 }
                                             </div>
                                         ) : (
                                             <div className={ classnames( styles.inputs ) } >
-                                                <NumberInput title="X" value={ rqx.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rqx' ) } step={ 0.02 } />
-                                                <NumberInput title="Y" value={ rqy.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rqy' ) } step={ 0.02 } />
-                                                <NumberInput title="Z" value={ rqz.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rqz' ) } step={ 0.02 } />
-                                                <NumberInput title="W" value={ rqw.toFixed( 4 ) } onChange={ handleAppTransformChange.bind( this, 'rqw' ) } step={ 0.02 } />
+                                                <NumberInput title="X" initalValue={ rqx } onChange={ handleAppTransformChange.bind( this, 'rqx' ) } step={ 0.02 } />
+                                                <NumberInput title="Y" initalValue={ rqy } onChange={ handleAppTransformChange.bind( this, 'rqy' ) } step={ 0.02 } />
+                                                <NumberInput title="Z" initalValue={ rqz } onChange={ handleAppTransformChange.bind( this, 'rqz' ) } step={ 0.02 } />
+                                                <NumberInput title="W" initalValue={ rqw } onChange={ handleAppTransformChange.bind( this, 'rqw' ) } step={ 0.02 } />
                                             </div>
                                         )
                                     }
                                     <div className={ styles.subheader } >Scale</div>
                                     <div className={ classnames( styles.inputs, styles.scale ) } >
-                                        <NumberInput title="X" value={ sx } onChange={ handleAppTransformChange.bind( this, 'sx' ) } step={ 0.1 } />
-                                        <NumberInput title="Y" value={ sy } onChange={ handleAppTransformChange.bind( this, 'sy' ) } step={ 0.1 } />
-                                        <NumberInput title="Z" value={ sz } onChange={ handleAppTransformChange.bind( this, 'sz' ) } step={ 0.1 } />
+                                        <NumberInput title="X" zeroValue={ false } initalValue={ sx } onChange={ handleAppTransformChange.bind( this, 'sx' ) } step={ 0.1 } />
+                                        <NumberInput title="Y" zeroValue={ false } initalValue={ sy } onChange={ handleAppTransformChange.bind( this, 'sy' ) } step={ 0.1 } />
+                                        <NumberInput title="Z" zeroValue={ false } initalValue={ sz } onChange={ handleAppTransformChange.bind( this, 'sz' ) } step={ 0.1 } />
                                     </div>
                                 </div>
                                 {
                                     ( [ 'glb', 'html', 'gltf', 'gif', 'vrm' ].indexOf( selectedApp.appType ) !== -1 ) ? (
-                                        <Spritesheet
+                                        // <Spritesheet
+                                        //     className={ styles.objectPreview }
+                                        //     startUrl={ selectedApp?.start_url }
+                                        //     enabled={ true }
+                                        //     size={ 2048 }
+                                        //     numFrames={ 128 }
+                                        //     animated={ true }
+                                        //     background={ '#000' }
+                                        // />
+                                        <ObjectScreenshot
                                             className={ styles.objectPreview }
-                                            startUrl={ selectedApp.contentId }
-                                            enabled={ true }
-                                            size={ 2048 }
-                                            numFrames={ 128 }
-                                            animated={ true }
-                                            background={ '#000' }
+                                            width={ 350 }
+                                            height={ 350 }
+                                            app={ selectedApp }
                                         />
                                     ) : ''
                                 }

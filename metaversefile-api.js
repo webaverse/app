@@ -47,6 +47,7 @@ import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
+import particleSystemManager from './particle-system.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -745,7 +746,7 @@ metaversefile.setApi({
     return cameraManager;
   },
   useParticleSystem() {
-    return world.particleSystem;
+    return particleSystemManager;
   },
   useDefaultModules() {
     return defaultModules;
@@ -898,6 +899,7 @@ metaversefile.setApi({
         onWaitPromise(p);
       }
     }
+    
     return app;
   },
   createApp(spec) {
@@ -1092,7 +1094,7 @@ export default () => {
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
     app.appType = m.type ?? '';
-    // app.contentId = m.contentId ?? '';
+    app.contentId = m.contentId ?? '';
     if (Array.isArray(m.components)) {
       for (const {key, value} of m.components) {
         if (!app.hasComponent(key)) {
