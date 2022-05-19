@@ -31,6 +31,7 @@ import * as avatarSpriter from './avatar-spriter.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './ai/lore/lore-ai.js';
 import npcManager from './npc-manager.js';
+import mobManager from './mob-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
 import {getLocalPlayer, remotePlayers} from './players.js';
@@ -526,6 +527,9 @@ metaversefile.setApi({
   },
   useNpcManager() {
     return npcManager;
+  },
+  useMobManager() {
+    return mobManager;
   },
   usePathFinder() {
     return PathFinder;
