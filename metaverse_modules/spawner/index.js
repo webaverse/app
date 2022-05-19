@@ -1,10 +1,11 @@
 // import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useMobManager, useFrame, useCleanup} = metaversefile;
+const {useApp, useMobManager, useFrame, useScene, useCleanup} = metaversefile;
 
 export default () => {
   const app = useApp();
   const mobManager = useMobManager();
+  const scene = useScene();
 
   const appUrls = app.getComponent('appUrls') ?? [];
 
@@ -16,13 +17,17 @@ export default () => {
     mobber.compile();
   })();
 
-  app.getPhysicsObjects = () => mobber.getPhysicsObjects();
+  const chunks = mobber.getChunks();
+  scene.add(chunks);
+  chunks.updateMatrixWorld();
+  // console.log('spawner add app chunks', {app, chunks});
 
   useFrame(({timestamp, timeDiff}) => {
     mobber.update(timestamp, timeDiff);
   });
 
   useCleanup(() => {
+    scene.remove(chunks);
     mobber.destroy();
   });
 
