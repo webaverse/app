@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {camera} from './renderer.js';
 import physics from './physics-manager.js';
 import physx from './physx.js';
 import metaversefile from 'metaversefile';
