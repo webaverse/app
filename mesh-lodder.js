@@ -744,14 +744,14 @@ class LodChunkGenerator {
       physicsObjects,
     } = _renderContentsRenderList(contentsLod0, contentNames, this.allocator.geometry, geometryBinding);
 
-    chunk.geometryBinding = geometryBinding;
+    chunk.binding = geometryBinding;
     chunk.physicsObjects = physicsObjects;
     this.allocator.geometry.groups = this.allocator.indexFreeList.getGeometryGroups(); // XXX memory for this can be optimized
     this.mesh.visible = true;
   }
   disposeChunk(chunk) {
-    this.allocator.free(chunk.geometryBinding);
-    chunk.geometryBinding = null;
+    this.allocator.free(chunk.binding);
+    chunk.binding = null;
 
     for (const physicsObject of chunk.physicsObjects) {
       physicsManager.removeGeometry(physicsObject);
@@ -798,7 +798,9 @@ class MeshLodManager {
     meshLodders.push(this);
 
     this.generator = new LodChunkGenerator(this);
-    this.tracker = new LodChunkTracker(this.generator);
+    this.tracker = new LodChunkTracker(this.generator, {
+      chunkWorldSize,
+    });
   }
   registerLodMesh(name, shapeSpec) {
     const {
