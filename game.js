@@ -463,7 +463,6 @@ const hitRadius = 1;
 const hitHeight = 0.2;
 const hitHalfHeight = hitHeight * 0.5;
 const hitboxOffsetDistance = 0.3;
-const damageMeshOffsetDistance = 1.5;
 /* const cylinderMesh = (() => {
   const radius = 1;
   const height = 0.2;
@@ -497,7 +496,6 @@ Promise.resolve()
 
 let lastActivated = false;
 let lastThrowing = false;
-let lastHitTimes = new WeakMap();
 const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
@@ -905,50 +903,16 @@ const _gameUpdate = (timestamp, timeDiff) => {
         localVector.copy(localPlayer.position)
           .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
 
-        const collision = physx.physxWorker.getCollisionObjectPhysics(
-          physx.physics,
-          hitRadius,
-          hitHalfHeight,
-          localVector,
-          localPlayer.quaternion,
-        );
-        if (collision) {
-          const collisionId = collision.objectId;
-          const result = metaversefileApi.getPairByPhysicsId(collisionId);
-          if (result) {
-            const [app, physicsObject] = result;
-            const lastHitTime = lastHitTimes.get(app) ?? 0;
-            const timeDiff = now - lastHitTime;
-            if (timeDiff > 1000) {
-              const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
-              const hitDirection = app.position.clone()
-                .sub(localPlayer.position);
-              hitDirection.y = 0;
-              hitDirection.normalize();
-
-              const hitPosition = localVector.copy(localPlayer.position)
-                .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(localPlayer.quaternion))
-                .clone();
-              localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-              localEuler.x = 0;
-              localEuler.z = 0;
-              const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
-
-              // const willDie = app.willDieFrom(damage);
-              app.hit(damage, {
-                type: 'sword',
-                collisionId,
-                physicsObject,
-                hitPosition,
-                hitQuaternion,
-                hitDirection,
-                // willDie,
-              });
-            
-              lastHitTimes.set(app, now);
-            }
-          }
-        }
+        localPlayer.characterHitter.attemptHit({
+          type: 'sword',
+          args: {
+            hitRadius,
+            hitHalfHeight,
+            position: localVector,
+            quaternion: localPlayer.quaternion,
+          },
+          timestamp,
+        });
       };
 
       switch (useAction.behavior) {
