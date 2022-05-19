@@ -1964,19 +1964,17 @@ class Avatar {
                   let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
                   windNoise = ((windNoise +  1) / 2);
 
-                
                   windDirection.x = wind.direction[0];
                   windDirection.y = wind.direction[1];
                   windDirection.z = wind.direction[2];
 
-                
                   const gravityDir = o.gravityDir
                             .normalize()
                             .lerp(windDirection.normalize(), 0.5);
                   //const gravityDir = windDirection.normalize();
                   o.gravityDir.copy(gravityDir);
                   
-                  o.gravityPower = windNoise * wind.mainPower;
+                  o.gravityPower = windNoise * wind.windForce;
                   i++
               }
           }
@@ -2002,19 +2000,17 @@ class Avatar {
                       let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
                       windNoise = ((windNoise +  1) / 2);
     
-                    
                       windDirection.x = wind.direction[0];
                       windDirection.y = wind.direction[1];
                       windDirection.z = wind.direction[2];
     
-                    
                       const gravityDir = o.gravityDir
                                 .normalize()
                                 .lerp(windDirection.normalize(), 0.5);
                       //const gravityDir = windDirection.normalize();
                       o.gravityDir.copy(gravityDir);
                       
-                      o.gravityPower = windNoise * (wind.mainPower * ( 1 - headPosition.distanceTo(windPosition) / wind.radius));
+                      o.gravityPower = windNoise * (wind.windForce * ( 1.1 - headPosition.distanceTo(windPosition) / wind.radius));
                       i++
                   }
               }
