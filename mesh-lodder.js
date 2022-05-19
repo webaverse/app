@@ -6,7 +6,7 @@ import {getRenderer} from './renderer.js';
 import {modUv} from './util.js';
 import physicsManager from './physics-manager.js';
 import {defaultMaxId} from './constants.js';
-import {LodChunk, LodChunkTracker} from './lod.js';
+import {LodChunkTracker} from './lod.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const bufferSize = 20 * 1024 * 1024;
