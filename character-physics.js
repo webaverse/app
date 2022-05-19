@@ -97,7 +97,7 @@ class CharacterPhysics {
           localVector7.set(0, 0, 0);
           localVector8.set(0, 0, 0);
 
-          // can't only check keys to judge if move, need check velocity > 0
+          // Can't only check keys to judge if move, need check velocity > 0. Use cameraManager.lastNonzeroDirectionVector.
           if (window.ioManager.keys.up || window.ioManager.keys.down) {
             const sign = window.ioManager.keys.down ? 1 : -1;
             localVector7.copy(distanceVector).normalize().multiplyScalar(sign * moveDistance);
