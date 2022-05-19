@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-import {scene} from './renderer.js';
+// import {scene} from './renderer.js';
 import {getLocalPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
+import hpManager from './hp-manager.js';
 import {LodChunkTracker} from './lod.js';
 import {alea} from './procgen/procgen.js';
 import {createRelativeUrl} from './util.js';
@@ -98,13 +99,36 @@ class Mob {
         scale: this.app.scale,
       });
       if (!live) return;
-      scene.add(subApp);
-      subApp.updateMatrixWorld();
-      this.subApp = subApp;
 
-      this.cleanupFns.push(() => {
-        scene.remove(subApp);
-      });
+      const _attachToApp = () => {
+        this.app.add(subApp);
+        this.subApp = subApp;
+
+        this.app.position.set(0, 0, 0);
+        this.app.quaternion.identity();
+        this.app.scale.set(1, 1, 1);
+        this.app.updateMatrixWorld();
+
+        this.cleanupFns.push(() => {
+          this.app.clear();
+        });
+      };
+      _attachToApp();
+
+      const _bindHitTracker = () => {
+        const hitTracker = hpManager.makeHitTracker();
+        hitTracker.bind(subApp);
+        subApp.dispatchEvent({type: 'hittrackeradded'});
+        const die = () => {
+          console.log('mob died', new Error().stack);
+          /* subApp.dispatchEvent({
+            type: 'die',
+          }); */
+          this.app.destroy();
+        };
+        hitTracker.addEventListener('die', die, {once: true});
+      };
+      _bindHitTracker();
 
       const mesh = subApp;
       const animations = subApp.glb.animations;
@@ -124,6 +148,10 @@ class Mob {
       });
       const physicsObjects = [characterController];
       subApp.getPhysicsObjects = () => physicsObjects;
+
+      this.cleanupFns.push(() => {
+        physicsManager.destroyCharacterController(characterController);
+      });
 
       const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
       if (idleAnimationClips.length > 0) {
@@ -253,6 +281,13 @@ class Mob {
       });
     }
   }
+  getPhysicsObjects() {
+    if (this.subApp) {
+      return this.subApp.getPhysicsObjects();
+    } else {
+      return [];
+    }
+  }
   update(timestamp, timeDiff) {
     for (const fn of this.updateFns) {
       fn(timestamp, timeDiff);
@@ -267,6 +302,9 @@ class Mob {
 
 class MobGenerator {
   constructor(parent) {
+    this.object = new THREE.Object3D();
+    this.object.name = 'mob-chunks';
+
     // parameters
     this.parent = parent;
 
@@ -277,7 +315,9 @@ class MobGenerator {
     const rng = alea(chunk.name);
 
     if (rng() < 0.2) {
-      const mobModule = this.parent.mobModules[Math.floor(rng() * this.parent.mobModules.length)];
+      const mobModuleNames = this.parent.getMobModuleNames();
+      const mobModuleName = mobModuleNames[Math.floor(rng() * mobModuleNames.length)];
+      const mobModule = this.parent.mobModules[mobModuleName];
 
       const r = n => -n + rng() * n * 2;
       const app = metaversefile.createApp({
@@ -295,11 +335,34 @@ class MobGenerator {
         };
       }
       chunk.binding.apps.push(app);
+      
+      this.object.add(app);
+      app.updateMatrixWorld();
+      
+      app.addEventListener('destroy', e => {
+        this.object.remove(app);
+        const index = chunk.binding.apps.indexOf(app);
+        chunk.binding.apps.splice(index, 1);
+      });
+
+      /* this.dispatchEvent(new MessageEvent('appadd', {
+        data: {
+          app,
+        },
+      })); */
     }
   }
   disposeChunk(chunk) {
     if (chunk.binding) {
       for (const app of chunk.binding.apps) {
+        // this.object.remove(app);
+
+        /* this.dispatchEvent(new MessageEvent('appremove', {
+          data: {
+            app,
+          },
+        })); */
+
         app.destroy();
       }
       chunk.binding = null;
@@ -323,26 +386,39 @@ class MobGenerator {
 
 class Mobber {
   constructor() {
-    this.object = new THREE.Object3D();
-    scene.add(this.object);
+    // scene.add(this.object);
 
-    this.mobModules = [];
+    this.mobModules = {};
+    // this.apps = [];
     this.compiled = false;
     
     this.generator = new MobGenerator(this);
+    /* this.generator.addEventListener('appadd', e => {
+      const {app} = e.data;
+      console.log('got app add', {app});
+      this.apps.push(app);
+    });
+    this.generator.addEventListener('appremove', e => {
+      const {app} = e.data;
+      const index = this.apps.indexOf(app);
+      this.apps.splice(index, 1);
+    }); */
     this.tracker = new LodChunkTracker(this.generator, {
       chunkWorldSize,
     });
   }
+  getMobModuleNames() {
+    return Object.keys(this.mobModules).sort();
+  }
   async addMobModule(srcUrl) {
     const m = await metaversefile.import(srcUrl);
-    this.mobModules.push(m);
+    this.mobModules[srcUrl] = m;
   }
   compile() {
     this.compiled = true;
   }
-  getPhysicsObjects() {
-    return [];
+  getChunks() {
+    return this.generator.object;
   }
   update(timestamp, timeDiff) {
     if (this.compiled) {
@@ -353,7 +429,7 @@ class Mobber {
   destroy() {
     this.tracker.destroy();
     this.generator.destroy();
-    scene.remove(this.object);
+    // scene.remove(this.object);
   }
 }
 
@@ -391,6 +467,15 @@ class MobManager {
       mob.destroy();
       this.mobs.splice(index, 1);
     }
+  }
+  getPhysicsObjects() {
+    let results = [];
+    for (const mob of this.mobs) {
+      const physicsObjects = mob.getPhysicsObjects();
+      results.push(physicsObjects);
+    }
+    results = results.flat();
+    return results;
   }
   update(timestamp, timeDiff) {
     for (const mobber of this.mobbers) {
