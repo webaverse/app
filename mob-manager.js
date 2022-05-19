@@ -259,7 +259,6 @@ class Mob {
     }
   }
   destroy() {
-    console.log('destroy mob', this);
     for (const fn of this.cleanupFns) {
       fn();
     }
@@ -286,7 +285,6 @@ class MobGenerator {
           .multiplyScalar(chunkWorldSize)
           .add(new THREE.Vector3(r(chunkWorldSize), 0, r(chunkWorldSize))),
       });
-      console.log('create app', app.position.toArray().join(','));
       (async () => {
         await app.addModule(mobModule);
       })();
@@ -374,8 +372,6 @@ class MobManager {
     this.mobbers.splice(this.mobbers.indexOf(mobber), 1);
   }
   addMobApp(app, srcUrl) {
-    console.log('add app', app.position.toArray().join(','));
-
     if (app.appType !== 'mob') {
       console.warn('not a mob app', app);
       throw new Error('only mob apps can be mobs');
