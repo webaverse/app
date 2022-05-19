@@ -11,6 +11,7 @@ import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
 import cameraManager from '../../../camera-manager';
 import { world } from '../../../world';
+import { handleStoryKeyControls } from '../../../story';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -78,13 +79,21 @@ const _getCurrentRoom = () => {
 export const AppContext = createContext();
 
 const useWebaverseApp = (() => {
-  let webaverse = null;
-  return () => {
+
+    let webaverse = null;
+
+    return () => {
+
         if ( webaverse === null ) {
+
             webaverse = new Webaverse();
+
         }
+
         return webaverse;
-  };
+
+    };
+
 })();
 
 export const App = () => {
@@ -132,6 +141,30 @@ export const App = () => {
         }
 
     }, [ state.openedPanel ] );
+
+    useEffect( () => {
+
+        const handleStoryKeyUp = ( event ) => {
+
+            if ( game.inputFocused() ) {
+
+                return;
+
+            }
+
+            handleStoryKeyControls( event );
+
+        };
+
+        registerIoEventHandler( 'keyup', handleStoryKeyUp );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keyup', handleStoryKeyUp );
+
+        };
+
+    }, [] );
 
     useEffect( () => {
 
@@ -274,10 +307,7 @@ export const App = () => {
                     <ActionMenu setUIMode={ setUIMode } />
                 </UIMode>
                 <Settings />
-                <WorldObjectsList
-                    setSelectedApp={ setSelectedApp }
-                    selectedApp={ selectedApp }
-                />
+                <WorldObjectsList />
                 <PlayMode />
                 <EditorMode
                     selectedScene={ selectedScene }
@@ -294,6 +324,7 @@ export const App = () => {
                 <FocusBar />
                 <DragAndDrop />
                 <Stats app={ app } />
+
             </AppContext.Provider>
         </div>
     );
