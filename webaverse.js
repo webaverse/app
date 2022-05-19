@@ -43,7 +43,6 @@ import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 // import domRenderEngine from './dom-renderer.jsx';
 import musicManager from './music-manager.js';
-import story from './story.js';
 import raycastManager from './raycast-manager.js';
 
 const localVector = new THREE.Vector3();
@@ -73,8 +72,6 @@ const frameEvent = new MessageEvent('frame', {
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
-
-    story.listenHack();
 
     this.loadPromise = (async () => {
       await Promise.all([

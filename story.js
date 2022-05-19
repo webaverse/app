@@ -414,75 +414,77 @@ story.handleWheel = e => {
   }
 };
 
-story.listenHack = () => {
-  const _startConversation = (comment, remotePlayer, done) => {
-    const localPlayer = getLocalPlayer();
-    currentConversation = new Conversation(localPlayer, remotePlayer);
-    currentConversation.addEventListener('close', () => {
-      currentConversation = null;
+const _startConversation = (comment, remotePlayer, done) => {
+const localPlayer = getLocalPlayer();
+currentConversation = new Conversation(localPlayer, remotePlayer);
+currentConversation.addEventListener('close', () => {
+    currentConversation = null;
 
-      cameraManager.setDynamicTarget(null);
-    }, {once: true});
-    story.dispatchEvent(new MessageEvent('conversationstart', {
-      data: {
-        conversation: currentConversation,
-      },
-    }));
-    currentConversation.addLocalPlayerMessage(comment);
-    done && currentConversation.finish();
-  };
-  window.document.addEventListener('click', async e => {
-    if (cameraManager.pointerLockElement) {
-      if (e.button === 0 && (cameraManager.focus && zTargeting.focusTargetReticle)) {
-        const app = metaversefile.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
-        const {appType} = app;
+    cameraManager.setDynamicTarget(null);
+}, {once: true});
+story.dispatchEvent(new MessageEvent('conversationstart', {
+    data: {
+    conversation: currentConversation,
+    },
+}));
+currentConversation.addLocalPlayerMessage(comment);
+done && currentConversation.finish();
+};
 
-        // cameraManager.setFocus(false);
-        // zTargeting.focusTargetReticle = null;
-        sounds.playSoundName('menuSelect');
+export const handleStoryMouseClick = async (e) => {
 
-        cameraManager.setFocus(false);
-        cameraManager.setDynamicTarget();
+  if (cameraManager.pointerLockElement) {
+    if (e.button === 0 && (cameraManager.focus && zTargeting.focusTargetReticle)) {
+      const app = metaversefile.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
+      const {appType} = app;
 
-        (async () => {
-          const aiScene = metaversefile.useLoreAIScene();
-          if (appType === 'npc') {
-            const {name, description} = app.getLoreSpec();
-            const remotePlayer = npcManager.npcs.find(npc => npc.npcApp === app);
+      // cameraManager.setFocus(false);
+      // zTargeting.focusTargetReticle = null;
+      sounds.playSoundName('menuSelect');
 
-            if (remotePlayer) {
-              const {
-                value: comment,
-                done,
-              } = await aiScene.generateSelectCharacterComment(name, description);
+      cameraManager.setFocus(false);
+      cameraManager.setDynamicTarget();
 
-              _startConversation(comment, remotePlayer, done);
-            } else {
-              console.warn('no player associated with app', app);
-            }
+      (async () => {
+        const aiScene = metaversefile.useLoreAIScene();
+        if (appType === 'npc') {
+          const {name, description} = app.getLoreSpec();
+          const remotePlayer = npcManager.npcs.find(npc => npc.npcApp === app);
+
+          if (remotePlayer) {
+            const {
+              value: comment,
+              done,
+            } = await aiScene.generateSelectCharacterComment(name, description);
+
+            _startConversation(comment, remotePlayer, done);
           } else {
-            const {name, description} = app;
-            const comment = await aiScene.generateSelectTargetComment(name, description);
-            const fakePlayer = {
-              avatar: {
-                modelBones: {
-                  Head: app,
-                },
-              },
-            };
-            _startConversation(comment, fakePlayer, true);
+            console.warn('no player associated with app', app);
           }
-        })();
-      } else if (e.button === 0 && currentConversation) {
-        if (!currentConversation.progressing) {
-          currentConversation.progress();
-
-          sounds.playSoundName('menuNext');
+        } else {
+          const {name, description} = app;
+          const comment = await aiScene.generateSelectTargetComment(name, description);
+          const fakePlayer = {
+            avatar: {
+              modelBones: {
+                Head: app,
+              },
+            },
+          };
+          _startConversation(comment, fakePlayer, true);
         }
+      })();
+    } else if (e.button === 0 && currentConversation) {
+      if (!currentConversation.progressing) {
+        currentConversation.progress();
+
+        sounds.playSoundName('menuNext');
       }
     }
-  });
+  }
+
 };
+
 story.startCinematicIntro = () => {
   const rng = alea('lol' + Math.random());
   const r = n => {
