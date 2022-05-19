@@ -96,12 +96,13 @@ class CharacterPhysics {
           const distanceVector = localVector4.copy(playerPosition).sub(targetPosition);
           localVector7.set(0, 0, 0);
           localVector8.set(0, 0, 0);
+
+          // can't only check keys to judge if move, need check velocity > 0
           if (window.ioManager.keys.up || window.ioManager.keys.down) {
             const sign = window.ioManager.keys.down ? 1 : -1;
             localVector7.copy(distanceVector).normalize().multiplyScalar(sign * moveDistance);
           }
           if (window.ioManager.keys.left || window.ioManager.keys.right) {
-            debugger
             const arcLength = moveDistance
             const radius = distanceVector.length();
             const radian = arcLength / radius;
@@ -109,6 +110,7 @@ class CharacterPhysics {
             const destVector = localVector5.copy(distanceVector).applyAxisAngle(localVector6.set(0, 1, 0), sign * radian);
             localVector8.copy(destVector).sub(distanceVector);
           }
+
           localVector3.addVectors(localVector7, localVector8);
           localVector3.normalize().multiplyScalar(moveDistance);
           localVector3.y = this.velocity.y * timeDiffS;
@@ -297,8 +299,10 @@ class CharacterPhysics {
       velocity.multiplyScalar(factor);
     } else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      velocity.x *= factor;
-      velocity.z *= factor;
+      // velocity.x *= factor; // formal
+      // velocity.z *= factor; // formal
+      velocity.x *= .95; // test
+      velocity.z *= .95; // test
     }
   }
   applyAvatarPhysics(now, timeDiffS) {
