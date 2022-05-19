@@ -1,69 +1,30 @@
 // import * as THREE from 'three';
-// import hpManager from './hp-manager.js';
 import metaversefile from 'metaversefile';
-const {useApp, createApp, useHpManager} = metaversefile;
+const {useApp, useMobManager, useFrame, useCleanup} = metaversefile;
 
 export default () => {
   const app = useApp();
-  const hpManager = useHpManager();
+  const mobManager = useMobManager();
 
-  const spawnUrl = app.getComponent('spawnUrl') ?? '';
+  const appUrls = app.getComponent('appUrls') ?? [];
 
-  const range = app.getComponent('range') ?? 3;
-  const r = () => -range + Math.random() * 2 * range;
-  const maxMobs = 10;
-
-  let subApps = [];
+  const mobber = mobManager.createMobber();
   (async () => {
-    const m = await metaversefile.import(spawnUrl);
-    
-    const promises = [];
-    for (let i = 0; i < maxMobs; i++) {
-      promises.push((async () => {
-        const subApp = createApp();
-        subApp.name = `spawn-${m.name}-${i}`;
-
-        subApp.position.set(
-          r(),
-          0, // r(),
-          r()
-        );
-        subApp.quaternion.copy(app.quaternion);
-        app.add(subApp);
-        subApp.updateMatrixWorld();
-
-        await subApp.addModule(m);
-
-        const hitTracker = hpManager.makeHitTracker();
-        hitTracker.bind(subApp);
-        hitTracker.addEventListener('die', () => {
-          hitTracker.unbind(subApp);
-          app.remove(subApp);
-        });
-
-        return subApp;
-      })());
-    }
-    subApps = await Promise.all(promises);
+    await Promise.all(appUrls.map(async appUrl => {
+      await mobber.addMobModule(appUrl);
+    }));
+    mobber.compile();
   })();
 
-  app.getPhysicsObjects = () => {
-    const result = [];
-    for (const subApp of subApps) {
-      result.push.apply(result, subApp.getPhysicsObjects());
-    }
-    return result;
-  };
-  app.hit = (damage, opts) => {
-    const {physicsObject} = opts;
-    for (const subApp of subApps) {
-      const physicsObjects = subApp.getPhysicsObjects();
-      if (physicsObjects.includes(physicsObject)) {
-        subApp.hit(damage, opts);
-        break;
-      }
-    }
-  };
+  app.getPhysicsObjects = () => mobber.getPhysicsObjects();
+
+  useFrame(({timestamp, timeDiff}) => {
+    mobber.update(timestamp, timeDiff);
+  });
+
+  useCleanup(() => {
+    mobber.destroy();
+  });
 
   return app;
 };
