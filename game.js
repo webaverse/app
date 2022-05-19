@@ -936,6 +936,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
               // const willDie = app.willDieFrom(damage);
               app.hit(damage, {
+                type: 'sword',
                 collisionId,
                 physicsObject,
                 hitPosition,
