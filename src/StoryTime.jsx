@@ -100,6 +100,12 @@ const MegaChatBox = ({
 
     }
 
+    return () => {
+
+        if ( openTimeoutId !== null ) clearTimeout( openTimeoutId );
+
+    };
+
   }, [message, currentMessage]);
 
   const _continue = () => {
