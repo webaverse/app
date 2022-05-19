@@ -63,7 +63,9 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 // const localVector5 = new THREE.Vector3();
-// const localVector6 = new THREE.Vector3();
+// const localVector6 = new THREE.Vector3();     
+const windNoisePos = new THREE.Vector3();
+
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localQuaternion3 = new THREE.Quaternion();
@@ -1965,24 +1967,62 @@ class Avatar {
       const timeS = performance.now() / 1000;
       const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
       const _handleDirectional = (wind) =>{
-          windDirection.x = wind.direction[0];
-          windDirection.y = wind.direction[1];
-          windDirection.z = wind.direction[2];
+          // windDirection.x = wind.direction[0];
+          // windDirection.y = wind.direction[1];
+          // windDirection.z = wind.direction[2];
+          // for (const springBones of this.springBoneManager.springBoneGroupList) {
+          //     let i = 0;
+          //     for (const o of springBones) {
+          //         const t = timeS * wind.windFrequency;
+          //         const n = simplex.noise3d(this.originPos[i].x * wind.noiseScale + t, this.originPos[i].y * wind.noiseScale + t, this.originPos[i].z * wind.noiseScale + t);
+                  
+          //         const gravityDir = localVector2.setFromMatrixPosition(o.bone.matrixWorld)
+          //             .sub(headPosition)
+          //             .normalize()
+          //             .lerp(windDirection.normalize(), ((n + 1) / 2));
+          //         o.gravityDir.copy(gravityDir);
+          //         o.gravityPower = ((n + 1) / 2) * wind.mainPower;
+          //         i++
+          //     }
+          // }
+          
           for (const springBones of this.springBoneManager.springBoneGroupList) {
               let i = 0;
               for (const o of springBones) {
-                  const t = timeS * wind.windFrequency;
-                  const n = simplex.noise3d(this.originPos[i].x * wind.noiseScale + t, this.originPos[i].y * wind.noiseScale + t, this.originPos[i].z * wind.noiseScale + t);
+                
+                  const worldPos = localVector2.setFromMatrixPosition(o.bone.matrixWorld);
                   
-                  const gravityDir = localVector2.setFromMatrixPosition(o.bone.matrixWorld)
-                      .sub(headPosition)
-                      .normalize()
-                      .lerp(windDirection.normalize(), ((n + 1) / 2));
+                  const windSpeed = timeS * wind.windFrequency;
+                  windNoisePos.x = (worldPos.x * wind.noiseScale + windSpeed);
+                  windNoisePos.y = (worldPos.y * wind.noiseScale + windSpeed);
+                  windNoisePos.z = (worldPos.z * wind.noiseScale + windSpeed);
+                  let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
+                  windNoise = ((windNoise +  1) / 2);
+
+                
+                  windDirection.x = wind.direction[0];
+                  windDirection.y = wind.direction[1];
+                  windDirection.z = wind.direction[2];
+
+                
+                  const gravityDir = o.gravityDir
+                            .normalize()
+                            .lerp(windDirection.normalize(), 0.5);
+                  //const gravityDir = windDirection.normalize();
                   o.gravityDir.copy(gravityDir);
-                  o.gravityPower = ((n + 1) / 2) * wind.mainPower;
+                  
+                  o.gravityPower = windNoise * wind.mainPower;
                   i++
               }
           }
+
+          
+          // float3 worldPos = wpos;
+          // float windSpeed = _Time.y * (_WindSpeed * 5);
+          // float3 windNoisePos = (worldPos + windSpeed) * _WindWavesScale;
+          // float windNoise = snoise(windNoisePos) * (_WindForce * 30);
+          
+          // wpos.xyz = worldPos + _WindDir.xyz * windNoise;
       }
       const _handleSpherical = (wind) =>{ 
           windPosition.x = wind.position[0];
@@ -1995,15 +2035,29 @@ class Avatar {
               for (const springBones of this.springBoneManager.springBoneGroupList) {
                   let i = 0;
                   for (const o of springBones) {
-                      const t = timeS * wind.windFrequency;
-                      const n = simplex.noise3d(this.originPos[i].x * wind.noiseScale + t, this.originPos[i].y * wind.noiseScale + t, this.originPos[i].z * wind.noiseScale + t);
+                
+                      const worldPos = localVector2.setFromMatrixPosition(o.bone.matrixWorld);
                       
-                      const gravityDir = localVector2.setFromMatrixPosition(o.bone.matrixWorld)
-                          .sub(headPosition)
-                          .normalize()
-                          .lerp(windDirection.normalize(), ((n + 1) / 2));
+                      const windSpeed = timeS * wind.windFrequency;
+                      windNoisePos.x = (worldPos.x * wind.noiseScale + windSpeed);
+                      windNoisePos.y = (worldPos.y * wind.noiseScale + windSpeed);
+                      windNoisePos.z = (worldPos.z * wind.noiseScale + windSpeed);
+                      let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
+                      windNoise = ((windNoise +  1) / 2);
+    
+                    
+                      windDirection.x = wind.direction[0];
+                      windDirection.y = wind.direction[1];
+                      windDirection.z = wind.direction[2];
+    
+                    
+                      const gravityDir = o.gravityDir
+                                .normalize()
+                                .lerp(windDirection.normalize(), 0.5);
+                      //const gravityDir = windDirection.normalize();
                       o.gravityDir.copy(gravityDir);
-                      o.gravityPower = ((n + 1) / 2) * (wind.mainPower * ( 1 - headPosition.distanceTo(windPosition) / wind.radius));
+                      
+                      o.gravityPower = windNoise * (wind.mainPower * ( 1 - headPosition.distanceTo(windPosition) / wind.radius));
                       i++
                   }
               }
