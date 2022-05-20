@@ -51,6 +51,7 @@ import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
+import hitManager from './character-hitter.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -1179,6 +1180,9 @@ export default () => {
   },
   useDropManager() {
     return dropManager;
+  },
+  useHitManager() {
+    return hitManager;
   },
   useDebug() {
     return debug;
