@@ -23,9 +23,7 @@ export default e => {
   const particleSystemManager = useParticleSystem();
   
   app.name = 'firedrop';
-
-  // console.log('add fire drop', app.position.toArray().join(','));
-
+  
   let particleSystem = null;
   const particles = [];
   e.waitUntil((async () => {
