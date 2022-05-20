@@ -35,7 +35,6 @@ import {getLocalPlayer, setLocalPlayer} from './players.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
-window.zTargeting = zTargeting;
 
 // const {contractNames} = metaversefileConstants;
 

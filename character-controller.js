@@ -1355,9 +1355,6 @@ class RemotePlayer extends InterpolatedPlayer {
 /* class NpcPlayer extends LocalPlayer {
   constructor(opts) {
     super(opts);
-    
-    if (!window.npcPlayers) window.npcPlayers = []
-    window.npcPlayers.push(this);
   
     this.isLocalPlayer = false;
     this.isNpcPlayer = true;
