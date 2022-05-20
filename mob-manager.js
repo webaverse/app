@@ -7,6 +7,7 @@ import hpManager from './hp-manager.js';
 import {LodChunkTracker} from './lod.js';
 import {alea} from './procgen/procgen.js';
 import {createRelativeUrl} from './util.js';
+import dropManager from './drop-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -61,6 +62,8 @@ class Mob {
     // this.srcUrl = srcUrl;
     this.subApp = null;
 
+    this.name = this.app.name + '@' + this.app.position.toArray().join(',');
+
     this.updateFns = [];
     this.cleanupFns = [];
 
@@ -69,6 +72,9 @@ class Mob {
         await this.loadApp(srcUrl);
       })();
     }
+  }
+  #getRng() {
+    return alea(this.name);
   }
   async loadApp(mobJsonUrl) {
     let live = true;
@@ -107,6 +113,9 @@ class Mob {
       });
       if (!live) return;
 
+      const rng = this.#getRng();
+      const numDrops = Math.floor(rng() * 3) + 1;
+
       const _attachToApp = () => {
         this.app.add(subApp);
         this.subApp = subApp;
@@ -122,16 +131,26 @@ class Mob {
       };
       _attachToApp();
 
+      const _drop = () => {
+        const {moduleUrls} = metaversefile.useDefaultModules();
+        const silkStartUrl = moduleUrls.silk;
+        for (let i = 0; i < numDrops; i++) {
+          dropManager.createDropApp({
+            start_url: silkStartUrl,
+            position: subApp.position.clone()
+              .add(new THREE.Vector3(0, 0.7, 0)),
+            quaternion: subApp.quaternion,
+            scale: subApp.scale
+          });
+        }
+      };
       const _bindHitTracker = () => {
         const hitTracker = hpManager.makeHitTracker();
         hitTracker.bind(subApp);
         subApp.dispatchEvent({type: 'hittrackeradded'});
         const die = () => {
-          console.log('mob died', new Error().stack);
-          /* subApp.dispatchEvent({
-            type: 'die',
-          }); */
           this.app.destroy();
+          _drop();
         };
         hitTracker.addEventListener('die', die, {once: true});
       };
@@ -374,6 +393,7 @@ class MobGenerator {
     const rng = alea(chunk.name);
 
     if (rng() < 0.2) {
+      const i = 0;
       const mobModuleNames = this.parent.getMobModuleNames();
       const mobModuleName = mobModuleNames[Math.floor(rng() * mobModuleNames.length)];
       const mobModule = this.parent.mobModules[mobModuleName];
@@ -384,6 +404,7 @@ class MobGenerator {
           .multiplyScalar(chunkWorldSize)
           .add(new THREE.Vector3(r(chunkWorldSize), 0, r(chunkWorldSize))),
       });
+      app.name = chunk.name + '-' + i;
       (async () => {
         await app.addModule(mobModule);
       })();
