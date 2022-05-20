@@ -127,6 +127,20 @@
     },
     {
       "position": [
+        0,
+        0,
+        -6
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/silk-grass/"
+    },
+    {
+      "position": [
         -13,
         0,
         0
