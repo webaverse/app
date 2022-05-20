@@ -82,7 +82,7 @@ export class CharacterHitter {
         const result = physics.raycast(args.position, args.quaternion);
         if (result) {
           const _performHit = () => {
-            const targetApp = getAppByPhysicsId(result.objectId);
+            const targetApp = metaversefile.getAppByPhysicsId(result.objectId);
             if (targetApp) {
               const damage = 2;
 
