@@ -415,7 +415,7 @@ class PlayerBase extends THREE.Object3D {
             physicsObject.updateMatrixWorld();
 
             physicsManager.setTransform(physicsObject, true);
-            physicsManager.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5), true);
+            physicsManager.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5).add(this.characterPhysics.velocity), true);
             physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
 
             app.position.copy(physicsObject.position);
