@@ -10,8 +10,17 @@ class VoicePack {
   constructor(files, audioBuffer) {
     this.syllableFiles = files.filter(({name}) => /\/[0-9]+\.wav$/.test(name));
     this.actionFiles = files.filter(({name}) => /^actions\//.test(name));
+    this.emoteFiles = files.filter(({name}) => /^emotes\//.test(name));
     this.audioBuffer = audioBuffer;
     this.actionVoices = this.actionFiles.map(({name, offset, duration}) => {
+      return {
+        name,
+        offset,
+        duration,
+        nonce: 0,
+      };
+    });
+    this.emoteVoices = this.emoteFiles.map(({name, offset, duration}) => {
       return {
         name,
         offset,

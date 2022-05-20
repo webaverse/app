@@ -119,6 +119,20 @@
     },
     {
       "position": [
+        0,
+        0,
+        -6
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/silk-grass/"
+    },
+    {
+      "position": [
         -13,
         0,
         0
@@ -223,8 +237,15 @@
       "start_url": "../metaverse_modules/spawner/",
       "components": [
         {
-          "key": "spawnUrl",
-          "value": "https://webaverse.github.io/ghost/"
+          "key": "appUrls",
+          "value": [
+            "https://webaverse.github.io/ghost/",
+            "https://webaverse.github.io/silkworm-biter/",
+            "https://webaverse.github.io/silkworm-bloater/",
+            "https://webaverse.github.io/silkworm-queen/",
+            "https://webaverse.github.io/silkworm-runner/",
+            "https://webaverse.github.io/silkworm-slasher/"
+          ]
         }
       ]
     }

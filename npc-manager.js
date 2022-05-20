@@ -2,11 +2,11 @@ import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
 import {LocalPlayer} from './character-controller.js';
-import {localPlayer} from './players.js';
+import {getLocalPlayer} from './players.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
-import metaversefile from 'metaversefile';
+import {createRelativeUrl} from './util.js';
 
 const localVector = new THREE.Vector3();
 
@@ -82,6 +82,8 @@ class NpcManager extends EventTarget {
   }
 
   addNpcApp(app, srcUrl) {
+    const localPlayer = getLocalPlayer();
+
     let live = true;
     let json = null;
     let npcPlayer = null;
@@ -170,7 +172,8 @@ class NpcManager extends EventTarget {
         json = await res.json();
         if (!live) return;
 
-        const avatarUrl = json.avatarUrl;
+        let avatarUrl = json.avatarUrl;
+        avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
         const npcName = json.name ?? 'Anon';
         const npcVoiceName = json.voice ?? 'Shining armor';
         const npcBio = json.bio ?? 'A generic avatar.';
@@ -196,7 +199,6 @@ class NpcManager extends EventTarget {
             npcApp: app,
             // avatarApp: vrmApp,
             avatarUrl,
-            wear: npcWear,
             position: app.position.clone()
               .add(new THREE.Vector3(0, 1, 0)),
             quaternion: app.quaternion,
@@ -227,9 +229,10 @@ class NpcManager extends EventTarget {
           const _updateWearables = async () => {
             const wearablePromises = npcWear.map(wear => (async () => {
               const {start_url} = wear;
-              const app = await metaversefile.createAppAsync({
+              const app = await newNpcPlayer.appManager.addTrackedApp(start_url);
+              /* const app = await metaversefile.createAppAsync({
                 start_url,
-              });
+              }); */
               // if (!live) return;
 
               newNpcPlayer.wear(app);
