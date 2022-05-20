@@ -15,68 +15,40 @@
         "position": [1, 2, 3]
       }
     },
-    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/street/" },
+    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/street/index.js" },
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/mirror/" },
-    { "position": [ -20, 0, 5 ], "scale": [7, 7, 7], "start_url": "http://localhost/lib/webaverse_resource/ramp/" },
+    { "position": [ 0, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/bow/" },
+    { "position": [ 1.5, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/pistol/" },
+    { "position": [ 3, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/rifle/" },
+    { "position": [ -20, 0, 5 ], "scale": [7, 7, 7], "start_url": "http://localhost/lib/webaverse_resource/ramp/index.js" },
+    { "position": [-1.5, 1, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/sword/" },
+    { "position": [-3, 1, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
+    { "position": [-3, 3, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
+    { "position": [-5, 0, 5], "quaternion": [0, 0, 0, 1], "start_url": "http://localhost/lib/webaverse_resource/hovercraft/" },
     {
-      "position": [ 2, 3, -2 ],
-      "quaternion": [ 0, 1, 0, 0 ],
-      "start_url": "/avatars/scillia_drophunter_v15_vian.vrm",
-      "components": [
-        {
-          "key": "npc",
-          "value": {
-            "name": "Scillia",
-            "voice": "Sweetie Belle",
-            "bio": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+      "position": [
+        4,
+        0,
+        1
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "type": "application/npc",
+      "content": {
+        "name": "Ann",
+        "avatarUrl": "/avatars/ann.vrm",
+        "voice": "Maud Pie",
+        "bio": "13/F Lisk Witch (black mage). She is 100% quirky and is always creating crazy new potions. She has a dark streak and is known to torment her teachers when they give her bad grades.",
+        "wear": [
+          {
+            "start_url": "http://localhost/lib/webaverse_resource/character-stats-banner/"
           }
-        }
-      ]
-    },
-    {
-      "position": [ -2, 3, -2 ],
-      "quaternion": [ 0, 1, 0, 0 ],
-      "start_url": "/avatars/drake_hacker_v3_vian.vrm",
-      "components": [
-        {
-          "key": "npc",
-          "value": {
-            "name": "Drake",
-            "voice": "Shining Armor",
-            "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
-          }
-        }
-      ]
-    },
-    {
-      "position": [ 2, 3, -4 ],
-      "quaternion": [ 0, 1, 0, 0 ],
-      "start_url": "/avatars/hya_influencer_v2_vian.vrm",
-      "components": [
-        {
-          "key": "npc",
-          "value": {
-            "name": "Hyacinth",
-            "voice": "Maud Pie",
-            "bio": "Scillia's mentor. 15/F beast tamer. She is quite famous."
-          }
-        }
-      ]
-    },
-    {
-      "position": [ -2, 3, -4 ],
-      "quaternion": [ 0, 1, 0, 0 ],
-      "start_url": "/avatars/jun_engineer_v1_vian.vrm",
-      "components": [
-        {
-          "key": "npc",
-          "value": {
-            "name": "Juniper",
-            "voice": "Cadance",
-            "bio": "She is an engineer. 17/F engineer. She is new on the street."
-          }
-        }
-      ]
+        ]
+      }
     }
   ]
 }
