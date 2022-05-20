@@ -3,41 +3,14 @@ import classnames from 'classnames';
 import styles from './MegaHotBox.module.css';
 import { BigButton } from '../../../BigButton';
 import { PlaceholderImg } from '../../../PlaceholderImg';
+import { ImageBitmapCanvas } from '../../../ImageBitmapCanvas';
+import { loadImage } from '../../../../util.js';
 
-// const width = 400;
+const cardFlipAnimationTime = 200;
 
-const ImageBitmapCanvas = ({
+const Card = ({
   imageBitmap = null,
-  className,
-  style,
-}) => {
-  const canvasRef = useRef();
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (imageBitmap) {
-        ctx.drawImage(imageBitmap, 0, 0);
-      } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-    } 
-  }, [canvasRef, imageBitmap]);
-  
-  return imageBitmap ? (
-    <canvas
-      width={imageBitmap.width}
-      height={imageBitmap.height}
-      className={className}
-      style={style}
-      ref={canvasRef}
-    />
-  ) : null;
-}
-
-const HoverableCard = ({
-  imageBitmap = null,
+  backImageBitmap = null,
   // open = false,
 }) => {
   const [rotateX, setRotateX] = useState(0);
@@ -69,7 +42,7 @@ const HoverableCard = ({
     if (animate) {
       const timeout = setTimeout(() => {
         setAnimate(false);
-      }, 150);
+      }, cardFlipAnimationTime);
       return () => {
         clearTimeout(timeout);
       };
@@ -84,7 +57,7 @@ const HoverableCard = ({
 
   return (
     <div
-      className={styles.hoverableCard}
+      className={styles.card}
       onClick={e => {
         setFlip(!flip);
         setAnimate(true);
@@ -115,16 +88,16 @@ const HoverableCard = ({
       </div>
       <ImageBitmapCanvas
         imageBitmap={imageBitmap}
-        className={
-          classnames(
-            styles.image,
-            hovered ? styles.hovered : null,
-            animate ? styles.animate : null,
-          )
-        }
-        style={{
-          transform: `rotateY(${(rotateY + (flip ? Math.PI : 0)).toFixed(8)}rad) rotateX(${rotateX.toFixed(8)}rad)`,
-        }}
+        backImageBitmap={backImageBitmap}
+        className={styles.imageBitmapCanvas}
+        canvasClassName={classnames(
+          styles.canvas,
+          hovered ? styles.hovered : null,
+          animate ? styles.animate : null,
+        )}
+        rotateX={rotateX}
+        rotateY={rotateY}
+        flip={flip}
       />
     </div>
   );
@@ -138,12 +111,39 @@ export const MegaHotBox = ({
   onActivate = null,
   onClose = null,
 }) => {
+    const [ backImageBitmap, setBackImageBitmap ] = useState(null);
+
+    useEffect(() => {
+      let live = true;
+      (async () => {
+        const img = await loadImage('./images/cardback-01.svg');
+        if (!live) return;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        // console.log('got canvas size', canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+
+        setBackImageBitmap(canvas);
+        
+        /* const imageBitmap = await createImageBitmap(canvas);
+        if (!live) return;
+        setBackImageBitmap(imageBitmap); */
+      })();
+      return () => {
+        live = false;
+      };
+    }, []);
+
     return (
       <div className={ classnames(styles.megaHotBox, open ? styles.open : null) } >
         <div className={ styles.box } />
 
-        <HoverableCard
+        <Card
           imageBitmap={imageBitmap}
+          backImageBitmap={backImageBitmap}
         />
 
         <div className={ styles.label }>

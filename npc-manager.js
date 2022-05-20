@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
-import {NpcPlayer} from './character-controller.js';
-import {localPlayer} from './players.js';
+import {LocalPlayer} from './character-controller.js';
+import {getLocalPlayer} from './players.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
-import metaversefile from 'metaversefile';
+import {createRelativeUrl} from './util.js';
 
 const localVector = new THREE.Vector3();
 
@@ -19,16 +19,19 @@ class NpcManager extends EventTarget {
     this.npcs = [];
   }
 
-  createNpc({
+  async createNpcAsync({
     name,
     npcApp,
-    avatarApp,
+    // avatarApp,
+    avatarUrl,
     position,
     quaternion,
     scale,
     detached,
   }) {
-    const npcPlayer = new NpcPlayer();
+    const npcPlayer = new LocalPlayer({
+      npc: true,
+    });
     npcPlayer.name = name;
 
     let matrixNeedsUpdate = false;
@@ -50,8 +53,7 @@ class NpcManager extends EventTarget {
 
     npcPlayer.npcApp = npcApp;
 
-    npcPlayer.setAvatarApp(avatarApp);
-    // npcPlayer.importAvatarApp(avatarApp);
+    await npcPlayer.setAvatarUrl(avatarUrl);
 
     if (!detached) {
       this.npcs.push(npcPlayer);
@@ -80,6 +82,8 @@ class NpcManager extends EventTarget {
   }
 
   addNpcApp(app, srcUrl) {
+    const localPlayer = getLocalPlayer();
+
     let live = true;
     let json = null;
     let npcPlayer = null;
@@ -168,22 +172,8 @@ class NpcManager extends EventTarget {
         json = await res.json();
         if (!live) return;
 
-        const vrmApp = await metaversefile.createAppAsync({
-          start_url: json.avatarUrl,
-          position: app.position,
-          quaternion: app.quaternion,
-          scale: app.scale,
-        });
-
-        {
-          app.position.set(0, 0, 0);
-          app.quaternion.identity();
-          app.scale.set(1, 1, 1);
-
-          app.add(vrmApp);
-          app.updateMatrixWorld();
-        }
-
+        let avatarUrl = json.avatarUrl;
+        avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
         const npcName = json.name ?? 'Anon';
         const npcVoiceName = json.voice ?? 'Shining armor';
         const npcBio = json.bio ?? 'A generic avatar.';
@@ -193,19 +183,38 @@ class NpcManager extends EventTarget {
           npcWear = [npcWear];
         }
 
+        /* const vrmApp = await metaversefile.createAppAsync({
+          start_url: json.avatarUrl,
+          position: app.position,
+          quaternion: app.quaternion,
+          scale: app.scale,
+        }); */
+
         (async () => {
-          const position = vrmApp.position.clone()
-            .add(new THREE.Vector3(0, 1, 0));
-          const {quaternion, scale} = vrmApp;
-          const newNpcPlayer = npcManager.createNpc({
+          // const position = vrmApp.position.clone()
+          //   .add(new THREE.Vector3(0, 1, 0));
+          // const {quaternion, scale} = vrmApp;
+          const newNpcPlayer = await npcManager.createNpcAsync({
             name: npcName,
             npcApp: app,
-            avatarApp: vrmApp,
-            position,
-            quaternion,
-            scale,
+            // avatarApp: vrmApp,
+            avatarUrl,
+            position: app.position.clone()
+              .add(new THREE.Vector3(0, 1, 0)),
+            quaternion: app.quaternion,
+            scale: app.scale,
             detached: npcDetached,
           });
+
+          const _addPlayerAvatarToApp = () => {
+            app.position.set(0, 0, 0);
+            app.quaternion.identity();
+            app.scale.set(1, 1, 1);
+  
+            // app.add(vrmApp);
+            app.updateMatrixWorld();
+          };
+          _addPlayerAvatarToApp();
 
           const _setVoiceEndpoint = () => {
             const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
@@ -220,9 +229,10 @@ class NpcManager extends EventTarget {
           const _updateWearables = async () => {
             const wearablePromises = npcWear.map(wear => (async () => {
               const {start_url} = wear;
-              const app = await metaversefile.createAppAsync({
+              const app = await newNpcPlayer.appManager.addTrackedApp(start_url);
+              /* const app = await metaversefile.createAppAsync({
                 start_url,
-              });
+              }); */
               // if (!live) return;
 
               newNpcPlayer.wear(app);

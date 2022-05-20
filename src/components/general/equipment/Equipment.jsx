@@ -11,7 +11,6 @@ import { transparentPngUrl } from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import { mod } from '../../../../util.js';
 import dropManager from '../../../../drop-manager';
-// import {generateObjectUrlCard} from '../../../../card-generator.js';
 import offscreenEngineManager from '../../../../offscreen-engine-manager.js';
 
 //
@@ -198,7 +197,8 @@ const _generateObjectUrlCardRemote = (() => {
                 }
             ]);
         }
-        return await generateObjectUrlCardRemoteFn.apply(this, arguments);
+        const result = await generateObjectUrlCardRemoteFn.apply(this, arguments);
+        return result;
     };
 })();
 export const Equipment = () => {
