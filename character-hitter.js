@@ -72,11 +72,11 @@ export class CharacterHitter {
             
               this.lastHitTime = timestamp;
 
-              return true;
+              return collision;
             }
           }
         }
-        return false;
+        return null;
       }
       case 'bullet': {
         const result = physics.raycast(args.position, args.quaternion);
@@ -115,9 +115,9 @@ export class CharacterHitter {
           };
           _performHit();
 
-          return true;
+          return result
         }
-        return false;
+        return null;
       }
       default: {
         throw new Error('unknown hit type :' + type);
