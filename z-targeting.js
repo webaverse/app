@@ -199,8 +199,6 @@ class ZTargeting extends THREE.Object3D {
       if (this.focusTargetReticle) {
         sounds.playSoundName('zTargetCancel');
       }
-
-      game.menuUnaim();
     }
   }
   toggle() {
@@ -209,7 +207,6 @@ class ZTargeting extends THREE.Object3D {
     } else {
       const localPlayer = getLocalPlayer();
       this.handleDown(localPlayer);
-      game.menuAim();
       
       if (this.queryResults.results.length === 0) {
         setTimeout(() => {
