@@ -15,21 +15,28 @@
         "position": [1, 2, 3]
       }
     },
-    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/street/index.js" },
-    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/mirror/" },
+    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/street/" },
+    { "position": [ 0, 0, 0 ], "quaternion": [ 0, 0, 0, 1 ], "start_url": "http://localhost/lib/webaverse_resource/stacks/" },
     { "position": [ 0, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/bow/" },
     { "position": [ 1.5, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/pistol/" },
     { "position": [ 3, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/rifle/" },
-    { "position": [ -20, 0, 5 ], "scale": [7, 7, 7], "start_url": "http://localhost/lib/webaverse_resource/ramp/index.js" },
+    { "position": [ 5, 0, 5 ], "start_url": "http://localhost/lib/webaverse_resource/ramp/" },
     { "position": [-1.5, 1, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/sword/" },
     { "position": [-3, 1, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
-    { "position": [-3, 3, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
     { "position": [-5, 0, 5], "quaternion": [0, 0, 0, 1], "start_url": "http://localhost/lib/webaverse_resource/hovercraft/" },
+
+    { "position": [ 0, 1, -1 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
+    { "position": [ 0, 1, -2 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
+    { "position": [ 0, 1, -3 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
+    
+    { "position": [ 3, 1.2, -1 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
+    { "position": [ 3, 0.3, -1 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
+
     {
       "position": [
-        4,
         0,
-        1
+        3,
+        -7
       ],
       "quaternion": [
         0,
