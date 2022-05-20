@@ -53,29 +53,55 @@ const waitForLoad = () => loadPromise;
 const getSoundFiles = () => soundFiles;
 const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
-const playSound = audioSpec => {
+let audios = [];
+const playSound = (audioSpec, voicer) => {
   const {offset, duration} = audioSpec;
   const audioContext = Avatar.getAudioContext();
   const audioBufferSourceNode = audioContext.createBufferSource();
+  const pannerNode = audioContext.createPanner();
+  pannerNode.panningModel = "HRTF";
+  audioBufferSourceNode.connect(pannerNode);
+  pannerNode.connect(audioContext.destination);
   audioBufferSourceNode.buffer = soundFileAudioBuffer;
-  audioBufferSourceNode.connect(audioContext.gain);
+  //audioBufferSourceNode.connect(audioContext.gain);
   audioBufferSourceNode.start(0, offset, duration);
+
+  // handel audios
+  audioBufferSourceNode.index = [audioContext, pannerNode, voicer];
+  audios.push(audioBufferSourceNode.index);
+  audioBufferSourceNode.addEventListener('ended', () => {
+    const index = audios.indexOf(audioBufferSourceNode.index);
+    if (index > -1) {
+      // clean audios array
+      audios.splice(index, 1);
+    }
+  });
+  
   return audioBufferSourceNode;
 };
-const playSoundName = name => {
+
+const playSoundName = (name, voicer) => {
   const snds = soundFiles[name];
   if (snds) {
     const sound = snds[Math.floor(Math.random() * snds.length)];
-    playSound(sound);
+    playSound(sound, voicer);
     return true;
   } else {
     return false;
   }
 };
+const updateAudioPosition  = (player, currentDir, topVector) => {
+  for(const audio of audios){
+    audio[0].listener.setOrientation(currentDir.x, currentDir.y, currentDir.z, topVector.x, topVector.y, topVector.z);
+    audio[0].listener.setPosition(player.position.x, player.position.y, player.position.z);
+    audio[1].setPosition(audio[2].position.x, audio[2].position.y, audio[2].position.z);
+  }
+}
 export {
   waitForLoad,
   getSoundFiles,
   getSoundFileAudioBuffer,
   playSound,
   playSoundName,
+  updateAudioPosition
 };
