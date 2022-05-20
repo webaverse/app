@@ -35,7 +35,6 @@ export class CharacterHitter {
           position, quaternion
         );
         collision.objectIds.forEach(objectId => {
-          debugger
           const collisionId = objectId;
           const result = metaversefileApi.getPairByPhysicsId(collisionId);
           if (result) {
@@ -46,16 +45,13 @@ export class CharacterHitter {
               const timeDiff = timestamp - lastHitTime;
               const useAction = this.player.getAction('use');
               if (useAction.index !== lastHitIndex || timeDiff > 1000) {
-                const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
+                const damage = typeof useAction.damage === 'number' ? useAction.damage : 0;
                 const hitDirection = app.position.clone()
-                  .sub(this.player.position);
+                  .sub(position);
                 hitDirection.y = 0;
                 hitDirection.normalize();
 
-                const hitPosition = localVector.copy(this.player.position)
-                  // .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.player.quaternion)) // todo: no need?
-                  .add(localVector2.set(0, 0, 0).applyQuaternion(this.player.quaternion)) // todo: no need?
-                  .clone();
+                const hitPosition = position.clone();
                 localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
                 localEuler.x = 0;
                 localEuler.z = 0;
