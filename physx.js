@@ -873,13 +873,11 @@ const physxWorker = (() => {
     numNormals,
     uvs,
     numUvs,
-    faces,
+    faces, // Set to falsy to indicate that this is an non-indexed geometry
     numFaces,
 
     planeNormal, // normalized vector3 array
     planeDistance, // number
-
-    isIndexed
   ) => {
     const allocator = new Allocator()
 
@@ -893,7 +891,7 @@ const physxWorker = (() => {
     uvsTypedArray.set(uvs)
 
     let facesTypedArray;
-    if (isIndexed) {
+    if (faces) {
       facesTypedArray = allocator.alloc(Uint32Array, numFaces)
       facesTypedArray.set(faces)
     }
@@ -908,13 +906,11 @@ const physxWorker = (() => {
       numNormals,
       uvsTypedArray.byteOffset,
       numUvs,
-      isIndexed ? facesTypedArray.byteOffset : 0,
-      isIndexed ? numFaces : 0,
+      faces ? facesTypedArray.byteOffset : null,
+      faces ? numFaces : null,
 
       planeNormalTypedArray.byteOffset,
       planeDistance,
-
-      isIndexed
     )
     allocator.freeAll()
 
@@ -1741,6 +1737,21 @@ const physxWorker = (() => {
       id,
       vel.byteOffset,
       autoWake
+    )
+    allocator.freeAll()
+  }
+  w.setGeometryScale = (
+    physics,
+    id,
+    scale,
+  ) => {
+    const allocator = new Allocator()
+    const s = allocator.alloc(Float32Array, 3)
+    scale.toArray(s)
+    moduleInstance._setGeometryScalePhysics(
+        physics,
+        id,
+        s.byteOffset
     )
     allocator.freeAll()
   }
