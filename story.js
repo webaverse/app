@@ -55,52 +55,50 @@ const fieldMusicNames = [
   'dungeon',
   'homespace',
 ];
-export const listenHack = () => {
-  let currentFieldMusic = null;
-  let currentFieldMusicIndex = 0;
-  window.document.addEventListener('keydown', async e => {
-    switch (e.which) {
-      case 48: { // 0
-        await musicManager.waitForLoad();
 
-        _stopSwirl() || _startSwirl();
-        break;
-      }
-      case 57: { // 9
-        await musicManager.waitForLoad();
+let currentFieldMusic = null;
+let currentFieldMusicIndex = 0;
 
-        _stopSwirl();
-        if (currentFieldMusic) {
-          musicManager.stopCurrentMusic();
-          currentFieldMusic = null;
-        } else {
-          const fieldMusicName = fieldMusicNames[currentFieldMusicIndex];
-          currentFieldMusicIndex = (currentFieldMusicIndex + 1) % fieldMusicNames.length;
-          
-          currentFieldMusic = musicManager.playCurrentMusic(fieldMusicName, {
-            repeat: true,
-          });
-        }
-        break;
-      }
-      case 189: { // -
-        await musicManager.waitForLoad();
-        
-        _stopSwirl();
-        musicManager.playCurrentMusic('victory', {
-          repeat: true,
-        });
-        break;
-      }
-      case 187: { // =
-        await musicManager.waitForLoad();
+export const handleStoryKeyControls = async (e) => {
 
-        _stopSwirl();
-        musicManager.playCurrentMusic('gameOver', {
-          repeat: true,
-        });
-        break;
-      }
+  switch (e.which) {
+    case 48: { // 0
+      await musicManager.waitForLoad();
+      _stopSwirl() || _startSwirl();
+      return false;
     }
-  });
+    case 57: { // 9
+      await musicManager.waitForLoad();
+      _stopSwirl();
+      if (currentFieldMusic) {
+        musicManager.stopCurrentMusic();
+        currentFieldMusic = null;
+      } else {
+        const fieldMusicName = fieldMusicNames[currentFieldMusicIndex];
+        currentFieldMusicIndex = (currentFieldMusicIndex + 1) % fieldMusicNames.length;
+        currentFieldMusic = musicManager.playCurrentMusic(fieldMusicName, {
+          repeat: true,
+        });
+      }
+      return false;
+    }
+    case 189: { // -
+      await musicManager.waitForLoad();
+      _stopSwirl();
+      musicManager.playCurrentMusic('victory', {
+        repeat: true,
+      });
+      return false;
+    }
+    case 187: { // =
+      await musicManager.waitForLoad();
+      _stopSwirl();
+      musicManager.playCurrentMusic('gameOver', {
+        repeat: true,
+      });
+      return false;
+    }
+  }
+
+  return true;
 };

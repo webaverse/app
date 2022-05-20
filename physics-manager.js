@@ -355,6 +355,9 @@ physicsManager.setTransform = (physicsObject, autoWake) => {
     autoWake
   )
 }
+physicsManager.setGeometryScale = (physicsId, newScale) => {
+  physx.physxWorker.setGeometryScale(physx.physics, physicsId, newScale);
+}
 physicsManager.getPath = (
   start,
   dest,

@@ -14,7 +14,7 @@ find . -name '*-pad.wav' | xargs -d '\n' rm
 rm -f sounds.mp3
 
 clean
-ls {walk,run,jump,land,narutoRun,sonicBoom,food,combat,spells,navi,ui}/*.wav | sort -n >sound-files.txt
+ls {walk,run,jump,land,narutoRun,sonicBoom,food,silkWorms,combat,spells,navi,ui}/*.wav | sort -n >sound-files.txt
 
 set --
 while IFS='' read -r item; do
