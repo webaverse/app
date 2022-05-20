@@ -153,15 +153,33 @@ class Mob {
         height,
         physicsOffset,
       });
-      const extraPhysicsObjects = extraPhysics.map(({
-        position,
-        quaternion,
-        radius,
-        halfHeight,
-      }) => {
+      const _getPhysicsExtraPositionQuaternion = (
+        spec,
+        localVector,
+        localQuaternion,
+        localVector2,
+        localMatrix
+      ) => {
+        const {
+          position,
+          quaternion,
+        } = spec;
+        
         localVector.fromArray(position);
         localQuaternion.fromArray(quaternion);
+        localVector2.set(1, 1, 1);
+        localMatrix.compose(localVector, localQuaternion, localVector2)
+          .premultiply(mesh.matrixWorld)
+          .decompose(localVector, localQuaternion, localVector2);
+      };
+      const extraPhysicsObjects = extraPhysics.map(spec => {
+        const {
+          radius,
+          halfHeight,
+        } = spec;
+        _getPhysicsExtraPositionQuaternion(spec, localVector, localQuaternion, localVector2, localMatrix);
         const physicsObject = physicsManager.addCapsuleGeometry(localVector, localQuaternion, radius, halfHeight);
+        physicsObject.spec = spec;
         return physicsObject;
       });
       const physicsObjects = [characterController].concat(extraPhysicsObjects);
@@ -226,55 +244,83 @@ class Mob {
           const meshPositionY0 = _zeroY(localVector4.copy(meshPosition));
           const characterPositionY0 = _zeroY(localVector5.copy(localPlayer.position));
 
-          const distance = meshPositionY0
-            .distanceTo(characterPositionY0);
-          if (distance < aggroDistance) {
-            const minDistance = 1;
-            if (distance > minDistance) {
-              const direction = characterPositionY0.sub(meshPositionY0).normalize();
-              const maxMoveDistance = distance - minDistance;
-              const moveDistance = Math.min(walkSpeed * timeDiff * 1000, maxMoveDistance);
-              const moveDelta = localVector6.copy(direction).multiplyScalar(moveDistance);
-              const minDist = 0;
+          const _handleAggro = () => {
+            const distance = meshPositionY0
+              .distanceTo(characterPositionY0);
+            if (distance < aggroDistance) {
+              const minDistance = 1;
+              if (distance > minDistance) {
+                const direction = characterPositionY0.sub(meshPositionY0).normalize();
+                const maxMoveDistance = distance - minDistance;
+                const moveDistance = Math.min(walkSpeed * timeDiff * 1000, maxMoveDistance);
+                const moveDelta = localVector6.copy(direction).multiplyScalar(moveDistance);
+                const minDist = 0;
 
-              /*const flags = */physicsManager.moveCharacterController(
-                characterController,
-                moveDelta,
-                minDist,
-                timeDiffS,
-                characterController.position
-              );
-              // window.flags = flags;
+                const popExtraGeometry = (() => {
+                  for (const extraPhysicsObject of extraPhysicsObjects) {
+                    physicsManager.disableActor(extraPhysicsObject);
+                  }
+                  return () => {
+                    for (const extraPhysicsObject of extraPhysicsObjects) {
+                      physicsManager.enableActor(extraPhysicsObject);
+                    }
+                  };
+                })();
 
-              meshPosition.copy(characterController.position)
-                .sub(physicsOffset);
-              
-              const targetQuaternion = localQuaternion2
-                .setFromRotationMatrix(
-                  localMatrix
-                    .lookAt(
-                      meshPosition,
-                      localPlayer.position,
-                      upVector
-                    )
-                ).premultiply(modelPrerotation);
-              localEuler.setFromQuaternion(targetQuaternion, 'YXZ');
-              localEuler.x = 0;
-              localEuler.y += Math.PI;
-              localEuler.z = 0;
-              localQuaternion2.setFromEuler(localEuler);
-              meshQuaternion.slerp(targetQuaternion, 0.1);
+                /*const flags = */physicsManager.moveCharacterController(
+                  characterController,
+                  moveDelta,
+                  minDist,
+                  timeDiffS,
+                  characterController.position
+                );
+                // window.flags = flags;
 
-              mesh.matrixWorld.compose(meshPosition, meshQuaternion, meshScale);
-              mesh.matrix.copy(mesh.matrixWorld);
-              if (app.parent) {
-                mesh.matrix.premultiply(localMatrix.copy(app.parent.matrixWorld).invert());
+                popExtraGeometry();
+
+                meshPosition.copy(characterController.position)
+                  .sub(physicsOffset);
+                
+                const targetQuaternion = localQuaternion2
+                  .setFromRotationMatrix(
+                    localMatrix
+                      .lookAt(
+                        meshPosition,
+                        localPlayer.position,
+                        upVector
+                      )
+                  ).premultiply(modelPrerotation);
+                localEuler.setFromQuaternion(targetQuaternion, 'YXZ');
+                localEuler.x = 0;
+                localEuler.y += Math.PI;
+                localEuler.z = 0;
+                localQuaternion2.setFromEuler(localEuler);
+                meshQuaternion.slerp(targetQuaternion, 0.1);
+
+                mesh.matrixWorld.compose(meshPosition, meshQuaternion, meshScale);
+                mesh.matrix.copy(mesh.matrixWorld);
+                if (app.parent) {
+                  mesh.matrix.premultiply(localMatrix.copy(app.parent.matrixWorld).invert());
+                }
+                mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
               }
-              mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
-              
-              // _updatePhysics();
             }
-          }
+          };
+          _handleAggro();
+
+          const _updateExtraPhysics = () => {
+            for (const extraPhysicsObject of extraPhysicsObjects) {
+              const {spec} = extraPhysicsObject;
+
+              _getPhysicsExtraPositionQuaternion(spec, localVector, localQuaternion, localVector2, localMatrix);
+
+              extraPhysicsObject.position.copy(localVector);
+              extraPhysicsObject.quaternion.copy(localQuaternion);
+              extraPhysicsObject.updateMatrixWorld();
+              physicsManager.setTransform(extraPhysicsObject);
+            }
+          };
+          _updateExtraPhysics();
         }
       });
       const hit = e => {
