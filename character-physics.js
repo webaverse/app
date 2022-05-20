@@ -12,6 +12,7 @@ import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
+import cameraManager from './camera-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -97,16 +98,15 @@ class CharacterPhysics {
           localVector7.set(0, 0, 0);
           localVector8.set(0, 0, 0);
 
-          // Can't only check keys to judge if move, need check velocity > 0. Use cameraManager.lastNonzeroDirectionVector.
-          if (window.ioManager.keys.up || window.ioManager.keys.down) {
-            const sign = window.ioManager.keys.down ? 1 : -1;
+          if (cameraManager.lastNonzeroDirectionVector.z !== 0) {
+            const sign = cameraManager.lastNonzeroDirectionVector.z;
             localVector7.copy(distanceVector).normalize().multiplyScalar(sign * moveDistance);
           }
-          if (window.ioManager.keys.left || window.ioManager.keys.right) {
+          if (cameraManager.lastNonzeroDirectionVector.x !== 0) {
             const arcLength = moveDistance
             const radius = distanceVector.length();
             const radian = arcLength / radius;
-            const sign = window.ioManager.keys.right ? 1 : -1;
+            const sign = cameraManager.lastNonzeroDirectionVector.x;
             const destVector = localVector5.copy(distanceVector).applyAxisAngle(localVector6.set(0, 1, 0), sign * radian);
             localVector8.copy(destVector).sub(distanceVector);
           }
@@ -299,10 +299,10 @@ class CharacterPhysics {
       velocity.multiplyScalar(factor);
     } else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      // velocity.x *= factor; // formal
-      // velocity.z *= factor; // formal
-      velocity.x *= .95; // test
-      velocity.z *= .95; // test
+      velocity.x *= factor; // formal
+      velocity.z *= factor; // formal
+      // velocity.x *= .95; // test
+      // velocity.z *= .95; // test
     }
   }
   applyAvatarPhysics(now, timeDiffS) {
