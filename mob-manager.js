@@ -30,17 +30,17 @@ const _zeroY = v => {
 function makeCharacterController(app, {
   radius,
   height,
-  offset,
+  physicsOffset,
 }) {
   // const radius = 0.2;
   const innerHeight = height - radius * 2;
   const contactOffset = 0.1 * height;
   const stepOffset = 0.1 * height;
 
-  app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+  // app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   const characterPosition = localVector.setFromMatrixPosition(app.matrixWorld)
     .add(
-      localVector3.copy(offset)
+      localVector3.copy(physicsOffset)
         .applyQuaternion(localQuaternion)
     );
 
@@ -87,12 +87,17 @@ class Mob {
         mobUrl = '',
         radius = 0.3,
         height = 1,
-        position = [0, 0, 0],
-        quaternion = [0, 0, 0, 1],
+        physicsPosition = [0, 0, 0],
+        // physicsQuaternion = [0, 0, 0],
+        // modelPosition = [0, 0, 0],
+        modelQuaternion = [0, 0, 0, 1],
+        extraPhysics = [],
       } = mobComponent;
       mobUrl = createRelativeUrl(mobUrl, mobJsonUrl);
-      const offset = new THREE.Vector3().fromArray(position);
-      const prerotation = new THREE.Quaternion().fromArray(quaternion);
+      const physicsOffset = new THREE.Vector3().fromArray(physicsPosition);
+      // const physicsRotation = new THREE.Quaternion().fromArray(physicsQuaternion);
+      // const modelOffset = new THREE.Vector3().fromArray(modelPosition);
+      const modelPrerotation = new THREE.Quaternion().fromArray(modelQuaternion);
 
       const subApp = await metaversefile.createAppAsync({
         start_url: mobUrl,
@@ -146,13 +151,25 @@ class Mob {
       const characterController = makeCharacterController(subApp, {
         radius,
         height,
-        offset,
+        physicsOffset,
       });
-      const physicsObjects = [characterController];
+      const extraPhysicsObjects = extraPhysics.map(({
+        position,
+        quaternion,
+        radius,
+        halfHeight,
+      }) => {
+        const physicsObject = physicsManager.addCapsuleGeometry(position, quaternion, radius, halfHeight);
+        return physicsObject;
+      });
+      const physicsObjects = [characterController].concat(extraPhysicsObjects);
       subApp.getPhysicsObjects = () => physicsObjects;
 
       this.cleanupFns.push(() => {
         physicsManager.destroyCharacterController(characterController);
+        for (const extraPhysicsObject of extraPhysicsObjects) {
+          physicsManager.removeGeometry(extraPhysicsObject);
+        }
       });
 
       const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
@@ -228,7 +245,7 @@ class Mob {
               // window.flags = flags;
 
               meshPosition.copy(characterController.position)
-                .sub(offset);
+                .sub(physicsOffset);
               
               const targetQuaternion = localQuaternion2
                 .setFromRotationMatrix(
@@ -238,7 +255,7 @@ class Mob {
                       localPlayer.position,
                       upVector
                     )
-                ).premultiply(prerotation);
+                ).premultiply(modelPrerotation);
               localEuler.setFromQuaternion(targetQuaternion, 'YXZ');
               localEuler.x = 0;
               localEuler.y += Math.PI;
