@@ -4,6 +4,7 @@ import {inappPreviewHost} from './constants.js';
 class OffscreenEngine {
   constructor() {
     const id = getRandomString();
+    this.port = null;
 
     const iframe = document.createElement('iframe');
     iframe.width = '0px';
@@ -11,40 +12,40 @@ class OffscreenEngine {
     iframe.style.cssText = `\
       border: 0;
     `;
-    iframe.src = `${inappPreviewHost}/engine.html#id=${id}`;
-    document.body.appendChild(iframe);
+
     this.iframe = iframe;
-    this.port = null;
     this.live = true;
 
-    this.loadPromise = (async () => {
-      await new Promise((resolve, reject) => {
-        iframe.onload = () => {
-          resolve();
+    const setport = new Promise((resolve, reject) => {
+      const message = (e) => {
+        if (e.data?.method === 'engineReady' && e.data.id === id && e.data.port instanceof MessagePort){
+          window.removeEventListener('message', message);
+          resolve(e.data.port);
+        }
+      };
+      window.addEventListener('message', message);
+    });
 
-          iframe.onload = null;
-          iframe.onerror = null;
-        };
-        iframe.onerror = reject;
-      });
-      if (!this.live) return;
+    const loading = new Promise((resolve, reject) => {
+      iframe.onload = () => {
+        resolve();
+        iframe.onload = null;
+        iframe.onerror = null;
+      };
+      iframe.onerror = reject;
+    });
 
-      const port = await new Promise((resolve, reject) => {
-        const message = e => {
-          if (e.data?.method === 'engineReady' && e.data.id === id && e.data.port instanceof MessagePort) {
-            resolve(e.data.port);
+    this.loadPromise = Promise.all([loading, setport]);
 
-            window.removeEventListener('message', message);
-          }
-        };
-        window.addEventListener('message', message);
-      });
-      port.start();
-      this.port = port;
-    })();
+    iframe.src = `${inappPreviewHost}/engine.html#id=${id}`;
+    document.body.appendChild(iframe);
   }
   waitForLoad() {
-    return this.loadPromise;
+    return this.loadPromise.then(([, port]) => {
+      this.port = port;
+      this.port.start();
+      return port;
+    });
   }
   createFunction(o) {
     if (!Array.isArray(o)) {
