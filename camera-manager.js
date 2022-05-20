@@ -10,6 +10,7 @@ import {localPlayer} from './players.js';
 import {minFov, maxFov, midFov} from './constants.js';
 // import { updateRaycasterFromMouseEvent } from './util.js';
 import easing from './easing.js';
+import zTargeting from './z-targeting.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0.5, 0, 0.5, 1);
@@ -448,7 +449,7 @@ class CameraManager extends EventTarget {
         const timestamp = performance.now();
         this.lerpStartTime = timestamp;
         this.lastTimestamp = timestamp;
-        cameraOffset.x = -2;
+        // cameraOffset.x = -2;
         cameraOffset.y = -2.7;
 
         // cameraOffsetZ = -cameraOffsetDefault;
@@ -539,7 +540,8 @@ class CameraManager extends EventTarget {
         .add(npcPlayers[0].position)
       // console.log(window.logVector3(localVector));
 
-      localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
+      // localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
+      localMatrix.lookAt(this.targetPosition, zTargeting.focusTargetReticle.position, new THREE.Vector3(0, 1, 0));
       this.targetQuaternion.setFromRotationMatrix(localMatrix);
         
       // // free camera.rotation.x
