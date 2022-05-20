@@ -9,7 +9,7 @@ import loadoutManager from '../../../../loadout-manager.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler/IoHandler.jsx';
 import {hotbarSize, numLoadoutSlots} from '../../../../constants.js';
 
-export const Hotbar = () => {
+export const Hotbar = ({ className }) => {
     const { state, setState } = useContext( AppContext );
     const open =  state.openedPanel === 'CharacterPanel';
 
@@ -60,7 +60,7 @@ export const Hotbar = () => {
 
     return (
         <div
-            className={ classnames(styles.hotbar, open ? styles.open : null) }
+            className={ classnames( className, styles.hotbar, open ? styles.open : null ) }
             onClick={onTopClick}
         >
 

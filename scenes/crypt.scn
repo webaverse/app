@@ -1,0 +1,66 @@
+{
+  "objects": [
+        {
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [3, 22, -1.08 ],
+        "quaternion": [0, 0.0,0, 0.0]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[100, 255, 255], 0.1]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[100, 255, 255], 2],
+        "position": [0, 10, 0],
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+      }
+    },
+      {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "start_url": "https://webaverse.github.io/twilight-sky/index.js"
+      },
+    {
+      "position": [
+        2.92,
+        24,
+        -6
+      ],
+      "physics": true,
+      "start_url": "https://webaverse.github.io/flying-rug/.metaversefile",
+      "dynamic": false
+    },
+    {
+      "position": [
+        0,
+        -1,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        2,
+        2,
+        2
+      ],
+      "physics": true,
+      "start_url": "https://propialis.github.io/crypt.glb",
+      "dynamic": false
+    }
+  ]
+}
