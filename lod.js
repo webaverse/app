@@ -2,6 +2,46 @@ import * as THREE from 'three';
 
 const localVector2D = new THREE.Vector2();
 
+/*
+note: the nunber of lods at each level can be computed with this function:
+
+  getNumLodsAtLevel = n => n === 0 ? 1 : (2*n+1)**2-(getNumLodsAtLevel(n-1));
+
+the total number of chunks with 3 lods is:
+  > getNumLodsAtLevel(0) + getNumLodsAtLevel(1) + getNumLodsAtLevel(2) + getNumLodsAtLevel(3)
+  < 58
+
+---
+
+the view range for a chunk size and given number of lods is:
+
+  // 0, 1, 2 are our lods
+  getViewRangeInternal = n => (n === 0 ? 1 : (3*getViewRangeInternal(n-1)));
+  getViewRange = (n, chunkSize) => getViewRangeInternal(n) * chunkSize / 2;
+
+for a chunkSize of 30, we have the view distance of each lod:
+
+  getViewRange(1, 30) = 45 // LOD 0
+  getViewRange(2, 30) = 135 // LOD 1
+  getViewRange(3, 30) = 405 // LOD 2
+---
+
+for a million tris budget, the tris per chunk is:
+  1,000,000 tri / 58 chunks rendered = 17241.379310344827586206896551724 tri
+
+for a chunk size of 30 meters, the density of tris per uniform meters cubic is:
+  > 17241.379310344827586206896551724 tri / (30**3 meters)
+  < 0.6385696040868454 tri/m^3
+
+per meters squared, it's 19.157088122605362 tri/m^2
+
+---
+
+using these results
+
+- the tri budget can be scaled linearly with the results
+- the chunk size can be changed to increase the view distance while decreasing the density, while keeping the tri budget the same
+*/
 export class LodChunk extends THREE.Vector3 {
   constructor(x, y, z, lod) {
     
