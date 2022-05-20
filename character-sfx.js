@@ -81,7 +81,7 @@ class CharacterSfx {
     this.willGasp = false;
 
     this.currentDir=new THREE.Vector3();
-    this.localVector = new THREE.Vector3();
+    this.dirVector = new THREE.Vector3();
     this.topVector = new THREE.Vector3(0, 1, 0);
 
     this.oldNarutoRunSound = null;
@@ -102,10 +102,8 @@ class CharacterSfx {
     
     {
           //################################################ trace player dir ########################################
-          this.localVector.x=0;
-          this.localVector.y=0;
-          this.localVector.z=-1;
-          this.currentDir = this.localVector.applyQuaternion( this.player.quaternion );
+          this.dirVector.set(0, 0, -1);
+          this.currentDir = this.dirVector.applyQuaternion( this.player.quaternion );
           this.currentDir.normalize();
           
           sounds.updateAudioPosition(localPlayer, this.currentDir, this.topVector);
