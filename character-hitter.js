@@ -79,7 +79,7 @@ export class CharacterHitter {
         return false;
       }
       case 'bullet': {
-        const result = physics.raycast();
+        const result = physics.raycast(args.position, args.quaternion);
         if (result) {
           const _performHit = () => {
             const targetApp = getAppByPhysicsId(result.objectId);
