@@ -17,7 +17,7 @@ import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLow
 // import metaversefileApi from 'metaversefile';
 import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
-import {localPlayer} from './players.js';
+import {getLocalPlayer} from './players.js';
 // import * as metaverseModules from './metaverse-modules.js';
 // import {createParticleSystem} from './particle-system.js';
 // import * as sounds from './sounds.js';
@@ -64,6 +64,7 @@ world.connectState = state => {
   
   playersManager.bindState(state.getArray(playersMapName));
   
+  const localPlayer = getLocalPlayer();
   localPlayer.bindState(state.getArray(playersMapName));
   
   // note: here we should load up the apps in the state since it won't happen automatically.
@@ -73,6 +74,8 @@ world.isConnected = () => !!wsrtc;
 world.connectRoom = async u => {
   // await WSRTC.waitForReady();
   
+  const localPlayer = getLocalPlayer();
+
   world.appManager.unbindState();
   world.appManager.clear();
 

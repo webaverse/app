@@ -819,6 +819,16 @@ export const proxifyUrl = u => {
     return u;
   }
 };
+export const createRelativeUrl = (u, baseUrl) => {
+  if (/^(?:[\.\/]|([a-z0-9]+):\/\/)/i.test(u)) {
+    return u;
+  } else {
+    if (!/([a-z0-9]+):\/\//i.test(baseUrl)) {
+      baseUrl = new URL(baseUrl, window.location.href).href;
+    }
+    return new URL(u, baseUrl).href;
+  }
+};
 export const getDropUrl = o => {
   let u = null;
   if (typeof o?.start_url === 'string') {
