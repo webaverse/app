@@ -303,8 +303,7 @@ class NpcManager extends EventTarget {
               }
             }
 
-            npcPlayer.eyeballTarget.copy(localPlayer.position);
-            npcPlayer.eyeballTargetEnabled = true;
+            npcPlayer.setTarget(localPlayer.position);
 
             if (isNaN(npcPlayer.position.x)) {
               debugger;
