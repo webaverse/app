@@ -1878,6 +1878,21 @@ const physxWorker = (() => {
     )
     allocator.freeAll()
   }
+  w.setGeometryScale = (
+    physics,
+    id,
+    scale,
+  ) => {
+    const allocator = new Allocator()
+    const s = allocator.alloc(Float32Array, 3)
+    scale.toArray(s)
+    moduleInstance._setGeometryScalePhysics(
+        physics,
+        id,
+        s.byteOffset
+    )
+    allocator.freeAll()
+  }
   w.setTransformPhysics = (
     physics,
     id,
@@ -1999,7 +2014,7 @@ const physxWorker = (() => {
       halfHeight,
       materialAddress,
       id,
-      dynamic,
+      +dynamic,
       flagsInt
     )
     allocator.freeAll()
@@ -2166,13 +2181,14 @@ const physxWorker = (() => {
     }
   }
 
-  w.createChunkWithDualContouring = (x, y, z) => {
+  w.createChunkWithDualContouring = (x, y, z, lod) => {
     const bufferManager = new BufferManager()
 
     const outputBufferOffset = moduleInstance._createChunkWithDualContouring(
       x,
       y,
-      z
+      z,
+      lod
     )
 
     // reading the data with the same order as C++

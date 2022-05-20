@@ -6,11 +6,16 @@ import {initialPosY, playersMapName} from './constants.js';
 
 const localPlayerId = makeId(5);
 const localPlayersArray = new Z.Doc().getArray(playersMapName);
-export const localPlayer = new LocalPlayer({
+let localPlayer = new LocalPlayer({
   playerId: localPlayerId,
   playersArray: localPlayersArray,
 });
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
+
+export const getLocalPlayer = () => localPlayer;
+export const setLocalPlayer = newLocalPlayer => {
+  localPlayer = newLocalPlayer;
+}
 
 export const remotePlayers = new Map();
