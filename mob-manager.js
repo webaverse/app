@@ -402,7 +402,8 @@ class MobGenerator {
       const app = metaversefile.createApp({
         position: chunk.clone()
           .multiplyScalar(chunkWorldSize)
-          .add(new THREE.Vector3(r(chunkWorldSize), 0, r(chunkWorldSize))),
+          .add(new THREE.Vector3(rng() * chunkWorldSize, 0, rng() * chunkWorldSize)),
+        quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), r(Math.PI)),
       });
       app.name = chunk.name + '-' + i;
       (async () => {
