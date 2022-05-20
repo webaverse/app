@@ -88,9 +88,11 @@ class Mob {
         radius = 0.3,
         height = 1,
         position = [0, 0, 0],
+        quaternion = [0, 0, 0, 1],
       } = mobComponent;
       mobUrl = createRelativeUrl(mobUrl, mobJsonUrl);
       const offset = new THREE.Vector3().fromArray(position);
+      const prerotation = new THREE.Quaternion().fromArray(quaternion);
 
       const subApp = await metaversefile.createAppAsync({
         start_url: mobUrl,
@@ -180,14 +182,6 @@ class Mob {
       this.updateFns.push((timestamp, timeDiff) => {
         const localPlayer = getLocalPlayer();
         const timeDiffS = timeDiff / 1000;
-        // console.log('do update');
-
-        /* const _updatePhysics = () => {
-          const physicsIds = mesh.getPhysicsIds();
-          for (const physicsId of physicsIds) {
-            physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion, mesh.scale);
-          }
-        }; */
 
         if (animation) {
           mesh.position.add(localVector.copy(animation.velocity).multiplyScalar(timeDiff/1000));
@@ -224,7 +218,7 @@ class Mob {
               const moveDelta = localVector6.copy(direction).multiplyScalar(moveDistance);
               const minDist = 0;
 
-              const flags = physicsManager.moveCharacterController(
+              /*const flags = */physicsManager.moveCharacterController(
                 characterController,
                 moveDelta,
                 minDist,
@@ -244,7 +238,7 @@ class Mob {
                       localPlayer.position,
                       upVector
                     )
-                );
+                ).premultiply(prerotation);
               localEuler.setFromQuaternion(targetQuaternion, 'YXZ');
               localEuler.x = 0;
               localEuler.y += Math.PI;
