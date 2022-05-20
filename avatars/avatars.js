@@ -1896,7 +1896,7 @@ class Avatar {
     
 
     _updateHmdPosition();
-    // _applyAnimation(this, now, moveFactors);
+    _applyAnimation(this, now, moveFactors);
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);

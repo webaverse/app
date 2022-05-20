@@ -1100,7 +1100,7 @@ class GameManager extends EventTarget {
     _mousedown();
   }
   menuMouseUp() {
-    // _mouseup();
+    _mouseup();
   }
   menuAim() {
     const localPlayer = getLocalPlayer();

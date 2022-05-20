@@ -29,8 +29,8 @@
     { "position": [ 0, 1, -2 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
     { "position": [ 0, 1, -3 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
     
-    { "position": [ 3, 1.2, -1 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
-    { "position": [ 3, 0.3, -1 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
+    { "position": [ 3, 1.5, -1 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
+    { "position": [ 3, 0.5, -1 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
 
     {
       "position": [
