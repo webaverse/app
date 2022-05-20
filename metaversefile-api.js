@@ -50,6 +50,7 @@ import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
+import dropManager from './drop-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -1175,6 +1176,9 @@ export default () => {
   },
   useDomRenderer() {
     return domRenderEngine;
+  },
+  useDropManager() {
+    return dropManager;
   },
   useDebug() {
     return debug;
