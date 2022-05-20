@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 // import metaversefile from 'metaversefile';
-import {localPlayer} from './players.js';
+import {getLocalPlayer} from './players.js';
 import {world} from './world.js';
 import {scene} from './renderer.js';
 import {ScenePreviewer} from './scene-previewer.js';
@@ -63,6 +63,7 @@ class OverworldApp {
 }
 
 const loadOverworld = async () => {
+  const localPlayer = getLocalPlayer();
   const chunks = [
     {
       name: 'street',

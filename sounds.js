@@ -47,6 +47,9 @@ const soundFiles = {
   naviFriendly: _getSoundFiles(/navi_friendly/),
   naviItem: _getSoundFiles(/navi_item/),
   naviDanger: _getSoundFiles(/navi_danger/),
+  bushCut: _getSoundFiles(/OOT_Bush_Cut/),
+  bushPickup: _getSoundFiles(/OOT_Bush_Pickup/),
+  bushWalk: _getSoundFiles(/OOT_Bush_Walk/),
 };
 
 let soundFileAudioBuffer;

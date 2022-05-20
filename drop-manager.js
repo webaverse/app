@@ -1,5 +1,5 @@
-// import * as THREE from "three";
-// import metaversefile from "metaversefile";
+import * as THREE from 'three';
+import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
 
 class DropManager extends EventTarget {
@@ -7,6 +7,38 @@ class DropManager extends EventTarget {
     super();
 
     this.claims = [];
+  }
+  createDropApp({
+    start_url,
+    position,
+    quaternion,
+    scale,
+  }) {      
+    const r = () => (-0.5+Math.random())*2;
+    const components = [
+      {
+        key: 'drop',
+        value: {
+          voucher: 'fakeVoucher',
+          velocity: new THREE.Vector3(r(), 1+Math.random(), r())
+            .normalize()
+            .multiplyScalar(5)
+            .toArray(),
+          angularVelocity: new THREE.Vector3(0, 0.001, 0)
+            .toArray(),
+        },
+      },
+    ];
+    
+    // console.log('got loot components', srcUrl, components);
+    const trackedApp = metaversefile.addTrackedApp(
+      start_url,
+      position,
+      quaternion,
+      scale,
+      components
+    );
+    return trackedApp;
   }
   pickupApp(app) {
     const result = generateStats(app.contentId);
