@@ -1,16 +1,16 @@
 // import * as THREE from 'three';
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
-import {RpgText} from './RpgText.jsx';
-import {LightArrow} from './LightArrow.jsx';
+import { RpgText } from './RpgText.jsx';
+import { LightArrow } from './LightArrow.jsx';
 import styles from './StoryTime.module.css';
-import {chatTextSpeed} from '../constants.js';
-import {level} from '../player-stats.js';
+import { chatTextSpeed } from '../constants.js';
+import { level } from '../player-stats.js';
 
 import * as sounds from '../sounds.js';
 import storyManager from '../story.js';
 
-import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler';
+import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 
 const _progressConversation = () => {
   const conversation = storyManager.getConversation();
@@ -108,8 +108,8 @@ const MegaChatBox = ({
                 }}
                 key={i}
               >
-                <div className={styles.border}/>
-                <div className={styles.value}>{option}</div>
+                <div className={styles.border} />
+                <div className={styles.value}>{option.message}</div>
                 <img className={styles.arrow} src="./images/ui/left-red.svg" />
               </div>
             );
@@ -136,27 +136,27 @@ export const StoryTime = () => {
 
   useEffect(() => {
     function conversationstart(e) {
-      const {conversation} = e.data;
+      const { conversation } = e.data;
       conversation.addEventListener('message', e => {
-        const {message} = e.data;
+        const { message } = e.data;
         setFinished(false);
         setMessage(message);
       });
       conversation.addEventListener('options', e => {
-        const {options} = e.data;
+        const { options } = e.data;
         if (options) {
           setOptions(options);
           setOption(null);
         }
       });
       conversation.addEventListener('hoverindex', e => {
-        const {hoverIndex} = e.data;
+        const { hoverIndex } = e.data;
         setHoverIndex(hoverIndex);
 
         sounds.playSoundName('menuMove');
       });
       conversation.addEventListener('option', e => {
-        const {option} = e.data;
+        const { option } = e.data;
         setOption(option);
       });
 
@@ -178,7 +178,7 @@ export const StoryTime = () => {
       });
     }
     storyManager.addEventListener('conversationstart', conversationstart);
-    
+
     return () => {
       storyManager.removeEventListener('conversationstart', conversationstart);
     };

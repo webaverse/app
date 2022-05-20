@@ -24,6 +24,9 @@ import {mod} from './util.js';
 import {getLocalPlayer} from './players.js';
 import {alea} from './procgen/procgen.js';
 
+// Import function to trigger emotion
+import { triggerEmote } from './src/components/general/character/Poses.jsx';
+
 const localVector2D = new THREE.Vector2();
 
 const upVector = new THREE.Vector3(0, 1, 0);
@@ -116,12 +119,13 @@ class Conversation extends EventTarget {
 
     cameraManager.setDynamicTarget(this.localPlayer.avatar.modelBones.Head, this.remotePlayer?.avatar.modelBones.Head);
   }
-  addRemotePlayerMessage(text, type = 'chat') {
+  addRemotePlayerMessage(text, emote, type = 'chat') {
     const message = {
       type,
       player: this.remotePlayer,
       name: this.remotePlayer.name,
       text,
+      emote
     };
     this.messages.push(message);
 
@@ -159,11 +163,12 @@ class Conversation extends EventTarget {
       const aiScene = metaversefile.useLoreAIScene();
       const {
         value: comment,
+        emote,
         done,
       } = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
       
       if (!this.messages.some(m => m.text === comment && m.player === this.remotePlayer)) {
-        this.addRemotePlayerMessage(comment);
+        this.addRemotePlayerMessage(comment, emote);
         done && this.finish();
       } else {
         this.finish();
@@ -215,8 +220,12 @@ class Conversation extends EventTarget {
     }
 
     // say the option
-    this.addLocalPlayerMessage(option, 'option');
-    
+    this.addLocalPlayerMessage(option.message, 'option');
+    //------------------- Convai ---------------------
+    // trigger emote
+    triggerEmote(option.emote)
+    //------------------------------------------------
+
     // clear options
     this.#setOptions(null);
     this.#setOption(option);
