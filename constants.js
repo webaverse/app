@@ -40,7 +40,7 @@ let _inappPreviewHost = '';
 
 switch ( origin ) {
     case 'https://local.webaverse.com': {
-        _inappPreviewHost = 'https://local.webaverse.online';
+        _inappPreviewHost = `https://local.webaverse.online:${window.location.port}`;
         break;
     }
     case 'https://dev.webaverse.com': {
@@ -108,6 +108,8 @@ export const avatarInterpolationNumFrames = 4;
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
 
+export const defaultMaxId = 8192;
+
 export const defaultMusicVolume = 0.35;
 
 export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
@@ -136,7 +138,7 @@ export const defaultVoicePackName = `ShiShi voice pack`;
 export const defaultPlayerSpec = {
   name: 'Scillia',
   previewUrl: './images/characters/upstreet/small/scillia.png',
-  avatarUrl: './avatars/scilly_drophunter_v30.5_Guilty.vrm',
+  avatarUrl: './avatars/scilly_drophunter_v31.6_Guilty.vrm',
   voice: defaultVoiceEndpoint,
   voicePack: defaultVoicePackName,
   class: 'Drop Hunter',

@@ -7,7 +7,7 @@ import { AppContext } from '../../app';
 import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
 import { world } from '../../../../world.js';
-import { NpcPlayer } from '../../../../character-controller.js';
+import { LocalPlayer } from '../../../../character-controller.js';
 import * as sounds from '../../../../sounds.js';
 import { chatManager } from '../../../../chat-manager.js';
 import musicManager from '../../../../music-manager.js';
@@ -219,7 +219,7 @@ export const CharacterSelect = () => {
                     (async () => {
                         let themeSong = themeSongCache.get(targetCharacter.themeSongUrl);
                         if (!themeSong) {
-                            themeSong = await NpcPlayer.fetchThemeSong(targetCharacter.themeSongUrl);
+                            themeSong = await LocalPlayer.fetchThemeSong(targetCharacter.themeSongUrl);
                             themeSongCache.set(targetCharacter.themeSongUrl, themeSong);
                             if (!live) return;
                         }

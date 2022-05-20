@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import gameManager from '../game.js';
 import {camera} from '../renderer.js';
-import {localPlayer} from '../players.js';
-// import metaversefile from 'metaversefile';
+import cameraManager from '../camera-manager.js';
+import {getLocalPlayer} from '../players.js';
 
 // import {CharacterBanner} from './CharacterBanner.jsx';
 import domRenderEngine, {DomRenderEngine} from '../dom-renderer.jsx';
@@ -11,12 +11,16 @@ import domRenderEngine, {DomRenderEngine} from '../dom-renderer.jsx';
 const floatFactor = 0.05;
 const floatTime = 3000;
 const transtionTime = 1000;
+const scaleEpsilon = 0.01;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localMatrix3 = new THREE.Matrix4();
+
+const scaleMatrix = new THREE.Matrix4().makeScale(1 + scaleEpsilon, 1 + scaleEpsilon, 1 + scaleEpsilon);
 
 const _getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
 
@@ -95,18 +99,22 @@ const DomRendererChild = ({
 
     if (iframeContainer2) {
       const frame = e => {
+        const {timestamp} = e.data;
+        
         const _animateMenuFloat = () => {
-          const now = performance.now();
-          dom.position.copy(dom.basePosition);
-          dom.position.y += Math.sin((now % floatTime)/floatTime * 2 * Math.PI) * floatFactor;
-          dom.position.y += Math.cos(((now / 2) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/2;
-          dom.position.y += Math.sin(((now / 4) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/4;
-          dom.quaternion.copy(dom.baseQuaternion);
-          dom.scale.copy(dom.baseScale);
-          dom.updateMatrixWorld();
+          const now = timestamp;
+          
+          dom.floatNode.position.set(0, 0, 0);
+          dom.floatNode.position.y += Math.sin((now % floatTime)/floatTime * 2 * Math.PI) * floatFactor;
+          dom.floatNode.position.y += Math.cos(((now / 2) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/2;
+          dom.floatNode.position.y += Math.sin(((now / 4) % floatTime)/floatTime * 2 * Math.PI) * floatFactor/4;
+          dom.floatNode.updateMatrixWorld();
         };
         _animateMenuFloat();
         
+        const floatNodeMatrixWorld = localMatrix3
+          .multiplyMatrices(dom.floatNode.matrixWorld, scaleMatrix);
+
         const _updateCameraContainerMatrix = () => {
           const fov = _getFov();
           const cameraCSSMatrix = getCameraCSSMatrix(
@@ -115,7 +123,7 @@ const DomRendererChild = ({
                 localMatrix2.makeTranslation(0, 0, fov)
               )
               .multiply(
-                dom.matrixWorld
+                floatNodeMatrixWorld
               )
           );
           iframeContainer2.style.transform = cameraCSSMatrix;
@@ -138,7 +146,8 @@ const DomRendererChild = ({
       const endTime = startTime + transtionTime;
 
       const _updateVisibility = () => {
-        const distance = localPlayer.position.distanceTo(dom.basePosition);
+        const localPlayer = getLocalPlayer();
+        const distance = localPlayer.position.distanceTo(dom.position);
         const isInRange = distance < range;
         if (isInRange && !visible) {
           setVisible(true);
@@ -162,6 +171,11 @@ const DomRendererChild = ({
     };
   }, [visible]);
 
+  const preventDefault = e => {
+    // e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
     <div
       className={'iframe-container-2'}
@@ -172,6 +186,9 @@ const DomRendererChild = ({
         left: 0,
         right: 0,
       }}
+      onMouseDown={preventDefault}
+      onClick={preventDefault}
+      onMouseUp={preventDefault}
       ref={iframeContainer2Ref}
     >
       <div
@@ -238,7 +255,7 @@ const DomRendererChildren = ({
 const DomRenderer = props => {
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   const [innerHeight, setInnerHeight] = useState(window.innerHeight);
-  const [fov, setFov] = useState(_getFov());
+  const [fov, setFov] = useState(_getFov);
   const iframeContainerRef = useRef();
 
   useEffect(() => {
@@ -248,8 +265,14 @@ const DomRenderer = props => {
       setFov(_getFov());
     };
     window.addEventListener('resize', resize);
+    const fovchange = (/*e*/) => {
+      // const {fov} = e.data;
+      setFov(_getFov());
+    };
+    cameraManager.addEventListener('fovchange', fovchange);
     return () => {
       window.removeEventListener('resize', resize);
+      cameraManager.removeEventListener('fovchange', fovchange);
     };
   }, []);
 
@@ -263,9 +286,9 @@ const DomRenderer = props => {
         width: `${innerWidth}px`,
         height: `${innerHeight}px`,
         perspective: `${fov}px`,
-        pointerEvents: 'none',
-        userSelect: 'none',
-        zIndex: -1,
+        // pointerEvents: 'none',
+        // userSelect: 'none',
+        // zIndex: -1,
       }}
       ref={iframeContainerRef}
     >

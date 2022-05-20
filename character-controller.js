@@ -32,6 +32,7 @@ import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
+import {CharacterHitter} from './character-hitter.js';
 import {CharacterBehavior} from './character-behavior.js';
 import {CharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
@@ -548,11 +549,6 @@ class StatePlayer extends PlayerBase {
     if (this.isBound()) {
       this.playersArray = null;
       this.playerMap = null;
-
-      for (const unbindFn of this.unbindFns) {
-        unbindFn();
-      }
-      this.unbindFns.length = 0;
     }
   }
   detachState() {
@@ -595,7 +591,7 @@ class StatePlayer extends PlayerBase {
     const observeAvatarFn = async () => {
       // we are in an observer and we want to perform a state transaction as a result
       // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
-      await Promise.resolve();
+      // await Promise.resolve();
       
       const instanceId = this.getAvatarInstanceId();
       if (lastAvatarInstanceId !== instanceId) {
@@ -615,6 +611,12 @@ class StatePlayer extends PlayerBase {
     };
     this.unbindFns.push(_cancelSyncAvatar);
   }
+  unbindCommonObservers() {
+    for (const unbindFn of this.unbindFns) {
+      unbindFn();
+    }
+    this.unbindFns.length = 0;
+  }
   bindState(nextPlayersArray) {
     // latch old state
     const oldState = this.detachState();
@@ -622,6 +624,7 @@ class StatePlayer extends PlayerBase {
     // unbind
     this.unbindState();
     this.appManager.unbindState();
+    this.unbindCommonObservers();
     
     // note: leave the old state as is. it is the host's responsibility to garbage collect us when we disconnect.
     
@@ -677,8 +680,10 @@ class StatePlayer extends PlayerBase {
         });
         
         loadPhysxCharacterController.call(this);
-        // console.log('disable actor', this.characterController);
-        physicsManager.disableGeometryQueries(this.characterController);
+        
+        if (this.isLocalPlayer) {
+          physicsManager.disableGeometryQueries(this.characterController);
+        }
       })();
       
       this.dispatchEvent({
@@ -1015,7 +1020,8 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
-    this.isLocalPlayer = true;
+    this.isLocalPlayer = !opts.npc;
+    this.isNpcPlayer = !!opts.npc;
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
@@ -1023,6 +1029,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
+    this.characterHitter = new CharacterHitter(this);
     this.characterBehavior = new CharacterBehavior(this);
   }
   async setPlayerSpec(playerSpec) {
@@ -1040,15 +1047,18 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.appManager.removeTrackedApp(avatarApp.instanceId);
       return;
     }
-    
-    this.setAvatarApp(avatarApp);
+    this.#setAvatarAppFromOwnAppManager(avatarApp);
   }
   getAvatarApp() {
     const avatar = this.getAvatarState();
     const instanceId = avatar.get('instanceId');
     return this.appManager.getAppByInstanceId(instanceId);
   }
-  setAvatarApp(app) {
+  /* importAvatarApp(app, srcAppManager) {
+    srcAppManager.transplantApp(app, this.appManager);
+    this.#setAvatarAppFromOwnAppManager(app);
+  } */
+  #setAvatarAppFromOwnAppManager(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       const avatar = self.getAvatarState();
@@ -1151,7 +1161,6 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          //physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
           physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
         }
         this.removeActionIndex(i + removeOffset);
@@ -1200,6 +1209,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       const timeDiffS = timeDiff / 1000;
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
+      this.characterHitter.update(timestamp, timeDiffS);
       this.characterBehavior.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
@@ -1293,11 +1303,9 @@ class RemotePlayer extends InterpolatedPlayer {
     this.syncAvatar();
   }
 }
-class StaticUninterpolatedPlayer extends PlayerBase {
+/* class StaticUninterpolatedPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
-
-    UninterpolatedPlayer.init.apply(this, arguments);
 
     this.actions = [];
   }
@@ -1350,65 +1358,21 @@ class StaticUninterpolatedPlayer extends PlayerBase {
     }
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
-}
-class NpcPlayer extends StaticUninterpolatedPlayer {
+} */
+/* class NpcPlayer extends LocalPlayer {
   constructor(opts) {
     super(opts);
     
     if (!window.npcPlayers) window.npcPlayers = []
     window.npcPlayers.push(this);
   
+    this.isLocalPlayer = false;
     this.isNpcPlayer = true;
-    this.avatarApp = null;
-    this.npcApp = null;
-
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
-    this.characterBehavior = new CharacterBehavior(this);
   }
-  getAvatarApp() {
-    return this.avatarApp;
-  }
-  setAvatarApp(app) {
-    app.toggleBoneUpdates(true);
-    const {skinnedVrm} = app;
-    const avatar = new Avatar(skinnedVrm, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      debug: false,
-    });
-
-    unFrustumCull(app);
-    enableShadows(app);
-  
-    this.avatar = avatar;
-    this.avatarApp = app;
-    
-    loadPhysxCharacterController.call(this);
-  }
-  updatePhysics = LocalPlayer.prototype.updatePhysics;
-  updateAvatar = LocalPlayer.prototype.updateAvatar;
-  destroy() {
-    this.characterPhysics.destroy();
-    this.characterHups.destroy();
-    this.characterSfx.destroy();
-    this.characterFx.destroy();
-    this.characterBehavior.destroy();
-
-    if (this.avatarApp) {
-      this.avatarApp.toggleBoneUpdates(false);
-    }
-
-    super.destroy();
-  }
-  updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
-}
+} */
 
 export {
   LocalPlayer,
   RemotePlayer,
-  NpcPlayer,
+  // NpcPlayer,
 };
