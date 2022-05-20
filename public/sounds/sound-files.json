@@ -810,228 +810,288 @@
     "duration": 0.3280625
   },
   {
-    "name": "sonicBoom/SonicBoomBoom.wav",
+    "name": "silkWorms/worm_attack.wav",
     "offset": 97.86006250000004,
+    "duration": 0.5035833333333334
+  },
+  {
+    "name": "silkWorms/worm_biterattack.wav",
+    "offset": 98.36364583333338,
+    "duration": 0.8425
+  },
+  {
+    "name": "silkWorms/worm_biterdie.wav",
+    "offset": 99.20614583333338,
+    "duration": 0.6926666666666667
+  },
+  {
+    "name": "silkWorms/worm_bloaterattack.wav",
+    "offset": 99.89881250000005,
+    "duration": 0.8357083333333334
+  },
+  {
+    "name": "silkWorms/worm_bloaterdie.wav",
+    "offset": 100.73452083333338,
+    "duration": 0.7175
+  },
+  {
+    "name": "silkWorms/worm_die.wav",
+    "offset": 101.45202083333338,
+    "duration": 0.4675
+  },
+  {
+    "name": "silkWorms/worm_queenattack.wav",
+    "offset": 101.91952083333338,
+    "duration": 0.78
+  },
+  {
+    "name": "silkWorms/worm_queendie.wav",
+    "offset": 102.69952083333338,
+    "duration": 2.405
+  },
+  {
+    "name": "silkWorms/worm_runnerattack.wav",
+    "offset": 105.10452083333338,
+    "duration": 0.905
+  },
+  {
+    "name": "silkWorms/worm_runnerdie.wav",
+    "offset": 106.00952083333338,
+    "duration": 0.74875
+  },
+  {
+    "name": "silkWorms/worm_slasherattack.wav",
+    "offset": 106.75827083333338,
+    "duration": 0.78
+  },
+  {
+    "name": "silkWorms/worm_slasherdie.wav",
+    "offset": 107.53827083333339,
+    "duration": 0.7175
+  },
+  {
+    "name": "sonicBoom/SonicBoomBoom.wav",
+    "offset": 108.25577083333339,
     "duration": 0.94875
   },
   {
     "name": "sonicBoom/SonicBoomStop.wav",
-    "offset": 98.80881250000004,
+    "offset": 109.20452083333339,
     "duration": 0.6185833333333334
   },
   {
     "name": "sonicBoom/SonicBoomTrail.wav",
-    "offset": 99.42739583333338,
+    "offset": 109.82310416666672,
     "duration": 7.53
   },
   {
     "name": "sonicBoom/SonicBoomTurn.wav",
-    "offset": 106.95739583333338,
+    "offset": 117.35310416666672,
     "duration": 1.0533125
   },
   {
     "name": "spells/Buff_Shield_02.wav",
-    "offset": 108.01070833333338,
+    "offset": 118.40641666666673,
     "duration": 0.9820208333333333
   },
   {
     "name": "spells/Charging_Punch_One_Shot_v1.wav",
-    "offset": 108.99272916666672,
+    "offset": 119.38843750000007,
     "duration": 0.8101875
   },
   {
     "name": "spells/Charging_Punch_One_Shot_v2.wav",
-    "offset": 109.80291666666672,
+    "offset": 120.19862500000006,
     "duration": 0.707125
   },
   {
     "name": "spells/Charging_Punch_One_Shot_v3.wav",
-    "offset": 110.51004166666672,
+    "offset": 120.90575000000007,
     "duration": 0.7878333333333334
   },
   {
     "name": "spells/Heal_Dark_01.wav",
-    "offset": 111.29787500000006,
+    "offset": 121.69358333333341,
     "duration": 2.3403958333333335
   },
   {
     "name": "spells/Heal_Dark_02.wav",
-    "offset": 113.6382708333334,
+    "offset": 124.03397916666674,
     "duration": 2.9499166666666667
   },
   {
     "name": "spells/Heal_Small_01.wav",
-    "offset": 116.58818750000006,
+    "offset": 126.9838958333334,
     "duration": 1.6553958333333334
   },
   {
     "name": "spells/Heal_Small_02.wav",
-    "offset": 118.24358333333339,
+    "offset": 128.63929166666674,
     "duration": 1.7831041666666667
   },
   {
     "name": "spells/Heal_Small_03.wav",
-    "offset": 120.02668750000005,
+    "offset": 130.4223958333334,
     "duration": 1.5857291666666666
   },
   {
     "name": "spells/Heal_Small_04_1.wav",
-    "offset": 121.61241666666672,
+    "offset": 132.00812500000006,
     "duration": 1.968875
   },
   {
     "name": "spells/Heal_Small_04_2.wav",
-    "offset": 123.58129166666671,
+    "offset": 133.97700000000006,
     "duration": 1.7482708333333334
   },
   {
     "name": "spells/S2_Big_End_Impact_1.wav",
-    "offset": 125.32956250000005,
+    "offset": 135.72527083333338,
     "duration": 2.5455833333333335
   },
   {
     "name": "spells/S2_Big_End_Impact_2.wav",
-    "offset": 127.87514583333339,
+    "offset": 138.2708541666667,
     "duration": 1.5786666666666667
   },
   {
     "name": "ui/GUI_Notification 07 1.wav",
-    "offset": 129.45381250000005,
+    "offset": 139.84952083333337,
     "duration": 0.5198541666666666
   },
   {
     "name": "ui/GUI_Notification 09 1.wav",
-    "offset": 129.97366666666673,
+    "offset": 140.36937500000005,
     "duration": 0.42375
   },
   {
     "name": "ui/GUI_Notification 14 1.wav",
-    "offset": 130.39741666666674,
+    "offset": 140.79312500000006,
     "duration": 2.5565625
   },
   {
     "name": "ui/GUI_Notification 16 1.wav",
-    "offset": 132.95397916666676,
+    "offset": 143.34968750000007,
     "duration": 0.489375
   },
   {
     "name": "ui/GUI_Scroll Sound 27 1.wav",
-    "offset": 133.44335416666675,
+    "offset": 143.83906250000007,
     "duration": 0.11725
   },
   {
     "name": "ui/GUI_Swipe 06 1.wav",
-    "offset": 133.56060416666676,
+    "offset": 143.95631250000008,
     "duration": 0.489375
   },
   {
     "name": "ui/GUI_Swipe 07 1.wav",
-    "offset": 134.04997916666676,
+    "offset": 144.44568750000008,
     "duration": 0.489375
   },
   {
     "name": "ui/GUI_Swipe 08 1.wav",
-    "offset": 134.53935416666675,
+    "offset": 144.93506250000007,
     "duration": 0.489375
   },
   {
     "name": "ui/GUI_Swipe 09 1.wav",
-    "offset": 135.02872916666675,
+    "offset": 145.42443750000007,
     "duration": 0.489375
   },
   {
     "name": "ui/GUI_Swipe 10 1.wav",
-    "offset": 135.51810416666675,
+    "offset": 145.91381250000006,
     "duration": 0.5467916666666667
   },
   {
     "name": "ui/GUI_Swipe 11 1.wav",
-    "offset": 136.06489583333342,
+    "offset": 146.46060416666674,
     "duration": 0.5467916666666667
   },
   {
     "name": "ui/GUI_Transition 03.wav",
-    "offset": 136.6116875000001,
+    "offset": 147.00739583333342,
     "duration": 0.489375
   },
   {
     "name": "ui/GUI_Transition 11.wav",
-    "offset": 137.1010625000001,
+    "offset": 147.49677083333341,
     "duration": 0.6329375
   },
   {
     "name": "ui/UI_Button_Select.wav",
-    "offset": 137.7340000000001,
+    "offset": 148.1297083333334,
     "duration": 1.0581041666666666
   },
   {
     "name": "ui/UI_Error.wav",
-    "offset": 138.79210416666677,
+    "offset": 149.1878125000001,
     "duration": 0.34725
   },
   {
     "name": "ui/UI_Get_Item.wav",
-    "offset": 139.13935416666678,
+    "offset": 149.5350625000001,
     "duration": 0.5
   },
   {
     "name": "walk/walk1.wav",
-    "offset": 139.63935416666678,
+    "offset": 150.0350625000001,
     "duration": 0.6793541666666667
   },
   {
     "name": "walk/walk10.wav",
-    "offset": 140.31870833333343,
+    "offset": 150.71441666666675,
     "duration": 0.7184583333333333
   },
   {
     "name": "walk/walk11.wav",
-    "offset": 141.03716666666676,
+    "offset": 151.43287500000008,
     "duration": 0.665
   },
   {
     "name": "walk/walk12.wav",
-    "offset": 141.70216666666676,
+    "offset": 152.09787500000007,
     "duration": 0.6535416666666667
   },
   {
     "name": "walk/walk2.wav",
-    "offset": 142.3557083333334,
+    "offset": 152.75141666666673,
     "duration": 0.7319166666666667
   },
   {
     "name": "walk/walk3.wav",
-    "offset": 143.0876250000001,
+    "offset": 153.4833333333334,
     "duration": 0.6551666666666667
   },
   {
     "name": "walk/walk4.wav",
-    "offset": 143.74279166666676,
+    "offset": 154.13850000000008,
     "duration": 0.6797083333333334
   },
   {
     "name": "walk/walk5.wav",
-    "offset": 144.4225000000001,
+    "offset": 154.81820833333342,
     "duration": 0.6698958333333334
   },
   {
     "name": "walk/walk6.wav",
-    "offset": 145.09239583333343,
+    "offset": 155.48810416666674,
     "duration": 0.653875
   },
   {
     "name": "walk/walk7.wav",
-    "offset": 145.74627083333343,
+    "offset": 156.14197916666674,
     "duration": 0.6346666666666667
   },
   {
     "name": "walk/walk8.wav",
-    "offset": 146.3809375000001,
+    "offset": 156.77664583333342,
     "duration": 0.6982291666666667
   },
   {
     "name": "walk/walk9.wav",
-    "offset": 147.07916666666677,
+    "offset": 157.47487500000008,
     "duration": 0.6119166666666667
   }
 ]
