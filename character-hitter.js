@@ -14,7 +14,8 @@ export class CharacterHitter {
   constructor(player) {
     this.player = player;
 
-    this.lastHitTime = -Infinity;
+    this.lastHitTimes = new WeakMap();
+    this.lastHitIndices = new WeakMap();
   }
   attemptHit({
     type,
@@ -24,58 +25,58 @@ export class CharacterHitter {
     switch (type) {
       case 'sword': {
         const {
-          hitRadius,
-          hitHalfHeight,
+          sizeXHalf,
+          sizeYHalf,
+          sizeZHalf,
           position,
           quaternion,
         } = args;
-        const collision = physx.physxWorker.getCollisionObjectPhysics(
-          physx.physics,
-          hitRadius,
-          hitHalfHeight,
-          position,
-          quaternion,
+        const collision = physx.physxWorker.overlapBoxPhysics(physx.physics, sizeXHalf, sizeYHalf, sizeZHalf,
+          position, quaternion
         );
-        if (collision) {
-          const collisionId = collision.objectId;
-          const result = metaversefile.getPairByPhysicsId(collisionId);
+        collision.objectIds.forEach(objectId => {
+          debugger
+          const collisionId = objectId;
+          const result = metaversefileApi.getPairByPhysicsId(collisionId);
           if (result) {
             const [app, physicsObject] = result;
-            const timeDiff = timestamp - this.lastHitTime;
-            if (timeDiff > 1000) {
+            if (app.getComponent('vincibility') !== 'invincible') {
+              const lastHitTime = this.lastHitTimes.get(app) ?? 0;
+              const lastHitIndex = this.lastHitIndices.get(app) ?? -1;
+              const timeDiff = timestamp - lastHitTime;
               const useAction = this.player.getAction('use');
-              const damage = typeof useAction.damage === 'number' ? useAction.damage : 0;
-              const hitDirection = app.position.clone()
-                .sub(this.player.position);
-              hitDirection.y = 0;
-              hitDirection.normalize();
-    
-              const damageMeshOffsetDistance = 1.5;
-              const hitPosition = localVector.copy(this.player.position)
-                .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.player.quaternion))
-                .clone();
-              localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-              localEuler.x = 0;
-              localEuler.z = 0;
-              const hitQuaternion = localQuaternion.setFromEuler(localEuler);
-    
-              // const willDie = app.willDieFrom(damage);
-              app.hit(damage, {
-                type: 'sword',
-                collisionId,
-                physicsObject,
-                hitPosition,
-                hitQuaternion,
-                hitDirection,
-                // willDie,
-              });
-            
-              this.lastHitTime = timestamp;
+              if (useAction.index !== lastHitIndex || timeDiff > 1000) {
+                const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
+                const hitDirection = app.position.clone()
+                  .sub(this.player.position);
+                hitDirection.y = 0;
+                hitDirection.normalize();
 
-              return collision;
+                const hitPosition = localVector.copy(this.player.position)
+                  // .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.player.quaternion)) // todo: no need?
+                  .add(localVector2.set(0, 0, 0).applyQuaternion(this.player.quaternion)) // todo: no need?
+                  .clone();
+                localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+                localEuler.x = 0;
+                localEuler.z = 0;
+                const hitQuaternion = new THREE.Quaternion().setFromEuler(localEuler);
+
+                // const willDie = app.willDieFrom(damage);
+                app.hit(damage, {
+                  collisionId,
+                  physicsObject,
+                  hitPosition,
+                  hitQuaternion,
+                  hitDirection,
+                  // willDie,
+                });
+
+                this.lastHitTimes.set(app, timestamp);
+                this.lastHitIndices.set(app, useAction.index);
+              }
             }
           }
-        }
+        });
         return null;
       }
       case 'bullet': {

@@ -56,6 +56,10 @@ const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
 
+const defaultDamageBoxSize = [0.21, 1.22, 0.03];
+const defaultDamageBoxPosition = [0, 0.86, 0];
+const defaultDamageBoxQuaternion = [0, 0, 0, 1];
+
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const oneVector = new THREE.Vector3(1, 1, 1);
 // const cubicBezier = easing(0, 1, 0, 1);
@@ -901,19 +905,32 @@ const _gameUpdate = (timestamp, timeDiff) => {
     const useAction = localPlayer.getAction('use');
     if (useAction) {
       const _handleSword = () => {
-        localVector.copy(localPlayer.position)
-          .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
+        const wearApp = loadoutManager.getSelectedApp();
+        if (wearApp && localPlayer.avatar?.useTime > 100) {
+          const useComponent = wearApp.getComponent('use');
+          if (useComponent) {
+            const damageBoxSize = useComponent.damageBoxSize ?? defaultDamageBoxSize;
+            const damageBoxPosition = useComponent.damageBoxPosition ?? defaultDamageBoxPosition;
+            const damageBoxQuaternion = useComponent.damageBoxQuaternion ?? defaultDamageBoxQuaternion;
+            const sizeXHalf = damageBoxSize[0] / 2;
+            const sizeYHalf = damageBoxSize[1] / 2;
+            const sizeZHalf = damageBoxSize[2] / 2;
+            localQuaternion.fromArray(damageBoxQuaternion).multiply(wearApp.quaternion);
+            localVector.copy(wearApp.position).add(localVector2.fromArray(damageBoxPosition).applyQuaternion(localQuaternion));
 
-        localPlayer.characterHitter.attemptHit({
-          type: 'sword',
-          args: {
-            hitRadius,
-            hitHalfHeight,
-            position: localVector,
-            quaternion: localPlayer.quaternion,
-          },
-          timestamp,
-        });
+            localPlayer.characterHitter.attemptHit({
+              type: 'sword',
+              args: {
+                sizeXHalf,
+                sizeYHalf,
+                sizeZHalf,
+                position: localVector,
+                quaternion: localQuaternion,
+              },
+              timestamp,
+            });
+          }
+        }
       };
 
       switch (useAction.behavior) {
