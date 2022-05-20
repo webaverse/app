@@ -70,7 +70,8 @@ export function makeAvatar(app) {
       app.dispatchEvent({type: 'hittrackeradded'});
     
       const die = () => {
-        world.appManager.removeTrackedApp(app.instanceId);
+        hpManager.resetHp(hitTracker)
+        //TODO: death animation, reset position?
       };
       hitTracker.addEventListener('die', die);
       
