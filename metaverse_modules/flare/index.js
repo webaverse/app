@@ -69,6 +69,7 @@ export default e => {
           const duration = 2000;
           const particle = this.particleSystem.addParticle(particleName, {
             duration,
+            // loop: false,
           });
           particle.position.copy(localPlayer.position)
             .add(localVector.set(r(1), r(1), r(1)));
