@@ -78,6 +78,7 @@ class CharacterSfx {
     this.willGasp = false;
 
     this.oldNarutoRunSound = null;
+    this.lastEmote = null;
 
     if (this.player.isLocalPlayer) {
       const wearupdate = e => {
@@ -93,7 +94,7 @@ class CharacterSfx {
     if (!this.player.avatar) {
       return;
     }
-
+    
     const timeSeconds = timestamp/1000;
     const currentSpeed = localVector.set(this.player.avatar.velocity.x, 0, this.player.avatar.velocity.z).length();
     
@@ -352,6 +353,15 @@ class CharacterSfx {
       }
     };
     _handleFood();
+
+    // emote
+    const _handleEmote = () => {
+      if(this.player.avatar.emoteAnimation && this.lastEmote !== this.player.avatar.emoteAnimation){
+        this.playEmote(this.player.avatar.emoteAnimation);
+      }
+      this.lastEmote = this.player.avatar.emoteAnimation;
+    };
+    _handleEmote();
   }
   playGrunt(type, index){
     if (this.player.voicePack) { // ensure voice pack loaded
@@ -383,6 +393,93 @@ class CharacterSfx {
         }
         case 'narutoRun': {
           voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
+          break;
+        }
+      }
+      
+      if(index===undefined){
+        let voice = selectVoice(voiceFiles);
+        duration = voice.duration;
+        offset = voice.offset;
+      }
+      else{
+        duration = voiceFiles[index].duration;
+        offset = voiceFiles[index].offset;
+      } 
+      
+      const audioContext = Avatar.getAudioContext();
+      const audioBufferSourceNode = audioContext.createBufferSource();
+      audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
+
+      // control mouth movement with audio volume
+      if (!this.player.avatar.isAudioEnabled()) {
+        this.player.avatar.setAudioEnabled(true);
+      }
+      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+
+      // if the oldGrunt are still playing
+      if(this.oldGrunt){
+        this.oldGrunt.stop();
+        this.oldGrunt = null;
+      }
+
+      this.oldGrunt=audioBufferSourceNode;
+      // clean the oldGrunt if voice end
+      audioBufferSourceNode.addEventListener('ended', () => {
+        if (this.oldGrunt === audioBufferSourceNode) {
+          this.oldGrunt = null;
+        }
+      });
+
+      audioBufferSourceNode.start(0, offset, duration);
+    }
+  }
+  playEmote(type, index){
+    if (this.player.voicePack) { // ensure voice pack loaded
+      let voiceFiles, offset, duration;
+      switch (type) {
+        case 'alertSoft':
+        case 'alert': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /alert/i.test(f.name));
+          break;
+        }
+        case 'angrySoft':
+        case 'angry': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /angry/i.test(f.name));
+          break;
+        }
+        case 'embarrassedSoft':
+        case 'embarrassed': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /emba/i.test(f.name));
+          break;
+        }
+        case 'headNodSoft':
+        case 'headNod': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /nod/i.test(f.name));
+          break;
+        }
+        case 'headShakeSoft':
+        case 'headShake': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /shake/i.test(f.name));
+          break;
+        }
+        case 'sadSoft':
+        case 'sad': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /sad/i.test(f.name));
+          break;
+        }
+        case 'surpriseSoft':
+        case 'surprise': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /surprise/i.test(f.name));
+          break;
+        }
+        case 'victorySoft':
+        case 'victory': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /victory/i.test(f.name));
+          break;
+        }
+        default: {
+          voiceFiles = this.player.voicePack.emoteVoices;
           break;
         }
       }
