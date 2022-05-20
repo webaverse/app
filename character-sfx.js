@@ -106,23 +106,6 @@ class CharacterSfx {
           this.localVector.z=-1;
           this.currentDir = this.localVector.applyQuaternion( this.player.quaternion );
           this.currentDir.normalize();
-            
-
-          // const posX = this.player.position.x + 3 * Math.cos(Math.PI + timestamp/500);
-          // const posZ = this.player.position.z + 3 * Math.sin(Math.PI + timestamp/500);
-          // this.sphere.position.x = posX;
-          // this.sphere.position.z = posZ;
-          // //console.log(sounds.getCP());
-          // const context = sounds.getCP()[0];
-          // const panner = sounds.getCP()[1];
-
-          //const playerTop = this.localVector2.applyEuler(this.object3d.getWorldQuaternion( this.player ));
-          // if(context && panner){
-          //   context.listener.setOrientation(this.currentDir.x, this.currentDir.y, this.currentDir.z, this.localVector2.x, this.localVector2.y, this.localVector2.z);
-          //   context.listener.setPosition(this.player.position.x, 0, this.player.position.z);
-          //   panner.setPosition(posX, 0, posZ);
-          // }
-          // this.sphere.updateMatrixWorld();
           
           sounds.updateAudioPosition(this.player,  this.currentDir, this.topVector);
     }
