@@ -15,8 +15,19 @@
         "position": [1, 2, 3]
       }
     },
-    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/street/index.js" },
-    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/mirror/" },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "http://localhost/lib/webaverse_resource/street/"
+    },
+    {
+      "position": [-30, 0, -30],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "http://localhost/lib/webaverse_resource/plants/"
+    },
     { "position": [ 0, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/bow/" },
     { "position": [ 1.5, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/pistol/" },
     { "position": [ 3, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/rifle/" },
