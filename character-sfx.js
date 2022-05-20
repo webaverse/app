@@ -21,6 +21,7 @@ import {
   // loadJson,
   // loadAudioBuffer,
 } from './util.js';
+import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 
@@ -61,7 +62,7 @@ const _getActionFrameIndex = (f, frameTimes) => {
 class CharacterSfx {
   constructor(player) {
     this.player = player;
-
+    
     this.lastJumpState = false;
     this.lastStepped = [false, false];
     this.lastWalkTime = 0;
@@ -97,6 +98,7 @@ class CharacterSfx {
     if (!this.player.avatar) {
       return;
     }
+    const localPlayer = metaversefile.useLocalPlayer();
     
     {
           //################################################ trace player dir ########################################
@@ -106,7 +108,7 @@ class CharacterSfx {
           this.currentDir = this.localVector.applyQuaternion( this.player.quaternion );
           this.currentDir.normalize();
           
-          sounds.updateAudioPosition(this.player, this.currentDir, this.topVector);
+          sounds.updateAudioPosition(localPlayer, this.currentDir, this.topVector);
     }
     
     
