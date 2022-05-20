@@ -1,5 +1,10 @@
 {
   "objects": [
+  {
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [9.48,1,1.71]
+      }},
     {
       "type": "application/light",
       "content": {
