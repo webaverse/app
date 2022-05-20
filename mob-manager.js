@@ -159,7 +159,9 @@ class Mob {
         radius,
         halfHeight,
       }) => {
-        const physicsObject = physicsManager.addCapsuleGeometry(position, quaternion, radius, halfHeight);
+        localVector.fromArray(position);
+        localQuaternion.fromArray(quaternion);
+        const physicsObject = physicsManager.addCapsuleGeometry(localVector, localQuaternion, radius, halfHeight);
         return physicsObject;
       });
       const physicsObjects = [characterController].concat(extraPhysicsObjects);
