@@ -1999,7 +1999,7 @@ const physxWorker = (() => {
       halfHeight,
       materialAddress,
       id,
-      dynamic,
+      +dynamic,
       flagsInt
     )
     allocator.freeAll()
