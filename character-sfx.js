@@ -82,7 +82,7 @@ class CharacterSfx {
 
     this.currentDir=new THREE.Vector3();
     this.dirVector = new THREE.Vector3();
-    this.topVector = new THREE.Vector3(0, 1, 0);
+    this.upVector = new THREE.Vector3(0, 1, 0);
 
     this.oldNarutoRunSound = null;
 
@@ -101,12 +101,12 @@ class CharacterSfx {
     const localPlayer = metaversefile.useLocalPlayer();
     
     {
-          //################################################ trace player dir ########################################
-          this.dirVector.set(0, 0, -1);
-          this.currentDir = this.dirVector.applyQuaternion( this.player.quaternion );
-          this.currentDir.normalize();
-          
-          sounds.updateAudioPosition(localPlayer, this.currentDir, this.topVector);
+      //################################################ trace player dir ########################################
+      this.dirVector.set(0, 0, -1);
+      this.currentDir = this.dirVector.applyQuaternion( this.player.quaternion );
+      this.currentDir.normalize();
+      //######################################## update panner and context position ################################
+      sounds.updateAudioPosition(localPlayer, this.currentDir, this.upVector);
     }
     
     

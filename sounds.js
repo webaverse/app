@@ -67,10 +67,10 @@ const playSound = (audioSpec, voicer) => {
   audioBufferSourceNode.start(0, offset, duration);
 
   // handel audios
-  audioBufferSourceNode.index = [audioContext, pannerNode, voicer];
-  audios.push(audioBufferSourceNode.index);
+  audioBufferSourceNode.audioInfo = {context: audioContext, panner: pannerNode, voicer: voicer};
+  audios.push(audioBufferSourceNode.audioInfo);
   audioBufferSourceNode.addEventListener('ended', () => {
-    const index = audios.indexOf(audioBufferSourceNode.index);
+    const index = audios.indexOf(audioBufferSourceNode.audioInfo);
     if (index > -1) {
       // clean audios array
       audios.splice(index, 1);
@@ -92,9 +92,9 @@ const playSoundName = (name, voicer) => {
 };
 const updateAudioPosition  = (player, currentDir, topVector) => {
   for(const audio of audios){
-    audio[0].listener.setOrientation(currentDir.x, currentDir.y, currentDir.z, topVector.x, topVector.y, topVector.z);
-    audio[0].listener.setPosition(player.position.x, player.position.y, player.position.z);
-    audio[1].setPosition(audio[2].position.x, audio[2].position.y, audio[2].position.z);
+    audio.context.listener.setOrientation(currentDir.x, currentDir.y, currentDir.z, topVector.x, topVector.y, topVector.z);
+    audio.context.listener.setPosition(player.position.x, player.position.y, player.position.z);
+    audio.panner.setPosition(audio.voicer.position.x, audio.voicer.position.y, audio.voicer.position.z);
   }
 }
 export {
