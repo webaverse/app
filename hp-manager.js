@@ -131,7 +131,6 @@ const makeHitTracker = ({
         damageMeshApp.quaternion.setFromEuler(localEuler);
         damageMeshApp.updateMatrixWorld();
         scene.add(damageMeshApp);
-        // vismark
       }
 
       sounds.playSoundName('enemyCut');
