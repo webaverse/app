@@ -82,11 +82,12 @@ class CharacterSfx {
     this.currentDir=new THREE.Vector3();
     this.dirVector = new THREE.Vector3();
     this.upVector = new THREE.Vector3(0, 1, 0);
+    this.audioPlayerInfo = this.player.isLocalPlayer ? undefined : this.player;
 
     this.oldNarutoRunSound = null;
 
     const wearupdate = e => {
-      sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
+      sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip', this.audioPlayerInfo);
     };
     player.addEventListener('wearupdate', wearupdate);
     this.cleanup = () => {
@@ -121,14 +122,14 @@ class CharacterSfx {
     // jump
     const _handleJump = () => {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
-        sounds.playSoundName('jump');
+        sounds.playSoundName('jump', this.audioPlayerInfo);
 
         // play jump grunt 
         if(this.player.hasAction('jump') && this.player.getAction('jump').trigger === 'jump'){
           this.playGrunt('jump'); 
         }
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
-        sounds.playSoundName('land');
+        sounds.playSoundName('land', this.audioPlayerInfo);
       }
       this.lastJumpState = this.player.avatar.jumpState;
     };
@@ -194,7 +195,7 @@ class CharacterSfx {
                 } */
                 
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-                sounds.playSound(audioSpec);
+                sounds.playSound(audioSpec, this.audioPlayerInfo);
               }
             }
             this.lastStepped[0] = leftStepIndices[i];
@@ -207,7 +208,7 @@ class CharacterSfx {
                 } */
 
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-                sounds.playSound(audioSpec);
+                sounds.playSound(audioSpec, this.audioPlayerInfo);
               }
             }
             this.lastStepped[1] = rightStepIndices[i];
@@ -241,7 +242,7 @@ class CharacterSfx {
       if(this.player.avatar.narutoRunState){
         if(this.narutoRunStartTime===0){
           this.narutoRunStartTime=timeSeconds; 
-          sounds.playSound(soundFiles.sonicBoom[0]);
+          sounds.playSound(soundFiles.sonicBoom[0], this.audioPlayerInfo);
           this.playGrunt('narutoRun');
         }
         else {
@@ -249,7 +250,7 @@ class CharacterSfx {
 
             this.arr.fill(0)
             if(timeSeconds - this.narutoRunTurnSoundStartTime>soundFiles.sonicBoom[3].duration-0.9 || this.narutoRunTurnSoundStartTime==0){
-              sounds.playSound(soundFiles.sonicBoom[3]);
+              sounds.playSound(soundFiles.sonicBoom[3], this.audioPlayerInfo);
               this.narutoRunTurnSoundStartTime = timeSeconds;
             }
               
@@ -257,7 +258,7 @@ class CharacterSfx {
          
           if(timeSeconds - this.narutoRunTrailSoundStartTime>soundFiles.sonicBoom[2].duration-0.2 || this.narutoRunTrailSoundStartTime==0){
             
-            const localSound = sounds.playSound(soundFiles.sonicBoom[2]);
+            const localSound = sounds.playSound(soundFiles.sonicBoom[2], this.audioPlayerInfo);
             this.oldNarutoRunSound = localSound;
             localSound.addEventListener('ended', () => {
               if (this.oldNarutoRunSound === localSound) {
@@ -282,7 +283,7 @@ class CharacterSfx {
         this.narutoRunFinishTime=timeSeconds;
         this.narutoRunTrailSoundStartTime=0;
         this.narutoRunTurnSoundStartTime=0;
-        sounds.playSound(soundFiles.sonicBoom[1]);
+        sounds.playSound(soundFiles.sonicBoom[1], this.audioPlayerInfo);
         if (this.oldNarutoRunSound) {
           !this.oldNarutoRunSound.paused && this.oldNarutoRunSound.stop();
           this.oldNarutoRunSound = null;
@@ -328,7 +329,7 @@ class CharacterSfx {
 
           // console.log('chomp', v, eatFrameIndex, this.lastEatFrameIndex);
           if (eatFrameIndex !== 0 && eatFrameIndex !== this.lastEatFrameIndex) {
-            sounds.playSoundName('chomp');
+            sounds.playSoundName('chomp', this.audioPlayerInfo);
             // control mouth movement
             this.player.characterBehavior.setMouthMoving(0.04,0.04,0.1,0.02);
           }
@@ -343,7 +344,7 @@ class CharacterSfx {
 
           // console.log('gulp', v, drinkFrameIndex, this.lastDrinkFrameIndex);
           if (drinkFrameIndex !== 0 && drinkFrameIndex !== this.lastDrinkFrameIndex) {
-            sounds.playSoundName('gulp');
+            sounds.playSoundName('gulp', this.audioPlayerInfo);
             // control mouth movement
             this.player.characterBehavior.setMouthMoving(0.1,0.1,0.1,0.1);
           }
