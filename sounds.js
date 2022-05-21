@@ -1,7 +1,6 @@
 import Avatar from './avatars/avatars.js';
 import {loadAudioBuffer} from './util.js';
 import soundFileSpecs from './public/sounds/sound-files.json';
-import metaversefile from 'metaversefile';
 
 const _getSoundFiles = regex => soundFileSpecs.filter(f => regex.test(f.name));
 const soundFiles = {
@@ -103,8 +102,7 @@ const playSoundName = (name, voicer) => {
     return false;
   }
 };
-const updateAudioPosition  = (currentDir, upVector) => {
-  const localPlayer = metaversefile.useLocalPlayer();
+const updateAudioPosition  = (localPlayer, currentDir, upVector) => {
   for(const audio of audios){
     audio.context.listener.setOrientation(currentDir.x, currentDir.y, currentDir.z, upVector.x, upVector.y, upVector.z);
     audio.context.listener.setPosition(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);

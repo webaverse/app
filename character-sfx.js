@@ -104,7 +104,7 @@ class CharacterSfx {
       this.currentDir = this.dirVector.applyQuaternion( this.player.quaternion );
       this.currentDir.normalize();
       //######################################## update panner and context position ################################
-      sounds.updateAudioPosition(this.currentDir, this.upVector);
+      sounds.updateAudioPosition(this.player, this.currentDir, this.upVector);
     }
     
     
