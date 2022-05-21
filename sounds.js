@@ -67,15 +67,17 @@ const playSound = (audioSpec, voicer) => {
   }
   else{
     const pannerNode = audioContext.createPanner();
-    const gainNode = audioContext.createGain();
+    //const gainNode = audioContext.createGain();
     pannerNode.panningModel = "HRTF";
 
     audioBufferSourceNode.connect(pannerNode);
-    pannerNode.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
+    pannerNode.connect(audioContext.destination);
+    //gainNode.connect(audioContext.destination);
+    pannerNode.distanceModel = 'linear';
+    pannerNode.maxDistance = 20;
+    
     // handel audios array
-    audioBufferSourceNode.audioInfo = {context: audioContext, panner: pannerNode, voicer: voicer};
+    audioBufferSourceNode.audioInfo = {context: audioContext, pannerNode: pannerNode, voicer: voicer};
     audios.push(audioBufferSourceNode.audioInfo);
     audioBufferSourceNode.addEventListener('ended', () => {
       const index = audios.indexOf(audioBufferSourceNode.audioInfo);
@@ -106,7 +108,8 @@ const updateAudioPosition  = (currentDir, topVector) => {
   for(const audio of audios){
     audio.context.listener.setOrientation(currentDir.x, currentDir.y, currentDir.z, topVector.x, topVector.y, topVector.z);
     audio.context.listener.setPosition(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);
-    audio.panner.setPosition(audio.voicer.position.x, audio.voicer.position.y, audio.voicer.position.z);
+    audio.pannerNode.setPosition(audio.voicer.position.x, audio.voicer.position.y, audio.voicer.position.z);
+    console.log(audio.pannerNode);
   }
 }
 export {
