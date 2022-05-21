@@ -98,8 +98,7 @@ class CharacterSfx {
     if (!this.player.avatar) {
       return;
     }
-    
-    {
+    if(this.player.isLocalPlayer){
       //################################################ trace player dir ########################################
       this.dirVector.set(0, 0, -1);
       this.currentDir = this.dirVector.applyQuaternion( this.player.quaternion );
