@@ -1,6 +1,7 @@
 import Avatar from './avatars/avatars.js';
 import {loadAudioBuffer} from './util.js';
 import soundFileSpecs from './public/sounds/sound-files.json';
+import metaversefile from 'metaversefile';
 
 const _getSoundFiles = regex => soundFileSpecs.filter(f => regex.test(f.name));
 const soundFiles = {
@@ -53,6 +54,7 @@ const waitForLoad = () => loadPromise;
 const getSoundFiles = () => soundFiles;
 const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
+
 let audios = [];
 const playSound = (audioSpec, voicer) => {
   const {offset, duration} = audioSpec;
@@ -67,7 +69,13 @@ const playSound = (audioSpec, voicer) => {
   audioBufferSourceNode.start(0, offset, duration);
 
   // handel audios
-  audioBufferSourceNode.audioInfo = {context: audioContext, panner: pannerNode, voicer: voicer};
+  if(voicer === undefined){
+    const localPlayer = metaversefile.useLocalPlayer();
+    audioBufferSourceNode.audioInfo = {context: audioContext, panner: pannerNode, voicer: localPlayer};
+  }
+  else{
+    audioBufferSourceNode.audioInfo = {context: audioContext, panner: pannerNode, voicer: voicer};
+  }
   audios.push(audioBufferSourceNode.audioInfo);
   audioBufferSourceNode.addEventListener('ended', () => {
     const index = audios.indexOf(audioBufferSourceNode.audioInfo);
@@ -90,10 +98,11 @@ const playSoundName = (name, voicer) => {
     return false;
   }
 };
-const updateAudioPosition  = (player, currentDir, topVector) => {
+const updateAudioPosition  = (currentDir, topVector) => {
+  const localPlayer = metaversefile.useLocalPlayer();
   for(const audio of audios){
     audio.context.listener.setOrientation(currentDir.x, currentDir.y, currentDir.z, topVector.x, topVector.y, topVector.z);
-    audio.context.listener.setPosition(player.position.x, player.position.y, player.position.z);
+    audio.context.listener.setPosition(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);
     audio.panner.setPosition(audio.voicer.position.x, audio.voicer.position.y, audio.voicer.position.z);
   }
 }
