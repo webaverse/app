@@ -447,7 +447,7 @@ const _endUse = () => {
 };
 const _mousedown = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
-  let useAction = localPlayer.getAction('use');
+  const useAction = localPlayer.getAction('use');
   if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
     localPlayer.needContinueCombo = true;
   }
