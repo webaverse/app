@@ -452,21 +452,11 @@ const _mousedown = () => {
     localPlayer.needContinueCombo = true;
   }
   _startUse();
-  useAction = localPlayer.getAction('use');
-  if (!(
-    useAction?.animation ||
-    useAction?.animationCombo?.length > 0 ||
-    useAction?.animationEnvelope?.length > 0
-  )) {
-    _endUse();
-  }
 };
 const _mouseup = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const useAction = localPlayer.getAction('use');
-  if (
-    useAction?.animationEnvelope?.length > 0
-  ) {
+  if (!useAction?.animation && !useAction?.animationCombo?.length > 0) {
     _endUse();
   }
 };
