@@ -24,6 +24,7 @@ const moduleUrls = {
   magic: './metaverse_modules/magic/',
   limit: './metaverse_modules/limit/',
   flare: './metaverse_modules/flare/',
+  firedrop: './metaverse_modules/firedrop/',
   meshLodItem: './metaverse_modules/mesh-lod-item/',
 };
 const modules = {};
