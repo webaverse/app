@@ -3,37 +3,67 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 import metaversefile from 'metaversefile';
 const {useFrame, useMaterials, useLocalPlayer, useMathUtils} = metaversefile;
 
+const upVector = new THREE.Vector3(0, 1, 0);
+
 const radiusTop = 0.005;
 const radiusBottom = radiusTop;
 const playerCenterRadius = 0.3;
-const height = 1;
+// const height = 1;
 const radialSegments = 8;
 const heightSegments = 16;
 const openEnded = true;
+const segmentLength = 0.05;
+const verticesPerHeightSegment = radialSegments + 1;
+const verticesPerPart = verticesPerHeightSegment * (heightSegments + 1);
+const numPointSets = 2;
 
-const localVector2D = new THREE.Vector2();
+// const localVector2D = new THREE.Vector2();
 
-const _setPoints = (geometry, points, partCount) => {
-  /*
-  for ( let y = 0; y <= heightSegments; y ++ ) {
+let lastPartPositions = Array(numPointSets);
+for (let i = 0; i < numPointSets; i++) {
+  lastPartPositions[i] = new THREE.Vector3();
+}
+const _updatePoints = (player, pointSets) => {
+  // const leftPartPosition = player.position.clone()
+  //   .add(new THREE.Vector3(-playerCenterRadius, 0, 0).applyQuaternion(player.quaternion));
+  // const rightPartPosition = player.position.clone()
+  //   .add(new THREE.Vector3(playerCenterRadius, 0, 0).applyQuaternion(player.quaternion));
+  // const partPositions = [leftPartPosition, rightPartPosition];
+  for (let pointSetIndex = 0; pointSetIndex < pointSets.length; pointSetIndex++) {
+    const points = pointSets[pointSetIndex];
+    const {offset} = points;
 
-    const indexRow = [];
+    const partPosition = player.position.clone()
+      .add(
+        offset.clone()
+          .applyQuaternion(player.quaternion)
+      );
+    const lastPartPosition = lastPartPositions[pointSetIndex];
+    const quaternion = new THREE.Quaternion().setFromRotationMatrix(
+      new THREE.Matrix4().lookAt(lastPartPosition, partPosition, upVector)
+    );
 
-    const v = y / heightSegments;
+    points[0].position.copy(partPosition);
+    points[0].quaternion.copy(quaternion);
 
-    // calculate the radius of the current row
+    for (let i = 1; i <= heightSegments; i++) {
+      const point = points[i];
+      const nextPoint = points[i - 1];
+      const pointQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+        new THREE.Matrix4().lookAt(point.position, nextPoint.position, upVector)
+      );
+      point.position.copy(nextPoint.position)
+        .add(new THREE.Vector3(0, 0, segmentLength).applyQuaternion(pointQuaternion));
+      point.quaternion.copy(pointQuaternion);
+    }
 
-    const radius = v * ( radiusBottom - radiusTop ) + radiusTop;
-
-    for ( let x = 0; x <= radialSegments; x ++ ) {
-  */
-  // extracted from the above code
-
-  const verticesPerHeightSegment = radialSegments + 1;
-  const verticesPerPart = verticesPerHeightSegment * (heightSegments + 1);
-
-  for (let part = 0; part < partCount; part++) {
-    const partVertexOffset = part * verticesPerPart;
+    lastPartPositions[pointSetIndex] = partPosition;
+  }
+};
+const _setPoints = (geometry, pointSets) => {
+  for (let pointSetIndex = 0; pointSetIndex < pointSets.length; pointSetIndex++) {
+    const points = pointSets[pointSetIndex];
+    const partVertexOffset = pointSetIndex * verticesPerPart;
     
     for (let heightSegment = 0; heightSegment < points.length; heightSegment++) {
       const {
@@ -59,10 +89,10 @@ function createSilksGeometry() {
     heightSegments,
     openEnded,
   ).rotateX(-Math.PI / 2);
-  geometry.setAttribute(
+  /* geometry.setAttribute(
     'offset',
     new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count), 1)
-  );
+  ); */
   geometry.setAttribute(
     'p',
     new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 3), 3)
@@ -80,20 +110,20 @@ function createSilksGeometry() {
       .toArray(geometry.attributes.uv.array, i * 2);
   }
 }; */
-const _setOffsets = (geometry, offsetValue) => {
+/* const _setOffsets = (geometry, offsetValue) => {
   for (let i = 0; i < geometry.attributes.offset.array.length; i++) {
     geometry.attributes.offset.array[i] = offsetValue;
   }
   geometry.attributes.offset.needsUpdate = true;
-};
+}; */
 const _makeSilksMesh = () => {
   const {WebaverseShaderMaterial} = useMaterials();
 
   const geometry1 = createSilksGeometry();
   const geometry2 = createSilksGeometry();
   // _incrementUvs(geometry2, new THREE.Vector2(0, 1));
-  _setOffsets(geometry1, -1);
-  _setOffsets(geometry2, 1);
+  // _setOffsets(geometry1, -1);
+  // _setOffsets(geometry2, 1);
   const geometry = BufferGeometryUtils.mergeBufferGeometries([geometry1, geometry2]);
   // _setOffsets(geometry, 1);
   
@@ -112,8 +142,6 @@ const _makeSilksMesh = () => {
       uniform float uTime;
       attribute vec3 p;
       attribute vec4 q;
-      attribute float offset;
-      varying float vOffset;
       varying vec2 vUv;
 
       const float radius = ${playerCenterRadius.toFixed(8)};
@@ -139,19 +167,16 @@ const _makeSilksMesh = () => {
         {
           pos = rotate_vertex_position(pos, q);
           pos += p;
-        }
-        
-        pos.x += radius * offset;
+        }        
 
-        {
+        /* {
           vec4 qt = quat_from_axis_angle(vec3(0.0, 1.0, 0.0), uTime * PI * 2.);
           pos = rotate_vertex_position(pos, qt);
-        }
+        } */
         
         vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         
-        vOffset = offset;
         vUv = uv;
       }
     `,
@@ -211,25 +236,32 @@ const _makeSilksMesh = () => {
     // side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
 
-  const points = Array(heightSegments + 1);
-  for (let i = 0; i < heightSegments + 1; i++) {
-    points[i] = {
-      position: new THREE.Vector3(0, 0, i / heightSegments),
-      quaternion: new THREE.Quaternion(),
-    };
+  const pointsSets = Array(numPointSets);
+  for (let i = 0; i < numPointSets; i++) {
+    const points = Array(heightSegments + 1);
+    for (let j = 0; j < points.length; j++) {
+      points[j] = {
+        position: new THREE.Vector3(0, 0, j / heightSegments),
+        quaternion: new THREE.Quaternion(),
+      };
+    }
+    points.offset = new THREE.Vector3((-1 + i * 2) * playerCenterRadius, 0, 0);
+    pointsSets[i] = points;
   }
 
   mesh.update = (timestamp, timeDiff) => {
     const maxTime = 3000;
     const f = (timestamp % maxTime) / maxTime;
 
-    _setPoints(geometry, points, 2);
-
     const localPlayer = useLocalPlayer();
-    mesh.position.copy(localPlayer.position);
+    _updatePoints(localPlayer, pointsSets);
+    _setPoints(geometry, pointsSets);
+
+    /* mesh.position.copy(localPlayer.position);
     mesh.quaternion.copy(localPlayer.quaternion);
-    mesh.updateMatrixWorld();
+    mesh.updateMatrixWorld(); */
 
     material.uniforms.uTime.value = f;
     material.uniforms.uTime.needsUpdate = true;

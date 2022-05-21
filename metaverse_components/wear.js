@@ -158,7 +158,7 @@ export default (app, component) => {
   app.addEventListener('destroy', () => {
     const remotePlayers = metaversefile.useRemotePlayers();
     const {npcs} = npcManager;
-    const players = [player]
+    const players = (player ? [player] : [])
       .concat(remotePlayers)
       .concat(npcs);
     for (const player of players) {

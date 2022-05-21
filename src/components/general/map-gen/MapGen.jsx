@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
-const {useLocalPlayer, useLoreAIScene, useSceneCruncher} = metaversefile;
+const {useLocalPlayer, useLoreAIScene, useParticleSystem} = metaversefile;
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../io-handler';
@@ -22,11 +22,11 @@ import musicManager from '../../../../music-manager.js';
 import {chatManager} from '../../../../chat-manager.js';
 import {
   makeRng,
-  numBlocksPerChunk,
+  // numBlocksPerChunk,
   voxelPixelSize,
   chunkWorldSize,
   placeNames,
-  MapBlock,
+  // MapBlock,
   createMapChunk,
   createMapChunkMesh,
 } from '../../../../procgen/procgen.js';
@@ -200,8 +200,10 @@ export const MapGen = () => {
     const [lastSelectTime, setLastSelectTime] = useState(-Infinity);
     const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
+    const [firedropMeshApp, setFiredropMeshApp] = useState(null);
     const [haloMeshApp, setHaloMeshApp] = useState(null);
     const [silksMeshApp, setSilksMeshApp] = useState(null);
+    const [flareMeshApp, setFlareMeshApp] = useState(null);
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
     const canvasRef = useRef();
@@ -316,17 +318,6 @@ export const MapGen = () => {
       }
     };
 
-    /* useEffect(() => {
-      if (text) {
-        const timeout = setTimeout(() => {
-          setText('');
-        }, 5000);
-        return () => {
-          clearTimeout(timeout);
-        };
-      }
-    }, [text]); */
-
     // open
     useEffect( () => {
 
@@ -335,6 +326,34 @@ export const MapGen = () => {
             if (game.inputFocused()) return true;
 
               switch ( event.which ) {
+
+                case 74: { // J
+
+                  if (!firedropMeshApp) {
+                    const localPlayer = useLocalPlayer();
+                    const position = localPlayer.position.clone()
+                      .add(new THREE.Vector3(0, 0, -3).applyQuaternion(localPlayer.quaternion));
+
+                    const firedropMeshApp = metaversefile.createApp({
+                      position,
+                    });
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['firedrop'];
+                      await firedropMeshApp.addModule(m);
+                    })();
+                    scene.add(firedropMeshApp);
+
+                    setFiredropMeshApp(firedropMeshApp);
+                  } else {
+                    firedropMeshApp.parent.remove(firedropMeshApp);
+                    firedropMeshApp.destroy();
+
+                    setFiredropMeshApp(null);
+                  }
+
+                  return false;
+                }
 
                 case 75: { // K
 
@@ -382,6 +401,28 @@ export const MapGen = () => {
                 }
 
                 case 186: { // ;
+
+                  if (!flareMeshApp) {
+                    const flareMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['flare'];
+                      await flareMeshApp.addModule(m);
+                    })();
+                    scene.add(flareMeshApp);
+
+                    setFlareMeshApp(flareMeshApp);
+                  } else {
+                    flareMeshApp.parent.remove(flareMeshApp);
+                    flareMeshApp.destroy();
+
+                    setFlareMeshApp(null);
+                  }
+                
+                  return false;
+
+                }
+                case 222: { // '
 
                   (async () => {
                     const chunkWorldSize = new THREE.Vector3(64, 64, 64);
@@ -498,7 +539,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel, haloMeshApp, silksMeshApp, magicMeshApp, limitMeshApp ]);
+    }, [ state.openedPanel, firedropMeshApp, haloMeshApp, silksMeshApp, flareMeshApp, magicMeshApp, limitMeshApp ]);
 
     // resize
     useEffect(() => {
