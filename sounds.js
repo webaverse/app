@@ -103,10 +103,10 @@ const playSoundName = (name, voicer) => {
     return false;
   }
 };
-const updateAudioPosition  = (currentDir, topVector) => {
+const updateAudioPosition  = (currentDir, upVector) => {
   const localPlayer = metaversefile.useLocalPlayer();
   for(const audio of audios){
-    audio.context.listener.setOrientation(currentDir.x, currentDir.y, currentDir.z, topVector.x, topVector.y, topVector.z);
+    audio.context.listener.setOrientation(currentDir.x, currentDir.y, currentDir.z, upVector.x, upVector.y, upVector.z);
     audio.context.listener.setPosition(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);
     audio.pannerNode.setPosition(audio.voicer.position.x, audio.voicer.position.y, audio.voicer.position.z);
   }
