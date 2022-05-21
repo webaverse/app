@@ -177,7 +177,6 @@ class PlayerBase extends THREE.Object3D {
 
     this.needEndUse = false;
     this.needContinueCombo = false;
-    this.needResetUseTime = false;
   }
   findAction(fn) {
     const actions = this.getActionsState();
@@ -963,16 +962,7 @@ class UninterpolatedPlayer extends StatePlayer {
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
-      use: new InfiniteActionInterpolant(() => {
-        if (this.hasAction('use')) {
-          if (this.needResetUseTime) {
-            this.needResetUseTime = false;
-            return false;
-          }
-          return true;
-        }
-        return false;
-      }, 0),
+      use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
       aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
