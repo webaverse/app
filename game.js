@@ -980,8 +980,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
       if (localPlayer.needContinueCombo) {
         localPlayer.needContinueCombo = false;
+        localPlayer.actionInterpolants.use.reset();
         _startUse();
-        localPlayer.needResetUseTime = true;
       } else {
         lastUseIndex = 0;
       }
