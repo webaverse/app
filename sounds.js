@@ -109,7 +109,6 @@ const updateAudioPosition  = (currentDir, topVector) => {
     audio.context.listener.setOrientation(currentDir.x, currentDir.y, currentDir.z, topVector.x, topVector.y, topVector.z);
     audio.context.listener.setPosition(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);
     audio.pannerNode.setPosition(audio.voicer.position.x, audio.voicer.position.y, audio.voicer.position.z);
-    console.log(audio.pannerNode);
   }
 }
 export {
