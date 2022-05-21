@@ -1897,7 +1897,7 @@ class Avatar {
     
 
     _updateHmdPosition();
-    if (this === window.localPlayer.avatar) {
+    if (false && this === window.localPlayer.avatar) {
       /*
         ${window.logNum(localPlayer.characterPhysics.velocity.length())}
       */
