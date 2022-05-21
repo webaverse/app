@@ -55,7 +55,6 @@ import Emoter from './Emoter.js'
 import Blinker from './Blinker.js'
 import Nodder from './Nodder.js'
 import Looker from './Looker.js'
-import { localPlayer } from '../players.js';
 
 
 const localVector = new THREE.Vector3();
@@ -1899,21 +1898,21 @@ class Avatar {
     _updateHmdPosition();
     if (false && this === window.localPlayer.avatar) {
       /*
-        ${window.logNum(localPlayer.characterPhysics.velocity.length())}
+        ${window.logNum(window.localPlayer.characterPhysics.velocity.length())}
       */
       window.domInfo.innerHTML = `
-        <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
+        <div style="display:;">actions: --- ${window.localPlayer.getActionsArray().map(n=>n.type)}</div>
         <div style="display:;">idleWalkFactor: --- ${window.logNum(moveFactors.idleWalkFactor)}</div>
         <div style="display:;">---</div>
         <div style="display:;">keysDirection: --- ${window.logVector3(window.ioManager?.keysDirection)}</div>
-        <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} of characterPhysics ( correct )</div>
+        <div style="display:;">velocity: --- ${window.logVector3(window.localPlayer.characterPhysics.velocity)} of characterPhysics ( correct )</div>
         <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} of avatar</div>
         <div style="display:;">currentPosition: --- ${window.logVector3(this.inputs.hmd.position)}</div>
         <div style="display:;">currentQuaternion: --- ${window.logVector4(this.inputs.hmd.quaternion)}</div>
-        <div style="display:;">localPlayer.quate: --- ${window.logVector4(localPlayer.quaternion)}</div>
+        <div style="display:;">localPlayer.quate: --- ${window.logVector4(window.localPlayer.quaternion)}</div>
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
         <div style="display:;">---</div>
-        <div style="display:;">localPlayer.direction: --- ${window.logVector3(localPlayer.getWorldDirection(localVector))}</div>
+        <div style="display:;">localPlayer.direction: --- ${window.logVector3(window.localPlayer.getWorldDirection(localVector))}</div>
         <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
         <div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
         <div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
