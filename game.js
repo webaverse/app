@@ -451,21 +451,11 @@ const _mousedown = () => {
     localPlayer.needContinueCombo = true;
   }
   _startUse();
-  useAction = localPlayer.getAction('use');
-  if (!(
-    useAction?.animation ||
-    useAction?.animationCombo?.length > 0 ||
-    useAction?.animationEnvelope?.length > 0
-  )) {
-    _endUse();
-  }
 };
 const _mouseup = () => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const useAction = localPlayer.getAction('use');
-  if (
-    useAction?.animationEnvelope?.length > 0
-  ) {
+  if (!useAction?.animation && !useAction?.animationCombo?.length > 0) {
     _endUse();
   }
 };
@@ -980,22 +970,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
-  
-  const handleUseActionCombo = () => {
-    if (localPlayer.needEndUse) {
-      localPlayer.needEndUse = false;
-      _endUse();
-
-      if (localPlayer.needContinueCombo) {
-        localPlayer.needContinueCombo = false;
-        _startUse();
-        localPlayer.needResetUseTime = true;
-      } else {
-        lastUseIndex = 0;
-      }
-    }
-  }
-  handleUseActionCombo();
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
@@ -1665,6 +1639,17 @@ class GameManager extends EventTarget {
     });
     downloadFile(blob, 'scene.json');
     // console.log('got scene', scene);
+  }
+  handleAnimationEnd() {
+    _endUse();
+
+    if (localPlayer.needContinueCombo) {
+      localPlayer.needContinueCombo = false;
+      localPlayer.actionInterpolants.use.reset();
+      _startUse();
+    } else {
+      lastUseIndex = 0;
+    }
   }
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
