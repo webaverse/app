@@ -1,17 +1,15 @@
 /* utils to bind players to their avatars
 set the avatar state from the player state */
 
-import * as THREE from 'three';
-import Avatar from './avatars/avatars.js';
-import {unFrustumCull, enableShadows} from './util.js';
-import {
-  getEyePosition,
-} from './avatars/util.mjs';
-import { world } from './world.js';
-import hpManager from './hp-manager.js';
+import * as THREE from "three";
+import Avatar from "./avatars/avatars.js";
+import { unFrustumCull, enableShadows } from "./util.js";
+import { getEyePosition } from "./avatars/util.mjs";
+import { world } from "./world.js";
+import hpManager from "./hp-manager.js";
 
-const appSymbol = 'app'; // Symbol('app');
-const avatarSymbol = 'avatar'; // Symbol('avatar');
+const appSymbol = "app"; // Symbol('app');
+const avatarSymbol = "avatar"; // Symbol('avatar');
 const maxMirrorDistanace = 3;
 
 const localVector = new THREE.Vector3();
@@ -39,20 +37,18 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     rig.setHandEnabled(i, player.hands[i].enabled);
   }
   rig.setTopEnabled(
-    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled)),
+    !!session &&
+      (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled)
   );
   rig.setBottomEnabled(
-    (
-      rig.getTopEnabled() /* ||
+    rig.getTopEnabled() /* ||
       rig.getHandEnabled(0) ||
-      rig.getHandEnabled(1) */
-    ) &&
-    rig.velocity.length() < 0.001,
+      rig.getHandEnabled(1) */ && rig.velocity.length() < 0.001
   );
 }
 export function makeAvatar(app) {
   if (app) {
-    const {skinnedVrm} = app;
+    const { skinnedVrm } = app;
     if (skinnedVrm) {
       const avatar = new Avatar(skinnedVrm, {
         fingers: true,
@@ -61,35 +57,36 @@ export function makeAvatar(app) {
         debug: false,
       });
       avatar[appSymbol] = app;
-      
+
       unFrustumCull(app);
       enableShadows(app);
-      
+
       const hitTracker = hpManager.makeHitTracker();
       hitTracker.bind(app);
-      app.dispatchEvent({type: 'hittrackeradded'});
-    
+      app.dispatchEvent({ type: "hittrackeradded" });
+
       const die = () => {
-        hpManager.resetHp(hitTracker)
+        hpManager.resetHp(hitTracker);
+        console.log("player died");
         //TODO: death animation, reset position?
       };
-      hitTracker.addEventListener('die', die);
-      
-      app.addEventListener('hittrackeradded', e => {
-        app.hitTracker.addEventListener('hit', e => {
-          if (!npcPlayer.hasAction('hurt')) {
+      hitTracker.addEventListener("die", die);
+
+      app.addEventListener("hittrackeradded", (e) => {
+        app.hitTracker.addEventListener("hit", (e) => {
+          if (!npcPlayer.hasAction("hurt")) {
             const newAction = {
-              type: 'hurt',
-              animation: 'pain_back',
+              type: "hurt",
+              animation: "pain_back",
             };
             npcPlayer.addAction(newAction);
-            
+
             setTimeout(() => {
-              npcPlayer.removeAction('hurt');
+              npcPlayer.removeAction("hurt");
             }, hurtAnimationDuration * 1000);
           }
         });
-      })
+      });
 
       return avatar;
     }
@@ -97,26 +94,26 @@ export function makeAvatar(app) {
   return null;
 }
 export function applyPlayerActionsToAvatar(player, rig) {
-  const jumpAction = player.getAction('jump');
-  const flyAction = player.getAction('fly');
-  const useAction = player.getAction('use');
-  const narutoRunAction = player.getAction('narutoRun');
-  const sitAction = player.getAction('sit');
-  const sitAnimation = sitAction ? sitAction.animation : '';
-  const danceAction = player.getAction('dance');
-  const danceAnimation = danceAction ? danceAction.animation : '';
-  const emoteAction = player.getAction('emote');
-  const emoteAnimation = emoteAction ? emoteAction.animation : '';
+  const jumpAction = player.getAction("jump");
+  const flyAction = player.getAction("fly");
+  const useAction = player.getAction("use");
+  const narutoRunAction = player.getAction("narutoRun");
+  const sitAction = player.getAction("sit");
+  const sitAnimation = sitAction ? sitAction.animation : "";
+  const danceAction = player.getAction("dance");
+  const danceAnimation = danceAction ? danceAction.animation : "";
+  const emoteAction = player.getAction("emote");
+  const emoteAnimation = emoteAction ? emoteAction.animation : "";
   // const throwAction = player.getAction('throw');
-  const aimAction = player.getAction('aim');
-  const crouchAction = player.getAction('crouch');
+  const aimAction = player.getAction("aim");
+  const crouchAction = player.getAction("crouch");
   // const chargeJump = player.getAction('chargeJump');
   // const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   // const standCharge = player.getAction('standCharge');
   // const standChargeAnimation = standCharge ? standCharge.animation : '';
   // const fallLoop = player.getAction('fallLoop');
   // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
-  const hurtAction = player.getAction('hurt');
+  const hurtAction = player.getAction("hurt");
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
@@ -127,12 +124,12 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
-  
+
   if (useAction?.animation) {
     rig.useAnimation = useAction.animation;
   } else {
     if (rig.useAnimation) {
-      rig.useAnimation = '';
+      rig.useAnimation = "";
     }
   }
   if (useAction?.animationCombo) {
@@ -152,7 +149,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.useAnimationIndex = useAction?.index;
   rig.useTime = player.actionInterpolants.use.get();
   rig.unuseTime = player.actionInterpolants.unuse.get();
-  if (rig.unuseTime === 0) { // this means use is active
+  if (rig.unuseTime === 0) {
+    // this means use is active
     if (useAction?.animationEnvelope) {
       rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
     } else {
@@ -160,20 +158,20 @@ export function applyPlayerActionsToAvatar(player, rig) {
     }
   }
 
-  rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
+  rig.manuallySetMouth = player.characterBehavior.manuallySetMouth;
   rig.vowels[1] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[1];
   rig.vowels[2] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[2];
   rig.vowels[3] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[3];
   rig.vowels[4] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[4];
 
-
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimState = !!aimAction;
   rig.aimTime = player.actionInterpolants.aim.get();
-  rig.aimRightTransitionTime = player.actionInterpolants.aimRightTransition.get();
+  rig.aimRightTransitionTime =
+    player.actionInterpolants.aimRightTransition.get();
   rig.aimLeftTransitionTime = player.actionInterpolants.aimLeftTransition.get();
-  rig.aimAnimation = (aimAction?.playerAnimation) || '';
+  rig.aimAnimation = aimAction?.playerAnimation || "";
   // rig.aimDirection.set(0, 0, -1);
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
@@ -203,7 +201,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashTime = player.actionInterpolants.swordTopDownSlash.get();
   // rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
-  rig.hurtAnimation = (hurtAction?.animation) || '';
+  rig.hurtAnimation = hurtAction?.animation || "";
   rig.hurtTime = player.actionInterpolants.hurt.get();
 }
 // returns whether eyes were applied
@@ -227,15 +225,20 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
   })[0];
   if (closestMirror) {
     // console.log('player bind mirror', closestMirror);
-    const mirrorPosition = localVector2.setFromMatrixPosition(closestMirror.matrixWorld);
+    const mirrorPosition = localVector2.setFromMatrixPosition(
+      closestMirror.matrixWorld
+    );
 
     if (mirrorPosition.distanceTo(player.position) < maxMirrorDistanace) {
       const eyePosition = getEyePosition(rig.modelBones);
       localPlane
         .setFromNormalAndCoplanarPoint(
-          localVector.set(0, 0, 1)
-            .applyQuaternion(localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)),
-          mirrorPosition,
+          localVector
+            .set(0, 0, 1)
+            .applyQuaternion(
+              localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)
+            ),
+          mirrorPosition
         )
         .projectPoint(eyePosition, rig.eyeballTarget);
       rig.eyeballTargetEnabled = true;
@@ -243,7 +246,9 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
   }
 }
 export function applyFacePoseToAvatar(player, rig) {
-  const facePoseActions = player.getActionsArray().filter(a => a.type === 'facepose');
+  const facePoseActions = player
+    .getActionsArray()
+    .filter((a) => a.type === "facepose");
   if (facePoseActions.length > 0) {
     player.avatar.faceposes = facePoseActions;
   } else {
@@ -253,17 +258,18 @@ export function applyFacePoseToAvatar(player, rig) {
   }
 }
 export function applyPlayerPoseToAvatar(player, rig) {
-  const poseAction = player.getAction('pose');
+  const poseAction = player.getAction("pose");
   rig.poseAnimation = poseAction?.animation || null;
 }
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
-  
+
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
-  applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
-  
+  applyPlayerEyesToAvatar(player, rig) ||
+    applyMirrorsToAvatar(player, rig, mirrors);
+
   applyFacePoseToAvatar(player, rig);
   applyPlayerPoseToAvatar(player, rig);
 }
