@@ -221,11 +221,10 @@ export default (app, component) => {
       }
     });
 
-    const hipsPostion = localVector;
-    player.avatar.foundModelBones.Hips.matrixWorld
-      .decompose(localVector, localQuaternion, localVector2);
-
     if (quaternion === 'upVectorHipsToPosition') {
+      const hipsPostion = localVector;
+      hipsPostion.setFromMatrixPosition(player.avatar.foundModelBones.Hips.matrixWorld);
+
       localEuler.order = 'YXZ';
       localEuler.setFromQuaternion(player.quaternion);
       localEuler.x = 0;
@@ -240,10 +239,8 @@ export default (app, component) => {
         localVector2.copy(upVector).normalize(),
       ));
 
-      localMatrix
-        .lookAt(eyeVector, targetVector, upVector)
-        .decompose(localVector, app.quaternion, localVector2);
-
+      localMatrix.lookAt(eyeVector, targetVector, upVector)
+      app.quaternion.setFromRotationMatrix(localMatrix);
       app.quaternion.multiply(playerQuaternion);
     }
 
