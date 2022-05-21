@@ -41,6 +41,7 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
+import game from '../game.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -1281,7 +1282,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     }
   }
   if (lastF >= 1) {
-    avatar.dispatchAnimationEndEvent();
+    game.handleAnimationEnd();
   }
 };
 

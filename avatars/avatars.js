@@ -394,9 +394,8 @@ const _makeDebugMesh = (avatar) => {
 
 
 
-class Avatar extends EventTarget {
+class Avatar {
 	constructor(object, options = {}) {
-    super();
     if (!object) {
       object = {};
     }
@@ -2122,10 +2121,6 @@ class Avatar extends EventTarget {
 
   getFloorHeight() {
     return this.poseManager.vrTransforms.floorHeight;
-  }
-
-  dispatchAnimationEndEvent() {
-    this.dispatchEvent(new MessageEvent('animationEnd'));
   }
 
   /* say(audio) {
