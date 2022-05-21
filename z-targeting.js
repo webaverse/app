@@ -191,13 +191,6 @@ class ZTargeting extends THREE.Object3D {
       if (remoteApp) {
         game.menuAim();
       }
-      // if (remoteApp) {
-      //   debugger
-      //   // cameraManager.setCombatTarget(remoteApp);
-      //   cameraManager.focusCamera(remoteApp.position); // todo: can't use reomteApp.position, need find npcPlayer etc.
-      //   localPlayer.combatTarget.copy(remoteApp.position);
-      //   localPlayer.combatTargetEnabled = true;
-      // }
     }
   }
   handleUp() {
@@ -212,19 +205,6 @@ class ZTargeting extends THREE.Object3D {
     }
   }
   toggle() {
-    // window.isCombatFocus = true;
-
-    // if (localPlayer.combatTargetEnabled) {
-    //   game.menuUnaim();
-    //   localPlayer.combatTargetEnabled = false;
-    // } else {
-    //   cameraManager.focusCamera(window.npcPlayers[0].position);
-    //   localPlayer.combatTarget.copy(window.npcPlayers[0].position);
-    //   game.menuAim();
-    //   localPlayer.combatTargetEnabled = true;
-    // }
-
-
     if (cameraManager.focus) {
       this.handleUp();
     } else {
@@ -235,11 +215,6 @@ class ZTargeting extends THREE.Object3D {
           this.handleUp();
         }, 300);
       }
-
-      // const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
-      // if (remoteApp) {
-      //   cameraManager.setCombatTarget(remoteApp);
-      // }
     }
   }
 }

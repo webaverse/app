@@ -460,21 +460,6 @@ class CameraManager extends EventTarget {
       this.setCameraToNullTarget();
     }
   }
-  setCombatTarget(target = null) {
-    // this.targetType = 'combat';
-    // this.target = target;
-    // if (this.target) {
-    //   const _setCameraToCombatTarget = () => {
-    //     cameraOffsetTargetZ = -1;
-    //     cameraOffset.z = cameraOffsetTargetZ;
-    //     target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    //     this.targetPosition.copy(localVector);
-    //   };
-    //   _setCameraToCombatTarget();
-    // } else {
-    //   this.setCameraToNullTarget();
-    // }
-  }
   setCameraToNullTarget() {
     this.sourcePosition.copy(camera.position);
     this.sourceQuaternion.copy(camera.quaternion);
