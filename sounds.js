@@ -60,32 +60,35 @@ const playSound = (audioSpec, voicer) => {
   const {offset, duration} = audioSpec;
   const audioContext = Avatar.getAudioContext();
   const audioBufferSourceNode = audioContext.createBufferSource();
-  const pannerNode = audioContext.createPanner();
-  pannerNode.panningModel = "HRTF";
-  audioBufferSourceNode.connect(pannerNode);
-  pannerNode.connect(audioContext.destination);
   audioBufferSourceNode.buffer = soundFileAudioBuffer;
-  //audioBufferSourceNode.connect(audioContext.gain);
-  audioBufferSourceNode.start(0, offset, duration);
-
-  // handel audios
+  
   if(voicer === undefined){
-    const localPlayer = metaversefile.useLocalPlayer();
-    audioBufferSourceNode.audioInfo = {context: audioContext, panner: pannerNode, voicer: localPlayer};
+    audioBufferSourceNode.connect(audioContext.gain);
   }
   else{
+    const pannerNode = audioContext.createPanner();
+    const gainNode = audioContext.createGain();
+    pannerNode.panningModel = "HRTF";
+
+    audioBufferSourceNode.connect(pannerNode);
+    pannerNode.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // handel audios array
     audioBufferSourceNode.audioInfo = {context: audioContext, panner: pannerNode, voicer: voicer};
+    audios.push(audioBufferSourceNode.audioInfo);
+    audioBufferSourceNode.addEventListener('ended', () => {
+      const index = audios.indexOf(audioBufferSourceNode.audioInfo);
+      if (index > -1) {
+        // clean audios array
+        audios.splice(index, 1);
+      }
+    });
+
   }
-  audios.push(audioBufferSourceNode.audioInfo);
-  audioBufferSourceNode.addEventListener('ended', () => {
-    const index = audios.indexOf(audioBufferSourceNode.audioInfo);
-    if (index > -1) {
-      // clean audios array
-      audios.splice(index, 1);
-    }
-  });
-  
+  audioBufferSourceNode.start(0, offset, duration);
   return audioBufferSourceNode;
+  
 };
 
 const playSoundName = (name, voicer) => {
