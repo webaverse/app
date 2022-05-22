@@ -13,6 +13,7 @@ import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
 import cameraManager from './camera-manager.js';
+import { getLocalPlayer } from './players.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -89,7 +90,8 @@ class CharacterPhysics {
       // if (cameraManager.focus && cameraManager.target2) {
       //   const target2Position = cameraManager.target2.npcPlayer ? cameraManager.target2.npcPlayer.position : cameraManager.target2.position;
       const zTargeting = metaversefileApi.useZTargeting();
-      if (zTargeting?.focusTargetReticle?.position) {
+      const localPlayer = getLocalPlayer();
+      if (this.player === localPlayer && zTargeting?.focusTargetReticle?.position) {
         const moveDistance = localVector.copy(this.velocity).setY(0).length() * timeDiffS;
         if (moveDistance !== 0) {
           const playerPosition = localVector.copy(this.player.position).setY(0);
@@ -163,7 +165,8 @@ class CharacterPhysics {
         // avatar facing direction
         if (velocityAvatarDirection) {
           const zTargeting = metaversefileApi.useZTargeting();
-          if (zTargeting?.focusTargetReticle?.position) {
+          const localPlayer = getLocalPlayer();
+          if (this.player === localPlayer && zTargeting?.focusTargetReticle?.position) {
             const direction = localVector3.copy(cameraManager.lastNonzeroDirectionVector);
             direction.y = 0
             direction.x *= -1;
@@ -191,7 +194,8 @@ class CharacterPhysics {
           // if (cameraManager.focus && cameraManager.target2) {
           //   const target2Position = cameraManager.target2.npcPlayer ? cameraManager.target2.npcPlayer.position : cameraManager.target2.position;
           const zTargeting = metaversefileApi.useZTargeting();
-          if (zTargeting?.focusTargetReticle?.position) {
+          const localPlayer = getLocalPlayer();
+          if (this.player === localPlayer && zTargeting?.focusTargetReticle?.position) {
             localQuaternion.setFromUnitVectors(
               localVector3.set(0, 0, -1),
               localVector4.copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
