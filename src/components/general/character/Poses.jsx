@@ -1,48 +1,48 @@
-import React, {useState, useRef} from 'react';
+import React, { useState, useRef } from 'react';
 import classnames from 'classnames';
 
-import {setFacePoseValue} from './Emotions';
+import { setFacePoseValue } from './Emotions';
 import styles from './poses.module.css';
 
 import metaversefile from 'metaversefile';
-import {emoteAnimations} from '../../../../avatars/animationHelpers.js';
+import { emoteAnimations } from '../../../../avatars/animationHelpers.js';
 import emotes from './emotes.json';
 
-//
+//The trigger emote function is modified to trigger for the required player.
 
 let emoteTimeout = null;
-export const triggerEmote = emoteName => {
-  const emoteHardName = emoteName.replace(/Soft$/, '');
-  const emote = emotes.find(emote => emote.name === emoteHardName);
-  const {emotion} = emote;
-  
-  // clear old emote
-  const localPlayer = metaversefile.useLocalPlayer();
-  localPlayer.removeAction('emote');
-  if (emoteTimeout) {
-    clearTimeout(emoteTimeout);
-    emoteTimeout = null;
-  }
+export const triggerEmote = (emoteName, player = null) => {
+    const emoteHardName = emoteName.replace(/Soft$/, '');
+    const emote = emotes.find(emote => emote.name === emoteHardName);
+    const { emotion } = emote;
+    player = !player ? metaversefile.useLocalPlayer() : player;
 
-  // add new emote
-  const newAction = {
-    type: 'emote',
-    animation: emoteName,
-  };
-  localPlayer.addAction(newAction);
+    // clear old emote
+    player.removeAction('emote');
+    if (emoteTimeout) {
+        clearTimeout(emoteTimeout);
+        emoteTimeout = null;
+    }
 
-  setFacePoseValue(emotion, 1);
+    // add new emote
+    const newAction = {
+        type: 'emote',
+        animation: emoteName,
+    };
+    player.addAction(newAction);
 
-  const emoteAnimation = emoteAnimations[emoteName];
-  const emoteAnimationDuration = emoteAnimation.duration;
-  emoteTimeout = setTimeout(() => {
-    const actionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && action.animation === emoteName);
-    localPlayer.removeActionIndex(actionIndex);
+    setFacePoseValue(emotion, 1);
 
-    setFacePoseValue(emotion, 0);
-    
-    emoteTimeout = null;
-  }, emoteAnimationDuration * 1000);
+    const emoteAnimation = emoteAnimations[emoteName];
+    const emoteAnimationDuration = emoteAnimation.duration;
+    emoteTimeout = setTimeout(() => {
+        const actionIndex = player.findActionIndex(action => action.type === 'emote' && action.animation === emoteName);
+        player.removeActionIndex(actionIndex);
+
+        setFacePoseValue(emotion, 0);
+
+        emoteTimeout = null;
+    }, emoteAnimationDuration * 1000);
 };
 
 //
@@ -50,7 +50,7 @@ export const triggerEmote = emoteName => {
 export const Poses = ({
     parentOpened,
 }) => {
-    const [ posesOpen, setPosesOpen ] = useState( false );
+    const [posesOpen, setPosesOpen] = useState(false);
     const posesRef = useRef();
 
     const poseClick = emote => e => {
@@ -73,7 +73,7 @@ export const Poses = ({
             ref={posesRef}
         >
             {emotes.map((emote, emoteIndex) => {
-                const {name, icon} = emote;
+                const { name, icon } = emote;
                 return (
                     <div
                         className={styles.pose}
