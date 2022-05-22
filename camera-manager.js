@@ -518,7 +518,7 @@ class CameraManager extends EventTarget {
 
         this.targetQuaternion.setFromUnitVectors(
           localVector3.set(0, 0, -1),
-          localVector.copy(window.npcPlayers[0].position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
+          localVector.copy(zTargeting.focusTargetReticle.position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
         )
 
         this.targetPosition.copy(localPlayer.position)
@@ -528,10 +528,10 @@ class CameraManager extends EventTarget {
         );
 
         // look at npcPlayer's side
-        localVector.copy(localPlayer.position).sub(npcPlayers[0].position).setY(0)
+        localVector.copy(localPlayer.position).sub(zTargeting.focusTargetReticle.position).setY(0)
           .applyAxisAngle(new THREE.Vector3(0, 1, 0), - Math.PI / 2)
           .normalize().multiplyScalar(2)
-          .add(npcPlayers[0].position)
+          .add(zTargeting.focusTargetReticle.position)
         // console.log(window.logVector3(localVector));
 
         // localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
