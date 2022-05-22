@@ -173,6 +173,7 @@ class ZTargeting extends THREE.Object3D {
       this.focusTargetReticleDynamicPosition
         .copy(this.focusTargetReticleObject.position)
         .add(this.focusTargetReticleObjectBias);
+      this.focusTargetReticle.position.copy(this.focusTargetReticleDynamicPosition);
     }
   }
   handleDown(object = camera) {
