@@ -10,6 +10,14 @@ const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
+const hitAttemptEventData = {
+  type: '',
+  args: null,
+};
+const hitAttemptEvent = new MessageEvent('hitattempt', {
+  data: hitAttemptEventData,
+});
+
 export class CharacterHitter {
   constructor(player) {
     this.player = player;
@@ -21,6 +29,10 @@ export class CharacterHitter {
     args,
     timestamp = performance.now(),
   }) {
+    hitAttemptEventData.type = type;
+    hitAttemptEventData.args = args;
+    hitManager.dispatchEvent(hitAttemptEvent);
+
     switch (type) {
       case 'sword': {
         const {
@@ -128,3 +140,5 @@ export class CharacterHitter {
     // nothing
   }
 }
+const hitManager = new EventTarget();
+export default hitManager;
