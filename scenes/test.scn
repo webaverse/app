@@ -15,6 +15,7 @@
         "position": [1, 2, 3]
       }
     },
+    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/atmospheric-sky/" },
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/block/" },
     { "position": [ -200, 0, 5 ], "scale": [7, 7, 7], "start_url": "http://localhost/lib/webaverse_resource/ramp/" },
     { "position": [0, 1, 10], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
