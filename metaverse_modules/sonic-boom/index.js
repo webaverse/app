@@ -16,8 +16,6 @@ export default () => {
   })
   const cameraManager = useCameraManager();
   const {renderer, camera} = useInternals();
-  let narutoRunTime=0; 
-  let lastStopSw=0;
   const textureLoader = new THREE.TextureLoader()
   const wave2 = textureLoader.load(`${baseUrl}/textures/wave2.jpeg`)
   const wave20 = textureLoader.load(`${baseUrl}/textures/wave20.png`)
@@ -29,6 +27,8 @@ export default () => {
   const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
 
   totalPlayers.forEach((currentPlayer) => {
+    let narutoRunTime=0; 
+    let lastStopSw=0;
 
     let currentDir=new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
