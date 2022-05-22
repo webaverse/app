@@ -458,7 +458,7 @@ class CameraManager extends EventTarget {
         const timestamp = performance.now();
         this.lerpStartTime = timestamp;
         this.lastTimestamp = timestamp;
-        cameraOffset.x = -2;
+        cameraOffset.x = -1;
         cameraOffset.y = -2.7;
 
         // cameraOffsetZ = -cameraOffsetDefault;
@@ -530,13 +530,13 @@ class CameraManager extends EventTarget {
         // look at npcPlayer's side
         localVector.copy(localPlayer.position).sub(zTargeting.focusTargetReticle.position).setY(0)
           .applyAxisAngle(new THREE.Vector3(0, 1, 0), - Math.PI / 2)
-          .normalize().multiplyScalar(2)
+          .normalize().multiplyScalar(3)
           .add(zTargeting.focusTargetReticle.position)
         // console.log(window.logVector3(localVector));
 
-        // localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
         if (zTargeting.focusTargetReticle) {
-          localMatrix.lookAt(this.targetPosition, zTargeting.focusTargetReticle.position, new THREE.Vector3(0, 1, 0));
+          localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
+          // localMatrix.lookAt(this.targetPosition, zTargeting.focusTargetReticle.position, new THREE.Vector3(0, 1, 0));
         } else {
           localMatrix.lookAt(this.targetPosition, this.target.position, new THREE.Vector3(0, 1, 0));
         }
@@ -548,9 +548,9 @@ class CameraManager extends EventTarget {
         // // this.targetQuaternion.multiply(combatLockBiasQuaternion);
         // this.targetQuaternion.setFromEuler(localEuler);
 
-        // move up whole viewport (move down camera)
+        // move up/left whole viewport (move down/right camera)
         this.targetPosition.add(
-          new THREE.Vector3(0, -2, 0).applyQuaternion(this.targetQuaternion)
+          new THREE.Vector3(0.5, -2, 0).applyQuaternion(this.targetQuaternion)
         );
 
         camera.position.copy(this.targetPosition);
