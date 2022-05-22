@@ -557,7 +557,7 @@ class CameraManager extends EventTarget {
         camera.quaternion.copy(this.targetQuaternion);
       }
       if (this.targetType === 'static') {
-        console.log('_setZLock()');
+        // console.log('_setZLock()');
         _setZLock();
       }
 

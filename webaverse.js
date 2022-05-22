@@ -294,6 +294,8 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
+      // console.log(window.logVector3(cameraManager.lastNonzeroDirectionVector));
+
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
         const timeDiff = timestamp - lastTimestamp;

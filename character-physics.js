@@ -162,19 +162,30 @@ class CharacterPhysics {
       if (!this.player.hasAction('sit')) {
         // avatar facing direction
         if (velocityAvatarDirection) {
-          const horizontalVelocity = localVector5.set(
-            this.velocity.x,
-            0,
-            this.velocity.z
-          );
-          if (horizontalVelocity.lengthSq() > 0.001) {
-            localQuaternion.setFromRotationMatrix(
-              localMatrix.lookAt(
-                zeroVector,
-                horizontalVelocity,
-                upVector
-              )
+          const zTargeting = metaversefileApi.useZTargeting();
+          if (zTargeting?.focusTargetReticle?.position) {
+            const direction = new THREE.Vector3().copy(cameraManager.lastNonzeroDirectionVector);
+            direction.y = 0
+            direction.x *= -1;
+            localQuaternion.setFromUnitVectors(
+              direction,
+              new THREE.Vector3().copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
+            )
+          } else {
+            const horizontalVelocity = localVector5.set(
+              this.velocity.x,
+              0,
+              this.velocity.z
             );
+            if (horizontalVelocity.lengthSq() > 0.001) {
+              localQuaternion.setFromRotationMatrix(
+                localMatrix.lookAt(
+                  zeroVector,
+                  horizontalVelocity,
+                  upVector
+                )
+              );
+            }
           }
         } else {
           // if (cameraManager.focus && cameraManager.target2) {
