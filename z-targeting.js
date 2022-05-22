@@ -129,6 +129,7 @@ class ZTargeting extends THREE.Object3D {
 
     this.reticles = [];
     this.focusTargetReticle = null;
+    this.focusTargetApp = null;
     this.focusTargetObject = null;
     this.focusTargetObjectBias = new THREE.Vector3();
     this.queryResults = new QueryResults();
@@ -180,10 +181,19 @@ class ZTargeting extends THREE.Object3D {
 
       if (this.queryResults.results.length > 0) {
         this.focusTargetReticle = this.queryResults.results[0];
-        this.focusTargetObject = metaversefileApi.getPhysicsObjectByPhysicsId(this.focusTargetReticle.physicsId);
-        this.focusTargetObjectBias
-          .copy(this.focusTargetReticle.position)
-          .sub(this.focusTargetObject.position);
+        const pair = metaversefileApi.getPairByPhysicsId(this.focusTargetReticle.physicsId);
+        this.focusTargetApp = pair[0];
+        this.focusTargetObject = pair[1];
+        if (this.focusTargetApp?.npcPlayer?.avatar) {
+          const headPosition = localVector.setFromMatrixPosition(this.focusTargetApp.npcPlayer.avatar.foundModelBones.Head.matrixWorld);
+          this.focusTargetObjectBias
+            .copy(headPosition)
+            .sub(this.focusTargetObject.position);
+        } else {
+          this.focusTargetObjectBias
+            .copy(this.focusTargetReticle.position)
+            .sub(this.focusTargetObject.position);
+        }
         sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
       
         const naviSoundNames = [

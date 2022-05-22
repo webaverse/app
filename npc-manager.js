@@ -56,6 +56,7 @@ class NpcManager extends EventTarget {
     }
 
     npcPlayer.npcApp = npcApp;
+    npcApp.npcPlayer = npcPlayer;
 
     await npcPlayer.setAvatarUrl(avatarUrl);
 
