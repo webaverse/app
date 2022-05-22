@@ -164,12 +164,12 @@ class CharacterPhysics {
         if (velocityAvatarDirection) {
           const zTargeting = metaversefileApi.useZTargeting();
           if (zTargeting?.focusTargetReticle?.position) {
-            const direction = new THREE.Vector3().copy(cameraManager.lastNonzeroDirectionVector);
+            const direction = localVector3.copy(cameraManager.lastNonzeroDirectionVector);
             direction.y = 0
             direction.x *= -1;
             localQuaternion.setFromUnitVectors(
               direction,
-              new THREE.Vector3().copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
+              localVector4.copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
             )
           } else {
             const horizontalVelocity = localVector5.set(
@@ -193,8 +193,8 @@ class CharacterPhysics {
           const zTargeting = metaversefileApi.useZTargeting();
           if (zTargeting?.focusTargetReticle?.position) {
             localQuaternion.setFromUnitVectors(
-              new THREE.Vector3(0, 0, -1),
-              new THREE.Vector3().copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
+              localVector3.set(0, 0, -1),
+              localVector4.copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
             )
           } else {
             localQuaternion.copy(camera.quaternion);

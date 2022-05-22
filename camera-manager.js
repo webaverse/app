@@ -529,16 +529,16 @@ class CameraManager extends EventTarget {
 
         // look at npcPlayer's side
         localVector.copy(localPlayer.position).sub(zTargeting.focusTargetReticle.position).setY(0)
-          .applyAxisAngle(new THREE.Vector3(0, 1, 0), - Math.PI / 2)
+          .applyAxisAngle(localVector2.set(0, 1, 0), - Math.PI / 2)
           .normalize().multiplyScalar(3)
           .add(zTargeting.focusTargetReticle.position)
         // console.log(window.logVector3(localVector));
 
         if (zTargeting.focusTargetReticle) {
-          localMatrix.lookAt(this.targetPosition, localVector, new THREE.Vector3(0, 1, 0));
-          // localMatrix.lookAt(this.targetPosition, zTargeting.focusTargetReticle.position, new THREE.Vector3(0, 1, 0));
+          localMatrix.lookAt(this.targetPosition, localVector, localVector2.set(0, 1, 0));
+          // localMatrix.lookAt(this.targetPosition, zTargeting.focusTargetReticle.position, localVector2.set(0, 1, 0));
         } else {
-          localMatrix.lookAt(this.targetPosition, this.target.position, new THREE.Vector3(0, 1, 0));
+          localMatrix.lookAt(this.targetPosition, this.target.position, localVector2.set(0, 1, 0));
         }
         this.targetQuaternion.setFromRotationMatrix(localMatrix);
           
@@ -550,7 +550,7 @@ class CameraManager extends EventTarget {
 
         // move up/left whole viewport (move down/right camera)
         this.targetPosition.add(
-          new THREE.Vector3(0.5, -2, 0).applyQuaternion(this.targetQuaternion)
+          localVector2.set(0.5, -2, 0).applyQuaternion(this.targetQuaternion)
         );
 
         camera.position.copy(this.targetPosition);
