@@ -7,6 +7,7 @@ import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import game from './game.js';
 import {getLocalPlayer} from './players.js';
+import metaversefileApi from 'metaversefile';
 
 const localVector = new THREE.Vector3();
 
@@ -128,6 +129,9 @@ class ZTargeting extends THREE.Object3D {
 
     this.reticles = [];
     this.focusTargetReticle = null;
+    this.focusTargetReticleObject = null;
+    this.focusTargetReticleObjectBias = new THREE.Vector3();
+    this.focusTargetReticleDynamicPosition = new THREE.Vector3();
     this.queryResults = new QueryResults();
   }
   setQueryResult(timestamp) {
@@ -165,6 +169,11 @@ class ZTargeting extends THREE.Object3D {
   update(timestamp) {
     // console.log('update z-targeting');
     this.setQueryResult(timestamp);
+    if (this.focusTargetReticle) {
+      this.focusTargetReticleDynamicPosition
+        .copy(this.focusTargetReticleObject.position)
+        .add(this.focusTargetReticleObjectBias);
+    }
   }
   handleDown(object = camera) {
     if (!cameraManager.focus) {
@@ -172,6 +181,10 @@ class ZTargeting extends THREE.Object3D {
 
       if (this.queryResults.results.length > 0) {
         this.focusTargetReticle = this.queryResults.results[0];
+        this.focusTargetReticleObject = metaversefileApi.getPhysicsObjectByPhysicsId(this.focusTargetReticle.physicsId);
+        this.focusTargetReticleObjectBias
+          .copy(this.focusTargetReticle.position)
+          .sub(this.focusTargetReticleObject.position);
         sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
       
         const naviSoundNames = [
@@ -193,7 +206,7 @@ class ZTargeting extends THREE.Object3D {
       cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
       // if (remoteApp) {
       // debugger
-      if (this.focusTargetReticle?.position) {
+      if (this.focusTargetReticle) {
         game.menuAim();
       }
     }

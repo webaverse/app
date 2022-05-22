@@ -91,11 +91,11 @@ class CharacterPhysics {
       //   const target2Position = cameraManager.target2.npcPlayer ? cameraManager.target2.npcPlayer.position : cameraManager.target2.position;
       const zTargeting = metaversefileApi.useZTargeting();
       const localPlayer = getLocalPlayer();
-      if (this.player === localPlayer && zTargeting?.focusTargetReticle?.position) {
+      if (this.player === localPlayer && zTargeting?.focusTargetReticle) {
         const moveDistance = localVector.copy(this.velocity).setY(0).length() * timeDiffS;
         if (moveDistance !== 0) {
           const playerPosition = localVector.copy(this.player.position).setY(0);
-          const targetPosition = localVector2.copy(zTargeting.focusTargetReticle.position).setY(0)
+          const targetPosition = localVector2.copy(zTargeting.focusTargetReticleDynamicPosition).setY(0)
           const distanceVector = localVector4.copy(playerPosition).sub(targetPosition);
           localVector7.set(0, 0, 0);
           localVector8.set(0, 0, 0);
@@ -166,13 +166,13 @@ class CharacterPhysics {
         if (velocityAvatarDirection) {
           const zTargeting = metaversefileApi.useZTargeting();
           const localPlayer = getLocalPlayer();
-          if (this.player === localPlayer && zTargeting?.focusTargetReticle?.position) {
+          if (this.player === localPlayer && zTargeting?.focusTargetReticle) {
             const direction = localVector3.copy(cameraManager.lastNonzeroDirectionVector);
             direction.y = 0
             direction.x *= -1;
             localQuaternion.setFromUnitVectors(
               direction,
-              localVector4.copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
+              localVector4.copy(zTargeting.focusTargetReticleDynamicPosition).sub(this.player.position).setY(0).normalize()
             )
           } else {
             const horizontalVelocity = localVector5.set(
@@ -195,10 +195,10 @@ class CharacterPhysics {
           //   const target2Position = cameraManager.target2.npcPlayer ? cameraManager.target2.npcPlayer.position : cameraManager.target2.position;
           const zTargeting = metaversefileApi.useZTargeting();
           const localPlayer = getLocalPlayer();
-          if (this.player === localPlayer && zTargeting?.focusTargetReticle?.position) {
+          if (this.player === localPlayer && zTargeting?.focusTargetReticle) {
             localQuaternion.setFromUnitVectors(
               localVector3.set(0, 0, -1),
-              localVector4.copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
+              localVector4.copy(zTargeting.focusTargetReticleDynamicPosition).sub(this.player.position).setY(0).normalize()
             )
           } else {
             localQuaternion.copy(camera.quaternion);
