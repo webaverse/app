@@ -518,7 +518,7 @@ class CameraManager extends EventTarget {
 
         this.targetQuaternion.setFromUnitVectors(
           localVector3.set(0, 0, -1),
-          localVector.copy(zTargeting.focusTargetReticleDynamicPosition).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
+          localVector.copy(zTargeting.focusTargetReticle.position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
         )
 
         this.targetPosition.copy(localPlayer.position)
@@ -528,15 +528,15 @@ class CameraManager extends EventTarget {
         );
 
         // look at npcPlayer's side
-        localVector.copy(localPlayer.position).sub(zTargeting.focusTargetReticleDynamicPosition).setY(0)
+        localVector.copy(localPlayer.position).sub(zTargeting.focusTargetReticle.position).setY(0)
           .applyAxisAngle(localVector2.set(0, 1, 0), - Math.PI / 2)
           .normalize().multiplyScalar(3)
-          .add(zTargeting.focusTargetReticleDynamicPosition)
+          .add(zTargeting.focusTargetReticle.position)
         // console.log(window.logVector3(localVector));
 
         if (zTargeting.focusTargetReticle) {
           localMatrix.lookAt(this.targetPosition, localVector, localVector2.set(0, 1, 0));
-          // localMatrix.lookAt(this.targetPosition, zTargeting.focusTargetReticleDynamicPosition, localVector2.set(0, 1, 0));
+          // localMatrix.lookAt(this.targetPosition, zTargeting.focusTargetReticle.position, localVector2.set(0, 1, 0));
         } else {
           localMatrix.lookAt(this.targetPosition, this.target.position, localVector2.set(0, 1, 0));
         }

@@ -131,7 +131,6 @@ class ZTargeting extends THREE.Object3D {
     this.focusTargetReticle = null;
     this.focusTargetReticleObject = null;
     this.focusTargetReticleObjectBias = new THREE.Vector3();
-    this.focusTargetReticleDynamicPosition = new THREE.Vector3();
     this.queryResults = new QueryResults();
   }
   setQueryResult(timestamp) {
@@ -170,10 +169,9 @@ class ZTargeting extends THREE.Object3D {
     // console.log('update z-targeting');
     this.setQueryResult(timestamp);
     if (this.focusTargetReticle) {
-      this.focusTargetReticleDynamicPosition
+      this.focusTargetReticle.position
         .copy(this.focusTargetReticleObject.position)
         .add(this.focusTargetReticleObjectBias);
-      this.focusTargetReticle.position.copy(this.focusTargetReticleDynamicPosition);
     }
   }
   handleDown(object = camera) {
