@@ -140,6 +140,11 @@ class Conversation extends EventTarget {
     })();
 
     cameraManager.setDynamicTarget(this.remotePlayer.avatar.modelBones.Head, this.localPlayer.avatar.modelBones.Head);
+    
+    // Triggerring emote for remote player on based on chatResponse.
+    if (emote !== 'normal') {
+      triggerEmote(emote, this.remotePlayer);
+    }
   }
   async wrapProgress(fn) {
     if (!this.progressing) {
@@ -222,8 +227,10 @@ class Conversation extends EventTarget {
     // say the option
     this.addLocalPlayerMessage(option.message, 'option');
     //------------------- Convai ---------------------
-    // trigger emote
-    triggerEmote(option.emote)
+    // Triggerring emote for player executing option
+    if (option.emote !== 'normal') {
+      triggerEmote(option.emote, this.remotePlayer);
+    }
     //------------------------------------------------
 
     // clear options
