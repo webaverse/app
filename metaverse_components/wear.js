@@ -151,6 +151,7 @@ export default (app, component) => {
                 };
               };
               _mixamoRigToFakeVRMHack();
+              _mixamoRigToFakeVRMHack();
               const bindSpec = Avatar.bindAvatar(app.glb);
 
               // skeleton = bindSpec.skeleton;
@@ -163,7 +164,9 @@ export default (app, component) => {
       _unwear(e);
     }
   };
-  app.addEventListener("wearupdate", wearupdate);
+  app.addEventListener("wearupdate", (e) => {
+    wearupdate(e);
+  });
   app.addEventListener("destroy", () => {
     const localPlayer = metaversefile.useLocalPlayer();
     const remotePlayers = metaversefile.useRemotePlayers();
@@ -180,7 +183,7 @@ export default (app, component) => {
   });
 
   const _unwear = (e) => {
-    console.log('unwear called by e', e)
+    console.log("unwear called by e", e);
     if (wearSpec) {
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
@@ -204,7 +207,11 @@ export default (app, component) => {
         forward.setY(0);
         forward.normalize();
         const depthFactor = 1;
-        app.position.set(localPlayer.position.x - forward.x * depthFactor, height / 2, localPlayer.position.z - forward.z * depthFactor);
+        app.position.set(
+          localPlayer.position.x - forward.x * depthFactor,
+          height / 2,
+          localPlayer.position.z - forward.z * depthFactor
+        );
       }
 
       app.updateMatrixWorld();

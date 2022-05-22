@@ -1202,7 +1202,16 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const players = metaversefileApi.useRemotePlayers();
         for (let i = 0; i < players.length; i++) {
           const distance = players[i].position.distanceTo(localPlayer.position);
-          if (distance <= hitRadius) {
+          if (
+            distance <= hitRadius &&
+            players[i].appManager &&
+            players[i].appManager.apps.length > 0 &&
+            players[i].appManager.apps[0] &&
+            players[i].appManager.apps[0].physicsObjects &&
+            players[i].appManager.apps[0].physicsObjects.length > 0 &&
+            players[i].appManager.apps[0].physicsObjects[0] &&
+            players[i].appManager.apps[0].physicsObjects[0].physicsId
+          ) {
             const collisionId =
               players[i].appManager.apps[0].physicsObjects[0].physicsId;
             const result = metaversefileApi.getPairByPhysicsId(collisionId);

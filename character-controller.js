@@ -1,11 +1,11 @@
 /*
 this file is responisible for maintaining player state that is network-replicated.
 */
-import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
-import {ensureAudioContext, getAudioContext} from'wsrtc/ws-audio-context.js';
-import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
+import { WsAudioDecoder } from "wsrtc/ws-codec.js";
+import { ensureAudioContext, getAudioContext } from "wsrtc/ws-audio-context.js";
+import { getAudioDataBuffer } from "wsrtc/ws-util.js";
 
-import {murmurhash3} from './procgen/murmurhash3.js';
+import { murmurhash3 } from "./procgen/murmurhash3.js";
 import * as THREE from "three";
 import * as Z from "zjs";
 import { getRenderer, scene, camera, dolly } from "./renderer.js";
@@ -154,7 +154,7 @@ class PlayerBase extends THREE.Object3D {
     this.leftHand = new PlayerHand();
     this.rightHand = new PlayerHand();
     this.hands = [this.leftHand, this.rightHand];
-    this.wornApps = []
+    this.wornApps = [];
     this.avatar = null;
 
     this.appManager = new AppManager();
@@ -283,7 +283,11 @@ class PlayerBase extends THREE.Object3D {
     return factor; */
   }
   wear(app, { loadoutIndex = -1 } = {}) {
-    console.log("Wearx called in PlayerBase of Character Controller", app, loadoutIndex);
+    console.log(
+      "Wearx called in PlayerBase of Character Controller",
+      app,
+      loadoutIndex
+    );
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -363,39 +367,45 @@ class PlayerBase extends THREE.Object3D {
       });
 
       this.dispatchEvent({
-        type: 'wearupdate',
+        type: "wearupdate",
         player: this,
-        app,
+        app: app,
         wear: true,
         loadoutIndex,
+        location: "wear1",
       });
     } else {
       this.dispatchEvent({
-        type: 'wearupdate',
+        type: "wearupdate",
         player: this,
-        app,
-        wear: true
+        app: app,
+        wear: true,
+        location: "wear2",
       });
-      }
+    }
   }
   unwear(app, { destroy = false } = {}) {
-    console.log("Unwear called in PlayerBase of Character Controller", app, destroy);
+    console.log(
+      "Unwear called in PlayerBase of Character Controller",
+      app,
+      destroy
+    );
     const wearActionIndex = this.findActionIndex(({ type, instanceId }) => {
       return type === "wear" && instanceId === app.instanceId;
     });
 
     const _setAppTransform = () => {
-        const avatarHeight = this.avatar ? this.avatar.height : 0;
-        app.position
-          .copy(this.position)
-          .add(
-            localVector
-              .set(0, -avatarHeight + 0.5, -0.5)
-              .applyQuaternion(this.quaternion)
-          );
-        app.quaternion.identity();
-        app.scale.set(1, 1, 1);
-        app.updateMatrixWorld();
+      const avatarHeight = this.avatar ? this.avatar.height : 0;
+      app.position
+        .copy(this.position)
+        .add(
+          localVector
+            .set(0, -avatarHeight + 0.5, -0.5)
+            .applyQuaternion(this.quaternion)
+        );
+      app.quaternion.identity();
+      app.scale.set(1, 1, 1);
+      app.updateMatrixWorld();
     };
     _setAppTransform();
 
@@ -429,45 +439,48 @@ class PlayerBase extends THREE.Object3D {
             this.appManager.transplantApp(app, world.appManager);
           }
         } else {
-          console.warn('need to transplant unowned app', app, this.appManager, world.appManager);
+          console.warn(
+            "need to transplant unowned app",
+            app,
+            this.appManager,
+            world.appManager
+          );
           // debugger;
         }
       };
       _removeApp();
       const _emitEvents = () => {
         this.dispatchEvent({
-          type: 'wearupdate',
+          type: "wearupdate",
           player: this,
           wear: false,
-          loadoutIndex
+          loadoutIndex,
         });
         app.dispatchEvent({
-          type: 'wearupdate',
+          type: "wearupdate",
           player: this,
           wear: false,
-          loadoutIndex
+          loadoutIndex,
         });
       };
       _emitEvents();
-      
     }
-    
+
     const _emitEvents = () => {
       this.dispatchEvent({
-        type: 'wearupdate',
+        type: "wearupdate",
         player: this,
-        wear: false
+        wear: false,
       });
       app.dispatchEvent({
-        type: 'wearupdate',
+        type: "wearupdate",
         player: this,
-        wear: false
+        wear: false,
       });
     };
     _emitEvents();
     this.wornApps.splice(this.wornApps.indexOf(app));
   }
-
 }
 
 const controlActionTypes = ["jump", "crouch", "fly", "sit"];
@@ -492,7 +505,9 @@ class StatePlayer extends PlayerBase {
     this.bindState(playersArray);
   }
   setAudioDecoder() {
-    this.audioDecoder = new WsAudioDecoder({ output: this.avatar.getAudioInput()});
+    this.audioDecoder = new WsAudioDecoder({
+      output: this.avatar.getAudioInput(),
+    });
   }
   isBound() {
     return !!this.playersArray;
@@ -509,7 +524,7 @@ class StatePlayer extends PlayerBase {
       }
       this.unbindFns.length = 0;
     } else {
-      console.warn("Warning, calling unbindState on an unbound player")
+      console.warn("Warning, calling unbindState on an unbound player");
     }
   }
   detachState() {
@@ -580,7 +595,7 @@ class StatePlayer extends PlayerBase {
     };
     this.unbindFns.push(_cancelSyncAvatar);
   }
-  bindState(nextPlayersArray) {    
+  bindState(nextPlayersArray) {
     // latch old state
     const oldState = this.detachState();
 
@@ -789,7 +804,7 @@ class StatePlayer extends PlayerBase {
     actions.push([action]);
   }
   setMicMediaStream(mediaStream) {
-    if(!this.avatar)
+    if (!this.avatar)
       return console.log("Can't set mic media stream, no avatar");
     if (this.microphoneMediaStream) {
       this.microphoneMediaStream.disconnect();
@@ -800,7 +815,7 @@ class StatePlayer extends PlayerBase {
       const audioContext = Avatar.getAudioContext();
       const mediaStreamSource =
         audioContext.createMediaStreamSource(mediaStream);
-      if(!this.isLocalPlayer)
+      if (!this.isLocalPlayer)
         mediaStreamSource.connect(this.avatar.getAudioInput());
       this.microphoneMediaStream = mediaStreamSource;
     }
@@ -834,7 +849,7 @@ class StatePlayer extends PlayerBase {
   }
   load(s) {
     const j = JSON.parse(s);
-    console.log('load', j);
+    console.log("load", j);
     const self = this;
     this.playersArray.doc.transact(function tx() {
       const actions = self.getActionsState();
@@ -960,7 +975,9 @@ class InterpolatedPlayer extends StatePlayer {
       this.actionBinaryInterpolants
     ).map((k) => this.actionBinaryInterpolants[k]);
     this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(),0,
+      crouch: new BiActionInterpolant(
+        () => this.actionBinaryInterpolants.crouch.get(),
+        0,
         crouchMaxTime
       ),
       activate: new UniActionInterpolant(
@@ -980,8 +997,16 @@ class InterpolatedPlayer extends StatePlayer {
         () => this.actionBinaryInterpolants.aim.get(),
         0
       ),
-      aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
-      aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
+      aimRightTransition: new BiActionInterpolant(
+        () => this.hasAction("aim") && this.hands[0].enabled,
+        0,
+        aimTransitionMaxTime
+      ),
+      aimLeftTransition: new BiActionInterpolant(
+        () => this.hasAction("aim") && this.hands[1].enabled,
+        0,
+        aimTransitionMaxTime
+      ),
       narutoRun: new InfiniteActionInterpolant(
         () => this.actionBinaryInterpolants.narutoRun.get(),
         0
@@ -1042,18 +1067,45 @@ class UninterpolatedPlayer extends StatePlayer {
   }
   static init() {
     this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
-      activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
-      use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
-      unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
-      aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
-      aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
-      aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
-      narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
-      fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
-      jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
-      dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
-      emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
+      crouch: new BiActionInterpolant(
+        () => this.hasAction("crouch"),
+        0,
+        crouchMaxTime
+      ),
+      activate: new UniActionInterpolant(
+        () => this.hasAction("activate"),
+        0,
+        activateMaxTime
+      ),
+      use: new InfiniteActionInterpolant(() => this.hasAction("use"), 0),
+      unuse: new InfiniteActionInterpolant(() => !this.hasAction("use"), 0),
+      aim: new InfiniteActionInterpolant(() => this.hasAction("aim"), 0),
+      aimRightTransition: new BiActionInterpolant(
+        () => this.hasAction("aim") && this.hands[0].enabled,
+        0,
+        aimTransitionMaxTime
+      ),
+      aimLeftTransition: new BiActionInterpolant(
+        () => this.hasAction("aim") && this.hands[1].enabled,
+        0,
+        aimTransitionMaxTime
+      ),
+      narutoRun: new InfiniteActionInterpolant(
+        () => this.hasAction("narutoRun"),
+        0
+      ),
+      fly: new InfiniteActionInterpolant(() => this.hasAction("fly"), 0),
+      jump: new InfiniteActionInterpolant(() => this.hasAction("jump"), 0),
+      dance: new BiActionInterpolant(
+        () => this.hasAction("dance"),
+        0,
+        crouchMaxTime
+      ),
+      emote: new BiActionInterpolant(
+        () => this.hasAction("emote"),
+        0,
+        crouchMaxTime
+      ),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
       // standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),
@@ -1111,7 +1163,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   setAvatarApp(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
-      console.log("setAvatarApp")
+      console.log("setAvatarApp");
       const avatar = self.getAvatarState();
       const oldInstanceId = avatar.get("instanceId");
 
@@ -1149,7 +1201,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
 
-      self.playerMap.set('playerId', self.playerId);
+      self.playerMap.set("playerId", self.playerId);
 
       // console.log('set player map', self.playerMap, self.playerMap?.toJSON(), self.playersArray?.toJSON());
 
@@ -1174,12 +1226,12 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.playerMap.set('transform', packed); */
 
       const actions = self.getActionsState();
-      if(actions.length > 0 ) console.log(actions)
+      if (actions.length > 0) console.log(actions);
       for (const oldAction of oldActions) {
         actions.push([oldAction]);
       }
 
-      const {instanceId} = oldAvatar;
+      const { instanceId } = oldAvatar;
       if (instanceId !== undefined) {
         avatar.set("instanceId", instanceId);
       }
@@ -1337,14 +1389,17 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.updateWearables();
   }
   updateWearables() {
-    this.wornApps.forEach(app => {
+    this.wornApps.forEach((app) => {
+      const loadoutIndex = 0;
       app.dispatchEvent({
-        type: 'wearupdate',
+        type: "wearupdate",
         player: this,
-        app,
-        wear: true
+        app: app,
+        wear: true,
+        loadoutIndex,
+        location: "wear2",
       });
-    })
+    });
   }
   resetPhysics() {
     this.characterPhysics.reset();
@@ -1415,10 +1470,10 @@ class LocalPlayer extends UninterpolatedPlayer {
 
 let initialPosition = localVector;
 class RemotePlayer extends InterpolatedPlayer {
-  audioWorkletNode = false
+  audioWorkletNode = false;
   constructor(opts) {
     super(opts);
-    this.audioWorkletNode = null
+    this.audioWorkletNode = null;
 
     this.isRemotePlayer = true;
 
@@ -1428,58 +1483,59 @@ class RemotePlayer extends InterpolatedPlayer {
     this.characterFx = new CharacterFx(this);
     this.characterBehavior = new CharacterBehavior(this);
 
-    console.log('new remote plater', this);
-    }
+    console.log("new remote plater", this);
+  }
 
-  audioWorkerLoaded = false
-  analyzer = false
-  dataArray
+  audioWorkerLoaded = false;
+  analyzer = false;
+  dataArray;
   async prepareAudioWorker() {
     try {
-    if (!this.audioWorkerLoaded) {
-      console.log("preparing audio worker");
-      this.audioWorkerLoaded = true;
+      if (!this.audioWorkerLoaded) {
+        console.log("preparing audio worker");
+        this.audioWorkerLoaded = true;
 
-      await ensureAudioContext();
-      const audioContext = getAudioContext();
+        await ensureAudioContext();
+        const audioContext = getAudioContext();
 
-      this.audioWorkletNode = new AudioWorkletNode(audioContext, 'ws-output-worklet');
-      
-      this.audioDecoder = new WsAudioDecoder({
-        output: data => {
-          const buffer = getAudioDataBuffer(data);
-          console.log("Posting message to worklet");
-          this.audioWorkletNode.port.postMessage(buffer, [buffer.buffer]);
-        }
-      });
+        this.audioWorkletNode = new AudioWorkletNode(
+          audioContext,
+          "ws-output-worklet"
+        );
 
-      this.analyser = audioContext.createAnalyser();
-      this.analyser.fftSize = 2048;
+        this.audioDecoder = new WsAudioDecoder({
+          output: (data) => {
+            const buffer = getAudioDataBuffer(data);
+            console.log("Posting message to worklet");
+            this.audioWorkletNode.port.postMessage(buffer, [buffer.buffer]);
+          },
+        });
 
-      var bufferLength = this.analyser.frequencyBinCount;
-this.dataArray = new Uint8Array(bufferLength);
+        this.analyser = audioContext.createAnalyser();
+        this.analyser.fftSize = 2048;
 
-      // Connect the source to be analysed
-      this.audioWorkletNode.connect(this.analyser);
-      // audioWorkletNode.connect(audioContext.destination)
-      this.analyser.connect(audioContext.gain);
-      console.log("***** EVERYTHING IS CONNECTED *****")
+        var bufferLength = this.analyser.frequencyBinCount;
+        this.dataArray = new Uint8Array(bufferLength);
+
+        // Connect the source to be analysed
+        this.audioWorkletNode.connect(this.analyser);
+        // audioWorkletNode.connect(audioContext.destination)
+        this.analyser.connect(audioContext.gain);
+        console.log("***** EVERYTHING IS CONNECTED *****");
+      }
+    } catch (error) {
+      console.error("error", error);
+      debugger;
     }
-  } catch (error){
-    console.error("error", error)
-    debugger;
-  }
   }
 
   processAudioData(data) {
-    console.log("processing audio data")
+    console.log("processing audio data");
     this.prepareAudioWorker();
-    if (this.audioWorkletNode){
+    if (this.audioWorkletNode) {
       this.audioDecoder.decode(data.data);
       this.analyser.getByteTimeDomainData(this.dataArray);
-      console.log("this.analyzer", this.dataArray)
-
-
+      console.log("this.analyzer", this.dataArray);
     }
   }
 
@@ -1493,9 +1549,9 @@ this.dataArray = new Uint8Array(bufferLength);
     const oldApps = (
       this.playersArray ? this.getAppsState() : new Z.Array()
     ).toJSON();
-    
+
     // XXX need to unbind listeners when calling this
-    
+
     return {
       oldActions,
       oldAvatar,
@@ -1572,7 +1628,8 @@ this.dataArray = new Uint8Array(bufferLength);
           this.positionInterpolant?.snapshot(remoteTimeDiff);
           this.quaternionInterpolant?.snapshot(remoteTimeDiff);
 
-          for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
+          for (const actionBinaryInterpolant of this
+            .actionBinaryInterpolantsArray) {
             actionBinaryInterpolant.snapshot(remoteTimeDiff);
           }
 
@@ -1586,15 +1643,15 @@ this.dataArray = new Uint8Array(bufferLength);
           }
         }
       }
-      
-      this.wornApps.forEach(app => {
+
+      this.wornApps.forEach((app) => {
         app.dispatchEvent({
-          type: 'wearupdate',
+          type: "wearupdate",
           player: this,
-          app,
-          wear: true
+          app: app,
+          wear: true,
         });
-      })
+      });
     };
 
     this.playerMap.observe(observePlayerFn);
@@ -1606,10 +1663,11 @@ this.dataArray = new Uint8Array(bufferLength);
     this.appManager.loadApps();
     this.appManager.callBackFn = (app, event, flag) => {
       if (event == "wear") {
-        console.log("********* WEAR -- ", app, event, flag)
+        console.log("********* WEAR -- ", app, event, flag);
         if (flag === "remove") {
           this.unwear(app);
-        } if (flag === "add") {
+        }
+        if (flag === "add") {
           this.wear(app);
         }
       }
