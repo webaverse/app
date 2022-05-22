@@ -46,12 +46,37 @@
         0,
         1
       ],
-      "scale": [
-        1,
-        1,
-        1
+      "start_url": "https://webaverse.github.io/parcels/index.js"
+    },
+    {
+      "position": [-9, 0, -1],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
+      "start_url": "https://webaverse.github.io/chest/"
+    },
+    {
+      "position": [-2, 1, -1],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "https://avaer.github.io/poster/.metaversefile"
+    },
+    {
+      "position": [-5, 4, -6],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/silsword/"
+      "start_url": "https://avaer.github.io/physicscube/"
+    },
+    {
+      "position": [-2, 1, 1],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
+      "start_url": "https://webaverse.github.io/sword/"
+    },
+    {
+      "position": [-2, 1, 2],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
+      "start_url": "https://webaverse.github.io/helm/"
     }
   ]
 }
