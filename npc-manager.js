@@ -29,10 +29,14 @@ class NpcManager extends EventTarget {
     scale,
     detached,
   }) {
+    console.log('createNpcAsync');
     const npcPlayer = new LocalPlayer({
       npc: true,
     });
     npcPlayer.name = name;
+
+    if (!window.npcPlayers) window.npcPlayers = []
+    window.npcPlayers.push(npcPlayer);
 
     let matrixNeedsUpdate = false;
     if (position) {

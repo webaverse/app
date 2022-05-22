@@ -163,6 +163,7 @@ class ZTargeting extends THREE.Object3D {
     targetReticleMesh.setReticles(reticles);
   }
   update(timestamp) {
+    // console.log('update z-targeting');
     this.setQueryResult(timestamp);
   }
   handleDown(object = camera) {
