@@ -129,8 +129,8 @@ class ZTargeting extends THREE.Object3D {
 
     this.reticles = [];
     this.focusTargetReticle = null;
-    this.focusTargetReticleObject = null;
-    this.focusTargetReticleObjectBias = new THREE.Vector3();
+    this.focusTargetObject = null;
+    this.focusTargetObjectBias = new THREE.Vector3();
     this.queryResults = new QueryResults();
   }
   setQueryResult(timestamp) {
@@ -170,8 +170,8 @@ class ZTargeting extends THREE.Object3D {
     this.setQueryResult(timestamp);
     if (this.focusTargetReticle) {
       this.focusTargetReticle.position
-        .copy(this.focusTargetReticleObject.position)
-        .add(this.focusTargetReticleObjectBias);
+        .copy(this.focusTargetObject.position)
+        .add(this.focusTargetObjectBias);
     }
   }
   handleDown(object = camera) {
@@ -180,10 +180,10 @@ class ZTargeting extends THREE.Object3D {
 
       if (this.queryResults.results.length > 0) {
         this.focusTargetReticle = this.queryResults.results[0];
-        this.focusTargetReticleObject = metaversefileApi.getPhysicsObjectByPhysicsId(this.focusTargetReticle.physicsId);
-        this.focusTargetReticleObjectBias
+        this.focusTargetObject = metaversefileApi.getPhysicsObjectByPhysicsId(this.focusTargetReticle.physicsId);
+        this.focusTargetObjectBias
           .copy(this.focusTargetReticle.position)
-          .sub(this.focusTargetReticleObject.position);
+          .sub(this.focusTargetObject.position);
         sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
       
         const naviSoundNames = [
