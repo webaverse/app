@@ -1897,10 +1897,10 @@ class Avatar {
     
 
     _updateHmdPosition();
-    if (window.isApplyAnimation) {
-      window.isApplyAnimation = false;
+    // if (window.isApplyAnimation) {
+      // window.isApplyAnimation = false;
       _applyAnimation(this, now, moveFactors);
-    }
+    // }
 
     // if (this.poseAnimation) {
     //   _overwritePose(this.poseAnimation);
