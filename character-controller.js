@@ -727,6 +727,7 @@ class StatePlayer extends PlayerBase {
     return this.getActionsState();
   }
   getActionsState() {
+    if (!this.playerMap) return []
     let actionsArray = this.playerMap.has(avatarMapName)
       ? this.playerMap.get(actionsMapName, Z.Array)
       : null;
