@@ -244,9 +244,6 @@ class CharacterSfx {
           if(timeSeconds - this.narutoRunTrailSoundStartTime>soundFiles.sonicBoom[2].duration-0.2 || this.narutoRunTrailSoundStartTime==0){
             
             const localSound = sounds.playSound(soundFiles.sonicBoom[2], {voicer: this.player});
-            localSound.matrixWorldNeedsUpdate = true;
-            localSound.parent.matrixWorldNeedsUpdate = true;
-            //console.log(localSound)
             this.oldNarutoRunSound = localSound;
             localSound.addEventListener('ended', () => {
               if (this.oldNarutoRunSound === localSound) {
