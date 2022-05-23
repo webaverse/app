@@ -492,73 +492,75 @@ class CameraManager extends EventTarget {
     const localPlayer = getLocalPlayer();
 
     if (this.target) {
-      const _setLerpDelta = (position, quaternion) => {
-        const lerpTime = 2000;
-        const lastTimeFactor = Math.min(Math.max(cubicBezier((this.lastTimestamp - this.lerpStartTime) / lerpTime), 0), 1);
-        const currentTimeFactor = Math.min(Math.max(cubicBezier((timestamp - this.lerpStartTime) / lerpTime), 0), 1);
-        if (lastTimeFactor !== currentTimeFactor) {
-          {
-            const lastLerp = localVector.copy(this.sourcePosition).lerp(this.targetPosition, lastTimeFactor);
-            const currentLerp = localVector2.copy(this.sourcePosition).lerp(this.targetPosition, currentTimeFactor);
-            position.add(currentLerp).sub(lastLerp);
-          }
-          {
-            const lastLerp = localQuaternion.copy(this.sourceQuaternion).slerp(this.targetQuaternion, lastTimeFactor);
-            const currentLerp = localQuaternion2.copy(this.sourceQuaternion).slerp(this.targetQuaternion, currentTimeFactor);
-            quaternion.premultiply(lastLerp.invert()).premultiply(currentLerp);
-          }
-        }
-
-        this.lastTimestamp = timestamp;
-      };
-      _setLerpDelta(camera.position, camera.quaternion);
-
-      const _setZLock = () => {
-        const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
-
-        this.targetQuaternion.setFromUnitVectors(
-          localVector3.set(0, 0, -1),
-          localVector.copy(zTargeting.focusTargetReticle.position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
-        )
-
-        this.targetPosition.copy(localPlayer.position)
-        .sub(
-          localVector2.copy(avatarCameraOffset)
-            .applyQuaternion(this.targetQuaternion)
-        );
-
-        // look at npcPlayer's side
-        localVector.copy(localPlayer.position).sub(zTargeting.focusTargetReticle.position).setY(0)
-          .applyAxisAngle(localVector2.set(0, 1, 0), - Math.PI / 2)
-          .normalize().multiplyScalar(3)
-          .add(zTargeting.focusTargetReticle.position)
-        // console.log(window.logVector3(localVector));
-
-        if (zTargeting.focusTargetReticle) {
-          localMatrix.lookAt(this.targetPosition, localVector, localVector2.set(0, 1, 0));
-          // localMatrix.lookAt(this.targetPosition, zTargeting.focusTargetReticle.position, localVector2.set(0, 1, 0));
-        } else {
-          localMatrix.lookAt(this.targetPosition, this.target.position, localVector2.set(0, 1, 0));
-        }
-        this.targetQuaternion.setFromRotationMatrix(localMatrix);
-          
-        // // free camera.rotation.x
-        // localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
-        // localEuler.x = camera.rotation.x;
-        // // this.targetQuaternion.multiply(combatLockBiasQuaternion);
-        // this.targetQuaternion.setFromEuler(localEuler);
-
-        // move up/left whole viewport (move down/right camera)
-        this.targetPosition.add(
-          localVector2.set(0.5, -2, 0).applyQuaternion(this.targetQuaternion)
-        );
-
-        camera.position.copy(this.targetPosition);
-        camera.quaternion.copy(this.targetQuaternion);
-      }
       if (this.targetType === 'static' && zTargeting.focusTargetReticle) {
-        // console.log('_setZLock()');
+        const _setZLock = () => {
+          const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
+
+          this.targetQuaternion.setFromUnitVectors(
+            localVector3.set(0, 0, -1),
+            localVector.copy(zTargeting.focusTargetReticle.position).setY(0).sub(localVector2.copy(localPlayer.position).setY(0)).normalize(),
+          )
+
+          this.targetPosition.copy(localPlayer.position)
+          .sub(
+            localVector2.copy(avatarCameraOffset)
+              .applyQuaternion(this.targetQuaternion)
+          );
+
+          // look at npcPlayer's side
+          localVector.copy(localPlayer.position).sub(zTargeting.focusTargetReticle.position).setY(0)
+            .applyAxisAngle(localVector2.set(0, 1, 0), - Math.PI / 2)
+            .normalize().multiplyScalar(3)
+            .add(zTargeting.focusTargetReticle.position)
+          // console.log(window.logVector3(localVector));
+
+          if (zTargeting.focusTargetReticle) {
+            localMatrix.lookAt(this.targetPosition, localVector, localVector2.set(0, 1, 0));
+            // localMatrix.lookAt(this.targetPosition, zTargeting.focusTargetReticle.position, localVector2.set(0, 1, 0));
+          } else {
+            localMatrix.lookAt(this.targetPosition, this.target.position, localVector2.set(0, 1, 0));
+          }
+          this.targetQuaternion.setFromRotationMatrix(localMatrix);
+            
+          // // free camera.rotation.x
+          // localEuler.setFromQuaternion(this.targetQuaternion, camera.rotation.order);
+          // localEuler.x = camera.rotation.x;
+          // // this.targetQuaternion.multiply(combatLockBiasQuaternion);
+          // this.targetQuaternion.setFromEuler(localEuler);
+
+          // move up/left whole viewport (move down/right camera)
+          this.targetPosition.add(
+            localVector2.set(0.5, -2, 0).applyQuaternion(this.targetQuaternion)
+          );
+
+          // camera.position.copy(this.targetPosition);
+          // camera.quaternion.copy(this.targetQuaternion);
+        }
         _setZLock();
+
+        camera.position.lerp(this.targetPosition, 0.01);
+        camera.quaternion.slerp(this.targetQuaternion, 0.01);
+      } else {
+        const _setLerpDelta = (position, quaternion) => {
+          const lerpTime = 2000;
+          const lastTimeFactor = Math.min(Math.max(cubicBezier((this.lastTimestamp - this.lerpStartTime) / lerpTime), 0), 1);
+          const currentTimeFactor = Math.min(Math.max(cubicBezier((timestamp - this.lerpStartTime) / lerpTime), 0), 1);
+          if (lastTimeFactor !== currentTimeFactor) {
+            {
+              const lastLerp = localVector.copy(this.sourcePosition).lerp(this.targetPosition, lastTimeFactor);
+              const currentLerp = localVector2.copy(this.sourcePosition).lerp(this.targetPosition, currentTimeFactor);
+              position.add(currentLerp).sub(lastLerp);
+            }
+            {
+              const lastLerp = localQuaternion.copy(this.sourceQuaternion).slerp(this.targetQuaternion, lastTimeFactor);
+              const currentLerp = localQuaternion2.copy(this.sourceQuaternion).slerp(this.targetQuaternion, currentTimeFactor);
+              quaternion.premultiply(lastLerp.invert()).premultiply(currentLerp);
+            }
+          }
+
+          this.lastTimestamp = timestamp;
+        };
+        _setLerpDelta(camera.position, camera.quaternion);
       }
 
       camera.updateMatrixWorld();

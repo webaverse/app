@@ -91,7 +91,7 @@ class CharacterPhysics {
       //   const target2Position = cameraManager.target2.npcPlayer ? cameraManager.target2.npcPlayer.position : cameraManager.target2.position;
       const zTargeting = metaversefileApi.useZTargeting();
       const localPlayer = getLocalPlayer();
-      if (this.player === localPlayer && zTargeting?.focusTargetReticle) {
+      if (false && this.player === localPlayer && zTargeting?.focusTargetReticle) {
         const moveDistance = localVector.copy(this.velocity).setY(0).length() * timeDiffS;
         if (moveDistance !== 0) {
           const playerPosition = localVector.copy(this.player.position).setY(0);
