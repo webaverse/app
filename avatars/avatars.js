@@ -780,6 +780,7 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
+    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -1896,32 +1897,35 @@ class Avatar {
     
 
     _updateHmdPosition();
-    _applyAnimation(this, now, moveFactors);
-
-    if (this.poseAnimation) {
-      _overwritePose(this.poseAnimation);
+    if (window.isApplyAnimation) {
+      window.isApplyAnimation = false;
+      _applyAnimation(this, now, moveFactors);
     }
 
-    // if (!this.getBottomEnabled()) {
-    localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.z = 0;
-    localEuler.y += Math.PI;
-    this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
+    // if (this.poseAnimation) {
+    //   _overwritePose(this.poseAnimation);
+    // }
 
-    this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
-      .sub(localVector.set(0, this.height, 0));
+    // // if (!this.getBottomEnabled()) {
+    // localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+    // localEuler.x = 0;
+    // localEuler.z = 0;
+    // localEuler.y += Math.PI;
+    // this.modelBoneOutputs.Root.quaternion.setFromEuler(localEuler);
+
+    // this.modelBoneOutputs.Root.position.copy(this.inputs.hmd.position)
+    //   .sub(localVector.set(0, this.height, 0));
     // }
     /* if (!this.getTopEnabled() && this.debugMeshes) {
       this.modelBoneOutputs.Hips.updateMatrixWorld();
     } */
 
 
-    this.lerpShoulderTransforms();
-    this.legsManager.Update();
+    // this.lerpShoulderTransforms();
+    // this.legsManager.Update();
 
-    _updateEyeTarget();
-    _updateEyeballTarget();
+    // _updateEyeTarget();
+    // _updateEyeballTarget();
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
     Avatar.applyModelBoneOutputs(
@@ -1934,16 +1938,16 @@ class Avatar {
     // this.modelBones.Root.updateMatrixWorld();
 
 
-    // this.springBoneTimeStep.update(timeDiff);
-    this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
+    // // this.springBoneTimeStep.update(timeDiff);
+    // this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
 
-    // XXX hook these up
-    this.nodder.update(now);
-    this.emoter.update(now);
+    // // XXX hook these up
+    // this.nodder.update(now);
+    // this.emoter.update(now);
     
-    this.options.visemes && _updateVisemes();
-    _updateSubAvatars();
-
+    // this.options.visemes && _updateVisemes();
+    // _updateSubAvatars();
+ 
     const debug = metaversefile.useDebug();
     if (debug.enabled && !this.debugMesh) {
       this.debugMesh = _makeDebugMesh();
