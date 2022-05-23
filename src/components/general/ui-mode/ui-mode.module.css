@@ -1,0 +1,20 @@
+
+.uiBlock {
+    transition: transform 300ms cubic-bezier( 0, 1, 0, 1 );
+}
+
+.uiBlock.hide.leftHideDirection {
+    transform: translateX( -150% );
+}
+
+.uiBlock.hide.rightHideDirection {
+    transform: translateX( 150% );
+}
+
+.uiBlock.hide.topHideDirection {
+    transform: translateY( -150% );
+}
+
+.uiBlock.hide.bottomHideDirection {
+    transform: translateY( 150% );
+}

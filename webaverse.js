@@ -17,6 +17,7 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
+import particleSystemManager from './particle-system.js';
 import loadoutManager from './loadout-manager.js';
 import questManager from './quest-manager.js';
 import mobManager from './mob-manager.js';
@@ -41,8 +42,6 @@ import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 import musicManager from './music-manager.js';
-import * as story from './story.js';
-// import {OffscreenEngine} from './offscreen-engine.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -73,14 +72,13 @@ export default class Webaverse extends EventTarget {
   constructor() {
     super();
 
-    story.listenHack();
-
     this.loadPromise = (async () => {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
         audioManager.waitForLoad(),
         sounds.waitForLoad(),
+        particleSystemManager.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
@@ -319,6 +317,7 @@ export default class Webaverse extends EventTarget {
           mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
           questManager.update(timestamp, timeDiffCapped);
+          particleSystemManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();

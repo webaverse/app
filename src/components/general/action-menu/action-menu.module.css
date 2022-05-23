@@ -5,10 +5,14 @@
     right: 0px;
 }
 
-.btn {
+.btnWrapper {
     position: relative;
     margin-top: 10px;
     height: 41px;
+}
+
+.btn {
+    position: relative;
     opacity: 1;
     cursor: pointer;
     transition: opacity 200ms ease;
@@ -63,6 +67,26 @@
 .btn:not(.disabled):hover .text, .btn:not(.disabled):hover .key, .btn.wpOpened .text, .btn.wpOpened .key {
     color: #000;
     border-color: #000;
+}
+
+.tooltip {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    transform: translateX( -110% );
+    color: #fff;
+    background-color: #000;
+    font-size: 12px;
+    padding: 0px 3px;
+    border-radius: 4px;
+    line-height: 21px;
+    margin-top: 10px;
+    opacity: 0;
+    transition: opacity 300ms ease;
+}
+
+.btnWrapper:hover .tooltip {
+    opacity: 1;
 }
 
 .key {

@@ -873,12 +873,11 @@ const physxWorker = (() => {
     numNormals,
     uvs,
     numUvs,
-    faces,
+    faces, // Set to falsy to indicate that this is an non-indexed geometry
     numFaces,
 
-    position,
-    quaternion,
-    scale
+    planeNormal, // normalized vector3 array
+    planeDistance, // number
   ) => {
     const allocator = new Allocator()
 
@@ -891,17 +890,14 @@ const physxWorker = (() => {
     const uvsTypedArray = allocator.alloc(Float32Array, numUvs)
     uvsTypedArray.set(uvs)
 
-    const facesTypedArray = allocator.alloc(Uint32Array, numFaces)
-    facesTypedArray.set(faces)
+    let facesTypedArray;
+    if (faces) {
+      facesTypedArray = allocator.alloc(Uint32Array, numFaces)
+      facesTypedArray.set(faces)
+    }
 
-    const positionTypedArray = allocator.alloc(Float32Array, 3)
-    positionTypedArray.set(position)
-
-    const quaternionTypedArray = allocator.alloc(Float32Array, 4)
-    quaternionTypedArray.set(quaternion)
-
-    const scaleTypedArray = allocator.alloc(Float32Array, 3)
-    scaleTypedArray.set(scale)
+    const planeNormalTypedArray = allocator.alloc(Float32Array, 3)
+    planeNormalTypedArray.set(planeNormal)
 
     const outputBufferOffset = moduleInstance._doCut(
       positionsTypedArray.byteOffset,
@@ -910,12 +906,11 @@ const physxWorker = (() => {
       numNormals,
       uvsTypedArray.byteOffset,
       numUvs,
-      facesTypedArray.byteOffset,
-      numFaces,
+      faces ? facesTypedArray.byteOffset : null,
+      faces ? numFaces : null,
 
-      positionTypedArray.byteOffset,
-      quaternionTypedArray.byteOffset,
-      scaleTypedArray.byteOffset
+      planeNormalTypedArray.byteOffset,
+      planeDistance,
     )
     allocator.freeAll()
 
@@ -938,7 +933,7 @@ const physxWorker = (() => {
     tail = head + (numOutUvsTypedArray[0] + numOutUvsTypedArray[1])
     const outUvs = moduleInstance.HEAPF32.slice(head, tail)
 
-    Module._free(outputBufferOffset)
+    moduleInstance._doFree(outputBufferOffset)
 
     const output = {
       numOutPositions: numOutPositionsTypedArray,
@@ -1745,6 +1740,21 @@ const physxWorker = (() => {
     )
     allocator.freeAll()
   }
+  w.setGeometryScale = (
+    physics,
+    id,
+    scale,
+  ) => {
+    const allocator = new Allocator()
+    const s = allocator.alloc(Float32Array, 3)
+    scale.toArray(s)
+    moduleInstance._setGeometryScalePhysics(
+        physics,
+        id,
+        s.byteOffset
+    )
+    allocator.freeAll()
+  }
   w.setTransformPhysics = (
     physics,
     id,
@@ -2033,13 +2043,14 @@ const physxWorker = (() => {
     }
   }
 
-  w.createChunkWithDualContouring = (x, y, z) => {
+  w.createChunkWithDualContouring = (x, y, z, lod) => {
     const bufferManager = new BufferManager()
 
     const outputBufferOffset = moduleInstance._createChunkWithDualContouring(
       x,
       y,
-      z
+      z,
+      lod
     )
 
     // reading the data with the same order as C++
