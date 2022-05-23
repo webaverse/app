@@ -455,12 +455,14 @@ class PlayerBase extends THREE.Object3D {
           player: this,
           wear: false,
           loadoutIndex,
+          app:app
         });
         app.dispatchEvent({
           type: "wearupdate",
           player: this,
           wear: false,
-          loadoutIndex,
+          loadoutndex,
+          app:app
         });
       };
       _emitEvents();
@@ -471,11 +473,13 @@ class PlayerBase extends THREE.Object3D {
         type: "wearupdate",
         player: this,
         wear: false,
+        app:app
       });
       app.dispatchEvent({
         type: "wearupdate",
         player: this,
         wear: false,
+        app:app
       });
     };
     _emitEvents();
