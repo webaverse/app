@@ -1,23 +1,24 @@
-import React, {useState, useEffect, useContext, useRef} from 'react';
+
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import classnames from 'classnames';
 
-import {world} from '../../../../world';
-import universe from '../../../../universe';
+import { world } from '../../../../world'
+import universe from '../../../../universe'
 import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
 
-import {AppContext} from '../../app';
+import { AppContext } from '../../app';
 
 import styles from './scene-menu.module.css';
 
 //
-const _makeName = (N = 8) =>
-  (Math.random().toString(36) + '00000000000000000').slice(2, N + 2);
 
 const origSceneList = [];
 
-sceneNames.forEach(name => {
-  origSceneList.push(`./scenes/${name} `);
+sceneNames.forEach( ( name ) => {
+
+    origSceneList.push( `./scenes/${ name } `);
+
 });
 
 //
@@ -136,88 +137,97 @@ export const SceneMenu = ({ className, multiplayerConnected, selectedScene, setS
               setRoomName(room.name);
               setMultiplayerOpen(false);
             } */
-    }
-  };
 
-  const handleDeleteRoomBtnClick = async (room, event) => {
-    event.stopPropagation();
+        }
 
-    const res = await fetch(universe.getWorldsHost() + room.name, {
-      method: 'DELETE',
-    });
+    };
 
-    if (res.ok) {
-      refreshRooms();
-    } else {
-      const text = await res.text();
-      console.warn('failed to fetch', res.status, text);
-    }
-  };
+    const handleDeleteRoomBtnClick = async ( room, event ) => {
 
-  const handleSceneInputKeyDown = event => {
-    const newList = (event.target.value ? origSceneList.filter(sceneName => (sceneName.indexOf(event.target.value) !== -1)) : origSceneList);
-    setScenesList(newList);
-    setSceneInputName(event.target.value);
-  };
-
-  const handleSceneMenuKeyUp = event => {
-    switch (event.which) {
-      case 27: { // escape
-        event.preventDefault();
         event.stopPropagation();
-        setState({openedPanel: null});
-        sceneNameInputRef.current.blur();
-        break;
-      }
 
-      case 13: { // enter
-        event.preventDefault();
-        event.stopPropagation();
-        universe.pushUrl(`/?src=${encodeURIComponent(sceneInputName)}`);
-        setState({openedPanel: null});
-        sceneNameInputRef.current.blur();
-        break;
-      }
-    }
-  };
+        const res = await fetch( universe.getWorldsHost() + room.name, { method: 'DELETE' } );
 
-  const handleMicBtnClick = async () => {
-    setState({openedPanel: null});
+        if ( res.ok ) {
 
-    if (!voiceInput.micEnabled()) {
-      await voiceInput.enableMic();
-    } else {
-      voiceInput.disableMic();
-    }
-  };
+            refreshRooms();
 
-  const handleSpeakBtnClick = async () => {
-    setState({openedPanel: null});
+        } else {
 
-    if (!voiceInput.speechEnabled()) {
-      await voiceInput.enableSpeech();
-    } else {
-      voiceInput.disableSpeech();
-    }
-  };
+            const text = await res.text();
+            console.warn( 'failed to fetch', res.status, text );
 
-  useEffect(() => {
-    refreshRooms();
+        }
 
-    function michange(event) {
-      setMicEnabled(event.data.enabled);
-    }
+    };
 
-    function speechchange(event) {
-      setSpeechEnabled(event.data.enabled);
-    }
+    const handleSceneInputKeyDown = ( event ) => {
 
-    voiceInput.addEventListener('micchange', michange);
-    voiceInput.addEventListener('speechchange', speechchange);
+        const newList = ( event.target.value ? origSceneList.filter( ( sceneName ) => ( sceneName.indexOf( event.target.value ) !== -1 ) ) : origSceneList );
+        setScenesList( newList );
+        setSceneInputName( event.target.value );
 
-    return () => {
-      voiceInput.removeEventListener('micchange', michange);
-      voiceInput.removeEventListener('speechchange', speechchange);
+    };
+
+    const handleSceneMenuKeyUp = ( event ) => {
+
+        switch ( event.which ) {
+
+            case 27: { // escape
+
+                event.preventDefault();
+                event.stopPropagation();
+                setState({ openedPanel: null });
+                sceneNameInputRef.current.blur();
+                break;
+
+            }
+
+            case 13: { // enter
+
+                event.preventDefault();
+                event.stopPropagation();
+                universe.pushUrl( `/?src=${ encodeURIComponent( sceneInputName ) }` );
+                setState({ openedPanel: null });
+                sceneNameInputRef.current.blur();
+                break;
+
+            }
+
+        }
+
+    };
+
+    const handleMicBtnClick = async () => {
+
+        setState({ openedPanel: null });
+
+        if ( ! voiceInput.micEnabled() ) {
+
+            await voiceInput.enableMic();
+
+        } else {
+
+            voiceInput.disableMic();
+
+        }
+
+    };
+
+    const handleSpeakBtnClick = async () => {
+
+        setState({ openedPanel: null });
+
+        if ( ! voiceInput.speechEnabled() ) {
+
+            await voiceInput.enableSpeech();
+
+        } else {
+
+            voiceInput.disableSpeech();
+
+        }
+
     };
 
     useEffect( () => {
@@ -279,42 +289,44 @@ export const SceneMenu = ({ className, multiplayerConnected, selectedScene, setS
                     </div>
                 </div>
             </div>
-          ))}
-        </div>
-      ) : null}
 
-      {state.openedPanel === 'RoomMenuPanel' ? (
-        <div className={styles.rooms}>
-          <div className={styles.create}>
-            <button
-              className={styles.button}
-              onClick={handleRoomCreateBtnClick}
-            >
-              Create Room
-            </button>
-          </div>
-          {rooms.map((room, i) => (
-            <div
-              className={styles.room}
-              onClick={e => {
-                handleRoomSelect(room);
-              }}
-              key={i}
-            >
-              <img className={styles.image} src='images/world.jpg' />
-              <div className={styles.name}>{room.name}</div>
-              <div className={styles.delete}>
-                <button
-                  className={classnames(styles.button, styles.warning)}
-                  onClick={handleDeleteRoomBtnClick.bind(this, room)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+            {
+                state.openedPanel === 'SceneMenuPanel' ? (
+                    <div className={ styles.rooms }>
+                    {
+                        scenesList.map( ( sceneName, i ) => (
+                            <div className={ styles.room } onMouseDown={ ( e ) => { handleSceneSelect( e, sceneName ) } } key={ i } >
+                                <img className={ styles.image } src="images/world.jpg" />
+                                <div className={ styles.name } >{ sceneName }</div>
+                            </div>
+                        ))
+                    }
+                    </div>
+                ) : null
+            }
+
+            {
+                state.openedPanel === 'RoomMenuPanel' ? (
+                    <div className={ styles.rooms } >
+                        <div className={ styles.create } >
+                            <button className={ styles.button } onClick={ handleRoomCreateBtnClick }>Create room</button>
+                        </div>
+                        {
+                            rooms.map( ( room, i ) => (
+                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( e, room ) } } key={ i } >
+                                    <img className={ styles.image } src="images/world.jpg" />
+                                    <div className={ styles.name } >{ room.name }</div>
+                                    <div className={ styles.delete } >
+                                        <button className={ classnames( styles.button, styles.warning ) } onClick={ handleDeleteRoomBtnClick.bind( this, room ) } >Delete</button>
+                                    </div>
+                                </div>
+                            ))
+                        }
+                    </div>
+                ) : null
+            }
+
         </div>
-      ) : null}
-    </div>
-  );
+    );
+
 };
