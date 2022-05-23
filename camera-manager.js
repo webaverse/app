@@ -533,13 +533,13 @@ class CameraManager extends EventTarget {
             localVector2.set(0.5, -2, 0).applyQuaternion(this.targetQuaternion)
           );
 
-          // camera.position.copy(this.targetPosition);
-          // camera.quaternion.copy(this.targetQuaternion);
+          camera.position.copy(this.targetPosition);
+          camera.quaternion.copy(this.targetQuaternion);
         }
         _setZLock();
 
-        camera.position.lerp(this.targetPosition, 0.01);
-        camera.quaternion.slerp(this.targetQuaternion, 0.01);
+        // camera.position.lerp(this.targetPosition, 0.01);
+        // camera.quaternion.slerp(this.targetQuaternion, 0.01);
       } else {
         const _setLerpDelta = (position, quaternion) => {
           const lerpTime = 2000;
