@@ -1105,6 +1105,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
       this.characterBehavior.update(timestamp, timeDiffS);
+      sounds.update();
 
       this.updateInterpolation(timeDiff);
 

@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+import {camera} from './renderer.js';
 import Avatar from './avatars/avatars.js';
 import {loadAudioBuffer} from './util.js';
 import soundFileSpecs from './public/sounds/sound-files.json';
@@ -40,6 +42,8 @@ const soundFiles = {
   limitBreak: _getSoundFiles(/ff7_limit_break/),
   limitBreakReady: _getSoundFiles(/ff8_limit_ready/),
 };
+const listener = new THREE.AudioListener();
+camera.add( listener );
 
 let soundFileAudioBuffer;
 const loadPromise = (async () => {
@@ -53,20 +57,57 @@ const waitForLoad = () => loadPromise;
 const getSoundFiles = () => soundFiles;
 const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
-const playSound = audioSpec => {
+const sounds = [];
+const playSound = (audioSpec, option) => {
   const {offset, duration} = audioSpec;
-  const audioContext = Avatar.getAudioContext();
-  const audioBufferSourceNode = audioContext.createBufferSource();
-  audioBufferSourceNode.buffer = soundFileAudioBuffer;
-  audioBufferSourceNode.connect(audioContext.gain);
-  audioBufferSourceNode.start(0, offset, duration);
-  return audioBufferSourceNode;
+  
+  if(option === undefined){
+    const audioContext = Avatar.getAudioContext();
+    const audioBufferSourceNode = audioContext.createBufferSource();
+    audioBufferSourceNode.buffer = soundFileAudioBuffer;
+    audioBufferSourceNode.connect(audioContext.gain);
+    audioBufferSourceNode.start(0, offset, duration);
+    return audioBufferSourceNode;
+  }
+  else{
+    const sound = new THREE.PositionalAudio( listener );
+    sound.setBuffer( soundFileAudioBuffer );
+    sound.offset = offset; 
+    sound.duration = duration;
+
+    const refDistance = option.refDistance !== undefined ? option.refDistance : 10;
+    const maxDistance = option.maxDistance !== undefined ? option.maxDistance : 50;
+    const distanceModel = option.distanceModel !== undefined ? option.distanceModel : 'linear';
+
+    sound.setRefDistance(refDistance);
+    sound.setMaxDistance(maxDistance);
+    sound.setDistanceModel(distanceModel);
+
+    option.voicer.add(sound);
+    sound.play();
+    
+    sounds.push(sound);
+    sound.source.addEventListener('ended', () => {
+      const index = sounds.indexOf(sound);
+      if (index > -1) {
+        // clean sounds array
+        sounds.splice(index, 1);
+      }
+    });
+    
+    return sound;
+  }
 };
-const playSoundName = name => {
+const update = () =>{
+  for(const sound of sounds){
+    sound.updateMatrixWorld();
+  }
+}
+const playSoundName = (name, option) => {
   const snds = soundFiles[name];
   if (snds) {
     const sound = snds[Math.floor(Math.random() * snds.length)];
-    playSound(sound);
+    playSound(sound, option);
     return true;
   } else {
     return false;
@@ -78,4 +119,5 @@ export {
   getSoundFileAudioBuffer,
   playSound,
   playSoundName,
+  update,
 };
