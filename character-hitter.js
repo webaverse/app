@@ -36,7 +36,7 @@ export class CharacterHitter {
         );
         collision.objectIds.forEach(objectId => {
           const collisionId = objectId;
-          const result = metaversefileApi.getPairByPhysicsId(collisionId);
+          const result = metaversefile.getPairByPhysicsId(collisionId);
           if (result) {
             const [app, physicsObject] = result;
             if (app.getComponent('vincibility') !== 'invincible') {
