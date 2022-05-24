@@ -17,7 +17,7 @@ export const ComponentEditor = () => {
 
     //
 
-    const initComponentsList = () => {
+    const syncComponentsList = () => {
 
         const newComponents = [];
 
@@ -34,12 +34,6 @@ export const ComponentEditor = () => {
         });
 
         setComponents( newComponents );
-
-    };
-
-    const updateState = () => {
-
-        setComponents( [ ...components ] );
 
     };
 
@@ -108,7 +102,7 @@ export const ComponentEditor = () => {
         selectedApp.components.push({ key: `New item ${selectedApp.components.length}`, value: '', type: 'string' });
         // components.push({ key: 'New item', value: '', type: 'string', error: false });
 
-        initComponentsList();
+        syncComponentsList();
 
     };
 
@@ -124,7 +118,7 @@ export const ComponentEditor = () => {
         }
 
         selectedApp.components = newList;
-        initComponentsList();
+        syncComponentsList();
 
     };
 
@@ -148,7 +142,7 @@ export const ComponentEditor = () => {
         }
 
         validateValues();
-        updateState();
+        syncComponentsList();
 
     };
 
@@ -201,7 +195,7 @@ export const ComponentEditor = () => {
         }
 
         setEditComponentKey( null );
-        updateState();
+        syncComponentsList();
 
     };
 
@@ -209,7 +203,7 @@ export const ComponentEditor = () => {
 
     useEffect( () => {
 
-        initComponentsList();
+        syncComponentsList();
 
     }, [ selectedApp ] );
 
