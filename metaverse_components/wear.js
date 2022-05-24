@@ -26,6 +26,7 @@ export default (app, component) => {
   const wearupdate = e => {
     if (e.wear) {
       wearSpec = app.getComponent('wear');
+      console.log(wearSpec)
       initialScale.copy(app.scale);
       // console.log('activate component', app, wear);
       if (wearSpec) {

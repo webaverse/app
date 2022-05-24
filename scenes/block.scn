@@ -48,6 +48,22 @@
       "physics": true,
       "start_url": "https://webaverse.github.io/block/grid.glb",
       "dynamic": false
+    },
+    {
+      "position": [
+        24,
+        0,
+        30
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "http://127.0.0.1:11976/",
+      "dynamic": true
     }
   ]
 }
