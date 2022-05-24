@@ -1592,6 +1592,15 @@ class GameManager extends EventTarget {
       localPlayer.unwear(app);
     }
   }
+  dropAllApps() {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    const apps = loadoutManager.apps;
+    for (const app in apps) {
+      if (apps[app]) {
+        localPlayer.unwear(apps[app]);
+      }
+    }
+  }
   deleteSelectedApp() {
     if (this.selectedIndex !== -1) {
       const localPlayer = metaversefileApi.useLocalPlayer();
