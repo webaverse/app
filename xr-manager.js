@@ -155,7 +155,7 @@ class XRManager extends EventTarget {
         .decompose(localVector, localQuaternion, localVector2);
     }
 
-    const handOffsetScale = 1; //localPlayer ? localPlayer.avatar.height / 1.5 : 1;
+    const handOffsetScale = localPlayer.avatar ? localPlayer.avatar.height / 1.5 : 1;
     const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
     const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
     if (!leftGamepadPosition) {
