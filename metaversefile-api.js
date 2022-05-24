@@ -11,6 +11,7 @@ import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
 import {getRenderer, scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority, rootScene, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
+
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
@@ -24,6 +25,7 @@ import {getRandomString, memoize} from './util.js';
 import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
 import * as materials from './materials.js';
+
 import * as geometries from './geometries.js';
 import meshLodManager from './mesh-lodder.js';
 import * as avatarCruncher from './avatar-cruncher.js';
@@ -46,6 +48,7 @@ import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
+
 import * as sounds from './sounds.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
