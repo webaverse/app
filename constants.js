@@ -112,7 +112,7 @@ export const defaultMaxId = 8192;
 
 export const defaultMusicVolume = 0.35;
 
-export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
+export const voicePacksUrl = `http://localhost/lib/webaverse_resource/voicepacks/all_packs.json`;
 
 export const voiceEndpoint = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;

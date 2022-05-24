@@ -5,7 +5,7 @@ import {WebaverseShaderMaterial} from './materials.js';
 import loaders from './loaders.js';
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
-const urlPrefix = `https://webaverse.github.io/fx-textures/`;
+const urlPrefix = `http://localhost/lib/webaverse_resource/fx-textures/`;
 const particlesJsonUrl = `${urlPrefix}fx-files.json`;
 
 let particlesJson = null;
