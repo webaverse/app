@@ -762,14 +762,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         // const animation = animations.index['walking.fbx']
         // const animation = animations.index['2hand Idle.fbx'];
         // const animation = animations.index['Two Hand Sword Combo.fbx'];
-        const animation = animations.index['simple_90.fbx']
-        // const animation = animations.index['sword_dash.fbx']
+        // const animation = animations.index['simple_90.fbx']
+        const animation = animations.index['sword_dash.fbx']
         // debugger
         const t2 = timeSeconds / 2;
         // const t2 = timeSeconds;
         const src2 = animation.interpolants[k];
-        // const v2 = src2.evaluate(t2 % animation.duration);
-        const v2 = src2.evaluate(0);
+        const v2 = src2.evaluate(t2 % animation.duration);
+        // const v2 = src2.evaluate(0);
         // const v2 = src2.evaluate(1);
 
         dst.fromArray(v2);
