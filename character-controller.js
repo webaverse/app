@@ -1142,6 +1142,7 @@ class LocalPlayer extends UninterpolatedPlayer {
           .premultiply(localMatrix.makeTranslation(0, relation === 'floor' ? avatarHeight : 0, 0))
           .decompose(dolly.position, dolly.quaternion, dolly.scale);
         dolly.updateMatrixWorld();
+        this.characterPhysics.setPosition(dolly.position);
       } else {
         camera.position.copy(position)
           .sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));

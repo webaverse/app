@@ -42,12 +42,21 @@ import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 import musicManager from './music-manager.js';
+import xrManager from './xr-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localArray = [];
+const localArray2 = [];
+const localArray3 = [];
+const localArray4 = [];
+const localArray5 = [];
 
 const sessionMode = 'immersive-vr';
 const sessionOpts = {
@@ -166,14 +175,14 @@ export default class Webaverse extends EventTarget {
     }
   }
   
-  /* injectRigInput() {
+  /*injectRigInput(frame) {
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
 
     const localPlayer = metaversefileApi.useLocalPlayer();
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
-    if (session) {
+    if (session && localPlayer.avatar) {
       let inputSources = Array.from(session.inputSources);
       inputSources = ['right', 'left']
         .map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
@@ -233,7 +242,9 @@ export default class Webaverse extends EventTarget {
         .decompose(localVector, localQuaternion, localVector2);
     }
 
-    const handOffsetScale = localPlayer ? localPlayer.avatar.height / 1.5 : 1;
+    const handOffsetScale = 1; //localPlayer ? localPlayer.avatar.height / 1.5 : 1;
+    const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
+    const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
     if (!leftGamepadPosition) {
       leftGamepadPosition = localVector2.copy(localVector)
         .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
@@ -253,12 +264,57 @@ export default class Webaverse extends EventTarget {
       rightGamepadEnabled = false;
     }
 
+    if(localPlayer.avatar) {
+
+      localPlayer.avatar.inputs.hmd.position.copy(localVector);
+      localPlayer.avatar.inputs.hmd.quaternion.copy(localQuaternion);
+
+      localPlayer.avatar.inputs.leftGamepad.position.copy(new THREE.Vector3().fromArray(leftGamepadPosition));
+      localPlayer.avatar.inputs.rightGamepad.position.copy(new THREE.Vector3().fromArray(rightGamepadPosition));
+
+      //console.log(leftGamepadPosition, rightGamepadPosition);
+      localPlayer.avatar.inputs.leftGamepad.quaternion.copy(new THREE.Quaternion().fromArray(leftGamepadQuaternion));
+      localPlayer.avatar.inputs.rightGamepad.quaternion.copy(new THREE.Quaternion().fromArray(rightGamepadQuaternion));
+
+      localPlayer.avatar.inputs.leftGamepad.pointer = leftGamepadPointer;
+      localPlayer.avatar.inputs.rightGamepad.pointer = rightGamepadPointer;
+
+      localPlayer.avatar.inputs.leftGamepad.grip = leftGamepadGrip;
+      localPlayer.avatar.inputs.rightGamepad.grip = rightGamepadGrip;
+
+      localPlayer.avatar.inputs.leftGamepad.enabled = leftGamepadEnabled;
+      localPlayer.avatar.inputs.rightGamepad.enabled = rightGamepadEnabled;
+
+      //localPlayer.avatar.decapitate();
+
+      //localPlayer.avatar.setTopEnabled(true);
+      //localPlayer.avatar.setBottomEnabled(true);
+      //localPlayer.avatar.setHandEnabled(0, true);
+      //localPlayer.avatar.setHandEnabled(1, true);
+
+      //localPlayer.leftHand.position.copy(new THREE.Vector3().fromArray(leftGamepadPosition));
+      //localPlayer.leftHand.quaternion.copy(new THREE.Quaternion().fromArray(leftGamepadQuaternion));
+
+      //localPlayer.rightHand.position.copy(new THREE.Vector3().fromArray(rightGamepadPosition));
+      //localPlayer.rightHand.quaternion.copy(new THREE.Quaternion().fromArray(rightGamepadQuaternion));
+
+      //console.log(localPlayer.avatar.inputs);
+
+      //camera.position.copy(localVector);
+      //camera.updateMatrixWorld();
+      //dolly.position.copy(localPlayer.avatar.inputs.hmd.position);
+      //dolly.updateMatrixWorld();
+
+    }
+
+    
+
     rigManager.setLocalAvatarPose([
       [localVector.toArray(), localQuaternion.toArray()],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
-  } */
+  }*/
   
   render(timestamp, timeDiff) {
     // console.log('frame 1');
@@ -298,7 +354,7 @@ export default class Webaverse extends EventTarget {
         performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
           ioManager.update(timeDiffCapped);
-          // this.injectRigInput();
+          xrManager.injectRigInput(frame);
           
           const localPlayer = metaversefileApi.useLocalPlayer();
           if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {

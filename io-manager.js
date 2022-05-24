@@ -24,7 +24,7 @@ import transformControls from './transform-controls.js';
 import metaversefile from 'metaversefile';
 
 const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
@@ -143,29 +143,19 @@ const _updateIo = timeDiff => {
           const dx = axes[0] + axes[2];
           const dy = axes[1] + axes[3];
           if (Math.abs(dx) >= 0.01 || Math.abs(dy) >= 0.01) {
-            localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
-            localEuler.x = 0;
-            localEuler.z = 0;
-            localVector3.set(dx, 0, dy)
-              .applyEuler(localEuler)
-              .multiplyScalar(0.05);
-
-            dolly.matrix
-              // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
-              .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
-              // .premultiply(localMatrix2.copy(localMatrix2).invert())
-              .decompose(dolly.position, dolly.quaternion, dolly.scale);
+            keysDirection.set(dx, 0, dy);
             ioManager.currentWalked = true;
           }
           
           ioManager.currentWeaponGrabs[1] = buttons[1] > 0.5;
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-            dolly.matrix
-              .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
-              .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
-              .premultiply(localMatrix2.copy(localMatrix2).invert())
-              .decompose(dolly.position, dolly.quaternion, dolly.scale);
+             dolly.matrix
+               .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
+               .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
+               .premultiply(localMatrix2.copy(localMatrix2).invert())
+               .decompose(localVector, dolly.quaternion, localVector2);
+            dolly.updateMatrixWorld();
           };
           if (
             (axes[0] < -0.75 && !(ioManager.lastAxes[index][0] < -0.75)) ||
@@ -178,7 +168,7 @@ const _updateIo = timeDiff => {
           ) {
             _applyRotation(-Math.PI * 0.2);
           }
-          ioManager.currentTeleport = (axes[1] < -0.75 || axes[3] < -0.75);
+          //ioManager.currentTeleport = (axes[1] < -0.75 || axes[3] < -0.75);
           ioManager.currentMenuDown = (axes[1] > 0.75 || axes[3] > 0.75);
 
           ioManager.currentWeaponDown = buttonsSrc[0].pressed;
@@ -191,10 +181,22 @@ const _updateIo = timeDiff => {
             !game.isJumping() &&
             !game.isSitting()
           ) {
-            game.jump();
+            game.jump('jump');
+          }
+
+          if (buttons[0] >= 0.5) {
+            game.menuMouseDown();
+          } else {
+            game.menuMouseUp();
+          }
+
+          if (buttons[1] >= 0.5) {
+            game.menuActivateDown();
+          } else {
+            game.menuActivateUp();
           }
         }
-
+  
         ioManager.lastAxes[index][0] = axes[0];
         ioManager.lastAxes[index][1] = axes[1];
         ioManager.lastAxes[index][2] = axes[2];
@@ -206,13 +208,23 @@ const _updateIo = timeDiff => {
         ioManager.lastButtons[index][3] = buttons[3];
         ioManager.lastButtons[index][4] = buttons[4];
       }
+      if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled()) {
+        const localPlayer = metaversefile.useLocalPlayer();
+        keysDirection.applyQuaternion(camera.quaternion);
+        keysDirection.y = 0;
+        localPlayer.characterPhysics.applyWasd(
+          keysDirection.normalize()
+            .multiplyScalar(game.getSpeed() * timeDiff)
+        );
+        keysDirection.set(0, 0, 0);
+      }      
     }
   } else {
     keysDirection.set(0, 0, 0);
     
     const localPlayer = metaversefile.useLocalPlayer();
     
-    _updateHorizontal(keysDirection);
+    
     if (keysDirection.equals(zeroVector)) {
       if (localPlayer.hasAction('narutoRun')) {
         keysDirection.copy(cameraManager.lastNonzeroDirectionVector);

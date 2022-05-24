@@ -5,11 +5,11 @@ import * as THREE from 'three';
 // import cameraManager from './camera-manager.js';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
-// import ioManager from './io-manager.js';
+import ioManager from './io-manager.js';
 import {getVelocityDampingFactor} from './util.js';
 import {groundFriction, flyFriction, airFriction} from './constants.js';
 import {applyVelocity} from './util.js';
-import {getRenderer, camera} from './renderer.js';
+import {getRenderer, camera, dolly} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
 
@@ -252,28 +252,27 @@ class CharacterPhysics {
     }
   }
   applyAvatarPhysics(now, timeDiffS) {
-    // const renderer = getRenderer();
-    // const session = renderer.xr.getSession();
+     const renderer = getRenderer();
+     const session = renderer.xr.getSession();
 
-    /* if (session) {
+     if (session) {
       if (ioManager.currentWalked || this.player.hasAction('jump')) {
-        // const originalPosition = avatarWorldObject.position.clone();
+        const originalPosition = this.player.position.clone();
 
-        this.applyAvatarPhysicsDetail(false, false, now, timeDiffS);
+        this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
 
-        // dolly.position.add(
-          // avatarWorldObject.position.clone().sub(originalPosition)
-        // );
+         dolly.position.copy(this.player.position.clone().sub(localVector.set(0, this.player.avatar.height/2, 0)));
+         dolly.updateMatrixWorld();
       } else {
         // this.velocity.y = 0;
       }
-    } else { */
+    } else { 
       if (this.player.hasAction('firstperson') || (this.player.hasAction('aim') && !this.player.hasAction('narutoRun'))) {
         this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
       } else {
         this.applyAvatarPhysicsDetail(true, true, now, timeDiffS);
       }
-    // }
+     }
   }
   applyAvatarActionKinematics(now, timeDiffS) {
     const renderer = getRenderer();
