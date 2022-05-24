@@ -176,7 +176,7 @@ export const ComponentEditor = () => {
         }
 
         validateValues();
-        updateState();
+        syncComponentsList();
 
     };
 
