@@ -108,9 +108,7 @@ export const ComponentEditor = () => {
         selectedApp.components.push({ key: `New item ${selectedApp.components.length}`, value: '', type: 'string' });
         // components.push({ key: 'New item', value: '', type: 'string', error: false });
 
-        console.log( 'handleAddNewBtnClick', selectedApp.components );
-
-        setComponents(prev => [ ...selectedApp.components ] );
+        initComponentsList();
 
     };
 
