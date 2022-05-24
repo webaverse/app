@@ -1504,7 +1504,6 @@ class RemotePlayer extends InterpolatedPlayer {
         this.audioDecoder = new WsAudioDecoder({
           output: (data) => {
             const buffer = getAudioDataBuffer(data);
-            console.log("Posting message to worklet");
             this.audioWorkletNode.port.postMessage(buffer, [buffer.buffer]);
           },
         });
@@ -1528,12 +1527,10 @@ class RemotePlayer extends InterpolatedPlayer {
   }
 
   processAudioData(data) {
-    console.log("processing audio data");
     this.prepareAudioWorker();
     if (this.audioWorkletNode) {
       this.audioDecoder.decode(data.data);
       this.analyser.getByteTimeDomainData(this.dataArray);
-      console.log("this.analyzer", this.dataArray);
     }
   }
 
