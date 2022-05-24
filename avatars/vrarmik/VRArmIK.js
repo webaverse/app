@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {Helpers} from './Unity.js';
+import * as FIK from './fik.module.js'
 
 const zeroVector = new THREE.Vector3();
 const forwardVector = new THREE.Vector3(0, 0, 1);
