@@ -372,7 +372,6 @@ class PlayerBase extends THREE.Object3D {
         app: app,
         wear: true,
         loadoutIndex,
-        location: "wear1",
       });
     } else {
       this.dispatchEvent({
@@ -380,7 +379,6 @@ class PlayerBase extends THREE.Object3D {
         player: this,
         app: app,
         wear: true,
-        location: "wear2",
       });
     }
   }
@@ -1389,18 +1387,15 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.avatar.update(timestamp, timeDiff, true);
       this.characterHups?.update(timestamp);
     }
-    // this.updateWearables();
+    this.updateWearables();
   }
   updateWearables() {
     this.wornApps.forEach((app) => {
-      const loadoutIndex = 0;
       app.dispatchEvent({
         type: "wearupdate",
-        player: this,
         app: app,
-        wear: true,
-        loadoutIndex,
-        location: "wear2",
+        player: this,
+        wear: true
       });
     });
   }
