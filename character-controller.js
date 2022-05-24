@@ -1389,7 +1389,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.avatar.update(timestamp, timeDiff, true);
       this.characterHups?.update(timestamp);
     }
-    this.updateWearables();
+    // this.updateWearables();
   }
   updateWearables() {
     this.wornApps.forEach((app) => {
@@ -1770,7 +1770,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     return this.avatarApp;
   }
   setAvatarApp(app) {
-    app.toggleneUpdates(true);
+    app.toggleBoneUpdates(true);
     const { skinnedVrm } = app;
     const avatar = new Avatar(skinnedVrm, {
       fingers: true,
