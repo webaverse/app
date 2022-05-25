@@ -1645,6 +1645,7 @@ class GameManager extends EventTarget {
   handleAnimationEnd() {
     _endUse();
 
+    const localPlayer = getLocalPlayer();
     if (localPlayer.needContinueCombo) {
       localPlayer.needContinueCombo = false;
       localPlayer.actionInterpolants.use.reset();
