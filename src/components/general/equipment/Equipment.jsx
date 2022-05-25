@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import styles from './equipment.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
-import { ItemLoader } from '../../../ItemLoader.jsx';
+import { CachedLoader } from '../../../CachedLoader.jsx';
 // import {EquipmentPopover} from '../../play-mode/equipment-popover';
 import { Spritesheet } from '../spritesheet';
 import game from '../../../../game.js';
@@ -208,7 +208,7 @@ export const Equipment = () => {
     // const [ spritesheet, setSpritesheet ] = useState(null);
     const [ faceIndex, setFaceIndex ] = useState(1);
     const [ claims, setClaims ] = useState([]);
-    const [ itemLoader, setItemLoader ] = useState(() => new ItemLoader({
+    const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
             const {start_url} = value;
             const imageBitmap = await _generateObjectUrlCardRemote([
@@ -285,16 +285,16 @@ export const Equipment = () => {
     }, [claims]);
 
     useEffect(() => {
-        if (itemLoader) {
+        if (cachedLoader) {
             const loadingchange = e => {
                 setLoading(e.data.loading);
             };
-            itemLoader.addEventListener('loadingchange', loadingchange);
+            cachedLoader.addEventListener('loadingchange', loadingchange);
             return () => {
-                itemLoader.removeEventListener('loadingchange', loadingchange);
+                cachedLoader.removeEventListener('loadingchange', loadingchange);
             };
         }
-    }, [itemLoader]);
+    }, [cachedLoader]);
 
     useEffect(() => {
         if (open) {
