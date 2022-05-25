@@ -21,7 +21,9 @@ const numCylinders = 3;
 const minRadius = 0.4;
 // const radiusStep = minRadius;
 const maxRadius = minRadius + minRadius * numCylinders;
+const explosionScaleFactor = 10;
 
+const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 
 const makeSeamlessNoiseTexture = () => {
@@ -116,7 +118,40 @@ function createCylindersGeometry(front) {
 
   const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
   return geometry;
-};
+}
+function createExplosionGeometry(front) {
+  const radius = 1;
+  const sphereGeometry = new THREE.SphereGeometry(
+    radius, // radius
+    8, // widthSegments
+    6, // heightSegments
+    0, // phiStart
+    Math.PI * 2, // phiLength
+    0, // thetaStart
+    Math.PI / 2, // thetaLength
+  );
+  const cylinderGeometry = new THREE.CylinderGeometry(
+    1, // radiusTop
+    1, // radiusBottom
+    0.2, // height
+    8, // radialSegments
+    1, // heightSegments
+    true, // openEnded
+  );
+
+  const geometries = [
+    sphereGeometry,
+    cylinderGeometry,
+  ];
+
+  if (!front) {
+    geometries.reverse();
+  }
+  const g = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  const instances = new Float32Array(g.attributes.position.count).fill(-1);
+  g.setAttribute('instance', new THREE.BufferAttribute(instances, 1));
+  return g;
+}
 const vertexShader = `\
 precision highp float;
 precision highp int;
@@ -264,6 +299,8 @@ const _makeCylindersMesh = () => {
     shockwaveGeometry,
     createCylindersGeometry(false),
   ]);
+  const explosionFrontGeometry = createExplosionGeometry(true);
+  const explosionBackGeometry = createExplosionGeometry(false);
   const frontMaterial = new WebaverseShaderMaterial({
     uniforms: {
       uTime: {
@@ -297,32 +334,73 @@ const _makeCylindersMesh = () => {
     side: THREE.FrontSide,
     transparent: true,
   });
+  
   const frontMesh = new THREE.Mesh(frontGeometry, frontMaterial);
   object.add(frontMesh);
-
   const backMesh = new THREE.Mesh(backGeometry, backMaterial);
   object.add(backMesh);
+  const explosionFrontMesh = new THREE.Mesh(explosionFrontGeometry, frontMaterial);
+  object.add(explosionFrontMesh);
+  const explosionBackMesh = new THREE.Mesh(explosionBackGeometry, backMaterial);
+  object.add(explosionBackMesh);
 
+  let explosionStartTime = NaN;
   object.update = (timestamp, timeDiff) => {
-    // frontMesh.visible = false;
-    // backMesh.visible = false;
+    frontMesh.visible = false;
+    backMesh.visible = false;
+    explosionFrontMesh.visible = false;
+    explosionBackMesh.visible = false;
 
-    // if (localPlayer.avatar) {
-      const maxTime = 400;
-      const f = (timestamp / maxTime) % maxTime;
+    const timeSinceLastExplosion = timestamp - explosionStartTime;
 
-      // const Root = localPlayer.avatar.modelBones.Root;
-      // object.position.setFromMatrixPosition(Root.matrixWorld);
-      // object.updateMatrixWorld();
-      
-      // frontMesh.visible = true;
-      // backMesh.visible = true;
+    // animate
+    if (isNaN(explosionStartTime)) {
+      object.position.y -= timeDiff * 0.01;
+    } else {
+      const scaleFactor = Math.min(Math.max(timeSinceLastExplosion / 1000, 0), 1);
+      object.scale.setScalar(scaleFactor * explosionScaleFactor);
+    }
+    object.updateMatrixWorld();
+
+    // check for collision
+    if (isNaN(explosionStartTime)) {
+      const worldPosition = localVector.setFromMatrixPosition(object.matrixWorld);
+      if (worldPosition.y >= 0) {
+        // nothing
+      } else {
+        explosionStartTime = timestamp;
+      }
+    }
+
+    // check for explosion timeout
+    if (timeSinceLastExplosion > 1000) {
+      explosionStartTime = NaN;
+
+      object.position.y += 10;
+      object.scale.setScalar(1);
+      object.updateMatrixWorld();
+    }
+
+    // set visibility
+    if (isNaN(explosionStartTime)) {
+      frontMesh.visible = true;
+      backMesh.visible = true;
+    } else {
+      explosionFrontMesh.visible = true;
+      explosionBackMesh.visible = true;
+    }
+
+    const maxTime = 400;
+    const f = (timestamp / maxTime) % maxTime;
     
-      frontMaterial.uniforms.uTime.value = f;
-      frontMaterial.uniforms.uTime.needsUpdate = true;
-      backMaterial.uniforms.uTime.value = f;
-      backMaterial.uniforms.uTime.needsUpdate = true;
-    // }
+    frontMaterial.uniforms.uTime.value = f;
+    frontMaterial.uniforms.uTime.needsUpdate = true;
+    backMaterial.uniforms.uTime.value = f;
+    backMaterial.uniforms.uTime.needsUpdate = true;
+    /* explosionFrontMesh.uniforms.uTime.value = f;
+    explosionFrontMesh.uniforms.uTime.needsUpdate = true;
+    explosionBackMesh.uniforms.uTime.value = f;
+    explosionBackMesh.uniforms.uTime.needsUpdate = true; */
   };
   return object;
 };
