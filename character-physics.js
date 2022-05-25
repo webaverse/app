@@ -245,6 +245,10 @@ class CharacterPhysics {
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       velocity.multiplyScalar(factor);
+    } else if (this.player.startSwordAttackWhenRunning) {
+      const factor = getVelocityDampingFactor(0.85, timeDiff);
+      velocity.x *= factor;
+      velocity.z *= factor;
     } else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       velocity.x *= factor;
