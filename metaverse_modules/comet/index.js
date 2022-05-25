@@ -3,6 +3,8 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useMaterials, useLocalPlayer} = metaversefile;
 
+const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+
 // const cardWidth = 0.063;
 // const cardHeight = cardWidth / 2.5 * 3.5;
 // const cardHeight = cardWidth;
@@ -20,18 +22,63 @@ const minRadius = 0.4;
 // const radiusStep = minRadius;
 const maxRadius = minRadius + minRadius * numCylinders;
 
+const localVector2D = new THREE.Vector2();
+
+const makeSeamlessNoiseTexture = () => {
+  const img = new Image();
+  const texture = new THREE.Texture(img);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+
+  img.crossOrigin = 'Anonymous';
+  img.onload = () => {
+    // console.log('load image', img);
+    // document.body.appendChild(img);
+    texture.needsUpdate = true;
+  };
+  img.onerror = err => {
+    console.warn(err);
+  };
+  img.src = `${baseUrl}perlin-noise.jpg`;
+
+  return texture;
+};
+const getSeamlessNoiseTexture = (() => {
+  let noiseTexture = null;
+  return () => {
+    if (!noiseTexture) {
+      noiseTexture = makeSeamlessNoiseTexture();
+    }
+    return noiseTexture;
+  };
+})();
+
 function createShockwaveGeometry() {
+  const radius = 1;
   const g = new THREE.SphereGeometry(
-    1, // radius
+    radius, // radius
     8, // widthSegments
     6, // heightSegments
     0, // phiStart
     Math.PI * 2, // phiLength
     0, // thetaStart
     Math.PI / 2, // thetaLength
-  ).rotateX(Math.PI);
+  )
+    .rotateX(Math.PI)
+    .translate(0, radius - radius/2, 0)
+    .scale(1, 2, 1);
+
+  for (let i = 0; i < g.attributes.uv.count; i++) {
+    localVector2D.fromArray(g.attributes.uv.array, i * 2);
+    localVector2D.y = 1 - localVector2D.y;
+    localVector2D.toArray(g.attributes.uv.array, i * 2);
+  }
+
   const instances = new Float32Array(g.attributes.position.count).fill(-1);
   g.setAttribute('instance', new THREE.BufferAttribute(instances, 1));
+  
   return g;
 }
 function createCylindersGeometry(front) {
@@ -76,12 +123,10 @@ precision highp int;
 
 attribute float instance;
 uniform float uTime;
-// uniform vec4 uBoundingBox;
+uniform sampler2D uSeamlessNoiseTexture;
 varying vec2 vUv;
 varying float vInstance;
 varying float vDistance;
-// varying vec3 vNormal;
-// varying float vFactor;
 
 // #define PI 3.1415926535897932384626433832795
 
@@ -90,7 +135,6 @@ void main() {
 
   if (instance >= 0.) {
     float factor = mod(uTime, 1.);
-    // float distance1 = length(p.xz);
     float distance1 = ${minRadius.toFixed(8)} + instance * ${(minRadius).toFixed(8)};;
     float distance2 = distance1 + ${minRadius.toFixed(8)};
     float distance = distance1 * (1.0 - factor) + distance2 * factor - ${(minRadius).toFixed(8)};
@@ -118,22 +162,6 @@ varying float vInstance;
 
 #define nsin(x) (sin(x) * 0.5 + 0.5)
 #define PI 3.1415926535897932384626433832795
-
-float cnoise(vec2 uv) {
-    const vec4 noise = vec4(0.0, 1.2, 0.5, 1.0);
-    const vec4 aurora_color_b = vec4(0.0, 0.4, 0.6, 1.0);
-    
-    float f = 200.0;
-    
-    float t =
-      nsin(-uTime + uv.x * f + vInstance * PI * .2) * 0.075 +
-      nsin(uTime + uv.x * distance(uv.x, 0.5) * f + vInstance * PI * .2) * 0.3 +
-      nsin(uTime + uv.x * distance(uv.x, 0.) * f * 0.25 + 100. + vInstance * PI * .2) * 0.3 +
-      nsin(uTime + uv.x * distance(uv.x, 1.) * f * 0.25 + 200. + vInstance * PI * .2) * 0.3 +
-      nsin(uTime + uv.x * distance(uv.x, 0.5) * f * 2. + 300. + vInstance * PI * .2) * -0.2;
-    return t;
-}
-
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -177,13 +205,14 @@ float pnoise(vec2 co, float freq, int steps, float persistence)
   return value / sum;
 }
 
-void mainImage( out vec4 fragColor, in vec2 uv ) {
-  // vec2 uv = fragCoord.xy / iResolution.xy;
+void mainImage(out vec4 fragColor, in vec2 uv) {
   float gradient = 1.0 - uv.y;
   float gradientStep = 0.2;
   
+  float uvSpeed = vInstance >= 0. ? 0.1 : 1.;
+
   vec2 pos = uv;
-  pos.y -= uTime * 0.1;
+  pos.y -= uTime * uvSpeed;
   
   vec4 brighterColor = vec4(1.0, 0.65, 0.1, 0.25);
   vec4 darkerColor = vec4(1.0, 0.0, 0.15, 0.0625);
@@ -200,7 +229,6 @@ void mainImage( out vec4 fragColor, in vec2 uv ) {
   
   color = mix(color, middleColor, darkerColorStep - middleColorStep);
   color = mix(vec4(0.0), color, firstStep);
-  // color *= cnoise(uv);
   color *= 1.5;
 	fragColor = color;
 
@@ -235,8 +263,11 @@ const _makeCylindersMesh = () => {
   const frontMaterial = new WebaverseShaderMaterial({
     uniforms: {
       uTime: {
-        type: 'f',
         value: 0,
+        needsUpdate: true,
+      },
+      uSeamlessNoiseTexture: {
+        value: getSeamlessNoiseTexture(),
         needsUpdate: true,
       },
     },
@@ -250,6 +281,10 @@ const _makeCylindersMesh = () => {
       uTime: {
         type: 'f',
         value: 0,
+        needsUpdate: true,
+      },
+      uSeamlessNoiseTexture: {
+        value: getSeamlessNoiseTexture(),
         needsUpdate: true,
       },
     },
