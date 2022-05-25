@@ -923,10 +923,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           t2 = Math.min(useTimeS, useAnimation.duration);
           f = useTimeS / useAnimation.duration;
         } else if (avatar.useAnimationCombo.length > 0) {
-          const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-          useAnimation = useAnimations[useAnimationName];
-          useAnimation = animations.index['sword_dash.fbx'];
-          // useAnimation = animations.index['sword_dash_jump.fbx'];
+          // if (isPosition) console.log(walkRunFactor);
+          if (avatar.startSwordAttackWhenRunning) {
+            useAnimation = animations.index['sword_dash.fbx'];
+            // useAnimation = animations.index['sword_dash_jump.fbx'];
+          } else {
+            const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+            useAnimation = useAnimations[useAnimationName];
+          }
           t2 = Math.min(useTimeS, useAnimation.duration);
           f = useTimeS / useAnimation.duration;
         } else if (avatar.useAnimationEnvelope.length > 0) {

@@ -132,6 +132,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
       rig.unuseAnimation = null;
     }
   }
+  rig.startSwordAttackWhenRunning = player.startSwordAttackWhenRunning;
 
   rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
   rig.vowels[1] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[1];

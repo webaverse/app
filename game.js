@@ -451,6 +451,9 @@ const _mousedown = () => {
   if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
     localPlayer.needContinueCombo = true;
   }
+  if (localPlayer.avatar?.moveFactors?.walkRunFactor >= 1) {
+    localPlayer.startSwordAttackWhenRunning = true;
+  }
   _startUse();
 };
 const _mouseup = () => {
@@ -1651,6 +1654,8 @@ class GameManager extends EventTarget {
     } else {
       lastUseIndex = 0;
     }
+
+    localPlayer.startSwordAttackWhenRunning = false;
   }
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
