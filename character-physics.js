@@ -245,7 +245,7 @@ class CharacterPhysics {
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       velocity.multiplyScalar(factor);
-    } else if (this.player.dashAttacking) {
+    } else if (this.player.hasAction('dashAttack')) {
       const factor = getVelocityDampingFactor(dashAttackFriction, timeDiff);
       velocity.x *= factor;
       velocity.z *= factor;

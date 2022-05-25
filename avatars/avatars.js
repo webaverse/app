@@ -947,6 +947,11 @@ class Avatar {
     // this.aimDirection = new THREE.Vector3();
     this.hurtTime = NaN;
     this.hurtAnimation = null;
+    this.moveFactors = {
+      idleWalkFactor: null,
+      walkRunFactor: null,
+      crouchFactor: null,
+    }
 
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -1475,11 +1480,9 @@ class Avatar {
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
-    const moveFactors = {};
-    this.moveFactors = moveFactors;
-    moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
-    moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
-    moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
+    this.moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
+    this.moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    this.moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
     this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
@@ -1897,7 +1900,7 @@ class Avatar {
     
 
     _updateHmdPosition();
-    _applyAnimation(this, now, moveFactors);
+    _applyAnimation(this, now, this.moveFactors);
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);
