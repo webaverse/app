@@ -224,7 +224,7 @@ const _updateIo = timeDiff => {
     
     const localPlayer = metaversefile.useLocalPlayer();
     
-    
+    _updateHorizontal(keysDirection);
     if (keysDirection.equals(zeroVector)) {
       if (localPlayer.hasAction('narutoRun')) {
         keysDirection.copy(cameraManager.lastNonzeroDirectionVector);

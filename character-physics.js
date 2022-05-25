@@ -257,7 +257,7 @@ class CharacterPhysics {
 
      if (session) {
       if (ioManager.currentWalked || this.player.hasAction('jump')) {
-        const originalPosition = this.player.position.clone();
+        //const originalPosition = this.player.position.clone();
 
         this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
 
@@ -304,7 +304,7 @@ class CharacterPhysics {
       const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable)) /* && !isPlayingEnvelopeIkAnimation */;
       for (let i = 0; i < 2; i++) {
         const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : (aimComponent?.ikHand === 'right') ? 0 : null);
-        const enabled = isHandEnabled && isExpectedHandIndex;
+        const enabled = ((isSession && isHandEnabled) || (isHandEnabled && isExpectedHandIndex));
         this.player.hands[i].enabled = enabled;
       }
     };

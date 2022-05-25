@@ -41,12 +41,10 @@ class XRManager extends EventTarget {
     super();
   }
   updatePost(timestamp, timeDiff) {
-    // console.log('camera manager update post');
 
     const localPlayer = metaversefile.useLocalPlayer();
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
-    //const startMode = this.getMode();
   }
   async isXrSupported() {
     if (navigator.xr) {
@@ -179,8 +177,8 @@ class XRManager extends EventTarget {
 
     if(localPlayer.avatar) {
 
-      localPlayer.avatar.inputs.hmd.position.copy(localPlayer.avatarBinding.position);
-      localPlayer.avatar.inputs.hmd.quaternion.copy(localPlayer.avatarBinding.quaternion);
+      localPlayer.avatar.inputs.hmd.position.copy(localPlayer.position);
+      localPlayer.avatar.inputs.hmd.quaternion.copy(localPlayer.quaternion);
 
       localPlayer.avatar.inputs.leftGamepad.position.copy(new THREE.Vector3().fromArray(leftGamepadPosition));
       localPlayer.avatar.inputs.rightGamepad.position.copy(new THREE.Vector3().fromArray(rightGamepadPosition));

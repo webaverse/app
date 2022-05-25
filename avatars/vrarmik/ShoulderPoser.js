@@ -366,10 +366,10 @@ class ShoulderPoser {
 
     const leftBehind = distanceLeftHand.z > 0;
     const rightBehind = distanceRightHand.z > 0;
-    if (leftBehind) {
+    if (!leftBehind) {
       distanceLeftHand.z *= rightBehind ? -2 : -1;
     }
-    if (rightBehind) {
+    if (!rightBehind) {
       distanceRightHand.z *= leftBehind ? -2 : -1;
     }
 

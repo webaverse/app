@@ -34,8 +34,7 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
 } */
 export function applyPlayerModesToAvatar(player, session, rig) {
   for (let i = 0; i < 2; i++) {
-    const enable = !!session ? true : player.hands[i].enabled;
-    rig.setHandEnabled(i, enable); //player.hands[i].enabled
+    rig.setHandEnabled(i, player.hands[i].enabled);
   }
   rig.setTopEnabled(
     (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled)),
