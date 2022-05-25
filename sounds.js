@@ -66,8 +66,10 @@ const convolver = audioContext.createConvolver();
 convolver.buffer = createNoiseBuffer(audioContext, 2);
 convolver.connect(masterOut);
 
+
 const reverbGain = audioContext.createGain();
 reverbGain.connect(convolver);
+
 
 
 const sounds = [];
