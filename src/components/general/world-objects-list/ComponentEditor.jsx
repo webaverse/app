@@ -29,7 +29,7 @@ export const ComponentEditor = () => {
             if ( typeof component.value === 'number' ) type = 'number';
             if ( typeof component.value === 'boolean' ) type = 'bool';
 
-            newComponents.push({ key: component.key, value: ( type === 'json' ? JSON.stringify( component.value ) : component.value ), type: component.type ?? type, error: component.error });
+            newComponents.push({ key: component.key, value: ( type === 'json' ? JSON.stringify( component.value ) : component.value ), type: component.type ?? type, _componentEditorError: component._componentEditorError });
 
         });
 
@@ -37,12 +37,18 @@ export const ComponentEditor = () => {
 
     };
 
+    const cleanUp = () => {
+        selectedApp.components.forEach( ( component ) => {
+            delete component._componentEditorError;
+        });
+    }
+
     const validateValues = () => {
 
         for ( let i = 0; i < selectedApp.components.length; i ++ ) {
 
             const value = components[ i ].value;
-            selectedApp.components[ i ].error = false;
+            selectedApp.components[ i ]._componentEditorError = false;
 
             switch(components[i].type) {
                 case 'number':
@@ -50,7 +56,7 @@ export const ComponentEditor = () => {
                     const parsedValue = parseFloat( components[ i ].value );
 
                     if ( isNaN(parsedValue) )  {
-                        components[ i ].error = true;
+                        components[ i ]._componentEditorError = true;
                         continue;
                     }
                     
@@ -68,7 +74,7 @@ export const ComponentEditor = () => {
                         selectedApp.components[ i ].value = JSON.parse( value );
                     } catch ( err ) {
                         selectedApp.components[ i ].value = value;
-                        selectedApp.components[ i ].error = true;
+                        selectedApp.components[ i ]._componentEditorError = true;
                     }
 
                 break;
@@ -133,8 +139,6 @@ export const ComponentEditor = () => {
     };
 
     const handleCheckboxChange = ( key, value ) => {
-
-        console.log("change checkbox", key, value)
 
         for ( let i = 0; i < selectedApp.components.length; i ++ ) {
 
@@ -208,7 +212,19 @@ export const ComponentEditor = () => {
 
         syncComponentsList();
 
+        return () => {
+            // cleanup the object being edited when the app is switched
+            cleanUp();
+        }
+
     }, [ selectedApp ] );
+
+    useEffect(()=>{
+        return ()=>{
+            // cleanup the object being edited when the editior is closed
+            cleanUp();
+        }
+    },[]);
 
     //
 
@@ -239,10 +255,10 @@ export const ComponentEditor = () => {
                             }
                             {
                                 {
-                                    'number': <input type="number" className={ classNames( styles.itemValue, ( isEditable && component.error ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />,
-                                    'bool': <input type="checkbox" defaultChecked={!!component.value} className={ classNames( styles.itemValue, ( isEditable && component.error ? styles.valueError : null ) ) } disabled={ ! isEditable } onChange={ (e)=>handleCheckboxChange(component.key, e.target.checked ? true : false) } />,
-                                    'string': <input type="text" className={ classNames( styles.itemValue, ( isEditable && component.error ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />,
-                                    'json': <input type="text" className={ classNames( styles.itemValue, ( isEditable && component.error ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />
+                                    'number': <input type="number" className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />,
+                                    'bool': <input type="checkbox" defaultChecked={!!component.value} className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable } onChange={ (e)=>handleCheckboxChange(component.key, e.target.checked ? true : false) } />,
+                                    'string': <input type="text" className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />,
+                                    'json': <input type="text" className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />
                                 }[component.type]
                             }       
                             {
