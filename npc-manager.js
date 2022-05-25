@@ -52,7 +52,10 @@ class NpcManager extends EventTarget {
       npcPlayer.updateMatrixWorld();
     }
 
-    npcPlayer.npcApp = npcApp;
+    npcPlayer.npcApp = npcApp; // for lore AI
+    if (npcApp) {
+      npcApp.npcPlayer = npcPlayer; // for character select
+    }
 
     await npcPlayer.setAvatarUrl(avatarUrl);
 
