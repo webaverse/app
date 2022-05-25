@@ -402,7 +402,7 @@ const _getNextUseIndex = animationCombo => {
 }
 const _startUse = () => {
   const wearApp = loadoutManager.getSelectedApp();
-  if (wearApp &&  !localPlayer.getAction('jump') && !localPlayer.getAction('fly')) { // will add jump/fly specific useAnimations afterwards.
+  if (wearApp &&  !localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('narutoRun')) { // will add jump/fly/narutoRun specific useAnimations afterwards.
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
       const localPlayer = getLocalPlayer();
@@ -434,7 +434,6 @@ const _startUse = () => {
           animationCombo?.length > 0 &&
           localPlayer.avatar?.moveFactors?.walkRunFactor >= 1
         ) {
-          localPlayer.removeAction('narutoRun'); // todo: maybe add a narutoRun specific sword dash attack.
           localPlayer.startSwordAttackWhenRunning = true; // todo: rename to isSwordDashAttack?
           localVector.copy(cameraManager.lastNonzeroDirectionVectorRotated).setY(0)
             .normalize()
