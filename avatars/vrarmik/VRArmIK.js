@@ -49,6 +49,14 @@ const FINGER_SPECS = [
   [24, 'littleFinger3'],
 ];
 
+function getDiffQuaternion(target, quaternionA, quaternionB) {
+  // Purpose: Get a diffQuaternion which can rotate quaternionA to quaternionB.
+  // i.e. quaternionA * diffQuaternion = quaternionB .
+  // https://forum.unity.com/threads/subtracting-quaternions.317649/
+  // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/functions/index.htm
+  target.copy(quaternionB).invert().multiply(quaternionA).invert();
+}
+
 	class VRArmIK
 	{
 		constructor(arm, shoulder, shoulderPoser, shoulderAnchor, target, left) { // left right reversed.
@@ -80,8 +88,8 @@ const FINGER_SPECS = [
         window.base = base;
         this.chain.addBone(base);
         // this.chain.setHingeBaseboneConstraint('global', new FIK.V3(0, 0, 1), 0, 0, new FIK.V3(0, 1, 0));
-        this.chain.setRotorBaseboneConstraint('global', FIK.X_NEG, 45);
-        // this.chain.setRotorBaseboneConstraint('global', FIK.X_NEG, 0);
+        // this.chain.setRotorBaseboneConstraint('global', FIK.X_NEG, 45);
+        this.chain.setRotorBaseboneConstraint('global', FIK.Z_AXE, 90);
         // this.chain.addConsecutiveHingedBone(new FIK.V3(0, 0, -1), this.lowerArmLength, 'local', FIK.Y_AXE, 150, 0, FIK.Z_AXE);
         this.chain.addConsecutiveBone(new FIK.V3(0, 0, -1), this.lowerArmLength);
 
@@ -93,28 +101,6 @@ const FINGER_SPECS = [
 
 		Update()
 		{
-      if (!this.left) {
-        // window.modelBoneOutputs.Left_wrist.getWorldPosition(localVector);
-        // localVector.sub(window.modelBoneOutputs.Left_arm.getWorldPosition(localVector2));
-        localVector.setFromMatrixPosition(window.modelBoneOutputs.Left_wrist.matrixWorld);
-        localVector2.setFromMatrixPosition(window.modelBoneOutputs.Left_arm.matrixWorld);
-        localVector.sub(localVector2);
-        // localVector.applyQuaternion(localQuaternion.copy(window.localPlayer.quaternion).invert());
-        localEuler.setFromQuaternion(window.localPlayer.quaternion, 'YXZ');
-        localEuler.y *= -1;
-        localEuler.x = 0;
-        localEuler.z = 0;
-        localVector.applyEuler(localEuler);
-        // console.log(localVector.y);
-        localVector.y += 1;
-        window.fikTarget.x = localVector.x;
-        window.fikTarget.y = localVector.y;
-        window.fikTarget.z = localVector.z;
-        this.solver.update();
-        // this.solver.meshChains[0][0].updateMatrixWorld();
-        // this.solver.meshChains[0][1].updateMatrixWorld();
-        rootScene.updateMatrixWorld();
-      }
 
       this.shoulderAnchor.quaternion.identity();
       
@@ -204,6 +190,37 @@ const FINGER_SPECS = [
         const [index, key] = fingerSpec;
         this.arm[key].quaternion.copy(this.target.fingers[index].quaternion);
         Helpers.updateMatrixMatrixWorld(this.arm[key]);
+      }
+      
+      if (!this.left) {
+        // window.modelBoneOutputs.Left_wrist.getWorldPosition(localVector);
+        // localVector.sub(window.modelBoneOutputs.Left_arm.getWorldPosition(localVector2));
+        localVector.setFromMatrixPosition(window.modelBoneOutputs.Left_wrist.matrixWorld);
+        localVector2.setFromMatrixPosition(window.modelBoneOutputs.Left_arm.matrixWorld);
+        localVector.sub(localVector2);
+        // localVector.applyQuaternion(localQuaternion.copy(window.localPlayer.quaternion).invert());
+        localEuler.setFromQuaternion(window.localPlayer.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localEuler.y *= -1;
+        localEuler.y += Math.PI / 4;
+        localVector.applyEuler(localEuler);
+        // console.log(localVector.y);
+        localVector.y += 1;
+        window.fikTarget.x = localVector.x;
+        window.fikTarget.y = localVector.y;
+        window.fikTarget.z = localVector.z;
+        this.solver.update();
+        // this.solver.meshChains[0][0].updateMatrixWorld();
+        // this.solver.meshChains[0][1].updateMatrixWorld();
+        rootScene.updateMatrixWorld();
+
+        localEuler.set(0, Math.PI / 4, 0);
+        // this.arm.upperArm.quaternion.copy(this.solver.meshChains[0][0].quaternion).premultiply(localQuaternion.setFromEuler(localEuler));
+        // this.arm.lowerArm.quaternion.copy(this.solver.meshChains[0][1].quaternion).premultiply(localQuaternion.setFromEuler(localEuler));
+        this.arm.upperArm.quaternion.copy(this.solver.meshChains[0][0].quaternion);
+        getDiffQuaternion(localQuaternion, this.solver.meshChains[0][0].quaternion, this.solver.meshChains[0][1].quaternion);
+        this.arm.lowerArm.quaternion.copy(localQuaternion);
       }
 		}
 	}
