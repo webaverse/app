@@ -302,7 +302,7 @@ export const Equipment = () => {
             if (start_url) {
                 const abortController = new AbortController();
                 (async () => {
-                    const imageBitmap = await itemLoader.loadItem(start_url, selectObject, {
+                    const imageBitmap = await cachedLoader.loadItem(start_url, selectObject, {
                         signal: abortController.signal,
                     });
                     if (imageBitmap !== null) {
