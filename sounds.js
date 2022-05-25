@@ -44,8 +44,8 @@ const soundFiles = {
 
   audioSource: _getSoundFiles(/^audioSource\//),
 };
-const listener = new THREE.AudioListener();
-camera.add( listener );
+// const listener = new THREE.AudioListener();
+// camera.add( listener );
 
 let soundFileAudioBuffer;
 const loadPromise = (async () => {
@@ -59,52 +59,93 @@ const waitForLoad = () => loadPromise;
 const getSoundFiles = () => soundFiles;
 const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
+
 const sounds = [];
 const playSound = (audioSpec, option) => {
   const {offset, duration} = audioSpec;
-  
+  const audioContext = Avatar.getAudioContext();
+  const audioBufferSourceNode = audioContext.createBufferSource();
+  audioBufferSourceNode.buffer = soundFileAudioBuffer;
   if(option === undefined){
-    const audioContext = Avatar.getAudioContext();
-    const audioBufferSourceNode = audioContext.createBufferSource();
-    audioBufferSourceNode.buffer = soundFileAudioBuffer;
     audioBufferSourceNode.connect(audioContext.gain);
-    audioBufferSourceNode.start(0, offset, duration);
-    return audioBufferSourceNode;
   }
   else{
-    const sound = new THREE.PositionalAudio( listener );
-    sound.setBuffer( soundFileAudioBuffer );
-    sound.offset = offset; 
-    sound.duration = duration;
+    const pannerNode = audioContext.createPanner();
+    pannerNode.panningModel = "HRTF";
+    const gainNode = audioContext.createGain();
+
+    audioBufferSourceNode.connect(pannerNode);
+    pannerNode.connect(gainNode);
+    gainNode.connect(audioContext.destination);
 
     const refDistance = option.refDistance !== undefined ? option.refDistance : 10;
     const maxDistance = option.maxDistance !== undefined ? option.maxDistance : 50;
     const distanceModel = option.distanceModel !== undefined ? option.distanceModel : 'inverse';
     const volume = option.volume !== undefined ? option.volume : 1;
 
-    sound.setRefDistance(refDistance);
-    sound.setMaxDistance(maxDistance);
-    sound.setDistanceModel(distanceModel);
-    sound.setVolume( volume );
+    pannerNode.refDistance = refDistance;
+    pannerNode.maxDistance = maxDistance;
+    pannerNode.distanceModel = distanceModel;
+    gainNode.gain.value = volume;
 
-    option.voicer.add(sound);
-    sound.play();
-    
-    sounds.push(sound);
-    sound.source.addEventListener('ended', () => {
-      const index = sounds.indexOf(sound);
+    playReverb(audioBufferSourceNode, pannerNode);
+
+    // handel sounds array
+    audioBufferSourceNode.info = {voicer: option.voicer, context: audioContext, panner: pannerNode};
+    sounds.push(audioBufferSourceNode.info);
+    audioBufferSourceNode.addEventListener('ended', () => {
+      const index = sounds.indexOf(audioBufferSourceNode.info);
       if (index > -1) {
         // clean sounds array
         sounds.splice(index, 1);
       }
     });
-    
-    return sound;
   }
+  audioBufferSourceNode.start(0, offset, duration);
+  return audioBufferSourceNode;
 };
+
+const audioLength = 2;
+
+const easeOfNoise = (x, powNum) => {
+  return Math.pow(x, powNum);
+}
+
+let lBuffer = new Float32Array(audioLength * Avatar.getAudioContext().sampleRate);
+let rBuffer = new Float32Array(audioLength * Avatar.getAudioContext().sampleRate);
+const bufferSize = audioLength * Avatar.getAudioContext().sampleRate;
+
+for(let i = 0; i < bufferSize; i++) {
+  const ratio = (bufferSize - i) / bufferSize; // will be 1 at the start of the loop and 0 at the end
+  const fadeAmount = easeOfNoise(ratio, 2);
+  lBuffer[i] = (1 - (2 * Math.random())) * fadeAmount;
+  rBuffer[i] = (1 - (2 * Math.random())) * fadeAmount;
+}
+
+let buffer = Avatar.getAudioContext().createBuffer(2, audioLength * Avatar.getAudioContext().sampleRate, Avatar.getAudioContext().sampleRate);
+buffer.copyToChannel(lBuffer,0);
+buffer.copyToChannel(rBuffer,1);
+
+const playReverb = (sound, panner) =>{
+  let convolver = sound.context.createConvolver();
+  convolver.buffer = buffer;
+
+  panner.connect(convolver);
+  convolver.connect(sound.context.destination);
+
+}
+
+const upVectore = new THREE.Vector3(0, 1, 0);
+let cameraDirection = new THREE.Vector3();
+let localVector = new THREE.Vector3();
 const update = () =>{
+  localVector.set(0, 0, -1);
+  cameraDirection = localVector.applyQuaternion( camera.quaternion );
+  cameraDirection.normalize();
   for(const sound of sounds){
-    sound.updateMatrixWorld();
+    sound.context.listener.setOrientation(cameraDirection.x, cameraDirection.y, cameraDirection.z, upVectore.x, upVectore.y, upVectore.z);
+    sound.context.listener.setPosition(camera.position.x, camera.position.y, camera.position.z);
+    sound.panner.setPosition(sound.voicer.position.x, sound.voicer.position.y, sound.voicer.position.z);
   }
 }
 const playSoundName = (name, option) => {

@@ -23,6 +23,22 @@
         "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }
     },
+    {
+      "type": "application/audioSource",
+      "content": {
+        "sound": "background",
+        "index": 0,
+        "volume": 0
+      }
+    },
+    {
+      "type": "application/audioSource",
+      "content": {
+        "sound": "ocean",
+        "index": 0,
+        "volume": 0
+      }
+    },
   
 {
        "position": [
@@ -77,27 +93,6 @@
     },
     {
       "position": [
-        -38,
-        0.9,
-        188
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "scale": [
-        0.31,
-        0.31,
-        0.31
-      ],
-      "physics": false,
-      "start_url": "https://webaverse.github.io/motor-boat/",
-      "dynamic": true
-    },
-    {
-      "position": [
         0,
         1,
         0
@@ -105,44 +100,6 @@
       "physics": true,
       "start_url": "https://webaverse.github.io/dynamic-water/",
       "dynamic": false
-    },
-    {
-      "position": [
-        23,
-        2,
-        55
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/pistol/"
-    },
-    {
-      "position": [
-        26,
-        2,
-        55
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/silsword/"
     },
     {
       "position": [
@@ -163,6 +120,42 @@
       ],
       "physics": false,
       "start_url": "https://webaverse.github.io/jatayu-birdsculpture/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        -5.26,2,50.23
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://tcm390.github.io/heli/",
+      "dynamic": true
+    },
+     {
+      "position": [
+        20.26,2,50.23
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://tcm390.github.io/heli/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        10.26,2,50.23
+      ],
+      "physics": false,
+      "start_url": "http://127.0.0.1:12003/",
       "dynamic": true
     }
 
