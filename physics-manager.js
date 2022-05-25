@@ -355,6 +355,9 @@ physicsManager.setTransform = (physicsObject, autoWake) => {
     autoWake
   )
 }
+physicsManager.setGeometryScale = (physicsId, newScale) => {
+  physx.physxWorker.setGeometryScale(physx.physics, physicsId, newScale);
+}
 physicsManager.getPath = (
   start,
   dest,
@@ -583,7 +586,7 @@ physicsManager.simulatePhysics = (timeDiff) => {
 physicsManager.marchingCubes = (dims, potential, shift, scale) =>
   physx.physxWorker.marchingCubes(dims, potential, shift, scale)
 
-physicsManager.createChunkWithDualContouring = (x, y, z) => physx.physxWorker.createChunkWithDualContouring(x, y, z)
+physicsManager.createChunkWithDualContouring = (x, y, z, lod) => physx.physxWorker.createChunkWithDualContouring(x, y, z, lod)
 
 physicsManager.createSeamsWithDualContouring = (x, y, z) => physx.physxWorker.createSeamsWithDualContouring(x, y, z)
 

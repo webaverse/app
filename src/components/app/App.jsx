@@ -146,7 +146,12 @@ export const App = () => {
 
         const handleStoryKeyUp = ( event ) => {
 
-            if ( game.inputFocused() ) return;
+            if ( game.inputFocused() ) {
+
+                return;
+
+            }
+
             handleStoryKeyControls( event );
 
         };
