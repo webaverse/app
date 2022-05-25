@@ -282,34 +282,63 @@ class PlayerBase extends THREE.Object3D {
     factor *= 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
     return factor; */
   }
+
+  handleWearUpdate(app, wear, loadoutIndex = -1, isAppUpdate = false, isPlayerUpdate = true) {
+    const param = {
+      type: "wearupdate",
+      app,
+      player: this,
+      wear
+    }
+
+    if (loadoutIndex != -1) {
+      param.loadoutIndex = loadoutIndex
+    }
+
+    console.error(param)
+    debugger
+    if (isPlayerUpdate) {
+      this.dispatchEvent(param);
+    }
+    if (isAppUpdate) {
+      app.dispatchEvent(param);
+    }
+  }
+
   wear(app, { loadoutIndex = -1 } = {}) {
     console.log(
       "Wearx called in PlayerBase of Character Controller",
       app,
       loadoutIndex
     );
-    const _getNextLoadoutIndex = () => {
-      let loadoutIndex = -1;
-      const usedIndexes = Array(8).fill(false);
-      for (const action of this.getActionsState()) {
-        if (action.type === "wear") {
-          usedIndexes[action.loadoutIndex] = true;
-        }
-      }
-      for (let i = 0; i < usedIndexes.length; i++) {
-        if (!usedIndexes[i]) {
-          loadoutIndex = i;
-          break;
-        }
-      }
-      return loadoutIndex;
-    };
-    if (loadoutIndex === -1) {
-      loadoutIndex = _getNextLoadoutIndex();
-    }
+
+    
     this.wornApps.push(app);
 
-    if (loadoutIndex >= 0 && loadoutIndex < numLoadoutSlots) {
+    if (this.isLocalPlayer) {
+      const _getNextLoadoutIndex = () => {
+        let loadoutIndex = -1;
+        const usedIndexes = Array(8).fill(false);
+        for (const action of this.getActionsState()) {
+          if (action.type === "wear") {
+            usedIndexes[action.loadoutIndex] = true;
+          }
+        }
+        for (let i = 0; i < usedIndexes.length; i++) {
+          if (!usedIndexes[i]) {
+            loadoutIndex = i;
+            break;
+          }
+        }
+        return loadoutIndex;
+      };
+      if (loadoutIndex === -1) {
+        loadoutIndex = _getNextLoadoutIndex();
+      }
+    }
+    
+
+    if (this.isLocalPlayer && loadoutIndex >= 0 && loadoutIndex < numLoadoutSlots) {
       const _removeOldApp = () => {
         const actions = this.getActionsState();
         let oldLoadoutAction = null;
@@ -365,21 +394,9 @@ class PlayerBase extends THREE.Object3D {
         instanceId: app.instanceId,
         loadoutIndex,
       });
-
-      this.dispatchEvent({
-        type: "wearupdate",
-        player: this,
-        app: app,
-        wear: true,
-        loadoutIndex,
-      });
+      this.handleWearUpdate(app, true, loadoutIndex)
     } else {
-      this.dispatchEvent({
-        type: "wearupdate",
-        player: this,
-        app: app,
-        wear: true,
-      });
+      this.handleWearUpdate(app, true)
     }
   }
   unwear(app, { destroy = false } = {}) {
@@ -447,38 +464,10 @@ class PlayerBase extends THREE.Object3D {
         }
       };
       _removeApp();
-      const _emitEvents = () => {
-        this.dispatchEvent({
-          type: "wearupdate",
-          player: this,
-          wear: false,
-          loadoutIndex,
-          app:app
-        });
-        app.dispatchEvent({
-          type: "wearupdate",
-          player: this,
-          wear: false,
-          loadoutIndex,
-          app:app
-        });
-      };
-      _emitEvents();
+      this.handleWearUpdate(app, false, loadoutIndex, true)
+    } else {
+      this.handleWearUpdate(app, false, -1, true)
     }
-
-    const _emitEvents = () => {
-      this.dispatchEvent({
-        type: "wearupdate",
-        player: this,
-        wear: false,
-      });
-      app.dispatchEvent({
-        type: "wearupdate",
-        player: this,
-        wear: false,
-      });
-    };
-    _emitEvents();
     this.wornApps.splice(this.wornApps.indexOf(app));
   }
 }
@@ -1391,12 +1380,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   updateWearables() {
     this.wornApps.forEach((app) => {
-      app.dispatchEvent({
-        type: "wearupdate",
-        app: app,
-        player: this,
-        wear: true
-      });
+      this.handleWearUpdate(app, true, -1, true, false)
     });
   }
   resetPhysics() {
@@ -1640,12 +1624,7 @@ class RemotePlayer extends InterpolatedPlayer {
       }
 
       this.wornApps.forEach((app) => {
-        app.dispatchEvent({
-          type: "wearupdate",
-          player: this,
-          app: app,
-          wear: true,
-        });
+        this.handleWearUpdate(app, true, -1, true, false)
       });
     };
 
