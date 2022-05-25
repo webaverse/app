@@ -25,6 +25,7 @@ import transformControls from './transform-controls.js';
 import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
+import zTargeting from './z-targeting.js';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -67,6 +68,7 @@ ioManager.keys = {
   doubleTap: false,
   space: false,
   ctrl: false,
+  
 };
 const lastKeysDownTime = {
   keyW: 0,
@@ -306,8 +308,15 @@ ioManager.keydown = e => {
     case 9: { // tab
       break;
     }
-    case 49: // 1
-    case 50: // 2
+    case 49: { // 1 -> temporarilly going to be used to switch to new target/ issue #3066
+      game.menuMiddleToggle();
+      game.menuMiddleToggle();
+      break;
+    }
+    case 50: { // 2 -> temporarilly going to be used to detatch from target/ issue #3066
+      game.menuMiddleToggle();
+      break;
+    }
     case 51: // 3
     case 52: // 4
     case 53: // 5
@@ -697,6 +706,13 @@ ioManager.keyup = e => {
       game.menuUnDoubleTap();
       break;
     }
+
+
+
+
+
+
+
     case 46: { // delete
       const object = game.getMouseSelectedObject();
       if (object) {
