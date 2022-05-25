@@ -60,9 +60,11 @@ export class LodChunk extends THREE.Vector3 {
 export class LodChunkTracker {
   constructor(generator, {
     chunkWorldSize = 10,
+    numLods = 1,
   } = {}) {
     this.generator = generator;
     this.chunkWorldSize = chunkWorldSize;
+    this.numLods = numLods;
 
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector2(NaN, NaN);
@@ -76,8 +78,7 @@ export class LodChunkTracker {
     const currentCoord = this.#getCurrentCoord(position, localVector2D);
 
     if (!currentCoord.equals(this.lastUpdateCoord)) {
-      // console.log('got current coord', [currentCoord.x, currentCoord.y]);
-      const lod = 0;
+      const lod = 0; // XXX support multiple lods
       const neededChunks = [];
       for (let dcx = -1; dcx <= 1; dcx++) {
         for (let dcz = -1; dcz <= 1; dcz++) {
