@@ -91,7 +91,7 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         // this.chain.setRotorBaseboneConstraint('global', FIK.X_NEG, 45);
         // this.chain.setRotorBaseboneConstraint('global', FIK.Z_AXE, 0);
         // this.chain.addConsecutiveHingedBone(new FIK.V3(0, 0, -1), this.lowerArmLength, 'local', FIK.Y_AXE, 150, 0, FIK.Z_AXE);
-        // this.chain.addConsecutiveBone(new FIK.V3(0, 0, -1), this.lowerArmLength);
+        this.chain.addConsecutiveBone(new FIK.V3(0, 0, -1), this.lowerArmLength);
 
         // this.solver.add(this.chain, target.position, true);
         // window.fikTarget = new FIK.V3(-this.upperArmLength, 1, -this.lowerArmLength);
@@ -232,6 +232,11 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         this.arm.upperArm.rotation.x = this.solver.meshChains[0][0].rotation.z;
         this.arm.upperArm.rotation.y = this.solver.meshChains[0][0].rotation.y;
         this.arm.upperArm.rotation.z = -this.solver.meshChains[0][0].rotation.x;
+        this.solver.meshChains[0][1].rotation.order = 'ZYX';
+        this.arm.lowerArm.rotation.x = this.solver.meshChains[0][1].rotation.z;
+        this.arm.lowerArm.rotation.y = this.solver.meshChains[0][1].rotation.y;
+        this.arm.lowerArm.rotation.z = -this.solver.meshChains[0][1].rotation.x;
+        this.arm.lowerArm.quaternion.multiply(localQuaternion.copy(this.arm.upperArm.quaternion).invert());
       }
 		}
 	}
