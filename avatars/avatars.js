@@ -1965,7 +1965,12 @@ class Avatar {
         <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
       `
     }
-    _applyAnimation(this, now, moveFactors);
+    // _applyAnimation(this, now, moveFactors);
+    // window.modelBoneOutputs.Hips.rotation.y=Math.PI/4
+    // window.modelBoneOutputs.Hips.rotation.z=Math.PI/4
+    window.modelBoneOutputs.Hips.quaternion.copy(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 4, 0)));
+    window.modelBoneOutputs.Hips.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 4, 0, 0)));
+    window.modelBoneOutputs.Hips.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI / 4)));
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);

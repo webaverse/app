@@ -102,7 +102,7 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
 
 		Update()
 		{
-      // this.target.position.set(0, 1, 0);
+      this.target.position.set(0, 1, 0);
 
       this.shoulderAnchor.quaternion.identity();
       
@@ -214,6 +214,7 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         window.fikTarget.x = localVector.x;
         window.fikTarget.y = localVector.y;
         window.fikTarget.z = localVector.z;
+        // console.log(window.logVector3(window.fikTarget));
 
         localEuler.y += Math.PI / 2;
         const localPlayerQuaternionNeg = localQuaternion3.setFromEuler(localEuler);
@@ -249,8 +250,8 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         // // this.arm.upperArm.quaternion.premultiply(this.shoulderAnchor.quaternion);
         // // this.arm.lowerArm.quaternion.premultiply(this.shoulderAnchor.quaternion);
 
-        // this.shoulderAnchor.getWorldQuaternion(localQuaternion);
-        // localQuaternion.multiply(localPlayerQuaternionNeg);
+        this.shoulderAnchor.getWorldQuaternion(localQuaternion);
+        localQuaternion.multiply(localPlayerQuaternionNeg);
         // // console.log(localQuaternion);
         // // localVector.set(-1, 0, 0).applyQuaternion(localQuaternion);
         // // localQuaternion.setFromUnitVectors(
@@ -259,7 +260,11 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         // // );
         // this.arm.upperArm.quaternion.premultiply(localQuaternion.invert());
 
-        window.modelBoneOutputs.Left_arm.quaternion.premultiply(window.modelBoneOutputs.Left_shoulder.getWorldQuaternion(new THREE.Quaternion()).invert());
+        // window.modelBoneOutputs.Left_arm.quaternion.premultiply(window.modelBoneOutputs.Left_shoulder.getWorldQuaternion(new THREE.Quaternion()).invert());
+        // window.modelBoneOutputs.Left_arm.quaternion.premultiply(localQuaternion.invert());
+        window.modelBoneOutputs.Hips.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI / 4)));
+        window.modelBoneOutputs.Hips.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 4, 0, 0)));
+        window.modelBoneOutputs.Left_arm.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.PI / 4, 0)));
       }
 		}
 	}
