@@ -35,7 +35,6 @@ import {getLocalPlayer, setLocalPlayer} from './players.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
-window.zTargeting = zTargeting;
 
 // const {contractNames} = metaversefileConstants;
 
@@ -434,7 +433,7 @@ const _startUse = () => {
           animationCombo?.length > 0 &&
           localPlayer.avatar?.moveFactors?.walkRunFactor >= 1
         ) {
-          localPlayer.dashAttacking = true; // todo: rename to isSwordDashAttack?
+          localPlayer.dashAttacking = true;
           localVector.copy(cameraManager.lastNonzeroDirectionVectorRotated).setY(0)
             .normalize()
             .multiplyScalar(10);
