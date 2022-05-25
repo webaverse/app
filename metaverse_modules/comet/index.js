@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useMaterials, useLocalPlayer} = metaversefile;
+const {useApp, useFrame, useMaterials, useSound, useLocalPlayer} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -255,11 +255,15 @@ const _makeCylindersMesh = () => {
 
   const object = new THREE.Object3D();
 
+  const shockwaveGeometry = createShockwaveGeometry();
   const frontGeometry = BufferGeometryUtils.mergeBufferGeometries([
-    createShockwaveGeometry(),
+    shockwaveGeometry,
     createCylindersGeometry(true),
   ]);
-  const backGeometry = createCylindersGeometry(false);
+  const backGeometry = BufferGeometryUtils.mergeBufferGeometries([
+    shockwaveGeometry,
+    createCylindersGeometry(false),
+  ]);
   const frontMaterial = new WebaverseShaderMaterial({
     uniforms: {
       uTime: {
@@ -324,6 +328,10 @@ const _makeCylindersMesh = () => {
 };
 export default () => {
   const app = useApp();
+  const sounds = useSound();
+
+  app.name = 'comet';
+
   app.setComponent('renderPriority', 'lower');
 
   const mesh = _makeCylindersMesh();
