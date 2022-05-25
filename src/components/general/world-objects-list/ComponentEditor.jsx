@@ -156,7 +156,7 @@ export const ComponentEditor = () => {
         for ( let i = 0; i < selectedApp.components.length; i ++ ) {
 
             if ( key !== selectedApp.components[ i ].key ) continue;
-            components[ i ].type = event.target.value;
+            selectedApp.components[ i ].type = event.target.value;
             break;
 
         }
