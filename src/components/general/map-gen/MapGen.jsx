@@ -203,6 +203,7 @@ export const MapGen = () => {
     const [firedropMeshApp, setFiredropMeshApp] = useState(null);
     const [haloMeshApp, setHaloMeshApp] = useState(null);
     const [silksMeshApp, setSilksMeshApp] = useState(null);
+    const [cometMeshApp, setCometMeshApp] = useState(null);
     const [flareMeshApp, setFlareMeshApp] = useState(null);
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
@@ -400,6 +401,33 @@ export const MapGen = () => {
 
                 }
 
+                case 80: { // P
+                
+                  if (!cometMeshApp) {
+                    const cometMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['comet'];
+                      await cometMeshApp.addModule(m);
+                    })();
+                    scene.add(cometMeshApp);
+                    const localPlayer = useLocalPlayer();
+                    cometMeshApp.position.copy(localPlayer.position);
+                    cometMeshApp.quaternion.copy(localPlayer.quaternion);
+                    cometMeshApp.updateMatrixWorld();
+
+                    setCometMeshApp(cometMeshApp);
+                  } else {
+                    cometMeshApp.parent.remove(cometMeshApp);
+                    cometMeshApp.destroy();
+
+                    setCometMeshApp(null);
+                  }
+      
+                  return false;
+
+              }
+
                 case 186: { // ;
 
                   if (!flareMeshApp) {
@@ -539,7 +567,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel, firedropMeshApp, haloMeshApp, silksMeshApp, flareMeshApp, magicMeshApp, limitMeshApp ]);
+    }, [ state.openedPanel, firedropMeshApp, haloMeshApp, silksMeshApp, cometMeshApp, flareMeshApp, magicMeshApp, limitMeshApp ]);
 
     // resize
     useEffect(() => {
