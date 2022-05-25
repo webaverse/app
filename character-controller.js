@@ -311,30 +311,11 @@ class PlayerBase extends THREE.Object3D {
       app,
       loadoutIndex
     );
-    const _getNextLoadoutIndex = () => {
-      let nextLoadoutIndex = -1;
-      const usedIndexes = Array(8).fill(false);
-      for (const action of this.getActionsState()) {
-        if (action.type === "wear") {
-          usedIndexes[action.loadoutIndex] = true;
-        }
-      }
-      for (let i = 0; i < usedIndexes.length; i++) {
-        if (!usedIndexes[i]) {
-          nextLoadoutIndex = i;
-          break;
-        }
-      }
-      return nextLoadoutIndex;
-    };
-    if (loadoutIndex === -1) {
-      loadoutIndex = _getNextLoadoutIndex();
-    }
     this.wornApps.push(app);
 
     if (this.isLocalPlayer) {
       const _getNextLoadoutIndex = () => {
-        let loadoutIndex = -1;
+        let nextLoadoutIndex = -1;
         const usedIndexes = Array(8).fill(false);
         for (const action of this.getActionsState()) {
           if (action.type === "wear") {
@@ -343,17 +324,16 @@ class PlayerBase extends THREE.Object3D {
         }
         for (let i = 0; i < usedIndexes.length; i++) {
           if (!usedIndexes[i]) {
-            loadoutIndex = i;
+            nextLoadoutIndex = i;
             break;
           }
         }
-        return loadoutIndex;
+        return nextLoadoutIndex;
       };
       if (loadoutIndex === -1) {
         loadoutIndex = _getNextLoadoutIndex();
       }
     }
-    
 
     if (this.isLocalPlayer && loadoutIndex >= 0 && loadoutIndex < numLoadoutSlots) {
       const _removeOldApp = () => {
