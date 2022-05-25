@@ -434,7 +434,7 @@ const _startUse = () => {
           animationCombo?.length > 0 &&
           localPlayer.avatar?.moveFactors?.walkRunFactor >= 1
         ) {
-          localPlayer.startSwordAttackWhenRunning = true; // todo: rename to isSwordDashAttack?
+          localPlayer.dashAttacking = true; // todo: rename to isSwordDashAttack?
           localVector.copy(cameraManager.lastNonzeroDirectionVectorRotated).setY(0)
             .normalize()
             .multiplyScalar(10);
@@ -1663,7 +1663,7 @@ class GameManager extends EventTarget {
       lastUseIndex = 0;
     }
 
-    localPlayer.startSwordAttackWhenRunning = false;
+    localPlayer.dashAttacking = false;
   }
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
