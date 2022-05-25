@@ -215,7 +215,7 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         // this.solver.meshChains[0][1].updateMatrixWorld();
         rootScene.updateMatrixWorld();
 
-        localEuler.set(0, Math.PI / 4, 0);
+        localEuler.set(0, Math.PI / 2, 0);
         // this.arm.upperArm.quaternion.copy(this.solver.meshChains[0][0].quaternion).premultiply(localQuaternion.setFromEuler(localEuler));
         // this.arm.lowerArm.quaternion.copy(this.solver.meshChains[0][1].quaternion).premultiply(localQuaternion.setFromEuler(localEuler));
         this.arm.upperArm.quaternion.copy(this.solver.meshChains[0][0].quaternion);

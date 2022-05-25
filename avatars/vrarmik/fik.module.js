@@ -1,8 +1,8 @@
 
 
 // my
-const radiusTop = 0.1;
-const radiusBottom = 0.05;
+const radiusTop = 0.05;
+const radiusBottom = 0.025;
 
 
 // Polyfills
