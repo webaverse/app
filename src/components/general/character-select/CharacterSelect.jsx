@@ -162,16 +162,6 @@ export const CharacterSelect = () => {
             const npcApp = await metaversefile.createAppAsync({
                 start_url: typeContentToUrl('application/npc', targetCharacter),
             });
-            console.log('create avatar app async', {npcApp, parent: npcApp.parent, targetCharacter});
-            Object.defineProperty(npcApp, 'parent', {
-                get() {
-                   return null;
-                },
-                set(v) {
-                    console.log('set parent', {v}, new Error().stack);
-                    debugger;
-                },
-            });
             return npcApp.npcPlayer;
         },
     }));
@@ -194,7 +184,6 @@ export const CharacterSelect = () => {
                 live = false;
             });
             const loreAIScene = metaversefile.useLoreAIScene();
-            // console.log('character cached loader', targetCharacter);
             const [
                 characterIntro,
                 _voices,
@@ -202,7 +191,6 @@ export const CharacterSelect = () => {
                 loreAIScene.generateCharacterIntroPrompt(targetCharacter.name, targetCharacter.bio),
                 voices.waitForLoad(),
             ]);
-            // console.log('got character intro', characterIntro);
             if (!live) return;
 
             // preload audio
@@ -262,11 +250,8 @@ export const CharacterSelect = () => {
         _updateArrowPosition();
     }, [targetCharacter]);
     useEffect(() => {
-        console.log('tick abort fn 1', {targetCharacter, lastTargetCharacter, abortFn: !!abortFn});
         if (targetCharacter && targetCharacter !== lastTargetCharacter) {
-            console.log('tick abort fn 2', {targetCharacter, lastTargetCharacter, abortFn: !!abortFn});
             if (abortFn) {
-                console.log('tick abort fn 3', {targetCharacter, lastTargetCharacter, abortFn: !!abortFn});
                 abortFn();
             }
 
@@ -280,16 +265,12 @@ export const CharacterSelect = () => {
 
                 setText('');
                 setNpcPlayer(null);
-
-                // console.log('got abort signal');
-                // debugger;
             });
             
             const loadNpcPromise = (async () => {
                 const npcPlayer = await npcLoader.loadItem(avatarUrl, targetCharacter, {
                     signal,
                 });
-                // console.log('got npc player', npcPlayer);
                 return npcPlayer;
             })()
             const loadThemeSongPromise = (async () => {
@@ -302,18 +283,12 @@ export const CharacterSelect = () => {
                 }
             })();
             const loadCharacterIntroPromise = (async () => {
-                console.log('load item 1', {avatarUrl, targetCharacter});
                 const result = await characterIntroLoader.loadItem(avatarUrl, targetCharacter, {
                     signal,
                 });
-                console.log('load item 2', result);
                 if (result) {
                     const npcPlayer = await loadNpcPromise;
                     if (!live) return;
-                    console.log('load npc player', {npcPlayer});
-                    /* if (!npcPlayer) {
-                        debugger;
-                    } */
 
                     const {
                         characterIntro,
