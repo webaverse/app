@@ -1,5 +1,10 @@
 {
   "objects": [
+  {
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [-7,7,11.05]
+      }},
     {
       "type": "application/light",
       "content": {
@@ -22,7 +27,7 @@
         0,
         0
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/night-skybox/"
+      "start_url": "https://webaverse.github.io/night-skybox/"
     },
 
 {
@@ -31,7 +36,7 @@
         0,
         0
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/potion/"
+      "start_url": "https://webaverse.github.io/potion/"
     },
     {
       "position": [
@@ -40,7 +45,7 @@
         0
       ],
       "physics": true,
-      "start_url": "http://localhost/lib/webaverse_resource/Sci-Fi-planet/",
+      "start_url": "https://webaverse.github.io/Sci-Fi-planet/",
       "dynamic": false
     },
 {
@@ -55,7 +60,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/btc-coin/"
+"start_url": "https://webaverse.github.io/btc-coin/"
 }
 ,
 {
@@ -70,7 +75,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/eth-coin/"
+"start_url": "https://webaverse.github.io/eth-coin/"
 }
 ,
 {
@@ -85,7 +90,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/btc-coin/"
+"start_url": "https://webaverse.github.io/btc-coin/"
 }
 ,
 {
@@ -100,7 +105,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/eth-coin/"
+"start_url": "https://webaverse.github.io/eth-coin/"
 }
 
 ,
@@ -116,7 +121,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/btc-coin/"
+"start_url": "https://webaverse.github.io/btc-coin/"
 }
 ,
 {
@@ -131,7 +136,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/eth-coin/"
+"start_url": "https://webaverse.github.io/eth-coin/"
 }
 ,
 {
@@ -146,7 +151,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/btc-coin/"
+"start_url": "https://webaverse.github.io/btc-coin/"
 }
 ,
 {
@@ -161,7 +166,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/btc-coin/"
+"start_url": "https://webaverse.github.io/btc-coin/"
 }
 ,
 {
@@ -176,7 +181,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/eth-coin/"
+"start_url": "https://webaverse.github.io/eth-coin/"
 }
 ,
 {
@@ -191,7 +196,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/eth-coin/"
+"start_url": "https://webaverse.github.io/eth-coin/"
 }
 ,
 {
@@ -206,7 +211,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/btc-coin/"
+"start_url": "https://webaverse.github.io/btc-coin/"
 }
 ,
 {
@@ -221,7 +226,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/eth-coin/"
+"start_url": "https://webaverse.github.io/eth-coin/"
 }
 ,
 {
@@ -236,7 +241,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/btc-coin/"
+"start_url": "https://webaverse.github.io/btc-coin/"
 }
 ,
 {
@@ -251,7 +256,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/eth-coin/"
+"start_url": "https://webaverse.github.io/eth-coin/"
 }
 ,
 {
@@ -266,8 +271,7 @@
 0,
 1
 ],
-"start_url": "http://localhost/lib/webaverse_resource/btc-coin/"
-},
-{ "position": [0, 1, -1], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" }
+"start_url": "https://webaverse.github.io/btc-coin/"
+}
   ]
 }
