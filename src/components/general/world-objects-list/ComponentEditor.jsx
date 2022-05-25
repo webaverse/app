@@ -6,7 +6,7 @@ import { AppContext } from '../../app';
 
 import styles from './component-editor.module.css';
 
-//
+const PROTECTED_PROPS = ['contentId', 'instanceId']
 
 export const ComponentEditor = () => {
 
@@ -214,8 +214,8 @@ export const ComponentEditor = () => {
             <div className={ styles.title }>Components ({ selectedApp.components.length })</div>
             {
                 components.map( component => {
-
-                    const isEditable = ( component.key !== 'instanceId' && component.key !== 'contentId' );
+  
+                    const isEditable = !PROTECTED_PROPS.includes(component.key);
 
                     return (
                         <div className={ classNames( styles.item, ( ! isEditable ? styles.disabled : null ) ) } key={ component.key } >
