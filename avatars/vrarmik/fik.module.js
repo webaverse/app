@@ -2140,7 +2140,7 @@ function Structure3D ( scene ) {
 
     this.scene = scene || null;
 
-    this.tmpMtx = new FIK.M3();
+    this.tmpMtx = new M3();
 
     this.isWithMesh = false;
 
