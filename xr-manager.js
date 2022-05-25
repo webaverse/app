@@ -159,7 +159,7 @@ class XRManager extends EventTarget {
     const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
     const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
     if (!leftGamepadPosition) {
-      leftGamepadPosition = localVector2.copy(localVector2)
+      leftGamepadPosition = localVector2.copy(localVector)
         .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
         .toArray();
       leftGamepadQuaternion = localQuaternion.toArray();
@@ -168,7 +168,7 @@ class XRManager extends EventTarget {
       leftGamepadEnabled = false;
     }
     if (!rightGamepadPosition) {
-      rightGamepadPosition = localVector2.copy(localVector2)
+      rightGamepadPosition = localVector2.copy(localVector)
         .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
         .toArray();
       rightGamepadQuaternion = localQuaternion.toArray();
