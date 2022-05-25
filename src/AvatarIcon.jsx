@@ -122,8 +122,6 @@ export const AvatarIcon = ({ className }) => {
 
     };
 
-    return null;
-
     return (
         <div
             className={ classnames( className, styles.avatarIcon ) }
