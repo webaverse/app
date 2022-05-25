@@ -48,8 +48,12 @@ const soundFiles = {
   naviItem: _getSoundFiles(/navi_item/),
   naviDanger: _getSoundFiles(/navi_danger/),
   bushCut: _getSoundFiles(/OOT_Bush_Cut/),
-  bushPickup: _getSoundFiles(/OOT_Bush_Pickup/),
-  bushWalk: _getSoundFiles(/OOT_Bush_Walk/),
+  // bushPickup: _getSoundFiles(/OOT_Bush_Pickup/),
+  // bushWalk: _getSoundFiles(/OOT_Bush_Walk/),
+  hpPickup: _getSoundFiles(/OOT_Get_Heart/),
+  mpPickup: _getSoundFiles(/OOT_Get_SmallItem1/),
+  refill: _getSoundFiles(/OOT_MagicRefill/),
+  explosion: _getSoundFiles(/OOT_Bomb_Blow/),
 };
 
 let soundFileAudioBuffer;
