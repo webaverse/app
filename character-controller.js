@@ -181,7 +181,6 @@ class PlayerBase extends THREE.Object3D {
     this.voiceEndpoint = null;
 
     this.needContinueCombo = false;
-    this.dashAttacking = false;
   }
   findAction(fn) {
     const actions = this.getActionsState();

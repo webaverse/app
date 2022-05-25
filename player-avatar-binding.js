@@ -132,7 +132,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
       rig.unuseAnimation = null;
     }
   }
-  rig.dashAttacking = player.dashAttacking;
+  rig.dashAttacking = player.hasAction('dashAttack');
 
   rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
   rig.vowels[1] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[1];
