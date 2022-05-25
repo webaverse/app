@@ -154,19 +154,25 @@ class PlayerBase extends THREE.Object3D {
       this.leftHand,
       this.rightHand,
     ];
-    
+
+    this.detached = false;
+
     this.avatar = null;
     
     this.appManager = new AppManager({
       appsMap: null,
     });
     this.appManager.addEventListener('appadd', e => {
-      const app = e.data;
-      scene.add(app);
+      if (!this.detached) {
+        const app = e.data;
+        scene.add(app);
+      }
     });
     this.appManager.addEventListener('appremove', e => {
-      const app = e.data;
-      app.parent && app.parent.remove(app);
+      if (!this.detached) {
+        const app = e.data;
+        app.parent && app.parent.remove(app);
+      }
     });
 
     this.eyeballTarget = new THREE.Vector3();
@@ -993,6 +999,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
+    this.detached = !!opts.detached;
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
