@@ -89,7 +89,7 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         this.chain.addBone(base);
         // this.chain.setHingeBaseboneConstraint('global', new FIK.V3(0, 0, 1), 0, 0, new FIK.V3(0, 1, 0));
         // this.chain.setRotorBaseboneConstraint('global', FIK.X_NEG, 45);
-        this.chain.setRotorBaseboneConstraint('global', FIK.Z_AXE, 90);
+        this.chain.setRotorBaseboneConstraint('global', FIK.Z_AXE, 0);
         // this.chain.addConsecutiveHingedBone(new FIK.V3(0, 0, -1), this.lowerArmLength, 'local', FIK.Y_AXE, 150, 0, FIK.Z_AXE);
         this.chain.addConsecutiveBone(new FIK.V3(0, 0, -1), this.lowerArmLength);
 
@@ -203,7 +203,7 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         localEuler.x = 0;
         localEuler.z = 0;
         localEuler.y *= -1;
-        localEuler.y += Math.PI / 4;
+        localEuler.y += Math.PI / 2;
         localVector.applyEuler(localEuler);
         // console.log(localVector.y);
         localVector.y += 1;
@@ -221,6 +221,9 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         this.arm.upperArm.quaternion.copy(this.solver.meshChains[0][0].quaternion);
         getDiffQuaternion(localQuaternion, this.solver.meshChains[0][0].quaternion, this.solver.meshChains[0][1].quaternion);
         this.arm.lowerArm.quaternion.copy(localQuaternion);
+        // this.arm.lowerArm.rotation.x = this.solver.meshChains[0][1].rotation.z;
+        // this.arm.lowerArm.rotation.y = this.solver.meshChains[0][1].rotation.y;
+        // this.arm.lowerArm.rotation.z = this.solver.meshChains[0][1].rotation.x;
       }
 		}
 	}
