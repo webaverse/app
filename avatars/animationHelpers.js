@@ -923,10 +923,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           t2 = Math.min(useTimeS, useAnimation.duration);
           f = useTimeS / useAnimation.duration;
         } else if (avatar.useAnimationCombo.length > 0) {
-          // if (isPosition) console.log(walkRunFactor);
           if (avatar.startSwordAttackWhenRunning) {
             useAnimation = animations.index['sword_dash.fbx'];
-            // useAnimation = animations.index['sword_dash_jump.fbx'];
           } else {
             const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
             useAnimation = useAnimations[useAnimationName];
@@ -970,15 +968,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
-
-            // const idleAnimation = _getIdleAnimation('walk');
-            // const t3 = 0;
-            // const src3 = idleAnimation.interpolants[k];
-            // const v3 = src3.evaluate(t3);
-
-            // dst
-            //   .premultiply(localQuaternion2.fromArray(v3).invert())
-            //   .premultiply(localQuaternion2.fromArray(v2));
           } else {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
@@ -986,16 +975,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             _clearXZ(localVector2, isPosition);
 
             dst.copy(localVector2);
-
-            // const idleAnimation = _getIdleAnimation('walk');
-            // const t3 = 0;
-            // const src3 = idleAnimation.interpolants[k];
-            // const v3 = src3.evaluate(t3);
-            // localVector3.fromArray(v3);
-
-            // dst
-            //   .sub(localVector3)
-            //   .add(localVector2);
           }
         }
         return f;
