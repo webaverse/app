@@ -568,6 +568,10 @@ class AppManager extends EventTarget {
   removeApp(app) {
     console.log("removeApp called", app);
     const index = this.apps.indexOf(app);
+    if (app.getComponent("wear") && this.callBackFn) {
+      console.log("Wear callback function called")
+      this.callBackFn(app, "wear", "remove");
+    }
     // console.log('remove app', app.instanceId, app.contentId, index, this.apps.map(a => a.instanceId));
     if (index !== -1) {
       this.apps.splice(index, 1);
