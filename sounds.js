@@ -47,11 +47,11 @@ const soundFiles = {
 // const listener = new THREE.AudioListener();
 // camera.add( listener );
 
+const audioContext = Avatar.getAudioContext();
+
 let soundFileAudioBuffer;
 const loadPromise = (async () => {
   await Avatar.waitForLoad();
-
-  const audioContext = Avatar.getAudioContext();
   soundFileAudioBuffer = await loadAudioBuffer(audioContext, '/sounds/sounds.mp3');
 })();
 const waitForLoad = () => loadPromise;
@@ -60,24 +60,29 @@ const getSoundFiles = () => soundFiles;
 const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
 
+const convolver = audioContext.createConvolver();
+convolver.buffer = createNoiseBuffer(audioContext, 2);
+convolver.connect(audioContext.destination);
+
+const outputNode = audioContext.createGain();
+outputNode.connect(convolver);
+
 const sounds = [];
 const playSound = (audioSpec, option) => {
   const {offset, duration} = audioSpec;
-  const audioContext = Avatar.getAudioContext();
+
   const audioBufferSourceNode = audioContext.createBufferSource();
   audioBufferSourceNode.buffer = soundFileAudioBuffer;
-  if(option === undefined){
-    audioBufferSourceNode.connect(audioContext.gain);
-  }
-  else{
+  if (option === undefined) {
+    audioBufferSourceNode.connect(outputNode);
+  } else {
     const pannerNode = audioContext.createPanner();
     pannerNode.panningModel = "HRTF";
     const gainNode = audioContext.createGain();
 
     audioBufferSourceNode.connect(pannerNode);
     pannerNode.connect(gainNode);
-    playReverb(audioBufferSourceNode, pannerNode, gainNode);
-    gainNode.connect(audioContext.destination);
+    gainNode.connect(outputNode);
 
     const refDistance = option.refDistance !== undefined ? option.refDistance : 10;
     const maxDistance = option.maxDistance !== undefined ? option.maxDistance : 50;
@@ -88,8 +93,6 @@ const playSound = (audioSpec, option) => {
     pannerNode.maxDistance = maxDistance;
     pannerNode.distanceModel = distanceModel;
     gainNode.gain.value = volume;
-
-    
 
     // handel sounds array
     audioBufferSourceNode.info = {voicer: option.voicer, context: audioContext, panner: pannerNode};
@@ -106,33 +109,30 @@ const playSound = (audioSpec, option) => {
   return audioBufferSourceNode;
 };
 
-const audioLength = 2;
 
-const easeOfNoise = (x, powNum) => {
+function easeOfNoise (x, powNum) {
   return Math.pow(x, powNum);
 }
 
-let lBuffer = new Float32Array(audioLength * Avatar.getAudioContext().sampleRate);
-let rBuffer = new Float32Array(audioLength * Avatar.getAudioContext().sampleRate);
-const bufferSize = audioLength * Avatar.getAudioContext().sampleRate;
 
-for(let i = 0; i < bufferSize; i++) {
-  const ratio = (bufferSize - i) / bufferSize; // will be 1 at the start of the loop and 0 at the end
-  const fadeAmount = easeOfNoise(ratio, 2);
-  lBuffer[i] = (1 - (2 * Math.random())) * fadeAmount;
-  rBuffer[i] = (1 - (2 * Math.random())) * fadeAmount;
-}
+function createNoiseBuffer(audioContext, length) {
 
-let buffer = Avatar.getAudioContext().createBuffer(2, audioLength * Avatar.getAudioContext().sampleRate, Avatar.getAudioContext().sampleRate);
-buffer.copyToChannel(lBuffer,0);
-buffer.copyToChannel(rBuffer,1);
+  const bufferSize = length * audioContext.sampleRate;
+  const lBuffer = new Float32Array(bufferSize);
+  const rBuffer = new Float32Array(bufferSize);
+  
+  for (let i = 0; i < bufferSize; i++) {
+    const ratio = (bufferSize - i) / bufferSize; // will be 1 at the start of the loop and 0 at the end
+    const fadeAmount = easeOfNoise(ratio, 2);
+    lBuffer[i] = (1 - (2 * Math.random())) * fadeAmount;
+    rBuffer[i] = (1 - (2 * Math.random())) * fadeAmount;
+  }
+  
+  const buffer = audioContext.createBuffer(2, bufferSize, audioContext.sampleRate);
+  buffer.copyToChannel(lBuffer,0);
+  buffer.copyToChannel(rBuffer,1);
 
-const playReverb = (sound, panner, gain) =>{
-  let convolver = sound.context.createConvolver();
-  convolver.buffer = buffer;
-
-  panner.connect(convolver);
-  convolver.connect(gain);
+  return buffer;
 
 }
 
