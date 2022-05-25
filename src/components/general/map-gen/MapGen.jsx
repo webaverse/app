@@ -40,6 +40,7 @@ const localVectorX = new THREE.Vector3();
 const localVectorX2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -412,8 +413,10 @@ export const MapGen = () => {
                     })();
                     scene.add(cometMeshApp);
                     const localPlayer = useLocalPlayer();
-                    cometMeshApp.position.copy(localPlayer.position);
-                    cometMeshApp.quaternion.copy(localPlayer.quaternion);
+                    cometMeshApp.position.copy(localPlayer.position)
+                      .add(new THREE.Vector3(0, 3, 0).applyQuaternion(localPlayer.quaternion));
+                    localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
+                    cometMeshApp.quaternion.setFromEuler(localEuler);
                     cometMeshApp.updateMatrixWorld();
 
                     setCometMeshApp(cometMeshApp);
