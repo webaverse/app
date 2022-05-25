@@ -400,11 +400,11 @@ const _getNextUseIndex = animationCombo => {
   }
 }
 const _startUse = () => {
+  const localPlayer = getLocalPlayer();
   const wearApp = loadoutManager.getSelectedApp();
   if (wearApp &&  !localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('narutoRun')) { // will add jump/fly/narutoRun specific useAnimations afterwards.
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
-      const localPlayer = getLocalPlayer();
       const useAction = localPlayer.getAction('use');
       if (!useAction) {
         const {instanceId} = wearApp;
@@ -1654,6 +1654,7 @@ class GameManager extends EventTarget {
   handleAnimationEnd() {
     _endUse();
 
+    const localPlayer = getLocalPlayer();
     if (localPlayer.needContinueCombo) {
       localPlayer.needContinueCombo = false;
       localPlayer.actionInterpolants.use.reset();
