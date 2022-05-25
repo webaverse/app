@@ -63,7 +63,7 @@ const sounds = [];
 const playSound = (audioSpec, option) => {
   const {offset, duration} = audioSpec;
   
-  if(option === undefined || option.soundType === 'background'){
+  if(option === undefined){
     const audioContext = Avatar.getAudioContext();
     const audioBufferSourceNode = audioContext.createBufferSource();
     audioBufferSourceNode.buffer = soundFileAudioBuffer;
