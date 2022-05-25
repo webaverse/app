@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {Helpers} from './Unity.js';
 import * as FIK from './fik.module.js'
+import { rootScene } from '../../renderer.js';
 
 const zeroVector = new THREE.Vector3();
 const forwardVector = new THREE.Vector3(0, 0, 1);
@@ -50,7 +51,7 @@ const FINGER_SPECS = [
 
 	class VRArmIK
 	{
-		constructor(arm, shoulder, shoulderPoser, shoulderAnchor, target, left) {
+		constructor(arm, shoulder, shoulderPoser, shoulderAnchor, target, left) { // left right reversed.
 			this.arm = arm;
 			this.shoulder = shoulder;
 			this.shoulderPoser = shoulderPoser;
@@ -61,6 +62,22 @@ const FINGER_SPECS = [
 			this.upperArmLength = 0;
 			this.lowerArmLength = 0;
 			this.armLength = 0;
+
+      if (!this.left) {
+        this.solver = new FIK.Structure3D(window.rootScene);
+        window.solver = this.solver;
+        this.chain = new FIK.Chain3D();
+        const base = new FIK.Bone3D(new FIK.V3(0, 1, 0), new FIK.V3(3, 1, 0));
+        window.base = base;
+        this.chain.addBone(base);
+        // this.chain.setHingeBaseboneConstraint('global', new FIK.V3(0, 0, 1), 0, 0, new FIK.V3(0, 1, 0));
+        // this.chain.setRotorBaseboneConstraint( 'global', FIK.X_AXE, 90);
+        this.chain.setRotorBaseboneConstraint('global', FIK.X_AXE, 0);
+        this.chain.addConsecutiveHingedBone(new FIK.V3(0, 0, -1), 3, 'local', FIK.Y_AXE, 150, 0, FIK.Z_AXE);
+
+        // this.solver.add(this.chain, target.position, true);
+        this.solver.add(this.chain, new FIK.V3(3, 0, 10), true);
+      }
     }
 
 		Start()
@@ -72,6 +89,13 @@ const FINGER_SPECS = [
 
 		Update()
 		{
+      if (!this.left) {
+        this.solver.update();
+        // this.solver.meshChains[0][0].updateMatrixWorld();
+        // this.solver.meshChains[0][1].updateMatrixWorld();
+        rootScene.updateMatrixWorld();
+      }
+
       this.shoulderAnchor.quaternion.identity();
       
 			Helpers.updateMatrixWorld(this.arm.transform);
