@@ -59,13 +59,16 @@ const waitForLoad = () => loadPromise;
 const getSoundFiles = () => soundFiles;
 const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
+const masterOut = audioContext.createGain();
+masterOut.connect(audioContext.destination);
 
 const convolver = audioContext.createConvolver();
 convolver.buffer = createNoiseBuffer(audioContext, 2);
-convolver.connect(audioContext.destination);
+convolver.connect(masterOut);
 
 const outputNode = audioContext.createGain();
 outputNode.connect(convolver);
+
 
 const sounds = [];
 const playSound = (audioSpec, option) => {
@@ -83,6 +86,7 @@ const playSound = (audioSpec, option) => {
     audioBufferSourceNode.connect(pannerNode);
     pannerNode.connect(gainNode);
     gainNode.connect(outputNode);
+    gainNode.connect(masterOut);
 
     const refDistance = option.refDistance !== undefined ? option.refDistance : 10;
     const maxDistance = option.maxDistance !== undefined ? option.maxDistance : 50;
