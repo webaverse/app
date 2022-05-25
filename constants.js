@@ -99,6 +99,7 @@ export const initialPosY = 1.5;
 export const groundFriction = 0.28;
 export const airFriction = groundFriction;
 export const flyFriction = 0.5;
+export const dashAttackFriction = 0.85;
 export const aimTransitionMaxTime = 150;
 
 export const avatarInterpolationFrameRate = 60;
