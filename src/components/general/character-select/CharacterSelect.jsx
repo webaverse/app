@@ -11,8 +11,22 @@ import { LocalPlayer } from '../../../../character-controller.js';
 import * as sounds from '../../../../sounds.js';
 import { chatManager } from '../../../../chat-manager.js';
 import musicManager from '../../../../music-manager.js';
+import { CachedLoader } from '../../../CachedLoader.jsx';
 import { RpgText } from '../../../RpgText.jsx';
 import { chatTextSpeed } from '../../../../constants.js';
+import { VoiceEndpointVoicer } from '../../../../voice-output/voice-endpoint-voicer.js';
+import * as voices from '../../../../voices.js';
+import {getVoiceEndpointUrl} from '../../../../voice-output/voice-endpoint-voicer.js';
+
+//
+
+function typeContentToUrl(type, content) {
+if (typeof content === 'object') {
+    content = JSON.stringify(content);
+}
+const dataUrlPrefix = 'data:' + type + ',';
+return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
+}
 
 //
 
@@ -133,14 +147,71 @@ export const CharacterSelect = () => {
     const { state, setState } = useContext( AppContext );
     const [ highlightCharacter, setHighlightCharacter ] = useState(null);
     const [ selectCharacter, setSelectCharacter ] = useState(null);
+    const [ lastTargetCharacter, setLastTargetCharacter ] = useState(null);
+    const [ abortFn, setAbortFn ] = useState(null);
     const [ arrowPosition, setArrowPosition ] = useState(null);
-    const [ npcPlayer, setNpcPlayer ] = useState(null);
     const [ enabled, setEnabled ] = useState(false);
-    const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
-    const [ themeSongCache, setThemeSongCache ] = useState(new Map());
-    const [ characterIntroCache, setCharacterIntroCache ] = useState(new Map());
-    const [ messageAudioCache, setMessageAudioCache ] = useState(new Map());
-    const [ selectAudioCache, setSelectAudioCache ] = useState(new Map());
+    const [ npcPlayer, setNpcPlayer ] = useState(null);
+    const [ npcLoader, setNpcLoader ] = useState(() => new CachedLoader({
+        loadFn: async (url, targetCharacter, {signal = null} = {}) => {
+            let live = true;
+            signal.addEventListener('abort', () => {
+                live = false;
+            });
+
+            const npcApp = await metaversefile.createAppAsync({
+                start_url: typeContentToUrl('application/npc', targetCharacter),
+            });
+            return npcApp.npcPlayer;
+        },
+    }));
+    const [ themeSongLoader, setThemeSongLoader ] = useState(() => new CachedLoader({
+        loadFn: async (url, targetCharacter, {signal = null} = {}) => {
+            let live = true;
+            signal.addEventListener('abort', () => {
+              live = false;
+            });
+            themeSong = await LocalPlayer.fetchThemeSong(targetCharacter.themeSongUrl);
+            if (!live) return;
+            return themeSong;
+        },
+    }));
+    const [ characterIntroLoader, setCharacterIntroLoader ] = useState(() => new CachedLoader({
+        loadFn: async (url, targetCharacter, {signal = null} = {}) => {
+            // get ai text
+            let live = true;
+            signal.addEventListener('abort', () => {
+                live = false;
+            });
+            const loreAIScene = metaversefile.useLoreAIScene();
+            const [
+                characterIntro,
+                _voices,
+            ] = await Promise.all([
+                loreAIScene.generateCharacterIntroPrompt(targetCharacter.name, targetCharacter.bio),
+                voices.waitForLoad(),
+            ]);
+            if (!live) return;
+
+            // preload audio
+            const voiceEndpoint = voices.voiceEndpoints.find(voiceEndpoint => voiceEndpoint.name === targetCharacter.voice);
+            if (!voiceEndpoint) {
+                throw new Error('no such voice endpoint: ' + targetCharacter.voice);
+            }
+            const voiceEndpointUrl = getVoiceEndpointUrl(voiceEndpoint.drive_id);
+            const preloadedMessage = VoiceEndpointVoicer.preloadMessage(voiceEndpointUrl, characterIntro.message);
+            const preloadedOnSelectMessage = VoiceEndpointVoicer.preloadMessage(voiceEndpointUrl, characterIntro.onselect);
+            
+            // return result
+            return {
+                characterIntro,
+                preloadedMessage,
+                preloadedOnSelectMessage,
+            };
+        },
+    }));
+    // const [ messageAudioCache, setMessageAudioCache ] = useState(new Map());
+    // const [ selectAudioCache, setSelectAudioCache ] = useState(new Map());
     const [ text, setText ] = useState('');
 
     const refsMap = (() => {
@@ -179,115 +250,85 @@ export const CharacterSelect = () => {
         _updateArrowPosition();
     }, [targetCharacter]);
     useEffect(() => {
-        if (targetCharacter) {
+        if (targetCharacter && targetCharacter !== lastTargetCharacter) {
+            if (abortFn) {
+                abortFn();
+            }
+
             const {avatarUrl} = targetCharacter;
 
+            const abortController = new AbortController();
+            const {signal} = abortController;
             let live = true;
-            let npcPlayer = null;
-            (async () => {
-                sounds.playSoundName('menuClick');
-                
-                const [
-                    _npcPlayer,
-                    _themeSong,
-                    _characterIntro,
-                ] = await Promise.all([
-                    (async () => {
-                        let npcPlayer = npcPlayerCache.get(avatarUrl);
-                        if (!npcPlayer) {
-                            const avatarApp = await metaversefile.createAppAsync({
-                                // type: 'application/npc',
-                                // content: targetCharacter,
-                                start_url: targetCharacter.avatarUrl,
-                                components: [
-                                    {
-                                      key: 'npc',
-                                      value: targetCharacter,
-                                    },
-                                ],
-                            });
-                            if (!live) {
-                                avatarApp.destroy();
-                                return;
-                            }
-                            npcPlayer = avatarApp.npcPlayer;
-        
-                            npcPlayerCache.set(avatarUrl, npcPlayer);
-                        }
-                        return npcPlayer;
-                    })(),
-                    (async () => {
-                        let themeSong = themeSongCache.get(targetCharacter.themeSongUrl);
-                        if (!themeSong) {
-                            themeSong = await LocalPlayer.fetchThemeSong(targetCharacter.themeSongUrl);
-                            themeSongCache.set(targetCharacter.themeSongUrl, themeSong);
-                            if (!live) return;
-                        }
-                        return themeSong;
-                    })(),
-                    (async () => {
-                        let characterIntro = characterIntroCache.get(targetCharacter.avatarUrl);
-                        if (!characterIntro) {
-                            const loreAIScene = metaversefile.useLoreAIScene();
-                            characterIntro = await loreAIScene.generateCharacterIntroPrompt(targetCharacter.name, targetCharacter.bio);
-                            characterIntroCache.set(targetCharacter.avatarUrl, characterIntro);
-                            if (!live) return;
-                        }
-                        return characterIntro;
-                    })(),
-                ]);
-                npcPlayer = _npcPlayer;
-                const themeSong = _themeSong;
-                const characterIntro = _characterIntro;
+            signal.addEventListener('abort', () => {
+                live = false;
 
+                setText('');
+                setNpcPlayer(null);
+            });
+            
+            const loadNpcPromise = (async () => {
+                const npcPlayer = await npcLoader.loadItem(avatarUrl, targetCharacter, {
+                    signal,
+                });
+                return npcPlayer;
+            })()
+            const loadThemeSongPromise = (async () => {
+                const themeSong = await themeSongLoader.loadItem(avatarUrl, targetCharacter, {
+                    signal,
+                });
                 if (!live) return;
-                (async () => {
-                    if (characterIntro) {
-                        const {message} = characterIntro;
-                        setText(message);
-
-                        let preloadedMessage = messageAudioCache.get(targetCharacter.avatarUrl);
-                        if (!preloadedMessage) {
-                            preloadedMessage = npcPlayer.voicer.preloadMessage(message);
-                            messageAudioCache.set(targetCharacter.avatarUrl, preloadedMessage);
-                        }
-                        npcPlayer.voicer.stop();
-                        await chatManager.waitForVoiceTurn(() => {
-                            return npcPlayer.voicer.start(preloadedMessage);
-                        });
-                        if (!live) return;
-                    } else {
-                        console.warn('no character intro');
-
-                        setText('');
-                    }
-                })();
                 if (themeSong) {
                   musicManager.playCurrentMusic(themeSong);
                 }
+            })();
+            const loadCharacterIntroPromise = (async () => {
+                const result = await characterIntroLoader.loadItem(avatarUrl, targetCharacter, {
+                    signal,
+                });
+                if (result) {
+                    const npcPlayer = await loadNpcPromise;
+                    if (!live) return;
 
-                setNpcPlayer(npcPlayer);
+                    const {
+                        characterIntro,
+                        preloadedMessage,
+                    } = result;
+                    const {message} = characterIntro;
+                    setText(message);
+
+                    await chatManager.waitForVoiceTurn(() => {
+                        if (live) {
+                            const abort = () => {
+                                npcPlayer.voicer.stop();
+                            };
+                            signal.addEventListener('abort', abort);
+                            const endPromise = npcPlayer.voicer.start(preloadedMessage);
+                            return endPromise.then(() => {
+                                signal.removeEventListener('abort', abort);
+                            });
+                        }
+                    });
+                } else {
+                    console.warn('no character intro');
+
+                    setText('');
+                }
             })();
 
-            const frame = e => {
-                const {timestamp, timeDiff} = e.data;
-                if (npcPlayer) {
-                  npcPlayer.updateAvatar(timestamp, timeDiff);
+            loadNpcPromise.then(npcPlayer => {
+                if (live) {
+                    setNpcPlayer(npcPlayer);
                 }
-            };
-            world.appManager.addEventListener('frame', frame);
+            });
 
-            return () => {
-                live = false;
-                world.appManager.removeEventListener('frame', frame);
-                if (npcPlayer) {
-                    npcPlayer.voicer.stop();
-                } else {
-                    console.log('no stop');
-                }
-            };
+            const localAbortFn = () => {
+                abortController.abort();
+            }
+            setAbortFn(() => localAbortFn);
+            setLastTargetCharacter(targetCharacter);
         }
-    }, [targetCharacter]);
+    }, [targetCharacter, lastTargetCharacter, abortFn]);
 
     const opened = state.openedPanel === 'CharacterSelect';
     useEffect(() => {
@@ -336,30 +377,29 @@ export const CharacterSelect = () => {
                 setState({ openedPanel: null });
             }, 1000);
 
-            const localPlayer = metaversefile.useLocalPlayer();
             (async () => {
-                await localPlayer.setPlayerSpec(character);
+                const localPlayer = metaversefile.useLocalPlayer();
+                const [
+                  _setPlayerSpec,
+                  result,
+                ] = await Promise.all([
+                    localPlayer.setPlayerSpec(character),
+                    characterIntroLoader.loadItem(character.avatarUrl, character, {
+                        // signal,
+                    }),
+                ]);
+                
+                if (result) {
+                    const {preloadedOnSelectMessage} = result;
+
+                    npcPlayer && npcPlayer.voicer.stop();
+                    const localPlayer = metaversefile.useLocalPlayer();
+                    localPlayer.voicer.stop();
+                    await chatManager.waitForVoiceTurn(() => {
+                        return localPlayer.voicer.start(preloadedOnSelectMessage);
+                    });
+                }
             })();
-
-            if (npcPlayer) {
-                (async () => {
-                    const characterIntro = characterIntroCache.get(character.avatarUrl);
-                    if (characterIntro) {
-                        const {onselect} = characterIntro;
-
-                        let preloadedMessage = selectAudioCache.get(targetCharacter.avatarUrl);
-                        if (!preloadedMessage) {
-                            preloadedMessage = npcPlayer.voicer.preloadMessage(onselect);
-                            selectAudioCache.set(targetCharacter.avatarUrl, preloadedMessage);
-                        }
-                        npcPlayer.voicer.stop();
-                        localPlayer.voicer.stop();
-                        await chatManager.waitForVoiceTurn(() => {
-                            return localPlayer.voicer.start(preloadedMessage);
-                        });
-                    }
-                })();
-            }
         }
     };
 

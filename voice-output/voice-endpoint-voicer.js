@@ -2,6 +2,7 @@
 
 import Avatar from '../avatars/avatars.js';
 import {makePromise} from '../util.js';
+import {voiceEndpointBaseUrl} from '../constants.js';
 
 class VoiceEndpoint {
   constructor(url) {
@@ -9,12 +10,12 @@ class VoiceEndpoint {
   }
 }
 class PreloadMessage {
-  constructor(text, parent) {
+  constructor(voiceEndpointUrl, text) {
+    this.voiceEndpointUrl = voiceEndpointUrl;
     this.text = text;
-    this.parent = parent;
 
     this.isPreloadMessage = true;
-    this.loadPromise = this.parent.loadAudioBuffer(this.text);
+    this.loadPromise = VoiceEndpointVoicer.loadAudioBuffer(this.voiceEndpointUrl, this.text);
   }
   waitForLoad() {
     return this.loadPromise;
@@ -31,21 +32,33 @@ class VoiceEndpointVoicer {
     this.cancel = null;
     this.endPromise = null;
   }
+  static preloadMessage(voiceEndpointUrl, text) {
+    return new PreloadMessage(voiceEndpointUrl, text);
+  }
   preloadMessage(text) {
-    return new PreloadMessage(text, this);
+    return VoiceEndpointVoicer.preloadMessage(this.voiceEndpoint.url.toString(), text);
   }
-  async loadAudioBuffer(text) {
-    const u = new URL(this.voiceEndpoint.url.toString());
-    u.searchParams.set('s', text);
-    const res = await fetch(u/*, {
-      mode: 'cors',
-    } */);
-    const arrayBuffer = await res.arrayBuffer();
+  static async loadAudioBuffer(voiceEndpointUrl, text) {
+    console.log('load audio buffer', voiceEndpointUrl, text);
+    try {
+      const u = new URL(voiceEndpointUrl);
+      u.searchParams.set('s', text);
+      const res = await fetch(u/*, {
+        mode: 'cors',
+      } */);
+      const arrayBuffer = await res.arrayBuffer();
 
-    const audioContext = Avatar.getAudioContext();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    return audioBuffer;
+      const audioContext = Avatar.getAudioContext();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      return audioBuffer;
+    } catch(err) {
+      console.warn('epic fail', err);
+      debugger;
+    }
   }
+  /* async loadAudioBuffer(text) {
+    return VoiceEndpointVoicer.loadAudioBuffer(this.voiceEndpoint.url, text);
+  } */
   start(text) {
     if (!this.endPromise) {
       this.endPromise = makePromise();
@@ -108,8 +121,6 @@ class VoiceEndpointVoicer {
         audioBufferSourceNode.start();
 
         cancelFns.push(() => {
-          console.log('audio node stop');
-
           audioBufferSourceNode.removeEventListener('ended', ended);
 
           audioBufferSourceNode.stop();
@@ -131,9 +142,11 @@ class VoiceEndpointVoicer {
     this.running = false;
   }
 }
+const getVoiceEndpointUrl = (voiceId) => `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
 
 export {
   VoiceEndpoint,
   PreloadMessage,
   VoiceEndpointVoicer,
+  getVoiceEndpointUrl,
 };
