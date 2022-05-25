@@ -258,6 +258,8 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         // //   localVector2.set(-1, 0, 0),
         // // );
         // this.arm.upperArm.quaternion.premultiply(localQuaternion.invert());
+
+        window.modelBoneOutputs.Left_arm.quaternion.premultiply(window.modelBoneOutputs.Left_shoulder.getWorldQuaternion(new THREE.Quaternion()).invert());
       }
 		}
 	}
