@@ -102,6 +102,7 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
 
 		Update()
 		{
+      // this.target.position.set(0, 1, 0);
 
       this.shoulderAnchor.quaternion.identity();
       
@@ -196,7 +197,8 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
       if (!this.left) {
         // window.modelBoneOutputs.Left_wrist.getWorldPosition(localVector);
         // localVector.sub(window.modelBoneOutputs.Left_arm.getWorldPosition(localVector2));
-        localVector.setFromMatrixPosition(window.modelBoneOutputs.Left_wrist.matrixWorld);
+        // localVector.setFromMatrixPosition(window.modelBoneOutputs.Left_wrist.matrixWorld);
+        localVector.copy(this.target.position);
         localVector2.setFromMatrixPosition(window.modelBoneOutputs.Left_arm.matrixWorld);
         localVector.sub(localVector2);
         // localVector.applyQuaternion(localQuaternion.copy(window.localPlayer.quaternion).invert());
@@ -204,6 +206,7 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         localEuler.x = 0;
         localEuler.z = 0;
         localEuler.y *= -1;
+        // const localPlayerQuaternionNeg = localQuaternion3.setFromEuler(localEuler);
         localEuler.y += Math.PI / 2;
         localVector.applyEuler(localEuler);
         // console.log(localVector.y);
@@ -211,6 +214,9 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         window.fikTarget.x = localVector.x;
         window.fikTarget.y = localVector.y;
         window.fikTarget.z = localVector.z;
+
+        localEuler.y += Math.PI / 2;
+        const localPlayerQuaternionNeg = localQuaternion3.setFromEuler(localEuler);
 
         this.solver.update();
         // this.solver.meshChains[0][0].updateMatrixWorld();
@@ -237,6 +243,21 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         this.arm.lowerArm.rotation.y = this.solver.meshChains[0][1].rotation.y;
         this.arm.lowerArm.rotation.z = -this.solver.meshChains[0][1].rotation.x;
         this.arm.lowerArm.quaternion.premultiply(localQuaternion.copy(this.arm.upperArm.quaternion).invert());
+
+        // // this.arm.upperArm.quaternion.premultiply(this.shoulderAnchor.getWorldQuaternion(localQuaternion).premultiply(localPlayerQuaternionNeg).invert());
+        // // this.arm.lowerArm.quaternion.premultiply(this.shoulderAnchor.getWorldQuaternion(localQuaternion).premultiply(localPlayerQuaternionNeg).invert());
+        // // this.arm.upperArm.quaternion.premultiply(this.shoulderAnchor.quaternion);
+        // // this.arm.lowerArm.quaternion.premultiply(this.shoulderAnchor.quaternion);
+
+        // this.shoulderAnchor.getWorldQuaternion(localQuaternion);
+        // localQuaternion.multiply(localPlayerQuaternionNeg);
+        // // console.log(localQuaternion);
+        // // localVector.set(-1, 0, 0).applyQuaternion(localQuaternion);
+        // // localQuaternion.setFromUnitVectors(
+        // //   localVector.normalize(),
+        // //   localVector2.set(-1, 0, 0),
+        // // );
+        // this.arm.upperArm.quaternion.premultiply(localQuaternion.invert());
       }
 		}
 	}
