@@ -132,6 +132,23 @@ export const ComponentEditor = () => {
 
     };
 
+    const handleCheckboxChange = ( key, value ) => {
+
+        console.log("change checkbox", key, value)
+
+        for ( let i = 0; i < selectedApp.components.length; i ++ ) {
+
+            if ( selectedApp.components[ i ].key !== key ) continue;
+            components[ i ].value = value;
+            break;
+
+        }
+
+        validateValues();
+        syncComponentsList();
+
+    };
+
     const handleKeyInputKeyUp = ( key, event ) => {
 
         if ( event.key === 'Enter' ) {
