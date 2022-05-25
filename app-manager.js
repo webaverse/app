@@ -560,6 +560,10 @@ class AppManager extends EventTarget {
         data: app,
       })
     );
+    if (app.getComponent("wear") && this.callBackFn) {
+      console.log("Wear callback function called")
+      this.callBackFn(app, "wear", "add");
+    }
   }
   removeApp(app) {
     console.log("removeApp called", app);
