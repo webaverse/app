@@ -1,8 +1,8 @@
 window.global = window.globalThis;
 
 window.logNum = function(n) {
-  n = n.toFixed(2);
-  return (n < 0 ? '' : '+') + n;
+  const nStr = n.toFixed(2);
+  return (n < 0 ? '' : '+') + nStr;
 }
 
 window.logVector3 = function(v) {
