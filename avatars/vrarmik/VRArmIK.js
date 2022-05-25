@@ -208,9 +208,9 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         localVector.applyEuler(localEuler);
         // console.log(localVector.y);
         localVector.y += 1;
-        // window.fikTarget.x = localVector.x;
-        // window.fikTarget.y = localVector.y;
-        // window.fikTarget.z = localVector.z;
+        window.fikTarget.x = localVector.x;
+        window.fikTarget.y = localVector.y;
+        window.fikTarget.z = localVector.z;
 
         this.solver.update();
         // this.solver.meshChains[0][0].updateMatrixWorld();
@@ -236,7 +236,7 @@ function getDiffQuaternion(target, quaternionA, quaternionB) {
         this.arm.lowerArm.rotation.x = this.solver.meshChains[0][1].rotation.z;
         this.arm.lowerArm.rotation.y = this.solver.meshChains[0][1].rotation.y;
         this.arm.lowerArm.rotation.z = -this.solver.meshChains[0][1].rotation.x;
-        this.arm.lowerArm.quaternion.multiply(localQuaternion.copy(this.arm.upperArm.quaternion).invert());
+        this.arm.lowerArm.quaternion.premultiply(localQuaternion.copy(this.arm.upperArm.quaternion).invert());
       }
 		}
 	}
