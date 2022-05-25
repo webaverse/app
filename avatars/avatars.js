@@ -947,6 +947,11 @@ class Avatar {
     // this.aimDirection = new THREE.Vector3();
     this.hurtTime = NaN;
     this.hurtAnimation = null;
+    this.moveFactors = {
+      idleWalkFactor: null,
+      walkRunFactor: null,
+      crouchFactor: null,
+    }
 
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -1475,11 +1480,9 @@ class Avatar {
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
-    const moveFactors = {};
-    this.moveFactors = moveFactors;
-    moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
-    moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
-    moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
+    this.moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
+    this.moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    this.moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
     this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
@@ -1907,21 +1910,21 @@ class Avatar {
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
         <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>
         <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
-        <div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
-        <div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
-        <div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
+        <div style="display:;">idleWalkFactor: --- ${this.moveFactors.idleWalkFactor.toFixed(2)}</div>
+        <div style="display:;">walkRunFactor: --- ${this.moveFactors.walkRunFactor.toFixed(2)}</div>
+        <div style="display:;">crouchFactor: --- ${this.moveFactors.crouchFactor.toFixed(2)}</div>
         <div style="display:;">jumpState: --- ${this.jumpState}</div>
         <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
-        <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
+        <div style="display:;">idleFactor: --- ${this.moveFactors.idleFactor?.toFixed(2)}</div>
         <div style="display:;">flyState: --- ${this.flyState}</div>
-        <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
+        <div style="display:;">flyFactor: --- ${this.moveFactors.flyFactor?.toFixed(2)}</div>
         <div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>
         <div style="display:;">landState: --- ${this.landState}</div>
-        <div style="display:;">landFactor: --- ${moveFactors.landFactor?.toFixed(2)}</div>
+        <div style="display:;">landFactor: --- ${this.moveFactors.landFactor?.toFixed(2)}</div>
         <div style="display:none;">landTime: --- ${Math.floor(this.landTime)}</div>
         <div style="display:none;">landTransitionTime: --- ${Math.floor(this.landTransitionTime)}</div>
         <div style="display:;">sitState: --- ${this.sitState}</div>
-        <div style="display:;">sitFactor: --- ${moveFactors.sitFactor?.toFixed(2)}</div>
+        <div style="display:;">sitFactor: --- ${this.moveFactors.sitFactor?.toFixed(2)}</div>
         <div style="display:none;">sitTime: --- ${Math.floor(this.sitTime)}</div>
         <div style="display:;">chargeJumpState: --- ${this.chargeJumpState}</div>
         <div style="display:;">danceState: --- ${this.danceState}</div>
@@ -1933,7 +1936,7 @@ class Avatar {
         <div style="display:;">hurtAnimation: --- ${this.hurtAnimation}</div>
         <div style="display:;">poseAnimation: --- ${this.poseAnimation}</div>
         <div style="display:;">sitAnimation: --- ${this.sitAnimation}</div>
-        <div style="display:;">useFactor: --- ${moveFactors.useFactor?.toFixed(2)}</div>
+        <div style="display:;">useFactor: --- ${this.moveFactors.useFactor?.toFixed(2)}</div>
         <div style="display:;">useTransitionTime: --- ${Math.floor(this.useTransitionTime)}</div>
         <div style="display:;">useTime: --- ${Math.floor(this.useTime)}</div>
         <div style="display:;">useAnimation: --- ${this.useAnimation}</div>
@@ -1958,7 +1961,7 @@ class Avatar {
         <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
       `
     }
-    _applyAnimation(this, now, moveFactors);
+    _applyAnimation(this, now, this.moveFactors);
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);
