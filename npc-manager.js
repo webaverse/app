@@ -57,11 +57,6 @@ class NpcManager extends EventTarget {
 
     if (!detached) {
       this.npcs.push(npcPlayer);
-      /* this.dispatchEvent(new MessageEvent('npcadd', {
-        data: {
-          player: npcPlayer,
-        },
-      })); */
     }
 
     return npcPlayer;
@@ -73,11 +68,6 @@ class NpcManager extends EventTarget {
     const removeIndex = this.npcs.indexOf(npcPlayer);
     if (removeIndex !== -1) {
       this.npcs.splice(removeIndex, 1);
-      /* this.dispatchEvent(new MessageEvent('npcremove', {
-        data: {
-          player: npcPlayer,
-        },
-      })); */
     }
   }
 
@@ -94,11 +84,9 @@ class NpcManager extends EventTarget {
 
         if (npcPlayer) {
           npcManager.destroyNpc(npcPlayer);
-          // npcPlayer = null;
         }
         if (character) {
           world.loreAIScene.removeCharacter(character);
-          // character = null;
         }
       },
     ];
