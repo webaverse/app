@@ -21,7 +21,7 @@ const numCylinders = 3;
 const minRadius = 0.4;
 // const radiusStep = minRadius;
 const maxRadius = minRadius + minRadius * numCylinders;
-const explosionScaleFactor = 10;
+const explosionScaleFactor = 4;
 
 const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
@@ -130,14 +130,15 @@ function createExplosionGeometry(front) {
     0, // thetaStart
     Math.PI / 2, // thetaLength
   );
+  const haloRadius = radius * 0.5;
   const cylinderGeometry = new THREE.CylinderGeometry(
     1, // radiusTop
     1, // radiusBottom
-    0.2, // height
+    haloRadius, // height
     8, // radialSegments
     1, // heightSegments
     true, // openEnded
-  );
+  ).translate(0, haloRadius / 2, 0);
 
   const geometries = [
     sphereGeometry,
@@ -357,7 +358,10 @@ const _makeCylindersMesh = () => {
     if (isNaN(explosionStartTime)) {
       object.position.y -= timeDiff * 0.01;
     } else {
-      const scaleFactor = Math.min(Math.max(timeSinceLastExplosion / 1000, 0), 1);
+      const scaleFactor = Math.pow(
+        Math.min(Math.max(timeSinceLastExplosion / 1000, 0), 1),
+        0.5
+      );
       object.scale.setScalar(scaleFactor * explosionScaleFactor);
     }
     object.updateMatrixWorld();
