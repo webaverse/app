@@ -1469,6 +1469,12 @@ class Avatar {
         }
       }
     }
+    
+    // test
+    this.shoulderTransforms.rightShoulderAnchor.quaternion.copy(this.shoulderTransforms.lastRightShoulderAnchor.quaternion);
+    for (let key in this.shoulderTransforms.rightArm) {
+      this.shoulderTransforms.rightArm[key].quaternion.copy(this.shoulderTransforms.lastRightArm[key].quaternion);
+    }
   }
 
   update(timestamp, timeDiff) {
@@ -1959,7 +1965,7 @@ class Avatar {
         <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
       `
     }
-    // _applyAnimation(this, now, moveFactors);
+    _applyAnimation(this, now, moveFactors);
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);
