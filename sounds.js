@@ -41,6 +41,8 @@ const soundFiles = {
   battleTransition: _getSoundFiles(/ff7_battle_transition/),
   limitBreak: _getSoundFiles(/ff7_limit_break/),
   limitBreakReady: _getSoundFiles(/ff8_limit_ready/),
+
+  audioSource: _getSoundFiles(/^audioSource\//),
 };
 const listener = new THREE.AudioListener();
 camera.add( listener );
@@ -61,7 +63,7 @@ const sounds = [];
 const playSound = (audioSpec, option) => {
   const {offset, duration} = audioSpec;
   
-  if(option === undefined){
+  if(option === undefined || option.soundType === 'background'){
     const audioContext = Avatar.getAudioContext();
     const audioBufferSourceNode = audioContext.createBufferSource();
     audioBufferSourceNode.buffer = soundFileAudioBuffer;
@@ -77,11 +79,13 @@ const playSound = (audioSpec, option) => {
 
     const refDistance = option.refDistance !== undefined ? option.refDistance : 10;
     const maxDistance = option.maxDistance !== undefined ? option.maxDistance : 50;
-    const distanceModel = option.distanceModel !== undefined ? option.distanceModel : 'linear';
+    const distanceModel = option.distanceModel !== undefined ? option.distanceModel : 'inverse';
+    const volume = option.volume !== undefined ? option.volume : 1;
 
     sound.setRefDistance(refDistance);
     sound.setMaxDistance(maxDistance);
     sound.setDistanceModel(distanceModel);
+    sound.setVolume( volume );
 
     option.voicer.add(sound);
     sound.play();
