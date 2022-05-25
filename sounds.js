@@ -76,6 +76,7 @@ const playSound = (audioSpec, option) => {
 
     audioBufferSourceNode.connect(pannerNode);
     pannerNode.connect(gainNode);
+    playReverb(audioBufferSourceNode, pannerNode, gainNode);
     gainNode.connect(audioContext.destination);
 
     const refDistance = option.refDistance !== undefined ? option.refDistance : 10;
@@ -88,7 +89,7 @@ const playSound = (audioSpec, option) => {
     pannerNode.distanceModel = distanceModel;
     gainNode.gain.value = volume;
 
-    playReverb(audioBufferSourceNode, pannerNode);
+    
 
     // handel sounds array
     audioBufferSourceNode.info = {voicer: option.voicer, context: audioContext, panner: pannerNode};
@@ -126,12 +127,12 @@ let buffer = Avatar.getAudioContext().createBuffer(2, audioLength * Avatar.getAu
 buffer.copyToChannel(lBuffer,0);
 buffer.copyToChannel(rBuffer,1);
 
-const playReverb = (sound, panner) =>{
+const playReverb = (sound, panner, gain) =>{
   let convolver = sound.context.createConvolver();
   convolver.buffer = buffer;
 
   panner.connect(convolver);
-  convolver.connect(sound.context.destination);
+  convolver.connect(gain);
 
 }
 
