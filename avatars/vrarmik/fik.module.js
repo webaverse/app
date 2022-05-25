@@ -1,3 +1,10 @@
+
+
+// my
+const radiusTop = 0.1;
+const radiusBottom = 0.05;
+
+
 // Polyfills
 
 if ( Number.EPSILON === undefined ) {
@@ -2363,7 +2370,7 @@ Object.assign( Structure3D.prototype, {
 
         var size = bone.length;
         var color = bone.color;
-        var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
+        var g = new THREE.CylinderBufferGeometry ( radiusTop, radiusBottom, size, 4 );
         g.applyMatrix4( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
         g.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
         var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false });
@@ -3596,7 +3603,7 @@ Object.assign( Structure2D.prototype, {
         var size = bone.length;
         var color = bone.color;
         //console.log(bone.color)
-        var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
+        var g = new THREE.CylinderBufferGeometry ( radiusTop, radiusBottom, size, 4 );
        //g.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, size*0.5, 0 ) );
         g.applyMatrix4( new THREE.Matrix4().makeRotationX( -_Math.pi90 ) );
         g.applyMatrix4( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );

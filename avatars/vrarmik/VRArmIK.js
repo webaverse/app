@@ -62,22 +62,6 @@ const FINGER_SPECS = [
 			this.upperArmLength = 0;
 			this.lowerArmLength = 0;
 			this.armLength = 0;
-
-      if (!this.left) {
-        this.solver = new FIK.Structure3D(window.rootScene);
-        window.solver = this.solver;
-        this.chain = new FIK.Chain3D();
-        const base = new FIK.Bone3D(new FIK.V3(0, 1, 0), new FIK.V3(3, 1, 0));
-        window.base = base;
-        this.chain.addBone(base);
-        // this.chain.setHingeBaseboneConstraint('global', new FIK.V3(0, 0, 1), 0, 0, new FIK.V3(0, 1, 0));
-        // this.chain.setRotorBaseboneConstraint( 'global', FIK.X_AXE, 90);
-        this.chain.setRotorBaseboneConstraint('global', FIK.X_AXE, 0);
-        this.chain.addConsecutiveHingedBone(new FIK.V3(0, 0, -1), 3, 'local', FIK.Y_AXE, 150, 0, FIK.Z_AXE);
-
-        // this.solver.add(this.chain, target.position, true);
-        this.solver.add(this.chain, new FIK.V3(3, 0, 10), true);
-      }
     }
 
 		Start()
@@ -85,11 +69,47 @@ const FINGER_SPECS = [
 			this.upperArmLength = Helpers.getWorldPosition(this.arm.lowerArm, localVector).distanceTo(Helpers.getWorldPosition(this.arm.upperArm, localVector2));
 			this.lowerArmLength = Helpers.getWorldPosition(this.arm.hand, localVector).distanceTo(Helpers.getWorldPosition(this.arm.lowerArm, localVector2));
 			this.armLength = this.upperArmLength + this.lowerArmLength;
+
+      if (!this.left) {
+        window.vrArmIk = this;
+        // console.log(window.modelBoneOutputs.Left_arm.boneLength);
+        this.solver = new FIK.Structure3D(window.rootScene);
+        window.solver = this.solver;
+        this.chain = new FIK.Chain3D();
+        const base = new FIK.Bone3D(new FIK.V3(0, 1, 0), new FIK.V3(this.upperArmLength, 1, 0));
+        window.base = base;
+        this.chain.addBone(base);
+        // this.chain.setHingeBaseboneConstraint('global', new FIK.V3(0, 0, 1), 0, 0, new FIK.V3(0, 1, 0));
+        this.chain.setRotorBaseboneConstraint('global', FIK.X_NEG, 45);
+        // this.chain.setRotorBaseboneConstraint('global', FIK.X_NEG, 0);
+        // this.chain.addConsecutiveHingedBone(new FIK.V3(0, 0, -1), this.lowerArmLength, 'local', FIK.Y_AXE, 150, 0, FIK.Z_AXE);
+        this.chain.addConsecutiveBone(new FIK.V3(0, 0, -1), this.lowerArmLength);
+
+        // this.solver.add(this.chain, target.position, true);
+        window.fikTarget = new FIK.V3(-this.upperArmLength, 1, -this.lowerArmLength);
+        this.solver.add(this.chain, window.fikTarget, true);
+      }
 		}
 
 		Update()
 		{
       if (!this.left) {
+        // window.modelBoneOutputs.Left_wrist.getWorldPosition(localVector);
+        // localVector.sub(window.modelBoneOutputs.Left_arm.getWorldPosition(localVector2));
+        localVector.setFromMatrixPosition(window.modelBoneOutputs.Left_wrist.matrixWorld);
+        localVector2.setFromMatrixPosition(window.modelBoneOutputs.Left_arm.matrixWorld);
+        localVector.sub(localVector2);
+        // localVector.applyQuaternion(localQuaternion.copy(window.localPlayer.quaternion).invert());
+        localEuler.setFromQuaternion(window.localPlayer.quaternion, 'YXZ');
+        localEuler.y *= -1;
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localVector.applyEuler(localEuler);
+        // console.log(localVector.y);
+        localVector.y += 1;
+        window.fikTarget.x = localVector.x;
+        window.fikTarget.y = localVector.y;
+        window.fikTarget.z = localVector.z;
         this.solver.update();
         // this.solver.meshChains[0][0].updateMatrixWorld();
         // this.solver.meshChains[0][1].updateMatrixWorld();

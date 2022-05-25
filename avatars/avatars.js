@@ -295,6 +295,7 @@ const _makeDebugMesh = (avatar) => {
       const modelBone = avatar.modelBoneOutputs[k];
       const meshBone = attributes[k];
       const l = k !== 'Root' ? modelBone.position.length() : 0;
+      modelBone.boneLength = l;
       meshBone.mesh.scale.z = l;
     }
 
@@ -780,6 +781,7 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
+    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -2006,7 +2008,8 @@ class Avatar {
     _updateSubAvatars();
 
     const debug = metaversefile.useDebug();
-    if (debug.enabled && !this.debugMesh) {
+    // if (debug.enabled && !this.debugMesh) {
+    if (!this.debugMesh) {
       this.debugMesh = _makeDebugMesh();
       this.debugMesh.wrapToAvatar(this);
       this.model.add(this.debugMesh);
