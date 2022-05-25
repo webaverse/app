@@ -240,9 +240,11 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
+    cameraManager.lastNonzeroDirectionVectorRotated.copy(keysDirection);
     const useAction = localPlayer.getAction('use');
     const isUsingSwords = useAction?.animation || useAction?.animationCombo?.length > 0;
     if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled() && !isUsingSwords) {
+      // window.domInfo.innerHTML += `<div style="display:;">keysDirection: --- ${window.logVector3(keysDirection)}</div>`;
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
           .multiplyScalar(game.getSpeed() * timeDiff)

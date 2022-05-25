@@ -435,7 +435,7 @@ const _startUse = () => {
           localPlayer.avatar?.moveFactors?.walkRunFactor >= 1
         ) {
           localPlayer.startSwordAttackWhenRunning = true; // todo: rename to isSwordDashAttack?
-          localVector.copy(cameraManager.lastNonzeroDirectionVector).setY(0)
+          localVector.copy(cameraManager.lastNonzeroDirectionVectorRotated).setY(0)
             .normalize()
             .multiplyScalar(10);
           localPlayer.characterPhysics.applyWasd(localVector);
