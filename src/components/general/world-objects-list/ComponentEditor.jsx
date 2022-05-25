@@ -29,7 +29,7 @@ export const ComponentEditor = () => {
             if ( typeof component.value === 'number' ) type = 'number';
             if ( typeof component.value === 'boolean' ) type = 'bool';
 
-            newComponents.push({ key: component.key, value: ( type === 'json' ? JSON.stringify( component.value ) : component.value.toString() ), type: component.type ?? type, error: false });
+            newComponents.push({ key: component.key, value: ( type === 'json' ? JSON.stringify( component.value ) : component.value.toString() ), type: component.type ?? type, error: component.error });
 
         });
 
