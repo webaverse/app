@@ -105,7 +105,7 @@ class XRManager extends EventTarget {
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
         if (!inputSources[0].profiles.includes('oculus-hand')) {
-          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
+          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI));
         } else {
           localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), Math.PI*0.5)).multiply(localQuaternion3.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2));
         }
@@ -130,7 +130,7 @@ class XRManager extends EventTarget {
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
         if (!inputSources[1].profiles.includes('oculus-hand')) {
-          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
+          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI));
         } else {
           localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), -Math.PI*0.5)).multiply(localQuaternion3.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2));
         }
@@ -151,15 +151,15 @@ class XRManager extends EventTarget {
         rightGamepadEnabled = false;
       }
     } else {
-      localMatrix.copy(localPlayer.matrixWorld)
-        .decompose(localVector, localQuaternion, localVector2);
+      /*localMatrix.copy(localPlayer.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);*/
     }
 
     const handOffsetScale = localPlayer.avatar ? localPlayer.avatar.height / 1.5 : 1;
     const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
     const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
     if (!leftGamepadPosition) {
-      leftGamepadPosition = localVector2.copy(localVector)
+      leftGamepadPosition = localVector2.copy(localVector2)
         .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
         .toArray();
       leftGamepadQuaternion = localQuaternion.toArray();
@@ -168,7 +168,7 @@ class XRManager extends EventTarget {
       leftGamepadEnabled = false;
     }
     if (!rightGamepadPosition) {
-      rightGamepadPosition = localVector2.copy(localVector)
+      rightGamepadPosition = localVector2.copy(localVector2)
         .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
         .toArray();
       rightGamepadQuaternion = localQuaternion.toArray();
@@ -179,13 +179,12 @@ class XRManager extends EventTarget {
 
     if(localPlayer.avatar) {
 
-      localPlayer.avatar.inputs.hmd.position.copy(localVector);
-      localPlayer.avatar.inputs.hmd.quaternion.copy(localQuaternion);
+      localPlayer.avatar.inputs.hmd.position.copy(localPlayer.avatarBinding.position);
+      localPlayer.avatar.inputs.hmd.quaternion.copy(localPlayer.avatarBinding.quaternion);
 
       localPlayer.avatar.inputs.leftGamepad.position.copy(new THREE.Vector3().fromArray(leftGamepadPosition));
       localPlayer.avatar.inputs.rightGamepad.position.copy(new THREE.Vector3().fromArray(rightGamepadPosition));
 
-      //console.log(leftGamepadPosition, rightGamepadPosition);
       localPlayer.avatar.inputs.leftGamepad.quaternion.copy(new THREE.Quaternion().fromArray(leftGamepadQuaternion));
       localPlayer.avatar.inputs.rightGamepad.quaternion.copy(new THREE.Quaternion().fromArray(rightGamepadQuaternion));
 
@@ -197,34 +196,7 @@ class XRManager extends EventTarget {
 
       localPlayer.avatar.inputs.leftGamepad.enabled = leftGamepadEnabled;
       localPlayer.avatar.inputs.rightGamepad.enabled = rightGamepadEnabled;
-
-      //localPlayer.avatar.setTopEnabled(true);
-      //localPlayer.avatar.setBottomEnabled(true);
-      //localPlayer.avatar.setHandEnabled(0, true);
-      //localPlayer.avatar.setHandEnabled(1, true);
-
-      //localPlayer.leftHand.position.copy(new THREE.Vector3().fromArray(leftGamepadPosition));
-      //localPlayer.leftHand.quaternion.copy(new THREE.Quaternion().fromArray(leftGamepadQuaternion));
-
-      //localPlayer.rightHand.position.copy(new THREE.Vector3().fromArray(rightGamepadPosition));
-      //localPlayer.rightHand.quaternion.copy(new THREE.Quaternion().fromArray(rightGamepadQuaternion));
-
-      //console.log(localPlayer.avatar.inputs);
-
-      //camera.position.copy(localVector);
-      //camera.updateMatrixWorld();
-      //dolly.position.copy(localPlayer.avatar.inputs.hmd.position);
-      //dolly.updateMatrixWorld();
-
     }
-
-    
-
-    /*rigManager.setLocalAvatarPose([ 
-      [localVector.toArray(), localQuaternion.toArray()],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
-    ]);*/
   }
 };
 const xrManager = new XRManager();
