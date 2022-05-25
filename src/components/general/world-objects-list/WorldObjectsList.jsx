@@ -17,6 +17,10 @@ import styles from './world-objects-list.module.css';
 
 //
 
+
+const APP_TYPES = [ 'glb', 'html', 'gltf', 'gif', 'vrm' ];
+
+
 export const WorldObjectsList = () => {
 
     const { state, setState, setSelectedApp, selectedApp } = useContext( AppContext );
@@ -314,7 +318,7 @@ export const WorldObjectsList = () => {
 
         apps.forEach( ( app ) => {
 
-            if ( [ 'glb', 'html', 'gltf', 'vrm', 'gif' ].indexOf( app.appType ) !== -1 ) {
+            if ( APP_TYPES.indexOf( app.appType ) !== -1 ) {
 
                 sortedApps.push( app );
 
@@ -324,7 +328,7 @@ export const WorldObjectsList = () => {
 
         apps.forEach( ( app ) => {
 
-            if ( [ 'glb', 'html', 'gltf', 'vrm', 'gif' ].indexOf( app.appType ) === -1 ) {
+            if ( APP_TYPES.indexOf( app.appType ) === -1 ) {
 
                 sortedApps.push( app );
 
@@ -355,7 +359,7 @@ export const WorldObjectsList = () => {
                             <div className={ classnames( styles.object, app === selectedApp ? styles.selected : null ) } key={ i } onClick={ handleItemClick.bind( this, app ) } onMouseEnter={ handleItemMouseEnter.bind( this, app ) } onMouseLeave={ handleItemMouseLeave.bind( this, app ) } >
                                 <img src="images/webpencil.svg" className={ classnames( styles.backgroundInner, styles.lime ) } />
                                 {
-                                    ( [ 'glb', 'html', 'gltf', 'gif', 'vrm' ].indexOf( app.appType ) !== -1 ) ? (
+                                    ( APP_TYPES.indexOf( app.appType ) !== -1 ) ? (
                                         <ObjectScreenshot
                                             className={ styles.img }
                                             width={ 80 }
@@ -461,7 +465,7 @@ export const WorldObjectsList = () => {
                                     <ComponentEditor />
                                 </div>
                                 {
-                                    ( [ 'glb', 'html', 'gltf', 'gif', 'vrm' ].indexOf( selectedApp.appType ) !== -1 ) ? (
+                                    ( APP_TYPES.indexOf( selectedApp.appType ) !== -1 ) ? (
                                         // <Spritesheet
                                         //     className={ styles.objectPreview }
                                         //     startUrl={ selectedApp?.start_url }
