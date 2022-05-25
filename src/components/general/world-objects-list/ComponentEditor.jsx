@@ -42,54 +42,40 @@ export const ComponentEditor = () => {
         for ( let i = 0; i < selectedApp.components.length; i ++ ) {
 
             const value = components[ i ].value;
-            components[ i ].error = false;
+            selectedApp.components[ i ].error = false;
 
-            if ( components[ i ].type === 'number' ) {
+            switch(components[i].type) {
+                case 'number':
+                    
+                    const parsedValue = parseFloat( components[ i ].value );
 
-                if ( value.match(/^-?\d+$/) || value.match(/^\d+\.\d+$/) ) {
+                    if ( isNaN(parsedValue) )  {
+                        components[ i ].error = true;
+                        continue;
+                    }
+                    
+                    selectedApp.components[ i ].value = value;
 
-                    selectedApp.components[ i ].value = parseFloat( value );
+                break;
+                case 'bool':
 
-                } else {
+                    selectedApp.components[ i ].value = Boolean(parseInt(value));
 
-                    components[ i ].error = true;
+                break;
+                case 'json':
 
-                }
+                    try {
+                        selectedApp.components[ i ].value = JSON.parse( value );
+                    } catch ( err ) {
+                        selectedApp.components[ i ].value = value;
+                        selectedApp.components[ i ].error = true;
+                    }
 
-            } else if ( components[ i ].type === 'bool' ) {
-
-                if ( value === 'true' ) {
-
-                    selectedApp.components[ i ].value = true;
-
-                } else if ( value === 'false' ) {
-
-                    selectedApp.components[ i ].value = false;
-
-                } else {
-
-                    components[ i ].error = true;
-
-                }
-
-            } else if ( components[ i ].type === 'json' ) {
-
-                try {
-
-                    selectedApp.components[ i ].value = JSON.parse( value );
-
-                } catch ( err ) {
-
-                    components[ i ].error = true;
-
-                }
-
-            } else {
-
-                selectedApp.components[ i ].value = value.toString();
-
+                break;
+                default: 
+                    selectedApp.components[ i ].value = value.toString();
+                break;
             }
-
 
         }
 
@@ -234,7 +220,14 @@ export const ComponentEditor = () => {
                                     </>
                                 )
                             }
-                            <input className={ classNames( styles.itemValue, ( isEditable && component.error ? styles.valueError : null ) ) } disabled={ ! isEditable } type="text" value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />
+                            {
+                                {
+                                    'number': <input type="number" className={ classNames( styles.itemValue, ( isEditable && component.error ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />,
+                                    'bool': <input type="checkbox" defaultChecked={!!component.value} className={ classNames( styles.itemValue, ( isEditable && component.error ? styles.valueError : null ) ) } disabled={ ! isEditable } onChange={ (e)=>handleCheckboxChange(component.key, e.target.checked ? true : false) } />,
+                                    'string': <input type="text" className={ classNames( styles.itemValue, ( isEditable && component.error ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />,
+                                    'json': <input type="text" className={ classNames( styles.itemValue, ( isEditable && component.error ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />
+                                }[component.type]
+                            }       
                             {
                                 isEditable ? (
                                     <select className={ styles.itemType } value={ component.type } onChange={ handleTypeSelectChange.bind( this, component.key ) } >
