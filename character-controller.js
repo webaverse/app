@@ -24,8 +24,7 @@ import {
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
   // groundFriction,
-  defaultVoicePackName,
-  voiceEndpoint,
+  // defaultVoicePackName,
   numLoadoutSlots,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
@@ -36,7 +35,7 @@ import {CharacterHitter} from './character-hitter.js';
 import {CharacterBehavior} from './character-behavior.js';
 import {CharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer, getVoiceEndpointUrl} from './voice-output/voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
@@ -155,19 +154,25 @@ class PlayerBase extends THREE.Object3D {
       this.leftHand,
       this.rightHand,
     ];
-    
+
+    this.detached = false;
+
     this.avatar = null;
     
     this.appManager = new AppManager({
       appsMap: null,
     });
     this.appManager.addEventListener('appadd', e => {
-      const app = e.data;
-      scene.add(app);
+      if (!this.detached) {
+        const app = e.data;
+        scene.add(app);
+      }
     });
     this.appManager.addEventListener('appremove', e => {
-      const app = e.data;
-      app.parent && app.parent.remove(app);
+      if (!this.detached) {
+        const app = e.data;
+        app.parent && app.parent.remove(app);
+      }
     });
 
     this.headTarget = new THREE.Vector3();
@@ -259,7 +264,7 @@ class PlayerBase extends THREE.Object3D {
   }
   setVoiceEndpoint(voiceId) {
     if (voiceId) {
-      const url = `${voiceEndpoint}?voice=${encodeURIComponent(voiceId)}`;
+      const url = getVoiceEndpointUrl(voiceId);
       this.voiceEndpoint = new VoiceEndpoint(url);
     } else {
       this.voiceEndpoint = null;
@@ -1015,6 +1020,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
+    this.detached = !!opts.detached;
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;

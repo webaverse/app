@@ -47,10 +47,12 @@ import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
+import * as lodder from './lod.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
+import hitManager from './character-hitter.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -537,6 +539,9 @@ metaversefile.setApi({
   },
   useLoaders() {
     return loaders;
+  },
+  useLodder() {
+    return lodder;
   },
   useMeshLodder() {
     return meshLodManager;
@@ -1179,6 +1184,9 @@ export default () => {
   },
   useDropManager() {
     return dropManager;
+  },
+  useHitManager() {
+    return hitManager;
   },
   useDebug() {
     return debug;
