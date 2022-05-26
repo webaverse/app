@@ -1905,6 +1905,8 @@ class Avatar {
       window.domInfo.innerHTML = `
         <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
         <div style="display:;">idleWalkFactor: --- ${window.logNum(moveFactors.idleWalkFactor)}</div>
+        <div style="display:;">pickUpState: --- ${this.pickUpState}</div>
+        <div style="display:;">holdState: --- ${this.holdState}</div>
         <div style="display:;">---</div>
         <div style="display:;">keysDirection: --- ${window.logVector3(window.ioManager?.keysDirection)}</div>
         <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} of characterPhysics ( correct )</div>
