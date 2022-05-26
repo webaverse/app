@@ -74,7 +74,7 @@ const reverbGain = audioContext.createGain();
 reverbGain.connect(convolver);
 
 
-const sounds = [];
+const currentPlayingSound = [];
 const playSound = (audioSpec, option) => {
   const {offset, duration} = audioSpec;
 
@@ -82,7 +82,8 @@ const playSound = (audioSpec, option) => {
   audioBufferSourceNode.buffer = soundFileAudioBuffer;
   if (option === undefined) {
     audioBufferSourceNode.connect(masterOut);
-  } else {
+  } 
+  else {
     const pannerNode = audioContext.createPanner();
     pannerNode.panningModel = "HRTF";
     const gainNode = audioContext.createGain();
@@ -104,14 +105,14 @@ const playSound = (audioSpec, option) => {
 
     gainNode.inReverbZone = false;
 
-    // handel sounds array
+    // handel currentPlayingSound array
     audioBufferSourceNode.info = {voicer: option.voicer, context: audioContext, panner: pannerNode, gainNode: gainNode};
-    sounds.push(audioBufferSourceNode.info);
+    currentPlayingSound.push(audioBufferSourceNode.info);
     audioBufferSourceNode.addEventListener('ended', () => {
-      const index = sounds.indexOf(audioBufferSourceNode.info);
+      const index = currentPlayingSound.indexOf(audioBufferSourceNode.info);
       if (index > -1) {
-        // clean sounds array
-        sounds.splice(index, 1);
+        // clean currentPlayingSound array
+        currentPlayingSound.splice(index, 1);
       }
     });
   }
@@ -162,7 +163,7 @@ const update = () =>{
   localVector.set(0, 0, -1);
   cameraDirection = localVector.applyQuaternion( camera.quaternion );
   cameraDirection.normalize();
-  for(const sound of sounds){
+  for(const sound of currentPlayingSound){
     sound.context.listener.setOrientation(cameraDirection.x, cameraDirection.y, cameraDirection.z, upVectore.x, upVectore.y, upVectore.z);
     sound.context.listener.setPosition(camera.position.x, camera.position.y, camera.position.z);
     sound.panner.setPosition(sound.voicer.position.x, sound.voicer.position.y, sound.voicer.position.z);
@@ -197,4 +198,6 @@ export {
   playSound,
   playSoundName,
   update,
+  audioContext,
+  currentPlayingSound
 };
