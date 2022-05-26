@@ -23,6 +23,7 @@ const minRadius = 0.4;
 const maxRadius = minRadius + minRadius * numCylinders;
 const explosionScaleFactor = 4;
 const dropItemSize = 0.2;
+const pickUpDistance = 1;
 
 const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
@@ -109,7 +110,7 @@ const _makeDropMesh = () => {
   itemletMesh.frustumCulled = false;
   // itemletMesh.updateMatrixWorld();
 
-  let animation = null;
+  let pickedUp = false;
   let rotY = 0;
   itemletMesh.update = (timestamp, timeDiff) => {
     const timeDiffS = timeDiff / 1000;
@@ -120,7 +121,7 @@ const _makeDropMesh = () => {
     localEuler.x = 0;
     localEuler.z = 0; */
 
-    if (!animation) {
+    if (!pickedUp) {
       if (!itemletMesh.velocity.equals(zeroVector)) {
         itemletMesh.position.add(localVector.copy(itemletMesh.velocity).multiplyScalar(timeDiffS));
         itemletMesh.velocity.add(localVector.copy(gravity).multiplyScalar(timeDiffS));
@@ -132,13 +133,15 @@ const _makeDropMesh = () => {
         const localPosition = localVector.copy(localPlayer.position);
         localPosition.y -= localPlayer.avatar.height;
 
-        if (localPosition.distanceTo(itemletMesh.position) < 0.5) {
-          animation = {
-            startTime: timestamp,
-            duration: 1000,
-          };
+        if (localPosition.distanceTo(itemletMesh.position) < pickUpDistance) {
+          console.log('trigger drop pickUp');
+          
+          const localPlayer = useLocalPlayer();
+          localPlayer.addAction({
+            type: 'pickUp',
+          });
 
-          // console.log('trigger pickup animation');
+          pickedUp = true;
         }
       }
 
@@ -149,9 +152,9 @@ const _makeDropMesh = () => {
       itemletMesh.quaternion.setFromEuler(localEuler);
       
       // console.log('got rotation', localEuler.y);
-    } else {
+    } /* else {
       // console.log('animate');
-    }
+    } */
 
     itemletMesh.updateMatrixWorld();
   };
@@ -566,7 +569,7 @@ const _makeCometMesh = () => {
 };
 export default () => {
   const app = useApp();
-  const sounds = useSound();
+  // const sounds = useSound();
 
   app.name = 'comet';
 
