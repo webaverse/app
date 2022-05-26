@@ -1144,22 +1144,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        // _handleDefault(spec);
-
         const pickUpAnimation = pickUpAnimations['pickUpZelda'];
         const src2 = pickUpAnimation.interpolants[k];
-        const t2 = (now / 1000) % pickUpAnimation.duration;
+        const t2 = (avatar.pickUpTime / 1000) % pickUpAnimation.duration;
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
-
-        /* // if (isTop) {
-          if (isPosition) {
-            dst.fromArray(v2);
-          } else {
-            dst.fromArray(v2);
-          }
-        // } */
       };
     }
     return _handleDefault;
