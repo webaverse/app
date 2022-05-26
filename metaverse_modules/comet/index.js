@@ -22,7 +22,7 @@ const minRadius = 0.4;
 // const radiusStep = minRadius;
 const maxRadius = minRadius + minRadius * numCylinders;
 const explosionScaleFactor = 4;
-const dropItemSize = 0.1;
+const dropItemSize = 0.2;
 
 const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
@@ -59,7 +59,8 @@ const _makeDropMesh = () => {
   w *= dropItemSize;
   h *= dropItemSize;
 
-  const geometry = new THREE.PlaneBufferGeometry(w, h);
+  const geometry = new THREE.PlaneBufferGeometry(w, h)
+    .translate(0, 0.5, 0);
   const texture = getCardBackTexture();
   
   const material = new WebaverseShaderMaterial({
@@ -109,14 +110,15 @@ const _makeDropMesh = () => {
   // itemletMesh.updateMatrixWorld();
 
   let animation = null;
+  let rotY = 0;
   itemletMesh.update = (timestamp, timeDiff) => {
     const timeDiffS = timeDiff / 1000;
-    const camera = useCamera();
+    // const camera = useCamera();
     const localPlayer = useLocalPlayer();
 
-    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+    /* localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
     localEuler.x = 0;
-    localEuler.z = 0;
+    localEuler.z = 0; */
 
     if (!animation) {
       if (!itemletMesh.velocity.equals(zeroVector)) {
@@ -126,7 +128,6 @@ const _makeDropMesh = () => {
           itemletMesh.position.y = 0;
           itemletMesh.velocity.set(0, 0, 0);
         }
-        itemletMesh.updateMatrixWorld();
       } else {
         const localPosition = localVector.copy(localPlayer.position);
         localPosition.y -= localPlayer.avatar.height;
@@ -137,12 +138,22 @@ const _makeDropMesh = () => {
             duration: 1000,
           };
 
-          console.log('trigger pickup animation')
+          // console.log('trigger pickup animation');
         }
       }
+
+      // rotation
+      rotY += 0.3 * Math.PI * 2 * timeDiffS;
+      rotY = rotY % (Math.PI * 2);
+      localEuler.set(0, rotY, 0, 'YXZ');
+      itemletMesh.quaternion.setFromEuler(localEuler);
+      
+      // console.log('got rotation', localEuler.y);
     } else {
-      // console.log('');
+      // console.log('animate');
     }
+
+    itemletMesh.updateMatrixWorld();
   };
   return itemletMesh;
 };
@@ -476,7 +487,6 @@ const _makeCometMesh = () => {
 
   let explosionStartTime = NaN;
   let dropped = false;
-  const dropMeshes = [];
   object.update = (timestamp, timeDiff) => {
     frontMesh.visible = false;
     backMesh.visible = false;
@@ -506,13 +516,9 @@ const _makeCometMesh = () => {
         explosionStartTime = timestamp;
 
         if (!dropped) {
-          const dropMesh = _makeDropMesh();
-          dropMesh.position.copy(worldPosition);
-          dropMesh.updateMatrixWorld();
-          dropMeshes.push(dropMesh);
-
-          const scene = useScene();
-          scene.add(dropMesh);
+          object.dispatchEvent({
+            type: 'drop',
+          });
 
           dropped = true;
         }
@@ -555,20 +561,6 @@ const _makeCometMesh = () => {
       backMaterial.uniforms.uOpacity.needsUpdate = true;
     };
     _updateUniforms();
-
-    const _updateDropMeshes = () => {
-      for (let i = 0; i < dropMeshes.length; i++) {
-        const dropMesh = dropMeshes[i];
-        dropMesh.update(timestamp, timeDiff);
-      }
-    };
-    _updateDropMeshes();
-  };
-  object.destroy = () => {
-    for (let i = 0; i < dropMeshes.length; i++) {
-      const dropMesh = dropMeshes[i];
-      scene.remove(dropMesh);
-    }
   };
   return object;
 };
@@ -578,18 +570,43 @@ export default () => {
 
   app.name = 'comet';
 
-  app.setComponent('renderPriority', 'lower');
+  // app.setComponent('renderPriority', 'lower');
 
   const mesh = _makeCometMesh();
+
+  const dropMeshes = [];
+  mesh.addEventListener('drop', e => {
+    const worldPosition = localVector.setFromMatrixPosition(mesh.matrixWorld);
+
+    const dropMesh = _makeDropMesh();
+    dropMesh.position.copy(worldPosition);
+    dropMesh.position.y += 0.5;
+    dropMesh.updateMatrixWorld();
+    dropMeshes.push(dropMesh);
+
+    const parent = app.parent;
+    parent.add(dropMesh);
+    // remove + add for sorting
+    parent.remove(app);
+    parent.add(app);
+  });
   app.add(mesh);
   mesh.updateMatrixWorld();
 
   useFrame(({timestamp, timeDiff}) => {
     mesh.update(timestamp, timeDiff);
+
+    for (let i = 0; i < dropMeshes.length; i++) {
+      const dropMesh = dropMeshes[i];
+      dropMesh.update(timestamp, timeDiff);
+    }
   });
 
   useCleanup(() => {
-    mesh.destroy();
+    for (let i = 0; i < dropMeshes.length; i++) {
+      const dropMesh = dropMeshes[i];
+      dropMesh.parent.remove(dropMesh);
+    }
   });
   
   return app;
