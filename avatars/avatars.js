@@ -1903,6 +1903,8 @@ class Avatar {
 
     _updateHmdPosition();
     if (this === window.localPlayer.avatar) {
+      window.avatar = this;
+      window.motiono = this.motiono;
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
       */

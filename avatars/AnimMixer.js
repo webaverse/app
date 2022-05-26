@@ -2,10 +2,11 @@ import {EventDispatcher} from 'three';
 import {AnimMotion} from './AnimMotion.js';
 
 class AnimMixer extends EventDispatcher {
-  constructor(animationMappings) {
+  constructor(avatar) {
     super();
-    this.animationMappings = animationMappings;
+    this.avatar = avatar;
     this.motion = null;
+    this.yBias = 0;
   }
 
   createMotion(clip) {
@@ -14,7 +15,7 @@ class AnimMixer extends EventDispatcher {
   }
 
   update(timeSeconds = performance.now() / 1000) {
-    for (const spec of this.animationMappings) {
+    for (const spec of this.avatar.animationMappings) {
       const {
         animationTrackName: k,
         dst,
@@ -37,16 +38,16 @@ class AnimMixer extends EventDispatcher {
       // _blendFly(spec);
       // _blendActivateAction(spec);
 
-      // // ignore all animation position except y
-      // if (isPosition) {
-      //   if (!avatar.jumpState) {
-      //     // animations position is height-relative
-      //     dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
-      //   } else {
-      //     // force height in the jump case to overide the animation
-      //     dst.y = avatar.height * 0.55;
-      //   }
-      // }
+      // ignore all animation position except y
+      if (isPosition) {
+        if (!this.avatar.jumpState) {
+          // animations position is height-relative
+          dst.y *= this.avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
+        } else {
+          // force height in the jump case to overide the animation
+          dst.y = this.avatar.height * 0.55;
+        }
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip} from 'three';
+import {Vector3, Quaternion, AnimationClip, LoopOnce} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -409,19 +409,28 @@ export const loadPromise = (async () => {
 });
 
 export const _createAnimation = avatar => {
-  const mixer = new AnimMixer(avatar.animationMappings);
+  const mixer = new AnimMixer(avatar);
   avatar.mixer = mixer;
+
   const motiono = {};
   avatar.motiono = motiono;
+
   const walkMotion = mixer.createMotion(animations.index['walking.fbx']);
   motiono.walk = walkMotion;
+
   const jumpMotion = mixer.createMotion(jumpAnimation);
   motiono.jump = jumpMotion;
+  jumpMotion.loop = LoopOnce;
+
   walkMotion.play();
 };
 
 export const _updateAnimation = avatar => {
   const {mixer} = avatar;
+
+  if (avatar.jumpState && avatar.jumpTime === 0) avatar.motiono.jump.play();
+  if (avatar.jumpState) console.log(avatar.jumpTime);
+
   mixer.update();
 };
 
