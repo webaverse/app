@@ -155,6 +155,7 @@ class PlayerBase extends THREE.Object3D {
     this.rightHand = new PlayerHand();
     this.hands = [this.leftHand, this.rightHand];
     this.wornApps = [];
+    this.removedWornApp = false
     this.avatar = null;
 
     this.appManager = new AppManager();
@@ -282,34 +283,73 @@ class PlayerBase extends THREE.Object3D {
     factor *= 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
     return factor; */
   }
+
+  handleWearUpdate(app, wear, loadoutIndex = -1, isAppUpdate = false, isPlayerUpdate = true) {
+    const param = {
+      type: "wearupdate",
+      app,
+      player: this,
+      wear
+    }
+
+    if (loadoutIndex != -1) {
+      param.loadoutIndex = loadoutIndex
+    }
+    if (isPlayerUpdate) {
+      this.dispatchEvent(param);
+    }
+    if (isAppUpdate) {
+      app.dispatchEvent(param);
+    }
+  }
+
+  updateWearables() {
+    this.wornApps.forEach((app) => {
+      this.handleWearUpdate(app, true, -1, true, false)
+    });
+    
+    //ToDo: the wear app's transform should be reset in next frame call
+    if (this.removedWornApp) {
+      this.removedWornApp.dispatchEvent({
+        type: "resetweartransform",
+        app: this.removedWornApp,
+        player: this,
+      });
+      this.removedWornApp = null
+    }
+  }
+
   wear(app, { loadoutIndex = -1 } = {}) {
     console.log(
       "Wearx called in PlayerBase of Character Controller",
       app,
       loadoutIndex
     );
-    const _getNextLoadoutIndex = () => {
-      let nextLoadoutIndex = -1;
-      const usedIndexes = Array(8).fill(false);
-      for (const action of this.getActionsState()) {
-        if (action.type === "wear") {
-          usedIndexes[action.loadoutIndex] = true;
-        }
-      }
-      for (let i = 0; i < usedIndexes.length; i++) {
-        if (!usedIndexes[i]) {
-          nextLoadoutIndex = i;
-          break;
-        }
-      }
-      return nextLoadoutIndex;
-    };
-    if (loadoutIndex === -1) {
-      loadoutIndex = _getNextLoadoutIndex();
-    }
     this.wornApps.push(app);
 
-    if (loadoutIndex >= 0 && loadoutIndex < numLoadoutSlots) {
+    if (this.isLocalPlayer) {
+      const _getNextLoadoutIndex = () => {
+        let nextLoadoutIndex = -1;
+        const usedIndexes = Array(8).fill(false);
+        for (const action of this.getActionsState()) {
+          if (action.type === "wear") {
+            usedIndexes[action.loadoutIndex] = true;
+          }
+        }
+        for (let i = 0; i < usedIndexes.length; i++) {
+          if (!usedIndexes[i]) {
+            nextLoadoutIndex = i;
+            break;
+          }
+        }
+        return nextLoadoutIndex;
+      };
+      if (loadoutIndex === -1) {
+        loadoutIndex = _getNextLoadoutIndex();
+      }
+    }
+
+    if (this.isLocalPlayer && loadoutIndex >= 0 && loadoutIndex < numLoadoutSlots) {
       const _removeOldApp = () => {
         const actions = this.getActionsState();
         let oldLoadoutAction = null;
@@ -365,47 +405,22 @@ class PlayerBase extends THREE.Object3D {
         instanceId: app.instanceId,
         loadoutIndex,
       });
-
-      this.dispatchEvent({
-        type: "wearupdate",
-        player: this,
-        app: app,
-        wear: true,
-        loadoutIndex,
-      });
+      this.handleWearUpdate(app, true, loadoutIndex)
     } else {
-      this.dispatchEvent({
-        type: "wearupdate",
-        player: this,
-        app: app,
-        wear: true,
-      });
+      this.handleWearUpdate(app, true)
     }
   }
+
   unwear(app, { destroy = false } = {}) {
     console.log(
       "Unwear called in PlayerBase of Character Controller",
       app,
       destroy
     );
+    
     const wearActionIndex = this.findActionIndex(({ type, instanceId }) => {
       return type === "wear" && instanceId === app.instanceId;
     });
-
-    const _setAppTransform = () => {
-      const avatarHeight = this.avatar ? this.avatar.height : 0;
-      app.position
-        .copy(this.position)
-        .add(
-          localVector
-            .set(0, -avatarHeight + 0.5, -0.5)
-            .applyQuaternion(this.quaternion)
-        );
-      app.quaternion.identity();
-      app.scale.set(1, 1, 1);
-      app.updateMatrixWorld();
-    };
-    _setAppTransform();
 
     const _deinitPhysics = () => {
       const physicsObjects = app.getPhysicsObjects();
@@ -447,39 +462,13 @@ class PlayerBase extends THREE.Object3D {
         }
       };
       _removeApp();
-      const _emitEvents = () => {
-        this.dispatchEvent({
-          type: "wearupdate",
-          player: this,
-          wear: false,
-          loadoutIndex,
-          app:app
-        });
-        app.dispatchEvent({
-          type: "wearupdate",
-          player: this,
-          wear: false,
-          loadoutIndex,
-          app:app
-        });
-      };
-      _emitEvents();
+      this.handleWearUpdate(app, false, loadoutIndex, true)
+    } else {
+      this.handleWearUpdate(app, false, -1, true)
     }
 
-    const _emitEvents = () => {
-      this.dispatchEvent({
-        type: "wearupdate",
-        player: this,
-        wear: false,
-      });
-      app.dispatchEvent({
-        type: "wearupdate",
-        player: this,
-        wear: false,
-      });
-    };
-    _emitEvents();
     this.wornApps.splice(this.wornApps.indexOf(app));
+    this.removedWornApp = app
   }
 }
 
@@ -1389,16 +1378,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     this.updateWearables();
   }
-  updateWearables() {
-    this.wornApps.forEach((app) => {
-      app.dispatchEvent({
-        type: "wearupdate",
-        app: app,
-        player: this,
-        wear: true
-      });
-    });
-  }
   resetPhysics() {
     this.characterPhysics.reset();
   }
@@ -1639,14 +1618,7 @@ class RemotePlayer extends InterpolatedPlayer {
         }
       }
 
-      this.wornApps.forEach((app) => {
-        app.dispatchEvent({
-          type: "wearupdate",
-          player: this,
-          app: app,
-          wear: true,
-        });
-      });
+      this.updateWearables();
     };
 
     this.playerMap.observe(observePlayerFn);
@@ -1791,6 +1763,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   }
   updatePhysics = LocalPlayer.prototype.updatePhysics;
   updateAvatar = LocalPlayer.prototype.updateAvatar;
+
   /* detachState() {
     return null;
   }
