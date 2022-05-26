@@ -42,11 +42,7 @@ const soundFiles = {
   battleTransition: _getSoundFiles(/ff7_battle_transition/),
   limitBreak: _getSoundFiles(/ff7_limit_break/),
   limitBreakReady: _getSoundFiles(/ff8_limit_ready/),
-
-  audioSource: _getSoundFiles(/^audioSource\//),
 };
-// const listener = new THREE.AudioListener();
-// camera.add( listener );
 
 const audioContext = Avatar.getAudioContext();
 
@@ -81,16 +77,17 @@ const playSound = (audioSpec, option) => {
   const audioBufferSourceNode = audioContext.createBufferSource();
   audioBufferSourceNode.buffer = soundFileAudioBuffer;
   if (option === undefined) {
+    // play the sound globally
     audioBufferSourceNode.connect(masterOut);
   } 
   else {
+    // play positional audio
     const pannerNode = audioContext.createPanner();
     pannerNode.panningModel = "HRTF";
     const gainNode = audioContext.createGain();
 
     audioBufferSourceNode.connect(pannerNode);
     pannerNode.connect(gainNode);
-    //gainNode.connect(reverbGain);
     gainNode.connect(masterOut);
 
     const refDistance = option.refDistance !== undefined ? option.refDistance : 10;
@@ -102,16 +99,15 @@ const playSound = (audioSpec, option) => {
     pannerNode.maxDistance = maxDistance;
     pannerNode.distanceModel = distanceModel;
     gainNode.gain.value = volume;
-
     gainNode.inReverbZone = false;
 
     // handel currentPlayingSound array
-    audioBufferSourceNode.info = {voicer: option.voicer, context: audioContext, panner: pannerNode, gainNode: gainNode};
+    audioBufferSourceNode.info = {voicer: option.voicer, panner: pannerNode, gainNode: gainNode};
     currentPlayingSound.push(audioBufferSourceNode.info);
+    // remove audioBufferSourceNode from array when sound end
     audioBufferSourceNode.addEventListener('ended', () => {
       const index = currentPlayingSound.indexOf(audioBufferSourceNode.info);
       if (index > -1) {
-        // clean currentPlayingSound array
         currentPlayingSound.splice(index, 1);
       }
     });
@@ -119,13 +115,21 @@ const playSound = (audioSpec, option) => {
   audioBufferSourceNode.start(0, offset, duration);
   return audioBufferSourceNode;
 };
+const playSoundName = (name, option) => {
+  const snds = soundFiles[name];
+  if (snds) {
+    const sound = snds[Math.floor(Math.random() * snds.length)];
+    playSound(sound, option);
+    return true;
+  } else {
+    return false;
+  }
+};
 
 
 function easeOfNoise (x, powNum) {
   return Math.pow(x, powNum);
 }
-
-
 function createNoiseBuffer(audioContext, length) {
 
   const bufferSize = length * audioContext.sampleRate;
@@ -153,6 +157,7 @@ let cameraDirection = new THREE.Vector3();
 let localVector = new THREE.Vector3();
 const update = () =>{
   let inReverbZone = false;
+  // check whether the camera in the reverb zone 
   for(const reverbZone of world.reverbZone){
     reverbZonsPos.set(reverbZone[0], reverbZone[1], reverbZone[2]);
     if(camera.position.distanceTo(reverbZonsPos) < reverbZone[3]){
@@ -163,10 +168,13 @@ const update = () =>{
   localVector.set(0, 0, -1);
   cameraDirection = localVector.applyQuaternion( camera.quaternion );
   cameraDirection.normalize();
+  // update listener 
   audioContext.listener.setOrientation(cameraDirection.x, cameraDirection.y, cameraDirection.z, upVectore.x, upVectore.y, upVectore.z);
   audioContext.listener.setPosition(camera.position.x, camera.position.y, camera.position.z);
   for(const sound of currentPlayingSound){
+    // update panner
     sound.panner.setPosition(sound.voicer.position.x, sound.voicer.position.y, sound.voicer.position.z);
+    // handel reverb node
     if(inReverbZone){
       if(!sound.gainNode.inReverbZone){
         sound.gainNode.connect(reverbGain);
@@ -181,16 +189,7 @@ const update = () =>{
     }
   }
 }
-const playSoundName = (name, option) => {
-  const snds = soundFiles[name];
-  if (snds) {
-    const sound = snds[Math.floor(Math.random() * snds.length)];
-    playSound(sound, option);
-    return true;
-  } else {
-    return false;
-  }
-};
+
 export {
   waitForLoad,
   getSoundFiles,

@@ -410,7 +410,6 @@ class CharacterSfx {
       const audioBufferSourceNode = audioContext.createBufferSource();
       audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
 
-
       const pannerNode = audioContext.createPanner();
       pannerNode.panningModel = "HRTF";
       const gainNode = audioContext.createGain();
@@ -420,22 +419,18 @@ class CharacterSfx {
       gainNode.connect(audioContext.destination);
 
       const refDistance = 10;
-      const maxDistance = 50;
       const distanceModel = 'inverse';
       const volume = 1;
 
       pannerNode.refDistance = refDistance;
-      pannerNode.maxDistance = maxDistance;
       pannerNode.distanceModel = distanceModel;
       gainNode.gain.value = volume;
-
       gainNode.inReverbZone = false;
 
       // control mouth movement with audio volume
       if (!this.player.avatar.isAudioEnabled()) {
         this.player.avatar.setAudioEnabled(true);
       }
-      //audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
       this.player.characterBehavior.setMouthMoving(0.1,0.1,0.1,0.1);
       
       // if the oldGrunt are still playing
@@ -443,20 +438,20 @@ class CharacterSfx {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-
-      // handel currentPlayingSound array
-      audioBufferSourceNode.info = {voicer: this.player, context: audioContext, panner: pannerNode, gainNode: gainNode};
-      sounds.currentPlayingSound.push(audioBufferSourceNode.info);
-
       this.oldGrunt = audioBufferSourceNode;
 
+      // handel currentPlayingSound array
+      audioBufferSourceNode.info = {voicer: this.player, panner: pannerNode, gainNode: gainNode};
+      sounds.currentPlayingSound.push(audioBufferSourceNode.info);
+
       audioBufferSourceNode.addEventListener('ended', () => {
+        // clean the oldGrunt if voice end
         if (this.oldGrunt === audioBufferSourceNode) {
           this.oldGrunt = null;
         }
+        // remove audioBufferSourceNode from array when sound end
         const index = sounds.currentPlayingSound.indexOf(audioBufferSourceNode.info);
         if (index > -1) {
-          // clean currentPlayingSound array
           sounds.currentPlayingSound.splice(index, 1);
         }
       });
@@ -528,7 +523,6 @@ class CharacterSfx {
       const audioBufferSourceNode = audioContext.createBufferSource();
       audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
 
-
       const pannerNode = audioContext.createPanner();
       pannerNode.panningModel = "HRTF";
       const gainNode = audioContext.createGain();
@@ -538,15 +532,12 @@ class CharacterSfx {
       gainNode.connect(audioContext.destination);
 
       const refDistance = 10;
-      const maxDistance = 50;
       const distanceModel = 'inverse';
       const volume = 1;
 
       pannerNode.refDistance = refDistance;
-      pannerNode.maxDistance = maxDistance;
       pannerNode.distanceModel = distanceModel;
       gainNode.gain.value = volume;
-
       gainNode.inReverbZone = false;
 
       // if the oldGrunt are still playing
@@ -556,18 +547,19 @@ class CharacterSfx {
       }
 
       // handel currentPlayingSound array
-      audioBufferSourceNode.info = {voicer: this.player, context: audioContext, panner: pannerNode, gainNode: gainNode};
+      audioBufferSourceNode.info = {voicer: this.player, panner: pannerNode, gainNode: gainNode};
       sounds.currentPlayingSound.push(audioBufferSourceNode.info);
 
       this.oldGrunt = audioBufferSourceNode;
 
       audioBufferSourceNode.addEventListener('ended', () => {
+        // clean the oldGrunt if voice end
         if (this.oldGrunt === audioBufferSourceNode) {
           this.oldGrunt = null;
         }
+        // remove audioBufferSourceNode from array when sound end
         const index = sounds.currentPlayingSound.indexOf(audioBufferSourceNode.info);
         if (index > -1) {
-          // clean currentPlayingSound array
           sounds.currentPlayingSound.splice(index, 1);
         }
       });
