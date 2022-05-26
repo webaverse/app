@@ -10,6 +10,7 @@ import {getLocalPlayer} from './players.js';
 import {minFov, maxFov, midFov} from './constants.js';
 // import { updateRaycasterFromMouseEvent } from './util.js';
 import easing from './easing.js';
+import { MathUtils } from 'three';
 
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0.5, 0, 0.5, 1);
@@ -46,6 +47,7 @@ const maxFocusTime = 300;
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 let cameraOffsetLimitZ = Infinity;
+const localPlane = new THREE.Plane();
 
 // let cameraOffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
@@ -58,15 +60,15 @@ const rayVectorZero = new THREE.Vector3(0,0,0);
 // const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
 // const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
 
-/* function getNormal(u, v) {
+function getNormal(u, v) {
   return localPlane.setFromCoplanarPoints(zeroVector, u, v).normal;
-} */
-/* function signedAngleTo(u, v) {
+}
+function signedAngleTo(u, v) {
   // Get the signed angle between u and v, in the range [-pi, pi]
   const angle = u.angleTo(v);
   console.log('signed angle to', angle, u.dot(v));
   return (u.dot(v) >= 0 ? 1 : -1) * angle;
-} */
+}
 /* function signedAngleTo(a, b, v) {
   const s = v.crossVectors(a, b).length();
   // s = length(cross_product(a, b))
@@ -80,7 +82,6 @@ const getSideOfY = (() => {
   const localVector = new THREE.Vector3();
   const localVector2 = new THREE.Vector3();
   const localQuaternion = new THREE.Quaternion();
-  const localPlane = new THREE.Plane();
 
   function getSideOfY(a, b) {
     localQuaternion.setFromRotationMatrix(
@@ -339,6 +340,29 @@ class CameraManager extends EventTarget {
       }));
     }
   }
+  //
+
+  //compare the direction you're looking at to a given object
+  //for example the one you're locked onto
+  compareAngletoCam(objectPos){
+    var obToCamVector = new THREE.Vector3()
+    var camVector = new THREE.Vector3();
+    var angleMag;
+
+    obToCamVector = objectPos;
+    camera.getWorldDirection(camVector);
+    //normalize vectors
+    camVector.normalize();
+    obToCamVector.normalize();
+    
+    angleMag = camVector.angleTo(obToCamVector);
+    angleMag = MathUtils.radToDeg(angleMag);
+    console.log(angleMag);
+    return angleMag;
+  }
+
+
+  //
   setDynamicTarget(target = null, target2 = null) {
     this.targetType = 'dynamic';
     this.target = target;
