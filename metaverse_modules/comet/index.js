@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useMaterials, useSound, useLocalPlayer} = metaversefile;
+const {useApp, useFrame, useCleanup, useCamera, useScene, useMaterials, useSound, useLocalPlayer} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -22,9 +22,130 @@ const minRadius = 0.4;
 // const radiusStep = minRadius;
 const maxRadius = minRadius + minRadius * numCylinders;
 const explosionScaleFactor = 4;
+const dropItemSize = 0.1;
 
 const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
+const localEuler = new THREE.Euler();
+
+const zeroVector = new THREE.Vector3(0, 0, 0);
+const gravity = new THREE.Vector3(0, -9.8, 0);
+
+function getCardBackTexture() {
+  const img = new Image();
+  const texture = new THREE.Texture(img);
+
+  img.crossOrigin = 'Anonymous';
+  img.onload = () => {
+    texture.needsUpdate = true;
+  };
+  img.onerror = err => {
+    console.warn(err);
+  };
+  img.src = `images/cardback-01.svg`;
+
+  return texture;
+}
+
+const _makeDropMesh = () => {
+  const {WebaverseShaderMaterial} = useMaterials();
+
+  let w = 520;
+  let h = 728;
+
+  h /= w;
+  w /= w;
+
+  w *= dropItemSize;
+  h *= dropItemSize;
+
+  const geometry = new THREE.PlaneBufferGeometry(w, h);
+  const texture = getCardBackTexture();
+  
+  const material = new WebaverseShaderMaterial({
+    uniforms: {
+      uTex: {
+        value: texture,
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      // uniform vec4 cameraBillboardQuaternion;
+      varying vec2 vUv;
+
+      /* vec3 rotate_vertex_position(vec3 position, vec4 q) {
+        return position + 2.0 * cross(q.xyz, cross(q.xyz, position) + q.w * position);
+      } */
+
+      void main() {
+        vec3 pos = position;
+
+        // pos = rotate_vertex_position(pos, cameraBillboardQuaternion);
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        vUv = uv;
+      }
+    `,
+    fragmentShader: `\
+      uniform sampler2D uTex;
+      // uniform vec3 color1;
+      // uniform vec3 color2;
+      varying vec2 vUv;
+
+      void main() {
+        vec4 diffuseColor = texture2D(uTex, vUv);
+        gl_FragColor = diffuseColor;
+        if (gl_FragColor.a < 0.1) {
+          discard;
+        }
+      }
+    `,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  const itemletMesh = new THREE.Mesh(geometry, material);
+  itemletMesh.velocity = new THREE.Vector3(0, 3, 0);
+  itemletMesh.frustumCulled = false;
+  // itemletMesh.updateMatrixWorld();
+
+  let animation = null;
+  itemletMesh.update = (timestamp, timeDiff) => {
+    const timeDiffS = timeDiff / 1000;
+    const camera = useCamera();
+    const localPlayer = useLocalPlayer();
+
+    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+
+    if (!animation) {
+      if (!itemletMesh.velocity.equals(zeroVector)) {
+        itemletMesh.position.add(localVector.copy(itemletMesh.velocity).multiplyScalar(timeDiffS));
+        itemletMesh.velocity.add(localVector.copy(gravity).multiplyScalar(timeDiffS));
+        if (itemletMesh.position.y < 0) {
+          itemletMesh.position.y = 0;
+          itemletMesh.velocity.set(0, 0, 0);
+        }
+        itemletMesh.updateMatrixWorld();
+      } else {
+        const localPosition = localVector.copy(localPlayer.position);
+        localPosition.y -= localPlayer.avatar.height;
+
+        if (localPosition.distanceTo(itemletMesh.position) < 0.5) {
+          animation = {
+            startTime: timestamp,
+            duration: 1000,
+          };
+
+          console.log('trigger pickup animation')
+        }
+      }
+    } else {
+      // console.log('');
+    }
+  };
+  return itemletMesh;
+};
 
 const makeSeamlessNoiseTexture = () => {
   const img = new Image();
@@ -141,8 +262,8 @@ function createExplosionGeometry(front) {
   ).translate(0, haloRadius / 2, 0);
 
   const geometries = [
-    sphereGeometry,
     cylinderGeometry,
+    sphereGeometry,
   ];
 
   if (!front) {
@@ -284,7 +405,7 @@ void main() {
 }
 */
 `;
-const _makeCylindersMesh = () => {
+const _makeCometMesh = () => {
   const {WebaverseShaderMaterial} = useMaterials();
   // const localPlayer = useLocalPlayer();
 
@@ -354,6 +475,8 @@ const _makeCylindersMesh = () => {
   object.add(explosionBackMesh);
 
   let explosionStartTime = NaN;
+  let dropped = false;
+  const dropMeshes = [];
   object.update = (timestamp, timeDiff) => {
     frontMesh.visible = false;
     backMesh.visible = false;
@@ -381,6 +504,18 @@ const _makeCylindersMesh = () => {
         // nothing
       } else {
         explosionStartTime = timestamp;
+
+        if (!dropped) {
+          const dropMesh = _makeDropMesh();
+          dropMesh.position.copy(worldPosition);
+          dropMesh.updateMatrixWorld();
+          dropMeshes.push(dropMesh);
+
+          const scene = useScene();
+          scene.add(dropMesh);
+
+          dropped = true;
+        }
       }
     }
 
@@ -402,20 +537,38 @@ const _makeCylindersMesh = () => {
       explosionBackMesh.visible = true;
     }
 
-    const maxTime = 400;
-    const f = (timestamp / maxTime) % maxTime;
-    const timeSinceLastExplosion2 = (timestamp - explosionStartTime) / 1000;
-    const opacityFactor = isNaN(explosionStartTime) ? 1 : Math.min(Math.max(1 - timeSinceLastExplosion2, 0), 1);
-    
-    frontMaterial.uniforms.uTime.value = f;
-    frontMaterial.uniforms.uTime.needsUpdate = true;
-    frontMaterial.uniforms.uOpacity.value = opacityFactor;
-    frontMaterial.uniforms.uOpacity.needsUpdate = true;
+    // update uniforms
+    const _updateUniforms = () => {
+      const maxTime = 400;
+      const f = (timestamp / maxTime) % maxTime;
+      const timeSinceLastExplosion2 = (timestamp - explosionStartTime) / 1000;
+      const opacityFactor = isNaN(explosionStartTime) ? 1 : Math.min(Math.max(1 - timeSinceLastExplosion2, 0), 1);
+      
+      frontMaterial.uniforms.uTime.value = f;
+      frontMaterial.uniforms.uTime.needsUpdate = true;
+      frontMaterial.uniforms.uOpacity.value = opacityFactor;
+      frontMaterial.uniforms.uOpacity.needsUpdate = true;
 
-    backMaterial.uniforms.uTime.value = f;
-    backMaterial.uniforms.uTime.needsUpdate = true;
-    backMaterial.uniforms.uOpacity.value = opacityFactor;
-    backMaterial.uniforms.uOpacity.needsUpdate = true;
+      backMaterial.uniforms.uTime.value = f;
+      backMaterial.uniforms.uTime.needsUpdate = true;
+      backMaterial.uniforms.uOpacity.value = opacityFactor;
+      backMaterial.uniforms.uOpacity.needsUpdate = true;
+    };
+    _updateUniforms();
+
+    const _updateDropMeshes = () => {
+      for (let i = 0; i < dropMeshes.length; i++) {
+        const dropMesh = dropMeshes[i];
+        dropMesh.update(timestamp, timeDiff);
+      }
+    };
+    _updateDropMeshes();
+  };
+  object.destroy = () => {
+    for (let i = 0; i < dropMeshes.length; i++) {
+      const dropMesh = dropMeshes[i];
+      scene.remove(dropMesh);
+    }
   };
   return object;
 };
@@ -427,12 +580,16 @@ export default () => {
 
   app.setComponent('renderPriority', 'lower');
 
-  const mesh = _makeCylindersMesh();
+  const mesh = _makeCometMesh();
   app.add(mesh);
   mesh.updateMatrixWorld();
 
   useFrame(({timestamp, timeDiff}) => {
     mesh.update(timestamp, timeDiff);
+  });
+
+  useCleanup(() => {
+    mesh.destroy();
   });
   
   return app;
