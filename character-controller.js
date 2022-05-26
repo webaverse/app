@@ -155,6 +155,7 @@ class PlayerBase extends THREE.Object3D {
     this.rightHand = new PlayerHand();
     this.hands = [this.leftHand, this.rightHand];
     this.wornApps = [];
+    this.removedWornApp = false
     this.avatar = null;
 
     this.appManager = new AppManager();
@@ -302,6 +303,22 @@ class PlayerBase extends THREE.Object3D {
     }
   }
 
+  updateWearables() {
+    this.wornApps.forEach((app) => {
+      this.handleWearUpdate(app, true, -1, true, false)
+    });
+    
+    //ToDo: the wear app's transform should be reset in next frame call
+    if (this.removedWornApp) {
+      this.removedWornApp.dispatchEvent({
+        type: "resetweartransform",
+        app: this.removedWornApp,
+        player: this,
+      });
+      this.removedWornApp = null
+    }
+  }
+
   wear(app, { loadoutIndex = -1 } = {}) {
     console.log(
       "Wearx called in PlayerBase of Character Controller",
@@ -393,12 +410,14 @@ class PlayerBase extends THREE.Object3D {
       this.handleWearUpdate(app, true)
     }
   }
+
   unwear(app, { destroy = false } = {}) {
     console.log(
       "Unwear called in PlayerBase of Character Controller",
       app,
       destroy
     );
+    
     const wearActionIndex = this.findActionIndex(({ type, instanceId }) => {
       return type === "wear" && instanceId === app.instanceId;
     });
@@ -447,7 +466,9 @@ class PlayerBase extends THREE.Object3D {
     } else {
       this.handleWearUpdate(app, false, -1, true)
     }
+
     this.wornApps.splice(this.wornApps.indexOf(app));
+    this.removedWornApp = app
   }
 }
 
@@ -1357,11 +1378,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     this.updateWearables();
   }
-  updateWearables() {
-    this.wornApps.forEach((app) => {
-      this.handleWearUpdate(app, true, -1, true, false)
-    });
-  }
   resetPhysics() {
     this.characterPhysics.reset();
   }
@@ -1602,9 +1618,7 @@ class RemotePlayer extends InterpolatedPlayer {
         }
       }
 
-      this.wornApps.forEach((app) => {
-        this.handleWearUpdate(app, true, -1, true, false)
-      });
+      this.updateWearables();
     };
 
     this.playerMap.observe(observePlayerFn);
