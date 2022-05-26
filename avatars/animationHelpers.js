@@ -42,6 +42,7 @@ import {
   // avatarInterpolationNumFrames,
 } from '../constants.js';
 import game from '../game.js';
+import {AnimMixer} from './AnimMixer.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -753,453 +754,447 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
-  const _getApplyFn = () => {
-    // { // play one animation purely.
-    //   return spec => {
-    //     const {
-    //       animationTrackName: k,
-    //       dst,
-    //       // isTop,
-    //     } = spec;
- 
-    //     // const animation = animations.index['walking.fbx']
-    //     const animation = animations.index['pick_up_idle.fbx']
-    //     const t2 = timeSeconds;
-    //     const src2 = animation.interpolants[k];
-    //     const v2 = src2.evaluate(t2 % animation.duration);
 
-    //     dst.fromArray(v2);
-    //   };
+  const mixer = new AnimMixer(avatar);
+  const defaultMotion = mixer.createMotion(_handleDefault);
+  const testMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+    } = spec;
+
+    // const animation = animations.index['walking.fbx']
+    const animation = animations.index['pick_up_idle.fbx'];
+    const t2 = timeSeconds;
+    const src2 = animation.interpolants[k];
+    const v2 = src2.evaluate(t2 % animation.duration);
+
+    dst.fromArray(v2);
+  });
+  const jumpMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isArm,
+    } = spec;
+
+    const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
+    const src2 = jumpAnimation.interpolants[k];
+    const v2 = src2.evaluate(t2);
+
+    dst.fromArray(v2);
+
+    if (avatar.pickUpState && isArm) {
+      const holdAnimation = holdAnimations.pick_up_idle;
+      const src2 = holdAnimation.interpolants[k];
+      const t2 = (now / 1000) % holdAnimation.duration;
+      const v2 = src2.evaluate(t2);
+      dst.fromArray(v2);
+    }
+  });
+  const sitMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+    } = spec;
+
+    const sitAnimation = sitAnimations[avatar.sitAnimation || defaultSitAnimation];
+    const src2 = sitAnimation.interpolants[k];
+    const v2 = src2.evaluate(1);
+
+    dst.fromArray(v2);
+  });
+  const narutoRunMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
+    const src2 = narutoRunAnimation.interpolants[k];
+    const t2 = (avatar.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
+    const v2 = src2.evaluate(t2);
+
+    dst.fromArray(v2);
+
+    _clearXZ(dst, isPosition);
+  });
+  const danceMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      lerpFn,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    _handleDefault(spec);
+
+    const danceAnimation = danceAnimations[avatar.danceAnimation || defaultDanceAnimation];
+    const src2 = danceAnimation.interpolants[k];
+    const t2 = (now / 1000) % danceAnimation.duration;
+    const v2 = src2.evaluate(t2);
+
+    const danceFactorS = avatar.danceFactor / crouchMaxTime;
+    const f = Math.min(Math.max(danceFactorS, 0), 1);
+    lerpFn
+      .call(
+        dst,
+        localQuaternion.fromArray(v2),
+        f,
+      );
+
+    _clearXZ(dst, isPosition);
+  });
+  const emoteMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      lerpFn,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    _handleDefault(spec);
+
+    const emoteAnimation = emoteAnimations[avatar.emoteAnimation || defaultEmoteAnimation];
+    const src2 = emoteAnimation.interpolants[k];
+    const emoteTime = now - avatar.lastEmoteTime;
+    const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
+    const v2 = src2.evaluate(t2);
+
+    const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
+    const f = Math.min(Math.max(emoteFactorS, 0), 1);
+    lerpFn
+      .call(
+        dst,
+        localQuaternion.fromArray(v2),
+        f,
+      );
+
+    _clearXZ(dst, isPosition);
+  });
+  const useMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    let useAnimation;
+    let t2;
+    const useTimeS = avatar.useTime / 1000;
+    let f;
+    if (avatar.useAnimation) {
+      const useAnimationName = avatar.useAnimation;
+      useAnimation = useAnimations[useAnimationName];
+      t2 = Math.min(useTimeS, useAnimation.duration);
+      f = useTimeS / useAnimation.duration;
+    } else if (avatar.useAnimationCombo.length > 0) {
+      const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+      useAnimation = useAnimations[useAnimationName];
+      t2 = Math.min(useTimeS, useAnimation.duration);
+      f = useTimeS / useAnimation.duration;
+    } else if (avatar.useAnimationEnvelope.length > 0) {
+      let totalTime = 0;
+      for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+        const animationName = avatar.useAnimationEnvelope[i];
+        const animation = useAnimations[animationName];
+        totalTime += animation.duration;
+      }
+
+      if (totalTime > 0) {
+        let animationTimeBase = 0;
+        for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+          const animationName = avatar.useAnimationEnvelope[i];
+          const animation = useAnimations[animationName];
+          if (useTimeS < (animationTimeBase + animation.duration)) {
+            useAnimation = animation;
+            break;
+          }
+          animationTimeBase += animation.duration;
+        }
+        if (useAnimation !== undefined) { // first iteration
+          t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
+        } else { // loop
+          const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
+          useAnimation = useAnimations[secondLastAnimationName];
+          t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
+        }
+      }
+    }
+
+    _handleDefault(spec);
+
+    if (useAnimation) {
+      if (!isPosition) {
+        const src2 = useAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        const idleAnimation = _getIdleAnimation('walk');
+        const t3 = 0;
+        const src3 = idleAnimation.interpolants[k];
+        const v3 = src3.evaluate(t3);
+
+        dst
+          .premultiply(localQuaternion2.fromArray(v3).invert())
+          .premultiply(localQuaternion2.fromArray(v2));
+      } else {
+        const src2 = useAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+        localVector2.fromArray(v2);
+        _clearXZ(localVector2, isPosition);
+
+        const idleAnimation = _getIdleAnimation('walk');
+        const t3 = 0;
+        const src3 = idleAnimation.interpolants[k];
+        const v3 = src3.evaluate(t3);
+        localVector3.fromArray(v3);
+
+        dst
+          .sub(localVector3)
+          .add(localVector2);
+      }
+    }
+    return f;
+  });
+  const hurtMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    const hurtAnimation = (avatar.hurtAnimation && hurtAnimations[avatar.hurtAnimation]);
+    _handleDefault(spec);
+    const hurtTimeS = avatar.hurtTime / 1000;
+    const t2 = Math.min(hurtTimeS, hurtAnimation.duration);
+    // console.log('hurtAnimation', avatar.hurtAnimation, avatar.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
+    if (!isPosition) {
+      if (hurtAnimation) {
+        const src2 = hurtAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        const idleAnimation = _getIdleAnimation('walk');
+        const t3 = 0;
+        const src3 = idleAnimation.interpolants[k];
+        const v3 = src3.evaluate(t3);
+
+        dst
+          .premultiply(localQuaternion2.fromArray(v3).invert())
+          .premultiply(localQuaternion2.fromArray(v2));
+      }
+    } else {
+      const src2 = hurtAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      const idleAnimation = _getIdleAnimation('walk');
+      const t3 = 0;
+      const src3 = idleAnimation.interpolants[k];
+      const v3 = src3.evaluate(t3);
+
+      dst
+        .sub(localVector2.fromArray(v3))
+        .add(localVector2.fromArray(v2));
+    }
+  });
+  const aimMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
+    _handleDefault(spec);
+    const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
+    if (!isPosition) {
+      if (aimAnimation) {
+        const src2 = aimAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        const idleAnimation = _getIdleAnimation('walk');
+        const t3 = 0;
+        const src3 = idleAnimation.interpolants[k];
+        const v3 = src3.evaluate(t3);
+
+        dst
+          .premultiply(localQuaternion2.fromArray(v3).invert())
+          .premultiply(localQuaternion2.fromArray(v2));
+      }
+    } else {
+      const src2 = aimAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      const idleAnimation = _getIdleAnimation('walk');
+      const t3 = 0;
+      const src3 = idleAnimation.interpolants[k];
+      const v3 = src3.evaluate(t3);
+
+      dst
+        .sub(localVector2.fromArray(v3))
+        .add(localVector2.fromArray(v2));
+    }
+  });
+  const unuseMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      lerpFn,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    _handleDefault(spec);
+
+    const unuseTimeS = avatar.unuseTime / 1000;
+    const unuseAnimationName = avatar.unuseAnimation;
+    const unuseAnimation = useAnimations[unuseAnimationName];
+    const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
+    const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
+    const f2 = Math.pow(1 - f, 2);
+
+    if (!isPosition) {
+      const src2 = unuseAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      const idleAnimation = _getIdleAnimation('walk');
+      const t3 = 0;
+      const src3 = idleAnimation.interpolants[k];
+      const v3 = src3.evaluate(t3);
+
+      localQuaternion.copy(dst)
+        .premultiply(localQuaternion2.fromArray(v3).invert())
+        .premultiply(localQuaternion2.fromArray(v2));
+
+      lerpFn
+        .call(
+          dst,
+          localQuaternion,
+          f2,
+        );
+    } else {
+      const src2 = unuseAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      const idleAnimation = _getIdleAnimation('walk');
+      const t3 = 0;
+      const src3 = idleAnimation.interpolants[k];
+      const v3 = src3.evaluate(t3);
+
+      localVector.copy(dst)
+        .sub(localVector2.fromArray(v3))
+        .add(localVector2.fromArray(v2));
+
+      lerpFn
+        .call(
+          dst,
+          localVector,
+          f2,
+        );
+    }
+
+    if (f >= 1) {
+      avatar.useAnimation = '';
+    }
+  });
+  const pickUpMotion = mixer.createMotion(spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      lerpFn,
+      boneName,
+      isTop,
+      isPosition,
+      isArm,
+    } = spec;
+
+    _handleDefault(spec);
+
+    const holdAnimation = holdAnimations.pick_up_idle;
+    const src2 = holdAnimation.interpolants[k];
+    const t2 = (now / 1000) % holdAnimation.duration;
+    const v2 = src2.evaluate(t2);
+
+    if (isTop) {
+      // #version 1
+      if (boneName === 'Left_arm' || boneName === 'Right_arm') {
+        dst.fromArray(v2);
+      } else {
+        // if (boneName === 'Left_elbow' || boneName === 'Right_elbow') {
+        // if (['Left_elbow', 'Right_elbow', 'Left_arm', 'Right_arm', 'Left_shoulder', 'Right_shoulder'].includes(boneName)) {
+        if (isArm) {
+          dst
+            .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
+            .premultiply(localQuaternion2.fromArray(v2));
+        } else {
+          dst
+            .premultiply(localQuaternion2.fromArray(v2));
+        }
+      }
+
+      // // #version 2
+      // if (['Spine', 'Chest', 'UpperChest', 'Neck', 'Head'].includes(boneName)) {
+      //   dst.premultiply(localQuaternion2.fromArray(v2));
+      // } else {
+      //   dst.fromArray(v2);
+      // }
+
+      //
+
+      // if (isPosition) {
+      //   dst.fromArray(v2);
+      // } else {
+      //   dst.premultiply(localQuaternion2.fromArray(v2));
+      //   // dst.multiply(localQuaternion2.fromArray(v2));
+      // }
+    }
+
+    // _clearXZ(dst, isPosition);
+  });
+
+  const _playAnimActions = () => {
+    // { // play one animation purely.
+    //   testMotion.play();
     // }
     if (avatar.jumpState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isArm,
-        } = spec;
-
-        const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
-        const src2 = jumpAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
-
-        dst.fromArray(v2);
-
-        if (avatar.pickUpState && isArm) {
-          const holdAnimation = holdAnimations['pick_up_idle'];
-          const src2 = holdAnimation.interpolants[k];
-          const t2 = (now / 1000) % holdAnimation.duration;
-          const v2 = src2.evaluate(t2);
-          dst.fromArray(v2);
-        }
-      };
-    }
-    if (avatar.sitState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
-
-        const sitAnimation = sitAnimations[avatar.sitAnimation || defaultSitAnimation];
-        const src2 = sitAnimation.interpolants[k];
-        const v2 = src2.evaluate(1);
-
-        dst.fromArray(v2);
-      };
-    }
-    if (avatar.narutoRunState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
-        const src2 = narutoRunAnimation.interpolants[k];
-        const t2 = (avatar.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
-        const v2 = src2.evaluate(t2);
-
-        dst.fromArray(v2);
-
-        _clearXZ(dst, isPosition);
-      };
-    }
-
-    if (avatar.danceFactor > 0) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          lerpFn,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        _handleDefault(spec);
-
-        const danceAnimation = danceAnimations[avatar.danceAnimation || defaultDanceAnimation];
-        const src2 = danceAnimation.interpolants[k];
-        const t2 = (now / 1000) % danceAnimation.duration;
-        const v2 = src2.evaluate(t2);
-
-        const danceFactorS = avatar.danceFactor / crouchMaxTime;
-        const f = Math.min(Math.max(danceFactorS, 0), 1);
-        lerpFn
-          .call(
-            dst,
-            localQuaternion.fromArray(v2),
-            f,
-          );
-
-        _clearXZ(dst, isPosition);
-      };
-    }
-
-    if (avatar.emoteFactor > 0) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          lerpFn,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        _handleDefault(spec);
-
-        const emoteAnimation = emoteAnimations[avatar.emoteAnimation || defaultEmoteAnimation];
-        const src2 = emoteAnimation.interpolants[k];
-        const emoteTime = now - avatar.lastEmoteTime;
-        const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
-        const v2 = src2.evaluate(t2);
-
-        const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
-        const f = Math.min(Math.max(emoteFactorS, 0), 1);
-        lerpFn
-          .call(
-            dst,
-            localQuaternion.fromArray(v2),
-            f,
-          );
-
-        _clearXZ(dst, isPosition);
-      };
-    }
-
-    /* if (avatar.fallLoopState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
-
-        const t2 = (avatar.fallLoopTime/1000) ;
-        const src2 = fallLoop.interpolants[k];
-        const v2 = src2.evaluate(t2);
-
-        dst.fromArray(v2);
-      };
-    } */
-    if (
+      jumpMotion.play();
+    } else if (avatar.sitState) {
+      sitMotion.play();
+    } else if (avatar.narutoRunState) {
+      narutoRunMotion.paly();
+    } else if (avatar.danceFactor > 0) {
+      danceMotion.play();
+    } else if (avatar.emoteFactor > 0) {
+      emoteMotion.play();
+    } else if (
       avatar.useAnimation ||
       avatar.useAnimationCombo.length > 0 ||
       avatar.useAnimationEnvelope.length > 0
     ) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        let useAnimation;
-        let t2;
-        const useTimeS = avatar.useTime / 1000;
-        let f;
-        if (avatar.useAnimation) {
-          const useAnimationName = avatar.useAnimation;
-          useAnimation = useAnimations[useAnimationName];
-          t2 = Math.min(useTimeS, useAnimation.duration);
-          f = useTimeS / useAnimation.duration;
-        } else if (avatar.useAnimationCombo.length > 0) {
-          const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-          useAnimation = useAnimations[useAnimationName];
-          t2 = Math.min(useTimeS, useAnimation.duration);
-          f = useTimeS / useAnimation.duration;
-        } else if (avatar.useAnimationEnvelope.length > 0) {
-          let totalTime = 0;
-          for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-            const animationName = avatar.useAnimationEnvelope[i];
-            const animation = useAnimations[animationName];
-            totalTime += animation.duration;
-          }
-
-          if (totalTime > 0) {
-            let animationTimeBase = 0;
-            for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-              const animationName = avatar.useAnimationEnvelope[i];
-              const animation = useAnimations[animationName];
-              if (useTimeS < (animationTimeBase + animation.duration)) {
-                useAnimation = animation;
-                break;
-              }
-              animationTimeBase += animation.duration;
-            }
-            if (useAnimation !== undefined) { // first iteration
-              t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
-            } else { // loop
-              const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
-              useAnimation = useAnimations[secondLastAnimationName];
-              t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
-            }
-          }
-        }
-
-        _handleDefault(spec);
-
-        if (useAnimation) {
-          if (!isPosition) {
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-
-            dst
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
-          } else {
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            localVector2.fromArray(v2);
-            _clearXZ(localVector2, isPosition);
-
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-            localVector3.fromArray(v3);
-
-            dst
-              .sub(localVector3)
-              .add(localVector2);
-          }
-        }
-        return f;
-      };
+      useMotion.play();
     } else if (avatar.hurtAnimation) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        const hurtAnimation = (avatar.hurtAnimation && hurtAnimations[avatar.hurtAnimation]);
-        _handleDefault(spec);
-        const hurtTimeS = avatar.hurtTime / 1000;
-        const t2 = Math.min(hurtTimeS, hurtAnimation.duration);
-        // console.log('hurtAnimation', avatar.hurtAnimation, avatar.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
-        if (!isPosition) {
-          if (hurtAnimation) {
-            const src2 = hurtAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-
-            dst
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
-          }
-        } else {
-          const src2 = hurtAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          dst
-            .sub(localVector2.fromArray(v3))
-            .add(localVector2.fromArray(v2));
-        }
-      };
+      hurtMotion.play();
     } else if (avatar.aimAnimation) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
-        _handleDefault(spec);
-        const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
-        if (!isPosition) {
-          if (aimAnimation) {
-            const src2 = aimAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-
-            dst
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
-          }
-        } else {
-          const src2 = aimAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          dst
-            .sub(localVector2.fromArray(v3))
-            .add(localVector2.fromArray(v2));
-        }
-      };
+      aimMotion.play();
     } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          lerpFn,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        _handleDefault(spec);
-
-        const unuseTimeS = avatar.unuseTime / 1000;
-        const unuseAnimationName = avatar.unuseAnimation;
-        const unuseAnimation = useAnimations[unuseAnimationName];
-        const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
-        const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
-        const f2 = Math.pow(1 - f, 2);
-
-        if (!isPosition) {
-          const src2 = unuseAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          localQuaternion.copy(dst)
-            .premultiply(localQuaternion2.fromArray(v3).invert())
-            .premultiply(localQuaternion2.fromArray(v2));
-
-          lerpFn
-            .call(
-              dst,
-              localQuaternion,
-              f2,
-            );
-        } else {
-          const src2 = unuseAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          localVector.copy(dst)
-            .sub(localVector2.fromArray(v3))
-            .add(localVector2.fromArray(v2));
-
-          lerpFn
-            .call(
-              dst,
-              localVector,
-              f2,
-            );
-        }
-
-        if (f >= 1) {
-          avatar.useAnimation = '';
-        }
-      };
+      unuseMotion.play();
     } else if (avatar.pickUpState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          lerpFn,
-          boneName,
-          isTop,
-          isPosition,
-          isArm,
-        } = spec;
-
-        _handleDefault(spec);
-
-        const holdAnimation = holdAnimations['pick_up_idle'];
-        const src2 = holdAnimation.interpolants[k];
-        const t2 = (now / 1000) % holdAnimation.duration;
-        const v2 = src2.evaluate(t2);
-
-        if (isTop) {
-          // #version 1
-          if (boneName === 'Left_arm' || boneName === 'Right_arm') {
-            dst.fromArray(v2);
-          } else {
-            // if (boneName === 'Left_elbow' || boneName === 'Right_elbow') {
-            // if (['Left_elbow', 'Right_elbow', 'Left_arm', 'Right_arm', 'Left_shoulder', 'Right_shoulder'].includes(boneName)) {
-            if (isArm) {
-              dst
-                .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
-                .premultiply(localQuaternion2.fromArray(v2));
-            } else {
-              dst
-                .premultiply(localQuaternion2.fromArray(v2));
-            }
-          }
-
-          // // #version 2
-          // if (['Spine', 'Chest', 'UpperChest', 'Neck', 'Head'].includes(boneName)) {
-          //   dst.premultiply(localQuaternion2.fromArray(v2));
-          // } else {
-          //   dst.fromArray(v2);
-          // }
-
-          //
-
-          // if (isPosition) {
-          //   dst.fromArray(v2);
-          // } else {
-          //   dst.premultiply(localQuaternion2.fromArray(v2));
-          //   // dst.multiply(localQuaternion2.fromArray(v2));
-          // }
-        }
-
-        // _clearXZ(dst, isPosition);
-      };
+      pickUpMotion.play();
+    } else {
+      defaultMotion.play();
     }
-    return _handleDefault;
   };
-  const applyFn = _getApplyFn();
+  _playAnimActions();
+
   const _blendFly = spec => {
     const {
       animationTrackName: k,
@@ -1266,7 +1261,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    lastF = applyFn(spec);
+    lastF = mixer.motion.applyFn(spec);
     _blendFly(spec);
     _blendActivateAction(spec);
 
