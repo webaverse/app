@@ -189,7 +189,7 @@ const _generateObjectUrlCardRemote = (() => {
         if (!generateObjectUrlCardRemoteFn) {
             generateObjectUrlCardRemoteFn = offscreenEngineManager.createFunction([
                 `\
-                import {generateObjectUrlCard} from './card-generator.js';
+                import {generateObjectUrlCard} from './card-renderer.js';
                 `,
                 async function(o) {
                     const imageBitmap = await generateObjectUrlCard(o);
