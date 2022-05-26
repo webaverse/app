@@ -192,6 +192,7 @@ void main() {
 `;
 const fragmentShader = `\
 uniform float uTime;
+uniform float uOpacity;
 varying vec2 vUv;
 varying float vDistance;
 varying float vInstance;
@@ -268,7 +269,7 @@ void mainImage(out vec4 fragColor, in vec2 uv) {
   color *= 1.5;
 	fragColor = color;
 
-  fragColor.a *= (1. - vDistance) * 2.;
+  fragColor.a *= (1. - vDistance) * 2. * uOpacity;
 }
 
 void main() {
@@ -308,6 +309,10 @@ const _makeCylindersMesh = () => {
         value: 0,
         needsUpdate: true,
       },
+      uOpacity: {
+        value: 1,
+        needsUpdate: true,
+      },
       uSeamlessNoiseTexture: {
         value: getSeamlessNoiseTexture(),
         needsUpdate: true,
@@ -321,8 +326,11 @@ const _makeCylindersMesh = () => {
   const backMaterial = new WebaverseShaderMaterial({
     uniforms: {
       uTime: {
-        type: 'f',
         value: 0,
+        needsUpdate: true,
+      },
+      uOpacity: {
+        value: 1,
         needsUpdate: true,
       },
       uSeamlessNoiseTexture: {
@@ -360,7 +368,7 @@ const _makeCylindersMesh = () => {
     } else {
       const scaleFactor = Math.pow(
         Math.min(Math.max(timeSinceLastExplosion / 1000, 0), 1),
-        0.5
+        0.1
       );
       object.scale.setScalar(scaleFactor * explosionScaleFactor);
     }
@@ -396,15 +404,18 @@ const _makeCylindersMesh = () => {
 
     const maxTime = 400;
     const f = (timestamp / maxTime) % maxTime;
+    const timeSinceLastExplosion2 = (timestamp - explosionStartTime) / 1000;
+    const opacityFactor = isNaN(explosionStartTime) ? 1 : Math.min(Math.max(1 - timeSinceLastExplosion2, 0), 1);
     
     frontMaterial.uniforms.uTime.value = f;
     frontMaterial.uniforms.uTime.needsUpdate = true;
+    frontMaterial.uniforms.uOpacity.value = opacityFactor;
+    frontMaterial.uniforms.uOpacity.needsUpdate = true;
+
     backMaterial.uniforms.uTime.value = f;
     backMaterial.uniforms.uTime.needsUpdate = true;
-    /* explosionFrontMesh.uniforms.uTime.value = f;
-    explosionFrontMesh.uniforms.uTime.needsUpdate = true;
-    explosionBackMesh.uniforms.uTime.value = f;
-    explosionBackMesh.uniforms.uTime.needsUpdate = true; */
+    backMaterial.uniforms.uOpacity.value = opacityFactor;
+    backMaterial.uniforms.uOpacity.needsUpdate = true;
   };
   return object;
 };
