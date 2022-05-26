@@ -396,7 +396,6 @@ const _makeDebugMesh = (avatar) => {
 
 class Avatar {
 	constructor(object, options = {}) {
-    this.audioContext = null;
     if (!object) {
       object = {};
     }
@@ -2074,18 +2073,17 @@ Avatar.waitForLoad = () => loadPromise;
 Avatar.getAnimations = () => animations;
 Avatar.getAnimationStepIndices = () => animationStepIndices;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
-//let avatarAudioContext = null;
+let avatarAudioContext = null;
 const getAudioContext = () => {
-  if (!Avatar.audioContext) {
+  if (!avatarAudioContext) {
     console.warn('using default audio context; setAudioContext was not called');
     setAudioContext(new AudioContext());
-    console.log('new audio')
   }
-  return Avatar.audioContext;
+  return avatarAudioContext;
 };
 Avatar.getAudioContext = getAudioContext;
 const setAudioContext = newAvatarAudioContext => {
-  Avatar.audioContext = newAvatarAudioContext;
+  avatarAudioContext = newAvatarAudioContext;
 };
 Avatar.setAudioContext = setAudioContext;
 Avatar.getClosest2AnimationAngles = getClosest2AnimationAngles;

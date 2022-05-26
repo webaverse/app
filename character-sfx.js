@@ -420,12 +420,12 @@ class CharacterSfx {
       gainNode.connect(audioContext.destination);
 
       const refDistance = 10;
-      //const maxDistance = 50;
+      const maxDistance = 50;
       const distanceModel = 'inverse';
       const volume = 1;
 
       pannerNode.refDistance = refDistance;
-      //pannerNode.maxDistance = maxDistance;
+      pannerNode.maxDistance = maxDistance;
       pannerNode.distanceModel = distanceModel;
       gainNode.gain.value = volume;
 
@@ -435,7 +435,8 @@ class CharacterSfx {
       if (!this.player.avatar.isAudioEnabled()) {
         this.player.avatar.setAudioEnabled(true);
       }
-      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+      //audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+      this.player.characterBehavior.setMouthMoving(0.1,0.1,0.1,0.1);
       
       // if the oldGrunt are still playing
       if(this.oldGrunt){
@@ -548,14 +549,7 @@ class CharacterSfx {
 
       gainNode.inReverbZone = false;
 
-      // control mouth movement with audio volume
-      if (!this.player.avatar.isAudioEnabled()) {
-        this.player.avatar.setAudioEnabled(true);
-      }
-      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
-      //console.log(audioContext)
       
-
       // if the oldGrunt are still playing
       if(this.oldGrunt){
         this.oldGrunt.stop();
