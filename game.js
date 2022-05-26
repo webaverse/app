@@ -1643,18 +1643,6 @@ class GameManager extends EventTarget {
     downloadFile(blob, 'scene.json');
     // console.log('got scene', scene);
   }
-  handleAnimationEnd() {
-    _endUse();
-
-    const localPlayer = getLocalPlayer();
-    if (localPlayer.needContinueCombo) {
-      localPlayer.needContinueCombo = false;
-      localPlayer.actionInterpolants.use.reset();
-      _startUse();
-    } else {
-      lastUseIndex = 0;
-    }
-  }
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
   pushPlayerUpdates = _pushPlayerUpdates;
