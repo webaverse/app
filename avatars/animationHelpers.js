@@ -5,6 +5,7 @@ import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pi
 import {easing} from '../math-utils.js';
 import loaders from '../loaders.js';
 import {zbdecode} from 'zjs/encoding.mjs';
+import {AnimMixer} from './AnimMixer.js';
 
 import {
 //   getSkinnedMeshes,
@@ -406,6 +407,23 @@ export const loadPromise = (async () => {
 })().catch(err => {
   console.log('load avatar animations error', err);
 });
+
+export const _createAnimation = avatar => {
+  const mixer = new AnimMixer(avatar.animationMappings);
+  avatar.mixer = mixer;
+  const motiono = {};
+  avatar.motiono = motiono;
+  const walkMotion = mixer.createMotion(animations.index['walking.fbx']);
+  motiono.walk = walkMotion;
+  const jumpMotion = mixer.createMotion(jumpAnimation);
+  motiono.jump = jumpMotion;
+  walkMotion.play();
+};
+
+export const _updateAnimation = avatar => {
+  const {mixer} = avatar;
+  mixer.update();
+};
 
 export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
@@ -1143,7 +1161,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _handleDefault(spec);
 
-        const holdAnimation = holdAnimations['pick_up_idle'];
+        const holdAnimation = holdAnimations.pick_up_idle;
         const src2 = holdAnimation.interpolants[k];
         const t2 = (now / 1000) % holdAnimation.duration;
         const v2 = src2.evaluate(t2);
@@ -1166,7 +1184,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition, */
         } = spec;
 
-        const pickUpAnimation = pickUpAnimations['pickUpZelda'];
+        const pickUpAnimation = pickUpAnimations.pickUpZelda;
         const src2 = pickUpAnimation.interpolants[k];
         const t2 = Math.min(avatar.pickUpTime / 1000, pickUpAnimation.duration * 0.7);
         const v2 = src2.evaluate(t2);

@@ -48,7 +48,7 @@ import {
 import {easing} from '../math-utils.js';
 import metaversefile from 'metaversefile';
 
-import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
+import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation, _createAnimation, _updateAnimation } from './animationHelpers.js'
 
 import { animationMappingConfig } from './AnimationMapping.js';
 import Emoter from './Emoter.js'
@@ -964,6 +964,10 @@ class Avatar {
     this.lastEyeTargetTime = -Infinity;
 
     this.manuallySetMouth=false;
+
+    //
+
+    _createAnimation(this);
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1959,7 +1963,8 @@ class Avatar {
         <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
       `
     }
-    _applyAnimation(this, now, moveFactors);
+    _updateAnimation(this);
+    // _applyAnimation(this, now, moveFactors);
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);
