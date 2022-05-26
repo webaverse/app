@@ -1024,6 +1024,18 @@ _setFirstPersonAction(lastFirstPerson);
   _setFirstPersonAction(firstPerson);
 }); */
 
+const _listenLocalPlayerPickupAction = () => {
+  const localPlayer = getLocalPlayer();
+  localPlayer.addEventListener('actionadd', e => {
+    const {action} = e;
+    const {type} = action;
+    if (type === 'pickUp') {
+      ioManager.setMovementEnabled(false);
+    }
+  });
+};
+_listenLocalPlayerPickupAction();
+
 let lastMouseEvent = null;
 class GameManager extends EventTarget {
   constructor() {
