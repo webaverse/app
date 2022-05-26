@@ -362,6 +362,8 @@ export const loadPromise = (async () => {
     pickUpThrow: animations.find(a => a.isPickUpThrow),
     putDown: animations.find(a => a.isPutDown),
     pickUpZelda: animations.find(a => a.isPickUpZelda),
+    pickUpIdleZelda: animations.find(a => a.isPickUpIdleZelda),
+    putDownZelda: animations.find(a => a.isPutDownZelda),
   };
   /* throwAnimations = {
     throw: animations.find(a => a.isThrow),
