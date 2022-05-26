@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useCleanup, useCamera, useScene, useMaterials, useSound, useLocalPlayer} = metaversefile;
+const {useApp, useFrame, useCleanup, useMaterials, useSound, useLocalPlayer, useDropManager, useDefaultModules} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -48,6 +48,7 @@ function getCardBackTexture() {
   return texture;
 }
 
+// XXX move this to the card metaverse module
 const _makeDropMesh = () => {
   const {WebaverseShaderMaterial} = useMaterials();
 
@@ -569,27 +570,37 @@ const _makeCometMesh = () => {
 };
 export default () => {
   const app = useApp();
+  const dropManager = useDropManager();
+  const {moduleUrls} = useDefaultModules();
   // const sounds = useSound();
 
   app.name = 'comet';
 
-  // app.setComponent('renderPriority', 'lower');
+  app.setComponent('renderPriority', 'lower');
 
   const mesh = _makeCometMesh();
 
-  const dropMeshes = [];
+  // const dropMeshes = [];
   mesh.addEventListener('drop', e => {
     const worldPosition = localVector.setFromMatrixPosition(mesh.matrixWorld);
 
-    const dropMesh = _makeDropMesh();
+    /* const dropMesh = _makeDropMesh();
     dropMesh.position.copy(worldPosition);
-    dropMesh.position.y += 0.5;
-    dropMesh.updateMatrixWorld();
-    dropMeshes.push(dropMesh);
+    // dropMesh.position.y += 0.5;
+    // dropMesh.updateMatrixWorld();
+    dropMeshes.push(dropMesh); */
 
-    const parent = app.parent;
-    parent.add(dropMesh);
+    dropManager.createDropApp({
+      start_url: moduleUrls.card,
+      position: worldPosition.clone()
+        .add(new THREE.Vector3(0, 0.5, 0)),
+      // quaternion: app.quaternion,
+      // scale: app.scale
+      velocity: new THREE.Vector3(0, 3, 0),
+    });
+
     // remove + add for sorting
+    const parent = app.parent;
     parent.remove(app);
     parent.add(app);
   });
@@ -599,18 +610,18 @@ export default () => {
   useFrame(({timestamp, timeDiff}) => {
     mesh.update(timestamp, timeDiff);
 
-    for (let i = 0; i < dropMeshes.length; i++) {
+    /* for (let i = 0; i < dropMeshes.length; i++) {
       const dropMesh = dropMeshes[i];
       dropMesh.update(timestamp, timeDiff);
-    }
+    } */
   });
 
-  useCleanup(() => {
+  /* useCleanup(() => {
     for (let i = 0; i < dropMeshes.length; i++) {
       const dropMesh = dropMeshes[i];
       dropMesh.parent.remove(dropMesh);
     }
-  });
+  }); */
   
   return app;
 };

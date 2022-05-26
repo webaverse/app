@@ -18,8 +18,6 @@ const cubicBezier2 = easing(0, 1, 1, 1);
 const gracePickupTime = 1000;
 
 export default app => {
-  // console.log('call default component', new Error().stack);
-
   const localPlayer = metaversefile.useLocalPlayer();
 
   const dropComponent = app.getComponent('drop');
