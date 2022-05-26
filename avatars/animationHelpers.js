@@ -1139,14 +1139,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const {
           animationTrackName: k,
           dst,
-          lerpFn,
+          /* lerpFn,
           isTop,
-          isPosition,
+          isPosition, */
         } = spec;
 
         const pickUpAnimation = pickUpAnimations['pickUpZelda'];
         const src2 = pickUpAnimation.interpolants[k];
-        const t2 = (avatar.pickUpTime / 1000) % pickUpAnimation.duration;
+        const t2 = Math.min(avatar.pickUpTime / 1000, pickUpAnimation.duration * 0.7);
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
