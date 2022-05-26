@@ -60,8 +60,9 @@ const _makePlaneGeometry = () => {
 };
 const planeGeometry = _makePlaneGeometry();
 
-const _makeGeometry = maxParticles => {
-  const geometry = planeGeometry.clone();
+const _makeGeometry = (size, maxParticles) => {
+  const geometry = planeGeometry.clone()
+    .scale(size, size, 1);
   geometry.setAttribute('p', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 3), 3));
   // geometry.setAttribute('q', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 4), 4));
   geometry.setAttribute('t', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 3), 3));
@@ -303,8 +304,12 @@ class Particle extends THREE.Object3D {
   }
 }
 class ParticleSystem extends THREE.InstancedMesh {
-  constructor(particleNames, maxParticles = defaultMaxParticles) {
-    const geometry = _makeGeometry(maxParticles);
+  constructor({
+    particleNames,
+    size = 1,
+    maxParticles = defaultMaxParticles,
+  }) {
+    const geometry = _makeGeometry(size, maxParticles);
     const material = _makeMaterial(particleNames.length);
     super(geometry, material, maxParticles);
 
@@ -403,8 +408,16 @@ class ParticleSystem extends THREE.InstancedMesh {
 }
 
 const particleSystems = [];
-const createParticleSystem = (particleNames) => {
-  const particleSystem = new ParticleSystem(particleNames);
+const createParticleSystem = ({
+  particleNames,
+  size,
+  maxParticles,
+}) => {
+  const particleSystem = new ParticleSystem({
+    particleNames,
+    size,
+    maxParticles,
+  });
   particleSystems.push(particleSystem);
   return particleSystem;
 };

@@ -13,19 +13,20 @@ class DropManager extends EventTarget {
     position,
     quaternion,
     scale,
-  }) {      
+    velocity = new THREE.Vector3(r(), 1+Math.random(), r())
+      .normalize()
+      .multiplyScalar(5),
+    angularVelocity = new THREE.Vector3(0, 0.001, 0),
+    voucher = 'fakeVoucher', // XXX should really throw if no voucher
+  }) {
     const r = () => (-0.5+Math.random())*2;
     const components = [
       {
         key: 'drop',
         value: {
-          voucher: 'fakeVoucher',
-          velocity: new THREE.Vector3(r(), 1+Math.random(), r())
-            .normalize()
-            .multiplyScalar(5)
-            .toArray(),
-          angularVelocity: new THREE.Vector3(0, 0.001, 0)
-            .toArray(),
+          voucher,
+          velocity: velocity.toArray(),
+          angularVelocity: angularVelocity.toArray(),
         },
       },
     ];
