@@ -1147,11 +1147,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } = spec;
 
         const pickUpAnimation = pickUpAnimations['pickUpZelda'];
-        const src2 = pickUpAnimation.interpolants[k];
-        const t2 = Math.min(avatar.pickUpTime / 1000, pickUpAnimation.duration * 0.7);
-        const v2 = src2.evaluate(t2);
+        const pickUpIdleAnimation = pickUpAnimations['pickUpIdleZelda'];
 
-        dst.fromArray(v2);
+        const t2 = avatar.pickUpTime / 1000;
+        if (t2 < pickUpAnimation.duration) {
+          const src2 = pickUpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+        } else {
+          const t3 = (t2 - pickUpAnimation.duration) % pickUpIdleAnimation.duration;
+          const src2 = pickUpIdleAnimation.interpolants[k];
+          const v2 = src2.evaluate(t3);
+
+          dst.fromArray(v2);
+        }
       };
     }
     return _handleDefault;
