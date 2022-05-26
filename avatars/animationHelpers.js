@@ -361,6 +361,7 @@ export const loadPromise = (async () => {
     pickUpIdle: animations.find(a => a.isPickUpIdle),
     pickUpThrow: animations.find(a => a.isPickUpThrow),
     putDown: animations.find(a => a.isPutDown),
+    pickUpZelda: animations.find(a => a.isPickUpZelda),
   };
   /* throwAnimations = {
     throw: animations.find(a => a.isThrow),
@@ -1108,7 +1109,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           avatar.useAnimation = '';
         }
       };
-    } else if (avatar.pickUpState) {
+    } else if (avatar.holdState) {
       return spec => {
         const {
           animationTrackName: k,
@@ -1132,8 +1133,33 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             dst.premultiply(localQuaternion2.fromArray(v2));
           }
         }
+      };
+    } else if (avatar.pickUpState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          lerpFn,
+          isTop,
+          isPosition,
+        } = spec;
 
-        // _clearXZ(dst, isPosition);
+        // _handleDefault(spec);
+
+        const pickUpAnimation = pickUpAnimations['pickUpZelda'];
+        const src2 = pickUpAnimation.interpolants[k];
+        const t2 = (now / 1000) % pickUpAnimation.duration;
+        const v2 = src2.evaluate(t2);
+
+        dst.fromArray(v2);
+
+        /* // if (isTop) {
+          if (isPosition) {
+            dst.fromArray(v2);
+          } else {
+            dst.fromArray(v2);
+          }
+        // } */
       };
     }
     return _handleDefault;
