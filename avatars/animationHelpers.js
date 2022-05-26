@@ -53,6 +53,8 @@ const localQuaternion4 = new Quaternion();
 const localQuaternion5 = new Quaternion();
 const localQuaternion6 = new Quaternion();
 
+const identityQuaternion = new Quaternion();
+
 let animations;
 let animationStepIndices;
 // let animationsBaseModel;
@@ -760,6 +762,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           // isTop,
+          isArm,
         } = spec;
 
         const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
@@ -767,6 +770,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
+
+        if (avatar.holdState && isArm) {
+          const holdAnimation = holdAnimations['pick_up_idle'];
+          const src2 = holdAnimation.interpolants[k];
+          const t2 = (now / 1000) % holdAnimation.duration;
+          const v2 = src2.evaluate(t2);
+          dst.fromArray(v2);
+        }
       };
     }
     if (avatar.sitState) {
@@ -1117,8 +1128,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           lerpFn,
+          boneName,
           isTop,
           isPosition,
+          isArm,
         } = spec;
 
         _handleDefault(spec);
@@ -1129,10 +1142,17 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         if (isTop) {
-          if (isPosition) {
+          if (boneName === 'Left_arm' || boneName === 'Right_arm') {
             dst.fromArray(v2);
           } else {
-            dst.premultiply(localQuaternion2.fromArray(v2));
+            if (isArm) {
+              dst
+                .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
+                .premultiply(localQuaternion2.fromArray(v2));
+            } else {
+              dst
+                .premultiply(localQuaternion2.fromArray(v2));
+            }
           }
         }
       };
@@ -1172,6 +1192,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       animationTrackName: k,
       dst,
       // isTop,
+      isArm,
       lerpFn,
     } = spec;
 
@@ -1187,6 +1208,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           localQuaternion.fromArray(v2),
           f,
         );
+
+      if (avatar.holdState && isArm) {
+        const holdAnimation = holdAnimations['pick_up_idle'];
+        const src2 = holdAnimation.interpolants[k];
+        const t2 = (now / 1000) % holdAnimation.duration;
+        const v2 = src2.evaluate(t2);
+        dst.fromArray(v2);
+      }
     }
   };
 
