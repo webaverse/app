@@ -294,9 +294,6 @@ class PlayerBase extends THREE.Object3D {
     if (loadoutIndex != -1) {
       param.loadoutIndex = loadoutIndex
     }
-
-    console.error(param)
-    debugger
     if (isPlayerUpdate) {
       this.dispatchEvent(param);
     }
