@@ -10,7 +10,7 @@ import dropManager from '../drop-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
+// const localQuaternion = new THREE.Quaternion();
 
 const rarityColorsArray = Object.keys(rarityColors).map(k => rarityColors[k][0]);
 const cubicBezier = easing(0, 1, 0, 1);
