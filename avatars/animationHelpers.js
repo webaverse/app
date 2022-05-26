@@ -41,7 +41,6 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
-import game from '../game.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -923,17 +922,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         let useAnimation;
         let t2;
         const useTimeS = avatar.useTime / 1000;
-        let f;
         if (avatar.useAnimation) {
           const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-          f = useTimeS / useAnimation.duration;
         } else if (avatar.useAnimationCombo.length > 0) {
           const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-          f = useTimeS / useAnimation.duration;
         } else if (avatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
           for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
@@ -995,7 +991,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
               .add(localVector2);
           }
         }
-        return f;
       };
     } else if (avatar.hurtAnimation) {
       return spec => {
@@ -1282,7 +1277,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     }
   };
 
-  let lastF;
   for (const spec of avatar.animationMappings) {
     const {
       // animationTrackName: k,
@@ -1291,7 +1285,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    lastF = applyFn(spec);
+    applyFn(spec);
     _blendFly(spec);
     _blendActivateAction(spec);
 
@@ -1305,9 +1299,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.y = avatar.height * 0.55;
       }
     }
-  }
-  if (lastF >= 1) {
-    game.handleAnimationEnd();
   }
 };
 

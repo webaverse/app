@@ -5,7 +5,6 @@ import {scene, camera} from './renderer.js';
 import * as sounds from './sounds.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
-import game from './game.js';
 import {getLocalPlayer} from './players.js';
 
 const localVector = new THREE.Vector3();
@@ -132,7 +131,6 @@ class ZTargeting extends THREE.Object3D {
   }
   setQueryResult(timestamp) {
     let reticles;
-    if (cameraManager.focus) return;
     const localPlayer = getLocalPlayer();
     if (localPlayer.hasAction('aim')) {
       this.queryResults.snapshot(camera);
@@ -201,8 +199,6 @@ class ZTargeting extends THREE.Object3D {
       if (this.focusTargetReticle) {
         sounds.playSoundName('zTargetCancel');
       }
-
-      game.menuUnaim();
     }
   }
   toggle() {
@@ -211,7 +207,6 @@ class ZTargeting extends THREE.Object3D {
     } else {
       const localPlayer = getLocalPlayer();
       this.handleDown(localPlayer);
-      game.menuAim();
       
       if (this.queryResults.results.length === 0) {
         setTimeout(() => {
