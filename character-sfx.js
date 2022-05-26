@@ -420,12 +420,12 @@ class CharacterSfx {
       gainNode.connect(audioContext.destination);
 
       const refDistance = 10;
-      const maxDistance = 50;
+      //const maxDistance = 50;
       const distanceModel = 'inverse';
       const volume = 1;
 
       pannerNode.refDistance = refDistance;
-      pannerNode.maxDistance = maxDistance;
+      //pannerNode.maxDistance = maxDistance;
       pannerNode.distanceModel = distanceModel;
       gainNode.gain.value = volume;
 
@@ -436,9 +436,7 @@ class CharacterSfx {
         this.player.avatar.setAudioEnabled(true);
       }
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
-      //console.log(audioContext)
       
-
       // if the oldGrunt are still playing
       if(this.oldGrunt){
         this.oldGrunt.stop();

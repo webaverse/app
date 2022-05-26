@@ -163,9 +163,9 @@ const update = () =>{
   localVector.set(0, 0, -1);
   cameraDirection = localVector.applyQuaternion( camera.quaternion );
   cameraDirection.normalize();
+  audioContext.listener.setOrientation(cameraDirection.x, cameraDirection.y, cameraDirection.z, upVectore.x, upVectore.y, upVectore.z);
+  audioContext.listener.setPosition(camera.position.x, camera.position.y, camera.position.z);
   for(const sound of currentPlayingSound){
-    sound.context.listener.setOrientation(cameraDirection.x, cameraDirection.y, cameraDirection.z, upVectore.x, upVectore.y, upVectore.z);
-    sound.context.listener.setPosition(camera.position.x, camera.position.y, camera.position.z);
     sound.panner.setPosition(sound.voicer.position.x, sound.voicer.position.y, sound.voicer.position.z);
     if(inReverbZone){
       if(!sound.gainNode.inReverbZone){
