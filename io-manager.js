@@ -243,7 +243,7 @@ const _updateIo = timeDiff => {
     cameraManager.lastNonzeroDirectionVectorRotated.copy(keysDirection);
     const useAction = localPlayer.getAction('use');
     const isUsingSwords = useAction?.animation || useAction?.animationCombo?.length > 0;
-    if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled() && !isUsingSwords) {
+    if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled() && movementEnabled && !isUsingSwords) {
       // window.domInfo.innerHTML += `<div style="display:;">keysDirection: --- ${window.logVector3(keysDirection)}</div>`;
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
@@ -253,6 +253,12 @@ const _updateIo = timeDiff => {
   }
 };
 ioManager.update = _updateIo;
+
+let movementEnabled = true;
+// ioManager.getMovmentEnabled = () => movementEnabled;
+ioManager.setMovementEnabled = newMovementEnabled => {
+  movementEnabled = newMovementEnabled;
+};
 
 const _updateIoPost = () => {
   ioManager.lastTeleport = ioManager.currentTeleport;
