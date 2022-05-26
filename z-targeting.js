@@ -250,6 +250,18 @@ class ZTargeting extends THREE.Object3D {
   findNearbyTarget(object = camera){
     return object;
   }
+  checkDrop(){
+    var camAngle;
+    if (this.focusTargetReticle){
+      camAngle = cameraManager.compareAngletoCam(this.focusTargetReticle.position);
+      if (camAngle > 20){
+        this.handleUp();
+      }else{}
+    }
+
+    //this.focusTargetReticle
+
+  }
 }
 const zTargeting = new ZTargeting();
 scene.add(zTargeting);

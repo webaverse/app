@@ -1041,12 +1041,18 @@ class GameManager extends EventTarget {
     this.usableObject = null;
     this.hoverEnabled = false;
   }
+  //
   findNearby(){
     return zTargeting.findNearbyTarget();
   }
   menuTarget(newTarget){
     zTargeting.handleTarget(newTarget)
   }
+  checkTargetDrop(){
+    zTargeting.checkDrop();
+  }
+
+  //
   getMenu() {
     return this.menuOpen;
   }

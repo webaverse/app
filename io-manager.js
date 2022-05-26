@@ -25,7 +25,6 @@ import transformControls from './transform-controls.js';
 import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
-import zTargeting from './z-targeting.js';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -310,15 +309,16 @@ ioManager.keydown = e => {
     }
     case 49: { // 1 -> temporarilly going to be used to switch to new target/ issue #3066
       // to do: check for nearby valid z-target X then do:
+      const localPlayer = metaversefile.useLocalPlayer();
       game.menuMiddleToggle();
-      game.menuTarget(game.findNearby());
+      game.menuTarget(game.findNearby(localPlayer));
       // then set z-target to X and do:
 
       break;
     }
     case 50: { // 2 -> temporarilly going to be used to detatch from target/ issue #3066
       // to do: trigger the following when player aims far enough (angle-based) away from z-target and remove functionality from button press
-      game.menuMiddleToggle();
+      game.checkTargetDrop();
       // automatically re-engage z-targeting on a different target if they are in range after moving and disengaging from the first z-target
       break;
     }
