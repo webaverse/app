@@ -193,31 +193,21 @@ export default (app, component) => {
       modelBones = null;
     }
 
-    if (app) {
-      app.scale.copy(initialScale);
-      app.quaternion.copy(initialQuaternion);
-
-      // Place the app in front of the player when they drop it, and reset the position
-      {
-        const localPlayer = metaversefile.useLocalPlayer();
-        const avatar = localPlayer.avatar;
-        const height = avatar.height;
-        const forward = new THREE.Vector3();
-        localPlayer.getWorldDirection(forward);
-        forward.setY(0);
-        forward.normalize();
-        const depthFactor = 1;
-        app.position.set(
-          localPlayer.position.x - forward.x * depthFactor,
-          height / 2,
-          localPlayer.position.z - forward.z * depthFactor
+    setTimeout(() => {
+      if (e.player) {
+        const avatarHeight = e.player.avatar ? e.player.avatar.height : 0;
+        e.app.position
+        .copy(e.player.position)
+        .add(
+          localVector
+            .set(0, -avatarHeight + 0.5, -1.0)
+            .applyQuaternion(e.player.quaternion)
         );
+        e.app.quaternion.identity();
+        e.app.scale.set(1, 1, 1);
+        e.app.updateMatrixWorld();
       }
-
-      app.updateMatrixWorld();
-      wearSpec = null;
-      modelBones = null;
-    }
+    }, 100)
   };
 
   const _copyBoneAttachment = (spec) => {
