@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
 
+const r = () => -1 + Math.random() * 2;
+
 class DropManager extends EventTarget {
   constructor() {
     super();
@@ -10,20 +12,22 @@ class DropManager extends EventTarget {
   }
   createDropApp({
     start_url,
+    type = 'minor', // 'minor', 'major', 'key'
     position,
     quaternion,
     scale,
-    velocity = new THREE.Vector3(r(), 1+Math.random(), r())
+    velocity = new THREE.Vector3(r(), 1 + Math.random(), r())
       .normalize()
       .multiplyScalar(5),
     angularVelocity = new THREE.Vector3(0, 0.001, 0),
     voucher = 'fakeVoucher', // XXX should really throw if no voucher
   }) {
-    const r = () => (-0.5+Math.random())*2;
+    // const r = () => (-0.5+Math.random())*2;
     const components = [
       {
         key: 'drop',
         value: {
+          type,
           voucher,
           velocity: velocity.toArray(),
           angularVelocity: angularVelocity.toArray(),
