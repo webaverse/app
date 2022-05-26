@@ -1170,7 +1170,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } else if (avatar.sitState) {
       sitMotion.play();
     } else if (avatar.narutoRunState) {
-      narutoRunMotion.paly();
+      narutoRunMotion.play();
     } else if (avatar.danceFactor > 0) {
       danceMotion.play();
     } else if (avatar.emoteFactor > 0) {
