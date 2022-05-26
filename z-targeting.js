@@ -128,21 +128,25 @@ class ZTargeting extends THREE.Object3D {
     this.reticles = [];
     this.focusTargetReticle = null;
     this.queryResults = new QueryResults();
+    this.nearbyResults = new QueryResults();
   }
   setQueryResult(timestamp) {
     let reticles;
     const localPlayer = getLocalPlayer();
+    //select target
     if (localPlayer.hasAction('aim')) {
       this.queryResults.snapshot(camera);
       reticles = this.queryResults.results;
     } else {
       reticles = [];
     }
+    //focusing on target
     if (this.focusTargetReticle) {
       const timeDiff = timestamp - cameraManager.lerpStartTime;
       const focusTime = 250;
 
       const f = timeDiff / focusTime;
+      //if you have focus or are close? to target lock on
       if (cameraManager.focus || f < 3) {
         reticles = [
           this.focusTargetReticle,
@@ -166,7 +170,35 @@ class ZTargeting extends THREE.Object3D {
   }
   handleDown(object = camera) {
     if (!cameraManager.focus) {
-      this.queryResults.snapshot(object);
+      this.handleTarget(object);
+    //   this.queryResults.snapshot(object);
+
+    //   if (this.queryResults.results.length > 0) {
+    //     this.focusTargetReticle = this.queryResults.results[0];
+    //     sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
+      
+    //     const naviSoundNames = [
+    //       'naviHey',
+    //       'naviWatchout',
+    //       'naviFriendly',
+    //       'naviItem',
+    //       'naviDanger',
+    //     ];
+    //     const naviSoundName = naviSoundNames[Math.floor(Math.random() * naviSoundNames.length)];
+    //     sounds.playSoundName(naviSoundName);
+    //   } else {
+    //     sounds.playSoundName('zTargetCenter');
+    //   }
+
+    //   cameraManager.setFocus(true);
+    //   const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
+    //   const localPlayer = getLocalPlayer();
+    //   cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
+   }
+  }
+  handleTarget(targetObject){
+    // if (!cameraManager.focus) {
+      this.queryResults.snapshot(targetObject);
 
       if (this.queryResults.results.length > 0) {
         this.focusTargetReticle = this.queryResults.results[0];
@@ -189,7 +221,7 @@ class ZTargeting extends THREE.Object3D {
       const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
       const localPlayer = getLocalPlayer();
       cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
-    }
+    //}
   }
   handleUp() {
     if (cameraManager.focus) {
@@ -214,6 +246,9 @@ class ZTargeting extends THREE.Object3D {
         }, 300);
       }
     }
+  }
+  findNearbyTarget(object = camera){
+    return object;
   }
 }
 const zTargeting = new ZTargeting();

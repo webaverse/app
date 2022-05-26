@@ -311,8 +311,9 @@ ioManager.keydown = e => {
     case 49: { // 1 -> temporarilly going to be used to switch to new target/ issue #3066
       // to do: check for nearby valid z-target X then do:
       game.menuMiddleToggle();
+      game.menuTarget(game.findNearby());
       // then set z-target to X and do:
-      game.menuMiddleToggle();
+
       break;
     }
     case 50: { // 2 -> temporarilly going to be used to detatch from target/ issue #3066
