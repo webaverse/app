@@ -23,28 +23,6 @@
         "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }
     },
-    {
-      "type": "application/audioSource",
-      "content": {
-        "sound": "background",
-        "index": 0,
-        "volume": 0
-      }
-    },
-    {
-      "type": "application/audioSource",
-      "content": {
-        "sound": "ocean",
-        "index": 0,
-        "volume": 0
-      }
-    },
-    {
-      "type": "application/reverb",
-      "content": {
-        "args": [46.280874322256864, 2.6310317270928314, 108.28784768377508, 30]
-      }
-    },
   
 {
        "position": [
@@ -99,6 +77,27 @@
     },
     {
       "position": [
+        -38,
+        0.9,
+        188
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "scale": [
+        0.31,
+        0.31,
+        0.31
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/motor-boat/",
+      "dynamic": true
+    },
+    {
+      "position": [
         0,
         1,
         0
@@ -106,6 +105,44 @@
       "physics": true,
       "start_url": "https://webaverse.github.io/dynamic-water/",
       "dynamic": false
+    },
+    {
+      "position": [
+        23,
+        2,
+        55
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/pistol/"
+    },
+    {
+      "position": [
+        26,
+        2,
+        55
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/silsword/"
     },
     {
       "position": [

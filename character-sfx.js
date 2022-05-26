@@ -549,7 +549,6 @@ class CharacterSfx {
 
       gainNode.inReverbZone = false;
 
-      
       // if the oldGrunt are still playing
       if(this.oldGrunt){
         this.oldGrunt.stop();
