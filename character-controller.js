@@ -403,21 +403,6 @@ class PlayerBase extends THREE.Object3D {
       return type === "wear" && instanceId === app.instanceId;
     });
 
-    const _setAppTransform = () => {
-      const avatarHeight = this.avatar ? this.avatar.height : 0;
-      app.position
-        .copy(this.position)
-        .add(
-          localVector
-            .set(0, -avatarHeight + 0.5, -0.5)
-            .applyQuaternion(this.quaternion)
-        );
-      app.quaternion.identity();
-      app.scale.set(1, 1, 1);
-      app.updateMatrixWorld();
-    };
-    _setAppTransform();
-
     const _deinitPhysics = () => {
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
@@ -1764,6 +1749,7 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
   }
   updatePhysics = LocalPlayer.prototype.updatePhysics;
   updateAvatar = LocalPlayer.prototype.updateAvatar;
+
   /* detachState() {
     return null;
   }
