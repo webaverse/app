@@ -446,19 +446,10 @@ const _endUse = () => {
   }
 };
 const _mousedown = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  const useAction = localPlayer.getAction('use');
-  if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
-    localPlayer.needContinueCombo = true;
-  }
   _startUse();
 };
 const _mouseup = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  const useAction = localPlayer.getAction('use');
-  if (!useAction?.animation && !useAction?.animationCombo?.length > 0) {
-    _endUse();
-  }
+  _endUse();
 };
 
 const _grab = object => {
