@@ -11,6 +11,7 @@ import dropManager from '../drop-manager.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 
 const rarityColorsArray = Object.keys(rarityColors).map(k => rarityColors[k][0]);
 const cubicBezier = easing(0, 1, 0, 1);
@@ -22,6 +23,8 @@ export default app => {
 
   const dropComponent = app.getComponent('drop');
   if (dropComponent) {
+    let rotY = 0;
+
     const glowHeight = 5;
     const glowGeometry = new THREE.CylinderBufferGeometry(0.01, 0.01, glowHeight)
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
@@ -40,10 +43,12 @@ export default app => {
     let grounded = false;
     const startTime = performance.now();
     let animation = null;
+    let pickedUp = false;
     metaversefile.useFrame(e => {
       const {timestamp, timeDiff} = e;
       const timeDiffS = timeDiff/1000;
-      const dropComponent = app.getComponent('drop');
+      
+      // animate and check for collisions
       if (!grounded) {
         app.position
           .add(
@@ -55,7 +60,7 @@ export default app => {
             .multiplyScalar(timeDiffS)
         );
         
-        const groundHeight = 0.1;
+        const groundHeight = 0.3;
         if (app.position.y <= groundHeight) {
           app.position.y = groundHeight;
           const newDrop = JSON.parse(JSON.stringify(dropComponent));
@@ -65,10 +70,8 @@ export default app => {
           grounded = true;
         }
       }
-      // if (grounded) {
-        app.rotation.y += angularVelocity.y * timeDiff;
-      // }
-      
+
+      // animation
       glowMesh.visible = !animation;
       if (!animation) {
         localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector);
@@ -80,6 +83,7 @@ export default app => {
           if (timeSinceStart > gracePickupTime) {
             // console.log('check 2');
             animation = {
+              type: dropComponent.type,
               startPosition: app.position.clone(),
               startTime: timestamp,
               endTime: timestamp + 1000,
@@ -93,40 +97,61 @@ export default app => {
         const tailTimeFactorCutoff = 0.8;
         const timeDiff = timestamp - animation.startTime;
         const timeFactor = Math.min(Math.max(timeDiff / (animation.endTime - animation.startTime), 0), 1);
-        if (timeFactor < 1) {
-          if (timeFactor < tailTimeFactorCutoff) {
-            const f = cubicBezier(timeFactor);
-            localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
-              .add(localVector2.set(0, headOffset, 0));
-            app.position.copy(animation.startPosition).lerp(localVector, f);
-          } else {
-            {
-              const f = cubicBezier(tailTimeFactorCutoff);
-              localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
-                .add(localVector2.set(0, headOffset, 0));
-              app.position.copy(animation.startPosition).lerp(localVector, f);
+
+        const _handleAnimation = () => {
+          switch (animation.type) {
+            case 'minor':
+            case 'major': {
+              if (timeFactor < 1) {
+                if (timeFactor < tailTimeFactorCutoff) {
+                  const f = cubicBezier(timeFactor);
+                  localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
+                    .add(localVector2.set(0, headOffset, 0));
+                  app.position.copy(animation.startPosition).lerp(localVector, f);
+                } else {
+                  {
+                    const f = cubicBezier(tailTimeFactorCutoff);
+                    localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
+                      .add(localVector2.set(0, headOffset, 0));
+                    app.position.copy(animation.startPosition).lerp(localVector, f);
+                  }
+                  {
+                    const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
+                    const f = cubicBezier2(tailTimeFactor);
+                    localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
+                      .add(localVector2.set(0, bodyOffset, 0));
+                    app.position.lerp(localVector, f);
+                    app.scale.setScalar(1 - tailTimeFactor);
+                  }
+                }
+              } else {
+                dropManager.pickupApp(app);
+
+                world.appManager.removeApp(app);
+                app.destroy();
+              }
+              break;
             }
-            {
-              const tailTimeFactor = (timeFactor - tailTimeFactorCutoff) / (1 - tailTimeFactorCutoff);
-              const f = cubicBezier2(tailTimeFactor);
-              localPlayer.avatar.modelBoneOutputs.Head.getWorldPosition(localVector)
-                .add(localVector2.set(0, bodyOffset, 0));
-              app.position.lerp(localVector, f);
-              app.scale.setScalar(1 - tailTimeFactor);
+            case 'key': {
+              if (!pickedUp) {
+                localPlayer.addAction({
+                  type: 'pickUp',
+                  instanceId: app.instanceId,
+                });
+                pickedUp = true;
+              }
+
+              break;
             }
           }
-        } else {
-          /* world.appManager.dispatchEvent(new MessageEvent('pickup', {
-            data: {
-              app,
-            },
-          })); */
-
-          dropManager.pickupApp(app);
-
-          world.appManager.removeApp(app);
-          app.destroy();
-        }
+        };
+        _handleAnimation();
+      } else {
+        // rotation
+        rotY += 0.3 * Math.PI * 2 * timeDiffS;
+        rotY = rotY % (Math.PI * 2);
+        localEuler.set(0, rotY, 0, 'YXZ');
+        app.quaternion.setFromEuler(localEuler);
       }
       
       app.updateMatrixWorld();
