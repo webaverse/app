@@ -12,6 +12,7 @@ const moduleUrls = {
   healEffect: `./metaverse_modules/heal-effect/`,
   filter: './metaverse_modules/filter/',
   barrier: './metaverse_modules/barrier/',
+  comet: './metaverse_modules/comet/',
   infinistreet: './metaverse_modules/infinistreet/',
   spawner: './metaverse_modules/spawner/',
   defaultScene: './metaverse_modules/default-scene/',
@@ -24,6 +25,7 @@ const moduleUrls = {
   magic: './metaverse_modules/magic/',
   limit: './metaverse_modules/limit/',
   flare: './metaverse_modules/flare/',
+  firedrop: './metaverse_modules/firedrop/',
   meshLodItem: './metaverse_modules/mesh-lod-item/',
 };
 const modules = {};

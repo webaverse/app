@@ -1,4 +1,4 @@
-export class ItemLoader extends EventTarget { 
+export class CachedLoader extends EventTarget { 
   constructor({
       loadFn,
   }) {
