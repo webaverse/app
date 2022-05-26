@@ -240,7 +240,7 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled()) {
+    if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled() && movementEnabled) {
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
           .multiplyScalar(game.getSpeed() * timeDiff)
@@ -249,6 +249,12 @@ const _updateIo = timeDiff => {
   }
 };
 ioManager.update = _updateIo;
+
+let movementEnabled = true;
+// ioManager.getMovmentEnabled = () => movementEnabled;
+ioManager.setMovementEnabled = newMovementEnabled => {
+  movementEnabled = newMovementEnabled;
+};
 
 const _updateIoPost = () => {
   ioManager.lastTeleport = ioManager.currentTeleport;

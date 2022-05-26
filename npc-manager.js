@@ -31,6 +31,7 @@ class NpcManager extends EventTarget {
   }) {
     const npcPlayer = new LocalPlayer({
       npc: true,
+      detached,
     });
     npcPlayer.name = name;
 
@@ -51,17 +52,15 @@ class NpcManager extends EventTarget {
       npcPlayer.updateMatrixWorld();
     }
 
-    npcPlayer.npcApp = npcApp;
+    npcPlayer.npcApp = npcApp; // for lore AI
+    if (npcApp) {
+      npcApp.npcPlayer = npcPlayer; // for character select
+    }
 
     await npcPlayer.setAvatarUrl(avatarUrl);
 
     if (!detached) {
       this.npcs.push(npcPlayer);
-      /* this.dispatchEvent(new MessageEvent('npcadd', {
-        data: {
-          player: npcPlayer,
-        },
-      })); */
     }
 
     return npcPlayer;
@@ -73,15 +72,10 @@ class NpcManager extends EventTarget {
     const removeIndex = this.npcs.indexOf(npcPlayer);
     if (removeIndex !== -1) {
       this.npcs.splice(removeIndex, 1);
-      /* this.dispatchEvent(new MessageEvent('npcremove', {
-        data: {
-          player: npcPlayer,
-        },
-      })); */
     }
   }
 
-  addNpcApp(app, srcUrl) {
+  async addNpcApp(app, srcUrl) {
     const localPlayer = getLocalPlayer();
 
     let live = true;
@@ -94,11 +88,9 @@ class NpcManager extends EventTarget {
 
         if (npcPlayer) {
           npcManager.destroyNpc(npcPlayer);
-          // npcPlayer = null;
         }
         if (character) {
           world.loreAIScene.removeCharacter(character);
-          // character = null;
         }
       },
     ];
@@ -124,6 +116,7 @@ class NpcManager extends EventTarget {
       }
     };
 
+    // events
     let targetSpec = null;
     if (mode === 'attached') {
       const _listenEvents = () => {
@@ -145,7 +138,6 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
-          // console.log('activate npc');
           if (targetSpec?.object !== localPlayer) {
             targetSpec = {
               type: 'follow',
@@ -157,94 +149,79 @@ class NpcManager extends EventTarget {
         };
         app.addEventListener('activate', activate);
 
+        const slowdownFactor = 0.4;
+        const walkSpeed = 0.075 * slowdownFactor;
+        const runSpeed = walkSpeed * 8;
+        const speedDistanceRate = 0.07;
+        const frame = e => {
+          if (npcPlayer && physicsManager.getPhysicsEnabled()) {
+            const {timestamp, timeDiff} = e.data;
+            
+            if (targetSpec) {
+              const target = targetSpec.object;
+              const v = localVector.setFromMatrixPosition(target.matrixWorld)
+                .sub(npcPlayer.position);
+              v.y = 0;
+              const distance = v.length();
+              if (targetSpec.type === 'moveto' && distance < 2) {
+                targetSpec = null;
+              } else {
+                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
+                v.normalize()
+                  .multiplyScalar(speed * timeDiff);
+                npcPlayer.characterPhysics.applyWasd(v);
+              }
+            }
+
+            npcPlayer.eyeballTarget.copy(localPlayer.position);
+            npcPlayer.eyeballTargetEnabled = true;
+
+            /* if (isNaN(npcPlayer.position.x)) {
+              debugger;
+            } */
+            npcPlayer.updatePhysics(timestamp, timeDiff);
+            /* if (isNaN(npcPlayer.position.x)) {
+              debugger;
+            } */
+            npcPlayer.updateAvatar(timestamp, timeDiff);
+            /* if (isNaN(npcPlayer.position.x)) {
+              debugger;
+            } */
+          }
+        };
+        world.appManager.addEventListener('frame', frame);
+
         cancelFns.push(() => {
           app.removeEventListener('hittrackeradded', hittrackeradd);
           app.removeEventListener('activate', activate);
+          world.appManager.removeEventListener('frame', frame);
         });
       };
       _listenEvents();
     }
 
-    (async () => {
-      if (mode === 'attached') {
-        const res = await fetch(srcUrl);
-        if (!live) return;
-        json = await res.json();
-        if (!live) return;
+    // load
+    if (mode === 'attached') {
+      // load json
+      const res = await fetch(srcUrl);
+      if (!live) return;
+      json = await res.json();
+      if (!live) return;
 
-        let avatarUrl = json.avatarUrl;
-        avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
-        const npcName = json.name ?? 'Anon';
-        const npcVoiceName = json.voice ?? 'Shining armor';
-        const npcBio = json.bio ?? 'A generic avatar.';
-        const npcDetached = !!json.detached;
-        let npcWear = json.wear ?? [];
-        if (!Array.isArray(npcWear)) {
-          npcWear = [npcWear];
-        }
+      // npc pameters
+      let avatarUrl = json.avatarUrl;
+      avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
+      const npcName = json.name ?? 'Anon';
+      const npcVoiceName = json.voice ?? 'Shining armor';
+      const npcBio = json.bio ?? 'A generic avatar.';
+      const npcDetached = !!json.detached;
+      let npcWear = json.wear ?? [];
+      if (!Array.isArray(npcWear)) {
+        npcWear = [npcWear];
+      }
 
-        /* const vrmApp = await metaversefile.createAppAsync({
-          start_url: json.avatarUrl,
-          position: app.position,
-          quaternion: app.quaternion,
-          scale: app.scale,
-        }); */
-
-        (async () => {
-          // const position = vrmApp.position.clone()
-          //   .add(new THREE.Vector3(0, 1, 0));
-          // const {quaternion, scale} = vrmApp;
-          const newNpcPlayer = await npcManager.createNpcAsync({
-            name: npcName,
-            npcApp: app,
-            // avatarApp: vrmApp,
-            avatarUrl,
-            position: app.position.clone()
-              .add(new THREE.Vector3(0, 1, 0)),
-            quaternion: app.quaternion,
-            scale: app.scale,
-            detached: npcDetached,
-          });
-
-          const _addPlayerAvatarToApp = () => {
-            app.position.set(0, 0, 0);
-            app.quaternion.identity();
-            app.scale.set(1, 1, 1);
-  
-            // app.add(vrmApp);
-            app.updateMatrixWorld();
-          };
-          _addPlayerAvatarToApp();
-
-          const _setVoiceEndpoint = () => {
-            const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
-            if (voice) {
-              newNpcPlayer.setVoiceEndpoint(voice.drive_id);
-            } else {
-              console.warn('unknown voice name', npcVoiceName, voices.voiceEndpoints);
-            }
-          };
-          _setVoiceEndpoint();
-
-          const _updateWearables = async () => {
-            const wearablePromises = npcWear.map(wear => (async () => {
-              const {start_url} = wear;
-              const app = await newNpcPlayer.appManager.addTrackedApp(start_url);
-              /* const app = await metaversefile.createAppAsync({
-                start_url,
-              }); */
-              // if (!live) return;
-
-              newNpcPlayer.wear(app);
-            })());
-            await wearablePromises;
-          };
-          await _updateWearables();
-          if (!live) return;
-          
-          npcPlayer = newNpcPlayer;
-        })()
-
+      // ai scene
+      const _addToAiScene = () => {
         character = world.loreAIScene.addCharacter({
           name: npcName,
           bio: npcBio,
@@ -278,49 +255,64 @@ class NpcManager extends EventTarget {
             console.log('use', action, object, target);
           }
         });
+      };
+      _addToAiScene();
 
-        const slowdownFactor = 0.4;
-        const walkSpeed = 0.075 * slowdownFactor;
-        const runSpeed = walkSpeed * 8;
-        const speedDistanceRate = 0.07;
-        world.appManager.addEventListener('frame', e => {
-          const {timestamp, timeDiff} = e.data;
-          if (npcPlayer && physicsManager.getPhysicsEnabled()) {
-            // console.log('update npc player', npcPlayer.position.toArray().join(','));
-            if (targetSpec) {
-              const target = targetSpec.object;
-              const v = localVector.setFromMatrixPosition(target.matrixWorld)
-                .sub(npcPlayer.position);
-              v.y = 0;
-              const distance = v.length();
-              if (targetSpec.type === 'moveto' && distance < 2) {
-                targetSpec = null;
-              } else {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                npcPlayer.characterPhysics.applyWasd(v);
-              }
-            }
+      // create npc
+      const newNpcPlayer = await npcManager.createNpcAsync({
+        name: npcName,
+        npcApp: app,
+        // avatarApp: vrmApp,
+        avatarUrl,
+        position: app.position.clone()
+          .add(new THREE.Vector3(0, 1, 0)),
+        quaternion: app.quaternion,
+        scale: app.scale,
+        detached: npcDetached,
+      });
 
-            npcPlayer.eyeballTarget.copy(localPlayer.position);
-            npcPlayer.eyeballTargetEnabled = true;
+      // attach to scene
+      const _addPlayerAvatarToApp = () => {
+        app.position.set(0, 0, 0);
+        app.quaternion.identity();
+        app.scale.set(1, 1, 1);
 
-            if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            }
-            npcPlayer.updatePhysics(timestamp, timeDiff);
-            if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            }
-            npcPlayer.updateAvatar(timestamp, timeDiff);
-            if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            }
-          }
-        });
-      }
-    })();
+        // app.add(vrmApp);
+        app.updateMatrixWorld();
+      };
+      _addPlayerAvatarToApp();
+
+      // voice endpoint setup
+      const _setVoiceEndpoint = () => {
+        const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
+        if (voice) {
+          newNpcPlayer.setVoiceEndpoint(voice.drive_id);
+        } else {
+          console.warn('unknown voice name', npcVoiceName, voices.voiceEndpoints);
+        }
+      };
+      _setVoiceEndpoint();
+
+      // wearables
+      const _updateWearables = async () => {
+        const wearablePromises = npcWear.map(wear => (async () => {
+          const {start_url} = wear;
+          const app = await newNpcPlayer.appManager.addTrackedApp(start_url);
+          /* const app = await metaversefile.createAppAsync({
+            start_url,
+          }); */
+          // if (!live) return;
+
+          newNpcPlayer.wear(app);
+        })());
+        await wearablePromises;
+      };
+      await _updateWearables();
+      if (!live) return;
+      
+      // latch
+      npcPlayer = newNpcPlayer;
+    }
   }
   removeNpcApp(app) {
     const cancelFn = cancelFnMap.get(app);
