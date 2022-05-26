@@ -28,7 +28,7 @@
       "content": {
         "sound": "background",
         "index": 0,
-        "volume": 0.07
+        "volume": 0
       }
     },
     {
@@ -36,7 +36,13 @@
       "content": {
         "sound": "ocean",
         "index": 0,
-        "volume": 0.08
+        "volume": 0
+      }
+    },
+    {
+      "type": "application/reverb",
+      "content": {
+        "args": [46.280874322256864, 2.6310317270928314, 108.28784768377508, 30]
       }
     },
   
@@ -120,42 +126,6 @@
       ],
       "physics": false,
       "start_url": "https://webaverse.github.io/jatayu-birdsculpture/",
-      "dynamic": true
-    },
-    {
-      "position": [
-        -5.26,2,50.23
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "physics": false,
-      "start_url": "https://tcm390.github.io/heli/",
-      "dynamic": true
-    },
-     {
-      "position": [
-        20.26,2,50.23
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "physics": false,
-      "start_url": "https://tcm390.github.io/heli/",
-      "dynamic": true
-    },
-    {
-      "position": [
-        10.26,2,50.23
-      ],
-      "physics": false,
-      "start_url": "http://127.0.0.1:12003/",
       "dynamic": true
     }
 

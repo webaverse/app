@@ -387,6 +387,9 @@ metaversefile.setApi({
   usePostPerspectiveScene() {
     return postScenePerspective;
   }, */
+  getReverbZone() {
+    return world.reverbZone;
+  },
   getMirrors() {
     return mirrors;
   },

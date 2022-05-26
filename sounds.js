@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {camera} from './renderer.js';
+import {world} from './world.js';
 import Avatar from './avatars/avatars.js';
 import {loadAudioBuffer} from './util.js';
 import soundFileSpecs from './public/sounds/sound-files.json';
@@ -59,17 +60,18 @@ const waitForLoad = () => loadPromise;
 const getSoundFiles = () => soundFiles;
 const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
+// dry sound
 const masterOut = audioContext.createGain();
 masterOut.connect(audioContext.destination);
 
+// reverb
 const convolver = audioContext.createConvolver();
 convolver.buffer = createNoiseBuffer(audioContext, 2);
 convolver.connect(masterOut);
 
-
+// wet sound
 const reverbGain = audioContext.createGain();
 reverbGain.connect(convolver);
-
 
 
 const sounds = [];
@@ -87,7 +89,7 @@ const playSound = (audioSpec, option) => {
 
     audioBufferSourceNode.connect(pannerNode);
     pannerNode.connect(gainNode);
-    gainNode.connect(reverbGain);
+    //gainNode.connect(reverbGain);
     gainNode.connect(masterOut);
 
     const refDistance = option.refDistance !== undefined ? option.refDistance : 10;
@@ -100,8 +102,10 @@ const playSound = (audioSpec, option) => {
     pannerNode.distanceModel = distanceModel;
     gainNode.gain.value = volume;
 
+    gainNode.inReverbZone = false;
+
     // handel sounds array
-    audioBufferSourceNode.info = {voicer: option.voicer, context: audioContext, panner: pannerNode};
+    audioBufferSourceNode.info = {voicer: option.voicer, context: audioContext, panner: pannerNode, gainNode: gainNode};
     sounds.push(audioBufferSourceNode.info);
     audioBufferSourceNode.addEventListener('ended', () => {
       const index = sounds.indexOf(audioBufferSourceNode.info);
@@ -143,9 +147,18 @@ function createNoiseBuffer(audioContext, length) {
 }
 
 const upVectore = new THREE.Vector3(0, 1, 0);
+let reverbZonsPos = new THREE.Vector3(); 
 let cameraDirection = new THREE.Vector3();
 let localVector = new THREE.Vector3();
 const update = () =>{
+  let inReverbZone = false;
+  for(const reverbZone of world.reverbZone){
+    reverbZonsPos.set(reverbZone[0], reverbZone[1], reverbZone[2]);
+    if(camera.position.distanceTo(reverbZonsPos) < reverbZone[3]){
+      inReverbZone = true;
+      break;
+    }
+  }
   localVector.set(0, 0, -1);
   cameraDirection = localVector.applyQuaternion( camera.quaternion );
   cameraDirection.normalize();
@@ -153,6 +166,18 @@ const update = () =>{
     sound.context.listener.setOrientation(cameraDirection.x, cameraDirection.y, cameraDirection.z, upVectore.x, upVectore.y, upVectore.z);
     sound.context.listener.setPosition(camera.position.x, camera.position.y, camera.position.z);
     sound.panner.setPosition(sound.voicer.position.x, sound.voicer.position.y, sound.voicer.position.z);
+    if(inReverbZone){
+      if(!sound.gainNode.inReverbZone){
+        sound.gainNode.connect(reverbGain);
+        sound.gainNode.inReverbZone = true;
+      }
+    }
+    else{
+      if(sound.gainNode.inReverbZone){
+        sound.gainNode.disconnect(reverbGain);
+        sound.gainNode.inReverbZone = false;
+      }
+    }
   }
 }
 const playSoundName = (name, option) => {
