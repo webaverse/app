@@ -414,8 +414,10 @@ export const MapGen = () => {
                     scene.add(cometMeshApp);
                     const localPlayer = useLocalPlayer();
                     cometMeshApp.position.copy(localPlayer.position)
-                      .add(new THREE.Vector3(0, 3, 0).applyQuaternion(localPlayer.quaternion));
+                      .add(new THREE.Vector3(0, 3, -3).applyQuaternion(localPlayer.quaternion));
                     localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
+                    localEuler.x = 0;
+                    localEuler.z = 0;
                     cometMeshApp.quaternion.setFromEuler(localEuler);
                     cometMeshApp.updateMatrixWorld();
 
