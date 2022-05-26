@@ -23,6 +23,7 @@ import {getLocalPlayer, setLocalPlayer} from './players.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
+import Avatar from './avatars/avatars.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -552,6 +553,60 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
   zTargeting.update(timestamp, timeDiff);
 
+  const _handlePickUp = () => {
+    const pickUpAction = localPlayer.getAction('pickUp');
+    if (pickUpAction) {
+      const {instanceId} = pickUpAction;
+      const app = metaversefileApi.getAppByInstanceId(instanceId);
+
+      const _removeApp = () => {
+        if (app.parent) {
+          app.oldParent = app.parent;
+          app.parent.remove(app);
+        }
+      };
+      const _addApp = () => {
+        app.oldParent.add(app);
+        app.oldParent = null;
+      };
+
+      _removeApp();
+
+      const animations = Avatar.getAnimations();
+      const pickUpZeldaAnimation = animations.find(a => a.name === 'pick_up_zelda.fbx');
+      const pickUpTime = localPlayer.actionInterpolants.pickUp.get();
+      const pickUpTimeS = pickUpTime / 1000;
+      if (pickUpTimeS < pickUpZeldaAnimation.duration) {
+        // still playing the pick up animation
+      } else {
+        // idling
+
+        // console.log('render item', instanceId, app, localPlayer.modelBones);
+        // debugger;
+
+        _addApp();
+
+        const handsAveragePosition = localVector.setFromMatrixPosition(localPlayer.avatar.modelBones.Left_wrist.matrixWorld)
+          .add(localVector2.setFromMatrixPosition(localPlayer.avatar.modelBones.Right_wrist.matrixWorld))
+          .divideScalar(2)
+          .add(localVector2.set(0, 0.2, 0));
+        app.position.copy(handsAveragePosition);
+        localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        app.quaternion.setFromEuler(localEuler);
+        app.updateMatrixWorld();
+
+        // console.log('got pickUpTime', pickUpTime, animations);
+        // debugger;
+      }
+    } /* else {
+
+    } */
+    ioManager.setMovementEnabled(!pickUpAction);
+  }
+  _handlePickUp();
+
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
 
@@ -1009,18 +1064,6 @@ _setFirstPersonAction(lastFirstPerson);
   const firstPerson = mode === 'firstperson';
   _setFirstPersonAction(firstPerson);
 }); */
-
-const _listenLocalPlayerPickupAction = () => {
-  const localPlayer = getLocalPlayer();
-  localPlayer.addEventListener('actionadd', e => {
-    const {action} = e;
-    const {type} = action;
-    if (type === 'pickUp') {
-      ioManager.setMovementEnabled(false);
-    }
-  });
-};
-_listenLocalPlayerPickupAction();
 
 let lastMouseEvent = null;
 class GameManager extends EventTarget {
