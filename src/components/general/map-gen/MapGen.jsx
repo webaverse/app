@@ -40,6 +40,7 @@ const localVectorX = new THREE.Vector3();
 const localVectorX2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -203,6 +204,7 @@ export const MapGen = () => {
     const [firedropMeshApp, setFiredropMeshApp] = useState(null);
     const [haloMeshApp, setHaloMeshApp] = useState(null);
     const [silksMeshApp, setSilksMeshApp] = useState(null);
+    const [cometMeshApp, setCometMeshApp] = useState(null);
     const [flareMeshApp, setFlareMeshApp] = useState(null);
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
@@ -400,6 +402,37 @@ export const MapGen = () => {
 
                 }
 
+                case 80: { // P
+                
+                  if (!cometMeshApp) {
+                    const cometMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['comet'];
+                      await cometMeshApp.addModule(m);
+                    })();
+                    scene.add(cometMeshApp);
+                    const localPlayer = useLocalPlayer();
+                    cometMeshApp.position.copy(localPlayer.position)
+                      .add(new THREE.Vector3(0, 3, -3).applyQuaternion(localPlayer.quaternion));
+                    localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
+                    localEuler.x = 0;
+                    localEuler.z = 0;
+                    cometMeshApp.quaternion.setFromEuler(localEuler);
+                    cometMeshApp.updateMatrixWorld();
+
+                    setCometMeshApp(cometMeshApp);
+                  } else {
+                    cometMeshApp.parent.remove(cometMeshApp);
+                    cometMeshApp.destroy();
+
+                    setCometMeshApp(null);
+                  }
+      
+                  return false;
+
+              }
+
                 case 186: { // ;
 
                   if (!flareMeshApp) {
@@ -539,7 +572,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel, firedropMeshApp, haloMeshApp, silksMeshApp, flareMeshApp, magicMeshApp, limitMeshApp ]);
+    }, [ state.openedPanel, firedropMeshApp, haloMeshApp, silksMeshApp, cometMeshApp, flareMeshApp, magicMeshApp, limitMeshApp ]);
 
     // resize
     useEffect(() => {

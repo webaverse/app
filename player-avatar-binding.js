@@ -72,6 +72,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
   const flyAction = player.getAction('fly');
   const useAction = player.getAction('use');
+  const pickUpAction = player.getAction('pickUp');
   const narutoRunAction = player.getAction('narutoRun');
   const sitAction = player.getAction('sit');
   const sitAnimation = sitAction ? sitAction.animation : '';
@@ -101,37 +102,47 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
   
-  if (useAction?.animation) {
-    rig.useAnimation = useAction.animation;
-  } else {
-    if (rig.useAnimation) {
-      rig.useAnimation = '';
-    }
-  }
-  if (useAction?.animationCombo) {
-    rig.useAnimationCombo = useAction.animationCombo;
-  } else {
-    if (rig.useAnimationCombo.length > 0) {
-      rig.useAnimationCombo = [];
-    }
-  }
-  if (useAction?.animationEnvelope) {
-    rig.useAnimationEnvelope = useAction.animationEnvelope;
-  } else {
-    if (rig.useAnimationEnvelope.length > 0) {
-      rig.useAnimationEnvelope = [];
-    }
-  }
-  rig.useAnimationIndex = useAction?.index;
-  rig.useTime = player.actionInterpolants.use.get();
-  rig.unuseTime = player.actionInterpolants.unuse.get();
-  if (rig.unuseTime === 0) { // this means use is active
-    if (useAction?.animationEnvelope) {
-      rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
+  const _handleUse = () => {
+    if (useAction?.animation) {
+      rig.useAnimation = useAction.animation;
     } else {
-      rig.unuseAnimation = null;
+      if (rig.useAnimation) {
+        rig.useAnimation = '';
+      }
     }
-  }
+    if (useAction?.animationCombo) {
+      rig.useAnimationCombo = useAction.animationCombo;
+    } else {
+      if (rig.useAnimationCombo.length > 0) {
+        rig.useAnimationCombo = [];
+      }
+    }
+    if (useAction?.animationEnvelope) {
+      rig.useAnimationEnvelope = useAction.animationEnvelope;
+    } else {
+      if (rig.useAnimationEnvelope.length > 0) {
+        rig.useAnimationEnvelope = [];
+      }
+    }
+    rig.useAnimationIndex = useAction?.index;
+    rig.useTime = player.actionInterpolants.use.get();
+    rig.unuseTime = player.actionInterpolants.unuse.get();
+    if (rig.unuseTime === 0) { // this means use is active
+      if (useAction?.animationEnvelope) {
+        rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
+      } else {
+        rig.unuseAnimation = null;
+      }
+    }
+  };
+  _handleUse();
+
+  const _handlePickUp = () => {
+    rig.pickUpState = !!pickUpAction;
+    rig.pickUpTime = player.actionInterpolants.pickUp.get();
+  };
+  _handlePickUp();
+
   rig.dashAttacking = player.hasAction('dashAttack');
 
   rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
@@ -139,7 +150,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.vowels[2] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[2];
   rig.vowels[3] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[3];
   rig.vowels[4] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[4];
-
 
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
@@ -154,7 +164,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.sitAnimation = sitAnimation;
 
   // XXX this needs to be based on the current loadout index
-  rig.pickUpState = wearAction?.holdAnimation === 'pick_up_idle';
+  rig.holdState = wearAction?.holdAnimation === 'pick_up_idle';
   // rig.danceState = !!danceAction;
   rig.danceFactor = player.actionInterpolants.dance.get();
   if (danceAction) {
