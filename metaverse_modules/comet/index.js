@@ -582,27 +582,28 @@ export default () => {
 
   // const dropMeshes = [];
   mesh.addEventListener('drop', e => {
-    const worldPosition = localVector.setFromMatrixPosition(mesh.matrixWorld);
-
     /* const dropMesh = _makeDropMesh();
     dropMesh.position.copy(worldPosition);
     // dropMesh.position.y += 0.5;
     // dropMesh.updateMatrixWorld();
     dropMeshes.push(dropMesh); */
 
-    dropManager.createDropApp({
-      start_url: moduleUrls.card,
-      position: worldPosition.clone()
-        .add(new THREE.Vector3(0, 0.5, 0)),
-      // quaternion: app.quaternion,
-      // scale: app.scale
-      velocity: new THREE.Vector3(0, 3, 0),
-    });
+    (async () => {
+      const worldPosition = localVector.setFromMatrixPosition(mesh.matrixWorld);
+      const dropApp = await dropManager.createDropApp({
+        start_url: moduleUrls.card,
+        position: worldPosition.clone()
+          .add(new THREE.Vector3(0, 0.5, 0)),
+        // quaternion: app.quaternion,
+        // scale: app.scale
+        velocity: new THREE.Vector3(0, 3, 0),
+      });
 
-    // remove + add for sorting
-    const parent = app.parent;
-    parent.remove(app);
-    parent.add(app);
+      // remove + add for sorting
+      const parent = app.parent;
+      parent.remove(app);
+      parent.add(app);
+    })();
   });
   app.add(mesh);
   mesh.updateMatrixWorld();
