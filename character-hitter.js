@@ -56,7 +56,7 @@ export class CharacterHitter {
             const timeDiff = timestamp - this.lastHitTime;
             if (timeDiff > 1000) {
               const useAction = this.player.getAction('use');
-              const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
+              const damage = typeof useAction.damage === 'number' ? useAction.damage : 0;
               const hitDirection = app.position.clone()
                 .sub(this.player.position);
               hitDirection.y = 0;

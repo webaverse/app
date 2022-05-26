@@ -243,7 +243,8 @@ const _updateIo = timeDiff => {
     cameraManager.lastNonzeroDirectionVectorRotated.copy(keysDirection);
     const useAction = localPlayer.getAction('use');
     const isUsingSwords = useAction?.animation || useAction?.animationCombo?.length > 0;
-    if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled() && !isUsingSwords) {
+    // if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled() && !isUsingSwords) {
+    if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled()) {
       // window.domInfo.innerHTML += `<div style="display:;">keysDirection: --- ${window.logVector3(keysDirection)}</div>`;
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
