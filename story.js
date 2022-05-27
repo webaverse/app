@@ -429,9 +429,10 @@ const _startConversation = (comment, remotePlayer, done) => {
   }));
   currentConversation.addLocalPlayerMessage(comment);
   done && currentConversation.finish();
+  return currentConversation;
 };
 story.startLocalPlayerComment = comment => {
-  _startConversation(comment, null, true);
+  return _startConversation(comment, null, true);
 };
 
 story.listenHack = () => {

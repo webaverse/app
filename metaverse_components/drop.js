@@ -34,6 +34,21 @@ export default app => {
     const glowMesh = new THREE.Mesh(glowGeometry, material);
     app.add(glowMesh);
 
+    const _queueDrop = () => {
+      const dropManager = metaversefile.useDropManager();
+      const appName = app.getComponent('appName');
+      const appUrl = app.getComponent('appUrl');
+      const voucher = app.getComponent('voucher');
+      if (appName && appUrl && voucher) {
+        dropManager.addClaim(appName, appUrl, voucher);
+      } else {
+        dropManager.pickupApp(app);
+      }
+
+      world.appManager.removeApp(app);
+      // app.destroy();
+    };
+
     const velocity = dropComponent.velocity ? new THREE.Vector3().fromArray(dropComponent.velocity) : new THREE.Vector3();
     // const angularVelocity = dropComponent.angularVelocity ? new THREE.Vector3().fromArray(dropComponent.angularVelocity) : new THREE.Vector3();
     let grounded = false;
@@ -122,11 +137,7 @@ export default app => {
                   }
                 }
               } else {
-                const dropManager = metaversefile.useDropManager();
-                dropManager.pickupApp(app);
-
-                world.appManager.removeApp(app);
-                app.destroy();
+                _queueDrop();
               }
               break;
             }
@@ -137,7 +148,12 @@ export default app => {
                   instanceId: app.instanceId,
                 });
 
-                storyManager.startLocalPlayerComment('Scillia got the drop!');
+                const conversation = storyManager.startLocalPlayerComment('Scillia got the drop!');
+                conversation.addEventListener('close', () => {
+                  localPlayer.removeAction('pickUp');
+
+                  _queueDrop();
+                });
 
                 pickedUp = true;
               }

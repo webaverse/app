@@ -465,9 +465,17 @@ export default () => {
         start_url: moduleUrls.card,
         components: [
           {
+            key: 'appName',
+            value: 'Silsword'
+          },
+          {
             key: 'appUrl',
-            value: 'https://webaverse.github.io/silsword/'
-          }
+            value: 'https://webaverse.github.io/silsword/',
+          },
+          {
+            key: 'voucher',
+            value: 'fakeVoucher',
+          },
         ],
         position: worldPosition.clone()
           .add(new THREE.Vector3(0, 0.5, 0)),
