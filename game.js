@@ -431,6 +431,7 @@ const _startUse = () => {
         wearApp.use();
         
         if (
+          !localPlayer.hasAction('dashAttack') &&
           animationCombo?.length > 0 &&
           localPlayer.avatar?.moveFactors?.walkRunFactor >= 1
         ) {

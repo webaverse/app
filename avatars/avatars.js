@@ -1915,6 +1915,8 @@ class Avatar {
         <div style="display:;">idleWalkFactor: --- ${this.moveFactors.idleWalkFactor.toFixed(2)}</div>
         <div style="display:;">walkRunFactor: --- ${this.moveFactors.walkRunFactor.toFixed(2)}</div>
         <div style="display:;">crouchFactor: --- ${this.moveFactors.crouchFactor.toFixed(2)}</div>
+        <div style="display:;">dashAttackState: --- ${this.dashAttackState}</div>
+        <div style="display:;">dashAttackTime: --- ${Math.floor(this.dashAttackTime)}</div>
         <div style="display:;">jumpState: --- ${this.jumpState}</div>
         <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
         <div style="display:;">idleFactor: --- ${this.moveFactors.idleFactor?.toFixed(2)}</div>

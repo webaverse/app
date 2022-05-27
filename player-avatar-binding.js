@@ -143,7 +143,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   };
   _handlePickUp();
 
-  rig.dashAttacking = player.hasAction('dashAttack');
+  rig.dashAttackState = player.hasAction('dashAttack');
+  rig.dashAttackTime = player.actionInterpolants.dashAttack.get();
 
   rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
   rig.vowels[1] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[1];

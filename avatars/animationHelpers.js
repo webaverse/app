@@ -921,7 +921,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (avatar.useAnimationCombo.length > 0) {
-          if (avatar.dashAttacking) {
+          if (avatar.dashAttackState) {
             useAnimation = animations.index['sword_dash.fbx'];
           } else {
             const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
