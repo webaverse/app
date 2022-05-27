@@ -77,6 +77,7 @@ export const generateObjectUrlCard = async ({
   start_url,
   width = 300,
   // height = width,
+  flipY = false,
   signal = null,
 }) => {
   const app = await metaversefile.createAppAsync({
@@ -87,6 +88,7 @@ export const generateObjectUrlCard = async ({
     app,
     width,
     // height,
+    flipY,
   });
   if (signal?.aborted) throw new Error();
   return result;
@@ -95,6 +97,7 @@ export const generateObjectCard = async ({
   app,
   width = 300,
   // height = width,
+  flipY = false,
 }) => {
   const stats = generateStats(app.contentId);
   const {
@@ -131,6 +134,7 @@ export const generateObjectCard = async ({
     minterUsername,
     minterAvatarPreview,
     glyphImage,
+    flipY,
   });
   // _previewImage(cardImg, width, height);
   return cardImg;
@@ -147,6 +151,7 @@ export const generateCard = async ({
   minterUsername,
   minterAvatarPreview,
   glyphImage,
+  flipY,
 } = {}) => {
   description = description || 'A great mystery.';
   
@@ -286,6 +291,8 @@ export const generateCard = async ({
       URL.revokeObjectURL(url);
     }
   });
-  const imageBitmap = await createImageBitmap(image);
+  const imageBitmap = await createImageBitmap(image, {
+    imageOrientation: flipY ? 'flipY' : 'none',
+  });
   return imageBitmap;
 };
