@@ -1,183 +1,209 @@
+@keyframes fadeInOut {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
 .location {
-    position: absolute;
-    display: flex;
-    top: 0px;
-    left: 460px;
-    height: 40px;
-    flex-direction: column;
-    overflow: visible;
-    z-index: 2;
+  position: absolute;
+  display: flex;
+  top: 0px;
+  left: 460px;
+  height: 40px;
+  flex-direction: column;
+  overflow: visible;
+  z-index: 5;
 }
 
 .location .button {
-    padding: 5px;
+  padding: 5px;
+  cursor: pointer;
 }
 
 .location .row {
-    display: flex;
-    height: 100%;
+  display: flex;
+  height: 100%;
 }
 
 .location .rooms {
-    position: absolute;
-    top: 40px;
-    display: flex;
-    width: 100%;
-    background-color: #000;
-    flex-direction: column;
-    max-height: 70vh;
-    min-height: 100px;
-    overflow-y: scroll;
+  position: absolute;
+  top: 40px;
+  display: flex;
+  width: 100%;
+  background-color: #000000;
+  flex-direction: column;
+  max-height: 70vh;
+  min-height: 100px;
+  overflow-y: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  transition: 0.3s ease-in-out 0.3s;
+  z-index: 2;
+}
+
+.location .rooms::-webkit-scrollbar {
+  display: none;
+}
+
+.location .roomsClosed {
+  transform: translateY(-70vh);
 }
 
 .location .rooms .room {
-    display: flex;
-    padding: 10px;
-    color: #FFF;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  color: #fff;
+  cursor: pointer;
+  background-color: #000000;
 }
 
 .location .rooms .room:hover {
-    background-color: #42a5f5;
+  background-color: #ff416c;
+  transition: 0.35s ease-in-out;
 }
 
 .location .rooms .room .image {
-    width: 50px;
-    height: 50px;
-    margin-right: 10px;
-    user-drag: none;
-    -webkit-user-drag: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  margin-right: 10px;
+  user-drag: none;
+  -webkit-user-drag: none;
+  animation: fadeInOut 2s .025s;
 }
 
 .location .rooms .room .name {
-    margin-right: auto;
-    font-size: 16px;
+  margin-right: auto;
+  font-size: 16px;
+  animation: fadeInOut 4s .05s;
 }
 
 .location .rooms .button {
-    padding: 10px;
-    background: linear-gradient(to right, #673ab7, #512da8);
-    border-radius: 5px;
-    color: #FFF;
-    cursor: pointer;
+  padding: 10px;
+  background: linear-gradient(to right, #673ab7, #512da8);
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
 }
 
 .location .rooms .button.warning {
-    background: linear-gradient(to right, #ff416c, #ff4b2b);
+  background: linear-gradient(to right, #ff416c, #ff4b2b);
 }
 
 .location .rooms .button:hover {
-    filter: brightness(0.7);
+  filter: brightness(0.7);
 }
 
 .location .rooms .create {
-    padding: 10px;
-    margin-right: auto;
+  padding: 10px;
+  margin-right: auto;
 }
 
 .location .rooms .delete {
-    display: flex;
+  display: flex;
 }
 
 .location .inputWrap {
-    position: relative;
-    height: 100%;
-    width: 300px;
-    background-color: #000;
-    font-family: monospace;
-    overflow: hidden;
+  position: relative;
+  height: 100%;
+  width: 300px;
+  background-color: #000;
+  font-family: monospace;
+  overflow: hidden;
 }
 
 .location .inputWrap .background {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-    transform: translateX(-100%);
-    transition: transform 1s cubic-bezier(0, 1, 0, 1);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  transform: translateX(-100%);
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
 }
 
 .location .inputWrap .input {
-    position: relative;
-    height: inherit;
-    width: inherit;
-    padding: 10px;
-    background-color: transparent;
-    border: 0;
-    color: #FFF;
-    font-family: monospace;
-    font-size: 15px;
-    outline: none;
-    z-index: 1;
-    transition: color 1s cubic-bezier(0, 1, 0, 1);
+  position: relative;
+  height: inherit;
+  width: inherit;
+  padding: 10px;
+  background-color: transparent;
+  border: 0;
+  color: #fff;
+  font-family: monospace;
+  font-size: 15px;
+  outline: none;
+  z-index: 1;
+  transition: color 1s cubic-bezier(0, 1, 0, 1);
 }
 
 .location .inputWrap .input:focus {
-    color: #000;
+  color: #000;
 }
 
 .location .inputWrap .input:focus + .background {
-    transform: none;
+  transform: none;
 }
 
 .location .buttonWrap {
-    position: relative;
-    display: flex;
-    height: 100%;
-    cursor: pointer;
+  position: relative;
+  display: flex;
+  height: 100%;
+  cursor: pointer;
 }
 
 .location .button-wrap:active .button {
-    transform: scale(0.7);
-    transition: none;
+  transform: scale(0.7);
+  transition: none;
 }
 
 .location .button {
-    outline: none;
-    transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+  outline: none;
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 
 .location .button,
-.location .button.disabled:hover
-{
-    display: flex;
-    height: 100%;
-    border: 0;
-    background-color: #9ccc65;
-    align-items: center;
+.location .button.disabled:hover {
+  display: flex;
+  height: 100%;
+  border: 0;
+  background-color: #9ccc65;
+  align-items: center;
 }
 
 .location .button:hover {
-    background-color: #7cb342;
+  background-color: #7cb342;
 }
 
 .location .button.primary:not(.disabled),
-.location .button.primary:hover
-{
-    background: linear-gradient(to right, #ff416c, #ff4b2b);
+.location .button.primary:hover {
+  background: linear-gradient(to right, #ff416c, #ff4b2b);
 }
 
 .location .button.disabled {
-    background-color: #888;
+  background-color: #888;
 }
 
 .location .button img {
-    width: 30px;
-    height: 30px;
+  width: 30px;
+  height: 30px;
 }
 
 .location .button:not(.disabled) img {
-    filter: invert(1);
+  filter: invert(1);
 }
 
 .location .button .hidden {
-    display: none;
+  display: none;
 }
 
 .background.green {
-    /* filter: invert(66%) sepia(10%) saturate(2152%) hue-rotate(73deg) brightness(101%) contrast(77%); */
-    filter: invert(86%) sepia(22%) saturate(938%) hue-rotate(36deg) brightness(89%) contrast(84%);
+  /* filter: invert(66%) sepia(10%) saturate(2152%) hue-rotate(73deg) brightness(101%) contrast(77%); */
+  filter: invert(86%) sepia(22%) saturate(938%) hue-rotate(36deg)
+    brightness(89%) contrast(84%);
 }
