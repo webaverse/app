@@ -5,6 +5,7 @@ import physicsManager from '../physics-manager.js';
 import {glowMaterial} from '../shaders.js';
 import easing from '../easing.js';
 import {rarityColors} from '../constants.js';
+import storyManager from '../story.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -136,7 +137,6 @@ export default app => {
                   instanceId: app.instanceId,
                 });
 
-                const storyManager = metaversefile.useStoryManager();
                 storyManager.startLocalPlayerComment('Scillia got the drop!');
 
                 pickedUp = true;
