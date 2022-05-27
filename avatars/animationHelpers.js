@@ -178,6 +178,7 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
+  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -780,13 +781,24 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           // isTop,
+          isPosition,
         } = spec;
 
-        const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
-        const src2 = jumpAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
+        if (true || avatar.aimState) {
+          const t2 = avatar.jumpTime / 1000 * window.speed + window.start;
+          const src2 = animations.index['Backflip.fbx'].interpolants[k];
+          const v2 = src2.evaluate(t2);
 
-        dst.fromArray(v2);
+          dst.fromArray(v2);
+
+          _clearXZ(dst, isPosition);
+        } else {
+          const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
+          const src2 = jumpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+        }
       };
     }
     if (avatar.sitState) {

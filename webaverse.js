@@ -294,6 +294,8 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
+      // if (window.localPlayer?.avatar?.jumpTime !== 0) console.log(window.localPlayer?.avatar?.jumpTime);
+
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
         const timeDiff = timestamp - lastTimestamp;
@@ -384,6 +386,9 @@ const _startHacks = webaverse => {
   window.loadoutManager = loadoutManager;
   window.game = game;
   window.cameraManager = cameraManager;
+
+  window.speed = (57 - 34) / (30 * 0.999);
+  window.start = 1.1;
 
   // let playerDiorama = null;
   const lastEmotionKey = {
