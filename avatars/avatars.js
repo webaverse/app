@@ -1542,13 +1542,6 @@ class Avatar {
       ); */
     };
 
-    if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">headTargetEnabled: --- ${this.headTargetEnabled}</div>`;
-    if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">eyeballTargetEnabled: --- ${this.eyeballTargetEnabled}</div>`;
-
-
-    if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">headTarget: --- ${window.logVector3(this.headTarget)}</div>`;
-    if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">eyeballTarget: --- ${window.logVector3(this.eyeballTarget)}</div>`;
-
     const _updateHeadTarget = () => {
       const eyePosition = getEyePosition(this.modelBones);
       const globalQuaternion = localQuaternion2.setFromRotationMatrix(
@@ -1569,7 +1562,6 @@ class Avatar {
       this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
       const needsHeadTarget = this.headTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI * 0.4;
-      if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">needsHeadTarget: --- ${needsHeadTarget}</div>`;
       if (needsHeadTarget && !this.lastNeedsHeadTarget) {
         this.startHeadTargetQuaternion.copy(localQuaternion);
         this.lastHeadTargetTime = now;
@@ -1613,7 +1605,6 @@ class Avatar {
 
       const lookerEyeballTarget = this.looker.update(now);
       let needEyeballTarget = this.eyeballTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI * 0.4;
-      if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">needEyeballTarget: --- ${needEyeballTarget}</div>`;
       const eyeballTarget = needEyeballTarget ? this.eyeballTarget : lookerEyeballTarget;
 
       if (eyeballTarget && this.firstPersonCurves) {
