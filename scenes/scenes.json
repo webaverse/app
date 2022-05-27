@@ -11,6 +11,7 @@
   "canyon.scn",
   "prototype.scn",
   "silk-fountains.scn",
+  "clockrealm.scn",
   "moon.scn",
   "terrain.scn",
   "Space-station.scn",
@@ -21,5 +22,17 @@
   "tron-gothic-city.scn",
   "tanabata-city.scn",
   "sci-fi-neon.scn",
-  "city.scn"
+  "city.scn",
+  "bridge-game.scn",
+  "club.scn",
+  "desert_mon.scn",
+  "greenhill.scn",
+  "voxelz.scn",
+  "planet.scn",
+  "range.scn",
+  "stage.scn",
+  "theatre_Piano.scn",
+  "crypt.scn",
+  "spacepod.scn",
+  "plaza.scn"
 ]

@@ -38,8 +38,8 @@ const _makePhysicsObject = (physicsId, position, quaternion, scale) => {
   physicsObject.updateMatrixWorld()
   physicsObject.physicsId = physicsId
   physicsObject.detached = false // detached physics objects do not get updated when the owning app moves
-  physicsObject.collided = false
-  physicsObject.grounded = false
+  physicsObject.collided = true
+  physicsObject.grounded = true
   return physicsObject
 }
 const _extractPhysicsGeometryForId = (physicsId) => {
@@ -62,7 +62,7 @@ physicsManager.addCapsuleGeometry = (
   quaternion,
   radius,
   halfHeight,
-  physicsMaterial,
+  material,
   dynamic,
   flags = {}
 ) => {
@@ -73,8 +73,8 @@ physicsManager.addCapsuleGeometry = (
     quaternion,
     radius,
     halfHeight,
-    physicsMaterial,
     physicsId,
+    material,
     dynamic,
     flags
   )
@@ -166,6 +166,10 @@ physicsManager.addGeometry = (mesh) => {
   physicsObject.physicsMesh = physicsMesh
   return physicsObject
 }
+physicsManager.createMaterial = physicsMaterial =>
+  physx.physxWorker.createMaterial(physx.physics, physicsMaterial);
+physicsManager.destroyMaterial = materialAddress =>
+  physx.physxWorker.destroyMaterial(physx.physics, materialAddress);
 physicsManager.cookGeometry = (mesh) =>
   physx.physxWorker.cookGeometryPhysics(physx.physics, mesh)
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
@@ -252,7 +256,7 @@ physicsManager.addCookedConvexGeometry = (
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId))
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
-  physicsObject.physicsMesh = physicsMesh
+  physicsObject.physicsMesh = physicsMesh;
   return physicsObject
 }
 
@@ -372,6 +376,9 @@ physicsManager.setTransform = (physicsObject, autoWake) => {
     autoWake
   )
 }
+physicsManager.setGeometryScale = (physicsId, newScale) => {
+  physx.physxWorker.setGeometryScale(physx.physics, physicsId, newScale);
+}
 physicsManager.getPath = (
   start,
   dest,
@@ -432,8 +439,7 @@ physicsManager.createCharacterController = (
   height,
   contactOffset,
   stepOffset,
-  position,
-  mat
+  position
 ) => {
   const physicsId = getNextPhysicsId()
   const characterControllerId =
@@ -444,7 +450,6 @@ physicsManager.createCharacterController = (
       contactOffset,
       stepOffset,
       position,
-      mat,
       physicsId
     )
 
@@ -528,12 +533,11 @@ physicsManager.cutMesh = (
   numNormals,
   uvs,
   numUvs,
-  faces,
+  faces, // Set to falsy to indicate that this is an non-indexed geometry
   numFaces,
 
-  position,
-  quaternion,
-  scale
+  planeNormal, // normalized vector3 array
+  planeDistance, // number
 ) =>
   physx.physxWorker.doCut(
     positions,
@@ -545,9 +549,8 @@ physicsManager.cutMesh = (
     faces,
     numFaces,
 
-    position,
-    quaternion,
-    scale
+    planeNormal,
+    planeDistance,
   )
 physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setLinearLockFlags(physx.physics, physicsId, x, y, z)
@@ -555,6 +558,26 @@ physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
 physicsManager.setAngularLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setAngularLockFlags(physx.physics, physicsId, x, y, z)
 }
+
+physicsManager.sweepBox = (
+  origin,
+  quaternion,
+  halfExtents,
+  direction,
+  sweepDistance,
+  maxHits,
+) => {
+  return physx.physxWorker.sweepBox(
+    physx.physics,
+    origin,
+    quaternion,
+    halfExtents,
+    direction,
+    sweepDistance,
+    maxHits,
+  )
+};
+
 physicsManager.simulatePhysics = (timeDiff) => {
   if (physicsEnabled) {
     const t = timeDiff / 1000
@@ -584,7 +607,7 @@ physicsManager.simulatePhysics = (timeDiff) => {
 physicsManager.marchingCubes = (dims, potential, shift, scale) =>
   physx.physxWorker.marchingCubes(dims, potential, shift, scale)
 
-physicsManager.createChunkWithDualContouring = (x, y, z) => physx.physxWorker.createChunkWithDualContouring(x, y, z)
+physicsManager.createChunkWithDualContouring = (x, y, z, lod) => physx.physxWorker.createChunkWithDualContouring(x, y, z, lod)
 
 physicsManager.createSeamsWithDualContouring = (x, y, z) => physx.physxWorker.createSeamsWithDualContouring(x, y, z)
 

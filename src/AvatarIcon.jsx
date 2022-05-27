@@ -107,7 +107,7 @@ const CharacterIcon = () => {
   );
 };
 
-export const AvatarIcon = () => {
+export const AvatarIcon = ({ className }) => {
     const { state, setState } = useContext( AppContext );
 
     const handleCharacterBtnClick = () => {
@@ -124,7 +124,7 @@ export const AvatarIcon = () => {
 
     return (
         <div
-            className={styles.avatarIcon}
+            className={ classnames( className, styles.avatarIcon ) }
             onClick={handleCharacterBtnClick}
         >
             {/* <a href="/" className={styles.logo}>
