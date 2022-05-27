@@ -1963,6 +1963,7 @@ class Avatar {
       }
 
       const _handleDirectional = (wind) =>{
+        windDirection.set(wind.direction[0], wind.direction[1], wind.direction[2]);
         for (const springBones of this.springBoneManager.springBoneGroupList) {
           for (const o of springBones) {
             const windForce = wind.windForce !== undefined ? wind.windForce : 0;
@@ -1977,11 +1978,7 @@ class Avatar {
             windNoisePos.z = (worldPos.z * noiseScale + windSpeed);
             let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
             windNoise = ((windNoise +  1) / 2);
-
-            windDirection.x = wind.direction[0];
-            windDirection.y = wind.direction[1];
-            windDirection.z = wind.direction[2];
-
+            
             o.gravityDir
                 .normalize()
                 .lerp(windDirection.normalize(), 0.5);
