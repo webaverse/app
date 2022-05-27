@@ -18,7 +18,7 @@ import metaversefileApi from 'metaversefile';
 import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 // import * as metaverseModules from './metaverse-modules.js';
-import {createParticleSystem} from './particle-system.js';
+// import {createParticleSystem} from './particle-system.js';
 // import * as sounds from './sounds.js';
 
 const localEuler = new THREE.Euler();
@@ -31,8 +31,8 @@ const appManager = new AppManager({
 });
 world.appManager = appManager;
 
-world.particleSystem = createParticleSystem();
-scene.add(world.particleSystem);
+// world.particleSystem = createParticleSystem();
+// scene.add(world.particleSystem);
 
 // multiplayer
 let wsrtc = null;
@@ -292,6 +292,7 @@ const _getBindSceneForRenderPriority = renderPriority => {
 const _bindHitTracker = app => {
   const hitTracker = hpManager.makeHitTracker();
   hitTracker.bind(app);
+  app.dispatchEvent({type: 'hittrackeradded'});
 
   const die = () => {
     world.appManager.removeTrackedApp(app.instanceId);
