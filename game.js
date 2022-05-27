@@ -457,19 +457,10 @@ const _endUse = () => {
   }
 };
 const _mousedown = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  const useAction = localPlayer.getAction('use');
-  if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
-    localPlayer.needContinueCombo = true;
-  }
   _startUse();
 };
 const _mouseup = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  const useAction = localPlayer.getAction('use');
-  if (!useAction?.animation && !useAction?.animationCombo?.length > 0) {
-    _endUse();
-  }
+  _endUse();
 };
 
 const _grab = object => {
@@ -1664,20 +1655,20 @@ class GameManager extends EventTarget {
     downloadFile(blob, 'scene.json');
     // console.log('got scene', scene);
   }
-  handleAnimationEnd() {
-    _endUse();
+  // handleAnimationEnd() {
+  //   _endUse();
 
-    const localPlayer = getLocalPlayer();
-    if (localPlayer.needContinueCombo) {
-      localPlayer.needContinueCombo = false;
-      localPlayer.actionInterpolants.use.reset();
-      _startUse();
-    } else {
-      lastUseIndex = 0;
-    }
+  //   const localPlayer = getLocalPlayer();
+  //   if (localPlayer.needContinueCombo) {
+  //     localPlayer.needContinueCombo = false;
+  //     localPlayer.actionInterpolants.use.reset();
+  //     _startUse();
+  //   } else {
+  //     lastUseIndex = 0;
+  //   }
 
-    localPlayer.removeAction('dashAttack');
-  }
+  //   localPlayer.removeAction('dashAttack');
+  // }
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
   pushPlayerUpdates = _pushPlayerUpdates;
