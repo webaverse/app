@@ -180,7 +180,6 @@ class PlayerBase extends THREE.Object3D {
     this.headTargetEnabled = false;
     
     this.eyeballTarget = new THREE.Vector3();
-    this.needLimitEyeballTargetRange = false;
     this.eyeballTargetEnabled = false;
     
     this.voicePack = null;
@@ -504,12 +503,10 @@ class PlayerBase extends THREE.Object3D {
       this.headTargetEnabled = true;
 
       this.eyeballTarget.copy(target);
-      this.needLimitEyeballTargetRange = true;
       this.eyeballTargetEnabled = true;
     } else {
       this.headTargetEnabled = false;
       this.eyeballTargetEnabled = false;
-      this.needLimitEyeballTargetRange = false;
     }
 
     // if (target) {

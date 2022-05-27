@@ -932,11 +932,13 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateLook = () => {
     if (localPlayer.avatar) {
       if (mouseSelectedObject && mouseSelectedPosition) {
+        console.log(1);
         // console.log('got', mouseSelectedObject.position.toArray().join(','));
         localPlayer.headTarget.copy(mouseSelectedPosition);
         localPlayer.headTargetInverted = true;
         localPlayer.headTargetEnabled = true;
-      } else if (!cameraManager.pointerLockElement && !cameraManager.target && lastMouseEvent) {
+      } else if (!cameraManager.pointerLockElement && lastMouseEvent) {
+        console.log(2);
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
@@ -945,8 +947,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
         localPlayer.headTargetInverted = false;
         localPlayer.headTargetEnabled = true;
       } else if (zTargeting?.focusTargetReticle?.position) {
+        console.log(3);
         localPlayer.setTarget(zTargeting.focusTargetReticle.position);
       } else {
+        console.log(4);
         localPlayer.setTarget(null);
       }
     }
