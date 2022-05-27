@@ -400,13 +400,13 @@ const _makeCometMesh = () => {
     }
 
     // check for explosion timeout
-    if (timeSinceLastExplosion > 1000) {
+    /* if (timeSinceLastExplosion > 1000) {
       explosionStartTime = NaN;
 
       object.position.y += 10;
       object.scale.setScalar(1);
       object.updateMatrixWorld();
-    }
+    } */
 
     // set visibility
     if (isNaN(explosionStartTime)) {
@@ -463,6 +463,12 @@ export default () => {
       const dropApp = await dropManager.createDropApp({
         type: 'key',
         start_url: moduleUrls.card,
+        components: [
+          {
+            key: 'appUrl',
+            value: 'https://webaverse.github.io/silsword/'
+          }
+        ],
         position: worldPosition.clone()
           .add(new THREE.Vector3(0, 0.5, 0)),
         // quaternion: app.quaternion,
