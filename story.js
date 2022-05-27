@@ -414,23 +414,27 @@ story.handleWheel = e => {
   }
 };
 
-story.listenHack = () => {
-  const _startConversation = (comment, remotePlayer, done) => {
-    const localPlayer = getLocalPlayer();
-    currentConversation = new Conversation(localPlayer, remotePlayer);
-    currentConversation.addEventListener('close', () => {
-      currentConversation = null;
+const _startConversation = (comment, remotePlayer, done) => {
+  const localPlayer = getLocalPlayer();
+  currentConversation = new Conversation(localPlayer, remotePlayer);
+  currentConversation.addEventListener('close', () => {
+    currentConversation = null;
 
-      cameraManager.setDynamicTarget(null);
-    }, {once: true});
-    story.dispatchEvent(new MessageEvent('conversationstart', {
-      data: {
-        conversation: currentConversation,
-      },
-    }));
-    currentConversation.addLocalPlayerMessage(comment);
-    done && currentConversation.finish();
-  };
+    cameraManager.setDynamicTarget(null);
+  }, {once: true});
+  story.dispatchEvent(new MessageEvent('conversationstart', {
+    data: {
+      conversation: currentConversation,
+    },
+  }));
+  currentConversation.addLocalPlayerMessage(comment);
+  done && currentConversation.finish();
+};
+story.startLocalPlayerComment = comment => {
+  _startConversation(comment, null, true);
+};
+
+story.listenHack = () => {
   window.document.addEventListener('click', async e => {
     if (cameraManager.pointerLockElement) {
       if (e.button === 0 && (cameraManager.focus && zTargeting.focusTargetReticle)) {
