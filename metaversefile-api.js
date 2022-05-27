@@ -390,6 +390,15 @@ metaversefile.setApi({
   getReverbZones() {
     return world.reverbZones;
   },
+  setReverbZones(reverbZone) {
+    world.reverbZones.push(reverbZone);
+  },
+  removeReverbZone(reverbZone) {
+    const index = world.reverbZones.indexOf(reverbZone);
+    if (index > -1) {
+        world.reverbZones.splice(index, 1);
+    }
+  },
   getMirrors() {
     return mirrors;
   },
