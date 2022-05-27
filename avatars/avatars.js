@@ -1950,77 +1950,84 @@ class Avatar {
       const timeS = performance.now() / 1000;
       const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
 
-      const _handleDirectional = (wind) =>{
-          for (const springBones of this.springBoneManager.springBoneGroupList) {
-              let i = 0;
-              for (const o of springBones) {
-                
-                  const worldPos = localVector2.setFromMatrixPosition(o.bone.matrixWorld);
-                  
-                  const windSpeed = timeS * wind.windFrequency;
-                  windNoisePos.x = (worldPos.x * wind.noiseScale + windSpeed);
-                  windNoisePos.y = (worldPos.y * wind.noiseScale + windSpeed);
-                  windNoisePos.z = (worldPos.z * wind.noiseScale + windSpeed);
-                  let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
-                  windNoise = ((windNoise +  1) / 2);
-
-                  windDirection.x = wind.direction[0];
-                  windDirection.y = wind.direction[1];
-                  windDirection.z = wind.direction[2];
-
-                  o.gravityDir
-                      .normalize()
-                      .lerp(windDirection.normalize(), 0.5);
-                  
-                  o.gravityPower = windNoise * wind.windForce;
-                  i++
-              }
+      const inWindZone = () =>{
+        for(let i = 0; i < winds.length; i++){
+          if(winds[i].windType === 'spherical'){
+            windPosition.set(winds[i].position[0], winds[i].position[1], winds[i].position[2]);
+            if(headPosition.distanceTo(windPosition) <= winds[i].radius){
+              return i;
+            }
           }
+        }
+        return -1;
       }
-      const _handleSpherical = (wind) =>{ 
-          windPosition.x = wind.position[0];
-          windPosition.y = wind.position[1];
-          windPosition.z = wind.position[2];
-          if(headPosition.distanceTo(windPosition) <= wind.radius){
-              windDirection.x = wind.direction[0];
-              windDirection.y = wind.direction[1];
-              windDirection.z = wind.direction[2];
-              for (const springBones of this.springBoneManager.springBoneGroupList) {
-                  let i = 0;
-                  for (const o of springBones) {
-                
-                      const worldPos = localVector2.setFromMatrixPosition(o.bone.matrixWorld);
-                      
-                      const windSpeed = timeS * wind.windFrequency;
-                      windNoisePos.x = (worldPos.x * wind.noiseScale + windSpeed);
-                      windNoisePos.y = (worldPos.y * wind.noiseScale + windSpeed);
-                      windNoisePos.z = (worldPos.z * wind.noiseScale + windSpeed);
-                      let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
-                      windNoise = ((windNoise +  1) / 2);
-    
-                      windDirection.x = wind.direction[0];
-                      windDirection.y = wind.direction[1];
-                      windDirection.z = wind.direction[2];
-    
-                      o.gravityDir
-                          .normalize()
-                          .lerp(windDirection.normalize(), 0.5);
-                      
-                      o.gravityPower = windNoise * (wind.windForce * ( 1.1 - headPosition.distanceTo(windPosition) / wind.radius));
-                      i++
-                  }
-              }
+
+      const _handleDirectional = (wind) =>{
+        for (const springBones of this.springBoneManager.springBoneGroupList) {
+          for (const o of springBones) {
+            const windForce = wind.windForce !== undefined ? wind.windForce : 0;
+            const noiseScale = wind.noiseScale !== undefined ? wind.noiseScale : 0;
+            const windFrequency = wind.windFrequency !== undefined ? wind.windFrequency : 0;
+
+            const worldPos = localVector2.setFromMatrixPosition(o.bone.matrixWorld);
+            
+            const windSpeed = timeS * windFrequency;
+            windNoisePos.x = (worldPos.x * noiseScale + windSpeed);
+            windNoisePos.y = (worldPos.y * noiseScale + windSpeed);
+            windNoisePos.z = (worldPos.z * noiseScale + windSpeed);
+            let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
+            windNoise = ((windNoise +  1) / 2);
+
+            windDirection.x = wind.direction[0];
+            windDirection.y = wind.direction[1];
+            windDirection.z = wind.direction[2];
+
+            o.gravityDir
+                .normalize()
+                .lerp(windDirection.normalize(), 0.5);
+            
+            o.gravityPower = windNoise * windForce;
           }
+        }
+      }
+      const _handleSpherical = (wind) =>{  
+        windDirection.set(wind.direction[0], wind.direction[1], wind.direction[2]);
+        for (const springBones of this.springBoneManager.springBoneGroupList) {
+          for (const o of springBones) {
+            const windForce = wind.windForce !== undefined ? wind.windForce : 0;
+            const noiseScale = wind.noiseScale !== undefined ? wind.noiseScale : 0;
+            const windFrequency = wind.windFrequency !== undefined ? wind.windFrequency : 0;
+
+            const worldPos = localVector2.setFromMatrixPosition(o.bone.matrixWorld);
+            
+            const windSpeed = timeS * windFrequency;
+            windNoisePos.x = (worldPos.x * noiseScale + windSpeed);
+            windNoisePos.y = (worldPos.y * noiseScale + windSpeed);
+            windNoisePos.z = (worldPos.z * noiseScale + windSpeed);
+            let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
+            windNoise = ((windNoise +  1) / 2);
+            
+            o.gravityDir
+                .normalize()
+                .lerp(windDirection.normalize(), 0.5);
+            
+            o.gravityPower = windNoise * (windForce * ( 1.1 - headPosition.distanceTo(windPosition) / wind.radius));
+          }
+        }
       }
       if(winds){
+        let windIndex = inWindZone();
+        if(windIndex !== -1){
+          _handleSpherical(winds[windIndex]);
+        }
+        else{
           for(const wind of winds){
-              if(wind.windType === 'directional')
-                  _handleDirectional(wind);
+            if(wind.windType === 'directional'){
+              _handleDirectional(wind);
+              break;
+            }
           }
-          for(const wind of winds){
-              if(wind.windType === 'spherical')
-                  _handleSpherical(wind);
-          }
+        }
       }
     };      
     _applyWind();
