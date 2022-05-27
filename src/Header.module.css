@@ -542,7 +542,7 @@ input[type=range]::-webkit-slider-thumb {
   background-color: #FFF;
   transform: translateX(400px);
   overflow: auto;
-  z-index: 1;
+  z-index: 3;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 .sidebar.open {

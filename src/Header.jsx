@@ -290,7 +290,9 @@ export default function Header() {
                         claims={claims}
                         panelsRef={panelsRef}
                     /> */}
-                    <Tokens
+                </div>
+                <div className={styles.panels}>
+                <Tokens
                         nfts={nfts}
                         hacks={hacks}
                         address={address}
