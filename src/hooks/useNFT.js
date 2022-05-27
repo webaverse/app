@@ -7,7 +7,11 @@ import {DEFAULT_CHAIN, CONTRACT, CONTRACT_ABIS} from '../constants';
 const contractAddress = CONTRACT[DEFAULT_CHAIN.contract_name].NFT;
 const contractABI = CONTRACT_ABIS.NFT;
 
+const DEFAULT_GAS_LIMIT = 50000;
+const DEFAULT_MINT_VALUE = 66600000000000000;
+
 const CONTRACT_EVENTS = {
+  MINT_COMPLETE: 'MintComplete',
   METADATA_SET: 'MetadataSet',
   SINGLE_METADATA_SET: 'SingleMetadataSet',
   HASH_UPDATE: 'HashUpdate',
@@ -49,6 +53,7 @@ export default function useNFT(currentAccount) {
         currentAccount &&
         from.toLowerCase() === currentAccount.toLowerCase()
       ) {
+        // upload to IPFS here
         const SVG = await connectedContract.tokenURI(tokenId.toNumber());
         const id = tokenId.toNumber();
         if (minted.findIndex(v => v.id === id) === -1) {
@@ -69,7 +74,7 @@ export default function useNFT(currentAccount) {
     };
 
     if (connectedContract) {
-      connectedContract.on('CURSED', mintHandler);
+      connectedContract.on(CONTRACT_EVENTS.MINT_COMPLETE, mintHandler);
     }
 
     return () => {
@@ -88,7 +93,10 @@ export default function useNFT(currentAccount) {
           name,
           description,
           numbers,
-          {value: 66600000000000000, gasLimit: 50000},
+          {
+            value: DEFAULT_MINT_VALUE,
+            gasLimit: DEFAULT_GAS_LIMIT,
+          },
         );
         setShowWallet(false);
 
