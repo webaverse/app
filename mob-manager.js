@@ -22,6 +22,8 @@ const localMatrix = new THREE.Matrix4();
 
 const upVector = new THREE.Vector3(0, 1, 0);
 const chunkWorldSize = 30;
+const minDistance = 1;
+const hitDistance = 1.5;
 
 const _zeroY = v => {
   v.y = 0;
@@ -115,6 +117,7 @@ class Mob {
 
       const rng = this.#getRng();
       const numDrops = Math.floor(rng() * 3) + 1;
+      let lastHitTime = 0;
 
       const _attachToApp = () => {
         this.app.add(subApp);
@@ -211,17 +214,18 @@ class Mob {
         }
       });
 
+      // rotation hacks
+      {
+        mesh.position.y = 0;
+        localEuler.setFromQuaternion(mesh.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        mesh.quaternion.setFromEuler(localEuler);
+      }
+
+      // initialize animation
       const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
       if (idleAnimationClips.length > 0) {
-        // hacks
-        {
-          mesh.position.y = 0;
-          localEuler.setFromQuaternion(mesh.quaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-          mesh.quaternion.setFromEuler(localEuler);
-        }
-        
         const mixer = new THREE.AnimationMixer(mesh);
         const idleActions = idleAnimationClips.map(idleAnimationClip => mixer.clipAction(idleAnimationClip));
         for (const idleAction of idleActions) {
@@ -234,6 +238,7 @@ class Mob {
         });
       }
 
+      // set up frame loop
       let animation = null;
       this.updateFns.push((timestamp, timeDiff) => {
         const localPlayer = getLocalPlayer();
@@ -252,22 +257,22 @@ class Mob {
           
           // _updatePhysics();
         } else {
-          // const head = rigManager.localRig.model.isVrm ? rigManager.localRig.modelBones.Head : rigManager.localRig.model;
-          // const position = localVector.copy(localPlayer.position)
-
+          // decompose world transform
           mesh.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
           const meshPosition = localVector2;
           const meshQuaternion = localQuaternion;
           const meshScale = localVector3;
 
-          const meshPositionY0 = _zeroY(localVector4.copy(meshPosition));
-          const characterPositionY0 = _zeroY(localVector5.copy(localPlayer.position));
+          const meshPositionY0 = localVector4.copy(meshPosition);
+          const characterPositionY0 = localVector5.copy(localPlayer.position)
+            .add(localVector6.set(0, -localPlayer.avatar.height, 0));
+          const distance = meshPositionY0.distanceTo(characterPositionY0);
 
-          const _handleAggro = () => {
-            const distance = meshPositionY0
-              .distanceTo(characterPositionY0);
+          _zeroY(meshPositionY0);
+          _zeroY(characterPositionY0);
+
+          const _handleAggroMovement = () => {
             if (distance < aggroDistance) {
-              const minDistance = 1;
               if (distance > minDistance) {
                 const direction = characterPositionY0.sub(meshPositionY0).normalize();
                 const maxMoveDistance = distance - minDistance;
@@ -325,7 +330,18 @@ class Mob {
               }
             }
           };
-          _handleAggro();
+          _handleAggroMovement();
+
+          const _handleAggroHit = () => {
+            if (distance < hitDistance) {
+              const timeSinceLastHit = timestamp - lastHitTime;
+              if (timeSinceLastHit > 1000) {
+                localPlayer.characterHitter.getHit(Math.random() * 10);
+                lastHitTime = timestamp;
+              }
+            }
+          };
+          _handleAggroHit();
 
           const _updateExtraPhysics = () => {
             for (const extraPhysicsObject of extraPhysicsObjects) {
