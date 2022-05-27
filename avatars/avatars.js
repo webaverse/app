@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
 import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
@@ -57,6 +56,8 @@ import Blinker from './Blinker.js'
 import Nodder from './Nodder.js'
 import Looker from './Looker.js'
 
+import * as wind from './simulation/wind.js';
+
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -83,11 +84,6 @@ const textEncoder = new TextEncoder();
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
 const maxEyeTargetTime = 2000;
-
-const simplex = new SimplexNoise();      
-const windDirection = new THREE.Vector3();
-const windPosition = new THREE.Vector3();
-const windNoisePos = new THREE.Vector3();
 
 /* VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -1943,91 +1939,13 @@ class Avatar {
 
     // this.springBoneTimeStep.update(timeDiff);
     this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
-   
-    const _applyWind = () => {
-      const winds = metaversefile.getWinds();
-      //console.log(winds)
-      const timeS = performance.now() / 1000;
+
+    // update wind in simulation
+    const _updateWind = () =>{
       const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
-
-      const inWindZone = () =>{
-        for(let i = 0; i < winds.length; i++){
-          if(winds[i].windType === 'spherical'){
-            windPosition.set(winds[i].position[0], winds[i].position[1], winds[i].position[2]);
-            if(headPosition.distanceTo(windPosition) <= winds[i].radius){
-              return i;
-            }
-          }
-        }
-        return -1;
-      }
-
-      const _handleDirectional = (wind) =>{
-        windDirection.set(wind.direction[0], wind.direction[1], wind.direction[2]);
-        for (const springBones of this.springBoneManager.springBoneGroupList) {
-          for (const o of springBones) {
-            const windForce = wind.windForce !== undefined ? wind.windForce : 0;
-            const noiseScale = wind.noiseScale !== undefined ? wind.noiseScale : 0;
-            const windFrequency = wind.windFrequency !== undefined ? wind.windFrequency : 0;
-
-            const worldPos = localVector2.setFromMatrixPosition(o.bone.matrixWorld);
-            
-            const windSpeed = timeS * windFrequency;
-            windNoisePos.x = (worldPos.x * noiseScale + windSpeed);
-            windNoisePos.y = (worldPos.y * noiseScale + windSpeed);
-            windNoisePos.z = (worldPos.z * noiseScale + windSpeed);
-            let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
-            windNoise = ((windNoise +  1) / 2);
-            
-            o.gravityDir
-                .normalize()
-                .lerp(windDirection.normalize(), 0.5);
-            
-            o.gravityPower = windNoise * windForce;
-          }
-        }
-      }
-      const _handleSpherical = (wind) =>{  
-        windDirection.set(wind.direction[0], wind.direction[1], wind.direction[2]);
-        for (const springBones of this.springBoneManager.springBoneGroupList) {
-          for (const o of springBones) {
-            const windForce = wind.windForce !== undefined ? wind.windForce : 0;
-            const noiseScale = wind.noiseScale !== undefined ? wind.noiseScale : 0;
-            const windFrequency = wind.windFrequency !== undefined ? wind.windFrequency : 0;
-
-            const worldPos = localVector2.setFromMatrixPosition(o.bone.matrixWorld);
-            
-            const windSpeed = timeS * windFrequency;
-            windNoisePos.x = (worldPos.x * noiseScale + windSpeed);
-            windNoisePos.y = (worldPos.y * noiseScale + windSpeed);
-            windNoisePos.z = (worldPos.z * noiseScale + windSpeed);
-            let windNoise = simplex.noise3d(windNoisePos.x, windNoisePos.y, windNoisePos.z);
-            windNoise = ((windNoise +  1) / 2);
-            
-            o.gravityDir
-                .normalize()
-                .lerp(windDirection.normalize(), 0.5);
-            
-            o.gravityPower = windNoise * (windForce * ( 1.1 - headPosition.distanceTo(windPosition) / wind.radius));
-          }
-        }
-      }
-      if(winds){
-        let windIndex = inWindZone();
-        if(windIndex !== -1){
-          _handleSpherical(winds[windIndex]);
-        }
-        else{
-          for(const wind of winds){
-            if(wind.windType === 'directional'){
-              _handleDirectional(wind);
-              break;
-            }
-          }
-        }
-      }
-    };      
-    _applyWind();
+      wind.update(timestamp, headPosition, this.springBoneManager)
+    }
+    _updateWind();
 
     // XXX hook these up
     this.nodder.update(now);
