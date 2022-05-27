@@ -12,6 +12,7 @@ class DropManager extends EventTarget {
   }
   createDropApp({
     start_url,
+    components = [],
     type = 'minor', // 'minor', 'major', 'key'
     position,
     quaternion,
@@ -23,19 +24,17 @@ class DropManager extends EventTarget {
     voucher = 'fakeVoucher', // XXX should really throw if no voucher
   }) {
     // const r = () => (-0.5+Math.random())*2;
-    const components = [
-      {
-        key: 'drop',
-        value: {
-          type,
-          voucher,
-          velocity: velocity.toArray(),
-          angularVelocity: angularVelocity.toArray(),
-        },
+    const dropComponent = {
+      key: 'drop',
+      value: {
+        type,
+        voucher,
+        velocity: velocity.toArray(),
+        angularVelocity: angularVelocity.toArray(),
       },
-    ];
+    };
+    components.push(dropComponent);
     
-    // console.log('got loot components', srcUrl, components);
     const trackedApp = metaversefile.addTrackedApp(
       start_url,
       position,
