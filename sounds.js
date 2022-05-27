@@ -102,7 +102,7 @@ const playSound = (audioSpec, option) => {
     gainNode.inReverbZone = false;
 
     // handel currentPlayingSound array
-    audioBufferSourceNode.info = {voicer: option.voicer, panner: pannerNode, gainNode: gainNode};
+    audioBufferSourceNode.info = {soundEmitter: option.soundEmitter, panner: pannerNode, gainNode: gainNode};
     currentPlayingSound.push(audioBufferSourceNode.info);
     // remove audioBufferSourceNode from array when sound end
     audioBufferSourceNode.addEventListener('ended', () => {
@@ -158,7 +158,7 @@ let localVector = new THREE.Vector3();
 const update = () =>{
   let inReverbZone = false;
   // check whether the camera in the reverb zone 
-  for(const reverbZone of world.reverbZone){
+  for(const reverbZone of world.reverbZones){
     reverbZonsPos.set(reverbZone[0], reverbZone[1], reverbZone[2]);
     if(camera.position.distanceTo(reverbZonsPos) < reverbZone[3]){
       inReverbZone = true;
@@ -175,8 +175,8 @@ const update = () =>{
   
   for(const sound of currentPlayingSound){
     // update panner
-    sound.panner.setPosition(sound.voicer.position.x, sound.voicer.position.y, sound.voicer.position.z);
-    // handel reverb node
+    sound.panner.setPosition(sound.soundEmitter.position.x, sound.soundEmitter.position.y, sound.soundEmitter.position.z);
+    // handle reverb node
     if(inReverbZone){
       if(!sound.gainNode.inReverbZone){
         sound.gainNode.connect(reverbGain);
