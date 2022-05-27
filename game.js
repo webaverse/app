@@ -931,21 +931,25 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateLook = () => {
     if (localPlayer.avatar) {
       if (mouseSelectedObject && mouseSelectedPosition) {
+        console.log(1);
         // console.log('got', mouseSelectedObject.position.toArray().join(','));
         localPlayer.headTarget.copy(mouseSelectedPosition);
         localPlayer.headTargetInverted = true;
         localPlayer.headTargetEnabled = true;
-      } else if (!cameraManager.pointerLockElement && !cameraManager.target && lastMouseEvent) {
+      } else if (!cameraManager.pointerLockElement && raycastManager.lastMouseEvent) {
+        console.log(2);
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
-        localPlayer.headTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
+        localPlayer.headTarget.set(-(raycastManager.lastMouseEvent.clientX/size.x-0.5), (raycastManager.lastMouseEvent.clientY/size.y-0.5), 1)
           .unproject(camera);
         localPlayer.headTargetInverted = false;
         localPlayer.headTargetEnabled = true;
       } else if (zTargeting?.focusTargetReticle?.position) {
+        console.log(3);
         localPlayer.setTarget(zTargeting.focusTargetReticle.position);
       } else {
+        console.log(4);
         localPlayer.setTarget(null);
       }
     }
@@ -1022,7 +1026,6 @@ _setFirstPersonAction(lastFirstPerson);
   _setFirstPersonAction(firstPerson);
 }); */
 
-let lastMouseEvent = null;
 class GameManager extends EventTarget {
   constructor() {
     super();

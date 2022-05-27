@@ -553,7 +553,6 @@ class Avatar {
 
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetPlane = new THREE.Plane();
-    this.needLimitEyeballTargetRange = false;
     this.eyeballTargetEnabled = false;
 
     if (options.hair) {
@@ -1543,6 +1542,13 @@ class Avatar {
       ); */
     };
 
+    if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">headTargetEnabled: --- ${this.headTargetEnabled}</div>`;
+    if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">eyeballTargetEnabled: --- ${this.eyeballTargetEnabled}</div>`;
+
+
+    if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">headTarget: --- ${window.logVector3(this.headTarget)}</div>`;
+    if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">eyeballTarget: --- ${window.logVector3(this.eyeballTarget)}</div>`;
+
     const _updateHeadTarget = () => {
       const eyePosition = getEyePosition(this.modelBones);
       const globalQuaternion = localQuaternion2.setFromRotationMatrix(
@@ -1563,6 +1569,7 @@ class Avatar {
       this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
       const needsHeadTarget = this.headTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI * 0.4;
+      if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">needsHeadTarget: --- ${needsHeadTarget}</div>`;
       if (needsHeadTarget && !this.lastNeedsHeadTarget) {
         this.startHeadTargetQuaternion.copy(localQuaternion);
         this.lastHeadTargetTime = now;
@@ -1592,13 +1599,22 @@ class Avatar {
     };
 
     const _updateEyeballTarget = () => {
+      const eyePosition = getEyePosition(this.modelBones);
+      const globalQuaternion = localQuaternion2.setFromRotationMatrix(
+        localMatrix.lookAt(
+          this.eyeballTarget,
+          eyePosition,
+          upVector
+        )
+      );
+      
       const leftEye = this.modelBoneOutputs['Eye_L'];
       const rightEye = this.modelBoneOutputs['Eye_R'];
 
       const lookerEyeballTarget = this.looker.update(now);
-      let eyeballTargetEnabled = this.eyeballTargetEnabled;
-      if (this.needLimitEyeballTargetRange && !this.lastNeedsHeadTarget) eyeballTargetEnabled = false;
-      const eyeballTarget = eyeballTargetEnabled ? this.eyeballTarget : lookerEyeballTarget;
+      let needEyeballTarget = this.eyeballTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI * 0.4;
+      if (this === window.localPlayer.avatar) window.domInfo.innerHTML += `<div style="display:;">needEyeballTarget: --- ${needEyeballTarget}</div>`;
+      const eyeballTarget = needEyeballTarget ? this.eyeballTarget : lookerEyeballTarget;
 
       if (eyeballTarget && this.firstPersonCurves) {
         const {
