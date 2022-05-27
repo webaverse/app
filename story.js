@@ -405,7 +405,7 @@ const story = new EventTarget();
 let currentConversation = null;
 story.getConversation = () => currentConversation;
 
-// returns whether the event was handled
+// returns whether the event was handled (used for options scrolling)
 story.handleWheel = e => {
   if (currentConversation) {
     return currentConversation.handleWheel(e);
