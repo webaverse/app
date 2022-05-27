@@ -359,34 +359,27 @@ class CameraManager extends EventTarget {
   //compare the direction you're looking at to a given object
   //for example the one you're locked onto
   compareAngletoCam(objectPos){
+    // var declaration
     var obToCamVector = new THREE.Vector3();
     var camVector = new THREE.Vector3(0,0,-1);
     var angleMag;
-    //camVector = this.targetPosition.applyQuaternion(this.targetQuaternion);
-    //camVector.applyQuaternion(camera.quaternion);
-    obToCamVector.copy(camera.position);
-    //camera.updateMatrix();
-    //grab world pos of object
-    obToCamVector = obToCamVector.sub(objectPos);
-    //convert object into camera's local space
-    //camera.localToWorld(camVector).applyQuaternion(camera.quaternion);
 
+    localVector2.copy(camera.position);
+    //grab world pos of object relative to camera
+    obToCamVector = localVector2.sub(objectPos);
 
-
+    //Get camera direction
     camera.getWorldDirection(camVector);
      
     
     //normalize vectors
-    //normalize ob vector
-    //camVector.normalize();
-    //obToCamVector = obToCamVector.sub(camera.position);
     obToCamVector.normalize();
     
     //compare local angles
     angleMag = camVector.angleTo(obToCamVector);
     //convert to deg
     angleMag = MathUtils.radToDeg(angleMag);
-    console.log('Cam vec', camVector, 'ob to cam vec', obToCamVector, 'angle dif:', angleMag);
+    // `console.log('Cam vec', camVector, 'ob to cam vec', obToCamVector, 'angle dif:', angleMag);`
     return angleMag;
   }
 

@@ -175,15 +175,14 @@ class ZTargeting extends THREE.Object3D {
   }
   update(timestamp) {
     this.setQueryResult(timestamp);
-    // if (cameraManager.fullFocus){
-    //   this.checkDrop();
-    // }
   }
+  //now just feeds into handle target with camera object
   handleDown(object = camera) {
     if (!cameraManager.focus) {
       this.handleTarget(object);
    }
   }
+  // handleDown except it accepts more parameters; will be needed for target swapping
   handleTarget(targetObject){
     // if (!cameraManager.focus) {
       this.queryResults.snapshot(targetObject);
@@ -242,12 +241,11 @@ class ZTargeting extends THREE.Object3D {
     var camAngle;
     if (this.focusTargetReticle){
       camAngle = cameraManager.compareAngletoCam(this.focusTargetReticle.position);
+      //bug angles are inverted 
       if (camAngle < 145){
         this.handleUp();
       }else{}
     }
-
-    //this.focusTargetReticle
   }
 }
 const zTargeting = new ZTargeting();
