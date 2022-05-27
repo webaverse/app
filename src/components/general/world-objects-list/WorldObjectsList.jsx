@@ -8,15 +8,19 @@ import metaversefile from '../../../../metaversefile-api.js';
 import cameraManager from '../../../../camera-manager.js';
 
 import { NumberInput } from '../number-input';
-import { Spritesheet } from '../spritesheet';
 import { AppContext } from '../../app';
 import { ObjectScreenshot } from '../object-screenshot';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
+import { ComponentEditor } from './ComponentEditor.jsx';
 
 import styles from './world-objects-list.module.css';
 import physicsManager from '../../../../physics-manager.js';
 
 //
+
+
+const APP_TYPES = [ 'glb', 'html', 'gltf', 'gif', 'vrm' ];
+
 
 export const WorldObjectsList = () => {
 
@@ -316,7 +320,7 @@ export const WorldObjectsList = () => {
 
         apps.forEach( ( app ) => {
 
-            if ( [ 'glb', 'html', 'gltf', 'vrm', 'gif' ].indexOf( app.appType ) !== -1 ) {
+            if ( APP_TYPES.indexOf( app.appType ) !== -1 ) {
 
                 sortedApps.push( app );
 
@@ -326,7 +330,7 @@ export const WorldObjectsList = () => {
 
         apps.forEach( ( app ) => {
 
-            if ( [ 'glb', 'html', 'gltf', 'vrm', 'gif' ].indexOf( app.appType ) === -1 ) {
+            if ( APP_TYPES.indexOf( app.appType ) === -1 ) {
 
                 sortedApps.push( app );
 
@@ -357,7 +361,7 @@ export const WorldObjectsList = () => {
                             <div className={ classnames( styles.object, app === selectedApp ? styles.selected : null ) } key={ i } onClick={ handleItemClick.bind( this, app ) } onMouseEnter={ handleItemMouseEnter.bind( this, app ) } onMouseLeave={ handleItemMouseLeave.bind( this, app ) } >
                                 <img src="images/webpencil.svg" className={ classnames( styles.backgroundInner, styles.lime ) } />
                                 {
-                                    ( [ 'glb', 'html', 'gltf', 'gif', 'vrm' ].indexOf( app.appType ) !== -1 ) ? (
+                                    ( APP_TYPES.indexOf( app.appType ) !== -1 ) ? (
                                         <ObjectScreenshot
                                             className={ styles.img }
                                             width={ 80 }
@@ -460,9 +464,10 @@ export const WorldObjectsList = () => {
                                         <NumberInput title="Y" zeroValue={ false } initalValue={ sy } onChange={ handleAppTransformChange.bind( this, 'sy' ) } step={ 0.1 } />
                                         <NumberInput title="Z" zeroValue={ false } initalValue={ sz } onChange={ handleAppTransformChange.bind( this, 'sz' ) } step={ 0.1 } />
                                     </div>
+                                    <ComponentEditor />
                                 </div>
                                 {
-                                    ( [ 'glb', 'html', 'gltf', 'gif', 'vrm' ].indexOf( selectedApp.appType ) !== -1 ) ? (
+                                    ( APP_TYPES.indexOf( selectedApp.appType ) !== -1 ) ? (
                                         // <Spritesheet
                                         //     className={ styles.objectPreview }
                                         //     startUrl={ selectedApp?.start_url }
