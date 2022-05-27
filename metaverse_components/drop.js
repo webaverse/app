@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-// import Avatar from './avatars/avatars.js';
 import {world} from '../world.js';
 import physicsManager from '../physics-manager.js';
 import {glowMaterial} from '../shaders.js';
@@ -10,7 +9,6 @@ import dropManager from '../drop-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-// const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 
 const rarityColorsArray = Object.keys(rarityColors).map(k => rarityColors[k][0]);
@@ -39,7 +37,7 @@ export default app => {
     app.add(glowMesh);
 
     const velocity = dropComponent.velocity ? new THREE.Vector3().fromArray(dropComponent.velocity) : new THREE.Vector3();
-    const angularVelocity = dropComponent.angularVelocity ? new THREE.Vector3().fromArray(dropComponent.angularVelocity) : new THREE.Vector3();
+    // const angularVelocity = dropComponent.angularVelocity ? new THREE.Vector3().fromArray(dropComponent.angularVelocity) : new THREE.Vector3();
     let grounded = false;
     const startTime = performance.now();
     let animation = null;
