@@ -25,7 +25,7 @@ const localEuler = new THREE.Euler();
 
 // world
 export const world = {};
-world.reverbZone = [];
+world.reverbZones = [];
 
 const appManager = new AppManager({
   appsMap: null,
