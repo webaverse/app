@@ -1,14 +1,18 @@
 import * as THREE from 'three';
-import {camera} from './renderer.js';
+import {scene, camera} from './renderer.js';
 import physics from './physics-manager.js';
 import physx from './physx.js';
+import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
+import * as metaverseModules from './metaverse-modules.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+
+const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
 const hitAttemptEventData = {
   type: '',
@@ -135,6 +139,68 @@ export class CharacterHitter {
         throw new Error('unknown hit type :' + type);
       }
     }
+  }
+  getHit(damage) {
+    const newAction = {
+      type: 'hurt',
+      animation: Math.random() < 0.5 ? 'pain_arch' : 'pain_back',
+    };
+    const hurtAction = this.player.addAction(newAction);
+
+    const emotions = [
+      // 'joy',
+      // 'fun',
+      'sorrow',
+      'angry',
+      // 'neutral',
+      'surprise',
+    ];
+    const emotion = emotions[Math.floor(Math.random() * emotions.length)];
+    const faceposeAction = this.player.addAction({
+      type: 'facepose',
+      emotion,
+      value: 1,
+    });
+
+    const gruntTypes = [
+      'hurt',
+      'scream',
+      'attack',
+      'angry',
+      'gasp',
+    ];
+    const gruntType = gruntTypes[Math.floor(Math.random() * gruntTypes.length)];
+    // console.log('play grunt', emotion, gruntType);
+    this.player.characterSfx.playGrunt(gruntType);
+
+    {
+      const damageMeshApp = metaversefile.createApp();
+      (async () => {
+        await metaverseModules.waitForLoad();
+        const {modules} = metaversefile.useDefaultModules();
+        const m = modules['damageMesh'];
+        await damageMeshApp.addModule(m);
+      })();
+      damageMeshApp.position.copy(this.player.position);
+      localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      damageMeshApp.quaternion.setFromEuler(localEuler);
+      damageMeshApp.updateMatrixWorld();
+      scene.add(damageMeshApp);
+    }
+
+    const animations = Avatar.getAnimations();
+    const hurtAnimation = animations.find(a => a.isHurt);
+    const hurtAnimationDuration = hurtAnimation.duration;
+    setTimeout(() => {
+      const hurtActionIndex = this.player.indexOfAction(hurtAction);
+      this.player.removeActionIndex(hurtActionIndex);
+    }, hurtAnimationDuration * 1000);
+    setTimeout(() => {
+      const faceposeActionIndex = this.player.indexOfAction(faceposeAction);
+      this.player.removeActionIndex(faceposeActionIndex);
+    }, 1000);
   }
   update() {
     // nothing
