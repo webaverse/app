@@ -1,4 +1,4 @@
-import {useEffect, useState, useRef} from 'react';
+import {useEffect, useState } from 'react';
 
 import {ethers} from 'ethers';
 
@@ -8,7 +8,7 @@ const contractAddress = CONTRACT[DEFAULT_CHAIN.contract_name].NFT;
 const contractABI = CONTRACT_ABIS.NFT;
 
 const DEFAULT_GAS_LIMIT = 50000;
-const DEFAULT_MINT_VALUE = 66600000000000000;
+const DEFAULT_MINT_VALUE = 1000000000000000;
 
 const CONTRACT_EVENTS = {
   MINT_COMPLETE: 'MintComplete',
@@ -26,7 +26,6 @@ export default function useNFT(currentAccount) {
   const [showWallet, setShowWallet] = useState(false);
   const [minted, setMinted] = useState([]);
   const [connectedContract, setConnectedContract] = useState();
-  const [totalCurses, setTotalCurses] = useState(0);
 
   useEffect(() => {
     try {
