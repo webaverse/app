@@ -137,7 +137,11 @@ export default app => {
                   }
                 }
               } else {
-                _queueDrop();
+                if (!pickedUp) {
+                  _queueDrop();
+
+                  pickedUp = true;
+                }
               }
               break;
             }
