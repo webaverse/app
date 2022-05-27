@@ -2,7 +2,6 @@ import {useEffect, useState, useRef} from 'react';
 
 import {ethers} from 'ethers';
 
-import {useNavigate} from 'react-router';
 import {DEFAULT_CHAIN, CONTRACT, CONTRACT_ABIS} from '../constants';
 
 const contractAddress = CONTRACT[DEFAULT_CHAIN.contract_name].NFT;
@@ -24,8 +23,6 @@ export default function useNFT(currentAccount) {
   const [minted, setMinted] = useState([]);
   const [connectedContract, setConnectedContract] = useState();
   const [totalCurses, setTotalCurses] = useState(0);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     try {
