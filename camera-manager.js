@@ -379,7 +379,7 @@ class CameraManager extends EventTarget {
     angleMag = camVector.angleTo(obToCamVector);
     //convert to deg
     angleMag = MathUtils.radToDeg(angleMag);
-    // `console.log('Cam vec', camVector, 'ob to cam vec', obToCamVector, 'angle dif:', angleMag);`
+    // console.log('Cam vec', camVector, 'ob to cam vec', obToCamVector, 'angle dif:', angleMag);`
     return angleMag;
   }
 

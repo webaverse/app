@@ -14,6 +14,7 @@ import * as sounds from './sounds.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import {getLocalPlayer} from './players.js';
+import mobManager from './mob-manager.js';
 
 const localVector = new THREE.Vector3();
 
@@ -137,6 +138,8 @@ class ZTargeting extends THREE.Object3D {
     this.focusTargetReticle = null;
     this.queryResults = new QueryResults();
     this.nearbyResults = new QueryResults();
+    this.dropAngle = 145;
+    this.nearbyMobs = [];
   }
   setQueryResult(timestamp) {
     let reticles;
@@ -234,15 +237,38 @@ class ZTargeting extends THREE.Object3D {
       }
     }
   }
-  findNearbyTarget(object = camera){
-    return object;
+  findNearbyTarget(){
+    //Make list for 'nearby mobs'                     // possibly already exists it does
+    for (const mob of mobManager.mobs){
+      const mobPhysicsObjects = mob.getPhysicsObjects();
+    
+    //for each mob in mob manager
+      if (camera.position.distanceTo(mobPhysicsObjects.position)< 20 /*random val rn*/ && cameraManager.compareAngletoCam(mobPhysicsObjects.position < 120)){
+        this.nearbyMobs.push(mobPhysicsObjects); //gonna make this a dictionary later with mob-angle relation
+      }
+      //check distance to character                   // Maybe not both this and below
+      //compareAngletoCam(wider angle than for drop)
+        //add to list of 'nearby mobs', sorted by angle dist
+    }
+    if (this.nearbyMobs.length > 0){
+      console.log('mobs', this.nearbyMobs);
+      this.toggle();
+      this.handleTarget(this.nearbyMobs[0]);
+      this.nearbyMobs = [];
+    }
+
+        //possibly seperate method
+    //if list.length > 0
+      //togle()
+      //focus(list[0])
+      //handletarget(list[0])
   }
   checkDrop(){
     var camAngle;
     if (this.focusTargetReticle){
       camAngle = cameraManager.compareAngletoCam(this.focusTargetReticle.position);
       //bug angles are inverted 
-      if (camAngle < 145){
+      if (camAngle < this.dropAngle){
         this.handleUp();
       }else{}
     }
