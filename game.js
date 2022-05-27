@@ -935,7 +935,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         localPlayer.headTarget.copy(mouseSelectedPosition);
         localPlayer.headTargetInverted = true;
         localPlayer.headTargetEnabled = true;
-      } else if (!cameraManager.pointerLockElement && raycastManager.lastMouseEvent) {
+      } else if (!cameraManager.pointerLockElement && !cameraManager.target && raycastManager.lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
