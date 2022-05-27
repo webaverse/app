@@ -393,6 +393,15 @@ metaversefile.setApi({
   getWinds() {
     return world.winds;
   },
+  setWinds(wind) {
+    world.winds.push(wind);
+  },
+  removeWind(wind) {
+    const index = world.winds.indexOf(wind);
+    if (index > -1) {
+      world.winds.splice(index, 1);
+    }
+  },
   registerMirror(mirror) {
     mirrors.push(mirror);
   },
