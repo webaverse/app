@@ -44,16 +44,16 @@ class DropManager extends EventTarget {
     );
     return trackedApp;
   }
-  pickupApp(app) {
-    const result = generateStats(app.contentId);
-    const {art, stats} = result;
+  addClaim(name, contentId, voucher) {
+    const result = generateStats(contentId);
+    const {/*art, */stats} = result;
     const {level} = stats;
-    const {name} = app;
-    const start_url = app.contentId;
+    const start_url = contentId;
     const claim = {
       name,
       start_url,
       level,
+      voucher,
     };
     this.claims.push(claim);
 
@@ -62,6 +62,9 @@ class DropManager extends EventTarget {
         claims: this.claims,
       },
     }));
+  }
+  pickupApp(app) {
+    this.addClaim(app.name, app.contentId, app.getComponent('voucher'));
   }
   dropToken(contractAddress, tokenId, voucher) {
     // XXX engine implements this
