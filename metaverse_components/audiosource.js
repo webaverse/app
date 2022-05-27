@@ -3,14 +3,9 @@ import metaversefile from 'metaversefile';
 export default (app, component) => {
   const sounds = metaversefile.useSound();
   const soundFiles = sounds.getSoundFiles();
-  
-  let regex = new RegExp(component.sound, "i");
-  const candidateSounds = soundFiles.audiosource.filter(f => regex.test(f.name));
-  let candidateSound = null;
-  const soundIndex = component.index !== undefined ? component.index : 0; 
-  candidateSound = candidateSounds[soundIndex];
-
-  console.log(app)
+  const soundIndex = component.index !== undefined ? component.index : 1; 
+  let regex = new RegExp('^audiosource/' + component.sound + soundIndex + '.wav$');
+  const candidateSound = soundFiles.audiosource.filter(f => regex.test(f.name))[0];
   
   let localSound = null;
   app.addEventListener('destroy', () => {
