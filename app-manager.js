@@ -472,7 +472,7 @@ class AppManager extends EventTarget {
     }
   }
   addTrackedAppInternal(instanceId, contentId, transform, components) {
-    console.log("add tracked app internal", instanceId, contentId);
+    console.log("add tracked app internal", instanceId, contentId, transform);
 
     const trackedApp = this.getOrCreateTrackedApp(instanceId);
     trackedApp.set("instanceId", instanceId);
@@ -674,11 +674,35 @@ class AppManager extends EventTarget {
   }
   importApp(app) {
     let dstTrackedApp = null;
+
     this.appsArray.doc.transact(() => {
       const contentId = app.contentId;
       const instanceId = app.instanceId;
-      const transform = app.transform?.toArray();
+      // const transform = app.transform?.toArray();
       const components = app.components.slice();
+
+      let transform
+      if( app.transform ) {
+        transform = app.transform.toArray()
+      } else {
+        transform = new Float32Array(11);
+
+        const pack3 = (v, i) => {
+          transform[i] = v.x;
+          transform[i + 1] = v.y;
+          transform[i + 2] = v.z;
+        };
+        const pack4 = (v, i) => {
+          transform[i] = v.x;
+          transform[i + 1] = v.y;
+          transform[i + 2] = v.z;
+          transform[i + 3] = v.w;
+        };
+
+        pack3(app.position, 0);
+        pack4(app.quaternion, 3);
+        pack3(app.scale, 7);
+      }
 
       dstTrackedApp = this.addTrackedAppInternal(
         instanceId,
@@ -691,7 +715,7 @@ class AppManager extends EventTarget {
     });
 
     this.bindTrackedApp(dstTrackedApp, app);
-
+    
     this.addApp(app);
   }
   hasApp(app) {
