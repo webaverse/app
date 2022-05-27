@@ -1,3 +1,14 @@
+/* eslint-disable space-before-blocks */
+/* eslint-disable space-infix-ops */
+/* eslint-disable dot-notation */
+/* eslint-disable spaced-comment */
+/* eslint-disable no-multiple-empty-lines */
+/* eslint-disable promise/param-names */
+/* eslint-disable lines-between-class-members */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable comma-spacing */
+/* eslint-disable linebreak-style */
+/* eslint-disable indent */
 import * as THREE from 'three';
 import {getRenderer, camera, scene} from './renderer.js';
 // import * as notifications from './notifications.js';
@@ -11,6 +22,7 @@ import {minFov, maxFov, midFov} from './constants.js';
 // import { updateRaycasterFromMouseEvent } from './util.js';
 import easing from './easing.js';
 import { MathUtils } from 'three';
+import zTargeting from './z-targeting.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0.5, 0, 0.5, 1);
@@ -60,15 +72,15 @@ const rayVectorZero = new THREE.Vector3(0,0,0);
 // const rayOriginArray = [new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,0)]; // 6 elements
 // const rayDirectionArray = [new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion(),new THREE.Quaternion()]; // 6 elements
 
-function getNormal(u, v) {
-  return localPlane.setFromCoplanarPoints(zeroVector, u, v).normal;
-}
-function signedAngleTo(u, v) {
-  // Get the signed angle between u and v, in the range [-pi, pi]
-  const angle = u.angleTo(v);
-  console.log('signed angle to', angle, u.dot(v));
-  return (u.dot(v) >= 0 ? 1 : -1) * angle;
-}
+// function getNormal(u, v) {
+//   return localPlane.setFromCoplanarPoints(zeroVector, u, v).normal;
+// }
+// function signedAngleTo(u, v) {
+//   // Get the signed angle between u and v, in the range [-pi, pi]
+//   const angle = u.angleTo(v);
+//   console.log('signed angle to', angle, u.dot(v));
+//   return (u.dot(v) >= 0 ? 1 : -1) * angle;
+// }
 /* function signedAngleTo(a, b, v) {
   const s = v.crossVectors(a, b).length();
   // s = length(cross_product(a, b))
@@ -174,6 +186,7 @@ class CameraManager extends EventTarget {
     // this.pointerLockEpoch = 0;
     this.shakes = [];
     this.focus = false;
+    this.fullFocus = false;
     this.lastFocusChangeTime = 0; // XXX this needs to be removed
     this.fovFactor = 0;
     this.lastNonzeroDirectionVector = new THREE.Vector3(0, 0, -1);
@@ -296,6 +309,7 @@ class CameraManager extends EventTarget {
     if (!this.target) {
       this.targetQuaternion.copy(camera.quaternion);
     }
+    zTargeting.checkDrop();
   }
   handleWheelEvent(e) {
     if (!this.target) {
@@ -345,19 +359,34 @@ class CameraManager extends EventTarget {
   //compare the direction you're looking at to a given object
   //for example the one you're locked onto
   compareAngletoCam(objectPos){
-    var obToCamVector = new THREE.Vector3()
-    var camVector = new THREE.Vector3();
+    var obToCamVector = new THREE.Vector3();
+    var camVector = new THREE.Vector3(0,0,-1);
     var angleMag;
+    //camVector = this.targetPosition.applyQuaternion(this.targetQuaternion);
+    //camVector.applyQuaternion(camera.quaternion);
+    obToCamVector.copy(camera.position);
+    //camera.updateMatrix();
+    //grab world pos of object
+    obToCamVector = obToCamVector.sub(objectPos);
+    //convert object into camera's local space
+    //camera.localToWorld(camVector).applyQuaternion(camera.quaternion);
 
-    obToCamVector = objectPos;
+
+
     camera.getWorldDirection(camVector);
+     
+    
     //normalize vectors
-    camVector.normalize();
+    //normalize ob vector
+    //camVector.normalize();
+    //obToCamVector = obToCamVector.sub(camera.position);
     obToCamVector.normalize();
     
+    //compare local angles
     angleMag = camVector.angleTo(obToCamVector);
+    //convert to deg
     angleMag = MathUtils.radToDeg(angleMag);
-    console.log(angleMag);
+    console.log('Cam vec', camVector, 'ob to cam vec', obToCamVector, 'angle dif:', angleMag);
     return angleMag;
   }
 
@@ -681,6 +710,7 @@ class CameraManager extends EventTarget {
         this.targetPosition.y -= crouchOffset;
         camera.position.copy(this.sourcePosition)
           .lerp(this.targetPosition, factor);
+
 
         localEuler.setFromQuaternion(this.targetQuaternion, 'YXZ');
         localEuler.z = 0;

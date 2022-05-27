@@ -1,3 +1,11 @@
+/* eslint-disable keyword-spacing */
+/* eslint-disable lines-between-class-members */
+/* eslint-disable space-before-blocks */
+/* eslint-disable indent */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable spaced-comment */
+/* eslint-disable linebreak-style */
+/* eslint-disable space-infix-ops */
 import * as THREE from 'three';
 import metaversefile from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
@@ -167,33 +175,13 @@ class ZTargeting extends THREE.Object3D {
   }
   update(timestamp) {
     this.setQueryResult(timestamp);
+    // if (cameraManager.fullFocus){
+    //   this.checkDrop();
+    // }
   }
   handleDown(object = camera) {
     if (!cameraManager.focus) {
       this.handleTarget(object);
-    //   this.queryResults.snapshot(object);
-
-    //   if (this.queryResults.results.length > 0) {
-    //     this.focusTargetReticle = this.queryResults.results[0];
-    //     sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
-      
-    //     const naviSoundNames = [
-    //       'naviHey',
-    //       'naviWatchout',
-    //       'naviFriendly',
-    //       'naviItem',
-    //       'naviDanger',
-    //     ];
-    //     const naviSoundName = naviSoundNames[Math.floor(Math.random() * naviSoundNames.length)];
-    //     sounds.playSoundName(naviSoundName);
-    //   } else {
-    //     sounds.playSoundName('zTargetCenter');
-    //   }
-
-    //   cameraManager.setFocus(true);
-    //   const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
-    //   const localPlayer = getLocalPlayer();
-    //   cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
    }
   }
   handleTarget(targetObject){
@@ -254,13 +242,12 @@ class ZTargeting extends THREE.Object3D {
     var camAngle;
     if (this.focusTargetReticle){
       camAngle = cameraManager.compareAngletoCam(this.focusTargetReticle.position);
-      if (camAngle > 20){
+      if (camAngle < 145){
         this.handleUp();
       }else{}
     }
 
     //this.focusTargetReticle
-
   }
 }
 const zTargeting = new ZTargeting();
