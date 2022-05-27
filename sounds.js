@@ -169,9 +169,8 @@ const update = (timestamp, timeDiff) =>{
   cameraDirection = localVector.applyQuaternion( camera.quaternion );
   cameraDirection.normalize();
   // update listener 
+  const endTime = audioContext.currentTime + timeDiff;
   if(audioContext.listener.positionX){
-      const endTime = audioContext.currentTime + timeDiff;
-
 			audioContext.listener.positionX.linearRampToValueAtTime( camera.position.x, endTime );
 			audioContext.listener.positionY.linearRampToValueAtTime( camera.position.y, endTime );
 			audioContext.listener.positionZ.linearRampToValueAtTime( camera.position.z, endTime );
@@ -188,7 +187,15 @@ const update = (timestamp, timeDiff) =>{
   
   for(const sound of currentPlayingSound){
     // update panner
-    sound.panner.setPosition(sound.voicer.position.x, sound.voicer.position.y, sound.voicer.position.z);
+    if(sound.panner.positionX){
+      sound.panner.positionX.linearRampToValueAtTime(sound.voicer.position.x, endTime);
+			sound.panner.positionY.linearRampToValueAtTime(sound.voicer.position.y, endTime);
+			sound.panner.positionZ.linearRampToValueAtTime(sound.voicer.position.z, endTime);
+    }
+    else{
+      sound.panner.setPosition(sound.voicer.position.x, sound.voicer.position.y, sound.voicer.position.z);
+    }
+    
     // handel reverb node
     if(inReverbZone){
       if(!sound.gainNode.inReverbZone){
