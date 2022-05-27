@@ -242,12 +242,10 @@ const _makeTargetMesh = (() => {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uHighlight: {
-          type: 'f',
           value: 0,
           needsUpdate: true,
         },
         uTime: {
-          type: 'f',
           value: 0,
           needsUpdate: true,
         },
@@ -581,9 +579,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       } else {
         // idling
 
-        // console.log('render item', instanceId, app, localPlayer.modelBones);
-        // debugger;
-
         _addApp();
 
         const handsAveragePosition = localVector.setFromMatrixPosition(localPlayer.avatar.modelBones.Left_wrist.matrixWorld)
@@ -593,6 +588,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         app.position.copy(handsAveragePosition);
         localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
         localEuler.x = 0;
+        localEuler.y += Math.PI;
         localEuler.z = 0;
         app.quaternion.setFromEuler(localEuler);
         app.updateMatrixWorld();
