@@ -155,7 +155,7 @@ const upVectore = new THREE.Vector3(0, 1, 0);
 let reverbZonsPos = new THREE.Vector3(); 
 let cameraDirection = new THREE.Vector3();
 let localVector = new THREE.Vector3();
-const update = () =>{
+const update = (timestamp, timeDiff) =>{
   let inReverbZone = false;
   // check whether the camera in the reverb zone 
   for(const reverbZone of world.reverbZone){
@@ -169,8 +169,23 @@ const update = () =>{
   cameraDirection = localVector.applyQuaternion( camera.quaternion );
   cameraDirection.normalize();
   // update listener 
-  audioContext.listener.setOrientation(cameraDirection.x, cameraDirection.y, cameraDirection.z, upVectore.x, upVectore.y, upVectore.z);
-  audioContext.listener.setPosition(camera.position.x, camera.position.y, camera.position.z);
+  if(audioContext.listener.positionX){
+      const endTime = audioContext.currentTime + timeDiff;
+
+			audioContext.listener.positionX.linearRampToValueAtTime( camera.position.x, endTime );
+			audioContext.listener.positionY.linearRampToValueAtTime( camera.position.y, endTime );
+			audioContext.listener.positionZ.linearRampToValueAtTime( camera.position.z, endTime );
+			audioContext.listener.forwardX.linearRampToValueAtTime( cameraDirection.x, endTime );
+			audioContext.listener.forwardY.linearRampToValueAtTime( cameraDirection.y, endTime );
+			audioContext.listener.forwardZ.linearRampToValueAtTime( cameraDirection.z, endTime );
+			audioContext.listener.upX.linearRampToValueAtTime( upVectore.x, endTime );
+			audioContext.listener.upY.linearRampToValueAtTime( upVectore.y, endTime );
+			audioContext.listener.upZ.linearRampToValueAtTime( upVectore.z, endTime );
+  }else{
+      audioContext.listener.setOrientation(cameraDirection.x, cameraDirection.y, cameraDirection.z, upVectore.x, upVectore.y, upVectore.z);
+      audioContext.listener.setPosition(camera.position.x, camera.position.y, camera.position.z);
+  }
+  
   for(const sound of currentPlayingSound){
     // update panner
     sound.panner.setPosition(sound.voicer.position.x, sound.voicer.position.y, sound.voicer.position.z);
