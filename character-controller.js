@@ -348,6 +348,21 @@ class PlayerBase extends THREE.Object3D {
         loadoutIndex = _getNextLoadoutIndex();
       }
     }
+    
+    const _initPhysics = () => {
+      const physicsObjects = app.getPhysicsObjects();
+      for (const physicsObject of physicsObjects) {
+        physx.physxWorker.disableGeometryQueriesPhysics(
+          physx.physics,
+          physicsObject.physicsId
+        );
+        physx.physxWorker.disableGeometryPhysics(
+          physx.physics,
+          physicsObject.physicsId
+        );
+      }
+    };
+    _initPhysics();
 
     if (this.isLocalPlayer && loadoutIndex >= 0 && loadoutIndex < numLoadoutSlots) {
       const _removeOldApp = () => {
@@ -384,21 +399,6 @@ class PlayerBase extends THREE.Object3D {
         }
       };
       _transplantNewApp();
-
-      const _initPhysics = () => {
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physx.physxWorker.disableGeometryQueriesPhysics(
-            physx.physics,
-            physicsObject.physicsId
-          );
-          physx.physxWorker.disableGeometryPhysics(
-            physx.physics,
-            physicsObject.physicsId
-          );
-        }
-      };
-      _initPhysics();
 
       this.addAction({
         type: "wear",
