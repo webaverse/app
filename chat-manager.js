@@ -50,12 +50,6 @@ class ChatManager extends EventTarget {
       playerName: player.name,
       message,
     };
-
-    let players = playersManager.getPlayersState()
-    console.log("player list", players)
-    console.log("player", player)
-    
-    
     
     player.addAction(m);
     
