@@ -25,6 +25,8 @@ function getCardFrontTexture(appUrl) {
     );
     texture.image = imageBitmap;
     texture.needsUpdate = true;
+
+    texture.dispatchEvent({type: 'load'});
   })();
   return texture;
 }
@@ -35,6 +37,8 @@ function getCardBackTexture() {
   img.crossOrigin = 'Anonymous';
   img.onload = () => {
     texture.needsUpdate = true;
+
+    texture.dispatchEvent({type: 'load'});
   };
   img.onerror = err => {
     console.warn(err);
@@ -76,8 +80,24 @@ const _makeCardMesh = ({
   ]);
 
   const frontTexture = getCardFrontTexture(appUrl);
+  {
+    const load = () => {
+      material.uniforms.uFrontTexLoaded.value = 1;
+      material.uniforms.uFrontTexLoaded.needsUpdate = true;
+      frontTexture.removeEventListener('load', load);
+    };
+    frontTexture.addEventListener('load', load);
+  }
   const backTexture = getCardBackTexture();
-  
+  {
+    const load = () => {
+      material.uniforms.uBackTexLoaded.value = 1;
+      material.uniforms.uBackTexLoaded.needsUpdate = true;
+      backTexture.removeEventListener('load', load);
+    };
+    backTexture.addEventListener('load', load);
+  }
+
   const material = new WebaverseShaderMaterial({
     uniforms: {
       uFrontTex: {
@@ -86,6 +106,14 @@ const _makeCardMesh = ({
       },
       uBackTex: {
         value: backTexture,
+        needsUpdate: true,
+      },
+      uFrontTexLoaded: {
+        value: 0,
+        needsUpdate: true,
+      },
+      uBackTexLoaded: {
+        value: 0,
         needsUpdate: true,
       },
     },
@@ -113,15 +141,17 @@ const _makeCardMesh = ({
     fragmentShader: `\
       uniform sampler2D uFrontTex;
       uniform sampler2D uBackTex;
+      uniform int uFrontTexLoaded;
+      uniform int uBackTexLoaded;
       varying vec2 vUv;
       flat varying int vSide;
 
       void main() {
         vec4 diffuseColor;
         if (vSide == 0) {
-          diffuseColor = texture2D(uFrontTex, vUv);
+          diffuseColor = uFrontTexLoaded == 1 ? texture2D(uFrontTex, vUv) : vec4(vec3(0.0), 1.0);
         } else {
-          diffuseColor = texture2D(uBackTex, vUv);
+          diffuseColor = uBackTexLoaded == 1 ? texture2D(uBackTex, vUv) : vec4(vec3(0.0), 1.0);
         }
         gl_FragColor = diffuseColor;
         if (gl_FragColor.a < 0.1) {
