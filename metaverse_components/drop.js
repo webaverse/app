@@ -5,7 +5,6 @@ import physicsManager from '../physics-manager.js';
 import {glowMaterial} from '../shaders.js';
 import easing from '../easing.js';
 import {rarityColors} from '../constants.js';
-import dropManager from '../drop-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -17,8 +16,6 @@ const cubicBezier2 = easing(0, 1, 1, 1);
 const gracePickupTime = 1000;
 
 export default app => {
-  const localPlayer = metaversefile.useLocalPlayer();
-
   const dropComponent = app.getComponent('drop');
   if (dropComponent) {
     let rotY = 0;
@@ -44,7 +41,8 @@ export default app => {
     let pickedUp = false;
     metaversefile.useFrame(e => {
       const {timestamp, timeDiff} = e;
-      const timeDiffS = timeDiff/1000;
+      const timeDiffS = timeDiff / 1000;
+      const localPlayer = metaversefile.useLocalPlayer();
       
       // animate and check for collisions
       if (!grounded) {
@@ -123,6 +121,7 @@ export default app => {
                   }
                 }
               } else {
+                const dropManager = metaversefile.useDropManager();
                 dropManager.pickupApp(app);
 
                 world.appManager.removeApp(app);
@@ -136,6 +135,10 @@ export default app => {
                   type: 'pickUp',
                   instanceId: app.instanceId,
                 });
+
+                const storyManager = metaversefile.useStoryManager();
+                storyManager.startLocalPlayerComment('Scillia got the drop!');
+
                 pickedUp = true;
               }
 
