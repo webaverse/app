@@ -265,7 +265,7 @@ class Mob {
 
           const meshPositionY0 = localVector4.copy(meshPosition);
           const characterPositionY0 = localVector5.copy(localPlayer.position)
-            .add(localVector6.set(0, -localPlayer.avatar.height, 0));
+            .add(localVector6.set(0, localPlayer.avatar ? -localPlayer.avatar.height : 0, 0));
           const distance = meshPositionY0.distanceTo(characterPositionY0);
 
           _zeroY(meshPositionY0);
