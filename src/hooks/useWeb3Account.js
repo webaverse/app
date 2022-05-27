@@ -1,6 +1,5 @@
 import {useState, useEffect} from 'react';
 import {
-  CHAIN,
   CHAINS,
   DEFAULT_CHAIN,
 } from './web3-constants';
@@ -23,6 +22,15 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
   const [currentAccount, setCurrentAccount] = useState('');
   const [wrongChain, setWrongChain] = useState(false);
   const [errorMessage, setErrorMessage] = useState([]);
+  const [currentChain, setCurrentChain] = useState(NETWORK);
+
+  const checkChain = (chainId) => {
+    if (chainId === currentChain.chainId) {
+      setWrongChain(false);
+    } else {
+      setWrongChain(true);
+    }
+  }
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -33,7 +41,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
         return;
       }
 
-      await connectToNetwork(CHAIN[NETWORK]);
+      await connectToNetwork(currentChain);
 
       const accounts = getConnectedAccounts();
 
@@ -46,11 +54,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
 
       const chainId = await getChainId();
 
-      if (chainId === CHAIN[NETWORK].chainId) {
-        setWrongChain(false);
-      } else {
-        setWrongChain(true);
-      }
+      checkChain(chainId); // checks the chain ID against the chain selected in metamask
 
       setErrorMessage([]);
     } catch (error) {
@@ -81,11 +85,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
 
   useEffect(() => {
     const handleChainChanged = async chainId => {
-      if (chainId === CHAIN_ID) {
-        setWrongChain(false);
-      } else {
-        setWrongChain(true);
-      }
+      checkChain(chainId);
     };
 
     if (window.ethereum) {
@@ -115,6 +115,11 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     };
   }, [currentAccount]);
 
+  function switchChain(chain) {
+    setCurrentChain(chain);
+    setWrongChain(false);
+  }
+
   return {
     accounts,
     currentAccount,
@@ -123,6 +128,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     checkIfWalletIsConnected,
     wrongChain,
     addRPCToWallet,
-    chains: CHAINS
+    chains: CHAINS,
+    switchChain,
   };
 }
