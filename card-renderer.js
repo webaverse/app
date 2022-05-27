@@ -61,7 +61,7 @@ const _getCanvasDataUrl = async canvas => {
   return url;
 };
 
-const _previewImage = (image, width, height) => {
+/* const _previewImage = (image, width, height) => {
   image.style.cssText = `\
     position: fixed;
     top: 0;
@@ -71,7 +71,7 @@ const _previewImage = (image, width, height) => {
   `;
   // console.log('got image', image);
   document.body.appendChild(image);
-};
+}; */
 
 export const generateObjectUrlCard = async ({
   start_url,
