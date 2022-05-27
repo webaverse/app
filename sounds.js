@@ -42,8 +42,6 @@ const soundFiles = {
   battleTransition: _getSoundFiles(/ff7_battle_transition/),
   limitBreak: _getSoundFiles(/ff7_limit_break/),
   limitBreakReady: _getSoundFiles(/ff8_limit_ready/),
-
-  audiosource: _getSoundFiles(/^audiosource\//),
 };
 
 const audioContext = Avatar.getAudioContext();
