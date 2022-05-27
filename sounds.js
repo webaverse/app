@@ -150,21 +150,22 @@ function createNoiseBuffer(audioContext, length) {
   return buffer;
 
 }
+function isCameraInReverbZone() {
+  for(const reverbZone of world.reverbZones){
+    reverbZonsPos.set(reverbZone[0], reverbZone[1], reverbZone[2]);
+    if(camera.position.distanceTo(reverbZonsPos) < reverbZone[3]){
+      return true;
+    }
+  }
+}
 
 const upVectore = new THREE.Vector3(0, 1, 0);
 let reverbZonsPos = new THREE.Vector3(); 
 let cameraDirection = new THREE.Vector3();
 let localVector = new THREE.Vector3();
 const update = () =>{
-  let inReverbZone = false;
-  // check whether the camera in the reverb zone 
-  for(const reverbZone of world.reverbZones){
-    reverbZonsPos.set(reverbZone[0], reverbZone[1], reverbZone[2]);
-    if(camera.position.distanceTo(reverbZonsPos) < reverbZone[3]){
-      inReverbZone = true;
-      break;
-    }
-  }
+  const inReverbZone = isCameraInReverbZone();
+
   localVector.set(0, 0, -1);
   cameraDirection = localVector.applyQuaternion( camera.quaternion );
   cameraDirection.normalize();
