@@ -21,10 +21,11 @@ export default (app, component) => {
   let appAimAnimationMixers = null;
 
   const initialScale = app.scale.clone();
-  const initialQuaternion = new THREE.Quaternion();
+  // const initialQuaternion = new THREE.Quaternion();
 
-  let lastWornApp = null;
-  let localPlayer = null;
+  // let lastWornApp = null;
+  let localPlayer = metaversefile.useLocalPlayer();
+
 
   const wearupdate = (e) => {
     if (e.wear) {
@@ -32,7 +33,7 @@ export default (app, component) => {
       initialScale.copy(app.scale);
 
       localPlayer = e.player;
-      lastWornApp = app;
+      // lastWornApp = app;
       // console.log('activate component', app, wear);
       if (wearSpec) {
         // const {app, wearSpec} = e.data;
@@ -240,7 +241,6 @@ export default (app, component) => {
     }
   };
   const frame = metaversefile.useFrame(({ timestamp, timeDiff }) => {
-    // const localPlayer = metaversefile.useLocalPlayer();
     if (wearSpec && localPlayer.avatar) {
       const { instanceId } = app;
 
