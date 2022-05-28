@@ -90,6 +90,7 @@ const DragAndDrop = () => {
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
   const { mintNFT, minting } = useNFTContract(account.currentAddress);
+  const {mintBtnEnable, setMintBtnEnable} = useState(true);
 
   useEffect(() => {
     function keydown(e) {
@@ -184,10 +185,10 @@ const DragAndDrop = () => {
     };
   }, []);
 
-  useEffect(() => {
+  useEffect(async () => {
     if (queue.length > 0 && !currentApp) {
       const app = queue[0];
-      // console.log('set app', app);
+      setMintBtnEnable(account.currentAddress)
       setCurrentApp(app);
       setQueue(queue.slice(1));
       setState({ openedPanel: null });
@@ -196,7 +197,8 @@ const DragAndDrop = () => {
         cameraManager.exitPointerLock();
       }
     }
-  }, [queue, currentApp]);
+  }, [queue, currentApp, account.currentAddress]);
+
 
   const _currentAppClick = e => {
     e.preventDefault();
@@ -234,7 +236,7 @@ const DragAndDrop = () => {
       setCurrentApp(null);
     }
   };
-  const _mint = e => {
+  const _mint = async e => {
     e.preventDefault();
     e.stopPropagation();
     if (currentApp) {
@@ -279,7 +281,7 @@ const DragAndDrop = () => {
               <span>Equip</span>
               <sub>to self</sub>
             </div>
-            <div className={style.button} onClick={_mint}>
+            <div className={style.button} disabled={!mintBtnEnable} onClick={_mint}>
               <span>Mint</span>
               <sub>on chain</sub>
             </div>
