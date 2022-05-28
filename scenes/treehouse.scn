@@ -140,10 +140,13 @@
         0,
         0,
         1
-      ],
+      ], 
+      "type": "application/mob",
+      "content": {
+        "name": "silkworm"
       "physics": false,
       "start_url": "https://webaverse.github.io/silkworm/",
-      "dynamic": true
+      "dynamic": false
     },
     {
       "position": [
@@ -302,6 +305,22 @@
         1
       ],
       "start_url": "https://webaverse.github.io/machine-gun/"
+    },
+    {
+      "position": [
+        -95,
+        0,
+        55
+      ],
+      "start_url": "../metaverse_modules/spawner/",
+      "components": [
+        {
+          "key": "appUrls",
+          "value": [
+            "https://webaverse.github.io/silkworm"
+          ]
+        }
+      ]
     }
   ]
 }

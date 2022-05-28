@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 /* eslint-disable keyword-spacing */
 /* eslint-disable lines-between-class-members */
 /* eslint-disable space-before-blocks */
@@ -15,6 +16,7 @@ import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import {getLocalPlayer} from './players.js';
 import mobManager from './mob-manager.js';
+import npcManager from './npc-manager.js';
 
 const localVector = new THREE.Vector3();
 
@@ -140,6 +142,7 @@ class ZTargeting extends THREE.Object3D {
     this.nearbyResults = new QueryResults();
     this.dropAngle = 145;
     this.nearbyMobs = [];
+    this.nearbyNpc = [];
   }
   setQueryResult(timestamp) {
     let reticles;
@@ -238,24 +241,35 @@ class ZTargeting extends THREE.Object3D {
     }
   }
   findNearbyTarget(){
-    //Make list for 'nearby mobs'                     // possibly already exists it does
-    for (const mob of mobManager.mobs){
-      const mobPhysicsObjects = mob.getPhysicsObjects();
-    
-    //for each mob in mob manager
-      if (camera.position.distanceTo(mobPhysicsObjects.position)< 20 /*random val rn*/ && cameraManager.compareAngletoCam(mobPhysicsObjects.position < 120)){
-        this.nearbyMobs.push(mobPhysicsObjects); //gonna make this a dictionary later with mob-angle relation
-      }
-      //check distance to character                   // Maybe not both this and below
-      //compareAngletoCam(wider angle than for drop)
-        //add to list of 'nearby mobs', sorted by angle dist
+    //Make list for 'nearby mobs'                     // possibly already exists
+    // for (const mob of mobManager.mobs){
+    //   const mobPhysicsObjects = mob.getPhysicsObjects();
+    //   console.log('npc', npcManager.npcs);
+    // //for each mob in mob manager
+    //   if (camera.position.distanceTo(mobPhysicsObjects.position)< 20 /*random val rn*/ && cameraManager.compareAngletoCam(mobPhysicsObjects.position < 120)){
+    //     this.nearbyMobs.push(mobPhysicsObjects); //gonna make this a dictionary later with mob-angle relation
+    //   }
+    //   //check distance to character                   // Maybe not both this and below
+    //   //compareAngletoCam(wider angle than for drop)
+    //     //add to list of 'nearby mobs', sorted by angle dist
+    // }
+    console.log('npc', npcManager.npcs);
+    const npcPhysicsOb = npcManager.npcs[0].getPhysicsObjects();
+    if (cameraManager.compareAngletoCam(npcPhysicsOb.position < 120)){
+      this.nearbyNpc.push(npcPhysicsOb); //gonna make this a dictionary later with mob-angle relation
     }
-    if (this.nearbyMobs.length > 0){
-      console.log('mobs', this.nearbyMobs);
+    if (this.nearbyNpc.length > 0){
+      console.log('npc', this.nearbnearbyNpcMobs);
       this.toggle();
-      this.handleTarget(this.nearbyMobs[0]);
-      this.nearbyMobs = [];
+      this.handleTarget(this.nearbyNpc[0]);
+      this.nearbyNpc = [];
     }
+    // if (this.nearbyMobs.length > 0){
+    //   console.log('mobs', this.nearbyMobs);
+    //   this.toggle();
+    //   this.handleTarget(this.nearbyMobs[0]);
+    //   this.nearbyMobs = [];
+    // }
 
         //possibly seperate method
     //if list.length > 0

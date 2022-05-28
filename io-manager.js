@@ -318,7 +318,7 @@ ioManager.keydown = e => {
     }
     case 50: { // 2 -> temporarilly going to be used to detatch from target/ issue #3066
       // to do: trigger the following when player aims far enough (angle-based) away from z-target and remove functionality from button press
-      game.checkTargetDrop();
+      game.findNearby();
       // automatically re-engage z-targeting on a different target if they are in range after moving and disengaging from the first z-target
       break;
     }
