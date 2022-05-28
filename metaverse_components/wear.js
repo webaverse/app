@@ -6,7 +6,7 @@ import physicsManager from "../physics-manager.js";
 // import {glowMaterial} from '../shaders.js';
 // import easing from '../easing.js';
 import npcManager from "../npc-manager.js";
-import { AppManager } from "../app-manager.js";
+// import { AppManager } from "../app-manager.js";
 // import {rarityColors} from '../constants.js';
 
 const localVector = new THREE.Vector3();
@@ -24,8 +24,7 @@ export default (app, component) => {
   // const initialQuaternion = new THREE.Quaternion();
 
   // let lastWornApp = null;
-  let localPlayer = metaversefile.useLocalPlayer();
-
+  let localPlayer = null;
 
   const wearupdate = (e) => {
     if (e.wear) {
