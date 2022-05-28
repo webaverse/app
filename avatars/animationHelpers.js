@@ -41,6 +41,10 @@ import {
   backflipStartTimeS,
   backflipUnjumpSpeed,
   backflipUnjumpStartTimeS,
+  jumpSpeed,
+  jumpStartTimeS,
+  jumpFallLoopStartTimeS,
+  jumpFallLoopFrameTimes,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -775,10 +779,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     //     } = spec;
 
     //     // const animation = animations.index['walking.fbx']
-    //     const animation = animations.index['heavy_sword1.fbx']
+    //     const animation = animations.index['Backflip.fbx']
     //     const t2 = timeSeconds;
     //     const src2 = animation.interpolants[k];
-    //     const v2 = src2.evaluate(t2 % animation.duration);
+    //     // const v2 = src2.evaluate(t2 % animation.duration);
+    //     const v2 = src2.evaluate(30 / 30);
 
     //     dst.fromArray(v2);
     //   };
@@ -793,8 +798,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isArm,
         } = spec;
 
+        const jumpTimeS = avatar.jumpTime / 1000;
+
         if (avatar.aimState && avatar.direction.z > 0.1) {
-          const t2 = avatar.jumpTime / 1000 * backflipSpeed + backflipStartTimeS;
+          const t2 = jumpTimeS * backflipSpeed + backflipStartTimeS;
           const src2 = animations.index['Backflip.fbx'].interpolants[k];
           const v2 = src2.evaluate(t2);
 
@@ -802,11 +809,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
           _clearXZ(dst, isPosition);
         } else {
-          const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
-          const src2 = jumpAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
+          if (jumpTimeS >= jumpFallLoopStartTimeS) { // fall loop stage
+            const t2 = jumpFallLoopFrameTimes;
+            const src2 = jumpAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            if (isPosition) console.log('loop', t2);
 
-          dst.fromArray(v2);
+            dst.fromArray(v2);
+          } else { // jump up stage
+            const t2 = jumpStartTimeS + jumpTimeS * jumpSpeed;
+            const src2 = jumpAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+            if (isPosition) console.log('jump', t2);
+
+            dst.fromArray(v2);
+          }
         }
 
         if (avatar.holdState && isArm) {
