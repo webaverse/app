@@ -15,6 +15,7 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
+const localVector7 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
@@ -240,6 +241,7 @@ class Mob {
 
       // set up frame loop
       let animation = null;
+      let velocity = new THREE.Vector3(0, 0, 0);
       this.updateFns.push((timestamp, timeDiff) => {
         const localPlayer = getLocalPlayer();
         const timeDiffS = timeDiff / 1000;
@@ -274,10 +276,13 @@ class Mob {
           const _handleAggroMovement = () => {
             if (distance < aggroDistance) {
               if (distance > minDistance) {
-                const direction = characterPositionY0.sub(meshPositionY0).normalize();
+                const movementDirection = _zeroY(characterPositionY0.sub(meshPositionY0))
+                  .normalize();
                 const maxMoveDistance = distance - minDistance;
                 const moveDistance = Math.min(walkSpeed * timeDiff * 1000, maxMoveDistance);
-                const moveDelta = localVector6.copy(direction).multiplyScalar(moveDistance);
+                const moveDelta = localVector6.copy(movementDirection)
+                  .multiplyScalar(moveDistance)
+                  .add(localVector7.copy(velocity).multiplyScalar(timeDiffS));
                 const minDist = 0;
 
                 const popExtraGeometry = (() => {
@@ -291,16 +296,25 @@ class Mob {
                   };
                 })();
 
-                /*const flags = */physicsManager.moveCharacterController(
+                const flags = physicsManager.moveCharacterController(
                   characterController,
                   moveDelta,
                   minDist,
                   timeDiffS,
                   characterController.position
                 );
-                // window.flags = flags;
-
                 popExtraGeometry();
+
+                // const collided = flags !== 0;
+                let grounded = !!(flags & 0x1);
+                if (!grounded) {                  
+                  velocity.add(
+                    localVector.copy(physicsManager.getGravity())
+                      .multiplyScalar(timeDiffS)
+                  );
+                } else {
+                  velocity.set(0, 0, 0);
+                }
 
                 meshPosition.copy(characterController.position)
                   .sub(physicsOffset);
