@@ -716,7 +716,7 @@ class AppManager extends EventTarget {
 
     this.bindTrackedApp(dstTrackedApp, app);
     
-    this.addApp(app);
+    // this.addApp(app);
   }
   hasApp(app) {
     return this.apps.includes(app);
