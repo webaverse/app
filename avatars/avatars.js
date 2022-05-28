@@ -1994,9 +1994,10 @@ class Avatar {
           await audioContext.resume();
         })();
       }
+      const localPlayer = metaversefile.useLocalPlayer();
       this.microphoneWorker = new MicrophoneWorker({
         audioContext,
-        muted: false,
+        muted: localPlayer.avatar === this,
         emitVolume: true,
         emitBuffer: true,
       });
