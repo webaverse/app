@@ -1913,6 +1913,7 @@ class Avatar {
         <div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
         <div style="display:;">jumpState: --- ${this.jumpState}</div>
         <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
+        <div style="display:;">unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
         <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
         <div style="display:;">flyState: --- ${this.flyState}</div>
         <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
@@ -1951,7 +1952,6 @@ class Avatar {
         <div style="display:;">danceTime: --- ${Math.floor(this.danceTime)}</div>
         <div style="display:none;">fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>
         <div style="display:;">hurtTime: --- ${Math.floor(this.hurtTime)}</div>
-        <div style="display:;">unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
         <div style="display:;">lastEyeTargetTime: --- ${Math.floor(this.lastEyeTargetTime)}</div>
         <div style="display:;">lastMoveTime: --- ${Math.floor(this.lastMoveTime)}</div>
         <div style="display:;">narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>

@@ -784,7 +784,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        if (avatar.aimState) {
+        if (true || avatar.aimState) {
           const t2 = avatar.jumpTime / 1000 * window.speed + window.start;
           const src2 = animations.index['Backflip.fbx'].interpolants[k];
           const v2 = src2.evaluate(t2);
@@ -794,6 +794,32 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           _clearXZ(dst, isPosition);
         } else {
           const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
+          const src2 = jumpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+        }
+      };
+    }
+    if (avatar.unjumpTime > 0) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+          isPosition,
+        } = spec;
+
+        if (true || avatar.aimState) {
+          const t2 = avatar.unjumpTime / 1000 * window.unjumpSpeed + window.unjumpStart;
+          const src2 = animations.index['Backflip.fbx'].interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+
+          _clearXZ(dst, isPosition);
+        } else {
+          const t2 = avatar.unjumpTime / 1000 * 0.6 + 0.7;
           const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
 
