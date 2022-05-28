@@ -389,11 +389,6 @@ const _startHacks = webaverse => {
   window.game = game;
   window.cameraManager = cameraManager;
 
-  // window.vy = 4.2; // air time: 632.8899999999849
-  window.vy = 4.1; // air time: 599.5199999999968
-  // window.vy = 4; // air time: 582.823000000004
-  // window.vy = 3.6; // air time: 499.43599999998696
-
   // let playerDiorama = null;
   const lastEmotionKey = {
     key: -1,
