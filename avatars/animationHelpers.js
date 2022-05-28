@@ -801,32 +801,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     }
-    if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        if (true || avatar.aimState) {
-          const t2 = avatar.unjumpTime / 1000 * window.unjumpSpeed + window.unjumpStart;
-          const src2 = animations.index['Backflip.fbx'].interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          dst.fromArray(v2);
-
-          _clearXZ(dst, isPosition);
-        } else {
-          const t2 = avatar.unjumpTime / 1000 * 0.6 + 0.7;
-          const src2 = jumpAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          dst.fromArray(v2);
-        }
-      };
-    }
     if (avatar.sitState) {
       return spec => {
         const {
@@ -1237,6 +1211,37 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         );
     }
   };
+  const _blendUnjump = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
+      if (true || avatar.aimState) {
+        const t2 = avatar.unjumpTime / 1000 * window.unjumpSpeed + window.unjumpStart;
+        const src2 = animations.index['Backflip.fbx'].interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        if (!isPosition) {
+          localQuaternion.fromArray(v2);
+          dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
+        } else {
+          localVector.fromArray(v2);
+          _clearXZ(localVector, isPosition);
+          dst.lerp(localVector, 1 - avatar.unjumpFactor);
+        }
+      } else {
+        const t2 = avatar.unjumpTime / 1000 * 0.6 + 0.7;
+        const src2 = jumpAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        dst.fromArray(v2);
+      }
+    }
+  }
 
   const _blendActivateAction = spec => {
     const {
@@ -1281,6 +1286,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     applyFn(spec);
+    _blendUnjump(spec);
     _blendFly(spec);
     _blendActivateAction(spec);
 
@@ -1293,6 +1299,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         // force height in the jump case to overide the animation
         dst.y = avatar.height * 0.55;
       }
+      console.log(window.logNum(dst.x), window.logNum(dst.z));
     }
   }
 };
