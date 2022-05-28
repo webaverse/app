@@ -253,6 +253,23 @@ class ZTargeting extends THREE.Object3D {
     //   //compareAngletoCam(wider angle than for drop)
     //     //add to list of 'nearby mobs', sorted by angle dist
     // }
+
+    // if (this.nearbyMobs.length > 0){
+    //   console.log('mobs', this.nearbyMobs);
+    //   this.toggle();
+    //   this.handleTarget(this.nearbyMobs[0]);
+    //   this.nearbyMobs = [];
+    // }else{
+      this.findNearbyNpc();
+    // }
+
+        //possibly seperate method
+    //if list.length > 0
+      //togle()
+      //focus(list[0])
+      //handletarget(list[0])
+  }
+  findNearbyNpc(){
     console.log('npc', npcManager.npcs);
     const npcPhysicsOb = npcManager.npcs[0].getPhysicsObjects();
     if (cameraManager.compareAngletoCam(npcPhysicsOb.position < 120)){
@@ -264,18 +281,6 @@ class ZTargeting extends THREE.Object3D {
       this.handleTarget(this.nearbyNpc[0]);
       this.nearbyNpc = [];
     }
-    // if (this.nearbyMobs.length > 0){
-    //   console.log('mobs', this.nearbyMobs);
-    //   this.toggle();
-    //   this.handleTarget(this.nearbyMobs[0]);
-    //   this.nearbyMobs = [];
-    // }
-
-        //possibly seperate method
-    //if list.length > 0
-      //togle()
-      //focus(list[0])
-      //handletarget(list[0])
   }
   checkDrop(){
     var camAngle;
