@@ -101,7 +101,7 @@ export const airFriction = groundFriction;
 export const flyFriction = 0.5;
 export const aimTransitionMaxTime = 150;
 
-export const backflipSpeed = (59 - 34) / (30 * 0.999);
+export const backflipSpeed = (59 - 34) / (30 * 0.6);
 export const backflipStartTimeS = 1.1;
 export const backflipUnjumpSpeed = 3;
 export const backflipUnjumpStartTimeS = 58 / 30;
