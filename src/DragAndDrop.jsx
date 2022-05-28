@@ -12,6 +12,8 @@ import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
+import * as ethers from 'ethers';
+import { NFTABI, NFTcontractAddress } from "../src/abis/contract"
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -85,9 +87,21 @@ const uploadCreateApp = async (item, {
 };
 
 const DragAndDrop = () => {
+
+  const { ethereum } = window;
+  if (ethereum) {
+    var provider = new ethers.providers.Web3Provider(ethereum);
+  }
+
   const { state, setState, } = useContext( AppContext )
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
+  const [mintBtnEnable, setMintBtnEnable] = useState(false);
+
+  const isMetaMaskConnected = async () => {
+    const accounts = await provider.listAccounts();
+    return accounts.length > 0;
+  }
 
   useEffect(() => {
     function keydown(e) {
@@ -182,10 +196,12 @@ const DragAndDrop = () => {
     };
   }, []);
 
-  useEffect(() => {
+  useEffect(async () => {
     if (queue.length > 0 && !currentApp) {
       const app = queue[0];
-      // console.log('set app', app);
+      console.log('set app', app);
+      const connectedWallet = await isMetaMaskConnected()
+      setMintBtnEnable(connectedWallet)
       setCurrentApp(app);
       setQueue(queue.slice(1));
       setState({ openedPanel: null });
@@ -195,6 +211,7 @@ const DragAndDrop = () => {
       }
     }
   }, [queue, currentApp]);
+
 
   const _currentAppClick = e => {
     e.preventDefault();
@@ -232,11 +249,102 @@ const DragAndDrop = () => {
       setCurrentApp(null);
     }
   };
-  const _mint = e => {
+  const _mint = async e => {
     e.preventDefault();
     e.stopPropagation();
 
     console.log('mint', currentApp);
+    // switch Polygon main network
+    // try {
+    //   await ethereum.request({
+    //     method: 'wallet_switchEthereumChain',
+    //     params: [{ chainId: '0x89' }],
+    //   });
+    // } catch (switchError) {
+    //   console.log(switchError);
+    //   // This error code indicates that the chain has not been added to MetaMask.
+    //   if (switchError.code === 4902) {
+    //     try {
+    //       await ethereum.request({
+    //         method: 'wallet_addEthereumChain',
+    //         params: [
+    //           {
+    //             chainId: '0x89',
+    //             chainName: 'Polygon Mainnet',
+    //             rpcUrls: ['"https://polygon-rpc.com"'] /* ... */,
+    //             nativeCurrency: {
+    //               name: "MATIC",
+    //               symbol: "MATIC", // 2-6 characters long
+    //               decimals: 18,
+    //             },
+    //             blockExplorerUrls: ["https://polygonscan.com/"],
+    //           },
+    //         ],
+    //       });
+    //     } catch (addError) {
+    //       // handle "add" error
+    //     }
+    //   }
+    //   // handle other "switch" errors
+    // }
+
+    // switch Polygon testnet mumbai
+    try {
+        await ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x13881' }],
+        });
+      } catch (switchError) {
+        console.log(switchError);
+        // This error code indicates that the chain has not been added to MetaMask.
+        if (switchError.code === 4902) {
+          try {
+            await ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: "0x13881",
+                  chainName: "Polygon Testnet Mumbai",
+                  rpcUrls: ["https://matic-mumbai.chainstacklabs.com"] /* ... */,
+                  nativeCurrency: {
+                    name: "MATIC",
+                    symbol: "MATIC", // 2-6 characters long
+                    decimals: 18,
+                  },
+                  blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
+                },
+              ],
+            });
+          } catch (addError) {
+            console.log(addError);
+          }
+        }
+        // handle other "switch" errors
+      }
+
+    let name = currentApp.name;
+    let ext = currentApp.contentId.split(".").pop();
+    let hash = currentApp.contentId.split("https://ipfs.webaverse.com/")[1].split("/" + name + "." + ext)[0];
+    let description = "This is test"
+
+    const signer = new ethers.providers.Web3Provider(ethereum).getSigner();
+    const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
+    const FTcontract = new ethers.Contract(NFTcontractAddress, FTABI, signer);
+    let Bigmintfee = await NFTcontract.mintFee();
+    const mintfee = BigNumber.from(Bigmintfee).toNumber();
+    
+    const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
+    let FTapproveres = await FTapprovetx.wait()
+    if (FTapproveres.transactionHash) {
+        try {
+            let NFTmintres = await NFTcontract.mint(ethereum.selectedAddress, hash, name, ext, description, 1)
+            // after mint transaction, refresh the website 
+        } catch(err) {
+            console.log(err)
+            alert("NFT mint failed");
+        }
+    }
+
   };
   const _cancel = e => {
     e.preventDefault();
@@ -275,7 +383,7 @@ const DragAndDrop = () => {
               <span>Equip</span>
               <sub>to self</sub>
             </div>
-            <div className={style.button} disabled onClick={_mint}>
+            <div className={style.button} disabled={!mintBtnEnable} onClick={_mint}>
               <span>Mint</span>
               <sub>on chain</sub>
             </div>
