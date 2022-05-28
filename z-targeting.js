@@ -114,20 +114,27 @@ class ZTargeting extends THREE.Object3D {
   constructor() {
     super();
 
-    const targetReticleApp = metaversefile.createApp();
-    (async () => {
-      await metaverseModules.waitForLoad();
-
-      const {modules} = metaverseModules;
-      const m = modules['targetReticle'];
-      await targetReticleApp.addModule(m);
-    })();
-    scene.add(targetReticleApp);
-    this.targetReticleApp = targetReticleApp;
-
+    this.targetReticleApp = null;
     this.reticles = [];
     this.focusTargetReticle = null;
     this.queryResults = new QueryResults();
+
+    this.loadPromise = null;
+  }
+  waitForLoad() {
+    if (!this.loadPromise) {
+      this.loadPromise = (async () => {
+        const targetReticleApp = metaversefile.createApp();
+        await metaverseModules.waitForLoad();
+
+        const {modules} = metaverseModules;
+        const m = modules['targetReticle'];
+        await targetReticleApp.addModule(m);
+        scene.add(targetReticleApp);
+        this.targetReticleApp = targetReticleApp;
+      })();
+    }
+    return this.loadPromise;
   }
   setQueryResult(timestamp) {
     let reticles;

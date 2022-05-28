@@ -38,9 +38,9 @@
         0
       ],
       "scale": [
-        100,
-        100,
-        100
+        60,
+        60,
+        60
       ],
       
       "start_url": "https://webaverse.github.io/sky-milkyway/"
@@ -58,9 +58,9 @@
         0
       ],
       "scale": [
-        0.05,
-       0.05,
-        0.05
+        3,
+        3,
+        3
       ],
       
       "start_url": "https://webaverse.github.io/tron-gothic-city/"
