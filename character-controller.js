@@ -348,7 +348,7 @@ class PlayerBase extends THREE.Object3D {
         loadoutIndex = _getNextLoadoutIndex();
       }
     }
-    
+
     const _initPhysics = () => {
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
@@ -805,8 +805,7 @@ class StatePlayer extends PlayerBase {
       const audioContext = Avatar.getAudioContext();
       const mediaStreamSource =
         audioContext.createMediaStreamSource(mediaStream);
-      if (!this.isLocalPlayer)
-        mediaStreamSource.connect(this.avatar.getAudioInput());
+      mediaStreamSource.connect(this.avatar.getAudioInput());
       this.microphoneMediaStream = mediaStreamSource;
     }
   }
