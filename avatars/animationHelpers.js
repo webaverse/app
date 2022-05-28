@@ -784,7 +784,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        if (true || avatar.aimState) {
+        if (avatar.aimState) {
           const t2 = avatar.jumpTime / 1000 * window.speed + window.start;
           const src2 = animations.index['Backflip.fbx'].interpolants[k];
           const v2 = src2.evaluate(t2);
