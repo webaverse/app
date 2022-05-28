@@ -1298,7 +1298,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           dst.lerp(localVector, 1 - avatar.unjumpFactor);
         }
       } else { // ordinary unjump
-        const t2 = avatar.unjumpTime / 1000 * jumpSpeed + jumpFallLoopFrameTimes;
+        const t2 = avatar.unjumpTime / 1000 * jumpSpeed * 2 + jumpFallLoopFrameTimes;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
         if (isPosition) console.log('unjump', t2);
