@@ -1369,7 +1369,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       } else {
         // force height in the jump case to overide the animation
-        dst.y = avatar.height * 0.55;
+        // dst.y = avatar.height * 0.55;
+        dst.y = avatar.height * 0.58; // + 0.03 height to compensate the hanging toes.
       }
       // console.log(window.logNum(dst.x), window.logNum(dst.z));
     }
