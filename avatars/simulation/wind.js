@@ -3,7 +3,7 @@ import Simplex from '../../simplex-noise.js';
 import metaversefile from 'metaversefile';
 
 const simplex = new Simplex();      
-const windDirection = new THREE.Vector3();
+let windDirection = new THREE.Vector3();
 const windPosition = new THREE.Vector3();
 const windNoisePos = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -14,7 +14,7 @@ const update = (timestamp, headPosition, springBoneManager) => {
     
     const inWindZone = () =>{
       for(let i = 0; i < winds.length; i++){
-        if(winds[i].windType === 'spherical'){
+        if(winds[i].windType === 'spherical' || winds[i].windType === 'central'){
           windPosition.set(winds[i].position[0], winds[i].position[1], winds[i].position[2]);
           if(headPosition.distanceTo(windPosition) <= winds[i].radius){
             return i;
@@ -74,10 +74,41 @@ const update = (timestamp, headPosition, springBoneManager) => {
         }
       }
     }
+    const _handleCentral = (wind) =>{  
+      for (const springBones of springBoneManager.springBoneGroupList) {
+        for (const o of springBones) {
+          const windForce = wind.windForce !== undefined ? wind.windForce : 0;
+          const noiseScale = wind.noiseScale !== undefined ? wind.noiseScale : 0;
+          const windFrequency = wind.windFrequency !== undefined ? wind.windFrequency : 0;
+
+          const worldPos = localVector2.setFromMatrixPosition(o.bone.matrixWorld);
+          
+          const windSpeed = timeS * windFrequency;
+          windNoisePos.x = (worldPos.x * noiseScale + windSpeed);
+          windNoisePos.y = (worldPos.y * noiseScale + windSpeed);
+          windNoisePos.z = (worldPos.z * noiseScale + windSpeed);
+          let windNoise = simplex.noise3D(windNoisePos.x, windNoisePos.y, windNoisePos.z);
+          windNoise = ((windNoise +  1) / 2);
+
+          windDirection.x = headPosition.x - windPosition.x;
+          windDirection.z = headPosition.z - windPosition.z;
+          windDirection.y = wind.direction[1];
+
+          o.gravityDir
+              .normalize()
+              .lerp(windDirection.normalize(), 0.5);
+          
+          o.gravityPower = windNoise * (windForce * ( 1.1 - headPosition.distanceTo(windPosition) / wind.radius));
+        }
+      }
+    }
     if(winds){
       let windIndex = inWindZone();
       if(windIndex !== -1){
-        _handleSpherical(winds[windIndex]);
+        if(winds[windIndex].windType === 'spherical')
+          _handleSpherical(winds[windIndex]);
+        else if(winds[windIndex].windType === 'central')
+          _handleCentral(winds[windIndex]);
       }
       else{
         for(const wind of winds){
