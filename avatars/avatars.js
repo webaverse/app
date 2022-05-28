@@ -1486,6 +1486,8 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
+    const unjumpMaxTime = (100 - 58) / 30 / window.unjumpSpeed * 1000;
+    this.unjumpFactor = this.unjumpTime / unjumpMaxTime;
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -1914,6 +1916,7 @@ class Avatar {
         <div style="display:;">jumpState: --- ${this.jumpState}</div>
         <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
         <div style="display:;">unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
+        <div style="display:;">unjumpFactor: --- ${window.logNum(this.unjumpFactor)}</div>
         <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
         <div style="display:;">flyState: --- ${this.flyState}</div>
         <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>

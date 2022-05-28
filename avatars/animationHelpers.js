@@ -801,7 +801,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     }
-    if (avatar.unjumpTime > 0) {
+    if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
       return spec => {
         const {
           animationTrackName: k,
