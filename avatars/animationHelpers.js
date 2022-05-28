@@ -800,7 +800,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const jumpTimeS = avatar.jumpTime / 1000;
 
-        if (avatar.aimState && avatar.direction.z > 0.1) {
+        if (avatar.aimState && avatar.direction.z > 0.1) { // backflip jump
           const t2 = jumpTimeS * backflipSpeed + backflipStartTimeS;
           const src2 = animations.index['Backflip.fbx'].interpolants[k];
           const v2 = src2.evaluate(t2);
@@ -808,7 +808,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           dst.fromArray(v2);
 
           _clearXZ(dst, isPosition);
-        } else {
+        } else { // ordinary jump
           if (jumpTimeS >= jumpFallLoopStartTimeS) { // fall loop stage
             const t2 = jumpFallLoopFrameTimes;
             const src2 = jumpAnimation.interpolants[k];
@@ -816,6 +816,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             if (isPosition) console.log('loop', t2);
 
             dst.fromArray(v2);
+            _clearXZ(dst, isPosition);
           } else { // jump up stage
             const t2 = jumpStartTimeS + jumpTimeS * jumpSpeed;
             const src2 = jumpAnimation.interpolants[k];
@@ -823,6 +824,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             if (isPosition) console.log('jump', t2);
 
             dst.fromArray(v2);
+            _clearXZ(dst, isPosition);
           }
         }
 
