@@ -12,7 +12,7 @@ import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
 // import {chatManager} from './chat-manager.js';
 // import {getState, setState} from './state.js';
-// import {makeId} from './util.js';
+import {makeId} from './util.js';
 import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import metaversefileApi from 'metaversefile';
 import {appsMapName, playersMapName} from './constants.js';
@@ -103,6 +103,22 @@ world.connectRoom = async u => {
         const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
         console.log("player is", player)
         player.processAudioData(e.data);
+      })
+
+      wsrtc.addEventListener('chat', e => {
+        console.log('chat handled', e);
+        let { playerId, message } = e.data;
+
+        const player = metaversefileApi.useRemotePlayer(playerId);
+        const localPlayer = metaversefileApi.useLocalPlayer();
+        const chatId = makeId(5);
+        localPlayer.addAction({
+          type: 'chat',
+          chatId,
+          playerName: player.name,
+          message
+        })
+
       })
     };
     wsrtc.addEventListener('init', init);
