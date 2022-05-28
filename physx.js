@@ -1705,15 +1705,93 @@ const physxWorker = (() => {
 
     allocator.freeAll()
   }
-  w.getVelocityPhysics = (physics, id, velocity) => {
+  w.getLinearVelocityPhysics = (physics, id, velocity) => {
     const allocator = new Allocator()
     const v = allocator.alloc(Float32Array, 3)
 
-    moduleInstance._getVelocityPhysics(physics, id, v.byteOffset)
+    moduleInstance._getLinearVelocityPhysics(physics, id, v.byteOffset)
 
     velocity.fromArray(v)
 
     allocator.freeAll()
+  }
+  w.getAngularVelocityPhysics = (physics, id, velocity) => {
+    const allocator = new Allocator()
+    const v = allocator.alloc(Float32Array, 3)
+
+    moduleInstance._getAngularVelocityPhysics(physics, id, v.byteOffset)
+
+    velocity.fromArray(v)
+
+    allocator.freeAll()
+  }
+  w.addForceAtPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addForceAtPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addLocalForceAtPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addLocalForceAtPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addLocalForceAtLocalPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addLocalForceAtLocalPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addForceAtLocalPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addForceAtLocalPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addForcePhysics = (physics, id, velocity, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addForcePhysics(physics, id, vel.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addTorquePhysics = (physics, id, velocity, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addTorquePhysics(physics, id, vel.byteOffset, autoWake);
+    allocator.freeAll();
   }
   w.setVelocityPhysics = (physics, id, velocity, autoWake) => {
     const allocator = new Allocator()
@@ -2044,83 +2122,38 @@ const physxWorker = (() => {
     }
   }
 
-  w.createChunkWithDualContouring = (x, y, z, lod) => {
-    const bufferManager = new BufferManager()
-
-    const outputBufferOffset = moduleInstance._createChunkWithDualContouring(
-      x,
-      y,
-      z,
-      lod
-    )
-
-    // reading the data with the same order as C++
-    const positionCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      0
-    ) // vector size
-    const positionBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      1
-    ) // position vector
-
-    const normalCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      2
-    ) // vector size
-    const normalBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      3
-    ) // normal vector
-
-    const indicesCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      4
-    ) // vector size
-    const indicesBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      5
-    ) // indices vector
-
-    const positions = bufferManager.readAttribute(
-      Int32Array,
-      positionBuffer,
-      positionCount * 3
-    )
-    const normals = bufferManager.readAttribute(
-      Int32Array,
-      normalBuffer,
-      normalCount * 3
-    )
-    const indices = bufferManager.readIndices(
-      Int32Array,
-      indicesBuffer,
-      indicesCount
-    )
-
-    bufferManager.freeAllBuffers()
-
-    return {
-      positions: positions,
-      normals: normals,
-      indices: indices,
-    }
+  w.generateChunkDataDualContouring = (x, y, z) => {
+    moduleInstance._generateChunkDataDualContouring(x, y, z)
   }
 
-  w.createSeamsWithDualContouring = (x, y, z) => {
+  w.setChunkLodDualContouring = (x, y, z, lod) => {
+    moduleInstance._setChunkLodDualContouring(x, y, z, lod)
+  }
+
+  w.clearTemporaryChunkDataDualContouring = () => {
+    moduleInstance._clearTemporaryChunkDataDualContouring()
+  }
+
+  w.clearChunkRootDualContouring = (x, y, z) => {
+    moduleInstance._clearChunkRootDualContouring(x, y, z)
+  }
+
+  w.createChunkMeshDualContouring = (x, y, z) => {
     const bufferManager = new BufferManager()
 
-    const outputBufferOffset = moduleInstance._createSeamsWithDualContouring(
-      x,
-      y,
-      z
-    )
+    const outputBufferOffset =
+      moduleInstance._createChunkMeshDualContouring(x, y, z)
+
+
+    if (!outputBufferOffset) {
+      return {
+        positions: null,
+        normals: null,
+        indices: null,
+        biomes: null,
+        biomesWeights: null,
+      }
+    }
 
     // reading the data with the same order as C++
     const positionCount = bufferManager.readBuffer(
@@ -2156,20 +2189,54 @@ const physxWorker = (() => {
       5
     ) // indices vector
 
+    const biomeCount = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      6
+    ) // vector size
+    const biomeBuffer = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      7
+    ) // biomes vector
+
+    const biomeWeightsCount = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      8
+    ) // vector size
+    const biomeWeightsBuffer = bufferManager.readBuffer(
+      Int32Array,
+      outputBufferOffset,
+      9
+    ) // biomesWeights vector
+
     const positions = bufferManager.readAttribute(
       Int32Array,
       positionBuffer,
-      positionCount * 3
+      positionCount * 3 // vec3
     )
     const normals = bufferManager.readAttribute(
       Int32Array,
       normalBuffer,
-      normalCount * 3
+      normalCount * 3 // vec3
     )
     const indices = bufferManager.readIndices(
       Int32Array,
       indicesBuffer,
       indicesCount
+    )
+
+    const biomes = bufferManager.readAttribute(
+      Int32Array,
+      biomeBuffer,
+      biomeCount * 4 // vec4
+    )
+
+    const biomesWeights = bufferManager.readAttribute(
+      Int32Array,
+      biomeWeightsBuffer,
+      biomeWeightsCount * 4 // vec4
     )
 
     bufferManager.freeAllBuffers()
@@ -2178,6 +2245,8 @@ const physxWorker = (() => {
       positions: positions,
       normals: normals,
       indices: indices,
+      biomes: biomes,
+      biomesWeights: biomesWeights,
     }
   }
 
