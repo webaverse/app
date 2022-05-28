@@ -57,6 +57,8 @@ const localQuaternion4 = new Quaternion();
 const localQuaternion5 = new Quaternion();
 const localQuaternion6 = new Quaternion();
 
+const identityQuaternion = new Quaternion();
+
 let animations;
 let animationStepIndices;
 // let animationsBaseModel;
@@ -367,6 +369,8 @@ export const loadPromise = (async () => {
     pickUpThrow: animations.find(a => a.isPickUpThrow),
     putDown: animations.find(a => a.isPutDown),
     pickUpZelda: animations.find(a => a.isPickUpZelda),
+    pickUpIdleZelda: animations.find(a => a.isPickUpIdleZelda),
+    putDownZelda: animations.find(a => a.isPutDownZelda),
   };
   /* throwAnimations = {
     throw: animations.find(a => a.isThrow),
@@ -786,6 +790,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           dst,
           // isTop,
           isPosition,
+          isArm,
         } = spec;
 
         if (avatar.aimState && avatar.direction.z > 0.1) {
@@ -801,6 +806,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
 
+          dst.fromArray(v2);
+        }
+
+        if (avatar.holdState && isArm) {
+          const holdAnimation = holdAnimations['pick_up_idle'];
+          const src2 = holdAnimation.interpolants[k];
+          const t2 = (now / 1000) % holdAnimation.duration;
+          const v2 = src2.evaluate(t2);
           dst.fromArray(v2);
         }
       };
@@ -1153,8 +1166,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           lerpFn,
+          boneName,
           isTop,
           isPosition,
+          isArm,
         } = spec;
 
         _handleDefault(spec);
@@ -1165,10 +1180,17 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         if (isTop) {
-          if (isPosition) {
+          if (boneName === 'Left_arm' || boneName === 'Right_arm') {
             dst.fromArray(v2);
           } else {
-            dst.premultiply(localQuaternion2.fromArray(v2));
+            if (isArm) {
+              dst
+                .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
+                .premultiply(localQuaternion2.fromArray(v2));
+            } else {
+              dst
+                .premultiply(localQuaternion2.fromArray(v2));
+            }
           }
         }
       };
@@ -1183,11 +1205,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } = spec;
 
         const pickUpAnimation = pickUpAnimations['pickUpZelda'];
-        const src2 = pickUpAnimation.interpolants[k];
-        const t2 = Math.min(avatar.pickUpTime / 1000, pickUpAnimation.duration * 0.7);
-        const v2 = src2.evaluate(t2);
+        const pickUpIdleAnimation = pickUpAnimations['pickUpIdleZelda'];
 
-        dst.fromArray(v2);
+        const t2 = avatar.pickUpTime / 1000;
+        if (t2 < pickUpAnimation.duration) {
+          const src2 = pickUpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+        } else {
+          const t3 = (t2 - pickUpAnimation.duration) % pickUpIdleAnimation.duration;
+          const src2 = pickUpIdleAnimation.interpolants[k];
+          const v2 = src2.evaluate(t3);
+
+          dst.fromArray(v2);
+        }
       };
     }
     return _handleDefault;
@@ -1198,6 +1230,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       animationTrackName: k,
       dst,
       // isTop,
+      isArm,
       lerpFn,
     } = spec;
 
@@ -1213,6 +1246,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           localQuaternion.fromArray(v2),
           f,
         );
+
+      if (avatar.holdState && isArm) {
+        const holdAnimation = holdAnimations['pick_up_idle'];
+        const src2 = holdAnimation.interpolants[k];
+        const t2 = (now / 1000) % holdAnimation.duration;
+        const v2 = src2.evaluate(t2);
+        dst.fromArray(v2);
+      }
     }
   };
   const _blendUnjump = spec => {
