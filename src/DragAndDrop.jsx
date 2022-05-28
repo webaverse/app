@@ -12,8 +12,8 @@ import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
-import * as ethers from 'ethers';
-import { NFTABI, NFTcontractAddress } from "../src/abis/contract"
+import { ethers, BigNumber } from 'ethers'
+import { NFTABI, NFTcontractAddress, FTABI, FTcontractAddress } from "../src/abis/contract"
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -329,7 +329,7 @@ const DragAndDrop = () => {
 
     const signer = new ethers.providers.Web3Provider(ethereum).getSigner();
     const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
-    const FTcontract = new ethers.Contract(NFTcontractAddress, FTABI, signer);
+    const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
     let Bigmintfee = await NFTcontract.mintFee();
     const mintfee = BigNumber.from(Bigmintfee).toNumber();
     
@@ -344,7 +344,7 @@ const DragAndDrop = () => {
             alert("NFT mint failed");
         }
     }
-
+    setCurrentApp(null);
   };
   const _cancel = e => {
     e.preventDefault();

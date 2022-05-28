@@ -9,6 +9,7 @@ import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
 import { NFTABI, NFTcontractAddress } from "../../../abis/contract"
+import { ethers, BigNumber } from 'ethers'
 
 const size = 2048;
 const numFrames = 128;
@@ -110,23 +111,29 @@ export const Equipment = () => {
   const [hoverObject, setHoverObject] = useState(null);
   const [selectObject, setSelectObject] = useState(null);
   const [spritesheet, setSpritesheet] = useState(null);
+  const [inventoryObject, setInventoryObject] = useState([]);
   const [faceIndex, setFaceIndex] = useState(1);
   const selectedMenuIndex = mod(faceIndex, 4);
 
   const contract = getContract();
   
   useEffect(async () => {
-    const totalMintedToken = await contract.totalSupply();
-    let inventoryObject = [];
-    for(let i= 1; i < totalMintedToken; i++)
+    const BigtotalMintedToken = await contract.totalSupply();
+    const totalMintedToken = BigNumber.from(BigtotalMintedToken).toNumber();
+    console.log("big", totalMintedToken)
+
+    let inventoryItems = [];
+    for(let i= 1; i <= totalMintedToken; i++)
     {
         const tokenuri = await contract.tokenURI(i);
-        inventoryObject.push({
-            id: i,
-            uri: tokenuri
+        inventoryItems.push({
+            name: "ASSET ID " + i,
+            start_url: tokenuri,
+            level: 1
         })
     }
-    console.log("inventory", inventoryObject)
+    console.log("inventory", inventoryItems)
+    setInventoryObject(inventoryItems);
   }, []);
 
   const refsMap = (() => {
@@ -216,6 +223,22 @@ export const Equipment = () => {
               <div className={styles.subheading}>
                 <h2>Inventory</h2>
               </div>
+              <ul className={styles.list}>
+                {inventoryObject.map((object, i) =>
+                  <Item
+                    object={object}
+                    enabled={open}
+                    hovered={object === hoverObject}
+                    selected={object === selectObject}
+                    onMouseEnter={onMouseEnter(object)}
+                    onMouseDown={onMouseDown(object)}
+                    onDragStart={onDragStart(object)}
+                    onDoubleClick={onDoubleClick(object)}
+                    key={i}
+                    ref={refsMap.get(object)}
+                  />,
+                )}
+              </ul>
             </div>
           </div>
           <div className={styles.menu}>
