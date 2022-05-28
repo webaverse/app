@@ -18,7 +18,7 @@ import {
   // useMaxTime,
   aimMaxTime,
   aimTransitionMaxTime,
-  backflipUnjumpMaxTime,
+  unjumpMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -1487,7 +1487,7 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
-    this.unjumpFactor = this.unjumpTime / backflipUnjumpMaxTime;
+    this.unjumpFactor = this.unjumpTime / unjumpMaxTime;
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;

@@ -109,11 +109,8 @@ export const jumpStartTimeS = 21 / 30; // 0.7
 export const jumpFallLoopStartTimeS = jumpStartTimeS + 0.29; // solve flat ground 4 same loop frame problem.
 export const jumpFallLoopFrameTimes = 38 / 30;
 
-export const backflipSpeed = (59 - 34) / (30 * 0.6);
-export const backflipStartTimeS = 1.1;
-export const backflipUnjumpSpeed = 3;
-export const backflipUnjumpStartTimeS = 58 / 30;
-export const backflipUnjumpMaxTime = (100 - 58) / 30 / backflipUnjumpSpeed * 1000;
+export const unjumpSpeed = jumpSpeed * 2;
+export const unjumpMaxTime = (57 - 39) / 30 / unjumpSpeed * 1000;
 
 export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);

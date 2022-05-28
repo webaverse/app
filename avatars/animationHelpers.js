@@ -37,14 +37,11 @@ import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
-  backflipSpeed,
-  backflipStartTimeS,
-  backflipUnjumpSpeed,
-  backflipUnjumpStartTimeS,
   jumpSpeed,
   jumpStartTimeS,
   jumpFallLoopStartTimeS,
   jumpFallLoopFrameTimes,
+  unjumpSpeed,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -800,32 +797,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const jumpTimeS = avatar.jumpTime / 1000;
 
-        if (avatar.aimState && avatar.direction.z > 0.1) { // backflip jump
-          const t2 = jumpTimeS * backflipSpeed + backflipStartTimeS;
-          const src2 = animations.index['Backflip.fbx'].interpolants[k];
+        if (jumpTimeS >= jumpFallLoopStartTimeS) { // fall loop stage
+          const t2 = jumpFallLoopFrameTimes;
+          const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
+          if (isPosition) console.log('loop', t2);
 
           dst.fromArray(v2);
-
           _clearXZ(dst, isPosition);
-        } else { // ordinary jump
-          if (jumpTimeS >= jumpFallLoopStartTimeS) { // fall loop stage
-            const t2 = jumpFallLoopFrameTimes;
-            const src2 = jumpAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            if (isPosition) console.log('loop', t2);
+        } else { // jump up stage
+          const t2 = jumpStartTimeS + jumpTimeS * jumpSpeed;
+          const src2 = jumpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+          if (isPosition) console.log('jump', t2);
 
-            dst.fromArray(v2);
-            _clearXZ(dst, isPosition);
-          } else { // jump up stage
-            const t2 = jumpStartTimeS + jumpTimeS * jumpSpeed;
-            const src2 = jumpAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            if (isPosition) console.log('jump', t2);
-
-            dst.fromArray(v2);
-            _clearXZ(dst, isPosition);
-          }
+          dst.fromArray(v2);
+          _clearXZ(dst, isPosition);
         }
 
         if (avatar.holdState && isArm) {
@@ -1284,36 +1271,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
-      if (avatar.aimState && avatar.direction.z > 0.1) { // backflip unjump
-        const t2 = avatar.unjumpTime / 1000 * backflipUnjumpSpeed + backflipUnjumpStartTimeS;
-        const src2 = animations.index['Backflip.fbx'].interpolants[k];
-        const v2 = src2.evaluate(t2);
+      const t2 = avatar.unjumpTime / 1000 * unjumpSpeed + jumpFallLoopFrameTimes;
+      const src2 = jumpAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+      if (isPosition) console.log('unjump', t2);
 
-        if (!isPosition) {
-          localQuaternion.fromArray(v2);
-          dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
-        } else {
-          localVector.fromArray(v2);
-          _clearXZ(localVector, isPosition);
-          dst.lerp(localVector, 1 - avatar.unjumpFactor);
-        }
-      } else { // ordinary unjump
-        const t2 = avatar.unjumpTime / 1000 * jumpSpeed * 2 + jumpFallLoopFrameTimes;
-        const src2 = jumpAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
-        if (isPosition) console.log('unjump', t2);
-
-        if (!isPosition) {
-          localQuaternion.fromArray(v2);
-          dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
-        } else {
-          localVector.fromArray(v2);
-          _clearXZ(localVector, isPosition);
-          dst.lerp(localVector, 1 - avatar.unjumpFactor);
-        }
+      if (!isPosition) {
+        localQuaternion.fromArray(v2);
+        dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
+      } else {
+        localVector.fromArray(v2);
+        _clearXZ(localVector, isPosition);
+        dst.lerp(localVector, 1 - avatar.unjumpFactor);
       }
     }
-  }
+  };
 
   const _blendActivateAction = spec => {
     const {

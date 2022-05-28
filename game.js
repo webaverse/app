@@ -1486,15 +1486,7 @@ class GameManager extends EventTarget {
 
     // update velocity
     const localPlayer = getLocalPlayer();
-    // console.warn(this.isMovingBackward(), localPlayer.avatar.direction.z); // todo: severe lag.
-    if (this.isMovingBackward()) {
-      // localPlayer.characterPhysics.velocity.y += 4.2; // flat ground air time: 632.8899999999849
-      localPlayer.characterPhysics.velocity.y += 4.1; // flat ground air time: 599.5199999999968
-      // localPlayer.characterPhysics.velocity.y += 4; // flat ground air time: 582.823000000004
-      // localPlayer.characterPhysics.velocity.y += 3.6; // flat ground air time: 499.43599999998696
-    } else {
-      localPlayer.characterPhysics.velocity.y += 6;
-    }
+    localPlayer.characterPhysics.velocity.y += 6;
     
     // play sound
     // soundManager.play('jump');
