@@ -185,7 +185,6 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
-  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -388,20 +387,16 @@ export const loadPromise = (async () => {
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
     pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
-  window.activateAnimations = activateAnimations;
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
   };
-  window.narutoRunAnimations = narutoRunAnimations;
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
   };
-  window.hurtAnimations = hurtAnimations;
   holdAnimations = {
     pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
-  window.holdAnimations = holdAnimations;
   {
     const down10QuaternionArray = new Quaternion()
       .setFromAxisAngle(new Vector3(1, 0, 0), Math.PI * 0.1)
@@ -706,7 +701,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   } else {
     mirrorFactor = isBackward ? 1 : 0;
   }
-  // if (avatar === window.localPlayer.avatar) console.log(window.logNum(angleFactor), window.logNum(mirrorFactor));
   avatar.lastBackwardFactor = mirrorFactor;
 
   if (avatar.emoteAnimation !== avatar.lastEmoteAnimation) {
@@ -767,24 +761,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    // { // play one animation purely.
-    //   return spec => {
-    //     const {
-    //       animationTrackName: k,
-    //       dst,
-    //       // isTop,
-    //     } = spec;
-
-    //     // const animation = animations.index['walking.fbx']
-    //     const animation = animations.index['Backflip.fbx']
-    //     const t2 = timeSeconds;
-    //     const src2 = animation.interpolants[k];
-    //     // const v2 = src2.evaluate(t2 % animation.duration);
-    //     const v2 = src2.evaluate(30 / 30);
-
-    //     dst.fromArray(v2);
-    //   };
-    // }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -801,7 +777,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const t2 = jumpFallLoopFrameTimes;
           const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
-          if (isPosition) console.log('loop', t2);
 
           dst.fromArray(v2);
           _clearXZ(dst, isPosition);
@@ -809,7 +784,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const t2 = jumpStartTimeS + jumpTimeS * jumpSpeed;
           const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
-          if (isPosition) console.log('jump', t2);
 
           dst.fromArray(v2);
           _clearXZ(dst, isPosition);
@@ -1274,7 +1248,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const t2 = avatar.unjumpTime / 1000 * unjumpSpeed + jumpFallLoopFrameTimes;
       const src2 = jumpAnimation.interpolants[k];
       const v2 = src2.evaluate(t2);
-      if (isPosition) console.log('unjump', t2);
 
       if (!isPosition) {
         localQuaternion.fromArray(v2);
@@ -1344,7 +1317,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         // dst.y = avatar.height * 0.55;
         dst.y = avatar.height * 0.58; // + 0.03 height to compensate the hanging toes.
       }
-      // console.log(window.logNum(dst.x), window.logNum(dst.z));
     }
   }
 };

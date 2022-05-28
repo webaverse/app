@@ -3,7 +3,7 @@
     {
       "type": "application/spawnpoint",
       "content": {
-        "position": [-85.7,105,40],
+        "position": [-85.7,108,40],
         "quaternion": [0, 0.0,0, 0.0]
       }
     },
@@ -30,7 +30,7 @@
         0,
         0
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/aurora-sky/"
+      "start_url": "https://webaverse.github.io/aurora-sky/"
     },
     {
       "position": [
@@ -39,7 +39,7 @@
         0
       ],
       "physics": true,
-      "start_url": "http://localhost/lib/webaverse_resource/green-hill/",
+      "start_url": "https://webaverse.github.io/green-hill/",
       "dynamic": false
     },
     {
@@ -48,7 +48,7 @@
         0,
         0
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/dynamic-water/"
+      "start_url": "https://webaverse.github.io/dynamic-water/"
     }
     
   ]
