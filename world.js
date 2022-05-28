@@ -99,9 +99,7 @@ world.connectRoom = async u => {
       localPlayer.bindState(state.getArray(playersMapName));
 
       wsrtc.addEventListener('audio', e => {
-        console.log('player is', e.data.playerId);
         const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
-        console.log("player is", player)
         player.processAudioData(e.data);
       })
     };
