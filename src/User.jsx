@@ -3,6 +3,8 @@ import classnames from 'classnames';
 
 import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
+import * as ethers from 'ethers';
+
 // import Modal from './components/modal';
 import WebaWallet from './components/wallet';
 
@@ -12,6 +14,7 @@ import { AppContext } from './components/app';
 import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
+import Web3 from '../web3.min.js';
 
 //
 
@@ -26,6 +29,10 @@ export const User = ({ setLoginFrom }) => {
     const { currentAddress, connectWallet, errorMessage, wrongChain } = account;
 
     //
+    const { ethereum } = window;
+    if (ethereum) {
+        var provider = new ethers.providers.Web3Provider(ethereum);
+    }
 
     /* const showModal = ( event ) => {
 
@@ -107,6 +114,11 @@ export const User = ({ setLoginFrom }) => {
 
     };
 
+    useEffect(async() => {
+        const accounts = await provider.listAccounts();
+        console.log("wallet login", accounts.length > 0)
+    })
+    
     useEffect( () => {
 
         const { error, code, id, play, realmId } = parseQuery( window.location.search );
@@ -152,9 +164,7 @@ export const User = ({ setLoginFrom }) => {
         };
 
         //
-
         if ( ! autoLoginRequestMade ) {
-
             setAutoLoginRequestMade( true );
 
             if ( code ) {
