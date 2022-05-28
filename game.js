@@ -1486,7 +1486,8 @@ class GameManager extends EventTarget {
 
     // update velocity
     const localPlayer = getLocalPlayer();
-    localPlayer.characterPhysics.velocity.y += 6;
+    // localPlayer.characterPhysics.velocity.y += 6;
+    localPlayer.characterPhysics.velocity.y += window.vy;
     
     // play sound
     // soundManager.play('jump');

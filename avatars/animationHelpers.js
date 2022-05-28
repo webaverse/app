@@ -793,7 +793,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isArm,
         } = spec;
 
-        if (avatar.aimState && avatar.direction.z > 0.1) {
+        if (true || avatar.aimState && avatar.direction.z > 0.1) {
           const t2 = avatar.jumpTime / 1000 * backflipSpeed + backflipStartTimeS;
           const src2 = animations.index['Backflip.fbx'].interpolants[k];
           const v2 = src2.evaluate(t2);
@@ -1265,7 +1265,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
-      if (avatar.aimState && avatar.direction.z > 0.1) {
+      if (true || avatar.aimState && avatar.direction.z > 0.1) {
         const t2 = avatar.unjumpTime / 1000 * backflipUnjumpSpeed + backflipUnjumpStartTimeS;
         const src2 = animations.index['Backflip.fbx'].interpolants[k];
         const v2 = src2.evaluate(t2);
@@ -1340,7 +1340,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         // force height in the jump case to overide the animation
         dst.y = avatar.height * 0.55;
       }
-      console.log(window.logNum(dst.x), window.logNum(dst.z));
+      // console.log(window.logNum(dst.x), window.logNum(dst.z));
     }
   }
 };
