@@ -784,7 +784,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        if (true || avatar.aimState) {
+        if (avatar.aimState && avatar.direction.z > 0.1) {
           const t2 = avatar.jumpTime / 1000 * window.speed + window.start;
           const src2 = animations.index['Backflip.fbx'].interpolants[k];
           const v2 = src2.evaluate(t2);
@@ -1220,7 +1220,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
-      if (true || avatar.aimState) {
+      if (avatar.aimState && avatar.direction.z > 0.1) {
         const t2 = avatar.unjumpTime / 1000 * window.unjumpSpeed + window.unjumpStart;
         const src2 = animations.index['Backflip.fbx'].interpolants[k];
         const v2 = src2.evaluate(t2);
@@ -1234,11 +1234,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           dst.lerp(localVector, 1 - avatar.unjumpFactor);
         }
       } else {
-        const t2 = avatar.unjumpTime / 1000 * 0.6 + 0.7;
-        const src2 = jumpAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
+        // const t2 = avatar.unjumpTime / 1000 * 0.6 + 0.7;
+        // const src2 = jumpAnimation.interpolants[k];
+        // const v2 = src2.evaluate(t2);
 
-        dst.fromArray(v2);
+        // dst.fromArray(v2);
       }
     }
   }
