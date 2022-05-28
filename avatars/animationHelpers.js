@@ -1282,7 +1282,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
-      if (avatar.aimState && avatar.direction.z > 0.1) {
+      if (avatar.aimState && avatar.direction.z > 0.1) { // backflip unjump
         const t2 = avatar.unjumpTime / 1000 * backflipUnjumpSpeed + backflipUnjumpStartTimeS;
         const src2 = animations.index['Backflip.fbx'].interpolants[k];
         const v2 = src2.evaluate(t2);
@@ -1295,8 +1295,20 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           _clearXZ(localVector, isPosition);
           dst.lerp(localVector, 1 - avatar.unjumpFactor);
         }
-      } else {
-        // todo: ordinary unjump
+      } else { // ordinary unjump
+        const t2 = avatar.unjumpTime / 1000 * jumpSpeed + jumpFallLoopFrameTimes;
+        const src2 = jumpAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+        if (isPosition) console.log('unjump', t2);
+
+        if (!isPosition) {
+          localQuaternion.fromArray(v2);
+          dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
+        } else {
+          localVector.fromArray(v2);
+          _clearXZ(localVector, isPosition);
+          dst.lerp(localVector, 1 - avatar.unjumpFactor);
+        }
       }
     }
   }
