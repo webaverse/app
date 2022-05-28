@@ -324,9 +324,17 @@ const physxWorker = (() => {
       return Module.HEAP32[offset + index]
     }
 
-    readAttribute = (constructor, buffer, count) => {
+    readFloatAttribute = (constructor, buffer, count) => {
       this.buffers.push(buffer)
       return Module.HEAPF32.slice(
+        buffer / constructor.BYTES_PER_ELEMENT,
+        buffer / constructor.BYTES_PER_ELEMENT + count
+      )
+    }
+
+    readIntAttribute = (constructor, buffer, count) => {
+      this.buffers.push(buffer)
+      return Module.HEAP32.slice(
         buffer / constructor.BYTES_PER_ELEMENT,
         buffer / constructor.BYTES_PER_ELEMENT + count
       )
@@ -2210,12 +2218,12 @@ const physxWorker = (() => {
       9
     ) // biomesWeights vector
 
-    const positions = bufferManager.readAttribute(
+    const positions = bufferManager.readFloatAttribute(
       Int32Array,
       positionBuffer,
       positionCount * 3 // vec3
     )
-    const normals = bufferManager.readAttribute(
+    const normals = bufferManager.readFloatAttribute(
       Int32Array,
       normalBuffer,
       normalCount * 3 // vec3
@@ -2226,13 +2234,13 @@ const physxWorker = (() => {
       indicesCount
     )
 
-    const biomes = bufferManager.readAttribute(
+    const biomes = bufferManager.readIntAttribute(
       Int32Array,
       biomeBuffer,
       biomeCount * 4 // vec4
     )
 
-    const biomesWeights = bufferManager.readAttribute(
+    const biomesWeights = bufferManager.readFloatAttribute(
       Int32Array,
       biomeWeightsBuffer,
       biomeWeightsCount * 4 // vec4
