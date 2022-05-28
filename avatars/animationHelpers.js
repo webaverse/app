@@ -37,6 +37,10 @@ import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
+  backflipSpeed,
+  backflipStartTimeS,
+  backflipUnjumpSpeed,
+  backflipUnjumpStartTimeS,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -785,7 +789,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } = spec;
 
         if (avatar.aimState && avatar.direction.z > 0.1) {
-          const t2 = avatar.jumpTime / 1000 * window.speed + window.start;
+          const t2 = avatar.jumpTime / 1000 * backflipSpeed + backflipStartTimeS;
           const src2 = animations.index['Backflip.fbx'].interpolants[k];
           const v2 = src2.evaluate(t2);
 
@@ -1221,7 +1225,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
       if (avatar.aimState && avatar.direction.z > 0.1) {
-        const t2 = avatar.unjumpTime / 1000 * window.unjumpSpeed + window.unjumpStart;
+        const t2 = avatar.unjumpTime / 1000 * backflipUnjumpSpeed + backflipUnjumpStartTimeS;
         const src2 = animations.index['Backflip.fbx'].interpolants[k];
         const v2 = src2.evaluate(t2);
 
@@ -1234,11 +1238,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           dst.lerp(localVector, 1 - avatar.unjumpFactor);
         }
       } else {
-        // const t2 = avatar.unjumpTime / 1000 * 0.6 + 0.7;
-        // const src2 = jumpAnimation.interpolants[k];
-        // const v2 = src2.evaluate(t2);
-
-        // dst.fromArray(v2);
+        // todo: ordinary unjump
       }
     }
   }
