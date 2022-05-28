@@ -165,13 +165,13 @@ const DragAndDrop = () => {
             }
           }
         }));
-      
+
         /* let arrowLoader = metaverseUi.makeArrowLoader();
         arrowLoader.position.copy(position);
         arrowLoader.quaternion.copy(quaternion);
         scene.add(arrowLoader);
         arrowLoader.updateMatrixWorld();
-      
+
         if (arrowLoader) {
           scene.remove(arrowLoader);
           arrowLoader.destroy();
@@ -198,7 +198,6 @@ const DragAndDrop = () => {
       }
     }
   }, [queue, currentApp, account.currentAddress]);
-
 
   const _currentAppClick = e => {
     e.preventDefault();
