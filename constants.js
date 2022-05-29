@@ -103,7 +103,7 @@ export const aimTransitionMaxTime = 150;
 
 export const backflipSpeed = (59 - 34) / (30 * 0.6);
 export const backflipStartTimeS = 1.1;
-export const backflipUnjumpSpeed = 3;
+export const backflipUnjumpSpeed = 4;
 export const backflipUnjumpStartTimeS = 58 / 30;
 export const backflipUnjumpMaxTime = (100 - 58) / 30 / backflipUnjumpSpeed * 1000;
 
