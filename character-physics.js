@@ -12,7 +12,7 @@ import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
-import gameManager from './game.js';
+import game from './game.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -146,7 +146,7 @@ class CharacterPhysics {
             const newJumpAction = {
               type: 'jump',
               time: 0,
-              direction: gameManager.isMovingBackward() ? 'backward' : 'forward',
+              direction: game.isMovingBackward() ? 'backward' : 'forward',
             };
             this.player.addAction(newJumpAction);
           } else {
