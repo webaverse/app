@@ -2138,118 +2138,65 @@ const physxWorker = (() => {
   }
 
   w.createChunkMeshDualContouring = (x, y, z) => {
-    const bufferManager = new BufferManager()
+    const outputBufferOffset = moduleInstance._createChunkMeshDualContouring(x, y, z);
+    // console.log('create xyz', x, y, z, outputBufferOffset);
 
-    const outputBufferOffset =
-      moduleInstance._createChunkMeshDualContouring(x, y, z)
+    if (outputBufferOffset) {
+      const _parseVertexBuffer = (arrayBuffer, bufferAddress) => {
+        const dataView = new DataView(arrayBuffer, bufferAddress);
 
+        let index = 0;
 
-    if (!outputBufferOffset) {
-      return {
-        positions: null,
-        normals: null,
-        indices: null,
-        biomes: null,
-        biomesWeights: null,
-      }
+        // positions
+        const numPositions = dataView.getUint32(index, true);
+        index += Uint32Array.BYTES_PER_ELEMENT;
+        const positions = new Float32Array(arrayBuffer, startIndex + index, numPositions * 3);
+        index += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
+
+        // normals
+        const numNormals = dataView.getUint32(index, true);
+        index += Uint32Array.BYTES_PER_ELEMENT;
+        const normals = new Float32Array(arrayBuffer, startIndex + index, numNormals * 3);
+        index += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
+
+        // biomes
+        const numBiomes = dataView.getUint32(index, true);
+        index += Uint32Array.BYTES_PER_ELEMENT;
+        const biomes = new Int32Array(arrayBuffer, startIndex + index, numBiomes * 4);
+        index += Int32Array.BYTES_PER_ELEMENT * numBiomes * 4;
+
+        // biome weights
+        const numBiomesWeights = dataView.getUint32(index, true);
+        index += Uint32Array.BYTES_PER_ELEMENT;
+        const biomesWeights = new Float32Array(arrayBuffer, startIndex +index, numBiomesWeights * 4);
+        index += Float32Array.BYTES_PER_ELEMENT * numBiomesWeights * 4;
+
+        // indices
+        const numIndices = dataView.getUint32(index, true);
+        index += Uint32Array.BYTES_PER_ELEMENT;
+        const indices = new Uint32Array(arrayBuffer, startIndex + index, numIndices);
+        index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
+
+        return {
+          bufferAddress,
+          positions,
+          normals,
+          biomes,
+          biomesWeights,
+          indices,
+        };
+      };
+      const result = _parseVertexBuffer(
+        moduleInstance.HEAP8.buffer,
+        moduleInstance.HEAP8.byteOffset + outputBufferOffset
+      );
+      return result;
+    } else {
+      return null;
     }
+  };
 
-    // reading the data with the same order as C++
-    const positionCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      0
-    ) // vector size
-    const positionBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      1
-    ) // position vector
-
-    const normalCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      2
-    ) // vector size
-    const normalBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      3
-    ) // normal vector
-
-    const indicesCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      4
-    ) // vector size
-    const indicesBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      5
-    ) // indices vector
-
-    const biomeCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      6
-    ) // vector size
-    const biomeBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      7
-    ) // biomes vector
-
-    const biomeWeightsCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      8
-    ) // vector size
-    const biomeWeightsBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      9
-    ) // biomesWeights vector
-
-    const positions = bufferManager.readAttribute(
-      Int32Array,
-      positionBuffer,
-      positionCount * 3 // vec3
-    )
-    const normals = bufferManager.readAttribute(
-      Int32Array,
-      normalBuffer,
-      normalCount * 3 // vec3
-    )
-    const indices = bufferManager.readIndices(
-      Int32Array,
-      indicesBuffer,
-      indicesCount
-    )
-
-    const biomes = bufferManager.readAttribute(
-      Int32Array,
-      biomeBuffer,
-      biomeCount * 4 // vec4
-    )
-
-    const biomesWeights = bufferManager.readAttribute(
-      Int32Array,
-      biomeWeightsBuffer,
-      biomeWeightsCount * 4 // vec4
-    )
-
-    bufferManager.freeAllBuffers()
-
-    return {
-      positions: positions,
-      normals: normals,
-      indices: indices,
-      biomes: biomes,
-      biomesWeights: biomesWeights,
-    }
-  }
-
-  return w
+  return w;
 })()
 
 physx.physxWorker = physxWorker
