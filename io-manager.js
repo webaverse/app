@@ -112,8 +112,10 @@ const _updateVertical = direction => {
   }
 };
 
-const keysDirection = new THREE.Vector3();
-ioManager.keysDirection = keysDirection;
+const keysDirectionLocal = new THREE.Vector3();
+const keysDirectionGlobal = new THREE.Vector3();
+ioManager.keysDirectionLocal = keysDirectionLocal;
+ioManager.keysDirectionGlobal = keysDirectionGlobal;
 
 const _updateIo = timeDiff => {
   const renderer = getRenderer();
@@ -212,27 +214,27 @@ const _updateIo = timeDiff => {
       }
     }
   } else {
-    keysDirection.set(0, 0, 0);
+    keysDirectionLocal.set(0, 0, 0);
     
     const localPlayer = metaversefile.useLocalPlayer();
     
-    _updateHorizontal(keysDirection);
-    if (keysDirection.equals(zeroVector)) {
+    _updateHorizontal(keysDirectionLocal);
+    if (keysDirectionLocal.equals(zeroVector)) {
       if (localPlayer.hasAction('narutoRun')) {
-        keysDirection.copy(cameraManager.lastNonzeroDirectionVector);
+        keysDirectionLocal.copy(cameraManager.lastNonzeroDirectionVector);
       }
     } else {
-      cameraManager.lastNonzeroDirectionVector.copy(keysDirection);
+      cameraManager.lastNonzeroDirectionVector.copy(keysDirectionLocal);
     }
     
     if (localPlayer.hasAction('fly')) {
-      keysDirection.applyQuaternion(camera.quaternion);
-      _updateVertical(keysDirection);
+      keysDirectionLocal.applyQuaternion(camera.quaternion);
+      _updateVertical(keysDirectionLocal);
     } else {
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
       cameraEuler.z = 0;
-      keysDirection.applyEuler(cameraEuler);
+      keysDirectionGlobal.copy(keysDirectionLocal).applyEuler(cameraEuler);
       
       if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
         game.toggleCrouch();
@@ -240,9 +242,9 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled() && movementEnabled) {
+    if (keysDirectionGlobal.length() > 0 && physicsManager.getPhysicsEnabled() && movementEnabled) {
       localPlayer.characterPhysics.applyWasd(
-        keysDirection.normalize()
+        keysDirectionGlobal.normalize()
           .multiplyScalar(game.getSpeed() * timeDiff)
       );
     }

@@ -12,6 +12,7 @@ import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
+import gameManager from './game.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -53,9 +54,9 @@ class CharacterPhysics {
     physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
   }
   /* apply the currently held keys to the character */
-  applyWasd(keysDirection) {
+  applyWasd(keysDirectionGlobal) {
     if (this.player.avatar) {
-      this.velocity.add(keysDirection);
+      this.velocity.add(keysDirectionGlobal);
     }
   }
   applyGravity(timeDiffS) {
@@ -142,9 +143,11 @@ class CharacterPhysics {
         const jumpAction = this.player.getAction('jump');
         const _ensureJumpAction = () => {
           if (!jumpAction) {
+            // console.log('add jump action: character-physics.js');
             const newJumpAction = {
               type: 'jump',
               time: 0,
+              direction: gameManager.isMovingBackward() ? 'backward' : 'forward',
             };
             this.player.addAction(newJumpAction);
           } else {

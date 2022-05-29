@@ -1472,10 +1472,12 @@ class GameManager extends EventTarget {
 
     const jumpAction = localPlayer.getAction('jump');
     if (!jumpAction) {
+      // console.log('add jump action: game.js');
       const newJumpAction = {
         type: 'jump',
-        trigger:trigger
+        trigger:trigger,
         // time: 0,
+        direction: gameManager.isMovingBackward() ? 'backward' : 'forward',
       };
       localPlayer.addAction(newJumpAction);
     }
@@ -1501,9 +1503,9 @@ class GameManager extends EventTarget {
 
   }
   isMovingBackward() {
-    const localPlayer = getLocalPlayer();
-    // return ioManager.keysDirection.z > 0 && this.isAiming();
-    return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
+    // const localPlayer = getLocalPlayer();
+    return ioManager.keysDirectionLocal.z > 0 && this.isAiming();
+    // return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
   }
   isAiming() {
     const localPlayer = getLocalPlayer();
