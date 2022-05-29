@@ -2178,6 +2178,8 @@ const physxWorker = (() => {
     allocator.freeAll()
   }
 
+  //
+
   w.marchingCubes = (dims, potential, shift, scale) => {
     let allocator = new Allocator()
 
@@ -2224,6 +2226,12 @@ const physxWorker = (() => {
       faces: faces,
     }
   }
+
+  //
+
+  w.setChunkSize = (chunkSize) => {
+    moduleInstance._setChunkSize(chunkSize)
+  };
 
   w.generateChunkDataDualContouring = (x, y, z) => {
     moduleInstance._generateChunkDataDualContouring(x, y, z)
