@@ -161,10 +161,10 @@ physicsManager.addGeometry = (mesh) => {
   physicsObject.physicsMesh = physicsMesh
   return physicsObject
 }
-physicsManager.createMaterial = physicsMaterial =>
-  physx.physxWorker.createMaterial(physx.physics, physicsMaterial);
-physicsManager.destroyMaterial = materialAddress =>
-  physx.physxWorker.destroyMaterial(physx.physics, materialAddress);
+physicsManager.createMaterial = (physicsMaterial) =>
+  physx.physxWorker.createMaterial(physx.physics, physicsMaterial)
+physicsManager.destroyMaterial = (materialAddress) =>
+physx.physxWorker.destroyMaterial(physx.physics, materialAddress)
 physicsManager.cookGeometry = (mesh) => {
   const physicsMesh = convertMeshToPhysicsMesh(mesh);
   const buffer = physx.physxWorker.cookGeometryPhysics(physx.physics, physicsMesh);
@@ -250,7 +250,7 @@ physicsManager.addCookedConvexGeometry = (
   const physicsMesh = new THREE.Mesh(_extractPhysicsGeometryForId(physicsId), redMaterial)
   physicsMesh.visible = false
   physicsObject.add(physicsMesh)
-  physicsObject.physicsMesh = physicsMesh;
+  physicsObject.physicsMesh = physicsMesh
   physicsMesh.updateMatrixWorld()
   return physicsObject
 }
@@ -367,12 +367,36 @@ physicsManager.removeGeometry = (physicsObject) => {
 
   freePhysicsId(physicsObject.physicsId)
 }
+physicsManager.getLinearVelocity = (physicsObject, velocity) => {
+  physx.physxWorker.getLinearVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
+};
+physicsManager.getAngularVelocity = (physicsObject, velocity) => {
+  physx.physxWorker.getAngularVelocityPhysics(physx.physics, physicsObject.physicsId, velocity);
+}; 
 physicsManager.getGlobalPosition = (physicsObject, position) => {
   physx.physxWorker.getGlobalPositionPhysics(
     physx.physics,
     physicsObject.physicsId,
     position
   )
+}
+physicsManager.addForceAtPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addForceAtPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addLocalForceAtPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addLocalForceAtPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addForceAtLocalPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addForceAtLocalPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addLocalForceAtLocalPos = (physicsObject, velocity, position, autoWake) => {
+  physx.physxWorker.addLocalForceAtLocalPosPhysics(physx.physics, physicsObject.physicsId, velocity, position, autoWake);
+}
+physicsManager.addForce = (physicsObject, velocity, autoWake) => {
+  physx.physxWorker.addForcePhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
+}
+physicsManager.addTorque = (physicsObject, velocity, autoWake) => {
+  physx.physxWorker.addTorquePhysics(physx.physics, physicsObject.physicsId, velocity, autoWake);
 }
 physicsManager.setVelocity = (physicsObject, velocity, autoWake) => {
   physx.physxWorker.setVelocityPhysics(
@@ -401,7 +425,7 @@ physicsManager.setTransform = (physicsObject, autoWake) => {
   )
 }
 physicsManager.setGeometryScale = (physicsId, newScale) => {
-  physx.physxWorker.setGeometryScale(physx.physics, physicsId, newScale);
+  physx.physxWorker.setGeometryScale(physx.physics, physicsId, newScale)
 }
 physicsManager.getPath = (
   start,
@@ -562,7 +586,7 @@ physicsManager.cutMesh = (
   numFaces,
 
   planeNormal, // normalized vector3 array
-  planeDistance, // number
+  planeDistance // number
 ) =>
   physx.physxWorker.doCut(
     positions,
@@ -575,7 +599,7 @@ physicsManager.cutMesh = (
     numFaces,
 
     planeNormal,
-    planeDistance,
+    planeDistance
   )
 physicsManager.setLinearLockFlags = (physicsId, x, y, z) => {
   physx.physxWorker.setLinearLockFlags(physx.physics, physicsId, x, y, z)
@@ -590,7 +614,7 @@ physicsManager.sweepBox = (
   halfExtents,
   direction,
   sweepDistance,
-  maxHits,
+  maxHits
 ) => {
   return physx.physxWorker.sweepBox(
     physx.physics,
@@ -599,9 +623,9 @@ physicsManager.sweepBox = (
     halfExtents,
     direction,
     sweepDistance,
-    maxHits,
+    maxHits
   )
-};
+}
 
 physicsManager.sweepConvexShape = (
   shapeAddress,
@@ -656,9 +680,28 @@ physicsManager.simulatePhysics = (timeDiff) => {
 physicsManager.marchingCubes = (dims, potential, shift, scale) =>
   physx.physxWorker.marchingCubes(dims, potential, shift, scale)
 
-physicsManager.createChunkWithDualContouring = (x, y, z, lod) => physx.physxWorker.createChunkWithDualContouring(x, y, z, lod)
+//
 
-physicsManager.createSeamsWithDualContouring = (x, y, z) => physx.physxWorker.createSeamsWithDualContouring(x, y, z)
+physicsManager.setChunkSize = (x, y, z) =>
+  physx.physxWorker.setChunkSize(x, y, z)
+
+physicsManager.generateChunkDataDualContouring = (x, y, z) =>
+  physx.physxWorker.generateChunkDataDualContouring(x, y, z)
+
+physicsManager.setChunkLodDualContouring = (x, y, z, lod) =>
+  physx.physxWorker.setChunkLodDualContouring(x, y, z, lod)
+
+physicsManager.clearTemporaryChunkDataDualContouring = () =>
+  physx.physxWorker.clearTemporaryChunkDataDualContouring()
+
+physicsManager.clearChunkRootDualContouring = (x, y, z) =>
+  physx.physxWorker.clearChunkRootDualContouring(x, y, z)
+
+physicsManager.createChunkMeshDualContouring = (x, y, z) =>
+  physx.physxWorker.createChunkMeshDualContouring(x, y, z)
+
+physicsManager.drawDamage = (position, radius, value) =>
+  physx.physxWorker.drawDamage(position, radius, value);
 
 physicsManager.createShape = buffer => physx.physxWorker.createShapePhysics(physx.physics, buffer);
 physicsManager.createConvexShape = buffer => physx.physxWorker.createConvexShapePhysics(physx.physics, buffer);

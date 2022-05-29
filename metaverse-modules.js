@@ -29,8 +29,8 @@ const moduleUrls = {
   meshLodItem: './metaverse_modules/mesh-lod-item/',
 };
 const modules = {};
-const loadPromise = (async () => {
-  await Promise.resolve(); // wait for init
+let loadPromise = null;
+const _load = async () => {
   const promises = [];
   for (const moduleName in moduleUrls) {
     const moduleUrl = moduleUrls[moduleName];
@@ -43,8 +43,13 @@ const loadPromise = (async () => {
     promises.push(p);
   }
   await Promise.all(promises);
-})();
-const waitForLoad = () => loadPromise;
+};
+const waitForLoad = () => {
+  if (!loadPromise) {
+    loadPromise = _load();
+  }
+  return loadPromise;
+};
 export {
   moduleUrls,
   modules,

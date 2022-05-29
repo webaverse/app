@@ -44,6 +44,7 @@ import WebaWallet from './src/components/wallet.js';
 // import domRenderEngine from './dom-renderer.jsx';
 import musicManager from './music-manager.js';
 import story from './story.js';
+import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
 
 const localVector = new THREE.Vector3();
@@ -82,6 +83,7 @@ export default class Webaverse extends EventTarget {
         Avatar.waitForLoad(),
         audioManager.waitForLoad(),
         sounds.waitForLoad(),
+        zTargeting.waitForLoad(),
         particleSystemManager.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
@@ -374,18 +376,6 @@ export default class Webaverse extends EventTarget {
 const _startHacks = webaverse => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
-
-  window.localPlayer = localPlayer;
-  window.THREE = THREE;
-  window.physicsManager = physicsManager;
-  window.physx = physx;
-  window.metaversefileApi = metaversefileApi;
-  window.rootScene = rootScene;
-  window.loadoutManager = loadoutManager;
-  window.game = game;
-  window.cameraManager = cameraManager;
-  window.camera = camera;
-  window.ioManager = ioManager;
 
   // let playerDiorama = null;
   const lastEmotionKey = {
