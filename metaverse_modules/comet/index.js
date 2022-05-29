@@ -32,136 +32,6 @@ const localEuler = new THREE.Euler();
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const gravity = new THREE.Vector3(0, -9.8, 0);
 
-function getCardBackTexture() {
-  const img = new Image();
-  const texture = new THREE.Texture(img);
-
-  img.crossOrigin = 'Anonymous';
-  img.onload = () => {
-    texture.needsUpdate = true;
-  };
-  img.onerror = err => {
-    console.warn(err);
-  };
-  img.src = `images/cardback-01.svg`;
-
-  return texture;
-}
-
-// XXX move this to the card metaverse module
-const _makeDropMesh = () => {
-  const {WebaverseShaderMaterial} = useMaterials();
-
-  let w = 520;
-  let h = 728;
-
-  h /= w;
-  w /= w;
-
-  w *= dropItemSize;
-  h *= dropItemSize;
-
-  const geometry = new THREE.PlaneBufferGeometry(w, h)
-    .translate(0, 0.5, 0);
-  const texture = getCardBackTexture();
-  
-  const material = new WebaverseShaderMaterial({
-    uniforms: {
-      uTex: {
-        value: texture,
-        needsUpdate: true,
-      },
-    },
-    vertexShader: `\
-      // uniform vec4 cameraBillboardQuaternion;
-      varying vec2 vUv;
-
-      /* vec3 rotate_vertex_position(vec3 position, vec4 q) {
-        return position + 2.0 * cross(q.xyz, cross(q.xyz, position) + q.w * position);
-      } */
-
-      void main() {
-        vec3 pos = position;
-
-        // pos = rotate_vertex_position(pos, cameraBillboardQuaternion);
-
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-        vUv = uv;
-      }
-    `,
-    fragmentShader: `\
-      uniform sampler2D uTex;
-      // uniform vec3 color1;
-      // uniform vec3 color2;
-      varying vec2 vUv;
-
-      void main() {
-        vec4 diffuseColor = texture2D(uTex, vUv);
-        gl_FragColor = diffuseColor;
-        if (gl_FragColor.a < 0.1) {
-          discard;
-        }
-      }
-    `,
-    side: THREE.DoubleSide,
-    transparent: true,
-  });
-  const itemletMesh = new THREE.Mesh(geometry, material);
-  itemletMesh.velocity = new THREE.Vector3(0, 3, 0);
-  itemletMesh.frustumCulled = false;
-  // itemletMesh.updateMatrixWorld();
-
-  let pickedUp = false;
-  let rotY = 0;
-  itemletMesh.update = (timestamp, timeDiff) => {
-    const timeDiffS = timeDiff / 1000;
-    // const camera = useCamera();
-    const localPlayer = useLocalPlayer();
-
-    /* localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.z = 0; */
-
-    if (!pickedUp) {
-      if (!itemletMesh.velocity.equals(zeroVector)) {
-        itemletMesh.position.add(localVector.copy(itemletMesh.velocity).multiplyScalar(timeDiffS));
-        itemletMesh.velocity.add(localVector.copy(gravity).multiplyScalar(timeDiffS));
-        if (itemletMesh.position.y < 0) {
-          itemletMesh.position.y = 0;
-          itemletMesh.velocity.set(0, 0, 0);
-        }
-      } else {
-        const localPosition = localVector.copy(localPlayer.position);
-        localPosition.y -= localPlayer.avatar.height;
-
-        if (localPosition.distanceTo(itemletMesh.position) < pickUpDistance) {
-          console.log('trigger drop pickUp');
-          
-          const localPlayer = useLocalPlayer();
-          localPlayer.addAction({
-            type: 'pickUp',
-          });
-
-          pickedUp = true;
-        }
-      }
-
-      // rotation
-      rotY += 0.3 * Math.PI * 2 * timeDiffS;
-      rotY = rotY % (Math.PI * 2);
-      localEuler.set(0, rotY, 0, 'YXZ');
-      itemletMesh.quaternion.setFromEuler(localEuler);
-      
-      // console.log('got rotation', localEuler.y);
-    } /* else {
-      // console.log('animate');
-    } */
-
-    itemletMesh.updateMatrixWorld();
-  };
-  return itemletMesh;
-};
-
 const makeSeamlessNoiseTexture = () => {
   const img = new Image();
   const texture = new THREE.Texture(img);
@@ -530,13 +400,13 @@ const _makeCometMesh = () => {
     }
 
     // check for explosion timeout
-    if (timeSinceLastExplosion > 1000) {
+    /* if (timeSinceLastExplosion > 1000) {
       explosionStartTime = NaN;
 
       object.position.y += 10;
       object.scale.setScalar(1);
       object.updateMatrixWorld();
-    }
+    } */
 
     // set visibility
     if (isNaN(explosionStartTime)) {
@@ -591,7 +461,22 @@ export default () => {
     (async () => {
       const worldPosition = localVector.setFromMatrixPosition(mesh.matrixWorld);
       const dropApp = await dropManager.createDropApp({
+        type: 'key',
         start_url: moduleUrls.card,
+        components: [
+          {
+            key: 'appName',
+            value: 'Silsword'
+          },
+          {
+            key: 'appUrl',
+            value: 'https://webaverse.github.io/silsword/',
+          },
+          {
+            key: 'voucher',
+            value: 'fakeVoucher',
+          },
+        ],
         position: worldPosition.clone()
           .add(new THREE.Vector3(0, 0.5, 0)),
         // quaternion: app.quaternion,
