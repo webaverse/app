@@ -389,9 +389,6 @@ const _startHacks = webaverse => {
   window.game = game;
   window.cameraManager = cameraManager;
 
-  window.speed = (57 - 34) / (30 * 0.999);
-  window.start = 1.1;
-
   // let playerDiorama = null;
   const lastEmotionKey = {
     key: -1,
