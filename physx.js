@@ -331,7 +331,7 @@ const physxWorker = (() => {
     physx.physics = physxWorker.makePhysics()
   })()
 
-  let methodIndex = 0
+  // let methodIndex = 0
   const cbIndex = new Map()
   const w = {}
   w.alloc = (constructor, count) => {
@@ -1900,9 +1900,9 @@ const physxWorker = (() => {
     dynamic,
     flags = {}
   ) => {
-    if (typeof materialAddress !== 'number') {
+    /* if (typeof materialAddress !== 'number') {
       debugger;
-    }
+    } */
 
     const allocator = new Allocator()
     const p = allocator.alloc(Float32Array, 3)
