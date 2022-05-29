@@ -695,6 +695,9 @@ physicsManager.clearChunkRootDualContouring = (x, y, z) =>
 physicsManager.createChunkMeshDualContouring = (x, y, z) =>
   physx.physxWorker.createChunkMeshDualContouring(x, y, z)
 
+physicsManager.drawDamage = (position, radius, value) =>
+  physx.physxWorker.drawDamage(position, radius, value);
+
 physicsManager.createShape = buffer => physx.physxWorker.createShapePhysics(physx.physics, buffer);
 physicsManager.createConvexShape = buffer => physx.physxWorker.createConvexShapePhysics(physx.physics, buffer);
 
