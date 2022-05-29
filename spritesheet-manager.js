@@ -8,8 +8,11 @@ class SpritesheetManager {
       `\
       import {createObjectSpriteAsync} from './object-spriter.js';
       import metaversefile from './metaversefile-api.js';
+      import physx from './physx.js';
       `,
       async function(appUrl, opts) {
+        await physx.waitForLoad();
+        
         const app = await metaversefile.createAppAsync({
           start_url: appUrl,
         });
