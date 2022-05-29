@@ -313,40 +313,6 @@ const physxWorker = (() => {
     }
   }
 
-  class BufferManager {
-    constructor() {
-      this.buffers = []
-    }
-
-    readBuffer = (constructor, outputBuffer, index) => {
-      this.buffers.push(outputBuffer)
-      const offset = outputBuffer / constructor.BYTES_PER_ELEMENT
-      return Module.HEAP32[offset + index]
-    }
-
-    readAttribute = (constructor, buffer, count) => {
-      this.buffers.push(buffer)
-      return Module.HEAPF32.slice(
-        buffer / constructor.BYTES_PER_ELEMENT,
-        buffer / constructor.BYTES_PER_ELEMENT + count
-      )
-    }
-
-    readIndices = (constructor, buffer, count) => {
-      this.buffers.push(buffer)
-      return Module.HEAPU32.slice(
-        buffer / constructor.BYTES_PER_ELEMENT,
-        buffer / constructor.BYTES_PER_ELEMENT + count
-      )
-    }
-
-    freeAllBuffers = () => {
-      for (let i = 0; i < this.buffers.length; i++) {
-        Module._doFree(this.buffers[i])
-      }
-    }
-  }
-
   // const modulePromise = makePromise();
   /* const INITIAL_INITIAL_MEMORY = 52428800;
   const WASM_PAGE_SIZE = 65536;
