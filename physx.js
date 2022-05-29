@@ -2299,6 +2299,45 @@ const physxWorker = (() => {
       return null;
     }
   };
+  
+  w.drawDamage = (position, radius, value) => {
+    const allocator = new Allocator()
+
+    const numPositions = 256;
+    const positionsTypedArray = allocator.alloc(Float32Array, numPositions);
+    const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
+    numPositionsTypedArray[0] = numPositions;
+
+    console.log('draw damage', {
+      x: position.x,
+      y: position.y,
+      z: position.z,
+      radius,
+      value,
+      positionsTypedArrayOffset: positionsTypedArray.byteOffset,
+      numPositionsTypedArrayOffset: numPositionsTypedArray.byteOffset,
+    });
+
+    const drew = moduleInstance._drawDamage(
+      position.x,
+      position.y,
+      position.z,
+      radius,
+      value,
+      positionsTypedArray.byteOffset,
+      numPositionsTypedArray.byteOffset,
+    );
+
+    const outNumPositions = numPositionsTypedArray[0];
+    const result = Array(outNumPositions / 3);
+    for (let i = 0; i < outNumPositions; i += 3) {
+      result[i] = new THREE.Vector3().fromArray(positionsTypedArray, i);
+    }
+
+    allocator.freeAll();
+
+    return result;
+  };
 
   return w;
 })()
