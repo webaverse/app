@@ -388,6 +388,7 @@ const _startHacks = webaverse => {
   window.loadoutManager = loadoutManager;
   window.game = game;
   window.cameraManager = cameraManager;
+  window.ioManager = ioManager;
 
   // let playerDiorama = null;
   const lastEmotionKey = {
