@@ -2330,8 +2330,8 @@ const physxWorker = (() => {
 
     const outNumPositions = numPositionsTypedArray[0];
     const result = Array(outNumPositions / 3);
-    for (let i = 0; i < outNumPositions; i += 3) {
-      result[i] = new THREE.Vector3().fromArray(positionsTypedArray, i);
+    for (let i = 0; i < outNumPositions / 3; i++) {
+      result[i] = new THREE.Vector3().fromArray(positionsTypedArray, i * 3);
     }
 
     allocator.freeAll();
