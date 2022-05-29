@@ -2308,7 +2308,7 @@ const physxWorker = (() => {
     const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
     numPositionsTypedArray[0] = numPositions;
 
-    console.log('draw damage', {
+    /* console.log('draw damage', {
       x: position.x,
       y: position.y,
       z: position.z,
@@ -2316,7 +2316,7 @@ const physxWorker = (() => {
       value,
       positionsTypedArrayOffset: positionsTypedArray.byteOffset,
       numPositionsTypedArrayOffset: numPositionsTypedArray.byteOffset,
-    });
+    }); */
 
     const drew = moduleInstance._drawDamage(
       position.x,
