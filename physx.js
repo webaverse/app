@@ -2272,7 +2272,7 @@ const physxWorker = (() => {
         // biome weights
         const numBiomesWeights = dataView.getUint32(index, true);
         index += Uint32Array.BYTES_PER_ELEMENT;
-        const biomesWeights = new Float32Array(arrayBuffer, bufferAddress +index, numBiomesWeights * 4);
+        const biomesWeights = new Float32Array(arrayBuffer, bufferAddress + index, numBiomesWeights * 4);
         index += Float32Array.BYTES_PER_ELEMENT * numBiomesWeights * 4;
 
         // indices
