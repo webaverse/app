@@ -143,7 +143,6 @@ class CharacterPhysics {
         const jumpAction = this.player.getAction('jump');
         const _ensureJumpAction = () => {
           if (!jumpAction) {
-            // console.log('add jump action: character-physics.js');
             const newJumpAction = {
               type: 'jump',
               time: 0,

@@ -1472,7 +1472,6 @@ class GameManager extends EventTarget {
 
     const jumpAction = localPlayer.getAction('jump');
     if (!jumpAction) {
-      // console.log('add jump action: game.js');
       const newJumpAction = {
         type: 'jump',
         trigger:trigger,
@@ -1488,12 +1487,8 @@ class GameManager extends EventTarget {
 
     // update velocity
     const localPlayer = getLocalPlayer();
-    // console.warn(this.isMovingBackward(), localPlayer.avatar.direction.z); // todo: severe lag.
     if (this.isMovingBackward()) {
-      // localPlayer.characterPhysics.velocity.y += 4.2; // flat ground air time: 632.8899999999849
       localPlayer.characterPhysics.velocity.y += 4.1; // flat ground air time: 599.5199999999968
-      // localPlayer.characterPhysics.velocity.y += 4; // flat ground air time: 582.823000000004
-      // localPlayer.characterPhysics.velocity.y += 3.6; // flat ground air time: 499.43599999998696
     } else {
       localPlayer.characterPhysics.velocity.y += 6;
     }
@@ -1503,9 +1498,7 @@ class GameManager extends EventTarget {
 
   }
   isMovingBackward() {
-    // const localPlayer = getLocalPlayer();
     return ioManager.keysDirectionLocal.z > 0 && this.isAiming();
-    // return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
   }
   isAiming() {
     const localPlayer = getLocalPlayer();

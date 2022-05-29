@@ -1255,11 +1255,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           _clearXZ(localVector, isPosition);
           dst.lerp(localVector, 1 - avatar.unjumpFactor);
         }
-      } else {
-        // todo: ordinary unjump
       }
     }
-  }
+  };
 
   const _blendActivateAction = spec => {
     const {
