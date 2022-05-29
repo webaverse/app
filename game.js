@@ -455,6 +455,7 @@ const _endUse = () => {
       use: false,
     });
     localPlayer.removeAction('use');
+    localPlayer.removeAction('dashAttack');
   }
 };
 const _mousedown = () => {
