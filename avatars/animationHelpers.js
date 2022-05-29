@@ -364,6 +364,8 @@ export const loadPromise = (async () => {
     pickUpThrow: animations.find(a => a.isPickUpThrow),
     putDown: animations.find(a => a.isPutDown),
     pickUpZelda: animations.find(a => a.isPickUpZelda),
+    pickUpIdleZelda: animations.find(a => a.isPickUpIdleZelda),
+    putDownZelda: animations.find(a => a.isPutDownZelda),
   };
   /* throwAnimations = {
     throw: animations.find(a => a.isThrow),
@@ -754,23 +756,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    // { // play one animation purely.
-    //   return spec => {
-    //     const {
-    //       animationTrackName: k,
-    //       dst,
-    //       // isTop,
-    //     } = spec;
- 
-    //     // const animation = animations.index['walking.fbx']
-    //     const animation = animations.index['pick_up_idle.fbx']
-    //     const t2 = timeSeconds;
-    //     const src2 = animation.interpolants[k];
-    //     const v2 = src2.evaluate(t2 % animation.duration);
-
-    //     dst.fromArray(v2);
-    //   };
-    // }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -1157,12 +1142,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         if (isTop) {
-          // #version 1
           if (boneName === 'Left_arm' || boneName === 'Right_arm') {
             dst.fromArray(v2);
           } else {
-            // if (boneName === 'Left_elbow' || boneName === 'Right_elbow') {
-            // if (['Left_elbow', 'Right_elbow', 'Left_arm', 'Right_arm', 'Left_shoulder', 'Right_shoulder'].includes(boneName)) {
             if (isArm) {
               dst
                 .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
@@ -1172,22 +1154,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
                 .premultiply(localQuaternion2.fromArray(v2));
             }
           }
-
-          // // #version 2
-          // if (['Spine', 'Chest', 'UpperChest', 'Neck', 'Head'].includes(boneName)) {
-          //   dst.premultiply(localQuaternion2.fromArray(v2));
-          // } else {
-          //   dst.fromArray(v2);
-          // }
-
-          //
-
-          // if (isPosition) {
-          //   dst.fromArray(v2);
-          // } else {
-          //   dst.premultiply(localQuaternion2.fromArray(v2));
-          //   // dst.multiply(localQuaternion2.fromArray(v2));
-          // }
         }
       };
     } else if (avatar.pickUpState) {
@@ -1201,11 +1167,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } = spec;
 
         const pickUpAnimation = pickUpAnimations['pickUpZelda'];
-        const src2 = pickUpAnimation.interpolants[k];
-        const t2 = Math.min(avatar.pickUpTime / 1000, pickUpAnimation.duration * 0.7);
-        const v2 = src2.evaluate(t2);
+        const pickUpIdleAnimation = pickUpAnimations['pickUpIdleZelda'];
 
-        dst.fromArray(v2);
+        const t2 = avatar.pickUpTime / 1000;
+        if (t2 < pickUpAnimation.duration) {
+          const src2 = pickUpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+        } else {
+          const t3 = (t2 - pickUpAnimation.duration) % pickUpIdleAnimation.duration;
+          const src2 = pickUpIdleAnimation.interpolants[k];
+          const v2 = src2.evaluate(t3);
+
+          dst.fromArray(v2);
+        }
       };
     }
     return _handleDefault;
