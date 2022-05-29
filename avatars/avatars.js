@@ -896,6 +896,7 @@ class Avatar {
     this.direction = new THREE.Vector3();
     this.jumpState = false;
     this.jumpTime = NaN;
+    this.jumpDirection = 'forward';
     this.flyState = false;
     this.flyTime = NaN;
 

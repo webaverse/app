@@ -1472,10 +1472,12 @@ class GameManager extends EventTarget {
 
     const jumpAction = localPlayer.getAction('jump');
     if (!jumpAction) {
+      // console.log('add jump action: game.js');
       const newJumpAction = {
         type: 'jump',
-        trigger:trigger
+        trigger:trigger,
         // time: 0,
+        direction: gameManager.isMovingBackward() ? 'backward' : 'forward',
       };
       localPlayer.addAction(newJumpAction);
     }
