@@ -680,6 +680,11 @@ physicsManager.simulatePhysics = (timeDiff) => {
 physicsManager.marchingCubes = (dims, potential, shift, scale) =>
   physx.physxWorker.marchingCubes(dims, potential, shift, scale)
 
+//
+
+physicsManager.setChunkSize = (x, y, z) =>
+  physx.physxWorker.setChunkSize(x, y, z)
+
 physicsManager.generateChunkDataDualContouring = (x, y, z) =>
   physx.physxWorker.generateChunkDataDualContouring(x, y, z)
 
@@ -694,6 +699,9 @@ physicsManager.clearChunkRootDualContouring = (x, y, z) =>
 
 physicsManager.createChunkMeshDualContouring = (x, y, z) =>
   physx.physxWorker.createChunkMeshDualContouring(x, y, z)
+
+physicsManager.drawDamage = (position, radius, value) =>
+  physx.physxWorker.drawDamage(position, radius, value);
 
 physicsManager.createShape = buffer => physx.physxWorker.createShapePhysics(physx.physics, buffer);
 physicsManager.createConvexShape = buffer => physx.physxWorker.createConvexShapePhysics(physx.physics, buffer);
