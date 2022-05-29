@@ -2254,31 +2254,31 @@ const physxWorker = (() => {
         // positions
         const numPositions = dataView.getUint32(index, true);
         index += Uint32Array.BYTES_PER_ELEMENT;
-        const positions = new Float32Array(arrayBuffer, startIndex + index, numPositions * 3);
+        const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
         index += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
 
         // normals
         const numNormals = dataView.getUint32(index, true);
         index += Uint32Array.BYTES_PER_ELEMENT;
-        const normals = new Float32Array(arrayBuffer, startIndex + index, numNormals * 3);
+        const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
         index += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
 
         // biomes
         const numBiomes = dataView.getUint32(index, true);
         index += Uint32Array.BYTES_PER_ELEMENT;
-        const biomes = new Int32Array(arrayBuffer, startIndex + index, numBiomes * 4);
+        const biomes = new Int32Array(arrayBuffer, bufferAddress + index, numBiomes * 4);
         index += Int32Array.BYTES_PER_ELEMENT * numBiomes * 4;
 
         // biome weights
         const numBiomesWeights = dataView.getUint32(index, true);
         index += Uint32Array.BYTES_PER_ELEMENT;
-        const biomesWeights = new Float32Array(arrayBuffer, startIndex +index, numBiomesWeights * 4);
+        const biomesWeights = new Float32Array(arrayBuffer, bufferAddress +index, numBiomesWeights * 4);
         index += Float32Array.BYTES_PER_ELEMENT * numBiomesWeights * 4;
 
         // indices
         const numIndices = dataView.getUint32(index, true);
         index += Uint32Array.BYTES_PER_ELEMENT;
-        const indices = new Uint32Array(arrayBuffer, startIndex + index, numIndices);
+        const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
         index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
 
         return {
