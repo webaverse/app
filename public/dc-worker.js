@@ -26,6 +26,29 @@ const _handleMethod = ({
       ports.push(ports);
       return;
     }
+    case 'generateChunk': {
+      let {chunkPosition, lod} = args;
+      chunkPosition = new THREE.Vector3().fromArray(chunkPosition);
+
+      const generateChunkMesh = (origin) => {
+        physics.generateChunkDataDualContouring(origin.x, origin.y, origin.z);
+      };
+      const setChunkLod = (origin, lod) => {
+        physics.setChunkLodDualContouring(origin.x, origin.y, origin.z, lod);
+      };
+
+      const generateChunk = (chunk, lod) => {
+        localVector2.copy(chunk).multiplyScalar(chunkWorldSize);
+        generateChunkMesh(localVector2, physics);
+        setChunkLod(localVector2, 1, physics);
+        const meshData = physics.createChunkMeshDualContouring(localVector2.x, localVector2.y, localVector2.z);
+      };
+
+      const clearChunkData = (origin) => {
+        physics.clearTemporaryChunkDataDualContouring();
+        physics.clearChunkRootDualContouring(origin.x, origin.y, origin.z);
+      };
+    }
     default: {
       throw new Error(`unknown method: ${method}`);
     }
