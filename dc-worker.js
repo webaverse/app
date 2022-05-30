@@ -60,8 +60,8 @@ const _handleMethod = ({
         indices: meshData.indices.slice(),
       };
       meshData && dc.free(meshData.bufferAddress);
-      console.log('got mesh data', meshData2);
-      clearChunkData(chunk);
+      // console.log('got mesh data', meshData2);
+      clearChunkData(localVector);
       return meshData2;
     }
     default: {
