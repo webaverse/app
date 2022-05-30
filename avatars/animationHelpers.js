@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip} from 'three';
+import {Vector3, Quaternion, AnimationClip, MathUtils} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -42,6 +42,8 @@ import {
   jumpFallLoopStartTimeS,
   jumpFallLoopFrameTimes,
   unjumpSpeed,
+  lerpFrameCountFallToLand,
+  lerpFrameCountJumpToFall,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -798,25 +800,34 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const jumpTimeS = avatar.jumpTime / 1000;
 
         const jumpAnimation = animations.index['jump.fbx'];
+        const t2 = jumpTimeS;
+        const src2 = jumpAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+        // if (isPosition) console.log('loop', t2);
+        dst.fromArray(v2);
 
         if (jumpTimeS >= jumpAnimation.duration) { // fall loop stage
           const fallingAnimation = animations.index['falling.fbx'];
-          const t2 = jumpTimeS;
-          const src2 = fallingAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2 % fallingAnimation.duration);
-          // if (isPosition) console.log('loop', t2);
-
-          dst.fromArray(v2);
-          _clearXZ(dst, isPosition);
+          const t3 = jumpTimeS - jumpAnimation.duration;
+          const src3 = fallingAnimation.interpolants[k];
+          const v3 = src3.evaluate(t3 % fallingAnimation.duration);
+          // if (isPosition) console.log('jump', t3);
+          const lerpTimeS = lerpFrameCountJumpToFall / 30;
+          const lerpFactor = MathUtils.clamp(t3 / lerpTimeS, 0, 1);
+          if (!isPosition) {
+            localQuaternion.fromArray(v3);
+            dst.slerp(localQuaternion, lerpFactor);
+          } else {
+            localVector.fromArray(v3);
+            dst.lerp(localQuaternion, lerpFactor);
+          }
+          if (isPosition) console.log('fall', jumpTimeS, t3);
         } else { // jump up stage
-          const t2 = jumpTimeS;
-          const src2 = jumpAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-          // if (isPosition) console.log('jump', t2);
-
-          dst.fromArray(v2);
-          _clearXZ(dst, isPosition);
+          // already full jump animation, do nothing;
+          if (isPosition) console.log('jump', jumpTimeS, t2);
         }
+
+        _clearXZ(dst, isPosition);
 
         if (avatar.holdState && isArm) {
           const holdAnimation = holdAnimations['pick_up_idle'];
@@ -1284,15 +1295,17 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // if (isPosition) console.log('unjump', t2);
 
       dst.fromArray(v2);
-      _clearXZ(dst, isPosition);
+
+      // const lerpTimeS = lerpFrameCountFallToLand / 30;
+      // const lerpFactor = MathUtils.clamp(t2 / lerpTimeS, 0, 1);
 
       // if (!isPosition) {
       //   localQuaternion.fromArray(v2);
-      //   dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
+      //   dst.slerp(localQuaternion, lerpFactor);
       // } else {
       //   localVector.fromArray(v2);
       //   _clearXZ(localVector, isPosition);
-      //   dst.lerp(localVector, 1 - avatar.unjumpFactor);
+      //   dst.lerp(localVector, lerpFactor);
       // }
     }
   };
