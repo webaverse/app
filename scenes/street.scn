@@ -252,6 +252,11 @@
       "start_url": "https://webaverse.github.io/plants/"
     },
     {
+      "position": [0, 0, 0],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "https://webaverse.github.io/dual-contouring-terrain/"
+    },
+    {
       "position": [
         -95,
         0,
