@@ -85,6 +85,7 @@ class VoicePackVoicer {
     return text;
   }
   start(text) {
+    console.log("voice pack start", text)
     this.clearTimeouts();
 
     const now = performance.now();

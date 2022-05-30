@@ -2008,7 +2008,9 @@ class Avatar {
       const localPlayer = metaversefile.useLocalPlayer();
       this.microphoneWorker = new MicrophoneWorker({
         audioContext,
-        muted: localPlayer.avatar === this,
+        // muted: localPlayer.avatar === this, 
+        // enable local audio.
+        muted: false,
         emitVolume: true,
         emitBuffer: true,
       });
