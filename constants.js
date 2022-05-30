@@ -127,6 +127,7 @@ export const infoboxSize = 100;
 export const numLoadoutSlots = 8;
 
 export const defaultDioramaSize = 512;
+export const defaultChunkSize = 16;
 
 export const defaultVoiceEndpoint = `Sweetie Belle`;
 export const defaultVoicePackName = `ShiShi voice pack`;
