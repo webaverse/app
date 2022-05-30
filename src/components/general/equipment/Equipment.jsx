@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import styles from './equipment.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
-import { ItemLoader } from '../../../ItemLoader.jsx';
+import { CachedLoader } from '../../../CachedLoader.jsx';
 // import {EquipmentPopover} from '../../play-mode/equipment-popover';
 import { Spritesheet } from '../spritesheet';
 import game from '../../../../game.js';
@@ -11,7 +11,7 @@ import { transparentPngUrl } from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import { mod } from '../../../../util.js';
 import dropManager from '../../../../drop-manager';
-import offscreenEngineManager from '../../../../offscreen-engine-manager.js';
+import cardsManager from '../../../../cards-manager.js';
 
 //
 
@@ -183,24 +183,6 @@ const EquipmentItems = ({
     </div>);
 };
 
-const _generateObjectUrlCardRemote = (() => {
-    let generateObjectUrlCardRemoteFn = null;
-    return async function() {
-        if (!generateObjectUrlCardRemoteFn) {
-            generateObjectUrlCardRemoteFn = offscreenEngineManager.createFunction([
-                `\
-                import {generateObjectUrlCard} from './card-generator.js';
-                `,
-                async function(o) {
-                    const imageBitmap = await generateObjectUrlCard(o);
-                    return imageBitmap;
-                }
-            ]);
-        }
-        const result = await generateObjectUrlCardRemoteFn.apply(this, arguments);
-        return result;
-    };
-})();
 export const Equipment = () => {
     const { state, setState } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
@@ -208,17 +190,16 @@ export const Equipment = () => {
     // const [ spritesheet, setSpritesheet ] = useState(null);
     const [ faceIndex, setFaceIndex ] = useState(1);
     const [ claims, setClaims ] = useState([]);
-    const [ itemLoader, setItemLoader ] = useState(() => new ItemLoader({
+    const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
             const {start_url} = value;
-            const imageBitmap = await _generateObjectUrlCardRemote([
+            const imageBitmap = await cardsManager.getCardsImage(
+                start_url,
                 {
-                    start_url,
                     width,
+                    signal,
                 }
-            ], {
-                signal,
-            });
+            );
             return imageBitmap;
         },
     }));
@@ -285,16 +266,16 @@ export const Equipment = () => {
     }, [claims]);
 
     useEffect(() => {
-        if (itemLoader) {
+        if (cachedLoader) {
             const loadingchange = e => {
                 setLoading(e.data.loading);
             };
-            itemLoader.addEventListener('loadingchange', loadingchange);
+            cachedLoader.addEventListener('loadingchange', loadingchange);
             return () => {
-                itemLoader.removeEventListener('loadingchange', loadingchange);
+                cachedLoader.removeEventListener('loadingchange', loadingchange);
             };
         }
-    }, [itemLoader]);
+    }, [cachedLoader]);
 
     useEffect(() => {
         if (open) {
@@ -302,7 +283,7 @@ export const Equipment = () => {
             if (start_url) {
                 const abortController = new AbortController();
                 (async () => {
-                    const imageBitmap = await itemLoader.loadItem(start_url, selectObject, {
+                    const imageBitmap = await cachedLoader.loadItem(start_url, selectObject, {
                         signal: abortController.signal,
                     });
                     if (imageBitmap !== null) {

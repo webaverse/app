@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import atlaspack from './atlaspack.js';
-import { getAddressFromMnemonic } from './blockchain.js';
-import {playersMapName, tokensHost, storageHost, accountsHost, loginEndpoint, audioTimeoutTime} from './constants.js';
+import {playersMapName, tokensHost, storageHost, /*accountsHost, loginEndpoint,*/ audioTimeoutTime} from './constants.js';
 // import { getRenderer } from './renderer.js';
 import {IdAllocator} from './id-allocator';
 
@@ -604,34 +603,6 @@ export function makeId(length) {
     return null;
   }
 } */
-
-async function pullUserObject(loginToken) {
-  const address = getAddressFromMnemonic(loginToken.mnemonic);
-  const res = await fetch(`${accountsHost}/${address}`);
-  var result = await res.json();
-  result.mnemonic = loginToken.mnemonic;
-  return result;
-}
-
-export const handleDiscordLogin = async (code, id) => {
-  if (!code) {
-    return;
-  }
-  try{
-    let res = await fetch(loginEndpoint + `?discordid=${encodeURIComponent(id)}&discordcode=${encodeURIComponent(code)}&redirect_uri=${window.location.origin}/login`, {
-      method: 'POST',
-    });
-    res = await res.json();
-    if (!res.error) {
-      return await pullUserObject(res);
-    } else {
-      //console.warn('Unable to login ', res.error);
-      return res;
-    }
-  }catch(e){
-    
-  }
-};
 
 export function mod(a, n) {
   return (a % n + n) % n;

@@ -313,40 +313,6 @@ const physxWorker = (() => {
     }
   }
 
-  class BufferManager {
-    constructor() {
-      this.buffers = []
-    }
-
-    readBuffer = (constructor, outputBuffer, index) => {
-      this.buffers.push(outputBuffer)
-      const offset = outputBuffer / constructor.BYTES_PER_ELEMENT
-      return Module.HEAP32[offset + index]
-    }
-
-    readAttribute = (constructor, buffer, count) => {
-      this.buffers.push(buffer)
-      return Module.HEAPF32.slice(
-        buffer / constructor.BYTES_PER_ELEMENT,
-        buffer / constructor.BYTES_PER_ELEMENT + count
-      )
-    }
-
-    readIndices = (constructor, buffer, count) => {
-      this.buffers.push(buffer)
-      return Module.HEAPU32.slice(
-        buffer / constructor.BYTES_PER_ELEMENT,
-        buffer / constructor.BYTES_PER_ELEMENT + count
-      )
-    }
-
-    freeAllBuffers = () => {
-      for (let i = 0; i < this.buffers.length; i++) {
-        Module._doFree(this.buffers[i])
-      }
-    }
-  }
-
   // const modulePromise = makePromise();
   /* const INITIAL_INITIAL_MEMORY = 52428800;
   const WASM_PAGE_SIZE = 65536;
@@ -365,7 +331,7 @@ const physxWorker = (() => {
     physx.physics = physxWorker.makePhysics()
   })()
 
-  let methodIndex = 0
+  // let methodIndex = 0
   const cbIndex = new Map()
   const w = {}
   w.alloc = (constructor, count) => {
@@ -1843,15 +1809,93 @@ const physxWorker = (() => {
 
     allocator.freeAll()
   }
-  w.getVelocityPhysics = (physics, id, velocity) => {
+  w.getLinearVelocityPhysics = (physics, id, velocity) => {
     const allocator = new Allocator()
     const v = allocator.alloc(Float32Array, 3)
 
-    moduleInstance._getVelocityPhysics(physics, id, v.byteOffset)
+    moduleInstance._getLinearVelocityPhysics(physics, id, v.byteOffset)
 
     velocity.fromArray(v)
 
     allocator.freeAll()
+  }
+  w.getAngularVelocityPhysics = (physics, id, velocity) => {
+    const allocator = new Allocator()
+    const v = allocator.alloc(Float32Array, 3)
+
+    moduleInstance._getAngularVelocityPhysics(physics, id, v.byteOffset)
+
+    velocity.fromArray(v)
+
+    allocator.freeAll()
+  }
+  w.addForceAtPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addForceAtPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addLocalForceAtPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addLocalForceAtPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addLocalForceAtLocalPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addLocalForceAtLocalPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addForceAtLocalPosPhysics = (physics, id, velocity, position, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+    const pos = allocator.alloc(Float32Array, 3);
+    position.toArray(pos);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addForceAtLocalPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addForcePhysics = (physics, id, velocity, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addForcePhysics(physics, id, vel.byteOffset, autoWake);
+    allocator.freeAll();
+  }
+  w.addTorquePhysics = (physics, id, velocity, autoWake) => {
+    const allocator = new Allocator();
+    const vel = allocator.alloc(Float32Array, 3);
+    velocity.toArray(vel);
+
+    autoWake = autoWake ?? false;
+
+    moduleInstance._addTorquePhysics(physics, id, vel.byteOffset, autoWake);
+    allocator.freeAll();
   }
   w.setVelocityPhysics = (physics, id, velocity, autoWake) => {
     const allocator = new Allocator()
@@ -1994,9 +2038,9 @@ const physxWorker = (() => {
     dynamic,
     flags = {}
   ) => {
-    if (typeof materialAddress !== 'number') {
+    /* if (typeof materialAddress !== 'number') {
       debugger;
-    }
+    } */
 
     const allocator = new Allocator()
     const p = allocator.alloc(Float32Array, 3)
@@ -2134,6 +2178,8 @@ const physxWorker = (() => {
     allocator.freeAll()
   }
 
+  //
+
   w.marchingCubes = (dims, potential, shift, scale) => {
     let allocator = new Allocator()
 
@@ -2181,144 +2227,7 @@ const physxWorker = (() => {
     }
   }
 
-  w.createChunkWithDualContouring = (x, y, z, lod) => {
-    const bufferManager = new BufferManager()
-
-    const outputBufferOffset = moduleInstance._createChunkWithDualContouring(
-      x,
-      y,
-      z,
-      lod
-    )
-
-    // reading the data with the same order as C++
-    const positionCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      0
-    ) // vector size
-    const positionBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      1
-    ) // position vector
-
-    const normalCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      2
-    ) // vector size
-    const normalBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      3
-    ) // normal vector
-
-    const indicesCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      4
-    ) // vector size
-    const indicesBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      5
-    ) // indices vector
-
-    const positions = bufferManager.readAttribute(
-      Int32Array,
-      positionBuffer,
-      positionCount * 3
-    )
-    const normals = bufferManager.readAttribute(
-      Int32Array,
-      normalBuffer,
-      normalCount * 3
-    )
-    const indices = bufferManager.readIndices(
-      Int32Array,
-      indicesBuffer,
-      indicesCount
-    )
-
-    bufferManager.freeAllBuffers()
-
-    return {
-      positions: positions,
-      normals: normals,
-      indices: indices,
-    }
-  }
-
-  w.createSeamsWithDualContouring = (x, y, z) => {
-    const bufferManager = new BufferManager()
-
-    const outputBufferOffset = moduleInstance._createSeamsWithDualContouring(
-      x,
-      y,
-      z
-    )
-
-    // reading the data with the same order as C++
-    const positionCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      0
-    ) // vector size
-    const positionBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      1
-    ) // position vector
-
-    const normalCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      2
-    ) // vector size
-    const normalBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      3
-    ) // normal vector
-
-    const indicesCount = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      4
-    ) // vector size
-    const indicesBuffer = bufferManager.readBuffer(
-      Int32Array,
-      outputBufferOffset,
-      5
-    ) // indices vector
-
-    const positions = bufferManager.readAttribute(
-      Int32Array,
-      positionBuffer,
-      positionCount * 3
-    )
-    const normals = bufferManager.readAttribute(
-      Int32Array,
-      normalBuffer,
-      normalCount * 3
-    )
-    const indices = bufferManager.readIndices(
-      Int32Array,
-      indicesBuffer,
-      indicesCount
-    )
-
-    bufferManager.freeAllBuffers()
-
-    return {
-      positions: positions,
-      normals: normals,
-      indices: indices,
-    }
-  }
-
-  return w
+  return w;
 })()
 
 physx.physxWorker = physxWorker

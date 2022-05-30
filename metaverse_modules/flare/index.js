@@ -69,6 +69,7 @@ export default e => {
           const duration = 2000;
           const particle = this.particleSystem.addParticle(particleName, {
             duration,
+            // loop: false,
           });
           particle.position.copy(localPlayer.position)
             .add(localVector.set(r(1), r(1), r(1)));
@@ -83,7 +84,10 @@ export default e => {
   let particleSystem = null;
   let particlePlayer = null;
   ((async () => {
-    particleSystem = particleSystemManager.createParticleSystem(particleNames, numParticles);
+    particleSystem = particleSystemManager.createParticleSystem({
+      particleNames,
+      maxParticles: numParticles,
+    });
     await particleSystem.waitForLoad();
     
     scene.add(particleSystem);
