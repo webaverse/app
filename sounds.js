@@ -156,6 +156,7 @@ function isCameraInReverbZone() {
   for(const reverbZone of world.reverbZones){
     reverbZonsPos.set(reverbZone[0], reverbZone[1], reverbZone[2]);
     if(camera.position.distanceTo(reverbZonsPos) < reverbZone[3]){
+      reverbGain.gain.value = 1 - (camera.position.distanceTo(reverbZonsPos) / reverbZone[3]);
       return true;
     }
   }
