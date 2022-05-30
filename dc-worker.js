@@ -89,19 +89,36 @@ const _handleMethod = ({
     case 'generateChunk': {
       const {chunkPosition, lod} = args;
       const chunk = new THREE.Vector3().fromArray(chunkPosition);
-      localVector.copy(chunk).multiplyScalar(chunkWorldSize);
-      const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z, 1);
-      const meshData2 = meshData && {
-        positions: meshData.positions.slice(),
-        normals: meshData.normals.slice(),
-        biomes: meshData.biomes.slice(),
-        biomesWeights: meshData.biomesWeights.slice(),
-        indices: meshData.indices.slice(),
+
+      const generateChunkMesh = (origin) => {
+        dc.generateChunkDataDualContouring(origin.x, origin.y, origin.z);
       };
+      const setChunkLod = (origin, lod) => {
+        dc.setChunkLodDualContouring(origin.x, origin.y, origin.z, lod);
+      };
+      const clearChunkData = (origin) => {
+        dc.clearTemporaryChunkDataDualContouring();
+        dc.clearChunkRootDualContouring(origin.x, origin.y, origin.z);
+      };
+
+      localVector.copy(chunk).multiplyScalar(chunkWorldSize);
+      generateChunkMesh(localVector);
+      setChunkLod(localVector, 1);
+      const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z);
+      const meshData2 = _cloneMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
-      console.log('got mesh data', meshData2);
-      dc.clearChunkRootDualContouring(localVector.x, localVector.y, localVector.z);
-      return meshData2;
+      // console.log('got mesh data', meshData2);
+      clearChunkData(localVector);
+
+      if (meshData2) {
+        const spec = {
+          result: meshData2,
+          transfers: [meshData2.arrayBuffer],
+        };
+        return spec;
+      } else {
+        return null;
+      }
     }
     default: {
       throw new Error(`unknown method: ${method}`);
