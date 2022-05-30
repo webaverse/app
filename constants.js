@@ -101,7 +101,7 @@ export const airFriction = groundFriction;
 export const flyFriction = 0.5;
 export const aimTransitionMaxTime = 150;
 
-export const lerpFrameCountJumpToFall = 0;
+export const lerpFrameCountJumpToFall = 10;
 // export const lerpFrameCountFallToLand = 5;
 
 // export const jumpSpeed = 0.6;
