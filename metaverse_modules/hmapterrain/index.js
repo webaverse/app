@@ -373,14 +373,14 @@ export default (e) => {
       physicsIds.push(terrainPhysics);
     };
 
-    const addChunk = (origin) => {
-      const buffer = generator.generateChunk(origin.x, origin.y, origin.z);
+    const addChunk = (origin, lod) => {
+      const buffer = generator.generateChunk(origin.x, origin.y, origin.z, lod);
       const { positions, normals, indices } = bufferReader(buffer);
       generateMeshFromBuffers(positions, normals, indices, origin);
     };
 
-    const addSeam = (origin) => {
-      const buffer = generator.generateSeam(origin.x, origin.y, origin.z);
+    const addSeam = (origin, lod) => {
+      const buffer = generator.generateSeam(origin.x, origin.y, origin.z, lod);
       const { positions, normals, indices } = bufferReader(buffer);
       generateMeshFromBuffers(positions, normals, indices, origin);
     };
