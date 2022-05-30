@@ -26,6 +26,7 @@ const localData = {
 const localFrameOpts = {
   data: localData,
 };
+const frameEvent = new MessageEvent('frame', localFrameOpts);
 
 let binder = 0;
 
@@ -51,7 +52,7 @@ class AppManager extends EventTarget {
     localData.timestamp = timestamp;
     localData.frame = frame;
     localData.timeDiff = timeDiff;
-    this.dispatchEvent(new MessageEvent("frame", localFrameOpts));
+    this.dispatchEvent(frameEvent);
   }
   /* setPushingLocalUpdates(pushingLocalUpdates) {
     this.pushingLocalUpdates = pushingLocalUpdates;
@@ -74,7 +75,7 @@ class AppManager extends EventTarget {
     return !!this.appsArray;
   }
   unbindState() {
-    this.unbindStateFn();
+    if(this.unbindStateFn) this.unbindStateFn();
     this.appsArray = null;
     this.unbindStateFn = null;
     // }
@@ -848,6 +849,8 @@ class AppManager extends EventTarget {
       } else {
         throw new Error("double destroy of app manager");
       }
+    } else {
+      throw new Error('destroy of bound app manager');
     }
   }
 }

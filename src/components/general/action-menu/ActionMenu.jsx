@@ -8,9 +8,9 @@ import styles from './action-menu.module.css';
 
 //
 
-export const ActionMenu = ({ setUIMode, className }) => {
+export const ActionMenu = () => {
 
-    const { state, setState, app, uiMode } = useContext( AppContext );
+    const { state, setState, app } = useContext( AppContext );
     const [ xrSupported, setXrSupported ] = useState( false );
 
     //
@@ -41,7 +41,7 @@ export const ActionMenu = ({ setUIMode, className }) => {
 
     const handleModeBtnClick = () => {
 
-        setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
+        // todo
 
     };
 
@@ -64,39 +64,28 @@ export const ActionMenu = ({ setUIMode, className }) => {
     //
 
     return (
-        <div className={ classnames( className, styles.actionMenu ) } onClick={ stopPropagation } >
+        <div className={ styles.actionMenu } onClick={ stopPropagation } >
 
-            <div className={ styles.btnWrapper } >
-                <div className={ classnames( styles.btn, state.openedPanel === 'WorldPanel' ? styles.wpOpened : null ) } onClick={ handleWorldBtnClick } >
-                    <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
-                    <span className={ styles.text } >世 World</span>
-                    <span className={ styles.key } >Z</span>
-                </div>
+            <div className={ classnames( styles.btn, state.openedPanel === 'WorldPanel' ? styles.wpOpened : null ) } onClick={ handleWorldBtnClick } >
+                <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
+                <span className={ styles.text } >世 World</span>
+                <span className={ styles.key } >Z</span>
             </div>
-            <div className={ styles.btnWrapper } >
-                <div className={ classnames( styles.btn, styles.settings ) } onClick={ handleSettingsBtnClick } >
-                    <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
-                    <span className={ styles.text } >設定 Settings</span>
-                </div>
+            <div className={ classnames( styles.btn, styles.settings ) } onClick={ handleSettingsBtnClick } >
+                <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
+                <span className={ styles.text } >設定 Settings</span>
             </div>
-            <div className={ styles.btnWrapper } >
-                <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleCameraBtnClick } >
-                    <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
-                    <span className={ styles.text } >モード Mode</span>
-                </div>
+            <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleCameraBtnClick } >
+                <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
+                <span className={ styles.text } >モード Mode</span>
             </div>
-            <div className={ styles.btnWrapper } >
-                <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >
-                    <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
-                    <span className={ styles.text } >隠れる { uiMode === 'normal' ? 'Hide' : 'Show' }</span>
-                </div>
-                <div className={ styles.tooltip } >CTRL+H</div>
+            <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >
+                <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
+                <span className={ styles.text } >隠れる Hide</span>
             </div>
-            <div className={ styles.btnWrapper } >
-                <div className={ classnames( styles.btn, styles.vr, xrSupported ? null : styles.disabled ) } onClick={ handleVRBtnClick } >
-                    <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
-                    <span className={ styles.text } >{ xrSupported ? '仮想現実 VR ' : '仮想現実 VR (no)' }</span>
-                </div>
+            <div className={ classnames( styles.btn, styles.vr, xrSupported ? null : styles.disabled ) } onClick={ handleVRBtnClick } >
+                <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
+                <span className={ styles.text } >{ xrSupported ? '仮想現実 VR ' : '仮想現実 VR (no)' }</span>
             </div>
 
         </div>

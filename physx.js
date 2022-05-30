@@ -926,12 +926,6 @@ const physxWorker = (() => {
     direction,
     sweepDistance,
     maxHits,
-    /* numHitsBuf.byteOffset,
-    positionBuf.byteOffset,
-    normalBuf.byteOffset,
-    distanceBuf.byteOffset,
-    objectIdBuf.byteOffset,
-    faceIndexBuf.byteOffset, */
   ) => {
     const allocator = new Allocator();
     
@@ -988,6 +982,93 @@ const physxWorker = (() => {
       originBuf.byteOffset,
       quaternionBuf.byteOffset,
       halfExtentsBuf.byteOffset,
+      directionBuf.byteOffset,
+      sweepDistance,
+      maxHits,
+      numHitsBuf.byteOffset,
+      positionBuf.byteOffset,
+      normalBuf.byteOffset,
+      distanceBuf.byteOffset,
+      objectIdBuf.byteOffset,
+      faceIndexBuf.byteOffset,
+    );
+
+    const numHits = numHitsBuf[0];
+    let result = Array(numHits);
+    for (let i = 0; i < numHits; i++) {
+      const object = {
+        position: new THREE.Vector3().fromArray(positionBuf, i * 3),
+        normal: new THREE.Vector3().fromArray(normalBuf, i * 3),
+        distance: distanceBuf[i],
+        objectId: objectIdBuf[i],
+        faceIndex: faceIndexBuf[i],
+      };
+      result[i] = object;
+    }
+
+    allocator.freeAll();
+
+    return result
+  };
+  w.sweepConvexShape = (
+    physics,
+    shapeAddress,
+    origin,
+    quaternion,
+    direction,
+    sweepDistance,
+    maxHits,
+  ) => {
+    const allocator = new Allocator();
+    
+    // inputs
+    const originBuf = allocator.alloc(
+      Float32Array,
+      3
+    );
+    origin.toArray(originBuf);
+    const quaternionBuf = allocator.alloc(
+      Float32Array,
+      4
+    );
+    quaternion.toArray(quaternionBuf);
+    const directionBuf = allocator.alloc(
+      Float32Array,
+      3
+    );
+    direction.toArray(directionBuf);
+
+    // outputs
+    const numHitsBuf = allocator.alloc(
+      Uint32Array,
+      1
+    );
+    const positionBuf = allocator.alloc(
+      Float32Array,
+      maxHits * 3
+    );
+    const normalBuf = allocator.alloc(
+      Float32Array,
+      maxHits * 3
+    );
+    const distanceBuf = allocator.alloc(
+      Float32Array,
+      maxHits * 1
+    );
+    const objectIdBuf = allocator.alloc(
+      Uint32Array,
+      maxHits * 1
+    );
+    const faceIndexBuf = allocator.alloc(
+      Uint32Array,
+      maxHits * 1
+    );
+
+    moduleInstance._sweepConvexShape(
+      physics,
+      shapeAddress,
+      originBuf.byteOffset,
+      quaternionBuf.byteOffset,
       directionBuf.byteOffset,
       sweepDistance,
       maxHits,
@@ -1345,6 +1426,7 @@ const physxWorker = (() => {
 
     const materialAddress = w.getDefaultMaterial(physics)
 
+    const external = false;
     moduleInstance._addGeometryPhysics(
       physics,
       shape,
@@ -1353,6 +1435,7 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
+      +external,
       shape
     )
   }
@@ -1385,8 +1468,7 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2] // XXX delete if it will not be deleted
 
-    const result = new Uint8Array(dataLength)
-    result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength))
+    const result = moduleInstance.HEAPU8.slice(dataPtr, dataPtr + dataLength);
     allocator.freeAll()
     return result
   }
@@ -1418,6 +1500,7 @@ const physxWorker = (() => {
 
     const materialAddress = w.getDefaultMaterial(physics)
 
+    const external = false;
     moduleInstance._addGeometryPhysics(
       physics,
       shape,
@@ -1426,12 +1509,13 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
+      +external,
       0
     )
     allocator.freeAll()
   }
 
-  w.addConvexGeometryPhysics = (physics, mesh, id) => {
+  w.addConvexGeometryPhysics = (physics, mesh, dynamic, external, id) => {
     mesh.updateMatrixWorld()
     const { geometry } = mesh
 
@@ -1461,7 +1545,7 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2]
 
-    const shape = moduleInstance._createShapePhysics(
+    const shape = moduleInstance._createConvexShapePhysics(
       physics,
       dataPtr,
       dataLength,
@@ -1489,7 +1573,9 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
-      shape
+      +dynamic,
+      +external,
+      shape,
     )
   }
   w.cookConvexGeometryPhysics = (physics, mesh) => {
@@ -1521,8 +1607,7 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2] // XXX delete if it will not be deleted
 
-    const result = new Uint8Array(dataLength)
-    result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength))
+    const result = moduleInstance.HEAPU8.slice(dataPtr, dataPtr + dataLength);
     allocator.freeAll()
     return result
   }
@@ -1532,6 +1617,8 @@ const physxWorker = (() => {
     position,
     quaternion,
     scale,
+    dynamic,
+    external,
     id
   ) => {
     const allocator = new Allocator()
@@ -1544,10 +1631,6 @@ const physxWorker = (() => {
     quaternion.toArray(quaternionBuffer)
     const scaleBuffer = scratchStack.f32.subarray(7, 10)
     scale.toArray(scaleBuffer)
-    /* const mat = scratchStack.f32.subarray(10, 13)
-    mat[0] = physicsMaterial[0]
-    mat[1] = physicsMaterial[1]
-    mat[2] = physicsMaterial[2] */
 
     const shape = moduleInstance._createShapePhysics(
       physics,
@@ -1566,10 +1649,65 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
-      0
+      +dynamic,
+      +external,
+      0,
     )
     allocator.freeAll()
   }
+
+  w.addConvexShapePhysics = (physics, shape, position, quaternion, scale, dynamic, external, id) => {
+    const positionBuffer = scratchStack.f32.subarray(3, 6)
+    position.toArray(positionBuffer)
+    const quaternionBuffer = scratchStack.f32.subarray(6, 10)
+    quaternion.toArray(quaternionBuffer)
+    const scaleBuffer = scratchStack.f32.subarray(10, 13)
+    scale.toArray(scaleBuffer)
+
+    const materialAddress = w.getDefaultMaterial(physics);
+
+    moduleInstance._addConvexGeometryPhysics(
+      physics,
+      shape,
+      positionBuffer.byteOffset,
+      quaternionBuffer.byteOffset,
+      scaleBuffer.byteOffset,
+      id,
+      materialAddress,
+      +dynamic,
+      +external,
+      shape
+    )
+  }
+
+  w.createShapePhysics = (physics, buffer) => {
+    const allocator = new Allocator()
+    const buffer2 = allocator.alloc(Uint8Array, buffer.length)
+    buffer2.set(buffer)
+
+    const shapeAddress = moduleInstance._createShapePhysics(
+      physics,
+      buffer2.byteOffset,
+      buffer2.byteLength,
+      0,
+    );
+    allocator.freeAll();
+    return shapeAddress;
+  };
+  w.createConvexShapePhysics = (physics, buffer) => {
+    const allocator = new Allocator()
+    const buffer2 = allocator.alloc(Uint8Array, buffer.length)
+    buffer2.set(buffer)
+
+    const shapeAddress = moduleInstance._createConvexShapePhysics(
+      physics,
+      buffer2.byteOffset,
+      buffer2.byteLength,
+      0,
+    );
+    allocator.freeAll();
+    return shapeAddress;
+  };
 
   w.getGeometryPhysics = (physics, id) => {
     const allocator = new Allocator()
@@ -1920,7 +2058,7 @@ const physxWorker = (() => {
       halfHeight,
       materialAddress,
       id,
-      dynamic,
+      +dynamic,
       flagsInt
     )
     allocator.freeAll()

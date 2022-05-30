@@ -91,7 +91,7 @@ export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;
 export const aimMaxTime = 1000;
-export const throwReleaseTime = 750;
+export const throwReleaseTime = 220;
 export const minFov = 60;
 export const maxFov = 120;
 export const midFov = 90;
@@ -108,11 +108,13 @@ export const avatarInterpolationNumFrames = 4;
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
 
+export const defaultMaxId = 8192;
+
 export const defaultMusicVolume = 0.35;
 
 export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
 
-export const voiceEndpoint = `https://voice.webaverse.com/tts`;
+export const voiceEndpointBaseUrl = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
 
 export const chatTextSpeed = 15;
@@ -125,6 +127,21 @@ export const numLoadoutSlots = 8;
 
 export const defaultDioramaSize = 512;
 
-export const defaultAvatarUrl = './avatars/scillia_drophunter_v15_vian.vrm';
+export const defaultVoiceEndpoint = `Sweetie Belle`;
+export const defaultVoicePackName = `ShiShi voice pack`;
+
+// export const defaultAvatarUrl = './avatars/scilly_drophunter_v30.5_Guilty.vrm';
+// export const defaultAvatarUrl = './avatars/scilly_drophunter_v31_Guilty.vrm';
+// export const defaultAvatarUrl = './avatars/ann_liskwitch_v3.1_guiltyallShapeKeys.vrm';
 // export const defaultAvatarUrl = './avatars/scillia_drophunter_v25_gloria_vian.vrm';
 // export const defaultAvatarUrl = './avatars/ann.vrm';
+export const defaultPlayerSpec = {
+  name: 'Scillia',
+  previewUrl: './images/characters/upstreet/small/scillia.png',
+  avatarUrl: './avatars/scilly_drophunter_v31.6_Guilty.vrm',
+  voice: defaultVoiceEndpoint,
+  voicePack: defaultVoicePackName,
+  class: 'Drop Hunter',
+  bio: `Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan.`,
+  themeSongUrl: `https://webaverse.github.io/music/themes/149274046-smooth-adventure-quest.mp3`,
+};

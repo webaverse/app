@@ -3,6 +3,8 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import atlaspack from './atlaspack.js';
 import { getAddressFromMnemonic } from './blockchain.js';
 import {playersMapName, tokensHost, storageHost, accountsHost, loginEndpoint, audioTimeoutTime} from './constants.js';
+// import { getRenderer } from './renderer.js';
+import {IdAllocator} from './id-allocator';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -97,8 +99,8 @@ export function makePromise() {
   return p;
 }
 
-let nextMeshId = 0;
-export const getNextMeshId = () => ++nextMeshId;
+// const meshIdAllcator = new IdAllocator();
+// export const getNextMeshId = meshIdAllcator.alloc.bind(meshIdAllcator);
 
 export function clone(o) {
   return JSON.parse(JSON.stringify(o));
@@ -334,17 +336,19 @@ export function mergeMeshes(meshes, geometries, textures) {
   return mesh;
 }
 
-let nextPhysicsId = 0;
+/* let nextPhysicsId = 0;
 export function getNextPhysicsId() {
   return ++nextPhysicsId;
-}
+} */
+const physicsIdAllcator = new IdAllocator();
+export const getNextPhysicsId = physicsIdAllcator.alloc.bind(physicsIdAllcator);
+export const freePhysicsId = physicsIdAllcator.free.bind(physicsIdAllcator);
 
 export function convertMeshToPhysicsMesh(topMesh) {
   const oldParent = topMesh.parent;
   oldParent && oldParent.remove(topMesh);
 
   topMesh.updateMatrixWorld();
-  // localMatrix.copy(topMesh.matrix).invert();
 
   const meshes = [];
   topMesh.traverse(o => {
@@ -355,10 +359,6 @@ export function convertMeshToPhysicsMesh(topMesh) {
   const newGeometries = meshes.map(mesh => {
     const {geometry} = mesh;
     const newGeometry = new THREE.BufferGeometry();
-    /* if (mesh.isSkinnedMesh) {
-      console.log('compile skinned mesh', mesh);
-    } */
-    // localMatrix2.multiplyMatrices(localMatrix, mesh.isSkinnedMesh ? topMesh.matrixWorld : mesh.matrixWorld);
     if (mesh.isSkinnedMesh) {
       localMatrix2.identity();
     } else {
@@ -395,21 +395,25 @@ export function convertMeshToPhysicsMesh(topMesh) {
     oldParent.add(topMesh);
     topMesh.updateMatrixWorld();
   }
+  let physicsMesh;
   if (newGeometries.length > 0) {
     const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
-    const physicsMesh = new THREE.Mesh(newGeometry);
-    /* physicsMesh.position.copy(topMesh.position);
-    physicsMesh.quaternion.copy(topMesh.quaternion);
-    physicsMesh.scale.copy(topMesh.scale);
-    physicsMesh.matrix.copy(topMesh.matrix);
-    physicsMesh.matrixWorld.copy(topMesh.matrixWorld); */
-    physicsMesh.visible = false;
-    return physicsMesh;
+    physicsMesh = new THREE.Mesh(newGeometry);
   } else {
-    const physicsMesh = new THREE.Mesh();
-    physicsMesh.visible = false;
-    return physicsMesh;
+    physicsMesh = new THREE.Mesh();
   }
+  physicsMesh.visible = false;
+
+  if (topMesh.parent) {
+    topMesh.parent.matrixWorld.decompose(
+      physicsMesh.position,
+      physicsMesh.quaternion,
+      physicsMesh.scale
+    )
+    physicsMesh.updateMatrixWorld()
+  }
+
+  return physicsMesh;
   
 }
 
@@ -813,6 +817,16 @@ export const proxifyUrl = u => {
     return 'https://' + match[1] + '-' + match[2].replace(/\-/g, '--').replace(/\./g, '-') + '.proxy.webaverse.com' + match[3];
   } else {
     return u;
+  }
+};
+export const createRelativeUrl = (u, baseUrl) => {
+  if (/^(?:[\.\/]|([a-z0-9]+):\/\/)/i.test(u)) {
+    return u;
+  } else {
+    if (!/([a-z0-9]+):\/\//i.test(baseUrl)) {
+      baseUrl = new URL(baseUrl, window.location.href).href;
+    }
+    return new URL(u, baseUrl).href;
   }
 };
 export const getDropUrl = o => {
