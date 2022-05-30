@@ -15,10 +15,12 @@ const baseUrl = import.meta.url.replace(/(\/)[^\/\/]*$/, '$1')
 const physicsIds = []
 
 const vert = `
+varying vec3 vPosition;
 varying vec3 vNormal;
 varying vec2 vUv;
 void main() {
 
+  vPosition = (modelMatrix * vec4(position, 1.0)).xyz;
   vNormal = (modelMatrix * vec4(normal, 1.0)).xyz;
   vUv = uv;
 
@@ -29,23 +31,39 @@ void main() {
 `
 
 const frag = `
+varying vec3 vPosition;
 varying vec3 vNormal;
 varying vec2 vUv;
 uniform sampler2D grassTex;
+uniform sampler2D snowGrassTex;
 uniform sampler2D blendTex;
 uniform sampler2D rockTex;
+uniform sampler2D blueTex;
 vec3 lerp(vec3 s, vec3 e, float t){ return s+(e-s)*t; }
 void main() {
   vec3 textureColor;
   vec3 grassColor = texture2D(grassTex, vUv).rgb;
+  vec3 snowGrassColor = texture2D(snowGrassTex, vUv).rgb;
   vec3 rockColor = texture2D(rockTex, vUv).rgb;
   vec3 slopeColor = texture2D(blendTex, vUv).rgb;
+  vec3 blueColor = texture2D(blueTex, vUv).rgb;
   float blend;
   float slope = 1.0f - vNormal.y;
+  float height = vPosition.y;
   if(slope < 0.25)
   {
+      float grassLimit = 8.0f, snowGrassLimit = 24.0f;
       blend = slope / 0.25f;
-      textureColor = lerp(grassColor, slopeColor, blend);
+      if (height < grassLimit)
+        textureColor = lerp(grassColor, slopeColor, blend);
+      else if (height > snowGrassLimit)
+        textureColor = lerp(snowGrassColor, slopeColor, blend);
+      else
+      {
+        float blendGrass = (height - grassLimit) / (snowGrassLimit - grassLimit);
+        vec3 blendGrassColor = lerp(grassColor, snowGrassColor, blendGrass);
+        textureColor = lerp(blendGrassColor, slopeColor, blend);
+      }
   }
 
   if((slope < 0.6) && (slope >= 0.25f))
@@ -348,6 +366,7 @@ export default (e) => {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         grassTex: new THREE.Uniform(imageToTexture(baseUrl + 'grass.jpg')),
+        snowGrassTex: new THREE.Uniform(imageToTexture(baseUrl + 'snow_grass.jpg')),
         blendTex: new THREE.Uniform(imageToTexture(baseUrl + 'blend.jpg')),
         rockTex: new THREE.Uniform(imageToTexture(baseUrl + 'rock.jpg'))
       },
