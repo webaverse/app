@@ -4,8 +4,11 @@ import {ethers} from 'ethers';
 
 import {DEFAULT_CHAIN, CONTRACT, CONTRACT_ABIS} from '../constants';
 
+const FILE_ADDRESS = 'https://ipfs.webaverse.com/';
 const contractAddress = CONTRACT[DEFAULT_CHAIN.contract_name].NFT;
+const contractAddressFT = CONTRACT[DEFAULT_CHAIN.contract_name].FT;
 const contractABI = CONTRACT_ABIS.NFT;
+const contractABIFT = CONTRACT_ABIS.FT;
 
 const DEFAULT_GAS_LIMIT = 50000;
 const DEFAULT_MINT_VALUE = 1000000000000000;
@@ -26,6 +29,7 @@ export default function useNFT(currentAccount) {
   const [showWallet, setShowWallet] = useState(false);
   const [minted, setMinted] = useState([]);
   const [connectedContract, setConnectedContract] = useState();
+  const [connectedContractFT, setConnectedContractFT] = useState();
 
   useEffect(() => {
     try {
@@ -46,30 +50,22 @@ export default function useNFT(currentAccount) {
   }, [currentAccount]);
 
   useEffect(() => {
-    const mintHandler = async (from, tokenId, name) => {
-      // interact with game world here.
-      if (
-        currentAccount &&
-        from.toLowerCase() === currentAccount.toLowerCase()
-      ) {
-        // upload to IPFS here
-        const SVG = await connectedContract.tokenURI(tokenId.toNumber());
-        const id = tokenId.toNumber();
-        if (minted.findIndex(v => v.id === id) === -1) {
-          setMinted(prev => [
-            ...prev,
-            {
-              name,
-              contractAddress,
-              id,
-              link: `https://testnets.opensea.io/assets/${contractAddress}/${tokenId.toNumber()}`,
-              SVG,
-            },
-          ]);
-        }
-        // interact with game world here.
-        setMinting(false);
+    try {
+      const {ethereum} = window;
+
+      if (ethereum) {
+        const provider = new ethers.getDefaultProvider(
+          DEFAULT_CHAIN.rpcUrls[0], // TODO: change to use the selected chain
+        );
+        const signer = provider.getSigner();
+        setConnectedContract(
+          new ethers.Contract(contractAddressFT, contractABIFT, signer),
+        );
       }
+    } catch (error) {
+      console.error(error);
+    }
+  }, [connectedContractFT]);
     };
 
     if (connectedContract) {
