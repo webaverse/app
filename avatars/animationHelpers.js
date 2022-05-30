@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip} from 'three';
+import {Vector3, Quaternion, AnimationClip, MathUtils} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -42,6 +42,8 @@ import {
   jumpFallLoopStartTimeS,
   jumpFallLoopFrameTimes,
   unjumpSpeed,
+  lerpFrameCountFallToLand,
+  lerpFrameCountJumpToFall,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -810,12 +812,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src3 = fallingAnimation.interpolants[k];
           const v3 = src3.evaluate(t3 % fallingAnimation.duration);
           // if (isPosition) console.log('jump', t3);
+          const lerpTimeS = lerpFrameCountJumpToFall / 30;
+          const lerpFactor = 1 - MathUtils.clamp(lerpTimeS / t3, 0, 1);
           if (!isPosition) {
             localQuaternion.fromArray(v3);
-            dst.slerp(localQuaternion, 1);
+            dst.slerp(localQuaternion, lerpFactor);
           } else {
             localVector.fromArray(v3);
-            dst.lerp(localQuaternion, 1);
+            dst.lerp(localQuaternion, lerpFactor);
           }
           if (isPosition) console.log('fall', jumpTimeS, t3);
         } else { // jump up stage
@@ -1290,17 +1294,17 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const v2 = src2.evaluate(t2);
       // if (isPosition) console.log('unjump', t2);
 
-      dst.fromArray(v2);
-      _clearXZ(dst, isPosition);
+      const lerpTimeS = lerpFrameCountFallToLand / 30;
+      const lerpFactor = 1 - MathUtils.clamp(lerpTimeS / t2, 0, 1);
 
-      // if (!isPosition) {
-      //   localQuaternion.fromArray(v2);
-      //   dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
-      // } else {
-      //   localVector.fromArray(v2);
-      //   _clearXZ(localVector, isPosition);
-      //   dst.lerp(localVector, 1 - avatar.unjumpFactor);
-      // }
+      if (!isPosition) {
+        localQuaternion.fromArray(v2);
+        dst.slerp(localQuaternion, lerpFactor);
+      } else {
+        localVector.fromArray(v2);
+        _clearXZ(localVector, isPosition);
+        dst.lerp(localVector, lerpFactor);
+      }
     }
   };
 
