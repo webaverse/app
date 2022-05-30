@@ -821,10 +821,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             localVector.fromArray(v3);
             dst.lerp(localQuaternion, lerpFactor);
           }
-          if (isPosition) console.log('fall', jumpTimeS, t3);
+          // if (isPosition) console.log('fall', jumpTimeS, t3);
         } else { // jump up stage
           // already full jump animation, do nothing;
-          if (isPosition) console.log('jump', jumpTimeS, t2);
+          // if (isPosition) console.log('jump', jumpTimeS, t2);
         }
 
         _clearXZ(dst, isPosition);
