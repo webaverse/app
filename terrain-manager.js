@@ -95,9 +95,9 @@ class TerrainManager {
     // initialize
     Promise.all(workers.map(async worker => {
       await new Promise((accept, reject) => {
-        console.log('got worker 1');
+        // console.log('got worker 1');
         worker.onload = e => {
-          console.log('got worker 2', e);
+          // console.log('got worker 2', e);
           accept();
         };
         worker.onerror = e => {
