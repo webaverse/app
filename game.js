@@ -14,7 +14,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
@@ -41,6 +41,8 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
+
+let isMouseUp = false;
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const oneVector = new THREE.Vector3(1, 1, 1);
@@ -433,7 +435,7 @@ const _mousedown = () => {
   _startUse();
 };
 const _mouseup = () => {
-  _endUse();
+  isMouseUp = true;
 };
 
 const _grab = object => {
@@ -998,6 +1000,23 @@ const _gameUpdate = (timestamp, timeDiff) => {
       !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
+
+  const _updateUse = () => {
+    const useAction = localPlayer.getAction('use');
+    if (useAction) {
+      if (useAction.animation === 'pickUpThrow') {
+        const useTime = localPlayer.actionInterpolants.use.get();
+        if (useTime / 1000 >= throwAnimationDuration) {
+          _endUse();
+        }
+      } else if (isMouseUp) {
+        _endUse();
+      }
+
+    }
+    isMouseUp = false;
+  };
+  _updateUse();
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
