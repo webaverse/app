@@ -797,16 +797,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const jumpTimeS = avatar.jumpTime / 1000;
 
-        if (jumpTimeS >= jumpFallLoopStartTimeS) { // fall loop stage
-          const t2 = jumpFallLoopFrameTimes;
-          const src2 = jumpAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
+        const jumpAnimation = animations.index['jump.fbx'];
+
+        if (jumpTimeS >= jumpAnimation.duration) { // fall loop stage
+          const fallingAnimation = animations.index['falling.fbx'];
+          const t2 = jumpTimeS;
+          const src2 = fallingAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2 % fallingAnimation.duration);
           if (isPosition) console.log('loop', t2);
 
           dst.fromArray(v2);
           _clearXZ(dst, isPosition);
         } else { // jump up stage
-          const t2 = jumpStartTimeS + jumpTimeS * jumpSpeed;
+          const t2 = jumpTimeS;
           const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
           if (isPosition) console.log('jump', t2);
@@ -1270,20 +1273,27 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
-      const t2 = avatar.unjumpTime / 1000 * unjumpSpeed + jumpFallLoopFrameTimes;
-      const src2 = jumpAnimation.interpolants[k];
+    const unjumpTimeS = avatar.unjumpTime / 1000;
+    const landingAnimation = animations.index['landing.fbx'];
+    const unjumpFactor = unjumpTimeS / landingAnimation.duration;
+
+    if (unjumpFactor > 0 && unjumpFactor <= 1) {
+      const t2 = unjumpTimeS;
+      const src2 = landingAnimation.interpolants[k];
       const v2 = src2.evaluate(t2);
       if (isPosition) console.log('unjump', t2);
 
-      if (!isPosition) {
-        localQuaternion.fromArray(v2);
-        dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
-      } else {
-        localVector.fromArray(v2);
-        _clearXZ(localVector, isPosition);
-        dst.lerp(localVector, 1 - avatar.unjumpFactor);
-      }
+      dst.fromArray(v2);
+      _clearXZ(dst, isPosition);
+
+      // if (!isPosition) {
+      //   localQuaternion.fromArray(v2);
+      //   dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
+      // } else {
+      //   localVector.fromArray(v2);
+      //   _clearXZ(localVector, isPosition);
+      //   dst.lerp(localVector, 1 - avatar.unjumpFactor);
+      // }
     }
   };
 
@@ -1341,8 +1351,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       } else {
         // force height in the jump case to overide the animation
-        // dst.y = avatar.height * 0.55;
-        dst.y = avatar.height * 0.58; // + 0.03 height to compensate the hanging toes.
+        dst.y = avatar.height * 0.55;
+        // dst.y = avatar.height * 0.58; // + 0.03 height to compensate the hanging toes.
       }
       // console.log(window.logNum(dst.x), window.logNum(dst.z));
     }
