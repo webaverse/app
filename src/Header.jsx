@@ -292,7 +292,7 @@ export default function Header() {
                     /> */}
                 </div>
                 <div className={styles.panels}>
-                <Tokens
+                    <Tokens
                         nfts={nfts}
                         hacks={hacks}
                         address={address}
