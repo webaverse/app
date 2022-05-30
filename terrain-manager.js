@@ -1,5 +1,11 @@
+import * as THREE from 'three';
 import {makeId} from './util.js';
 import {defaultChunkSize} from './constants.js';
+// import metaversefile from 'metaversefile';
+// import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
+// import physics from './physics-manager.js';
+
+// const localVector = new THREE.Vector3();
 
 const numWorkers = 4;
 
@@ -12,7 +18,7 @@ class TerrainManager {
     // create workers
     const workers = Array(numWorkers);
     for (let i = 0; i < numWorkers; i++) {
-      const worker = new Worker('./dc-worker.js', {
+      const worker = new Worker('./dc-worker.js?import', {
         type: 'module',
       });
       const cbs = new Map();
@@ -46,6 +52,9 @@ class TerrainManager {
       };
       workers[i] = worker;
     }
+
+    // wait for workers to load
+    
 
     // connect ports
     const _makePorts = () => {
@@ -84,19 +93,36 @@ class TerrainManager {
     }
 
     // initialize
-    Promise.all(workers.map(worker => worker.request('setChunkSize', {
-      chunkSize,
-    })));
+    Promise.all(workers.map(async worker => {
+      await new Promise((accept, reject) => {
+        console.log('got worker 1');
+        worker.onload = e => {
+          console.log('got worker 2', e);
+          accept();
+        };
+        worker.onerror = e => {
+          reject(e);
+        };
+      });
+
+      await worker.request('setChunkSize', {
+        chunkSize,
+      });
+    }));
 
     this.workers = workers;
+    this.nextWorker = 0;
   }
-  setChunkSize(chunkWorldSize) {
-    for (const worker of workers) {
-      worker.postMessage({
-        method: 'setChunkSize',
-        chunkWorldSize,
-      });
-    }
+  async generateChunk(chunkPosition, lod) {
+    const {workers} = this;
+    const worker = workers[this.nextWorker];
+    this.nextWorker = (this.nextWorker + 1) % workers.length;
+
+    const result = await worker.request('generateChunk', {
+      chunkPosition: chunkPosition.toArray(),
+      lod,
+    });
+    return result;
   }
 }
 const terrainManager = new TerrainManager();
