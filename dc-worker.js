@@ -9,6 +9,59 @@ const localVector = new THREE.Vector3();
 
 const ports = [];
 
+const _cloneMeshData = (meshData) => {
+  if (meshData) {
+    /* return {
+      arrayBuffer: new ArrayBuffer(1),
+      positions: meshData.positions.slice(),
+      normals: meshData.normals.slice(),
+      biomes: meshData.biomes.slice(),
+      biomesWeights: meshData.biomesWeights.slice(),
+      indices: meshData.indices.slice(),
+    }; */
+
+    const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
+      meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
+      meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
+      meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT +
+      meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
+    const arrayBuffer = new ArrayBuffer(sizeRequired);
+    let index = 0;
+
+    const positions = new meshData.positions.constructor(arrayBuffer, index, meshData.positions.length);
+    positions.set(meshData.positions);
+    index += meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT;
+    
+    const normals = new meshData.normals.constructor(arrayBuffer, index, meshData.normals.length);
+    normals.set(meshData.normals);
+    index += meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT;
+    
+    const biomes = new meshData.biomes.constructor(arrayBuffer, index, meshData.biomes.length);
+    biomes.set(meshData.biomes);
+    index += meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
+    
+    const biomesWeights = new meshData.biomesWeights.constructor(arrayBuffer, index, meshData.biomesWeights.length);
+    biomesWeights.set(meshData.biomesWeights);
+    index += meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT;
+    
+    const indices = new meshData.indices.constructor(arrayBuffer, index, meshData.indices.length);
+    indices.set(meshData.indices);
+    index += meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
+
+    return {
+      // bufferAddress: arrayBuffer.byteOffset,
+      arrayBuffer,
+      positions,
+      normals,
+      biomes,
+      biomesWeights,
+      indices,
+    };
+  } else {
+    return null;
+  }
+};
+
 let loaded = false;
 let running = false;
 let queue = [];
@@ -52,17 +105,20 @@ const _handleMethod = ({
       generateChunkMesh(localVector);
       setChunkLod(localVector, 1);
       const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z);
-      const meshData2 = meshData && {
-        positions: meshData.positions.slice(),
-        normals: meshData.normals.slice(),
-        biomes: meshData.biomes.slice(),
-        biomesWeights: meshData.biomesWeights.slice(),
-        indices: meshData.indices.slice(),
-      };
+      const meshData2 = _cloneMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
       // console.log('got mesh data', meshData2);
       clearChunkData(localVector);
-      return meshData2;
+
+      if (meshData2) {
+        const spec = {
+          result: meshData2,
+          transfers: [meshData2.arrayBuffer],
+        };
+        return spec;
+      } else {
+        return null;
+      }
     }
     default: {
       throw new Error(`unknown method: ${method}`);
@@ -82,19 +138,20 @@ const _handleMessage = async e => {
       const {requestId} = data;
       const p = makePromise();
       try {
-        const result = await _handleMethod(data);
-        p.accept(result);
+        const spec = await _handleMethod(data);
+        p.accept(spec);
       } catch (err) {
         p.reject(err);
       }
 
       if (requestId) {
-        p.then(result => {
+        p.then(spec => {
+          const {result = null, transfers = []} = spec ?? {};
           port.postMessage({
             method: 'repsonse',
             requestId,
             result,
-          });
+          }, transfers);
         }, err => {
           port.postMessage({
             requestId,
@@ -121,12 +178,12 @@ self.onmessage = e => {
 };
 
 (async () => {
-  console.log('worker waitForLoad 1');
+  // console.log('worker waitForLoad 1');
   await dc.waitForLoad();
-  console.log('worker waitForLoad 2');
+  // console.log('worker waitForLoad 2');
 
   loaded = true;
-  console.log('worker initial messages', queue.slice());
+  // console.log('worker initial messages', queue.slice());
   if (queue.length > 0) {
     _handleMessage(queue.shift());
   }
