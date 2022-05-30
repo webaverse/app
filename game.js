@@ -436,6 +436,7 @@ const _mousedown = () => {
 };
 const _mouseup = () => {
   isMouseUp = true;
+  // _endUse();
 };
 
 const _grab = object => {
@@ -1017,6 +1018,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     isMouseUp = false;
   };
   _updateUse();
+  console.log(isMouseUp);
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
