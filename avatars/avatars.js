@@ -48,7 +48,7 @@ import {
 import {easing} from '../math-utils.js';
 import metaversefile from 'metaversefile';
 
-import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
+import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation, _initAnimation } from './animationHelpers.js'
 
 import { animationMappingConfig } from './AnimationMapping.js';
 import Emoter from './Emoter.js'
@@ -894,6 +894,8 @@ class Avatar {
     this.nodder = new Nodder();
     this.looker = new Looker(this);
     this.emoter = new Emoter();
+
+    _initAnimation(this);
 
     // shared state
     this.direction = new THREE.Vector3();

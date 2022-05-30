@@ -408,6 +408,10 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
+export const _initAnimation = avatar => {
+  avatar.useAnimations = useAnimations;
+};
+
 export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();

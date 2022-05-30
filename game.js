@@ -1005,9 +1005,17 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateUse = () => {
     const useAction = localPlayer.getAction('use');
     if (useAction) {
-      if (useAction.animation === 'pickUpThrow') {
-        const useTime = localPlayer.actionInterpolants.use.get();
-        if (useTime / 1000 >= throwAnimationDuration) {
+      const useTime = localPlayer.actionInterpolants.use.get();
+      const useTimeS = useTime / 1000;
+      if (useAction.animationCombo.length > 0) {
+        // const useAnimationName = localPlayer.avatar.useAnimationCombo[localPlayer.avatar.useAnimationIndex];
+        const useAnimationName = useAction.animationCombo[useAction.index];
+        const useAnimation = localPlayer.avatar.useAnimations[useAnimationName];
+        if (useTimeS >= useAnimation.duration) {
+          _endUse();
+        }
+      } else if (useAction.animation === 'pickUpThrow') {
+        if (useTimeS >= throwAnimationDuration) {
           _endUse();
         }
       } else if (isMouseUp) {
