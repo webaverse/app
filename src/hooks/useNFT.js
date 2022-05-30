@@ -1,10 +1,11 @@
-import {useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
 import {ethers} from 'ethers';
 
 import {DEFAULT_CHAIN, CONTRACT, CONTRACT_ABIS} from '../constants';
 
 const FILE_ADDRESS = 'https://ipfs.webaverse.com/';
+
 const contractAddress = CONTRACT[DEFAULT_CHAIN.contract_name].NFT;
 const contractAddressFT = CONTRACT[DEFAULT_CHAIN.contract_name].FT;
 const contractABI = CONTRACT_ABIS.NFT;
@@ -125,21 +126,6 @@ export default function useNFT(currentAccount) {
     }
   }
 
-  async function getTotalCurses() {
-    try {
-      if (connectedContract) {
-        const total = await connectedContract.totalCurses();
-        setTotalCurses(total.toNumber());
-        return total.toNumber();
-      } else {
-        console.log("Ethereum object doesn't exist!");
-      }
-    } catch (error) {
-      setShowWallet(false);
-      setMinting(false);
-    }
-  }
-
   return {
     minting,
     mintNFT,
@@ -147,7 +133,5 @@ export default function useNFT(currentAccount) {
     showWallet,
     setShowWallet,
     getToken,
-    getTotalCurses,
-    totalCurses,
   };
 }
