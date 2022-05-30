@@ -36,22 +36,8 @@ const _handleMethod = ({
     case 'generateChunk': {
       const {chunkPosition, lod} = args;
       const chunk = new THREE.Vector3().fromArray(chunkPosition);
-
-      const generateChunkMesh = (origin) => {
-        dc.generateChunkDataDualContouring(origin.x, origin.y, origin.z);
-      };
-      const setChunkLod = (origin, lod) => {
-        dc.setChunkLodDualContouring(origin.x, origin.y, origin.z, lod);
-      };
-      const clearChunkData = (origin) => {
-        dc.clearTemporaryChunkDataDualContouring();
-        dc.clearChunkRootDualContouring(origin.x, origin.y, origin.z);
-      };
-
       localVector.copy(chunk).multiplyScalar(chunkWorldSize);
-      generateChunkMesh(localVector);
-      setChunkLod(localVector, 1);
-      const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z);
+      const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z, 1);
       const meshData2 = meshData && {
         positions: meshData.positions.slice(),
         normals: meshData.normals.slice(),
@@ -61,7 +47,7 @@ const _handleMethod = ({
       };
       meshData && dc.free(meshData.bufferAddress);
       console.log('got mesh data', meshData2);
-      clearChunkData(chunk);
+      dc.clearChunkRootDualContouring(localVector.x, localVector.y, localVector.z);
       return meshData2;
     }
     default: {
