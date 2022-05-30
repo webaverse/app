@@ -258,21 +258,31 @@ export default function Header() {
 
 	return (
         <div className={styles.container} onClick={ stopPropagation } >
+            <UIMode hideDirection='left' >
+                <AvatarIcon />
+            </UIMode>
+            <UIMode hideDirection='right' >
+                <User
+                    address={address}
+                    setAddress={setAddress}
+                    setLoginFrom={setLoginFrom}
+                />
+            </UIMode>
+            <div className={styles.panels}>
+                <Tokens
+                    nfts={nfts}
+                    hacks={hacks}
+                    address={address}
+                    setNfts={setNfts}
+                    loginFrom={loginFrom}
+                />
+            </div>
             <CharacterHups
               localPlayer={localPlayer}
               npcs={npcs}
             />
             {/* <div className={styles.inner}> */}
-                <UIMode hideDirection='left' >
-                    <AvatarIcon />
-                </UIMode>
-                <UIMode hideDirection='right' >
-                    <User
-                        address={address}
-                        setAddress={setAddress}
-                        setLoginFrom={setLoginFrom}
-                    />
-                </UIMode>
+
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}
@@ -291,15 +301,7 @@ export default function Header() {
                         panelsRef={panelsRef}
                     /> */}
                 </div>
-                <div className={styles.panels}>
-                    <Tokens
-                        nfts={nfts}
-                        hacks={hacks}
-                        address={address}
-                        setNfts={setNfts}
-                        loginFrom={loginFrom}
-                    />
-                </div>
+
             {/* </div> */}
         </div>
     );

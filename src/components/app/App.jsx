@@ -300,15 +300,17 @@ export const App = () => {
             onDragOver={onDragOver}
         >
             <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode }}>
-                <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <canvas className={ styles.canvas } ref={ canvasRef } />
-                <Crosshair />
                 <UIMode hideDirection='right'>
                     <ActionMenu setUIMode={ setUIMode } />
                 </UIMode>
+                <PlayMode />
+                <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
+                <Crosshair />
+
                 <Settings />
                 <WorldObjectsList />
-                <PlayMode />
+                
                 <EditorMode
                     selectedScene={ selectedScene }
                     setSelectedScene={ setSelectedScene }
