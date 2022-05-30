@@ -32,6 +32,9 @@ class TerrainManager {
           console.warn('worker message without callback', e.data);
         }
       };
+      worker.onerror = err => {
+        console.log('terrain worker load error', err);
+      };
       worker.request = (method, args) => {
         return new Promise((resolve, reject) => {
           const requestId =  makeId(5);
@@ -52,9 +55,6 @@ class TerrainManager {
       };
       workers[i] = worker;
     }
-
-    // wait for workers to load
-    
 
     // connect ports
     const _makePorts = () => {
@@ -94,17 +94,7 @@ class TerrainManager {
 
     // initialize
     Promise.all(workers.map(async worker => {
-      await new Promise((accept, reject) => {
-        // console.log('got worker 1');
-        worker.onload = e => {
-          // console.log('got worker 2', e);
-          accept();
-        };
-        worker.onerror = e => {
-          reject(e);
-        };
-      });
-
+      // set chunk size
       await worker.request('setChunkSize', {
         chunkSize,
       });
