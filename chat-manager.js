@@ -1,5 +1,7 @@
 import {makeId, makePromise} from './util.js';
 import metaversefileApi from 'metaversefile';
+import { world } from './world.js';
+
 
 const _getEmotion = text => {
   let match;
@@ -29,6 +31,13 @@ class ChatManager extends EventTarget {
 
     this.voiceRunning = false;
     this.voiceQueue = [];
+
+    this.addEventListener('messageadd', async e => {
+      const wsrtc = world.getConnection();
+      const {player, message} = e.data;
+      wsrtc.sendChatMessage(message);
+    });
+
   }
   addPlayerMessage(player, message = '', {timeout = 3000} = {}) {
     const chatId = makeId(5);
@@ -41,6 +50,7 @@ class ChatManager extends EventTarget {
       playerName: player.name,
       message,
     };
+    
     player.addAction(m);
     
     const _addFacePose = () => {
@@ -68,7 +78,7 @@ class ChatManager extends EventTarget {
         message: m,
       },
     }));
-    
+
     const localTimeout = setTimeout(() => {
       this.removePlayerMessage(player, m);
       
