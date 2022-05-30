@@ -25,7 +25,7 @@ const CONTRACT_EVENTS = {
   SINGLE_COLLABORATOR_REMOVED: 'SingleCollaboratorRemoved',
 };
 
-export default function useNFT(currentAccount) {
+export default function useNFT(currentAccount, onMint = () => {}) {
   const [minting, setMinting] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
   const [minted, setMinted] = useState([]);
@@ -67,6 +67,13 @@ export default function useNFT(currentAccount) {
       console.error(error);
     }
   }, [connectedContractFT]);
+
+  useEffect(() => {
+    const mintHandler = (from, tokenId, name) => {
+      // interact with game world here.
+      onMint(from, tokenId, name);
+      // interact with game world here.
+      setMinting(false);
     };
 
     if (connectedContract) {
@@ -100,6 +107,7 @@ export default function useNFT(currentAccount) {
         if (approval.transactionHash) {
           try {
             const mint = await connectedContract.mint(ethereum.selectedAddress, hash, name, ext, description, 1);
+            onMint(mint);
             // after mint transaction, refresh the website
           } catch (err) {
             console.log(err);
