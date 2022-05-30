@@ -61,10 +61,12 @@ export class LodChunkTracker {
   constructor(generator, {
     chunkWorldSize = 10,
     numLods = 1,
+    chunkHeight = 0,
   } = {}) {
     this.generator = generator;
     this.chunkWorldSize = chunkWorldSize;
     this.numLods = numLods;
+    this.chunkHeight = chunkHeight;
 
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector2(NaN, NaN);
@@ -82,8 +84,10 @@ export class LodChunkTracker {
       const neededChunks = [];
       for (let dcx = -1; dcx <= 1; dcx++) {
         for (let dcz = -1; dcz <= 1; dcz++) {
-          const chunk = new LodChunk(currentCoord.x + dcx, 0, currentCoord.y + dcz, lod);
-          neededChunks.push(chunk);
+          for (let dcy = -this.chunkHeight / this.chunkWorldSize; dcy <= this.chunkHeight / this.chunkWorldSize; dcy++) { // XXX
+            const chunk = new LodChunk(currentCoord.x + dcx, dcy, currentCoord.y + dcz, lod);
+            neededChunks.push(chunk);
+          }
         }
       }
 
