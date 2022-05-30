@@ -565,6 +565,23 @@ class CharacterSfx {
       });
 
       audioBufferSourceNode.start(0, offset, duration);
+
+      const audioContext2 = Avatar.getAudioContext();
+      const audioBufferSourceNode2 = audioContext2.createBufferSource();
+      audioBufferSourceNode2.buffer = this.player.voicePack.audioBuffer;
+
+      // control mouth movement with audio volume
+      if (!this.player.avatar.isAudioEnabled()) {
+        this.player.avatar.setAudioEnabled(true);
+      }
+      audioBufferSourceNode2.connect(this.player.avatar.getAudioInput());
+      
+      this.player.avatar.getAudioInput().context.gain.gain.value = 0;
+
+      audioBufferSourceNode2.start(0, offset, duration);
+      audioBufferSourceNode2.addEventListener('ended', () => {
+        this.player.avatar.getAudioInput().context.gain.gain.value = 1;
+      });
     }
   }
   destroy() {
