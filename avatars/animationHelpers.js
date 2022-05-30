@@ -813,7 +813,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const v3 = src3.evaluate(t3 % fallingAnimation.duration);
           // if (isPosition) console.log('jump', t3);
           const lerpTimeS = lerpFrameCountJumpToFall / 30;
-          const lerpFactor = 1 - MathUtils.clamp(lerpTimeS / t3, 0, 1);
+          const lerpFactor = MathUtils.clamp(t3 / lerpTimeS, 0, 1);
           if (!isPosition) {
             localQuaternion.fromArray(v3);
             dst.slerp(localQuaternion, lerpFactor);
@@ -1294,17 +1294,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const v2 = src2.evaluate(t2);
       // if (isPosition) console.log('unjump', t2);
 
-      const lerpTimeS = lerpFrameCountFallToLand / 30;
-      const lerpFactor = 1 - MathUtils.clamp(lerpTimeS / t2, 0, 1);
+      dst.fromArray(v2);
 
-      if (!isPosition) {
-        localQuaternion.fromArray(v2);
-        dst.slerp(localQuaternion, lerpFactor);
-      } else {
-        localVector.fromArray(v2);
-        _clearXZ(localVector, isPosition);
-        dst.lerp(localVector, lerpFactor);
-      }
+      // const lerpTimeS = lerpFrameCountFallToLand / 30;
+      // const lerpFactor = MathUtils.clamp(t2 / lerpTimeS, 0, 1);
+
+      // if (!isPosition) {
+      //   localQuaternion.fromArray(v2);
+      //   dst.slerp(localQuaternion, lerpFactor);
+      // } else {
+      //   localVector.fromArray(v2);
+      //   _clearXZ(localVector, isPosition);
+      //   dst.lerp(localVector, lerpFactor);
+      // }
     }
   };
 
