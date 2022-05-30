@@ -5,6 +5,7 @@ physx wasm integration.
 import * as THREE from 'three';
 // import {makePromise} from './util.js';
 // import { getRenderer } from './renderer.js'
+import Module from './public/bin/geometry.js';
 
 const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
@@ -82,8 +83,6 @@ let scratchStack = null;
 physx.waitForLoad =  () => {
   if (!loadPromise) {
     loadPromise = (async () => {
-      const importedModule = await import('./public/bin/geometry.js');
-      const Module = importedModule.default;
       await Module.waitForLoad();
       moduleInstance = Module;
       const scratchStackSize = 1024 * 1024;
