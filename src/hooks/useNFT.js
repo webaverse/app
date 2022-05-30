@@ -80,28 +80,32 @@ export default function useNFT(currentAccount) {
     };
   }, [connectedContract]);
 
-  async function mintNFT(name, description, numbers = []) {
+  async function mintNFT(currentApp) {
+    const {ethereum} = window;
     setMinting(true);
     try {
       if (connectedContract) {
         setShowWallet(true);
-        const nftTxn = await connectedContract.GenNFT(
-          name,
-          description,
-          numbers,
-          {
-            value: DEFAULT_MINT_VALUE,
-            gasLimit: DEFAULT_GAS_LIMIT,
-          },
-        );
-        setShowWallet(false);
 
-        console.log('Mining...please wait.');
-        await nftTxn.wait();
+        const name = currentApp.name;
+        const ext = currentApp.contentId.split('.').pop();
+        const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/' + name + '.' + ext)[0];
+        const description = currentApp.description;
 
-        console.log(
-          `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`,
-        );
+        const contractMintFee = await connectedContract.mintFee();
+        const mintfee = BigNumber.from(contractMintFee).toNumber();
+
+        const silkAapproval = await connectedContractFT.approve(connectedContract.address, mintfee); // mintfee = 10 default
+        const approval = await silkAapproval.wait();
+        if (approval.transactionHash) {
+          try {
+            const mint = await connectedContract.mint(ethereum.selectedAddress, hash, name, ext, description, 1);
+            // after mint transaction, refresh the website
+          } catch (err) {
+            console.log(err);
+            alert('NFT mint failed');
+          }
+        }
       } else {
         console.log("Ethereum object doesn't exist!");
       }
