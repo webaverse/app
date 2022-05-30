@@ -90,7 +90,7 @@ physx.waitForLoad =  () => {
       scratchStack = new ScratchStack(scratchStackSize);
       physx.physics = physxWorker.makePhysics();
 
-      console.log('module called run', Module.calledRun);
+      // console.log('module called run', Module.calledRun);
       /* if (Module.calledRun) {
         // Module.onRuntimeInitialized()
         Module.postRun()
