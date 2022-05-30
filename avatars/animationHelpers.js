@@ -804,7 +804,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const t2 = jumpTimeS;
           const src2 = fallingAnimation.interpolants[k];
           const v2 = src2.evaluate(t2 % fallingAnimation.duration);
-          if (isPosition) console.log('loop', t2);
+          // if (isPosition) console.log('loop', t2);
 
           dst.fromArray(v2);
           _clearXZ(dst, isPosition);
@@ -812,7 +812,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const t2 = jumpTimeS;
           const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
-          if (isPosition) console.log('jump', t2);
+          // if (isPosition) console.log('jump', t2);
 
           dst.fromArray(v2);
           _clearXZ(dst, isPosition);
@@ -1281,7 +1281,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const t2 = unjumpTimeS;
       const src2 = landingAnimation.interpolants[k];
       const v2 = src2.evaluate(t2);
-      if (isPosition) console.log('unjump', t2);
+      // if (isPosition) console.log('unjump', t2);
 
       dst.fromArray(v2);
       _clearXZ(dst, isPosition);
