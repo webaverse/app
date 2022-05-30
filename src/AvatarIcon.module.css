@@ -37,7 +37,6 @@
   left: 0;
   user-select: none;
   cursor: pointer;
-  z-index: 2;
 }
 
 /* .avatarIcon .logo {
