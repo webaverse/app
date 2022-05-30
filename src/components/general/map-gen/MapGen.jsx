@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
-const {useLocalPlayer, useLoreAIScene, useSceneCruncher} = metaversefile;
+const {useLocalPlayer, useLoreAIScene, useParticleSystem} = metaversefile;
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../io-handler';
@@ -22,11 +22,11 @@ import musicManager from '../../../../music-manager.js';
 import {chatManager} from '../../../../chat-manager.js';
 import {
   makeRng,
-  numBlocksPerChunk,
+  // numBlocksPerChunk,
   voxelPixelSize,
   chunkWorldSize,
   placeNames,
-  MapBlock,
+  // MapBlock,
   createMapChunk,
   createMapChunkMesh,
 } from '../../../../procgen/procgen.js';
@@ -40,6 +40,7 @@ const localVectorX = new THREE.Vector3();
 const localVectorX2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -200,8 +201,10 @@ export const MapGen = () => {
     const [lastSelectTime, setLastSelectTime] = useState(-Infinity);
     const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
+    const [firedropMeshApp, setFiredropMeshApp] = useState(null);
     const [haloMeshApp, setHaloMeshApp] = useState(null);
     const [silksMeshApp, setSilksMeshApp] = useState(null);
+    const [cometMeshApp, setCometMeshApp] = useState(null);
     const [flareMeshApp, setFlareMeshApp] = useState(null);
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
@@ -317,17 +320,6 @@ export const MapGen = () => {
       }
     };
 
-    /* useEffect(() => {
-      if (text) {
-        const timeout = setTimeout(() => {
-          setText('');
-        }, 5000);
-        return () => {
-          clearTimeout(timeout);
-        };
-      }
-    }, [text]); */
-
     // open
     useEffect( () => {
 
@@ -336,6 +328,34 @@ export const MapGen = () => {
             if (game.inputFocused()) return true;
 
               switch ( event.which ) {
+
+                case 74: { // J
+
+                  if (!firedropMeshApp) {
+                    const localPlayer = useLocalPlayer();
+                    const position = localPlayer.position.clone()
+                      .add(new THREE.Vector3(0, 0, -3).applyQuaternion(localPlayer.quaternion));
+
+                    const firedropMeshApp = metaversefile.createApp({
+                      position,
+                    });
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['firedrop'];
+                      await firedropMeshApp.addModule(m);
+                    })();
+                    scene.add(firedropMeshApp);
+
+                    setFiredropMeshApp(firedropMeshApp);
+                  } else {
+                    firedropMeshApp.parent.remove(firedropMeshApp);
+                    firedropMeshApp.destroy();
+
+                    setFiredropMeshApp(null);
+                  }
+
+                  return false;
+                }
 
                 case 75: { // K
 
@@ -381,6 +401,37 @@ export const MapGen = () => {
                     return false;
 
                 }
+
+                case 80: { // P
+                
+                  if (!cometMeshApp) {
+                    const cometMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['comet'];
+                      await cometMeshApp.addModule(m);
+                    })();
+                    scene.add(cometMeshApp);
+                    const localPlayer = useLocalPlayer();
+                    cometMeshApp.position.copy(localPlayer.position)
+                      .add(new THREE.Vector3(0, 3, -3).applyQuaternion(localPlayer.quaternion));
+                    localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
+                    localEuler.x = 0;
+                    localEuler.z = 0;
+                    cometMeshApp.quaternion.setFromEuler(localEuler);
+                    cometMeshApp.updateMatrixWorld();
+
+                    setCometMeshApp(cometMeshApp);
+                  } else {
+                    cometMeshApp.parent.remove(cometMeshApp);
+                    cometMeshApp.destroy();
+
+                    setCometMeshApp(null);
+                  }
+      
+                  return false;
+
+              }
 
                 case 186: { // ;
 
@@ -521,7 +572,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel, haloMeshApp, silksMeshApp, flareMeshApp, magicMeshApp, limitMeshApp ]);
+    }, [ state.openedPanel, firedropMeshApp, haloMeshApp, silksMeshApp, cometMeshApp, flareMeshApp, magicMeshApp, limitMeshApp ]);
 
     // resize
     useEffect(() => {

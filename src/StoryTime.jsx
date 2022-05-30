@@ -1,4 +1,5 @@
 // import * as THREE from 'three';
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 import { RpgText } from './RpgText.jsx';
@@ -11,6 +12,15 @@ import * as sounds from '../sounds.js';
 import storyManager from '../story.js';
 
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
+=======
+import React, {useState, useEffect} from 'react';
+import * as sounds from '../sounds.js';
+import storyManager from '../story.js';
+import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler';
+import {MegaChatBox} from './components/play-mode/mega-chat-box';
+
+import styles from './StoryTime.module.css';
+>>>>>>> 94c4e169aead64e2f09d4aaacd061a72067f647b
 
 const _progressConversation = () => {
   const conversation = storyManager.getConversation();
@@ -19,6 +29,7 @@ const _progressConversation = () => {
   sounds.playSoundName('menuNext');
 };
 
+<<<<<<< HEAD
 const MegaChatBox = ({
   message,
   options,
@@ -120,6 +131,8 @@ const MegaChatBox = ({
   );
 };
 
+=======
+>>>>>>> 94c4e169aead64e2f09d4aaacd061a72067f647b
 export const StoryTime = () => {
   const [message, setMessage] = useState(null);
   const [options, setOptions] = useState(null);
@@ -235,6 +248,11 @@ export const StoryTime = () => {
           conversation.progressOptionSelect(option);
 
           sounds.playSoundName('menuSelect');
+        }}
+        onClick={e => {
+          if (!progressing) {
+            _progressConversation();
+          }
         }}
       />
     </div>

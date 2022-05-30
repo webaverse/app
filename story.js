@@ -421,7 +421,7 @@ const story = new EventTarget();
 let currentConversation = null;
 story.getConversation = () => currentConversation;
 
-// returns whether the event was handled
+// returns whether the event was handled (used for options scrolling)
 story.handleWheel = e => {
   if (currentConversation) {
     return currentConversation.handleWheel(e);
@@ -430,23 +430,28 @@ story.handleWheel = e => {
   }
 };
 
-story.listenHack = () => {
-  const _startConversation = (comment, remotePlayer, done) => {
-    const localPlayer = getLocalPlayer();
-    currentConversation = new Conversation(localPlayer, remotePlayer);
-    currentConversation.addEventListener('close', () => {
-      currentConversation = null;
+const _startConversation = (comment, remotePlayer, done) => {
+  const localPlayer = getLocalPlayer();
+  currentConversation = new Conversation(localPlayer, remotePlayer);
+  currentConversation.addEventListener('close', () => {
+    currentConversation = null;
 
-      cameraManager.setDynamicTarget(null);
-    }, {once: true});
-    story.dispatchEvent(new MessageEvent('conversationstart', {
-      data: {
-        conversation: currentConversation,
-      },
-    }));
-    currentConversation.addLocalPlayerMessage(comment);
-    done && currentConversation.finish();
-  };
+    cameraManager.setDynamicTarget(null);
+  }, {once: true});
+  story.dispatchEvent(new MessageEvent('conversationstart', {
+    data: {
+      conversation: currentConversation,
+    },
+  }));
+  currentConversation.addLocalPlayerMessage(comment);
+  done && currentConversation.finish();
+  return currentConversation;
+};
+story.startLocalPlayerComment = comment => {
+  return _startConversation(comment, null, true);
+};
+
+story.listenHack = () => {
   window.document.addEventListener('click', async e => {
     if (cameraManager.pointerLockElement) {
       if (e.button === 0 && (cameraManager.focus && zTargeting.focusTargetReticle)) {

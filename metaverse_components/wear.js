@@ -9,8 +9,15 @@ import npcManager from '../npc-manager.js';
 // import {rarityColors} from '../constants.js';
 
 const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
+
+const identityVector = new THREE.Vector3();
 
 export default (app, component) => {
   const {useActivate} = metaversefile;
@@ -188,26 +195,65 @@ export default (app, component) => {
 
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
-    const boneName = Avatar.modelBoneRenames[boneAttachment];
-    const bone = player.avatar.foundModelBones[boneName];
-    if (bone) {
-      bone.matrixWorld
-        .decompose(app.position, app.quaternion, app.scale);
-      if (Array.isArray(position)) {
-        app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
-      }
-      if (Array.isArray(quaternion)) {
-        app.quaternion.multiply(localQuaternion.fromArray(quaternion));
-      }
-      if (Array.isArray(scale)) {
-        app.scale.multiply(localVector.fromArray(scale));
-      }
-      app.updateMatrixWorld();
+    const boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
 
-      // console.log('copy bone attachment', app, app.position.toArray().join(','), bone);
-    } else {
-      console.warn('invalid bone attachment', {app, boneAttachment});
+    // lerp app's transform to average position/quaternion/scale of boneAttachments.
+    let count = 0;
+    boneAttachments.forEach((boneAttachment, i) => {
+      const boneName = Avatar.modelBoneRenames[boneAttachment];
+      const bone = player.avatar.foundModelBones[boneName];
+      if (bone) {
+        if (count === 0) {
+          bone.matrixWorld
+            .decompose(app.position, app.quaternion, app.scale);
+          count++;
+        } else {
+          bone.matrixWorld
+            .decompose(localVector, localQuaternion, localVector2);
+          const t = 1 / (count + 1);
+          app.position.lerp(localVector, t);
+          app.quaternion.slerp(localQuaternion, t);
+          app.scale.lerp(localVector2, t);
+          count++;
+        }
+      } else {
+        console.warn('invalid bone attachment', {app, boneAttachment});
+      }
+    });
+
+    if (quaternion === 'upVectorHipsToPosition') {
+      const hipsPostion = localVector;
+      hipsPostion.setFromMatrixPosition(player.avatar.foundModelBones.Hips.matrixWorld);
+
+      localEuler.order = 'YXZ';
+      localEuler.setFromQuaternion(player.quaternion);
+      localEuler.x = 0;
+      localEuler.z = 0;
+      const playerQuaternion = localQuaternion2.setFromEuler(localEuler);
+
+      const eyeVector = identityVector;
+      const upVector = localVector3.copy(app.position).sub(hipsPostion).normalize();
+      const targetVector = localVector4.set(0, 0, -1);
+      targetVector.applyQuaternion(localQuaternion.setFromUnitVectors(
+        localVector.set(0, 1, 0),
+        localVector2.copy(upVector).normalize(),
+      ));
+
+      localMatrix.lookAt(eyeVector, targetVector, upVector)
+      app.quaternion.setFromRotationMatrix(localMatrix);
+      app.quaternion.multiply(playerQuaternion);
     }
+
+    if (Array.isArray(position)) {
+      app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
+    }
+    if (Array.isArray(quaternion)) {
+      app.quaternion.multiply(localQuaternion.fromArray(quaternion));
+    }
+    if (Array.isArray(scale)) {
+      app.scale.multiply(localVector.fromArray(scale));
+    }
+    app.updateMatrixWorld();
   };
   const frame = metaversefile.useFrame(({timestamp, timeDiff}) => {
     if (wearSpec && player.avatar) {

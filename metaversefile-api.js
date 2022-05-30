@@ -47,11 +47,14 @@ import debug from './debug.js';
 import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
+import * as lodder from './lod.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
+import terrainManager from './terrain-manager.js';
+import cardsManager from './cards-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -398,6 +401,18 @@ metaversefile.setApi({
   getMirrors() {
     return mirrors;
   },
+  getWinds() {
+    return world.winds;
+  },
+  setWinds(wind) {
+    world.winds.push(wind);
+  },
+  removeWind(wind) {
+    const index = world.winds.indexOf(wind);
+    if (index > -1) {
+      world.winds.splice(index, 1);
+    }
+  },
   registerMirror(mirror) {
     mirrors.push(mirror);
   },
@@ -538,6 +553,9 @@ metaversefile.setApi({
   },
   useLoaders() {
     return loaders;
+  },
+  useLodder() {
+    return lodder;
   },
   useMeshLodder() {
     return meshLodManager;
@@ -1183,6 +1201,12 @@ export default () => {
   },
   useHitManager() {
     return hitManager;
+  },
+  useTerrainManager() {
+    return terrainManager;
+  },
+  useCardsManager() {
+    return cardsManager;
   },
   useDebug() {
     return debug;

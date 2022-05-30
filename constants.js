@@ -14,9 +14,9 @@ export const rarityColors = {
 };
 
 const chainName = (() => {
-  if (typeof window !== 'undefined' && /^test\./.test(location.hostname)) {
+  if (typeof globalThis !== 'undefined' && /^test\./.test(location.hostname)) {
     return 'testnet';
-  } else if (typeof window !== 'undefined' && /^polygon\./.test(location.hostname)) {
+  } else if (typeof globalThis !== 'undefined' && /^polygon\./.test(location.hostname)) {
     return 'polygon';
   } else {
     return 'mainnet';
@@ -34,13 +34,13 @@ export const polygonVigilKey = `0937c004ab133135c86586b55ca212a6c9ecd224`;
 
 //
 
-const origin = window.location.protocol + '//' + window.location.hostname;
+const origin = globalThis.location.protocol + '//' + globalThis.location.hostname;
 
 let _inappPreviewHost = '';
 
 switch ( origin ) {
     case 'https://local.webaverse.com': {
-        _inappPreviewHost = `https://local.webaverse.online:${window.location.port}`;
+        _inappPreviewHost = `https://local.webaverse.online:${globalThis.location.port}`;
         break;
     }
     case 'https://dev.webaverse.com': {
@@ -91,7 +91,8 @@ export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;
 export const aimMaxTime = 1000;
-export const throwReleaseTime = 750;
+export const throwReleaseTime = 220;
+export const throwAnimationDuration = 1.4166666269302368;
 export const minFov = 60;
 export const maxFov = 120;
 export const midFov = 90;
@@ -114,7 +115,7 @@ export const defaultMusicVolume = 0.35;
 
 export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
 
-export const voiceEndpoint = `https://voice.webaverse.com/tts`;
+export const voiceEndpointBaseUrl = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
 
 export const chatTextSpeed = 15;
@@ -126,6 +127,7 @@ export const infoboxSize = 100;
 export const numLoadoutSlots = 8;
 
 export const defaultDioramaSize = 512;
+export const defaultChunkSize = 16;
 
 export const defaultVoiceEndpoint = `Sweetie Belle`;
 export const defaultVoicePackName = `ShiShi voice pack`;
