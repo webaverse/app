@@ -2,10 +2,9 @@
 physx wasm integration.
 */
 
-import * as THREE from 'three'
+import * as THREE from 'three';
 // import {makePromise} from './util.js';
 // import { getRenderer } from './renderer.js'
-import Module from './public/bin/geometry.js'
 
 const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
@@ -18,54 +17,99 @@ const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(
 // const textEncoder = new TextEncoder();
 // const textDecoder = new TextDecoder();
 
-const scratchStackSize = 1024 * 1024
-const maxNumUpdates = 256
+class Allocator {
+  constructor() {
+    this.offsets = []
+  }
 
-const physx = {}
-
-physx.waitForLoad = Module.waitForLoad
-
-const physxWorker = (() => {
-  class Allocator {
-    constructor() {
-      this.offsets = []
-    }
-
-    alloc(constructor, size) {
-      if (size > 0) {
-        const offset = moduleInstance._malloc(
-          size * constructor.BYTES_PER_ELEMENT
-        )
-        const b = new constructor(
-          moduleInstance.HEAP8.buffer,
-          moduleInstance.HEAP8.byteOffset + offset,
-          size
-        )
-        b.offset = offset
-        this.offsets.push(offset)
-        return b
-      } else {
-        return new constructor(moduleInstance.HEAP8.buffer, 0, 0)
-      }
-    }
-
-    freeAll() {
-      for (let i = 0; i < this.offsets.length; i++) {
-        moduleInstance._doFree(this.offsets[i])
-      }
-      this.offsets.length = 0
+  alloc(constructor, size) {
+    if (size > 0) {
+      const offset = moduleInstance._malloc(
+        size * constructor.BYTES_PER_ELEMENT
+      )
+      const b = new constructor(
+        moduleInstance.HEAP8.buffer,
+        moduleInstance.HEAP8.byteOffset + offset,
+        size
+      )
+      b.offset = offset
+      this.offsets.push(offset)
+      return b
+    } else {
+      return new constructor(moduleInstance.HEAP8.buffer, 0, 0)
     }
   }
 
-  const maxNumMessageArgs = 32
+  freeAll() {
+    for (let i = 0; i < this.offsets.length; i++) {
+      moduleInstance._doFree(this.offsets[i])
+    }
+    this.offsets.length = 0
+  }
+}
+class ScratchStack {
+  constructor(size) {
+    this.ptr = moduleInstance._malloc(size)
+
+    this.u8 = new Uint8Array(
+      moduleInstance.HEAP8.buffer,
+      this.ptr,
+      size
+    )
+    this.u32 = new Uint32Array(
+      moduleInstance.HEAP8.buffer,
+      this.ptr,
+      size / 4
+    )
+    this.i32 = new Int32Array(
+      moduleInstance.HEAP8.buffer,
+      this.ptr,
+      size / 4
+    )
+    this.f32 = new Float32Array(
+      moduleInstance.HEAP8.buffer,
+      this.ptr,
+      size / 4
+    )
+  }
+}
+
+const physx = {};
+
+let loadPromise = null;
+let moduleInstance = null;
+let scratchStack = null;
+physx.waitForLoad =  () => {
+  if (!loadPromise) {
+    loadPromise = (async () => {
+      const importedModule = await import('./public/bin/geometry.js');
+      const Module = importedModule.default;
+      await Module.waitForLoad();
+      moduleInstance = Module;
+      const scratchStackSize = 1024 * 1024;
+      scratchStack = new ScratchStack(scratchStackSize);
+      physx.physics = physxWorker.makePhysics();
+
+      console.log('module called run', Module.calledRun);
+      /* if (Module.calledRun) {
+        // Module.onRuntimeInitialized()
+        Module.postRun()
+      } */
+    })();
+  }
+  return loadPromise;
+};
+
+const physxWorker = (() => {
+  /* const maxNumMessageArgs = 32
   const messageSize =
     Int32Array.BYTES_PER_ELEMENT + // id
     Int32Array.BYTES_PER_ELEMENT + // method
     Int32Array.BYTES_PER_ELEMENT + // priority
     maxNumMessageArgs * Uint32Array.BYTES_PER_ELEMENT // args
   const maxNumMessages = 1024
-  const callStackSize = maxNumMessages * messageSize
-  class CallStackMessage {
+  const callStackSize = maxNumMessages * messageSize */
+  /* class CallStackMessage {
     constructor(ptr) {
       this.dataView = new DataView(
         moduleInstance.HEAP8.buffer,
@@ -152,7 +196,7 @@ const physxWorker = (() => {
     pushF32(v) {
       this.dataView.setFloat32(this.offset, v, true)
       this.offset += Float32Array.BYTES_PER_ELEMENT
-    }
+    } */
     /* pullU8Array(length) {
       if (this.offset + length <= messageSize) {
         const result = new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, length);
@@ -238,8 +282,8 @@ const physxWorker = (() => {
         throw new Error('message overflow');
       }
     } */
-  }
-  class CallStack {
+  // }
+  /* class CallStack {
     constructor() {
       this.ptr = moduleInstance._malloc(
         callStackSize * 2 + Uint32Array.BYTES_PER_ELEMENT
@@ -285,33 +329,7 @@ const physxWorker = (() => {
     reset() {
       this.numEntries = 0
     }
-  }
-  class ScratchStack {
-    constructor() {
-      this.ptr = moduleInstance._malloc(scratchStackSize)
-
-      this.u8 = new Uint8Array(
-        moduleInstance.HEAP8.buffer,
-        this.ptr,
-        scratchStackSize
-      )
-      this.u32 = new Uint32Array(
-        moduleInstance.HEAP8.buffer,
-        this.ptr,
-        scratchStackSize / 4
-      )
-      this.i32 = new Int32Array(
-        moduleInstance.HEAP8.buffer,
-        this.ptr,
-        scratchStackSize / 4
-      )
-      this.f32 = new Float32Array(
-        moduleInstance.HEAP8.buffer,
-        this.ptr,
-        scratchStackSize / 4
-      )
-    }
-  }
+  } */
 
   // const modulePromise = makePromise();
   /* const INITIAL_INITIAL_MEMORY = 52428800;
@@ -321,18 +339,9 @@ const physxWorker = (() => {
     "maximum": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
     "shared": true,
   }); */
-  let moduleInstance = null
-  let scratchStack
-  ;(async () => {
-    await Module.waitForLoad()
-
-    moduleInstance = Module
-    scratchStack = new ScratchStack()
-    physx.physics = physxWorker.makePhysics()
-  })()
 
   // let methodIndex = 0
-  const cbIndex = new Map()
+  // const cbIndex = new Map()
   const w = {}
   w.alloc = (constructor, count) => {
     if (count > 0) {
@@ -342,10 +351,10 @@ const physxWorker = (() => {
     } else {
       return new constructor(moduleInstance.HEAP8.buffer, 0, 0)
     }
-  }
+  };
   w.free = (ptr) => {
     moduleInstance._doFree(ptr)
-  }
+  };
   /* w.makeArenaAllocator = size => {
     const ptr = moduleInstance._makeArenaAllocator(size);
     const offset = moduleInstance.HEAP32[ptr / Uint32Array.BYTES_PER_ELEMENT];
@@ -557,6 +566,7 @@ const physxWorker = (() => {
   }; */
   w.makePhysics = () => moduleInstance._makePhysics()
   w.simulatePhysics = (physics, updates, elapsedTime) => {
+    const maxNumUpdates = 256;
     /* if (updates.length > maxNumUpdates) {
       throw new Error('too many updates to simulate step: ' + updates.length + ' (max: ' + maxNumUpdates + ')');
     } */
@@ -2238,13 +2248,5 @@ const _updateGeometry = () => {
   physxWorker.update()
 }
 physx.update = _updateGeometry
-
-const _initModule = () => {
-  if (Module.calledRun) {
-    Module.onRuntimeInitialized()
-    Module.postRun()
-  }
-}
-_initModule()
 
 export default physx
