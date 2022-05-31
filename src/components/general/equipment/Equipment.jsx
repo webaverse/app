@@ -1,26 +1,18 @@
 import React, {forwardRef, useEffect, useState, useRef, useContext} from 'react';
 import classnames from 'classnames';
 import styles from './equipment.module.css';
-import { AppContext } from '../../app';
-import { MegaHotBox } from '../../play-mode/mega-hotbox';
-import { CachedLoader } from '../../../CachedLoader.jsx';
-// import {EquipmentPopover} from '../../play-mode/equipment-popover';
-import { Spritesheet } from '../spritesheet';
+import {AppContext} from '../../app';
+import {MegaHotBox} from '../../play-mode/mega-hotbox';
+import {Spritesheet} from '../spritesheet';
 import game from '../../../../game.js';
-import { transparentPngUrl } from '../../../../constants.js';
+import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
-import { mod } from '../../../../util.js';
-import dropManager from '../../../../drop-manager';
-import cardsManager from '../../../../cards-manager.js';
-
-//
-import { NFTABI, NFTcontractAddress } from '../../../abis/contract';
-
+import {mod} from '../../../../util.js';
+import { NFTABI, NFTcontractAddress } from "../../../abis/contract"
 import { ethers, BigNumber } from 'ethers'
 
 const size = 2048;
 const numFrames = 128;
-const width = 400;
 
 const equipmentTabs = [
   'noun-backpack-16741.svg',
@@ -38,8 +30,6 @@ for (let i = 0; i < userTokenObjects.length; i++) {
   };
 }
 const objects = {
-    upstreet: [
-/* {
   upstreet: [
     {
       name: 'Silsword',
