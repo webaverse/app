@@ -15,9 +15,6 @@ export const ObjectScreenshot = ({ app, startUrl, width, height, className = '' 
     useEffect( async () => {
 
         if ( ! canvasRef.current ) return;
-
-        console.log(startUrl);
-
         const canvas = await screenshotObjectApp({ app, clearAlpha: 0, width, height, start_url: startUrl });
         canvasRef.current.innerHTML = "";
         canvasRef.current.appendChild( canvas );
