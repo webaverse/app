@@ -151,6 +151,13 @@ class PlayerBase extends THREE.Object3D {
   constructor() {
     super();
 
+    // If these weren't set on constructor (which they aren't on remote player) then set them now
+    this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
+    this.characterBehavior = new CharacterBehavior(this);
+
     this.leftHand = new PlayerHand();
     this.rightHand = new PlayerHand();
     this.hands = [this.leftHand, this.rightHand];
@@ -525,7 +532,8 @@ class StatePlayer extends PlayerBase {
   bindCommonObservers() {
     const actions = this.getActionsState();
     let lastActions = actions.toJSON();
-    const observeActionsFn = () => {
+    const observeActionsFn = (e) => {
+      console.log("e is", e)
       const nextActions = Array.from(this.getActionsState());
       for (const nextAction of nextActions) {
         if (
@@ -533,11 +541,11 @@ class StatePlayer extends PlayerBase {
             (lastAction) => lastAction.actionId === nextAction.actionId
           )
         ) {
+          console.log("dispatching action", nextAction)
           this.dispatchEvent({
-            type: "actionadd",
+            type: 'actionadd',
             action: nextAction,
           });
-          // console.log('add action', nextAction);
         }
       }
       for (const lastAction of lastActions) {
@@ -547,7 +555,7 @@ class StatePlayer extends PlayerBase {
           )
         ) {
           this.dispatchEvent({
-            type: "actionremove",
+            type: 'actionremove',
             action: lastAction,
           });
           // console.log('remove action', lastAction);
@@ -600,7 +608,6 @@ class StatePlayer extends PlayerBase {
 
     // blindly add to new state
     this.playersArray = nextPlayersArray;
-    window.playersArray = this.playersArray;
     if (this.playersArray) {
       this.attachState(oldState);
       this.bindCommonObservers();
@@ -753,9 +760,11 @@ class StatePlayer extends PlayerBase {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
   }
   addAction(action) {
+    console.log("Adding action", action)
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);
+    
     return action;
   }
   removeAction(type) {
@@ -1126,13 +1135,6 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
-    // If these weren't set on constructor (which they aren't on remote player) then set them now
-    this.characterPhysics = this.characterPhysics ?? new CharacterPhysics(this);
-    this.characterHups = this.characterHups ?? new CharacterHups(this);
-    this.characterSfx = this.characterSfx ?? new CharacterSfx(this);
-    this.characterFx = this.characterFx ?? new CharacterFx(this);
-    this.characterBehavior =
-      this.characterBehavior ?? new CharacterBehavior(this);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -1373,7 +1375,6 @@ class LocalPlayer extends UninterpolatedPlayer {
       applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
       this.avatar.update(timestamp, timeDiff, true);
-      this.characterHups?.update(timestamp);
     }
     this.updateWearables();
   }
@@ -1452,14 +1453,6 @@ class RemotePlayer extends InterpolatedPlayer {
     this.audioWorkletNode = null;
 
     this.isRemotePlayer = true;
-
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
-    this.characterBehavior = new CharacterBehavior(this);
-
-    console.log("new remote plater", this);
   }
 
   audioWorkerLoaded = false;
@@ -1548,7 +1541,6 @@ class RemotePlayer extends InterpolatedPlayer {
       applyPlayerToAvatar(this, null, this.avatar, mirrors);
 
       this.avatar.update(timestamp, timeDiff, false);
-      this.characterHups?.update(timestamp);
     }
   }
   updatePhysics = () => {}; // LocalPlayer.prototype.updatePhysics;
@@ -1692,11 +1684,6 @@ class StaticUninterpolatedPlayer extends PlayerBase {
   }
   addAction(action) {
     this.actions.push(action);
-
-    this.dispatchEvent({
-      type: "actionadd",
-      action,
-    });
   }
   removeAction(type) {
     for (let i = 0; i < this.actions.length; i++) {
@@ -1710,7 +1697,7 @@ class StaticUninterpolatedPlayer extends PlayerBase {
   removeActionIndex(index) {
     const action = this.actions.splice(index, 1)[0];
     this.dispatchEvent({
-      type: "actionremove",
+      type: 'actionremove',
       action,
     });
   }
@@ -1728,12 +1715,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
 
     this.isNpcPlayer = true;
     this.avatarApp = null;
-
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
-    this.characterBehavior = new CharacterBehavior(this);
   }
   getAvatarApp() {
     return this.avatarApp;
@@ -1752,11 +1733,6 @@ class NpcPlayer extends StaticUninterpolatedPlayer {
     enableShadows(app);
 
     this.avatar = avatar;
-
-    this.characterPhysics = this.characterPhysics ?? new CharacterPhysics(this);
-    this.characterHups = this.characterHups ?? new CharacterHups(this);
-    this.characterSfx = this.characterSfx ?? new CharacterSfx(this);
-    this.characterFx = this.characterFx ?? new CharacterFx(this);
 
     this.avatarApp = app;
 

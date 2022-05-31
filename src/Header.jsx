@@ -25,6 +25,7 @@ export default function Header() {
 
     const { state, setState, selectedApp } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
+    const remotePlayers = metaversefile.useRemotePlayers();
     const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
 
     const dioramaCanvasRef = useRef();
@@ -261,6 +262,7 @@ export default function Header() {
             <CharacterHups
               localPlayer={localPlayer}
               npcs={npcs}
+              remotePlayers={remotePlayers}
             />
             {/* <div className={styles.inner}> */}
                 <UIMode hideDirection='left' >

@@ -10,7 +10,7 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import hpManager from './hp-manager.js';
 // import {rigManager} from './rig.js';
 import {AppManager} from './app-manager.js';
-// import {chatManager} from './chat-manager.js';
+import {chatManager} from './chat-manager.js';
 // import {getState, setState} from './state.js';
 import {makeId} from './util.js';
 import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
@@ -105,19 +105,19 @@ world.connectRoom = async u => {
       })
 
       wsrtc.addEventListener('chat', e => {
-        console.log('chat handled', e);
         let { playerId, message } = e.data;
-
-        const player = metaversefileApi.useRemotePlayer(playerId);
-        const localPlayer = metaversefileApi.useLocalPlayer();
+        if(localPlayer.playerId === playerId) return console.log("Skipping chat for local player")
+        const player = playersManager.remotePlayers.get(playerId);
         const chatId = makeId(5);
-        localPlayer.addAction({
+
+        const m = {
           type: 'chat',
           chatId,
           playerName: player.name,
           message
-        })
+        }
 
+        chatManager.addPlayerMessage(player, m)
       })
     };
     wsrtc.addEventListener('init', init);
