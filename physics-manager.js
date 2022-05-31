@@ -14,6 +14,7 @@ import { getNextPhysicsId, freePhysicsId, convertMeshToPhysicsMesh } from './uti
 // import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
 import { CapsuleGeometry } from './geometries.js'
+import physxWorkerManager from './physx-worker-manager.js';
 
 // const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
@@ -170,6 +171,11 @@ physicsManager.cookGeometry = (mesh) => {
   const buffer = physx.physxWorker.cookGeometryPhysics(physx.physics, physicsMesh);
   return buffer;
 };
+physicsManager.cookGeometryAsync = async (mesh) => {
+  const physicsMesh = convertMeshToPhysicsMesh(mesh);
+  const buffer = await physxWorkerManager.cookGeometry(physicsMesh);
+  return buffer;
+};
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId()
   physx.physxWorker.addCookedGeometryPhysics(
@@ -223,6 +229,11 @@ physicsManager.addConvexGeometry = (mesh) => {
 physicsManager.cookConvexGeometry = (mesh) => {
   const physicsMesh = convertMeshToPhysicsMesh(mesh);
   const buffer = physx.physxWorker.cookConvexGeometryPhysics(physx.physics, physicsMesh);
+  return buffer;
+};
+physicsManager.cookConvexGeometryAsync = async (mesh) => {
+  const physicsMesh = convertMeshToPhysicsMesh(mesh);
+  const buffer = await physxWorkerManager.cookConvexGeometry(physicsMesh);
   return buffer;
 };
 physicsManager.addCookedConvexGeometry = (
