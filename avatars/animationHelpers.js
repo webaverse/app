@@ -1292,7 +1292,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const t2 = unjumpTimeS;
       const src2 = landingAnimation.interpolants[k];
       const v2 = src2.evaluate(t2);
-      if (isPosition) console.log('unjump', t2);
+      if (isPosition) console.log('unjump');
 
       dst.fromArray(v2);
 
