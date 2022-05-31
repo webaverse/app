@@ -52,6 +52,20 @@
         1
       ],
       "start_url": "https://webaverse.github.io/silsword/"
+    },
+    {
+      "position": [
+        2,
+        33.5,
+        74
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/hovercraft/"
     }
   ]
 }
