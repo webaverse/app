@@ -1,9 +1,10 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import {makeId} from './util.js';
 import {defaultChunkSize} from './constants.js';
 // import metaversefile from 'metaversefile';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
 // import physics from './physics-manager.js';
+import {GeometryAllocator} from './geometry-allocator.js';
 
 // const localVector = new THREE.Vector3();
 
@@ -32,9 +33,12 @@ class TerrainManager {
           console.warn('worker message without callback', e.data);
         }
       };
+      worker.onerror = err => {
+        console.log('terrain worker load error', err);
+      };
       worker.request = (method, args) => {
         return new Promise((resolve, reject) => {
-          const requestId =  makeId(5);
+          const requestId = makeId(5);
           cbs.set(requestId, data => {
             const {error, result} = data;
             if (error) {
@@ -52,9 +56,6 @@ class TerrainManager {
       };
       workers[i] = worker;
     }
-
-    // wait for workers to load
-    
 
     // connect ports
     const _makePorts = () => {
@@ -94,17 +95,7 @@ class TerrainManager {
 
     // initialize
     Promise.all(workers.map(async worker => {
-      await new Promise((accept, reject) => {
-        // console.log('got worker 1');
-        worker.onload = e => {
-          // console.log('got worker 2', e);
-          accept();
-        };
-        worker.onerror = e => {
-          reject(e);
-        };
-      });
-
+      // set chunk size
       await worker.request('setChunkSize', {
         chunkSize,
       });
@@ -124,6 +115,7 @@ class TerrainManager {
     });
     return result;
   }
+  static GeometryAllocator = GeometryAllocator;
 }
 const terrainManager = new TerrainManager();
 export default terrainManager;

@@ -14,8 +14,20 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
         glType = WebGLRenderingContext.UNSIGNED_SHORT;
         break;
       }
+      case Int16Array: {
+        glType = WebGLRenderingContext.SHORT;
+        break;
+      }
       case Uint32Array: {
         glType = WebGLRenderingContext.UNSIGNED_INT;
+        break;
+      }
+      case Int32Array: {
+        glType = WebGLRenderingContext.INT;
+        break;
+      }
+      case Uint8Array: {
+        glType = WebGLRenderingContext.BYTE;
         break;
       }
       default: {
@@ -66,13 +78,18 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
     };
     return popUpdate;
   }
-  update(offset, count) {
+  wrap(fn) {
     let popUpdate = null;
     if (!ImmediateGLBufferAttribute.pushed) {
       popUpdate = ImmediateGLBufferAttribute.pushUpdate();
     }
    
-    {
+    fn();
+
+    popUpdate && popUpdate();
+  }
+  update(offset, count, array = this.array, srcOffset = offset) {
+    this.wrap(() => {
       const renderer = getRenderer();
       const gl = renderer.getContext();
       const target = this.getTarget();
@@ -81,12 +98,10 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
       gl.bufferSubData(
         target,
         offset * this.elementSize,
-        this.array,
-        offset,
+        array,
+        srcOffset,
         count
       );
-    }
-
-    popUpdate && popUpdate();
+    });
   }
 }

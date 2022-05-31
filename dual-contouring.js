@@ -27,24 +27,12 @@ w.setChunkSize = (chunkSize) => {
   Module._setChunkSize(chunkSize)
 };
 
-w.generateChunkDataDualContouring = (x, y, z) => {
-  Module._generateChunkDataDualContouring(x, y, z)
-}
-
-w.setChunkLodDualContouring = (x, y, z, lod) => {
-  Module._setChunkLodDualContouring(x, y, z, lod)
-}
-
-w.clearTemporaryChunkDataDualContouring = () => {
-  Module._clearTemporaryChunkDataDualContouring()
-}
-
 w.clearChunkRootDualContouring = (x, y, z) => {
   Module._clearChunkRootDualContouring(x, y, z)
 }
 
-w.createChunkMeshDualContouring = (x, y, z) => {
-  const outputBufferOffset = Module._createChunkMeshDualContouring(x, y, z);
+w.createChunkMeshDualContouring = (x, y, z, lod) => {
+  const outputBufferOffset = Module._createChunkMeshDualContouring(x, y, z, lod);
   // console.log('create xyz', x, y, z, outputBufferOffset);
 
   if (outputBufferOffset) {
