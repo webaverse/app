@@ -822,10 +822,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             localVector.fromArray(v3);
             dst.lerp(localQuaternion, lerpFactor);
           }
-          // if (isPosition) console.log('fall');
+          if (isPosition) console.log('fall');
         } else { // jump up stage
           // already full jump animation, do nothing;
-          // if (isPosition) console.log('jump');
+          if (isPosition) console.log('jump');
         }
 
         _clearXZ(dst, isPosition);
@@ -1278,6 +1278,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     }
   };
   const _blendUnjump = spec => {
+    // return;
     const {
       animationTrackName: k,
       dst,
@@ -1295,7 +1296,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const v2 = src2.evaluate(t2);
       // if (isPosition) console.log('unjump');
 
-      dst.fromArray(v2);
+      // dst.fromArray(v2); return;
 
       // // const lerpTimeS = lerpFrameCountFallToLand / 30;
       // // const lerpFactor = MathUtils.clamp(t2 / lerpTimeS, 0, 1);
@@ -1303,14 +1304,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // const lerpTimeS = lerpFrameCountLandToOther / 30;
       // const lerpFactor = 1 - MathUtils.clamp(t2 / lerpTimeS, 0, 1);
 
-      // if (!isPosition) {
-      //   localQuaternion.fromArray(v2);
-      //   dst.slerp(localQuaternion, lerpFactor);
-      // } else {
-      //   localVector.fromArray(v2);
-      //   _clearXZ(localVector, isPosition);
-      //   dst.lerp(localVector, lerpFactor);
-      // }
+      let lerpFactor = unjumpFactor;
+      lerpFactor = MathUtils.smoothstep(lerpFactor, 0.9, 1);
+      lerpFactor = 1 - lerpFactor;
+      if (isPosition) console.log(lerpFactor);
+
+      if (!isPosition) {
+        localQuaternion.fromArray(v2);
+        dst.slerp(localQuaternion, lerpFactor);
+      } else {
+        localVector.fromArray(v2);
+        _clearXZ(localVector, isPosition);
+        dst.lerp(localVector, lerpFactor);
+      }
     }
   };
 
