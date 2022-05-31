@@ -1486,6 +1486,10 @@ class RemotePlayer extends InterpolatedPlayer {
           },
         });
 
+        if (!this.avatar.isAudioEnabled()) {
+          this.avatar.setAudioEnabled(true);
+        }
+
         this.analyser = audioContext.createAnalyser();
         this.analyser.fftSize = 2048;
 
@@ -1494,6 +1498,8 @@ class RemotePlayer extends InterpolatedPlayer {
 
         // Connect the source to be analysed
         this.audioWorkletNode.connect(this.analyser);
+        this.audioWorkletNode.connect(this.avatar.getAudioInput());
+
         // audioWorkletNode.connect(audioContext.destination)
         this.analyser.connect(audioContext.gain);
         console.log("***** EVERYTHING IS CONNECTED *****");
