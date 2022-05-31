@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import {makeId} from './util.js';
 import {defaultChunkSize} from './constants.js';
 // import metaversefile from 'metaversefile';
@@ -37,7 +37,7 @@ class TerrainManager {
       };
       worker.request = (method, args) => {
         return new Promise((resolve, reject) => {
-          const requestId =  makeId(5);
+          const requestId = makeId(5);
           cbs.set(requestId, data => {
             const {error, result} = data;
             if (error) {
