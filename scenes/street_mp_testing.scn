@@ -7,6 +7,14 @@
         "args": [[255, 255, 255], 2]
       }
     },
+        {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2],
+        "position": [1, 2, 3]
+      }
+    },
     {
       "position": [
         0,
