@@ -442,7 +442,6 @@ const _mousedown = () => {
 };
 const _mouseup = () => {
   isMouseUp = true;
-  // _endUse();
 };
 
 const _grab = object => {
@@ -1014,7 +1013,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       const useTime = localPlayer.actionInterpolants.use.get();
       const useTimeS = useTime / 1000;
       if (useAction.animationCombo?.length > 0) {
-        // const useAnimationName = localPlayer.avatar.useAnimationCombo[localPlayer.avatar.useAnimationIndex];
         const useAnimationName = useAction.animationCombo[useAction.index];
         const useAnimation = localPlayer.avatar.useAnimations[useAnimationName];
         if (useTimeS >= useAnimation.duration) {
@@ -1039,7 +1037,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     isMouseUp = false;
   };
   _updateUse();
-  console.log(isMouseUp);
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
