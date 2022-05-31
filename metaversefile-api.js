@@ -1224,7 +1224,7 @@ export default () => {
     return debug;
   },
   async addModule(app, m) {
-    console.log("adding ", m, "to", app)
+    if(!m) return console.error("module added to app is null", app)
     // wait to make sure module initialization happens in a clean tick loop,
     // even when adding a module from inside of another module's initialization
     // await Promise.resolve();
