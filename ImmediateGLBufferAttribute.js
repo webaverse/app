@@ -78,13 +78,18 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
     };
     return popUpdate;
   }
-  update(offset, count) {
+  wrap(fn) {
     let popUpdate = null;
     if (!ImmediateGLBufferAttribute.pushed) {
       popUpdate = ImmediateGLBufferAttribute.pushUpdate();
     }
    
-    {
+    fn();
+
+    popUpdate && popUpdate();
+  }
+  update(offset, count, array = this.array, srcOffset = offset) {
+    this.wrap(() => {
       const renderer = getRenderer();
       const gl = renderer.getContext();
       const target = this.getTarget();
@@ -93,12 +98,10 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
       gl.bufferSubData(
         target,
         offset * this.elementSize,
-        this.array,
-        offset,
+        array,
+        srcOffset,
         count
       );
-    }
-
-    popUpdate && popUpdate();
+    });
   }
 }
