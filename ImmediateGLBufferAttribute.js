@@ -14,8 +14,20 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
         glType = WebGLRenderingContext.UNSIGNED_SHORT;
         break;
       }
+      case Int16Array: {
+        glType = WebGLRenderingContext.SHORT;
+        break;
+      }
       case Uint32Array: {
         glType = WebGLRenderingContext.UNSIGNED_INT;
+        break;
+      }
+      case Int32Array: {
+        glType = WebGLRenderingContext.INT;
+        break;
+      }
+      case Uint8Array: {
+        glType = WebGLRenderingContext.BYTE;
         break;
       }
       default: {
