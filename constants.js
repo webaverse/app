@@ -101,9 +101,9 @@ export const airFriction = groundFriction;
 export const flyFriction = 0.5;
 export const aimTransitionMaxTime = 150;
 
-export const lerpFrameCountJumpToFall = 10;
+export const lerpFrameCountJumpToFall = 0;
 // export const lerpFrameCountFallToLand = 5;
-export const lerpFrameCountLandToOther = 10;
+export const lerpFrameCountLandToOther = 0;
 
 // export const jumpSpeed = 0.6;
 export const jumpSpeed = 0.57; // solve flat ground 4 same loop frame problem.

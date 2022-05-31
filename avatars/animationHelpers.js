@@ -812,7 +812,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const t3 = jumpTimeS - jumpAnimation.duration;
           const src3 = fallingAnimation.interpolants[k];
           const v3 = src3.evaluate(t3 % fallingAnimation.duration);
-          // if (isPosition) console.log('jump', t3);
           const lerpTimeS = lerpFrameCountJumpToFall / 30;
           const lerpFactor = MathUtils.clamp(t3 / lerpTimeS, 0, 1);
           if (!isPosition) {
@@ -822,10 +821,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             localVector.fromArray(v3);
             dst.lerp(localQuaternion, lerpFactor);
           }
-          // if (isPosition) console.log('fall', jumpTimeS, t3);
+          if (isPosition) console.log('fall');
         } else { // jump up stage
           // already full jump animation, do nothing;
-          // if (isPosition) console.log('jump', jumpTimeS, t2);
+          if (isPosition) console.log('jump');
         }
 
         _clearXZ(dst, isPosition);
@@ -1293,24 +1292,24 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const t2 = unjumpTimeS;
       const src2 = landingAnimation.interpolants[k];
       const v2 = src2.evaluate(t2);
-      // if (isPosition) console.log('unjump', t2);
+      if (isPosition) console.log('unjump', t2);
 
-      // dst.fromArray(v2);
+      dst.fromArray(v2);
 
-      // const lerpTimeS = lerpFrameCountFallToLand / 30;
-      // const lerpFactor = MathUtils.clamp(t2 / lerpTimeS, 0, 1);
+      // // const lerpTimeS = lerpFrameCountFallToLand / 30;
+      // // const lerpFactor = MathUtils.clamp(t2 / lerpTimeS, 0, 1);
 
-      const lerpTimeS = lerpFrameCountLandToOther / 30;
-      const lerpFactor = 1 - MathUtils.clamp(t2 / lerpTimeS, 0, 1);
+      // const lerpTimeS = lerpFrameCountLandToOther / 30;
+      // const lerpFactor = 1 - MathUtils.clamp(t2 / lerpTimeS, 0, 1);
 
-      if (!isPosition) {
-        localQuaternion.fromArray(v2);
-        dst.slerp(localQuaternion, lerpFactor);
-      } else {
-        localVector.fromArray(v2);
-        _clearXZ(localVector, isPosition);
-        dst.lerp(localVector, lerpFactor);
-      }
+      // if (!isPosition) {
+      //   localQuaternion.fromArray(v2);
+      //   dst.slerp(localQuaternion, lerpFactor);
+      // } else {
+      //   localVector.fromArray(v2);
+      //   _clearXZ(localVector, isPosition);
+      //   dst.lerp(localVector, lerpFactor);
+      // }
     }
   };
 
