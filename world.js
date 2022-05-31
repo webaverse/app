@@ -27,6 +27,7 @@ import {getLocalPlayer} from './players.js';
 
 // world
 export const world = {};
+world.winds = [];
 
 const appManager = new AppManager({
   appsMap: null,

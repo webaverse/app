@@ -14,6 +14,7 @@ import { getNextPhysicsId, freePhysicsId, convertMeshToPhysicsMesh } from './uti
 // import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
 import { CapsuleGeometry } from './geometries.js'
+import physxWorkerManager from './physx-worker-manager.js';
 
 // const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
@@ -170,6 +171,14 @@ physicsManager.cookGeometry = (mesh) => {
   const buffer = physx.physxWorker.cookGeometryPhysics(physx.physics, physicsMesh);
   return buffer;
 };
+physicsManager.cookGeometryAsync = async (mesh, {
+  signal = null,
+} = {}) => {
+  const physicsMesh = convertMeshToPhysicsMesh(mesh);
+  const buffer = await physxWorkerManager.cookGeometry(physicsMesh);
+  signal && signal.throwIfAborted();
+  return buffer;
+};
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
   const physicsId = getNextPhysicsId()
   physx.physxWorker.addCookedGeometryPhysics(
@@ -223,6 +232,14 @@ physicsManager.addConvexGeometry = (mesh) => {
 physicsManager.cookConvexGeometry = (mesh) => {
   const physicsMesh = convertMeshToPhysicsMesh(mesh);
   const buffer = physx.physxWorker.cookConvexGeometryPhysics(physx.physics, physicsMesh);
+  return buffer;
+};
+physicsManager.cookConvexGeometryAsync = async (mesh, {
+  signal = null,
+} = {}) => {
+  const physicsMesh = convertMeshToPhysicsMesh(mesh);
+  const buffer = await physxWorkerManager.cookConvexGeometry(physicsMesh);
+  signal && signal.throwIfAborted();
   return buffer;
 };
 physicsManager.addCookedConvexGeometry = (
@@ -680,11 +697,16 @@ physicsManager.simulatePhysics = (timeDiff) => {
 physicsManager.marchingCubes = (dims, potential, shift, scale) =>
   physx.physxWorker.marchingCubes(dims, potential, shift, scale)
 
-physicsManager.generateChunkDataDualContouring = (x, y, z) =>
+//
+
+physicsManager.setChunkSize = (x, y, z) =>
+  physx.physxWorker.setChunkSize(x, y, z)
+
+/* physicsManager.generateChunkDataDualContouring = (x, y, z) =>
   physx.physxWorker.generateChunkDataDualContouring(x, y, z)
 
 physicsManager.setChunkLodDualContouring = (x, y, z, lod) =>
-  physx.physxWorker.setChunkLodDualContouring(x, y, z, lod)
+  physx.physxWorker.setChunkLodDualContouring(x, y, z, lod) */
 
 physicsManager.clearTemporaryChunkDataDualContouring = () =>
   physx.physxWorker.clearTemporaryChunkDataDualContouring()
@@ -692,8 +714,11 @@ physicsManager.clearTemporaryChunkDataDualContouring = () =>
 physicsManager.clearChunkRootDualContouring = (x, y, z) =>
   physx.physxWorker.clearChunkRootDualContouring(x, y, z)
 
-physicsManager.createChunkMeshDualContouring = (x, y, z) =>
-  physx.physxWorker.createChunkMeshDualContouring(x, y, z)
+physicsManager.createChunkMeshDualContouring = (x, y, z, lod) =>
+  physx.physxWorker.createChunkMeshDualContouring(x, y, z, lod)
+
+physicsManager.drawDamage = (position, radius, value) =>
+  physx.physxWorker.drawDamage(position, radius, value);
 
 physicsManager.createShape = buffer => physx.physxWorker.createShapePhysics(physx.physics, buffer);
 physicsManager.createConvexShape = buffer => physx.physxWorker.createConvexShapePhysics(physx.physics, buffer);
