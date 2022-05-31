@@ -16,15 +16,18 @@ export const ObjectScreenshot = ({ app, startUrl, width, height, className = '' 
 
         if ( ! canvasRef.current ) return;
 
-        await screenshotObjectApp({ app, clearAlpha: 0, canvas: canvasRef.current, start_url: startUrl });
+        console.log(startUrl);
 
+        const canvas = await screenshotObjectApp({ app, clearAlpha: 0, width, height, start_url: startUrl });
+        canvasRef.current.innerHTML = "";
+        canvasRef.current.appendChild( canvas );
     }, [ startUrl, canvasRef.current ] );
 
     //
 
     return (
         <div className={ classnames( className, styles.imgWrapper ) } >
-            <canvas ref={ canvasRef } width={ width } height={ height } />
+            <div ref={ canvasRef } width={ width } height={ height }></div>
             <div className={ styles.background } />
         </div>
     );
