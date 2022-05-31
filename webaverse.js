@@ -296,7 +296,7 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
-      // if (window.localPlayer?.avatar?.jumpTime !== 0) console.log(window.localPlayer?.avatar?.jumpTime);
+      if (window.localPlayer?.avatar?.jumpTime !== 0) console.log(window.localPlayer?.avatar?.jumpTime);
 
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
@@ -393,7 +393,7 @@ const _startHacks = webaverse => {
   // window.gravityMutiplier = 1;
 
   // animations.index["jump.fbx"].duration - 1 / 30
-  // air time = 682.7090000000026;
+  // air time = 682.7090000000026; // share with texta
   window.jumpVelocityY = 15;
   window.gravityMutiplier = 4;
 
@@ -406,6 +406,19 @@ const _startHacks = webaverse => {
   // // air time = 716.0149999999994;
   // window.jumpVelocityY = 15;
   // window.gravityMutiplier = 3.85;
+
+  // // air time: 682.7129999999997
+  // window.jumpVelocityY = 4.5;
+  // window.gravityMutiplier = 1;
+
+  // setTimeout(() => {
+  //   localPlayer.characterPhysics.velocity.y = 0;
+  // }, 300);
+  // air time = 666.0810000000056;
+  // window.jumpVelocityY = 17;
+  // window.gravityMutiplier = 4;
+
+  // window.timeout333VelocityY = 0;
 
   // let playerDiorama = null;
   const lastEmotionKey = {
