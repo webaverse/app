@@ -801,15 +801,16 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const jumpTimeS = avatar.jumpTime / 1000;
 
         const jumpAnimation = animations.index['jump.fbx'];
+        const jumpAnimationDuration = jumpAnimation.duration - 1 / 30;
         const t2 = jumpTimeS;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
         // if (isPosition) console.log('loop', t2);
         dst.fromArray(v2);
 
-        if (jumpTimeS >= jumpAnimation.duration) { // fall loop stage
+        if (jumpTimeS >= jumpAnimationDuration) { // fall loop stage
           const fallingAnimation = animations.index['falling.fbx'];
-          const t3 = jumpTimeS - jumpAnimation.duration;
+          const t3 = jumpTimeS - jumpAnimationDuration;
           const src3 = fallingAnimation.interpolants[k];
           const v3 = src3.evaluate(t3 % fallingAnimation.duration);
           const lerpTimeS = lerpFrameCountJumpToFall / 30;
@@ -821,10 +822,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             localVector.fromArray(v3);
             dst.lerp(localQuaternion, lerpFactor);
           }
-          if (isPosition) console.log('fall');
+          // if (isPosition) console.log('fall');
         } else { // jump up stage
           // already full jump animation, do nothing;
-          if (isPosition) console.log('jump');
+          // if (isPosition) console.log('jump');
         }
 
         _clearXZ(dst, isPosition);
@@ -1286,13 +1287,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     const unjumpTimeS = avatar.unjumpTime / 1000;
     const landingAnimation = animations.index['landing.fbx'];
-    const unjumpFactor = unjumpTimeS / landingAnimation.duration;
+    const unjumpFactor = unjumpTimeS / (landingAnimation.duration - 1 / 30);
 
     if (unjumpFactor > 0 && unjumpFactor <= 1) {
-      const t2 = unjumpTimeS;
+      const t2 = unjumpTimeS + 1 / 30;
       const src2 = landingAnimation.interpolants[k];
       const v2 = src2.evaluate(t2);
-      if (isPosition) console.log('unjump');
+      // if (isPosition) console.log('unjump');
 
       dst.fromArray(v2);
 
