@@ -44,6 +44,7 @@ import WebaWallet from './src/components/wallet.js';
 // import domRenderEngine from './dom-renderer.jsx';
 import musicManager from './music-manager.js';
 import terrainManager from './terrain-manager.js';
+import physxWorkerManager from './physx-worker-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
@@ -82,6 +83,7 @@ export default class Webaverse extends EventTarget {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
+        physxWorkerManager.waitForLoad(),
         audioManager.waitForLoad(),
         sounds.waitForLoad(),
         zTargeting.waitForLoad(),
