@@ -43,6 +43,7 @@ const localMatrix3 = new THREE.Matrix4();
 const localRay = new THREE.Ray();
 
 let isMouseUp = false;
+let needContinueCombo = false;
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const oneVector = new THREE.Vector3(1, 1, 1);
@@ -432,6 +433,11 @@ const _endUse = () => {
   }
 };
 const _mousedown = () => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  const useAction = localPlayer.getAction('use');
+  if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
+    needContinueCombo = true;
+  }
   _startUse();
 };
 const _mouseup = () => {
@@ -1013,6 +1019,13 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const useAnimation = localPlayer.avatar.useAnimations[useAnimationName];
         if (useTimeS >= useAnimation.duration) {
           _endUse();
+          if (needContinueCombo) {
+            needContinueCombo = false;
+            localPlayer.actionInterpolants.use.reset();
+            _startUse();
+          } else {
+            lastUseIndex = 0;
+          }
         }
       } else if (useAction.animation === 'pickUpThrow') {
         if (useTimeS >= throwAnimationDuration) {
