@@ -4,63 +4,7 @@ physx lite worker wasm integration.
 
 // import * as THREE from 'three';
 import Module from './public/bin/app-wasm-worker.js';
-
-class Allocator {
-  constructor() {
-    this.offsets = []
-  }
-
-  alloc(constructor, size) {
-    if (size > 0) {
-      const offset = moduleInstance._malloc(
-        size * constructor.BYTES_PER_ELEMENT
-      )
-      const b = new constructor(
-        moduleInstance.HEAP8.buffer,
-        moduleInstance.HEAP8.byteOffset + offset,
-        size
-      )
-      b.offset = offset
-      this.offsets.push(offset)
-      return b
-    } else {
-      return new constructor(moduleInstance.HEAP8.buffer, 0, 0)
-    }
-  }
-
-  freeAll() {
-    for (let i = 0; i < this.offsets.length; i++) {
-      moduleInstance._doFree(this.offsets[i])
-    }
-    this.offsets.length = 0
-  }
-}
-class ScratchStack {
-  constructor(size) {
-    this.ptr = moduleInstance._malloc(size)
-
-    this.u8 = new Uint8Array(
-      moduleInstance.HEAP8.buffer,
-      this.ptr,
-      size
-    )
-    this.u32 = new Uint32Array(
-      moduleInstance.HEAP8.buffer,
-      this.ptr,
-      size / 4
-    )
-    this.i32 = new Int32Array(
-      moduleInstance.HEAP8.buffer,
-      this.ptr,
-      size / 4
-    )
-    this.f32 = new Float32Array(
-      moduleInstance.HEAP8.buffer,
-      this.ptr,
-      size / 4
-    )
-  }
-}
+import {Allocator, ScratchStack} from './geometry-util.js';
 
 const physxLite = {};
 
@@ -73,7 +17,7 @@ physxLite.waitForLoad = () => {
       await Module.waitForLoad();
       moduleInstance = Module;
       const scratchStackSize = 1024 * 1024;
-      scratchStack = new ScratchStack(scratchStackSize);
+      scratchStack = new ScratchStack(moduleInstance, scratchStackSize);
       physxLite.base = physxLite.makePhysicsBase();
 
       // console.log('module called run', Module.calledRun);
@@ -103,7 +47,7 @@ physxLite.cookGeometryPhysics = (base, mesh) => {
   mesh.updateMatrixWorld()
   const { geometry } = mesh
 
-  const allocator = new Allocator()
+  const allocator = new Allocator(moduleInstance)
   const positions = allocator.alloc(
     Float32Array,
     geometry.attributes.position.count * 3
@@ -139,7 +83,7 @@ physxLite.cookConvexGeometryPhysics = (base, mesh) => {
   mesh.updateMatrixWorld()
   const { geometry } = mesh
 
-  const allocator = new Allocator()
+  const allocator = new Allocator(moduleInstance)
   const positions = allocator.alloc(
     Float32Array,
     geometry.attributes.position.count * 3
