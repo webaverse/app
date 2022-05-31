@@ -328,14 +328,14 @@ const DragAndDrop = () => {
     let name = currentApp.name;
     let ext = currentApp.contentId.split(".").pop();
     let hash = currentApp.contentId.split("https://ipfs.webaverse.com/")[1].split("/" + name + "." + ext)[0];
-    let description = "This is test" // tempalate
+    let description = "This is test" // template
 
     const signer = new ethers.providers.Web3Provider(ethereum).getSigner();
     const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
     const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
     let Bigmintfee = await NFTcontract.mintFee();
     const mintfee = BigNumber.from(Bigmintfee).toNumber();
-    if(mintFee > 0) { // webaverse side chain mintFee != 0
+    if(mintfee > 0) { // webaverse side chain mintfee != 0
         const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
         let FTapproveres = await FTapprovetx.wait()
         if (FTapproveres.transactionHash) {
@@ -347,7 +347,7 @@ const DragAndDrop = () => {
                 alert("NFT mint failed");
             }
         }
-    } else { // mintFee = 0 for Polygon not webaverse sidechain
+    } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
             let NFTmintres = await NFTcontract.mint(ethereum.selectedAddress, hash, name, ext, description, 1)
             // after mint transaction, refresh the website 
@@ -414,11 +414,13 @@ const DragAndDrop = () => {
         {
             isLoading && <div
                             style={{
-                            width: "100%",
-                            height: "100",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center"
+                                width: "100%",
+                                height: "100%",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                background: "black",
+                                opacity: .5
                             }}
                         >
                             <ThreeDots color="#00BFFF" height={80} width={80} />
