@@ -389,8 +389,8 @@ const _startHacks = webaverse => {
   window.game = game;
   window.cameraManager = cameraManager;
 
-  window.jumpVelocityY = 6;
-  window.gravityMutiplier = 1;
+  // window.jumpVelocityY = 6;
+  // window.gravityMutiplier = 1;
 
   // air time = 682.7090000000026;
   // window.jumpVelocityY = 15;
@@ -399,6 +399,12 @@ const _startHacks = webaverse => {
   // air time = 666.0810000000056;
   // window.jumpVelocityY = 15;
   // window.gravityMutiplier = 4.1;
+
+  // animations.index["jump.fbx"].duration
+  // 0.699999988079071
+  // air time = 716.0149999999994;
+  window.jumpVelocityY = 15;
+  window.gravityMutiplier = 3.85;
 
   // let playerDiorama = null;
   const lastEmotionKey = {
