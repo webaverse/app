@@ -62,7 +62,7 @@ class CharacterPhysics {
     // if (this.player) {
       if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
         localVector.copy(physicsManager.getGravity())
-          .multiplyScalar(timeDiffS);
+          .multiplyScalar(timeDiffS * window.gravityMutiplier);
         this.velocity.add(localVector);
       }
     // }
