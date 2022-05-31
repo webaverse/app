@@ -117,7 +117,7 @@ export const Equipment = () => {
 
   const contract = getContract();
   
-  useEffect(async () => {
+  useEffect(async () => { 
     const BigtotalMintedToken = await contract.totalSupply();
     const totalMintedToken = BigNumber.from(BigtotalMintedToken).toNumber();
     console.log("big", totalMintedToken)
@@ -134,7 +134,7 @@ export const Equipment = () => {
     }
     console.log("inventory", inventoryItems)
     setInventoryObject(inventoryItems);
-  }, []);
+  },[state.openedPanel]);
 
   const refsMap = (() => {
     const map = new Map();

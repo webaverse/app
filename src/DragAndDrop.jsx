@@ -15,6 +15,10 @@ import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
 import { ethers, BigNumber } from 'ethers'
 import { NFTABI, NFTcontractAddress, FTABI, FTcontractAddress } from "../src/abis/contract"
+import dotenv from 'dotenv'
+
+// Variables in .env and .env.defaults will be added to process.env
+dotenv.config({ path: ".env" });
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -94,15 +98,16 @@ const DragAndDrop = () => {
     var provider = new ethers.providers.Web3Provider(ethereum);
   }
 
-  const { state, setState} = useContext( AppContext )
+  const { state, setState, walletstate, setWalletState } = useContext( AppContext )
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
   const [mintBtnEnable, setMintBtnEnable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const isMetaMaskConnected = async () => {
-    const accounts = await provider.listAccounts();
-    return accounts.length > 0;
+  const isMetaMaskConnected = () => {
+    return walletstate.walletaddress ? true : false; 
+    // const accounts = await provider.listAccounts();
+    // return accounts.length > 0;
   }
 
   useEffect(() => {
@@ -202,8 +207,7 @@ const DragAndDrop = () => {
     if (queue.length > 0 && !currentApp) {
       const app = queue[0];
       console.log('set app', app);
-      const connectedWallet = await isMetaMaskConnected()
-      setMintBtnEnable(connectedWallet)
+
       setCurrentApp(app);
       setQueue(queue.slice(1));
       setState({ openedPanel: null });
@@ -213,6 +217,11 @@ const DragAndDrop = () => {
       }
     }
   }, [queue, currentApp]);
+
+  useEffect(() => {
+      const connectedWallet = isMetaMaskConnected()
+      setMintBtnEnable(connectedWallet)
+  },[walletstate.walletaddress])
 
 
   const _currentAppClick = e => {
@@ -252,11 +261,14 @@ const DragAndDrop = () => {
     }
   };
   const _mint = async e => {
+    if(!mintBtnEnable) return false;
     e.preventDefault();
     e.stopPropagation();
     setIsLoading(true);
 
     console.log('mint', currentApp);
+
+    console.log("process.env.SERVER_HOST", process.env.UPLOAD_URL)
     // switch Polygon main network
     // try {
     //   await ethereum.request({
@@ -292,72 +304,72 @@ const DragAndDrop = () => {
     // }
 
     // switch Polygon testnet mumbai
-    try {
-        await ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x13881' }],
-        });
-      } catch (switchError) {
-        console.log(switchError);
-        // This error code indicates that the chain has not been added to MetaMask.
-        if (switchError.code === 4902) {
-          try {
-            await ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: "0x13881",
-                  chainName: "Polygon Testnet Mumbai",
-                  rpcUrls: ["https://matic-mumbai.chainstacklabs.com"] /* ... */,
-                  nativeCurrency: {
-                    name: "MATIC",
-                    symbol: "MATIC", // 2-6 characters long
-                    decimals: 18,
-                  },
-                  blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
-                },
-              ],
-            });
-          } catch (addError) {
-            console.log(addError);
-          }
-        }
-        // handle other "switch" errors
-      }
+    // try {
+    //     await ethereum.request({
+    //       method: 'wallet_switchEthereumChain',
+    //       params: [{ chainId: '0x13881' }],
+    //     });
+    //   } catch (switchError) {
+    //     console.log(switchError);
+    //     // This error code indicates that the chain has not been added to MetaMask.
+    //     if (switchError.code === 4902) {
+    //       try {
+    //         await ethereum.request({
+    //           method: 'wallet_addEthereumChain',
+    //           params: [
+    //             {
+    //               chainId: "0x13881",
+    //               chainName: "Polygon Testnet Mumbai",
+    //               rpcUrls: ["https://matic-mumbai.chainstacklabs.com"] /* ... */,
+    //               nativeCurrency: {
+    //                 name: "MATIC",
+    //                 symbol: "MATIC", // 2-6 characters long
+    //                 decimals: 18,
+    //               },
+    //               blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
+    //             },
+    //           ],
+    //         });
+    //       } catch (addError) {
+    //         console.log(addError);
+    //       }
+    //     }
+    //     // handle other "switch" errors
+    //   }
 
-    let name = currentApp.name;
-    let ext = currentApp.contentId.split(".").pop();
-    let hash = currentApp.contentId.split("https://ipfs.webaverse.com/")[1].split("/" + name + "." + ext)[0];
-    let description = "This is test" // template
+    // let name = currentApp.name;
+    // let ext = currentApp.contentId.split(".").pop();
+    // let hash = currentApp.contentId.split("https://ipfs.webaverse.com/")[1].split("/" + name + "." + ext)[0];
+    // let description = "This is test" // tempalate
 
-    const signer = new ethers.providers.Web3Provider(ethereum).getSigner();
-    const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
-    const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
-    let Bigmintfee = await NFTcontract.mintFee();
-    const mintfee = BigNumber.from(Bigmintfee).toNumber();
-    if(mintfee > 0) { // webaverse side chain mintfee != 0
-        const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
-        let FTapproveres = await FTapprovetx.wait()
-        if (FTapproveres.transactionHash) {
-            try {
-                let NFTmintres = await NFTcontract.mint(ethereum.selectedAddress, hash, name, ext, description, 1)
-                // after mint transaction, refresh the website 
-            } catch(err) {
-                console.log(err)
-                alert("NFT mint failed");
-            }
-        }
-    } else { // mintfee = 0 for Polygon not webaverse sidechain
-        try {
-            let NFTmintres = await NFTcontract.mint(ethereum.selectedAddress, hash, name, ext, description, 1)
-            // after mint transaction, refresh the website 
-        } catch(err) {
-            console.log(err)
-            alert("NFT mint failed");
-        }
-    }
-    setIsLoading(false);
-    setCurrentApp(null);
+    // const signer = new ethers.providers.Web3Provider(ethereum).getSigner();
+    // const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
+    // const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
+    // let Bigmintfee = await NFTcontract.mintFee();
+    // const mintfee = BigNumber.from(Bigmintfee).toNumber();
+    // if(mintfee > 0) { // webaverse side chain mintfee != 0
+    //     const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
+    //     let FTapproveres = await FTapprovetx.wait()
+    //     if (FTapproveres.transactionHash) {
+    //         try {
+    //             let NFTmintres = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1)
+    //             // after mint transaction, refresh the website 
+    //         } catch(err) {
+    //             console.log(err)
+    //             alert("NFT mint failed");
+    //         }
+    //     }
+    // } else { // mintfee = 0 for Polygon not webaverse sidechain
+    //     try {
+    //         let NFTmintres = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1)
+    //         // after mint transaction, refresh the website 
+    //     } catch(err) {
+    //         console.log(err)
+    //         alert("NFT mint failed");
+    //     }
+    // }
+    // setIsLoading(false);
+    // setCurrentApp(null);
   };
   const _cancel = e => {
     e.preventDefault();
@@ -414,13 +426,13 @@ const DragAndDrop = () => {
         {
             isLoading && <div
                             style={{
-                                width: "100%",
-                                height: "100%",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                background: "black",
-                                opacity: .5
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            background: "black",
+                            opacity: .5
                             }}
                         >
                             <ThreeDots color="#00BFFF" height={80} width={80} />
