@@ -1305,8 +1305,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // const lerpFactor = 1 - MathUtils.clamp(t2 / lerpTimeS, 0, 1);
 
       let lerpFactor = unjumpFactor;
-      lerpFactor = MathUtils.smoothstep(lerpFactor, 0.9, 1);
+      // lerpFactor = MathUtils.smoothstep(lerpFactor, 0.9, 1);
+      lerpFactor = lerpFactor * 2 - 1;
       lerpFactor = 1 - lerpFactor;
+      lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
       if (isPosition) console.log(lerpFactor);
 
       if (!isPosition) {
