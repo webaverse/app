@@ -44,6 +44,7 @@ import {
   unjumpSpeed,
   // lerpFrameCountFallToLand,
   lerpFrameCountJumpToFall,
+  lerpFrameCountLandToOther,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -1294,19 +1295,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const v2 = src2.evaluate(t2);
       // if (isPosition) console.log('unjump', t2);
 
-      dst.fromArray(v2);
+      // dst.fromArray(v2);
 
       // const lerpTimeS = lerpFrameCountFallToLand / 30;
       // const lerpFactor = MathUtils.clamp(t2 / lerpTimeS, 0, 1);
 
-      // if (!isPosition) {
-      //   localQuaternion.fromArray(v2);
-      //   dst.slerp(localQuaternion, lerpFactor);
-      // } else {
-      //   localVector.fromArray(v2);
-      //   _clearXZ(localVector, isPosition);
-      //   dst.lerp(localVector, lerpFactor);
-      // }
+      const lerpTimeS = lerpFrameCountLandToOther / 30;
+      const lerpFactor = 1 - MathUtils.clamp(t2 / lerpTimeS, 0, 1);
+
+      if (!isPosition) {
+        localQuaternion.fromArray(v2);
+        dst.slerp(localQuaternion, lerpFactor);
+      } else {
+        localVector.fromArray(v2);
+        _clearXZ(localVector, isPosition);
+        dst.lerp(localVector, lerpFactor);
+      }
     }
   };
 
