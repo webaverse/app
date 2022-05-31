@@ -21,7 +21,7 @@ import {playersManager} from './players-manager.js';
 // import {createParticleSystem} from './particle-system.js';
 // import * as sounds from './sounds.js';
 
-const localEuler = new THREE.Euler();
+// const localEuler = new THREE.Euler();
 
 // world
 export const world = {};
