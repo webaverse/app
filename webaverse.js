@@ -353,8 +353,9 @@ export default class Webaverse extends EventTarget {
 
         performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
-          ioManager.update(timeDiffCapped);
           xrManager.injectRigInput(frame);
+          ioManager.update(timeDiffCapped);
+          
           
           const localPlayer = metaversefileApi.useLocalPlayer();
           if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {

@@ -22,6 +22,8 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+
 
 // const localOffset = new THREE.Vector3();
 // const localOffset2 = new THREE.Vector3();
@@ -257,14 +259,15 @@ class CharacterPhysics {
 
      if (session) {
       if (ioManager.currentWalked || this.player.hasAction('jump')) {
-        //const originalPosition = this.player.position.clone();
+        const originalPosition = this.player.position.clone();
 
         this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
 
-         dolly.position.copy(this.player.position.clone().sub(localVector.set(0, this.player.avatar.height/2, 0)));
-         dolly.updateMatrixWorld();
+        dolly.position.set(originalPosition.x, dolly.position.y, originalPosition.z);
+        dolly.updateMatrixWorld();
       } else {
         // this.velocity.y = 0;
+        dolly.updateMatrixWorld();
       }
     } else { 
       if (this.player.hasAction('firstperson') || (this.player.hasAction('aim') && !this.player.hasAction('narutoRun'))) {

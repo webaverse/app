@@ -282,7 +282,7 @@ class ShoulderPoser {
 		} */
 
   rotateShoulderBase() {
-    const angleY = this.getCombinedDirectionAngleUp();
+    const angleY = -3;//this.getCombinedDirectionAngleUp();
 
     // const targetRotation = new Vector3(0, angle, 0);
 

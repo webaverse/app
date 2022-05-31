@@ -176,24 +176,11 @@ class XRManager extends EventTarget {
     }
 
     if(localPlayer.avatar) {
-
-      localPlayer.avatar.inputs.hmd.position.copy(localPlayer.position);
-      localPlayer.avatar.inputs.hmd.quaternion.copy(localPlayer.quaternion);
-
-      localPlayer.avatar.inputs.leftGamepad.position.copy(new THREE.Vector3().fromArray(leftGamepadPosition));
-      localPlayer.avatar.inputs.rightGamepad.position.copy(new THREE.Vector3().fromArray(rightGamepadPosition));
-
-      localPlayer.avatar.inputs.leftGamepad.quaternion.copy(new THREE.Quaternion().fromArray(leftGamepadQuaternion));
-      localPlayer.avatar.inputs.rightGamepad.quaternion.copy(new THREE.Quaternion().fromArray(rightGamepadQuaternion));
-
-      localPlayer.avatar.inputs.leftGamepad.pointer = leftGamepadPointer;
-      localPlayer.avatar.inputs.rightGamepad.pointer = rightGamepadPointer;
-
-      localPlayer.avatar.inputs.leftGamepad.grip = leftGamepadGrip;
-      localPlayer.avatar.inputs.rightGamepad.grip = rightGamepadGrip;
-
-      localPlayer.avatar.inputs.leftGamepad.enabled = leftGamepadEnabled;
-      localPlayer.avatar.inputs.rightGamepad.enabled = rightGamepadEnabled;
+      localPlayer.avatar.setLocalAvatarPose([
+        [localVector.toArray(), localQuaternion.toArray()],
+        [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+        [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+      ]);
     }
   }
 };
