@@ -17,12 +17,10 @@ const physicsIds = []
 const vert = `
 varying vec3 vPosition;
 varying vec3 vNormal;
-varying vec2 vUv;
 void main() {
 
   vPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-  vNormal = (modelMatrix * vec4(normal, 1.0)).xyz;
-  vUv = uv;
+  vNormal = (modelMatrix * vec4(normal, 0.0)).xyz;
 
   gl_Position = projectionMatrix *
                 modelViewMatrix *
@@ -33,26 +31,45 @@ void main() {
 const frag = `
 varying vec3 vPosition;
 varying vec3 vNormal;
-varying vec2 vUv;
 uniform sampler2D grassTex;
 uniform sampler2D snowGrassTex;
 uniform sampler2D blendTex;
 uniform sampler2D rockTex;
 uniform sampler2D blueTex;
+
 vec3 lerp(vec3 s, vec3 e, float t){ return s+(e-s)*t; }
+
+vec4 TriplanarMapping(sampler2D tex, vec3 coordinates, vec3 blending)
+{
+  vec4 xaxis = texture2D(tex, coordinates.yz);
+  vec4 yaxis = texture2D(tex, coordinates.xz);
+  vec4 zaxis = texture2D(tex, coordinates.xy);
+  // blend the results of the 3 planar projections.
+  vec4 result = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
+
+  return result;
+}
+
 void main() {
+
+  // in vNormal is the world-space normal of the fragment
+  vec3 blending = pow(vNormal, vec3(4,4,4));
+  blending /= dot(blending, vec3(1,1,1));
+
   vec3 textureColor;
-  vec3 grassColor = texture2D(grassTex, vUv).rgb;
-  vec3 snowGrassColor = texture2D(snowGrassTex, vUv).rgb;
-  vec3 rockColor = texture2D(rockTex, vUv).rgb;
-  vec3 slopeColor = texture2D(blendTex, vUv).rgb;
-  vec3 blueColor = texture2D(blueTex, vUv).rgb;
+
+  vec3 grassColor = TriplanarMapping(grassTex, vPosition, blending).rgb;
+  vec3 snowGrassColor = TriplanarMapping(snowGrassTex, vPosition, blending).rgb;
+  vec3 slopeColor = TriplanarMapping(blendTex, vPosition, blending).rgb;
+  vec3 rockColor = TriplanarMapping(rockTex, vPosition, blending).rgb;
+
   float blend;
   float slope = 1.0f - vNormal.y;
   float height = vPosition.y;
-  if(slope < 0.25)
+
+  if(slope < 0.25f)
   {
-      float grassLimit = 8.0f, snowGrassLimit = 24.0f;
+      float grassLimit = 16.0f, snowGrassLimit = 24.0f;
       blend = slope / 0.25f;
       if (height < grassLimit)
         textureColor = lerp(grassColor, slopeColor, blend);
@@ -66,18 +83,18 @@ void main() {
       }
   }
 
-  if((slope < 0.6) && (slope >= 0.25f))
+  if((slope >= 0.25f) && (slope < 0.6f))
   {
       blend = (slope - 0.25f) * (1.0f / (0.6f - 0.25f));
       textureColor = lerp(slopeColor, rockColor, blend);
   }
 
-  if(slope >= 0.6)
+  if(slope >= 0.6f)
   {
       textureColor = rockColor;
   }
 
-  gl_FragColor.rgb = textureColor.rgb;
+  gl_FragColor.rgb = textureColor;
 
 }
 `
@@ -185,170 +202,6 @@ const bufferReader = (buffer) => {
   return { positions, normals, indices };
 }
 
-function _applyBoxUV(geom, transformMatrix, bbox, bbox_max_size) {
-
-    let coords = [];
-    coords.length = 2 * geom.attributes.position.array.length / 3;
-
-    // geom.removeAttribute('uv');
-    if (geom.attributes.uv === undefined) {
-        geom.addAttribute('uv', new THREE.Float32BufferAttribute(coords, 2));
-    }
-
-    //maps 3 verts of 1 face on the better side of the cube
-    //side of the cube can be XY, XZ or YZ
-    let makeUVs = function(v0, v1, v2) {
-
-        //pre-rotate the model so that cube sides match world axis
-        v0.applyMatrix4(transformMatrix);
-        v1.applyMatrix4(transformMatrix);
-        v2.applyMatrix4(transformMatrix);
-
-        //get normal of the face, to know into which cube side it maps better
-        let n = new THREE.Vector3();
-        n.crossVectors(v1.clone().sub(v0), v1.clone().sub(v2)).normalize();
-
-        n.x = Math.abs(n.x);
-        n.y = Math.abs(n.y);
-        n.z = Math.abs(n.z);
-
-        let uv0 = new THREE.Vector2();
-        let uv1 = new THREE.Vector2();
-        let uv2 = new THREE.Vector2();
-        // xz mapping
-        if (n.y > n.x && n.y > n.z) {
-            uv0.x = (v0.x - bbox.min.x) / bbox_max_size;
-            uv0.y = (bbox.max.z - v0.z) / bbox_max_size;
-
-            uv1.x = (v1.x - bbox.min.x) / bbox_max_size;
-            uv1.y = (bbox.max.z - v1.z) / bbox_max_size;
-
-            uv2.x = (v2.x - bbox.min.x) / bbox_max_size;
-            uv2.y = (bbox.max.z - v2.z) / bbox_max_size;
-        } else
-        if (n.x > n.y && n.x > n.z) {
-            uv0.x = (v0.z - bbox.min.z) / bbox_max_size;
-            uv0.y = (v0.y - bbox.min.y) / bbox_max_size;
-
-            uv1.x = (v1.z - bbox.min.z) / bbox_max_size;
-            uv1.y = (v1.y - bbox.min.y) / bbox_max_size;
-
-            uv2.x = (v2.z - bbox.min.z) / bbox_max_size;
-            uv2.y = (v2.y - bbox.min.y) / bbox_max_size;
-        } else
-        if (n.z > n.y && n.z > n.x) {
-            uv0.x = (v0.x - bbox.min.x) / bbox_max_size;
-            uv0.y = (v0.y - bbox.min.y) / bbox_max_size;
-
-            uv1.x = (v1.x - bbox.min.x) / bbox_max_size;
-            uv1.y = (v1.y - bbox.min.y) / bbox_max_size;
-
-            uv2.x = (v2.x - bbox.min.x) / bbox_max_size;
-            uv2.y = (v2.y - bbox.min.y) / bbox_max_size;
-        }
-
-        return {
-            uv0: uv0,
-            uv1: uv1,
-            uv2: uv2
-        };
-    };
-
-    if (geom.index) { // is it indexed buffer geometry?
-        for (let vi = 0; vi < geom.index.array.length; vi += 3) {
-            let idx0 = geom.index.array[vi];
-            let idx1 = geom.index.array[vi + 1];
-            let idx2 = geom.index.array[vi + 2];
-
-            let vx0 = geom.attributes.position.array[3 * idx0];
-            let vy0 = geom.attributes.position.array[3 * idx0 + 1];
-            let vz0 = geom.attributes.position.array[3 * idx0 + 2];
-
-            let vx1 = geom.attributes.position.array[3 * idx1];
-            let vy1 = geom.attributes.position.array[3 * idx1 + 1];
-            let vz1 = geom.attributes.position.array[3 * idx1 + 2];
-
-            let vx2 = geom.attributes.position.array[3 * idx2];
-            let vy2 = geom.attributes.position.array[3 * idx2 + 1];
-            let vz2 = geom.attributes.position.array[3 * idx2 + 2];
-
-            let v0 = new THREE.Vector3(vx0, vy0, vz0);
-            let v1 = new THREE.Vector3(vx1, vy1, vz1);
-            let v2 = new THREE.Vector3(vx2, vy2, vz2);
-
-            let uvs = makeUVs(v0, v1, v2, coords);
-
-            coords[2 * idx0] = uvs.uv0.x;
-            coords[2 * idx0 + 1] = uvs.uv0.y;
-
-            coords[2 * idx1] = uvs.uv1.x;
-            coords[2 * idx1 + 1] = uvs.uv1.y;
-
-            coords[2 * idx2] = uvs.uv2.x;
-            coords[2 * idx2 + 1] = uvs.uv2.y;
-        }
-    } else {
-        for (let vi = 0; vi < geom.attributes.position.array.length; vi += 9) {
-            let vx0 = geom.attributes.position.array[vi];
-            let vy0 = geom.attributes.position.array[vi + 1];
-            let vz0 = geom.attributes.position.array[vi + 2];
-
-            let vx1 = geom.attributes.position.array[vi + 3];
-            let vy1 = geom.attributes.position.array[vi + 4];
-            let vz1 = geom.attributes.position.array[vi + 5];
-
-            let vx2 = geom.attributes.position.array[vi + 6];
-            let vy2 = geom.attributes.position.array[vi + 7];
-            let vz2 = geom.attributes.position.array[vi + 8];
-
-            let v0 = new THREE.Vector3(vx0, vy0, vz0);
-            let v1 = new THREE.Vector3(vx1, vy1, vz1);
-            let v2 = new THREE.Vector3(vx2, vy2, vz2);
-
-            let uvs = makeUVs(v0, v1, v2, coords);
-
-            let idx0 = vi / 3;
-            let idx1 = idx0 + 1;
-            let idx2 = idx0 + 2;
-
-            coords[2 * idx0] = uvs.uv0.x;
-            coords[2 * idx0 + 1] = uvs.uv0.y;
-
-            coords[2 * idx1] = uvs.uv1.x;
-            coords[2 * idx1 + 1] = uvs.uv1.y;
-
-            coords[2 * idx2] = uvs.uv2.x;
-            coords[2 * idx2 + 1] = uvs.uv2.y;
-        }
-    }
-
-    geom.attributes.uv.array = new Float32Array(coords);
-}
-
-function applyBoxUV(bufferGeometry, transformMatrix, boxSize) {
-
-    if (transformMatrix === undefined) {
-        transformMatrix = new THREE.Matrix4();
-    }
-
-    if (boxSize === undefined) {
-        let geom = bufferGeometry;
-        geom.computeBoundingBox();
-        let bbox = geom.boundingBox;
-
-        let bbox_size_x = bbox.max.x - bbox.min.x;
-        let bbox_size_z = bbox.max.z - bbox.min.z;
-        let bbox_size_y = bbox.max.y - bbox.min.y;
-
-        boxSize = Math.max(bbox_size_x, bbox_size_y, bbox_size_z);
-    }
-
-    let uvBbox = new THREE.Box3(new THREE.Vector3(-boxSize / 2, -boxSize / 2, -boxSize / 2), new THREE.Vector3(boxSize / 2, boxSize / 2, boxSize / 2));
-
-    _applyBoxUV(bufferGeometry, transformMatrix, uvBbox, boxSize);
-
-}
-
 export default (e) => {
   console.log('application start!!');
   const physics = usePhysics();
@@ -359,7 +212,7 @@ export default (e) => {
     hm.width = data[0];
     hm.height = data[1];
     hm.data = data[2];
-    hm.depth = 2.5;
+    hm.depth = 3;
     hm.metersPerPixel = 0.7;
 
     const generator = new Module.HeightMapMeshGenerator(hm);
@@ -368,7 +221,8 @@ export default (e) => {
         grassTex: new THREE.Uniform(imageToTexture(baseUrl + 'grass.jpg')),
         snowGrassTex: new THREE.Uniform(imageToTexture(baseUrl + 'snow_grass.jpg')),
         blendTex: new THREE.Uniform(imageToTexture(baseUrl + 'blend.jpg')),
-        rockTex: new THREE.Uniform(imageToTexture(baseUrl + 'rock.jpg'))
+        rockTex: new THREE.Uniform(imageToTexture(baseUrl + 'rock.jpg')),
+        blueTex: new THREE.Uniform(imageToTexture(baseUrl + 'blue.jpg'))
       },
       vertexShader: vert,
       fragmentShader: frag
@@ -384,7 +238,7 @@ export default (e) => {
       }
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-      applyBoxUV(geometry, new Matrix4(), 10);
+
       const mesh = new THREE.Mesh(geometry, material)
       mesh.position.copy(origin);
       app.add(mesh)
@@ -403,7 +257,7 @@ export default (e) => {
       const { positions, normals, indices } = bufferReader(buffer);
       generateMeshFromBuffers(positions, normals, indices, origin);
     };
-    let lod = 8;
+    let lod = 2;
     for(let x of [-2, -1, 0, 1, 2])
       for(let z of [-2, -1, 0, 1, 2])
       {
