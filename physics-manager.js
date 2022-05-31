@@ -171,9 +171,12 @@ physicsManager.cookGeometry = (mesh) => {
   const buffer = physx.physxWorker.cookGeometryPhysics(physx.physics, physicsMesh);
   return buffer;
 };
-physicsManager.cookGeometryAsync = async (mesh) => {
+physicsManager.cookGeometryAsync = async (mesh, {
+  signal = null,
+} = {}) => {
   const physicsMesh = convertMeshToPhysicsMesh(mesh);
   const buffer = await physxWorkerManager.cookGeometry(physicsMesh);
+  signal && signal.throwIfAborted();
   return buffer;
 };
 physicsManager.addCookedGeometry = (buffer, position, quaternion, scale) => {
@@ -231,9 +234,12 @@ physicsManager.cookConvexGeometry = (mesh) => {
   const buffer = physx.physxWorker.cookConvexGeometryPhysics(physx.physics, physicsMesh);
   return buffer;
 };
-physicsManager.cookConvexGeometryAsync = async (mesh) => {
+physicsManager.cookConvexGeometryAsync = async (mesh, {
+  signal = null,
+} = {}) => {
   const physicsMesh = convertMeshToPhysicsMesh(mesh);
   const buffer = await physxWorkerManager.cookConvexGeometry(physicsMesh);
+  signal && signal.throwIfAborted();
   return buffer;
 };
 physicsManager.addCookedConvexGeometry = (
