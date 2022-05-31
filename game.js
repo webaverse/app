@@ -14,7 +14,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
@@ -1013,7 +1013,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (useAction) {
       const useTime = localPlayer.actionInterpolants.use.get();
       const useTimeS = useTime / 1000;
-      if (useAction.animationCombo.length > 0) {
+      if (useAction.animationCombo?.length > 0) {
         // const useAnimationName = localPlayer.avatar.useAnimationCombo[localPlayer.avatar.useAnimationIndex];
         const useAnimationName = useAction.animationCombo[useAction.index];
         const useAnimation = localPlayer.avatar.useAnimations[useAnimationName];
@@ -1028,7 +1028,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           }
         }
       } else if (useAction.animation === 'pickUpThrow') {
-        if (useTimeS >= throwAnimationDuration) {
+        if (useTimeS >= localPlayer.avatar.useAnimations.pickUpThrow.duration) {
           _endUse();
         }
       } else if (isMouseUp) {

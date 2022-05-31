@@ -92,7 +92,6 @@ export const activateMaxTime = 750;
 export const useMaxTime = 750;
 export const aimMaxTime = 1000;
 export const throwReleaseTime = 220;
-export const throwAnimationDuration = 1.4166666269302368;
 export const minFov = 60;
 export const maxFov = 120;
 export const midFov = 90;

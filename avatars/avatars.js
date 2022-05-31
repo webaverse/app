@@ -443,6 +443,7 @@ class Avatar {
     this.spriteMegaAvatarMesh = null;
     this.crunchedModel = null;
     this.options = options;
+    this.useAnimations = null;
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
