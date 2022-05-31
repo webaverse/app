@@ -4,6 +4,7 @@ import {defaultChunkSize} from './constants.js';
 // import metaversefile from 'metaversefile';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
 // import physics from './physics-manager.js';
+import {GeometryAllocator} from './geometry-allocator.js';
 
 // const localVector = new THREE.Vector3();
 
@@ -114,6 +115,7 @@ class TerrainManager {
     });
     return result;
   }
+  static GeometryAllocator = GeometryAllocator;
 }
 const terrainManager = new TerrainManager();
 export default terrainManager;
