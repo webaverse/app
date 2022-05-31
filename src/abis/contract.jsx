@@ -13,16 +13,25 @@ const TradeABI = Trade.abi;
 const AccountABI = Account.abi;
 
 /////////// mumbai.polygon testnet (mintfee = 10) ////////////////////
-const AccountcontractAddress = "0x3077E2a272fDF73Df414d0017B3280F143587094";
-const FTcontractAddress = "0x3243338940ECdD49448AD66baFbBf2E169f3D3c6";
-const FTProxycontractAddress = "0x08E7f3d5F8836d9E4Da3f28aFCB1Be6Af1c90476";
-const NFTcontractAddress = "0xc043479003b5d338A8a632E05C5868540837BA44";
-const NFTProxycontractAddress = "0x6d345d4cB6e93FFb10260a321978088968363257";
-const LANDcontractAddress = "0x0755af05B2B378FD682b53d8eb05F6039C5EA56C";
-const LANDProxy= "0xE3C83C5669584D7A0F0179A99FAb18d27c96B009";
+// const AccountcontractAddress = "0xF0118e4e3d2074a0621C5C8e4A5Cf761ef1eFc7b";
+// const FTcontractAddress = "0xf1C659696598647a0544c61D24b360e740D62634";
+// const FTProxycontractAddress = "0xEeA97406Ce6154e3b189D5FA53790c81ecf1cBD3";
+// const NFTcontractAddress = "0x9140B5A048C03A22861E7b4c380cA68A5A3Ee98F";
+// const NFTProxycontractAddress = "0xE5a15065b0E8446c2E35879713EBBf339b004a67";
+// const LANDcontractAddress = "0xcfb59Be415BC927bacf781d7Ed7B74a0Cb4aCE11";
+// const LANDProxycontractAddress= "0x142B0a5F708D399b77349563F273Ad6C03EC28D2";
+// const TradecontractAddress= "0x4D9486D6FBb53234616C9b1997BC31C649336948";
 /////////////////////////////////////////////////////////////////////////
 
 /////////// mumbai.polygon testnet (mintfee = 0) ////////////////////
+const AccountcontractAddress = "0xF0118e4e3d2074a0621C5C8e4A5Cf761ef1eFc7b";
+const FTcontractAddress = "0xf1C659696598647a0544c61D24b360e740D62634";
+const FTProxycontractAddress = "0xEeA97406Ce6154e3b189D5FA53790c81ecf1cBD3";
+const NFTcontractAddress = "0x9140B5A048C03A22861E7b4c380cA68A5A3Ee98F";
+const NFTProxycontractAddress = "0xE5a15065b0E8446c2E35879713EBBf339b004a67";
+const LANDcontractAddress = "0xcfb59Be415BC927bacf781d7Ed7B74a0Cb4aCE11";
+const LANDProxycontractAddress= "0x142B0a5F708D399b77349563F273Ad6C03EC28D2";
+const TradecontractAddress= "0x4D9486D6FBb53234616C9b1997BC31C649336948";
 //////////////////////////////////////////////////////////////////////
 
 export { 
@@ -38,5 +47,6 @@ export {
     NFTcontractAddress, 
     NFTProxycontractAddress, 
     LANDcontractAddress, 
-    LANDProxy 
+    LANDProxycontractAddress,
+    TradecontractAddress 
 }
