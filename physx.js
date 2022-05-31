@@ -639,7 +639,7 @@ const physxWorker = (() => {
     return materialAddress;
   };
   w.destroyMaterial = (physics, materialAddress) => {
-    moduleInstance._destroyMaterial(physics, materialAddress);
+    moduleInstance._destroyMaterial && moduleInstance._destroyMaterial(physics, materialAddress);
   };
   w.getDefaultMaterial = (() => {
     let defaultMaterial = null;

@@ -1,17 +1,21 @@
 import * as THREE from 'three';
 
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, useCameraManager, useLoaders, useInternals} = metaversefile;
+const {useApp, useFrame, useLocalPlayer, useRemotePlayers, useCameraManager, useLoaders, useInternals} = metaversefile;
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 
 export default () => {
   const app = useApp();
   const localPlayer = useLocalPlayer();
+  const remotePlayers = useRemotePlayers()
+  const totalPlayers = []
+  totalPlayers.push(localPlayer)
+  remotePlayers.forEach(player => {
+    totalPlayers.push(player)
+  })
   const cameraManager = useCameraManager();
   const {renderer, camera} = useInternals();
-  let narutoRunTime=0; 
-  let lastStopSw=0;
   const textureLoader = new THREE.TextureLoader()
   const wave2 = textureLoader.load(`${baseUrl}/textures/wave2.jpeg`)
   const wave20 = textureLoader.load(`${baseUrl}/textures/wave20.png`)
@@ -22,6 +26,10 @@ export default () => {
   const electronicballTexture = textureLoader.load(`${baseUrl}/textures/electronic-ball2.png`);
   const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
 
+  totalPlayers.forEach((currentPlayer) => {
+    let narutoRunTime=0; 
+    let lastStopSw=0;
+
     let currentDir=new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
     {
@@ -31,9 +39,9 @@ export default () => {
             localVector.x=0;
             localVector.y=0;
             localVector.z=-1;
-            currentDir = localVector.applyQuaternion( localPlayer.quaternion );
+            currentDir = localVector.applyQuaternion( currentPlayer.quaternion );
             currentDir.normalize();
-            if (localPlayer.hasAction('narutoRun')){
+            if (currentPlayer.hasAction('narutoRun')){
                     narutoRunTime++;
                     lastStopSw=1;
                 }
@@ -257,12 +265,12 @@ export default () => {
                     sonicBoomInApp=true;
                 }
                 
-                group.position.copy(localPlayer.position);
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
+                group.position.copy(currentPlayer.position);
+                if (currentPlayer.avatar) {
+                    group.position.y -= currentPlayer.avatar.height;
                     group.position.y += 0.65;
                 }
-                group.rotation.copy(localPlayer.rotation);
+                group.rotation.copy(currentPlayer.rotation);
                 
                 group.position.x-=0.6*currentDir.x;
                 group.position.z-=0.6*currentDir.z;
@@ -389,12 +397,12 @@ export default () => {
                     app.add(group);
                     sonicBoomInApp=true;
                 }
-                group.position.copy(localPlayer.position);
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
+                group.position.copy(currentPlayer.position);
+                if (currentPlayer.avatar) {
+                    group.position.y -= currentPlayer.avatar.height;
                     group.position.y += 0.65;
                 }
-                group.rotation.copy(localPlayer.rotation);
+                group.rotation.copy(currentPlayer.rotation);
 
                 
                 group.position.x-=2.2*currentDir.x;
@@ -507,7 +515,7 @@ export default () => {
                         value: 0.0
                     },
                     playerRotation: {
-                        value: new THREE.Vector3(localPlayer.rotation.y, localPlayer.rotation.y, localPlayer.rotation.y)
+                        value: new THREE.Vector3(currentPlayer.rotation.y, currentPlayer.rotation.y, currentPlayer.rotation.y)
                     },
                     strength: {
                         type: "f",
@@ -555,9 +563,9 @@ export default () => {
             }
             if(flameMaterial.uniforms.strength.value>0){
                 //console.log('sonic-boom-flame');
-                group.position.copy(localPlayer.position);
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
+                group.position.copy(currentPlayer.position);
+                if (currentPlayer.avatar) {
+                    group.position.y -= currentPlayer.avatar.height;
                     group.position.y += 0.65;
                 }
                 
@@ -566,8 +574,8 @@ export default () => {
                 group.position.z-=2.2*currentDir.z;
                 flameMaterial.uniforms.uTime.value=timestamp/20000;
 
-                if(Math.abs(localPlayer.rotation.x)>0){
-                    let temp=localPlayer.rotation.y+Math.PI;
+                if(Math.abs(currentPlayer.rotation.x)>0){
+                    let temp=currentPlayer.rotation.y+Math.PI;
                     for(let i=0;i<5;i++){
                         let temp2=playerRotation[i];
                         playerRotation[i]=temp;
@@ -576,7 +584,7 @@ export default () => {
                     }
                 }
                 else{
-                    let temp=-localPlayer.rotation.y;
+                    let temp=-currentPlayer.rotation.y;
                     for(let i=0;i<5;i++){
                         let temp2=playerRotation[i];
                         playerRotation[i]=temp;
@@ -712,7 +720,7 @@ export default () => {
                         value: 0.0
                     },
                     playerRotation: {
-                        value: new THREE.Vector3(localPlayer.rotation.y, localPlayer.rotation.y, localPlayer.rotation.y)
+                        value: new THREE.Vector3(currentPlayer.rotation.y, currentPlayer.rotation.y, currentPlayer.rotation.y)
                     },
                     strength: {
                         type: "f",
@@ -761,9 +769,9 @@ export default () => {
             }
             if(lightningMaterial.uniforms.strength.value>0){
                 //console.log('sonic-boom-lightning');
-                group.position.copy(localPlayer.position);
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
+                group.position.copy(currentPlayer.position);
+                if (currentPlayer.avatar) {
+                    group.position.y -= currentPlayer.avatar.height;
                     group.position.y += 0.65;
                 }
                 
@@ -771,8 +779,8 @@ export default () => {
                 group.position.x-=2.2*currentDir.x;
                 group.position.z-=2.2*currentDir.z;
                 lightningMaterial.uniforms.uTime.value=timestamp/20000;
-                if(Math.abs(localPlayer.rotation.x)>0){
-                    let temp=localPlayer.rotation.y+Math.PI;
+                if(Math.abs(currentPlayer.rotation.x)>0){
+                    let temp=currentPlayer.rotation.y+Math.PI;
                     for(let i=0;i<5;i++){
                         let temp2=playerRotation[i];
                         playerRotation[i]=temp;
@@ -780,7 +788,7 @@ export default () => {
                     }
                 }
                 else{
-                    let temp=-localPlayer.rotation.y;
+                    let temp=-currentPlayer.rotation.y;
                     for(let i=0;i<5;i++){
                         let temp2=playerRotation[i];
                         playerRotation[i]=temp;
@@ -980,18 +988,18 @@ export default () => {
             }
             for (let i = 0; i < planeNumber; i++){
                 if(i===0){
-                    position[0] = localPlayer.position.x;
-                    position[1] = localPlayer.position.y-1.;
-                    position[2] = localPlayer.position.z;
-                    if (localPlayer.avatar) {
-                        position[1] -= localPlayer.avatar.height;
+                    position[0] = currentPlayer.position.x;
+                    position[1] = currentPlayer.position.y-1.;
+                    position[2] = currentPlayer.position.z;
+                    if (currentPlayer.avatar) {
+                        position[1] -= currentPlayer.avatar.height;
                         position[1] += 1.18;
                     }
-                    position[3] = localPlayer.position.x;
-                    position[4] = localPlayer.position.y-2.;
-                    position[5] = localPlayer.position.z;
-                    if (localPlayer.avatar) {
-                        position[4] -= localPlayer.avatar.height;
+                    position[3] = currentPlayer.position.x;
+                    position[4] = currentPlayer.position.y-2.;
+                    position[5] = currentPlayer.position.z;
+                    if (currentPlayer.avatar) {
+                        position[4] -= currentPlayer.avatar.height;
                         position[4] += 1.18;
                     }
                 
@@ -1007,11 +1015,11 @@ export default () => {
                     position[13] = temp[1];
                     position[14] = temp[2];
                 
-                    position[15] = localPlayer.position.x;
-                    position[16] = localPlayer.position.y-2.;
-                    position[17] = localPlayer.position.z;
-                    if (localPlayer.avatar) {
-                        position[16] -= localPlayer.avatar.height;
+                    position[15] = currentPlayer.position.x;
+                    position[16] = currentPlayer.position.y-2.;
+                    position[17] = currentPlayer.position.z;
+                    if (currentPlayer.avatar) {
+                        position[16] -= currentPlayer.avatar.height;
                         position[16] += 1.18;
                     }
                 }
@@ -1222,12 +1230,12 @@ export default () => {
             
             localVector2.set(currentDir.x, currentDir.y, currentDir.z).applyQuaternion(quaternion);
     
-            point1.x=localPlayer.position.x;
-            point1.y=localPlayer.position.y;
-            point1.z=localPlayer.position.z;
-            point2.x=localPlayer.position.x;
-            point2.y=localPlayer.position.y;
-            point2.z=localPlayer.position.z;
+            point1.x=currentPlayer.position.x;
+            point1.y=currentPlayer.position.y;
+            point1.z=currentPlayer.position.z;
+            point2.x=currentPlayer.position.x;
+            point2.y=currentPlayer.position.y;
+            point2.z=currentPlayer.position.z;
             
             point1.x-=0.6*localVector2.x;
             point1.z-=0.6*localVector2.z;
@@ -1241,17 +1249,17 @@ export default () => {
             for (let i = 0; i < planeNumber; i++){
                 if(i===0){
                     position[0] = point1.x;
-                    position[1] = localPlayer.position.y-1.55;
+                    position[1] = currentPlayer.position.y-1.55;
                     position[2] = point1.z;
-                    if (localPlayer.avatar) {
-                        position[1] -= localPlayer.avatar.height;
+                    if (currentPlayer.avatar) {
+                        position[1] -= currentPlayer.avatar.height;
                         position[1] += 1.18;
                     }
                     position[3] = point2.x;
-                    position[4] = localPlayer.position.y-1.55;
+                    position[4] = currentPlayer.position.y-1.55;
                     position[5] = point2.z;
-                    if (localPlayer.avatar) {
-                        position[4] -= localPlayer.avatar.height;
+                    if (currentPlayer.avatar) {
+                        position[4] -= currentPlayer.avatar.height;
                         position[4] += 1.18;
                     }
                 
@@ -1268,10 +1276,10 @@ export default () => {
                     position[14] = temp[2];
                 
                     position[15] = point2.x;
-                    position[16] = localPlayer.position.y-1.55;
+                    position[16] = currentPlayer.position.y-1.55;
                     position[17] = point2.z;
-                    if (localPlayer.avatar) {
-                        position[16] -= localPlayer.avatar.height;
+                    if (currentPlayer.avatar) {
+                        position[16] -= currentPlayer.avatar.height;
                         position[16] += 1.18;
                     }
                 }
@@ -1450,10 +1458,10 @@ export default () => {
             }
             if(mainBall.material.uniforms.opacity.value<1){
                 //console.log('sonic-boom-mainBall');
-                mainBall.position.copy(localPlayer.position);
+                mainBall.position.copy(currentPlayer.position);
             
-                if (localPlayer.avatar) {
-                    mainBall.position.y -= localPlayer.avatar.height;
+                if (currentPlayer.avatar) {
+                    mainBall.position.y -= currentPlayer.avatar.height;
                     mainBall.position.y += 0.65;
                 }
                 mainBall.material.uniforms.uAvatarPos.value=mainBall.position;
@@ -1636,14 +1644,14 @@ export default () => {
                 
             }
             if(electricityMaterial.uniforms.opacity.value>0.01){
-                group.rotation.copy(localPlayer.rotation);
-                group.position.copy(localPlayer.position);
+                group.rotation.copy(currentPlayer.rotation);
+                group.position.copy(currentPlayer.position);
                 
                 group.position.x+=.1*currentDir.x;
                 group.position.z+=.1*currentDir.z;
                 
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
+                if (currentPlayer.avatar) {
+                    group.position.y -= currentPlayer.avatar.height;
                     group.position.y += 0.65;
                 }
                 electricityMaterial.uniforms.uTime.value=timestamp/100;
@@ -1825,15 +1833,15 @@ export default () => {
                 
             }
             if(electricityMaterial.uniforms.opacity.value>0.01){
-                group.rotation.copy(localPlayer.rotation);
-                group.position.copy(localPlayer.position);
-                // localPlayer.getWorldDirection(localVector)
+                group.rotation.copy(currentPlayer.rotation);
+                group.position.copy(currentPlayer.position);
+                // currentPlayer.getWorldDirection(localVector)
                 // localVector.normalize();
                 group.position.x+=.1*currentDir.x;
                 group.position.z+=.1*currentDir.z;
     
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
+                if (currentPlayer.avatar) {
+                    group.position.y -= currentPlayer.avatar.height;
                     group.position.y += 0.65;
                 }
                 electricityMaterial.uniforms.uTime.value=timestamp/100;
@@ -1930,10 +1938,10 @@ export default () => {
                         app.add(group);
                         sonicBoomInApp=true;
                     }
-                    group.position.copy(localPlayer.position);
-                    group.rotation.copy(localPlayer.rotation);
-                    if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
+                    group.position.copy(currentPlayer.position);
+                    group.rotation.copy(currentPlayer.rotation);
+                    if (currentPlayer.avatar) {
+                    group.position.y -= currentPlayer.avatar.height;
                     group.position.y += 0.65;
                     }
                     for (let i = 0; i < particleCount; i++) {
@@ -1974,11 +1982,11 @@ export default () => {
                                 dummy.scale.z /= 1.1;
                             }
                             dummy.rotation.copy(camera.rotation);
-                            if(localPlayer.rotation.x==0){
-                                dummy.rotation.y-=localPlayer.rotation.y;
+                            if(currentPlayer.rotation.x==0){
+                                dummy.rotation.y-=currentPlayer.rotation.y;
                             }
                             else{
-                                dummy.rotation.y+=localPlayer.rotation.y;
+                                dummy.rotation.y+=currentPlayer.rotation.y;
                             }
                             
                             info.velocity[i].add(acc);
@@ -2081,10 +2089,10 @@ export default () => {
                         app.add(group);
                         sonicBoomInApp=true;
                     }
-                    group.position.copy(localPlayer.position);
-                    group.rotation.copy(localPlayer.rotation);
-                    if (localPlayer.avatar) {
-                      group.position.y -= localPlayer.avatar.height;
+                    group.position.copy(currentPlayer.position);
+                    group.rotation.copy(currentPlayer.rotation);
+                    if (currentPlayer.avatar) {
+                      group.position.y -= currentPlayer.avatar.height;
                       group.position.y += 0.65;
                     }
                     for (let i = 0; i < particleCount; i++) {
@@ -2124,11 +2132,11 @@ export default () => {
                                 dummy.scale.z /= 1.1;
                             }
                             dummy.rotation.copy(camera.rotation);
-                            if(localPlayer.rotation.x==0){
-                                dummy.rotation.y-=localPlayer.rotation.y;
+                            if(currentPlayer.rotation.x==0){
+                                dummy.rotation.y-=currentPlayer.rotation.y;
                             }
                             else{
-                                dummy.rotation.y+=localPlayer.rotation.y;
+                                dummy.rotation.y+=currentPlayer.rotation.y;
                             }
                             info.velocity[i].add(acc);
                             dummy.position.add(info.velocity[i]);
@@ -2158,7 +2166,7 @@ export default () => {
         const localVector = new THREE.Vector3();
         const _shake = () => {
             if (narutoRunTime >= 1 && narutoRunTime <= 5) {
-                localVector.setFromMatrixPosition(localPlayer.matrixWorld);
+                localVector.setFromMatrixPosition(currentPlayer.matrixWorld);
                 cameraManager.addShake( localVector, 0.2, 30, 500);
             }
         };
@@ -2294,13 +2302,13 @@ export default () => {
                         sonicBoomInApp=true;
                     }
                     if(narutoRunTime ===1){
-                        group.position.copy(localPlayer.position);
+                        group.position.copy(currentPlayer.position);
                         group.position.x+=4.*currentDir.x;
                         group.position.z+=4.*currentDir.z;
-                        group.rotation.copy(localPlayer.rotation);
+                        group.rotation.copy(currentPlayer.rotation);
                         wave.scene.position.y=0;
-                        if (localPlayer.avatar) {
-                            group.position.y -= localPlayer.avatar.height;
+                        if (currentPlayer.avatar) {
+                            group.position.y -= currentPlayer.avatar.height;
                             group.position.y += 0.65;
                         }
                         wave.scene.scale.set(1,1,1);
@@ -2318,9 +2326,9 @@ export default () => {
                     wave.scene.children[0].material.uniforms.opacity.value+=0.003;
                     wave.scene.children[0].material.uniforms.uTime.value=timestamp/1000;
                     wave.scene.children[0].material.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight, 1);
-                    wave.scene.children[0].material.uniforms.avatarPos.x=localPlayer.position.x;
-                    wave.scene.children[0].material.uniforms.avatarPos.y=localPlayer.position.y;
-                    wave.scene.children[0].material.uniforms.avatarPos.z=localPlayer.position.z;
+                    wave.scene.children[0].material.uniforms.avatarPos.x=currentPlayer.position.x;
+                    wave.scene.children[0].material.uniforms.avatarPos.y=currentPlayer.position.y;
+                    wave.scene.children[0].material.uniforms.avatarPos.z=currentPlayer.position.z;
                 }
                 else{
                     if(sonicBoomInApp && narutoRunTime===0){
@@ -2503,23 +2511,23 @@ export default () => {
             }
             if (mesh) {
                 
-                group.position.copy(localPlayer.position);
-                group.rotation.copy(localPlayer.rotation);
-                if (localPlayer.avatar) {
-                group.position.y -= localPlayer.avatar.height;
+                group.position.copy(currentPlayer.position);
+                group.rotation.copy(currentPlayer.rotation);
+                if (currentPlayer.avatar) {
+                group.position.y -= currentPlayer.avatar.height;
                 group.position.y += 0.2;
                 }
                 
                 group.position.x-=0.3*currentDir.x;
                 group.position.z-=0.3*currentDir.z;
 
-                if(localPlayer.rotation.x===0)
-                    currentRotate=-localPlayer.rotation.y;
+                if(currentPlayer.rotation.x===0)
+                    currentRotate=-currentPlayer.rotation.y;
                 else{
-                    if(localPlayer.rotation.y>0)
-                        currentRotate=(localPlayer.rotation.y-Math.PI);
+                    if(currentPlayer.rotation.y>0)
+                        currentRotate=(currentPlayer.rotation.y-Math.PI);
                     else
-                        currentRotate=(localPlayer.rotation.y+Math.PI);
+                        currentRotate=(currentPlayer.rotation.y+Math.PI);
                 }
                 //console.log('sonic-boom-front-dust');
                 
@@ -3113,7 +3121,7 @@ export default () => {
         // });
     //}
     
-    
+  })
   
 
   //############################################# shock wave ######################################################
@@ -3262,5 +3270,4 @@ export default () => {
   
   return app;
 };
-
 

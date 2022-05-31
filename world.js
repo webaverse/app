@@ -12,7 +12,7 @@ import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
 // import {chatManager} from './chat-manager.js';
 // import {getState, setState} from './state.js';
-// import {makeId} from './util.js';
+import {makeId} from './util.js';
 import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
 import metaversefileApi from 'metaversefile';
 import {appsMapName, playersMapName} from './constants.js';
@@ -27,9 +27,7 @@ import {playersManager} from './players-manager.js';
 export const world = {};
 world.winds = [];
 
-const appManager = new AppManager({
-  appsMap: null,
-});
+const appManager = new AppManager();
 world.appManager = appManager;
 
 // world.particleSystem = createParticleSystem();
@@ -57,9 +55,9 @@ world.getConnection = () => wsrtc;
 world.connectState = state => {
   state.setResolvePriority(1);
 
-  world.appManager.unbindState();
+  world.appManager.unbindStateLocal();
   world.appManager.clear();
-  world.appManager.bindState(state.getArray(appsMapName));
+  world.appManager.bindStateLocal(state.getArray(appsMapName));
   
   playersManager.bindState(state.getArray(playersMapName));
   
@@ -71,35 +69,62 @@ world.connectState = state => {
 };
 world.isConnected = () => !!wsrtc;
 world.connectRoom = async u => {
-  // await WSRTC.waitForReady();
-  
-  world.appManager.unbindState();
+  world.appManager.unbindStateLocal();
   world.appManager.clear();
 
   const localPlayer = metaversefileApi.useLocalPlayer();
   const state = new Z.Doc();
+  
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      console.log(state.getArray('world'))
+      console.log(state.getArray('players'))
+    }
+  });
+
   state.setResolvePriority(1);
   wsrtc = new WSRTC(u, {
     localPlayer,
     crdtState: state,
   });
+
   const open = e => {
     wsrtc.removeEventListener('open', open);
     
     world.appManager.bindState(state.getArray(appsMapName));
     playersManager.bindState(state.getArray(playersMapName));
-    
+
     const init = e => {
       wsrtc.removeEventListener('init', init);
       
       localPlayer.bindState(state.getArray(playersMapName));
-      if (mediaStream) {
-        wsrtc.enableMic(mediaStream);
-      }
+
+      wsrtc.addEventListener('audio', e => {
+        const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
+        player.processAudioData(e.data);
+      })
+
+      wsrtc.addEventListener('chat', e => {
+        console.log('chat handled', e);
+        let { playerId, message } = e.data;
+
+        const player = metaversefileApi.useRemotePlayer(playerId);
+        const localPlayer = metaversefileApi.useLocalPlayer();
+        const chatId = makeId(5);
+        localPlayer.addAction({
+          type: 'chat',
+          chatId,
+          playerName: player.name,
+          message
+        })
+
+      })
     };
     wsrtc.addEventListener('init', init);
   };
   wsrtc.addEventListener('open', open);
+
+
 
   /* const sendUpdate = () => {
     const rig = localPlayer.avatar;
@@ -181,6 +206,8 @@ world.connectRoom = async u => {
   }, {once: true});
 
   wsrtc.addEventListener('close', e => {
+    playersManager.unbindState();
+    world.appManager.unbindState();
     console.log('Channel Close!');
 
     /* const peerRigIds = rigManager.peerRigs.keys();
@@ -307,14 +334,17 @@ appManager.addEventListener('appadd', e => {
 
   _bindHitTracker(app);
 });
-appManager.addEventListener('trackedappmigrate', async e => {
-  const {app, sourceAppManager, destinationAppManager} = e.data;
-  if (this === sourceAppManager) {
-    app.hitTracker.unbind();
-  } else if (this === destinationAppManager) {
-    _bindHitTracker(app);
-  }
-});
+
+// appManager.addEventListener('trackedappexport', async e => {
+//   const {app} = e.data;
+//   app.hitTracker.unbind();
+// });
+
+// appManager.addEventListener('trackedappimport', async e => {
+//   const {app} = e.data;
+//   _bindHitTracker(app);
+// });
+
 appManager.addEventListener('appremove', async e => {
   const app = e.data;
   app.hitTracker.unbind();
