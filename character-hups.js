@@ -108,7 +108,7 @@ class CharacterHups extends EventTarget {
     player.addEventListener('actionadd', e => {
       const {action} = e;
       const {type, actionId} = action;
-      // console.log('action add', action);
+      console.log('action add', new Error().stack, action, new Error().stack);
 
       const oldHup = this.hups.find(hup => hup.type === type);
       // console.log('got old hup', oldHup, actionId, this.hups.map(h => h.actionIds).flat());
@@ -148,6 +148,7 @@ class CharacterHups extends EventTarget {
             hup: newHup,
           },
         }));
+
         newHup.updateVoicer(action.message, action.emote);
       }
     });
@@ -161,15 +162,6 @@ class CharacterHups extends EventTarget {
         oldHup.unmergeAction(action);
       }
     });
-  }
-  addChatHupAction(text) {
-    this.player.addAction({
-      type: 'chat',
-      text,
-    });
-  }
-  update(timestamp) {
-    // nothing
   }
   destroy() {
     // nothing
