@@ -129,7 +129,7 @@
       "start_url": "https://webaverse.github.io/barrier/",
       "dynamic": true
     },
-    {
+  {
       "position": [
         24,
         0,
@@ -140,13 +140,11 @@
         0,
         0,
         1
-      ], 
+      ],
       "type": "application/mob",
-      "content": {
-        "name": "silkworm"
       "physics": false,
-      "start_url": "https://webaverse.github.io/silkworm/",
-      "dynamic": false
+      "start_url": "https://gitwillg.github.io/silkworm-runner/",
+      "dynamic": true
     },
     {
       "position": [

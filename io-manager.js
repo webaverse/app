@@ -307,19 +307,10 @@ ioManager.keydown = e => {
     case 9: { // tab
       break;
     }
-    case 49: { // 1 -> temporarilly going to be used to switch to new target/ issue #3066
-      // to do: check for nearby valid z-target X then do:
-      const localPlayer = metaversefile.useLocalPlayer();
-      game.menuMiddleToggle();
-      game.menuTarget(game.findNearby(localPlayer));
-      // then set z-target to X and do:
-
-      break;
-    }
-    case 50: { // 2 -> temporarilly going to be used to detatch from target/ issue #3066
-      // to do: trigger the following when player aims far enough (angle-based) away from z-target and remove functionality from button press
+    case 49:
+    case 50: { // 2 -> temporarilly going to be used to toggle between targets -> issue #3066
+      // to do: find a way to spawn mobs into any scene for testing
       game.findNearby();
-      // automatically re-engage z-targeting on a different target if they are in range after moving and disengaging from the first z-target
       break;
     }
     case 51: // 3

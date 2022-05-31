@@ -241,47 +241,48 @@ class ZTargeting extends THREE.Object3D {
     }
   }
   findNearbyTarget(){
-    //Make list for 'nearby mobs'                     // possibly already exists
-    // for (const mob of mobManager.mobs){
-    //   const mobPhysicsObjects = mob.getPhysicsObjects();
-    //   console.log('npc', npcManager.npcs);
-    // //for each mob in mob manager
-    //   if (camera.position.distanceTo(mobPhysicsObjects.position)< 20 /*random val rn*/ && cameraManager.compareAngletoCam(mobPhysicsObjects.position < 120)){
-    //     this.nearbyMobs.push(mobPhysicsObjects); //gonna make this a dictionary later with mob-angle relation
-    //   }
-    //   //check distance to character                   // Maybe not both this and below
-    //   //compareAngletoCam(wider angle than for drop)
-    //     //add to list of 'nearby mobs', sorted by angle dist
-    // }
-
-    // if (this.nearbyMobs.length > 0){
-    //   console.log('mobs', this.nearbyMobs);
-    //   this.toggle();
-    //   this.handleTarget(this.nearbyMobs[0]);
-    //   this.nearbyMobs = [];
-    // }else{
-      this.findNearbyNpc();
-    // }
-
-        //possibly seperate method
+    //Make list for 'nearby mobs'                     // already exists
+    //for each mob in mob manager
+    //let angleVal = 0;
+    for (const mob of mobManager.mobs){
+      const mobPhysicsObjects = mob.getPhysicsObjects();
+      console.log('mob', mobManager.mobs);
+      //check distance to character                   // Maybe not both this and below
+      //compareAngletoCam(wider angle than checkdrop())
+        //add to list of 'nearby mobs', sorted by angle dist
+      const mobAngle = cameraManager.compareAngletoCam(mobPhysicsObjects.position)
+      if (camera.position.distanceTo(mobPhysicsObjects.position)< 20 /*random val rn*/ && mobAngle > 120){
+        // if (mobAngle > angleVal){
+        //   angleVal = mobAngle;
+        // this.nearbyMobs = [mobPhysicsObjects];
+        this.nearbyMobs.push(mobPhysicsObjects);
+        // }
+      }
+    }
     //if list.length > 0
       //togle()
       //focus(list[0])
       //handletarget(list[0])
-  }
-  findNearbyNpc(){
-    console.log('npc', npcManager.npcs);
-    const npcPhysicsOb = npcManager.npcs[0].getPhysicsObjects();
-    if (cameraManager.compareAngletoCam(npcPhysicsOb.position < 120)){
-      this.nearbyNpc.push(npcPhysicsOb); //gonna make this a dictionary later with mob-angle relation
-    }
-    if (this.nearbyNpc.length > 0){
-      console.log('npc', this.nearbnearbyNpcMobs);
+    if (this.nearbyMobs.length > 0){
+      console.log('mobs', this.nearbyMobs);
       this.toggle();
-      this.handleTarget(this.nearbyNpc[0]);
-      this.nearbyNpc = [];
+      this.handleTarget(this.nearbyMobs[0]);
+      this.nearbyMobs = [];
     }
-  }
+  } 
+  // findNearbyNpc(){
+  //   console.log('npc', npcManager.npcs);
+  //   const npcPhysicsOb = npcManager.npcs[0].getPhysicsObjects();
+  //   if (cameraManager.compareAngletoCam(npcPhysicsOb.position < 120)){
+  //     this.nearbyNpc.push(npcPhysicsOb); //gonna make this a dictionary later with mob-angle relation
+  //   }
+  //   if (this.nearbyNpc.length > 0){
+  //     console.log('npc', this.nearbnearbyNpcMobs);
+  //     this.toggle();
+  //     this.handleTarget(this.nearbyNpc[0]);
+  //     this.nearbyNpc = [];
+  //   }
+  // }
   checkDrop(){
     var camAngle;
     if (this.focusTargetReticle){
