@@ -4,7 +4,6 @@ import classnames from 'classnames';
 import * as ceramicApi from '../ceramic.js';
 import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
-import * as ethers from 'ethers';
 
 // import Modal from './components/modal';
 import WebaWallet from './components/wallet';
@@ -19,20 +18,15 @@ import Web3 from '../web3.min.js';
 
 //
 
-export const User = ({ className, address, setAddress, setLoginFrom }) => {
+export const User = ({ address, setAddress, setLoginFrom }) => {
 
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, walletstate, setWalletState } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-
     //
-    const { ethereum } = window;
-    if (ethereum) {
-        var provider = new ethers.providers.Web3Provider(ethereum);
-    }
 
     /* const showModal = ( event ) => {
 
@@ -103,6 +97,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
                     const { address, profile } = await ceramicApi.login();
                     await _setAddress(address);
+                    setWalletState({ walletaddress : address })
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
@@ -112,7 +107,6 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                     console.warn(err);
 
                 } finally {
-
                     setState({ openedPanel: null });
 
                     setLoggingIn(false);
@@ -124,11 +118,6 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
         // }
 
     };
-
-    useEffect(async() => {
-        const accounts = await provider.listAccounts();
-        console.log("wallet login", accounts.length > 0)
-    })
     
     useEffect( () => {
 
@@ -137,7 +126,6 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
         //
 
         const discordAutoLogin = async () => {
-
             const { address, error } = await WebaWallet.loginDiscord( code, id );
 
             if ( address ) {
@@ -234,10 +222,9 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                 open ? styles.open : null,
                 loggedIn ? styles.loggedIn : null,
                 loggingIn ? styles.loggingIn : null,
-                className
             ) }
         >
-            <div className={ styles.keyWrap } onClick={e => {
+            <div className={styles.keyWrap} onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -245,7 +232,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
                     if ( !open ) {
 
-                        setState({ openedPanel: 'LoginPanel' });
+                        setState({openedPanel: 'LoginPanel' });
 
                     } else {
                         setState({ openedPanel: null });
@@ -296,6 +283,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                         e.stopPropagation();
                         WebaWallet.logout();
                         _setAddress(null);
+                        setWalletState({ walletaddress: null })
                     }}
                 >Logout</div>
             </div>

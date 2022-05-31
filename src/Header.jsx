@@ -17,7 +17,6 @@ import { AvatarIcon } from './AvatarIcon';
 import { User } from './User';
 
 import styles from './Header.module.css';
-import { UIMode } from './components/general/ui-mode/index.jsx';
 
 //
 
@@ -75,7 +74,7 @@ export default function Header() {
 
             if ( pointerLockElement && state.openedPanel !== null) {
 
-                setState({ openedPanel: null });
+                setState({openedPanel: null });
 
             }
 
@@ -244,7 +243,7 @@ export default function Header() {
 
         if ( claimsOpen ) {
 
-            setState({ openedPanel: null });
+            setState({openedPanel: null });
 
         } else {
 
@@ -263,16 +262,12 @@ export default function Header() {
               npcs={npcs}
             />
             {/* <div className={styles.inner}> */}
-                <UIMode hideDirection='left' >
-                    <AvatarIcon />
-                </UIMode>
-                <UIMode hideDirection='right' >
-                    <User
-                        address={address}
-                        setAddress={setAddress}
-                        setLoginFrom={setLoginFrom}
-                    />
-                </UIMode>
+                <AvatarIcon />
+                <User
+                    address={address}
+                    setAddress={setAddress}
+                    setLoginFrom={setLoginFrom}
+                />
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}
