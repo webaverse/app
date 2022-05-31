@@ -779,11 +779,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     //     } = spec;
 
     //     // const animation = animations.index['walking.fbx']
-    //     const animation = animations.index['Backflip.fbx']
-    //     const t2 = timeSeconds;
+    //     const animation = animations.index['landing.fbx']
+    //     const t2 = timeSeconds / 3;
     //     const src2 = animation.interpolants[k];
-    //     // const v2 = src2.evaluate(t2 % animation.duration);
-    //     const v2 = src2.evaluate(30 / 30);
+    //     const v2 = src2.evaluate(t2 % animation.duration);
+    //     // const v2 = src2.evaluate(30 / 30);
 
     //     dst.fromArray(v2);
     //   };
