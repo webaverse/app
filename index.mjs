@@ -6,9 +6,11 @@ import fs from 'fs';
 import express from 'express';
 import vite from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
+import dotenv from 'dotenv'
 
-const SERVER_ADDR = '0.0.0.0';
-const SERVER_NAME = 'local.webaverse.com';
+// Variables in .env and .env.defaults will be added to process.env
+dotenv.config({ path: ".env" });
+
 
 Error.stackTraceLimit = 300;
 const cwd = process.cwd();
@@ -111,8 +113,10 @@ const _proxyUrl = (req, res, u) => {
     }
   });
 
+  const SERVER_ADDR = process.env.SERVER_HOST || '0.0.0.0';
+  const SERVER_NAME = process.env.SERVER_NAME || 'local.webaverse.com';
   const isHttps = !process.env.HTTP_ONLY && (!!certs.key && !!certs.cert);
-  const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
+  const port = parseInt(process.env.SERVER_PORT, 10) || (isProduction ? 443 : 3000);
   const wsPort = port + 1;
 
   const _makeHttpServer = () => isHttps ? https.createServer(certs, app) : http.createServer(app);
@@ -146,7 +150,7 @@ const _proxyUrl = (req, res, u) => {
     }
   })();
   const initialRoomState = (() => {
-    const s = fs.readFileSync('./scenes/gunroom.scn', 'utf8');
+    const s = fs.readFileSync('./scenes/street_mp_testing.scn', 'utf8');
     const j = JSON.parse(s);
     const {objects} = j;
     

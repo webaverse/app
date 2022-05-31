@@ -9,5 +9,3 @@ export const localPlayer = new LocalPlayer({
 });
 localPlayer.position.y = initialPosY;
 localPlayer.updateMatrixWorld();
-
-export const remotePlayers = new Map();

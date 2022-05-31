@@ -1,12 +1,12 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 // import physx from './physx.js';
 // import physicsManager from './physics-manager.js';
-import {world} from './world.js';
-import {damageMaterial} from './shaders.js';
-import {scene} from './renderer.js';
-import * as metaverseModules from './metaverse-modules.js';
-import * as sounds from './sounds.js';
-import metaversefileApi from 'metaversefile';
+import { world } from "./world.js";
+import { damageMaterial } from "./shaders.js";
+import { scene } from "./renderer.js";
+import * as metaverseModules from "./metaverse-modules.js";
+import * as sounds from "./sounds.js";
+import metaversefileApi from "metaversefile";
 
 // const localVector = new THREE.Vector3();
 const localEuler = new THREE.Euler();
@@ -31,9 +31,10 @@ let damageAnimation = null;
 const update = (timestamp, timeDiff) => {
   if (damageAnimation) {
     if (timestamp < damageAnimation.endTime) {
-      const animationDuration = damageAnimation.endTime - damageAnimation.startTime;
+      const animationDuration =
+        damageAnimation.endTime - damageAnimation.startTime;
       const f = (timestamp - damageAnimation.startTime) / animationDuration;
-      damagePhysicsMesh.material.uniforms.uTime.value = 1-f;
+      damagePhysicsMesh.material.uniforms.uTime.value = 1 - f;
       damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       damagePhysicsMesh.updateMatrixWorld();
     } else {
@@ -43,14 +44,20 @@ const update = (timestamp, timeDiff) => {
   damagePhysicsMesh.visible = !!damageAnimation;
 };
 
-const triggerDamageAnimation = collisionId => {
+const triggerDamageAnimation = (collisionId) => {
   const timestamp = performance.now();
-  const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(collisionId);
-  const {physicsMesh} = physicsObject;
+  const physicsObject =
+    metaversefileApi.getPhysicsObjectByPhysicsId(collisionId);
+  const { physicsMesh } = physicsObject;
   damagePhysicsMesh.geometry = physicsMesh.geometry;
   damagePhysicsMesh.matrix.copy(physicsMesh.matrixWorld);
-  damagePhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
-    .decompose(damagePhysicsMesh.position, damagePhysicsMesh.quaternion, damagePhysicsMesh.scale);
+  damagePhysicsMesh.matrixWorld
+    .copy(physicsMesh.matrixWorld)
+    .decompose(
+      damagePhysicsMesh.position,
+      damagePhysicsMesh.quaternion,
+      damagePhysicsMesh.scale
+    );
   damagePhysicsMesh.updateMatrixWorld();
   damageAnimation = {
     startTime: timestamp,
@@ -58,31 +65,32 @@ const triggerDamageAnimation = collisionId => {
   };
 };
 
-const makeHitTracker = ({
-  totalHp = 100,
-} = {}) => {
+const resetHp=(hitTracker) =>{
+  hitTracker.hp = hitTracker.totalHp
+}
+const makeHitTracker = ({ totalHp = 100 } = {}) => {
   const hitTracker = new THREE.Object3D();
-  hitTracker.name = 'hitTracker';
-  
+  hitTracker.name = "hitTracker";
+
   let hitTime = -1;
   hitTracker.hp = totalHp;
   hitTracker.totalHp = totalHp;
   let currentApp = null;
-  const frame = e => {
+  const frame = (e) => {
     hitTracker.update(e.data.timeDiff);
   };
-  hitTracker.bind = app => {
+  hitTracker.bind = (app) => {
     if (!currentApp) {
       app.parent.add(hitTracker);
       hitTracker.add(app);
       hitTracker.updateMatrixWorld();
 
-      world.appManager.addEventListener('frame', frame);
+      world.appManager.addEventListener("frame", frame);
 
       app.hitTracker = hitTracker;
       currentApp = app;
     } else {
-      throw new Error('already bound');
+      throw new Error("already bound");
     }
   };
   hitTracker.unbind = () => {
@@ -99,33 +107,33 @@ const makeHitTracker = ({
 
       currentApp = null;
 
-      world.appManager.removeEventListener('frame', frame);
+      world.appManager.removeEventListener("frame", frame);
     } else {
-      throw new Error('not bound');
+      throw new Error("not bound");
     }
   };
   hitTracker.hit = (damage, opts) => {
     const result = hitTracker.damage(damage);
-    const {hit, died} = result;
+    const { hit, died } = result;
     if (hit) {
-      const {collisionId, hitPosition, hitDirection, hitQuaternion} = opts;
+      const { collisionId, hitPosition, hitDirection, hitQuaternion } = opts;
 
       if (died) {
         triggerDamageAnimation(collisionId);
-        
-        sounds.playSoundName('enemyDeath');
+
+        sounds.playSoundName("enemyDeath");
       }
 
       {
         const damageMeshApp = metaversefileApi.createApp();
         (async () => {
           await metaverseModules.waitForLoad();
-          const {modules} = metaversefileApi.useDefaultModules();
-          const m = modules['damageMesh'];
+          const { modules } = metaversefileApi.useDefaultModules();
+          const m = modules["damageMesh"];
           await damageMeshApp.addModule(m);
         })();
         damageMeshApp.position.copy(hitPosition);
-        localEuler.setFromQuaternion(hitQuaternion, 'YXZ');
+        localEuler.setFromQuaternion(hitQuaternion, "YXZ");
         localEuler.x = 0;
         localEuler.z = 0;
         damageMeshApp.quaternion.setFromEuler(localEuler);
@@ -133,10 +141,10 @@ const makeHitTracker = ({
         scene.add(damageMeshApp);
       }
 
-      sounds.playSoundName('enemyCut');
+      sounds.playSoundName("enemyCut");
 
       hitTracker.dispatchEvent({
-        type: 'hit',
+        type: "hit",
         collisionId,
         hitPosition,
         hitDirection,
@@ -147,7 +155,7 @@ const makeHitTracker = ({
       });
       if (died) {
         hitTracker.dispatchEvent({
-          type: 'die',
+          type: "die",
           // position: cylinderMesh.position,
           // quaternion: cylinderMesh.quaternion,
         });
@@ -156,12 +164,12 @@ const makeHitTracker = ({
     return result;
   };
 
-  hitTracker.damage = damage => {
+  hitTracker.damage = (damage) => {
     if (hitTime === -1) {
       hitTracker.hp = Math.max(hitTracker.hp - damage, 0);
       if (hitTracker.hp > 0) {
         hitTime = 0;
-        
+
         /* hitTracker.dispatchEvent({
           type: 'hit',
           hp,
@@ -187,12 +195,16 @@ const makeHitTracker = ({
     }
   };
   // hitTracker.willDieFrom = damage => (hitTracker.hp - damage) <= 0;
-  hitTracker.update = timeDiff => {
+  hitTracker.update = (timeDiff) => {
     if (hitTime !== -1) {
       hitTime += timeDiff;
-      
-      const scale = (1-hitTime/hitAnimationLength) * 0.1;
-      hitTracker.position.set((-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale);
+
+      const scale = (1 - hitTime / hitAnimationLength) * 0.1;
+      hitTracker.position.set(
+        (-1 + Math.random() * 2) * scale,
+        (-1 + Math.random() * 2) * scale,
+        (-1 + Math.random() * 2) * scale
+      );
       hitTracker.updateMatrixWorld();
       if (hitTime > hitAnimationLength) {
         hitTime = -1;
@@ -205,6 +217,7 @@ const makeHitTracker = ({
 const hpManager = {
   makeHitTracker,
   update,
+  resetHp,
   // triggerDamageAnimation,
 };
 export default hpManager;
