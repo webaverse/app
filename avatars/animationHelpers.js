@@ -1296,7 +1296,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const v2 = src2.evaluate(t2);
       // if (isPosition) console.log('unjump');
 
-      // dst.fromArray(v2); return;
+      dst.fromArray(v2); return;
 
       // // const lerpTimeS = lerpFrameCountFallToLand / 30;
       // // const lerpFactor = MathUtils.clamp(t2 / lerpTimeS, 0, 1);
@@ -1306,7 +1306,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
       let lerpFactor = unjumpFactor;
       // lerpFactor = MathUtils.smoothstep(lerpFactor, 0.9, 1);
-      lerpFactor = lerpFactor * 2 - 1;
+      lerpFactor = lerpFactor * 100 - 99;
       lerpFactor = 1 - lerpFactor;
       lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
       if (isPosition) console.log(lerpFactor);
