@@ -1497,6 +1497,7 @@ class GameManager extends EventTarget {
         // time: 0,
       };
       localPlayer.addAction(newJumpAction);
+      console.log(localPlayer.getAction('jump'));
     }
   }
   jump(trigger) {
