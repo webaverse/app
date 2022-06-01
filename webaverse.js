@@ -394,8 +394,8 @@ const _startHacks = webaverse => {
 
   // animations.index["jump.fbx"].duration - 1 / 30
   // air time = 682.7090000000026; // share with texta
-  window.jumpVelocityY = 15;
-  window.gravityMutiplier = 4;
+  // window.jumpVelocityY = 15;
+  // window.gravityMutiplier = 4;
 
   // air time = 666.0810000000056;
   // window.jumpVelocityY = 15;

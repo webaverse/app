@@ -18,7 +18,7 @@ import {
   // useMaxTime,
   aimMaxTime,
   aimTransitionMaxTime,
-  unjumpMaxTime,
+  // unjumpMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -1491,7 +1491,7 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
-    this.unjumpFactor = this.unjumpTime / unjumpMaxTime;
+    // this.unjumpFactor = this.unjumpTime / unjumpMaxTime;
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -1907,6 +1907,7 @@ class Avatar {
     if (this === window.localPlayer.avatar) {
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
+        <div style="display:;">unjumpFactor: --- ${window.logNum(this.unjumpFactor)}</div>
       */
       window.domInfo.innerHTML = `
         <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
@@ -1920,7 +1921,6 @@ class Avatar {
         <div style="display:;">jumpState: --- ${this.jumpState}</div>
         <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
         <div style="display:;">unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
-        <div style="display:;">unjumpFactor: --- ${window.logNum(this.unjumpFactor)}</div>
         <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
         <div style="display:;">flyState: --- ${this.flyState}</div>
         <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
