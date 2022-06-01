@@ -71,9 +71,9 @@ const _handleMethod = ({
 }) => {
   // console.log('worker handle method', method, args);
   switch (method) {
-    case 'setChunkSize': {
-      const {chunkSize} = args;
-      return dc.setChunkSize(chunkSize);
+    case 'initialize': {
+      const {chunkSize, seed} = args;
+      return dc.initialize(chunkSize, seed);
     }
     case 'port': {
       const {port} = args;

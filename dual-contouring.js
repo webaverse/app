@@ -23,8 +23,8 @@ w.free = address => {
   Module._doFree(address);
 };
 
-w.setChunkSize = (chunkSize) => {
-  Module._setChunkSize(chunkSize)
+w.initialize = (chunkSize, seed) => {
+  Module._initialize(chunkSize, seed);
 };
 
 w.clearChunkRootDualContouring = (x, y, z) => {
@@ -90,7 +90,7 @@ w.createChunkMeshDualContouring = (x, y, z, lod) => {
   }
 };
 
-w.drawDamage = (position, radius, value) => {
+w.drawDamage = (position, radius) => {
   const allocator = new Allocator()
 
   const numPositions = 256;
