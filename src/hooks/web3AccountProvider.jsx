@@ -3,10 +3,9 @@ import useWeb3Account from './useWeb3Account';
 
 const AccountContext = createContext();
 
-function AccountProvider({currentAccount = '', address = '', children}) {
-  const nft = useWeb3Account(currentAccount, address);
-
-  return <AccountContext.Provider value={nft}>
+function AccountProvider({ children }) {
+  const account = useWeb3Account();
+  return <AccountContext.Provider value={account}>
     {children}
   </AccountContext.Provider>;
 }
