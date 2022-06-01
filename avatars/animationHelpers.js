@@ -800,7 +800,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const jumpTimeS = avatar.jumpTime / 1000;
         const jumpAnimation = animations.index['jump.fbx'];
-        const jumpAnimationDuration = jumpAnimation.duration - 1 / 30;
+        const jumpAnimationDuration = jumpAnimation.duration - 1 / 30; // cut last frame.
 
         if (jumpTimeS < jumpAnimationDuration) { // jump up stage
           const t2 = jumpTimeS;
@@ -1280,7 +1280,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     const unjumpFactor = unjumpTimeS / (landingAnimation.duration - 1 / 30);
 
     if (unjumpFactor > 0 && unjumpFactor <= 1) {
-      const t2 = unjumpTimeS + 1 / 30;
+      const t2 = unjumpTimeS + 1 / 30; // cut first frame.
       const src2 = landingAnimation.interpolants[k];
       const v2 = src2.evaluate(t2);
       // if (isPosition) console.log('unjump');
