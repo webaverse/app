@@ -807,14 +807,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
           dst.fromArray(v2);
-          if (isPosition) console.log('jump');
+          // if (isPosition) console.log('jump');
         } else { // fall loop stage
           const fallingAnimation = animations.index['falling.fbx'];
           const t3 = jumpTimeS - jumpAnimationDuration;
           const src3 = fallingAnimation.interpolants[k];
           const v3 = src3.evaluate(t3 % fallingAnimation.duration);
           dst.fromArray(v3);
-          if (isPosition) console.log('fall');
+          // if (isPosition) console.log('fall');
         }
 
         _clearXZ(dst, isPosition);
@@ -1298,7 +1298,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       lerpFactor = lerpFactor * 10 - 9;
       lerpFactor = 1 - lerpFactor;
       lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
-      if (isPosition) console.log(lerpFactor);
+      // if (isPosition) console.log(lerpFactor);
 
       if (!isPosition) {
         localQuaternion.fromArray(v2);
