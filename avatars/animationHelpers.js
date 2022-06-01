@@ -799,33 +799,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } = spec;
 
         const jumpTimeS = avatar.jumpTime / 1000;
-
         const jumpAnimation = animations.index['jump.fbx'];
         const jumpAnimationDuration = jumpAnimation.duration - 1 / 30;
-        const t2 = jumpTimeS;
-        const src2 = jumpAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
-        // if (isPosition) console.log('loop', t2);
-        dst.fromArray(v2);
 
-        if (jumpTimeS >= jumpAnimationDuration) { // fall loop stage
+        if (jumpTimeS < jumpAnimationDuration) { // jump up stage
+          const t2 = jumpTimeS;
+          const src2 = jumpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+          dst.fromArray(v2);
+          if (isPosition) console.log('jump');
+        } else { // fall loop stage
           const fallingAnimation = animations.index['falling.fbx'];
           const t3 = jumpTimeS - jumpAnimationDuration;
           const src3 = fallingAnimation.interpolants[k];
           const v3 = src3.evaluate(t3 % fallingAnimation.duration);
-          const lerpTimeS = lerpFrameCountJumpToFall / 30;
-          const lerpFactor = MathUtils.clamp(t3 / lerpTimeS, 0, 1);
-          if (!isPosition) {
-            localQuaternion.fromArray(v3);
-            dst.slerp(localQuaternion, lerpFactor);
-          } else {
-            localVector.fromArray(v3);
-            dst.lerp(localQuaternion, lerpFactor);
-          }
+          dst.fromArray(v3);
           if (isPosition) console.log('fall');
-        } else { // jump up stage
-          // already full jump animation, do nothing;
-          if (isPosition) console.log('jump');
         }
 
         _clearXZ(dst, isPosition);
@@ -1296,7 +1285,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const v2 = src2.evaluate(t2);
       // if (isPosition) console.log('unjump');
 
-      dst.fromArray(v2); return;
+      // dst.fromArray(v2); return;
 
       // // const lerpTimeS = lerpFrameCountFallToLand / 30;
       // // const lerpFactor = MathUtils.clamp(t2 / lerpTimeS, 0, 1);
@@ -1306,7 +1295,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
       let lerpFactor = unjumpFactor;
       // lerpFactor = MathUtils.smoothstep(lerpFactor, 0.9, 1);
-      lerpFactor = lerpFactor * 100 - 99;
+      lerpFactor = lerpFactor * 10 - 9;
       lerpFactor = 1 - lerpFactor;
       lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
       if (isPosition) console.log(lerpFactor);
