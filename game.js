@@ -2044,9 +2044,9 @@ class GameManager extends EventTarget {
       this.playerDiorama.setObjects([e.avatar.model]);
     });
   }
-  loadVoicePack(voicePack) {
+  setVoicePack(voicePack) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-    return localPlayer.loadVoicePack(voicePack);
+    return localPlayer.setVoicePack(voicePack);
   }
   setVoiceEndpoint(voiceId) {
     const localPlayer = metaversefileApi.useLocalPlayer();

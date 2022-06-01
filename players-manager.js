@@ -80,11 +80,13 @@ class PlayersManager {
           }
 
           const playerId = playerMap.get('playerId');
+          const name = playerMap.get('name');
 
           if (playerId !== localPlayer.playerId) {
             // console.log('add player', playerId, this.playersArray.toJSON());
 
             const remotePlayer = new RemotePlayer({
+              name,
               playerId,
               playersArray: this.playersArray,
             });
