@@ -12,6 +12,7 @@ import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
+import useNFT from './hooks/useNFT';
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -85,9 +86,10 @@ const uploadCreateApp = async (item, {
 };
 
 const DragAndDrop = () => {
-  const { state, setState, } = useContext( AppContext )
+  const { state, setState, account } = useContext( AppContext );
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
+  const { mintNFT, minting } = useNFT(account.currentAddress);
 
   useEffect(() => {
     function keydown(e) {
