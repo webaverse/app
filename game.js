@@ -401,7 +401,6 @@ const _getNextUseIndex = animationCombo => {
   }
 }
 const _startUse = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
   const wearApp = loadoutManager.getSelectedApp();
   if (wearApp) {
     const useComponent = wearApp.getComponent('use');
@@ -945,7 +944,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           .unproject(camera);
         localPlayer.avatar.eyeTargetInverted = false;
         localPlayer.avatar.eyeTargetEnabled = true;
-      } else if (zTargeting?.focusTargetReticle) {
+      } else if (zTargeting?.focusTargetReticle?.position) {
         localPlayer.avatar.eyeTarget.copy(zTargeting.focusTargetReticle.position);
         localPlayer.avatar.eyeTargetInverted = true;
         localPlayer.avatar.eyeTargetEnabled = true;
