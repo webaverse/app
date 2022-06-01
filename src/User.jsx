@@ -137,9 +137,9 @@ export const User = ({ setLoginFrom }) => {
 
         const metamaskAutoLogin = async () => {
 
-            await connectWallet();
+            const address = await connectWallet();
 
-            if ( currentAddress ) {
+            if ( address ) {
 
                 setLoginFrom( 'metamask' );
 
