@@ -103,7 +103,7 @@ class TerrainManager {
         }
 
         // initialize
-        // note: deliberately don't wait for this since there is no point
+        // note: deliberately don't wait for this; let it start in the background
         Promise.all(workers.map(async worker => {
           // set chunk size
           await worker.request('initialize', {
