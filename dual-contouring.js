@@ -1,4 +1,6 @@
 import Module from './public/bin/dc.js'
+import {Allocator} from './geometry-util.js';
+import {defaultChunkSize} from './constants.js';
 
 // const localVector = new THREE.Vector3()
 // const localVector2 = new THREE.Vector3()
@@ -23,8 +25,126 @@ w.free = address => {
   Module._doFree(address);
 };
 
-w.initialize = (chunkSize, seed) => {
-  Module._initialize(chunkSize, seed);
+let chunkSize = defaultChunkSize;
+w.initialize = (newChunkSize, seed) => {
+  Module._initialize(newChunkSize, seed);
+  chunkSize = newChunkSize;
+};
+
+const cubeDamage = damageFn => (
+  x, y, z,
+  qx, qy, qz, qw,
+  sx, sy, sz,
+) => {
+  const allocator = new Allocator(Module);
+
+  try {
+    let numPositions = 8;
+    const positionsTypedArray = allocator.alloc(Float32Array, numPositions * 3);
+    const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
+    numPositionsTypedArray[0] = numPositions;
+    const gridPoints = chunkSize + 3;
+    const damageBufferSize = gridPoints * gridPoints * gridPoints;
+    const damageBuffersTypedArray = allocator.alloc(Float32Array, numPositions * gridPoints * gridPoints * gridPoints);
+
+    const drew = damageFn(
+      x, y, z,
+      qx, qy, qz, qw,
+      sx, sy, sz,
+      positionsTypedArray.byteOffset,
+      numPositionsTypedArray.byteOffset,
+      damageBuffersTypedArray.byteOffset,
+    );
+
+    if (drew) {
+      numPositions = numPositionsTypedArray[0];
+      const chunks = Array(numPositions);
+      for (let i = 0; i < numPositions; i++) {
+        const position = positionsTypedArray.slice(i * 3, i * 3 + 3);
+        const damageBuffer = damageBuffersTypedArray.slice(i * damageBufferSize, i * damageBufferSize + damageBufferSize);
+        chunks[i] = {
+          position,
+          damageBuffer,
+        };
+      }
+      return chunks;
+    } else {
+      return null;
+    }
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.drawCubeDamage = function() {
+  return cubeDamage(Module._drawCubeDamage.bind(Module)).apply(this, arguments);
+};
+w.eraseCubeDamage = function() {
+  return cubeDamage(Module._eraseCubeDamage.bind(Module)).apply(this, arguments);
+};
+
+const sphereDamage = damageFn => (
+  x, y, z,
+  radius,
+) => {
+  const allocator = new Allocator(Module);
+
+  try {
+    let numPositions = 8;
+    const positionsTypedArray = allocator.alloc(Float32Array, numPositions * 3);
+    const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
+    numPositionsTypedArray[0] = numPositions;
+    const gridPoints = chunkSize + 3;
+    const damageBufferSize = gridPoints * gridPoints * gridPoints;
+    const damageBuffersTypedArray = allocator.alloc(Float32Array, numPositions * gridPoints * gridPoints * gridPoints);
+
+    const drew = damageFn(
+      x, y, z,
+      radius,
+      positionsTypedArray.byteOffset,
+      numPositionsTypedArray.byteOffset,
+      damageBuffersTypedArray.byteOffset,
+    );
+
+    if (drew) {
+      numPositions = numPositionsTypedArray[0];
+      const chunks = Array(numPositions);
+      for (let i = 0; i < numPositions; i++) {
+        const position = positionsTypedArray.slice(i * 3, i * 3 + 3);
+        const damageBuffer = damageBuffersTypedArray.slice(i * damageBufferSize, i * damageBufferSize + damageBufferSize);
+        chunks[i] = {
+          position,
+          damageBuffer,
+        };
+      }
+      return chunks;
+    } else {
+      return null;
+    }
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.drawSphereDamage = function() {
+  return sphereDamage(Module._drawSphereDamage.bind(Module)).apply(this, arguments);
+};
+w.eraseSphereDamage = function() {
+  return sphereDamage(Module._eraseSphereDamage.bind(Module)).apply(this, arguments);
+};
+
+w.injectDamage = function(x, y, z, damageBuffer) {
+  const allocator = new Allocator(Module);
+
+  const damageBufferTypedArray = allocator.alloc(Float32Array, damageBuffer.length);
+  damageBufferTypedArray.set(damageBuffer);
+
+  try {
+    Module._injectDamage(
+      x, y, z,
+      damageBufferTypedArray.byteOffset,
+    );
+  } finally {
+    allocator.freeAll();
+  }
 };
 
 w.clearChunkRootDualContouring = (x, y, z) => {
@@ -90,23 +210,13 @@ w.createChunkMeshDualContouring = (x, y, z, lod) => {
   }
 };
 
-w.drawDamage = (position, radius) => {
-  const allocator = new Allocator()
+/* w.drawDamage = (position, radius) => {
+  const allocator = new Allocator(Module)
 
   const numPositions = 256;
   const positionsTypedArray = allocator.alloc(Float32Array, numPositions);
   const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
   numPositionsTypedArray[0] = numPositions;
-
-  /* console.log('draw damage', {
-    x: position.x,
-    y: position.y,
-    z: position.z,
-    radius,
-    value,
-    positionsTypedArrayOffset: positionsTypedArray.byteOffset,
-    numPositionsTypedArrayOffset: numPositionsTypedArray.byteOffset,
-  }); */
 
   const drew = moduleInstance._drawDamage(
     position.x,
@@ -127,6 +237,6 @@ w.drawDamage = (position, radius) => {
   allocator.freeAll();
 
   return result;
-};
+}; */
 
 export default w;
