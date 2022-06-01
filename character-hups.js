@@ -66,6 +66,9 @@ class Hup extends EventTarget {
         return this.parent.player.voicer.start(preloadedMessage);
       });
     } else {
+      console.error("No voicer!")
+      this.fullText += message
+      this.emote = emote ?? null;
       await Promise.resolve();
     }
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice end');
@@ -111,12 +114,13 @@ class CharacterHups extends EventTarget {
       console.log('action add', new Error().stack, action, new Error().stack);
 
       const oldHup = this.hups.find(hup => hup.type === type);
-      // console.log('got old hup', oldHup, actionId, this.hups.map(h => h.actionIds).flat());
+      console.log('got old hup', oldHup, actionId, this.hups.map(h => h.actionIds).flat());
       if (oldHup) {
         oldHup.mergeAction(action);
         oldHup.updateVoicer(action.message, action.emote);
       } else if (Hup.isHupAction(action)) {
         const newHup = new Hup(action.type, this);
+        console.log("hup is", newHup, "e", e)
         newHup.mergeAction(action);
         let pendingVoices = 0;
         newHup.addEventListener('voicequeue', () => {

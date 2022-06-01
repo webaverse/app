@@ -760,7 +760,7 @@ class StatePlayer extends PlayerBase {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
   }
   addAction(action) {
-    console.log("Adding action", action)
+    console.log("Adding action", action, new Error().stack)
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);

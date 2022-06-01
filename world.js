@@ -103,28 +103,10 @@ world.connectRoom = async u => {
         const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
         player.processAudioData(e.data);
       })
-
-      wsrtc.addEventListener('chat', e => {
-        let { playerId, message } = e.data;
-        if(localPlayer.playerId === playerId) return console.log("Skipping chat for local player")
-        const player = playersManager.remotePlayers.get(playerId);
-        const chatId = makeId(5);
-
-        const m = {
-          type: 'chat',
-          chatId,
-          playerName: player.name,
-          message
-        }
-
-        chatManager.addPlayerMessage(player, m)
-      })
     };
     wsrtc.addEventListener('init', init);
   };
   wsrtc.addEventListener('open', open);
-
-
 
   /* const sendUpdate = () => {
     const rig = localPlayer.avatar;
