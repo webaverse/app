@@ -19,7 +19,7 @@ const EVENTS = {
 
 export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
   const [accounts, setAccounts] = useState([]);
-  const [currentAccount, setCurrentAccount] = useState('');
+  const [currentAddress, setCurrentAddress] = useState('');
   const [wrongChain, setWrongChain] = useState(false);
   const [errorMessage, setErrorMessage] = useState([]);
   const [currentChain, setCurrentChain] = useState(NETWORK);
@@ -50,7 +50,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
       }
 
       setAccounts(accounts);
-      setCurrentAccount(accounts[0]);
+      setCurrentAddress(accounts[0]);
 
       const chainId = await getChainId();
 
@@ -71,8 +71,10 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
         return;
       }
 
-      const accounts = requestAccounts();
-      setCurrentAccount(accounts[0]);
+      await connectToNetwork(currentChain);
+
+      const accounts = await requestAccounts();
+      setCurrentAddress(accounts[0]);
       setErrorMessage([]);
     } catch (error) {
       console.log(error);
@@ -97,11 +99,11 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
         window.ethereum.removeListener(EVENTS.CHAIN_CHANGED, handleChainChanged);
       }
     };
-  }, [currentAccount]);
+  }, [currentAddress]);
 
   useEffect(() => {
     const accountChanged = e => {
-      setCurrentAccount(e[0]);
+      setCurrentAddress(e[0]);
     };
 
     if (window.ethereum) {
@@ -113,7 +115,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
         window.ethereum.removeListener(EVENTS.ACCOUNTS_CHANGE, accountChanged);
       }
     };
-  }, [currentAccount]);
+  }, [currentAddress]);
 
   function switchChain(chain) {
     setCurrentChain(chain);
@@ -122,7 +124,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
 
   return {
     accounts,
-    currentAccount,
+    currentAddress,
     errorMessage,
     connectWallet,
     checkIfWalletIsConnected,
