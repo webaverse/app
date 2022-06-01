@@ -1,18 +1,15 @@
 import {useEffect, useState} from 'react';
 
-import {ethers} from 'ethers';
+import {ethers, BigNumber} from 'ethers';
 
-import {DEFAULT_CHAIN, CONTRACT, CONTRACT_ABIS} from '../constants';
+import {DEFAULT_CHAIN, CONTRACTS, CONTRACT_ABIS} from './web3-constants.js';
 
 const FILE_ADDRESS = 'https://ipfs.webaverse.com/';
 
-const contractAddress = CONTRACT[DEFAULT_CHAIN.contract_name].NFT;
-const contractAddressFT = CONTRACT[DEFAULT_CHAIN.contract_name].FT;
+const contractAddress = CONTRACTS[DEFAULT_CHAIN.contract_name].NFT;
+const contractAddressFT = CONTRACTS[DEFAULT_CHAIN.contract_name].FT;
 const contractABI = CONTRACT_ABIS.NFT;
 const contractABIFT = CONTRACT_ABIS.FT;
-
-const DEFAULT_GAS_LIMIT = 50000;
-const DEFAULT_MINT_VALUE = 1000000000000000;
 
 const CONTRACT_EVENTS = {
   MINT_COMPLETE: 'MintComplete',
@@ -31,42 +28,6 @@ export default function useNFT(currentAccount, onMint = () => {}) {
   const [minted, setMinted] = useState([]);
   const [connectedContract, setConnectedContract] = useState();
   const [connectedContractFT, setConnectedContractFT] = useState();
-
-  useEffect(() => {
-    try {
-      const {ethereum} = window;
-
-      if (ethereum) {
-        const provider = new ethers.getDefaultProvider(
-          DEFAULT_CHAIN.rpcUrls[0], // TODO: change to use the selected chain
-        );
-        const signer = provider.getSigner();
-        setConnectedContract(
-          new ethers.Contract(contractAddress, contractABI, signer),
-        );
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }, [currentAccount]);
-
-  useEffect(() => {
-    try {
-      const {ethereum} = window;
-
-      if (ethereum) {
-        const provider = new ethers.getDefaultProvider(
-          DEFAULT_CHAIN.rpcUrls[0], // TODO: change to use the selected chain
-        );
-        const signer = provider.getSigner();
-        setConnectedContract(
-          new ethers.Contract(contractAddressFT, contractABIFT, signer),
-        );
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }, [connectedContractFT]);
 
   useEffect(() => {
     const mintHandler = (from, tokenId, name) => {
@@ -91,6 +52,17 @@ export default function useNFT(currentAccount, onMint = () => {}) {
     const {ethereum} = window;
     setMinting(true);
     try {
+      const provider = new ethers.getDefaultProvider(
+        DEFAULT_CHAIN.rpcUrls[0], // TODO: change to use the selected chain
+      );
+      const signer = provider.getSigner();
+
+      const connectedContract = new ethers.Contract(contractAddress, contractABI, signer);
+      setConnectedContract(connectedContract);
+      
+      const connectedContractFT = new ethers.Contract(contractAddressFT, contractABIFT, signer);
+      setConnectedContractFT(connectedContractFT);
+
       if (connectedContract) {
         setShowWallet(true);
 
@@ -118,6 +90,7 @@ export default function useNFT(currentAccount, onMint = () => {}) {
         console.log("Ethereum object doesn't exist!");
       }
     } catch (error) {
+      console.log(error);
       setShowWallet(false);
       setMinting(false);
     }
