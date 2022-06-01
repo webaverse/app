@@ -37,14 +37,6 @@ import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
-  // jumpSpeed,
-  // jumpStartTimeS,
-  // jumpFallLoopStartTimeS,
-  // jumpFallLoopFrameTimes,
-  // unjumpSpeed,
-  // lerpFrameCountFallToLand,
-  // lerpFrameCountJumpToFall,
-  // lerpFrameCountLandToOther,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -188,7 +180,6 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
-  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -391,20 +382,16 @@ export const loadPromise = (async () => {
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
     pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
-  window.activateAnimations = activateAnimations;
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
   };
-  window.narutoRunAnimations = narutoRunAnimations;
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
   };
-  window.hurtAnimations = hurtAnimations;
   holdAnimations = {
     pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
-  window.holdAnimations = holdAnimations;
   {
     const down10QuaternionArray = new Quaternion()
       .setFromAxisAngle(new Vector3(1, 0, 0), Math.PI * 0.1)
@@ -709,7 +696,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   } else {
     mirrorFactor = isBackward ? 1 : 0;
   }
-  // if (avatar === window.localPlayer.avatar) console.log(window.logNum(angleFactor), window.logNum(mirrorFactor));
   avatar.lastBackwardFactor = mirrorFactor;
 
   if (avatar.emoteAnimation !== avatar.lastEmoteAnimation) {
@@ -770,24 +756,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    // { // play one animation purely.
-    //   return spec => {
-    //     const {
-    //       animationTrackName: k,
-    //       dst,
-    //       // isTop,
-    //     } = spec;
-
-    //     // const animation = animations.index['walking.fbx']
-    //     const animation = animations.index['landing.fbx']
-    //     const t2 = timeSeconds / 3;
-    //     const src2 = animation.interpolants[k];
-    //     const v2 = src2.evaluate(t2 % animation.duration);
-    //     // const v2 = src2.evaluate(30 / 30);
-
-    //     dst.fromArray(v2);
-    //   };
-    // }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -807,14 +775,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
           dst.fromArray(v2);
-          // if (isPosition) console.log('jump');
         } else { // fall loop stage
           const fallingAnimation = animations.index['falling.fbx'];
           const t3 = jumpTimeS - jumpAnimationDuration;
           const src3 = fallingAnimation.interpolants[k];
           const v3 = src3.evaluate(t3 % fallingAnimation.duration);
           dst.fromArray(v3);
-          // if (isPosition) console.log('fall');
         }
 
         _clearXZ(dst, isPosition);
@@ -1267,7 +1233,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     }
   };
   const _blendUnjump = spec => {
-    // return;
     const {
       animationTrackName: k,
       dst,
@@ -1283,24 +1248,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const t2 = unjumpTimeS + 1 / 30;
       const src2 = landingAnimation.interpolants[k];
       const v2 = src2.evaluate(t2);
-      // if (isPosition) console.log('unjump');
-
-      // dst.fromArray(v2); return;
-
-      // // const lerpTimeS = lerpFrameCountFallToLand / 30;
-      // // const lerpFactor = MathUtils.clamp(t2 / lerpTimeS, 0, 1);
-
-      // const lerpTimeS = lerpFrameCountLandToOther / 30;
-      // const lerpFactor = 1 - MathUtils.clamp(t2 / lerpTimeS, 0, 1);
 
       let lerpFactor = unjumpFactor;
       // lerpFactor = MathUtils.smoothstep(lerpFactor, 0.9, 1);
-      // if (isPosition) debugger
       lerpFactor = lerpFactor * 10 - 9;
       lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
       lerpFactor += walkRunFactor;
       lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
-      if (isPosition) console.log(lerpFactor);
       lerpFactor = 1 - lerpFactor;
 
       if (!isPosition) {
@@ -1369,9 +1323,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       } else {
         // force height in the jump case to overide the animation
         dst.y = avatar.height * 0.55;
-        // dst.y = avatar.height * 0.58; // + 0.03 height to compensate the hanging toes.
       }
-      // console.log(window.logNum(dst.x), window.logNum(dst.z));
     }
   }
 };

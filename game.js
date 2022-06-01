@@ -1497,7 +1497,6 @@ class GameManager extends EventTarget {
         // time: 0,
       };
       localPlayer.addAction(newJumpAction);
-      // console.log(localPlayer.getAction('jump'));
     }
   }
   jump(trigger) {
@@ -1508,15 +1507,6 @@ class GameManager extends EventTarget {
     const localPlayer = getLocalPlayer();
     // localPlayer.characterPhysics.velocity.y += 6;
     localPlayer.characterPhysics.velocity.y += 15;
-    // localPlayer.characterPhysics.velocity.y += window.jumpVelocityY;
-    // setTimeout(() => {
-    //   localPlayer.characterPhysics.velocity.y = window.timeout333VelocityY;
-    // }, 333);
-
-    // window.gravityMutiplier = 4;
-    // setTimeout(() => {
-    //   window.gravityMutiplier = 1;
-    // }, 682);
     
     // play sound
     // soundManager.play('jump');
