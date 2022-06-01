@@ -1295,10 +1295,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
       let lerpFactor = unjumpFactor;
       // lerpFactor = MathUtils.smoothstep(lerpFactor, 0.9, 1);
+      // if (isPosition) debugger
       lerpFactor = lerpFactor * 10 - 9;
-      lerpFactor = 1 - lerpFactor;
       lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
-      // if (isPosition) console.log(lerpFactor);
+      lerpFactor += walkRunFactor;
+      lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
+      if (isPosition) console.log(lerpFactor);
+      lerpFactor = 1 - lerpFactor;
 
       if (!isPosition) {
         localQuaternion.fromArray(v2);

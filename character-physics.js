@@ -65,7 +65,7 @@ class CharacterPhysics {
         const jumpTime = this.player.actionInterpolants.jump.get()
         //window.gravityMutiplier 4
         const gravityMutiplier = jumpAction?.trigger === 'jump' ? (jumpTime <= flatGroundJumpAirTime ? 4 : 1) : 1;
-        console.log(gravityMutiplier);
+        // console.log(gravityMutiplier);
         localVector.copy(physicsManager.getGravity())
           .multiplyScalar(timeDiffS * gravityMutiplier);
         this.velocity.add(localVector);
@@ -152,7 +152,7 @@ class CharacterPhysics {
               time: 0,
             };
             this.player.addAction(newJumpAction);
-            console.log(this.player.getAction('jump'));
+            // console.log(this.player.getAction('jump'));
           } else {
             jumpAction.set('time', 0);
           }
