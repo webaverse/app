@@ -117,6 +117,8 @@ export const jumpFallLoopFrameTimes = 38 / 30;
 export const unjumpSpeed = jumpSpeed * 2;
 export const unjumpMaxTime = (57 - 39) / 30 / unjumpSpeed * 1000;
 
+export const flatGroundJumpAirTime = 682;
+
 export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
 export const avatarInterpolationNumFrames = 4;

@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
 import {getVelocityDampingFactor} from './util.js';
-import {groundFriction, flyFriction, airFriction} from './constants.js';
+import {groundFriction, flyFriction, airFriction, flatGroundJumpAirTime} from './constants.js';
 import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
@@ -61,8 +61,10 @@ class CharacterPhysics {
   applyGravity(timeDiffS) {
     // if (this.player) {
       if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
+        const jumpTime = this.player.actionInterpolants.jump.get()
+        const gravityMutiplier = jumpTime <= flatGroundJumpAirTime ? 4 : 1;
         localVector.copy(physicsManager.getGravity())
-          .multiplyScalar(timeDiffS * window.gravityMutiplier);
+          .multiplyScalar(timeDiffS * gravityMutiplier);
         this.velocity.add(localVector);
       }
     // }

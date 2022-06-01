@@ -1511,10 +1511,10 @@ class GameManager extends EventTarget {
     //   localPlayer.characterPhysics.velocity.y = window.timeout333VelocityY;
     // }, 333);
 
-    window.gravityMutiplier = 4;
-    setTimeout(() => {
-      window.gravityMutiplier = 1;
-    }, 682);
+    // window.gravityMutiplier = 4;
+    // setTimeout(() => {
+    //   window.gravityMutiplier = 1;
+    // }, 682);
     
     // play sound
     // soundManager.play('jump');
