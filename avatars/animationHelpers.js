@@ -410,6 +410,7 @@ export const loadPromise = (async () => {
 });
 
 export const _initAnimation = avatar => {
+  avatar.animations = animations;
   avatar.useAnimations = useAnimations;
 };
 
@@ -417,7 +418,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -747,7 +748,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       .call(
         target.copy(localQuaternion),
         localQuaternion2,
-        crouchFactor,
+        avatar.crouchFactor,
       );
   };
   const _handleDefault = spec => {
@@ -918,9 +919,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (avatar.useAnimationCombo.length > 0) {
-          const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-          useAnimation = useAnimations[useAnimationName];
-          t2 = Math.min(useTimeS, useAnimation.duration);
+          if (avatar.crouchFactor >= 1) {
+            useAnimation = animations.index['sword_crouch_attack.fbx'];
+            t2 = Math.min(useTimeS, useAnimation.duration);
+          } else {
+            const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+            useAnimation = useAnimations[useAnimationName];
+            t2 = Math.min(useTimeS, useAnimation.duration);
+          }
         } else if (avatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
           for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
@@ -957,29 +963,33 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
+            dst.fromArray(v2);
 
-            dst
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
+            // const idleAnimation = _getIdleAnimation('walk');
+            // const t3 = 0;
+            // const src3 = idleAnimation.interpolants[k];
+            // const v3 = src3.evaluate(t3);
+
+            // dst
+            //   .premultiply(localQuaternion2.fromArray(v3).invert())
+            //   .premultiply(localQuaternion2.fromArray(v2));
           } else {
             const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localVector2.fromArray(v2);
-            _clearXZ(localVector2, isPosition);
+            // _clearXZ(localVector2, isPosition);
 
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-            localVector3.fromArray(v3);
+            dst.copy(localVector2);
 
-            dst
-              .sub(localVector3)
-              .add(localVector2);
+            // const idleAnimation = _getIdleAnimation('walk');
+            // const t3 = 0;
+            // const src3 = idleAnimation.interpolants[k];
+            // const v3 = src3.evaluate(t3);
+            // localVector3.fromArray(v3);
+
+            // dst
+            //   .sub(localVector3)
+            //   .add(localVector2);
           }
         }
       };
@@ -1153,7 +1163,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           } else {
             if (isArm) {
               dst
-                .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
+                .slerp(identityQuaternion, walkRunFactor * 0.7 + avatar.crouchFactor * (1 - idleWalkFactor) * 0.5)
                 .premultiply(localQuaternion2.fromArray(v2));
             } else {
               dst

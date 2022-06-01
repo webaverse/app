@@ -1014,17 +1014,25 @@ const _gameUpdate = (timestamp, timeDiff) => {
       const useTime = localPlayer.actionInterpolants.use.get();
       const useTimeS = useTime / 1000;
       if (useAction.animationCombo?.length > 0) {
-        // const useAnimationName = localPlayer.avatar.useAnimationCombo[localPlayer.avatar.useAnimationIndex];
-        const useAnimationName = useAction.animationCombo[useAction.index];
-        const useAnimation = localPlayer.avatar.useAnimations[useAnimationName];
-        if (useTimeS >= useAnimation.duration) {
-          _endUse();
-          if (needContinueCombo) {
-            needContinueCombo = false;
-            localPlayer.actionInterpolants.use.reset();
-            _startUse();
-          } else {
+        if (localPlayer.avatar.crouchFactor >= 1) {
+          const useAnimation = localPlayer.avatar.animations.index['sword_crouch_attack.fbx'];
+          if (useTimeS > useAnimation.duration) {
+            _endUse();
             lastUseIndex = 0;
+          }
+        } else {
+          // const useAnimationName = localPlayer.avatar.useAnimationCombo[localPlayer.avatar.useAnimationIndex];
+          const useAnimationName = useAction.animationCombo[useAction.index];
+          const useAnimation = localPlayer.avatar.useAnimations[useAnimationName];
+          if (useTimeS >= useAnimation.duration) {
+            _endUse();
+            if (needContinueCombo) {
+              needContinueCombo = false;
+              localPlayer.actionInterpolants.use.reset();
+              _startUse();
+            } else {
+              lastUseIndex = 0;
+            }
           }
         }
       } else if (useAction.animation === 'pickUpThrow') {
