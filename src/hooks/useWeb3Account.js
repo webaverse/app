@@ -74,8 +74,12 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
       await connectToNetwork(currentChain);
 
       const accounts = await requestAccounts();
+
       setCurrentAddress(accounts[0]);
       setErrorMessage([]);
+
+      return accounts[0];
+
     } catch (error) {
       console.log(error);
     }
