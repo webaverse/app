@@ -264,11 +264,7 @@ export default function Header() {
             <StoryTime />
             {/* <div className={styles.inner}> */}
                 <AvatarIcon />
-                <User
-                    address={address}
-                    setAddress={setAddress}
-                    setLoginFrom={setLoginFrom}
-                />
+                <User setLoginFrom={setLoginFrom} />
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}
