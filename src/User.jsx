@@ -16,14 +16,15 @@ import * as sounds from '../sounds.js';
 
 //
 
-export const User = ({ address, setAddress, setLoginFrom }) => {
+export const User = ({ setLoginFrom }) => {
 
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, account } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
+    const { currentAddress, connectWallet, errorMessge, wrongChain } = account;
 
     //
 
