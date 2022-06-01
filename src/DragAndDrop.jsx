@@ -237,8 +237,10 @@ const DragAndDrop = () => {
   const _mint = e => {
     e.preventDefault();
     e.stopPropagation();
-
-    console.log('mint', currentApp);
+    if (currentApp) {
+      const app = currentApp;
+      mintNFT(app);
+    }
   };
   const _cancel = e => {
     e.preventDefault();
@@ -277,7 +279,7 @@ const DragAndDrop = () => {
               <span>Equip</span>
               <sub>to self</sub>
             </div>
-            <div className={style.button} disabled onClick={_mint}>
+            <div className={style.button} onClick={_mint}>
               <span>Mint</span>
               <sub>on chain</sub>
             </div>
