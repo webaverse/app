@@ -51,7 +51,6 @@ import * as lodder from './lod.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
-import zTargeting from './z-targeting.js';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
 
@@ -515,9 +514,6 @@ metaversefile.setApi({
     } else {
       throw new Error('useCleanup cannot be called outside of render()');
     }
-  },
-  useZTargeting() {
-    return zTargeting;
   },
   useLocalPlayer() {
     return getLocalPlayer();

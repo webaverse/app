@@ -18,7 +18,6 @@ const _copyTransform = (dst, src) => {
 };
 
 export default () => {
-  // debugger
   const app = useApp();
   const physicsManager = usePhysics();
   const meshLodManager = useMeshLodder();
