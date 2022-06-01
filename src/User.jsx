@@ -51,32 +51,22 @@ export const User = ({ setLoginFrom }) => {
 
     };
 
-    const _setAddress = async address => {
-        
-        if (address) {
-            // let live = true;
-            // (async () => {
-                const ensName = await blockchainManager.getEnsName(address);
-                // if (!live) return;
-                setEnsName(ensName);
+    useEffect(()=>{
 
-                if ( ensName ) {
-                    const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
-                    // if (!live) return;
-                    setAvatarUrl(avatarUrl);
-                }
-            // })();
+        if(!currentAddress) return;
 
-            /* return () => {
-                live = false;
-            }; */
+        async function handleAddress() {
+            const ensName = await blockchainManager.getEnsName(currentAddress);
+            setEnsName(ensName);
 
-            // console.log('render name', {address, ensName, avatarUrl});
+            if(!ensName) return;
+            const avatarUrl = await blockchainManager.getAvatarUrl(currentAddress);
+            setAvatarUrl(avatarUrl);
         }
 
-        setAddress(address);
-    
-    };
+        handleAddress();
+
+    }, [currentAddress])
 
     const metaMaskLogin = async ( event ) => {
 
