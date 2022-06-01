@@ -156,7 +156,7 @@ class Mob {
           this.app.destroy();
           _drop();
         };
-        hitTracker.addEventListener('die', die, {once: true});
+        subApp.addEventListener('die', die, {once: true});
       };
       _bindHitTracker();
 
