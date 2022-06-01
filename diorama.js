@@ -513,6 +513,7 @@ const createPlayerDiorama = ({
     camera: sideCamera,
     // loaded: false,
     setTarget(newTarget) {
+      console.log("target is", target)
       target = newTarget;
     },
     setObjects(newObjects) {
@@ -675,6 +676,7 @@ const createPlayerDiorama = ({
 
       const _render = () => {
         if (autoCamera) {
+          target.updateMatrixWorld();
           // set up side camera
           target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           const targetPosition = localVector;
