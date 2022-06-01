@@ -1,3 +1,4 @@
+/* eslint-disable no-trailing-spaces */
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 

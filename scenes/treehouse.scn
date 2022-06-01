@@ -129,7 +129,7 @@
       "start_url": "https://webaverse.github.io/barrier/",
       "dynamic": true
     },
-    {
+  {
       "position": [
         24,
         0,
@@ -141,8 +141,9 @@
         0,
         1
       ],
+      "type": "application/mob",
       "physics": false,
-      "start_url": "https://webaverse.github.io/silkworm/",
+      "start_url": "https://gitwillg.github.io/silkworm-runner/",
       "dynamic": true
     },
     {
@@ -302,6 +303,22 @@
         1
       ],
       "start_url": "https://webaverse.github.io/machine-gun/"
+    },
+    {
+      "position": [
+        -95,
+        0,
+        55
+      ],
+      "start_url": "../metaverse_modules/spawner/",
+      "components": [
+        {
+          "key": "appUrls",
+          "value": [
+            "https://webaverse.github.io/silkworm"
+          ]
+        }
+      ]
     }
   ]
 }

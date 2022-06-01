@@ -1,3 +1,12 @@
+/* eslint-disable linebreak-style */
+/* eslint-disable keyword-spacing */
+/* eslint-disable lines-between-class-members */
+/* eslint-disable space-before-blocks */
+/* eslint-disable indent */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable spaced-comment */
+/* eslint-disable linebreak-style */
+/* eslint-disable space-infix-ops */
 import * as THREE from 'three';
 import metaversefile from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
@@ -8,6 +17,8 @@ import physicsManager from './physics-manager.js';
 import game from './game.js';
 import {getLocalPlayer} from './players.js';
 import metaversefileApi from 'metaversefile';
+import mobManager from './mob-manager.js';
+import npcManager from './npc-manager.js';
 
 const localVector = new THREE.Vector3();
 
@@ -133,21 +144,28 @@ class ZTargeting extends THREE.Object3D {
     this.focusTargetObject = null;
     this.focusTargetObjectBias = new THREE.Vector3();
     this.queryResults = new QueryResults();
+    this.nearbyResults = new QueryResults();
+    this.dropAngle = 145;
+    this.nearbyMobs = [];
+    this.nearbyNpc = [];
   }
   setQueryResult(timestamp) {
     let reticles;
     const localPlayer = getLocalPlayer();
+    //select target
     if (localPlayer.hasAction('aim')) {
       this.queryResults.snapshot(camera);
       reticles = this.queryResults.results;
     } else {
       reticles = [];
     }
+    //focusing on target
     if (this.focusTargetReticle) {
       const timeDiff = timestamp - cameraManager.lerpStartTime;
       const focusTime = 250;
 
       const f = timeDiff / focusTime;
+      //if you have focus or are close? to target lock on
       if (cameraManager.focus || f < 3) {
         reticles = [
           this.focusTargetReticle,
@@ -175,9 +193,16 @@ class ZTargeting extends THREE.Object3D {
         .add(this.focusTargetObjectBias);
     }
   }
+  //now just feeds into handle target with camera object
   handleDown(object = camera) {
     if (!cameraManager.focus) {
-      this.queryResults.snapshot(object);
+      this.handleTarget(object);
+   }
+  }
+  // handleDown except it accepts more parameters; will be needed for target swapping
+  handleTarget(targetObject){
+    // if (!cameraManager.focus) {
+      this.queryResults.snapshot(targetObject);
 
       if (this.queryResults.results.length > 0) {
         this.focusTargetReticle = this.queryResults.results[0];
@@ -243,6 +268,59 @@ class ZTargeting extends THREE.Object3D {
           this.handleUp();
         }, 300);
       }
+    }
+  }
+  findNearbyTarget(){
+    //Make list for 'nearby mobs'                     // already exists
+    //for each mob in mob manager
+    //let angleVal = 0;
+    for (const mob of mobManager.mobs){
+      const mobPhysicsObjects = mob.getPhysicsObjects();
+      console.log('mob', mobManager.mobs);
+      //check distance to character                   // Maybe not both this and below
+      //compareAngletoCam(wider angle than checkdrop())
+        //add to list of 'nearby mobs', sorted by angle dist
+      const mobAngle = cameraManager.compareAngletoCam(mobPhysicsObjects.position)
+      if (camera.position.distanceTo(mobPhysicsObjects.position)< 20 /*random val rn*/ && mobAngle > 120){
+        // if (mobAngle > angleVal){
+        //   angleVal = mobAngle;
+        // this.nearbyMobs = [mobPhysicsObjects];
+        this.nearbyMobs.push(mobPhysicsObjects);
+        // }
+      }
+    }
+    //if list.length > 0
+      //togle()
+      //focus(list[0])
+      //handletarget(list[0])
+    if (this.nearbyMobs.length > 0){
+      console.log('mobs', this.nearbyMobs);
+      this.toggle();
+      this.handleTarget(this.nearbyMobs[0]);
+      this.nearbyMobs = [];
+    }
+  } 
+  // findNearbyNpc(){
+  //   console.log('npc', npcManager.npcs);
+  //   const npcPhysicsOb = npcManager.npcs[0].getPhysicsObjects();
+  //   if (cameraManager.compareAngletoCam(npcPhysicsOb.position < 120)){
+  //     this.nearbyNpc.push(npcPhysicsOb); //gonna make this a dictionary later with mob-angle relation
+  //   }
+  //   if (this.nearbyNpc.length > 0){
+  //     console.log('npc', this.nearbnearbyNpcMobs);
+  //     this.toggle();
+  //     this.handleTarget(this.nearbyNpc[0]);
+  //     this.nearbyNpc = [];
+  //   }
+  // }
+  checkDrop(){
+    var camAngle;
+    if (this.focusTargetReticle){
+      camAngle = cameraManager.compareAngletoCam(this.focusTargetReticle.position);
+      //bug angles are inverted 
+      if (camAngle < this.dropAngle){
+        this.handleUp();
+      }else{}
     }
   }
 }

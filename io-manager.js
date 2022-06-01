@@ -67,6 +67,7 @@ ioManager.keys = {
   doubleTap: false,
   space: false,
   ctrl: false,
+  
 };
 const lastKeysDownTime = {
   keyW: 0,
@@ -308,8 +309,12 @@ ioManager.keydown = e => {
     case 9: { // tab
       break;
     }
-    case 49: // 1
-    case 50: // 2
+    case 49:
+    case 50: { // 2 -> temporarilly going to be used to toggle between targets -> issue #3066
+      // to do: find a way to spawn mobs into any scene for testing
+      game.findNearby();
+      break;
+    }
     case 51: // 3
     case 52: // 4
     case 53: // 5
@@ -699,6 +704,13 @@ ioManager.keyup = e => {
       game.menuUnDoubleTap();
       break;
     }
+
+
+
+
+
+
+
     case 46: { // delete
       const object = game.getMouseSelectedObject();
       if (object) {

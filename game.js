@@ -35,6 +35,7 @@ import {getLocalPlayer, setLocalPlayer} from './players.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
+import mobManager from './mob-manager.js';
 
 // const {contractNames} = metaversefileConstants;
 
@@ -1042,6 +1043,21 @@ class GameManager extends EventTarget {
     this.usableObject = null;
     this.hoverEnabled = false;
   }
+  //
+  findNearby(){
+
+    //mobManager.addMobApp(mob.js, "https://gitwillg.github.io/silkworm-runner/");
+    console.log(world.appManager.getApps(), mobManager.mobs);
+    return zTargeting.findNearbyTarget();
+  }
+  menuTarget(newTarget){
+    zTargeting.handleTarget(newTarget)
+  }
+  checkTargetDrop(){
+    zTargeting.checkDrop();
+  }
+
+  //
   getMenu() {
     return this.menuOpen;
   }
