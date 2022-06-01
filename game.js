@@ -1507,7 +1507,7 @@ class GameManager extends EventTarget {
     // update velocity
     const localPlayer = getLocalPlayer();
     // localPlayer.characterPhysics.velocity.y += 6;
-    localPlayer.characterPhysics.velocity.y += 15;
+    // localPlayer.characterPhysics.velocity.y += 15;
     // localPlayer.characterPhysics.velocity.y += window.jumpVelocityY;
     // setTimeout(() => {
     //   localPlayer.characterPhysics.velocity.y = window.timeout333VelocityY;

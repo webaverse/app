@@ -1300,7 +1300,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
       lerpFactor *= idleWalkFactor * 0.5 + walkRunFactor * 0.5;
       lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
-      if (isPosition) console.log(lerpFactor);
+      // if (isPosition) console.log(lerpFactor);
       lerpFactor = 1 - lerpFactor;
 
       if (!isPosition) {

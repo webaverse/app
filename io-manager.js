@@ -540,6 +540,8 @@ ioManager.keydown = e => {
     }
     case 32: { // space
       ioManager.keys.space = true;
+      window.isJumping = true;
+      window.jumpStartTime = performance.now();
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
           game.jump('jump');

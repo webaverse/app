@@ -88,6 +88,16 @@ class CharacterPhysics {
       const minDist = 0;
       localVector3.copy(this.velocity)
         .multiplyScalar(timeDiffS);
+
+      if (window.isJumping) {
+        const jumpTime = performance.now() - window.jumpStartTime;
+        // console.log(jumpTime);
+        localVector3.y = jumpTime < 333 ? 1 : -1;
+        if (jumpTime >= 666) {
+          window.isJumping = false;
+        }
+      }
+        
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
       const flags = physicsManager.moveCharacterController(
         this.player.characterController,
