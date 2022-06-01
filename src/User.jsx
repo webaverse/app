@@ -85,8 +85,7 @@ export const User = ({ setLoginFrom }) => {
 
                 try {
 
-                    const { address, profile } = await ceramicApi.login();
-                    await _setAddress(address);
+                    connectWallet();
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
