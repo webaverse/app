@@ -1294,11 +1294,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // const lerpFactor = 1 - MathUtils.clamp(t2 / lerpTimeS, 0, 1);
 
       let lerpFactor = unjumpFactor;
-      // lerpFactor = MathUtils.smoothstep(lerpFactor, 0.9, 1);
+      lerpFactor = MathUtils.smoothstep(lerpFactor, 0.5, 1);
       // if (isPosition) debugger
-      lerpFactor = lerpFactor * 10 - 9;
+      // lerpFactor = lerpFactor * 10 - 9;
       lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
-      lerpFactor += walkRunFactor;
+      lerpFactor *= idleWalkFactor * 0.5 + walkRunFactor * 0.5;
       lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
       if (isPosition) console.log(lerpFactor);
       lerpFactor = 1 - lerpFactor;
