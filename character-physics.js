@@ -92,7 +92,7 @@ class CharacterPhysics {
       if (window.isJumping) {
         const jumpTime = performance.now() - window.jumpStartTime;
         // console.log(jumpTime);
-        localVector3.y = jumpTime < 333 ? 1 : -1;
+        localVector3.y = jumpTime < 333 ? window.jumpStepValue : -window.jumpStepValue;
         if (jumpTime >= 666) {
           window.isJumping = false;
         }

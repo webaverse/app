@@ -389,6 +389,8 @@ const _startHacks = webaverse => {
   window.game = game;
   window.cameraManager = cameraManager;
 
+  window.jumpStepValue = 1;
+
   // window.jumpVelocityY = 6;
   // window.gravityMutiplier = 1;
 
