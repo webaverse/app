@@ -16,6 +16,16 @@
       }
     },
     {
+      "type": "application/wind",
+      "content": {
+        "windType": "directional",
+        "direction": [-1, 0, 0],
+        "windForce": 0.5,
+        "noiseScale": 1,
+        "windFrequency": 1
+      }
+    },
+    {
       "position": [
         0,
         0,
@@ -240,6 +250,11 @@
       "position": [-30, 0, -30],
       "quaternion": [0, 0, 0, 1],
       "start_url": "https://webaverse.github.io/plants/"
+    },
+    {
+      "position": [0, 0, 0],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "https://webaverse.github.io/dual-contouring-terrain/"
     },
     {
       "position": [
