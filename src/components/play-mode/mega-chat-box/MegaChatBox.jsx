@@ -1,10 +1,10 @@
 // import * as THREE from 'three';
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
-import {RpgText} from '../../../RpgText.jsx';
-import {LightArrow} from '../../../LightArrow.jsx';
-import {chatTextSpeed} from '../../../../constants.js';
-import {level} from '../../../../player-stats.js';
+import { RpgText } from '../../../RpgText.jsx';
+import { LightArrow } from '../../../LightArrow.jsx';
+import { chatTextSpeed } from '../../../../constants.js';
+import { level } from '../../../../player-stats.js';
 import * as sounds from '../../../../sounds.js';
 
 import styles from './MegaChatBox.module.css';
@@ -89,8 +89,8 @@ export const MegaChatBox = ({
                 }}
                 key={i}
               >
-                <div className={styles.border}/>
-                <div className={styles.value}>{option}</div>
+                <div className={styles.border} />
+                <div className={styles.value}>{option.message}</div>
                 <img className={styles.arrow} src="./images/ui/left-red.svg" />
               </div>
             );

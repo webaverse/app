@@ -229,7 +229,7 @@ class Conversation extends EventTarget {
     //------------------- Convai ---------------------
     // Triggerring emote for player executing option
     if (option.emote !== 'normal') {
-      triggerEmote(option.emote, this.remotePlayer);
+      triggerEmote(option.emote, this.localPlayer);
     }
     //------------------------------------------------
 
