@@ -1,6 +1,6 @@
 // import * as THREE from 'three';
 import {makeId} from './util.js';
-import {defaultChunkSize} from './constants.js';
+import {defaultChunkSize, defaultWorldSeed} from './constants.js';
 // import metaversefile from 'metaversefile';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
 // import physics from './physics-manager.js';
@@ -13,8 +13,10 @@ const numWorkers = 4;
 class TerrainManager {
   constructor({
     chunkSize = defaultChunkSize,
+    seed = defaultWorldSeed,
   } = {}) {
     this.chunkSize = chunkSize;
+    this.seed = seed;
 
     this.workers = [];
     this.nextWorker = 0;
@@ -104,8 +106,9 @@ class TerrainManager {
         // note: deliberately don't wait for this since there is no point
         Promise.all(workers.map(async worker => {
           // set chunk size
-          await worker.request('setChunkSize', {
+          await worker.request('initialize', {
             chunkSize: this.chunkSize,
+            seed: this.seed,
           });
         }));
 
