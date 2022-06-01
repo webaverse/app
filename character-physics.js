@@ -12,12 +12,17 @@ import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
+import cameraManager from './camera-manager.js';
+import { getLocalPlayer } from './players.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
+const localVector6 = new THREE.Vector3();
+const localVector7 = new THREE.Vector3();
+const localVector8 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localEuler = new THREE.Euler();
@@ -81,8 +86,46 @@ class CharacterPhysics {
       // console.log('apply avatar physics', this.player);
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.velocity)
-        .multiplyScalar(timeDiffS);
+
+      // if (cameraManager.focus && cameraManager.target2) {
+      //   const target2Position = cameraManager.target2.npcPlayer ? cameraManager.target2.npcPlayer.position : cameraManager.target2.position;
+      const zTargeting = metaversefileApi.useZTargeting();
+      const localPlayer = getLocalPlayer();
+      if (this.player === localPlayer && zTargeting?.focusTargetReticle) {
+        const moveDistance = localVector.copy(this.velocity).setY(0).length() * timeDiffS;
+        if (moveDistance !== 0) {
+          const playerPosition = localVector.copy(this.player.position).setY(0);
+          const targetPosition = localVector2.copy(zTargeting.focusTargetReticle.position).setY(0)
+          const distanceVector = localVector4.copy(playerPosition).sub(targetPosition);
+          localVector7.set(0, 0, 0);
+          localVector8.set(0, 0, 0);
+
+          if (cameraManager.lastNonzeroDirectionVector.z !== 0) {
+            const sign = cameraManager.lastNonzeroDirectionVector.z;
+            localVector7.copy(distanceVector).normalize().multiplyScalar(sign * moveDistance);
+          }
+          if (cameraManager.lastNonzeroDirectionVector.x !== 0) {
+            const arcLength = moveDistance
+            const radius = distanceVector.length();
+            const radian = arcLength / radius;
+            const sign = cameraManager.lastNonzeroDirectionVector.x;
+            const destVector = localVector5.copy(distanceVector).applyAxisAngle(localVector6.set(0, 1, 0), sign * radian);
+            localVector8.copy(destVector).sub(distanceVector);
+          }
+
+          localVector3.addVectors(localVector7, localVector8);
+          localVector3.normalize().multiplyScalar(moveDistance);
+          localVector3.y = this.velocity.y * timeDiffS;
+        } else {
+          localVector3.copy(this.velocity) // todo: duplicated
+            .multiplyScalar(timeDiffS);
+        }
+      } else {
+        localVector3.copy(this.velocity)
+          .multiplyScalar(timeDiffS);
+      }
+      // if(this.player === window.localPlayer) console.log(window.logVector3(localVector3));
+
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
       const flags = physicsManager.moveCharacterController(
         this.player.characterController,
@@ -121,22 +164,46 @@ class CharacterPhysics {
       if (!this.player.hasAction('sit')) {
         // avatar facing direction
         if (velocityAvatarDirection) {
-          const horizontalVelocity = localVector5.set(
-            this.velocity.x,
-            0,
-            this.velocity.z
-          );
-          if (horizontalVelocity.lengthSq() > 0.001) {
-            localQuaternion.setFromRotationMatrix(
-              localMatrix.lookAt(
-                zeroVector,
-                horizontalVelocity,
-                upVector
-              )
+          const zTargeting = metaversefileApi.useZTargeting();
+          const localPlayer = getLocalPlayer();
+          if (this.player === localPlayer && zTargeting?.focusTargetReticle) {
+            const direction = localVector3.copy(cameraManager.lastNonzeroDirectionVector);
+            direction.y = 0
+            direction.x *= -1;
+            localQuaternion.setFromUnitVectors(
+              direction,
+              localVector4.copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
+            )
+          } else {
+            const horizontalVelocity = localVector5.set(
+              this.velocity.x,
+              0,
+              this.velocity.z
             );
+            if (horizontalVelocity.lengthSq() > 0.001) {
+              localQuaternion.setFromRotationMatrix(
+                localMatrix.lookAt(
+                  zeroVector,
+                  horizontalVelocity,
+                  upVector
+                )
+              );
+            }
           }
         } else {
-          localQuaternion.copy(camera.quaternion);
+          // if (cameraManager.focus && cameraManager.target2) {
+          //   const target2Position = cameraManager.target2.npcPlayer ? cameraManager.target2.npcPlayer.position : cameraManager.target2.position;
+          const zTargeting = metaversefileApi.useZTargeting();
+          const localPlayer = getLocalPlayer();
+          if (this.player === localPlayer && zTargeting?.focusTargetReticle) {
+            localQuaternion.setFromUnitVectors(
+              localVector3.set(0, 0, -1),
+              localVector4.copy(zTargeting.focusTargetReticle.position).sub(this.player.position).setY(0).normalize()
+            )
+          } else {
+            localQuaternion.copy(camera.quaternion);
+          }
+
         }
 
         const jumpAction = this.player.getAction('jump');
@@ -247,8 +314,10 @@ class CharacterPhysics {
       velocity.multiplyScalar(factor);
     } else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      velocity.x *= factor;
-      velocity.z *= factor;
+      velocity.x *= factor; // formal
+      velocity.z *= factor; // formal
+      // velocity.x *= .95; // test
+      // velocity.z *= .95; // test
     }
   }
   applyAvatarPhysics(now, timeDiffS) {

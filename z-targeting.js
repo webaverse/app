@@ -14,7 +14,9 @@ import {scene, camera} from './renderer.js';
 import * as sounds from './sounds.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
+import game from './game.js';
 import {getLocalPlayer} from './players.js';
+import metaversefileApi from 'metaversefile';
 import mobManager from './mob-manager.js';
 import npcManager from './npc-manager.js';
 
@@ -138,6 +140,9 @@ class ZTargeting extends THREE.Object3D {
 
     this.reticles = [];
     this.focusTargetReticle = null;
+    this.focusTargetApp = null;
+    this.focusTargetObject = null;
+    this.focusTargetObjectBias = new THREE.Vector3();
     this.queryResults = new QueryResults();
     this.nearbyResults = new QueryResults();
     this.dropAngle = 145;
@@ -180,7 +185,13 @@ class ZTargeting extends THREE.Object3D {
     targetReticleMesh.setReticles(reticles);
   }
   update(timestamp) {
+    // console.log('update z-targeting');
     this.setQueryResult(timestamp);
+    if (this.focusTargetReticle) {
+      this.focusTargetReticle.position
+        .copy(this.focusTargetObject.position)
+        .add(this.focusTargetObjectBias);
+    }
   }
   //now just feeds into handle target with camera object
   handleDown(object = camera) {
@@ -195,6 +206,19 @@ class ZTargeting extends THREE.Object3D {
 
       if (this.queryResults.results.length > 0) {
         this.focusTargetReticle = this.queryResults.results[0];
+        const pair = metaversefileApi.getPairByPhysicsId(this.focusTargetReticle.physicsId);
+        this.focusTargetApp = pair[0];
+        this.focusTargetObject = pair[1];
+        if (this.focusTargetApp?.npcPlayer?.avatar) {
+          const headPosition = localVector.setFromMatrixPosition(this.focusTargetApp.npcPlayer.avatar.foundModelBones.Head.matrixWorld);
+          this.focusTargetObjectBias
+            .copy(headPosition)
+            .sub(this.focusTargetObject.position);
+        } else {
+          this.focusTargetObjectBias
+            .copy(this.focusTargetReticle.position)
+            .sub(this.focusTargetObject.position);
+        }
         sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
       
         const naviSoundNames = [
@@ -214,12 +238,18 @@ class ZTargeting extends THREE.Object3D {
       const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
       const localPlayer = getLocalPlayer();
       cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
-    //}
+      // if (remoteApp) {
+      // debugger
+      if (this.focusTargetReticle) {
+        game.menuAim();
+      }
+    }
   }
   handleUp() {
     if (cameraManager.focus) {
       cameraManager.setFocus(false);
       cameraManager.setStaticTarget();
+      game.menuUnaim();
 
       if (this.focusTargetReticle) {
         sounds.playSoundName('zTargetCancel');
@@ -295,5 +325,6 @@ class ZTargeting extends THREE.Object3D {
   }
 }
 const zTargeting = new ZTargeting();
+window.zTargeting = zTargeting;
 scene.add(zTargeting);
 export default zTargeting;

@@ -29,11 +29,15 @@ class NpcManager extends EventTarget {
     scale,
     detached,
   }) {
+    console.log('createNpcAsync');
     const npcPlayer = new LocalPlayer({
       npc: true,
       detached,
     });
     npcPlayer.name = name;
+
+    if (!window.npcPlayers) window.npcPlayers = []
+    window.npcPlayers.push(npcPlayer);
 
     let matrixNeedsUpdate = false;
     if (position) {
@@ -51,11 +55,9 @@ class NpcManager extends EventTarget {
     if (matrixNeedsUpdate) {
       npcPlayer.updateMatrixWorld();
     }
+    npcPlayer.npcApp = npcApp;
+    npcApp.npcPlayer = npcPlayer;
 
-    npcPlayer.npcApp = npcApp; // for lore AI
-    if (npcApp) {
-      npcApp.npcPlayer = npcPlayer; // for character select
-    }
 
     await npcPlayer.setAvatarUrl(avatarUrl);
 
