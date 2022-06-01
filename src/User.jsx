@@ -203,7 +203,7 @@ export const User = ({ setLoginFrom }) => {
     //
 
     const open = state.openedPanel === 'LoginPanel';
-    const loggedIn = !!address;
+    const loggedIn = !!currentAddress;
 
     //
 
@@ -267,7 +267,7 @@ export const User = ({ setLoginFrom }) => {
                     ) : null}
                     <div
                         className={styles.address}
-                    >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                    >{ensName || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
                 </div>
                 <div className={styles.logoutBtn}
                     onClick={e => {
