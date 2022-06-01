@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
-import * as ceramicApi from '../ceramic.js';
 import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
 // import Modal from './components/modal';
@@ -24,7 +23,7 @@ export const User = ({ setLoginFrom }) => {
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-    const { currentAddress, connectWallet, errorMessge, wrongChain } = account;
+    const { currentAddress, connectWallet, errorMessage, wrongChain } = account;
 
     //
 
@@ -138,13 +137,11 @@ export const User = ({ setLoginFrom }) => {
 
         const metamaskAutoLogin = async () => {
 
-            const { address } = await WebaWallet.autoLogin();
+            await connectWallet();
 
-            if ( address ) {
+            if ( currentAddress ) {
 
-                await _setAddress( address );
                 setLoginFrom( 'metamask' );
-                // setShow( false );
 
             } else if ( error ) {
 
@@ -190,7 +187,7 @@ export const User = ({ setLoginFrom }) => {
 
         }
 
-    }, [ address ] );
+    }, [ currentAddress ] );
 
     //
 
