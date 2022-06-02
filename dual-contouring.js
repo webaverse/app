@@ -210,33 +210,4 @@ w.createChunkMeshDualContouring = (x, y, z, lod) => {
   }
 };
 
-/* w.drawDamage = (position, radius) => {
-  const allocator = new Allocator(Module)
-
-  const numPositions = 256;
-  const positionsTypedArray = allocator.alloc(Float32Array, numPositions);
-  const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
-  numPositionsTypedArray[0] = numPositions;
-
-  const drew = moduleInstance._drawDamage(
-    position.x,
-    position.y,
-    position.z,
-    radius,
-    value,
-    positionsTypedArray.byteOffset,
-    numPositionsTypedArray.byteOffset,
-  );
-
-  const outNumPositions = numPositionsTypedArray[0];
-  const result = Array(outNumPositions / 3);
-  for (let i = 0; i < outNumPositions / 3; i++) {
-    result[i] = new THREE.Vector3().fromArray(positionsTypedArray, i * 3);
-  }
-
-  allocator.freeAll();
-
-  return result;
-}; */
-
 export default w;
