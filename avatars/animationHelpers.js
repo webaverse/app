@@ -1088,65 +1088,23 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         _handleDefault(spec);
 
         if (useAnimation) {
-          if (useAnimation === useAnimations.bowIdle) {
-            const src2 = useAnimations.bowIdle.interpolants[k];
-            const v2 = src2.evaluate(t2 % useAnimations.bowIdle.duration);
+          const src2 = useAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2 % useAnimation.duration);
 
-            // const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
-            // const v3 = src3.evaluate((useTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
-
-            // dst.fromArray(v2);
-
-            // if (!isPosition) {
-            //   localQuaternion3.fromArray(v3);
-            //   dst.slerp(localQuaternion3, idleWalkFactor);
-            // } else {
-            //   localVector3.fromArray(v3);
-            //   dst.lerp(localVector3, idleWalkFactor);
-            // }
-
-            if (!isPosition) {
+          if (!isPosition) {
+            if (isTop && useAnimation === useAnimations.bowDraw) {
+              let t = (useTimeS - useAnimations.bowDraw.duration + 0.3) / 0.3; // prevent bow draw right hand move too fast when blending bow walking.
+              t = THREE.MathUtils.clamp(t, 0, 1);
+              t *= idleWalkFactor;
+              localQuaternion3.fromArray(v2);
+              dst.slerp(localQuaternion3, 1 - t);
+            } else {
               localQuaternion3.fromArray(v2);
               dst.slerp(localQuaternion3, 1 - idleWalkFactor);
-            } else {
-              localVector3.fromArray(v2);
-              dst.lerp(localVector3, 1 - idleWalkFactor);
             }
-          } else if (useAnimation === useAnimations.bowDraw) {
-            const src2 = useAnimations.bowDraw.interpolants[k];
-            const v2 = src2.evaluate(t2 % useAnimations.bowDraw.duration);
-
-            const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
-            const v3 = src3.evaluate((useTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
-            if (!isPosition) localQuaternion3.fromArray(v3);
-            else localVector3.fromArray(v3);
-
-            // dst.fromArray(v2);
-
-            // if (isTop) {
-            //   let t = (useTimeS - useAnimations.bowDraw.duration + 0.3) / 0.3;
-            //   t = THREE.MathUtils.clamp(t, 0, 1);
-            //   t *= idleWalkFactor;
-            //   if (!isPosition) {
-            //     dst.slerp(localQuaternion3, t);
-            //   } else {
-            //     dst.lerp(localVector3, t);
-            //   }
-            // } else {
-            //   if (!isPosition) {
-            //     dst.slerp(localQuaternion3, idleWalkFactor);
-            //   } else {
-            //     dst.lerp(localVector3, idleWalkFactor);
-            //   }
-            // }
-
-            if (!isPosition) {
-              localQuaternion3.fromArray(v2);
-              dst.slerp(localQuaternion3, 1 - idleWalkFactor);
-            } else {
-              localVector3.fromArray(v2);
-              dst.lerp(localVector3, 1 - idleWalkFactor);
-            }
+          } else {
+            localVector3.fromArray(v2);
+            dst.lerp(localVector3, 1 - idleWalkFactor);
           }
         }
       };
