@@ -24,28 +24,23 @@ export async function connectToNetwork({
   decimals = 0,
   rpcUrls = [''],
 }) {
-  try {
-    switchChain(chainId);
-  } catch (switchError) {
-    // no chain in metamask
+  return switchChain(chainId).catch(async switchError => {
     if (switchError.code === 4902) {
-      try {
-        await addRPCToWallet({
-          chainId,
-          rpcUrls,
-          chainName,
-          blockExplorerUrls,
-          nativeCurrency: {
-            name,
-            symbol,
-            decimals,
-          },
-        });
-      } catch (addError) {
-        console.log(`Error adding ${name} Network`);
-      }
+      await addRPCToWallet({
+        chainId,
+        rpcUrls,
+        chainName,
+        blockExplorerUrls,
+        nativeCurrency: {
+          name,
+          symbol,
+          decimals,
+        },
+      }).catch(error => {
+        console.warn('cant add chain', error);
+      });
     }
-  }
+  });
 }
 
 export async function addRPCToWallet({
@@ -102,7 +97,7 @@ export async function getChainId() {
 
 export async function switchChain(chainId) {
   const {ethereum} = window;
-  await ethereum.request({
+  return await ethereum.request({
     method: RPC_METHODS.SWITCH_CHAIN,
     params: [{chainId}],
   });
