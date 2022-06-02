@@ -39,7 +39,7 @@ class VoiceEndpointVoicer {
     u.searchParams.set('s', text);
     const res = await fetch(u/*, {
       mode: 'cors',
-    } */);
+    } */).catch(e => { console.error("Fetch error", e)});
     const arrayBuffer = await res.arrayBuffer();
 
     const audioContext = Avatar.getAudioContext();

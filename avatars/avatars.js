@@ -871,6 +871,7 @@ class Avatar {
     }
 
     this.microphoneWorker = null;
+    
     this.volume = -1;
 
     this.shoulderTransforms.Start();
@@ -2008,7 +2009,7 @@ class Avatar {
       const localPlayer = metaversefile.useLocalPlayer();
       this.microphoneWorker = new MicrophoneWorker({
         audioContext,
-        muted: localPlayer.avatar === this,
+        muted: false,
         emitVolume: true,
         emitBuffer: true,
       });
