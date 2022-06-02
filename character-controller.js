@@ -304,7 +304,7 @@ class PlayerBase extends THREE.Object3D {
 
 
   getVoice() {
-    return this.voiceEndpoint || this.voicePack || null;
+    return this.voiceEndpoint || this.voicePack || console.warn("no voice endpoint set");
   }
   updateVoicer() {
     const voice = this.getVoice();
@@ -1625,8 +1625,8 @@ class RemotePlayer extends InterpolatedPlayer {
         const voiceSpec = e.changes.keys.get('voiceSpec');
         console.log("voiceSpec is", voiceSpec.value)
         const json = JSON.parse(voiceSpec.value);
-        if(json.url)
-          this.loadVoiceEndpoint(json.url);
+        if(json.endpointUrl)
+          this.loadVoiceEndpoint(json.endpointUrl);
         if(json.audioUrl && json.indexUrl)
           this.loadVoicePack({ audioUrl: json.audioUrl, indexUrl: json.indexUrl});
       }
