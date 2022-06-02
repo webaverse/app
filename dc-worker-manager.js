@@ -144,7 +144,7 @@ class DcWorkerManager {
     const worker = this.getNextWorker();
     const result = await worker.request('eraseCubeDamage', {
       position: position.toArray(),
-      quaterion: quaterion.toArray(),
+      quaternion: quaternion.toArray(),
       scale: scale.toArray(),
     });
     return result;
