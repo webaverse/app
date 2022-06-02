@@ -39,11 +39,11 @@ class DcWorkerManager {
               cbs.delete(requestId);
               cb(e.data);
             } else {
-              console.warn('worker message without callback', e.data);
+              console.warn('dc worker message without callback', e.data);
             }
           };
           worker.onerror = err => {
-            console.log('terrain worker load error', err);
+            console.log('dc worker load error', err);
           };
           worker.request = (method, args) => {
             return new Promise((resolve, reject) => {
