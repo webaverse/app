@@ -149,6 +149,22 @@ class DcWorkerManager {
     });
     return result;
   }
+  async drawSphereDamage(position, radius) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('drawSphereDamage', {
+      position: position.toArray(),
+      radius,
+    });
+    return result;
+  }
+  async eraseSphereDamage(position, radius) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('eraseSphereDamage', {
+      position: position.toArray(),
+      radius,
+    });
+    return result;
+  }
   static GeometryAllocator = GeometryAllocator;
 }
 const dcWorkerManager = new DcWorkerManager();
