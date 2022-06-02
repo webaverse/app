@@ -274,7 +274,7 @@ const DragAndDrop = () => {
     // try {
     //   await ethereum.request({
     //     method: 'wallet_switchEthereumChain',
-    //     params: [{ chainId: '0x89' }],
+    //     params: [{ chainId: VITE_APP_POLYGON_MAINNET_CHAIN_ID }],
     //   });
     // } catch (switchError) {
     //   console.log(switchError);
@@ -285,7 +285,7 @@ const DragAndDrop = () => {
     //         method: 'wallet_addEthereumChain',
     //         params: [
     //           {
-    //             chainId: '0x89',
+    //             chainId: VITE_APP_POLYGON_MAINNET_CHAIN_ID,
     //             chainName: 'Polygon Mainnet',
     //             rpcUrls: [import.meta.env.VITE_APP_POLYGON_MAINNET_RPC_URL] /* ... */,
     //             nativeCurrency: {
@@ -304,11 +304,11 @@ const DragAndDrop = () => {
     //   // handle other "switch" errors
     // }
 
-    //switch Polygon testnet mumbai
+    //switch Polygon testnet
     try {
         await ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x13881' }],
+          params: [{ chainId: VITE_APP_POLYGON_TESTNET_CHAIN_ID }],
         });
       } catch (switchError) {
         console.log(switchError);
@@ -319,8 +319,8 @@ const DragAndDrop = () => {
               method: 'wallet_addEthereumChain',
               params: [
                 {
-                  chainId: "0x13881",
-                  chainName: "Polygon Testnet Mumbai",
+                  chainId: VITE_APP_POLYGON_TESTNET_CHAIN_ID,
+                  chainName: "Polygon Testnet",
                   rpcUrls: [import.meta.env.VITE_APP_POLYGON_TESTNET_RPC_URL] /* ... */,
                   nativeCurrency: {
                     name: "MATIC",
@@ -363,7 +363,6 @@ const DragAndDrop = () => {
                 }
             } catch(err) {
                 console.log(err)
-                // alert("NFT mint failed");
                 setIsLoading(false);
                 setCurrentApp(null);
                 notifymessage("Mint failed", "error")
@@ -379,10 +378,8 @@ const DragAndDrop = () => {
                 notifymessage("Mint complete! New item added in the inventory", "success");
                 setState({ openedPanel: 'CharacterPanel' });
             }
-            // after mint transaction, refresh the website 
         } catch(err) {
             console.log(err)
-            // alert("NFT mint failed");
             setIsLoading(false);
             setCurrentApp(null);
             notifymessage("Mint failed", "error")
