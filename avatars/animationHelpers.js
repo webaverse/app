@@ -1087,7 +1087,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _handleDefault(spec);
 
-        if (useAnimation) {
+        if (useAnimation && isTop) { // check isTop to not override crouch
           const src2 = useAnimation.interpolants[k];
           const v2 = src2.evaluate(t2 % useAnimation.duration);
 
@@ -1210,7 +1210,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
         const f2 = Math.pow(1 - f, 2);
 
-        if (isTop || boneName === 'Hips') {
+        if (isTop) { // check isTop to not override crouch
           if (!isPosition) {
             const src2 = unuseAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
