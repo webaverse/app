@@ -359,7 +359,6 @@ const DragAndDrop = () => {
                 let NFTmintres = await NFTminttx.wait();
                 if (NFTmintres.transactionHash) {
                     notifymessage("Mint complete! New item added in the inventory", "success");
-                    setState({ openedPanel: 'CharacterPanel' });
                 }
             } catch(err) {
                 console.log(err)
@@ -376,7 +375,6 @@ const DragAndDrop = () => {
             let NFTmintres = await NFTminttx.wait();
             if (NFTmintres.transactionHash) {
                 notifymessage("Mint complete! New item added in the inventory", "success");
-                setState({ openedPanel: 'CharacterPanel' });
             }
         } catch(err) {
             console.log(err)
