@@ -442,6 +442,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
   const {idleWalkFactor, walkRunFactor, crouchFactor, useBowFactor} = moveFactors;
+  // console.log(crouchFactor, useBowFactor);
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -756,6 +757,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       localQuaternion,
     );
     if (crouchFactor > 0) {
+      // if (isPosition) console.log('7way crouch');
+      if (isPosition) {
+        if (avatar === window.localPlayer.avatar) {
+          window.domInfo.innerHTML += `<div style="display:;">keyAnimationAnglesOther: --- ${keyAnimationAnglesOther.map(n => n.name).join(',')}</div>`;
+        }
+      }
       _get7wayBlend(
         keyAnimationAnglesOther,
         keyAnimationAnglesOtherMirror,
@@ -779,6 +786,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           crouchFactor,
         );
     } else if (useBowFactor > 0) {
+      // if (isPosition) console.log('7way bow');
+      if (isPosition) {
+        if (avatar === window.localPlayer.avatar) {
+          window.domInfo.innerHTML += `<div style="display:;">keyAnimationAnglesBow: --- ${keyAnimationAnglesBow.map(n => n.name).join(',')}</div>`;
+        }
+      }
       _get7wayBlend(
         keyAnimationAnglesBow,
         keyAnimationAnglesBowMirror,
@@ -802,6 +815,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           useBowFactor,
         );
     } else {
+      // if (isPosition) console.log('7way else');
       target.copy(localQuaternion);
     }
 
@@ -819,23 +833,23 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    // { // play one animation purely.
-    //   return spec => {
-    //     const {
-    //       animationTrackName: k,
-    //       dst,
-    //       // isTop,
-    //     } = spec;
+    if (0) { // play one animation purely.
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+        } = spec;
 
-    //     // const animation = animations.index['walking.fbx']
-    //     const animation = animations.index['heavy_sword1.fbx']
-    //     const t2 = timeSeconds;
-    //     const src2 = animation.interpolants[k];
-    //     const v2 = src2.evaluate(t2 % animation.duration);
+        // const animation = animations.index['walking.fbx']
+        const animation = animations.index['Standing Aim Walk Left.fbx']
+        const t2 = timeSeconds;
+        const src2 = animation.interpolants[k];
+        const v2 = src2.evaluate(t2 % animation.duration);
 
-    //     dst.fromArray(v2);
-    //   };
-    // }
+        dst.fromArray(v2);
+      };
+    }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -1062,7 +1076,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             animationTimeBase += animation.duration;
           }
           if (useAnimation !== undefined) { // first iteration
-            // if (isPosition) console.log(useAnimation.name);
+            if (isPosition) console.log(useAnimation.name);
             t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
           } else { // loop
             const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
@@ -1078,17 +1092,25 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             const src2 = useAnimations.bowIdle.interpolants[k];
             const v2 = src2.evaluate(t2 % useAnimations.bowIdle.duration);
 
-            const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
-            const v3 = src3.evaluate((useTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
+            // const src3 = animations.index['Standing Aim Walk Forward.fbx'].interpolants[k];
+            // const v3 = src3.evaluate((useTimeS * (37 / 32)) % animations.index['Standing Aim Walk Forward.fbx'].duration);
 
-            dst.fromArray(v2);
+            // dst.fromArray(v2);
+
+            // if (!isPosition) {
+            //   localQuaternion3.fromArray(v3);
+            //   dst.slerp(localQuaternion3, idleWalkFactor);
+            // } else {
+            //   localVector3.fromArray(v3);
+            //   dst.lerp(localVector3, idleWalkFactor);
+            // }
 
             if (!isPosition) {
-              localQuaternion3.fromArray(v3);
-              dst.slerp(localQuaternion3, idleWalkFactor);
+              localQuaternion3.fromArray(v2);
+              dst.slerp(localQuaternion3, 1 - idleWalkFactor);
             } else {
-              localVector3.fromArray(v3);
-              dst.lerp(localVector3, idleWalkFactor);
+              localVector3.fromArray(v2);
+              dst.lerp(localVector3, 1 - idleWalkFactor);
             }
           } else if (useAnimation === useAnimations.bowDraw) {
             const src2 = useAnimations.bowDraw.interpolants[k];
@@ -1099,23 +1121,31 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             if (!isPosition) localQuaternion3.fromArray(v3);
             else localVector3.fromArray(v3);
 
-            dst.fromArray(v2);
+            // dst.fromArray(v2);
 
-            if (isTop) {
-              let t = (useTimeS - useAnimations.bowDraw.duration + 0.3) / 0.3;
-              t = THREE.MathUtils.clamp(t, 0, 1);
-              t *= idleWalkFactor;
-              if (!isPosition) {
-                dst.slerp(localQuaternion3, t);
-              } else {
-                dst.lerp(localVector3, t);
-              }
+            // if (isTop) {
+            //   let t = (useTimeS - useAnimations.bowDraw.duration + 0.3) / 0.3;
+            //   t = THREE.MathUtils.clamp(t, 0, 1);
+            //   t *= idleWalkFactor;
+            //   if (!isPosition) {
+            //     dst.slerp(localQuaternion3, t);
+            //   } else {
+            //     dst.lerp(localVector3, t);
+            //   }
+            // } else {
+            //   if (!isPosition) {
+            //     dst.slerp(localQuaternion3, idleWalkFactor);
+            //   } else {
+            //     dst.lerp(localVector3, idleWalkFactor);
+            //   }
+            // }
+
+            if (!isPosition) {
+              localQuaternion3.fromArray(v2);
+              dst.slerp(localQuaternion3, 1 - idleWalkFactor);
             } else {
-              if (!isPosition) {
-                dst.slerp(localQuaternion3, idleWalkFactor);
-              } else {
-                dst.lerp(localVector3, idleWalkFactor);
-              }
+              localVector3.fromArray(v2);
+              dst.lerp(localVector3, 1 - idleWalkFactor);
             }
           }
         }
@@ -1317,6 +1347,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     return _handleDefault;
   };
   const applyFn = _getApplyFn();
+  // const applyFn = _handleDefault;
   const _blendFly = spec => {
     const {
       animationTrackName: k,

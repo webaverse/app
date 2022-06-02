@@ -300,6 +300,8 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
+      window.domInfo.innerHTML = '';
+
       // if (window.localPlayer?.avatar?.jumpTime !== 0) console.log(window.localPlayer?.avatar?.jumpTime);
 
       const _frame = () => {
