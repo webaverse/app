@@ -47,20 +47,24 @@ export const CHAINS = {
     chainId: '0x137',
     symbol: 'MATIC',
     rpcUrls: ['https://polygon-rpc.com'],
+    decimals: 18,
     contract_name: 'polygon',
     previewLink: 'https://polygonscan.com/address/',
   },
   POLYGON_TEST: {
-    chainName: 'Polygon Test',
+    chainName: 'Mumbai Testnet',
     name: 'Polygon',
-    blockExplorerUrls: ['https://polygonscan.com/'],
-    chainId: '0x137',
+    blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
+    chainId: '0x13881',
     symbol: 'MATIC',
-    rpcUrls: ['https://polygon-rpc.com'],
+    rpcUrls: [
+      // 'https://rpc-mumbai.matic.today/', 
+      'https://matic-mumbai.chainstacklabs.com'],
+    decimals: 18,
     contract_name: 'testnetpolygon',
     previewLink: 'https://polygonscan.com/address/',
   },
 };
 
 export const NETWORK_KEYS = Object.keys(CHAINS);
-export const DEFAULT_CHAIN = CHAINS.RINKBY;
+export const DEFAULT_CHAIN = CHAINS.POLYGON_TEST;
