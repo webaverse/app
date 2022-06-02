@@ -53,7 +53,7 @@ import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
-import terrainManager from './terrain-manager.js';
+import dcWorkerManager from './dc-worker-manager.js';
 import cardsManager from './cards-manager.js';
 
 const localVector2D = new THREE.Vector2();
@@ -1202,8 +1202,8 @@ export default () => {
   useHitManager() {
     return hitManager;
   },
-  useTerrainManager() {
-    return terrainManager;
+  useDcWorkerManager() {
+    return dcWorkerManager;
   },
   useCardsManager() {
     return cardsManager;
