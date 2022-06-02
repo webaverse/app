@@ -63,14 +63,14 @@ export async function addRPCToWallet({
   const {ethereum} = window;
   const rpc = await ethereum.request({
     method: RPC_METHODS.ADD_CHAIN,
-    params: {
+    params: [{
       chainId,
       chainName,
       nativeCurrency,
       rpcUrls,
       blockExplorerUrls,
       iconUrls,
-    },
+    }],
   });
 
   return rpc;
