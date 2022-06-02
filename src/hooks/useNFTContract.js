@@ -2,14 +2,15 @@ import {useEffect, useState} from 'react';
 
 import {ethers, BigNumber} from 'ethers';
 
-import {DEFAULT_CHAIN, CONTRACTS, CONTRACT_ABIS} from './web3-constants.js';
+import {DEFAULT_CHAIN, CONTRACTS, CONTRACT_ABIS, NFTcontractAddress, FTcontractAddress} from './web3-constants.js';
+import { FTABI, NFTABI } from '../abis/contract.jsx';
 
 const FILE_ADDRESS = 'https://ipfs.webaverse.com/';
 
-const contractAddress = CONTRACTS[DEFAULT_CHAIN.contract_name].NFT;
-const contractAddressFT = CONTRACTS[DEFAULT_CHAIN.contract_name].FT;
-const contractABI = CONTRACT_ABIS.NFT;
-const contractABIFT = CONTRACT_ABIS.FT;
+const contractAddress = NFTcontractAddress; //CONTRACTS[DEFAULT_CHAIN.contract_name].NFT;
+const contractAddressFT = FTcontractAddress; //CONTRACTS[DEFAULT_CHAIN.contract_name].FT;
+const contractABI = NFTABI; // CONTRACT_ABIS.NFT;
+const contractABIFT = FTABI; //CONTRACT_ABIS.FT;
 
 const CONTRACT_EVENTS = {
   MINT_COMPLETE: 'MintComplete',
@@ -22,7 +23,7 @@ const CONTRACT_EVENTS = {
   SINGLE_COLLABORATOR_REMOVED: 'SingleCollaboratorRemoved',
 };
 
-export default function useNFT(currentAccount, onMint = () => {}) {
+export default function useNFTContract(currentAccount, onMint = () => {}) {
   const [minting, setMinting] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
   const [minted, setMinted] = useState([]);
@@ -37,16 +38,18 @@ export default function useNFT(currentAccount, onMint = () => {}) {
       setMinting(false);
     };
 
-    if (connectedContract) {
-      connectedContract.on(CONTRACT_EVENTS.MINT_COMPLETE, mintHandler);
-    }
+    // if (connectedContract) {
+    //   connectedContract.on(CONTRACT_EVENTS.MINT_COMPLETE, mintHandler);
+    // }
 
     return () => {
-      if (connectedContract) {
-        connectedContract.removeListener(mintHandler);
-      }
+      // if (connectedContract) {
+      //   connectedContract.removeListener(mintHandler);
+      // }
     };
   }, [connectedContract]);
+
+  console.log('NFT currentAccount', currentAccount);
 
   async function mintNFT(currentApp) {
     const {ethereum} = window;
