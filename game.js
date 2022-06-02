@@ -1625,6 +1625,19 @@ class GameManager extends EventTarget {
   getDragRightSpec() {
     return dragRightSpec;
   }
+  menuActivateHold() {
+    if (grabUseMesh.visible && !loadoutManager.getSelectedApp()) {
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      const activateAction = localPlayer.getAction('activate');
+      if (!activateAction) {
+        const newActivateAction = {
+          type: 'activate',
+          // time: 0,
+        };
+        localPlayer.addAction(newActivateAction);
+      }
+    }
+  }
   menuActivateDown() {
     if (grabUseMesh.visible) {
       const localPlayer = metaversefileApi.useLocalPlayer();

@@ -282,7 +282,7 @@ class ShoulderPoser {
 		} */
 
   rotateShoulderBase() {
-    const angleY = -3;//this.getCombinedDirectionAngleUp();
+    const angleY = this.getCombinedDirectionAngleUp();
 
     // const targetRotation = new Vector3(0, angle, 0);
 
@@ -312,8 +312,8 @@ class ShoulderPoser {
     this.shoulder.upperChest.quaternion
       .premultiply(Helpers.getWorldQuaternion(this.shoulder.upperChest.parent, localQuaternion).invert());
     Helpers.updateMatrixMatrixWorld(this.shoulder.upperChest);
-    Helpers.updateMatrixWorld(this.shoulder.leftShoulderAnchor);
-    Helpers.updateMatrixWorld(this.shoulder.rightShoulderAnchor);
+    Helpers.updateMatrixMatrixWorld(this.shoulder.leftShoulderAnchor);
+    Helpers.updateMatrixMatrixWorld(this.shoulder.rightShoulderAnchor);
   }
 
   /* rotateShoulderRightBase(rotation)

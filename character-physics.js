@@ -263,12 +263,24 @@ class CharacterPhysics {
 
         this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);
 
-        dolly.position.set(originalPosition.x, dolly.position.y, originalPosition.z);
-        dolly.updateMatrixWorld();
+        const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+        const avatarHeight = this.player.avatar ? this.player.avatar.height : 0;
+
+        localMatrix.copy(xrCamera.matrix)
+          .premultiply(dolly.matrix)
+          .decompose(localVector, localQuaternion, localVector2);
+          
+        dolly.matrix
+          .premultiply(localMatrix.makeTranslation(originalPosition.x - localVector.x, originalPosition.y - localVector.y, originalPosition.z - localVector.z))
+          .premultiply(localMatrix.makeTranslation(0, 0, 0))
+          .decompose(dolly.position, dolly.quaternion, dolly.scale);
+        //dolly.updateMatrixWorld();
+
+        //dolly.position.set(originalPosition.x, dolly.position.y, originalPosition.z);
       } else {
         // this.velocity.y = 0;
-        dolly.updateMatrixWorld();
       }
+      dolly.updateMatrixWorld();
     } else { 
       if (this.player.hasAction('firstperson') || (this.player.hasAction('aim') && !this.player.hasAction('narutoRun'))) {
         this.applyAvatarPhysicsDetail(false, true, now, timeDiffS);

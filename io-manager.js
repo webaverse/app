@@ -146,22 +146,6 @@ const _updateIo = timeDiff => {
             keysDirection.set(dx, 0, dy);
             ioManager.currentWalked = true;
           }
-          else {
-            localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
-            localEuler.x = 0;
-            localEuler.z = 0;
-            localVector3.set(dx, 0, dy)
-              .applyEuler(localEuler)
-              .multiplyScalar(0.05);
-
-            dolly.matrix
-              // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
-              .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
-              // .premultiply(localMatrix2.copy(localMatrix2).invert())
-              .decompose(dolly.position, dolly.quaternion, dolly.scale);
-            ioManager.currentWalked = false;
-          }
-          
           ioManager.currentWeaponGrabs[1] = buttons[1] > 0.5;
         } else if (handedness === 'right') {
           const _applyRotation = r => {
@@ -206,9 +190,9 @@ const _updateIo = timeDiff => {
           }
 
           if (buttons[1] >= 0.5) {
-            game.menuActivateDown();
+            game.menuActivateHold();
           } else {
-            game.menuActivateUp();
+            game.dropSelectedApp();
           }
         }
   

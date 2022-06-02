@@ -177,7 +177,7 @@ class XRManager extends EventTarget {
 
     if(localPlayer.avatar) {
       localPlayer.avatar.setLocalAvatarPose([
-        [localVector.toArray(), localQuaternion.toArray()],
+        [localPlayer.position.toArray(), localPlayer.quaternion.toArray()],
         [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
         [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
       ]);
