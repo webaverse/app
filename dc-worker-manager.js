@@ -10,7 +10,7 @@ import {GeometryAllocator} from './geometry-allocator.js';
 
 const numWorkers = 4;
 
-class TerrainManager {
+class DcWorkerManager {
   constructor({
     chunkSize = defaultChunkSize,
     seed = defaultWorldSeed,
@@ -151,5 +151,6 @@ class TerrainManager {
   }
   static GeometryAllocator = GeometryAllocator;
 }
-const terrainManager = new TerrainManager();
-export default terrainManager;
+const dcWorkerManager = new DcWorkerManager();
+// import * as THREE from 'three';
+export default dcWorkerManager;
