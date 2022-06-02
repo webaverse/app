@@ -71,7 +71,7 @@ const _handleMessage = async e => {
         p.then(spec => {
           const {result = null, transfers = []} = spec ?? {};
           port.postMessage({
-            method: 'repsonse',
+            method: 'response',
             requestId,
             result,
           }, transfers);

@@ -70,6 +70,23 @@ const _handleMethod = ({
   args,
 }) => {
   // console.log('worker handle method', method, args);
+
+  const _injectDamages = chunks => {
+    // inject the damage to peer workers
+    const method = 'injectDamages';
+    const args = {
+      chunks,
+    };
+    for (const port of ports) {
+      // console.log('got port', port);
+      port.postMessage({
+        method,
+        args,
+      });
+    }
+  };
+  const _chunksToResult = chunks => chunks.map(({position}) => ({position}));
+
   switch (method) {
     case 'initialize': {
       const {chunkSize, seed} = args;
@@ -77,13 +94,13 @@ const _handleMethod = ({
     }
     case 'port': {
       const {port} = args;
-      port.addEventListener('message', e => {
+      port.onmessage = e => {
         _handleMessage({
           data: e.data,
           port,
         });
-      });
-      ports.push(ports);
+      };
+      ports.push(port);
       return;
     }
     case 'generateChunk': {
@@ -105,6 +122,88 @@ const _handleMethod = ({
       } else {
         return null;
       }
+    }
+    case 'drawCubeDamage': {
+      const {position, quaternion, scale} = args;
+      // console.log('dc worker draw cube damage', {position, quaternion, scale});
+      const chunks = dc.drawCubeDamage(
+        position[0], position[1], position[2],
+        quaternion[0], quaternion[1], quaternion[2], quaternion[3],
+        scale[0], scale[1], scale[2],
+      );
+      // console.log('draw cube damage chunks', chunks);
+
+      if (chunks) {
+        _injectDamages(chunks);
+        return {
+          result: _chunksToResult(chunks),
+          transfers: [],
+        };
+      } else {
+        return null;
+      }
+    }
+    case 'eraseCubeDamage': {
+      const {position, quaternion, scale} = args;
+      const chunks = dc.drawCubeDamage(
+        position[0], position[1], position[2],
+        quaternion[0], quaternion[1], quaternion[2], quaternion[3],
+        scale[0], scale[1], scale[2],
+      );
+
+      if (chunks) {
+        _injectDamages(chunks);
+        return {
+          result: _chunksToResult(chunks),
+          transfers: [],
+        };
+      } else {
+        return null;
+      }
+    }
+    case 'drawSphereDamage': {
+      const {position, radius} = args;
+      const chunks = dc.drawSphereDamage(
+        position[0], position[1], position[2],
+        radius,
+      );
+
+      if (chunks) {
+        _injectDamages(chunks);
+        return {
+          result: _chunksToResult(chunks),
+          transfers: [],
+        };
+      } else {
+        return null;
+      }
+    }
+    case 'eraseSphereDamage': {
+      const {position, radius} = args;
+      const chunks = dc.eraseSphereDamage(
+        position[0], position[1], position[2],
+        radius,
+      );
+
+      if (chunks) {
+        _injectDamages(chunks);
+        return {
+          result: _chunksToResult(chunks),
+          transfers: [],
+        };
+      } else {
+        return null;
+      }
+    }
+    case 'injectDamages': {
+      const {chunks} = args;
+      for (const chunk of chunks) {
+        const {position, damageBuffer} = chunk;
+        // console.log('worker inject damage 1', {position, damageBuffer});
+        dc.injectDamage(position[0], position[1], position[2], damageBuffer);
+        // console.log('worker inject damage 2', {position, damageBuffer});
+      }
+      return null;
     }
     default: {
       throw new Error(`unknown method: ${method}`);
@@ -134,7 +233,7 @@ const _handleMessage = async e => {
         p.then(spec => {
           const {result = null, transfers = []} = spec ?? {};
           port.postMessage({
-            method: 'repsonse',
+            method: 'response',
             requestId,
             result,
           }, transfers);

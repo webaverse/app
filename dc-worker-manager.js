@@ -10,7 +10,7 @@ import {GeometryAllocator} from './geometry-allocator.js';
 
 const numWorkers = 4;
 
-class TerrainManager {
+class DcWorkerManager {
   constructor({
     chunkSize = defaultChunkSize,
     seed = defaultWorldSeed,
@@ -39,11 +39,11 @@ class TerrainManager {
               cbs.delete(requestId);
               cb(e.data);
             } else {
-              console.warn('worker message without callback', e.data);
+              console.warn('dc worker message without callback', e.data);
             }
           };
           worker.onerror = err => {
-            console.log('terrain worker load error', err);
+            console.log('dc worker load error', err);
           };
           worker.request = (method, args) => {
             return new Promise((resolve, reject) => {
@@ -103,7 +103,7 @@ class TerrainManager {
         }
 
         // initialize
-        // note: deliberately don't wait for this since there is no point
+        // note: deliberately don't wait for this; let it start in the background
         Promise.all(workers.map(async worker => {
           // set chunk size
           await worker.request('initialize', {
@@ -117,18 +117,56 @@ class TerrainManager {
     }
     return this.loadPromise;
   }
-  async generateChunk(chunkPosition, lod) {
+  getNextWorker() {
     const {workers} = this;
     const worker = workers[this.nextWorker];
     this.nextWorker = (this.nextWorker + 1) % workers.length;
-
+    return worker;
+  }
+  async generateChunk(chunkPosition, lod) {
+    const worker = this.getNextWorker();
     const result = await worker.request('generateChunk', {
       chunkPosition: chunkPosition.toArray(),
       lod,
     });
     return result;
   }
+  async drawCubeDamage(position, quaternion, scale) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('drawCubeDamage', {
+      position: position.toArray(),
+      quaternion: quaternion.toArray(),
+      scale: scale.toArray(),
+    });
+    return result;
+  }
+  async eraseCubeDamage(position, quaterion, scale) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('eraseCubeDamage', {
+      position: position.toArray(),
+      quaternion: quaternion.toArray(),
+      scale: scale.toArray(),
+    });
+    return result;
+  }
+  async drawSphereDamage(position, radius) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('drawSphereDamage', {
+      position: position.toArray(),
+      radius,
+    });
+    return result;
+  }
+  async eraseSphereDamage(position, radius) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('eraseSphereDamage', {
+      position: position.toArray(),
+      radius,
+    });
+    return result;
+  }
   static GeometryAllocator = GeometryAllocator;
 }
-const terrainManager = new TerrainManager();
-export default terrainManager;
+const dcWorkerManager = new DcWorkerManager();
+// import * as THREE from 'three';
+export default dcWorkerManager;
