@@ -34,6 +34,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
     'Sneaking Forward.fbx',
     'Crouched Sneaking Left.fbx',
     'Crouched Sneaking Right.fbx',
+    'Standing Aim Walk Forward.fbx',
     'Standing Aim Walk Left.fbx',
     'Standing Aim Walk Right.fbx',
   ];
@@ -312,6 +313,12 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
       'Sneaking Forward reverse.fbx',
       'Crouched Sneaking Left reverse.fbx',
       'Crouched Sneaking Right reverse.fbx',
+      'Standing Aim Walk Forward.fbx',
+      'Standing Aim Walk Left.fbx',
+      'Standing Aim Walk Right.fbx',
+      'Standing Aim Walk Forward reverse.fbx',
+      'Standing Aim Walk Left reverse.fbx',
+      'Standing Aim Walk Right reverse.fbx',
       'naruto run.fbx',
     ];
     const animationStepIndices = walkAnimationNames.map(walkAnimationName => {

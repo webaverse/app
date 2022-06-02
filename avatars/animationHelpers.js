@@ -128,9 +128,10 @@ const animationsAngleArrays = {
     {name: 'Standing Aim Walk Right.fbx', angle: -Math.PI / 2},
 
     {name: 'Standing Aim Walk Forward.fbx', angle: 0},
-    {name: 'Standing Aim Walk Back.fbx', angle: Math.PI},
+    {name: 'Standing Aim Walk Forward reverse.fbx', angle: Math.PI},
   ],
 };
+window.animationsAngleArrays = animationsAngleArrays;
 const animationsAngleArraysMirror = {
   walk: [
     {name: 'left strafe walking reverse.fbx', matchAngle: -Math.PI / 2, angle: -Math.PI / 2},
@@ -149,6 +150,7 @@ const animationsAngleArraysMirror = {
     {name: 'Standing Aim Walk Right reverse.fbx', matchAngle: Math.PI / 2, angle: Math.PI / 2},
   ],
 };
+window.animationsAngleArraysMirror = animationsAngleArraysMirror;
 const animationsIdleArrays = {
   reset: {name: 'reset.fbx'},
   walk: {name: 'idle.fbx'},
@@ -289,7 +291,7 @@ export const loadPromise = (async () => {
     'Standing Aim Walk Right.fbx',
   ].map(name => animations.index[name]);
   const bowingBackwardAnimations = [
-    'Standing Aim Walk Back.fbx',
+    'Standing Aim Walk Forward reverse.fbx',
     'Standing Aim Walk Left reverse.fbx',
     'Standing Aim Walk Right reverse.fbx',
   ].map(name => animations.index[name]);
@@ -695,12 +697,16 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // crouch
   // const keyOther = _getAnimationKey(true);
   const keyAnimationAnglesOther = getClosest2AnimationAngles('crouch', angle);
+  window.keyAnimationAnglesOther = keyAnimationAnglesOther;
   const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
+  window.keyAnimationAnglesOtherMirror = keyAnimationAnglesOtherMirror;
   const idleAnimationOther = _getIdleAnimation('crouch');
 
   // bow
   const keyAnimationAnglesBow = getClosest2AnimationAngles('bow', angle);
+  window.keyAnimationAnglesBow = keyAnimationAnglesBow;
   const keyAnimationAnglesBowMirror = _getMirrorAnimationAngles(keyAnimationAnglesBow, 'bow');
+  window.keyAnimationAnglesBowMirror = keyAnimationAnglesBowMirror;
   const idleAnimationBow = _getIdleAnimation('bow');
 
   const angleToClosestAnimation = Math.abs(angleDifference(angle, keyWalkAnimationAnglesMirror[0].angle));
