@@ -15,10 +15,11 @@ import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
 import { ethers, BigNumber } from 'ethers'
 import { NFTABI, NFTcontractAddress, FTABI, FTcontractAddress } from "../src/abis/contract"
-import dotenv from 'dotenv'
-
-// Variables in .env and .env.defaults will be added to process.env
-dotenv.config({ path: ".env" });
+import {
+    ToastContainer,
+    toast
+} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -268,7 +269,7 @@ const DragAndDrop = () => {
 
     console.log('mint', currentApp);
 
-    console.log("process.env.SERVER_HOST", process.env.UPLOAD_URL)
+    // console.log("process.env.SERVER_HOST", process.env.UPLOAD_URL)
     // switch Polygon main network
     // try {
     //   await ethereum.request({
@@ -286,13 +287,13 @@ const DragAndDrop = () => {
     //           {
     //             chainId: '0x89',
     //             chainName: 'Polygon Mainnet',
-    //             rpcUrls: ['"https://polygon-rpc.com"'] /* ... */,
+    //             rpcUrls: [import.meta.env.VITE_APP_POLYGON_MAINNET_RPC_URL] /* ... */,
     //             nativeCurrency: {
     //               name: "MATIC",
     //               symbol: "MATIC", // 2-6 characters long
     //               decimals: 18,
     //             },
-    //             blockExplorerUrls: ["https://polygonscan.com/"],
+    //             blockExplorerUrls: [import.meta.env.VITE_APP_POLYGON_MAINNET_BLOCK_EXPLORER_URL],
     //           },
     //         ],
     //       });
@@ -303,73 +304,90 @@ const DragAndDrop = () => {
     //   // handle other "switch" errors
     // }
 
-    // switch Polygon testnet mumbai
-    // try {
-    //     await ethereum.request({
-    //       method: 'wallet_switchEthereumChain',
-    //       params: [{ chainId: '0x13881' }],
-    //     });
-    //   } catch (switchError) {
-    //     console.log(switchError);
-    //     // This error code indicates that the chain has not been added to MetaMask.
-    //     if (switchError.code === 4902) {
-    //       try {
-    //         await ethereum.request({
-    //           method: 'wallet_addEthereumChain',
-    //           params: [
-    //             {
-    //               chainId: "0x13881",
-    //               chainName: "Polygon Testnet Mumbai",
-    //               rpcUrls: ["https://matic-mumbai.chainstacklabs.com"] /* ... */,
-    //               nativeCurrency: {
-    //                 name: "MATIC",
-    //                 symbol: "MATIC", // 2-6 characters long
-    //                 decimals: 18,
-    //               },
-    //               blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
-    //             },
-    //           ],
-    //         });
-    //       } catch (addError) {
-    //         console.log(addError);
-    //       }
-    //     }
-    //     // handle other "switch" errors
-    //   }
+    //switch Polygon testnet mumbai
+    try {
+        await ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x13881' }],
+        });
+      } catch (switchError) {
+        console.log(switchError);
+        // This error code indicates that the chain has not been added to MetaMask.
+        if (switchError.code === 4902) {
+          try {
+            await ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: "0x13881",
+                  chainName: "Polygon Testnet Mumbai",
+                  rpcUrls: [import.meta.env.VITE_APP_POLYGON_TESTNET_RPC_URL] /* ... */,
+                  nativeCurrency: {
+                    name: "MATIC",
+                    symbol: "MATIC", // 2-6 characters long
+                    decimals: 18,
+                  },
+                  blockExplorerUrls: [import.meta.env.VITE_APP_POLYGON_TESTNET_BLOCK_EXPLORER_URL],
+                },
+              ],
+            });
+          } catch (addError) {
+            console.log(addError);
+          }
+        }
+        // handle other "switch" errors
+      }
 
-    // let name = currentApp.name;
-    // let ext = currentApp.contentId.split(".").pop();
-    // let hash = currentApp.contentId.split("https://ipfs.webaverse.com/")[1].split("/" + name + "." + ext)[0];
-    // let description = "This is test" // tempalate
+    let name = currentApp.name;
+    let ext = currentApp.contentId.split(".").pop();
+    let hash = currentApp.contentId.split(import.meta.env.VITE_APP_ITEM_UPLOAD_URL)[1].split("/" + name + "." + ext)[0];
+    let description = "It is an Inventory Item" // template
 
-    // const signer = new ethers.providers.Web3Provider(ethereum).getSigner();
-    // const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
-    // const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
-    // let Bigmintfee = await NFTcontract.mintFee();
-    // const mintfee = BigNumber.from(Bigmintfee).toNumber();
-    // if(mintfee > 0) { // webaverse side chain mintfee != 0
-    //     const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
-    //     let FTapproveres = await FTapprovetx.wait()
-    //     if (FTapproveres.transactionHash) {
-    //         try {
-    //             let NFTmintres = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1)
-    //             // after mint transaction, refresh the website 
-    //         } catch(err) {
-    //             console.log(err)
-    //             alert("NFT mint failed");
-    //         }
-    //     }
-    // } else { // mintfee = 0 for Polygon not webaverse sidechain
-    //     try {
-    //         let NFTmintres = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1)
-    //         // after mint transaction, refresh the website 
-    //     } catch(err) {
-    //         console.log(err)
-    //         alert("NFT mint failed");
-    //     }
-    // }
-    // setIsLoading(false);
-    // setCurrentApp(null);
+    const signer = new ethers.providers.Web3Provider(ethereum).getSigner();
+    const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
+    const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
+    let Bigmintfee = await NFTcontract.mintFee();
+    const mintfee = BigNumber.from(Bigmintfee).toNumber();
+    if(mintfee > 0) { // webaverse side chain mintfee != 0
+        const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
+        let FTapproveres = await FTapprovetx.wait()
+        if (FTapproveres.transactionHash) {
+            try {
+                let NFTminttx = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1)
+                setIsLoading(false);
+                setCurrentApp(null);
+                let NFTmintres = await NFTminttx.wait();
+                if (NFTmintres.transactionHash) {
+                    notifymessage("Mint complete! New item added in the inventory", "success");
+                    setState({ openedPanel: 'CharacterPanel' });
+                }
+            } catch(err) {
+                console.log(err)
+                // alert("NFT mint failed");
+                setIsLoading(false);
+                setCurrentApp(null);
+                notifymessage("Mint failed", "error")
+            }
+        }
+    } else { // mintfee = 0 for Polygon not webaverse sidechain
+        try {
+            let NFTminttx = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1)
+            setIsLoading(false);
+            setCurrentApp(null);
+            let NFTmintres = await NFTminttx.wait();
+            if (NFTmintres.transactionHash) {
+                notifymessage("Mint complete! New item added in the inventory", "success");
+                setState({ openedPanel: 'CharacterPanel' });
+            }
+            // after mint transaction, refresh the website 
+        } catch(err) {
+            console.log(err)
+            // alert("NFT mint failed");
+            setIsLoading(false);
+            setCurrentApp(null);
+            notifymessage("Mint failed", "error")
+        }
+    }
   };
   const _cancel = e => {
     e.preventDefault();
@@ -381,48 +399,73 @@ const DragAndDrop = () => {
   const name = currentApp ? currentApp.name : '';
   const appType = currentApp ? currentApp.appType : '';
 
+  const notifymessage = (msg, type) => {
+    toast(msg, {
+        position: "top-center",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        type,
+        theme: "dark"
+    });
+}
   return (
     <>
-        <div className={style.dragAndDrop}>
-        <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
-            <h1 className={style.heading}>Upload object</h1>
-            <div className={style.body}>
-            <ObjectPreview object={currentApp} className={style.canvas} />
-            <div className={style.wrap}>
-                <div className={style.row}>
-                <div className={style.label}>Name: </div>
-                <div className={style.value}>{name}</div>
-                </div>
-                <div className={style.row}>
-                <div className={style.label}>Type: </div>
-                <div className={style.value}>{appType}</div>
+        <>
+            <div className={style.dragAndDrop}>
+                <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
+                    <h1 className={style.heading}>Upload object</h1>
+                    <div className={style.body}>
+                        <ObjectPreview object={currentApp} className={style.canvas} />
+                        <div className={style.wrap}>
+                            <div className={style.row}>
+                            <div className={style.label}>Name: </div>
+                            <div className={style.value}>{name}</div>
+                            </div>
+                            <div className={style.row}>
+                            <div className={style.label}>Type: </div>
+                            <div className={style.value}>{appType}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={style.footer}>
+                        <div className={style.buttons}>
+                            <div className={style.button} onClick={_drop}>
+                            <span>Drop</span>
+                            <sub>to world</sub>
+                            </div>
+                            <div className={style.button} onClick={_equip}>
+                            <span>Equip</span>
+                            <sub>to self</sub>
+                            </div>
+                            <div className={style.button} disabled={!mintBtnEnable} onClick={_mint}>
+                            <span>Mint</span>
+                            <sub>on chain</sub>
+                            </div>
+                        </div>
+                        <div className={style.buttons}>
+                            <div className={classnames(style.button, style.small)} onClick={_cancel}>
+                            <span>Cancel</span>
+                            <sub>back to game</sub>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            </div>
-            <div className={style.footer}>
-            <div className={style.buttons}>
-                <div className={style.button} onClick={_drop}>
-                <span>Drop</span>
-                <sub>to world</sub>
-                </div>
-                <div className={style.button} onClick={_equip}>
-                <span>Equip</span>
-                <sub>to self</sub>
-                </div>
-                <div className={style.button} disabled={!mintBtnEnable} onClick={_mint}>
-                <span>Mint</span>
-                <sub>on chain</sub>
-                </div>
-            </div>
-            <div className={style.buttons}>
-                <div className={classnames(style.button, style.small)} onClick={_cancel}>
-                <span>Cancel</span>
-                <sub>back to game</sub>
-                </div>
-            </div>
-            </div>
-        </div>
-        </div>
+            <ToastContainer
+                    position="top-center"
+                    autoClose={4000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                />
+        </>
         {
             isLoading && <div
                             style={{
