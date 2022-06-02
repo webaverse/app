@@ -103,7 +103,7 @@ class TerrainManager {
         }
 
         // initialize
-        // note: deliberately don't wait for this since there is no point
+        // note: deliberately don't wait for this; let it start in the background
         Promise.all(workers.map(async worker => {
           // set chunk size
           await worker.request('initialize', {
@@ -117,14 +117,35 @@ class TerrainManager {
     }
     return this.loadPromise;
   }
-  async generateChunk(chunkPosition, lod) {
+  getNextWorker() {
     const {workers} = this;
     const worker = workers[this.nextWorker];
     this.nextWorker = (this.nextWorker + 1) % workers.length;
-
+    return worker;
+  }
+  async generateChunk(chunkPosition, lod) {
+    const worker = this.getNextWorker();
     const result = await worker.request('generateChunk', {
       chunkPosition: chunkPosition.toArray(),
       lod,
+    });
+    return result;
+  }
+  async drawCubeDamage(position, quaternion, scale) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('drawCubeDamage', {
+      position: position.toArray(),
+      quaternion: quaternion.toArray(),
+      scale: scale.toArray(),
+    });
+    return result;
+  }
+  async eraseCubeDamage(position, quaterion, scale) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('eraseCubeDamage', {
+      position: position.toArray(),
+      quaterion: quaterion.toArray(),
+      scale: scale.toArray(),
     });
     return result;
   }
