@@ -808,7 +808,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         // if (isPosition) console.log('loop', t2);
         dst.fromArray(v2);
 
-        if (jumpTimeS >= jumpAnimationDuration) { // fall loop stage
+        const doubleJumpAnimation = animations.index['jump_double.fbx'];
+        const doubleJumpAnimationDuration = doubleJumpAnimation.duration - 1 / 30;
+
+        if (jumpTimeS < jumpAnimationDuration) { // jump up stage
+          // already full jump animation, do nothing;
+          if (isPosition) console.log('jump');
+        } else if (jumpTimeS < jumpAnimationDuration + doubleJumpAnimationDuration) { // double jump stage
+          const t2 = jumpTimeS - jumpAnimationDuration;
+          const src2 = doubleJumpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+          dst.fromArray(v2);
+          if (isPosition) console.log('double');
+        } else { // fall loop stage
           const fallingAnimation = animations.index['falling.fbx'];
           const t3 = jumpTimeS - jumpAnimationDuration;
           const src3 = fallingAnimation.interpolants[k];
@@ -823,9 +835,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             dst.lerp(localQuaternion, lerpFactor);
           }
           if (isPosition) console.log('fall');
-        } else { // jump up stage
-          // already full jump animation, do nothing;
-          if (isPosition) console.log('jump');
         }
 
         _clearXZ(dst, isPosition);
