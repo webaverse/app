@@ -1476,7 +1476,7 @@ class GameManager extends EventTarget {
     const localPlayer = getLocalPlayer();
     return localPlayer.hasAction('jump');
   }
-  ensureJump(trigger) {
+  ensureJump(trigger, stage) {
     const localPlayer = getLocalPlayer();
 
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
@@ -1493,28 +1493,36 @@ class GameManager extends EventTarget {
     if (!jumpAction) {
       const newJumpAction = {
         type: 'jump',
-        trigger:trigger
+        trigger:trigger,
+        stage:stage,
         // time: 0,
       };
       localPlayer.addAction(newJumpAction);
     }
   }
   jump(trigger) {
-    // add jump action
-    this.ensureJump(trigger);
-
-    // update velocity
     const localPlayer = getLocalPlayer();
-    // localPlayer.characterPhysics.velocity.y += 6;
-    localPlayer.characterPhysics.velocity.y += window.jumpVelocityY;
-    // setTimeout(() => {
-    //   localPlayer.characterPhysics.velocity.y = window.timeout333VelocityY;
-    // }, 333);
+    const jumpAction = localPlayer.getAction('jump');
 
-    window.gravityMutiplier = 4;
-    setTimeout(() => {
-      window.gravityMutiplier = 1;
-    }, 682);
+    if (!jumpAction) {
+      this.ensureJump(trigger);
+
+      // update velocity
+      // localPlayer.characterPhysics.velocity.y += 6;
+      localPlayer.characterPhysics.velocity.y += window.jumpVelocityY;
+      // setTimeout(() => {
+      //   localPlayer.characterPhysics.velocity.y = window.timeout333VelocityY;
+      // }, 333);
+  
+      window.gravityMutiplier = 4;
+      setTimeout(() => {
+        window.gravityMutiplier = 1;
+      }, 682);
+    } else if (!jumpAction.stage) {
+      localPlayer.removeAction('jump');
+      const stage = 'doubleJump';
+      this.ensureJump(trigger, stage);
+    }
     
     // play sound
     // soundManager.play('jump');
