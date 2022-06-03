@@ -31,8 +31,6 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
   const [minting, setMinting] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
   const [minted, setMinted] = useState([]);
-  const [connectedContract, setConnectedContract] = useState();
-  const [connectedContractFT, setConnectedContractFT] = useState();
 
   useEffect(() => {
     const mintHandler = (from, tokenId, name) => {
@@ -71,10 +69,8 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
       const signer = provider.getSigner();
 
       const connectedContract = new ethers.Contract(contractAddress, contractABI, signer);
-      setConnectedContract(connectedContract);
       
       const connectedContractFT = new ethers.Contract(contractAddressFT, contractABIFT, signer);
-      setConnectedContractFT(connectedContractFT);
 
       if (connectedContract) {
         setShowWallet(true);
