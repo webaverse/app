@@ -28,12 +28,6 @@ export const User = ({ setLoginFrom }) => {
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
     const { currentAddress, connectWallet, errorMessage, wrongChain } = account;
 
-    //
-    const { ethereum } = window;
-    if (ethereum) {
-        var provider = new ethers.providers.Web3Provider(ethereum);
-    }
-
     /* const showModal = ( event ) => {
 
         event.preventDefault();
@@ -113,11 +107,6 @@ export const User = ({ setLoginFrom }) => {
         // }
 
     };
-
-    useEffect(async() => {
-        const accounts = await provider.listAccounts();
-        console.log("wallet login", accounts.length > 0)
-    })
     
     useEffect( () => {
 
