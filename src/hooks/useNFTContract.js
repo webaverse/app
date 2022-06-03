@@ -50,6 +50,12 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
   }, [connectedContract]);
 
   console.log('NFT currentAccount', currentAccount);
+  async function getSigner () {
+    const provider = new ethers.getDefaultProvider(
+      DEFAULT_CHAIN.rpcUrls[0], // TODO: change to use the selected chain
+    );
+    return provider.getSigner(currentAccount);
+  }
 
   async function mintNFT(currentApp) {
     const {ethereum} = window;
