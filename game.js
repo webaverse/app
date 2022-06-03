@@ -1044,9 +1044,6 @@ class GameManager extends EventTarget {
   }
   //
   findNearby(){
-
-    //mobManager.addMobApp(mob.js, "https://gitwillg.github.io/silkworm-runner/");
-    console.log(world.appManager.getApps(), mobManager.mobs);
     return zTargeting.findNearbyTarget();
   }
   menuTarget(newTarget){
