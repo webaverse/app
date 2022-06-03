@@ -31,6 +31,7 @@ const localVector2D2 = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
@@ -137,7 +138,7 @@ const _updateIo = timeDiff => {
           buttonsSrc[2] ? buttonsSrc[2].value : 0,
           buttonsSrc[3] ? buttonsSrc[3].value : 0,
           buttonsSrc[4] ? buttonsSrc[4].value : 0,
-          buttonsSrc[5] ? buttonsSrc[4].value : 0,
+          buttonsSrc[5] ? buttonsSrc[5].value : 0,
         ];
         if (handedness === 'left') {
           const dx = axes[0] + axes[2];
@@ -190,10 +191,13 @@ const _updateIo = timeDiff => {
           }
 
           if (buttons[1] >= 0.5) {
-            game.menuActivateHold();
-          } else {
+            game.menuActivateDown();
+          }
+
+          if (buttonsSrc[5].pressed && !ioManager.lastButtons[5]) {
             game.dropSelectedApp();
           }
+
         }
   
         ioManager.lastAxes[index][0] = axes[0];
@@ -206,6 +210,7 @@ const _updateIo = timeDiff => {
         ioManager.lastButtons[index][2] = buttons[2];
         ioManager.lastButtons[index][3] = buttons[3];
         ioManager.lastButtons[index][4] = buttons[4];
+        ioManager.lastButtons[index][5] = buttons[5];
       }
       if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled()) {
         const localPlayer = metaversefile.useLocalPlayer();
@@ -216,7 +221,20 @@ const _updateIo = timeDiff => {
             .multiplyScalar(game.getSpeed() * timeDiff)
         );
         keysDirection.set(0, 0, 0);
-      }      
+      }
+      const localPlayer = metaversefile.useLocalPlayer();
+      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
+      const originalPosition = localPlayer.position.clone();
+
+      localMatrix.copy(xrCamera.matrix)
+        .premultiply(dolly.matrix)
+        .decompose(localVector, localQuaternion, localVector2);
+        
+      dolly.matrix
+        .premultiply(localMatrix.makeTranslation(originalPosition.x - localVector.x, originalPosition.y - localVector.y, originalPosition.z - localVector.z))
+        .premultiply(localMatrix.makeTranslation(0, 0, 0))
+        .decompose(dolly.position, dolly.quaternion, dolly.scale);    
+      dolly.updateMatrixWorld();  
     }
   } else {
     keysDirection.set(0, 0, 0);
