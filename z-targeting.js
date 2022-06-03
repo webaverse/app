@@ -140,7 +140,7 @@ class ZTargeting extends THREE.Object3D {
     this.focusTargetReticle = null;
     this.queryResults = new QueryResults();
     this.nearbyResults = new QueryResults();
-    this.dropAngle = 145;
+    this.dropAngle = 150;
     this.nearbyMobs = [];
     this.nearbyNpc = [];
   }
@@ -241,50 +241,65 @@ class ZTargeting extends THREE.Object3D {
     }
   }
   findNearbyTarget(){
-    //Make list for 'nearby mobs'                     // already exists
-    //for each mob in mob manager
-    //let angleVal = 0;
-    for (const mob of mobManager.mobs){
-      const mobPhysicsObjects = mob.getPhysicsObjects();
-      console.log('mob', mobManager.mobs);
-      //check distance to character                   // Maybe not both this and below
-      //compareAngletoCam(wider angle than checkdrop())
-        //add to list of 'nearby mobs', sorted by angle dist
-      const mobAngle = cameraManager.compareAngletoCam(mobPhysicsObjects.position)
-      if (camera.position.distanceTo(mobPhysicsObjects.position)< 20 /*random val rn*/ && mobAngle > 120){
-        // if (mobAngle > angleVal){
-        //   angleVal = mobAngle;
-        // this.nearbyMobs = [mobPhysicsObjects];
-        this.nearbyMobs.push(mobPhysicsObjects);
-        // }
-      }
-    }
-    //if list.length > 0
-      //togle()
-      //focus(list[0])
-      //handletarget(list[0])
-    if (this.nearbyMobs.length > 0){
-      console.log('mobs', this.nearbyMobs);
-      this.toggle();
-      this.handleTarget(this.nearbyMobs[0]);
-      this.nearbyMobs = [];
-    }
+    // //Make list for 'nearby mobs'                     // already exists
+    // //for each mob in mob manager
+    // //let angleVal = 0;
+    // for (const mob of mobManager.mobs){
+    //   const mobPhysicsObjects = mob.getPhysicsObjects();
+    //   console.log('mob', mobManager.mobs);
+    //   //check distance to character                   // Maybe not both this and below
+    //   //compareAngletoCam(wider angle than checkdrop())
+    //     //add to list of 'nearby mobs', sorted by angle dist
+    //   const mobAngle = cameraManager.compareAngletoCam(mobPhysicsObjects.position)
+    //   if (camera.position.distanceTo(mobPhysicsObjects.position)< 20 /*random val rn*/ && mobAngle > 120){
+    //     // if (mobAngle > angleVal){
+    //     //   angleVal = mobAngle;
+    //     // this.nearbyMobs = [mobPhysicsObjects];
+    //     this.nearbyMobs.push(mobPhysicsObjects);
+    //     // }
+    //   }
+    // }
+    // //if list.length > 0
+    //   //togle()
+    //   //focus(list[0])
+    //   //handletarget(list[0])
+    // if (this.nearbyMobs.length > 0){
+    //   console.log('mobs', this.nearbyMobs);
+    //   this.toggle();
+    //   this.handleTarget(this.nearbyMobs[0]);
+    //   this.nearbyMobs = [];
+    // }
+    this.findNearbyNpc();
   } 
-  // findNearbyNpc(){
-  //   console.log('npc', npcManager.npcs);
-  //   const npcPhysicsOb = npcManager.npcs[0].getPhysicsObjects();
-  //   if (cameraManager.compareAngletoCam(npcPhysicsOb.position < 120)){
-  //     this.nearbyNpc.push(npcPhysicsOb); //gonna make this a dictionary later with mob-angle relation
-  //   }
-  //   if (this.nearbyNpc.length > 0){
-  //     console.log('npc', this.nearbnearbyNpcMobs);
-  //     this.toggle();
-  //     this.handleTarget(this.nearbyNpc[0]);
-  //     this.nearbyNpc = [];
-  //   }
-  // }
+  findNearbyNpc(){
+    let dist = 5;
+    let nearbyplayer = null;
+    // probably use -> this.focusTargetReticle
+    for (const index in npcManager.npcs){
+      // const npcPlayer = npcManager.npcs[npc];
+        console.log(npcManager.npcs[index].position, this.focusTargetReticle.position, npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position), dist);
+      if (npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position) > 1 && npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position) <= dist){
+        // console.log(npcManager.npcs[index].position, this.focusTargetReticle.position, npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position));
+        dist = npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position);
+        nearbyplayer = npcManager.npcs[index];
+        // onsole.log(nearbyplayer, this.focusTargetObject);
+        // // this.nearbyNpc.push(nearbyplayer); // gonna make this a dictionary later with mob-angle relation
+        // console.log(nearbyNpc);
+        // console.log(nearbyplayer.name);
+      }
+      console.log(dist);
+    }
+    
+    if (nearbyplayer != null){
+      this.handleUp();
+      console.log(nearbyplayer.position);
+      // add delay?
+      this.handleTarget(nearbyplayer);
+    }
+  }
   checkDrop(){
     var camAngle;
+    //this.findNearbyNpc();
     if (this.focusTargetReticle){
       camAngle = cameraManager.compareAngletoCam(this.focusTargetReticle.position);
       //bug angles are inverted 
