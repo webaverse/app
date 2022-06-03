@@ -56,7 +56,7 @@ const objects = {
 
 //
 const getContract = () => {
-    const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider('https://matic-mumbai.chainstacklabs.com');
+    const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(import.meta.env.VITE_APP_POLYGON_TESTNET_RPC_URL);
     const contract = new ethers.Contract(NFTcontractAddress, NFTABI, simpleRpcProvider )
     return contract;
 }
@@ -117,7 +117,7 @@ export const Equipment = () => {
 
   const contract = getContract();
   
-  useEffect(async () => {
+  useEffect(async () => { 
     const BigtotalMintedToken = await contract.totalSupply();
     const totalMintedToken = BigNumber.from(BigtotalMintedToken).toNumber();
     console.log("big", totalMintedToken)
@@ -134,7 +134,7 @@ export const Equipment = () => {
     }
     console.log("inventory", inventoryItems)
     setInventoryObject(inventoryItems);
-  }, []);
+  },[state.openedPanel]);
 
   const refsMap = (() => {
     const map = new Map();
