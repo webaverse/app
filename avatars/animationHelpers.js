@@ -1203,7 +1203,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           dst,
           lerpFn,
           isTop,
-          boneName,
           isPosition,
         } = spec;
 
