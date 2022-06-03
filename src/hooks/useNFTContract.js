@@ -2,8 +2,12 @@ import {useEffect, useState} from 'react';
 
 import {ethers, BigNumber} from 'ethers';
 
-import {DEFAULT_CHAIN, CONTRACTS, CONTRACT_ABIS, NFTcontractAddress, FTcontractAddress} from './web3-constants.js';
-import { FTABI, NFTABI } from '../abis/contract.jsx';
+import {
+  DEFAULT_CHAIN,
+  CONTRACTS,
+  CONTRACT_ABIS 
+} from './web3-constants.js';
+import { FTABI, NFTABI, NFTcontractAddress, FTcontractAddress } from '../abis/contract.jsx';
 
 const FILE_ADDRESS = 'https://ipfs.webaverse.com/';
 
