@@ -85,7 +85,7 @@ export const User = ({ setLoginFrom }) => {
 
                 try {
 
-                    connectWallet();
+                    const address = await connectWallet();
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
@@ -140,7 +140,7 @@ export const User = ({ setLoginFrom }) => {
 
             const address = await connectWallet();
 
-            if ( address ) {
+            if ( currentAddress ) {
 
                 setLoginFrom( 'metamask' );
 
