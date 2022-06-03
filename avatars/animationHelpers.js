@@ -131,7 +131,6 @@ const animationsAngleArrays = {
     {name: 'Standing Aim Walk Forward reverse.fbx', angle: Math.PI},
   ],
 };
-window.animationsAngleArrays = animationsAngleArrays;
 const animationsAngleArraysMirror = {
   walk: [
     {name: 'left strafe walking reverse.fbx', matchAngle: -Math.PI / 2, angle: -Math.PI / 2},
@@ -150,7 +149,6 @@ const animationsAngleArraysMirror = {
     {name: 'Standing Aim Walk Right reverse.fbx', matchAngle: Math.PI / 2, angle: Math.PI / 2},
   ],
 };
-window.animationsAngleArraysMirror = animationsAngleArraysMirror;
 const animationsIdleArrays = {
   reset: {name: 'reset.fbx'},
   walk: {name: 'idle.fbx'},
@@ -195,7 +193,6 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
-  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -410,20 +407,16 @@ export const loadPromise = (async () => {
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
     pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
-  window.activateAnimations = activateAnimations;
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
   };
-  window.narutoRunAnimations = narutoRunAnimations;
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
   };
-  window.hurtAnimations = hurtAnimations;
   holdAnimations = {
     pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
-  window.holdAnimations = holdAnimations;
   {
     const down10QuaternionArray = new Quaternion()
       .setFromAxisAngle(new Vector3(1, 0, 0), Math.PI * 0.1)
@@ -444,7 +437,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
   const {idleWalkFactor, walkRunFactor, crouchFactor, useBowFactor} = moveFactors;
-  // console.log(crouchFactor, useBowFactor);
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -697,16 +689,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   // crouch
   // const keyOther = _getAnimationKey(true);
   const keyAnimationAnglesOther = getClosest2AnimationAngles('crouch', angle);
-  window.keyAnimationAnglesOther = keyAnimationAnglesOther;
   const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
-  window.keyAnimationAnglesOtherMirror = keyAnimationAnglesOtherMirror;
   const idleAnimationOther = _getIdleAnimation('crouch');
 
   // bow
   const keyAnimationAnglesBow = getClosest2AnimationAngles('bow', angle);
-  window.keyAnimationAnglesBow = keyAnimationAnglesBow;
   const keyAnimationAnglesBowMirror = _getMirrorAnimationAngles(keyAnimationAnglesBow, 'bow');
-  window.keyAnimationAnglesBowMirror = keyAnimationAnglesBowMirror;
   const idleAnimationBow = _getIdleAnimation('bow');
 
   const angleToClosestAnimation = Math.abs(angleDifference(angle, keyWalkAnimationAnglesMirror[0].angle));
@@ -738,7 +726,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   } else {
     mirrorFactor = isBackward ? 1 : 0;
   }
-  // if (avatar === window.localPlayer.avatar) console.log(window.logNum(angleFactor), window.logNum(mirrorFactor));
   avatar.lastBackwardFactor = mirrorFactor;
 
   if (avatar.emoteAnimation !== avatar.lastEmoteAnimation) {
@@ -763,12 +750,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       localQuaternion,
     );
     if (crouchFactor > 0) {
-      // if (isPosition) console.log('7way crouch');
-      if (isPosition) {
-        if (avatar === window.localPlayer.avatar) {
-          window.domInfo.innerHTML += `<div style="display:;">keyAnimationAnglesOther: --- ${keyAnimationAnglesOther.map(n => n.name).join(',')}</div>`;
-        }
-      }
       _get7wayBlend(
         keyAnimationAnglesOther,
         keyAnimationAnglesOtherMirror,
@@ -792,12 +773,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           crouchFactor,
         );
     } else if (useBowFactor > 0) {
-      // if (isPosition) console.log('7way bow');
-      if (isPosition) {
-        if (avatar === window.localPlayer.avatar) {
-          window.domInfo.innerHTML += `<div style="display:;">keyAnimationAnglesBow: --- ${keyAnimationAnglesBow.map(n => n.name).join(',')}</div>`;
-        }
-      }
       _get7wayBlend(
         keyAnimationAnglesBow,
         keyAnimationAnglesBowMirror,
@@ -821,7 +796,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           useBowFactor,
         );
     } else {
-      // if (isPosition) console.log('7way else');
       target.copy(localQuaternion);
     }
 
@@ -839,23 +813,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    if (0) { // play one animation purely.
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
-
-        // const animation = animations.index['walking.fbx']
-        const animation = animations.index['Standing Aim Walk Left.fbx']
-        const t2 = timeSeconds;
-        const src2 = animation.interpolants[k];
-        const v2 = src2.evaluate(t2 % animation.duration);
-
-        dst.fromArray(v2);
-      };
-    }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -1082,7 +1039,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             animationTimeBase += animation.duration;
           }
           if (useAnimation !== undefined) { // first iteration
-            if (isPosition) console.log(useAnimation.name);
             t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
           } else { // loop
             const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
@@ -1203,7 +1159,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           dst,
           lerpFn,
           isTop,
-          boneName,
           isPosition,
         } = spec;
 
@@ -1311,7 +1266,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     return _handleDefault;
   };
   const applyFn = _getApplyFn();
-  // const applyFn = _handleDefault;
   const _blendFly = spec => {
     const {
       animationTrackName: k,
