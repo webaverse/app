@@ -13,7 +13,8 @@ const numWorkers = 4;
 class DcWorkerManager {
   constructor({
     chunkSize = defaultChunkSize,
-    seed = defaultWorldSeed,
+    // seed = defaultWorldSeed,
+    seed = Math.floor(Math.random() * 0xFFFFFF),
   } = {}) {
     this.chunkSize = chunkSize;
     this.seed = seed;
