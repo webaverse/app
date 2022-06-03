@@ -1,10 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
-import { voicePacksUrl, voiceEndpointsUrl } from '../../../../constants';
-import game from '../../../../game';
+// import { voicePacksUrl, voiceEndpointsUrl, defaultVoicePackName } from '../../../../constants';
+// import game from '../../../../game';
 import { Slider } from './slider';
 import * as voices from '../../../../voices';
+// import {localPlayer} from '../../../../players';
+import overrides from '../../../../overrides';
 
 import styles from './settings.module.css';
 
@@ -12,8 +14,10 @@ import * as audioManager from '../../../../audio-manager.js';
 
 //
 
-export const defaultVoicePack = {
-    name: `ShiShi voice pack`,
+export const noneVoicePack = {
+    name: 'None',
+    indexPath: null,
+    audioPath: null,
 };
 const noneVoiceEndpoint = {
     name: 'None',
@@ -24,7 +28,7 @@ const DefaultSettings = {
     music:          100,
     voice:          100,
     effects:        100,
-    voicePack:      defaultVoicePack.name,
+    voicePack:      noneVoicePack.name,
     voiceEndpoint:  noneVoiceEndpoint.name,
 };
 
@@ -97,6 +101,7 @@ export const TabAudio = ({ active }) => {
 
         // set voice pack
 
+<<<<<<< HEAD
         const vp = voicePacks[ voicePacks.map( ( vp ) => { return vp.name; } ).indexOf( voicePack ) ];
         if ( vp ) {
 
@@ -119,21 +124,23 @@ export const TabAudio = ({ active }) => {
             });
 
         }
+=======
+        overrides.overrideVoicePack.set(voicePack !== 'None' ? voicePack : null);
+>>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
         // set voice endpoint
 
-        const ve = voiceEndpoints[ voiceEndpoints.map( ( vp ) => { return vp.name; } ).indexOf( voiceEndpoint ) ];
-        if ( ve ) {
-
-            game.setVoiceEndpoint( ve.drive_id );
-
-        }
+        overrides.overrideVoiceEndpoint.set(voiceEndpoint !== 'None' ? voiceEndpoint : null);
 
         //
 
         saveSettings();
         setChangesNotSaved( false );
-        setTimeout( () => { setAppyingChanges( false ) }, 1000 );
+        setTimeout( () => {
+
+            setAppyingChanges( false );
+            
+        }, 1000 );
 
     };
 
@@ -141,7 +148,7 @@ export const TabAudio = ({ active }) => {
 
         await voices.waitForLoad();
 
-        setVoicePacks( voices.voicePacks );
+        setVoicePacks( [ noneVoicePack ].concat( voices.voicePacks ) );
 
     };
 
@@ -149,7 +156,7 @@ export const TabAudio = ({ active }) => {
 
         await voices.waitForLoad();
 
-        setVoiceEndpoints( [ noneVoiceEndpoint ].concat(voices.voiceEndpoints) );
+        setVoiceEndpoints( [ noneVoiceEndpoint ].concat( voices.voiceEndpoints ) );
 
     };
 

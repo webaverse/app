@@ -2,7 +2,8 @@ class MicrophoneWorker extends EventTarget {
   constructor(options = {}) {
     super();
 
-    this.audioWorkletNode = null;
+    const gainNode = new GainNode(options.audioContext);
+    this.gainNode = gainNode;
 
     const audioWorkletNode = new AudioWorkletNode(options.audioContext, 'volume-processor');
     audioWorkletNode.port.postMessage(JSON.stringify({
@@ -30,13 +31,14 @@ class MicrophoneWorker extends EventTarget {
     };
 
     this.audioWorkletNode = audioWorkletNode;
-    this.audioWorkletNode.connect(options.audioContext.gain);
+
+    gainNode.connect(audioWorkletNode);
+    audioWorkletNode.connect(options.audioContext.gain);
   }
   getInput() {
-    return this.audioWorkletNode;
+    return this.gainNode;
   }
   close() {
-    // this.mediaStreamSource && this.mediaStreamSource.disconnect();
     if (this.audioWorkletNode) {
       this.audioWorkletNode.disconnect();
       this.audioWorkletNode.port.onmessage = null;
