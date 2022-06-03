@@ -63,10 +63,7 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
     const {ethereum} = window;
     setMinting(true);
     try {
-      const provider = new ethers.getDefaultProvider(
-        DEFAULT_CHAIN.rpcUrls[0], // TODO: change to use the selected chain
-      );
-      const signer = provider.getSigner();
+      const signer = await getSigner();
 
       const connectedContract = new ethers.Contract(contractAddress, contractABI, signer);
       
@@ -106,6 +103,9 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
   }
 
   async function getToken(tokenId) {
+    const signer = await getSigner();
+    const connectedContract = new ethers.Contract(contractAddress, contractABI, signer);
+
     try {
       if (connectedContract) {
         const rawToken = await connectedContract.tokenURI(tokenId);
