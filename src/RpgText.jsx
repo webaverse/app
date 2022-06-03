@@ -8,10 +8,11 @@ export const RpgText = ({
   text,
   textSpeed = chatTextSpeed,
 }) => {
+  const [lastText, setLastText] = useState(text);
   const [progressText, setProgressText] = useState('');
 
   useEffect(() => {
-    if (text.length === 0) {
+    if (!text.startsWith(lastText)) {
       setProgressText('');
     } else if (progressText.length < text.length) {
       const timeout = setTimeout(() => {
@@ -23,7 +24,10 @@ export const RpgText = ({
         clearTimeout(timeout);
       };
     }
-  }, [text, progressText]);
+    if (text !== lastText) {
+      setLastText(text);
+    }
+  }, [text, progressText, lastText]);
 
   return <div className={classnames(className, text.length > 0 ? styles.open : null)}>{progressText}</div>;
 };
