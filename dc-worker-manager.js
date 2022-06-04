@@ -10,10 +10,11 @@ import {GeometryAllocator} from './geometry-allocator.js';
 
 const numWorkers = 4;
 
-class TerrainManager {
+class DcWorkerManager {
   constructor({
     chunkSize = defaultChunkSize,
-    seed = defaultWorldSeed,
+    // seed = defaultWorldSeed,
+    seed = Math.floor(Math.random() * 0xFFFFFF),
   } = {}) {
     this.chunkSize = chunkSize;
     this.seed = seed;
@@ -39,11 +40,11 @@ class TerrainManager {
               cbs.delete(requestId);
               cb(e.data);
             } else {
-              console.warn('worker message without callback', e.data);
+              console.warn('dc worker message without callback', e.data);
             }
           };
           worker.onerror = err => {
-            console.log('terrain worker load error', err);
+            console.log('dc worker load error', err);
           };
           worker.request = (method, args) => {
             return new Promise((resolve, reject) => {
@@ -144,12 +145,29 @@ class TerrainManager {
     const worker = this.getNextWorker();
     const result = await worker.request('eraseCubeDamage', {
       position: position.toArray(),
-      quaterion: quaterion.toArray(),
+      quaternion: quaternion.toArray(),
       scale: scale.toArray(),
+    });
+    return result;
+  }
+  async drawSphereDamage(position, radius) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('drawSphereDamage', {
+      position: position.toArray(),
+      radius,
+    });
+    return result;
+  }
+  async eraseSphereDamage(position, radius) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('eraseSphereDamage', {
+      position: position.toArray(),
+      radius,
     });
     return result;
   }
   static GeometryAllocator = GeometryAllocator;
 }
-const terrainManager = new TerrainManager();
-export default terrainManager;
+const dcWorkerManager = new DcWorkerManager();
+// import * as THREE from 'three';
+export default dcWorkerManager;
