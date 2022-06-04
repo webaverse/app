@@ -422,6 +422,9 @@ export const _createAnimation = avatar => {
   motiono.jump = jumpMotion;
   jumpMotion.loop = LoopOnce;
 
+  const crouchMotion = mixer.createMotion(animations.index['Sneaking Forward.fbx']);
+  motiono.crouch = crouchMotion;
+
   walkMotion.play();
 };
 
