@@ -83,20 +83,26 @@ class AnimMixer extends EventDispatcher {
       } = spec;
 
       const result = [];
-      let count = 0;
+      let motionIndex = 0;
+      let currentWeight = 0;
       if (window.isDebugger) debugger;
       for (let i = 0; i < this.motions.length; i++) {
         const motion = this.motions[i];
         const clip = motion.clip;
         const src = clip.interpolants[k];
         const value = src.evaluate(timeSeconds % clip.duration);
-        if (count === 0) {
+        if (motionIndex === 0) {
           copyArray(result, value);
-        } else {
-          const t = 1 / (count + 1);
+
+          motionIndex++;
+          currentWeight = motion.weight;
+        } else if (motion.weight > 0) { // todo: handle weight < 0 ?
+          const t = motion.weight / (currentWeight + motion.weight);
           interpolateFlat(result, result, value, t);
+
+          motionIndex++;
+          currentWeight += motion.weight;
         }
-        count++;
       }
 
       if (isPosition) { // _clearXZ
