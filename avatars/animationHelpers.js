@@ -428,8 +428,8 @@ export const _createAnimation = avatar => {
 export const _updateAnimation = avatar => {
   const {mixer} = avatar;
 
-  if (avatar.jumpState && avatar.jumpTime === 0) avatar.motiono.jump.play();
-  if (avatar.jumpState) console.log(avatar.jumpTime);
+  // if (avatar.jumpState && avatar.jumpTime === 0) avatar.motiono.jump.play();
+  // if (avatar.jumpState) console.log(avatar.jumpTime);
 
   mixer.update();
 };

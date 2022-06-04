@@ -11,7 +11,8 @@ class AnimMotion {
   }
 
   play() {
-    this.mixer.motion = this;
+    // this.mixer.motion = this;
+    this.mixer.motions.push(this);
   }
 }
 
