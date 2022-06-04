@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import atlaspack from './atlaspack.js';
-import {playersMapName, tokensHost, storageHost, /*accountsHost, loginEndpoint,*/ audioTimeoutTime} from './constants.js';
-// import { getRenderer } from './renderer.js';
-import {IdAllocator} from './id-allocator';
+import { getAddressFromMnemonic } from './blockchain.js';
+import {playersMapName, tokensHost, storageHost, accountsHost, loginEndpoint, audioTimeoutTime} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -98,8 +97,8 @@ export function makePromise() {
   return p;
 }
 
-// const meshIdAllcator = new IdAllocator();
-// export const getNextMeshId = meshIdAllcator.alloc.bind(meshIdAllcator);
+let nextMeshId = 0;
+export const getNextMeshId = () => ++nextMeshId;
 
 export function clone(o) {
   return JSON.parse(JSON.stringify(o));
@@ -335,19 +334,17 @@ export function mergeMeshes(meshes, geometries, textures) {
   return mesh;
 }
 
-/* let nextPhysicsId = 0;
+let nextPhysicsId = 0;
 export function getNextPhysicsId() {
   return ++nextPhysicsId;
-} */
-const physicsIdAllcator = new IdAllocator();
-export const getNextPhysicsId = physicsIdAllcator.alloc.bind(physicsIdAllcator);
-export const freePhysicsId = physicsIdAllcator.free.bind(physicsIdAllcator);
+}
 
 export function convertMeshToPhysicsMesh(topMesh) {
   const oldParent = topMesh.parent;
   oldParent && oldParent.remove(topMesh);
 
   topMesh.updateMatrixWorld();
+  // localMatrix.copy(topMesh.matrix).invert();
 
   const meshes = [];
   topMesh.traverse(o => {
@@ -358,6 +355,10 @@ export function convertMeshToPhysicsMesh(topMesh) {
   const newGeometries = meshes.map(mesh => {
     const {geometry} = mesh;
     const newGeometry = new THREE.BufferGeometry();
+    /* if (mesh.isSkinnedMesh) {
+      console.log('compile skinned mesh', mesh);
+    } */
+    // localMatrix2.multiplyMatrices(localMatrix, mesh.isSkinnedMesh ? topMesh.matrixWorld : mesh.matrixWorld);
     if (mesh.isSkinnedMesh) {
       localMatrix2.identity();
     } else {
@@ -394,25 +395,21 @@ export function convertMeshToPhysicsMesh(topMesh) {
     oldParent.add(topMesh);
     topMesh.updateMatrixWorld();
   }
-  let physicsMesh;
   if (newGeometries.length > 0) {
     const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
-    physicsMesh = new THREE.Mesh(newGeometry);
+    const physicsMesh = new THREE.Mesh(newGeometry);
+    /* physicsMesh.position.copy(topMesh.position);
+    physicsMesh.quaternion.copy(topMesh.quaternion);
+    physicsMesh.scale.copy(topMesh.scale);
+    physicsMesh.matrix.copy(topMesh.matrix);
+    physicsMesh.matrixWorld.copy(topMesh.matrixWorld); */
+    physicsMesh.visible = false;
+    return physicsMesh;
   } else {
-    physicsMesh = new THREE.Mesh();
+    const physicsMesh = new THREE.Mesh();
+    physicsMesh.visible = false;
+    return physicsMesh;
   }
-  physicsMesh.visible = false;
-
-  if (topMesh.parent) {
-    topMesh.parent.matrixWorld.decompose(
-      physicsMesh.position,
-      physicsMesh.quaternion,
-      physicsMesh.scale
-    )
-    physicsMesh.updateMatrixWorld()
-  }
-
-  return physicsMesh;
   
 }
 
@@ -604,6 +601,34 @@ export function makeId(length) {
   }
 } */
 
+async function pullUserObject(loginToken) {
+  const address = getAddressFromMnemonic(loginToken.mnemonic);
+  const res = await fetch(`${accountsHost}/${address}`);
+  var result = await res.json();
+  result.mnemonic = loginToken.mnemonic;
+  return result;
+}
+
+export const handleDiscordLogin = async (code, id) => {
+  if (!code) {
+    return;
+  }
+  try{
+    let res = await fetch(loginEndpoint + `?discordid=${encodeURIComponent(id)}&discordcode=${encodeURIComponent(code)}&redirect_uri=${window.location.origin}/login`, {
+      method: 'POST',
+    });
+    res = await res.json();
+    if (!res.error) {
+      return await pullUserObject(res);
+    } else {
+      //console.warn('Unable to login ', res.error);
+      return res;
+    }
+  }catch(e){
+    
+  }
+};
+
 export function mod(a, n) {
   return (a % n + n) % n;
 }
@@ -788,16 +813,6 @@ export const proxifyUrl = u => {
     return 'https://' + match[1] + '-' + match[2].replace(/\-/g, '--').replace(/\./g, '-') + '.proxy.webaverse.com' + match[3];
   } else {
     return u;
-  }
-};
-export const createRelativeUrl = (u, baseUrl) => {
-  if (/^(?:[\.\/]|([a-z0-9]+):\/\/)/i.test(u)) {
-    return u;
-  } else {
-    if (!/([a-z0-9]+):\/\//i.test(baseUrl)) {
-      baseUrl = new URL(baseUrl, window.location.href).href;
-    }
-    return new URL(u, baseUrl).href;
   }
 };
 export const getDropUrl = o => {

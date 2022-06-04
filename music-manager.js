@@ -6,9 +6,9 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import {defaultMusicVolume} from './constants.js';
 
 class Music {
-  constructor({name, urls, url}, audioContext) {
+  constructor({name, urls}, audioContext) {
     this.name = name;
-    this.urls = urls ?? [url];
+    this.urls = urls;
     this.audioContext = audioContext;
     this.audioBuffers = null;
     this.audioBufferIndex = 0; // Math.floor(Math.random() * this.urls.length);
@@ -101,34 +101,30 @@ class MusicManager {
       .then(() => {});
     this.currentMusic = null;
   }
-  async fetchMusic(url, name = url) {
-    const music = new Music({
-      name,
-      url,
-    }, this.audioContext);
-    await music.waitForLoad();
-    return music;
+  getMusic(name) {
+    const music = this.musics.find(music => music.name);
+    /* if (music) {
+      await music.waitForLoad();
+    } */
+    return music || null;
   }
-  playCurrentMusic(newMusic, {
+  playCurrentMusic(name, {
     repeat = false,
   } = {}) {
     this.stopCurrentMusic();
 
-    this.currentMusic = newMusic.play({
-      repeat,
-    });
-
-    const localCurrentMusic = this.currentMusic;
-    this.currentMusic.source.addEventListener('ended', () => {
-      if (this.currentMusic === localCurrentMusic) {
-        this.currentMusic = null;
-      }
-    });
-  }
-  playCurrentMusicName(name, opts) {
     const newMusic = this.musics.find(music => music.name === name);
     if (newMusic) {
-      this.playCurrentMusic(newMusic, opts);
+      this.currentMusic = newMusic.play({
+        repeat,
+      });
+
+      const localCurrentMusic = this.currentMusic;
+      this.currentMusic.source.addEventListener('ended', () => {
+        if (this.currentMusic === localCurrentMusic) {
+          this.currentMusic = null;
+        }
+      });
     }
   }
   stopCurrentMusic() {

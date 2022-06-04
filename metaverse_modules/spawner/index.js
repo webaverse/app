@@ -1,35 +1,69 @@
 // import * as THREE from 'three';
+// import hpManager from './hp-manager.js';
 import metaversefile from 'metaversefile';
-const {useApp, useMobManager, useFrame, useScene, useCleanup} = metaversefile;
+const {useApp, createApp, useHpManager} = metaversefile;
 
 export default () => {
   const app = useApp();
-  const mobManager = useMobManager();
-  const scene = useScene();
+  const hpManager = useHpManager();
 
-  const appUrls = app.getComponent('appUrls') ?? [];
+  const spawnUrl = app.getComponent('spawnUrl') ?? '';
 
-  const mobber = mobManager.createMobber();
+  const range = app.getComponent('range') ?? 3;
+  const r = () => -range + Math.random() * 2 * range;
+  const maxMobs = 10;
+
+  let subApps = [];
   (async () => {
-    await Promise.all(appUrls.map(async appUrl => {
-      await mobber.addMobModule(appUrl);
-    }));
-    mobber.compile();
+    const m = await metaversefile.import(spawnUrl);
+    
+    const promises = [];
+    for (let i = 0; i < maxMobs; i++) {
+      promises.push((async () => {
+        const subApp = createApp();
+        subApp.name = `spawn-${m.name}-${i}`;
+
+        subApp.position.set(
+          r(),
+          0, // r(),
+          r()
+        );
+        subApp.quaternion.copy(app.quaternion);
+        app.add(subApp);
+        subApp.updateMatrixWorld();
+
+        await subApp.addModule(m);
+
+        const hitTracker = hpManager.makeHitTracker();
+        hitTracker.bind(subApp);
+        hitTracker.addEventListener('die', () => {
+          hitTracker.unbind(subApp);
+          app.remove(subApp);
+        });
+
+        return subApp;
+      })());
+    }
+    subApps = await Promise.all(promises);
   })();
 
-  const chunks = mobber.getChunks();
-  scene.add(chunks);
-  chunks.updateMatrixWorld();
-  // console.log('spawner add app chunks', {app, chunks});
-
-  useFrame(({timestamp, timeDiff}) => {
-    mobber.update(timestamp, timeDiff);
-  });
-
-  useCleanup(() => {
-    scene.remove(chunks);
-    mobber.destroy();
-  });
+  app.getPhysicsObjects = () => {
+    const result = [];
+    for (const subApp of subApps) {
+      result.push.apply(result, subApp.getPhysicsObjects());
+    }
+    return result;
+  };
+  app.hit = (damage, opts) => {
+    const {physicsObject} = opts;
+    for (const subApp of subApps) {
+      const physicsObjects = subApp.getPhysicsObjects();
+      if (physicsObjects.includes(physicsObject)) {
+        subApp.hit(damage, opts);
+        break;
+      }
+    }
+  };
 
   return app;
 };

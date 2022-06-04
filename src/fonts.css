@@ -15,10 +15,6 @@
   font-family: 'WinchesterCaps';
   src:  url('../public/fonts/WinchesterCaps.ttf');
 }
-@font-face {
-  font-family: 'SF Movie Poster';
-  src:  url('../public/fonts/SF Movie Poster.ttf');
-}
 
 /* cards */
 @font-face {

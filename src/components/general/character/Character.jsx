@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
 
@@ -19,7 +20,6 @@ import { AppContext } from '../../app';
 
 import { Emotions } from './Emotions';
 import { Poses } from './Poses';
-import { BigButton } from '../../../BigButton';
 
 import styles from './character.module.css';
 
@@ -208,6 +208,12 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
             className={ classnames( styles.characterWrapper, open ? styles.opened : null ) }
             onDrop={onDrop}
         >
+            {/* <div className={ styles.characterBtn } onClick={ handleCharacterBtnClick } >
+                <img src="images/webpencil.svg" className={ styles.background } />
+                <span className={ styles.btnText } >人 Character</span>
+                <span className={ styles.btnShortKey } >Tab</span>
+            </div> */}
+
             <div className={ styles.characterPanel } >
                 <Poses
                     parentOpened={open}
@@ -243,10 +249,12 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
                     </div>
                 </div>
 
-                <BigButton
-                  highlight={characterSelectOpen}
-                  onClick={onCharacterSelectClick}
-                >Character Select</BigButton>
+                <div
+                    className={classnames(styles.selectButton, characterSelectOpen ? styles.highlight : null)}
+                    onClick={onCharacterSelectClick}
+                >
+                    Character Select
+                </div>
 
             </div>
 

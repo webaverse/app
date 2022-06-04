@@ -1,4 +1,4 @@
-import {getLocalPlayer} from './players.js';
+import {localPlayer} from './players.js';
 import {LoadoutRenderer} from './loadout-renderer.js';
 import {InfoboxRenderer} from './infobox.js';
 import {createObjectSprite} from './object-spriter.js';
@@ -25,7 +25,6 @@ class LoadoutManager extends EventTarget {
     this.infoboxRenderer = null;
     this.selectedIndex = -1;
   
-    const localPlayer = getLocalPlayer();
     localPlayer.addEventListener('wearupdate', e => {
       const {app, wear, loadoutIndex} = e;
 

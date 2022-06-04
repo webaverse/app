@@ -2,7 +2,6 @@
 
 import Avatar from '../avatars/avatars.js';
 import {makePromise} from '../util.js';
-import {voiceEndpointBaseUrl} from '../constants.js';
 
 class VoiceEndpoint {
   constructor(url) {
@@ -10,12 +9,12 @@ class VoiceEndpoint {
   }
 }
 class PreloadMessage {
-  constructor(voiceEndpointUrl, text) {
-    this.voiceEndpointUrl = voiceEndpointUrl;
+  constructor(text, parent) {
     this.text = text;
+    this.parent = parent;
 
     this.isPreloadMessage = true;
-    this.loadPromise = VoiceEndpointVoicer.loadAudioBuffer(this.voiceEndpointUrl, this.text);
+    this.loadPromise = this.parent.loadAudioBuffer(this.text);
   }
   waitForLoad() {
     return this.loadPromise;
@@ -26,39 +25,27 @@ class VoiceEndpointVoicer {
     this.voiceEndpoint = voiceEndpoint;
     this.player = player;
 
-    // this.live = true;
+    this.live = true;
     this.running = false;
     this.queue = [];
     this.cancel = null;
     this.endPromise = null;
   }
-  static preloadMessage(voiceEndpointUrl, text) {
-    return new PreloadMessage(voiceEndpointUrl, text);
-  }
   preloadMessage(text) {
-    return VoiceEndpointVoicer.preloadMessage(this.voiceEndpoint.url.toString(), text);
+    return new PreloadMessage(text, this);
   }
-  static async loadAudioBuffer(voiceEndpointUrl, text) {
-    // console.log('load audio buffer', voiceEndpointUrl, text);
-    try {
-      const u = new URL(voiceEndpointUrl);
-      u.searchParams.set('s', text);
-      const res = await fetch(u/*, {
-        mode: 'cors',
-      } */);
-      const arrayBuffer = await res.arrayBuffer();
+  async loadAudioBuffer(text) {
+    const u = new URL(this.voiceEndpoint.url.toString());
+    u.searchParams.set('s', text);
+    const res = await fetch(u/*, {
+      mode: 'cors',
+    } */).catch(e => { console.error("Fetch error", e)});
+    const arrayBuffer = await res.arrayBuffer();
 
-      const audioContext = Avatar.getAudioContext();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      return audioBuffer;
-    } catch(err) {
-      console.warn('epic fail', err);
-      debugger;
-    }
+    const audioContext = Avatar.getAudioContext();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    return audioBuffer;
   }
-  /* async loadAudioBuffer(text) {
-    return VoiceEndpointVoicer.loadAudioBuffer(this.voiceEndpoint.url, text);
-  } */
   start(text) {
     if (!this.endPromise) {
       this.endPromise = makePromise();
@@ -71,61 +58,36 @@ class VoiceEndpointVoicer {
         this.player.avatar.setAudioEnabled(true);
       }
 
-      const _next = () => {
-        const {endPromise} = this;
-        if (endPromise) {
-          this.endPromise = null;
-          endPromise.accept();
-        }
-      };
-
-      let live = true;
-      const cancelFns = [
-        () => {
-          live = false;
-          _next();
-        },
-      ];
-      this.cancel = () => {
-        for (const cancelFn of cancelFns) {
-          cancelFn();
-        }
-      };
-
       (async () => {
         const audioBuffer = await (text.isPreloadMessage ? text.waitForLoad() : this.loadAudioBuffer(text));
-        if (!live) {
-          console.log('bail on audio buffer');
-          return;
-        }
 
         const audioContext = Avatar.getAudioContext();
         const audioBufferSourceNode = audioContext.createBufferSource();
         audioBufferSourceNode.buffer = audioBuffer;
-        const ended = () => {
+        audioBufferSourceNode.addEventListener('ended', () => {
           this.cancel = null;
           this.running = false;
 
-          if (this.queue.length > 0) {
-            const text = this.queue.shift();
-            this.start(text);
-          } else {
-            _next();
+          if (this.live) {
+            if (this.queue.length > 0) {
+              const text = this.queue.shift();
+              this.start(text);
+            } else {
+              const {endPromise} = this;
+              this.endPromise = null;
+              endPromise.accept();
+            }
           }
-        };
-        audioBufferSourceNode.addEventListener('ended', ended, {once: true});
-        if (!this.player.avatar.microphoneWorker) {
-          this.player.avatar.setAudioEnabled(true);
-        }
+        }, {once: true});
         audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
         audioBufferSourceNode.start();
 
-        cancelFns.push(() => {
-          audioBufferSourceNode.removeEventListener('ended', ended);
-
+        this.cancel = () => {
           audioBufferSourceNode.stop();
           audioBufferSourceNode.disconnect();
-        });
+
+          this.cancel = null;
+        };
       })();
     } else {
       this.queue.push(text);
@@ -133,20 +95,16 @@ class VoiceEndpointVoicer {
     return this.endPromise;
   }
   stop() {
-    // this.live = false;
-    this.queue.length = 0;
+    this.live = false;
     if (this.cancel) {
       this.cancel();
       this.cancel = null;
     }
-    this.running = false;
   }
 }
-const getVoiceEndpointUrl = (voiceId) => `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
 
 export {
   VoiceEndpoint,
   PreloadMessage,
   VoiceEndpointVoicer,
-  getVoiceEndpointUrl,
 };

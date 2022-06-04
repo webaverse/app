@@ -143,13 +143,8 @@ const makeHitTracker = ({ totalHp = 100 } = {}) => {
 
       sounds.playSoundName("enemyCut");
 
-<<<<<<< HEAD
       hitTracker.dispatchEvent({
         type: "hit",
-=======
-      const hitEvent = {
-        type: 'hit',
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
         collisionId,
         hitPosition,
         hitDirection,
@@ -157,22 +152,13 @@ const makeHitTracker = ({ totalHp = 100 } = {}) => {
         // willDie,
         hp: hitTracker.hp,
         totalHp: hitTracker.totalHp,
-      };
-      // hitTracker.dispatchEvent(hitEvent);
-      currentApp.dispatchEvent(hitEvent);
+      });
       if (died) {
-<<<<<<< HEAD
         hitTracker.dispatchEvent({
           type: "die",
-=======
-        const dieEvent = {
-          type: 'die',
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
           // position: cylinderMesh.position,
           // quaternion: cylinderMesh.quaternion,
-        };
-        // hitTracker.dispatchEvent();
-        currentApp.dispatchEvent(dieEvent);
+        });
       }
     }
     return result;

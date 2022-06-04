@@ -12,16 +12,14 @@ import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
 import {chatManager} from './chat-manager.js';
 // import {getState, setState} from './state.js';
-// import {makeId} from './util.js';
-import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority} from './renderer.js';
-// import metaversefileApi from 'metaversefile';
+import {makeId} from './util.js';
+import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
+import metaversefileApi from 'metaversefile';
 import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
-import {getLocalPlayer} from './players.js';
 // import * as metaverseModules from './metaverse-modules.js';
 // import {createParticleSystem} from './particle-system.js';
 // import * as sounds from './sounds.js';
-// import loreAI from './ai/lore/lore-ai.js';
 
 // const localEuler = new THREE.Euler();
 
@@ -63,7 +61,7 @@ world.connectState = state => {
   
   playersManager.bindState(state.getArray(playersMapName));
   
-  const localPlayer = getLocalPlayer();
+  const localPlayer = metaversefileApi.useLocalPlayer();
   localPlayer.bindState(state.getArray(playersMapName));
   
   // note: here we should load up the apps in the state since it won't happen automatically.
@@ -71,13 +69,10 @@ world.connectState = state => {
 };
 world.isConnected = () => !!wsrtc;
 world.connectRoom = async u => {
-  // await WSRTC.waitForReady();
-  
-  const localPlayer = getLocalPlayer();
-
-  world.appManager.unbindState();
+  world.appManager.unbindStateLocal();
   world.appManager.clear();
 
+  const localPlayer = metaversefileApi.useLocalPlayer();
   const state = new Z.Doc();
   
   document.addEventListener('keydown', event => {
@@ -293,12 +288,6 @@ const _getBindSceneForRenderPriority = renderPriority => {
     case 'low': {
       return sceneLowPriority;
     }
-    case 'lower': {
-      return sceneLowerPriority;
-    }
-    case 'lowest': {
-      return sceneLowestPriority;
-    }
     /* case 'postPerspectiveScene': {
       return postScenePerspective;
     }
@@ -318,7 +307,7 @@ const _bindHitTracker = app => {
   const die = () => {
     world.appManager.removeTrackedApp(app.instanceId);
   };
-  app.addEventListener('die', die);
+  hitTracker.addEventListener('die', die);
 };
 appManager.addEventListener('appadd', e => {
   const app = e.data;

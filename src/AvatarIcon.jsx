@@ -11,8 +11,7 @@ import {
 } from '../player-stats.js';
 
 import styles from './AvatarIcon.module.css';
-import {PlaceholderImg} from './PlaceholderImg.jsx';
-import { getLocalPlayer } from '../players.js';
+import { localPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
 import cameraManager from '../camera-manager.js'
 import * as sounds from '../sounds.js'
@@ -27,7 +26,6 @@ const CharacterIcon = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      const localPlayer = getLocalPlayer();
       const avatarIconer = new AvatarIconer(localPlayer, {
         width: characterIconSize * pixelRatio,
         height: characterIconSize * pixelRatio,
@@ -52,7 +50,7 @@ const CharacterIcon = () => {
         avatarIconer.removeEventListener('enabledchange', enabledchange);
       };
     }
-  }, [canvasRef]);
+  }, [canvasRef.current]);
 
   return (
       <div
@@ -71,7 +69,7 @@ const CharacterIcon = () => {
                 height={characterIconSize * pixelRatio}
                 ref={canvasRef}
               />
-              <PlaceholderImg className={styles.placeholderImg} />
+              <img className={styles.placeholderImg} src="./images/arc.svg" />
               <div className={styles.meta}>
                   <div className={styles.text}>
                       <div className={styles.background} />
@@ -109,7 +107,7 @@ const CharacterIcon = () => {
   );
 };
 
-export const AvatarIcon = () => {
+export const AvatarIcon = ({ className }) => {
     const { state, setState } = useContext( AppContext );
 
     const handleCharacterBtnClick = () => {
@@ -126,7 +124,7 @@ export const AvatarIcon = () => {
 
     return (
         <div
-            className={styles.avatarIcon}
+            className={ classnames( className, styles.avatarIcon ) }
             onClick={handleCharacterBtnClick}
         >
             {/* <a href="/" className={styles.logo}>
