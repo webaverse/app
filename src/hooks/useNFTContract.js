@@ -12,6 +12,7 @@ const contractAddressFT = FTcontractAddress; //CONTRACTS[DEFAULT_CHAIN.contract_
 const contractABI = NFTABI; // CONTRACT_ABIS.NFT;
 const contractABIFT = FTABI; //CONTRACT_ABIS.FT;
 
+
 const CONTRACT_EVENTS = {
   MINT_COMPLETE: 'MintComplete',
   METADATA_SET: 'MetadataSet',

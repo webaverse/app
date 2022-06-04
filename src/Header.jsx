@@ -22,7 +22,6 @@ import styles from './Header.module.css';
 //
 
 export default function Header() {
-
     const { state, setState, selectedApp, account } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
     const remotePlayers = metaversefile.useRemotePlayers();
@@ -266,15 +265,7 @@ export default function Header() {
             <StoryTime />
             {/* <div className={styles.inner}> */}
                 <AvatarIcon />
-<<<<<<< HEAD
-                <User
-                    address={address}
-                    setAddress={setAddress}
-                    setLoginFrom={setLoginFrom}
-                />
-=======
                 <User setLoginFrom={setLoginFrom} />
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}

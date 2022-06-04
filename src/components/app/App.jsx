@@ -122,12 +122,8 @@ const Canvas = ({
 };
 
 export const App = () => {
-
     const [ state, setState ] = useState({ openedPanel: null });
-<<<<<<< HEAD
     const [ walletstate, setWalletState ] = useState({ walletaddress: null });
-=======
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
     const app = useWebaverseApp();
     const [ selectedApp, setSelectedApp ] = useState( null );
@@ -274,25 +270,16 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-<<<<<<< HEAD
-            <AppContext.Provider value={{ state, setState, walletstate, setWalletState, app, setSelectedApp, selectedApp }}>
-=======
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, account }}>
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
+            <AppContext.Provider value={{ state, setState, walletstate, setWalletState, app, setSelectedApp, selectedApp, account }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 
                 <DomRenderer />
                 <Canvas app={app} />
                 <Crosshair />
-<<<<<<< HEAD
-                <ActionMenu />
-                <Settings />
-=======
                 
                 <ActionMenu />
                 <Settings />
                 <ClaimsNotification />
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
                 <WorldObjectsList
                     setSelectedApp={ setSelectedApp }
                     selectedApp={ selectedApp }
