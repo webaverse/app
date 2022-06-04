@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useFrame, useMaterials, useLocalPlayer} = metaversefile;
+const {useFrame, useMaterials, useCamera, useLocalPlayer} = metaversefile;
 
 // const cardWidth = 0.063;
 // const cardHeight = cardWidth / 2.5 * 3.5;
@@ -13,26 +13,36 @@ const menuRadius = 0.025; */
 
 const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
+const localQuaternion = new THREE.Quaternion();
 
-const targetTypes = [
+/* const targetTypes = [
   'object',
   'enemy',
   'friend',
+]; */
+const targetTypeColors = [
+  {
+    name: 'object',
+    colors: [
+      new THREE.Color(0x42a5f5),
+      new THREE.Color(0x1976d2),
+    ],
+  },
+  {
+    name: 'enemy',
+    colors: [
+      new THREE.Color(0xffca28),
+      new THREE.Color(0xffa000),
+    ],
+  },
+  {
+    name: 'friend',
+    colors: [
+      new THREE.Color(0x66bb6a),
+      new THREE.Color(0x388e3c),
+    ],
+  },
 ];
-const targetTypeColors = {
-  object: [
-    new THREE.Color(0xffa726),
-    new THREE.Color(0xf57c00),
-  ],
-  enemy: [
-    new THREE.Color(0xef5350),
-    new THREE.Color(0xd32f2f),
-  ],
-  friend: [
-    new THREE.Color(0x66bb6a),
-    new THREE.Color(0x388e3c),
-  ],
-};
 const triangleHalfSize = 0.08;
 const triangleSize = triangleHalfSize * 2;
 const innerRadius = 0.3;
@@ -49,6 +59,30 @@ function createTargetReticleGeometry() {
   shape.lineTo(a.x, a.y);
 
   const baseGeometry = new THREE.ShapeGeometry(shape);
+
+  const _setOffsets = g => {
+    const offsets = new Float32Array(g.attributes.position.count * 3);
+    baseGeometry.setAttribute('offset', new THREE.BufferAttribute(offsets, 3));
+  };
+  _setOffsets(baseGeometry);
+
+  const _setQuaternions = g => {
+    const quaternions = new Float32Array(g.attributes.position.count * 4);
+    baseGeometry.setAttribute('quaternion', new THREE.BufferAttribute(quaternions, 4));
+  };
+  _setQuaternions(baseGeometry);
+
+  const _setTypes = g => {
+    const types = new Int32Array(g.attributes.position.count);
+    baseGeometry.setAttribute('type', new THREE.BufferAttribute(types, 1));
+  };
+  _setTypes(baseGeometry);
+
+  const _setZooms = g => {
+    const zooms = new Float32Array(g.attributes.position.count);
+    baseGeometry.setAttribute('zoom', new THREE.BufferAttribute(zooms, 1));
+  }
+  _setZooms(baseGeometry);
   
   const _setUvs = g => {
     const positions = g.attributes.position.array;
@@ -70,7 +104,6 @@ function createTargetReticleGeometry() {
     for (let i = 0; i < g.attributes.normal2.count; i++) {
       normal2D.toArray(normal2s, i * 2);
     }
-    // console.log('got normnal 2s', normal2s);
     g.attributes.normal2.needsUpdate = true;
     return g;
   };
@@ -103,10 +136,23 @@ function createTargetReticleGeometry() {
   ];
   return BufferGeometryUtils.mergeBufferGeometries(geometries);
 };
+function createTargetReticleGeometries(count) {
+  const geometry = createTargetReticleGeometry();
+  const geometries = Array(count);
+  for (let i = 0; i < count; i++) {
+    geometries[i] = geometry;
+  }
+  const result = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  result.drawStride = geometry.attributes.position.count;
+  return result;
+}
 const _makeTargetReticleMesh = () => {
   const {WebaverseShaderMaterial} = useMaterials();
+  const camera = useCamera();
+  // const localPlayer = useLocalPlayer();
 
-  const geometry = createTargetReticleGeometry();
+  const geometry = createTargetReticleGeometries(16);
+  geometry.setDrawRange(0, 0);
   const material = new WebaverseShaderMaterial({
     uniforms: {
       /* uBoundingBox: {
@@ -126,7 +172,6 @@ const _makeTargetReticleMesh = () => {
       uColor2: {
         value: new THREE.Color(0xFFFFFF),
         needsUpdate: true,
-
       },
       uZoom: {
         // type: 'f',
@@ -145,10 +190,13 @@ const _makeTargetReticleMesh = () => {
 
       // #define PI 3.1415926535897932384626433832795
 
-      // attribute float f;
+      attribute vec3 offset;
+      attribute vec4 quaternion;
+      attribute int type;
       attribute vec2 normal2;
+      attribute float zoom;
       // uniform vec4 uBoundingBox;
-      uniform float uZoom;
+      // uniform float uZoom;
       uniform float uTime;
       // varying vec3 vColor;
       // varying float vF;
@@ -156,8 +204,9 @@ const _makeTargetReticleMesh = () => {
       // varying vec2 vNormal2;
       // varying vec3 vNormal;
       varying vec3 vBarycentric;
+      flat varying int vType;
 
-      const float zoomDistance = 20.;
+      const float zoomDistance = 5.;
 
       vec2 rotate2D(vec2 v, float a) {
         return vec2(
@@ -165,11 +214,20 @@ const _makeTargetReticleMesh = () => {
           v.x * sin(a) + v.y * cos(a)
         );
       }
+      vec3 rotateVec3Quat( vec3 v, vec4 q ) { 
+        return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+      }
 
       void main() {
-        float angle = uTime * PI * 2.;
-        // vec2 direction = rotate2D(normal2, angle);
-        vec3 p = vec3(rotate2D(position.xy, angle) + rotate2D(normal2 * uZoom * zoomDistance, angle), position.z);
+        float uZoom = zoom;
+
+        vec3 p = position;
+        {
+          float angle = uTime * PI * 2.;
+          p = vec3(rotate2D(p.xy, angle) + rotate2D(normal2 * uZoom * zoomDistance, angle), p.z);
+        }
+        p = rotateVec3Quat(p, quaternion);
+        p += offset;
 
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mvPosition;
@@ -190,6 +248,8 @@ const _makeTargetReticleMesh = () => {
         } else {
           vBarycentric = vec3(0., 0., 1.);
         }
+
+        vType = type;
       }
     `,
     fragmentShader: `\
@@ -198,15 +258,9 @@ const _makeTargetReticleMesh = () => {
 
       #define PI 3.1415926535897932384626433832795
 
-      // uniform vec4 uBoundingBox;
       uniform float uTime;
-      uniform vec3 uColor1;
-      uniform vec3 uColor2;
-      // uniform float uZoom;
-      // uniform float uTimeCubic;
-      // varying vec3 vColor;
-      // varying float vF;
       varying vec2 vUv;
+      flat varying int vType;
       // varying vec2 vNormal2;
       // varying vec3 vNormal;
       varying vec3 vBarycentric;
@@ -261,6 +315,19 @@ const _makeTargetReticleMesh = () => {
     }
 
       void main() {
+        vec3 uColor1;
+        vec3 uColor2;
+        if (vType == 0) {
+          uColor1 = vec3(${targetTypeColors[0].colors[0].toArray().join(', ')});
+          uColor2 = vec3(${targetTypeColors[0].colors[1].toArray().join(', ')});
+        } else if (vType == 1) {
+          uColor1 = vec3(${targetTypeColors[1].colors[0].toArray().join(', ')});
+          uColor2 = vec3(${targetTypeColors[1].colors[1].toArray().join(', ')});
+        } else if (vType == 2) {
+          uColor1 = vec3(${targetTypeColors[2].colors[0].toArray().join(', ')});
+          uColor2 = vec3(${targetTypeColors[2].colors[1].toArray().join(', ')});
+        }
+
         /* float t = pow(uTime, 0.5)/2. + 0.5;
         bool draw;
         if (vF > 0.5) {
@@ -299,36 +366,38 @@ const _makeTargetReticleMesh = () => {
     side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
   mesh.update = (timestamp, timeDiff) => {
     const maxTime = 3000;
     const f = (timestamp % maxTime) / maxTime;
 
-    /* const localPlayer = useLocalPlayer();
-    mesh.position.copy(localPlayer.position);
-    mesh.quaternion.copy(localPlayer.quaternion);
-    mesh.updateMatrixWorld(); */
-
-    const targetType = 'friend';
-    // const targetTypeIndex = targetTypes.indexOf(targetType);
-    const targetTypeColor = targetTypeColors[targetType];
-    material.uniforms.uColor1.value.copy(targetTypeColor[0])//.multiplyScalar(0.75);
-    material.uniforms.uColor1.needsUpdate = true;
-    material.uniforms.uColor2.value.copy(targetTypeColor[1])//.multiplyScalar(0.75);
-    material.uniforms.uColor2.needsUpdate = true;
-
-    let f2;
-    if (f < 1/4) {
-      f2 = f * 4;
-    } else if (f < 3/4) {
-      f2 = 1;
-    } else {
-      f2 = 1 - ((f - 3/4) * 4);
-    }
-    material.uniforms.uZoom.value = 1 - f2;
-    material.uniforms.uZoom.needsUpdate = true;
-
     material.uniforms.uTime.value = f;
     material.uniforms.uTime.needsUpdate = true;
+  };
+
+  mesh.setReticles = reticles => {
+    const numReticles = reticles.length;
+    for (let i = 0; i < numReticles; i++) {
+      const reticle = reticles[i];
+      
+      const position = reticle.position;
+      const quaternion = localQuaternion.copy(camera.quaternion).invert();
+      const type = reticle.type;
+      const typeIndex = targetTypeColors.findIndex(t => t.name === type);
+      const zoom = reticle.zoom;
+
+      for (let j = 0; j < geometry.drawStride; j++) {
+        position.toArray(geometry.attributes.offset.array, (i * geometry.drawStride * 3) + (j * 3));
+        quaternion.toArray(geometry.attributes.quaternion.array, (i * geometry.drawStride * 3) + (j * 4));
+        geometry.attributes.type.array[i * geometry.drawStride + j] = typeIndex;
+        geometry.attributes.zoom.array[i * geometry.drawStride + j] = zoom;
+      }
+    }
+    geometry.attributes.offset.needsUpdate = true;
+    geometry.attributes.quaternion.needsUpdate = true;
+    geometry.attributes.type.needsUpdate = true;
+    geometry.attributes.zoom.needsUpdate = true;
+    geometry.setDrawRange(0, geometry.drawStride * numReticles);
   };
   return mesh;
 };

@@ -14,6 +14,7 @@ import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
 import { AvatarIcon } from './AvatarIcon';
+import { StoryTime } from './StoryTime';
 import { User } from './User';
 
 import styles from './Header.module.css';
@@ -22,7 +23,7 @@ import styles from './Header.module.css';
 
 export default function Header() {
 
-    const { state, setState, selectedApp } = useContext( AppContext );
+    const { state, setState, selectedApp, account } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
     const remotePlayers = metaversefile.useRemotePlayers();
     const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
@@ -30,14 +31,13 @@ export default function Header() {
     const dioramaCanvasRef = useRef();
     const panelsRef = useRef();
 
-    const [address, setAddress] = useState('');
     const [nfts, setNfts] = useState(null);
     // const [apps, setApps] = useState(world.appManager.getApps().slice());
     // const [claims, setClaims] = useState([]);
     // const [dragging, setDragging] = useState(false);
     const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
-
+    const address = account.currentAddress;
     //
 
     const stopPropagation = ( event ) => {
@@ -263,13 +263,18 @@ export default function Header() {
               npcs={npcs}
               remotePlayers={remotePlayers}
             />
+            <StoryTime />
             {/* <div className={styles.inner}> */}
                 <AvatarIcon />
+<<<<<<< HEAD
                 <User
                     address={address}
                     setAddress={setAddress}
                     setLoginFrom={setLoginFrom}
                 />
+=======
+                <User setLoginFrom={setLoginFrom} />
+>>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}

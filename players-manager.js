@@ -3,10 +3,7 @@ player objects load their own avatar and apps using this binding */
 
 // import * as THREE from 'three';
 import * as Z from 'zjs';
-import { RemotePlayer } from './character-controller.js';
-// import {getPlayerPrefix} from './util.js';
-// import {playersMapName} from './constants.js';
-import {localPlayer} from './players.js';
+import {RemotePlayer} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
 
 Error.stackTraceLimit = 300;

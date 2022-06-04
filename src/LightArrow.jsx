@@ -191,13 +191,16 @@ const _downloadArrowImage = async () => {
 };
 
 export const LightArrow = function({
+  className,
   enabled = true,
+  up = false,
   down = false,
   animate = false,
   x,
   y,
   ax,
   ay,
+  onClick,
 }) {
   const canvasRef = useRef();
 
@@ -244,13 +247,16 @@ export const LightArrow = function({
       className={classnames(
         styles.lightArrowContainer,
         enabled ? styles.enabled : null,
+        up ? styles.up : null,
         down ? styles.down : null,
+        className,
       )}
       style={{
         transform: `translate(${x}px, ${y}px)`,
         left: ax,
         top: ay,
       }}
+      onClick={onClick}
     >
       <div
         className={classnames(
