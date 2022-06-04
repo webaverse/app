@@ -1,9 +1,9 @@
 # run processes and store pids in array
 for f in "Base_Color.png" "Height.png" "Roughness.png" "Ambient_Occlusion.png"; do
-  ~/app/bin/basisu "$f" -ktx2 -mipmap -q 200 -comp_level 3 &
+  ~/app/bin/basisu "$f" -ktx2 -mipmap -q 255 -comp_level 3 &
 done
 for f in "Normal.png"; do
-  ~/app/bin/basisu "$f" -ktx2 -mipmap -normal_map -q 200 -comp_level 3 &
+  ~/app/bin/basisu "$f" -ktx2 -mipmap -normal_map -q 255 -comp_level 3 &
 done
 
 # wait for all pids
