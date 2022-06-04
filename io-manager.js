@@ -541,9 +541,10 @@ ioManager.keydown = e => {
     case 32: { // space
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
-        if (!game.isJumping()) {
+        game.jump('jump');
+        /* if (!game.isJumping()) {
           game.jump('jump');
-        } /* else {
+        } */ /* else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
         } */
       // }

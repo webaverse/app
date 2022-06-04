@@ -900,6 +900,7 @@ class Avatar {
     this.direction = new THREE.Vector3();
     this.jumpState = false;
     this.jumpTime = NaN;
+    this.doubleJumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
 
@@ -1919,6 +1920,7 @@ class Avatar {
         <div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
         <div style="display:;">jumpState: --- ${this.jumpState}</div>
         <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
+        <div style="display:;">doubleJumpTime: --- ${Math.floor(this.doubleJumpTime)}</div>
         <div style="display:;">unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
         <div style="display:;">unjumpFactor: --- ${window.logNum(this.unjumpFactor)}</div>
         <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>

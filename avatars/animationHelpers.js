@@ -798,43 +798,44 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isArm,
         } = spec;
 
-        const jumpTimeS = avatar.jumpTime / 1000;
-
-        const jumpAnimation = animations.index['jump.fbx'];
-        const jumpAnimationDuration = jumpAnimation.duration - 1 / 30;
-        const t2 = jumpTimeS;
-        const src2 = jumpAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
-        // if (isPosition) console.log('loop', t2);
-        dst.fromArray(v2);
-
-        const doubleJumpAnimation = animations.index['jump_double.fbx'];
-        const doubleJumpAnimationDuration = doubleJumpAnimation.duration - 1 / 30;
-
-        if (jumpTimeS < jumpAnimationDuration) { // jump up stage
-          // already full jump animation, do nothing;
-          if (isPosition) console.log('jump');
-        } else if (jumpTimeS < jumpAnimationDuration + doubleJumpAnimationDuration) { // double jump stage
-          const t2 = jumpTimeS - jumpAnimationDuration;
+        if (avatar.doubleJumpTime > 0) { // double jump stage
+          const doubleJumpTimeS = avatar.doubleJumpTime / 1000;
+          const doubleJumpAnimation = animations.index['jump_double.fbx'];
+          const doubleJumpAnimationDuration = doubleJumpAnimation.duration - 1 / 30;
+          const t2 = doubleJumpTimeS;
           const src2 = doubleJumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
           dst.fromArray(v2);
           if (isPosition) console.log('double');
-        } else { // fall loop stage
-          const fallingAnimation = animations.index['falling.fbx'];
-          const t3 = jumpTimeS - jumpAnimationDuration;
-          const src3 = fallingAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3 % fallingAnimation.duration);
-          const lerpTimeS = lerpFrameCountJumpToFall / 30;
-          const lerpFactor = MathUtils.clamp(t3 / lerpTimeS, 0, 1);
-          if (!isPosition) {
-            localQuaternion.fromArray(v3);
-            dst.slerp(localQuaternion, lerpFactor);
-          } else {
-            localVector.fromArray(v3);
-            dst.lerp(localQuaternion, lerpFactor);
+        } else {
+          const jumpTimeS = avatar.jumpTime / 1000;
+          const jumpAnimation = animations.index['jump.fbx'];
+          const jumpAnimationDuration = jumpAnimation.duration - 1 / 30;
+          const t2 = jumpTimeS;
+          const src2 = jumpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+          // if (isPosition) console.log('loop', t2);
+          dst.fromArray(v2);
+
+          if (jumpTimeS < jumpAnimationDuration) { // jump up stage
+            // already full jump animation, do nothing;
+            if (isPosition) console.log('jump');
+          } else { // fall loop stage
+            const fallingAnimation = animations.index['falling.fbx'];
+            const t3 = jumpTimeS - jumpAnimationDuration;
+            const src3 = fallingAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3 % fallingAnimation.duration);
+            const lerpTimeS = lerpFrameCountJumpToFall / 30;
+            const lerpFactor = MathUtils.clamp(t3 / lerpTimeS, 0, 1);
+            if (!isPosition) {
+              localQuaternion.fromArray(v3);
+              dst.slerp(localQuaternion, lerpFactor);
+            } else {
+              localVector.fromArray(v3);
+              dst.lerp(localQuaternion, lerpFactor);
+            }
+            if (isPosition) console.log('fall');
           }
-          if (isPosition) console.log('fall');
         }
 
         _clearXZ(dst, isPosition);

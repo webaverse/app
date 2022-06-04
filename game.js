@@ -1497,7 +1497,9 @@ class GameManager extends EventTarget {
         stage:stage,
         // time: 0,
       };
+      // console.log(newJumpAction);
       localPlayer.addAction(newJumpAction);
+      // console.log(localPlayer.getActionsArray());
     }
   }
   jump(trigger) {
