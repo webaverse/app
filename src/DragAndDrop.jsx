@@ -13,7 +13,6 @@ import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
-<<<<<<< HEAD
 import { ethers, BigNumber } from 'ethers'
 import { NFTABI, NFTcontractAddress, FTABI, FTcontractAddress } from "../src/abis/contract"
 import {
@@ -21,9 +20,7 @@ import {
     toast
 } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-=======
 import useNFTContract from './hooks/useNFTContract';
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');

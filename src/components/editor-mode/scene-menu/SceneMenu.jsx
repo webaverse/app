@@ -37,12 +37,7 @@ export const SceneMenu = ({
   const [scenesList, setScenesList] = useState(origSceneList);
   const sceneNameInputRef = useRef(null);
 
-<<<<<<< HEAD
-  const refreshRooms = async () => {
-    const res = await fetch(universe.getWorldsHost());
-=======
 export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
     if (res.ok) {
       const rooms = await res.json();
@@ -218,9 +213,6 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     };
   }, []);
 
-<<<<<<< HEAD
-  //
-=======
     const handleSceneInputKeyDown = ( event ) => {
 
         const newList = ( event.target.value ? origSceneList.filter( ( sceneName ) => ( sceneName.indexOf( event.target.value ) !== -1 ) ) : origSceneList );
@@ -385,7 +377,6 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                     </div>
                 ) : null
             }
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
   return (
     <div className={styles.location} onClick={stopPropagation}>

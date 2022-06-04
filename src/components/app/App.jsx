@@ -29,13 +29,10 @@ import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
-<<<<<<< HEAD
-=======
 import {ClaimsNotification} from '../../ClaimsNotification.jsx';
 import {DomRenderer} from '../../DomRenderer.jsx';
 // import * as voices from '../../../voices';
 import {handleStoryKeyControls} from '../../../story';
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
 import styles from './App.module.css';
 import '../../fonts.css';
@@ -85,12 +82,6 @@ const useWebaverseApp = (() => {
   return () => {
         if ( webaverse === null ) {
             webaverse = new Webaverse();
-<<<<<<< HEAD
-        }
-        return webaverse;
-  };
-})();
-=======
         }
         return webaverse;
   };
@@ -129,7 +120,6 @@ const Canvas = ({
         <canvas className={ classnames( styles.canvas, domHover ? styles.domHover : null ) } ref={ canvasRef } />
     );
 };
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
 export const App = () => {
 
@@ -175,8 +165,6 @@ export const App = () => {
 
     useEffect( () => {
 
-<<<<<<< HEAD
-=======
         const handleStoryKeyUp = ( event ) => {
 
             if ( game.inputFocused() ) return;
@@ -196,7 +184,6 @@ export const App = () => {
 
     useEffect( () => {
 
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
         const handleClick = () => {
 
             const hoverObject = game.getMouseHoverObject();

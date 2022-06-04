@@ -31,29 +31,13 @@ export default (app, component) => {
   const initialScale = app.scale.clone();
   // const initialQuaternion = new THREE.Quaternion();
 
-<<<<<<< HEAD
-  // let lastWornApp = null;
-  let localPlayer = null;
-=======
-  // const localPlayer = metaversefile.useLocalPlayer();
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
-
   const wearupdate = (e) => {
     if (e.wear) {
-<<<<<<< HEAD
-      wearSpec = app.getComponent("wear");
-      initialScale.copy(app.scale);
-
-      localPlayer = e.player;
-      // lastWornApp = app;
-      // console.log('activate component', app, wear);
-=======
       player = e.player;
 
       wearSpec = app.getComponent('wear');
       initialScale.copy(app.scale);
       // console.log('wear activate', app, wearSpec, e);
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
       if (wearSpec) {
         // const {app, wearSpec} = e.data;
         // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
@@ -75,14 +59,10 @@ export default (app, component) => {
                 skinnedMesh = o;
               }
             });
-<<<<<<< HEAD
-            if (skinnedMesh && localPlayer.avatar) {
-=======
             if (skinnedMesh && player.avatar) {
               app.position.set(0, 0, 0);
               app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
               app.scale.copy(initialScale)//.multiplyScalar(wearableScale);
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
               app.updateMatrix();
               app.matrixWorld.copy(app.matrix);
 
@@ -192,18 +172,6 @@ export default (app, component) => {
       _unwear(e);
     }
   };
-<<<<<<< HEAD
-  
-  app.addEventListener("wearupdate", (e) => {
-    wearupdate(e);
-  });
-
-  app.addEventListener("destroy", () => {
-    const localPlayer = metaversefile.useLocalPlayer();
-    const remotePlayers = metaversefile.useRemotePlayers();
-    const { npcs } = npcManager;
-    const players = [localPlayer].concat(remotePlayers).concat(npcs);
-=======
   app.addEventListener('wearupdate', wearupdate);
   app.addEventListener('destroy', () => {
     const remotePlayers = metaversefile.useRemotePlayers();
@@ -211,7 +179,6 @@ export default (app, component) => {
     const players = (player ? [player] : [])
       .concat(remotePlayers)
       .concat(npcs);
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
     for (const player of players) {
       const wearActionIndex = player.findActionIndex((action) => {
         return action.type === "wear" && action.instanceId === app.instanceId;
@@ -250,33 +217,11 @@ export default (app, component) => {
       e.app.updateMatrixWorld();
     }
   }
-
-<<<<<<< HEAD
+  
   app.addEventListener("resetweartransform", (e) => {
     resetweartransform(e);
   });
 
-  const _copyBoneAttachment = (spec) => {
-    const { boneAttachment = "hips", position, quaternion, scale } = spec;
-    const boneName = Avatar.modelBoneRenames[boneAttachment];
-    const bone = localPlayer.avatar.foundModelBones[boneName];
-    if (bone) {
-      bone.matrixWorld.decompose(app.position, app.quaternion, app.scale);
-      if (Array.isArray(position)) {
-        app.position.add(
-          localVector.fromArray(position).applyQuaternion(app.quaternion)
-        );
-      }
-      if (Array.isArray(quaternion)) {
-        app.quaternion.multiply(localQuaternion.fromArray(quaternion));
-      }
-      if (Array.isArray(scale)) {
-        app.scale.multiply(localVector.fromArray(scale));
-      }
-      app.updateMatrixWorld();
-    } else {
-      console.warn("invalid bone attachment", { app, boneAttachment });
-=======
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
     const boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
@@ -326,7 +271,6 @@ export default (app, component) => {
       localMatrix.lookAt(eyeVector, targetVector, upVector)
       app.quaternion.setFromRotationMatrix(localMatrix);
       app.quaternion.multiply(playerQuaternion);
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
     }
 
     if (Array.isArray(position)) {
@@ -340,18 +284,6 @@ export default (app, component) => {
     }
     app.updateMatrixWorld();
   };
-<<<<<<< HEAD
-  const frame = metaversefile.useFrame(({ timestamp, timeDiff }) => {
-    if (wearSpec && localPlayer.avatar) {
-      const { instanceId } = app;
-
-      // animations
-      if (app.glb) {
-        const appAimAction = Array.from(localPlayer.getActionsState()).find(
-          (action) => action.type === "aim" && action.instanceId === instanceId
-        );
-        const { animations } = app.glb;
-=======
   const frame = metaversefile.useFrame(({timestamp, timeDiff}) => {
     if (wearSpec && player.avatar) {
       const {instanceId} = app;
@@ -361,7 +293,6 @@ export default (app, component) => {
         const appAimAction = Array.from(player.getActionsState())
           .find(action => action.type === 'aim' && action.instanceId === instanceId);
         const {animations} = app.glb;
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
         const appAnimation = appAimAction?.appAnimation
           ? animations.find((a) => a.name === appAimAction.appAnimation)
@@ -401,18 +332,6 @@ export default (app, component) => {
       }
       // bone bindings
       {
-<<<<<<< HEAD
-        const appUseAction = Array.from(localPlayer.getActionsState()).find(
-          (action) => action.type === "use" && action.instanceId === instanceId
-        );
-        if (appUseAction?.boneAttachment && wearSpec.boneAttachment) {
-          _copyBoneAttachment(appUseAction);
-        } else {
-          const appAimAction = Array.from(localPlayer.getActionsState()).find(
-            (action) =>
-              action.type === "aim" && action.instanceId === instanceId
-          );
-=======
         const appUseAction = Array.from(player.getActionsState())
           .find(action => action.type === 'use' && action.instanceId === instanceId);
         if (appUseAction?.boneAttachment && wearSpec.boneAttachment) {
@@ -420,23 +339,11 @@ export default (app, component) => {
         } else {
           const appAimAction = Array.from(player.getActionsState())
             .find(action => action.type === 'aim' && action.instanceId === instanceId);
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
           if (appAimAction?.boneAttachment && wearSpec.boneAttachment) {
             _copyBoneAttachment(appAimAction);
           } else {
             if (modelBones) {
-<<<<<<< HEAD
-              Avatar.applyModelBoneOutputs(
-                modelBones,
-                localPlayer.avatar.modelBoneOutputs,
-                localPlayer.avatar.getTopEnabled(),
-                localPlayer.avatar.getBottomEnabled(),
-                localPlayer.avatar.getHandEnabled(0),
-                localPlayer.avatar.getHandEnabled(1)
-              );
-=======
               Avatar.applyModelBoneOutputs(modelBones, player.avatar.modelBoneOutputs, player.avatar.getTopEnabled(), player.avatar.getBottomEnabled(), player.avatar.getHandEnabled(0), player.avatar.getHandEnabled(1));
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
               modelBones.Root.updateMatrixWorld();
             } else if (wearSpec.boneAttachment) {
               _copyBoneAttachment(wearSpec);
