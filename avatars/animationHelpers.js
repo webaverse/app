@@ -439,6 +439,9 @@ export const _createAnimation = avatar => {
 export const _updateAnimation = avatar => {
   const {mixer} = avatar;
 
+  avatar.motiono.idle.weight = 1 - avatar.moveFactors.idleWalkFactor;
+  avatar.motiono.walk.weight = avatar.moveFactors.idleWalkFactor;
+
   // if (avatar.jumpState && avatar.jumpTime === 0) avatar.motiono.jump.play();
   // if (avatar.jumpState) console.log(avatar.jumpTime);
 
