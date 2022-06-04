@@ -53,6 +53,7 @@ import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
+import terrainManager from './terrain-manager.js';
 import cardsManager from './cards-manager.js';
 
 const localVector2D = new THREE.Vector2();
@@ -399,6 +400,18 @@ metaversefile.setApi({
   }, */
   getMirrors() {
     return mirrors;
+  },
+  getWinds() {
+    return world.winds;
+  },
+  setWinds(wind) {
+    world.winds.push(wind);
+  },
+  removeWind(wind) {
+    const index = world.winds.indexOf(wind);
+    if (index > -1) {
+      world.winds.splice(index, 1);
+    }
   },
   registerMirror(mirror) {
     mirrors.push(mirror);
@@ -1188,6 +1201,9 @@ export default () => {
   },
   useHitManager() {
     return hitManager;
+  },
+  useTerrainManager() {
+    return terrainManager;
   },
   useCardsManager() {
     return cardsManager;

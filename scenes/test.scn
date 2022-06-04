@@ -18,6 +18,6 @@
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/atmospheric-sky/" },
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/block/" },
 
-    { "position": [ 0, 0, -41 ], "quaternion": [0, 1, 0, 0], "scale": [20, 20, 20], "start_url": "http://localhost/lib/webaverse_resource/ramp/index.js" }
+    { "position": [ -20, 0, -41 ], "quaternion": [0, 1, 0, 0], "scale": [20, 20, 20], "start_url": "http://localhost/lib/webaverse_resource/ramp/index.js" }
   ]
 }

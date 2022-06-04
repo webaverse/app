@@ -14,7 +14,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
@@ -41,6 +41,8 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
+
+let isMouseUp = false;
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const oneVector = new THREE.Vector3(1, 1, 1);
@@ -433,7 +435,7 @@ const _mousedown = () => {
   _startUse();
 };
 const _mouseup = () => {
-  _endUse();
+  isMouseUp = true;
 };
 
 const _grab = object => {
@@ -998,6 +1000,23 @@ const _gameUpdate = (timestamp, timeDiff) => {
       !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
+
+  const _updateUse = () => {
+    const useAction = localPlayer.getAction('use');
+    if (useAction) {
+      if (useAction.animation === 'pickUpThrow') {
+        const useTime = localPlayer.actionInterpolants.use.get();
+        if (useTime / 1000 >= throwAnimationDuration) {
+          _endUse();
+        }
+      } else if (isMouseUp) {
+        _endUse();
+      }
+
+    }
+    isMouseUp = false;
+  };
+  _updateUse();
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
@@ -1457,7 +1476,7 @@ class GameManager extends EventTarget {
     const localPlayer = getLocalPlayer();
     return localPlayer.hasAction('jump');
   }
-  ensureJump(trigger) {
+  ensureJump(trigger, stage) {
     const localPlayer = getLocalPlayer();
 
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
@@ -1474,20 +1493,40 @@ class GameManager extends EventTarget {
     if (!jumpAction) {
       const newJumpAction = {
         type: 'jump',
-        trigger:trigger
+        trigger:trigger,
+        stage:stage,
         // time: 0,
       };
+      // console.log(newJumpAction);
       localPlayer.addAction(newJumpAction);
+      // console.log(localPlayer.getActionsArray());
     }
   }
   jump(trigger) {
-    // add jump action
-    this.ensureJump(trigger);
-
-    // update velocity
     const localPlayer = getLocalPlayer();
-    // localPlayer.characterPhysics.velocity.y += 6;
-    localPlayer.characterPhysics.velocity.y += window.jumpVelocityY;
+    const jumpAction = localPlayer.getAction('jump');
+
+    if (!jumpAction) {
+      this.ensureJump(trigger);
+
+      // update velocity
+      // localPlayer.characterPhysics.velocity.y += 6;
+      localPlayer.characterPhysics.velocity.y = window.jumpVelocityY;
+      // setTimeout(() => {
+      //   localPlayer.characterPhysics.velocity.y = window.timeout333VelocityY;
+      // }, 333);
+  
+      window.gravityMutiplier = 4;
+      // setTimeout(() => {
+      //   window.gravityMutiplier = 1;
+      // }, 682);
+    } else if (!jumpAction.stage) {
+      localPlayer.removeAction('jump');
+      const stage = 'doubleJump';
+      this.ensureJump(trigger, stage);
+
+      localPlayer.characterPhysics.velocity.y = window.jumpVelocityY;
+    }
     
     // play sound
     // soundManager.play('jump');
