@@ -42,6 +42,7 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
+// import { AnimNode } from './AnimNode.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -415,6 +416,9 @@ export const _createAnimation = avatar => {
   const motiono = {};
   avatar.motiono = motiono;
 
+  const idleMotion = mixer.createMotion(animations.index['idle.fbx']);
+  motiono.idle = idleMotion;
+
   const walkMotion = mixer.createMotion(animations.index['walking.fbx']);
   motiono.walk = walkMotion;
 
@@ -425,6 +429,10 @@ export const _createAnimation = avatar => {
   const crouchMotion = mixer.createMotion(animations.index['Sneaking Forward.fbx']);
   motiono.crouch = crouchMotion;
 
+  // const idleWalkNode = new AnimNode();
+  // idleWalkNode.add(idleMotion, walkMotion, avatar.moveFactors.idleWalkFactor);
+
+  idleMotion.play();
   walkMotion.play();
 };
 

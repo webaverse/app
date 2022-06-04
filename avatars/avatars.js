@@ -1482,6 +1482,7 @@ class Avatar {
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
     const moveFactors = {};
+    // this.moveFactors = moveFactors;
     moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
