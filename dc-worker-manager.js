@@ -13,7 +13,8 @@ const numWorkers = 4;
 class DcWorkerManager {
   constructor({
     chunkSize = defaultChunkSize,
-    seed = defaultWorldSeed,
+    // seed = defaultWorldSeed,
+    seed = Math.floor(Math.random() * 0xFFFFFF),
   } = {}) {
     this.chunkSize = chunkSize;
     this.seed = seed;
@@ -123,11 +124,11 @@ class DcWorkerManager {
     this.nextWorker = (this.nextWorker + 1) % workers.length;
     return worker;
   }
-  async generateChunk(chunkPosition, lod) {
+  async generateChunk(chunkPosition, lodArray) {
     const worker = this.getNextWorker();
     const result = await worker.request('generateChunk', {
       chunkPosition: chunkPosition.toArray(),
-      lod,
+      lodArray,
     });
     return result;
   }
