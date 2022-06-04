@@ -44,8 +44,8 @@ export function applyPlayerModesToAvatar(player, session, rig) {
       rig.getTopEnabled() /* ||
       rig.getHandEnabled(0) ||
       rig.getHandEnabled(1) */
-    ) /*&&
-    rig.velocity.length() < 0.001,*/
+    ) &&
+    rig.velocity.length() < 0.001,
   );
 }
 export function makeAvatar(app) {
