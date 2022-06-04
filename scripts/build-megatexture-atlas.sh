@@ -1,5 +1,10 @@
-~/app/bin/basisu Base_Color.png -ktx2 -mipmap;
-~/app/bin/basisu Height.png -ktx2 -mipmap;
-~/app/bin/basisu Normal.png -ktx2 -mipmap -normal_map;
-~/app/bin/basisu Roughness.png -ktx2 -mipmap;
-~/app/bin/basisu Ambient_Occlusion.png -ktx2 -mipmap;
+# run processes and store pids in array
+for f in "Base_Color.png" "Height.png" "Roughness.png" "Ambient_Occlusion.png"; do
+  ~/app/bin/basisu "$f" -ktx2 -mipmap -q 200 -comp_level 3 &
+done
+for f in "Normal.png"; do
+  ~/app/bin/basisu "$f" -ktx2 -mipmap -normal_map -q 200 -comp_level 3 &
+done
+
+# wait for all pids
+wait
