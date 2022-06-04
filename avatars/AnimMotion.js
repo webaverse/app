@@ -14,6 +14,10 @@ class AnimMotion {
     // this.mixer.motion = this;
     this.mixer.motions.push(this);
   }
+
+  stop() {
+    this.mixer.motions.splice(this.mixer.motions.indexOf(this), 1);
+  }
 }
 
 export {AnimMotion};
