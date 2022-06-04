@@ -53,9 +53,13 @@ class AvatarIconer extends EventTarget {
       const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
       `,
       async function(start_url, width, height) {
-        const player = await npcManager.createNpcAsync({
+        const dstAvatarApp = await metaversefile.createAppAsync({
+          start_url,
+        });
+  
+        const player = npcManager.createNpc({
           name: 'avatar-iconer-npc',
-          avatarUrl: start_url,
+          avatarApp: dstAvatarApp,
           detached: true,
         });
   
@@ -76,6 +80,7 @@ class AvatarIconer extends EventTarget {
         }));
   
         player.destroy();
+        dstAvatarApp.destroy();
 
         return emotionCanvases;
       }
@@ -90,7 +95,7 @@ class AvatarIconer extends EventTarget {
     if (srcAvatarApp) {
       const start_url = srcAvatarApp.contentId;
 
-      this.emotionCanvases = await this.getEmotionCanvases([start_url, this.width, this.height]);
+      this.emotionCanvases = await this.getEmotionCanvases(start_url, this.width, this.height);
 
       this.enabled = true;
     } else {

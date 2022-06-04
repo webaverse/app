@@ -8,8 +8,6 @@ import { chatManager } from '../../../../chat-manager.js';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 import { AppContext } from '../../app';
 
-import storyManager from '../../../../story.js';
-
 import styles from './chat.module.css';
 
 //
@@ -40,55 +38,39 @@ function ChatInput () {
 
         const handleActiveKey = ( event ) => {
 
-            if ( game.inputFocused() && document.activeElement !== inputRef.current ) {
-                
-                return true;
+            if ( game.inputFocused() && document.activeElement !== inputRef.current ) return true;
 
-            
-            } else {
+            switch ( event.which ) {
 
-                switch ( event.which ) {
+                case 13: { // enter
 
-                    case 13: { // enter
+                    if ( state.openedPanel !== 'ChatPanel' ) {
 
-                        if (storyManager.getConversation()) {
+                        setState({ openedPanel: 'ChatPanel' });
 
-                            // nothing; handled in StoryTime
+                    } else {
 
-                        } else if ( state.openedPanel !== 'ChatPanel' ) {
+                        if ( document.activeElement !== inputRef.current ) return true;
 
-                            setState({ openedPanel: 'ChatPanel' });
+                        if ( value ) {
 
-<<<<<<< HEAD
                             const text = checkText( value );
                             chatManager.addLocalPlayerMessage( text, { timeout: 3000 });
-=======
-                        } else {
-
-                            if ( document.activeElement !== inputRef.current ) return true;
-
-                            if ( value ) {
-
-                                const text = checkText( value );
-                                chatManager.addMessage( text, { timeout: 3000 });
-
-                            }
-
-                            setValue('');
-                            setState({ openedPanel: null });
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
                         }
 
-                        return true;
+                        setValue('');
+                        setState({ openedPanel: null });
 
                     }
 
+                    return true;
+
                 }
 
-                return false;
-            
             }
+
+            return false;
 
         };
 
@@ -107,9 +89,9 @@ function ChatInput () {
 
                         }
 
-                        return true;
-
                     }
+
+                    return true;
 
                 }
 

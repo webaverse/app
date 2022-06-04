@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
-import classnames from 'classnames';
+import React, { useState, useEffect, useRef, createContext } from 'react';
 
-import { defaultPlayerSpec } from '../../../constants';
+import { defaultAvatarUrl } from '../../../constants';
 
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
@@ -29,19 +28,9 @@ import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
-<<<<<<< HEAD
-=======
-import {ClaimsNotification} from '../../ClaimsNotification.jsx';
-import {DomRenderer} from '../../DomRenderer.jsx';
-// import * as voices from '../../../voices';
-import {handleStoryKeyControls} from '../../../story';
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
 import styles from './App.module.css';
 import '../../fonts.css';
-import raycastManager from '../../../raycast-manager';
-
-import { AccountContext } from '../../hooks/web3AccountProvider';
 
 //
 
@@ -57,8 +46,7 @@ const _startApp = async ( weba, canvas ) => {
     await weba.startLoop();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
-    // console.log('set player spec', defaultPlayerSpec);
-    await localPlayer.setPlayerSpec(defaultPlayerSpec);
+    await localPlayer.setAvatarUrl( defaultAvatarUrl );
 
 };
 
@@ -85,66 +73,23 @@ const useWebaverseApp = (() => {
   return () => {
         if ( webaverse === null ) {
             webaverse = new Webaverse();
-<<<<<<< HEAD
         }
         return webaverse;
   };
 })();
-=======
-        }
-        return webaverse;
-  };
-})();
-
-const Canvas = ({
-    app,
-}) => {
-    const canvasRef = useRef( null );
-    const [domHover, setDomHover] = useState( null );
-
-    useEffect( () => {
-
-        if ( canvasRef.current ) {
-
-            _startApp( app, canvasRef.current );
-
-        }
-
-    }, [ app, canvasRef ] );
-
-    useEffect( () => {
-        const domhoverchange = e => {
-            const {domHover} = e.data;
-            // console.log('dom hover change', domHover);
-            setDomHover( domHover );
-        };
-        raycastManager.addEventListener('domhoverchange', domhoverchange);
-
-        return () => {
-            raycastManager.removeEventListener('domhoverchange', domhoverchange);
-        };
-    }, []);
-
-    return (
-        <canvas className={ classnames( styles.canvas, domHover ? styles.domHover : null ) } ref={ canvasRef } />
-    );
-};
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
 export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
-<<<<<<< HEAD
     const [ walletstate, setWalletState ] = useState({ walletaddress: null });
-=======
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
+    const canvasRef = useRef( null );
     const app = useWebaverseApp();
     const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
-    const account = useContext(AccountContext);
+
     //
 
     const selectApp = ( app, physicsId, position ) => {
@@ -175,28 +120,6 @@ export const App = () => {
 
     useEffect( () => {
 
-<<<<<<< HEAD
-=======
-        const handleStoryKeyUp = ( event ) => {
-
-            if ( game.inputFocused() ) return;
-            handleStoryKeyControls( event );
-
-        };
-
-        registerIoEventHandler( 'keyup', handleStoryKeyUp );
-
-        return () => {
-
-            unregisterIoEventHandler( 'keyup', handleStoryKeyUp );
-
-        };
-
-    }, [] );
-
-    useEffect( () => {
-
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
         const handleClick = () => {
 
             const hoverObject = game.getMouseHoverObject();
@@ -266,6 +189,16 @@ export const App = () => {
 
     useEffect( _loadUrlState, [] );
 
+    useEffect( () => {
+
+        if ( canvasRef.current ) {
+
+            _startApp( app, canvasRef.current );
+
+        }
+
+    }, [ canvasRef ] );
+
     //
 
     const onDragOver = e => {
@@ -287,25 +220,12 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-<<<<<<< HEAD
             <AppContext.Provider value={{ state, setState, walletstate, setWalletState, app, setSelectedApp, selectedApp }}>
-=======
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, account }}>
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
-                
-                <DomRenderer />
-                <Canvas app={app} />
+                <canvas className={ styles.canvas } ref={ canvasRef } />
                 <Crosshair />
-<<<<<<< HEAD
                 <ActionMenu />
                 <Settings />
-=======
-                
-                <ActionMenu />
-                <Settings />
-                <ClaimsNotification />
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
                 <WorldObjectsList
                     setSelectedApp={ setSelectedApp }
                     selectedApp={ selectedApp }

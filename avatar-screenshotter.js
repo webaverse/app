@@ -24,13 +24,35 @@ export const screenshotAvatarUrl = async ({
   cameraOffset,
   emotion,
 }) => {
-  const player = await npcManager.createNpcAsync({
+  const app = await metaversefile.createAppAsync({
+    start_url,
+  });
+  return await screenshotAvatarApp({
+    app,
+    width,
+    height,
+    canvas,
+    cameraOffset,
+    emotion,
+  });
+};
+export const screenshotAvatarApp = async ({
+  app,
+  width = 300,
+  height = 300,
+  canvas,
+  cameraOffset,
+  emotion,
+}) => {
+  // await Avatar.waitForLoad();
+
+  const player = npcManager.createNpc({
     name: 'sceenshot-npc',
-    avatarUrl: start_url,
+    avatarApp: app,
     detached: true,
   });
 
-  const result = await screenshotPlayer({
+  return await screenshotPlayer({
     player,
     width,
     height,
@@ -38,8 +60,6 @@ export const screenshotAvatarUrl = async ({
     cameraOffset,
     emotion,
   });
-  player.destroy();
-  return result;
 };
 export const screenshotPlayer = async ({
   player,
@@ -134,7 +154,7 @@ export const screenshotPlayer = async ({
   _render();
 
   diorama.destroy();
-  // player.destroy();
+  player.destroy();
 
   return writeCanvas;
 };

@@ -13,7 +13,6 @@ import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
-<<<<<<< HEAD
 import { ethers, BigNumber } from 'ethers'
 import { NFTABI, NFTcontractAddress, FTABI, FTcontractAddress } from "../src/abis/contract"
 import {
@@ -21,9 +20,6 @@ import {
     toast
 } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-=======
-import useNFTContract from './hooks/useNFTContract';
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -97,7 +93,6 @@ const uploadCreateApp = async (item, {
 };
 
 const DragAndDrop = () => {
-<<<<<<< HEAD
 
   const { ethereum } = window;
   if (ethereum) {
@@ -115,12 +110,6 @@ const DragAndDrop = () => {
     // const accounts = await provider.listAccounts();
     // return accounts.length > 0;
   }
-=======
-  const { state, setState, account } = useContext( AppContext );
-  const [queue, setQueue] = useState([]);
-  const [currentApp, setCurrentApp] = useState(null);
-  const { mintNFT, minting } = useNFTContract(account.currentAddress);
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
   useEffect(() => {
     function keydown(e) {
@@ -276,7 +265,6 @@ const DragAndDrop = () => {
     if(!mintBtnEnable) return false;
     e.preventDefault();
     e.stopPropagation();
-<<<<<<< HEAD
     setIsLoading(true);
 
     console.log('mint', currentApp);
@@ -394,11 +382,6 @@ const DragAndDrop = () => {
             setCurrentApp(null);
             notifymessage("Mint failed", "error")
         }
-=======
-    if (currentApp) {
-      const app = currentApp;
-      mintNFT(app);
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
     }
   };
   const _cancel = e => {
@@ -467,7 +450,6 @@ const DragAndDrop = () => {
                     </div>
                 </div>
             </div>
-<<<<<<< HEAD
             <ToastContainer
                     position="top-center"
                     autoClose={4000}
@@ -495,38 +477,6 @@ const DragAndDrop = () => {
                          </div>
         }
     </>
-=======
-            <div className={style.row}>
-              <div className={style.label}>Type: </div>
-              <div className={style.value}>{appType}</div>
-            </div>
-          </div>
-        </div>
-        <div className={style.footer}>
-          <div className={style.buttons}>
-            <div className={style.button} onClick={_drop}>
-              <span>Drop</span>
-              <sub>to world</sub>
-            </div>
-            <div className={style.button} onClick={_equip}>
-              <span>Equip</span>
-              <sub>to self</sub>
-            </div>
-            <div className={style.button} onClick={_mint}>
-              <span>Mint</span>
-              <sub>on chain</sub>
-            </div>
-          </div>
-          <div className={style.buttons}>
-            <div className={classnames(style.button, style.small)} onClick={_cancel}>
-              <span>Cancel</span>
-              <sub>back to game</sub>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
   );
 };
 export {

@@ -13,7 +13,7 @@ import {BokehPass} from './BokehPass.js';
 import {SSAOPass} from './SSAOPass.js';
 // import {RenderPass} from './RenderPass.js';
 import {DepthPass} from './DepthPass.js';
-// import {SwirlPass} from './SwirlPass.js';
+import {SwirlPass} from './SwirlPass.js';
 import {
   getRenderer,
   getComposer,
@@ -33,8 +33,8 @@ import {WebaverseRenderPass} from './webaverse-render-pass.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 // import {parseQuery} from './util.js';
-// import * as sounds from './sounds.js';
-// import musicManager from './music-manager.js';
+import * as sounds from './sounds.js';
+import musicManager from './music-manager.js';
 
 // const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
@@ -168,10 +168,7 @@ function makeEncodingPass() {
 }
 
 const webaverseRenderPass = new WebaverseRenderPass();
-const _isDecapitated = () => (
-  (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) && !cameraManager.target) ||
-  !!getRenderer().xr.getSession()
-);
+const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
 webaverseRenderPass.onBeforeRender = (a, b, c) => {
   // ensure lights attached
   // scene.add(world.lights);

@@ -2,8 +2,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  /* width: 0; */
-  /* height: 0; */
   pointer-events: none;
   user-select: none;
   transform: translate(0, 0);
@@ -14,9 +12,6 @@
 }
 .lightArrowContainer.down .lightArrow {
   transform: scale(0.8, 0.8);
-}
-.lightArrowContainer.up .lightArrow {
-  transform: rotateZ(45deg);
 }
 
 @keyframes arrow-animation {
@@ -38,7 +33,7 @@
 }
 
 .lightArrow {
-  position: relative;
+  position: absolute;
   transform: translate2d(0, 0);
   perspective: 1000px;
   perspective-origin: -65px 30px;
