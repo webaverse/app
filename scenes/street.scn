@@ -8,8 +8,6 @@
       }
     },
     {
-<<<<<<< HEAD
-=======
       "type": "application/light",
       "content": {
         "lightType": "directional",
@@ -28,7 +26,6 @@
       }
     },
     {
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
       "position": [
         0,
         0,
@@ -45,8 +42,6 @@
       "quaternion": [
         0,
         0,
-<<<<<<< HEAD
-=======
         0.7071067811865475
       ],
       "type": "application/npc",
@@ -69,7 +64,6 @@
         0
       ],
       "quaternion": [
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
         0,
         1
       ],
@@ -82,11 +76,6 @@
     },
     {
       "position": [
-<<<<<<< HEAD
-        1,
-        0.5,
-        -1
-=======
         0,
         0,
         -6
@@ -133,7 +122,6 @@
         0,
         0,
         0
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
       ],
       "quaternion": [
         0,
@@ -146,9 +134,6 @@
         1,
         1
       ],
-<<<<<<< HEAD
-      "start_url": "https://webaverse.github.io/silsword/"
-=======
       "start_url": "https://webaverse.github.io/parcels/index.js"
     },
     {
@@ -221,7 +206,6 @@
           ]
         }
       ]
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
     }
   ]
 }
