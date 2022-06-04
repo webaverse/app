@@ -255,7 +255,7 @@ class PlayerBase extends THREE.Object3D {
   async setVoicePack({ audioUrl, indexUrl }) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
-      const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint.url});
+      const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
       self.playerMap.set('voiceSpec', voiceSpec);
     });
     if(this.isLocalPlayer){
