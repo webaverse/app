@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-const localVector2D = new THREE.Vector2();
+const localVector = new THREE.Vector3();
 
 /*
 note: the nunber of lods at each level can be computed with this function:
@@ -69,15 +69,16 @@ export class LodChunkTracker {
     this.chunkHeight = chunkHeight;
 
     this.chunks = [];
-    this.lastUpdateCoord = new THREE.Vector2(NaN, NaN);
+    this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
   }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / this.chunkWorldSize);
+    const cy = this.chunkHeight !== 0 ? Math.floor(position.y / this.chunkHeight) : 0;
     const cz = Math.floor(position.z / this.chunkWorldSize);
-    return target.set(cx, cz);
+    return target.set(cx, cy, cz);
   }
   update(position) {
-    const currentCoord = this.#getCurrentCoord(position, localVector2D);
+    const currentCoord = this.#getCurrentCoord(position, localVector);
 
     if (!currentCoord.equals(this.lastUpdateCoord)) {
       const lod = 0; // XXX support multiple lods
@@ -85,7 +86,7 @@ export class LodChunkTracker {
       for (let dcx = -1; dcx <= 1; dcx++) {
         for (let dcz = -1; dcz <= 1; dcz++) {
           for (let dcy = -this.chunkHeight / this.chunkWorldSize; dcy <= this.chunkHeight / this.chunkWorldSize; dcy++) { // XXX
-            const chunk = new LodChunk(currentCoord.x + dcx, dcy, currentCoord.y + dcz, lod);
+            const chunk = new LodChunk(currentCoord.x + dcx, currentCoord.y + dcy, currentCoord.z + dcz, lod);
             neededChunks.push(chunk);
           }
         }
