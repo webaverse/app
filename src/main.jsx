@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 
 import { App } from './components/app';
 import { ErrorPage } from './components/general/error-page';
+import { AccountProvider } from './hooks/web3AccountProvider';
 
 //
 
@@ -12,7 +13,9 @@ ReactDOM.render(
   <React.StrictMode>
     {
         WebWorkerSupport ? (
-            <App />
+            <AccountProvider>
+                <App />
+            </AccountProvider>
         ) : (
             <ErrorPage errors={[ 'WebWorker modules' ]} />
         )

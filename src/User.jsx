@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
-import * as ceramicApi from '../ceramic.js';
 import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
 
@@ -18,14 +17,25 @@ import Web3 from '../web3.min.js';
 
 //
 
+<<<<<<< HEAD
 export const User = ({ address, setAddress, setLoginFrom }) => {
 
     const { state, setState, walletstate, setWalletState } = useContext( AppContext );
+=======
+export const User = ({ setLoginFrom }) => {
+
+    const { state, setState, account } = useContext( AppContext );
+>>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
+<<<<<<< HEAD
+=======
+    const { currentAddress, connectWallet, errorMessage, wrongChain } = account;
+
+>>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
     //
 
     /* const showModal = ( event ) => {
@@ -51,32 +61,22 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
     };
 
-    const _setAddress = async address => {
-        
-        if (address) {
-            // let live = true;
-            // (async () => {
-                const ensName = await blockchainManager.getEnsName(address);
-                // if (!live) return;
-                setEnsName(ensName);
+    useEffect(()=>{
 
-                if ( ensName ) {
-                    const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
-                    // if (!live) return;
-                    setAvatarUrl(avatarUrl);
-                }
-            // })();
+        if(!currentAddress) return;
 
-            /* return () => {
-                live = false;
-            }; */
+        async function handleAddress() {
+            const ensName = await blockchainManager.getEnsName(currentAddress);
+            setEnsName(ensName);
 
-            // console.log('render name', {address, ensName, avatarUrl});
+            if(!ensName) return;
+            const avatarUrl = await blockchainManager.getAvatarUrl(currentAddress);
+            setAvatarUrl(avatarUrl);
         }
 
-        setAddress(address);
-    
-    };
+        handleAddress();
+
+    }, [currentAddress])
 
     const metaMaskLogin = async ( event ) => {
 
@@ -95,9 +95,13 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                 try {
 
+<<<<<<< HEAD
                     const { address, profile } = await ceramicApi.login();
                     await _setAddress(address);
                     setWalletState({ walletaddress : address })
+=======
+                    connectWallet();
+>>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
@@ -148,13 +152,11 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
         const metamaskAutoLogin = async () => {
 
-            const { address } = await WebaWallet.autoLogin();
+            const address = await connectWallet();
 
             if ( address ) {
 
-                await _setAddress( address );
                 setLoginFrom( 'metamask' );
-                // setShow( false );
 
             } else if ( error ) {
 
@@ -198,7 +200,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
         }
 
-    }, [ address ] );
+    }, [ currentAddress ] );
 
     //
 
@@ -211,7 +213,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
     //
 
     const open = state.openedPanel === 'LoginPanel';
-    const loggedIn = !!address;
+    const loggedIn = !!currentAddress;
 
     //
 
@@ -275,7 +277,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                     ) : null}
                     <div
                         className={styles.address}
-                    >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                    >{ensName || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
                 </div>
                 <div className={styles.logoutBtn}
                     onClick={e => {
