@@ -75,7 +75,7 @@ class AppManager extends EventTarget {
     return !!this.appsArray;
   }
   unbindState() {
-    this.unbindStateFn();
+    if(this.unbindStateFn) this.unbindStateFn();
     this.appsArray = null;
     this.unbindStateFn = null;
     // }
@@ -222,10 +222,14 @@ class AppManager extends EventTarget {
 
       if (e.changes.keys.has("transform")) {
         const transform = trackedApp.get("transform");
-        app.position.fromArray(transform, 0);
-        app.quaternion.fromArray(transform, 3);
-        app.scale?.fromArray(transform, 7);
-        app.transform = transform;
+        if(transform) { 
+          app.position.fromArray(transform, 0);
+          app.quaternion?.fromArray(transform, 3);
+          app.scale?.fromArray(transform, 7);
+          app.transform = transform;
+        } else {
+          console.error("transform isn't set wtf", trackedApp.toJSON());
+        }
       }
     };
     trackedApp.observe(_observe);
@@ -473,8 +477,6 @@ class AppManager extends EventTarget {
     }
   }
   addTrackedAppInternal(instanceId, contentId, transform, components) {
-    console.log("add tracked app internal", instanceId, contentId, transform);
-
     const trackedApp = this.getOrCreateTrackedApp(instanceId);
     trackedApp.set("instanceId", instanceId);
     trackedApp.set("contentId", contentId);
@@ -613,46 +615,63 @@ class AppManager extends EventTarget {
 
     // srcAppManager.setBlindStateMode(true);
     // dstAppManager.setBlindStateMode(true);
-    
-    this.unbindTrackedApp(instanceId);
-    
-    let dstTrackedApp = null;
 
-    const wrapTxFn = (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) ?
-      innerFn => srcAppManager.appsArray.doc.transact(innerFn)
-    :
-      innerFn => dstAppManager.appsArray.doc.transact(() => {
-        srcAppManager.appsArray.doc.transact(innerFn);
+    if (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) {
+      if (this.isBound()) {
+        console.warn(
+          "Calling unbind tracked app, but the app is already unbound:",
+          instanceId
+        );
+        this.unbindTrackedApp(instanceId);
+      }
+
+      let dstTrackedApp = null;
+      srcAppManager.appsArray.doc.transact(() => {
+        const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
+        const contentId = srcTrackedApp.get("contentId");
+
+        let transform = srcTrackedApp.get("transform");
+        const components = srcTrackedApp.get("components");
+        srcAppManager.removeTrackedAppInternal(instanceId);
+
+        if (!transform) {
+          const position = srcTrackedApp.get("position");
+          transform = new Float32Array(11);
+          const quaternion = srcTrackedApp.get("quaternion");
+          const scale = srcTrackedApp.get("scale");
+
+          const pack3 = (v, i) => {
+            transform[i] = v[0];
+            transform[i + 1] = v[1];
+            transform[i + 2] = v[2];
+          };
+          const pack4 = (v, i) => {
+            transform[i] = v[0];
+            transform[i + 1] = v[1];
+            transform[i + 2] = v[2];
+            transform[i + 3] = v[3];
+          };
+
+          pack3(position, 0);
+          pack4(quaternion, 3);
+          pack3(scale, 7);
+        }
+
+        dstTrackedApp = dstAppManager.addTrackedAppInternal(
+          instanceId,
+          contentId,
+          transform,
+          components
+        );
       });
-    wrapTxFn(() => {
-      const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
-      /* if (!srcTrackedApp) {
-        console.log('transplant app', {app, srcTrackedApp});
-        debugger;
-      } */
-      const contentId = srcTrackedApp.get('contentId');
-      const position = srcTrackedApp.get('position');
-      const quaternion = srcTrackedApp.get('quaternion');
-      const scale = srcTrackedApp.get('scale');
-      const components = srcTrackedApp.get('components');
-      
-      srcAppManager.removeTrackedAppInternal(instanceId);
-      
-      dstTrackedApp = dstAppManager.addTrackedAppInternal(
-        instanceId,
-        contentId,
-        position,
-        quaternion,
-        scale,
-        components,
+
+      dstAppManager.bindTrackedApp(dstTrackedApp, app);
+    } else {
+      throw new Error(
+        "cannot transplant apps between app manager with different state binding"
       );
-    });
-    
-    dstAppManager.bindTrackedApp(dstTrackedApp, app);
-    /* } else {
-      throw new Error('cannot transplant apps between app manager with different state binding');
-    } */
-    
+    }
+
     // srcAppManager.setBlindStateMode(false);
     // dstAppManager.setBlindStateMode(false);
   }

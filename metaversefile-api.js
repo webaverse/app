@@ -363,7 +363,7 @@ metaversefile.setApi({
     }
     // console.log('js import', s);
     try {
-      const m = await import(s);
+      const m = await import(/* @vite-ignore */s);
       return m;
     } catch(err) {
       console.warn('error loading', JSON.stringify(s), err.stack);

@@ -7,8 +7,6 @@ import {RemotePlayer} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
 
 Error.stackTraceLimit = 300;
-window.localPlayer = localPlayer;
-
 class PlayersManager {
   constructor() {
     this.playersArray = null;

@@ -1,28 +1,29 @@
 import * as THREE from 'three';
-import React, {useState, useEffect, useContext} from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import { ThreeDots } from "react-loader-spinner"
-import {world} from '../world.js';
-import {getRandomString, handleUpload} from '../util.js';
-import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
-import {registerLoad} from './LoadingBox.jsx';
-import {ObjectPreview} from './ObjectPreview.jsx';
+import { world } from '../world.js';
+import { getRandomString, handleUpload } from '../util.js';
+import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler/IoHandler.jsx';
+import { registerLoad } from './LoadingBox.jsx';
+import { ObjectPreview } from './ObjectPreview.jsx';
 import game from '../game.js';
-import {getRenderer} from '../renderer.js';
+import { getRenderer } from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
 import { ethers, BigNumber } from 'ethers'
-import { NFTABI, NFTcontractAddress, FTABI, FTcontractAddress } from "../src/abis/contract"
+import { NFTcontractAddress, FTcontractAddress } from './hooks/web3-constants.js';
+import { NFTABI, FTABI } from '../src/abis/contract';
 import {
-    ToastContainer,
-    toast
+  ToastContainer,
+  toast
 } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import useNFTContract from './hooks/useNFTContract';
 
-const _upload = () => new Promise((accept, reject) => {
+const _upload = () => new Promise((resolve, reject) => {
   const input = document.createElement('input');
   input.type = 'file';
   // input.setAttribute('webkitdirectory', '');
@@ -35,6 +36,7 @@ const _upload = () => new Promise((accept, reject) => {
     // const load = registerLoad(name, description, 0);
     const o = await uploadCreateApp(e.target.files);
     // load.end();
+    resolve(o);
   });
 });
 const _isJsonItem = item => item?.kind === 'string';
@@ -78,7 +80,7 @@ const uploadCreateApp = async (item, {
           physics: true,
         },
       });
-    } catch(err) {
+    } catch (err) {
       console.warn(err);
     }
     load.end();
@@ -94,30 +96,23 @@ const uploadCreateApp = async (item, {
 };
 
 const DragAndDrop = () => {
-<<<<<<< HEAD
-
   const { ethereum } = window;
   if (ethereum) {
     var provider = new ethers.providers.Web3Provider(ethereum);
   }
 
-  const { state, setState, walletstate, setWalletState } = useContext( AppContext )
+  const { state, setState, account, walletstate, setWalletState } = useContext(AppContext)
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
   const [mintBtnEnable, setMintBtnEnable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const isMetaMaskConnected = () => {
-    return walletstate.walletaddress ? true : false; 
+    return walletstate.walletaddress;
     // const accounts = await provider.listAccounts();
     // return accounts.length > 0;
   }
-=======
-  const { state, setState, account } = useContext( AppContext );
-  const [queue, setQueue] = useState([]);
-  const [currentApp, setCurrentApp] = useState(null);
   const { mintNFT, minting } = useNFTContract(account.currentAddress);
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
   useEffect(() => {
     function keydown(e) {
@@ -129,7 +124,7 @@ const DragAndDrop = () => {
             const app = await _upload();
             setQueue(queue.concat([app]));
           })();
-  
+
           return false;
         }
         case 27: { // esc
@@ -192,7 +187,7 @@ const DragAndDrop = () => {
             }
           }
         }));
-      
+
         /* let arrowLoader = metaverseUi.makeArrowLoader();
         arrowLoader.position.copy(position);
         arrowLoader.quaternion.copy(quaternion);
@@ -228,9 +223,9 @@ const DragAndDrop = () => {
   }, [queue, currentApp]);
 
   useEffect(() => {
-      const connectedWallet = isMetaMaskConnected()
-      setMintBtnEnable(connectedWallet)
-  },[walletstate.walletaddress])
+    const connectedWallet = isMetaMaskConnected()
+    setMintBtnEnable(connectedWallet)
+  }, [walletstate.walletaddress])
 
 
   const _currentAppClick = e => {
@@ -270,10 +265,9 @@ const DragAndDrop = () => {
     }
   };
   const _mint = async e => {
-    if(!mintBtnEnable) return false;
+    if (!mintBtnEnable) return false;
     e.preventDefault();
     e.stopPropagation();
-<<<<<<< HEAD
     setIsLoading(true);
 
     console.log('mint', currentApp);
@@ -315,37 +309,37 @@ const DragAndDrop = () => {
 
     //switch Polygon testnet
     try {
-        await ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: VITE_APP_POLYGON_TESTNET_CHAIN_ID }],
-        });
-      } catch (switchError) {
-        console.log(switchError);
-        // This error code indicates that the chain has not been added to MetaMask.
-        if (switchError.code === 4902) {
-          try {
-            await ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: VITE_APP_POLYGON_TESTNET_CHAIN_ID,
-                  chainName: "Polygon Testnet",
-                  rpcUrls: [import.meta.env.VITE_APP_POLYGON_TESTNET_RPC_URL] /* ... */,
-                  nativeCurrency: {
-                    name: "MATIC",
-                    symbol: "MATIC", // 2-6 characters long
-                    decimals: 18,
-                  },
-                  blockExplorerUrls: [import.meta.env.VITE_APP_POLYGON_TESTNET_BLOCK_EXPLORER_URL],
+      await ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: VITE_APP_POLYGON_TESTNET_CHAIN_ID }],
+      });
+    } catch (switchError) {
+      console.log(switchError);
+      // This error code indicates that the chain has not been added to MetaMask.
+      if (switchError.code === 4902) {
+        try {
+          await ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: VITE_APP_POLYGON_TESTNET_CHAIN_ID,
+                chainName: "Polygon Testnet",
+                rpcUrls: [import.meta.env.VITE_APP_POLYGON_TESTNET_RPC_URL] /* ... */,
+                nativeCurrency: {
+                  name: "MATIC",
+                  symbol: "MATIC", // 2-6 characters long
+                  decimals: 18,
                 },
-              ],
-            });
-          } catch (addError) {
-            console.log(addError);
-          }
+                blockExplorerUrls: [import.meta.env.VITE_APP_POLYGON_TESTNET_BLOCK_EXPLORER_URL],
+              },
+            ],
+          });
+        } catch (addError) {
+          console.log(addError);
         }
-        // handle other "switch" errors
       }
+      // handle other "switch" errors
+    }
 
     let name = currentApp.name;
     let ext = currentApp.contentId.split(".").pop();
@@ -357,45 +351,40 @@ const DragAndDrop = () => {
     const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
     let Bigmintfee = await NFTcontract.mintFee();
     const mintfee = BigNumber.from(Bigmintfee).toNumber();
-    if(mintfee > 0) { // webaverse side chain mintfee != 0
-        const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
-        let FTapproveres = await FTapprovetx.wait()
-        if (FTapproveres.transactionHash) {
-            try {
-                let NFTminttx = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1)
-                setIsLoading(false);
-                setCurrentApp(null);
-                let NFTmintres = await NFTminttx.wait();
-                if (NFTmintres.transactionHash) {
-                    notifymessage("Mint complete! New item added in the inventory", "success");
-                }
-            } catch(err) {
-                console.log(err)
-                setIsLoading(false);
-                setCurrentApp(null);
-                notifymessage("Mint failed", "error")
-            }
-        }
-    } else { // mintfee = 0 for Polygon not webaverse sidechain
+    if (mintfee > 0) { // webaverse side chain mintfee != 0
+      const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
+      let FTapproveres = await FTapprovetx.wait()
+      if (FTapproveres.transactionHash) {
         try {
-            let NFTminttx = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1)
-            setIsLoading(false);
-            setCurrentApp(null);
-            let NFTmintres = await NFTminttx.wait();
-            if (NFTmintres.transactionHash) {
-                notifymessage("Mint complete! New item added in the inventory", "success");
-            }
-        } catch(err) {
-            console.log(err)
-            setIsLoading(false);
-            setCurrentApp(null);
-            notifymessage("Mint failed", "error")
+          let NFTminttx = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1)
+          setIsLoading(false);
+          setCurrentApp(null);
+          let NFTmintres = await NFTminttx.wait();
+          if (NFTmintres.transactionHash) {
+            notifymessage("Mint complete! New item added in the inventory", "success");
+          }
+        } catch (err) {
+          console.log(err)
+          setIsLoading(false);
+          setCurrentApp(null);
+          notifymessage("Mint failed", "error")
         }
-=======
-    if (currentApp) {
-      const app = currentApp;
-      mintNFT(app);
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
+      }
+    } else { // mintfee = 0 for Polygon not webaverse sidechain
+      try {
+        let NFTminttx = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1)
+        setIsLoading(false);
+        setCurrentApp(null);
+        let NFTmintres = await NFTminttx.wait();
+        if (NFTmintres.transactionHash) {
+          notifymessage("Mint complete! New item added in the inventory", "success");
+        }
+      } catch (err) {
+        console.log(err)
+        setIsLoading(false);
+        setCurrentApp(null);
+        notifymessage("Mint failed", "error")
+      }
     }
   };
   const _cancel = e => {
@@ -410,120 +399,111 @@ const DragAndDrop = () => {
 
   const notifymessage = (msg, type) => {
     toast(msg, {
-        position: "top-center",
-        autoClose: 4000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-        type,
-        theme: "dark"
+      position: "top-center",
+      autoClose: 4000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: true,
+      progress: undefined,
+      type,
+      theme: "dark"
     });
-}
+  }
   return (
-    <>
-        <>
-            <div className={style.dragAndDrop}>
-                <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
-                    <h1 className={style.heading}>Upload object</h1>
-                    <div className={style.body}>
-                        <ObjectPreview object={currentApp} className={style.canvas} />
-                        <div className={style.wrap}>
-                            <div className={style.row}>
-                            <div className={style.label}>Name: </div>
-                            <div className={style.value}>{name}</div>
-                            </div>
-                            <div className={style.row}>
-                            <div className={style.label}>Type: </div>
-                            <div className={style.value}>{appType}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className={style.footer}>
-                        <div className={style.buttons}>
-                            <div className={style.button} onClick={_drop}>
-                            <span>Drop</span>
-                            <sub>to world</sub>
-                            </div>
-                            <div className={style.button} onClick={_equip}>
-                            <span>Equip</span>
-                            <sub>to self</sub>
-                            </div>
-                            <div className={style.button} disabled={!mintBtnEnable} onClick={_mint}>
-                            <span>Mint</span>
-                            <sub>on chain</sub>
-                            </div>
-                        </div>
-                        <div className={style.buttons}>
-                            <div className={classnames(style.button, style.small)} onClick={_cancel}>
-                            <span>Cancel</span>
-                            <sub>back to game</sub>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-<<<<<<< HEAD
-            <ToastContainer
-                    position="top-center"
-                    autoClose={4000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                />
-        </>
-        {
-            isLoading && <div
-                            style={{
-                            width: "100%",
-                            height: "100%",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            background: "black",
-                            opacity: .5
-                            }}
-                        >
-                            <ThreeDots color="#00BFFF" height={80} width={80} />
-                         </div>
-        }
-    </>
-=======
-            <div className={style.row}>
-              <div className={style.label}>Type: </div>
-              <div className={style.value}>{appType}</div>
+    <React.Fragment>
+      <div className={style.dragAndDrop}>
+        <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
+          <h1 className={style.heading}>Upload object</h1>
+          <div className={style.body}>
+            <ObjectPreview object={currentApp} className={style.canvas} />
+            <div className={style.wrap}>
+              <div className={style.row}>
+                <div className={style.label}>Name: </div>
+                <div className={style.value}>{name}</div>
+              </div>
+              <div className={style.row}>
+                <div className={style.label}>Type: </div>
+                <div className={style.value}>{appType}</div>
+              </div>
             </div>
           </div>
-        </div>
-        <div className={style.footer}>
-          <div className={style.buttons}>
-            <div className={style.button} onClick={_drop}>
-              <span>Drop</span>
-              <sub>to world</sub>
+          <div className={style.footer}>
+            <div className={style.buttons}>
+              <div className={style.button} onClick={_drop}>
+                <span>Drop</span>
+                <sub>to world</sub>
+              </div>
+              <div className={style.button} onClick={_equip}>
+                <span>Equip</span>
+                <sub>to self</sub>
+              </div>
+              <div className={style.button} disabled={!mintBtnEnable} onClick={_mint}>
+                <span>Mint</span>
+                <sub>on chain</sub>
+              </div>
             </div>
-            <div className={style.button} onClick={_equip}>
-              <span>Equip</span>
-              <sub>to self</sub>
-            </div>
-            <div className={style.button} onClick={_mint}>
-              <span>Mint</span>
-              <sub>on chain</sub>
-            </div>
-          </div>
-          <div className={style.buttons}>
-            <div className={classnames(style.button, style.small)} onClick={_cancel}>
-              <span>Cancel</span>
-              <sub>back to game</sub>
+            <div className={style.buttons}>
+              <div className={classnames(style.button, style.small)} onClick={_cancel}>
+                <span>Cancel</span>
+                <sub>back to game</sub>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
+      <ToastContainer
+        position="top-center"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+      />
+      {
+        isLoading && <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            background: "black",
+            opacity: .5
+          }}
+        >
+          <ThreeDots color="#00BFFF" height={80} width={80} />
+        </div>
+      }
+      <div className={style.row}>
+        <div className={style.label}>Type: </div>
+        <div className={style.value}>{appType}</div>
+      </div>
+      <div className={style.footer}>
+        <div className={style.buttons}>
+          <div className={style.button} onClick={_drop}>
+            <span>Drop</span>
+            <sub>to world</sub>
+          </div>
+          <div className={style.button} onClick={_equip}>
+            <span>Equip</span>
+            <sub>to self</sub>
+          </div>
+          <div className={style.button} onClick={_mint}>
+            <span>Mint</span>
+            <sub>on chain</sub>
+          </div>
+        </div>
+        <div className={style.buttons}>
+          <div className={classnames(style.button, style.small)} onClick={_cancel}>
+            <span>Cancel</span>
+            <sub>back to game</sub>
+          </div>
+        </div>
+      </div>
+    </React.Fragment>
   );
 };
 export {

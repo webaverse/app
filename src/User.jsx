@@ -17,25 +17,15 @@ import Web3 from '../web3.min.js';
 
 //
 
-<<<<<<< HEAD
-export const User = ({ address, setAddress, setLoginFrom }) => {
-
-    const { state, setState, walletstate, setWalletState } = useContext( AppContext );
-=======
 export const User = ({ setLoginFrom }) => {
-
-    const { state, setState, account } = useContext( AppContext );
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
+    const { state, setState, account, walletstate, setWalletState } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-<<<<<<< HEAD
-=======
     const { currentAddress, connectWallet, errorMessage, wrongChain } = account;
 
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
     //
 
     /* const showModal = ( event ) => {
@@ -95,13 +85,7 @@ export const User = ({ setLoginFrom }) => {
 
                 try {
 
-<<<<<<< HEAD
-                    const { address, profile } = await ceramicApi.login();
-                    await _setAddress(address);
-                    setWalletState({ walletaddress : address })
-=======
                     connectWallet();
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
@@ -130,23 +114,23 @@ export const User = ({ setLoginFrom }) => {
         //
 
         const discordAutoLogin = async () => {
-            const { address, error } = await WebaWallet.loginDiscord( code, id );
+            console.warn("Skipping discord auto login")
+            // const { address, error } = await WebaWallet.loginDiscord( code, id );
 
-            if ( address ) {
+            // if ( address ) {
 
-                await _setAddress( address );
-                // setAddress( address );
-                setLoginFrom( 'discord' );
-                // setShow( false );
+            //     // setAddress( address );
+            //     setLoginFrom( 'discord' );
+            //     // setShow( false );
 
-            } else if ( error ) {
+            // } else if ( error ) {
 
-                setLoginError( String( error ).toLocaleUpperCase() );
+            //     setLoginError( String( error ).toLocaleUpperCase() );
 
-            }
+            // }
 
-            window.history.pushState( {}, '', window.location.origin );
-            setLoggingIn( false );
+            // window.history.pushState( {}, '', window.location.origin );
+            // setLoggingIn( false );
 
         };
 
@@ -284,7 +268,6 @@ export const User = ({ setLoginFrom }) => {
                         e.preventDefault();
                         e.stopPropagation();
                         WebaWallet.logout();
-                        _setAddress(null);
                         setWalletState({ walletaddress: null })
                     }}
                 >Logout</div>
