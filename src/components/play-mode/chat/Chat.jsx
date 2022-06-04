@@ -59,10 +59,6 @@ function ChatInput () {
 
                             setState({ openedPanel: 'ChatPanel' });
 
-<<<<<<< HEAD
-                            const text = checkText( value );
-                            chatManager.addLocalPlayerMessage( text, { timeout: 3000 });
-=======
                         } else {
 
                             if ( document.activeElement !== inputRef.current ) return true;
@@ -70,13 +66,12 @@ function ChatInput () {
                             if ( value ) {
 
                                 const text = checkText( value );
-                                chatManager.addMessage( text, { timeout: 3000 });
+                                chatManager.addLocalPlayerMessage( text, { timeout: 3000 });
 
                             }
 
                             setValue('');
                             setState({ openedPanel: null });
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
                         }
 

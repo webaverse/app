@@ -101,32 +101,7 @@ export const TabAudio = ({ active }) => {
 
         // set voice pack
 
-<<<<<<< HEAD
-        const vp = voicePacks[ voicePacks.map( ( vp ) => { return vp.name; } ).indexOf( voicePack ) ];
-        if ( vp ) {
-
-            const { audioPath, indexPath } = vp;
-            const voicePacksUrlBase = voicePacksUrl.replace( /\/+[^\/]+$/, '' );
-            const audioUrl = voicePacksUrlBase + audioPath;
-            const indexUrl = voicePacksUrlBase + indexPath;
-
-            (async () => {
-
-                await game.setVoicePack({
-                    audioUrl,
-                    indexUrl
-                });
-
-            })().catch( ( err ) => {
-
-                console.warn( err );
-
-            });
-
-        }
-=======
         overrides.overrideVoicePack.set(voicePack !== 'None' ? voicePack : null);
->>>>>>> bce331d4c5deb17ade830123a8c23d722208064a
 
         // set voice endpoint
 
