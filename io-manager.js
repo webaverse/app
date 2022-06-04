@@ -232,7 +232,7 @@ const _updateIo = timeDiff => {
         
       dolly.matrix
         .premultiply(localMatrix.makeTranslation(originalPosition.x - localVector.x, originalPosition.y - localVector.y, originalPosition.z - localVector.z))
-        .premultiply(localMatrix.makeTranslation(0, 0, 0))
+        .premultiply(localMatrix.makeTranslation(0, 0.1, 0))
         .decompose(dolly.position, dolly.quaternion, dolly.scale);    
       dolly.updateMatrixWorld();  
     }
