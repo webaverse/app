@@ -1511,19 +1511,21 @@ class GameManager extends EventTarget {
 
       // update velocity
       // localPlayer.characterPhysics.velocity.y += 6;
-      localPlayer.characterPhysics.velocity.y += window.jumpVelocityY;
+      localPlayer.characterPhysics.velocity.y = window.jumpVelocityY;
       // setTimeout(() => {
       //   localPlayer.characterPhysics.velocity.y = window.timeout333VelocityY;
       // }, 333);
   
       window.gravityMutiplier = 4;
-      setTimeout(() => {
-        window.gravityMutiplier = 1;
-      }, 682);
+      // setTimeout(() => {
+      //   window.gravityMutiplier = 1;
+      // }, 682);
     } else if (!jumpAction.stage) {
       localPlayer.removeAction('jump');
       const stage = 'doubleJump';
       this.ensureJump(trigger, stage);
+
+      localPlayer.characterPhysics.velocity.y = window.jumpVelocityY;
     }
     
     // play sound

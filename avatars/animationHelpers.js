@@ -812,7 +812,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             localVector.fromArray(v3);
             dst.lerp(localQuaternion, lerpFactor);
           }
-          if (isPosition) console.log('fall');
+          // if (isPosition) console.log('fall');
         };
 
         if (avatar.doubleJumpTime > 0) { // double jump stage
@@ -826,7 +826,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
           if (doubleJumpTimeS < doubleJumpAnimationDuration) { // double jump stage
             // already full doubleJump animation, do nothing;
-            if (isPosition) console.log('double');
+            // if (isPosition) console.log('double');
           } else { // fall loop stage
             _playFallLoop(doubleJumpTimeS - doubleJumpAnimationDuration);
           }
@@ -837,12 +837,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           const t2 = jumpTimeS;
           const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
-          // if (isPosition) console.log('loop', t2);
           dst.fromArray(v2);
 
           if (jumpTimeS < jumpAnimationDuration) { // jump up stage
             // already full jump animation, do nothing;
-            if (isPosition) console.log('jump');
+            // if (isPosition) console.log('jump');
           } else { // fall loop stage
             _playFallLoop(jumpTimeS - jumpAnimationDuration);
           }

@@ -296,7 +296,7 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
-      // if (window.localPlayer?.avatar?.jumpTime !== 0) console.log(window.localPlayer?.avatar?.jumpTime);
+      if (window.localPlayer?.avatar?.jumpTime !== 0) console.log(window.localPlayer?.avatar?.jumpTime);
 
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
@@ -394,8 +394,8 @@ const _startHacks = webaverse => {
 
   // animations.index["jump.fbx"].duration - 1 / 30
   // air time = 682.7090000000026; // share with texta
-  // window.jumpVelocityY = 15;
-  window.jumpVelocityY = 30;
+  window.jumpVelocityY = 15;
+  // window.jumpVelocityY = 30;
   window.gravityMutiplier = 4;
 
   // air time = 666.0810000000056;
