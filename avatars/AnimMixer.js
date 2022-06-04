@@ -25,11 +25,11 @@ Vector3.lerpFlat = (dst, dstOffset, src0, srcOffset0, src1, srcOffset1, alpha) =
   dst[dstOffset + 2] = z0 + (z1 - z0) * alpha;
 };
 
-const interpolateFlat = (dst, src0, src1, t, isPosition) => {
-  if (!isPosition) {
-    Quaternion.slerpFlat(dst, 0, src0, 0, src1, 0, t);
-  } else {
+const interpolateFlat = (dst, src0, src1, t) => {
+  if (dst.length === 3) {
     Vector3.lerpFlat(dst, 0, src0, 0, src1, 0, t);
+  } else {
+    Quaternion.slerpFlat(dst, 0, src0, 0, src1, 0, t);
   }
 };
 class AnimMixer extends EventDispatcher {
@@ -62,7 +62,7 @@ class AnimMixer extends EventDispatcher {
         blendee = this._doBlend(blendNode.children[i], spec);
         if (blendee.weight > 0) {
           const t = blendee.weight / (currentWeight + blendee.weight);
-          interpolateFlat(result, result, blendee.arr, t, isPosition);
+          interpolateFlat(result, result, blendee.arr, t);
           currentWeight += blendee.weight;
         }
       }
@@ -94,7 +94,7 @@ class AnimMixer extends EventDispatcher {
           copyArray(result, value);
         } else {
           const t = 1 / (count + 1);
-          interpolateFlat(result, result, value, t, isPosition);
+          interpolateFlat(result, result, value, t);
         }
         count++;
       }
