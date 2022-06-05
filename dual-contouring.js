@@ -151,9 +151,18 @@ w.clearChunkRootDualContouring = (x, y, z) => {
   Module._clearChunkRootDualContouring(x, y, z)
 }
 
-w.createChunkMeshDualContouring = (x, y, z, lod) => {
-  const outputBufferOffset = Module._createChunkMeshDualContouring(x, y, z, lod);
-  // console.log('create xyz', x, y, z, outputBufferOffset);
+w.createChunkMeshDualContouring = (x, y, z, lods) => {
+  const allocator = new Allocator(Module);
+
+  const lodArray = allocator.alloc(Int32Array, 8);
+  lodArray.set(lods);
+
+  const outputBufferOffset = Module._createChunkMeshDualContouring(
+    x, y, z,
+    lodArray.byteOffset,
+  );
+
+  allocator.freeAll();
 
   if (outputBufferOffset) {
     const _parseVertexBuffer = (arrayBuffer, bufferAddress) => {
