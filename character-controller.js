@@ -59,8 +59,6 @@ const localVector2 = new THREE.Vector3();
 // const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
-const localArray3 = [0, 0, 0];
-const localArray4 = [0, 0, 0, 0];
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const upVector = new THREE.Vector3(0, 1, 0);
@@ -159,7 +157,9 @@ class PlayerBase extends THREE.Object3D {
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
+    this.characterHitter = new CharacterHitter(this);
     this.characterBehavior = new CharacterBehavior(this);
+    
     this.wornApps = [];
     this.leftHand = new PlayerHand();
     this.rightHand = new PlayerHand();
@@ -657,8 +657,8 @@ class StatePlayer extends PlayerBase {
     const actions = this.getActionsState();
     let lastActions = actions.toJSON();
     const observeActionsFn = (e) => {
-      console.log("e is", e)
       const nextActions = Array.from(this.getActionsState());
+
       for (const nextAction of nextActions) {
         if (
           !lastActions.some(
@@ -671,6 +671,7 @@ class StatePlayer extends PlayerBase {
           });
         }
       }
+
       for (const lastAction of lastActions) {
         if (
           !nextActions.some(
@@ -1140,12 +1141,6 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
-    this.characterHitter = new CharacterHitter(this);
-    this.characterBehavior = new CharacterBehavior(this);
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
@@ -1483,7 +1478,6 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
 }
 
-let initialPosition = localVector;
 class RemotePlayer extends InterpolatedPlayer {
   audioWorkletNode = false;
   constructor(opts) {
@@ -1590,26 +1584,18 @@ class RemotePlayer extends InterpolatedPlayer {
       );
     }
 
-    console.log("index is", index);
-
     const lastPosition = new THREE.Vector3();
 
     loadPhysxCharacterController.call(this);
 
-    // let prevApps = [];
-
     const observePlayerFn = (e) => {
       if (e.changes.keys.get('playerId')) {
-        console.log("playerId is ", e.changes.keys.get('playerId'));
         this.playerId = e.changes.keys.get('playerId');
       }
 
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
-        console.log("voiceSpec is ", e.changes.keys.get('voiceSpec'));
         const voiceSpec = e.changes.keys.get('voiceSpec');
-        console.log("voiceSpec is", voiceSpec.value)
         const json = JSON.parse(voiceSpec.value);
-        console.log("json is", json)
         if(json.endpointUrl)
           this.loadVoiceEndpoint(json.endpointUrl);
         if(json.audioUrl && json.indexUrl)
@@ -1617,7 +1603,6 @@ class RemotePlayer extends InterpolatedPlayer {
       }
 
       if (e.changes.keys.get('name')) {
-        console.log("name is ", e.changes.keys.get('name'));
         this.name = e.changes.keys.get('name');
       }
 

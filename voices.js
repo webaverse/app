@@ -1,4 +1,4 @@
-import { voicePacksUrl, voiceEndpointsUrl, defaultVoiceEndpoint, defaultVoicePackName } from './constants.js';
+import {voicePacksUrl, voiceEndpointsUrl, defaultVoiceEndpoint, defaultVoicePackName} from './constants.js';
 import overrides from './overrides.js';
 import {getLocalPlayer} from './players.js';
 import * as voices from './voices.js';
@@ -9,12 +9,12 @@ const voiceEndpoints = [];
 const loadPromise = (async () => {
   await Promise.all([
     (async () => {
-      const res = await fetch( voicePacksUrl );
+      const res = await fetch(voicePacksUrl);
       const j = await res.json();
       voicePacks.push(...j);
     })(),
     (async () => {
-      const res = await fetch( voiceEndpointsUrl );
+      const res = await fetch(voiceEndpointsUrl);
       const j = await res.json();
       voiceEndpoints.push(...j);
     })(),
@@ -27,13 +27,14 @@ const loadPromise = (async () => {
 ].forEach(key => {
   overrides[key].addEventListener('change', async e => {
     const voicePackName = overrides.overrideVoicePack.get() ?? overrides.userVoicePack.get() ?? defaultVoicePackName;
+    console.log(('voicePackName', voicePackName));
     const voicePack = voices.voicePacks.find(vp => vp.name === voicePackName);
+    if (!voicePack) {
+      console.error(('voicePack', voicePack));
+      return;
+    }
+    const {audioPath, indexPath} = voicePack;
 
-    const {
-      audioPath,
-      indexPath,
-    } = voicePack;
-    
     const voicePacksUrlBase = voicePacksUrl.replace(/\/+[^\/]+$/, '');
     const audioUrl = voicePacksUrlBase + audioPath;
     const indexUrl = voicePacksUrlBase + indexPath;
@@ -51,10 +52,10 @@ const loadPromise = (async () => {
 ].forEach(key => {
   overrides[key].addEventListener('change', async e => {
     const voiceEndpointName = overrides.overrideVoiceEndpoint.get() ?? overrides.userVoiceEndpoint.get() ?? defaultVoiceEndpoint;
-    console.log("voiceEndpointName", voiceEndpointName);
-    console.log("voices.voiceEndpoints", voices.voiceEndpoints)
+    console.log('voiceEndpointName', voiceEndpointName);
+    console.log('voices.voiceEndpoints', voices.voiceEndpoints);
     const voiceEndpoint = voices.voiceEndpoints.find(ve => ve.name === voiceEndpointName);
-    console.log("voiceEndpoint", voiceEndpoint);
+    console.log('voiceEndpoint', voiceEndpoint);
 
     const localPlayer = getLocalPlayer();
     localPlayer.setVoiceEndpoint(voiceEndpoint.drive_id);
@@ -69,4 +70,4 @@ export {
   waitForLoad,
   voicePacks,
   voiceEndpoints,
-}
+};
