@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip, LoopOnce} from 'three';
+import {Vector3, Quaternion, AnimationClip, LoopOnce, MathUtils} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -422,21 +422,31 @@ export const _createAnimation = avatar => {
   avatar.walkRunNode = {
     children: [avatar.walkMotion, avatar.runMotion],
   };
-  avatar.idleNode = {
+  avatar.defaultNode = { // 7way blend node
     children: [avatar.idleMotion, avatar.walkRunNode],
   };
-  avatar.animTree = avatar.idleNode;
+  avatar.jumpNode = {
+    children: [avatar.defaultNode, avatar.jumpMotion],
+  }
+  avatar.animTree = avatar.jumpNode; // todo: set whole tree here with separate names.
 };
 
 export const _updateAnimation = avatar => {
   const timeSeconds = performance.now() / 1000;
   const {mixer} = avatar;
 
+  // LoopRepeat
   avatar.walkMotion.weight = 1 - avatar.moveFactors.walkRunFactor;
   avatar.runMotion.weight = avatar.moveFactors.walkRunFactor;
 
   avatar.idleMotion.weight = 1 - avatar.moveFactors.idleWalkFactor;
   avatar.walkRunNode.weight = avatar.moveFactors.idleWalkFactor;
+
+  // LoopOnce
+  avatar.jumpMotion.time = avatar.jumpTime / 1000 * 0.6 + 0.7;
+  const jumpFactor = MathUtils.clamp(avatar.jumpTime / 0.2, 0, 1);
+  avatar.defaultNode.weight = 1 - jumpFactor;
+  avatar.jumpMotion.weight = jumpFactor;
 
   mixer.update(timeSeconds, avatar.animTree);
 };

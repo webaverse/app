@@ -1,4 +1,4 @@
-import {EventDispatcher, Vector3, Quaternion} from 'three';
+import {EventDispatcher, Vector3, Quaternion, LoopOnce} from 'three';
 import {AnimMotion} from './AnimMotion.js';
 
 const localVector = new Vector3();
@@ -60,7 +60,12 @@ class AnimMixer extends EventDispatcher {
       const motion = node;
       const clip = motion.clip;
       const src = clip.interpolants[k];
-      const value = src.evaluate(timeSeconds % clip.duration);
+      let value;
+      if (motion.loop === LoopOnce) {
+        value = src.evaluate(motion.time);
+      } else {
+        value = src.evaluate(timeSeconds % clip.duration);
+      }
       return value;
     } else if (node.children.length > 0) {
       const result = []; // todo: resultBuffer ( refer to threejs );
