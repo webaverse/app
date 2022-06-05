@@ -1057,6 +1057,8 @@ class InterpolatedPlayer extends StatePlayer {
       pickUp: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.pickUp.get(), 0),
       unuse: new InfiniteActionInterpolant(() => !this.actionBinaryInterpolants.use.get(), 0),
       aim: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.aim.get(), 0),
+      aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
+      aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
       narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
       fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
       jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
@@ -1068,14 +1070,10 @@ class InterpolatedPlayer extends StatePlayer {
       // fallLoop: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0),
       // swordSideSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordSideSlash.get(), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordTopDownSlash.get(), 0),
-      hurt: new InfiniteActionInterpolant(
-        () => this.actionBinaryInterpolants.hurt.get(),
-        0
-      ),
+      hurt: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.hurt.get(), 0),
     };
-    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
-      (k) => this.actionInterpolants[k]
-    );
+    
+    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map((k) => this.actionInterpolants[k]);
 
     this.avatarBinding = {
       position: this.positionInterpolant.get(),
@@ -1097,10 +1095,6 @@ class InterpolatedPlayer extends StatePlayer {
 class UninterpolatedPlayer extends StatePlayer {
   constructor(opts) {
     super(opts);
-
-    UninterpolatedPlayer.init.apply(this, arguments);
-  }
-  static init() {
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
