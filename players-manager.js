@@ -88,6 +88,9 @@ class PlayersManager {
             });
             this.remotePlayers.set(playerId, remotePlayer);
             this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
+
+             // reset remote player's voicer
+             remotePlayer.dispatchEvent({type: "resetvoicer"});
           }
         }
         // console.log('players observe', added, deleted);
