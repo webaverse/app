@@ -2,6 +2,8 @@ import {LoopRepeat} from 'three';
 
 class AnimMotion {
   constructor(mixer, clip) {
+    this.isAnimMotion = true;
+
     this.mixer = mixer;
     this.clip = clip;
     this.name = this.clip.name;
@@ -10,15 +12,20 @@ class AnimMotion {
     // default values same as THREE.AnimationAction.
     this.loop = LoopRepeat;
     this.clampWhenFinished = false;
-  }
 
-  play() {
-    // this.mixer.motion = this;
+    // always play
     this.mixer.motions.push(this);
   }
 
+  play() {
+    // // this.mixer.motion = this;
+    // this.mixer.motions.push(this);
+    this.weight = Math.abs(this.weight);
+  }
+
   stop() {
-    this.mixer.motions.splice(this.mixer.motions.indexOf(this), 1);
+    // this.mixer.motions.splice(this.mixer.motions.indexOf(this), 1);
+    this.weight = -Math.abs(this.weight);
   }
 }
 

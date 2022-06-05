@@ -46,7 +46,7 @@ class AnimMixer extends EventDispatcher {
     return motion;
   }
 
-  _doBlend(blendNode, spec) {
+  doBlendOld(blendNode, spec) {
     if (typeof blendNode === 'function') {
       const applyFn = blendNode;
       return applyFn(spec);
@@ -54,12 +54,12 @@ class AnimMixer extends EventDispatcher {
       const {
         isPosition,
       } = spec;
-      let blendee = this._doBlend(blendNode.children[0], spec);
+      let blendee = this.doBlendOld(blendNode.children[0], spec);
       const result = blendee.arr;
       let currentWeight = blendee.weight;
       for (let i = 1; i < blendNode.children.length; i++) {
         if (!blendNode.children[i]) continue;
-        blendee = this._doBlend(blendNode.children[i], spec);
+        blendee = this.doBlendOld(blendNode.children[i], spec);
         if (blendee.weight > 0) {
           const t = blendee.weight / (currentWeight + blendee.weight);
           interpolateFlat(result, result, blendee.arr, t);
@@ -73,7 +73,84 @@ class AnimMixer extends EventDispatcher {
     }
   }
 
-  update(timeSeconds = performance.now() / 1000) {
+  doBlend(node, timeSeconds, spec) {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    if (window.isDebugger) debugger
+
+    if (node.isAnimMotion) {
+      const motion = node;
+      const clip = motion.clip;
+      const src = clip.interpolants[k];
+      const value = src.evaluate(timeSeconds % clip.duration);
+      return value;
+    } else if (node.children.length > 0) {
+      const result = []; // todo: resultBuffer ( refer to threejs );
+      // let result;
+      let nodeIndex = 0;
+      let currentWeight = 0;
+      for (let i = 0; i < node.children.length; i++) {
+        const childNode = node.children[i];
+        const value = this.doBlend(childNode, timeSeconds, spec);
+        if (nodeIndex === 0) {
+          // result = value; // todo: will change original data?
+          copyArray(result, value);
+
+          nodeIndex++;
+          currentWeight = childNode.weight;
+        } else if (childNode.weight > 0) { // todo: handle weight < 0 ?
+          const t = childNode.weight / (currentWeight + childNode.weight);
+          interpolateFlat(result, result, value, t);
+
+          nodeIndex++;
+          currentWeight += childNode.weight;
+        }
+      }
+      return result;
+    }
+  }
+
+  update(timeSeconds, animTree) {
+    for (const spec of this.avatar.animationMappings) {
+      const {
+        animationTrackName: k,
+        dst,
+        // isTop,
+        isPosition,
+      } = spec;
+
+      const result = this.doBlend(animTree, timeSeconds, spec);
+
+      if (isPosition) { // _clearXZ
+        result[0] = 0;
+        result[2] = 0;
+      }
+
+      dst.fromArray(result);
+
+      // applyFn(spec);
+      // _blendFly(spec);
+      // _blendActivateAction(spec);
+
+      // ignore all animation position except y
+      if (isPosition) {
+        if (!this.avatar.jumpState) {
+          // animations position is height-relative
+          dst.y *= this.avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
+        } else {
+          // force height in the jump case to overide the animation
+          dst.y = this.avatar.height * 0.55;
+        }
+      }
+    }
+  }
+
+  updateOldBlendList(timeSeconds = performance.now() / 1000) {
     for (const spec of this.avatar.animationMappings) {
       const {
         animationTrackName: k,

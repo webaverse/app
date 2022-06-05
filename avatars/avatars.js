@@ -1906,7 +1906,7 @@ class Avatar {
     if (this === window.localPlayer.avatar) {
       window.avatar = this;
       window.mixer = this.mixer;
-      window.motiono = this.motiono;
+      // window.motiono = this.motiono;
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
       */
