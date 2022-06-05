@@ -1500,7 +1500,6 @@ class Avatar {
     const timeDiffS = timeDiff / 1000;
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
-    console.log("currentSpeed is", currentSpeed)
 
     const moveFactors = {};
     moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);

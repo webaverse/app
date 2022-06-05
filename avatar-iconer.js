@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import metaversefile from 'metaversefile'
+import metaversefile from 'metaversefile';
 import {emotions} from './src/components/general/character/Emotions';
 import offscreenEngineManager from './offscreen-engine-manager.js';
 
@@ -23,12 +23,17 @@ class AvatarIconer extends EventTarget {
     this.enabled = false;
 
     this.canvases = [];
-    
+
     const avatarchange = e => {
-      this.renderAvatarApp(e.app);
+      const avatarApp = player.getAvatarApp();
+      if (avatarApp) {
+        this.enabled = true;
+        console.log('Handling avatar change, ', e, new Error().stack);
+        this.renderAvatarApp(avatarApp);
+      } else console.error("avatarApp was null, so didn't render");
     };
     player.addEventListener('avatarchange', avatarchange);
-    
+
     const actionupdate = e => {
       this.updateEmotionFromActions();
     };
@@ -58,12 +63,12 @@ class AvatarIconer extends EventTarget {
           avatarUrl: start_url,
           detached: true,
         });
-  
+
         const emotionCanvases = await Promise.all(allEmotions.map(async emotion => {
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
-  
+
           await screenshotPlayer({
             player,
             canvas,
@@ -74,32 +79,37 @@ class AvatarIconer extends EventTarget {
           const imageBitmap = await createImageBitmap(canvas);
           return imageBitmap;
         }));
-  
+
         player.destroy();
 
         return emotionCanvases;
-      }
+      },
     ]);
-
-    const avatarApp = player.getAvatarApp();
-    this.renderAvatarApp(avatarApp);
   }
+
   async renderAvatarApp(srcAvatarApp) {
     const lastEnabled = this.enabled;
 
     if (srcAvatarApp) {
+      console.log("srcAvatarApp?", srcAvatarApp);
       const start_url = srcAvatarApp.contentId;
+      console.log("start url is", start_url)
 
       this.emotionCanvases = await this.getEmotionCanvases([start_url, this.width, this.height]);
 
+      console.log("emotionCanvases is", emotionCanvases)
+
       this.enabled = true;
     } else {
+      console.error('srcAvatarApp is null');
       this.emotionCanvases.length = 0;
       this.enabled = false;
     }
 
     this.lastRenderedEmotion = null;
-  
+
+    console.log('lastEnabled', lastEnabled, 'this.enabled', this.enabled);
+
     if (lastEnabled !== this.enabled) {
       this.dispatchEvent(new MessageEvent('enabledchange', {
         data: {
@@ -108,10 +118,12 @@ class AvatarIconer extends EventTarget {
       }));
     }
   }
+
   addCanvas(canvas) {
     canvas.ctx = canvas.getContext('2d');
     this.canvases.push(canvas);
   }
+
   updateEmotionFromActions() {
     const emotion = (() => {
       const faceposeAction = this.player.getAction('facepose');
@@ -123,7 +135,7 @@ class AvatarIconer extends EventTarget {
       if (hurtAction) {
         return 'sorrow';
       }
-      
+
       const useAction = this.player.getAction('use');
       if (useAction) {
         if (
@@ -160,13 +172,14 @@ class AvatarIconer extends EventTarget {
     })();
     this.emotion = emotion;
   }
+
   update() {
     if (this.emotion !== this.lastRenderedEmotion) {
       const emotionIndex = allEmotions.indexOf(this.emotion);
-      
+
       if (emotionIndex !== -1) {
         const sourceCanvas = this.emotionCanvases[emotionIndex];
-        
+
         if (sourceCanvas) {
           for (const dstCanvas of this.canvases) {
             const {ctx} = dstCanvas;
@@ -180,7 +193,7 @@ class AvatarIconer extends EventTarget {
               0,
               0,
               dstCanvas.width,
-              dstCanvas.height
+              dstCanvas.height,
             );
           }
         }
@@ -189,6 +202,7 @@ class AvatarIconer extends EventTarget {
       this.lastRenderedEmotion = this.emotion;
     }
   }
+
   destroy() {
     this.cleanup();
   }
