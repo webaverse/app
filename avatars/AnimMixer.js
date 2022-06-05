@@ -127,62 +127,6 @@ class AnimMixer extends EventDispatcher {
       }
     }
   }
-
-  updateOldBlendList(timeSeconds = performance.now() / 1000) {
-    for (const spec of this.avatar.animationMappings) {
-      const {
-        animationTrackName: k,
-        dst,
-        // isTop,
-        isPosition,
-      } = spec;
-
-      const result = [];
-      let motionIndex = 0;
-      let currentWeight = 0;
-      if (window.isDebugger) debugger;
-      for (let i = 0; i < this.motions.length; i++) {
-        const motion = this.motions[i];
-        const clip = motion.clip;
-        const src = clip.interpolants[k];
-        const value = src.evaluate(timeSeconds % clip.duration);
-        if (motionIndex === 0) {
-          copyArray(result, value);
-
-          motionIndex++;
-          currentWeight = motion.weight;
-        } else if (motion.weight > 0) { // todo: handle weight < 0 ?
-          const t = motion.weight / (currentWeight + motion.weight);
-          interpolateFlat(result, result, value, t);
-
-          motionIndex++;
-          currentWeight += motion.weight;
-        }
-      }
-
-      if (isPosition) { // _clearXZ
-        result[0] = 0;
-        result[2] = 0;
-      }
-
-      dst.fromArray(result);
-
-      // applyFn(spec);
-      // _blendFly(spec);
-      // _blendActivateAction(spec);
-
-      // ignore all animation position except y
-      if (isPosition) {
-        if (!this.avatar.jumpState) {
-          // animations position is height-relative
-          dst.y *= this.avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
-        } else {
-          // force height in the jump case to overide the animation
-          dst.y = this.avatar.height * 0.55;
-        }
-      }
-    }
-  }
 }
 
 export {AnimMixer};
