@@ -113,7 +113,7 @@ class VoiceEndpointVoicer {
           }
         };
         audioBufferSourceNode.addEventListener('ended', ended, {once: true});
-        if (!this.player.avatar.microphoneWorker) {
+        if (!this.player.avatar.audioWorker) {
           this.player.avatar.setAudioEnabled(true);
         }
         audioBufferSourceNode.connect(this.player.avatar.getAudioInput());

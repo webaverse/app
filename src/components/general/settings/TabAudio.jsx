@@ -141,7 +141,7 @@ export const TabAudio = ({ active }) => {
 
         await voices.waitForLoad();
 
-        setVoicePacks( [ defaultVoicePack ].concat( voices.voicePacks ) );
+        setVoicePacks( [ noneVoicePack ].concat( voices.voicePacks ) );
 
     };
 
@@ -149,7 +149,7 @@ export const TabAudio = ({ active }) => {
 
         await voices.waitForLoad();
 
-        setVoiceEndpoints( [ defaultVoiceEndpoint ].concat( voices.voiceEndpoints ) );
+        setVoiceEndpoints( [ noneVoiceEndpoint ].concat( voices.voiceEndpoints ) );
 
     };
 

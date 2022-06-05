@@ -426,6 +426,7 @@ class CharacterSfx {
       if (!this.player.avatar.isAudioEnabled()) {
         this.player.avatar.setAudioEnabled(true);
       }
+      
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
       // if the oldGrunt are still playing

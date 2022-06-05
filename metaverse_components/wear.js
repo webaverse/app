@@ -290,7 +290,6 @@ export default (app, component) => {
     app.updateMatrixWorld();
   };
   const frame = metaversefile.useFrame(({timestamp, timeDiff}) => {
-    console.log("player is", player)
     if (wearSpec && player.avatar) {
       const {instanceId} = app;
 
