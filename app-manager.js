@@ -635,26 +635,23 @@ class AppManager extends EventTarget {
         srcAppManager.removeTrackedAppInternal(instanceId);
 
         if (!transform) {
-          const position = srcTrackedApp.get("position");
           transform = new Float32Array(11);
-          const quaternion = srcTrackedApp.get("quaternion");
-          const scale = srcTrackedApp.get("scale");
-
+  
           const pack3 = (v, i) => {
-            transform[i] = v[0];
-            transform[i + 1] = v[1];
-            transform[i + 2] = v[2];
+            transform[i] = v.x;
+            transform[i + 1] = v.y;
+            transform[i + 2] = v.z;
           };
           const pack4 = (v, i) => {
-            transform[i] = v[0];
-            transform[i + 1] = v[1];
-            transform[i + 2] = v[2];
-            transform[i + 3] = v[3];
+            transform[i] = v.x;
+            transform[i + 1] = v.y;
+            transform[i + 2] = v.z;
+            transform[i + 3] = v.w;
           };
-
-          pack3(position, 0);
-          pack4(quaternion, 3);
-          pack3(scale, 7);
+  
+          pack3(app.position, 0);
+          pack4(app.quaternion, 3);
+          pack3(app.scale, 7);
         }
 
         dstTrackedApp = dstAppManager.addTrackedAppInternal(
@@ -813,14 +810,10 @@ class AppManager extends EventTarget {
 
     // iterate over appsArray
     for (const trackedApp of this.appsArray) {
-      const position = trackedApp.get("position");
-      const quaternion = trackedApp.get("quaternion");
-      const scale = trackedApp.get("scale");
+      const transform = trackedApp.get("transform");
       const components = trackedApp.get("components") ?? [];
       const object = {
-        position,
-        quaternion,
-        scale,
+        transform,
         components,
       };
       // console.log('got app object', object);
