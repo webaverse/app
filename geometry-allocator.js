@@ -25,7 +25,7 @@ export class FreeListSlot {
       return [this];
     } else {
       throw new Error('could not allocate from self: ' + size + ' : ' + this.count);
-      return null;
+      // return null;
     }
   }
   free() {
@@ -59,11 +59,11 @@ export class FreeList {
         return replacementArray[0];
       } else {
         throw new Error('out of memory');
-        return null;
+        // return null;
       }
     } else {
       throw new Error('alloc size must be > 0');
-      return null;
+      // return null;
     }
   }
   free(slot) {
@@ -76,7 +76,7 @@ export class FreeList {
       throw new Error('invalid free');
     }
   }
-  #mergeAdjacentSlots() {
+  /* #mergeAdjacentSlots() {
     for (let i = this.slots.length - 2; i >= 0; i--) {
       const slot = this.slots[i];
       const nextSlot = this.slots[i + 1];
@@ -85,7 +85,7 @@ export class FreeList {
         this.slots.splice(i + 1, 1);
       }
     }
-  }
+  } */
   getGeometryGroups() {
     const groups = [];
     for (const slot of this.slots) {
