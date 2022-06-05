@@ -38,7 +38,7 @@ const loadPromise = (async () => {
     const indexUrl = voicePacksUrlBase + indexPath;
 
     const localPlayer = getLocalPlayer();
-    await localPlayer.loadVoicePack({
+    await localPlayer.setVoicePack({
       audioUrl,
       indexUrl,
     });

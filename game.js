@@ -1923,9 +1923,10 @@ class GameManager extends EventTarget {
       ]);
     });
   }
-  /* loadVoicePack(voicePack) {
-    return localPlayer.loadVoicePack(voicePack);
-  } */
+  setVoicePack(voicePack) {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    return localPlayer.setVoicePack(voicePack);
+  }
   setVoiceEndpoint(voiceId) {
     const localPlayer = getLocalPlayer();
     return localPlayer.setVoiceEndpoint(voiceId);
