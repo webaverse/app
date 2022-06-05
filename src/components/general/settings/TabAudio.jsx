@@ -22,14 +22,14 @@ export const noneVoicePack = {
 };
 const noneVoiceEndpoint = {
     name: 'None',
-    drive_id: null,
+    voiceId: null,
 };
 export const defaultVoicePack = {
     name: `ShiShi voice pack`,
 };
 export const defaultVoiceEndpoint = {
     name: 'Applejack',
-    drive_id: '1kpEjZ3YqMN3chKSXODOqayEm581rxj4r',
+    voiceId: '1kpEjZ3YqMN3chKSXODOqayEm581rxj4r',
 };
 const DefaultSettings = {
     general:        100,
@@ -119,11 +119,11 @@ export const TabAudio = ({ active }) => {
 
         // set voice pack
 
-        overrides.overrideVoicePack.set(voicePack !== 'None' ? voicePack : null);
+        overrides.overrideVoicePack.set(voicePack);
 
         // set voice endpoint
 
-        overrides.overrideVoiceEndpoint.set(voiceEndpoint !== 'None' ? voiceEndpoint : null);
+        overrides.overrideVoiceEndpoint.set(voiceEndpoint);
 
         //
 
@@ -141,7 +141,7 @@ export const TabAudio = ({ active }) => {
 
         await voices.waitForLoad();
 
-        setVoicePacks( [ noneVoicePack ].concat( voices.voicePacks ) );
+        setVoicePacks( [ defaultVoicePack ].concat( voices.voicePacks ) );
 
     };
 
@@ -149,7 +149,7 @@ export const TabAudio = ({ active }) => {
 
         await voices.waitForLoad();
 
-        setVoiceEndpoints( [ noneVoiceEndpoint ].concat( voices.voiceEndpoints ) );
+        setVoiceEndpoints( [ defaultVoiceEndpoint ].concat( voices.voiceEndpoints ) );
 
     };
 
