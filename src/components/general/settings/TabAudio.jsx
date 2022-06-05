@@ -11,6 +11,7 @@ import overrides from '../../../../overrides';
 import styles from './settings.module.css';
 
 import * as audioManager from '../../../../audio-manager.js';
+import metaversefile from '../../../../metaversefile-api.js';
 
 //
 
@@ -23,14 +24,29 @@ const noneVoiceEndpoint = {
     name: 'None',
     drive_id: null,
 };
+export const defaultVoicePack = {
+    name: `ShiShi voice pack`,
+};
+export const defaultVoiceEndpoint = {
+    name: 'Applejack',
+    drive_id: '1kpEjZ3YqMN3chKSXODOqayEm581rxj4r',
+};
 const DefaultSettings = {
     general:        100,
     music:          100,
     voice:          100,
     effects:        100,
-    voicePack:      noneVoicePack.name,
-    voiceEndpoint:  noneVoiceEndpoint.name,
+    voicePack:      defaultVoicePack.name,
+    voiceEndpoint:  defaultVoiceEndpoint.name,
 };
+
+const avatarVoicer = {
+    scillia_drophunter_v15_vian: 'Scillia voice pack',
+    Drake_hacker_v8_Guilty: 'Drake voice pack',
+    hya_influencer_v2_vian: 'Bryce voice pack',
+    jun_engineer_v1_vian: 'Andrew voice pack',
+    ann: 'ShiShi voice pack'
+}
 
 export const TabAudio = ({ active }) => {
 
@@ -49,6 +65,8 @@ export const TabAudio = ({ active }) => {
     const [ voiceEndpoint, setVoiceEndpoint ] = useState( '' );
 
     //
+
+    const localPlayer = metaversefile.useLocalPlayer();
 
     function saveSettings () {
 
@@ -86,8 +104,8 @@ export const TabAudio = ({ active }) => {
         setMusicVolume( settings.music ?? DefaultSettings.music );
         setVoiceVolume( settings.voice ?? DefaultSettings.voice );
         setEffectsVolume( settings.effects ?? DefaultSettings.effects );
-        setVoicePack( settings.voicePack ?? DefaultSettings.voicePack );
-        setVoiceEndpoint( settings.voiceEndpoint ?? DefaultSettings.voiceEndpoint );
+        setVoicePack( settings.voicePack ? settings.voicePack : DefaultSettings.voicePack );
+        setVoiceEndpoint( settings.voiceEndpoint ? settings.voiceEndpoint : DefaultSettings.voiceEndpoint );
 
         setSettingsLoaded( true );
 
@@ -143,6 +161,31 @@ export const TabAudio = ({ active }) => {
     };
 
     //
+
+    useEffect( () => {
+
+        localPlayer.addEventListener('resetvoicer', e => {
+            if(voicePacks && voiceEndpoints && voicePack) {
+                applySettings();
+            }
+        });
+
+    }, [voicePacks, voiceEndpoints, voicePack]);
+
+    useEffect( () => {
+
+        localPlayer.addEventListener('avatarchange', e => {
+
+            const avatarApp = e.app;
+            if(avatarApp.avatar) {
+                const avatarVoicePack = avatarVoicer[avatarApp.name];
+                console.log('changed avatar, applying voice pack', e.app.name, avatarVoicePack);
+                setVoicePack(avatarVoicePack);
+                setTimeout( applySettings, 100 );
+            }
+        });
+
+    }, [voicePacks, voiceEndpoint]);
 
     useEffect( () => {
 
