@@ -97,7 +97,7 @@
         audioRecognizer.addEventListener('result', e => {
           updateHyp(e.data);
         });
-        let microphoneWorker = null;
+        let audioWorker = null;
         function start(audioUrl) {
           const audio = new Audio(audioUrl);
           audio.addEventListener('canplaythrough', async e => {
@@ -108,11 +108,11 @@
               audioContext,
               microphoneWorkletUrl: '/avatars/microphone-worklet.js',
             }
-            microphoneWorker = new MicrophoneWorker(audio, options);
-            /* microphoneWorker.addEventListener('volume', e => {
+            audioWorker = new MicrophoneWorker(audio, options);
+            /* audioWorker.addEventListener('volume', e => {
               console.log('got volume', e);
             }); */
-            microphoneWorker.addEventListener('buffer', e => {
+            audioWorker.addEventListener('buffer', e => {
               audioRecognizer.send(e.data);
             });
           }, {once: true});
@@ -123,7 +123,7 @@
           audioContext.resume();
         }
         function stop() {
-          microphoneWorker.close();
+          audioWorker.close();
         }
 
         await audioRecognizer.waitForLoad();

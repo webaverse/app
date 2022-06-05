@@ -496,6 +496,7 @@ class PlayerBase extends THREE.Object3D {
         this.dispatchEvent({
           type: 'wearupdate',
           app,
+          player: this,
           wear: true,
           loadoutIndex,
           holdAnimation,
@@ -637,11 +638,6 @@ class StatePlayer extends PlayerBase {
     this.unbindFns = [];
 
     this.bindState(playersArray);
-  }
-  setAudioDecoder() {
-    this.audioDecoder = new WsAudioDecoder({
-      output: this.avatar.getAudioInput(),
-    });
   }
   isBound() {
     return !!this.playersArray;
@@ -788,23 +784,23 @@ class StatePlayer extends PlayerBase {
         if (!cancelFn.isLive()) return console.log("canceling the function");
         this.avatar = avatar;
         console.log("Dispatching avatarchange", app)
+        loadPhysxCharacterController.call(this);
+        
+        if (this.isLocalPlayer) {
+          physicsManager.disableGeometryQueries(this.characterController);
+          avatar.isLocalPlayer = true;
+        }
+
         this.dispatchEvent({
           type: "avatarchange",
           app,
           avatar,
         });
-
-        loadPhysxCharacterController.call(this);
-        
-        if (this.isLocalPlayer) {
-          physicsManager.disableGeometryQueries(this.characterController);
-        }
+        this.dispatchEvent({
+          type: "avatarupdate",
+          app,
+        });
       })();
-
-      this.dispatchEvent({
-        type: "avatarupdate",
-        app,
-      });
     };
 
     if (instanceId) {
@@ -937,22 +933,6 @@ class StatePlayer extends PlayerBase {
     action.controllingBone =
       action.type === "sit" ? null : action.controllingBone;
     actions.push([action]);
-  }
-  setMicMediaStream(mediaStream) {
-    if (!this.avatar)
-      return console.log("Can't set mic media stream, no avatar");
-    if (this.microphoneMediaStream) {
-      this.microphoneMediaStream.disconnect();
-      this.microphoneMediaStream = null;
-    }
-    if (mediaStream) {
-      this.avatar.setAudioEnabled(true, this);
-      const audioContext = Avatar.getAudioContext();
-      const mediaStreamSource =
-        audioContext.createMediaStreamSource(mediaStream);
-      mediaStreamSource.connect(this.avatar.getAudioInput());
-      this.microphoneMediaStream = mediaStreamSource;
-    }
   }
   new() {
     const self = this;
@@ -1215,6 +1195,24 @@ class LocalPlayer extends UninterpolatedPlayer {
   setAvatarApp(app) {
     console.warn("Using deprecated setAvatarApp, review deprecation or remove this warning");
     this.#setAvatarAppFromOwnAppManager(app);
+  }
+
+  setMicMediaStream(mediaStream) {
+    if (!this.avatar)
+      return console.log("Can't set mic media stream, no avatar");
+    if (this.microphoneMediaStream) {
+      this.microphoneMediaStream.disconnect();
+      this.microphoneMediaStream = null;
+    }
+    if (mediaStream) {
+      this.avatar.setAudioEnabled(true, this);
+      const audioContext = Avatar.getAudioContext();
+      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+
+      mediaStreamSource.connect(this.avatar.getAudioInput(true));
+
+      this.microphoneMediaStream = mediaStreamSource;
+    }
   }
 
   detachState() {

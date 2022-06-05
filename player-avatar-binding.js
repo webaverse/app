@@ -7,6 +7,9 @@ import { unFrustumCull, enableShadows } from "./util.js";
 import { getEyePosition } from "./avatars/util.mjs";
 import { world } from "./world.js";
 import hpManager from "./hp-manager.js";
+import metaversefile from 'metaversefile';
+
+const {useLocalPlayer} = metaversefile;
 
 const appSymbol = "app"; // Symbol('app');
 const avatarSymbol = "avatar"; // Symbol('avatar');
@@ -87,7 +90,6 @@ export function makeAvatar(app) {
           }
         });
       });
-
       return avatar;
     }
   }

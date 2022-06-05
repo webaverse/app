@@ -870,6 +870,7 @@ class Avatar {
       this.skinnedMeshesVisemeMappings = [];
     }
 
+    this.audioWorker = null;
     this.microphoneWorker = null;
 
     this.volume = -1;
@@ -1986,10 +1987,14 @@ class Avatar {
   }
 
   isAudioEnabled() {
-    return !!this.microphoneWorker;
+    return !!this.audioWorker || !!this.audioWorker;
   }
   setAudioEnabled(enabled) {
     // cleanup
+    if (this.audioWorker) {
+      this.audioWorker.close();
+      this.audioWorker = null;
+    }
     if (this.microphoneWorker) {
       this.microphoneWorker.close();
       this.microphoneWorker = null;
@@ -2009,21 +2014,15 @@ class Avatar {
           await audioContext.resume();
         })();
       }
-      const localPlayer = metaversefile.useLocalPlayer();
-      this.microphoneWorker = new MicrophoneWorker({
-        audioContext,
-        muted: false,
-        emitVolume: true,
-        emitBuffer: true,
-      });
-      this.microphoneWorker.addEventListener('volume', e => {
+      const _volume = e => {
         if (!this.manuallySetMouth) {
           this.volume = this.volume * 0.8 + e.data * 0.2;
         }
-      });
-      this.microphoneWorker.addEventListener('buffer', e => {
+      }
+
+      const _buffer = e => {
         this.audioRecognizer.send(e.data);
-      });
+      }
 
       this.audioRecognizer = new AudioRecognizer({
         sampleRate: audioContext.sampleRate,
@@ -2031,12 +2030,37 @@ class Avatar {
       this.audioRecognizer.addEventListener('result', e => {
         this.vowels.set(e.data);
       });
+
+      this.audioWorker = new MicrophoneWorker({
+        audioContext,
+        muted: false,
+        emitVolume: true,
+        emitBuffer: true,
+      });
+
+      this.audioWorker.addEventListener('volume', _volume);
+      this.audioWorker.addEventListener('buffer', _buffer);
+      if(this.isLocalPlayer){
+        console.log("isLocalPlayer")
+      this.microphoneWorker = new MicrophoneWorker({
+        audioContext,
+        muted: true,
+        emitVolume: true,
+        emitBuffer: true,
+      });
+
+      this.microphoneWorker.addEventListener('volume', _volume);
+      this.microphoneWorker.addEventListener('buffer', _buffer);
+    } else {
+      console.error("Couldn't set mic cus local player")
+    }
     } else {
       this.volume = -1;
     }
   }
-  getAudioInput() {
-    return this.microphoneWorker && this.microphoneWorker.getInput();
+  getAudioInput(useMicrophone = false) {
+    console.log("Getting audio input, is local player?", this.isLocalPlayer)
+      return this.isLocalPlayer && useMicrophone ? this.microphoneWorker.getInput() : this.audioWorker.getInput();
   }
   decapitate() {
     if (!this.decapitated) {
