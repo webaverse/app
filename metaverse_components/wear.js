@@ -33,7 +33,11 @@ export default (app, component) => {
 
   const wearupdate = (e) => {
     if (e.wear) {
-      player = e.player;
+      if(e.player){
+        player = e.player;
+      } else {
+        console.error("no player!")
+      }
 
       wearSpec = app.getComponent('wear');
       initialScale.copy(app.scale);
@@ -204,6 +208,7 @@ export default (app, component) => {
   const resetweartransform = (e) => {
     console.log('resetweartransform called')
     if (e.player) {
+      player = e.player;
       const avatarHeight = e.player.avatar ? e.player.avatar.height : 0;
       e.app.position
       .copy(e.player.position)
@@ -285,6 +290,7 @@ export default (app, component) => {
     app.updateMatrixWorld();
   };
   const frame = metaversefile.useFrame(({timestamp, timeDiff}) => {
+    console.log("player is", player)
     if (wearSpec && player.avatar) {
       const {instanceId} = app;
 
