@@ -277,6 +277,7 @@ class AppManager extends EventTarget {
       };
       const cleanup = () => {
         this.removeEventListener("clear", clear);
+        
         this.pendingAddPromises.delete(instanceId);
       };
       this.addEventListener("clear", clear);

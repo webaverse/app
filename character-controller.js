@@ -1177,18 +1177,25 @@ class LocalPlayer extends UninterpolatedPlayer {
   } */
   #setAvatarAppFromOwnAppManager(app) {
     const self = this;
+    if(!app) return console.error("app is ", app)
     this.playersArray.doc.transact(function tx() {
       console.log("setAvatarApp");
       const avatar = self.getAvatarState();
+      console.log("avatar is", avatar)
       const oldInstanceId = avatar.get("instanceId");
-
-      avatar.set("instanceId", app.instanceId);
-
+      console.log("oldInstanceId is", oldInstanceId)
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
       }
+          avatar.set("instanceId", app.instanceId);
     });
   }
+
+  setAvatarApp(app) {
+    console.warn("Using deprecated setAvatarApp, review deprecation or remove this warning");
+    this.#setAvatarAppFromOwnAppManager(app);
+  }
+
   detachState() {
     const oldActions = this.playersArray
       ? this.getActionsState()

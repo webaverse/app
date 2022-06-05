@@ -67,7 +67,7 @@ export const SceneMenu = ({
 
     sceneName = sceneName ?? event.target.value;
     setSelectedScene(sceneName);
-    universe.pushUrl(`/?src=${encodeURIComponent('./scenes/' + sceneName)}`);
+    universe.pushUrl(`/?src=${encodeURIComponent(sceneName)}`);
   };
 
   const handleRoomMenuOpen = value => {

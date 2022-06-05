@@ -63,7 +63,7 @@ const _getCurrentSceneSrc = () => {
 
     let { src } = parseQuery( window.location.search );
 
-    return src ?? './scenes/' + sceneNames[0];
+    return src ?? './' + sceneNames[0];
 
 };
 

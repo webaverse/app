@@ -4,6 +4,7 @@ player objects load their own avatar and apps using this binding */
 // import * as THREE from 'three';
 import * as Z from 'zjs';
 import {RemotePlayer} from './character-controller.js';
+import {getLocalPlayer} from './players.js'
 import metaversefileApi from 'metaversefile';
 
 Error.stackTraceLimit = 300;
@@ -27,7 +28,7 @@ class PlayersManager {
       console.log('got players array', this.playersArray);
       const playerSpecs = this.playersArray.toJSON();
       const nonLocalPlayerSpecs = playerSpecs.filter(p => {
-        return p.playerId !== localPlayer.playerId;
+        return p.playerId !== getLocalPlayer().playerId;
       });
       for (const nonLocalPlayer of nonLocalPlayerSpecs) {
         const remotePlayer = this.remotePlayers.get(nonLocalPlayer.playerId);
@@ -52,7 +53,7 @@ class PlayersManager {
     this.playersArray = nextPlayersArray;
 
     if (this.playersArray) {
-      const localPlayer = metaversefileApi.useLocalPlayer();
+      const localPlayer = getLocalPlayer();
 
       const playersObserveFn = (e) => {
         const { added, deleted, delta, keys } = e.changes;

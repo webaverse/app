@@ -34,7 +34,7 @@ const MegaHup = function({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas && npcPlayer) {
+    if (canvas && npcPlayer && npcPlayer.avatar) {
       let live = true;
       let diorama = null;
       {
@@ -76,6 +76,8 @@ const MegaHup = function({
         window.removeEventListener('resize', resize);
         live = false;
       };
+    } else {
+      console.error("Unable to set megaHup, avatar is probably null")
     }
   }, [canvasRef, npcPlayer]);
 

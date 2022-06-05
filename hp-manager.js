@@ -81,6 +81,7 @@ const makeHitTracker = ({ totalHp = 100 } = {}) => {
   };
   hitTracker.bind = (app) => {
     if (!currentApp) {
+      console.log("app is", app)
       app.parent.add(hitTracker);
       hitTracker.add(app);
       hitTracker.updateMatrixWorld();
