@@ -50,10 +50,12 @@ const loadPromise = (async () => {
 ].forEach(key => {
   overrides[key].addEventListener('change', async e => {
     const voiceEndpointName = overrides.overrideVoiceEndpoint.get() ?? overrides.userVoiceEndpoint.get() ?? defaultVoiceEndpoint;
+    console.log("voiceEndpointName", voiceEndpointName);
     const voiceEndpoint = voices.voiceEndpoints.find(ve => ve.name === voiceEndpointName);
+    console.log("voiceEndpoint", voiceEndpoint);
 
     const localPlayer = getLocalPlayer();
-    localPlayer.setVoiceEndpoint(voiceEndpoint.drive_id);
+    localPlayer.setVoiceEndpoint(voiceEndpoint.voiceId);
   });
 });
 
