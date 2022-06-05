@@ -101,7 +101,7 @@ export class FreeList {
   }
 }
 
-export class GeometryBinding {
+export class GeometryPositionIndexBinding {
   constructor(positionFreeListEntry, indexFreeListEntry, geometry) {
     this.positionFreeListEntry = positionFreeListEntry;
     this.indexFreeListEntry = indexFreeListEntry;
@@ -141,7 +141,7 @@ export class GeometryAllocator {
   alloc(numPositions, numIndices) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
-    const geometryBinding = new GeometryBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
+    const geometryBinding = new GeometryPositionIndexBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
     return geometryBinding;
   }
   free(geometryBinding) {
