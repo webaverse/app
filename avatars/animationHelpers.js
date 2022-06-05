@@ -412,43 +412,25 @@ export const loadPromise = (async () => {
 export const _createAnimation = avatar => {
   avatar.mixer = new AnimMixer(avatar);
 
-  // avatar.motiono = {};
-
   avatar.idleMotion = avatar.mixer.createMotion(animations.index['idle.fbx']);
-
   avatar.walkMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
-
   avatar.runMotion = avatar.mixer.createMotion(animations.index['Fast Run.fbx']);
-
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
   avatar.jumpMotion.loop = LoopOnce;
-
   avatar.crouchMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
-
-  // const idleWalkNode = new AnimNode();
-  // idleWalkNode.add(idleMotion, walkMotion, avatar.moveFactors.idleWalkFactor);
-
-  // idleMotion.play();
-  // walkMotion.play();
-  // runMotion.play();
 
   avatar.walkRunNode = {
     children: [avatar.walkMotion, avatar.runMotion],
   };
-
   avatar.idleNode = {
     children: [avatar.idleMotion, avatar.walkRunNode],
   };
-
   avatar.animTree = avatar.idleNode;
 };
 
 export const _updateAnimation = avatar => {
   const timeSeconds = performance.now() / 1000;
   const {mixer} = avatar;
-
-  // if (avatar.jumpState && avatar.jumpTime === 0) avatar.motiono.jump.play();
-  // if (avatar.jumpState) console.log(avatar.jumpTime);
 
   avatar.walkMotion.weight = 1 - avatar.moveFactors.walkRunFactor;
   avatar.runMotion.weight = avatar.moveFactors.walkRunFactor;

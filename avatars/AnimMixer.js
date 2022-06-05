@@ -46,33 +46,6 @@ class AnimMixer extends EventDispatcher {
     return motion;
   }
 
-  doBlendOld(blendNode, spec) {
-    if (typeof blendNode === 'function') {
-      const applyFn = blendNode;
-      return applyFn(spec);
-    } else if (blendNode.children.length > 0) {
-      const {
-        isPosition,
-      } = spec;
-      let blendee = this.doBlendOld(blendNode.children[0], spec);
-      const result = blendee.arr;
-      let currentWeight = blendee.weight;
-      for (let i = 1; i < blendNode.children.length; i++) {
-        if (!blendNode.children[i]) continue;
-        blendee = this.doBlendOld(blendNode.children[i], spec);
-        if (blendee.weight > 0) {
-          const t = blendee.weight / (currentWeight + blendee.weight);
-          interpolateFlat(result, result, blendee.arr, t);
-          currentWeight += blendee.weight;
-        }
-      }
-      return { // blendee
-        arr: result,
-        weight: blendNode.weight,
-      };
-    }
-  }
-
   doBlend(node, timeSeconds, spec) {
     const {
       animationTrackName: k,
