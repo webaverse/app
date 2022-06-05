@@ -32,13 +32,12 @@ export default (app, component) => {
   // const initialQuaternion = new THREE.Quaternion();
 
   const wearupdate = (e) => {
+    if(e.player){
+      player = e.player;
+    } else {
+      console.error("no player!")
+    }
     if (e.wear) {
-      if(e.player){
-        player = e.player;
-      } else {
-        console.error("no player!")
-      }
-
       wearSpec = app.getComponent('wear');
       initialScale.copy(app.scale);
       // console.log('wear activate', app, wearSpec, e);

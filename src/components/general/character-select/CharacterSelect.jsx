@@ -198,7 +198,7 @@ export const CharacterSelect = () => {
             if (!voiceEndpoint) {
                 throw new Error('no such voice endpoint: ' + targetCharacter.voice);
             }
-            const voiceEndpointUrl = getVoiceEndpointUrl(voiceEndpoint.voiceId);
+            const voiceEndpointUrl = getVoiceEndpointUrl(voiceEndpoint.drive_id);
             const preloadedMessage = VoiceEndpointVoicer.preloadMessage(voiceEndpointUrl, characterIntro.message);
             const preloadedOnSelectMessage = VoiceEndpointVoicer.preloadMessage(voiceEndpointUrl, characterIntro.onselect);
             

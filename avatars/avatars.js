@@ -2040,8 +2040,8 @@ class Avatar {
 
       this.audioWorker.addEventListener('volume', _volume);
       this.audioWorker.addEventListener('buffer', _buffer);
+
       if(this.isLocalPlayer){
-        console.log("isLocalPlayer")
       this.microphoneWorker = new MicrophoneWorker({
         audioContext,
         muted: true,

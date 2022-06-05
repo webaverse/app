@@ -268,9 +268,7 @@ class PlayerBase extends THREE.Object3D {
       const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
       self.playerMap.set('voiceSpec', voiceSpec);
     });
-    if(this.isLocalPlayer){
-      this.loadVoicePack({ audioUrl, indexUrl })
-    }
+    this.loadVoicePack({ audioUrl, indexUrl })
   }
 
   async loadVoicePack({ audioUrl, indexUrl }) {
@@ -282,7 +280,8 @@ class PlayerBase extends THREE.Object3D {
   }
 
   setVoiceEndpoint(voiceId) {
-    console.log("setVoiceEndpoint")
+    if(!voiceId) return console.error("voice Id is null,")
+    console.log("setVoiceEndpoint", voiceId)
     const self = this;
     const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
     this.playersArray.doc.transact(function tx() {
@@ -298,9 +297,7 @@ class PlayerBase extends THREE.Object3D {
         self.playerMap.set('voiceSpec', voiceSpec);
       }
     });
-    if(this.isLocalPlayer){
-      this.loadVoiceEndpoint(url)
-    }
+    this.loadVoiceEndpoint(url)
   }
 
   loadVoiceEndpoint(url) {
@@ -1497,8 +1494,6 @@ class RemotePlayer extends InterpolatedPlayer {
   }
 
   audioWorkerLoaded = false;
-  analyzer = false;
-  dataArray;
   async prepareAudioWorker() {
     try {
       if (!this.audioWorkerLoaded) {
@@ -1524,19 +1519,7 @@ class RemotePlayer extends InterpolatedPlayer {
           this.avatar.setAudioEnabled(true);
         }
 
-        this.analyser = audioContext.createAnalyser();
-        this.analyser.fftSize = 2048;
-
-        var bufferLength = this.analyser.frequencyBinCount;
-        this.dataArray = new Uint8Array(bufferLength);
-
-        // Connect the source to be analysed
-        this.audioWorkletNode.connect(this.analyser);
         this.audioWorkletNode.connect(this.avatar.getAudioInput());
-
-        // audioWorkletNode.connect(audioContext.destination)
-        this.analyser.connect(audioContext.gain);
-        console.log("***** EVERYTHING IS CONNECTED *****");
       }
     } catch (error) {
       console.error("error", error);
@@ -1548,7 +1531,6 @@ class RemotePlayer extends InterpolatedPlayer {
     this.prepareAudioWorker();
     if (this.audioWorkletNode) {
       this.audioDecoder.decode(data.data);
-      this.analyser.getByteTimeDomainData(this.dataArray);
     }
   }
 
@@ -1627,6 +1609,7 @@ class RemotePlayer extends InterpolatedPlayer {
         const voiceSpec = e.changes.keys.get('voiceSpec');
         console.log("voiceSpec is", voiceSpec.value)
         const json = JSON.parse(voiceSpec.value);
+        console.log("json is", json)
         if(json.endpointUrl)
           this.loadVoiceEndpoint(json.endpointUrl);
         if(json.audioUrl && json.indexUrl)

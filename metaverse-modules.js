@@ -7,6 +7,7 @@ const moduleUrls = {
   arrowLoader: `./metaverse_modules/arrow-loader/`,
   errorPlaceholder: `./metaverse_modules/error-placeholder/`,
   damageMesh: `./metaverse_modules/damage-mesh/`,
+  nameplate: `./metaverse_modules/nameplate/`,
   ki: `./metaverse_modules/ki/`,
   sonicBoom: `./metaverse_modules/sonic-boom/`,
   healEffect: `./metaverse_modules/heal-effect/`,
