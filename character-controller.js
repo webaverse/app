@@ -651,7 +651,6 @@ class StatePlayer extends PlayerBase {
             (lastAction) => lastAction.actionId === nextAction.actionId
           )
         ) {
-          console.log("dispatching action", nextAction)
           this.dispatchEvent({
             type: 'actionadd',
             action: nextAction,
@@ -767,7 +766,7 @@ class StatePlayer extends PlayerBase {
         const avatar = switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return console.log("canceling the function");
         this.avatar = avatar;
-
+        console.log("Dispatching avatarchange", app)
         this.dispatchEvent({
           type: "avatarchange",
           app,
@@ -816,6 +815,7 @@ class StatePlayer extends PlayerBase {
         }
       }
     } else {
+      console.error("_setNextAvatarApp null", new Error().stack)
       _setNextAvatarApp(null);
     }
 
@@ -875,7 +875,7 @@ class StatePlayer extends PlayerBase {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
   }
   addAction(action) {
-    console.log("Adding action", action, new Error().stack)
+    // console.log("Adding action", action, new Error().stack)
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);

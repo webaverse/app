@@ -29,7 +29,7 @@
   z-index: 2;
 }
 
-/* .avatarIcon .logo {
+.avatarIcon .logo {
   width: var(--header-height);
 	height: var(--header-height);
   margin-left: 10px;
@@ -40,7 +40,7 @@
 }
 .avatarIcon .logo:hover img {
   transform: scale(1.4);
-} */
+}
 
 .characterIcon .placeholderImg {
   position: absolute;
@@ -50,9 +50,9 @@
   height: calc( var(--canvas-size) - 10px * 2);
   z-index: 1;
 }
-.characterIcon.loaded .placeholderImg {
+/* .characterIcon.loaded .placeholderImg {
   display: none;
-}
+} */
 
 .avatarIcon .characterIcon {
   display: flex;
