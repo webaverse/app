@@ -373,7 +373,6 @@ class PlayerBase extends THREE.Object3D {
       this.handleWearUpdate(app, true, -1, true, false)
     });
     
-    //ToDo: the wear app's transform should be reset in next frame call
     if (this.removedWornApp) {
       this.removedWornApp.dispatchEvent({
         type: "resetweartransform",
