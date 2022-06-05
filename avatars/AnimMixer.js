@@ -56,7 +56,7 @@ class AnimMixer extends EventDispatcher {
 
     if (window.isDebugger) debugger
 
-    if (node.isAnimMotion) {
+    if (node.isAnimMotion) { // todo: do not evaluate weight <= 0
       const motion = node;
       const clip = motion.clip;
       const src = clip.interpolants[k];
@@ -74,19 +74,21 @@ class AnimMixer extends EventDispatcher {
       let currentWeight = 0;
       for (let i = 0; i < node.children.length; i++) {
         const childNode = node.children[i];
-        const value = this.doBlend(childNode, timeSeconds, spec);
-        if (nodeIndex === 0) {
-          // result = value; // todo: will change original data?
-          copyArray(result, value);
+        if (childNode.weight > 0) {
+          const value = this.doBlend(childNode, timeSeconds, spec);
+          if (nodeIndex === 0) {
+            // result = value; // todo: will change original data?
+            copyArray(result, value);
 
-          nodeIndex++;
-          currentWeight = childNode.weight;
-        } else if (childNode.weight > 0) { // todo: handle weight < 0 ?
-          const t = childNode.weight / (currentWeight + childNode.weight);
-          interpolateFlat(result, result, value, t);
+            nodeIndex++;
+            currentWeight = childNode.weight;
+          } else if (childNode.weight > 0) { // todo: handle weight < 0 ?
+            const t = childNode.weight / (currentWeight + childNode.weight);
+            interpolateFlat(result, result, value, t);
 
-          nodeIndex++;
-          currentWeight += childNode.weight;
+            nodeIndex++;
+            currentWeight += childNode.weight;
+          }
         }
       }
       return result;

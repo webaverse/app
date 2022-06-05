@@ -42,6 +42,7 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
+import { AnimNode } from './AnimNode.js';
 // import { AnimNode } from './AnimNode.js';
 
 const localVector = new Vector3();
@@ -412,22 +413,34 @@ export const loadPromise = (async () => {
 export const _createAnimation = avatar => {
   avatar.mixer = new AnimMixer(avatar);
 
+  // AnimMotions ---
+  // LoopRepeat
   avatar.idleMotion = avatar.mixer.createMotion(animations.index['idle.fbx']);
   avatar.walkMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
   avatar.runMotion = avatar.mixer.createMotion(animations.index['Fast Run.fbx']);
-  avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
-  avatar.jumpMotion.loop = LoopOnce;
   avatar.crouchMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
 
-  avatar.walkRunNode = {
-    children: [avatar.walkMotion, avatar.runMotion],
-  };
-  avatar.defaultNode = { // 7way blend node
-    children: [avatar.idleMotion, avatar.walkRunNode],
-  };
-  avatar.jumpNode = {
-    children: [avatar.defaultNode, avatar.jumpMotion],
-  }
+  // LoopOnce
+  // avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
+  avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
+  avatar.jumpMotion.loop = LoopOnce;
+  // avatar.jumpMotion.stop();
+  // avatar.jumpMotion.startTime = 0.7;
+  // avatar.jumpMotion.speed = 1 / 0.6;
+
+  // AnimNodes ---
+  avatar.walkRunNode = new AnimNode();
+  avatar.walkRunNode.addChild(avatar.walkMotion);
+  avatar.walkRunNode.addChild(avatar.runMotion);
+
+  avatar.defaultNode = new AnimNode(); // 7way blend node
+  avatar.defaultNode.addChild(avatar.idleMotion);
+  avatar.defaultNode.addChild(avatar.walkRunNode);
+
+  avatar.jumpNode = new AnimNode();
+  avatar.jumpNode.addChild(avatar.defaultNode);
+  avatar.jumpNode.addChild(avatar.jumpMotion);
+
   avatar.animTree = avatar.jumpNode; // todo: set whole tree here with separate names.
 };
 
@@ -443,10 +456,11 @@ export const _updateAnimation = avatar => {
   avatar.walkRunNode.weight = avatar.moveFactors.idleWalkFactor;
 
   // LoopOnce
-  avatar.jumpMotion.time = avatar.jumpTime / 1000 * 0.6 + 0.7;
-  const jumpFactor = MathUtils.clamp(avatar.jumpTime / 0.2, 0, 1);
+  avatar.jumpMotion.time = avatar.jumpTime / 1000;
+  const jumpFactor = MathUtils.clamp(avatar.jumpMotion.time / 0.2, 0, 1);
   avatar.defaultNode.weight = 1 - jumpFactor;
   avatar.jumpMotion.weight = jumpFactor;
+  // if (avatar.jumpStart) avatar.jumpMotion.play();
 
   mixer.update(timeSeconds, avatar.animTree);
 };
