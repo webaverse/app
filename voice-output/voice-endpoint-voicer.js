@@ -52,8 +52,7 @@ class VoiceEndpointVoicer {
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       return audioBuffer;
     } catch(err) {
-      console.warn('epic fail', err);
-      debugger;
+      console.error('Failed to load the audio buffer', err);
     }
   }
   /* async loadAudioBuffer(text) {

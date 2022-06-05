@@ -87,7 +87,7 @@ const playSoundName = name => {
     playSound(sound);
     return true;
   } else {
-    debugger;
+    console.error('Failed to play sound');
     return false;
   }
 };
