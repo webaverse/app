@@ -92,15 +92,15 @@ const Item = forwardRef(({
 
       <Spritesheet
         className={styles.canvas}
-        startUrl={object?.start_url}
+        startUrl={object && object.start_url}
         enabled={enabled}
         size={size}
         numFrames={numFrames}
       />
 
       <div className={styles.row}>
-        <div className={styles.name}>{object?.name}</div>
-        <div className={styles.level}>Lv. {object?.level}</div>
+        <div className={styles.name}>{object && object.name}</div>
+        <div className={styles.level}>Lv. {object && object.level}</div>
       </div>
 
     </div>

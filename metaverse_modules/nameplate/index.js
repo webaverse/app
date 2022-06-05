@@ -160,7 +160,6 @@ async function makeTextMesh(
 }
 
 export default e => {
-  console.log("e is", e)
   const app = useApp();
   const {/* renderer, */scene/*, camera */} = useInternals();
   let textMesh = null;

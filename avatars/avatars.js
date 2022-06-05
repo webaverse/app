@@ -1985,9 +1985,11 @@ class Avatar {
       this.debugMesh.visible = debug.enabled;
     }
   }
-
   isAudioEnabled() {
-    return !!this.audioWorker || !!this.audioWorker;
+    return !!this.audioWorker;
+  }
+  isMicrophoneEnabled() {
+    return this.localPlayer && !!this.microphoneWorker;
   }
   setAudioEnabled(enabled) {
     // cleanup
@@ -2027,6 +2029,7 @@ class Avatar {
       this.audioRecognizer = new AudioRecognizer({
         sampleRate: audioContext.sampleRate,
       });
+
       this.audioRecognizer.addEventListener('result', e => {
         this.vowels.set(e.data);
       });
@@ -2041,26 +2044,32 @@ class Avatar {
       this.audioWorker.addEventListener('volume', _volume);
       this.audioWorker.addEventListener('buffer', _buffer);
 
-      if(this.isLocalPlayer){
-      this.microphoneWorker = new MicrophoneWorker({
-        audioContext,
-        muted: true,
-        emitVolume: true,
-        emitBuffer: true,
-      });
+      if (this.isLocalPlayer) {
+        this.microphoneWorker = new MicrophoneWorker({
+          audioContext,
+          muted: true,
+          emitVolume: true,
+          emitBuffer: true,
+        });
 
-      this.microphoneWorker.addEventListener('volume', _volume);
-      this.microphoneWorker.addEventListener('buffer', _buffer);
-    } else {
-      console.error("Couldn't set mic cus local player")
-    }
+        const _localVolume = e => {
+            this.volume = this.volume * 0.8 + e.data * 0.2;
+        }
+  
+        const _localBuffer = e => {
+          console.log("_localBuffer", e)
+          this.audioRecognizer.send(e.data);
+        }
+
+        this.microphoneWorker.addEventListener('volume', _localVolume);
+        this.microphoneWorker.addEventListener('buffer', _localBuffer);
+      }
     } else {
       this.volume = -1;
     }
   }
   getAudioInput(useMicrophone = false) {
-    console.log("Getting audio input, is local player?", this.isLocalPlayer)
-      return this.isLocalPlayer && useMicrophone ? this.microphoneWorker.getInput() : this.audioWorker.getInput();
+    return this.isLocalPlayer && useMicrophone ? this.microphoneWorker.getInput() : this.audioWorker.getInput();
   }
   decapitate() {
     if (!this.decapitated) {
