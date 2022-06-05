@@ -62,9 +62,9 @@ class AnimMixer extends EventDispatcher {
       const src = clip.interpolants[k];
       let value;
       if (motion.loop === LoopOnce) {
-        value = src.evaluate(motion.time);
+        value = src.evaluate(motion.time / motion.speed + motion.startTime);
       } else {
-        value = src.evaluate(timeSeconds % clip.duration);
+        value = src.evaluate((timeSeconds / motion.speed + motion.startTime) % clip.duration);
       }
       return value;
     } else if (node.children.length > 0) {

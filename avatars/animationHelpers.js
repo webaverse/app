@@ -421,12 +421,12 @@ export const _createAnimation = avatar => {
   avatar.crouchMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
 
   // LoopOnce
-  // avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
-  avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
+  avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
+  // avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
   avatar.jumpMotion.loop = LoopOnce;
   // avatar.jumpMotion.stop();
-  // avatar.jumpMotion.startTime = 0.7;
-  // avatar.jumpMotion.speed = 1 / 0.6;
+  avatar.jumpMotion.startTime = 0.7;
+  avatar.jumpMotion.speed = 1 / 0.6;
 
   // AnimNodes ---
   avatar.walkRunNode = new AnimNode();

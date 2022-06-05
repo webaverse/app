@@ -8,6 +8,8 @@ class AnimMotion {
     this.clip = clip;
     this.name = this.clip.name;
     this.weight = 1; // todo: move to AnimNode.
+    this.startTime = 0;
+    this.speed = 1;
 
     // default values same as THREE.AnimationAction.
     this.loop = LoopRepeat;
