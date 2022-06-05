@@ -28,6 +28,7 @@ import {
   avatarInterpolationNumFrames,
   // groundFriction,
   // defaultVoicePackName,
+  voiceEndpointBaseUrl,
   numLoadoutSlots,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
@@ -281,8 +282,29 @@ class PlayerBase extends THREE.Object3D {
   }
 
   setVoiceEndpoint(voiceId) {
-    if (voiceId) {
-      const url = getVoiceEndpointUrl(voiceId);
+    console.log("setVoiceEndpoint")
+    const self = this;
+    const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
+    this.playersArray.doc.transact(function tx() {
+      let oldVoiceSpec = self.playerMap.get('voiceSpec');
+      if(oldVoiceSpec) {
+        oldVoiceSpec = JSON.parse(oldVoiceSpec);
+        const voiceSpec = JSON.stringify({audioUrl: oldVoiceSpec.audioUrl, indexUrl: oldVoiceSpec.indexUrl, endpointUrl: url});
+        console.log("Setting voiceSpec voiceEndpoint", voiceSpec);
+        self.playerMap.set('voiceSpec', voiceSpec);
+      } else {
+        const voiceSpec =  JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url})
+        console.log("Setting voiceSpec voiceEndpoint", voiceSpec);
+        self.playerMap.set('voiceSpec', voiceSpec);
+      }
+    });
+    if(this.isLocalPlayer){
+      this.loadVoiceEndpoint(url)
+    }
+  }
+
+  loadVoiceEndpoint(url) {
+    if (url) {
       this.voiceEndpoint = new VoiceEndpoint(url);
     } else {
       this.voiceEndpoint = null;
@@ -597,7 +619,7 @@ class PlayerBase extends THREE.Object3D {
 const controlActionTypes = ["jump", "crouch", "fly", "sit"];
 class StatePlayer extends PlayerBase {
   constructor({
-    name,
+    name = "Anon",
     playerId = makeId(5),
     playersArray = new Z.Doc().getArray(playersMapName),
   } = {}) {
@@ -605,7 +627,7 @@ class StatePlayer extends PlayerBase {
 
     this.playerId = playerId;
     this.playerIdInt = murmurhash3(playerId);
-    if(name) this.name = name;
+    this.name = name;
 
     this.playersArray = null;
     this.playerMap = null;
