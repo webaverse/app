@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {ImmediateGLBufferAttribute, InstancedImmediateGLBufferAttribute} from './ImmediateGLBufferAttribute.js';
+import {ImmediateGLBufferAttribute} from './ImmediateGLBufferAttribute.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {getRenderer} from './renderer.js';
 
