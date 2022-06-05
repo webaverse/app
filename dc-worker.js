@@ -104,10 +104,10 @@ const _handleMethod = ({
       return;
     }
     case 'generateChunk': {
-      const {chunkPosition, lod} = args;
-      const chunk = new THREE.Vector3().fromArray(chunkPosition);
-      localVector.copy(chunk).multiplyScalar(chunkWorldSize);
-      const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z, 1);
+      const {chunkPosition, lodArray} = args;
+      localVector.fromArray(chunkPosition)
+        .multiplyScalar(chunkWorldSize);
+      const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z, lodArray);
       const meshData2 = _cloneMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
       // console.log('got mesh data', meshData2);
