@@ -33,6 +33,7 @@ const loadPromise = (async () => {
       audioPath,
       indexPath,
     } = voicePack;
+    
     const voicePacksUrlBase = voicePacksUrl.replace(/\/+[^\/]+$/, '');
     const audioUrl = voicePacksUrlBase + audioPath;
     const indexUrl = voicePacksUrlBase + indexPath;
@@ -51,11 +52,12 @@ const loadPromise = (async () => {
   overrides[key].addEventListener('change', async e => {
     const voiceEndpointName = overrides.overrideVoiceEndpoint.get() ?? overrides.userVoiceEndpoint.get() ?? defaultVoiceEndpoint;
     console.log("voiceEndpointName", voiceEndpointName);
+    console.log("voices.voiceEndpoints", voices.voiceEndpoints)
     const voiceEndpoint = voices.voiceEndpoints.find(ve => ve.name === voiceEndpointName);
     console.log("voiceEndpoint", voiceEndpoint);
 
     const localPlayer = getLocalPlayer();
-    localPlayer.setVoiceEndpoint(voiceEndpoint.voiceId);
+    localPlayer.setVoiceEndpoint(voiceEndpoint.drive_id);
   });
 });
 
