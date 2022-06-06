@@ -24,7 +24,7 @@ const CONTRACT_EVENTS = {
   SINGLE_COLLABORATOR_REMOVED: 'SingleCollaboratorRemoved',
 };
 
-export default function useNFTContract(currentAccount, onMint = () => {}) {
+export default function useNFTContract(currentAccount, notifymessage = () => {}, setCurrentApp = () => {}, setIsLoading = () => {}) {
   const [minting, setMinting] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
   const [minted, setMinted] = useState([]);
@@ -34,7 +34,7 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
   useEffect(() => {
     const mintHandler = (from, tokenId, name) => {
       // interact with game world here.
-      onMint(from, tokenId, name);
+      notifymessage(from, tokenId, name);
       // interact with game world here.
       setMinting(false);
     };
@@ -50,23 +50,23 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
     };
   }, [connectedContract]);
 
-  console.log('NFT currentAccount', currentAccount);
-
   async function mintNFT(currentApp) {
     const {ethereum} = window;
     setMinting(true);
+
     try {
       const provider = new ethers.getDefaultProvider(
         DEFAULT_CHAIN.rpcUrls[0], // TODO: change to use the selected chain
       );
-      const signer = provider.getSigner();
+      const signer = new ethers.providers.Web3Provider(ethereum).getSigner();
+      // const signer = provider.getSigner(NFTcontractAddress);
 
       const connectedContract = new ethers.Contract(contractAddress, contractABI, signer);
       setConnectedContract(connectedContract);
       
       const connectedContractFT = new ethers.Contract(contractAddressFT, contractABIFT, signer);
       setConnectedContractFT(connectedContractFT);
-
+      
       if (connectedContract) {
         setShowWallet(true);
 
@@ -78,17 +78,40 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
         const contractMintFee = await connectedContract.mintFee();
         const mintfee = BigNumber.from(contractMintFee).toNumber();
 
-        const silkAapproval = await connectedContractFT.approve(connectedContract.address, mintfee); // mintfee = 10 default
-        const approval = await silkAapproval.wait();
-        if (approval.transactionHash) {
-          try {
-            const mint = await connectedContract.mint(ethereum.selectedAddress, hash, name, ext, description, 1);
-            onMint(mint);
-            // after mint transaction, refresh the website
-          } catch (err) {
-            console.log(err);
-            alert('NFT mint failed');
-          }
+        if (mintfee > 0) { // webaverse side chain mintfee != 0
+            const silkAapproval = await connectedContractFT.approve(connectedContract.address, mintfee); // mintfee = 0 default
+            const approval = await silkAapproval.wait();
+            if (approval.transactionHash) {
+                try {
+                    const minttx = await connectedContract.mint(ethereum.selectedAddress, hash, name, ext, description, 1);
+                    setCurrentApp(null);
+                    setIsLoading(false);
+                    let mintres = await minttx.wait()
+                    if (mintres.transactionHash) {
+                    notifymessage("Mint Complete!","success")
+                    } else {
+                    notifymessage("Mint failed!","error")
+                    }
+                } catch (err) {
+                    console.log(err);
+                    notifymessage("Mint failed!","error")
+                }
+            }
+        } else { // mintfee = 0 for Polygon not webaverse sidechain
+            try {
+                const minttx = await connectedContract.mint(ethereum.selectedAddress, hash, name, ext, description, 1);
+                setCurrentApp(null);
+                setIsLoading(false);
+                let mintres = await minttx.wait()
+                if (mintres.transactionHash) {
+                  notifymessage("Mint Complete!","success")
+                } else {
+                  notifymessage("Mint failed!","error")
+                }
+              } catch (err) {
+                notifymessage("Mint failed!","error")
+                console.log(err);
+              }
         }
       } else {
         console.log("Ethereum object doesn't exist!");
@@ -100,20 +123,17 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
     }
   }
 
-  async function getToken(tokenId) {
-    try {
-      if (connectedContract) {
-        const rawToken = await connectedContract.tokenURI(tokenId);
-        const token = await fetch(rawToken).then(r => r.json());
-        return token;
-      } else {
-        console.log("Ethereum object doesn't exist!");
-      }
-    } catch (error) {
-      setShowWallet(false);
-      setMinting(false);
-    }
-  }
+
+
+//   function getNFTTotalSupply() {
+//       try {
+//         const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(DEFAULT_CHAIN.rpcUrls[0]);
+//         const contract = new ethers.Contract(contractAddress, contractABI, simpleRpcProvider);
+//         return contract;
+//       } catch (error) {
+
+//       }
+//   }
 
   return {
     minting,
@@ -121,6 +141,40 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
     minted,
     showWallet,
     setShowWallet,
-    getToken,
+    // getToken,
+    // getNFTTotalSupply
   };
+}
+
+export function useStaticNFTContract() {
+    const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(DEFAULT_CHAIN.rpcUrls[0]);
+    const contract = new ethers.Contract(contractAddress, contractABI, simpleRpcProvider);
+
+    async function getNFTTotalSupply() {
+        try {
+            const BigtotalMintedToken = await contract.totalSupply();
+            const totalMintedToken = BigNumber.from(BigtotalMintedToken).toNumber();
+            return totalMintedToken;
+        } catch (error) {
+            
+        }
+    }
+
+    async function getTokenURI(tokenId) {
+        try {
+            const rawToken = await contract.tokenURI(tokenId);
+            // console.log("raw",rawToken)
+            // const token = await fetch(rawToken).then(r => r);
+            // console.log("token",token)
+            return rawToken;
+        } catch (error) {
+          
+        }
+      }
+
+    return {
+        getNFTTotalSupply,
+        getTokenURI
+    };
+
 }
