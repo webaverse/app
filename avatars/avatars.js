@@ -48,7 +48,7 @@ import {
 import {easing} from '../math-utils.js';
 import metaversefile from 'metaversefile';
 
-import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation, _createAnimation, _updateAnimation } from './animationHelpers.js'
+import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _createAnimation, _updateAnimation } from './animationHelpers.js'
 
 import { animationMappingConfig } from './AnimationMapping.js';
 import Emoter from './Emoter.js'
