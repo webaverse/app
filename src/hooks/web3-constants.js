@@ -6,10 +6,29 @@ export const isLocal = window.location.host.includes('localhost');
 export const CONTRACTS = _CONTRACTS;
 export const CONTRACT_ABIS = _CONTRACT_ABIS;
 
+export const AccountcontractAddress = '0xF0118e4e3d2074a0621C5C8e4A5Cf761ef1eFc7b';
+export const FTcontractAddress = '0xf1C659696598647a0544c61D24b360e740D62634';
+export const FTProxycontractAddress = '0xEeA97406Ce6154e3b189D5FA53790c81ecf1cBD3';
+export const NFTcontractAddress = '0x9140B5A048C03A22861E7b4c380cA68A5A3Ee98F';
+export const NFTProxycontractAddress = '0xE5a15065b0E8446c2E35879713EBBf339b004a67';
+export const LANDcontractAddress = '0xcfb59Be415BC927bacf781d7Ed7B74a0Cb4aCE11';
+export const LANDProxycontractAddress = '0x142B0a5F708D399b77349563F273Ad6C03EC28D2';
+export const TradecontractAddress = '0x4D9486D6FBb53234616C9b1997BC31C649336948';
+
 export const CHAINS = {
   LOCALHOST: {
     name: 'Localhost',
     chainId: '0x539',
+  },
+  WEBAVERSE: {
+    chainName: 'Webaverse Side Chain',
+    name: 'Webaverse',
+    chainId: '0x1338',
+    blockExplorerUrls: [''],
+    symbol: 'SILK',
+    rpcUrls: ['https://ethereum1.webaverse.com/'],
+    contract_name: 'mainnetsidechain',
+    previewLink: '',
   },
   RINKBY: {
     chainName: 'RinkyBy Test Network',
