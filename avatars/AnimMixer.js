@@ -27,8 +27,8 @@ class AnimMixer extends EventDispatcher {
     this.yBias = 0;
   }
 
-  createMotion(clip) {
-    const motion = new AnimMotion(this, clip);
+  createMotion(animation) {
+    const motion = new AnimMotion(this, animation);
     return motion;
   }
 
@@ -60,13 +60,13 @@ class AnimMixer extends EventDispatcher {
       const motion = node;
       // if (isPosition && motion === window.avatar?.jumpMotion) debugger;
       motion.update(); // todo: now update 57 times!
-      const clip = motion.clip;
-      const src = clip.interpolants[k];
+      const animation = motion.animation;
+      const src = animation.interpolants[k];
       let value;
       if (motion.loop === LoopOnce) {
         value = src.evaluate(motion.time / motion.speed + motion.timeBias);
       } else {
-        value = src.evaluate((timeS / motion.speed + motion.timeBias) % clip.duration);
+        value = src.evaluate((timeS / motion.speed + motion.timeBias) % animation.duration);
       }
       return value;
     } else if (node.isAnimNode) {

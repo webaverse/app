@@ -2,15 +2,15 @@ import {LoopRepeat} from 'three';
 import {AnimMixer} from './AnimMixer';
 
 class AnimMotion {
-  constructor(mixer, clip) {
+  constructor(mixer, animation) {
     this.isAnimMotion = true;
 
     this.time = 0;
     this.startTime = 0;
 
     this.mixer = mixer;
-    this.clip = clip;
-    this.name = this.clip.name;
+    this.animation = animation;
+    this.name = this.animation.name;
     this.weight = 1; // todo: move to AnimNode.
     this.timeBias = 0;
     this.speed = 1;
