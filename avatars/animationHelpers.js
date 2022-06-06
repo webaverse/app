@@ -421,8 +421,8 @@ export const _createAnimation = avatar => {
   avatar.crouchMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
 
   // LoopOnce
-  // avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
-  avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
+  avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
+  // avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
   avatar.jumpMotion.loop = LoopOnce;
   avatar.jumpMotion.stop();
   // avatar.jumpMotion.weight = 999999; // can't Infinity
@@ -471,8 +471,8 @@ export const _updateAnimation = avatar => {
     avatar.jumpMotion.play();
     avatar.jumpNode.crossFade(0.2, 1);
   }
-  if (avatar.jumpEnd) avatar.jumpNode.crossFade(2, 0);
-  if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
+  if (avatar.jumpEnd) avatar.jumpNode.crossFade(0.2, 0);
+  // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
 
   //
 
