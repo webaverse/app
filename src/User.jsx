@@ -18,13 +18,13 @@ import Web3 from '../web3.min.js';
 //
 
 export const User = ({ setLoginFrom }) => {
-    const { state, setState, account, walletstate, setWalletState } = useContext( AppContext );
+    const { state, setState, account } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-    const { currentAddress, connectWallet, errorMessage, wrongChain } = account;
+    const { currentAddress, connectWallet, logoutWallet, errorMessage, wrongChain } = account;
 
     //
 
@@ -268,7 +268,7 @@ export const User = ({ setLoginFrom }) => {
                         e.preventDefault();
                         e.stopPropagation();
                         WebaWallet.logout();
-                        setWalletState({ walletaddress: null })
+                        logoutWallet();
                     }}
                 >Logout</div>
             </div>
