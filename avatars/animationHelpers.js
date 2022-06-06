@@ -418,7 +418,8 @@ export const _createAnimation = avatar => {
   avatar.idleMotion = avatar.mixer.createMotion(animations.index['idle.fbx']);
   avatar.walkMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
   avatar.runMotion = avatar.mixer.createMotion(animations.index['Fast Run.fbx']);
-  avatar.crouchMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
+  avatar.crouchWalkMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
+  avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
 
   // LoopOnce
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
@@ -434,9 +435,17 @@ export const _createAnimation = avatar => {
   avatar.walkRunNode.addChild(avatar.walkMotion);
   avatar.walkRunNode.addChild(avatar.runMotion);
 
-  avatar.defaultNode = new AnimNodeBlend2('default'); // 7way blend node
-  avatar.defaultNode.addChild(avatar.idleMotion);
-  avatar.defaultNode.addChild(avatar.walkRunNode);
+  avatar._7wayWalkRunNode = new AnimNodeBlend2('_7wayWalkRunNode');
+  avatar._7wayWalkRunNode.addChild(avatar.idleMotion);
+  avatar._7wayWalkRunNode.addChild(avatar.walkRunNode);
+
+  avatar._7wayCrouchNode = new AnimNodeBlend2('_7wayCrouchNode');
+  avatar._7wayCrouchNode.addChild(avatar.crouchIdleMotion);
+  avatar._7wayCrouchNode.addChild(avatar.crouchWalkMotion);
+
+  avatar.defaultNode = new AnimNodeBlend2('defaultNode');
+  avatar.defaultNode.addChild(avatar._7wayWalkRunNode);
+  avatar.defaultNode.addChild(avatar._7wayCrouchNode);
 
   avatar.jumpNode = new AnimNodeBlend2('jump');
   avatar.jumpNode.addChild(avatar.defaultNode);
@@ -451,7 +460,9 @@ export const _updateAnimation = avatar => {
 
   // LoopRepeat
   avatar.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
-  avatar.defaultNode.factor = avatar.moveFactors.idleWalkFactor;
+  avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
+  avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
+  avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
 
   // LoopOnce
 
