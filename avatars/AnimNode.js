@@ -6,6 +6,9 @@ class AnimNode {
     this.children = [];
     this.name = name;
     this.weight = 1;
+
+    // blend2
+    this.fadeStartTime = 0;
   }
 
   addChild(node) {
@@ -13,6 +16,7 @@ class AnimNode {
   }
 
   crossFade(duration) {
+    this.fadeStartTime = performance.now(); // todo: use global timeS
     // todo:
   }
 }
