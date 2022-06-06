@@ -58,6 +58,35 @@ class AnimMixer extends EventDispatcher {
 
     if (node.isAnimMotion) { // todo: do not evaluate weight <= 0
       const motion = node;
+      // if (isPosition && motion === window.avatar?.jumpMotion) debugger;
+      motion.update(); // todo: now update 57 times!
+      const clip = motion.clip;
+      const src = clip.interpolants[k];
+      let value;
+      if (motion.loop === LoopOnce) {
+        value = src.evaluate(motion.time / motion.speed + motion.timeBias);
+      } else {
+        value = src.evaluate((timeS / motion.speed + motion.timeBias) % clip.duration);
+      }
+      return value;
+    } else if (node.isAnimNode) {
+      const result = node.update(timeS, spec);
+      return result;
+    }
+  }
+
+  doBlendOldStandAloneNoAnimNode(node, timeS, spec) {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    if (window.isDebugger) debugger
+
+    if (node.isAnimMotion) { // todo: do not evaluate weight <= 0
+      const motion = node;
       const clip = motion.clip;
       const src = clip.interpolants[k];
       let value;
@@ -67,13 +96,36 @@ class AnimMixer extends EventDispatcher {
         value = src.evaluate((timeS / motion.speed + motion.startTime) % clip.duration);
       }
       return value;
-    } else if (node.isAnimNode) {
-      const result = node.update(timeS, spec);
+    } else if (node.children.length > 0) {
+      const result = []; // todo: resultBuffer ( refer to threejs );
+      // let result;
+      let nodeIndex = 0;
+      let currentWeight = 0;
+      for (let i = 0; i < node.children.length; i++) {
+        const childNode = node.children[i];
+        if (childNode.weight > 0) {
+          const value = this.doBlend(childNode, timeS, spec);
+          if (nodeIndex === 0) {
+            // result = value; // todo: will change original data?
+            AnimMixer.copyArray(result, value);
+
+            nodeIndex++;
+            currentWeight = childNode.weight;
+          } else if (childNode.weight > 0) { // todo: handle weight < 0 ?
+            const t = childNode.weight / (currentWeight + childNode.weight);
+            AnimMixer.interpolateFlat(result, result, value, t);
+
+            nodeIndex++;
+            currentWeight += childNode.weight;
+          }
+        }
+      }
       return result;
     }
   }
 
   update(timeS, animTree) {
+    AnimMixer.timeS = timeS;
     for (const spec of this.avatar.animationMappings) {
       const {
         animationTrackName: k,
@@ -108,5 +160,6 @@ class AnimMixer extends EventDispatcher {
     }
   }
 }
+AnimMixer.timeS = 0;
 
 export {AnimMixer};
