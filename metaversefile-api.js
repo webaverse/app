@@ -56,6 +56,7 @@ import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
 import dcWorkerManager from './dc-worker-manager.js';
 import cardsManager from './cards-manager.js';
+import * as geometryAllocators from './geometry-allocator.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -1193,6 +1194,9 @@ export default () => {
   },
   useGeometries() {
     return geometries;
+  },
+  useGeometryAllocators() {
+    return geometryAllocators;
   },
   useMaterials() {
     return materials;
