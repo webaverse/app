@@ -132,6 +132,44 @@ class DcWorkerManager {
     });
     return result;
   }
+  async getHeightfieldRange(x, z, w, h, lod) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('getHeightfieldRange', {
+      x,
+      z,
+      w,
+      h,
+      lod
+    });
+    return result;
+  }
+  async createGrassSplat(x, z, lod) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('createGrassSplat', {
+      x,
+      z,
+      lod
+    });
+    return result;
+  }
+  async createVegetationSplat(x, z, lod) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('createVegetationSplat', {
+      x,
+      z,
+      lod
+    });
+    return result;
+  }
+  async createMobSplat(x, z, lod) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('createMobSplat', {
+      x,
+      z,
+      lod
+    });
+    return result;
+  }
   async drawCubeDamage(position, quaternion, scale) {
     const worker = this.getNextWorker();
     const result = await worker.request('drawCubeDamage', {
