@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 
 /*
 note: the nunber of lods at each level can be computed with this function:
@@ -43,10 +45,10 @@ using these results
 - the chunk size can be changed to increase the view distance while decreasing the density, while keeping the tri budget the same
 */
 export class LodChunk extends THREE.Vector3 {
-  constructor(x, y, z, lod) {
+  constructor(x, y, z, lodArray) {
     
     super(x, y, z);
-    this.lod = lod;
+    this.lodArray = lodArray;
 
     this.name = `chunk:${this.x}:${this.z}`;
     this.binding = null;
@@ -54,7 +56,8 @@ export class LodChunk extends THREE.Vector3 {
     this.physicsObjects = [];
   }
   equals(chunk) {
-    return this.x === chunk.x && this.y === chunk.y && this.z === chunk.z;
+    return super.equals(chunk) &&
+      this.lodArray.length === chunk.lodArray.length && this.lodArray.every((lod, i) => lod === chunk.lodArray[i]);
   }
 }
 export class LodChunkTracker {
@@ -80,14 +83,66 @@ export class LodChunkTracker {
   update(position) {
     const currentCoord = this.#getCurrentCoord(position, localVector);
 
+    // if we moved across a chunk boundary, update needed chunks
     if (!currentCoord.equals(this.lastUpdateCoord)) {
-      const lod = 0; // XXX support multiple lods
+      // add LOD0 chunks
       const neededChunks = [];
-      for (let dcx = -1; dcx <= 1; dcx++) {
-        for (let dcz = -1; dcz <= 1; dcz++) {
-          for (let dcy = -this.chunkHeight / this.chunkWorldSize; dcy <= this.chunkHeight / this.chunkWorldSize; dcy++) { // XXX
-            const chunk = new LodChunk(currentCoord.x + dcx, currentCoord.y + dcy, currentCoord.z + dcz, lod);
-            neededChunks.push(chunk);
+      const seenMins = new Set();
+      const mins2x = [];
+      for (let dcy = -this.chunkHeight / this.chunkWorldSize; dcy <= this.chunkHeight / this.chunkWorldSize; dcy += 2) {
+        for (let dcz = -1; dcz <= 1; dcz += 2) {
+          for (let dcx = -1; dcx <= 1; dcx += 2) {
+            const min = new THREE.Vector3(
+              Math.floor((currentCoord.x + dcx) / 2) * 2,
+              Math.floor((currentCoord.y + dcy) / 2) * 2,
+              Math.floor((currentCoord.z + dcz) / 2) * 2
+            );
+            const key = min.toArray().join(',');
+            if (!seenMins.has(key)) {
+              seenMins.add(key);
+              mins2x.push(min);
+            }
+          }
+        }
+      }
+      const min2xMin = new THREE.Vector3(Infinity, Infinity, Infinity);
+      const min2xMax = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+      for (const min2x of mins2x) {
+        min2xMin.min(min2x);
+        min2xMax.max(
+          localVector2.copy(min2x)
+            .add(localVector3.set(1, 1, 1))
+        );
+      }
+
+      // collect 1x chunks inside the 2x chunks
+      for (const chunkPosition2x of mins2x) {
+        for (let dy = 0; dy < 2; dy++) {
+          for (let dz = 0; dz < 2; dz++) {
+            for (let dx = 0; dx < 2; dx++) {
+              const chunkPosition1x = localVector2.copy(chunkPosition2x)
+                .add(localVector3.set(dx, dy, dz));
+              /* vm::ivec3(0, 0, 0),
+              vm::ivec3(1, 0, 0),
+              vm::ivec3(0, 0, 1),
+              vm::ivec3(1, 0, 1),
+              vm::ivec3(0, 1, 0),
+              vm::ivec3(1, 1, 0),
+              vm::ivec3(0, 1, 1),
+              vm::ivec3(1, 1, 1), */
+              const lodArray = /* this.numLods > 1 ? [
+                1,
+                (chunkPosition1x.x + 1 < min2xMax.x) ? 1 : 2,
+                (chunkPosition1x.z + 1 < min2xMax.z) ? 1 : 2,
+                (chunkPosition1x.x + 1 < min2xMax.x && chunkPosition1x.z + 1 < min2xMax.z) ? 1 : 2,
+                (chunkPosition1x.y + 1 < min2xMax.y) ? 1 : 2,
+                (chunkPosition1x.x + 1 < min2xMax.x && chunkPosition1x.y + 1 < min2xMax.y) ? 1 : 2,
+                (chunkPosition1x.y + 1 < min2xMax.y && chunkPosition1x.z + 1 < min2xMax.z) ? 1 : 2,
+                (chunkPosition1x.x + 1 < min2xMax.x && chunkPosition1x.y + 1 < min2xMax.y && chunkPosition1x.z + 1 < min2xMax.z) ? 1 : 2,
+              ] : */ Array(8).fill(1);
+              const chunk = new LodChunk(chunkPosition1x.x, chunkPosition1x.y, chunkPosition1x.z, lodArray);
+              neededChunks.push(chunk);
+            }
           }
         }
       }
