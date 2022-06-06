@@ -123,18 +123,6 @@ export default function useNFTContract(currentAccount, notifymessage = () => {},
     }
   }
 
-
-
-//   function getNFTTotalSupply() {
-//       try {
-//         const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(DEFAULT_CHAIN.rpcUrls[0]);
-//         const contract = new ethers.Contract(contractAddress, contractABI, simpleRpcProvider);
-//         return contract;
-//       } catch (error) {
-
-//       }
-//   }
-
   return {
     minting,
     mintNFT,
@@ -163,7 +151,6 @@ export function useStaticNFTContract() {
     async function getTokenURI(tokenId) {
         try {
             const rawToken = await contract.tokenURI(tokenId);
-            // console.log("raw",rawToken)
             // const token = await fetch(rawToken).then(r => r);
             // console.log("token",token)
             return rawToken;
