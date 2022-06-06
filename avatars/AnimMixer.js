@@ -68,7 +68,7 @@ class AnimMixer extends EventDispatcher {
       }
       return value;
     } else if (node.isAnimNode) {
-      const result = node.doBlend(timeS, spec);
+      const result = node.update(timeS, spec);
       return result;
     }
   }

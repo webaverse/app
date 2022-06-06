@@ -460,7 +460,8 @@ export const _updateAnimation = avatar => {
   // avatar.jumpMotion.weight = jumpFactor;
   // if (avatar.jumpStart) avatar.jumpMotion.play();
   // if (avatar.jumpEnd) avatar.jumpMotion.stop();
-  if (avatar.jumpStart) avatar.jumpNode.factor = 1;
+  // if (avatar.jumpStart) avatar.jumpNode.factor = 1;
+  if (avatar.jumpStart) avatar.jumpNode.crossFade(0.2, 1);
   if (avatar.jumpEnd) avatar.jumpNode.factor = 0;
 
   mixer.update(timeS, avatar.animTree);
