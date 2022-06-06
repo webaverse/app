@@ -162,7 +162,7 @@ export class DrawCallBinding {
     this.freeListEntry = freeListEntry;
     this.allocator = allocator;
 
-    this.instanceCount = 0;
+    // this.instanceCount = 0;
     // this.textureDamageBuffers = new Int32Array(allocator.textures.length * 4);
   }
   getTexture(name) {
@@ -201,7 +201,8 @@ export class DrawCallBinding {
       .toArray(this.textureDamageBuffer[textureIndex * 4 + 2]);
   } */
   setInstanceCount(instanceCount) {
-    this.instanceCount = instanceCount;
+    // this.instanceCount = instanceCount;
+    this.allocator.setInstanceCount(this, instanceCount);
   }
   updateTexture(name, pixelIndex, pixelCount) {
     const texture = this.getTexture(name);
@@ -267,10 +268,13 @@ export class InstancedGeometryAllocator {
     maxInstancesPerDrawCall,
     maxDrawCallsPerGeometry,
   }) {
-    {
-      this.maxInstancesPerDrawCall = maxInstancesPerDrawCall;
-      this.maxDrawCallsPerGeometry = maxDrawCallsPerGeometry;
+    this.maxInstancesPerDrawCall = maxInstancesPerDrawCall;
+    this.maxDrawCallsPerGeometry = maxDrawCallsPerGeometry;
+    this.drawStarts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
+    this.drawCounts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
+    this.drawInstanceCounts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
 
+    {
       this.geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
 
       const numGeometries = geometries.length;
@@ -366,25 +370,53 @@ export class InstancedGeometryAllocator {
       }
 
       this.freeList = new FreeList(numGeometries * maxDrawCallsPerGeometry);
-      this.drawCalls = [];
+      // this.drawCalls = [];
     }
   }
   allocDrawCall(geometryIndex) {
     const freeListEntry = this.freeList.alloc(1);
     const drawCall = new DrawCallBinding(geometryIndex, freeListEntry, this);
-    this.drawCalls.push(drawCall);
+    // this.drawCalls.push(drawCall);
+
+    const geometrySpec = this.geometryRegistry[geometryIndex];
+    const {
+      index: {
+        start,
+        count,
+      },
+    } = geometrySpec;
+
+    this.drawStarts[freeListEntry.start] = start;
+    this.drawCounts[freeListEntry.start] = count;
+    this.drawInstanceCounts[freeListEntry.start] = 0;
+    
     return drawCall;
   }
   freeDrawCall(drawCall) {
-    this.freeList.free(drawCall.freeListEntry);
-    this.drawCalls.splice(this.drawCalls.indexOf(drawCall), 1);
+    const {freeListEntry} = drawCall;
+    this.freeList.free(freeListEntry);
+    // this.drawCalls.splice(this.drawCalls.indexOf(drawCall), 1);
+  
+    this.drawStarts[freeListEntry.start] = 0;
+    this.drawCounts[freeListEntry.start] = 0;
+    this.drawInstanceCounts[freeListEntry.start] = 0;
+  }
+  setInstanceCount(drawCall, instanceCount) {
+    const {freeListEntry} = drawCall;
+    this.drawInstanceCounts[freeListEntry.start] = instanceCount;
   }
   getDrawSpec(multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
-    multiDrawStarts.length = 0;
-    multiDrawCounts.length = 0;
-    multiDrawInstanceCounts.length = 0;
+    multiDrawStarts.length = this.drawStarts.length;
+    multiDrawCounts.length = this.drawCounts.length;
+    multiDrawInstanceCounts.length = this.drawInstanceCounts.length;
 
-    for (const drawCall of this.drawCalls) {
+    for (let i = 0; i < this.drawStarts.length; i++) {
+      multiDrawStarts[i] = this.drawStarts[i];
+      multiDrawCounts[i] = this.drawCounts[i];
+      multiDrawInstanceCounts[i] = this.drawInstanceCounts[i];
+    }
+
+    /* for (const drawCall of this.drawCalls) {
       const {geometryIndex, instanceCount} = drawCall;
       const geometrySpec = this.geometryRegistry[geometryIndex];
       const {
@@ -397,6 +429,6 @@ export class InstancedGeometryAllocator {
       multiDrawStarts.push(start);
       multiDrawCounts.push(count);
       multiDrawInstanceCounts.push(instanceCount);
-    }
+    } */
   }
 }
