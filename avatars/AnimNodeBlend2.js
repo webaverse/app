@@ -1,6 +1,6 @@
-import { MathUtils } from 'three';
-import { AnimMixer } from './AnimMixer';
-import { AnimNode } from './AnimNode';
+import {MathUtils} from 'three';
+import {AnimMixer} from './AnimMixer';
+import {AnimNode} from './AnimNode';
 
 class AnimNodeBlend2 extends AnimNode {
   constructor(name) {
