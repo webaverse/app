@@ -133,6 +133,54 @@ const _handleMethod = ({
       };
       return spec;
     }
+    case 'createGrassSplat': {
+      const {x, z, lod} = args;
+      const {
+        ps,
+        qs,
+      } = dc.createGrassSplat(x, z, lod);
+
+      const spec = {
+        result: {
+          ps,
+          qs,
+        },
+        transfers: [ps.buffer, qs.buffer],
+      };
+      return spec;
+    }
+    case 'createVegetationSplat': {
+      const {x, z, lod} = args;
+      const {
+        ps,
+        qs,
+      } = dc.createVegetationSplat(x, z, lod);
+
+      const spec = {
+        result: {
+          ps,
+          qs,
+        },
+        transfers: [ps.buffer, qs.buffer],
+      };
+      return spec;
+    }
+    case 'createMobSplat': {
+      const {x, z, lod} = args;
+      const {
+        ps,
+        qs,
+      } = dc.createMobSplat(x, z, lod);
+
+      const spec = {
+        result: {
+          ps,
+          qs,
+        },
+        transfers: [ps.buffer, qs.buffer],
+      };
+      return spec;
+    }
     case 'drawCubeDamage': {
       const {position, quaternion, scale} = args;
       // console.log('dc worker draw cube damage', {position, quaternion, scale});
