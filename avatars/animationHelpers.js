@@ -42,8 +42,9 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
-import { AnimNode } from './AnimNode.js';
-import { AnimNodeBlend2 } from './AnimNodeBlend2.js';
+import {AnimNode} from './AnimNode.js';
+import {AnimNodeBlend2} from './AnimNodeBlend2.js';
+import {AnimNodeBlendList} from './AnimNodeBlendList.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -181,6 +182,7 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
+  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -416,7 +418,14 @@ export const _createAnimation = avatar => {
   // AnimMotions ---
   // LoopRepeat
   avatar.idleMotion = avatar.mixer.createMotion(animations.index['idle.fbx']);
-  avatar.walkMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
+
+  avatar.walkForwardMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
+  avatar.walkBackwardMotion = avatar.mixer.createMotion(animations.index['walking backwards.fbx']);
+  avatar.walkLeftMotion = avatar.mixer.createMotion(animations.index['left strafe walking.fbx']);
+  avatar.walkRightMotion = avatar.mixer.createMotion(animations.index['right strafe walking.fbx']);
+  avatar.walkLeftMirrorMotion = avatar.mixer.createMotion(animations.index['right strafe walking reverse.fbx']);
+  avatar.walkRightMirrorMotion = avatar.mixer.createMotion(animations.index['left strafe walking reverse.fbx']);
+
   avatar.runMotion = avatar.mixer.createMotion(animations.index['Fast Run.fbx']);
   avatar.crouchWalkMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
@@ -431,8 +440,16 @@ export const _createAnimation = avatar => {
   avatar.jumpMotion.speed = 1 / 0.6;
 
   // AnimNodes ---
-  avatar.walkRunNode = new AnimNodeBlend2('walk');
-  avatar.walkRunNode.addChild(avatar.walkMotion);
+  avatar.walkNode = new AnimNodeBlendList('walk');
+  avatar.walkNode.addChild(avatar.walkForwardMotion);
+  avatar.walkNode.addChild(avatar.walkBackwardMotion);
+  avatar.walkNode.addChild(avatar.walkLeftMotion);
+  avatar.walkNode.addChild(avatar.walkRightMotion);
+  avatar.walkNode.addChild(avatar.walkLeftMirrorMotion);
+  avatar.walkNode.addChild(avatar.walkRightMirrorMotion);
+
+  avatar.walkRunNode = new AnimNodeBlend2('walkRun');
+  avatar.walkRunNode.addChild(avatar.walkNode);
   avatar.walkRunNode.addChild(avatar.runMotion);
 
   avatar._7wayWalkRunNode = new AnimNodeBlend2('_7wayWalkRunNode');
@@ -458,13 +475,43 @@ export const _updateAnimation = avatar => {
   const timeS = performance.now() / 1000;
   const {mixer} = avatar;
 
-  // LoopRepeat
+  // LoopRepeat ---
+
+  avatar.walkForwardMotion.weight = 0;
+  avatar.walkBackwardMotion.weight = 0;
+  avatar.walkLeftMotion.weight = 0;
+  avatar.walkRightMotion.weight = 0;
+  avatar.walkLeftMirrorMotion.weight = 0;
+  avatar.walkRightMirrorMotion.weight = 0;
+  const angle = avatar.getAngle();
+  if (Math.abs(angle - Math.PI) < 0.1 || Math.abs(angle - -Math.PI) < 0.1) {
+    avatar.walkBackwardMotion.weight = 1;
+  } else if (Math.abs(angle - Math.PI / 2) < 0.1) {
+    avatar.walkLeftMotion.weight = 1;
+  } else if (Math.abs(angle - -Math.PI / 2) < 0.1) {
+    avatar.walkRightMotion.weight = 1;
+  } else if (Math.abs(angle - Math.PI / 4) < 0.1) {
+    avatar.walkLeftMotion.weight = 1;
+    avatar.walkForwardMotion.weight = 1;
+  } else if (Math.abs(angle - Math.PI / 4 * 3) < 0.1) {
+    avatar.walkLeftMirrorMotion.weight = 1;
+    avatar.walkBackwardMotion.weight = 1;
+  } else if (Math.abs(angle - -Math.PI / 4) < 0.1) {
+    avatar.walkRightMotion.weight = 1;
+    avatar.walkForwardMotion.weight = 1;
+  } else if (Math.abs(angle - -Math.PI / 4 * 3) < 0.1) {
+    avatar.walkRightMirrorMotion.weight = 1;
+    avatar.walkBackwardMotion.weight = 1;
+  } else {
+    avatar.walkForwardMotion.weight = 1;
+  }
+
   avatar.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
   avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
 
-  // LoopOnce
+  // LoopOnce ---
 
   // jump
   // avatar.jumpMotion.time = avatar.jumpTime / 1000;
