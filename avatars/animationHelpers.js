@@ -454,15 +454,23 @@ export const _updateAnimation = avatar => {
   avatar.defaultNode.factor = avatar.moveFactors.idleWalkFactor;
 
   // LoopOnce
+
+  // jump
   avatar.jumpMotion.time = avatar.jumpTime / 1000;
   // const jumpFactor = MathUtils.clamp(avatar.jumpMotion.time / 0.2, 0, 1);
   // avatar.defaultNode.weight = 1 - jumpFactor;
   // avatar.jumpMotion.weight = jumpFactor;
+
   // if (avatar.jumpStart) avatar.jumpMotion.play();
   // if (avatar.jumpEnd) avatar.jumpMotion.stop();
+
   // if (avatar.jumpStart) avatar.jumpNode.factor = 1;
+  // if (avatar.jumpEnd) avatar.jumpNode.factor = 0;
+
   if (avatar.jumpStart) avatar.jumpNode.crossFade(0.2, 1);
-  if (avatar.jumpEnd) avatar.jumpNode.factor = 0;
+  if (avatar.jumpEnd) avatar.jumpNode.crossFade(0.2, 0);
+
+  //
 
   mixer.update(timeS, avatar.animTree);
 };
