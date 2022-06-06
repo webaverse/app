@@ -59,8 +59,6 @@ const localVector2 = new THREE.Vector3();
 // const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
-const localArray3 = [0, 0, 0];
-const localArray4 = [0, 0, 0, 0];
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const upVector = new THREE.Vector3(0, 1, 0);
@@ -159,7 +157,9 @@ class PlayerBase extends THREE.Object3D {
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
+    this.characterHitter = new CharacterHitter(this);
     this.characterBehavior = new CharacterBehavior(this);
+    
     this.wornApps = [];
     this.leftHand = new PlayerHand();
     this.rightHand = new PlayerHand();
@@ -268,9 +268,7 @@ class PlayerBase extends THREE.Object3D {
       const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
       self.playerMap.set('voiceSpec', voiceSpec);
     });
-    if(this.isLocalPlayer){
-      this.loadVoicePack({ audioUrl, indexUrl })
-    }
+    this.loadVoicePack({ audioUrl, indexUrl })
   }
 
   async loadVoicePack({ audioUrl, indexUrl }) {
@@ -282,7 +280,8 @@ class PlayerBase extends THREE.Object3D {
   }
 
   setVoiceEndpoint(voiceId) {
-    console.log("setVoiceEndpoint")
+    if(!voiceId) return console.error("voice Id is null,")
+    console.log("setVoiceEndpoint", voiceId)
     const self = this;
     const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
     this.playersArray.doc.transact(function tx() {
@@ -298,9 +297,7 @@ class PlayerBase extends THREE.Object3D {
         self.playerMap.set('voiceSpec', voiceSpec);
       }
     });
-    if(this.isLocalPlayer){
-      this.loadVoiceEndpoint(url)
-    }
+    this.loadVoiceEndpoint(url)
   }
 
   loadVoiceEndpoint(url) {
@@ -660,8 +657,8 @@ class StatePlayer extends PlayerBase {
     const actions = this.getActionsState();
     let lastActions = actions.toJSON();
     const observeActionsFn = (e) => {
-      console.log("e is", e)
       const nextActions = Array.from(this.getActionsState());
+
       for (const nextAction of nextActions) {
         if (
           !lastActions.some(
@@ -674,6 +671,7 @@ class StatePlayer extends PlayerBase {
           });
         }
       }
+
       for (const lastAction of lastActions) {
         if (
           !nextActions.some(
@@ -1143,12 +1141,6 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
-    this.characterHitter = new CharacterHitter(this);
-    this.characterBehavior = new CharacterBehavior(this);
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
@@ -1486,7 +1478,6 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
 }
 
-let initialPosition = localVector;
 class RemotePlayer extends InterpolatedPlayer {
   audioWorkletNode = false;
   constructor(opts) {
@@ -1497,8 +1488,6 @@ class RemotePlayer extends InterpolatedPlayer {
   }
 
   audioWorkerLoaded = false;
-  analyzer = false;
-  dataArray;
   async prepareAudioWorker() {
     try {
       if (!this.audioWorkerLoaded) {
@@ -1524,19 +1513,7 @@ class RemotePlayer extends InterpolatedPlayer {
           this.avatar.setAudioEnabled(true);
         }
 
-        this.analyser = audioContext.createAnalyser();
-        this.analyser.fftSize = 2048;
-
-        var bufferLength = this.analyser.frequencyBinCount;
-        this.dataArray = new Uint8Array(bufferLength);
-
-        // Connect the source to be analysed
-        this.audioWorkletNode.connect(this.analyser);
         this.audioWorkletNode.connect(this.avatar.getAudioInput());
-
-        // audioWorkletNode.connect(audioContext.destination)
-        this.analyser.connect(audioContext.gain);
-        console.log("***** EVERYTHING IS CONNECTED *****");
       }
     } catch (error) {
       console.error("error", error);
@@ -1548,7 +1525,6 @@ class RemotePlayer extends InterpolatedPlayer {
     this.prepareAudioWorker();
     if (this.audioWorkletNode) {
       this.audioDecoder.decode(data.data);
-      this.analyser.getByteTimeDomainData(this.dataArray);
     }
   }
 
@@ -1608,24 +1584,17 @@ class RemotePlayer extends InterpolatedPlayer {
       );
     }
 
-    console.log("index is", index);
-
     const lastPosition = new THREE.Vector3();
 
     loadPhysxCharacterController.call(this);
 
-    // let prevApps = [];
-
     const observePlayerFn = (e) => {
       if (e.changes.keys.get('playerId')) {
-        console.log("playerId is ", e.changes.keys.get('playerId'));
         this.playerId = e.changes.keys.get('playerId');
       }
 
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
-        console.log("voiceSpec is ", e.changes.keys.get('voiceSpec'));
         const voiceSpec = e.changes.keys.get('voiceSpec');
-        console.log("voiceSpec is", voiceSpec.value)
         const json = JSON.parse(voiceSpec.value);
         if(json.endpointUrl)
           this.loadVoiceEndpoint(json.endpointUrl);
@@ -1634,7 +1603,6 @@ class RemotePlayer extends InterpolatedPlayer {
       }
 
       if (e.changes.keys.get('name')) {
-        console.log("name is ", e.changes.keys.get('name'));
         this.name = e.changes.keys.get('name');
       }
 

@@ -39,13 +39,13 @@ class VolumeProcessor extends AudioWorkletProcessor {
             for (let j = 0; j < samples.length; j++) {
               this.sampleSum += Math.abs(samples[j]);
             }
-            this.sampleSum += samples.length;
+            this.numSamples += samples.length;
           }
         }
       }
 
       if (++this.tick >= this.numTicks) {
-        const value = this.sampleSum > 0 ? (this.sampleSum / this.sampleSum) : 0;
+        const value = this.sampleSum > 0 ? (this.sampleSum / this.numSamples) : 0;
         this.port.postMessage({
           method: 'volume',
           data: value,
@@ -53,7 +53,7 @@ class VolumeProcessor extends AudioWorkletProcessor {
 
         this.tick = 0;
         this.sampleSum = 0;
-        this.sampleSum = 0;
+        this.numSamples = 0;
       }
     };
     this.emitVolume && _emitVolume();

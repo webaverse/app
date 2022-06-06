@@ -13,15 +13,16 @@ import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import {AppContext} from './components/app';
-import {ethers, BigNumber} from 'ethers';
-import {NFTABI, FTABI} from './abis/contract';
-import {NFTcontractAddress, FTcontractAddress} from './hooks/web3-constants.js';
+// import {ethers, BigNumber} from 'ethers';
+// import {NFTABI, FTABI} from './abis/contract';
+// import {NFTcontractAddress, FTcontractAddress} from './hooks/web3-constants.js';
 
 import {
   ToastContainer,
   toast,
 } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import useNFTContract from './hooks/useNFTContract';
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -95,21 +96,32 @@ const uploadCreateApp = async (item, {
 };
 
 const DragAndDrop = () => {
-  const {ethereum} = window;
-  if (ethereum) {
-    var provider = new ethers.providers.Web3Provider(ethereum);
-  }
 
-  const {state, setState, walletstate, setWalletState} = useContext(AppContext);
+  const {state, setState, account} = useContext(AppContext);
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
   const [mintBtnEnable, setMintBtnEnable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { currentAddress, connectWallet, errorMessage, wrongChain } = account;
+
+  const notifymessage = (msg, type) => {
+    toast(msg, {
+      position: 'top-center',
+      autoClose: 4000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: true,
+      progress: undefined,
+      type,
+      theme: 'dark',
+    });
+  };
+
+  const { mintNFT, minting } = useNFTContract(currentAddress, notifymessage, setCurrentApp, setIsLoading );
 
   const isMetaMaskConnected = () => {
-    return !!walletstate.walletaddress;
-    // const accounts = await provider.listAccounts();
-    // return accounts.length > 0;
+    return !!currentAddress;
   };
 
   useEffect(() => {
@@ -223,7 +235,7 @@ const DragAndDrop = () => {
   useEffect(() => {
     const connectedWallet = isMetaMaskConnected();
     setMintBtnEnable(connectedWallet);
-  }, [walletstate.walletaddress]);
+  }, [currentAddress]);
 
   const _currentAppClick = e => {
     e.preventDefault();
@@ -262,126 +274,15 @@ const DragAndDrop = () => {
     }
   };
   const _mint = async e => {
-    if (!mintBtnEnable) return false;
+    if (!currentAddress) return false;
     e.preventDefault();
     e.stopPropagation();
     setIsLoading(true);
 
     console.log('mint', currentApp);
-
-    // console.log("process.env.SERVER_HOST", process.env.UPLOAD_URL)
-    // switch Polygon main network
-    // try {
-    //   await ethereum.request({
-    //     method: 'wallet_switchEthereumChain',
-    //     params: [{ chainId: VITE_APP_POLYGON_MAINNET_CHAIN_ID }],
-    //   });
-    // } catch (switchError) {
-    //   console.log(switchError);
-    //   // This error code indicates that the chain has not been added to MetaMask.
-    //   if (switchError.code === 4902) {
-    //     try {
-    //       await ethereum.request({
-    //         method: 'wallet_addEthereumChain',
-    //         params: [
-    //           {
-    //             chainId: VITE_APP_POLYGON_MAINNET_CHAIN_ID,
-    //             chainName: 'Polygon Mainnet',
-    //             rpcUrls: [import.meta.env.VITE_APP_POLYGON_MAINNET_RPC_URL] /* ... */,
-    //             nativeCurrency: {
-    //               name: "MATIC",
-    //               symbol: "MATIC", // 2-6 characters long
-    //               decimals: 18,
-    //             },
-    //             blockExplorerUrls: [import.meta.env.VITE_APP_POLYGON_MAINNET_BLOCK_EXPLORER_URL],
-    //           },
-    //         ],
-    //       });
-    //     } catch (addError) {
-    //       // handle "add" error
-    //     }
-    //   }
-    //   // handle other "switch" errors
-    // }
-
-    // switch Polygon testnet
-    try {
-      await ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{chainId: VITE_APP_POLYGON_TESTNET_CHAIN_ID}],
-      });
-    } catch (switchError) {
-      console.log(switchError);
-      // This error code indicates that the chain has not been added to MetaMask.
-      if (switchError.code === 4902) {
-        try {
-          await ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId: VITE_APP_POLYGON_TESTNET_CHAIN_ID,
-                chainName: 'Polygon Testnet',
-                rpcUrls: [import.meta.env.VITE_APP_POLYGON_TESTNET_RPC_URL] /* ... */,
-                nativeCurrency: {
-                  name: 'MATIC',
-                  symbol: 'MATIC', // 2-6 characters long
-                  decimals: 18,
-                },
-                blockExplorerUrls: [import.meta.env.VITE_APP_POLYGON_TESTNET_BLOCK_EXPLORER_URL],
-              },
-            ],
-          });
-        } catch (addError) {
-          console.log(addError);
-        }
-      }
-      // handle other "switch" errors
-    }
-
-    const name = currentApp.name;
-    const ext = currentApp.contentId.split('.').pop();
-    const hash = currentApp.contentId.split(import.meta.env.VITE_APP_ITEM_UPLOAD_URL)[1].split('/' + name + '.' + ext)[0];
-    const description = 'It is an Inventory Item'; // template
-
-    const signer = new ethers.providers.Web3Provider(ethereum).getSigner();
-    const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
-    const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
-    const Bigmintfee = await NFTcontract.mintFee();
-    const mintfee = BigNumber.from(Bigmintfee).toNumber();
-    if (mintfee > 0) { // webaverse side chain mintfee != 0
-      const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
-      const FTapproveres = await FTapprovetx.wait();
-      if (FTapproveres.transactionHash) {
-        try {
-          const NFTminttx = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1);
-          setIsLoading(false);
-          setCurrentApp(null);
-          const NFTmintres = await NFTminttx.wait();
-          if (NFTmintres.transactionHash) {
-            notifymessage('Mint complete! New item added in the inventory', 'success');
-          }
-        } catch (err) {
-          console.log(err);
-          setIsLoading(false);
-          setCurrentApp(null);
-          notifymessage('Mint failed', 'error');
-        }
-      }
-    } else { // mintfee = 0 for Polygon not webaverse sidechain
-      try {
-        const NFTminttx = await NFTcontract.mint(walletstate.walletaddress, hash, name, ext, description, 1);
-        setIsLoading(false);
-        setCurrentApp(null);
-        const NFTmintres = await NFTminttx.wait();
-        if (NFTmintres.transactionHash) {
-          notifymessage('Mint complete! New item added in the inventory', 'success');
-        }
-      } catch (err) {
-        console.log(err);
-        setIsLoading(false);
-        setCurrentApp(null);
-        notifymessage('Mint failed', 'error');
-      }
+    if (currentApp) {
+        const app = currentApp;
+        mintNFT(app);
     }
   };
   const _cancel = e => {
@@ -394,19 +295,7 @@ const DragAndDrop = () => {
   const name = currentApp ? currentApp.name : '';
   const appType = currentApp ? currentApp.appType : '';
 
-  const notifymessage = (msg, type) => {
-    toast(msg, {
-      position: 'top-center',
-      autoClose: 4000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: false,
-      draggable: true,
-      progress: undefined,
-      type,
-      theme: 'dark',
-    });
-  };
+
   return (
     <>
       <>

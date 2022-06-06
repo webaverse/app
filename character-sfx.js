@@ -97,7 +97,7 @@ class CharacterSfx {
 
     //check current actions has sit action
     let hasSitAction = false
-    for (const action of actions) {
+    for (const action of actions) { 
       if (action.type === 'sit') {
         hasSitAction = true
       }

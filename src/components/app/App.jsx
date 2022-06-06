@@ -123,7 +123,6 @@ const Canvas = ({
 
 export const App = () => {
     const [ state, setState ] = useState({ openedPanel: null });
-    const [ walletstate, setWalletState ] = useState({ walletaddress: null });
 
     const app = useWebaverseApp();
     const [ selectedApp, setSelectedApp ] = useState( null );
@@ -270,7 +269,7 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, walletstate, setWalletState, app, setSelectedApp, selectedApp, account }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, account }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 
                 <DomRenderer />
