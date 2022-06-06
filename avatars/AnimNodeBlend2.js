@@ -23,7 +23,7 @@ class AnimNodeBlend2 extends AnimNode {
     this.timeS = timeS;
     // if (spec.isPosition && this === window.avatar?.jumpNode) console.log(this.isCrossFade);
     // if (spec.isPosition && this === window.avatar?.jumpNode) console.log(timeS);
-    if (spec.isPosition && this === window.avatar?.jumpNode) console.log(this.factor);
+    // if (spec.isPosition && this === window.avatar?.jumpNode) console.log(this.factor);
 
     if (this.isCrossFade) {
       this.factor = (timeS - this.crossFadeStartTime) / this.crossFadeDuration;

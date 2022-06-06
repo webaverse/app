@@ -58,13 +58,15 @@ class AnimMixer extends EventDispatcher {
 
     if (node.isAnimMotion) { // todo: do not evaluate weight <= 0
       const motion = node;
+      // if (isPosition && motion === window.avatar?.jumpMotion) debugger;
+      motion.update(); // todo: now update 57 times!
       const clip = motion.clip;
       const src = clip.interpolants[k];
       let value;
       if (motion.loop === LoopOnce) {
-        value = src.evaluate(motion.time / motion.speed + motion.startTime);
+        value = src.evaluate(motion.time / motion.speed + motion.timeBias);
       } else {
-        value = src.evaluate((timeS / motion.speed + motion.startTime) % clip.duration);
+        value = src.evaluate((timeS / motion.speed + motion.timeBias) % clip.duration);
       }
       return value;
     } else if (node.isAnimNode) {
@@ -74,6 +76,7 @@ class AnimMixer extends EventDispatcher {
   }
 
   update(timeS, animTree) {
+    AnimMixer.timeS = timeS;
     for (const spec of this.avatar.animationMappings) {
       const {
         animationTrackName: k,
@@ -108,5 +111,6 @@ class AnimMixer extends EventDispatcher {
     }
   }
 }
+AnimMixer.timeS = 0;
 
 export {AnimMixer};

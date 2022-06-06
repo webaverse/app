@@ -426,7 +426,7 @@ export const _createAnimation = avatar => {
   avatar.jumpMotion.loop = LoopOnce;
   avatar.jumpMotion.stop();
   // avatar.jumpMotion.weight = 999999; // can't Infinity
-  avatar.jumpMotion.startTime = 0.7;
+  avatar.jumpMotion.timeBias = 0.7;
   avatar.jumpMotion.speed = 1 / 0.6;
 
   // AnimNodes ---
@@ -456,7 +456,7 @@ export const _updateAnimation = avatar => {
   // LoopOnce
 
   // jump
-  avatar.jumpMotion.time = avatar.jumpTime / 1000;
+  // avatar.jumpMotion.time = avatar.jumpTime / 1000;
   // const jumpFactor = MathUtils.clamp(avatar.jumpMotion.time / 0.2, 0, 1);
   // avatar.defaultNode.weight = 1 - jumpFactor;
   // avatar.jumpMotion.weight = jumpFactor;
@@ -467,8 +467,12 @@ export const _updateAnimation = avatar => {
   // if (avatar.jumpStart) avatar.jumpNode.factor = 1;
   // if (avatar.jumpEnd) avatar.jumpNode.factor = 0;
 
-  if (avatar.jumpStart) avatar.jumpNode.crossFade(0.2, 1);
-  if (avatar.jumpEnd) avatar.jumpNode.crossFade(0.2, 0);
+  if (avatar.jumpStart) {
+    avatar.jumpMotion.play();
+    avatar.jumpNode.crossFade(0.2, 1);
+  }
+  if (avatar.jumpEnd) avatar.jumpNode.crossFade(2, 0);
+  if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
 
   //
 
