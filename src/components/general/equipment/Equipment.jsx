@@ -11,6 +11,8 @@ import {mod} from '../../../../util.js';
 import {NFTABI, FTABI} from '../../../abis/contract';
 import {NFTcontractAddress, FTcontractAddress} from '../../../hooks/web3-constants.js';
 import {ethers, BigNumber} from 'ethers';
+import { useStaticNFTContract } from '../../../hooks/useNFTContract';
+
 
 const size = 2048;
 const numFrames = 128;
@@ -115,17 +117,15 @@ export const Equipment = () => {
   const [inventoryObject, setInventoryObject] = useState([]);
   const [faceIndex, setFaceIndex] = useState(1);
   const selectedMenuIndex = mod(faceIndex, 4);
-
-  const contract = getContract();
+  const { getNFTTotalSupply, getTokenURI } = useStaticNFTContract()
 
   useEffect(async () => {
-    const BigtotalMintedToken = await contract.totalSupply();
-    const totalMintedToken = BigNumber.from(BigtotalMintedToken).toNumber();
+    const totalMintedToken = await getNFTTotalSupply();
     console.log('big', totalMintedToken);
 
     const inventoryItems = [];
     for (let i = 1; i <= totalMintedToken; i++) {
-      const tokenuri = await contract.tokenURI(i);
+      const tokenuri = await getTokenURI(i)
       inventoryItems.push({
         name: 'ASSET ID ' + i,
         start_url: tokenuri,

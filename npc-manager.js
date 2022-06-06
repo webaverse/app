@@ -286,7 +286,7 @@ class NpcManager extends EventTarget {
       const _setVoiceEndpoint = () => {
         const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
         if (voice) {
-          newNpcPlayer.setVoiceEndpoint(voice.voiceId);
+          newNpcPlayer.setVoiceEndpoint(voice.drive_id);
         } else {
           console.warn('unknown voice name', npcVoiceName, voices.voiceEndpoints);
         }

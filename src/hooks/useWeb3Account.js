@@ -62,6 +62,11 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     }
   };
 
+  const logoutWallet = () => {
+      setAccounts([]);
+      setCurrentAddress('');
+  };
+
   const connectWallet = async () => {
     try {
       const {ethereum} = window;
@@ -131,6 +136,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     currentAddress,
     errorMessage,
     connectWallet,
+    logoutWallet,
     checkIfWalletIsConnected,
     wrongChain,
     addRPCToWallet,
