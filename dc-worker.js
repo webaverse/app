@@ -123,6 +123,16 @@ const _handleMethod = ({
         return null;
       }
     }
+    case 'getHeightfieldRange': {
+      const {x, z, w, h, lod} = args;
+      const heights = dc.getHeightfieldRange(x, z, w, h, lod);
+
+      const spec = {
+        result: heights,
+        transfers: [heights.buffer],
+      };
+      return spec;
+    }
     case 'drawCubeDamage': {
       const {position, quaternion, scale} = args;
       // console.log('dc worker draw cube damage', {position, quaternion, scale});

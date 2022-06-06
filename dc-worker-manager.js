@@ -132,6 +132,17 @@ class DcWorkerManager {
     });
     return result;
   }
+  async getHeightfieldRange(x, z, w, h, lod) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('getHeightfieldRange', {
+      x,
+      z,
+      w,
+      h,
+      lod
+    });
+    return result;
+  }
   async drawCubeDamage(position, quaternion, scale) {
     const worker = this.getNextWorker();
     const result = await worker.request('drawCubeDamage', {

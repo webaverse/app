@@ -219,4 +219,24 @@ w.createChunkMeshDualContouring = (x, y, z, lods) => {
   }
 };
 
+w.getHeightfieldRange = (x, z, w, h, lod) => {
+  const allocator = new Allocator(Module);
+
+  const heights = allocator.alloc(Float32Array, w * h);
+
+  try {
+    Module._getHeightfieldRange(
+      x,
+      z,
+      w,
+      h,
+      lod,
+      heights.byteOffset
+    );
+    return heights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+
 export default w;
