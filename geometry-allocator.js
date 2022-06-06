@@ -77,12 +77,12 @@ export class FreeList {
     if (index !== -1) {
       const replacementArray = slot.free();
       this.slots.splice.apply(this.slots, [index, 1].concat(replacementArray));
-      // this.#mergeAdjacentSlots();
+      this.#mergeAdjacentSlots();
     } else {
       throw new Error('invalid free');
     }
   }
-  /* #mergeAdjacentSlots() {
+  #mergeAdjacentSlots() {
     for (let i = this.slots.length - 2; i >= 0; i--) {
       const slot = this.slots[i];
       const nextSlot = this.slots[i + 1];
@@ -91,7 +91,7 @@ export class FreeList {
         this.slots.splice(i + 1, 1);
       }
     }
-  } */
+  }
   getGeometryGroups() {
     const groups = [];
     for (const slot of this.slots) {
