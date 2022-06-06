@@ -219,4 +219,103 @@ w.createChunkMeshDualContouring = (x, y, z, lods) => {
   }
 };
 
+w.getHeightfieldRange = (x, z, w, h, lod) => {
+  const allocator = new Allocator(Module);
+
+  const heights = allocator.alloc(Float32Array, w * h);
+
+  try {
+    Module._getHeightfieldRange(
+      x,
+      z,
+      w,
+      h,
+      lod,
+      heights.byteOffset
+    );
+    return heights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+
+w.createGrassSplat = (x, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const allocSize = 64 * 1024;
+  const ps = allocator.alloc(Float32Array, allocSize * 3);
+  const qs = allocator.alloc(Float32Array, allocSize * 4);
+  const count = allocator.alloc(Uint32Array, 1);
+
+  try {
+    Module._createGrassSplat(
+      x,
+      z,
+      lod,
+      ps.byteOffset,
+      qs.byteOffset,
+      count.byteOffset
+    );
+    const numElements = count[0];
+    return {
+      ps: ps.slice(0, numElements * 3),
+      qs: qs.slice(0, numElements * 4),
+    };
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.createVegetationSplat = (x, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const allocSize = 64 * 1024;
+  const ps = allocator.alloc(Float32Array, allocSize * 3);
+  const qs = allocator.alloc(Float32Array, allocSize * 4);
+  const count = allocator.alloc(Uint32Array, 1);
+
+  try {
+    Module._createVegetationSplat(
+      x,
+      z,
+      lod,
+      ps.byteOffset,
+      qs.byteOffset,
+      count.byteOffset
+    );
+    const numElements = count[0];
+    return {
+      ps: ps.slice(0, numElements * 3),
+      qs: qs.slice(0, numElements * 4),
+    };
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.createMobSplat = (x, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const allocSize = 64 * 1024;
+  const ps = allocator.alloc(Float32Array, allocSize * 3);
+  const qs = allocator.alloc(Float32Array, allocSize * 4);
+  const count = allocator.alloc(Uint32Array, 1);
+
+  try {
+    Module._createMobSplat(
+      x,
+      z,
+      lod,
+      ps.byteOffset,
+      qs.byteOffset,
+      count.byteOffset
+    );
+    const numElements = count[0];
+    return {
+      ps: ps.slice(0, numElements * 3),
+      qs: qs.slice(0, numElements * 4),
+    };
+  } finally {
+    allocator.freeAll();
+  }
+};
+
 export default w;
