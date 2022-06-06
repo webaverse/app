@@ -1907,6 +1907,9 @@ class Avatar {
       window.avatar = this;
       window.mixer = this.mixer;
       // window.motiono = this.motiono;
+      
+      console.log(window.logNum(this.getAngle()));
+
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
       */
