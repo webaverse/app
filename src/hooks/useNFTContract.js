@@ -30,7 +30,7 @@ const CONTRACT_EVENTS = {
 export default function useNFTContract(currentAccount, onMint = () => {}) {
   const [minting, setMinting] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
-  const [minted, setMinted] = useState([]);
+  const [error, setError] = useState('');
 
   async function getSigner() {
     var provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -45,6 +45,7 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
 
   async function mintNFT(currentApp) {
     setMinting(true);
+    setError('');
     try {
       const signer = await getSigner();
 
@@ -65,10 +66,10 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
             const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, description, 1);
             // after mint transaction, refresh the website
             onMint(NFTmintres);
-          } catch (err) {
-            console.log(err);
-            alert('NFT mint failed');
+            } catch (err) {
+            setError(err.message);
           }
+          setMinting(false);
         }
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
@@ -76,11 +77,12 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
           onMint(NFTmintres);
           // after mint transaction, refresh the website
         } catch (err) {
-          console.log(err);
-          alert('NFT mint failed');
+          setError(error.message);
+          setMinting(false);
         }
       }
     } catch (error) {
+      setError(error.message);
       setMinting(false);
     }
   }
@@ -118,12 +120,13 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
     totalSupply,
     minting,
     mintNFT,
-    minted,
     getContract,
     showWallet,
     setShowWallet,
     getToken,
     getTokens,
     getTokenIdsOf,
+    error,
+    setError,
   };
 }
