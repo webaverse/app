@@ -426,7 +426,13 @@ export const _createAnimation = avatar => {
   avatar.walkLeftMirrorMotion = avatar.mixer.createMotion(animations.index['right strafe walking reverse.fbx']);
   avatar.walkRightMirrorMotion = avatar.mixer.createMotion(animations.index['left strafe walking reverse.fbx']);
 
-  avatar.runMotion = avatar.mixer.createMotion(animations.index['Fast Run.fbx']);
+  avatar.runForwardMotion = avatar.mixer.createMotion(animations.index['Fast Run.fbx']);
+  avatar.runBackwardMotion = avatar.mixer.createMotion(animations.index['running backwards.fbx']);
+  avatar.runLeftMotion = avatar.mixer.createMotion(animations.index['left strafe.fbx']);
+  avatar.runRightMotion = avatar.mixer.createMotion(animations.index['right strafe.fbx']);
+  avatar.runLeftMirrorMotion = avatar.mixer.createMotion(animations.index['right strafe reverse.fbx']);
+  avatar.runRightMirrorMotion = avatar.mixer.createMotion(animations.index['left strafe reverse.fbx']);
+
   avatar.crouchWalkMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
 
@@ -448,9 +454,17 @@ export const _createAnimation = avatar => {
   avatar.walkNode.addChild(avatar.walkLeftMirrorMotion);
   avatar.walkNode.addChild(avatar.walkRightMirrorMotion);
 
+  avatar.runNode = new AnimNodeBlendList('run');
+  avatar.runNode.addChild(avatar.runForwardMotion);
+  avatar.runNode.addChild(avatar.runBackwardMotion);
+  avatar.runNode.addChild(avatar.runLeftMotion);
+  avatar.runNode.addChild(avatar.runRightMotion);
+  avatar.runNode.addChild(avatar.runLeftMirrorMotion);
+  avatar.runNode.addChild(avatar.runRightMirrorMotion);
+
   avatar.walkRunNode = new AnimNodeBlend2('walkRun');
   avatar.walkRunNode.addChild(avatar.walkNode);
-  avatar.walkRunNode.addChild(avatar.runMotion);
+  avatar.walkRunNode.addChild(avatar.runNode);
 
   avatar._7wayWalkRunNode = new AnimNodeBlend2('_7wayWalkRunNode');
   avatar._7wayWalkRunNode.addChild(avatar.idleMotion);
@@ -478,11 +492,14 @@ export const _updateAnimation = avatar => {
   // LoopRepeat ---
 
   const angle = avatar.getAngle();
+  const forwardFactor = 1 - MathUtils.clamp(Math.abs(angle) / (Math.PI / 2), 0, 1);
+  const backwardFactor = 1 - MathUtils.clamp((Math.PI - Math.abs(angle)) / (Math.PI / 2), 0, 1);
   const leftFactor = 1 - MathUtils.clamp(Math.abs(angle - Math.PI / 2) / (Math.PI / 2), 0, 1);
   const rightFactor = 1 - MathUtils.clamp(Math.abs(angle - -Math.PI / 2) / (Math.PI / 2), 0, 1);
   const mirror = Math.abs(angle) > (Math.PI / 2 + 0.01); // todo: smooth mirror changing
-  avatar.walkForwardMotion.weight = 1 - MathUtils.clamp(Math.abs(angle) / (Math.PI / 2), 0, 1);
-  avatar.walkBackwardMotion.weight = 1 - MathUtils.clamp((Math.PI - Math.abs(angle)) / (Math.PI / 2), 0, 1);
+
+  avatar.walkForwardMotion.weight = forwardFactor;
+  avatar.walkBackwardMotion.weight = backwardFactor;
   avatar.walkLeftMotion.weight = mirror ? 0 : leftFactor;
   avatar.walkLeftMirrorMotion.weight = mirror ? leftFactor : 0;
   avatar.walkRightMotion.weight = mirror ? 0 : rightFactor;
@@ -494,6 +511,13 @@ export const _updateAnimation = avatar => {
   window.domInfo.innerHTML += `<div style="display:;">right: --- ${window.logNum(avatar.walkRightMotion.weight)}</div>`;
   window.domInfo.innerHTML += `<div style="display:;">leftMirror: --- ${window.logNum(avatar.walkLeftMirrorMotion.weight)}</div>`;
   window.domInfo.innerHTML += `<div style="display:;">rightMirror: --- ${window.logNum(avatar.walkRightMirrorMotion.weight)}</div>`;
+
+  avatar.runForwardMotion.weight = forwardFactor;
+  avatar.runBackwardMotion.weight = backwardFactor;
+  avatar.runLeftMotion.weight = mirror ? 0 : leftFactor;
+  avatar.runLeftMirrorMotion.weight = mirror ? leftFactor : 0;
+  avatar.runRightMotion.weight = mirror ? 0 : rightFactor;
+  avatar.runRightMirrorMotion.weight = mirror ? rightFactor : 0;
 
   avatar.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
   avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
