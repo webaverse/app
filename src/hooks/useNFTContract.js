@@ -44,44 +44,43 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
   };
 
   async function mintNFT(currentApp) {
-    const {ethereum} = window;
     setMinting(true);
     try {
       const signer = await getSigner();
 
-      const connectedContract = new ethers.Contract(contractAddress, contractABI, signer);
-      
-      const connectedContractFT = new ethers.Contract(contractAddressFT, contractABIFT, signer);
+      const name = currentApp.name;
+      const ext = currentApp.contentId.split('.').pop();
+      const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/' + name + '.' + ext)[0];
+      const description = currentApp.description;
 
-      if (connectedContract) {
-        setShowWallet(true);
-
-        const name = currentApp.name;
-        const ext = currentApp.contentId.split('.').pop();
-        const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/' + name + '.' + ext)[0];
-        const description = currentApp.description;
-
-        const contractMintFee = await connectedContract.mintFee();
-        const mintfee = BigNumber.from(contractMintFee).toNumber();
-
-        const silkAapproval = await connectedContractFT.approve(connectedContract.address, mintfee); // mintfee = 10 default
-        const approval = await silkAapproval.wait();
-        if (approval.transactionHash) {
+      const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
+      const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
+      const Bigmintfee = await NFTcontract.mintFee();
+      const mintfee = BigNumber.from(Bigmintfee).toNumber();
+      if (mintfee > 0) { // webaverse side chain mintfee != 0
+        const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
+        const FTapproveres = await FTapprovetx.wait();
+        if (FTapproveres.transactionHash) {
           try {
-            const mint = await connectedContract.mint(ethereum.selectedAddress, hash, name, ext, description, 1);
-            onMint(mint);
+            const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, description, 1);
             // after mint transaction, refresh the website
+            onMint(NFTmintres);
           } catch (err) {
             console.log(err);
             alert('NFT mint failed');
           }
         }
-      } else {
-        console.log("Ethereum object doesn't exist!");
+      } else { // mintfee = 0 for Polygon not webaverse sidechain
+        try {
+          const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, description, 1);
+          onMint(NFTmintres);
+          // after mint transaction, refresh the website
+        } catch (err) {
+          console.log(err);
+          alert('NFT mint failed');
+        }
       }
     } catch (error) {
-      console.log(error);
-      setShowWallet(false);
       setMinting(false);
     }
   }
