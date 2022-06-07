@@ -23,8 +23,9 @@ import postProcessing from './post-processing.js';
 import {getRandomString, memoize} from './util.js';
 import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
-import * as materials from './materials.js';
 import * as geometries from './geometries.js';
+import * as materials from './materials.js';
+import * as meshes from './meshes.js';
 import meshLodManager from './mesh-lodder.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
@@ -1184,6 +1185,9 @@ export default () => {
   },
   useMaterials() {
     return materials;
+  },
+  useMeshes() {
+    return meshes;
   },
   useJSON6Internal() {
     return JSON6;
