@@ -1327,6 +1327,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     });
   }
   ungrab() {
+    debugger
     const actions = Array.from(this.getActionsState());
     let removeOffset = 0;
     for (let i = 0; i < actions.length; i++) {
