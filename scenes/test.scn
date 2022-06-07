@@ -30,32 +30,7 @@
       ],
       "type": "application/npc",
       "content": {
-        "name": "Ann",
-        "avatarUrl": "/avatars/ann.vrm",
-        "voice": "Maud Pie",
-        "bio": "13/F Lisk Witch (black mage). She is 100% quirky and is always creating crazy new potions. She has a dark streak and is known to torment her teachers when they give her bad grades.",
-        "wear": [
-          {
-            "start_url": "https://webaverse.github.io/character-stats-banner/"
-          }
-        ]
-      }
-    },
-    {
-      "position": [
-        4,
-        0,
-        1
-      ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "type": "application/npc",
-      "content": {
-        "name": "Ann1",
+        "name": "Ann0",
         "avatarUrl": "/avatars/ann.vrm",
         "voice": "Maud Pie",
         "bio": "13/F Lisk Witch (black mage). She is 100% quirky and is always creating crazy new potions. She has a dark streak and is known to torment her teachers when they give her bad grades.",
@@ -81,6 +56,31 @@
       "type": "application/npc",
       "content": {
         "name": "Ann2",
+        "avatarUrl": "/avatars/ann.vrm",
+        "voice": "Maud Pie",
+        "bio": "13/F Lisk Witch (black mage). She is 100% quirky and is always creating crazy new potions. She has a dark streak and is known to torment her teachers when they give her bad grades.",
+        "wear": [
+          {
+            "start_url": "https://webaverse.github.io/character-stats-banner/"
+          }
+        ]
+      }
+    }, 
+    {
+      "position": [
+        4,
+        0,
+        1
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "type": "application/npc",
+      "content": {
+        "name": "Ann4",
         "avatarUrl": "/avatars/ann.vrm",
         "voice": "Maud Pie",
         "bio": "13/F Lisk Witch (black mage). She is 100% quirky and is always creating crazy new potions. She has a dark streak and is known to torment her teachers when they give her bad grades.",

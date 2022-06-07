@@ -488,6 +488,7 @@ ioManager.keydown = e => {
       const timeDiff = now - lastKeysDownTime.keyE;
       if (timeDiff < doubleTapTime) {
         game.menuMiddleToggle();
+        //game.findNearby();
       } else {
         game.menuMiddleUp();
 

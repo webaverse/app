@@ -60,6 +60,7 @@ class QueryResults {
   constructor() {
     this.results = [];
   }
+  //snapshots what the camera is looking at
   snapshot(object) {
     const {position, quaternion} = object;
     const direction = new THREE.Vector3(0, 0, -1)
@@ -68,7 +69,7 @@ class QueryResults {
     const maxHits = 64;
 
     const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
-
+    
     const result = physicsManager.sweepConvexShape(
       pyramidConvexGeometryAddress,
       position,
@@ -89,6 +90,7 @@ class QueryResults {
         }
       })();
       const zoom = 0;
+
       return {
         position: reticle.position,
         physicsId: reticle.objectId,
@@ -96,7 +98,77 @@ class QueryResults {
         zoom,
       }
     });
+    
     if (object === camera) {
+      reticles = reticles.filter(reticle => {
+        localVector.copy(reticle.position)
+          .project(camera);
+        return ( // check inside camera frustum
+          localVector.x >= -1 && localVector.x <= 1 &&
+          localVector.y >= -1 && localVector.y <= 1 &&
+          localVector.z > 0
+        );
+      });
+    }
+    const reticleSpecs = reticles.map(reticle => {
+      localVector.copy(reticle.position)
+        .project(camera);
+      return {
+        reticle,
+        lengthSq: localVector.lengthSq(),
+      };
+    });
+    reticleSpecs.sort((a, b) => a.lengthSq - b.lengthSq);
+    reticles = reticleSpecs.map(reticleSpec => reticleSpec.reticle);
+    this.results = reticles;
+  }
+}
+
+// Alternate Query Results that accepts non-camera objects; needs to be combined with above
+class SwapQuery{
+  constructor() {
+    this.results = [];
+  }
+  
+  snapshot(object) {
+    const {position, quaternion} = object;
+    const direction = new THREE.Vector3(0, 0, -1)
+      .applyQuaternion(quaternion);
+    const sweepDistance = 100;
+    const maxHits = 64;
+
+    const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
+    
+    const result = physicsManager.sweepConvexShape(
+      pyramidConvexGeometryAddress,
+      position,
+      quaternion,
+      direction,
+      sweepDistance,
+      maxHits,
+    );
+      let reticles = result.map(reticle => {
+        reticle.position.copy(object.position);
+        const distance = reticle.position.distanceTo(camera.position);
+        const type = (() => {
+          if (distance < 5) {
+            return 'friend';
+          } else if (distance < 10) {
+            return 'enemy';
+          } else {
+            return 'object';
+          }
+        })();
+        const zoom = 0;
+
+      return {
+        position: object.position,
+        physicsId: object.objectId,
+        type,
+        zoom,
+      }
+    });
+    if (object !== camera) {
       reticles = reticles.filter(reticle => {
         localVector.copy(reticle.position)
           .project(camera);
@@ -139,10 +211,13 @@ class ZTargeting extends THREE.Object3D {
     this.reticles = [];
     this.focusTargetReticle = null;
     this.queryResults = new QueryResults();
-    this.nearbyResults = new QueryResults();
+    this.nearbyResults = new SwapQuery();
     this.dropAngle = 150;
+    this.currentTarget = new THREE.Vector3();
     this.nearbyMobs = [];
     this.nearbyNpc = [];
+    this.dist = 5;
+    this.swapAngle = 130;
   }
   setQueryResult(timestamp) {
     let reticles;
@@ -182,19 +257,41 @@ class ZTargeting extends THREE.Object3D {
   update(timestamp) {
     this.setQueryResult(timestamp);
   }
-  //now just feeds into handle target with camera object
+
   handleDown(object = camera) {
     if (!cameraManager.focus) {
-      this.handleTarget(object);
-   }
-  }
-  // handleDown except it accepts more parameters; will be needed for target swapping
-  handleTarget(targetObject){
-    // if (!cameraManager.focus) {
-      this.queryResults.snapshot(targetObject);
-
+      this.queryResults.snapshot(object);
       if (this.queryResults.results.length > 0) {
         this.focusTargetReticle = this.queryResults.results[0];
+
+        sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
+      
+        const naviSoundNames = [
+          'naviHey',
+          'naviWatchout',
+          'naviFriendly',
+          'naviItem',
+          'naviDanger',
+        ];
+        const naviSoundName = naviSoundNames[Math.floor(Math.random() * naviSoundNames.length)];
+        sounds.playSoundName(naviSoundName);
+      } else {
+        sounds.playSoundName('zTargetCenter');
+      }
+
+      cameraManager.setFocus(true);
+      const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
+      const localPlayer = getLocalPlayer();
+      cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
+   }
+  }
+  // handleDown except it accepts non-cam parameters; needs to be combined with above
+  handleTarget(targetObject){
+    if (!cameraManager.focus) {
+      this.nearbyResults.snapshot(targetObject);
+      if (this.nearbyResults.results.length > 0) {
+        this.focusTargetReticle = this.nearbyResults.results[0];
+
         sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
       
         const naviSoundNames = [
@@ -215,7 +312,9 @@ class ZTargeting extends THREE.Object3D {
       const localPlayer = getLocalPlayer();
       cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
     //}
+    }
   }
+
   handleUp() {
     if (cameraManager.focus) {
       cameraManager.setFocus(false);
@@ -272,34 +371,30 @@ class ZTargeting extends THREE.Object3D {
     this.findNearbyNpc();
   } 
   findNearbyNpc(){
-    let dist = 5;
+    if (this.focusTargetReticle){
     let nearbyplayer = null;
-    // probably use -> this.focusTargetReticle
     for (const index in npcManager.npcs){
-      // const npcPlayer = npcManager.npcs[npc];
-        console.log(npcManager.npcs[index].position, this.focusTargetReticle.position, npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position), dist);
-      if (npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position) > 1 && npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position) <= dist){
-        // console.log(npcManager.npcs[index].position, this.focusTargetReticle.position, npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position));
-        dist = npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position);
+      const npcAngle = cameraManager.compareAngletoCam(npcManager.npcs[index].position);
+      console.log(npcAngle);
+      if (npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position) > 0.5 /* <-avoid selecting itself*/ && 
+      /*distance between npcs */ npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position) <= this.dist && 
+      /*can only swap to enemies you can see */ npcAngle > this.swapAngle){
+        this.dist = npcManager.npcs[index].position.distanceTo(this.focusTargetReticle.position);
         nearbyplayer = npcManager.npcs[index];
-        // onsole.log(nearbyplayer, this.focusTargetObject);
-        // // this.nearbyNpc.push(nearbyplayer); // gonna make this a dictionary later with mob-angle relation
-        // console.log(nearbyNpc);
-        // console.log(nearbyplayer.name);
       }
-      console.log(dist);
     }
     
     if (nearbyplayer != null){
       this.handleUp();
-      console.log(nearbyplayer.position);
-      // add delay?
+      // potentiall add delay to smooth out a bit first
       this.handleTarget(nearbyplayer);
+      // reset the dist check
+      this.dist = 5;
+    }
     }
   }
   checkDrop(){
     var camAngle;
-    //this.findNearbyNpc();
     if (this.focusTargetReticle){
       camAngle = cameraManager.compareAngletoCam(this.focusTargetReticle.position);
       //bug angles are inverted 
