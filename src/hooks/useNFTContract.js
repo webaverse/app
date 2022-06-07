@@ -86,30 +86,45 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
     }
   }
 
-  async function getToken(tokenId) {
-    const signer = await getSigner();
-    const connectedContract = new ethers.Contract(contractAddress, contractABI, signer);
+  async function totalSupply() {
+    const contract = await getContract();
+    const totalSupply = await contract.totalSupply();
+    return BigNumber.from(totalSupply).toNumber();
+  }
 
-    try {
-      if (connectedContract) {
-        const rawToken = await connectedContract.tokenURI(tokenId);
-        const token = await fetch(rawToken).then(r => r.json());
-        return token;
-      } else {
-        console.log("Ethereum object doesn't exist!");
-      }
-    } catch (error) {
-      setShowWallet(false);
-      setMinting(false);
+  async function getTokenIdsOf() {
+    const contract = await getContract();
+    const tokenIdsOf = await contract.getTokenIdsOf(currentAccount);
+    return tokenIdsOf;
+  }
+
+  async function getToken(tokenId) {
+    const contract = await getContract();
+    if (contract) {
+      return await contract.tokenURI(tokenId);
+    } else {
+      return {};
     }
   }
 
+  async function getTokens() {
+    const tokenIdsOf = await getTokenIdsOf();
+    return await Promise.all(tokenIdsOf.map(async (tokenId) => {
+      const token = await getToken(tokenId);
+      return token;
+    }));
+  }
+
   return {
+    totalSupply,
     minting,
     mintNFT,
     minted,
+    getContract,
     showWallet,
     setShowWallet,
     getToken,
+    getTokens,
+    getTokenIdsOf,
   };
 }
