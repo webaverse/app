@@ -1,4 +1,6 @@
-/*
+/* eslint-disable lines-between-class-members */
+/* eslint-disable linebreak-style */
+  /*
 this manager provides music preloading, selection, and playing.
 */
 

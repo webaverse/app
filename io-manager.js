@@ -22,6 +22,7 @@ import physx from './physx.js';
 // import {airFriction, flyFriction} from './constants.js';
 import transformControls from './transform-controls.js';
 import metaversefile from 'metaversefile';
+import musicManager from './music-manager.js';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -296,9 +297,19 @@ ioManager.keydown = e => {
     case 9: { // tab
       break;
     }
-    case 49: // 1
-    case 50: // 2
-    case 51: // 3
+    case 49: { // 1
+      // musicManager.getMusic('dungeon');
+      // const context = new AudioContext();
+      break;
+    }
+    case 50: { // 2
+      musicManager.playCurrentMusic('dungeon');
+      break;
+    }
+    case 51: { // 3
+      musicManager.stopCurrentMusic();
+      break;
+    }
     case 52: // 4
     case 53: // 5
     case 54: // 6
