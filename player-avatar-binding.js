@@ -97,6 +97,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
 
   rig.jumpState = !!jumpAction;
+  //
   rig.jumpStart = false;
   rig.jumpEnd = false;
   if (rig.jumpState !== rig.lastJumpState) {
@@ -104,8 +105,18 @@ export function applyPlayerActionsToAvatar(player, rig) {
     else rig.jumpEnd = true;
   }
   rig.lastJumpState = rig.jumpState;
+  //
   rig.jumpTime = player.actionInterpolants.jump.get();
   rig.flyState = !!flyAction;
+  //
+  rig.flyStart = false;
+  rig.flyEnd = false;
+  if (rig.flyState !== rig.lastFlyState) {
+    if (rig.flyState) rig.flyStart = true;
+    else rig.flyEnd = true;
+  }
+  rig.lastFlyState = rig.flyState;
+  //
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
   

@@ -441,6 +441,7 @@ export const _createAnimation = avatar => {
   avatar.crouchRightMirrorMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Left reverse.fbx']);
 
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
+  avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
 
   // LoopOnce
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
@@ -496,7 +497,11 @@ export const _createAnimation = avatar => {
   avatar.jumpNode.addChild(avatar.defaultNode);
   avatar.jumpNode.addChild(avatar.jumpMotion);
 
-  avatar.animTree = avatar.jumpNode; // todo: set whole tree here with separate names.
+  avatar.flyNode = new AnimNodeBlend2('fly');
+  avatar.flyNode.addChild(avatar.jumpNode);
+  avatar.flyNode.addChild(avatar.flyMotion);
+
+  avatar.animTree = avatar.flyNode; // todo: set whole tree here with separate names.
 };
 
 export const _updateAnimation = avatar => {
@@ -544,6 +549,9 @@ export const _updateAnimation = avatar => {
   avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
+
+  if (avatar.flyStart) avatar.flyNode.crossFade(0.2, 1);
+  if (avatar.flyEnd) avatar.flyNode.crossFade(0.2, 0);
 
   // LoopOnce ---
 

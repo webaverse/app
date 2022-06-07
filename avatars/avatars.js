@@ -1926,6 +1926,7 @@ class Avatar {
         <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
         <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
         <div style="display:;">flyState: --- ${this.flyState}</div>
+        <div style="display:;">flyTime: --- ${Math.floor(this.flyTime)}</div>
         <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
         <div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>
         <div style="display:;">landState: --- ${this.landState}</div>
