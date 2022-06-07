@@ -70,6 +70,7 @@ export function makeAvatar(app) {
 }
 export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
+  const activateAction = player.getAction('activate');
   const flyAction = player.getAction('fly');
   const useAction = player.getAction('use');
   const pickUpAction = player.getAction('pickUp');
@@ -118,6 +119,16 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.lastFlyState = rig.flyState;
   //
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
+  rig.activateState = !!activateAction;
+  //
+  rig.activateStart = false;
+  rig.activateEnd = false;
+  if (rig.activateState !== rig.lastActivateState) {
+    if (rig.activateState) rig.activateStart = true;
+    else rig.activateEnd = true;
+  }
+  rig.lastActivateState = rig.activateState;
+  //
   rig.activateTime = player.actionInterpolants.activate.get();
   
   const _handleUse = () => {

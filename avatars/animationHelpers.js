@@ -454,6 +454,10 @@ export const _createAnimation = avatar => {
   avatar.jumpMotion.timeBias = 0.7;
   avatar.jumpMotion.speed = 1 / 0.6;
 
+  avatar.activateMotion = avatar.mixer.createMotion(activateAnimations.grab_forward.animation); // todo: handle activateAnimations.grab_forward.speedFactor
+  avatar.activateMotion.loop = LoopOnce;
+  avatar.activateMotion.stop();
+
   // AnimNodes ---
   avatar.walkNode = new AnimNodeBlendList('walk');
   avatar.walkNode.addChild(avatar.walkForwardMotion);
@@ -499,6 +503,7 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.defaultNode);
   avatar.actionsNode.addChild(avatar.jumpMotion);
   avatar.actionsNode.addChild(avatar.flyMotion);
+  avatar.actionsNode.addChild(avatar.activateMotion);
 
   // avatar.jumpNode = new AnimNodeBlend2('jump');
   // avatar.jumpNode.addChild(avatar.defaultNode);
@@ -580,6 +585,12 @@ export const _updateAnimation = avatar => {
   }
   if (avatar.jumpEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
+
+  if (avatar.activateStart) {
+    avatar.activateMotion.play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.activateMotion);
+  }
+  if (avatar.activateEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
 
   //
 
