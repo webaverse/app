@@ -8,8 +8,7 @@ import game from '../../../../game.js';
 import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
-import { NFTABI, NFTcontractAddress } from "../../../abis/contract"
-import { ethers, BigNumber } from 'ethers'
+import useNFTContract from '../../../hooks/useNFTContract';
 
 const size = 2048;
 const numFrames = 128;
@@ -55,11 +54,7 @@ const objects = {
 };
 
 //
-const getContract = () => {
-    const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(import.meta.env.VITE_APP_POLYGON_TESTNET_RPC_URL);
-    const contract = new ethers.Contract(NFTcontractAddress, NFTABI, simpleRpcProvider )
-    return contract;
-}
+
 
 const Item = forwardRef(({
   object,
