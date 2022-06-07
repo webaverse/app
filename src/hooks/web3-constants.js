@@ -70,7 +70,7 @@ export const CHAINS = {
     contract_name: 'polygon',
     previewLink: 'https://polygonscan.com/address/',
   },
-  POLYGON_TEST: {
+  MUMBAI: {
     chainName: 'Mumbai Testnet',
     name: 'Polygon',
     blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
@@ -86,4 +86,4 @@ export const CHAINS = {
 };
 
 export const NETWORK_KEYS = Object.keys(CHAINS);
-export const DEFAULT_CHAIN = CHAINS.POLYGON_TEST;
+export const DEFAULT_CHAIN = CHAINS.MUMBAI;
