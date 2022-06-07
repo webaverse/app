@@ -46,7 +46,7 @@ class AnimMixer extends EventDispatcher {
     }
   }
 
-  static doBlend(node, timeS, spec) {
+  static doBlend(node, spec) {
     const {
       animationTrackName: k,
       dst,
@@ -66,11 +66,11 @@ class AnimMixer extends EventDispatcher {
       if (motion.loop === LoopOnce) {
         value = src.evaluate(motion.time / motion.speed + motion.timeBias);
       } else {
-        value = src.evaluate((timeS / motion.speed + motion.timeBias) % animation.duration);
+        value = src.evaluate((AnimMixer.timeS / motion.speed + motion.timeBias) % animation.duration);
       }
       return value;
     } else if (node.isAnimNode) {
-      const result = node.update(timeS, spec);
+      const result = node.update(spec);
       return result;
     }
   }
@@ -85,7 +85,7 @@ class AnimMixer extends EventDispatcher {
         isPosition,
       } = spec;
 
-      const result = AnimMixer.doBlend(animTree, timeS, spec);
+      const result = AnimMixer.doBlend(animTree, spec);
 
       if (isPosition) { // _clearXZ
         result[0] = 0;

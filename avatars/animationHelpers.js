@@ -45,6 +45,7 @@ import {
 import {AnimNode} from './AnimNode.js';
 import {AnimNodeBlend2} from './AnimNodeBlend2.js';
 import {AnimNodeBlendList} from './AnimNodeBlendList.js';
+import { AnimNodeUnitary } from './AnimNodeUnitary.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -334,6 +335,7 @@ export const loadPromise = (async () => {
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
   }, aimAnimations);
+  window.useAnimations = useAnimations;
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
     saddle: animations.find(a => a.isSitting),
@@ -493,15 +495,20 @@ export const _createAnimation = avatar => {
   avatar.defaultNode.addChild(avatar._7wayWalkRunNode);
   avatar.defaultNode.addChild(avatar._7wayCrouchNode);
 
-  avatar.jumpNode = new AnimNodeBlend2('jump');
-  avatar.jumpNode.addChild(avatar.defaultNode);
-  avatar.jumpNode.addChild(avatar.jumpMotion);
+  avatar.actionsNode = new AnimNodeUnitary('actions');
+  avatar.actionsNode.addChild(avatar.defaultNode);
+  avatar.actionsNode.addChild(avatar.jumpMotion);
+  avatar.actionsNode.addChild(avatar.flyMotion);
 
-  avatar.flyNode = new AnimNodeBlend2('fly');
-  avatar.flyNode.addChild(avatar.jumpNode);
-  avatar.flyNode.addChild(avatar.flyMotion);
+  // avatar.jumpNode = new AnimNodeBlend2('jump');
+  // avatar.jumpNode.addChild(avatar.defaultNode);
+  // avatar.jumpNode.addChild(avatar.jumpMotion);
 
-  avatar.animTree = avatar.flyNode; // todo: set whole tree here with separate names.
+  // avatar.flyNode = new AnimNodeBlend2('fly');
+  // avatar.flyNode.addChild(avatar.jumpNode);
+  // avatar.flyNode.addChild(avatar.flyMotion);
+
+  avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
 };
 
 export const _updateAnimation = avatar => {
@@ -550,8 +557,8 @@ export const _updateAnimation = avatar => {
   avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
 
-  if (avatar.flyStart) avatar.flyNode.crossFade(0.2, 1);
-  if (avatar.flyEnd) avatar.flyNode.crossFade(0.2, 0);
+  if (avatar.flyStart) avatar.actionsNode.crossFadeTo(0.2, avatar.flyMotion);
+  if (avatar.flyEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
 
   // LoopOnce ---
 
@@ -569,9 +576,9 @@ export const _updateAnimation = avatar => {
 
   if (avatar.jumpStart) {
     avatar.jumpMotion.play();
-    avatar.jumpNode.crossFade(0.2, 1);
+    avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
   }
-  if (avatar.jumpEnd) avatar.jumpNode.crossFade(0.2, 0);
+  if (avatar.jumpEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
 
   //

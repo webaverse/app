@@ -15,6 +15,8 @@
         "position": [1, 2, 3]
       }
     },
+    { "position": [-3, 1, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
+    
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/block/" }
   ]
 }
