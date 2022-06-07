@@ -484,28 +484,35 @@ export const _updateAnimation = avatar => {
   avatar.walkLeftMirrorMotion.weight = 0;
   avatar.walkRightMirrorMotion.weight = 0;
   const angle = avatar.getAngle();
-  if (Math.abs(angle - Math.PI) < 0.1 || Math.abs(angle - -Math.PI) < 0.1) {
-    avatar.walkBackwardMotion.weight = 1;
-  } else if (Math.abs(angle - Math.PI / 2) < 0.1) {
-    avatar.walkLeftMotion.weight = 1;
-  } else if (Math.abs(angle - -Math.PI / 2) < 0.1) {
-    avatar.walkRightMotion.weight = 1;
-  } else if (Math.abs(angle - Math.PI / 4) < 0.1) {
-    avatar.walkLeftMotion.weight = 1;
-    avatar.walkForwardMotion.weight = 1;
-  } else if (Math.abs(angle - Math.PI / 4 * 3) < 0.1) {
-    avatar.walkLeftMirrorMotion.weight = 1;
-    avatar.walkBackwardMotion.weight = 1;
-  } else if (Math.abs(angle - -Math.PI / 4) < 0.1) {
-    avatar.walkRightMotion.weight = 1;
-    avatar.walkForwardMotion.weight = 1;
-  } else if (Math.abs(angle - -Math.PI / 4 * 3) < 0.1) {
-    avatar.walkRightMirrorMotion.weight = 1;
-    avatar.walkBackwardMotion.weight = 1;
-  } else {
-    avatar.walkForwardMotion.weight = 1;
-  }
+  // if (Math.abs(angle - Math.PI) < 0.1 || Math.abs(angle - -Math.PI) < 0.1) {
+    // avatar.walkBackwardMotion.weight = (Math.abs(angle) - Math.PI / 2) / (Math.PI / 2);
+  // } else if (Math.abs(angle - Math.PI / 2) < 0.1) {
+    avatar.walkLeftMotion.weight = 1 - MathUtils.clamp(Math.abs(angle - Math.PI / 2) / (Math.PI / 2), 0, 1);
+    avatar.walkRightMotion.weight = 1 - MathUtils.clamp(Math.abs(angle - -Math.PI / 2) / (Math.PI / 2), 0, 1);
+  // } else if (Math.abs(angle - -Math.PI / 2) < 0.1) {
+    // avatar.walkRightMotion.weight = 1;
+  // } else if (Math.abs(angle - Math.PI / 4) < 0.1) {
+    // avatar.walkLeftMotion.weight = 1;
+    // avatar.walkForwardMotion.weight = 1;
+  // } else if (Math.abs(angle - Math.PI / 4 * 3) < 0.1) {
+    // avatar.walkLeftMirrorMotion.weight = 1;
+    // avatar.walkBackwardMotion.weight = 1;
+  // } else if (Math.abs(angle - -Math.PI / 4) < 0.1) {
+    // avatar.walkRightMotion.weight = 1;
+    // avatar.walkForwardMotion.weight = 1;
+  // } else if (Math.abs(angle - -Math.PI / 4 * 3) < 0.1) {
+    // avatar.walkRightMirrorMotion.weight = 1;
+    // avatar.walkBackwardMotion.weight = 1;
+  // } else {
+    avatar.walkForwardMotion.weight = 1 - MathUtils.clamp(Math.abs(angle) / (Math.PI / 2), 0, 1);
+    avatar.walkBackwardMotion.weight = 1 - MathUtils.clamp((Math.PI - Math.abs(angle)) / (Math.PI / 2), 0, 1);
+  // }
 
+  window.domInfo.innerHTML += `<div style="display:;">forward: --- ${window.logNum(avatar.walkForwardMotion.weight)}</div>`;
+  window.domInfo.innerHTML += `<div style="display:;">backward: --- ${window.logNum(avatar.walkBackwardMotion.weight)}</div>`;
+  window.domInfo.innerHTML += `<div style="display:;">left: --- ${window.logNum(avatar.walkLeftMotion.weight)}</div>`;
+  window.domInfo.innerHTML += `<div style="display:;">right: --- ${window.logNum(avatar.walkRightMotion.weight)}</div>`;
+ 
   avatar.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
   avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;

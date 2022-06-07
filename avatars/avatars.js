@@ -1908,12 +1908,12 @@ class Avatar {
       window.mixer = this.mixer;
       // window.motiono = this.motiono;
       
-      console.log(window.logNum(this.getAngle()));
+      // console.log(window.logNum(this.getAngle()));
 
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
       */
-      window.domInfo.innerHTML = `
+      window.domInfo.innerHTML += `
         <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
         <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>
