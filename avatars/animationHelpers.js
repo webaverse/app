@@ -762,7 +762,25 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
       localQuaternion,
     );
-    if (crouchFactor > 0) {
+    if (crouchFactor > 0 && useBowFactor > 0) {
+      const animationIdle = animations.index['bow_crouch_idle.fbx'];
+      const t1 = timeSeconds % animationIdle.duration;
+      const src1 = animationIdle.interpolants[k];
+      const v1 = src1.evaluate(t1);
+
+      const animationWalk = animations.index['bow_crouch_walk.fbx'];
+      const t2 = timeSeconds % animationWalk.duration;
+      const src2 = animationWalk.interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      target.fromArray(v1);
+      lerpFn
+        .call(
+          target,
+          localQuaternion.fromArray(v2),
+          idleWalkFactor,
+        );
+    } else if (crouchFactor > 0) {
       // if (isPosition) console.log('7way crouch');
       if (isPosition) {
         if (avatar === window.localPlayer.avatar) {
@@ -1093,7 +1111,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _handleDefault(spec);
 
-        if (useAnimation && isTop) { // check isTop to not override crouch
+        if (crouchFactor > 0) {
+          // do nothing, use dst directly
+        } else if (useAnimation && isTop) { // check isTop to not override crouch
           const src2 = useAnimation.interpolants[k];
           const v2 = src2.evaluate(t2 % useAnimation.duration);
 
