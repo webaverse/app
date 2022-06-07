@@ -39,6 +39,7 @@ import '../../fonts.css';
 import raycastManager from '../../../raycast-manager';
 
 import { AccountContext } from '../../hooks/web3AccountProvider';
+import { ChainContext } from '../../hooks/chainProvider';
 
 //
 
@@ -139,6 +140,8 @@ export const App = () => {
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
     const account = useContext(AccountContext);
+    const chain = useContext(ChainContext);
+
     //
 
     const selectApp = ( app, physicsId, position ) => {
@@ -278,7 +281,7 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, account }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, account, chain }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 
                 <DomRenderer />
