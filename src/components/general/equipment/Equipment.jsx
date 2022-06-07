@@ -107,34 +107,26 @@ const Item = forwardRef(({
 });
 
 export const Equipment = () => {
-  const {state, setState} = useContext(AppContext);
+  const {state, setState, account} = useContext(AppContext);
   const [hoverObject, setHoverObject] = useState(null);
   const [selectObject, setSelectObject] = useState(null);
   const [spritesheet, setSpritesheet] = useState(null);
   const [inventoryObject, setInventoryObject] = useState([]);
   const [faceIndex, setFaceIndex] = useState(1);
   const selectedMenuIndex = mod(faceIndex, 4);
+  const {getTokens} = useNFTContract(account.currentAddress);
 
-  const contract = getContract();
-  
-  useEffect(async () => { 
-    const BigtotalMintedToken = await contract.totalSupply();
-    const totalMintedToken = BigNumber.from(BigtotalMintedToken).toNumber();
-    console.log("big", totalMintedToken)
-
-    let inventoryItems = [];
-    for(let i= 1; i <= totalMintedToken; i++)
-    {
-        const tokenuri = await contract.tokenURI(i);
-        inventoryItems.push({
-            name: "ASSET ID " + i,
-            start_url: tokenuri,
-            level: 1
-        })
-    }
-    console.log("inventory", inventoryItems)
+  useEffect(async () => {
+    const tokens = await getTokens();
+    const inventoryItems = tokens.map((token, i) => {
+      return {
+        name: 'ASSET ID ' + i,
+        start_url: token,
+        level: 1,
+      };
+    });
     setInventoryObject(inventoryItems);
-  },[state.openedPanel]);
+  }, [state.openedPanel]);
 
   const refsMap = (() => {
     const map = new Map();
