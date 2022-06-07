@@ -477,42 +477,24 @@ export const _updateAnimation = avatar => {
 
   // LoopRepeat ---
 
-  avatar.walkForwardMotion.weight = 0;
-  avatar.walkBackwardMotion.weight = 0;
-  avatar.walkLeftMotion.weight = 0;
-  avatar.walkRightMotion.weight = 0;
-  avatar.walkLeftMirrorMotion.weight = 0;
-  avatar.walkRightMirrorMotion.weight = 0;
   const angle = avatar.getAngle();
-  // if (Math.abs(angle - Math.PI) < 0.1 || Math.abs(angle - -Math.PI) < 0.1) {
-    // avatar.walkBackwardMotion.weight = (Math.abs(angle) - Math.PI / 2) / (Math.PI / 2);
-  // } else if (Math.abs(angle - Math.PI / 2) < 0.1) {
-    avatar.walkLeftMotion.weight = 1 - MathUtils.clamp(Math.abs(angle - Math.PI / 2) / (Math.PI / 2), 0, 1);
-    avatar.walkRightMotion.weight = 1 - MathUtils.clamp(Math.abs(angle - -Math.PI / 2) / (Math.PI / 2), 0, 1);
-  // } else if (Math.abs(angle - -Math.PI / 2) < 0.1) {
-    // avatar.walkRightMotion.weight = 1;
-  // } else if (Math.abs(angle - Math.PI / 4) < 0.1) {
-    // avatar.walkLeftMotion.weight = 1;
-    // avatar.walkForwardMotion.weight = 1;
-  // } else if (Math.abs(angle - Math.PI / 4 * 3) < 0.1) {
-    // avatar.walkLeftMirrorMotion.weight = 1;
-    // avatar.walkBackwardMotion.weight = 1;
-  // } else if (Math.abs(angle - -Math.PI / 4) < 0.1) {
-    // avatar.walkRightMotion.weight = 1;
-    // avatar.walkForwardMotion.weight = 1;
-  // } else if (Math.abs(angle - -Math.PI / 4 * 3) < 0.1) {
-    // avatar.walkRightMirrorMotion.weight = 1;
-    // avatar.walkBackwardMotion.weight = 1;
-  // } else {
-    avatar.walkForwardMotion.weight = 1 - MathUtils.clamp(Math.abs(angle) / (Math.PI / 2), 0, 1);
-    avatar.walkBackwardMotion.weight = 1 - MathUtils.clamp((Math.PI - Math.abs(angle)) / (Math.PI / 2), 0, 1);
-  // }
+  const leftFactor = 1 - MathUtils.clamp(Math.abs(angle - Math.PI / 2) / (Math.PI / 2), 0, 1);
+  const rightFactor = 1 - MathUtils.clamp(Math.abs(angle - -Math.PI / 2) / (Math.PI / 2), 0, 1);
+  const mirror = Math.abs(angle) > (Math.PI / 2 + 0.01); // todo: smooth mirror changing
+  avatar.walkForwardMotion.weight = 1 - MathUtils.clamp(Math.abs(angle) / (Math.PI / 2), 0, 1);
+  avatar.walkBackwardMotion.weight = 1 - MathUtils.clamp((Math.PI - Math.abs(angle)) / (Math.PI / 2), 0, 1);
+  avatar.walkLeftMotion.weight = mirror ? 0 : leftFactor;
+  avatar.walkLeftMirrorMotion.weight = mirror ? leftFactor : 0;
+  avatar.walkRightMotion.weight = mirror ? 0 : rightFactor;
+  avatar.walkRightMirrorMotion.weight = mirror ? rightFactor : 0;
 
   window.domInfo.innerHTML += `<div style="display:;">forward: --- ${window.logNum(avatar.walkForwardMotion.weight)}</div>`;
   window.domInfo.innerHTML += `<div style="display:;">backward: --- ${window.logNum(avatar.walkBackwardMotion.weight)}</div>`;
   window.domInfo.innerHTML += `<div style="display:;">left: --- ${window.logNum(avatar.walkLeftMotion.weight)}</div>`;
   window.domInfo.innerHTML += `<div style="display:;">right: --- ${window.logNum(avatar.walkRightMotion.weight)}</div>`;
- 
+  window.domInfo.innerHTML += `<div style="display:;">leftMirror: --- ${window.logNum(avatar.walkLeftMirrorMotion.weight)}</div>`;
+  window.domInfo.innerHTML += `<div style="display:;">rightMirror: --- ${window.logNum(avatar.walkRightMirrorMotion.weight)}</div>`;
+
   avatar.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
   avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
