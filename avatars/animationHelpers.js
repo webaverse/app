@@ -433,7 +433,13 @@ export const _createAnimation = avatar => {
   avatar.runLeftMirrorMotion = avatar.mixer.createMotion(animations.index['right strafe reverse.fbx']);
   avatar.runRightMirrorMotion = avatar.mixer.createMotion(animations.index['left strafe reverse.fbx']);
 
-  avatar.crouchWalkMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
+  avatar.crouchForwardMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
+  avatar.crouchBackwardMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward reverse.fbx']);
+  avatar.crouchLeftMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Left.fbx']);
+  avatar.crouchRightMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Right.fbx']);
+  avatar.crouchLeftMirrorMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Right reverse.fbx']);
+  avatar.crouchRightMirrorMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Left reverse.fbx']);
+
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
 
   // LoopOnce
@@ -462,6 +468,14 @@ export const _createAnimation = avatar => {
   avatar.runNode.addChild(avatar.runLeftMirrorMotion);
   avatar.runNode.addChild(avatar.runRightMirrorMotion);
 
+  avatar.crouchNode = new AnimNodeBlendList('crouch');
+  avatar.crouchNode.addChild(avatar.crouchForwardMotion);
+  avatar.crouchNode.addChild(avatar.crouchBackwardMotion);
+  avatar.crouchNode.addChild(avatar.crouchLeftMotion);
+  avatar.crouchNode.addChild(avatar.crouchRightMotion);
+  avatar.crouchNode.addChild(avatar.crouchLeftMirrorMotion);
+  avatar.crouchNode.addChild(avatar.crouchRightMirrorMotion);
+
   avatar.walkRunNode = new AnimNodeBlend2('walkRun');
   avatar.walkRunNode.addChild(avatar.walkNode);
   avatar.walkRunNode.addChild(avatar.runNode);
@@ -472,7 +486,7 @@ export const _createAnimation = avatar => {
 
   avatar._7wayCrouchNode = new AnimNodeBlend2('_7wayCrouchNode');
   avatar._7wayCrouchNode.addChild(avatar.crouchIdleMotion);
-  avatar._7wayCrouchNode.addChild(avatar.crouchWalkMotion);
+  avatar._7wayCrouchNode.addChild(avatar.crouchNode);
 
   avatar.defaultNode = new AnimNodeBlend2('defaultNode');
   avatar.defaultNode.addChild(avatar._7wayWalkRunNode);
@@ -518,6 +532,13 @@ export const _updateAnimation = avatar => {
   avatar.runLeftMirrorMotion.weight = mirror ? leftFactor : 0;
   avatar.runRightMotion.weight = mirror ? 0 : rightFactor;
   avatar.runRightMirrorMotion.weight = mirror ? rightFactor : 0;
+
+  avatar.crouchForwardMotion.weight = forwardFactor;
+  avatar.crouchBackwardMotion.weight = backwardFactor;
+  avatar.crouchLeftMotion.weight = mirror ? 0 : leftFactor;
+  avatar.crouchLeftMirrorMotion.weight = mirror ? leftFactor : 0;
+  avatar.crouchRightMotion.weight = mirror ? 0 : rightFactor;
+  avatar.crouchRightMirrorMotion.weight = mirror ? rightFactor : 0;
 
   avatar.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
   avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
