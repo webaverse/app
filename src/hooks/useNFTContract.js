@@ -32,24 +32,6 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
   const [showWallet, setShowWallet] = useState(false);
   const [minted, setMinted] = useState([]);
 
-  useEffect(() => {
-    const mintHandler = (from, tokenId, name) => {
-      // interact with game world here.
-      onMint(from, tokenId, name);
-      // interact with game world here.
-      setMinting(false);
-    };
-
-    // if (connectedContract) {
-    //   connectedContract.on(CONTRACT_EVENTS.MINT_COMPLETE, mintHandler);
-    // }
-
-    return () => {
-      // if (connectedContract) {
-      //   connectedContract.removeListener(mintHandler);
-      // }
-    };
-  }, [connectedContract]);
 
   console.log('NFT currentAccount', currentAccount);
   async function getSigner () {
