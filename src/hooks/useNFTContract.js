@@ -37,6 +37,12 @@ export default function useNFTContract(currentAccount, onMint = () => {}) {
     return provider.getSigner(currentAccount);
   }
 
+  const getContract = async () => {
+    const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(DEFAULT_CHAIN.rpcUrls[0]);
+    const contract = new ethers.Contract(NFTcontractAddress, NFTABI, simpleRpcProvider);
+    return contract;
+  };
+
   async function mintNFT(currentApp) {
     const {ethereum} = window;
     setMinting(true);
