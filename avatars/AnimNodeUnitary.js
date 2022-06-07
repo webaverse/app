@@ -29,9 +29,18 @@ class AnimNodeUnitary extends AnimNode {
     if (this.isCrossFade) {
       let factor = (AnimMixer.timeS - this.crossFadeStartTime) / this.crossFadeDuration;
       factor = MathUtils.clamp(factor, 0, 1);
+      const factorReverse = 1 - factor;
 
-      this.crossFadeTargetNode.weight = factor;
-      this.activeNode.weight = 1 - factor;
+      for (let i = 0; i < this.children.length; i++) {
+        const childNode = this.children[i];
+        if (childNode === this.crossFadeTargetNode) {
+          childNode.weight = factor;
+        } else if (childNode === this.activeNode) {
+          childNode.weight = factorReverse;
+        } else { // ensure unitary
+          childNode.weight = Math.min(childNode.weight, factorReverse);
+        }
+      }
 
       if (factor === 1) {
         this.isCrossFade = false;
