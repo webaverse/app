@@ -33,7 +33,7 @@ const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 
-const atlasMaps = textureSpecs => {
+const generateTextureAtlas = textureSpecs => {
   const textureNames = Object.keys(textureSpecs);
   const firstTextureArray = textureSpecs[textureNames[0]];
 
@@ -171,25 +171,38 @@ const atlasMaps = textureSpecs => {
       const textures = textureSpecs[textureName];
       const key = _getTexturesKey(textures);
 
-      const textureName2 = textureName.replace(/s$/, '');
+      // const textureName2 = textureName.replace(/s$/, '');
 
       let atlasImage = atlasImagesMap.get(key);
       if (atlasImage === undefined) { // cache miss
-        atlasImage = _drawAtlasImage(textureName2, textures);
+        atlasImage = _drawAtlasImage(textureName, textures);
         if (atlasImage !== null) {
           atlasImage.key = key;
         }
         atlasImagesMap.set(key, atlasImage);
       }
-      atlasImages[textureName2] = atlasImage;
+      atlasImages[textureName] = atlasImage;
     }
     return atlasImages;
   };
   const atlasImages = _drawAtlasImages(atlas);
 
+  const atlasTextures = {};
+  for (const textureName of textureNames) {
+    const atlasImage = atlasImages[textureName];
+    if (atlasImage) {
+      const texture = new THREE.Texture(atlasImage);
+      texture.flipY = false;
+      texture.encoding = THREE.sRGBEncoding;
+      texture.needsUpdate = true;
+      atlasTextures[textureName] = texture;
+    }
+  }
+
   return {
     atlas,
     atlasImages,
+    atlasTextures,
   };
 };
 
@@ -206,10 +219,10 @@ const _colorCanvas = (canvas, fillStyle) => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 };
 const textureInitializers = {
-  normal(canvas) {
+  normalMap(canvas) {
     _colorCanvas(canvas, 'rgb(128, 128, 255)');
   },
-  roughness(canvas) {
+  roughnessMap(canvas) {
     _colorCanvas(canvas, 'rgb(255, 255, 255)');
   },
   /* metalness(canvas) {
@@ -314,8 +327,8 @@ const _getMatrix = (contentMesh, target, positionX, positionZ, rotationY) => {
 };
 
 const _mapGeometryUvs = (g, geometry, tx, ty, tw, th, canvasSize) => {
-  _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
-  _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, 0, tx, ty, tw, th, canvasSize);
+  mapWarpedUvs(g.attributes.uv, 0, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
+  mapWarpedUvs(g.attributes.uv2, 0, geometry.attributes.uv2, 0, tx, ty, tw, th, canvasSize);
 };
 const _makeItemMesh = (rootMesh, contentMesh, geometry, material, positionX, positionZ, rotationY) => {
   const cloned = new THREE.Mesh(geometry, material);
@@ -340,13 +353,13 @@ const _mapOffsettedPositions = (g, geometry, dstOffset, positionX, positionZ, ro
       .toArray(geometry.attributes.position.array, localDstOffset);
   }
 };
-const _mapWarpedUvs = (src, dst, dstOffset, tx, ty, tw, th, canvasSize) => {
+const mapWarpedUvs = (src, srcOffset, dst, dstOffset, tx, ty, tw, th, canvasSize) => {
   const count = src.count;
   for (let i = 0; i < count; i++) {
-    const srcIndex = i;
+    const srcIndex = srcOffset + i * 2;
     const localDstOffset = dstOffset + i * 2;
 
-    localVector2D.fromArray(src.array, srcIndex * 2);
+    localVector2D.fromArray(src.array, srcIndex);
     modUv(localVector2D);
     localVector2D
       .multiply(
@@ -610,8 +623,8 @@ class LodChunkGenerator {
           {
             _mapOffsettedPositions(g, geometry, positionOffset, positionX, positionZ, rotationY, contentMesh);
             geometry.attributes.normal.array.set(g.attributes.normal.array, positionOffset);
-            _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, uvOffset, tx, ty, tw, th, canvasSize);
-            _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, uvOffset, tx, ty, tw, th, canvasSize);
+            mapWarpedUvs(g.attributes.uv, 0, geometry.attributes.uv, uvOffset, tx, ty, tw, th, canvasSize);
+            mapWarpedUvs(g.attributes.uv2, 0, geometry.attributes.uv2, uvOffset, tx, ty, tw, th, canvasSize);
             _mapOffsettedIndices(g, geometry, indexOffset, positionOffset);
             geometry.setAttribute('direction', new THREE.BufferAttribute(new Float32Array(g.attributes.position.array.length), 3));
           }
@@ -830,28 +843,26 @@ class MeshLodManager {
     } = mergeable;
   
     const textureSpecs = {
-      maps,
-      emissiveMaps,
-      normalMaps,
-      roughnessMaps,
-      metalnessMaps,
+      map: maps,
+      emissiveMap: emissiveMaps,
+      normalMap: normalMaps,
+      roughnessMap: roughnessMaps,
+      metalnessMap: metalnessMaps,
     };
     const {
       atlas,
       atlasImages,
-    } = atlasMaps(textureSpecs);
+      atlasTextures,
+    } = generateTextureAtlas(textureSpecs);
 
     this.atlas = atlas;
 
     const {material} = this;
-    for (const textureType of textureTypes) {
-      const atlasImage = atlasImages[textureType];
-      if (atlasImage) {
-        const texture = new THREE.Texture(atlasImage);
-        texture.flipY = false;
-        texture.encoding = THREE.sRGBEncoding;
-        texture.needsUpdate = true;
-        material[textureType] = texture;
+    const textureNames = Object.keys(textureSpecs);
+    for (const textureName of textureNames) {
+      const texture = atlasTextures[textureName];
+      if (texture) {
+        material[textureName] = texture;
       }
     }
     material.needsUpdate = true;
@@ -899,5 +910,8 @@ const meshLodManager = {
   getMeshLodder(id) {
     return meshLodders.find(meshLod => meshLod.id === id) ?? null;
   },
+  generateTextureAtlas,
+  mapWarpedUvs,
+  defaultTextureSize,
 };
 export default meshLodManager;
