@@ -62,6 +62,12 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     }
   };
 
+  const getAccounts = async () => {
+    const accounts = await requestAccounts();
+    setCurrentAddress(accounts[0]);
+    return accounts[0];
+  }
+
   const connectWallet = async () => {
     try {
       const {ethereum} = window;
@@ -130,6 +136,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     accounts,
     currentAddress,
     errorMessage,
+    getAccounts,
     connectWallet,
     checkIfWalletIsConnected,
     wrongChain,
