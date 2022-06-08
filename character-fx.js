@@ -247,13 +247,15 @@ class CharacterFx {
     _updateSonicBoomMesh();
     const _updateNameplate = () => {
       if ( !this.nameplate ) {
-        this.nameplate = metaversefile.createApp();
         (async () => {
+        this.nameplate = metaversefile.createApp();
+        this.nameplate.player = this.player;
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['nameplate'];
           await this.nameplate.addModule(m);
+          sceneLowPriority.add(this.nameplate);
+          console.log("created app")
         })();
-        sceneLowPriority.add(this.nameplate);
       }
     };
     _updateNameplate();
