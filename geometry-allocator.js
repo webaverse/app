@@ -200,11 +200,16 @@ export class DrawCallBinding {
       .max(localVector2D2.set(x2, y2))
       .toArray(this.textureDamageBuffer[textureIndex * 4 + 2]);
   } */
+  getInstanceCount() {
+    return this.allocator.getInstanceCount(this);
+  }
   setInstanceCount(instanceCount) {
-    // this.instanceCount = instanceCount;
     this.allocator.setInstanceCount(this, instanceCount);
   }
-  updateTexture(name, pixelIndex, pixelCount) {
+  incrementInstanceCount() {
+    return this.allocator.incrementInstanceCount(this);
+  }
+  updateTexture(name, pixelIndex, pixelCount) { // XXX optimize this
     const texture = this.getTexture(name);
     // const textureIndex = this.getTextureIndex(name);
     texture.needsUpdate = true;
@@ -275,8 +280,6 @@ export class InstancedGeometryAllocator {
     this.drawInstanceCounts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
 
     {
-      this.geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
-
       const numGeometries = geometries.length;
       const geometryRegistry = Array(numGeometries);
       let positionIndex = 0;
@@ -284,8 +287,8 @@ export class InstancedGeometryAllocator {
       for (let i = 0; i < numGeometries; i++) {
         const geometry = geometries[i];
 
-        const positionCount = geometry.attributes.position.array.length / 3;
-        const indexCount = geometry.index.array.length;
+        const positionCount = geometry.attributes.position.count;
+        const indexCount = geometry.index.count;
         const spec = {
           position: {
             start: positionIndex,
@@ -294,7 +297,7 @@ export class InstancedGeometryAllocator {
           index: {
             start: indexIndex,
             count: indexCount,
-          }
+          },
         };
         geometryRegistry[i] = spec;
 
@@ -303,6 +306,8 @@ export class InstancedGeometryAllocator {
       }
       this.geometryRegistry = geometryRegistry;
 
+      this.geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+
       this.texturesArray = instanceTextureSpecs.map(spec => {
         const {
           name,
@@ -310,7 +315,7 @@ export class InstancedGeometryAllocator {
           itemSize,
         } = spec;
 
-        // compute the size of the minimum texture that can hold the data
+        // compute the minimum size of a texture that can hold the data
         const neededItems = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
         const textureSize = Math.max(Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems)))), 16);
 
@@ -380,13 +385,17 @@ export class InstancedGeometryAllocator {
 
     const geometrySpec = this.geometryRegistry[geometryIndex];
     const {
+      /* position: {
+        start,
+        count,
+      }, */
       index: {
         start,
         count,
       },
     } = geometrySpec;
 
-    this.drawStarts[freeListEntry.start] = start;
+    this.drawStarts[freeListEntry.start] = start * this.geometry.index.array.BYTES_PER_ELEMENT;
     this.drawCounts[freeListEntry.start] = count;
     this.drawInstanceCounts[freeListEntry.start] = 0;
     
@@ -401,9 +410,14 @@ export class InstancedGeometryAllocator {
     this.drawCounts[freeListEntry.start] = 0;
     this.drawInstanceCounts[freeListEntry.start] = 0;
   }
+  getInstanceCount(drawCall) {
+    return this.drawInstanceCounts[drawCall.freeListEntry.start];
+  }
   setInstanceCount(drawCall, instanceCount) {
-    const {freeListEntry} = drawCall;
-    this.drawInstanceCounts[freeListEntry.start] = instanceCount;
+    this.drawInstanceCounts[drawCall.freeListEntry.start] = instanceCount;
+  }
+  incrementInstanceCount(drawCall) {
+    this.drawInstanceCounts[drawCall.freeListEntry.start]++;
   }
   getDrawSpec(multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
     multiDrawStarts.length = this.drawStarts.length;
