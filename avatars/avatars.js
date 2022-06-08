@@ -2017,9 +2017,9 @@ class Avatar {
         })();
       }
       const _volume = e => {
-        if (!this.manuallySetMouth) {
+        // if (!this.manuallySetMouth) {
           this.volume = this.volume * 0.8 + e.data * 0.2;
-        }
+        // }
       }
 
       const _buffer = e => {

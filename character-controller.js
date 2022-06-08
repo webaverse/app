@@ -834,9 +834,8 @@ class StatePlayer extends PlayerBase {
     this.syncAvatarCancelFn = null;
   }
   setSpawnPoint(position, quaternion) {
-    const localPlayer = metaversefile.useLocalPlayer();
-    localPlayer.position.copy(position);
-    localPlayer.quaternion.copy(quaternion);
+    this.position.copy(position);
+    this.quaternion.copy(quaternion);
 
     camera.position.copy(position);
     camera.quaternion.copy(quaternion);
@@ -1284,9 +1283,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.appManager.bindStateLocal(this.getAppsState());
   }
   grab(app, hand = 'left') {
-    const localPlayer = metaversefile.useLocalPlayer();
     const {position, quaternion} = _getSession() ?
-      localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
+      this[hand === 'left' ? 'leftHand' : 'rightHand']
     :
       camera;
 
@@ -1307,7 +1305,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         )
         .toArray(),
     };
-    localPlayer.addAction(grabAction);
+    this.addAction(grabAction);
 
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
@@ -1332,12 +1330,14 @@ class LocalPlayer extends UninterpolatedPlayer {
       if (action.type === "grab") {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
+        console.log("physicsObjects are")
         console.error("ungrab app", app, physicsObjects, i)
         for (const physicsObject of physicsObjects) {
           console.error("enable physics", physicsObject, physicsObject.physicsId)
           physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-          physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
           //Todo: need to sync the physicsObject transform to its parent
+          // physicsObject.updateMatrixWorld()
         }
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
