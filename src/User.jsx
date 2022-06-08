@@ -13,6 +13,7 @@ import { AppContext } from './components/app';
 import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
+import Chains from './components/web3/chains';
 
 //
 
@@ -248,6 +249,7 @@ export const User = ({ setLoginFrom }) => {
             <div
                 className={styles.userWrap}
             >
+                {loggedIn && <Chains />}
                 <div
                     className={styles.userBar}
                     onClick={openUserPanel}
@@ -293,7 +295,7 @@ export const User = ({ setLoginFrom }) => {
                         <img src="images/discord.png" alt="discord" width="28px" />
                         <span className={ styles.methodBtnText } >Discord</span>
                     </div>
-                </a> */}
+                </a>
                 <div className={ styles.methodBtn } onClick={ handleCancelBtnClick } onMouseEnter={ _triggerClickSound } >
                     <span className={ styles.methodBtnText } >Cancel</span>
                 </div>
