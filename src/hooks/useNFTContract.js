@@ -27,7 +27,7 @@ const CONTRACT_EVENTS = {
   SINGLE_COLLABORATOR_REMOVED: 'SingleCollaboratorRemoved',
 };
 
-export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN, onMint = () => {}) {
+export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
   const [minting, setMinting] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
   const [error, setError] = useState('');
@@ -43,7 +43,7 @@ export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN, on
     return contract;
   };
 
-  async function mintNFT(currentApp) {
+  async function mintNFT(currentApp, callback = () => {}) {
     setMinting(true);
     setError('');
     try {
