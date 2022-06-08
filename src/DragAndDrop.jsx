@@ -86,7 +86,7 @@ const uploadCreateApp = async (item, {
 };
 
 const DragAndDrop = () => {
-  const { state, setState, account } = useContext( AppContext );
+  const {state, setState, account, chain} = useContext(AppContext);
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
   const { mintNFT, minting } = useNFTContract(account.currentAddress);
