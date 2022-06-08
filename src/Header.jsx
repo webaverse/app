@@ -18,6 +18,7 @@ import { StoryTime } from './StoryTime';
 import { User } from './User';
 
 import styles from './Header.module.css';
+import Chains from './components/web3/chains.jsx';
 
 //
 
@@ -289,6 +290,7 @@ export default function Header() {
                         setNfts={setNfts}
                         loginFrom={loginFrom}
                     />
+                    <Chains />
                 </div>
             {/* </div> */}
         </div>
