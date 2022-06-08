@@ -315,7 +315,7 @@ class AppManager extends EventTarget {
             app.position.fromArray(position);
             app.quaternion.fromArray(quaternion);
             if (scale) app.scale.fromArray(scale);
-          } else {
+          } else if(transform) {
             app.position?.fromArray(transform);
             app.quaternion?.fromArray(transform, 3);
             app.scale?.fromArray(transform, 7);
