@@ -82,8 +82,8 @@ export default class Webaverse extends EventTarget {
     this.loadPromise = (async () => {
       await Promise.all([
         physx.waitForLoad(),
-        Avatar.waitForLoad(),
         physxWorkerManager.waitForLoad(),
+        Avatar.waitForLoad(),
         audioManager.waitForLoad(),
         sounds.waitForLoad(),
         zTargeting.waitForLoad(),
