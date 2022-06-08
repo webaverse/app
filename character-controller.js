@@ -311,6 +311,7 @@ class PlayerBase extends THREE.Object3D {
 
 
   getVoice() {
+    if(!this.voiceEndpoint) console.error("this.voiceEndpoint is null")
     return this.voiceEndpoint || this.voicePack || console.warn("no voice endpoint set");
   }
   updateVoicer() {
