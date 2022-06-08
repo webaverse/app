@@ -1,15 +1,20 @@
-import React from 'react';
-import {CHAIN} from '../../hooks/web3-constants';
+import React, {useContext} from 'react';
+import {ChainContext} from '../../hooks/chainProvider';
+import { CONTRACTS } from '../../hooks/web3-constants';
 
 export default function Chains() {
+  const {chains, selectedChain, setSelectedChain} = useContext(ChainContext);
+  return (<div style={{position: 'absolute', zIndex: 10, background: 'grey'}}>
+    <h1>{selectedChain.name}</h1>
 
-  return (
-    <ul id="CHAINS">
-      {Object.keys(CHAIN)
-        .map(key => CHAIN[key])
+    <ul id="CHAINS" >
+      {Object.keys(chains)
+        .map(key => chains[key])
+        .filter(chain => CONTRACTS[chain.contract_name])
         .map(c => (
-          <li>{c.name}</li>
+          <li key={c.contract_name} onClick={() => setSelectedChain(c)}>{c.name}</li>
         ))}
     </ul>
+  </div>
   );
 }
