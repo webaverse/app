@@ -98,7 +98,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
 
   rig.jumpState = !!jumpAction;
-  //
+  // start/end event
   rig.jumpStart = false;
   rig.jumpEnd = false;
   if (rig.jumpState !== rig.lastJumpState) {
@@ -109,7 +109,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   //
   rig.jumpTime = player.actionInterpolants.jump.get();
   rig.flyState = !!flyAction;
-  //
+  // start/end event
   rig.flyStart = false;
   rig.flyEnd = false;
   if (rig.flyState !== rig.lastFlyState) {
@@ -120,7 +120,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   //
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateState = !!activateAction;
-  //
+  // start/end event
   rig.activateStart = false;
   rig.activateEnd = false;
   if (rig.activateState !== rig.lastActivateState) {
@@ -146,6 +146,16 @@ export function applyPlayerActionsToAvatar(player, rig) {
         rig.useAnimationCombo = [];
       }
     }
+    rig.useComboState = useAction?.animationCombo;
+    // start/end event
+    rig.useComboStart = false;
+    rig.useComboEnd = false;
+    if (rig.useComboState !== rig.lastUseComboState) {
+      if (rig.useComboState) rig.useComboStart = true;
+      else rig.useComboEnd = true;
+    }
+    rig.lastUseComboState = rig.useComboState;
+    //
     if (useAction?.animationEnvelope) {
       rig.useAnimationEnvelope = useAction.animationEnvelope;
     } else {

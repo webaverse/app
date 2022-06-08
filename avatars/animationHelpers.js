@@ -459,6 +459,10 @@ export const _createAnimation = avatar => {
   avatar.activateMotion.loop = LoopOnce;
   avatar.activateMotion.stop();
 
+  avatar.useComboMotion = avatar.mixer.createMotion(useAnimations.swordSideSlash);
+  avatar.useComboMotion.loop = LoopOnce;
+  avatar.useComboMotion.stop();
+
   // AnimNodes ---
   avatar.walkNode = new AnimNodeBlendList('walk');
   avatar.walkNode.addChild(avatar.walkForwardMotion);
@@ -505,6 +509,7 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.jumpMotion);
   avatar.actionsNode.addChild(avatar.flyMotion);
   avatar.actionsNode.addChild(avatar.activateMotion);
+  avatar.actionsNode.addChild(avatar.useComboMotion);
 
   // avatar.jumpNode = new AnimNodeBlend2('jump');
   // avatar.jumpNode.addChild(avatar.defaultNode);
@@ -599,6 +604,19 @@ export const _updateAnimation = avatar => {
     // avatar.activateMotion.stop(); // don't need
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
+
+  if (avatar.useComboStart) {
+    avatar.useComboMotion.play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.useComboMotion);
+  }
+  if (avatar.useComboEnd) {
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
+
+  // window.domInfo.innerHTML += `<div style="display:;">useComboStart: --- ${window.logNum(avatar.useComboStart)}</div>`;
+
+  // console.log(avatar.useComboStart, avatar.useComboEnd);
+
 
   //
 
