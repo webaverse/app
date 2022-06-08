@@ -58,11 +58,6 @@ const objects = {
 };
 
 //
-const getContract = () => {
-  const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(import.meta.env.VITE_APP_POLYGON_TESTNET_RPC_URL);
-  const contract = new ethers.Contract(NFTcontractAddress, NFTABI, simpleRpcProvider);
-  return contract;
-};
 
 const Item = forwardRef(({
   object,

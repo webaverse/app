@@ -89,4 +89,4 @@ export const CHAINS = {
 };
 
 export const NETWORK_KEYS = Object.keys(CHAINS);
-export const DEFAULT_CHAIN = CHAINS.POLYGON_TEST;
+export const DEFAULT_CHAIN = CHAINS[import.meta.env.VITE_APP_DEFAULT_CHAIN] ?? CHAINS.POLYGON_MAIN;
