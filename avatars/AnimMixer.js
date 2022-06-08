@@ -60,6 +60,9 @@ class AnimMixer extends EventDispatcher {
       const motion = node;
       // if (isPosition && motion === window.avatar?.jumpMotion) debugger;
       motion.update(); // todo: now update 57 times!
+      // if (isPosition && motion === window.avatar?.activateMotion) console.log(motion.time);
+      if (isPosition && motion === window.avatar?.jumpMotion) console.log(motion.weight);
+      if (isPosition && motion === window.avatar?.activateMotion) console.log(motion.weight);
       const animation = motion.animation;
       const src = animation.interpolants[k];
       let value;

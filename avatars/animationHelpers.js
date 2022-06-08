@@ -455,6 +455,7 @@ export const _createAnimation = avatar => {
   avatar.jumpMotion.speed = 1 / 0.6;
 
   avatar.activateMotion = avatar.mixer.createMotion(activateAnimations.grab_forward.animation); // todo: handle activateAnimations.grab_forward.speedFactor
+  // avatar.activateMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
   avatar.activateMotion.loop = LoopOnce;
   avatar.activateMotion.stop();
 
@@ -583,14 +584,21 @@ export const _updateAnimation = avatar => {
     avatar.jumpMotion.play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
   }
-  if (avatar.jumpEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  if (avatar.jumpEnd) {
+    // avatar.jumpMotion.stop(); // don't need
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
   // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
 
   if (avatar.activateStart) {
+    // console.log('activateStart');
     avatar.activateMotion.play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.activateMotion);
   }
-  if (avatar.activateEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  if (avatar.activateEnd) {
+    // avatar.activateMotion.stop(); // don't need
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
 
   //
 

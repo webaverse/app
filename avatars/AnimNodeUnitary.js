@@ -10,7 +10,6 @@ class AnimNodeUnitary extends AnimNode {
 
     this.isCrossFade = false;
     this.crossFadeDuration = 0;
-    this.crossFadeTargetNode = 0;
     this.crossFadeStartTime = 0;
   }
 
@@ -33,10 +32,10 @@ class AnimNodeUnitary extends AnimNode {
 
       for (let i = 0; i < this.children.length; i++) {
         const childNode = this.children[i];
-        if (childNode === this.crossFadeTargetNode) {
+        if (childNode === this.activeNode) {
           childNode.weight = factor;
-        } else if (childNode === this.activeNode) {
-          childNode.weight = factorReverse;
+        // } else if (childNode === this.lastActiveNode) {
+        //   childNode.weight = factorReverse;
         } else { // ensure unitary
           childNode.weight = Math.min(childNode.weight, factorReverse);
         }
@@ -44,7 +43,6 @@ class AnimNodeUnitary extends AnimNode {
 
       if (factor === 1) {
         this.isCrossFade = false;
-        this.activeNode = this.crossFadeTargetNode;
       }
     }
 
@@ -79,8 +77,10 @@ class AnimNodeUnitary extends AnimNode {
     if (targetNode === this.activeNode) return;
     this.isCrossFade = true;
     this.crossFadeDuration = duration;
-    this.crossFadeTargetNode = targetNode;
     this.crossFadeStartTime = AnimMixer.timeS;
+
+    // this.lastActiveNode = this.activeNode;
+    this.activeNode = targetNode;
   }
 }
 
