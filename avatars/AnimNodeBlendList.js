@@ -6,12 +6,6 @@ class AnimNodeBlendList extends AnimNode {
   constructor(name) {
     super(name);
     this.isAnimNodeBlendList = true;
-
-    // this.isCrossFade = false;
-    // this.crossFadeDuration = 0;
-    // this.crossFadeTargetFactor = 0;
-    // this.crossFadeStartTime = 0;
-    // this.crossFadeTargetNode = null;
   }
 
   addChild(node) {
@@ -19,27 +13,6 @@ class AnimNodeBlendList extends AnimNode {
   }
 
   update(spec) {
-    // // do fade
-    // if (this.isCrossFade) {
-    //   debugger
-    //   let factor = (AnimMixer.timeS - this.crossFadeStartTime) / this.crossFadeDuration;
-    //   factor = MathUtils.clamp(factor, 0, 1);
-    //   if (this.crossFadeTargetFactor === 0) {
-    //     factor = 1 - factor;
-    //   }
-
-    //   for (let i = 0; i < this.children.length; i++) {
-    //     const childNode = this.children[i];
-    //     if (childNode === this.crossFadeTargetNode) {
-    //       childNode.weight = factor;
-    //     } else if (this.crossFadeTargetFactor === 1) {
-    //       childNode.weight = Math.min(childNode.weight, 1 - factor);
-    //     }
-    //   }
-
-    //   if (factor === this.crossFadeTargetFactor) this.isCrossFade = false;
-    // }
-
     // do blend
     const result = []; // todo: resultBuffer ( refer to threejs );
     // let result;
@@ -70,14 +43,6 @@ class AnimNodeBlendList extends AnimNode {
     // }
     return result;
   }
-
-  // crossFade(duration, targetFactor, targetNode) { // targetFactor only support 0 | 1 now
-  //   this.isCrossFade = true;
-  //   this.crossFadeDuration = duration;
-  //   this.crossFadeStartTime = AnimMixer.timeS;
-  //   this.crossFadeTargetFactor = targetFactor;
-  //   this.crossFadeTargetNode = targetNode;
-  // }
 }
 
 export {AnimNodeBlendList};

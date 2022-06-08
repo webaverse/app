@@ -1,10 +1,7 @@
 import {EventDispatcher, Vector3, Quaternion, LoopOnce} from 'three';
 import {AnimMotion} from './AnimMotion.js';
 
-const localVector = new Vector3();
-const localQuaternion = new Quaternion();
-
-// todo: Add to our custom three.js build if this PR get merged https://github.com/mrdoob/three.js/pull/23975
+// todo: Add to custom three.js build
 Vector3.lerpFlat = (dst, dstOffset, src0, srcOffset0, src1, srcOffset1, alpha) => {
   const x0 = src0[srcOffset0 + 0];
   const y0 = src0[srcOffset0 + 1];
@@ -49,20 +46,11 @@ class AnimMixer extends EventDispatcher {
   static doBlend(node, spec) {
     const {
       animationTrackName: k,
-      dst,
-      // isTop,
-      isPosition,
     } = spec;
-
-    if (window.isDebugger) debugger
 
     if (node.isAnimMotion) { // todo: do not evaluate weight <= 0
       const motion = node;
-      // if (isPosition && motion === window.avatar?.jumpMotion) debugger;
       motion.update(); // todo: now update 57 times!
-      // if (isPosition && motion === window.avatar?.activateMotion) console.log(motion.time);
-      // if (isPosition && motion === window.avatar?.jumpMotion) console.log(motion.weight);
-      // if (isPosition && motion === window.avatar?.activateMotion) console.log(motion.weight);
       const animation = motion.animation;
       const src = animation.interpolants[k];
       let value;
@@ -96,10 +84,6 @@ class AnimMixer extends EventDispatcher {
       }
 
       dst.fromArray(result);
-
-      // applyFn(spec);
-      // _blendFly(spec);
-      // _blendActivateAction(spec);
 
       // ignore all animation position except y
       if (isPosition) {

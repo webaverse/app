@@ -183,7 +183,6 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
-  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -335,7 +334,6 @@ export const loadPromise = (async () => {
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
   }, aimAnimations);
-  window.useAnimations = useAnimations;
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
     saddle: animations.find(a => a.isSitting),
@@ -385,20 +383,16 @@ export const loadPromise = (async () => {
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
     pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
-  window.activateAnimations = activateAnimations;
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
   };
-  window.narutoRunAnimations = narutoRunAnimations;
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
   };
-  window.hurtAnimations = hurtAnimations;
   holdAnimations = {
     pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
-  window.holdAnimations = holdAnimations;
   {
     const down10QuaternionArray = new Quaternion()
       .setFromAxisAngle(new Vector3(1, 0, 0), Math.PI * 0.1)
@@ -447,15 +441,12 @@ export const _createAnimation = avatar => {
 
   // LoopOnce
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
-  // avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
   avatar.jumpMotion.loop = LoopOnce;
   avatar.jumpMotion.stop();
-  // avatar.jumpMotion.weight = 999999; // can't Infinity
   avatar.jumpMotion.timeBias = 0.7;
   avatar.jumpMotion.speed = 1 / 0.6;
 
   avatar.activateMotion = avatar.mixer.createMotion(activateAnimations.grab_forward.animation); // todo: handle activateAnimations.grab_forward.speedFactor
-  // avatar.activateMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
   avatar.activateMotion.loop = LoopOnce;
   avatar.activateMotion.stop();
 
@@ -511,15 +502,7 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.activateMotion);
   avatar.actionsNode.addChild(avatar.useComboMotion);
 
-  // avatar.jumpNode = new AnimNodeBlend2('jump');
-  // avatar.jumpNode.addChild(avatar.defaultNode);
-  // avatar.jumpNode.addChild(avatar.jumpMotion);
-
-  // avatar.flyNode = new AnimNodeBlend2('fly');
-  // avatar.flyNode.addChild(avatar.jumpNode);
-  // avatar.flyNode.addChild(avatar.flyMotion);
-
-  avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
+  avatar.animTree = avatar.actionsNode;
 };
 
 export const _updateAnimation = avatar => {
@@ -541,13 +524,6 @@ export const _updateAnimation = avatar => {
   avatar.walkLeftMirrorMotion.weight = mirror ? leftFactor : 0;
   avatar.walkRightMotion.weight = mirror ? 0 : rightFactor;
   avatar.walkRightMirrorMotion.weight = mirror ? rightFactor : 0;
-
-  window.domInfo.innerHTML += `<div style="display:;">forward: --- ${window.logNum(avatar.walkForwardMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">backward: --- ${window.logNum(avatar.walkBackwardMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">left: --- ${window.logNum(avatar.walkLeftMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">right: --- ${window.logNum(avatar.walkRightMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">leftMirror: --- ${window.logNum(avatar.walkLeftMirrorMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">rightMirror: --- ${window.logNum(avatar.walkRightMirrorMotion.weight)}</div>`;
 
   avatar.runForwardMotion.weight = forwardFactor;
   avatar.runBackwardMotion.weight = backwardFactor;
@@ -572,36 +548,19 @@ export const _updateAnimation = avatar => {
   if (avatar.flyEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
 
   // LoopOnce ---
-
-  // jump
-  // avatar.jumpMotion.time = avatar.jumpTime / 1000;
-  // const jumpFactor = MathUtils.clamp(avatar.jumpMotion.time / 0.2, 0, 1);
-  // avatar.defaultNode.weight = 1 - jumpFactor;
-  // avatar.jumpMotion.weight = jumpFactor;
-
-  // if (avatar.jumpStart) avatar.jumpMotion.play();
-  // if (avatar.jumpEnd) avatar.jumpMotion.stop();
-
-  // if (avatar.jumpStart) avatar.jumpNode.factor = 1;
-  // if (avatar.jumpEnd) avatar.jumpNode.factor = 0;
-
   if (avatar.jumpStart) {
     avatar.jumpMotion.play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
   }
   if (avatar.jumpEnd) {
-    // avatar.jumpMotion.stop(); // don't need
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
-  // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
 
   if (avatar.activateStart) {
-    // console.log('activateStart');
     avatar.activateMotion.play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.activateMotion);
   }
   if (avatar.activateEnd) {
-    // avatar.activateMotion.stop(); // don't need
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
 
@@ -612,11 +571,6 @@ export const _updateAnimation = avatar => {
   if (avatar.useComboEnd) {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
-
-  // window.domInfo.innerHTML += `<div style="display:;">useComboStart: --- ${window.logNum(avatar.useComboStart)}</div>`;
-
-  // console.log(avatar.useComboStart, avatar.useComboEnd);
-
 
   //
 

@@ -25,7 +25,6 @@ class AnimMotion {
 
   update() {
     this.time = AnimMixer.timeS - this.startTime;
-    // if (this === window.avatar?.jumpMotion) console.log(this.time);
   }
 
   play() {
