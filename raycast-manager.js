@@ -5,6 +5,7 @@ import {world} from './world.js';
 import physx from './physx.js';
 import domRenderer from './dom-renderer.jsx';
 import transformControls from './transform-controls.js';
+import game from './game.js';
 
 const localVector = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
@@ -143,7 +144,6 @@ class RaycastManager extends EventTarget {
         if (pair) {
           const [app, physicsObject] = pair;
           point = localVector.fromArray(result.point);
-          
           /* if (object.isHtml) {
             htmlHover = true;
           } else { */
@@ -151,6 +151,10 @@ class RaycastManager extends EventTarget {
               mouseHoverApp = app;
               mouseHoverPhysicsObject = physicsObject;
               mouseHoverPhysicsId = result.objectId;
+              if (game.hoverEnabled) {
+                game.setMouseHoverObject(mouseHoverApp, mouseHoverPhysicsId, point);
+              }
+              
             // }
           // }
         } else {
