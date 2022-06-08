@@ -1325,14 +1325,19 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   ungrab() {
     const actions = Array.from(this.getActionsState());
+    console.error("ungrab actions", actions)
     let removeOffset = 0;
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];
       if (action.type === "grab") {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
+        console.error("ungrab app", app, physicsObjects, i)
         for (const physicsObject of physicsObjects) {
+          console.error("enable physics", physicsObject, physicsObject.physicsId)
           physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+          physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          //Todo: need to sync the physicsObject transform to its parent
         }
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
