@@ -217,7 +217,9 @@ class AppManager extends EventTarget {
     }
   }
   bindTrackedApp(trackedApp, app) {
+    console.error("bindTrackedApp", trackedApp)
     const _observe = (e, origin) => {
+      debugger
       if (origin == "push") return console.log("push");
 
       if (e.changes.keys.has("transform")) {
@@ -358,6 +360,7 @@ class AppManager extends EventTarget {
       this.removeApp(app);
     });
     this.addEventListener("trackedappimport", async (e) => {
+      debugger
       console.log("trackedappimport is", e);
       const { instanceId, app } = e.data;
 
@@ -366,6 +369,7 @@ class AppManager extends EventTarget {
       this.bindTrackedApp(trackedApp, app);
     });
     this.addEventListener("trackedappexport", async (e) => {
+      debugger
       console.log("trackedappexport is", e);
       const { instanceId, app, sourceAppManager, destinationAppManager } =
         e.data;
@@ -568,7 +572,33 @@ class AppManager extends EventTarget {
       console.log("Wear callback function called")
       this.callBackFn(app, "wear", "add");
     }
+
+    const grabupdate = (e) => {
+      app.isGrab = e.grab
+    }
+    
+    app.addEventListener('grabupdate', grabupdate);
+
+    for (const app of this.apps) {
+      const trackedApp = this.getTrackedApp(app.instanceId);
+      const _observe = (e) => {
+        const transform = trackedApp.get("transform");
+        if (app.isGrab && e.changes.keys.has("transform") && transform) {
+          app.position.fromArray(transform, 0);
+          app.quaternion?.fromArray(transform, 3);
+          app.scale?.fromArray(transform, 7);
+          app.transform = transform;
+          app.updateMatrixWorld()
+          app.lastMatrix.copy(app.matrix)
+          if(!app.lastMatrix.equals(app.matrix)) { 
+            console.error("pop transform", app)
+          }
+        }
+      };
+      trackedApp.observe(_observe);
+    }
   }
+
   removeApp(app) {
     console.log("removeApp called", app);
     const index = this.apps.indexOf(app);
@@ -732,10 +762,10 @@ class AppManager extends EventTarget {
   packed = new Float32Array(11);
   update() {
     for (const app of this.apps) {
+      const trackedApp = this.getTrackedApp(app.instanceId);
       if (!app.matrix.equals(app.lastMatrix)) {
         const _updateTrackedApp = () => {
           // note: not all apps are tracked in multiplayer. for those that are, we push the transform update here.
-          const trackedApp = this.getTrackedApp(app.instanceId);
           if (trackedApp) {
             app.matrixWorld.decompose(
               localVector,
@@ -760,6 +790,7 @@ class AppManager extends EventTarget {
             pack4(localQuaternion, 3);
             pack3(localVector2, 7);
             trackedApp.set("transform", packed);
+            console.warn("push transform", packed)
           }
         };
         _updateTrackedApp();
@@ -802,6 +833,8 @@ class AppManager extends EventTarget {
         // }
 
         app.lastMatrix.copy(app.matrix);
+      } else {
+        trackedApp.delete("transform");
       }
     }
   }
