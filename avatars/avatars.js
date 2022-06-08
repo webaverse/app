@@ -2017,9 +2017,11 @@ class Avatar {
         })();
       }
       const _volume = e => {
-        // if (!this.manuallySetMouth) {
+        if (!this.manuallySetMouth) {
           this.volume = this.volume * 0.8 + e.data * 0.2;
-        // }
+        } else {
+          console.log("couldn't set mouth because it is being manually set")
+        }
       }
 
       const _buffer = e => {
@@ -2126,7 +2128,7 @@ class Avatar {
   } */
 
   destroy() {
-    this.setAudioEnabled(false);
+    // this.setAudioEnabled(false);
   }
 }
 Avatar.waitForLoad = () => loadPromise;
