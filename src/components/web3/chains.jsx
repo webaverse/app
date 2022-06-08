@@ -12,7 +12,7 @@ export default function Chains() {
         .map(key => chains[key])
         .filter(isSupported)
         .map(c => (
-          <li key={c.contract_name} onClick={() => setSelectedChain(c)}>{c.name}</li>
+          <li key={c.contract_name} onClick={() => selectChain(c)}>{c.name}</li>
         ))}
     </ul>
   </div>
