@@ -11,6 +11,7 @@ import {
 } from '../player-stats.js';
 
 import styles from './AvatarIcon.module.css';
+import {PlaceholderImg} from './PlaceholderImg.jsx';
 import { getLocalPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
 import cameraManager from '../camera-manager.js'
@@ -26,7 +27,8 @@ const CharacterIcon = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      const avatarIconer = new AvatarIconer(getLocalPlayer(), {
+      const localPlayer = getLocalPlayer();
+      const avatarIconer = new AvatarIconer(localPlayer, {
         width: characterIconSize * pixelRatio,
         height: characterIconSize * pixelRatio,
       });
@@ -49,10 +51,8 @@ const CharacterIcon = () => {
         world.appManager.removeEventListener('frame', frame);
         avatarIconer.removeEventListener('enabledchange', enabledchange);
       };
-    } else {
-      console.error("No canvas!!!")
     }
-  }, [canvasRef.current]);
+  }, [canvasRef]);
 
   return (
       <div
@@ -71,7 +71,7 @@ const CharacterIcon = () => {
                 height={characterIconSize * pixelRatio}
                 ref={canvasRef}
               />
-              <img className={styles.placeholderImg} src="./images/arc.svg" />
+              <PlaceholderImg className={styles.placeholderImg} />
               <div className={styles.meta}>
                   <div className={styles.text}>
                       <div className={styles.background} />
@@ -109,7 +109,7 @@ const CharacterIcon = () => {
   );
 };
 
-export const AvatarIcon = ({ className }) => {
+export const AvatarIcon = () => {
     const { state, setState } = useContext( AppContext );
 
     const handleCharacterBtnClick = () => {
@@ -126,7 +126,7 @@ export const AvatarIcon = ({ className }) => {
 
     return (
         <div
-            className={ classnames( className, styles.avatarIcon ) }
+            className={styles.avatarIcon}
             onClick={handleCharacterBtnClick}
         >
             {/* <a href="/" className={styles.logo}>
