@@ -160,33 +160,38 @@ export default function CharacterHups({
       setHups(newHups);
     }
 
-    /* function hupremove(e) {
+
+    function hupremove(e) {
       const oldHup = e.data.hup;
       const index = hups.indexOf(oldHup);
       const newHups = hups.slice();
       newHups.splice(index, 1);
+      oldHup.destroy();
       setHups(newHups);
-    } */
+    }
+
     localPlayer.characterHups.addEventListener('hupadd', hupadd);
-    // localPlayer.characterHups.addEventListener('hupremove', hupremove);
+    localPlayer.characterHups.addEventListener('hupremove', hupremove);
     for (const npcPlayer of npcs) {
       npcPlayer.characterHups.addEventListener('hupadd', hupadd);
-      // npcPlayer.characterHups.addEventListener('hupremove', hupremove);
+      npcPlayer.characterHups.addEventListener('hupremove', hupremove);
     }
 
     for (const remotePlayer of remotePlayers) {
       remotePlayer.characterHups.addEventListener('hupadd', hupadd)
+      remotePlayer.characterHups.addEventListener('hupremove', hupremove)
     }
 
     return () => {
       localPlayer.characterHups.removeEventListener('hupadd', hupadd);
-      // localPlayer.characterHups.removeEventListener('hupremove', hupremove);
+      localPlayer.characterHups.removeEventListener('hupremove', hupremove);
       for (const npcPlayer of npcs) {
         npcPlayer.characterHups.removeEventListener('hupadd', hupadd);
-        // npcPlayer.characterHups.removeEventListener('hupremove', hupremove);
+        npcPlayer.characterHups.removeEventListener('hupremove', hupremove);
       }
       for (const remotePlayer of remotePlayers) {
         remotePlayer.characterHups.removeEventListener('hupadd', hupadd)
+        localPlayer.characterHups.removeEventListener('hupremove', hupremove);
       }
     };
   }, [localPlayer, npcs, remotePlayers, hups]);

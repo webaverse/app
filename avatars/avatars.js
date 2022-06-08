@@ -2057,7 +2057,6 @@ class Avatar {
         }
   
         const _localBuffer = e => {
-          console.log("_localBuffer", e)
           this.audioRecognizer.send(e.data);
         }
 

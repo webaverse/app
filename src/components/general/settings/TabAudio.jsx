@@ -109,19 +109,13 @@ export const TabAudio = ({active}) => {
 
     // set voice pack
 
-    overrides.overrideVoicePack.set(voicePack);
-
     if (voicePack) {
       overrides.overrideVoicePack.set(voicePack);
-    } else {
-      console.error("Couldn't set voicepack, state error");
     }
 
     // set voice endpoint
     if (voiceEndpoint) {
       overrides.overrideVoiceEndpoint.set(voiceEndpoint);
-    } else {
-      console.error("Couldn't set voice endpoint, state error");
     }
 
     //

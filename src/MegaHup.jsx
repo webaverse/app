@@ -76,8 +76,6 @@ const MegaHup = function({
         window.removeEventListener('resize', resize);
         live = false;
       };
-    } else {
-      console.error("Unable to set megaHup, avatar is probably null")
     }
   }, [canvasRef, npcPlayer]);
 

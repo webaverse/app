@@ -27,12 +27,8 @@ const loadPromise = (async () => {
 ].forEach(key => {
   overrides[key].addEventListener('change', async e => {
     const voicePackName = overrides.overrideVoicePack.get() ?? overrides.userVoicePack.get() ?? defaultVoicePackName;
-    console.log(('voicePackName', voicePackName));
     const voicePack = voices.voicePacks.find(vp => vp.name === voicePackName);
-    if (!voicePack) {
-      console.error(('voicePack', voicePack));
-      return;
-    }
+    if (!voicePack) return console.warn(('key ', key, 'did not load voicePackName', voicePackName, 'this is probably fine but the root cause should be resolved'));
     const {audioPath, indexPath} = voicePack;
 
     const voicePacksUrlBase = voicePacksUrl.replace(/\/+[^\/]+$/, '');
