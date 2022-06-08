@@ -1340,6 +1340,7 @@ class LocalPlayer extends UninterpolatedPlayer {
           console.error("enable physics", physicsObject, physicsObject.physicsId)
           physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
           physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          //Todo: need to sync the physicsObject transform to its parent
         }
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
