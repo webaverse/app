@@ -829,9 +829,6 @@ class StatePlayer extends PlayerBase {
           }
         }
       }
-    } else {
-      console.error("_setNextAvatarApp null", new Error().stack)
-      _setNextAvatarApp(null);
     }
 
     this.syncAvatarCancelFn = null;
