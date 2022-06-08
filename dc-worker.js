@@ -138,14 +138,16 @@ const _handleMethod = ({
       const {
         ps,
         qs,
+        instances,
       } = dc.createGrassSplat(x, z, lod);
 
       const spec = {
         result: {
           ps,
           qs,
+          instances,
         },
-        transfers: [ps.buffer, qs.buffer],
+        transfers: [ps.buffer, qs.buffer, instances.buffer],
       };
       return spec;
     }
@@ -154,14 +156,16 @@ const _handleMethod = ({
       const {
         ps,
         qs,
+        instances,
       } = dc.createVegetationSplat(x, z, lod);
 
       const spec = {
         result: {
           ps,
           qs,
+          instances,
         },
-        transfers: [ps.buffer, qs.buffer],
+        transfers: [ps.buffer, qs.buffer, instances.buffer],
       };
       return spec;
     }
@@ -170,14 +174,16 @@ const _handleMethod = ({
       const {
         ps,
         qs,
+        instances,
       } = dc.createMobSplat(x, z, lod);
 
       const spec = {
         result: {
           ps,
           qs,
+          instances,
         },
-        transfers: [ps.buffer, qs.buffer],
+        transfers: [ps.buffer, qs.buffer, instances.buffer],
       };
       return spec;
     }

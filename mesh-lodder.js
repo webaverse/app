@@ -33,6 +33,179 @@ const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 
+const generateTextureAtlas = textureSpecs => {
+  const textureNames = Object.keys(textureSpecs);
+  const firstTextureArray = textureSpecs[textureNames[0]];
+
+  // compute texture sizes
+  const textureSizes = firstTextureArray.map((firstTexture, i) => {
+    /* const emissiveMap = emissiveMaps[i];
+    const normalMap = normalMaps[i];
+    const roughnessMap = roughnessMaps[i];
+    const metalnessMap = metalnessMaps[i]; */
+
+    const maxSize = new THREE.Vector2(0, 0);
+    for (const textureName of textureNames) {
+      const map = textureSpecs[textureName][i];
+      if (map) {
+        maxSize.x = Math.max(maxSize.x, map.image.width);
+        maxSize.y = Math.max(maxSize.y, map.image.height);
+      }
+    }
+    return maxSize;
+  });
+  const textureUuids = firstTextureArray.map((firstTexture, i) => {
+    /* const emissiveMap = emissiveMaps[i];
+    const normalMap = normalMaps[i];
+    const roughnessMap = roughnessMaps[i];
+    const metalnessMap = metalnessMaps[i]; */
+
+    const uuids = [];
+    for (const textureName of textureNames) {
+      const map = textureSpecs[textureName][i];
+      uuids.push(map ? map.uuid : null);
+    }
+    return uuids.join(':');
+  });
+
+  // generate atlas layouts
+  const _packAtlases = () => {
+    const _attemptPack = (textureSizes, atlasSize) => {
+      const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 0);
+      const rectUuidCache = new Map();
+      const rectIndexCache = new Map();
+      textureSizes.forEach((textureSize, index) => {
+        const {x: width, y: height} = textureSize;
+        const hash = textureUuids[index];
+        
+        let rect = rectUuidCache.get(hash);
+        if (!rect) {
+          rect = {
+            width,
+            height,
+            data: {
+              index,
+            },
+          };
+          rectUuidCache.set(hash, rect);
+        }
+        rectIndexCache.set(index, rect);
+      });
+      const rects = Array.from(rectUuidCache.values());
+
+      maxRectsPacker.addArray(rects);
+      let oversized = maxRectsPacker.bins.length > 1;
+      maxRectsPacker.bins.forEach(bin => {
+        bin.rects.forEach(rect => {
+          if (rect.oversized) {
+            oversized = true;
+          }
+        });
+      });
+      if (!oversized) {
+        maxRectsPacker.rectIndexCache = rectIndexCache;
+        return maxRectsPacker;
+      } else {
+        return null;
+      }
+    };
+    
+    const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
+    if (hasTextures) {
+      let atlas;
+      let atlasSize = startAtlasSize;
+      while (!(atlas = _attemptPack(textureSizes, atlasSize))) {
+        atlasSize *= 2;
+      }
+      return atlas;
+    } else {
+      return null;
+    }
+  };
+  const atlas = _packAtlases();
+
+  // draw atlas images
+  const _drawAtlasImages = atlas => {
+    const _getTexturesKey = textures => textures.map(t => t ? t.uuid : '').join(',');
+    const _drawAtlasImage = (textureName, textures) => {
+      if (atlas && textures.some(t => t !== null)) {
+        const canvasSize = Math.min(atlas.width, defaultTextureSize);
+        const canvasScale = canvasSize / atlas.width;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = canvasSize;
+        canvas.height = canvasSize;
+
+        const initializer = textureInitializers[textureName];
+        if (initializer) {
+          initializer(canvas);
+        }
+
+        const ctx = canvas.getContext('2d');
+        atlas.bins.forEach(bin => {
+          bin.rects.forEach(rect => {
+            const {x, y, width: w, height: h, data: {index}} = rect;
+            const texture = textures[index];
+            if (texture) {
+              const image = texture.image;
+
+              // draw the image in the correct box on the canvas
+              const tx = x * canvasScale;
+              const ty = y * canvasScale;
+              const tw = w * canvasScale;
+              const th = h * canvasScale;
+              ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
+            }
+          });
+        });
+
+        return canvas;
+      } else {
+        return null;
+      }
+    };
+
+    const atlasImages = {};
+    const atlasImagesMap = new Map(); // cache to alias identical textures
+    for (const textureName of textureNames) {
+      const textures = textureSpecs[textureName];
+      const key = _getTexturesKey(textures);
+
+      // const textureName2 = textureName.replace(/s$/, '');
+
+      let atlasImage = atlasImagesMap.get(key);
+      if (atlasImage === undefined) { // cache miss
+        atlasImage = _drawAtlasImage(textureName, textures);
+        if (atlasImage !== null) {
+          atlasImage.key = key;
+        }
+        atlasImagesMap.set(key, atlasImage);
+      }
+      atlasImages[textureName] = atlasImage;
+    }
+    return atlasImages;
+  };
+  const atlasImages = _drawAtlasImages(atlas);
+
+  const atlasTextures = {};
+  for (const textureName of textureNames) {
+    const atlasImage = atlasImages[textureName];
+    if (atlasImage) {
+      const texture = new THREE.Texture(atlasImage);
+      texture.flipY = false;
+      texture.encoding = THREE.sRGBEncoding;
+      texture.needsUpdate = true;
+      atlasTextures[textureName] = texture;
+    }
+  }
+
+  return {
+    atlas,
+    atlasImages,
+    atlasTextures,
+  };
+};
+
 const textureTypes = [
   'map',
   'normalMap',
@@ -46,10 +219,10 @@ const _colorCanvas = (canvas, fillStyle) => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 };
 const textureInitializers = {
-  normal(canvas) {
+  normalMap(canvas) {
     _colorCanvas(canvas, 'rgb(128, 128, 255)');
   },
-  roughness(canvas) {
+  roughnessMap(canvas) {
     _colorCanvas(canvas, 'rgb(255, 255, 255)');
   },
   /* metalness(canvas) {
@@ -154,8 +327,8 @@ const _getMatrix = (contentMesh, target, positionX, positionZ, rotationY) => {
 };
 
 const _mapGeometryUvs = (g, geometry, tx, ty, tw, th, canvasSize) => {
-  _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
-  _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, 0, tx, ty, tw, th, canvasSize);
+  mapWarpedUvs(g.attributes.uv, 0, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
+  mapWarpedUvs(g.attributes.uv2, 0, geometry.attributes.uv2, 0, tx, ty, tw, th, canvasSize);
 };
 const _makeItemMesh = (rootMesh, contentMesh, geometry, material, positionX, positionZ, rotationY) => {
   const cloned = new THREE.Mesh(geometry, material);
@@ -180,13 +353,13 @@ const _mapOffsettedPositions = (g, geometry, dstOffset, positionX, positionZ, ro
       .toArray(geometry.attributes.position.array, localDstOffset);
   }
 };
-const _mapWarpedUvs = (src, dst, dstOffset, tx, ty, tw, th, canvasSize) => {
+const mapWarpedUvs = (src, srcOffset, dst, dstOffset, tx, ty, tw, th, canvasSize) => {
   const count = src.count;
   for (let i = 0; i < count; i++) {
-    const srcIndex = i;
+    const srcIndex = srcOffset + i * 2;
     const localDstOffset = dstOffset + i * 2;
 
-    localVector2D.fromArray(src.array, srcIndex * 2);
+    localVector2D.fromArray(src.array, srcIndex);
     modUv(localVector2D);
     localVector2D
       .multiply(
@@ -450,8 +623,8 @@ class LodChunkGenerator {
           {
             _mapOffsettedPositions(g, geometry, positionOffset, positionX, positionZ, rotationY, contentMesh);
             geometry.attributes.normal.array.set(g.attributes.normal.array, positionOffset);
-            _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, uvOffset, tx, ty, tw, th, canvasSize);
-            _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, uvOffset, tx, ty, tw, th, canvasSize);
+            mapWarpedUvs(g.attributes.uv, 0, geometry.attributes.uv, uvOffset, tx, ty, tw, th, canvasSize);
+            mapWarpedUvs(g.attributes.uv2, 0, geometry.attributes.uv2, uvOffset, tx, ty, tw, th, canvasSize);
             _mapOffsettedIndices(g, geometry, indexOffset, positionOffset);
             geometry.setAttribute('direction', new THREE.BufferAttribute(new Float32Array(g.attributes.position.array.length), 3));
           }
@@ -669,178 +842,27 @@ class MeshLodManager {
       // morphTargetInfluencesArray,
     } = mergeable;
   
-    // compute texture sizes
-    const textureSizes = maps.map((map, i) => {
-      const emissiveMap = emissiveMaps[i];
-      const normalMap = normalMaps[i];
-      const roughnessMap = roughnessMaps[i];
-      const metalnessMap = metalnessMaps[i];
-      
-      const maxSize = new THREE.Vector2(0, 0);
-      if (map) {
-        maxSize.x = Math.max(maxSize.x, map.image.width);
-        maxSize.y = Math.max(maxSize.y, map.image.height);
-      }
-      if (emissiveMap) {
-        maxSize.x = Math.max(maxSize.x, emissiveMap.image.width);
-        maxSize.y = Math.max(maxSize.y, emissiveMap.image.height);
-      }
-      if (normalMap) {
-        maxSize.x = Math.max(maxSize.x, normalMap.image.width);
-        maxSize.y = Math.max(maxSize.y, normalMap.image.height);
-      }
-      if (roughnessMap) {
-        maxSize.x = Math.max(maxSize.x, roughnessMap.image.width);
-        maxSize.y = Math.max(maxSize.y, roughnessMap.image.height);
-      }
-      if (metalnessMap) {
-        maxSize.x = Math.max(maxSize.x, metalnessMap.image.width);
-        maxSize.y = Math.max(maxSize.y, metalnessMap.image.height);
-      }
-      return maxSize;
-    });
-    const textureUuids = maps.map((map, i) => {
-      const emissiveMap = emissiveMaps[i];
-      const normalMap = normalMaps[i];
-      const roughnessMap = roughnessMaps[i];
-      const metalnessMap = metalnessMaps[i];
-
-      const uuids = [];
-      uuids.push(map ? map.uuid : null);
-      uuids.push(emissiveMap ? emissiveMap.uuid : null);
-      uuids.push(normalMap ? normalMap.uuid : null);
-      uuids.push(roughnessMap ? roughnessMap.uuid : null);
-      uuids.push(metalnessMap ? metalnessMap.uuid : null);
-      return uuids.join(':');
-    });
-  
-    // generate atlas layouts
-    const _packAtlases = () => {
-      const _attemptPack = (textureSizes, atlasSize) => {
-        const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 0);
-        const rectUuidCache = new Map();
-        const rectIndexCache = new Map();
-        textureSizes.forEach((textureSize, index) => {
-          const {x: width, y: height} = textureSize;
-          const hash = textureUuids[index];
-          
-          let rect = rectUuidCache.get(hash);
-          if (!rect) {
-            rect = {
-              width,
-              height,
-              data: {
-                index,
-              },
-            };
-            rectUuidCache.set(hash, rect);
-          }
-          rectIndexCache.set(index, rect);
-        });
-        const rects = Array.from(rectUuidCache.values());
-
-        maxRectsPacker.addArray(rects);
-        let oversized = maxRectsPacker.bins.length > 1;
-        maxRectsPacker.bins.forEach(bin => {
-          bin.rects.forEach(rect => {
-            if (rect.oversized) {
-              oversized = true;
-            }
-          });
-        });
-        if (!oversized) {
-          maxRectsPacker.rectIndexCache = rectIndexCache;
-          return maxRectsPacker;
-        } else {
-          return null;
-        }
-      };
-      
-      const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
-      if (hasTextures) {
-        let atlas;
-        let atlasSize = startAtlasSize;
-        while (!(atlas = _attemptPack(textureSizes, atlasSize))) {
-          atlasSize *= 2;
-        }
-        return atlas;
-      } else {
-        return null;
-      }
+    const textureSpecs = {
+      map: maps,
+      emissiveMap: emissiveMaps,
+      normalMap: normalMaps,
+      roughnessMap: roughnessMaps,
+      metalnessMap: metalnessMaps,
     };
-    const atlas = _packAtlases();
+    const {
+      atlas,
+      atlasImages,
+      atlasTextures,
+    } = generateTextureAtlas(textureSpecs);
+
     this.atlas = atlas;
 
-    // draw atlas images
-    const _drawAtlasImages = atlas => {
-      const _getTexturesKey = textures => textures.map(t => t ? t.uuid : '').join(',');
-      const _drawAtlasImage = (textureType, textures) => {
-        if (atlas && textures.some(t => t !== null)) {
-          const canvasSize = Math.min(atlas.width, defaultTextureSize);
-          const canvasScale = canvasSize / atlas.width;
-
-          const canvas = document.createElement('canvas');
-          canvas.width = canvasSize;
-          canvas.height = canvasSize;
-
-          const initializer = textureInitializers[textureType];
-          if (initializer) {
-            initializer(canvas);
-          }
-
-          const ctx = canvas.getContext('2d');
-          atlas.bins.forEach(bin => {
-            bin.rects.forEach(rect => {
-              const {x, y, width: w, height: h, data: {index}} = rect;
-              const texture = textures[index];
-              if (texture) {
-                const image = texture.image;
-
-                // draw the image in the correct box on the canvas
-                const tx = x * canvasScale;
-                const ty = y * canvasScale;
-                const tw = w * canvasScale;
-                const th = h * canvasScale;
-                ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
-              }
-            });
-          });
-
-          return canvas;
-        } else {
-          return null;
-        }
-      };
-
-      const atlasImages = {};
-      const atlasImagesMap = new Map(); // cache to alias identical textures
-      for (const textureType of textureTypes) {
-        const textures = mergeable[`${textureType}s`];
-        const key = _getTexturesKey(textures);
-
-        let atlasImage = atlasImagesMap.get(key);
-        if (atlasImage === undefined) { // cache miss
-          atlasImage = _drawAtlasImage(textureType, textures);
-          if (atlasImage !== null) {
-            atlasImage.key = key;
-          }
-          atlasImagesMap.set(key, atlasImage);
-        }
-        atlasImages[textureType] = atlasImage;
-      }
-      return atlasImages;
-    };
-    const atlasImages = _drawAtlasImages(atlas);
-
     const {material} = this;
-    for (const textureType of textureTypes) {
-      const atlasImage = atlasImages[textureType];
-      if (atlasImage) {
-        const texture = new THREE.Texture(atlasImage);
-        texture.flipY = false;
-        texture.encoding = THREE.sRGBEncoding;
-        texture.needsUpdate = true;
-        material[textureType] = texture;
+    const textureNames = Object.keys(textureSpecs);
+    for (const textureName of textureNames) {
+      const texture = atlasTextures[textureName];
+      if (texture) {
+        material[textureName] = texture;
       }
     }
     material.needsUpdate = true;
@@ -888,5 +910,8 @@ const meshLodManager = {
   getMeshLodder(id) {
     return meshLodders.find(meshLod => meshLod.id === id) ?? null;
   },
+  generateTextureAtlas,
+  mapWarpedUvs,
+  defaultTextureSize,
 };
 export default meshLodManager;

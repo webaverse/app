@@ -245,6 +245,7 @@ w.createGrassSplat = (x, z, lod) => {
   const allocSize = 64 * 1024;
   const ps = allocator.alloc(Float32Array, allocSize * 3);
   const qs = allocator.alloc(Float32Array, allocSize * 4);
+  const instances = allocator.alloc(Float32Array, allocSize);
   const count = allocator.alloc(Uint32Array, 1);
 
   try {
@@ -254,12 +255,14 @@ w.createGrassSplat = (x, z, lod) => {
       lod,
       ps.byteOffset,
       qs.byteOffset,
+      instances.byteOffset,
       count.byteOffset
     );
     const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
+      instances: instances.slice(0, numElements),
     };
   } finally {
     allocator.freeAll();
@@ -271,6 +274,7 @@ w.createVegetationSplat = (x, z, lod) => {
   const allocSize = 64 * 1024;
   const ps = allocator.alloc(Float32Array, allocSize * 3);
   const qs = allocator.alloc(Float32Array, allocSize * 4);
+  const instances = allocator.alloc(Float32Array, allocSize);
   const count = allocator.alloc(Uint32Array, 1);
 
   try {
@@ -280,12 +284,14 @@ w.createVegetationSplat = (x, z, lod) => {
       lod,
       ps.byteOffset,
       qs.byteOffset,
+      instances.byteOffset,
       count.byteOffset
     );
     const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
+      instances: instances.slice(0, numElements),
     };
   } finally {
     allocator.freeAll();
@@ -297,6 +303,7 @@ w.createMobSplat = (x, z, lod) => {
   const allocSize = 64 * 1024;
   const ps = allocator.alloc(Float32Array, allocSize * 3);
   const qs = allocator.alloc(Float32Array, allocSize * 4);
+  const instances = allocator.alloc(Float32Array, allocSize);
   const count = allocator.alloc(Uint32Array, 1);
 
   try {
@@ -306,12 +313,14 @@ w.createMobSplat = (x, z, lod) => {
       lod,
       ps.byteOffset,
       qs.byteOffset,
+      instances.byteOffset,
       count.byteOffset
     );
     const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
+      instances: instances.slice(0, numElements),
     };
   } finally {
     allocator.freeAll();
