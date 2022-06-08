@@ -43,6 +43,7 @@ export const CHAINS = {
     rpcUrls: ['https://mainnetsidechain.exokit.org/'],
     contract_name: 'mainnetsidechain',
     previewLink: '',
+    brandColor: '#5BE2A7',
   },
   RINKBY: {
     chainName: 'RinkyBy Test Network',
@@ -53,6 +54,7 @@ export const CHAINS = {
     rpcUrls: ['https://rinkeby.infura.io/v3/'],
     contract_name: 'testnet',
     previewLink: 'https://rinkeby.etherscan.io/address/',
+    brandColor: 'rgb(123,63,228)',
   },
   ETHEREUM_MAIN: {
     chainName: 'Ethereum Mainnet',
@@ -83,6 +85,7 @@ export const CHAINS = {
     decimals: 18,
     contract_name: 'polygon',
     previewLink: 'https://polygonscan.com/address/',
+    brandColor: 'rgb(123,63,228)',
   },
   MUMBAI: {
     chainName: 'Mumbai Testnet',
@@ -96,6 +99,7 @@ export const CHAINS = {
     decimals: 18,
     contract_name: 'testnetpolygon',
     previewLink: 'https://polygonscan.com/address/',
+    brandColor: 'rgb(123,63,228)',
   },
 };
 
