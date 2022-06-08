@@ -19,6 +19,36 @@
       "position": [
         0,
         0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/silkworm/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/hovercraft/"
+    },
+    {
+      "position": [
+        0,
+        0,
         -1
       ],
       "start_url": "https://webaverse.github.io/skybox/index.js"

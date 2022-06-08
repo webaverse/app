@@ -45,6 +45,70 @@
     },
     {
       "position": [
+        24,
+        0,
+        30
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/silkworm/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        24,
+        0,
+        30
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/silkworm/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        24,
+        0,
+        30
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/silkworm/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        24,
+        0,
+        30
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/silkworm/",
+      "dynamic": true
+    },
+    {
+      "position": [
         0,
         0,
         0
@@ -52,6 +116,96 @@
       "physics": true,
       "start_url": "https://webaverse.github.io/block/grid.glb",
       "dynamic": false
+    },
+    {
+      "position": [
+        -6,
+        0.5,
+        12
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/bow/"
+    },
+    {
+      "position": [
+        -6,
+        0.5,
+        11
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/silsword/"
+    },
+    {
+      "position": [
+        -6,
+        0.5,
+        10
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/uzi/"
+    },
+    {
+      "position": [
+        35,
+        0,
+        16
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/hovercraft/"
+    },
+    {
+      "position": [
+        -6,
+        0.5,
+        9
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/machine-gun/"
     }
   ]
 }

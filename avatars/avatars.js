@@ -2029,7 +2029,7 @@ class Avatar {
         this.vowels.set(e.data);
       });
     } else {
-      this.volume = -1;
+      this.volume = 1;
     }
   }
   getAudioInput() {
