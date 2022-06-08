@@ -5,16 +5,11 @@ import {ethers, BigNumber} from 'ethers';
 import {
   DEFAULT_CHAIN,
   CONTRACTS,
-  CONTRACT_ABIS 
+  CONTRACT_ABIS,
 } from './web3-constants.js';
-import { FTABI, NFTABI, NFTcontractAddress, FTcontractAddress } from '../abis/contract.jsx';
+import {FTABI, NFTABI} from '../abis/contract.jsx';
 
 const FILE_ADDRESS = 'https://ipfs.webaverse.com/';
-
-const contractAddress = NFTcontractAddress; //CONTRACTS[DEFAULT_CHAIN.contract_name].NFT;
-const contractAddressFT = FTcontractAddress; //CONTRACTS[DEFAULT_CHAIN.contract_name].FT;
-const contractABI = NFTABI; // CONTRACT_ABIS.NFT;
-const contractABIFT = FTABI; //CONTRACT_ABIS.FT;
 
 const CONTRACT_EVENTS = {
   MINT_COMPLETE: 'MintComplete',
@@ -28,6 +23,9 @@ const CONTRACT_EVENTS = {
 };
 
 export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
+  const NFTcontractAddress = CONTRACTS[chain.contract_name].NFT;
+  const FTcontractAddress = CONTRACTS[chain.contract_name].FT;
+
   const [minting, setMinting] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
   const [error, setError] = useState('');
