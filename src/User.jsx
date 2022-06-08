@@ -3,7 +3,6 @@ import classnames from 'classnames';
 
 import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
-import * as ethers from 'ethers';
 
 // import Modal from './components/modal';
 import WebaWallet from './components/wallet';
@@ -14,7 +13,6 @@ import { AppContext } from './components/app';
 import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
-import Web3 from '../web3.min.js';
 
 //
 
