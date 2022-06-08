@@ -444,6 +444,7 @@ export const _createAnimation = avatar => {
 
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
   avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
+  avatar.narutoRunMotion = avatar.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
 
   // LoopOnce
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
@@ -510,6 +511,7 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.flyMotion);
   avatar.actionsNode.addChild(avatar.activateMotion);
   avatar.actionsNode.addChild(avatar.useComboMotion);
+  avatar.actionsNode.addChild(avatar.narutoRunMotion);
 
   // avatar.jumpNode = new AnimNodeBlend2('jump');
   // avatar.jumpNode.addChild(avatar.defaultNode);
@@ -571,6 +573,9 @@ export const _updateAnimation = avatar => {
   if (avatar.flyStart) avatar.actionsNode.crossFadeTo(0.2, avatar.flyMotion);
   if (avatar.flyEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
 
+  if (avatar.narutoRunStart) avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
+  if (avatar.narutoRunEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+
   // LoopOnce ---
 
   // jump
@@ -591,7 +596,11 @@ export const _updateAnimation = avatar => {
   }
   if (avatar.jumpEnd) {
     // avatar.jumpMotion.stop(); // don't need
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    if (avatar.narutoRunState) {
+      avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
+    } else {
+      avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    }
   }
   // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
 
