@@ -357,6 +357,7 @@ export const loadPromise = (async () => {
     pickUpThrow: animations.find(a => a.isPickUpThrow),
     bowDraw: animations.find(a => a.isBowDraw),
     bowIdle: animations.find(a => a.isBowIdle),
+    // bowIdle: animations.index['t-pose_rot.fbx'],
     bowLoose: animations.find(a => a.isBowLoose),
   }, aimAnimations);
   sitAnimations = {
