@@ -575,28 +575,23 @@ class AppManager extends EventTarget {
 
     const grabupdate = (e) => {
       app.isGrab = e.grab
+      console.log("grab update called", e)
     }
     
     app.addEventListener('grabupdate', grabupdate);
 
-    for (const app of this.apps) {
-      const trackedApp = this.getTrackedApp(app.instanceId);
-      const _observe = (e) => {
-        const transform = trackedApp.get("transform");
-        if (app.isGrab && e.changes.keys.has("transform") && transform) {
-          app.position.fromArray(transform, 0);
-          app.quaternion?.fromArray(transform, 3);
-          app.scale?.fromArray(transform, 7);
-          app.transform = transform;
-          app.updateMatrixWorld()
-          app.lastMatrix.copy(app.matrix)
-          if(!app.lastMatrix.equals(app.matrix)) { 
-            console.error("pop transform", app)
-          }
-        }
-      };
-      trackedApp.observe(_observe);
-    }
+    const trackedApp = this.getTrackedApp(app.instanceId);
+    const _observe = (e) => {
+      const transform = trackedApp.get("transform");
+      if (e.changes.keys.has("transform") && transform) {
+        app.position.fromArray(transform, 0);
+        app.quaternion?.fromArray(transform, 3);
+        app.scale?.fromArray(transform, 7);
+        app.transform = transform;
+        app.updateMatrixWorld();
+      }
+    };
+    trackedApp.observe(_observe);
   }
 
   removeApp(app) {
