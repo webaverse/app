@@ -781,6 +781,26 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           localQuaternion.fromArray(v2),
           idleWalkFactor,
         );
+    } else if (walkRunFactor > 0 && useBowFactor > 0) {
+      const animationIdle = animations.index['Standing Aim Walk Forward.fbx'];
+      const t1 = timeSeconds % animationIdle.duration;
+      const src1 = animationIdle.interpolants[k];
+      const v1 = src1.evaluate(t1);
+
+      const animationWalk = animations.index['bow_crouch_run.fbx'];
+      const t2 = timeSeconds % animationWalk.duration;
+      const src2 = animationWalk.interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      // target.fromArray(v2);
+
+      target.fromArray(v1);
+      lerpFn
+        .call(
+          target,
+          localQuaternion.fromArray(v2),
+          walkRunFactor,
+        );
     } else if (crouchFactor > 0) {
       // if (isPosition) console.log('7way crouch');
       if (isPosition) {
