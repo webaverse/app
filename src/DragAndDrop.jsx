@@ -244,7 +244,7 @@ const DragAndDrop = () => {
     e.stopPropagation();
     if (currentApp) {
       const app = currentApp;
-      await mintNFT(app, () => {
+      await mintNFT(app, previewImage, () => {
         setMintComplete(true);
       });
     }
@@ -297,6 +297,7 @@ const DragAndDrop = () => {
       if (load) {
         load.end();
       }
+      console.log("previewURL", previewURL)
       setPreviewImage(previewURL);
     });
   }

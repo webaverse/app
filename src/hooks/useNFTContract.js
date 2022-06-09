@@ -8,7 +8,7 @@ import {
   CONTRACT_ABIS,
 } from './web3-constants.js';
 import {FTABI, NFTABI} from '../abis/contract.jsx';
-import { ChainContext } from './chainProvider.jsx';
+import {ChainContext} from './chainProvider.jsx';
 
 const FILE_ADDRESS = 'https://ipfs.webaverse.com/';
 
@@ -54,30 +54,34 @@ export default function useNFTContract(currentAccount) {
     return contract;
   };
 
-  async function mintNFT(currentApp, callback = () => {}) {
+  async function mintNFT(currentApp, previewImage, callback = () => {}) {
     setMinting(true);
     setError('');
     try {
       const signer = await getSigner();
 
-      const name = currentApp.name;
-      const ext = currentApp.contentId.split('.').pop();
+      console.log('currentApp', currentApp);
+      const name = currentApp.name; // TODO: set this with file name. myphoto.png -> myphoto
+      const ext = currentApp.contentId.split('.').pop(); // myphoto.png -> png
       const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/' + name + '.' + ext)[0];
       const description = currentApp.description;
+      const avatarURI = previewImage || '';
 
       const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
       const Bigmintfee = await NFTcontract.mintFee();
       const mintfee = BigNumber.from(Bigmintfee).toNumber();
+
       if (mintfee > 0) { // webaverse side chain mintfee != 0
         const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
         const FTapproveres = await FTapprovetx.wait();
         if (FTapproveres.transactionHash) {
           try {
-            const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, description, 1);
+            const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, avatarURI, description, 1);
+            // after mint transaction, refresh the website
             callback(NFTmintres);
           } catch (err) {
-            setError('Mint Failed');
+            setError(err.message);
           }
           setMinting(false);
         } else {
@@ -86,8 +90,9 @@ export default function useNFTContract(currentAccount) {
         }
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
-          const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, description, 1);
+          const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, avatarURI, description, 1);
           callback(NFTmintres);
+          // after mint transaction, refresh the website
         } catch (err) {
           setError('Mint Failed');
           setMinting(false);
