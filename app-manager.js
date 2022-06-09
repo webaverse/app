@@ -560,7 +560,6 @@ class AppManager extends EventTarget {
     });
   }
   addApp(app) {
-    console.log("addApp called", app);
     this.apps.push(app);
 
     this.dispatchEvent(
@@ -569,13 +568,11 @@ class AppManager extends EventTarget {
       })
     );
     if (app.getComponent("wear") && this.callBackFn) {
-      console.log("Wear callback function called")
       this.callBackFn(app, "wear", "add");
     }
 
     const grabupdate = (e) => {
       app.isGrab = e.grab
-      console.log("grab update called", e)
     }
     
     app.addEventListener('grabupdate', grabupdate);
@@ -595,10 +592,8 @@ class AppManager extends EventTarget {
   }
 
   removeApp(app) {
-    console.log("removeApp called", app);
     const index = this.apps.indexOf(app);
     if (app.getComponent("wear") && this.callBackFn) {
-      console.log("Wear callback function called")
       this.callBackFn(app, "wear", "remove");
     }
     // console.log('remove app', app.instanceId, app.contentId, index, this.apps.map(a => a.instanceId));

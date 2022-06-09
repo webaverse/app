@@ -59,10 +59,6 @@ class PlayersManager {
         const { added, deleted, delta, keys } = e.changes;
         
         const values = Array.from(added.values());
-        // if (values.length > 0) {
-          console.log('got apps', values);
-        // }
-
         for (const item of added.values()) {
           let playerMap = item.content.type;
           if (playerMap.constructor === Object) {

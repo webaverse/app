@@ -116,7 +116,6 @@ export const Equipment = () => {
 
   useEffect(async () => {
     const totalMintedToken = await getNFTTotalSupply();
-    console.log('big', totalMintedToken);
 
     const inventoryItems = [];
     for (let i = 1; i <= totalMintedToken; i++) {
@@ -127,7 +126,6 @@ export const Equipment = () => {
         level: 1,
       });
     }
-    console.log('inventory', inventoryItems);
     setInventoryObject(inventoryItems);
   }, [state.openedPanel]);
 

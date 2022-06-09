@@ -159,7 +159,6 @@ export const TabAudio = ({active}) => {
       const avatarApp = e.app;
       if (avatarApp.avatar) {
         const avatarVoicePack = avatarVoicer[avatarApp.name];
-        console.log('changed avatar, applying voice pack', e.app.name, avatarVoicePack);
         setVoicePack(avatarVoicePack);
         setTimeout(applySettings, 100);
       }

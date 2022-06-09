@@ -280,8 +280,7 @@ class PlayerBase extends THREE.Object3D {
   }
 
   setVoiceEndpoint(voiceId) {
-    if(!voiceId) return console.error("voice Id is null,")
-    console.log("setVoiceEndpoint", voiceId)
+    if(!voiceId) return console.error("voice Id is null")
     const self = this;
     const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
     this.playersArray.doc.transact(function tx() {
@@ -289,11 +288,9 @@ class PlayerBase extends THREE.Object3D {
       if(oldVoiceSpec) {
         oldVoiceSpec = JSON.parse(oldVoiceSpec);
         const voiceSpec = JSON.stringify({audioUrl: oldVoiceSpec.audioUrl, indexUrl: oldVoiceSpec.indexUrl, endpointUrl: url});
-        console.log("Setting voiceSpec voiceEndpoint", voiceSpec);
         self.playerMap.set('voiceSpec', voiceSpec);
       } else {
         const voiceSpec =  JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url})
-        console.log("Setting voiceSpec voiceEndpoint", voiceSpec);
         self.playerMap.set('voiceSpec', voiceSpec);
       }
     });
@@ -771,9 +768,6 @@ class StatePlayer extends PlayerBase {
       if (oldPeerOwnerAppManager) {
         // console.log('transplant last app');
         this.appManager.transplantApp(this.avatar.app, oldPeerOwnerAppManager);
-      } else {
-        // console.log('remove last app', this.avatar.app);
-        // this.appManager.removeTrackedApp(this.avatar.app.instanceId);
       }
     }
 
@@ -782,7 +776,6 @@ class StatePlayer extends PlayerBase {
         const avatar = switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return console.log("canceling the function");
         this.avatar = avatar;
-        console.log("Dispatching avatarchange", app)
         loadPhysxCharacterController.call(this);
         
         if (this.isLocalPlayer) {
@@ -1169,11 +1162,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     const self = this;
     if(!app) return console.error("app is ", app)
     this.playersArray.doc.transact(function tx() {
-      console.log("setAvatarApp");
       const avatar = self.getAvatarState();
-      console.log("avatar is", avatar)
       const oldInstanceId = avatar.get("instanceId");
-      console.log("oldInstanceId is", oldInstanceId)
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
       }
@@ -1324,17 +1314,13 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   ungrab() {
     const actions = Array.from(this.getActionsState());
-    console.error("ungrab actions", actions)
     let removeOffset = 0;
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];
       if (action.type === "grab") {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
-        console.log("physicsObjects are")
-        console.error("ungrab app", app, physicsObjects, i)
         for (const physicsObject of physicsObjects) {
-          console.error("enable physics", physicsObject, physicsObject.physicsId)
           physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
           // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
           //Todo: need to sync the physicsObject transform to its parent
