@@ -45,7 +45,8 @@ import {
 import {AnimNode} from './AnimNode.js';
 import {AnimNodeBlend2} from './AnimNodeBlend2.js';
 import {AnimNodeBlendList} from './AnimNodeBlendList.js';
-import { AnimNodeUnitary } from './AnimNodeUnitary.js';
+import {AnimNodeUnitary} from './AnimNodeUnitary.js';
+import game from '../game.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -526,6 +527,11 @@ export const _createAnimation = avatar => {
   // avatar.flyNode.addChild(avatar.flyMotion);
 
   avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
+
+  avatar.mixer.addEventListener('finished', event => {
+    console.log('finished', event.motion.name);
+    game.handleAnimationFinished();
+  });
 };
 
 export const _updateAnimation = avatar => {
@@ -629,7 +635,6 @@ export const _updateAnimation = avatar => {
   // window.domInfo.innerHTML += `<div style="display:;">useComboStart: --- ${window.logNum(avatar.useComboStart)}</div>`;
 
   // console.log(avatar.useComboStart, avatar.useComboEnd);
-
 
   //
 

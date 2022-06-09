@@ -72,7 +72,7 @@ class AnimMixer extends EventDispatcher {
         const evaluateTimeS = motion.time / motion.speed + motion.timeBias;
         value = src.evaluate(evaluateTimeS);
         if (isLastBone && !motion.isFinished && evaluateTimeS >= motion.animation.duration) {
-          console.log('finished', motion.name);
+          // console.log('finished', motion.name);
           this.dispatchEvent({
             type: 'finished',
             motion,

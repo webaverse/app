@@ -43,6 +43,7 @@ const localMatrix3 = new THREE.Matrix4();
 const localRay = new THREE.Ray();
 
 let isMouseUp = false;
+let needContinueCombo = false;
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const oneVector = new THREE.Vector3(1, 1, 1);
@@ -432,6 +433,11 @@ const _endUse = () => {
   }
 };
 const _mousedown = () => {
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  const useAction = localPlayer.getAction('use');
+  if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
+    needContinueCombo = true;
+  }
   _startUse();
 };
 const _mouseup = () => {
@@ -1001,22 +1007,22 @@ const _gameUpdate = (timestamp, timeDiff) => {
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 
-  const _updateUse = () => {
-    const useAction = localPlayer.getAction('use');
-    if (useAction) {
-      if (useAction.animation === 'pickUpThrow') {
-        const useTime = localPlayer.actionInterpolants.use.get();
-        if (useTime / 1000 >= throwAnimationDuration) {
-          _endUse();
-        }
-      } else if (isMouseUp) {
-        _endUse();
-      }
+  // const _updateUse = () => {
+  //   const useAction = localPlayer.getAction('use');
+  //   if (useAction) {
+  //     if (useAction.animation === 'pickUpThrow') {
+  //       const useTime = localPlayer.actionInterpolants.use.get();
+  //       if (useTime / 1000 >= throwAnimationDuration) {
+  //         _endUse();
+  //       }
+  //     } else if (isMouseUp) {
+  //       _endUse();
+  //     }
 
-    }
-    isMouseUp = false;
-  };
-  _updateUse();
+  //   }
+  //   isMouseUp = false;
+  // };
+  // _updateUse();
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
@@ -1686,6 +1692,16 @@ class GameManager extends EventTarget {
     });
     downloadFile(blob, 'scene.json');
     // console.log('got scene', scene);
+  }
+  handleAnimationFinished() {
+    _endUse();
+
+    if (needContinueCombo) {
+      needContinueCombo = false;
+      _startUse();
+    } else {
+      lastUseIndex = 0;
+    }
   }
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
