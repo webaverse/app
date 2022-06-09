@@ -1,0 +1,442 @@
+{
+    "objects": [
+        {
+            "type": "application/light",
+            "content": {
+                "lightType": "ambient",
+                "args": [
+                    [
+                        245,
+                        245,
+                        222
+                    ],
+                    1
+                ]
+            }
+        },
+        {
+            "type": "application/light",
+            "content": {
+                "lightType": "directional",
+                "args": [
+                    [
+                        255,
+                        255,
+                        255
+                    ],
+                    0.7
+                ],
+                "position": [
+                    22,
+                    177,
+                    360
+                ],
+                "shadow": [
+                    150,
+                    5120,
+                    0,
+                    10000,
+                    -0.0001
+                ]
+            }
+        },
+        {
+            "type": "application/wind",
+            "content": {
+                "windType": "directional",
+                "direction": [
+                    0.5,
+                    0,
+                    0.2
+                ],
+                "windForce": 0.5,
+                "noiseScale": 1,
+                "windFrequency": 1
+            }
+        },
+        {
+            "type": "application/rendersettings",
+            "content": {
+                "fog": {
+                    "fogType": "exp",
+                    "args": [
+                        [
+                            78,
+                            87,
+                            72
+                        ],
+                        0.01
+                    ]
+                },
+                "hdr": {
+                    "adaptive": true,
+                    "resolution": 256,
+                    "adaptionRate": 100,
+                    "maxLuminance": 10,
+                    "minLuminance": 0,
+                    "middleGrey": 3
+                },
+                "ssao": {
+                    "kernelSize": 1024,
+                    "kernelRadius": 16,
+                    "minDistance": 0.001,
+                    "maxDistance": 2
+                },
+                "bloom": {
+                    "strength": 0.1,
+                    "radius": 0.2,
+                    "threshold": 0.8
+                },
+                "dof": {
+                    "focus": 3,
+                    "aperture": 0.0004,
+                    "maxblur": 0.01
+                }
+            }
+        },
+        {
+            "position": [
+                0,
+                0,
+                0
+            ],
+            "quaternion": [
+                0,
+                0,
+                0,
+                1
+            ],
+            "start_url": "https://webaverse.github.io/skybox-anime/"
+        },
+        {
+            "position": [
+                0,
+                0,
+                0
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ],
+            "start_url": "https://madjin.github.io/m3tapod/"
+        },
+        {
+            "position": [
+                -16,
+                0.05,
+                6
+            ],
+            "quaternion": [
+                0,
+                -0.866,
+                0,
+                0.5
+            ],
+            "start_url": "https://m3-org.github.io/tubby-pet/yellowcupid/"
+        },
+        {
+            "position": [
+                -6,
+                0.1,
+                16
+            ],
+            "quaternion": [
+                0,
+                0,
+                0,
+                1
+            ],
+            "physics": true,
+            "start_url": "https://madjin.github.io/quest-home/home.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -28.781,
+                0.296,
+                24
+            ],
+            "quaternion": [
+                0,
+                0.9923128993796854,
+                0,
+                0.12375423113850474
+            ],
+            "physics": true,
+            "start_url": "https://ipfs.webaverse.com/QmVZA32qhUTec6WmuWJDbxpup8rTVZhpAPFrTkfj6BRHmF/homespace-baked.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -15,
+                0.196,
+                -11
+            ],
+            "quaternion": [
+                0,
+                0.7071067811865475,
+                0,
+                0.7071067811865475
+            ],
+            "physics": true,
+            "start_url": "https://m3-org.github.io/assets/booths/gm3/gm3gallery.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -18.5,
+                -0.2,
+                6
+            ],
+            "quaternion": [
+                0,
+                0.8,
+                0,
+                -0.8
+            ],
+            "start_url": "https://ipfs.webaverse.com/QmZSnj1exvmSbPG5WEF5bJvg9wP7BoQ31yKbcpHS5rHJ74/tubbycat_18595_avatar.vrm",
+            "components": [
+                {
+                    "key": "npc",
+                    "value": {
+                        "name": "devil",
+                        "voice": "Sweetie Belle",
+                        "bio": "Her nickname is Scilly or SLY.13 / F drop hunter.She is an adventurer, swordfighter and fan of potions.She is exceptionally skilled and can go Super Saiyan."
+                    }
+                }
+            ]
+        },
+        {
+            "position": [
+                0,
+                0,
+                0
+            ],
+            "start_url": "https://madjin.github.io/weba-modules/audio/index.js"
+        },
+        {
+            "position": [
+                -12.5,
+                0.21,
+                -10
+            ],
+            "quaternion": [
+                0,
+                0.8,
+                0,
+                -0.8
+            ],
+            "start_url": "https://ipfs.webaverse.com/QmSjnq7kaziu9sWXRrZjaLeipXm2YJd6VksWVA2878gGtM/cryptovoxels.vrm",
+            "components": [
+                {
+                    "key": "npc",
+                    "value": {
+                        "name": "cvguy",
+                        "voice": "Sweetie Belle",
+                        "bio": "Her nickname is Scilly or SLY.13 / F drop hunter.She is an adventurer, swordfighter and fan of potions.She is exceptionally skilled and can go Super Saiyan."
+                    }
+                }
+            ]
+        },
+        {
+            "position": [
+                -4,
+                0.19,
+                16
+            ],
+            "quaternion": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "start_url": "https://ipfs.webaverse.com/QmRdMGspCdCuLbbzEUWJaeRWoHzmnXbvGrT1GoTn3Sgm1o/shima4.vrm",
+            "components": [
+                {
+                    "key": "npc",
+                    "value": {
+                        "name": "shima",
+                        "voice": "Sweetie Belle",
+                        "bio": "Shima is an intelligent companion droid. It loves to go on adventures and cracking jokes. It's made in a factory but doesn't quite know where or what it's called."
+                    }
+                }
+            ]
+        },
+        {
+            "position": [
+                -19,
+                0.19,
+                -10
+            ],
+            "quaternion": [
+                0,
+                0.7,
+                0,
+                -0.7
+            ],
+            "start_url": "https://ipfs.webaverse.com/QmWAnzVNffp4bzhJeKKWVeZuaG613FXecx7kT6hcXM3r5c/cv_jin.vrm",
+            "components": [
+                {
+                    "key": "npc",
+                    "value": {
+                        "name": "jin",
+                        "voice": "Sweetie Belle",
+                        "bio": "Her nickname is Scilly or SLY.13 / F drop hunter.She is an adventurer, swordfighter and fan of potions.She is exceptionally skilled and can go Super Saiyan."
+                    }
+                }
+            ]
+        },
+        {
+            "position": [
+                0,
+                0,
+                0
+            ],
+            "quaternion": [
+                0,
+                0,
+                0,
+                1
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ],
+            "components": [],
+            "type": "application/wind",
+            "content": {}
+        },
+        {
+            "position": [
+                0,
+                0,
+                0,
+                1
+            ],
+            "quaternion": [
+                0,
+                0,
+                0,
+                1
+            ],
+            "scale": [
+                1,
+                0.8,
+                1
+            ],
+            "physics": true,
+            "start_url": "https://madjin.github.io/desert/desert.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -61.788,
+                0,
+                5
+            ],
+            "quaternion": [
+                0,
+                0.6929688171048298,
+                0,
+                0.720967557189873
+            ],
+            "scale": [
+                7,
+                7,
+                7
+            ],
+            "physics": true,
+            "start_url": "https://ipfs.webaverse.com/QmPrUzejF6vN2pKDqdgXfiwgjBU7RHxPu31QyEKNxgn72V/theman.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -19.261,
+                0,
+                18.5
+            ],
+            "quaternion": [
+                0,
+                0.9997997398600729,
+                0,
+                -0.020012000792790446
+            ],
+            "scale": [
+                1.0000000000000695,
+                0.9999999999999889,
+                1.0000000000000695
+            ],
+            "physics": true,
+            "start_url": "https://ipfs.webaverse.com/Qma9C1wDVso8sed4uL3C2y1dL3sQvtiYsJoyBSc8hvhQiL/vk4.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -38.882957458496094,
+                0,
+                16.049686431884766
+            ],
+            "quaternion": [
+                0.003845355188104723,
+                0.5282842389156767,
+                0.0022305761112600326,
+                0.8490559467355339
+            ],
+            "scale": [
+                0.9999999999999779,
+                0.9999999999998482,
+                0.9999999999999962
+            ],
+            "physics": true,
+            "start_url": "https://ipfs.webaverse.com/Qme5fkTeDKY9H1ZaQw8dcysfbhB6yopQsekUH27TUzB9GZ/standard.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -22.886,
+                0.094,
+                -8.128
+            ],
+            "quaternion": [
+                0,
+                -0.6790689289946173,
+                0,
+                0.7340745123446961
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ],
+            "physics": true,
+            "start_url": "https://ipfs.webaverse.com/QmY39P1tpK29DVVsAvvCccXdv3JFvyVE8dhuT6gomehYPL/defaultbooth.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                4.359,
+                0,
+                -8.153
+            ],
+            "quaternion": [
+                0,
+                0.9939565290642016,
+                0,
+                0.10977439742783815
+            ],
+            "start_url": "https://ipfs.webaverse.com/QmX7KJMJTNgFT65T9YyWa58fWRUR7xoYNg9FaF7g4jTb38/clonex.vrm",
+            "components": [
+                {
+                    "key": "npc",
+                    "value": {
+                        "name": "clonex",
+                        "voice": "Sweetie Belle",
+                        "bio": "Her nickname is Scilly or SLY.13 / F drop hunter.She is an adventurer, swordfighter and fan of potions.She is exceptionally skilled and can go Super Saiyan."
+                    }
+                }
+            ]
+        }
+    ]
+}
