@@ -185,8 +185,7 @@ world.connectRoom = async u => {
   // const name = makeId(5);
   // let interval, intervalMetadata;
   wsrtc.addEventListener('open', async e => {
-    console.log('Channel Open!');
-
+    // console.log('Channel Open!');
     // interval = setInterval(sendUpdate, 10);
     // intervalMetadata = setInterval(sendMetadataUpdate, 1000);
     // wsrtc.enableMic();
@@ -338,8 +337,8 @@ appManager.addEventListener('appadd', e => {
 //   _bindHitTracker(app);
 // });
 
-appManager.addEventListener('appremove', async e => {
-  const app = e.data;
-  app.hitTracker.unbind();
-  app.parent.remove(app);
-});
+// appManager.addEventListener('appremove', async e => {
+//   const app = e.data;
+//   app.hitTracker.unbind();
+//   app.parent.remove(app);
+// });

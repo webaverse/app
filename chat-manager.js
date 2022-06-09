@@ -1,7 +1,5 @@
 import {makeId, makePromise} from './util.js';
 import metaversefileApi from 'metaversefile';
-import { world } from './world.js';
-
 
 const _getEmotion = text => {
   let match;
@@ -32,14 +30,14 @@ class ChatManager extends EventTarget {
     this.voiceRunning = false;
     this.voiceQueue = [];
   }
+
   addPlayerMessage(player, m, {timeout = 3000} = {}) {
     const match = _getEmotion(m.message);
     const emotion = match ? match.emotion : null;
     const value = emotion ? 1 : 0;
-    console.log("Add player message player.name is", player.name)
 
     player.addAction(m);
-    
+
     const _addFacePose = () => {
       if (emotion) {
         player.addAction({
@@ -61,15 +59,16 @@ class ChatManager extends EventTarget {
 
     const localTimeout = setTimeout(() => {
       this.removePlayerMessage(player, m);
-      
+
       _removeFacePose();
     }, timeout);
     m.cleanup = () => {
       clearTimeout(localTimeout);
     };
-    
+
     return m;
   }
+
   addLocalPlayerMessage(message, opts) {
     const chatId = makeId(5);
     const localPlayer = metaversefileApi.useLocalPlayer();
@@ -81,19 +80,20 @@ class ChatManager extends EventTarget {
       playerName: localPlayer.name,
       message,
     };
-    
+
     return this.addPlayerMessage(localPlayer, m, opts);
   }
+
   removePlayerMessage(player, m) {
     m.cleanup();
-    
+
     const actionIndex = player.findActionIndex(action => action.chatId === m.chatId);
     if (actionIndex !== -1) {
       player.removeActionIndex(actionIndex);
     } else {
       console.warn('remove unknown message action 2', m);
     }
-    
+
     this.dispatchEvent(new MessageEvent('messageremove', {
       data: {
         player,
@@ -101,13 +101,15 @@ class ChatManager extends EventTarget {
       },
     }));
   }
+
   removeMessage(m) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     this.removePlayerMessage(localPlayer, m);
   }
+
   async waitForVoiceTurn(fn) {
     // console.log('wait for voice queue', this.voiceRunning, this.voiceQueue.length);
-    
+
     if (!this.voiceRunning) {
       this.voiceRunning = true;
       // console.log('wait 0');

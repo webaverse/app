@@ -1,13 +1,13 @@
 import * as THREE from 'three';
-import { VRMSpringBoneImporter } from '@pixiv/three-vrm/lib/three-vrm.module.js';
-import { fixSkeletonZForward } from './vrarmik/SkeletonUtils.js';
+import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-import { scene, camera } from '../renderer.js';
+import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
-import { AudioRecognizer } from '../audio-recognizer.js';
-import { getAudioContext } from 'wsrtc/ws-audio-context.js';
+import {AudioRecognizer} from '../audio-recognizer.js';
+import {getAudioContext} from 'wsrtc/ws-audio-context.js';
 import {
   // angleDifference,
   // getVelocityDampingFactor,
@@ -1407,12 +1407,12 @@ class Avatar {
         break;
       }
       case 3: {
-        console.log('Quality setting not implemented', quality); // XXX
+        console.warn('Quality setting not implemented', quality); // XXX
         this.model.visible = true;
         break;
       }
       case 4: {
-        console.log('Quality setting not implemented', quality); // XXX
+        console.warn('Quality setting not implemented', quality); // XXX
         this.model.visible = true;
         break;
       }

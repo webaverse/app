@@ -150,6 +150,8 @@ class Hand extends THREE.Object3D {
     this.enabled = false;
   }
 }
+// All characters in the game are represented by a class
+// Inheriting from this base class
 class Player extends THREE.Object3D {
   constructor({
     name = defaultPlayerName,
@@ -208,7 +210,7 @@ class Player extends THREE.Object3D {
         app.parent && app.parent.remove(app);
       }
     });
-
+    ensureAudioContext();
     this.bindState(playersArray);
   }
   findAction(fn) {
@@ -346,15 +348,10 @@ class Player extends THREE.Object3D {
     const avatarApp = this.getAvatarApp();
     const npcComponent = avatarApp.getComponent('npc');
     const npcThemeSongUrl = npcComponent?.themeSongUrl;
-    return await Player.fetchThemeSong(npcThemeSongUrl);
+    return npcThemeSongUrl ? await musicManager.fetchMusic(npcThemeSongUrl)
+    : null;
   }
-  static async fetchThemeSong(npcThemeSongUrl) {
-    if (npcThemeSongUrl) {
-      return await musicManager.fetchMusic(npcThemeSongUrl);
-    } else {
-      return null;
-    }
-  }
+
   getCrouchFactor() {
     return 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
     /* let factor = 1;
@@ -985,7 +982,6 @@ class Player extends THREE.Object3D {
     this.appManager.destroy();
   }
 }
-
 class LocalPlayer extends Player {
   constructor(opts) {
     super(opts);
@@ -1062,14 +1058,12 @@ class LocalPlayer extends Player {
   #setAvatarAppFromOwnAppManager(app) {
     const self = this;
     if(!app) return console.error("app is ", app)
-    this.playersArray.doc.transact(function tx() {
-      const avatar = self.getAvatarState();
-      const oldInstanceId = avatar.get("instanceId");
-      if (oldInstanceId) {
-        self.appManager.removeTrackedAppInternal(oldInstanceId);
-      }
-          avatar.set("instanceId", app.instanceId);
-    });
+    const avatar = self.getAvatarState();
+    const oldInstanceId = avatar.get("instanceId");
+    if (oldInstanceId) {
+      self.appManager.removeTrackedAppInternal(oldInstanceId);
+    }
+        avatar.set("instanceId", app.instanceId);
   }
 
   setAvatarApp(app) {
@@ -1528,7 +1522,6 @@ class RemotePlayer extends Player {
     return null;
   }
   attachState(oldState) {
-    console.log("oldState is", oldState);
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
       const player = this.playersArray.get(i, Z.Map);
@@ -1615,7 +1608,6 @@ class RemotePlayer extends Player {
     this.appManager.loadApps();
     this.appManager.callBackFn = (app, event, flag) => {
       if (event == "wear") {
-        console.log("********* WEAR -- ", app, event, flag);
         if (flag === "remove") {
           this.unwear(app);
         }

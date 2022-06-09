@@ -48,7 +48,6 @@ const CharacterHup = function(props) {
         });
         diorama.addCanvas(canvas);
         chatDioramas.set(player, {diorama, avatar});
-        console.log("Creating new diorama for player", player)
         // console.log('no diorama');
       }
 
@@ -77,7 +76,7 @@ const CharacterHup = function(props) {
     }
   }, [hupRef, localOpen, hups, hups.length]);
   useEffect(() => {
-    console.log('set full text', hup);
+    // console.log('set full text', hup);
     setFullText(hup.fullText);
   }, []);
   useEffect(() => {
@@ -156,7 +155,7 @@ export default function CharacterHups({
   useEffect(() => {
     function hupadd(e) {
       const newHups = hups.concat([e.data.hup]);
-      console.log('new hups from jsx', newHups);
+      // console.log('new hups', newHups);
       setHups(newHups);
     }
 

@@ -90,15 +90,12 @@ class AppManager extends EventTarget {
     if (this.unbindStateFn) {
       // console.log('unbind player observers', lastPlayers);
       // this is the point where we should destroy the remote players in a fake way
-      console.log("got players array", this.appsArray);
       const appSpecs = this.appsArray.toJSON();
       for (const appSpec of appSpecs) {
         const app = this.getAppByInstanceId(appSpec.instanceId);
         if (app) {
-          console.log("destroy remote player app", app);
           this.removeApp(app);
         } else {
-          console.log("no remote app to destroy", appSpec);
           throw new Error("no remote app to destroy");
         }
       }
@@ -204,7 +201,6 @@ class AppManager extends EventTarget {
     this.bindState(nextAppsArray);
   }
   loadApps() {
-    console.log("load apps", this.appsArray);
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
       this.dispatchEvent(
@@ -217,11 +213,8 @@ class AppManager extends EventTarget {
     }
   }
   bindTrackedApp(trackedApp, app) {
-    console.error("bindTrackedApp", trackedApp)
     const _observe = (e, origin) => {
-      debugger
       if (origin == "push") return console.log("push");
-
       if (e.changes.keys.has("transform")) {
         const transform = trackedApp.get("transform");
         if(transform) { 
@@ -243,7 +236,6 @@ class AppManager extends EventTarget {
     );
   }
   unbindTrackedApp(instanceId) {
-    console.log("unbindTrackedApp");
     const fn = this.trackedAppUnobserveMap.get(instanceId);
 
     if (fn) {
@@ -537,16 +529,11 @@ class AppManager extends EventTarget {
     return -1;
   }
   removeTrackedAppInternal(instanceId) {
-    console.log("remove tracked app internal", instanceId);
-
     const removeIndex = this.getTrackedAppIndex(instanceId);
     if (removeIndex !== -1) {
       this.appsArray.delete(removeIndex, 1);
     } else {
-      console.warn("invalid remove instance id", {
-        removeInstanceId,
-        appsJson,
-      });
+      console.warn("invalid remove instance id", {removeInstanceId, appsJson});
     }
   }
   removeTrackedApp(removeInstanceId) {
@@ -776,7 +763,6 @@ class AppManager extends EventTarget {
             pack4(localQuaternion, 3);
             pack3(localVector2, 7);
             trackedApp.set("transform", packed);
-            console.warn("push transform", packed)
           }
         };
         _updateTrackedApp();
@@ -819,8 +805,6 @@ class AppManager extends EventTarget {
         // }
 
         app.lastMatrix.copy(app.matrix);
-      } else {
-        trackedApp.delete("transform");
       }
     }
   }

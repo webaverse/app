@@ -46,14 +46,14 @@ async function import2(s) {
     if (s.startsWith(prefix)) {
       s = s.slice(prefix.length);
     }
-    s = `/@proxy/${encodeURI(s)}`;
+    s = `/@proxy/${s}`;
   }
   // console.log('do import', s);
   try {
-    const m = await import(s);
+    const m = await import(encodeURI(s));
     return m;
   } catch(err) {
-    console.warn('error loading', JSON.stringify(s), err.stack);
+    console.warn('error loading', JSON.stringify(encodeURI(s)), err.stack);
     return null;
   }
 }

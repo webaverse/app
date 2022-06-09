@@ -45,10 +45,10 @@ export default (app, component) => {
         // const {app, wearSpec} = e.data;
         // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
         
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physicsManager.disableActor(physicsObject);
-        }
+        // const physicsObjects = app.getPhysicsObjects();
+        // for (const physicsObject of physicsObjects) {
+        //   physicsManager.disableActor(physicsObject);
+        // }
         
         if (app.glb) {
           if (wearSpec.skinnedMesh) {
@@ -193,19 +193,17 @@ export default (app, component) => {
   });
 
   const _unwear = (e) => {
-    console.log("unwear called by e", e);
     if (wearSpec) {
-      const physicsObjects = app.getPhysicsObjects();
-      for (const physicsObject of physicsObjects) {
-        physicsManager.enableActor(physicsObject);
-      }
+      // const physicsObjects = app.getPhysicsObjects();
+      // for (const physicsObject of physicsObjects) {
+      //   physicsManager.enableActor(physicsObject);
+      // }
       wearSpec = null;
       modelBones = null;
     }
   };
   
   const resetweartransform = (e) => {
-    console.log('resetweartransform called')
     if (e.player) {
       player = e.player;
       const avatarHeight = e.player.avatar ? e.player.avatar.height : 0;

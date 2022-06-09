@@ -1080,6 +1080,7 @@ export const getTransferables = o => {
   return result;
 };
 export const selectVoice = (voicer) => {
+  console.log("selectVoice", voicer)
   const weightedRandom = (weights) => {
     let totalWeight = 0;
     for (let i = 0; i < weights.length; i++) {
@@ -1103,6 +1104,7 @@ export const selectVoice = (voicer) => {
   });
   const selectionIndex = weightedRandom(weights);
   const voiceSpec = voicer[selectionIndex];
+  if (voiceSpec == null) console.error("No nonce", voiceSpec)
   voiceSpec.nonce++;
   while (voicer.every(voice => voice.nonce > 0)) {
     for (const voiceSpec of voicer) {

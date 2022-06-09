@@ -14,9 +14,8 @@ import musicManager from '../../../../music-manager.js';
 import { CachedLoader } from '../../../CachedLoader.jsx';
 import { RpgText } from '../../../RpgText.jsx';
 import { chatTextSpeed } from '../../../../constants.js';
-import { VoiceEndpointVoicer } from '../../../../voice-output/voice-endpoint-voicer.js';
+import { VoiceEndpointVoicer, getVoiceEndpointUrl} from '../../../../voice-output/voice-endpoint-voicer.js';
 import * as voices from '../../../../voices.js';
-import {getVoiceEndpointUrl} from '../../../../voice-output/voice-endpoint-voicer.js';
 
 //
 
@@ -171,7 +170,7 @@ export const CharacterSelect = () => {
             signal.addEventListener('abort', () => {
               live = false;
             });
-            themeSong = await LocalPlayer.fetchThemeSong(targetCharacter.themeSongUrl);
+            const themeSong = await LocalPlayer.fetchThemeSong(targetCharacter.themeSongUrl);
             if (!live) return;
             return themeSong;
         },

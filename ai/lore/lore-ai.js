@@ -125,7 +125,6 @@ class AIScene {
     localPlayer.characterHups.addEventListener('hupadd', e => {
       const {hup} = e.data;
       hup.addEventListener('voicestart', async e => {
-        console.log("handling voice start in the lore ai")
         const {message} = e.data;
         const messageLowerCase = message.toLowerCase();
 
