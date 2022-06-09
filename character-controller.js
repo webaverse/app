@@ -397,11 +397,6 @@ class Player extends THREE.Object3D {
   }
 
   wear(app, { loadoutIndex = -1 } = {}) {
-    console.log(
-      "Wearx called in Player of Character Controller",
-      app,
-      loadoutIndex
-    );
     this.wornApps.push(app);
 
     if (this.isLocalPlayer) {
@@ -1486,7 +1481,6 @@ class RemotePlayer extends Player {
       }
     } catch (error) {
       console.error("error", error);
-      debugger;
     }
   }
 

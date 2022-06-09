@@ -112,7 +112,6 @@ class VolumeProcessor extends AudioWorkletProcessor {
     return true;
   } catch (error){
     console.error(error);
-    debugger;
     return false;
   }
   }
