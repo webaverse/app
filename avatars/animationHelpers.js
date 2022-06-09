@@ -451,6 +451,22 @@ export const _createAnimation = avatar => {
   avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
   avatar.narutoRunMotion = avatar.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
 
+  avatar.useMotiono = {};
+  for (const k in useAnimations) {
+    const animation = useAnimations[k];
+    if (animation) {
+      avatar.useMotiono[k] = avatar.mixer.createMotion(animation);
+    }
+  }
+  avatar.useMotiono.swordSideSlash.loop = LoopOnce;
+  avatar.useMotiono.swordSideSlash.stop();
+  avatar.useMotiono.swordSideSlashStep.loop = LoopOnce;
+  avatar.useMotiono.swordSideSlashStep.stop();
+  avatar.useMotiono.swordTopDownSlash.loop = LoopOnce;
+  avatar.useMotiono.swordTopDownSlash.stop();
+  avatar.useMotiono.swordTopDownSlashStep.loop = LoopOnce;
+  avatar.useMotiono.swordTopDownSlashStep.stop();
+
   // LoopOnce
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
   // avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
@@ -465,9 +481,9 @@ export const _createAnimation = avatar => {
   avatar.activateMotion.loop = LoopOnce;
   avatar.activateMotion.stop();
 
-  avatar.useComboMotion = avatar.mixer.createMotion(useAnimations.swordSideSlash);
-  avatar.useComboMotion.loop = LoopOnce;
-  avatar.useComboMotion.stop();
+  // avatar.useComboMotion = avatar.mixer.createMotion(useAnimations.swordSideSlash);
+  // avatar.useComboMotion.loop = LoopOnce;
+  // avatar.useComboMotion.stop();
 
   // AnimNodes ---
   avatar.walkNode = new AnimNodeBlendList('walk', avatar.mixer); // todo: mixer.createNode
@@ -515,8 +531,12 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.jumpMotion);
   avatar.actionsNode.addChild(avatar.flyMotion);
   avatar.actionsNode.addChild(avatar.activateMotion);
-  avatar.actionsNode.addChild(avatar.useComboMotion);
   avatar.actionsNode.addChild(avatar.narutoRunMotion);
+  // combo
+  avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlash);
+  avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlashStep);
+  avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlash);
+  avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlashStep);
 
   // avatar.jumpNode = new AnimNodeBlend2('jump', avatar.mixer);
   // avatar.jumpNode.addChild(avatar.defaultNode);
@@ -625,8 +645,9 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.useComboStart) {
-    avatar.useComboMotion.play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.useComboMotion);
+    const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+    avatar.useMotiono[useAnimationName].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
   }
   if (avatar.useComboEnd) {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
