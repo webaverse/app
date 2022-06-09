@@ -360,8 +360,6 @@ class AppManager extends EventTarget {
       this.removeApp(app);
     });
     this.addEventListener("trackedappimport", async (e) => {
-      debugger
-      console.log("trackedappimport is", e);
       const { instanceId, app } = e.data;
 
       const trackedApp = this.getTrackedApp(instanceId);
@@ -369,8 +367,6 @@ class AppManager extends EventTarget {
       this.bindTrackedApp(trackedApp, app);
     });
     this.addEventListener("trackedappexport", async (e) => {
-      debugger
-      console.log("trackedappexport is", e);
       const { instanceId, app, sourceAppManager, destinationAppManager } =
         e.data;
       if (sourceAppManager === this) {

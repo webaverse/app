@@ -150,7 +150,7 @@ function makeId(length) {
     }
   })();
   const initialRoomState = (() => {
-    const s = fs.readFileSync('./scenes/street_mp_testing.scn', 'utf8');
+    const s = fs.readFileSync('./scenes/makersdistrict.scn', 'utf8');
     const j = JSON.parse(s);
     const {objects} = j;
     

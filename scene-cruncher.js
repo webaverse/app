@@ -324,10 +324,7 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
 const baseMaterial = new THREE.MeshBasicMaterial({
   map: null,
   color: 0xFFFFFF,
-
-  clipping: false,
   fog: false,
-  lights: false,
 });
 baseMaterial.freeze();
 const triplanarVertexShader = `\

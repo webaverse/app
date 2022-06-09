@@ -37,19 +37,11 @@ async function makeTextMesh(
 
 export default e => {
   const app = useApp();
-  const camera = useCamera();
   const localPlayer = useLocalPlayer();
-  // do something with this
-  const destroy = () => {
-    textMesh.geometry.dispose();
-    scene.remove(app);
-    this.destroy()
-  };
-  if (destroyForLocalPlayer && app.player === localPlayer) return destroy();
-  let name = app.player.name;
-  const {/* renderer, */scene/*, camera */} = useInternals();
+  if (destroyForLocalPlayer && app.player === localPlayer) return;
+  const camera = useCamera();
   let textMesh = null;
-  // const physics = usePhysics();
+  let name = app.player.name;
   (async () => {
     const font = './fonts/GeosansLight.ttf';
     const fontSize = 0.25;

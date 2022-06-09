@@ -60,12 +60,14 @@ export class LodChunk extends THREE.Vector3 {
       this.lodArray.length === chunk.lodArray.length && this.lodArray.every((lod, i) => lod === chunk.lodArray[i]);
   }
 }
-export class LodChunkTracker {
+export class LodChunkTracker extends EventTarget {
   constructor(generator, {
     chunkWorldSize = 10,
     numLods = 1,
     chunkHeight = 0,
   } = {}) {
+    super();
+
     this.generator = generator;
     this.chunkWorldSize = chunkWorldSize;
     this.numLods = numLods;
@@ -85,6 +87,13 @@ export class LodChunkTracker {
 
     // if we moved across a chunk boundary, update needed chunks
     if (!currentCoord.equals(this.lastUpdateCoord)) {
+      // dispatch event
+      this.dispatchEvent(new MessageEvent('coordupdate', {
+        data: {
+          coord: currentCoord,
+        },
+      }));
+
       // add LOD0 chunks
       const neededChunks = [];
       const seenMins = new Set();

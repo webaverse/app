@@ -361,11 +361,11 @@ metaversefile.setApi({
       if (s.startsWith(prefix)) {
         s = s.slice(prefix.length);
       }
-      s = `/@proxy/${s}`;
+      s = `/@proxy/${encodeURI(s)}`;
     }
     // console.log('js import', s);
     try {
-      const m = await import(/* @vite-ignore */s);
+      const m = await import(s);
       return m;
     } catch(err) {
       console.warn('error loading', JSON.stringify(s), err.stack);

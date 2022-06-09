@@ -63,9 +63,15 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
   };
 
   const logoutWallet = () => {
-      setAccounts([]);
-      setCurrentAddress('');
+    setAccounts([]);
+    setCurrentAddress('');
   };
+
+  const getAccounts = async () => {
+    const accounts = await requestAccounts();
+    setCurrentAddress(accounts[0]);
+    return accounts[0];
+  }
 
   const connectWallet = async () => {
     try {
@@ -135,6 +141,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     accounts,
     currentAddress,
     errorMessage,
+    getAccounts,
     connectWallet,
     logoutWallet,
     checkIfWalletIsConnected,

@@ -2,26 +2,16 @@ import * as THREE from 'three';
 import React, {useState, useEffect, useContext} from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
-import {ThreeDots} from 'react-loader-spinner';
 import {world} from '../world.js';
 import {getRandomString, handleUpload} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
-import {registerLoad} from './LoadingBox.jsx';
+import {GenericLoadingMessage, LoadingIndicator, registerLoad} from './LoadingBox.jsx';
 import {ObjectPreview} from './ObjectPreview.jsx';
 import game from '../game.js';
 import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
-import {AppContext} from './components/app';
-// import {ethers, BigNumber} from 'ethers';
-// import {NFTABI, FTABI} from './abis/contract';
-// import {NFTcontractAddress, FTcontractAddress} from './hooks/web3-constants.js';
-
-import {
-  ToastContainer,
-  toast,
-} from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { AppContext } from './components/app';
 import useNFTContract from './hooks/useNFTContract';
 
 const _upload = () => new Promise((accept, reject) => {
@@ -80,7 +70,7 @@ const uploadCreateApp = async (item, {
           physics: true,
         },
       });
-    } catch (err) {
+    } catch(err) {
       console.warn(err);
     }
     load.end();
@@ -96,33 +86,11 @@ const uploadCreateApp = async (item, {
 };
 
 const DragAndDrop = () => {
-
-  const {state, setState, account} = useContext(AppContext);
+  const {state, setState, account, chain} = useContext(AppContext);
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
-  const [mintBtnEnable, setMintBtnEnable] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const { currentAddress, connectWallet, errorMessage, wrongChain } = account;
-
-  const notifymessage = (msg, type) => {
-    toast(msg, {
-      position: 'top-center',
-      autoClose: 4000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: false,
-      draggable: true,
-      progress: undefined,
-      type,
-      theme: 'dark',
-    });
-  };
-
-  const { mintNFT, minting } = useNFTContract(currentAddress, notifymessage, setCurrentApp, setIsLoading );
-
-  const isMetaMaskConnected = () => {
-    return !!currentAddress;
-  };
+  const {mintNFT, minting, error, setError} = useNFTContract(account.currentAddress, chain.selectedChain);
+  const {mintComplete, setMintComplete} = useState(false);
 
   useEffect(() => {
     function keydown(e) {
@@ -134,7 +102,7 @@ const DragAndDrop = () => {
             const app = await _upload();
             setQueue(queue.concat([app]));
           })();
-
+  
           return false;
         }
         case 27: { // esc
@@ -191,7 +159,7 @@ const DragAndDrop = () => {
           if (app) {
             if (drop) {
               world.appManager.importApp(app);
-              setState({openedPanel: null});
+              setState({ openedPanel: null });
             } else {
               setQueue(queue.concat([app]));
             }
@@ -220,22 +188,15 @@ const DragAndDrop = () => {
   useEffect(async () => {
     if (queue.length > 0 && !currentApp) {
       const app = queue[0];
-      console.log('set app', app);
-
       setCurrentApp(app);
       setQueue(queue.slice(1));
-      setState({openedPanel: null});
+      setState({ openedPanel: null });
 
       if (cameraManager.pointerLockElement) {
         cameraManager.exitPointerLock();
       }
     }
   }, [queue, currentApp]);
-
-  useEffect(() => {
-    const connectedWallet = isMetaMaskConnected();
-    setMintBtnEnable(connectedWallet);
-  }, [currentAddress]);
 
   const _currentAppClick = e => {
     e.preventDefault();
@@ -274,16 +235,15 @@ const DragAndDrop = () => {
     }
   };
   const _mint = async e => {
-    if (!currentAddress) return false;
     e.preventDefault();
     e.stopPropagation();
-    setIsLoading(true);
-
-    console.log('mint', currentApp);
     if (currentApp) {
-        const app = currentApp;
-        mintNFT(app);
+      const app = currentApp;
+      await mintNFT(app, () => {
+        setMintComplete(true);
+      });
     }
+    setCurrentApp(null);
   };
   const _cancel = e => {
     e.preventDefault();
@@ -295,77 +255,66 @@ const DragAndDrop = () => {
   const name = currentApp ? currentApp.name : '';
   const appType = currentApp ? currentApp.appType : '';
 
+  useEffect(() => {
+    if (mintComplete) {
+      setTimeout(() => {
+        setMintComplete(false);
+      }, 3000);
+    }
+  }, [mintComplete]);
+
+  useEffect(() => {
+    if (error) {
+      setTimeout(() => {
+        setError('');
+      }, 3000);
+    }
+  }, [error]);
 
   return (
-    <>
-      <>
-        <div className={style.dragAndDrop}>
-          <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
-            <h1 className={style.heading}>Upload object</h1>
-            <div className={style.body}>
-              <ObjectPreview object={currentApp} className={style.canvas} />
-              <div className={style.wrap}>
-                <div className={style.row}>
-                  <div className={style.label}>Name: </div>
-                  <div className={style.value}>{name}</div>
-                </div>
-                <div className={style.row}>
-                  <div className={style.label}>Type: </div>
-                  <div className={style.value}>{appType}</div>
-                </div>
-              </div>
+    <div className={style.dragAndDrop}>
+      <GenericLoadingMessage open={minting} name={'Minting'} detail={'Creating NFT...'}></GenericLoadingMessage>
+      <GenericLoadingMessage open={mintComplete} name={'Minting Complete'} detail={'Press [Tab] to use your inventory.'}></GenericLoadingMessage>
+      <GenericLoadingMessage open={error} name={'Error'} detail={error}></GenericLoadingMessage>
+      <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
+        <h1 className={style.heading}>Upload object</h1>
+        <div className={style.body}>
+          <ObjectPreview object={currentApp} className={style.canvas} />
+          <div className={style.wrap}>
+            <div className={style.row}>
+              <div className={style.label}>Name: </div>
+              <div className={style.value}>{name}</div>
             </div>
-            <div className={style.footer}>
-              <div className={style.buttons}>
-                <div className={style.button} onClick={_drop}>
-                  <span>Drop</span>
-                  <sub>to world</sub>
-                </div>
-                <div className={style.button} onClick={_equip}>
-                  <span>Equip</span>
-                  <sub>to self</sub>
-                </div>
-                <div className={style.button} disabled={!mintBtnEnable} onClick={_mint}>
-                  <span>Mint</span>
-                  <sub>on chain</sub>
-                </div>
-              </div>
-              <div className={style.buttons}>
-                <div className={classnames(style.button, style.small)} onClick={_cancel}>
-                  <span>Cancel</span>
-                  <sub>back to game</sub>
-                </div>
-              </div>
+            <div className={style.row}>
+              <div className={style.label}>Type: </div>
+              <div className={style.value}>{appType}</div>
             </div>
           </div>
         </div>
-        <ToastContainer
-          position="top-center"
-          autoClose={4000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-        />
-      </>
-      {
-        isLoading && <div
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            background: 'black',
-            opacity: 0.5,
-          }}
-        >
-          <ThreeDots color="#00BFFF" height={80} width={80} />
+        <div className={style.footer}>
+          <div className={style.buttons}>
+            <div className={style.button} onClick={_drop}>
+              <span>Drop</span>
+              <sub>to world</sub>
+            </div>
+            <div className={style.button} onClick={_equip}>
+              <span>Equip</span>
+              <sub>to self</sub>
+            </div>
+            <div className={style.button} disabled={!account.currentAddress} onClick={_mint}>
+              <span>Mint</span>
+              <sub>on chain</sub>
+            </div>
+          </div>
+          <div className={style.buttons}>
+            <div className={classnames(style.button, style.small)} onClick={_cancel}>
+              <span>Cancel</span>
+              <sub>back to game</sub>
+            </div>
+          </div>
         </div>
-      }
-    </>
+      </div>
+    </div>
   );
 };
 export {

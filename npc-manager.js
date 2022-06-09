@@ -32,8 +32,8 @@ class NpcManager extends EventTarget {
     const npcPlayer = new LocalPlayer({
       npc: true,
       detached,
+      name
     });
-    npcPlayer.name = name;
 
     let matrixNeedsUpdate = false;
     if (position) {
