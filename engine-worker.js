@@ -46,7 +46,7 @@ async function import2(s) {
     if (s.startsWith(prefix)) {
       s = s.slice(prefix.length);
     }
-    s = `/@proxy/${s}`;
+    s = `/@proxy/${encodeURI(s)}`;
   }
   // console.log('do import', s);
   try {
