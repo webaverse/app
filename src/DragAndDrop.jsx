@@ -13,6 +13,7 @@ import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
 import useNFTContract from './hooks/useNFTContract';
+import NFTDetailsForm from './components/web3/NFTDetailsForm';
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -282,8 +283,12 @@ const DragAndDrop = () => {
           <ObjectPreview object={currentApp} className={style.canvas} />
           <div className={style.wrap}>
             <div className={style.row}>
-              <div className={style.label}>Name: </div>
-              <div className={style.value}>{name}</div>
+              <NFTDetailsForm initialName={name} onChange={({name, details}) => {
+                if (currentApp) {
+                  currentApp.name = name;
+                  currentApp.description = details;
+                }
+              }} />
             </div>
             <div className={style.row}>
               <div className={style.label}>Type: </div>
