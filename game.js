@@ -5,39 +5,25 @@ usually, code starts here and is migrated to an appropriate manager.
 */
 
 import * as THREE from 'three';
-// import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import physx from './physx.js';
 import cameraManager from './camera-manager.js';
-// import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
-// import {loginManager} from './login.js';
-// import physicsManager from './physics-manager.js';
 import dioramaManager from './diorama.js';
 import {world} from './world.js';
-// import * as universe from './universe.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
-// import {teleportMeshes} from './teleport.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov} from './constants.js';
-// import easing from './easing.js';
-// import {VoicePack} from './voice-pack-voicer.js';
-// import {VoiceEndpoint} from './voice-endpoint-voicer.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
-// import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
-// import soundManager from './sound-manager.js';
 import * as sounds from './sounds.js';
 import {getLocalPlayer, setLocalPlayer} from './players.js';
-// import physicsManager from './physics-manager.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
-window.zTargeting = zTargeting;
-
-// const {contractNames} = metaversefileConstants;
+import Avatar from './avatars/avatars.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -55,6 +41,8 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
+
+let isMouseUp = false;
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const oneVector = new THREE.Vector3(1, 1, 1);
@@ -256,12 +244,10 @@ const _makeTargetMesh = (() => {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uHighlight: {
-          type: 'f',
           value: 0,
           needsUpdate: true,
         },
         uTime: {
-          type: 'f',
           value: 0,
           needsUpdate: true,
         },
@@ -449,7 +435,7 @@ const _mousedown = () => {
   _startUse();
 };
 const _mouseup = () => {
-  _endUse();
+  isMouseUp = true;
 };
 
 const _grab = object => {
@@ -566,6 +552,58 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _updateGrab();
 
   zTargeting.update(timestamp, timeDiff);
+
+  const _handlePickUp = () => {
+    const pickUpAction = localPlayer.getAction('pickUp');
+    if (pickUpAction) {
+      const {instanceId} = pickUpAction;
+      const app = metaversefileApi.getAppByInstanceId(instanceId);
+
+      const _removeApp = () => {
+        if (app.parent) {
+          app.oldParent = app.parent;
+          app.parent.remove(app);
+        }
+      };
+      const _addApp = () => {
+        app.oldParent.add(app);
+        app.oldParent = null;
+      };
+
+      _removeApp();
+
+      const animations = Avatar.getAnimations();
+      const pickUpZeldaAnimation = animations.find(a => a.name === 'pick_up_zelda.fbx');
+      const pickUpTime = localPlayer.actionInterpolants.pickUp.get();
+      const pickUpTimeS = pickUpTime / 1000;
+      if (pickUpTimeS < pickUpZeldaAnimation.duration) {
+        // still playing the pick up animation
+      } else {
+        // idling
+
+        _addApp();
+
+        const handsAveragePosition = localVector.setFromMatrixPosition(localPlayer.avatar.modelBones.Left_wrist.matrixWorld)
+          .add(localVector2.setFromMatrixPosition(localPlayer.avatar.modelBones.Right_wrist.matrixWorld))
+          .divideScalar(2)
+          .add(localVector2.set(0, 0.2, 0));
+        app.position.copy(handsAveragePosition);
+        localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.y += Math.PI;
+        localEuler.z = 0;
+        app.quaternion.setFromEuler(localEuler);
+        app.updateMatrixWorld();
+
+        // console.log('got pickUpTime', pickUpTime, animations);
+        // debugger;
+      }
+    } /* else {
+
+    } */
+    ioManager.setMovementEnabled(!pickUpAction);
+  }
+  _handlePickUp();
 
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
@@ -962,6 +1000,23 @@ const _gameUpdate = (timestamp, timeDiff) => {
       !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
+
+  const _updateUse = () => {
+    const useAction = localPlayer.getAction('use');
+    if (useAction) {
+      if (useAction.animation === 'pickUpThrow') {
+        const useTime = localPlayer.actionInterpolants.use.get();
+        if (useTime / 1000 >= throwAnimationDuration) {
+          _endUse();
+        }
+      } else if (isMouseUp) {
+        _endUse();
+      }
+
+    }
+    isMouseUp = false;
+  };
+  _updateUse();
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
@@ -1024,18 +1079,6 @@ _setFirstPersonAction(lastFirstPerson);
   const firstPerson = mode === 'firstperson';
   _setFirstPersonAction(firstPerson);
 }); */
-
-const _listenLocalPlayerPickupAction = () => {
-  const localPlayer = getLocalPlayer();
-  localPlayer.addEventListener('actionadd', e => {
-    const {action} = e;
-    const {type} = action;
-    if (type === 'pickUp') {
-      ioManager.setMovementEnabled(false);
-    }
-  });
-};
-_listenLocalPlayerPickupAction();
 
 let lastMouseEvent = null;
 class GameManager extends EventTarget {

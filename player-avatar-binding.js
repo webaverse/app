@@ -211,6 +211,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   // XXX this needs to be based on the current loadout index
   rig.holdState = wearAction?.holdAnimation === 'pick_up_idle';
+  if (rig.holdState) rig.unuseAnimation = null;
   // rig.danceState = !!danceAction;
   rig.danceFactor = player.actionInterpolants.dance.get();
   if (danceAction) {

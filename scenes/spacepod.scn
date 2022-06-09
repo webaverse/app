@@ -3,7 +3,7 @@
         {
       "type": "application/spawnpoint",
       "content": {
-        "position": [15.4, 4, -3.48 ],
+        "position": [22.9, 4, -3.67 ],
         "quaternion": [0, 0.0,0, 0.0]
       }
     },
@@ -44,9 +44,9 @@
         1
       ],
       "scale": [
-        1,
-        1,
-        1
+        0.5,
+        0.5,
+        0.5
       ],
       "physics": true,
       "start_url": "https://webaverse.github.io/combined-pod/",

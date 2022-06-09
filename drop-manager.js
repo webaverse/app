@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
 
+const r = () => -1 + Math.random() * 2;
+
 class DropManager extends EventTarget {
   constructor() {
     super();
@@ -10,28 +12,29 @@ class DropManager extends EventTarget {
   }
   createDropApp({
     start_url,
+    components = [],
+    type = 'minor', // 'minor', 'major', 'key'
     position,
     quaternion,
     scale,
-    velocity = new THREE.Vector3(r(), 1+Math.random(), r())
+    velocity = new THREE.Vector3(r(), 1 + Math.random(), r())
       .normalize()
       .multiplyScalar(5),
     angularVelocity = new THREE.Vector3(0, 0.001, 0),
     voucher = 'fakeVoucher', // XXX should really throw if no voucher
   }) {
-    const r = () => (-0.5+Math.random())*2;
-    const components = [
-      {
-        key: 'drop',
-        value: {
-          voucher,
-          velocity: velocity.toArray(),
-          angularVelocity: angularVelocity.toArray(),
-        },
+    // const r = () => (-0.5+Math.random())*2;
+    const dropComponent = {
+      key: 'drop',
+      value: {
+        type,
+        voucher,
+        velocity: velocity.toArray(),
+        angularVelocity: angularVelocity.toArray(),
       },
-    ];
+    };
+    components.push(dropComponent);
     
-    // console.log('got loot components', srcUrl, components);
     const trackedApp = metaversefile.addTrackedApp(
       start_url,
       position,
@@ -41,16 +44,16 @@ class DropManager extends EventTarget {
     );
     return trackedApp;
   }
-  pickupApp(app) {
-    const result = generateStats(app.contentId);
-    const {art, stats} = result;
+  addClaim(name, contentId, voucher) {
+    const result = generateStats(contentId);
+    const {/*art, */stats} = result;
     const {level} = stats;
-    const {name} = app;
-    const start_url = app.contentId;
+    const start_url = contentId;
     const claim = {
       name,
       start_url,
       level,
+      voucher,
     };
     this.claims.push(claim);
 
@@ -59,6 +62,9 @@ class DropManager extends EventTarget {
         claims: this.claims,
       },
     }));
+  }
+  pickupApp(app) {
+    this.addClaim(app.name, app.contentId, app.getComponent('voucher'));
   }
   dropToken(contractAddress, tokenId, voucher) {
     // XXX engine implements this
