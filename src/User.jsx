@@ -13,7 +13,7 @@ import { AppContext } from './components/app';
 import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
-import Web3 from '../web3.min.js';
+import Chains from './components/web3/chains';
 
 //
 
@@ -25,8 +25,6 @@ export const User = ({ setLoginFrom }) => {
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
     const { currentAddress, connectWallet, logoutWallet, errorMessage, wrongChain } = account;
-
-    //
 
     /* const showModal = ( event ) => {
 
@@ -85,7 +83,7 @@ export const User = ({ setLoginFrom }) => {
 
                 try {
 
-                    connectWallet();
+                    const address = await connectWallet();
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
@@ -138,7 +136,7 @@ export const User = ({ setLoginFrom }) => {
 
             const address = await connectWallet();
 
-            if ( address ) {
+            if ( currentAddress ) {
 
                 setLoginFrom( 'metamask' );
 
@@ -248,6 +246,7 @@ export const User = ({ setLoginFrom }) => {
             <div
                 className={styles.userWrap}
             >
+                {loggedIn && <Chains />}
                 <div
                     className={styles.userBar}
                     onClick={openUserPanel}

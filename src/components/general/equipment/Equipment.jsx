@@ -8,11 +8,7 @@ import game from '../../../../game.js';
 import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
-import {NFTABI, FTABI} from '../../../abis/contract';
-import {NFTcontractAddress, FTcontractAddress} from '../../../hooks/web3-constants.js';
-import {ethers, BigNumber} from 'ethers';
-import { useStaticNFTContract } from '../../../hooks/useNFTContract';
-
+import useNFTContract from '../../../hooks/useNFTContract';
 
 const size = 2048;
 const numFrames = 128;
@@ -89,15 +85,15 @@ const Item = forwardRef(({
 
       <Spritesheet
         className={styles.canvas}
-        startUrl={object?.start_url}
+        startUrl={object && object.start_url}
         enabled={enabled}
         size={size}
         numFrames={numFrames}
       />
 
       <div className={styles.row}>
-        <div className={styles.name}>{object?.name}</div>
-        <div className={styles.level}>Lv. {object?.level}</div>
+        <div className={styles.name}>{object && object.name}</div>
+        <div className={styles.level}>Lv. {object && object.level}</div>
       </div>
 
     </div>
@@ -105,27 +101,24 @@ const Item = forwardRef(({
 });
 
 export const Equipment = () => {
-  const {state, setState} = useContext(AppContext);
+  const {state, setState, account} = useContext(AppContext);
   const [hoverObject, setHoverObject] = useState(null);
   const [selectObject, setSelectObject] = useState(null);
   const [spritesheet, setSpritesheet] = useState(null);
   const [inventoryObject, setInventoryObject] = useState([]);
   const [faceIndex, setFaceIndex] = useState(1);
   const selectedMenuIndex = mod(faceIndex, 4);
-  const { getNFTTotalSupply, getTokenURI } = useStaticNFTContract()
+  const {getTokens} = useNFTContract(account.currentAddress);
 
   useEffect(async () => {
-    const totalMintedToken = await getNFTTotalSupply();
-
-    const inventoryItems = [];
-    for (let i = 1; i <= totalMintedToken; i++) {
-      const tokenuri = await getTokenURI(i)
-      inventoryItems.push({
+    const tokens = await getTokens();
+    const inventoryItems = tokens.map((token, i) => {
+      return {
         name: 'ASSET ID ' + i,
-        start_url: tokenuri,
+        start_url: token,
         level: 1,
-      });
-    }
+      };
+    });
     setInventoryObject(inventoryItems);
   }, [state.openedPanel]);
 
