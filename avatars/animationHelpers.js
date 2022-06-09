@@ -787,7 +787,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       const src1 = animationIdle.interpolants[k];
       const v1 = src1.evaluate(t1);
 
-      const animationWalk = animations.index['bow_crouch_run.fbx'];
+      const animationWalk = animations.index['bow_run.fbx'];
       const t2 = timeSeconds % animationWalk.duration;
       const src2 = animationWalk.interpolants[k];
       const v2 = src2.evaluate(t2);
