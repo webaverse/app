@@ -454,11 +454,7 @@ class LodChunkGenerator {
     return this.parent.contentIndex[name];
   }
   #getShapeAddress(name) {
-    const result = this.parent.shapeAddresses[name];
-    /* if (!result) {
-      debugger;
-    } */
-    return result;
+    return this.parent.shapeAddresses[name];
   }
   #getContentMeshIndex(mesh) {
     return this.parent.meshes.indexOf(mesh);
