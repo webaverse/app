@@ -150,7 +150,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.vowels[3] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[3];
   rig.vowels[4] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[4];
 
-  rig.narutoRunState = !!narutoRunAction && !crouchAction && !(useAction?.animationEnvelope?.length > 0);
+  rig.narutoRunState = !!narutoRunAction && !crouchAction/*  && !(useAction?.animationEnvelope?.length > 0) */;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimState = !!aimAction;
   rig.aimTime = player.actionInterpolants.aim.get();
