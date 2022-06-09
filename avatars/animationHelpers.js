@@ -465,7 +465,7 @@ export const _createAnimation = avatar => {
   avatar.useComboMotion.stop();
 
   // AnimNodes ---
-  avatar.walkNode = new AnimNodeBlendList('walk');
+  avatar.walkNode = new AnimNodeBlendList('walk', avatar.mixer); // todo: mixer.createNode
   avatar.walkNode.addChild(avatar.walkForwardMotion);
   avatar.walkNode.addChild(avatar.walkBackwardMotion);
   avatar.walkNode.addChild(avatar.walkLeftMotion);
@@ -473,7 +473,7 @@ export const _createAnimation = avatar => {
   avatar.walkNode.addChild(avatar.walkLeftMirrorMotion);
   avatar.walkNode.addChild(avatar.walkRightMirrorMotion);
 
-  avatar.runNode = new AnimNodeBlendList('run');
+  avatar.runNode = new AnimNodeBlendList('run', avatar.mixer);
   avatar.runNode.addChild(avatar.runForwardMotion);
   avatar.runNode.addChild(avatar.runBackwardMotion);
   avatar.runNode.addChild(avatar.runLeftMotion);
@@ -481,7 +481,7 @@ export const _createAnimation = avatar => {
   avatar.runNode.addChild(avatar.runLeftMirrorMotion);
   avatar.runNode.addChild(avatar.runRightMirrorMotion);
 
-  avatar.crouchNode = new AnimNodeBlendList('crouch');
+  avatar.crouchNode = new AnimNodeBlendList('crouch', avatar.mixer);
   avatar.crouchNode.addChild(avatar.crouchForwardMotion);
   avatar.crouchNode.addChild(avatar.crouchBackwardMotion);
   avatar.crouchNode.addChild(avatar.crouchLeftMotion);
@@ -489,23 +489,23 @@ export const _createAnimation = avatar => {
   avatar.crouchNode.addChild(avatar.crouchLeftMirrorMotion);
   avatar.crouchNode.addChild(avatar.crouchRightMirrorMotion);
 
-  avatar.walkRunNode = new AnimNodeBlend2('walkRun');
+  avatar.walkRunNode = new AnimNodeBlend2('walkRun', avatar.mixer);
   avatar.walkRunNode.addChild(avatar.walkNode);
   avatar.walkRunNode.addChild(avatar.runNode);
 
-  avatar._7wayWalkRunNode = new AnimNodeBlend2('_7wayWalkRunNode');
+  avatar._7wayWalkRunNode = new AnimNodeBlend2('_7wayWalkRunNode', avatar.mixer);
   avatar._7wayWalkRunNode.addChild(avatar.idleMotion);
   avatar._7wayWalkRunNode.addChild(avatar.walkRunNode);
 
-  avatar._7wayCrouchNode = new AnimNodeBlend2('_7wayCrouchNode');
+  avatar._7wayCrouchNode = new AnimNodeBlend2('_7wayCrouchNode', avatar.mixer);
   avatar._7wayCrouchNode.addChild(avatar.crouchIdleMotion);
   avatar._7wayCrouchNode.addChild(avatar.crouchNode);
 
-  avatar.defaultNode = new AnimNodeBlend2('defaultNode');
+  avatar.defaultNode = new AnimNodeBlend2('defaultNode', avatar.mixer);
   avatar.defaultNode.addChild(avatar._7wayWalkRunNode);
   avatar.defaultNode.addChild(avatar._7wayCrouchNode);
 
-  avatar.actionsNode = new AnimNodeUnitary('actions');
+  avatar.actionsNode = new AnimNodeUnitary('actions', avatar.mixer);
   avatar.actionsNode.addChild(avatar.defaultNode);
   avatar.actionsNode.addChild(avatar.jumpMotion);
   avatar.actionsNode.addChild(avatar.flyMotion);
@@ -513,11 +513,11 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.useComboMotion);
   avatar.actionsNode.addChild(avatar.narutoRunMotion);
 
-  // avatar.jumpNode = new AnimNodeBlend2('jump');
+  // avatar.jumpNode = new AnimNodeBlend2('jump', avatar.mixer);
   // avatar.jumpNode.addChild(avatar.defaultNode);
   // avatar.jumpNode.addChild(avatar.jumpMotion);
 
-  // avatar.flyNode = new AnimNodeBlend2('fly');
+  // avatar.flyNode = new AnimNodeBlend2('fly', avatar.mixer);
   // avatar.flyNode.addChild(avatar.jumpNode);
   // avatar.flyNode.addChild(avatar.flyMotion);
 

@@ -878,11 +878,13 @@ class Avatar {
       this.setBottomEnabled(!!options.bottom);
     }
 
-    this.animationMappings = animationMappingConfig.map(animationMapping => {
+    this.animationMappings = animationMappingConfig.map((animationMapping, i) => {
       animationMapping = animationMapping.clone();
       const isPosition = /\.position$/.test(animationMapping.animationTrackName);
       animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
       animationMapping.lerpFn = _getLerpFn(isPosition);
+      animationMapping.isFirstBone = i === 0;
+      animationMapping.isLastBone = i === animationMappingConfig.length - 1;
       return animationMapping;
     });
 

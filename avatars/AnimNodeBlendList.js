@@ -3,8 +3,8 @@ import {AnimMixer} from './AnimMixer';
 import {AnimNode} from './AnimNode';
 
 class AnimNodeBlendList extends AnimNode {
-  constructor(name) {
-    super(name);
+  constructor(name, mixer) {
+    super(name, mixer);
     this.isAnimNodeBlendList = true;
 
     // this.isCrossFade = false;
@@ -48,7 +48,7 @@ class AnimNodeBlendList extends AnimNode {
     for (let i = 0; i < this.children.length; i++) {
       const childNode = this.children[i];
       if (childNode.weight > 0) {
-        const value = AnimMixer.doBlend(childNode, spec);
+        const value = this.mixer.doBlend(childNode, spec);
         if (nodeIndex === 0) {
           // result = value; // todo: will change original data?
           AnimMixer.copyArray(result, value);
@@ -65,7 +65,7 @@ class AnimNodeBlendList extends AnimNode {
       }
     }
     // if (nodeIndex === 0) { // use children[0]'s value, if all weights are zero
-    //   const value = AnimMixer.doBlend(this.children[0], spec);
+    //   const value = this.mixer.doBlend(this.children[0], spec);
     //   AnimMixer.copyArray(result, value);
     // }
     return result;

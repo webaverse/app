@@ -14,6 +14,7 @@ class AnimMotion {
     this.weight = 1; // todo: move to AnimNode.
     this.timeBias = 0;
     this.speed = 1;
+    this.isFinished = false;
 
     // default values same as THREE.AnimationAction.
     this.loop = LoopRepeat;
@@ -34,6 +35,8 @@ class AnimMotion {
     this.weight = Math.abs(this.weight);
 
     this.startTime = AnimMixer.timeS;
+
+    this.isFinished = false;
   }
 
   stop() {

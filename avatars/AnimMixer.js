@@ -46,20 +46,22 @@ class AnimMixer extends EventDispatcher {
     }
   }
 
-  static doBlend(node, spec) {
+  doBlend(node, spec) {
     const {
       animationTrackName: k,
       dst,
       // isTop,
       isPosition,
+      isFirstBone,
+      isLastBone,
     } = spec;
 
-    if (window.isDebugger) debugger
+    if (window.isDebugger) debugger;
 
     if (node.isAnimMotion) { // todo: do not evaluate weight <= 0
       const motion = node;
       // if (isPosition && motion === window.avatar?.jumpMotion) debugger;
-      motion.update(); // todo: now update 57 times!
+      if (isFirstBone) motion.update();
       // if (isPosition && motion === window.avatar?.activateMotion) console.log(motion.time);
       // if (isPosition && motion === window.avatar?.jumpMotion) console.log(motion.weight);
       // if (isPosition && motion === window.avatar?.activateMotion) console.log(motion.weight);
@@ -67,7 +69,17 @@ class AnimMixer extends EventDispatcher {
       const src = animation.interpolants[k];
       let value;
       if (motion.loop === LoopOnce) {
-        value = src.evaluate(motion.time / motion.speed + motion.timeBias);
+        const evaluateTimeS = motion.time / motion.speed + motion.timeBias;
+        value = src.evaluate(evaluateTimeS);
+        if (isLastBone && !motion.isFinished && evaluateTimeS >= motion.animation.duration) {
+          console.log('finished', motion.name);
+          this.dispatchEvent({
+            type: 'finished',
+            motion,
+          });
+
+          motion.isFinished = true;
+        }
       } else {
         value = src.evaluate((AnimMixer.timeS / motion.speed + motion.timeBias) % animation.duration);
       }
@@ -88,7 +100,7 @@ class AnimMixer extends EventDispatcher {
         isPosition,
       } = spec;
 
-      const result = AnimMixer.doBlend(animTree, spec);
+      const result = this.doBlend(animTree, spec);
 
       if (isPosition) { // _clearXZ
         result[0] = 0;
