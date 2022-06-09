@@ -876,6 +876,16 @@ export const handleDropJsonItem = async item => {
   }
   return null;
 };
+
+export const handleBlobUpload = async (name, blob, progress) => {
+  const formData = new FormData();
+  formData.append(name, blob, name);
+  const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, progress);
+
+  const rootDirectoryHash = hashes.length > 0 ? hashes[0].hash : null;
+  return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+};
+
 export const handleUpload = async (
   item,
   {
