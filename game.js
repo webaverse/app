@@ -1693,7 +1693,6 @@ class GameManager extends EventTarget {
     console.log("toggle axis");
   }
   async toggleEditMode() {
-    console.log("Toggling editMode to", !this.editMode)
     this.editMode = !this.editMode;
     // console.log('got edit mode', this.editMode);
     if (this.editMode) {

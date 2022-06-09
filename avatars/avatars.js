@@ -1407,12 +1407,12 @@ class Avatar {
         break;
       }
       case 3: {
-        console.log('not implemented'); // XXX
+        console.log('Quality setting not implemented', quality); // XXX
         this.model.visible = true;
         break;
       }
       case 4: {
-        console.log('not implemented'); // XXX
+        console.log('Quality setting not implemented', quality); // XXX
         this.model.visible = true;
         break;
       }
