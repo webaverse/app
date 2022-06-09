@@ -10,6 +10,10 @@
     display: block;
 }
 
+.detailsForm img {
+    width: 25%;
+}
+
 .detailsForm input,
 .detailsForm textarea {
     font-size: 16px;
