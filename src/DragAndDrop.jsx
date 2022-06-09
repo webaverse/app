@@ -5,13 +5,14 @@ import style from './DragAndDrop.module.css';
 import {world} from '../world.js';
 import {getRandomString, handleUpload} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
-import {registerLoad} from './LoadingBox.jsx';
+import {GenericLoadingMessage, LoadingIndicator, registerLoad} from './LoadingBox.jsx';
 import {ObjectPreview} from './ObjectPreview.jsx';
 import game from '../game.js';
 import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
+import useNFTContract from './hooks/useNFTContract';
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -85,9 +86,11 @@ const uploadCreateApp = async (item, {
 };
 
 const DragAndDrop = () => {
-  const { state, setState, } = useContext( AppContext )
+  const {state, setState, account, chain} = useContext(AppContext);
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
+  const {mintNFT, minting, error, setError} = useNFTContract(account.currentAddress, chain.selectedChain);
+  const {mintComplete, setMintComplete} = useState(false);
 
   useEffect(() => {
     function keydown(e) {
@@ -162,13 +165,13 @@ const DragAndDrop = () => {
             }
           }
         }));
-      
+
         /* let arrowLoader = metaverseUi.makeArrowLoader();
         arrowLoader.position.copy(position);
         arrowLoader.quaternion.copy(quaternion);
         scene.add(arrowLoader);
         arrowLoader.updateMatrixWorld();
-      
+
         if (arrowLoader) {
           scene.remove(arrowLoader);
           arrowLoader.destroy();
@@ -182,10 +185,9 @@ const DragAndDrop = () => {
     };
   }, []);
 
-  useEffect(() => {
+  useEffect(async () => {
     if (queue.length > 0 && !currentApp) {
       const app = queue[0];
-      // console.log('set app', app);
       setCurrentApp(app);
       setQueue(queue.slice(1));
       setState({ openedPanel: null });
@@ -232,11 +234,16 @@ const DragAndDrop = () => {
       setCurrentApp(null);
     }
   };
-  const _mint = e => {
+  const _mint = async e => {
     e.preventDefault();
     e.stopPropagation();
-
-    console.log('mint', currentApp);
+    if (currentApp) {
+      const app = currentApp;
+      await mintNFT(app, () => {
+        setMintComplete(true);
+      });
+    }
+    setCurrentApp(null);
   };
   const _cancel = e => {
     e.preventDefault();
@@ -248,8 +255,27 @@ const DragAndDrop = () => {
   const name = currentApp ? currentApp.name : '';
   const appType = currentApp ? currentApp.appType : '';
 
+  useEffect(() => {
+    if (mintComplete) {
+      setTimeout(() => {
+        setMintComplete(false);
+      }, 3000);
+    }
+  }, [mintComplete]);
+
+  useEffect(() => {
+    if (error) {
+      setTimeout(() => {
+        setError('');
+      }, 3000);
+    }
+  }, [error]);
+
   return (
     <div className={style.dragAndDrop}>
+      <GenericLoadingMessage open={minting} name={'Minting'} detail={'Creating NFT...'}></GenericLoadingMessage>
+      <GenericLoadingMessage open={mintComplete} name={'Minting Complete'} detail={'Press [Tab] to use your inventory.'}></GenericLoadingMessage>
+      <GenericLoadingMessage open={error} name={'Error'} detail={error}></GenericLoadingMessage>
       <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
         <h1 className={style.heading}>Upload object</h1>
         <div className={style.body}>
@@ -275,7 +301,7 @@ const DragAndDrop = () => {
               <span>Equip</span>
               <sub>to self</sub>
             </div>
-            <div className={style.button} disabled onClick={_mint}>
+            <div className={style.button} disabled={!account.currentAddress} onClick={_mint}>
               <span>Mint</span>
               <sub>on chain</sub>
             </div>

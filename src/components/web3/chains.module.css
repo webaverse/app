@@ -1,0 +1,66 @@
+
+.chainSelector {
+  background-color: black;
+  border-radius: 5px 0 0 5px;
+  color: white;
+  user-select: none;
+  width: 105px;
+  position: absolute;
+  top:0;
+  left: -100px;
+  line-height: 1.4;
+  pointer-events: all;
+  border: 2px solid black;
+  border-right-width: 5px;
+}
+
+.selectedChain {
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.chainDropDown {
+    overflow: hidden;
+}
+
+.chains {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    
+}
+
+.chains li {
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.chains li button {
+    border-radius: 0;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    padding: 8px;
+    color: white;
+}
+
+.selected {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.chains li.selected button {
+    color: white;
+}
+
+.showChainSelector {
+    height: auto;
+    pointer-events: all;
+    transition: 0.5s;
+}
+
+.hideChainSelector {
+    height: 0;
+    transition: 0.5s;
+}
