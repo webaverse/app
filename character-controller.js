@@ -63,6 +63,8 @@ const localMatrix2 = new THREE.Matrix4();
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const upVector = new THREE.Vector3(0, 1, 0);
 
+const controlActionTypes = ["jump", "crouch", "fly", "sit"];
+
 const _getSession = () => {
   const renderer = getRenderer();
   const session = renderer.xr.getSession();
@@ -139,7 +141,7 @@ function loadPhysxCharacterController() {
   this.physicsObject = physicsObject;
 } */
 
-class PlayerHand extends THREE.Object3D {
+class Hand extends THREE.Object3D {
   constructor() {
     super();
 
@@ -148,10 +150,34 @@ class PlayerHand extends THREE.Object3D {
     this.enabled = false;
   }
 }
-class PlayerBase extends THREE.Object3D {
-  constructor() {
+class Player extends THREE.Object3D {
+  constructor({
+    name = defaultPlayerName,
+    playerId = makeId(5),
+    playersArray = new Z.Doc().getArray(playersMapName),
+  } = {}) {
     super();
+    this.playerId = playerId;
+    this.playerIdInt = murmurhash3(playerId);
+    this.name = name;
+    this.avatar = null;
+    this.detached = false;
 
+    this.playersArray = null;
+    this.playerMap = null;
+    this.wornApps = [];
+
+    this.voicePack = null;
+    this.voiceEndpoint = null;
+    this.microphoneMediaStream = null;
+
+    this.eyeballTarget = new THREE.Vector3();
+    this.eyeballTargetEnabled = false;
+    
+    this.avatarEpoch = 0;
+    this.syncAvatarCancelFn = null;
+    this.unbindFns = [];
+    
     // If these weren't set on constructor (which they aren't on remote player) then set them now
     this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
@@ -160,18 +186,13 @@ class PlayerBase extends THREE.Object3D {
     this.characterHitter = new CharacterHitter(this);
     this.characterBehavior = new CharacterBehavior(this);
     
-    this.wornApps = [];
-    this.leftHand = new PlayerHand();
-    this.rightHand = new PlayerHand();
+    this.leftHand = new Hand();
+    this.rightHand = new Hand();
     this.hands = [
       this.leftHand,
       this.rightHand,
     ];
 
-    this.detached = false;
-
-    this.avatar = null;
-    
     this.appManager = new AppManager({
       appsMap: null,
     });
@@ -188,10 +209,7 @@ class PlayerBase extends THREE.Object3D {
       }
     });
 
-    this.eyeballTarget = new THREE.Vector3();
-    this.eyeballTargetEnabled = false;
-    this.voicePack = null;
-    this.voiceEndpoint = null;
+    this.bindState(playersArray);
   }
   findAction(fn) {
     const actions = this.getActionsState();
@@ -328,7 +346,7 @@ class PlayerBase extends THREE.Object3D {
     const avatarApp = this.getAvatarApp();
     const npcComponent = avatarApp.getComponent('npc');
     const npcThemeSongUrl = npcComponent?.themeSongUrl;
-    return await PlayerBase.fetchThemeSong(npcThemeSongUrl);
+    return await Player.fetchThemeSong(npcThemeSongUrl);
   }
   static async fetchThemeSong(npcThemeSongUrl) {
     if (npcThemeSongUrl) {
@@ -380,7 +398,7 @@ class PlayerBase extends THREE.Object3D {
 
   wear(app, { loadoutIndex = -1 } = {}) {
     console.log(
-      "Wearx called in PlayerBase of Character Controller",
+      "Wearx called in Player of Character Controller",
       app,
       loadoutIndex
     );
@@ -609,31 +627,6 @@ class PlayerBase extends THREE.Object3D {
     this.wornApps.splice(this.wornApps.indexOf(app));
     this.removedWornApp = app
   }
-}
-
-const controlActionTypes = ["jump", "crouch", "fly", "sit"];
-class StatePlayer extends PlayerBase {
-  constructor({
-    name = "Anon",
-    playerId = makeId(5),
-    playersArray = new Z.Doc().getArray(playersMapName),
-  } = {}) {
-    super();
-
-    this.playerId = playerId;
-    this.playerIdInt = murmurhash3(playerId);
-    this.name = name;
-
-    this.playersArray = null;
-    this.playerMap = null;
-    this.microphoneMediaStream = null;
-
-    this.avatarEpoch = 0;
-    this.syncAvatarCancelFn = null;
-    this.unbindFns = [];
-
-    this.bindState(playersArray);
-  }
   isBound() {
     return !!this.playersArray;
   }
@@ -816,10 +809,7 @@ class StatePlayer extends PlayerBase {
             if (!cancelFn.isLive()) return;
             _setNextAvatarApp(nextAvatarApp);
           } else {
-            console.warn(
-              "switching avatar to instanceId that does not exist in any app manager",
-              instanceId
-            );
+            _setNextAvatarApp(null)
           }
         }
       }
@@ -1000,90 +990,16 @@ class StatePlayer extends PlayerBase {
     this.appManager.destroy();
   }
 }
-class InterpolatedPlayer extends StatePlayer {
+
+class LocalPlayer extends Player {
   constructor(opts) {
     super(opts);
 
-    this.positionInterpolant = new PositionInterpolant(
-      () => this.getPosition(),
-      avatarInterpolationTimeDelay,
-      avatarInterpolationNumFrames
-    );
-    this.quaternionInterpolant = new QuaternionInterpolant(
-      () => this.getQuaternion(),
-      avatarInterpolationTimeDelay,
-      avatarInterpolationNumFrames
-    );
+    this.isLocalPlayer = !opts.npc;
+    this.isNpcPlayer = !!opts.npc;
+    this.detached = !!opts.detached;
 
-    this.actionBinaryInterpolants = {
-      crouch: new BinaryInterpolant(() => this.hasAction('crouch'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      activate: new BinaryInterpolant(() => this.hasAction('activate'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      use: new BinaryInterpolant(() => this.hasAction('use'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      pickUp: new BinaryInterpolant(() => this.hasAction('pickUp'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      aim: new BinaryInterpolant(() => this.hasAction('aim'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      narutoRun: new BinaryInterpolant(() => this.hasAction('narutoRun'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      emote: new BinaryInterpolant(() => this.hasAction('emote'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // swordSideSlash: new BinaryInterpolant(() => this.hasAction('swordSideSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // swordTopDownSlash: new BinaryInterpolant(() => this.hasAction('swordTopDownSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      hurt: new BinaryInterpolant(
-        () => this.hasAction("hurt"),
-        avatarInterpolationTimeDelay,
-        avatarInterpolationNumFrames
-      ),
-    };
-    this.actionBinaryInterpolantsArray = Object.keys(this.actionBinaryInterpolants).map(k => this.actionBinaryInterpolants[k]);
-    this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, crouchMaxTime),
-      activate: new UniActionInterpolant(() => this.actionBinaryInterpolants.activate.get(), 0, activateMaxTime),
-      use: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.use.get(), 0),
-      pickUp: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.pickUp.get(), 0),
-      unuse: new InfiniteActionInterpolant(() => !this.actionBinaryInterpolants.use.get(), 0),
-      aim: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.aim.get(), 0),
-      aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
-      aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
-      narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
-      fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
-      jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
-      dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
-      emote: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.emote.get(), 0),
-      // throw: new UniActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0, throwMaxTime),
-      // chargeJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJump.get(), 0),
-      // standCharge: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.standCharge.get(), 0),
-      // fallLoop: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0),
-      // swordSideSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordSideSlash.get(), 0),
-      // swordTopDownSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordTopDownSlash.get(), 0),
-      hurt: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.hurt.get(), 0),
-    };
-    
-    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map((k) => this.actionInterpolants[k]);
-
-    this.avatarBinding = {
-      position: this.positionInterpolant.get(),
-      quaternion: this.quaternionInterpolant.get(),
-    };
-  }
-  updateInterpolation(timeDiff) {
-    this.positionInterpolant.update(timeDiff);
-    this.quaternionInterpolant.update(timeDiff);
-
-    for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
-      actionBinaryInterpolant.update(timeDiff);
-    }
-    for (const actionInterpolant of this.actionInterpolantsArray) {
-      actionInterpolant.update(timeDiff);
-    }
-  }
-}
-class UninterpolatedPlayer extends StatePlayer {
-  constructor(opts) {
-    super(opts);
+    this.bio = defaultPlayerBio;
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
@@ -1115,23 +1031,13 @@ class UninterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternion,
     };
   }
+
   updateInterpolation(timestamp, timeDiff) {
     for (const actionInterpolant of this.actionInterpolantsArray) {
       actionInterpolant.update(timestamp, timeDiff);
     }
   }
-}
-class LocalPlayer extends UninterpolatedPlayer {
-  constructor(opts) {
-    super(opts);
 
-    this.isLocalPlayer = !opts.npc;
-    this.isNpcPlayer = !!opts.npc;
-    this.detached = !!opts.detached;
-
-    this.name = defaultPlayerName;
-    this.bio = defaultPlayerBio;
-  }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
     
@@ -1467,13 +1373,87 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
 }
 
-class RemotePlayer extends InterpolatedPlayer {
-  audioWorkletNode = false;
+class RemotePlayer extends Player {
   constructor(opts) {
     super(opts);
+    this.isRemotePlayer = true;
     this.audioWorkletNode = null;
 
-    this.isRemotePlayer = true;
+    this.positionInterpolant = new PositionInterpolant(
+      () => this.getPosition(),
+      avatarInterpolationTimeDelay,
+      avatarInterpolationNumFrames
+    );
+    this.quaternionInterpolant = new QuaternionInterpolant(
+      () => this.getQuaternion(),
+      avatarInterpolationTimeDelay,
+      avatarInterpolationNumFrames
+    );
+
+    this.actionBinaryInterpolants = {
+      crouch: new BinaryInterpolant(() => this.hasAction('crouch'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      activate: new BinaryInterpolant(() => this.hasAction('activate'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      use: new BinaryInterpolant(() => this.hasAction('use'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      pickUp: new BinaryInterpolant(() => this.hasAction('pickUp'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      aim: new BinaryInterpolant(() => this.hasAction('aim'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      narutoRun: new BinaryInterpolant(() => this.hasAction('narutoRun'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      emote: new BinaryInterpolant(() => this.hasAction('emote'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      // throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      // chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      // standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      // fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      // swordSideSlash: new BinaryInterpolant(() => this.hasAction('swordSideSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      // swordTopDownSlash: new BinaryInterpolant(() => this.hasAction('swordTopDownSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      hurt: new BinaryInterpolant(
+        () => this.hasAction("hurt"),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames
+      ),
+    };
+    this.actionBinaryInterpolantsArray = Object.keys(this.actionBinaryInterpolants).map(k => this.actionBinaryInterpolants[k]);
+    this.actionInterpolants = {
+      crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, crouchMaxTime),
+      activate: new UniActionInterpolant(() => this.actionBinaryInterpolants.activate.get(), 0, activateMaxTime),
+      use: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.use.get(), 0),
+      pickUp: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.pickUp.get(), 0),
+      unuse: new InfiniteActionInterpolant(() => !this.actionBinaryInterpolants.use.get(), 0),
+      aim: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.aim.get(), 0),
+      aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
+      aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
+      narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
+      fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
+      jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
+      dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
+      emote: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.emote.get(), 0),
+      // throw: new UniActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0, throwMaxTime),
+      // chargeJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJump.get(), 0),
+      // standCharge: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.standCharge.get(), 0),
+      // fallLoop: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0),
+      // swordSideSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordSideSlash.get(), 0),
+      // swordTopDownSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordTopDownSlash.get(), 0),
+      hurt: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.hurt.get(), 0),
+    };
+    
+    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map((k) => this.actionInterpolants[k]);
+
+    this.avatarBinding = {
+      position: this.positionInterpolant.get(),
+      quaternion: this.quaternionInterpolant.get(),
+    };
+  }
+  updateInterpolation(timeDiff) {
+    this.positionInterpolant.update(timeDiff);
+    this.quaternionInterpolant.update(timeDiff);
+
+    for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
+      actionBinaryInterpolant.update(timeDiff);
+    }
+    for (const actionInterpolant of this.actionInterpolantsArray) {
+      actionInterpolant.update(timeDiff);
+    }
   }
 
   audioWorkerLoaded = false;
@@ -1670,68 +1650,8 @@ class RemotePlayer extends InterpolatedPlayer {
     return session;
   }
 }
-/* class StaticUninterpolatedPlayer extends UninterpolatedPlayer {
-  constructor(opts) {
-    super(opts);
-
-    this.actions = [];
-  }
-  getActionsState() {
-    return this.actions;
-  }
-  getActions() {
-    return this.actions;
-  }
-  getActionsArray() {
-    return this.actions;
-  }
-  getAction(type) {
-    return this.actions.find((action) => action.type === type);
-  }
-  getActionByActionId(actionId) {
-    return this.actions.find((action) => action.actionId === actionId);
-  }
-  hasAction(type) {
-    return this.actions.some((a) => a.type === type);
-  }
-  addAction(action) {
-    this.actions.push(action);
-  }
-  removeAction(type) {
-    for (let i = 0; i < this.actions.length; i++) {
-      const action = this.actions[i];
-      if (action.type === type) {
-        this.removeActionIndex(i);
-        break;
-      }
-    }
-  }
-  removeActionIndex(index) {
-    const action = this.actions.splice(index, 1)[0];
-    this.dispatchEvent({
-      type: 'actionremove',
-      action,
-    });
-  }
-  clearActions() {
-    const numActions = this.actions.length;
-    for (let i = numActions - 1; i >= 0; i--) {
-      this.removeActionIndex(i);
-    }
-  }
-  updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
-} */
-/* class NpcPlayer extends LocalPlayer {
-  constructor(opts) {
-    super(opts);
-  
-    this.isLocalPlayer = false;
-    this.isNpcPlayer = true;
-  }
-} */
 
 export {
   LocalPlayer,
-  RemotePlayer,
-  // NpcPlayer,
+  RemotePlayer
 };
