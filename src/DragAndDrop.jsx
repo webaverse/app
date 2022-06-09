@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState, useEffect, useContext, useRef} from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import {world} from '../world.js';
-import {getRandomString, handleUpload} from '../util.js';
+import {getRandomString, handleUpload, handleBlobUpload} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
 import {GenericLoadingMessage, LoadingIndicator, registerLoad} from './LoadingBox.jsx';
 import {ObjectPreview} from './ObjectPreview.jsx';
@@ -14,6 +14,8 @@ import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
 import useNFTContract from './hooks/useNFTContract';
 import NFTDetailsForm from './components/web3/NFTDetailsForm';
+
+const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -92,6 +94,8 @@ const DragAndDrop = () => {
   const [currentApp, setCurrentApp] = useState(null);
   const {mintNFT, minting, error, setError} = useNFTContract(account.currentAddress, chain.selectedChain);
   const {mintComplete, setMintComplete} = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     function keydown(e) {
@@ -272,6 +276,41 @@ const DragAndDrop = () => {
     }
   }, [error]);
 
+  async function createPreview() {
+    const filename = `${name}-preview.png`;
+    const type = 'upload';
+    canvasRef.current.toBlob(async function (blob) {
+      let load = null;
+      const previewURL = await handleBlobUpload(filename, blob, {
+        onTotal(total) {
+          load = registerLoad(type, filename, 0, total);
+        },
+        onProgress(e) {
+          if (load) {
+            load.update(e.loaded, e.total);
+          } else {
+            load = registerLoad(type, filename, e.loaded, e.total);
+          }
+        },
+      });
+
+      if (load) {
+        load.end();
+      }
+      setPreviewImage(previewURL);
+    });
+  }
+
+  useEffect(() => {
+    if (!currentApp) return;
+
+    if (APP_3D_TYPES.includes(currentApp.appType)) {
+      setTimeout(() => {
+        createPreview();
+      }, 3000);
+    }
+  }, [currentApp]);
+
   return (
     <div className={style.dragAndDrop}>
       <GenericLoadingMessage open={minting} name={'Minting'} detail={'Creating NFT...'}></GenericLoadingMessage>
@@ -280,10 +319,19 @@ const DragAndDrop = () => {
       <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
         <h1 className={style.heading}>Upload object</h1>
         <div className={style.body}>
-          <ObjectPreview object={currentApp} className={style.canvas} />
+          <div style={{position:'relative'}}>
+            {currentApp && APP_3D_TYPES.includes(currentApp.appType) && <button style={{position: 'absolute', top:0, right:0}} onClick={createPreview}>Take Preview</button>}
+            <ObjectPreview
+              ref={canvasRef}
+              object={currentApp}
+              className={style.canvas}
+              width={512}
+              height={512}
+            />
+          </div>
           <div className={style.wrap}>
             <div className={style.row}>
-              <NFTDetailsForm initialName={name} onChange={({name, details}) => {
+              <NFTDetailsForm initialName={name} previewImage={previewImage} onChange={({name, details}) => {
                 if (currentApp) {
                   currentApp.name = name;
                   currentApp.description = details;
