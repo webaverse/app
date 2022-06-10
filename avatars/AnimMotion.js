@@ -34,7 +34,7 @@ class AnimMotion {
     if (isFirstBone) {
       this.time = AnimMixer.timeS - this.startTime;
       // if (this === window.avatar?.jumpMotion) console.log(this.time);
-      if (this === window.avatar?.jumpMotion) console.log(this.weight);
+      // if (this === window.avatar?.jumpMotion) console.log(this.weight);
     }
 
     const animation = this.animation;
