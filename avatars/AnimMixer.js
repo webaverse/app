@@ -47,42 +47,25 @@ class AnimMixer extends EventDispatcher {
   }
 
   doBlend(node, spec) {
-    const {
-      animationTrackName: k,
-      dst,
-      // isTop,
-      isPosition,
-      isFirstBone,
-      isLastBone,
-    } = spec;
+    // const {
+    //   animationTrackName: k,
+    //   dst,
+    //   // isTop,
+    //   isPosition,
+    //   isFirstBone,
+    //   isLastBone,
+    // } = spec;
 
-    if (window.isDebugger) debugger;
+    // if (window.isDebugger) debugger;
 
     if (node.isAnimMotion) { // todo: do not evaluate weight <= 0
       const motion = node;
       // if (isPosition && motion === window.avatar?.jumpMotion) debugger;
-      if (isFirstBone) motion.update();
+      // if (isFirstBone) motion.update(spec);
+      const value = motion.update(spec);
       // if (isPosition && motion === window.avatar?.activateMotion) console.log(motion.time);
       // if (isPosition && motion === window.avatar?.jumpMotion) console.log(motion.weight);
       // if (isPosition && motion === window.avatar?.activateMotion) console.log(motion.weight);
-      const animation = motion.animation;
-      const src = animation.interpolants[k];
-      let value;
-      if (motion.loop === LoopOnce) {
-        const evaluateTimeS = motion.time / motion.speed + motion.timeBias;
-        value = src.evaluate(evaluateTimeS);
-        if (isLastBone && !motion.isFinished && evaluateTimeS >= motion.animation.duration) {
-          // console.log('finished', motion.name);
-          this.dispatchEvent({
-            type: 'finished',
-            motion,
-          });
-
-          motion.isFinished = true;
-        }
-      } else {
-        value = src.evaluate((AnimMixer.timeS / motion.speed + motion.timeBias) % animation.duration);
-      }
       return value;
     } else if (node.isAnimNode) {
       const result = node.update(spec);
