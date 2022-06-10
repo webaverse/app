@@ -7,7 +7,7 @@ import * as Z from 'zjs';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-import cameraManager from './camera-manager.js';
+// import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
@@ -24,34 +24,47 @@ import {
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
   // groundFriction,
-  voiceEndpoint,
+  // defaultVoicePackName,
   numLoadoutSlots,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
 import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterSfx} from './character-sfx.js';
+import {CharacterHitter} from './character-hitter.js';
 import {CharacterBehavior} from './character-behavior.js';
 import {CharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer, getVoiceEndpointUrl} from './voice-output/voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
   defaultPlayerName,
   defaultPlayerBio,
 } from './ai/lore/lore-model.js';
-import * as sounds from './sounds.js';
+// import * as sounds from './sounds.js';
+import musicManager from './music-manager.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
+import overrides from './overrides.js';
+// import * as voices from './voices.js';
 
 const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
 // const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localArray3 = [0, 0, 0];
 const localArray4 = [0, 0, 0, 0];
+
+const zeroVector = new THREE.Vector3(0, 0, 0);
+const upVector = new THREE.Vector3(0, 1, 0);
+
+const _getSession = () => {
+  const renderer = getRenderer();
+  const session = renderer.xr.getSession();
+  return session;
+};
 
 function makeCancelFn() {
   let live = true;
@@ -141,19 +154,25 @@ class PlayerBase extends THREE.Object3D {
       this.leftHand,
       this.rightHand,
     ];
-    
+
+    this.detached = false;
+
     this.avatar = null;
     
     this.appManager = new AppManager({
       appsMap: null,
     });
     this.appManager.addEventListener('appadd', e => {
-      const app = e.data;
-      scene.add(app);
+      if (!this.detached) {
+        const app = e.data;
+        scene.add(app);
+      }
     });
     this.appManager.addEventListener('appremove', e => {
-      const app = e.data;
-      app.parent && app.parent.remove(app);
+      if (!this.detached) {
+        const app = e.data;
+        app.parent && app.parent.remove(app);
+      }
     });
 
     this.eyeballTarget = new THREE.Vector3();
@@ -239,7 +258,7 @@ class PlayerBase extends THREE.Object3D {
   }
   setVoiceEndpoint(voiceId) {
     if (voiceId) {
-      const url = `${voiceEndpoint}?voice=${encodeURIComponent(voiceId)}`;
+      const url = getVoiceEndpointUrl(voiceId);
       this.voiceEndpoint = new VoiceEndpoint(url);
     } else {
       this.voiceEndpoint = null;
@@ -260,6 +279,19 @@ class PlayerBase extends THREE.Object3D {
       this.voicer = null;
     } else {
       throw new Error('invalid voice');
+    }
+  }
+  async fetchThemeSong() {
+    const avatarApp = this.getAvatarApp();
+    const npcComponent = avatarApp.getComponent('npc');
+    const npcThemeSongUrl = npcComponent?.themeSongUrl;
+    return await PlayerBase.fetchThemeSong(npcThemeSongUrl);
+  }
+  static async fetchThemeSong(npcThemeSongUrl) {
+    if (npcThemeSongUrl) {
+      return await musicManager.fetchMusic(npcThemeSongUrl);
+    } else {
+      return null;
     }
   }
   getCrouchFactor() {
@@ -330,23 +362,32 @@ class PlayerBase extends THREE.Object3D {
       };
       _initPhysics();
 
-      const _emitEvents = () => {
+      const wearComponent = app.getComponent('wear');
+      const holdAnimation = wearComponent? wearComponent.holdAnimation : null;
+      const _addAction = () => {
         this.addAction({
           type: 'wear',
           instanceId: app.instanceId,
           loadoutIndex,
+          holdAnimation,
         });
+      };
+      _addAction();
+
+      const _emitEvents = () => {
         app.dispatchEvent({
           type: 'wearupdate',
           player: this,
           wear: true,
           loadoutIndex,
+          holdAnimation,
         });
         this.dispatchEvent({
           type: 'wearupdate',
           app,
           wear: true,
           loadoutIndex,
+          holdAnimation,
         });
       };
       _emitEvents();
@@ -354,6 +395,8 @@ class PlayerBase extends THREE.Object3D {
   }
   unwear(app, {
     destroy = false,
+    dropStartPosition = null,
+    dropDirection = null,
   } = {}) {
     const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
       return type === 'wear' && instanceId === app.instanceId;
@@ -363,8 +406,38 @@ class PlayerBase extends THREE.Object3D {
       const loadoutIndex = wearAction.loadoutIndex;
 
       const _setAppTransform = () => {
-        const wearComponent = app.getComponent('wear');
-        if (wearComponent) {
+        if (dropStartPosition && dropDirection) {
+          const physicsObjects = app.getPhysicsObjects();
+          if (physicsObjects.length > 0) {
+            const physicsObject = physicsObjects[0];
+
+            physicsObject.position.copy(dropStartPosition);
+            physicsObject.quaternion.copy(this.quaternion);
+            physicsObject.updateMatrixWorld();
+
+            physicsManager.setTransform(physicsObject, true);
+            physicsManager.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5).add(this.characterPhysics.velocity), true);
+            physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
+
+            app.position.copy(physicsObject.position);
+            app.quaternion.copy(physicsObject.quaternion);
+            app.scale.copy(physicsObject.scale);
+            app.matrix.copy(physicsObject.matrix);
+            app.matrixWorld.copy(physicsObject.matrixWorld);
+          } else {
+            app.position.copy(dropStartPosition);
+            app.quaternion.setFromRotationMatrix(
+              localMatrix.lookAt(
+                localVector.set(0, 0, 0),
+                localVector2.set(dropDirection.x, 0, dropDirection.z).normalize(),
+                upVector
+              )
+            );
+            app.scale.set(1, 1, 1);
+            app.updateMatrixWorld();
+          }
+          app.lastMatrix.copy(app.matrixWorld);
+        } else {
           const avatarHeight = this.avatar ? this.avatar.height : 0;
           app.position.copy(this.position)
             .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
@@ -453,11 +526,6 @@ class StatePlayer extends PlayerBase {
     if (this.isBound()) {
       this.playersArray = null;
       this.playerMap = null;
-
-      for (const unbindFn of this.unbindFns) {
-        unbindFn();
-      }
-      this.unbindFns.length = 0;
     }
   }
   detachState() {
@@ -500,7 +568,7 @@ class StatePlayer extends PlayerBase {
     const observeAvatarFn = async () => {
       // we are in an observer and we want to perform a state transaction as a result
       // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
-      await Promise.resolve();
+      // await Promise.resolve();
       
       const instanceId = this.getAvatarInstanceId();
       if (lastAvatarInstanceId !== instanceId) {
@@ -520,6 +588,12 @@ class StatePlayer extends PlayerBase {
     };
     this.unbindFns.push(_cancelSyncAvatar);
   }
+  unbindCommonObservers() {
+    for (const unbindFn of this.unbindFns) {
+      unbindFn();
+    }
+    this.unbindFns.length = 0;
+  }
   bindState(nextPlayersArray) {
     // latch old state
     const oldState = this.detachState();
@@ -527,6 +601,7 @@ class StatePlayer extends PlayerBase {
     // unbind
     this.unbindState();
     this.appManager.unbindState();
+    this.unbindCommonObservers();
     
     // note: leave the old state as is. it is the host's responsibility to garbage collect us when we disconnect.
     
@@ -582,8 +657,10 @@ class StatePlayer extends PlayerBase {
         });
         
         loadPhysxCharacterController.call(this);
-        // console.log('disable actor', this.characterController);
-        physicsManager.disableGeometryQueries(this.characterController);
+        
+        if (this.isLocalPlayer) {
+          physicsManager.disableGeometryQueries(this.characterController);
+        }
       })();
       
       this.dispatchEvent({
@@ -797,6 +874,7 @@ class InterpolatedPlayer extends StatePlayer {
       crouch: new BinaryInterpolant(() => this.hasAction('crouch'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       activate: new BinaryInterpolant(() => this.hasAction('activate'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       use: new BinaryInterpolant(() => this.hasAction('use'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      pickUp: new BinaryInterpolant(() => this.hasAction('pickUp'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       aim: new BinaryInterpolant(() => this.hasAction('aim'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       narutoRun: new BinaryInterpolant(() => this.hasAction('narutoRun'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
@@ -816,6 +894,7 @@ class InterpolatedPlayer extends StatePlayer {
       crouch: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.crouch.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       activate: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.activate.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       use: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.use.snapshot(timeDiff);}, avatarInterpolationFrameRate),
+      pickUp: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.pickUp.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       aim: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.aim.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       narutoRun: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.narutoRun.snapshot(timeDiff);}, avatarInterpolationFrameRate),
       fly: new FixedTimeStep(timeDiff => {this.actionBinaryInterpolants.fly.snapshot(timeDiff);}, avatarInterpolationFrameRate),
@@ -835,6 +914,7 @@ class InterpolatedPlayer extends StatePlayer {
       crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.actionBinaryInterpolants.activate.get(), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.use.get(), 0),
+      pickUp: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.pickUp.get(), 0),
       unuse: new InfiniteActionInterpolant(() => !this.actionBinaryInterpolants.use.get(), 0),
       aim: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.aim.get(), 0),
       narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
@@ -886,6 +966,7 @@ class UninterpolatedPlayer extends StatePlayer {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
+      pickUp: new InfiniteActionInterpolant(() => this.hasAction('pickUp'), 0),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
       aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
@@ -920,7 +1001,9 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
-    this.isLocalPlayer = true;
+    this.isLocalPlayer = !opts.npc;
+    this.isNpcPlayer = !!opts.npc;
+    this.detached = !!opts.detached;
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
@@ -928,8 +1011,16 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
+    this.characterHitter = new CharacterHitter(this);
     this.characterBehavior = new CharacterBehavior(this);
+  }
+  async setPlayerSpec(playerSpec) {
+    const p = this.setAvatarUrl(playerSpec.avatarUrl);
     
+    overrides.userVoiceEndpoint.set(playerSpec.voice ?? null);
+    overrides.userVoicePack.set(playerSpec.voicePack ?? null);
+
+    await p;
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -938,15 +1029,18 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.appManager.removeTrackedApp(avatarApp.instanceId);
       return;
     }
-    
-    this.setAvatarApp(avatarApp);
+    this.#setAvatarAppFromOwnAppManager(avatarApp);
   }
   getAvatarApp() {
     const avatar = this.getAvatarState();
     const instanceId = avatar.get('instanceId');
     return this.appManager.getAppByInstanceId(instanceId);
   }
-  setAvatarApp(app) {
+  /* importAvatarApp(app, srcAppManager) {
+    srcAppManager.transplantApp(app, this.appManager);
+    this.#setAvatarAppFromOwnAppManager(app);
+  } */
+  #setAvatarAppFromOwnAppManager(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       const avatar = self.getAvatarState();
@@ -1009,9 +1103,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.appManager.bindState(this.getAppsState());
   }
   grab(app, hand = 'left') {
-    const renderer = getRenderer();
     const localPlayer = metaversefile.useLocalPlayer();
-    const {position, quaternion} = renderer.xr.getSession() ?
+    const {position, quaternion} = _getSession() ?
       localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
     :
       camera;
@@ -1050,7 +1143,6 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          //physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
           physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
         }
         this.removeActionIndex(i + removeOffset);
@@ -1088,11 +1180,6 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.appManager.updatePhysics();
   }
-  getSession() {
-    const renderer = getRenderer();
-    const session = renderer.xr.getSession();
-    return session;
-  }
   updatePhysics(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
@@ -1104,11 +1191,12 @@ class LocalPlayer extends UninterpolatedPlayer {
       const timeDiffS = timeDiff / 1000;
       this.characterSfx.update(timestamp, timeDiffS);
       this.characterFx.update(timestamp, timeDiffS);
+      this.characterHitter.update(timestamp, timeDiffS);
       this.characterBehavior.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
 
-      const session = this.getSession();
+      const session = _getSession();
       const mirrors = metaversefile.getMirrors();
       applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
@@ -1117,10 +1205,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterHups.update(timestamp);
     }
   }
-  resetPhysics() {
-    this.characterPhysics.reset();
-  }
-  teleportTo = (() => {
+  /* teleportTo = (() => {
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
     const localQuaternion = new THREE.Quaternion();
@@ -1152,7 +1237,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       this.resetPhysics();
     };
-  })()
+  })() */
   destroy() {
     this.characterPhysics.destroy();
     this.characterHups.destroy();
@@ -1200,11 +1285,9 @@ class RemotePlayer extends InterpolatedPlayer {
     this.syncAvatar();
   }
 }
-class StaticUninterpolatedPlayer extends PlayerBase {
+/* class StaticUninterpolatedPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
-
-    UninterpolatedPlayer.init.apply(this, arguments);
 
     this.actions = [];
   }
@@ -1257,101 +1340,18 @@ class StaticUninterpolatedPlayer extends PlayerBase {
     }
   }
   updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
-}
-class NpcPlayer extends StaticUninterpolatedPlayer {
+} */
+/* class NpcPlayer extends LocalPlayer {
   constructor(opts) {
     super(opts);
   
+    this.isLocalPlayer = false;
     this.isNpcPlayer = true;
-    this.avatarApp = null;
-
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
-    this.characterBehavior = new CharacterBehavior(this);
   }
-  getAvatarApp() {
-    return this.avatarApp;
-  }
-  setAvatarApp(app) {
-    app.toggleBoneUpdates(true);
-    const {skinnedVrm} = app;
-    const avatar = new Avatar(skinnedVrm, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      debug: false,
-    });
-
-    unFrustumCull(app);
-    enableShadows(app);
-  
-    this.avatar = avatar;
-    this.avatarApp = app;
-    
-    loadPhysxCharacterController.call(this);
-    // loadPhysxAuxCharacterCapsule.call(this);
-  }
-  getSession() {
-    return null;
-  }
-  updatePhysics = LocalPlayer.prototype.updatePhysics;
-  updateAvatar = LocalPlayer.prototype.updateAvatar;
-  /* detachState() {
-    return null;
-  }
-  attachState(oldState) {
-    let index = -1;
-    for (let i = 0; i < this.playersArray.length; i++) {
-      const player = this.playersArray.get(i, Z.Map);
-      if (player.get('playerId') === this.playerId) {
-        index = i;
-        break;
-      }
-    }
-    if (index !== -1) {
-      this.playerMap = this.playersArray.get(index, Z.Map);
-    } else {
-      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
-    }
-    
-    const observePlayerFn = e => {
-      this.position.fromArray(this.playerMap.get('position'));
-      this.quaternion.fromArray(this.playerMap.get('quaternion'));
-    };
-    this.playerMap.observe(observePlayerFn);
-    this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
-    
-    this.appManager.bindState(this.getAppsState());
-    this.appManager.syncApps();
-    
-    this.syncAvatar();
-  } */
-  destroy() {
-    /* const npcs = metaversefile.useNpcs();
-    const index = npcs.indexOf(this);
-    if (index !== -1) {
-      npcs.splice(index, 1);
-    } */
-
-    this.characterPhysics.destroy();
-    this.characterHups.destroy();
-    this.characterSfx.destroy();
-    this.characterFx.destroy();
-    this.characterBehavior.destroy();
-
-    if (this.avatarApp) {
-      this.avatarApp.toggleBoneUpdates(false);
-    }
-
-    super.destroy();
-  }
-  updateInterpolation = UninterpolatedPlayer.prototype.updateInterpolation;
-}
+} */
 
 export {
   LocalPlayer,
   RemotePlayer,
-  NpcPlayer,
+  // NpcPlayer,
 };
