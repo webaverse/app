@@ -365,7 +365,7 @@ metaversefile.setApi({
     }
     // console.log('js import', s);
     try {
-      const m = await import(encodeURI(s));
+      const m = await import(s);
       return m;
     } catch(err) {
       console.warn('error loading', JSON.stringify(s), err.stack);

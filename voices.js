@@ -49,8 +49,11 @@ const loadPromise = (async () => {
   overrides[key].addEventListener('change', async e => {
     const voiceEndpointName = overrides.overrideVoiceEndpoint.get() ?? overrides.userVoiceEndpoint.get() ?? defaultVoiceEndpoint;
     const voiceEndpoint = voices.voiceEndpoints.find(ve => ve.name === voiceEndpointName);
-    const localPlayer = getLocalPlayer();
-    localPlayer.setVoiceEndpoint(voiceEndpoint.drive_id);
+    if (voiceEndpoint) {
+      getLocalPlayer().setVoiceEndpoint(voiceEndpoint.drive_id);
+    } else {
+      console.warn('Unable to set voice endpoint at start');
+    }
   });
 });
 

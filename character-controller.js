@@ -150,8 +150,6 @@ class Hand extends THREE.Object3D {
     this.enabled = false;
   }
 }
-// All characters in the game are represented by a class
-// Inheriting from this base class
 class Player extends THREE.Object3D {
   constructor({
     name = defaultPlayerName,
@@ -210,7 +208,7 @@ class Player extends THREE.Object3D {
         app.parent && app.parent.remove(app);
       }
     });
-    ensureAudioContext();
+
     this.bindState(playersArray);
   }
   findAction(fn) {
@@ -348,10 +346,15 @@ class Player extends THREE.Object3D {
     const avatarApp = this.getAvatarApp();
     const npcComponent = avatarApp.getComponent('npc');
     const npcThemeSongUrl = npcComponent?.themeSongUrl;
-    return npcThemeSongUrl ? await musicManager.fetchMusic(npcThemeSongUrl)
-    : null;
+    return await Player.fetchThemeSong(npcThemeSongUrl);
   }
-
+  static async fetchThemeSong(npcThemeSongUrl) {
+    if (npcThemeSongUrl) {
+      return await musicManager.fetchMusic(npcThemeSongUrl);
+    } else {
+      return null;
+    }
+  }
   getCrouchFactor() {
     return 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
     /* let factor = 1;
@@ -394,6 +397,11 @@ class Player extends THREE.Object3D {
   }
 
   wear(app, { loadoutIndex = -1 } = {}) {
+    console.log(
+      "Wearx called in Player of Character Controller",
+      app,
+      loadoutIndex
+    );
     this.wornApps.push(app);
 
     if (this.isLocalPlayer) {
@@ -773,10 +781,6 @@ class Player extends THREE.Object3D {
           app,
           avatar,
         });
-        this.dispatchEvent({
-          type: "avatarupdate",
-          app,
-        });
       })();
     };
 
@@ -800,8 +804,6 @@ class Player extends THREE.Object3D {
             const nextAvatarApp = await addPromise;
             if (!cancelFn.isLive()) return;
             _setNextAvatarApp(nextAvatarApp);
-          } else {
-            _setNextAvatarApp(null)
           }
         }
       }
@@ -904,56 +906,6 @@ class Player extends THREE.Object3D {
       action.type === "sit" ? null : action.controllingBone;
     actions.push([action]);
   }
-  new() {
-    const self = this;
-    this.playersArray.doc.transact(function tx() {
-      const actions = self.getActionsState();
-      while (actions.length > 0) {
-        actions.delete(actions.length - 1);
-      }
-
-      const avatar = self.getAvatarState();
-      avatar.delete("instanceId");
-
-      const apps = self.getAppsState();
-      while (apps.length > 0) {
-        apps.delete(apps.length - 1);
-      }
-    });
-  }
-  save() {
-    const actions = this.getActionsState();
-    const avatar = this.getAvatarState();
-    const apps = this.getAppsState();
-    return JSON.stringify({
-      // actions: actions.toJSON(),
-      avatar: avatar.toJSON(),
-      apps: apps.toJSON(),
-    });
-  }
-  load(s) {
-    const j = JSON.parse(s);
-    console.log("load", j);
-    const self = this;
-    this.playersArray.doc.transact(function tx() {
-      const actions = self.getActionsState();
-      while (actions.length > 0) {
-        actions.delete(actions.length - 1);
-      }
-
-      const avatar = self.getAvatarState();
-      if (j?.avatar?.instanceId) {
-        avatar.set("instanceId", j.avatar.instanceId);
-      }
-
-      const apps = self.getAppsState();
-      if (Array.isArray(j?.apps)) {
-        for (const app of j.apps) {
-          apps.push([app]);
-        }
-      }
-    });
-  }
   destroy() {
     if (this.isLocalPlayer) {
       const wearActions = Array.from(this.getActionsState()).filter(
@@ -982,6 +934,7 @@ class Player extends THREE.Object3D {
     this.appManager.destroy();
   }
 }
+
 class LocalPlayer extends Player {
   constructor(opts) {
     super(opts);
@@ -1038,37 +991,30 @@ class LocalPlayer extends Player {
     await p;
   }
   async setAvatarUrl(u) {
-    const localAvatarEpoch = ++this.avatarEpoch;
     const avatarApp = await this.appManager.addTrackedApp(u);
-    if (this.avatarEpoch !== localAvatarEpoch) {
-      this.appManager.removeTrackedApp(avatarApp.instanceId);
-      return;
-    }
-    this.#setAvatarAppFromOwnAppManager(avatarApp);
+    this.setAvatarApp(avatarApp);
   }
   getAvatarApp() {
     const avatar = this.getAvatarState();
     const instanceId = avatar.get("instanceId");
     return this.appManager.getAppByInstanceId(instanceId);
   }
-  /* importAvatarApp(app, srcAppManager) {
-    srcAppManager.transplantApp(app, this.appManager);
-    this.#setAvatarAppFromOwnAppManager(app);
-  } */
-  #setAvatarAppFromOwnAppManager(app) {
+  setAvatarApp(app) {
+    const localAvatarEpoch = ++this.avatarEpoch;
+    if (this.avatarEpoch !== localAvatarEpoch) {
+      this.appManager.removeTrackedApp(app.instanceId);
+      return;
+    }
     const self = this;
     if(!app) return console.error("app is ", app)
-    const avatar = self.getAvatarState();
-    const oldInstanceId = avatar.get("instanceId");
-    if (oldInstanceId) {
-      self.appManager.removeTrackedAppInternal(oldInstanceId);
-    }
-        avatar.set("instanceId", app.instanceId);
-  }
-
-  setAvatarApp(app) {
-    console.warn("Using deprecated setAvatarApp, review deprecation or remove this warning");
-    this.#setAvatarAppFromOwnAppManager(app);
+    // this.playersArray.doc.transact(function tx() {
+      const avatar = self.getAvatarState();
+      const oldInstanceId = avatar.get("instanceId");
+      if (oldInstanceId) {
+        self.appManager.removeTrackedApp(oldInstanceId);
+      }
+          avatar.set("instanceId", app.instanceId);
+    // });
   }
 
   setMicMediaStream(mediaStream) {
@@ -1149,10 +1095,6 @@ class LocalPlayer extends Player {
       }
 
       const { instanceId } = oldAvatar;
-      if (instanceId !== undefined) {
-        avatar.set("instanceId", instanceId);
-      }
-
       const apps = self.getAppsState();
       for (const oldApp of oldApps) {
         const mapApp = new Z.Map();
@@ -1475,6 +1417,7 @@ class RemotePlayer extends Player {
       }
     } catch (error) {
       console.error("error", error);
+      debugger;
     }
   }
 
@@ -1522,6 +1465,7 @@ class RemotePlayer extends Player {
     return null;
   }
   attachState(oldState) {
+    console.log("oldState is", oldState);
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
       const player = this.playersArray.get(i, Z.Map);
@@ -1562,9 +1506,9 @@ class RemotePlayer extends Player {
         this.name = e.changes.keys.get('name');
       }
 
-      // if (e.changes.keys.get("avatar")) {
-      //   console.log("avatar is ", e.changes.keys.get("avatar"));
-      // }
+      if (e.changes.keys.get(avatarMapName)) {
+        console.log("**** avatar is ", e.changes.keys.get(avatarMapName));
+      }
 
       if (e.changes.keys.get("transform")) {
         const transform = this.playerMap.get("transform");
@@ -1608,6 +1552,7 @@ class RemotePlayer extends Player {
     this.appManager.loadApps();
     this.appManager.callBackFn = (app, event, flag) => {
       if (event == "wear") {
+        console.log("********* WEAR -- ", app, event, flag);
         if (flag === "remove") {
           this.unwear(app);
         }

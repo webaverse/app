@@ -90,12 +90,15 @@ class AppManager extends EventTarget {
     if (this.unbindStateFn) {
       // console.log('unbind player observers', lastPlayers);
       // this is the point where we should destroy the remote players in a fake way
+      console.log("got players array", this.appsArray);
       const appSpecs = this.appsArray.toJSON();
       for (const appSpec of appSpecs) {
         const app = this.getAppByInstanceId(appSpec.instanceId);
         if (app) {
+          console.log("destroy remote player app", app);
           this.removeApp(app);
         } else {
+          console.log("no remote app to destroy", appSpec);
           throw new Error("no remote app to destroy");
         }
       }
@@ -201,6 +204,7 @@ class AppManager extends EventTarget {
     this.bindState(nextAppsArray);
   }
   loadApps() {
+    console.log("load apps", this.appsArray);
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
       this.dispatchEvent(
@@ -215,6 +219,7 @@ class AppManager extends EventTarget {
   bindTrackedApp(trackedApp, app) {
     const _observe = (e, origin) => {
       if (origin == "push") return console.log("push");
+
       if (e.changes.keys.has("transform")) {
         const transform = trackedApp.get("transform");
         if(transform) { 
@@ -344,20 +349,20 @@ class AppManager extends EventTarget {
         cleanup();
       }
     });
-    this.addEventListener("trackedappremove", async (e) => {
-      const { instanceId, app } = e.data;
+    // this.addEventListener("trackedappremove", async (e) => {
+    //   const { instanceId, app } = e.data;
 
-      this.unbindTrackedApp(instanceId);
+    //   this.unbindTrackedApp(instanceId);
 
-      this.removeApp(app);
-    });
-    this.addEventListener("trackedappimport", async (e) => {
-      const { instanceId, app } = e.data;
+    //   this.removeApp(app);
+    // });
+    // this.addEventListener("trackedappimport", async (e) => {
+    //   const { instanceId, app } = e.data;
 
-      const trackedApp = this.getTrackedApp(instanceId);
+    //   const trackedApp = this.getTrackedApp(instanceId);
 
-      this.bindTrackedApp(trackedApp, app);
-    });
+    //   this.bindTrackedApp(trackedApp, app);
+    // });
     this.addEventListener("trackedappexport", async (e) => {
       const { instanceId, app, sourceAppManager, destinationAppManager } =
         e.data;
@@ -528,19 +533,16 @@ class AppManager extends EventTarget {
     }
     return -1;
   }
-  removeTrackedAppInternal(instanceId) {
+  removeTrackedApp(instanceId) {
     const removeIndex = this.getTrackedAppIndex(instanceId);
     if (removeIndex !== -1) {
       this.appsArray.delete(removeIndex, 1);
     } else {
-      console.warn("invalid remove instance id", {removeInstanceId, appsJson});
+      console.warn("invalid remove instance id", {
+        removeInstanceId,
+        appsJson,
+      });
     }
-  }
-  removeTrackedApp(removeInstanceId) {
-    const self = this;
-    this.appsArray.doc.transact(function tx() {
-      self.removeTrackedAppInternal(removeInstanceId);
-    });
   }
   addApp(app) {
     this.apps.push(app);
@@ -636,7 +638,7 @@ class AppManager extends EventTarget {
 
         let transform = srcTrackedApp.get("transform");
         const components = srcTrackedApp.get("components");
-        srcAppManager.removeTrackedAppInternal(instanceId);
+        srcAppManager.removeTrackedApp(instanceId);
 
         if (!transform) {
           transform = new Float32Array(11);
@@ -678,36 +680,34 @@ class AppManager extends EventTarget {
   }
   importApp(app) {
     let dstTrackedApp = null;
+    const contentId = app.contentId;
+    const instanceId = app.instanceId;
+    // const transform = app.transform?.toArray();
+    const components = app.components.slice();
 
+    let transform
+    if( app.transform ) {
+      transform = app.transform.toArray()
+    } else {
+      transform = new Float32Array(11);
+
+      const pack3 = (v, i) => {
+        transform[i] = v.x;
+        transform[i + 1] = v.y;
+        transform[i + 2] = v.z;
+      };
+      const pack4 = (v, i) => {
+        transform[i] = v.x;
+        transform[i + 1] = v.y;
+        transform[i + 2] = v.z;
+        transform[i + 3] = v.w;
+      };
+
+      pack3(app.position, 0);
+      pack4(app.quaternion, 3);
+      pack3(app.scale, 7);
+    }
     this.appsArray.doc.transact(() => {
-      const contentId = app.contentId;
-      const instanceId = app.instanceId;
-      // const transform = app.transform?.toArray();
-      const components = app.components.slice();
-
-      let transform
-      if( app.transform ) {
-        transform = app.transform.toArray()
-      } else {
-        transform = new Float32Array(11);
-
-        const pack3 = (v, i) => {
-          transform[i] = v.x;
-          transform[i + 1] = v.y;
-          transform[i + 2] = v.z;
-        };
-        const pack4 = (v, i) => {
-          transform[i] = v.x;
-          transform[i + 1] = v.y;
-          transform[i + 2] = v.z;
-          transform[i + 3] = v.w;
-        };
-
-        pack3(app.position, 0);
-        pack4(app.quaternion, 3);
-        pack3(app.scale, 7);
-      }
-
       dstTrackedApp = this.addTrackedAppInternal(
         instanceId,
         contentId,
@@ -763,6 +763,7 @@ class AppManager extends EventTarget {
             pack4(localQuaternion, 3);
             pack3(localVector2, 7);
             trackedApp.set("transform", packed);
+            console.warn("push transform", packed)
           }
         };
         _updateTrackedApp();

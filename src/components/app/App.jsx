@@ -49,14 +49,14 @@ const _startApp = async ( weba, canvas ) => {
     weba.bindInterface();
     weba.bindCanvas( canvas );
 
-    universe.handleUrlUpdate();
+    await universe.handleUrlUpdate();
     await weba.waitForLoad();
-    weba.setContentLoaded();
     await weba.startLoop();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
     // console.log('set player spec', defaultPlayerSpec);
     await localPlayer.setPlayerSpec(defaultPlayerSpec);
+    weba.setContentLoaded();
 
 };
 
@@ -64,7 +64,7 @@ const _getCurrentSceneSrc = () => {
 
     let { src } = parseQuery( window.location.search );
 
-    return src ?? './' + sceneNames[0];
+    return src ?? './scenes/' + sceneNames[0];
 
 };
 

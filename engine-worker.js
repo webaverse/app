@@ -50,10 +50,10 @@ async function import2(s) {
   }
   // console.log('do import', s);
   try {
-    const m = await import(encodeURI(s));
+    const m = await import(s);
     return m;
   } catch(err) {
-    console.warn('error loading', JSON.stringify(encodeURI(s)), err.stack);
+    console.warn('error loading', JSON.stringify(s), err.stack);
     return null;
   }
 }

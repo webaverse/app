@@ -91,16 +91,16 @@ class PlayersManager {
         }
         // console.log('players observe', added, deleted);
         for (const item of deleted.values()) {
-          console.log('player remove 1', item);
+          // console.log('player remove 1', item);
           const playerId = item.content.type._map.get('playerId').content.arr[0]; // needed to get the old data
-          console.log('player remove 2', playerId, localPlayer.playerId);
+          // console.log('player remove 2', playerId, localPlayer.playerId);
 
           if (playerId !== localPlayer.playerId) {
-            console.log('remove player 3', playerId);
+            // console.log('remove player 3', playerId);
 
             const remotePlayer = this.remotePlayers.get(playerId);
             this.remotePlayers.delete(playerId);
-            console.log("deleting remote player", remotePlayer);
+            // console.log("deleting remote player", remotePlayer);
             this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
             
             remotePlayer.destroy();

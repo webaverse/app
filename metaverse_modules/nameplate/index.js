@@ -38,10 +38,12 @@ async function makeTextMesh(
 export default e => {
   const app = useApp();
   const localPlayer = useLocalPlayer();
-  if (destroyForLocalPlayer && app.player === localPlayer) return;
+  if (app.player === localPlayer) return app;
   const camera = useCamera();
   let textMesh = null;
   let name = app.player.name;
+  const lastPosition = new THREE.Vector3();
+  const lastAppToCamera = new THREE.Vector3();
   (async () => {
     const font = './fonts/GeosansLight.ttf';
     const fontSize = 0.25;
@@ -58,15 +60,19 @@ export default e => {
 
   useFrame(() => {
     if (!textMesh || !app.player) return;
-    app.position.set(app.player.position.x, app.player.position.y + height, app.player.position.z);
-
+    app.updateMatrixWorld();
+    if (!lastPosition.equals(app.position)) {
+      app.position.set(app.player.position.x, app.player.position.y + height, app.player.position.z);
+      lastPosition.copy(app.position);
+    }
     // app and camera are both THREE.Object3D type
     // write a function the makes app face camera
     const appToCamera = new THREE.Vector3().subVectors(camera.position, app.position);
-    const appToCameraAngle = Math.atan2(appToCamera.x, appToCamera.z);
-    app.rotation.y = appToCameraAngle;
-    app.updateMatrixWorld();
-
+    if (!lastAppToCamera.equals(appToCamera)) {
+      const appToCameraAngle = Math.atan2(appToCamera.x, appToCamera.z);
+      app.rotation.y = appToCameraAngle;
+      lastAppToCamera.copy(appToCamera);
+    }
     // name change
     // TODO: This should be an event listener
     if (name !== app.player.name) {

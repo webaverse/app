@@ -108,10 +108,11 @@ export const Equipment = () => {
   const [inventoryObject, setInventoryObject] = useState([]);
   const [faceIndex, setFaceIndex] = useState(1);
   const selectedMenuIndex = mod(faceIndex, 4);
-  const {getTokens} = useNFTContract(account.currentAddress);
+  const contract = account ? useNFTContract(account.currentAddress) : null;
 
   useEffect(async () => {
-    const tokens = await getTokens();
+    if (!account) return console.error("Account not set");
+    const tokens = await contract.getTokens();
     const inventoryItems = tokens.map((token, i) => {
       return {
         name: 'ASSET ID ' + i,
@@ -120,7 +121,7 @@ export const Equipment = () => {
       };
     });
     setInventoryObject(inventoryItems);
-  }, [state.openedPanel]);
+  }, [account, state.openedPanel]);
 
   const refsMap = (() => {
     const map = new Map();

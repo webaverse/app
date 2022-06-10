@@ -327,18 +327,18 @@ appManager.addEventListener('appadd', e => {
   _bindHitTracker(app);
 });
 
-// appManager.addEventListener('trackedappexport', async e => {
-//   const {app} = e.data;
-//   app.hitTracker.unbind();
-// });
+appManager.addEventListener('trackedappexport', async e => {
+  const {app} = e.data;
+  app.hitTracker.unbind();
+});
 
-// appManager.addEventListener('trackedappimport', async e => {
-//   const {app} = e.data;
-//   _bindHitTracker(app);
-// });
+appManager.addEventListener('trackedappimport', async e => {
+  const {app} = e.data;
+  _bindHitTracker(app);
+});
 
-// appManager.addEventListener('appremove', async e => {
-//   const app = e.data;
-//   app.hitTracker.unbind();
-//   app.parent.remove(app);
-// });
+appManager.addEventListener('appremove', async e => {
+  const app = e.data;
+  app.hitTracker.unbind();
+  app.parent.remove(app);
+});

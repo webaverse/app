@@ -35,7 +35,7 @@ export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
     return provider.getSigner(currentAccount);
   }
 
-  const getContract = async () => {
+  const getContract = () => {
     const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(chain.rpcUrls[0]);
     const contract = new ethers.Contract(NFTcontractAddress, NFTABI, simpleRpcProvider);
     return contract;
@@ -63,7 +63,7 @@ export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
           try {
             const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, description, 1);
             // after mint transaction, refresh the website
-            onMint(NFTmintres);
+            // onMint(NFTmintres);
             } catch (err) {
             setError(err.message);
           }
@@ -72,7 +72,7 @@ export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
           const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, description, 1);
-          onMint(NFTmintres);
+          // onMint(NFTmintres);
           // after mint transaction, refresh the website
         } catch (err) {
           setError(error.message);
@@ -86,19 +86,20 @@ export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
   }
 
   async function totalSupply() {
-    const contract = await getContract();
+    const contract = getContract();
     const totalSupply = await contract.totalSupply();
     return BigNumber.from(totalSupply).toNumber();
   }
 
   async function getTokenIdsOf() {
-    const contract = await getContract();
+    const contract = getContract();
+    if (!currentAccount) return [];
     const tokenIdsOf = await contract.getTokenIdsOf(currentAccount);
     return tokenIdsOf;
   }
 
   async function getToken(tokenId) {
-    const contract = await getContract();
+    const contract = getContract();
     if (contract) {
       return await contract.tokenURI(tokenId);
     } else {
@@ -108,6 +109,7 @@ export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
 
   async function getTokens() {
     const tokenIdsOf = await getTokenIdsOf();
+    if (!tokenIdsOf) return [];
     return await Promise.all(tokenIdsOf.map(async (tokenId) => {
       const token = await getToken(tokenId);
       return token;

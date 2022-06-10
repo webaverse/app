@@ -85,6 +85,7 @@ const _makeKiHairMaterial = () => {
 class CharacterFx {
   constructor(player) {
     this.player = player;
+    this.isLocalPlayer = player.isLocalPlayer;
 
     // this.lastJumpState = false;
     // this.lastStepped = [false, false];
@@ -240,13 +241,13 @@ class CharacterFx {
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['sonicBoom'];
           await this.sonicBoom.addModule(m);
+          sceneLowPriority.add(this.sonicBoom);
         })();
-        sceneLowPriority.add(this.sonicBoom);
       }
     };
     _updateSonicBoomMesh();
     const _updateNameplate = () => {
-      if ( !this.nameplate ) {
+      if(!this.nameplate && !this.isLocalPlayer){
         (async () => {
         this.nameplate = metaversefile.createApp();
         this.nameplate.player = this.player;

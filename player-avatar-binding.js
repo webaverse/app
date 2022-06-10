@@ -1,18 +1,15 @@
 /* utils to bind players to their avatars
 set the avatar state from the player state */
 
-import * as THREE from "three";
-import Avatar from "./avatars/avatars.js";
-import { unFrustumCull, enableShadows } from "./util.js";
-import { getEyePosition } from "./avatars/util.mjs";
-import { world } from "./world.js";
-import hpManager from "./hp-manager.js";
-import metaversefile from 'metaversefile';
+import * as THREE from 'three';
+import Avatar from './avatars/avatars.js';
+import {unFrustumCull, enableShadows} from './util.js';
+import {
+  getEyePosition,
+} from './avatars/util.mjs';
 
-const {useLocalPlayer} = metaversefile;
-
-const appSymbol = "app"; // Symbol('app');
-const avatarSymbol = "avatar"; // Symbol('avatar');
+const appSymbol = 'app'; // Symbol('app');
+const avatarSymbol = 'avatar'; // Symbol('avatar');
 const maxMirrorDistanace = 3;
 
 const localVector = new THREE.Vector3();
@@ -40,18 +37,20 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     rig.setHandEnabled(i, player.hands[i].enabled);
   }
   rig.setTopEnabled(
-    !!session &&
-      (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled)
+    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled)),
   );
   rig.setBottomEnabled(
-    rig.getTopEnabled() /* ||
+    (
+      rig.getTopEnabled() /* ||
       rig.getHandEnabled(0) ||
-      rig.getHandEnabled(1) */ && rig.velocity.length() < 0.001
+      rig.getHandEnabled(1) */
+    ) &&
+    rig.velocity.length() < 0.001,
   );
 }
 export function makeAvatar(app) {
   if (app) {
-    const { skinnedVrm } = app;
+    const {skinnedVrm} = app;
     if (skinnedVrm) {
       const avatar = new Avatar(skinnedVrm, {
         fingers: true,
@@ -60,36 +59,10 @@ export function makeAvatar(app) {
         debug: false,
       });
       avatar[appSymbol] = app;
-
+      
       unFrustumCull(app);
       enableShadows(app);
-
-      const hitTracker = hpManager.makeHitTracker();
-      hitTracker.bind(app);
-      app.dispatchEvent({ type: "hittrackeradded" });
-
-      const die = () => {
-        hpManager.resetHp(hitTracker);
-        console.log("player died");
-        //TODO: death animation, reset position?
-      };
-      hitTracker.addEventListener("die", die);
-
-      app.addEventListener("hittrackeradded", (e) => {
-        app.hitTracker.addEventListener("hit", (e) => {
-          if (!npcPlayer.hasAction("hurt")) {
-            const newAction = {
-              type: "hurt",
-              animation: "pain_back",
-            };
-            npcPlayer.addAction(newAction);
-
-            setTimeout(() => {
-              npcPlayer.removeAction("hurt");
-            }, hurtAnimationDuration * 1000);
-          }
-        });
-      });
+      
       return avatar;
     }
   }
@@ -117,7 +90,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const standChargeAnimation = standCharge ? standCharge.animation : '';
   // const fallLoop = player.getAction('fallLoop');
   // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
-  const hurtAction = player.getAction("hurt");
+  const hurtAction = player.getAction('hurt');
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
@@ -170,7 +143,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   };
   _handlePickUp();
 
-  rig.manuallySetMouth = player.characterBehavior.manuallySetMouth;
+  rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
   rig.vowels[1] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[1];
   rig.vowels[2] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[2];
   rig.vowels[3] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[3];
@@ -180,10 +153,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimState = !!aimAction;
   rig.aimTime = player.actionInterpolants.aim.get();
-  rig.aimRightTransitionTime =
-    player.actionInterpolants.aimRightTransition.get();
+  rig.aimRightTransitionTime = player.actionInterpolants.aimRightTransition.get();
   rig.aimLeftTransitionTime = player.actionInterpolants.aimLeftTransition.get();
-  rig.aimAnimation = aimAction?.playerAnimation || "";
+  rig.aimAnimation = (aimAction?.playerAnimation) || '';
   // rig.aimDirection.set(0, 0, -1);
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
@@ -217,7 +189,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashTime = player.actionInterpolants.swordTopDownSlash.get();
   // rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
-  rig.hurtAnimation = hurtAction?.animation || "";
+  rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
 }
 // returns whether eyes were applied
@@ -241,20 +213,15 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
   })[0];
   if (closestMirror) {
     // console.log('player bind mirror', closestMirror);
-    const mirrorPosition = localVector2.setFromMatrixPosition(
-      closestMirror.matrixWorld
-    );
+    const mirrorPosition = localVector2.setFromMatrixPosition(closestMirror.matrixWorld);
 
     if (mirrorPosition.distanceTo(player.position) < maxMirrorDistanace) {
       const eyePosition = getEyePosition(rig.modelBones);
       localPlane
         .setFromNormalAndCoplanarPoint(
-          localVector
-            .set(0, 0, 1)
-            .applyQuaternion(
-              localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)
-            ),
-          mirrorPosition
+          localVector.set(0, 0, 1)
+            .applyQuaternion(localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)),
+          mirrorPosition,
         )
         .projectPoint(eyePosition, rig.eyeballTarget);
       rig.eyeballTargetEnabled = true;
@@ -262,9 +229,7 @@ export function applyMirrorsToAvatar(player, rig, mirrors) {
   }
 }
 export function applyFacePoseToAvatar(player, rig) {
-  const facePoseActions = player
-    .getActionsArray()
-    .filter((a) => a.type === "facepose");
+  const facePoseActions = player.getActionsArray().filter(a => a.type === 'facepose');
   if (facePoseActions.length > 0) {
     player.avatar.faceposes = facePoseActions;
   } else {
@@ -274,18 +239,17 @@ export function applyFacePoseToAvatar(player, rig) {
   }
 }
 export function applyPlayerPoseToAvatar(player, rig) {
-  const poseAction = player.getAction("pose");
+  const poseAction = player.getAction('pose');
   rig.poseAnimation = poseAction?.animation || null;
 }
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
-
+  
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
-  applyPlayerEyesToAvatar(player, rig) ||
-    applyMirrorsToAvatar(player, rig, mirrors);
-
+  applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
+  
   applyFacePoseToAvatar(player, rig);
   applyPlayerPoseToAvatar(player, rig);
 }
