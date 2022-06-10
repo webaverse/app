@@ -111,7 +111,7 @@ const _handleMethod = ({
       const meshData2 = _cloneMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
       // console.log('got mesh data', meshData2);
-      dc.clearChunkRootDualContouring(localVector.x, localVector.y, localVector.z)
+      // dc.clearChunkRootDualContouring(localVector.x, localVector.y, localVector.z)
 
       if (meshData2) {
         const spec = {
