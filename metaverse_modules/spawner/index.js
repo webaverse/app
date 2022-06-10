@@ -2,20 +2,24 @@
 import metaversefile from 'metaversefile';
 const {useApp, useMobManager, useFrame, useScene, useCleanup} = metaversefile;
 
-export default () => {
+export default e => {
   const app = useApp();
   const mobManager = useMobManager();
   const scene = useScene();
 
   const appUrls = app.getComponent('appUrls') ?? [];
 
-  const mobber = mobManager.createMobber();
-  (async () => {
+  const mobber = mobManager.createMobber({
+    appUrls: appUrls,
+  });
+  /* (async () => {
     await Promise.all(appUrls.map(async appUrl => {
       await mobber.addMobModule(appUrl);
     }));
     mobber.compile();
-  })();
+  })(); */
+
+  e.waitUntil(mobber.waitForLoad());
 
   const chunks = mobber.getChunks();
   scene.add(chunks);
