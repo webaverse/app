@@ -44,15 +44,15 @@ class AnimMotion {
     if (this.loop === LoopOnce) {
       const evaluateTimeS = this.time / this.speed + this.timeBias;
       value = src.evaluate(evaluateTimeS);
-      // if (isLastBone && this.weight > 0 && !this.isFinished && evaluateTimeS >= this.animation.duration) {
-      //   // console.log('finished', this.name);
-      //   this.mixer.dispatchEvent({
-      //     type: 'finished',
-      //     motion: this,
-      //   });
+      if (isLastBone && this.weight > 0 && !this.isFinished && evaluateTimeS >= this.animation.duration) {
+        // console.log('finished', this.name);
+        this.mixer.dispatchEvent({
+          type: 'finished',
+          motion: this,
+        });
 
-      //   this.isFinished = true;
-      // }
+        this.isFinished = true;
+      }
     } else {
       value = src.evaluate((AnimMixer.timeS / this.speed + this.timeBias) % animation.duration);
     }
