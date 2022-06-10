@@ -6,6 +6,7 @@ import {
   sceneLowPriority,
   rootScene,
   camera,
+  getRenderer
 } from './renderer.js';
 
 class WebaverseRenderPass extends Pass {
@@ -28,24 +29,41 @@ class WebaverseRenderPass extends Pass {
       this.internalRenderPass.setSize(width,height);
     }
 
-	}
+  }
   render(renderer, renderTarget, readBuffer, deltaTime, maskActive) {
     this.onBeforeRender && this.onBeforeRender();
-    
-    // render
-    if (this.internalDepthPass) {
-      this.internalDepthPass.renderToScreen = false;
-      this.internalDepthPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+
+    if(getRenderer().xr.getSession()) {
+      // render
+      if (this.internalDepthPass) {
+        this.internalDepthPass.renderToScreen = false;
+        this.internalDepthPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+      }
+      if (this.internalRenderPass) {
+        this.internalRenderPass.renderToScreen = this.renderToScreen;
+        this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+      } else {
+        //renderer.setRenderTarget(renderTarget);
+        //renderer.clear();
+        renderer.render(rootScene, camera);
+      }
+    } 
+    else {
+      // render
+      if (this.internalDepthPass) {
+        this.internalDepthPass.renderToScreen = false;
+        this.internalDepthPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+      }
+      if (this.internalRenderPass) {
+        this.internalRenderPass.renderToScreen = this.renderToScreen;
+        this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+      } else {
+        renderer.setRenderTarget(renderTarget);
+        renderer.clear();
+        renderer.render(rootScene, camera);
+      }
     }
-    if (this.internalRenderPass) {
-      this.internalRenderPass.renderToScreen = this.renderToScreen;
-      this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
-    } else {
-      renderer.setRenderTarget(renderTarget);
-      renderer.clear();
-      renderer.render(rootScene, camera);
-    }
-    
+
     this.onAfterRender && this.onAfterRender();
   }
 }
