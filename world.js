@@ -27,6 +27,7 @@ import {getLocalPlayer} from './players.js';
 
 // world
 export const world = {};
+world.winds = [];
 
 const appManager = new AppManager({
   appsMap: null,
@@ -304,12 +305,9 @@ const _bindHitTracker = app => {
   app.dispatchEvent({type: 'hittrackeradded'});
 
   const die = () => {
-    app.dispatchEvent({
-      type: 'die',
-    });
     world.appManager.removeTrackedApp(app.instanceId);
   };
-  hitTracker.addEventListener('die', die);
+  app.addEventListener('die', die);
 };
 appManager.addEventListener('appadd', e => {
   const app = e.data;

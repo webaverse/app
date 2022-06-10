@@ -11,7 +11,7 @@ import { transparentPngUrl } from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import { mod } from '../../../../util.js';
 import dropManager from '../../../../drop-manager';
-import offscreenEngineManager from '../../../../offscreen-engine-manager.js';
+import cardsManager from '../../../../cards-manager.js';
 
 //
 
@@ -183,24 +183,6 @@ const EquipmentItems = ({
     </div>);
 };
 
-const _generateObjectUrlCardRemote = (() => {
-    let generateObjectUrlCardRemoteFn = null;
-    return async function() {
-        if (!generateObjectUrlCardRemoteFn) {
-            generateObjectUrlCardRemoteFn = offscreenEngineManager.createFunction([
-                `\
-                import {generateObjectUrlCard} from './card-generator.js';
-                `,
-                async function(o) {
-                    const imageBitmap = await generateObjectUrlCard(o);
-                    return imageBitmap;
-                }
-            ]);
-        }
-        const result = await generateObjectUrlCardRemoteFn.apply(this, arguments);
-        return result;
-    };
-})();
 export const Equipment = () => {
     const { state, setState } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
@@ -211,14 +193,13 @@ export const Equipment = () => {
     const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
             const {start_url} = value;
-            const imageBitmap = await _generateObjectUrlCardRemote([
+            const imageBitmap = await cardsManager.getCardsImage(
+                start_url,
                 {
-                    start_url,
                     width,
+                    signal,
                 }
-            ], {
-                signal,
-            });
+            );
             return imageBitmap;
         },
     }));

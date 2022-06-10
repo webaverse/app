@@ -1,7 +1,8 @@
 
 class AnimNode {
-  constructor(name) {
+  constructor(name, mixer) {
     this.isAnimNode = true;
+    this.mixer = mixer;
     this.type = 'blend2'; // other types: blendList
     this.children = [];
     this.name = name;

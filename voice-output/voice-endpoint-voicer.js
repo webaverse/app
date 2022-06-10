@@ -39,7 +39,7 @@ class VoiceEndpointVoicer {
     return VoiceEndpointVoicer.preloadMessage(this.voiceEndpoint.url.toString(), text);
   }
   static async loadAudioBuffer(voiceEndpointUrl, text) {
-    console.log('load audio buffer', voiceEndpointUrl, text);
+    // console.log('load audio buffer', voiceEndpointUrl, text);
     try {
       const u = new URL(voiceEndpointUrl);
       u.searchParams.set('s', text);

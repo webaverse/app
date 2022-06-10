@@ -3,8 +3,8 @@ import {AnimMixer} from './AnimMixer';
 import {AnimNode} from './AnimNode';
 
 class AnimNodeUnitary extends AnimNode {
-  constructor(name) {
-    super(name);
+  constructor(name, mixer) {
+    super(name, mixer);
     this.isAnimNodeBlend2 = true;
     this.activeNode = null;
 
@@ -54,7 +54,7 @@ class AnimNodeUnitary extends AnimNode {
     for (let i = 0; i < this.children.length; i++) {
       const childNode = this.children[i];
       if (childNode.weight > 0) {
-        const value = AnimMixer.doBlend(childNode, spec);
+        const value = this.mixer.doBlend(childNode, spec);
         if (nodeIndex === 0) {
           // result = value; // todo: will change original data?
           AnimMixer.copyArray(result, value);

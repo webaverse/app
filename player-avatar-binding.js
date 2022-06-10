@@ -189,6 +189,15 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.vowels[4] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[4];
 
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
+  // start/end event
+  rig.narutoRunStart = false;
+  rig.narutoRunEnd = false;
+  if (rig.narutoRunState !== rig.lastNarutoRunState) {
+    if (rig.narutoRunState) rig.narutoRunStart = true;
+    else rig.narutoRunEnd = true;
+  }
+  rig.lastNarutoRunState = rig.narutoRunState;
+  //
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimState = !!aimAction;
   rig.aimTime = player.actionInterpolants.aim.get();
@@ -202,6 +211,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   // XXX this needs to be based on the current loadout index
   rig.holdState = wearAction?.holdAnimation === 'pick_up_idle';
+  if (rig.holdState) rig.unuseAnimation = null;
   // rig.danceState = !!danceAction;
   rig.danceFactor = player.actionInterpolants.dance.get();
   if (danceAction) {

@@ -3,8 +3,8 @@ import {AnimMixer} from './AnimMixer';
 import {AnimNode} from './AnimNode';
 
 class AnimNodeBlend2 extends AnimNode {
-  constructor(name) {
-    super(name);
+  constructor(name, mixer) {
+    super(name, mixer);
     this.isAnimNodeBlend2 = true;
     this.factor = 0;
 
@@ -30,8 +30,8 @@ class AnimNodeBlend2 extends AnimNode {
     }
 
     // do blend
-    const value0 = AnimMixer.doBlend(this.children[0], spec);
-    const value1 = AnimMixer.doBlend(this.children[1], spec);
+    const value0 = this.mixer.doBlend(this.children[0], spec);
+    const value1 = this.mixer.doBlend(this.children[1], spec);
     const result = [];
     AnimMixer.copyArray(result, value0);
     AnimMixer.interpolateFlat(result, result, value1, this.factor);

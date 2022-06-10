@@ -45,7 +45,8 @@ import {
 import {AnimNode} from './AnimNode.js';
 import {AnimNodeBlend2} from './AnimNodeBlend2.js';
 import {AnimNodeBlendList} from './AnimNodeBlendList.js';
-import { AnimNodeUnitary } from './AnimNodeUnitary.js';
+import {AnimNodeUnitary} from './AnimNodeUnitary.js';
+import game from '../game.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
@@ -57,6 +58,8 @@ const localQuaternion3 = new Quaternion();
 const localQuaternion4 = new Quaternion();
 const localQuaternion5 = new Quaternion();
 const localQuaternion6 = new Quaternion();
+
+const identityQuaternion = new Quaternion();
 
 let animations;
 let animationStepIndices;
@@ -367,6 +370,8 @@ export const loadPromise = (async () => {
     pickUpThrow: animations.find(a => a.isPickUpThrow),
     putDown: animations.find(a => a.isPutDown),
     pickUpZelda: animations.find(a => a.isPickUpZelda),
+    pickUpIdleZelda: animations.find(a => a.isPickUpIdleZelda),
+    putDownZelda: animations.find(a => a.isPutDownZelda),
   };
   /* throwAnimations = {
     throw: animations.find(a => a.isThrow),
@@ -438,6 +443,23 @@ export const _createAnimation = avatar => {
 
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
   avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
+  avatar.narutoRunMotion = avatar.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
+
+  avatar.useMotiono = {};
+  for (const k in useAnimations) {
+    const animation = useAnimations[k];
+    if (animation) {
+      avatar.useMotiono[k] = avatar.mixer.createMotion(animation);
+    }
+  }
+  avatar.useMotiono.swordSideSlash.loop = LoopOnce;
+  avatar.useMotiono.swordSideSlash.stop();
+  avatar.useMotiono.swordSideSlashStep.loop = LoopOnce;
+  avatar.useMotiono.swordSideSlashStep.stop();
+  avatar.useMotiono.swordTopDownSlash.loop = LoopOnce;
+  avatar.useMotiono.swordTopDownSlash.stop();
+  avatar.useMotiono.swordTopDownSlashStep.loop = LoopOnce;
+  avatar.useMotiono.swordTopDownSlashStep.stop();
 
   // LoopOnce
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
@@ -450,12 +472,12 @@ export const _createAnimation = avatar => {
   avatar.activateMotion.loop = LoopOnce;
   avatar.activateMotion.stop();
 
-  avatar.useComboMotion = avatar.mixer.createMotion(useAnimations.swordSideSlash);
-  avatar.useComboMotion.loop = LoopOnce;
-  avatar.useComboMotion.stop();
+  // avatar.useComboMotion = avatar.mixer.createMotion(useAnimations.swordSideSlash);
+  // avatar.useComboMotion.loop = LoopOnce;
+  // avatar.useComboMotion.stop();
 
   // AnimNodes ---
-  avatar.walkNode = new AnimNodeBlendList('walk');
+  avatar.walkNode = new AnimNodeBlendList('walk', avatar.mixer); // todo: mixer.createNode
   avatar.walkNode.addChild(avatar.walkForwardMotion);
   avatar.walkNode.addChild(avatar.walkBackwardMotion);
   avatar.walkNode.addChild(avatar.walkLeftMotion);
@@ -463,7 +485,7 @@ export const _createAnimation = avatar => {
   avatar.walkNode.addChild(avatar.walkLeftMirrorMotion);
   avatar.walkNode.addChild(avatar.walkRightMirrorMotion);
 
-  avatar.runNode = new AnimNodeBlendList('run');
+  avatar.runNode = new AnimNodeBlendList('run', avatar.mixer);
   avatar.runNode.addChild(avatar.runForwardMotion);
   avatar.runNode.addChild(avatar.runBackwardMotion);
   avatar.runNode.addChild(avatar.runLeftMotion);
@@ -471,7 +493,7 @@ export const _createAnimation = avatar => {
   avatar.runNode.addChild(avatar.runLeftMirrorMotion);
   avatar.runNode.addChild(avatar.runRightMirrorMotion);
 
-  avatar.crouchNode = new AnimNodeBlendList('crouch');
+  avatar.crouchNode = new AnimNodeBlendList('crouch', avatar.mixer);
   avatar.crouchNode.addChild(avatar.crouchForwardMotion);
   avatar.crouchNode.addChild(avatar.crouchBackwardMotion);
   avatar.crouchNode.addChild(avatar.crouchLeftMotion);
@@ -479,30 +501,48 @@ export const _createAnimation = avatar => {
   avatar.crouchNode.addChild(avatar.crouchLeftMirrorMotion);
   avatar.crouchNode.addChild(avatar.crouchRightMirrorMotion);
 
-  avatar.walkRunNode = new AnimNodeBlend2('walkRun');
+  avatar.walkRunNode = new AnimNodeBlend2('walkRun', avatar.mixer);
   avatar.walkRunNode.addChild(avatar.walkNode);
   avatar.walkRunNode.addChild(avatar.runNode);
 
-  avatar._7wayWalkRunNode = new AnimNodeBlend2('_7wayWalkRunNode');
+  avatar._7wayWalkRunNode = new AnimNodeBlend2('_7wayWalkRunNode', avatar.mixer);
   avatar._7wayWalkRunNode.addChild(avatar.idleMotion);
   avatar._7wayWalkRunNode.addChild(avatar.walkRunNode);
 
-  avatar._7wayCrouchNode = new AnimNodeBlend2('_7wayCrouchNode');
+  avatar._7wayCrouchNode = new AnimNodeBlend2('_7wayCrouchNode', avatar.mixer);
   avatar._7wayCrouchNode.addChild(avatar.crouchIdleMotion);
   avatar._7wayCrouchNode.addChild(avatar.crouchNode);
 
-  avatar.defaultNode = new AnimNodeBlend2('defaultNode');
+  avatar.defaultNode = new AnimNodeBlend2('defaultNode', avatar.mixer);
   avatar.defaultNode.addChild(avatar._7wayWalkRunNode);
   avatar.defaultNode.addChild(avatar._7wayCrouchNode);
 
-  avatar.actionsNode = new AnimNodeUnitary('actions');
+  avatar.actionsNode = new AnimNodeUnitary('actions', avatar.mixer);
   avatar.actionsNode.addChild(avatar.defaultNode);
   avatar.actionsNode.addChild(avatar.jumpMotion);
   avatar.actionsNode.addChild(avatar.flyMotion);
   avatar.actionsNode.addChild(avatar.activateMotion);
-  avatar.actionsNode.addChild(avatar.useComboMotion);
+  avatar.actionsNode.addChild(avatar.narutoRunMotion);
+  // combo
+  avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlash);
+  avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlashStep);
+  avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlash);
+  avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlashStep);
 
-  avatar.animTree = avatar.actionsNode;
+  // avatar.jumpNode = new AnimNodeBlend2('jump', avatar.mixer);
+  // avatar.jumpNode.addChild(avatar.defaultNode);
+  // avatar.jumpNode.addChild(avatar.jumpMotion);
+
+  // avatar.flyNode = new AnimNodeBlend2('fly', avatar.mixer);
+  // avatar.flyNode.addChild(avatar.jumpNode);
+  // avatar.flyNode.addChild(avatar.flyMotion);
+
+  avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
+
+  avatar.mixer.addEventListener('finished', event => {
+    console.log('finished', event.motion.name);
+    game.handleAnimationFinished();
+  });
 };
 
 export const _updateAnimation = avatar => {
@@ -547,13 +587,21 @@ export const _updateAnimation = avatar => {
   if (avatar.flyStart) avatar.actionsNode.crossFadeTo(0.2, avatar.flyMotion);
   if (avatar.flyEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
 
+  if (avatar.narutoRunStart) avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
+  if (avatar.narutoRunEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+
   // LoopOnce ---
   if (avatar.jumpStart) {
     avatar.jumpMotion.play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
   }
   if (avatar.jumpEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    // avatar.jumpMotion.stop(); // don't need
+    if (avatar.narutoRunState) {
+      avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
+    } else {
+      avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    }
   }
 
   if (avatar.activateStart) {
@@ -565,8 +613,9 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.useComboStart) {
-    avatar.useComboMotion.play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.useComboMotion);
+    const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+    avatar.useMotiono[useAnimationName].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
   }
   if (avatar.useComboEnd) {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
