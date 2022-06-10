@@ -458,14 +458,12 @@ export const _createAnimation = avatar => {
       avatar.useMotiono[k] = avatar.mixer.createMotion(animation);
     }
   }
-  avatar.useMotiono.swordSideSlash.loop = LoopOnce;
-  avatar.useMotiono.swordSideSlash.stop();
-  avatar.useMotiono.swordSideSlashStep.loop = LoopOnce;
-  avatar.useMotiono.swordSideSlashStep.stop();
-  avatar.useMotiono.swordTopDownSlash.loop = LoopOnce;
-  avatar.useMotiono.swordTopDownSlash.stop();
-  avatar.useMotiono.swordTopDownSlashStep.loop = LoopOnce;
-  avatar.useMotiono.swordTopDownSlashStep.stop();
+  avatar.useMotiono.combo.loop = LoopOnce; avatar.useMotiono.combo.stop();
+  // combo
+  avatar.useMotiono.swordSideSlash.loop = LoopOnce; avatar.useMotiono.swordSideSlash.stop();
+  avatar.useMotiono.swordSideSlashStep.loop = LoopOnce; avatar.useMotiono.swordSideSlashStep.stop();
+  avatar.useMotiono.swordTopDownSlash.loop = LoopOnce; avatar.useMotiono.swordTopDownSlash.stop();
+  avatar.useMotiono.swordTopDownSlashStep.loop = LoopOnce; avatar.useMotiono.swordTopDownSlashStep.stop();
 
   // LoopOnce
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
@@ -532,6 +530,7 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.flyMotion);
   avatar.actionsNode.addChild(avatar.activateMotion);
   avatar.actionsNode.addChild(avatar.narutoRunMotion);
+  avatar.actionsNode.addChild(avatar.useMotiono.combo);
   // combo
   avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlash);
   avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlashStep);
@@ -641,6 +640,17 @@ export const _updateAnimation = avatar => {
   }
   if (avatar.activateEnd) {
     // avatar.activateMotion.stop(); // don't need
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
+
+  if (avatar.useStart) {
+    console.log('useStart');
+    const useAnimationName = avatar.useAnimation;
+    avatar.useMotiono[useAnimationName].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+  }
+  if (avatar.useEnd) {
+    console.log('useEnd');
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
 

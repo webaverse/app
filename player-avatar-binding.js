@@ -146,6 +146,16 @@ export function applyPlayerActionsToAvatar(player, rig) {
         rig.useAnimationCombo = [];
       }
     }
+    rig.useState = useAction?.animation;
+    // start/end event
+    rig.useStart = false;
+    rig.useEnd = false;
+    if (rig.useState !== rig.lastUseState) {
+      if (rig.useState) rig.useStart = true;
+      else rig.useEnd = true;
+    }
+    rig.lastUseState = rig.useState;
+    //
     rig.useComboState = useAction?.animationCombo;
     // start/end event
     rig.useComboStart = false;
