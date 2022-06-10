@@ -57,6 +57,12 @@ class AnimNodeUnitary extends AnimNode {
     this.crossFadeDuration = duration;
     this.crossFadeStartTime = AnimMixer.timeS;
 
+    // this.dispatchEvent({
+    //   type: 'switch',
+    //   from: this.activeNode,
+    //   to: this.targetNode,
+    // });
+
     // this.lastActiveNode = this.activeNode;
     this.activeNode = targetNode;
   }

@@ -1,8 +1,10 @@
 
+import {EventDispatcher} from 'three';
 import {AnimMixer} from './AnimMixer';
 
-class AnimNode {
+class AnimNode extends EventDispatcher {
   constructor(name, mixer) {
+    super();
     this.isAnimNode = true;
     this.mixer = mixer;
     this.type = 'blend2'; // other types: blendList
