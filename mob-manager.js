@@ -429,13 +429,18 @@ class MobGenerator {
       const mobModule = this.parent.mobModules[mobModuleName];
 
       const r = n => -n + rng() * n * 2;
+
+      const position = chunk.clone()
+        .multiplyScalar(chunkWorldSize)
+        .add(new THREE.Vector3(rng() * chunkWorldSize, 0, rng() * chunkWorldSize));
+      const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), r(Math.PI));
+
       const app = metaversefile.createApp({
-        position: chunk.clone()
-          .multiplyScalar(chunkWorldSize)
-          .add(new THREE.Vector3(rng() * chunkWorldSize, 0, rng() * chunkWorldSize)),
-        quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), r(Math.PI)),
+        position,
+        quaternion,
       });
       app.name = chunk.name + '-' + i;
+      
       (async () => {
         await app.addModule(mobModule);
       })();
@@ -496,38 +501,40 @@ class MobGenerator {
 }
 
 class Mobber {
-  constructor() {
-    // scene.add(this.object);
-
+  constructor({
+    appUrls = [],
+  } = {}) {
     this.mobModules = {};
-    // this.apps = [];
     this.compiled = false;
     
     this.generator = new MobGenerator(this);
-    /* this.generator.addEventListener('appadd', e => {
-      const {app} = e.data;
-      console.log('got app add', {app});
-      this.apps.push(app);
-    });
-    this.generator.addEventListener('appremove', e => {
-      const {app} = e.data;
-      const index = this.apps.indexOf(app);
-      this.apps.splice(index, 1);
-    }); */
     this.tracker = new LodChunkTracker(this.generator, {
       chunkWorldSize,
     });
+
+    this.compiled = false;
+    this.loadPromise = (async () => {
+      await Promise.all(appUrls.map(async u => {
+        const m = await metaversefile.import(u);
+        this.mobModules[u] = m;
+      }));
+
+      this.compiled = true;
+    })();
+  }
+  waitForLoad() {
+    return this.loadPromise;
   }
   getMobModuleNames() {
     return Object.keys(this.mobModules).sort();
   }
-  async addMobModule(srcUrl) {
+  /* async addMobModule(srcUrl) {
     const m = await metaversefile.import(srcUrl);
     this.mobModules[srcUrl] = m;
   }
   compile() {
     this.compiled = true;
-  }
+  } */
   getChunks() {
     return this.generator.object;
   }
@@ -549,8 +556,8 @@ class MobManager {
     this.mobbers = [];
     this.mobs = [];
   }
-  createMobber() {
-    const mobber = new Mobber();
+  createMobber(opts) {
+    const mobber = new Mobber(opts);
     this.mobbers.push(mobber);
     return mobber;
   }
