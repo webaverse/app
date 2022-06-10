@@ -555,7 +555,7 @@ export const _createAnimation = avatar => {
       avatar.useMotiono.swordTopDownSlash,
       avatar.useMotiono.swordTopDownSlashStep,
     ].includes(event.motion)) {
-      console.log('animationEnd', event.motion.name);
+      // console.log('animationEnd', event.motion.name);
       game.handleAnimationEnd();
     }
   };
@@ -661,17 +661,18 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.useStart) {
-    console.log('useStart');
+    // console.log('useStart');
     const useAnimationName = avatar.useAnimation;
     avatar.useMotiono[useAnimationName].play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
   }
   if (avatar.useEnd) {
-    console.log('useEnd');
+    // console.log('useEnd');
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
 
   if (avatar.useComboStart) {
+    // console.log('useComboStart');
     const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
     avatar.useMotiono[useAnimationName].play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);

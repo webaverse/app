@@ -54,7 +54,7 @@ class AnimMixer extends EventDispatcher {
       isPosition,
     } = spec;
 
-    if (window.isDebugger) debugger
+    // if (window.isDebugger) debugger
 
     if (node.isAnimMotion) { // todo: do not evaluate weight <= 0
       const motion = node;
@@ -83,7 +83,7 @@ class AnimMixer extends EventDispatcher {
       isPosition,
     } = spec;
 
-    if (window.isDebugger) debugger
+    // if (window.isDebugger) debugger
 
     if (node.isAnimMotion) { // todo: do not evaluate weight <= 0
       const motion = node;

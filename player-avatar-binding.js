@@ -160,7 +160,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
     // start/end event
     rig.useComboStart = false;
     rig.useComboEnd = false;
-    if (rig.useComboState !== rig.lastUseComboState) {
+    if (rig.useComboState !== rig.lastUseComboState) { // after index changed, will same array values but different array
       if (rig.useComboState) rig.useComboStart = true;
       else rig.useComboEnd = true;
     }
