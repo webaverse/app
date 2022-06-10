@@ -238,6 +238,27 @@ w.getHeightfieldRange = (x, z, w, h, lod) => {
     allocator.freeAll();
   }
 };
+w.getAoFieldRange = (x, y, z, w, h, d, lod) => {
+  const allocator = new Allocator(Module);
+
+  const aos = allocator.alloc(Uint8Array, w * h * d);
+
+  try {
+    Module._getAoFieldRange(
+      x,
+      y,
+      z,
+      w,
+      h,
+      d,
+      lod,
+      aos.byteOffset
+    );
+    return aos.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
 
 w.createGrassSplat = (x, z, lod) => {
   const allocator = new Allocator(Module);

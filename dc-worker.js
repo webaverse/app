@@ -133,6 +133,16 @@ const _handleMethod = ({
       };
       return spec;
     }
+    case 'getAoFieldRange': {
+      const {x, z, w, h, lod} = args;
+      const aos = dc.getAoFieldRange(x, z, w, h, lod);
+
+      const spec = {
+        result: aos,
+        transfers: [heights.buffer],
+      };
+      return spec;
+    }
     case 'createGrassSplat': {
       const {x, z, lod} = args;
       const {
