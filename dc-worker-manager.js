@@ -1,10 +1,10 @@
 // import * as THREE from 'three';
 import {makeId} from './util.js';
-import {defaultChunkSize, defaultWorldSeed} from './constants.js';
+import {defaultChunkSize} from './constants.js';
 // import metaversefile from 'metaversefile';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
 // import physics from './physics-manager.js';
-import {GeometryAllocator} from './geometry-allocator.js';
+import {GeometryAllocator} from './instancing.js';
 
 // const localVector = new THREE.Vector3();
 
