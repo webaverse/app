@@ -409,24 +409,42 @@ class Mob {
 }
 
 class MobGenerator {
-  constructor(parent) {
+  constructor({
+    appUrls = [],
+  } = {}, parent) {
+    this.parent = parent;
+
+    //
+
+    this.mobModules = {};
+
     this.object = new THREE.Object3D();
     this.object.name = 'mob-chunks';
 
-    // parameters
-    this.parent = parent;
+    this.loadPromise = (async () => {
+      await Promise.all(appUrls.map(async u => {
+        const m = await metaversefile.import(u);
+        // console.log('got mob module', m);
+        this.mobModules[u] = m;
+      }));
 
-    // members
-    // this.physicsObjects = [];
+      this.compiled = true;
+    })();
+  }
+  waitForLoad() {
+    return this.loadPromise;
+  }
+  getMobModuleNames() {
+    return Object.keys(this.mobModules).sort();
   }
   generateChunk(chunk) {
     const rng = alea(chunk.name);
 
     if (rng() < 0.2) {
       const i = 0;
-      const mobModuleNames = this.parent.getMobModuleNames();
+      const mobModuleNames = this.getMobModuleNames();
       const mobModuleName = mobModuleNames[Math.floor(rng() * mobModuleNames.length)];
-      const mobModule = this.parent.mobModules[mobModuleName];
+      const mobModule = this.mobModules[mobModuleName];
 
       const r = n => -n + rng() * n * 2;
 
@@ -504,29 +522,22 @@ class Mobber {
   constructor({
     appUrls = [],
   } = {}) {
-    this.mobModules = {};
     this.compiled = false;
     
-    this.generator = new MobGenerator(this);
+    this.generator = new MobGenerator({
+      appUrls,
+    }, this);
     this.tracker = new LodChunkTracker(this.generator, {
       chunkWorldSize,
     });
 
     this.compiled = false;
-    this.loadPromise = (async () => {
-      await Promise.all(appUrls.map(async u => {
-        const m = await metaversefile.import(u);
-        this.mobModules[u] = m;
-      }));
-
+    this.waitForLoad().then(() => {
       this.compiled = true;
-    })();
+    });
   }
   waitForLoad() {
-    return this.loadPromise;
-  }
-  getMobModuleNames() {
-    return Object.keys(this.mobModules).sort();
+    return this.generator.waitForLoad();
   }
   /* async addMobModule(srcUrl) {
     const m = await metaversefile.import(srcUrl);
