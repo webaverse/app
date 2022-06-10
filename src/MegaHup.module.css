@@ -1,0 +1,21 @@
+.megaHup {
+  display: flex;
+  position: fixed;
+  top: 0;
+  right: 0;
+  flex-direction: column;
+  /* position: absolute;
+  bottom: 30px;
+  left: 30px;
+  z-index: 10; */
+  /* background-image: linear-gradient(to right, transparent 0%, #111 50%, #000 100%); */
+  transform: none;
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+.megaHup:not(.open) {
+  transform: translateX(400px);
+}
+/* .megaHup .canvas {
+  width: 400px;
+  height: 800px;
+} */

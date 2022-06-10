@@ -1,0 +1,23 @@
+{
+    "name": "web3",
+    "version": "1.0.0",
+    "description": "",
+    "main": "config.js",
+    "directories": {
+        "lib": "lib"
+    },
+    "scripts": {
+        "start": "parcel index.html",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "ethers": "^5.4.7",
+        "parcel": "^2.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^16.11.4"
+    }
+}

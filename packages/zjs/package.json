@@ -1,0 +1,23 @@
+{
+  "name": "zjs",
+  "version": "0.0.1",
+  "description": "",
+  "main": "z.mjs",
+  "scripts": {
+    "test": "mocha --timeout 60000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webaverse/z.git"
+  },
+  "author": "Avaer Kazmer <a@modules.io>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/webaverse/z/issues"
+  },
+  "homepage": "https://github.com/webaverse/z#readme",
+  "dependencies": {
+    "alea": "^1.0.1",
+    "mocha": "^9.1.3"
+  }
+}

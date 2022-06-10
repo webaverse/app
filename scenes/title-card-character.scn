@@ -1,0 +1,97 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 2]
+      }
+    },
+    {
+      "type": "application/rendersettings",
+      "content": {
+        "fog": {
+          "fogType": "exp",
+          "args": [[255, 255, 255], 0.01]
+        },
+        "ssao": {
+          "kernelRadius": 16,
+          "minDistance": 0.005,
+          "maxDistance": 0.1
+        },
+        "dof": {
+          "focus": 3.0,
+          "aperture": 0.00002,
+          "maxblur": 0.005
+        },
+        "hdr": {
+          "adaptive": true,
+          "resolution": 256,
+          "adaptionRate": 100,
+          "maxLuminance": 10,
+          "minLuminance": 0,
+          "middleGrey": 3
+        },
+        "bloom": {
+          "strength": 0.2,
+          "radius": 0.5,
+          "threshold": 0.8
+        }
+      }
+    },
+    {
+      "type": "application/text",
+      "content": {
+        "text": "S.L.Y",
+        "font": "./fonts/Bangers-Regular.ttf",
+        "fontSize": 1,
+        "anchorX": "left",
+        "anchorY": "middle",
+        "color": [255, 255, 255]
+      },
+      "position": [
+        0,
+        2,
+        4
+      ]
+    },
+    {
+      "start_url": "https://webaverse.github.io/eyeblaster/",
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "position": [
+        1,
+        0,
+        7
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "physics": false,
+      "start_url": "/avatars/gear.vrm",
+      "dynamic": true
+    },
+    {
+      "position": [
+        -13,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/treehouse/"
+    }
+  ]
+}

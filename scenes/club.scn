@@ -1,0 +1,52 @@
+{
+  "objects": [
+{
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [70,12,64]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[155, 155, 255], 0.1]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[155, 155, 255], 2],
+        "position": [0, 0, 3000]
+      }
+    },{
+      "type": "application/rendersettings",
+      "content": {
+         "bloom": {
+          "strength": 0.2,
+          "radius": 0.1,
+          "threshold": 0.3
+        }
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        -1
+      ],
+      "start_url": "https://webaverse.github.io/skybox/index.js"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://webaverse.github.io/neon-club/",
+      "dynamic": false
+    }
+  ]
+}

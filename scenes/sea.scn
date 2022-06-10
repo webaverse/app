@@ -1,0 +1,170 @@
+{
+  "objects": [
+{
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [-64.26,25,139.23]
+      }
+    },
+
+  {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3],
+        "shadow": [150, 5120, 0.1, 10000, -0.0001]
+      }
+    },
+  
+{
+       "position": [
+        0,
+        5,
+        0
+      ],
+      
+      "start_url": "https://webaverse.github.io/aurora-sky/"
+    },
+    {
+      "position": [
+        0,
+        16,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.21,
+        0.21,
+        0.21
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/Basalt-Rocks/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        -55,
+        0,
+        150
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        45,
+        45,
+        45
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/pirate-ship/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        -38,
+        0.9,
+        188
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "scale": [
+        0.31,
+        0.31,
+        0.31
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/motor-boat/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        0,
+        1,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://webaverse.github.io/dynamic-water/",
+      "dynamic": false
+    },
+    {
+      "position": [
+        23,
+        2,
+        55
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/pistol/"
+    },
+    {
+      "position": [
+        26,
+        2,
+        55
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/silsword/"
+    },
+    {
+      "position": [
+        32,
+        0,
+        111
+      ],
+      "quaternion": [
+        0,
+        -0.7071067811865475,
+        0,
+        -0.7071067811865475
+      ],
+      "scale": [
+        4,
+        4,
+        4
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/jatayu-birdsculpture/",
+      "dynamic": true
+    }
+
+]
+}

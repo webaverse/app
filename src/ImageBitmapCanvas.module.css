@@ -1,0 +1,15 @@
+.imageBitmapCanvas {
+  position: relative;
+  display: flex;
+}
+.imageBitmapCanvas .canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: inherit;
+  height: inherit;
+  backface-visibility: hidden;
+}
+.imageBitmapCanvas .backCanvas {
+  transform: rotateY(180deg);
+}

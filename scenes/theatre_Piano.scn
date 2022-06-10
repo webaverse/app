@@ -1,0 +1,68 @@
+{
+  "objects": [
+  {
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [-1.19,2,-6.09]
+      }},
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.1]
+      }
+    },
+    {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+        50,50,50],
+        "start_url": "https://webaverse.github.io/sky-milkyway/"
+      }, 
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "point",
+        "position": [-1, 2, -11],
+        "args": [[255, 255, 255], 15, 20]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "point",
+        "position": [0, 5, 15],
+        "args": [[255, 255, 255], 2.5, 50]
+      }
+    },
+    {
+      "position": [
+        -1,
+        0.8,
+        -11
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/piano/",
+      "dynamic": true
+    },
+
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://propialis.github.io/theatre3.glb",
+      "dynamic": false
+    }
+  ]
+}

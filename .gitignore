@@ -1,0 +1,7 @@
+node_modules
+certs
+rtfx
+.env
+.next
+dist
+config.json

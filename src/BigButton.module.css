@@ -1,0 +1,49 @@
+@keyframes highlight {
+  0% {
+    border-color: #FFF;
+  }
+  50% {
+    border-color: #808080;
+  }
+  100% {
+    border-color: #808080;
+  }
+}
+@keyframes highlight2 {
+  0% {
+    background-color: #FFF;
+    color: #000;
+  }
+  50% {
+    background-color: #000;
+    color: #FFF;
+  }
+  100% {
+    background-color: #000;
+    color: #FFF;
+  }
+}
+.bigButton {
+  display: flex;
+  margin: 15px 30px;
+  margin-top: auto;
+  padding: 10px;
+  border: 2px solid #FFF;
+  font-family: 'GeoSans';
+  font-size: 20px;
+  justify-content: center;
+  color: #FFF;
+  cursor: pointer;
+  opacity: 0.3;
+  animation: highlight 1s step-end infinite;
+  transition: opacity 0.3s ease-out;
+}
+.bigButton:hover {
+  animation: none;
+  opacity: 1;
+  transition: opacity 1s cubic-bezier(0, 1, 0, 1);
+}
+.bigButton.highlight {
+  animation: highlight2 0.15s step-end infinite;
+  opacity: 1;
+}

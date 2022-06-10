@@ -1,0 +1,20 @@
+.menu {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-image: linear-gradient(to bottom, #333, #000);
+  font-family: 'PlazaRegular';
+  color: #FFF;
+  font-size: 36px;
+}
+.menu h1,
+.menu p
+{
+  margin: 30px;
+}
+.menu h1 {
+  font-size: 50px;
+  font-family: 'WinchesterCaps';
+}

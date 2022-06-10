@@ -1,0 +1,73 @@
+body {
+  margin: 0;
+  font-family: 'Bangers';
+}
+* {
+  box-sizing: border-box;
+  user-drag: none;
+}
+form {
+  display: flex;
+  width: 100%;
+  padding: 100px;
+  background-color: #000;
+}
+form > input[type=text],
+form > input[type=submit]
+{
+  padding: 5px 15px;
+  background-color: #CCC;
+  border: 2px solid #333;
+  border-radius: 100px;
+  font-family: inherit;
+  font-size: 20px;
+  line-height: 1.6;
+}
+form > input[type=text] {
+  min-width: 600px;
+  margin-right: 10px;
+}
+form > input[type=text]:focus {
+  background-color: #FFF;
+  border-color: #CCC;
+  outline: none;
+}
+form > input[type=submit] {
+  background-color: ;
+  border: 0;
+  cursor: pointer;
+}
+form > input[type=submit]:hover {
+  background-color: #66bb6a;
+}
+form > input[type=submit]:active {
+  background-color: #43a047;
+}
+.container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  /* perspective: 1200px;
+  perspective-origin: 50% 50%; */
+  overflow: hidden;
+}
+.player {
+  position: absolute;
+  top: -32px;
+  left: -32px;
+  width: 64px;
+  height: 64px;
+  background-color: #000;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.player > .volume {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0;
+  background-color: #9ccc65;
+}

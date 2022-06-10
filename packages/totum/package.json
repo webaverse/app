@@ -1,0 +1,28 @@
+{
+  "name": "metaversefile",
+  "version": "0.0.32",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webaverse/metaversefile.git"
+  },
+  "author": "Avaer Kazmer <a@modules.io>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/webaverse/metaversefile/issues"
+  },
+  "homepage": "https://github.com/webaverse/metaversefile#readme",
+  "dependencies": {
+    "@babel/core": "^7.15.0",
+    "@babel/preset-react": "^7.14.5",
+    "data-urls": "^3.0.1",
+    "mime-types": "^2.1.32",
+    "node-fetch": "^2.6.1",
+    "pako": "^2.0.4",
+    "unix-path": "^0.2.0"
+  }
+}
