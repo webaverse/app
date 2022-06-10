@@ -409,33 +409,56 @@ class Mob {
 }
 
 class MobGenerator {
-  constructor(parent) {
+  constructor({
+    appUrls = [],
+  } = {}, parent) {
+    this.parent = parent;
+
+    //
+
+    this.mobModules = {};
+
     this.object = new THREE.Object3D();
     this.object.name = 'mob-chunks';
 
-    // parameters
-    this.parent = parent;
+    this.loadPromise = (async () => {
+      await Promise.all(appUrls.map(async u => {
+        const m = await metaversefile.import(u);
+        // console.log('got mob module', m);
+        this.mobModules[u] = m;
+      }));
 
-    // members
-    // this.physicsObjects = [];
+      this.compiled = true;
+    })();
+  }
+  waitForLoad() {
+    return this.loadPromise;
+  }
+  getMobModuleNames() {
+    return Object.keys(this.mobModules).sort();
   }
   generateChunk(chunk) {
     const rng = alea(chunk.name);
 
     if (rng() < 0.2) {
       const i = 0;
-      const mobModuleNames = this.parent.getMobModuleNames();
+      const mobModuleNames = this.getMobModuleNames();
       const mobModuleName = mobModuleNames[Math.floor(rng() * mobModuleNames.length)];
-      const mobModule = this.parent.mobModules[mobModuleName];
+      const mobModule = this.mobModules[mobModuleName];
 
       const r = n => -n + rng() * n * 2;
+
+      const position = chunk.clone()
+        .multiplyScalar(chunkWorldSize)
+        .add(new THREE.Vector3(rng() * chunkWorldSize, 0, rng() * chunkWorldSize));
+      const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), r(Math.PI));
+
       const app = metaversefile.createApp({
-        position: chunk.clone()
-          .multiplyScalar(chunkWorldSize)
-          .add(new THREE.Vector3(rng() * chunkWorldSize, 0, rng() * chunkWorldSize)),
-        quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), r(Math.PI)),
+        position,
+        quaternion,
       });
       app.name = chunk.name + '-' + i;
+      
       (async () => {
         await app.addModule(mobModule);
       })();
@@ -496,38 +519,33 @@ class MobGenerator {
 }
 
 class Mobber {
-  constructor() {
-    // scene.add(this.object);
-
-    this.mobModules = {};
-    // this.apps = [];
+  constructor({
+    appUrls = [],
+  } = {}) {
     this.compiled = false;
     
-    this.generator = new MobGenerator(this);
-    /* this.generator.addEventListener('appadd', e => {
-      const {app} = e.data;
-      console.log('got app add', {app});
-      this.apps.push(app);
-    });
-    this.generator.addEventListener('appremove', e => {
-      const {app} = e.data;
-      const index = this.apps.indexOf(app);
-      this.apps.splice(index, 1);
-    }); */
+    this.generator = new MobGenerator({
+      appUrls,
+    }, this);
     this.tracker = new LodChunkTracker(this.generator, {
       chunkWorldSize,
     });
+
+    this.compiled = false;
+    this.waitForLoad().then(() => {
+      this.compiled = true;
+    });
   }
-  getMobModuleNames() {
-    return Object.keys(this.mobModules).sort();
+  waitForLoad() {
+    return this.generator.waitForLoad();
   }
-  async addMobModule(srcUrl) {
+  /* async addMobModule(srcUrl) {
     const m = await metaversefile.import(srcUrl);
     this.mobModules[srcUrl] = m;
   }
   compile() {
     this.compiled = true;
-  }
+  } */
   getChunks() {
     return this.generator.object;
   }
@@ -549,8 +567,8 @@ class MobManager {
     this.mobbers = [];
     this.mobs = [];
   }
-  createMobber() {
-    const mobber = new Mobber();
+  createMobber(opts) {
+    const mobber = new Mobber(opts);
     this.mobbers.push(mobber);
     return mobber;
   }
