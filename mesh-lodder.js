@@ -229,6 +229,54 @@ const textureInitializers = {
     _colorCanvas(canvas, 'rgb(0, 0, 0)');
   }, */
 };
+const createTextureAtlas = (meshes, {
+  textures = 'map',
+  attributes = ['position', 'normal', 'uv'],
+} = {}) => {
+  const textureSpecs = {};
+  for (const textureName of textures) {
+    textureSpecs[textureName] = meshes.map(mesh => mesh.material[textureName]);
+  }
+  const {
+    atlas,
+    atlasImages,
+    atlasTextures,
+  } = generateTextureAtlas(textureSpecs);
+  
+  const canvasSize = Math.min(atlas.width, defaultTextureSize);
+  const canvasScale = canvasSize / atlas.width;
+
+  // geometry
+
+  const geometries = meshes.map((m, i) => {
+    const srcGeometry = m.geometry;
+
+    const geometry = new THREE.BufferGeometry();
+    for (const k of attributes) {
+      const attr = srcGeometry.attributes[k];
+      geometry.setAttribute(k, attr);
+    }
+    geometry.setIndex(srcGeometry.index);
+
+    const rect = atlas.rectIndexCache.get(i);
+    const {x, y, width: w, height: h} = rect;
+    const tx = x * canvasScale;
+    const ty = y * canvasScale;
+    const tw = w * canvasScale;
+    const th = h * canvasScale;
+
+    mapWarpedUvs(geometry.attributes.uv, 0, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
+  
+    return geometry;
+  });
+
+  return {
+    atlas,
+    atlasImages,
+    atlasTextures,
+    geometries,
+  };
+};
 
 const _diceGeometry = g => {
   const geometryToBeCut = g;
@@ -906,8 +954,9 @@ const meshLodManager = {
   getMeshLodder(id) {
     return meshLodders.find(meshLod => meshLod.id === id) ?? null;
   },
-  generateTextureAtlas,
-  mapWarpedUvs,
-  defaultTextureSize,
+  // generateTextureAtlas,
+  createTextureAtlas,
+  // mapWarpedUvs,
+  // defaultTextureSize,
 };
 export default meshLodManager;
