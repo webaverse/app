@@ -1693,7 +1693,7 @@ class GameManager extends EventTarget {
     downloadFile(blob, 'scene.json');
     // console.log('got scene', scene);
   }
-  handleAnimationFinished() {
+  handleAnimationEnd() {
     _endUse();
 
     if (needContinueCombo) {

@@ -11,7 +11,8 @@ class AnimMotion {
     this.mixer = mixer;
     this.animation = animation;
     this.name = this.animation.name;
-    this.weight = 1; // todo: move to AnimNode.
+    this.weight = 1; // todo: move to AnimNode?
+    this.lastWeight = null;
     this.timeBias = 0;
     this.speed = 1;
     this.isFinished = false;
@@ -55,6 +56,15 @@ class AnimMotion {
     } else {
       value = src.evaluate((AnimMixer.timeS / this.speed + this.timeBias) % animation.duration);
     }
+
+    if (this.lastWeight > 0 && this.weight <= 0) {
+      this.mixer.dispatchEvent({
+        type: 'stopped',
+        motion: this,
+      });
+    }
+    this.lastWeight = this.weight;
+
     return value;
   }
 

@@ -547,9 +547,26 @@ export const _createAnimation = avatar => {
 
   avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
 
+  const handleAnimationEnd = event => {
+    if ([
+      avatar.useMotiono.combo,
+      avatar.useMotiono.swordSideSlash,
+      avatar.useMotiono.swordSideSlashStep,
+      avatar.useMotiono.swordTopDownSlash,
+      avatar.useMotiono.swordTopDownSlashStep,
+    ].includes(event.motion)) {
+      console.log('animationEnd', event.motion.name);
+      game.handleAnimationEnd();
+    }
+  };
+
   avatar.mixer.addEventListener('finished', event => {
-    console.log('finished', event.motion.name);
-    game.handleAnimationFinished();
+    // console.log('finished', event.motion.name);
+    handleAnimationEnd(event);
+  });
+  avatar.mixer.addEventListener('stopped', event => { // handle situations such as sword attacks stopped by jump
+    // console.log('stopped', event.motion.name);
+    handleAnimationEnd(event);
   });
 };
 
