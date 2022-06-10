@@ -48,6 +48,7 @@ import physxWorkerManager from './physx-worker-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
+import {defaultPlayerSpec} from './constants';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -96,9 +97,8 @@ export default class Webaverse extends EventTarget {
         WebaWallet.waitForLoad(),
       ]);
     })();
-    this.contentLoaded = false;
   }
-  
+
   waitForLoad() {
     return this.loadPromise;
   }
@@ -106,35 +106,39 @@ export default class Webaverse extends EventTarget {
   getRenderer() {
     return getRenderer();
   }
+
   getScene() {
     return scene;
   }
+
   getSceneHighPriority() {
     return sceneHighPriority;
   }
+
   getSceneLowPriority() {
     return sceneLowPriority;
   }
+
   getCamera() {
     return camera;
   }
-  
-  setContentLoaded() {
-    this.contentLoaded = true;
-  }
+
   bindInput() {
     ioManager.bindInput();
   }
+
   bindInterface() {
     ioManager.bindInterface();
     blockchain.bindInterface();
   }
+
   bindCanvas(c) {
     bindCanvas(c);
     game.bindDioramaCanvas();
-    
+
     postProcessing.bindCanvas();
   }
+
   async isXrSupported() {
     if (navigator.xr) {
       let ok = false;
@@ -148,6 +152,7 @@ export default class Webaverse extends EventTarget {
       return false;
     }
   }
+
   async enterXr() {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -155,18 +160,18 @@ export default class Webaverse extends EventTarget {
       let session = null;
       try {
         session = await navigator.xr.requestSession(sessionMode, sessionOpts);
-      } catch(err) {
+      } catch (err) {
         try {
           session = await navigator.xr.requestSession(sessionMode);
-        } catch(err) {
+        } catch (err) {
           console.warn(err);
         }
       }
       if (session) {
-        function onSessionEnded(e) {
+        const onSessionEnded = e => {
           session.removeEventListener('end', onSessionEnded);
           renderer.xr.setSession(null);
-        }
+        };
         session.addEventListener('end', onSessionEnded);
         renderer.xr.setSession(session);
         // renderer.xr.setReferenceSpaceType('local-floor');
@@ -175,7 +180,7 @@ export default class Webaverse extends EventTarget {
       await session.end();
     }
   }
-  
+
   /* injectRigInput() {
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
@@ -269,7 +274,7 @@ export default class Webaverse extends EventTarget {
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
   } */
-  
+
   render(timestamp, timeDiff) {
     // console.log('frame 1');
 
@@ -284,18 +289,20 @@ export default class Webaverse extends EventTarget {
       data: {
         canvas: renderer.domElement,
         context: renderer.getContext(),
-      }
+      },
     }));
 
     // console.log('frame 2');
   }
-  
-  startLoop() {
-    const renderer = getRenderer();
-    if (!renderer) {
-      throw new Error('must bind canvas first');
-    }
-    
+
+  async start(canvas, universe = null) {
+    this.bindInput();
+    this.bindInterface();
+    this.bindCanvas(canvas);
+
+    if (universe) await universe.handleUrlUpdate();
+    await this.waitForLoad();
+
     let lastTimestamp = performance.now();
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
@@ -307,46 +314,42 @@ export default class Webaverse extends EventTarget {
 
         performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
-          if(!this.contentLoaded) return
           ioManager.update(timeDiffCapped);
-          // this.injectRigInput();
-          
+
           const localPlayer = metaversefileApi.useLocalPlayer();
+
           if (physicsManager.getPhysicsEnabled()) {
             physicsManager.simulatePhysics(timeDiffCapped);
-            localPlayer.updatePhysics(timestamp, timeDiffCapped);
+            localPlayer.updatePhysics(timestamp, timeDiff);
           }
 
           transformControls.update();
           raycastManager.update(timestamp, timeDiffCapped);
-          game.update(timestamp, timeDiffCapped);
-          
-          localPlayer.updateAvatar(timestamp, timeDiffCapped);
-          playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
-          
-          world.appManager.tick(timestamp, timeDiffCapped, frame);
-          localPlayer.appManager.tick(timestamp, timeDiffCapped, frame);
 
+          game.update(timestamp, timeDiffCapped);
           mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
           questManager.update(timestamp, timeDiffCapped);
           particleSystemManager.update(timestamp, timeDiffCapped);
 
+          world.update(timestamp, timeDiffCapped, frame);
+
+          localPlayer.update(timestamp, timeDiffCapped, frame);
+
+          for (const remotePlayer in playersManager.remotePlayers) {
+            remotePlayer.update(timestamp, timeDiff);
+          }
+
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
 
-          // TODO: This is brought in from multiplayer fixes-- verify that it's still needed
-          world.appManager.pushAppUpdates();
-          localPlayer.pushPlayerUpdates(timeDiff);
-          localPlayer.appManager.pushAppUpdates();
-
           const session = renderer.xr.getSession();
           const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
+          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /* localMatrix2.multiplyMatrices( */xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld) */);
           localMatrix2.copy(xrCamera.matrix)
             .premultiply(dolly.matrix)
             .decompose(localVector, localQuaternion, localVector2);
-          
+
           lastTimestamp = timestamp;
         };
         _pre();
@@ -373,10 +376,15 @@ export default class Webaverse extends EventTarget {
       _frame();
 
       performanceTracker.endFrame();
-    }
-    renderer.setAnimationLoop(animate);
+    };
 
     _startHacks(this);
+
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    await localPlayer.setPlayerSpec(defaultPlayerSpec);
+
+    const renderer = getRenderer();
+    renderer.setAnimationLoop(animate);
   }
 }
 
@@ -398,7 +406,7 @@ const _startHacks = webaverse => {
       const key1 = lastEmotionKey.key;
       const key2 = key;
       emotionIndex = (key1 * 10) + key2;
-      
+
       lastEmotionKey.key = -1;
       lastEmotionKey.timestamp = 0;
     } else {
@@ -556,7 +564,7 @@ const _startHacks = webaverse => {
       poseAnimationIndex++;
       poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
       _updatePose();
-    
+
       // _ensureMikuModel();
       // _updateMikuModel();
     } else if (e.which === 109) { // -
@@ -571,7 +579,7 @@ const _startHacks = webaverse => {
       webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
         data: {
           titleCardHack: webaverse.titleCardHack,
-        }
+        },
       }));
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);

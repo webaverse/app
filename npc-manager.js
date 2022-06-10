@@ -183,7 +183,7 @@ class NpcManager extends EventTarget {
             /* if (isNaN(npcPlayer.position.x)) {
               debugger;
             } */
-            npcPlayer.updateAvatar(timestamp, timeDiff);
+            npcPlayer.update(timestamp, timeDiff);
             /* if (isNaN(npcPlayer.position.x)) {
               debugger;
             } */

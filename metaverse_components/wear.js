@@ -1,11 +1,11 @@
-import * as THREE from "three";
-import metaversefile from "metaversefile";
-import Avatar from "../avatars/avatars.js";
+import * as THREE from 'three';
+import metaversefile from 'metaversefile';
+import Avatar from '../avatars/avatars.js';
 // import {world} from '../world.js';
-import physicsManager from "../physics-manager.js";
+// import physicsManager from '../physics-manager.js';
 // import {glowMaterial} from '../shaders.js';
 // import easing from '../easing.js';
-import npcManager from "../npc-manager.js";
+import npcManager from '../npc-manager.js';
 // import { AppManager } from "../app-manager.js";
 // import {rarityColors} from '../constants.js';
 
@@ -21,7 +21,7 @@ const localMatrix = new THREE.Matrix4();
 const identityVector = new THREE.Vector3();
 
 export default (app, component) => {
-  const { useActivate } = metaversefile;
+  const {useActivate} = metaversefile;
 
   let wearSpec = null;
   let modelBones = null;
@@ -31,11 +31,11 @@ export default (app, component) => {
   const initialScale = app.scale.clone();
   // const initialQuaternion = new THREE.Quaternion();
 
-  const wearupdate = (e) => {
-    if(e.player){
+  const wearupdate = e => {
+    if (e.player) {
       player = e.player;
     } else {
-      console.error("no player!")
+      console.error('no player!');
     }
     if (e.wear) {
       wearSpec = app.getComponent('wear');
@@ -44,16 +44,16 @@ export default (app, component) => {
       if (wearSpec) {
         // const {app, wearSpec} = e.data;
         // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
-        
+
         // const physicsObjects = app.getPhysicsObjects();
         // for (const physicsObject of physicsObjects) {
         //   physicsManager.disableActor(physicsObject);
         // }
-        
+
         if (app.glb) {
           if (wearSpec.skinnedMesh) {
             let skinnedMesh = null;
-            app.glb.scene.traverse((o) => {
+            app.glb.scene.traverse(o => {
               if (
                 skinnedMesh === null &&
                 o.isSkinnedMesh &&
@@ -64,76 +64,76 @@ export default (app, component) => {
             });
             if (skinnedMesh && player.avatar) {
               app.position.set(0, 0, 0);
-              app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-              app.scale.copy(initialScale)//.multiplyScalar(wearableScale);
+              app.quaternion.identity(); // .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+              app.scale.copy(initialScale);// .multiplyScalar(wearableScale);
               app.updateMatrix();
               app.matrixWorld.copy(app.matrix);
 
               // this adds pseudo-VRM onto our GLB assuming a mixamo rig
               // used for the glb wearable skinning feature
               const _mixamoRigToFakeVRMHack = () => {
-                const { nodes } = app.glb.parser.json;
+                const {nodes} = app.glb.parser.json;
                 const boneNodeMapping = {
-                  hips: "J_Bip_C_Hips",
-                  leftUpperLeg: "J_Bip_L_UpperLeg",
-                  rightUpperLeg: "J_Bip_R_UpperLeg",
-                  leftLowerLeg: "J_Bip_L_LowerLeg",
-                  rightLowerLeg: "J_Bip_R_LowerLeg",
-                  leftFoot: "J_Bip_L_Foot",
-                  rightFoot: "J_Bip_R_Foot",
-                  spine: "J_Bip_C_Spine",
-                  chest: "J_Bip_C_Chest",
-                  neck: "J_Bip_C_Neck",
-                  head: "J_Bip_C_Head",
-                  leftShoulder: "J_Bip_L_Shoulder",
-                  rightShoulder: "J_Bip_R_Shoulder",
-                  leftUpperArm: "J_Bip_L_UpperArm",
-                  rightUpperArm: "J_Bip_R_UpperArm",
-                  leftLowerArm: "J_Bip_L_LowerArm",
-                  rightLowerArm: "J_Bip_R_LowerArm",
-                  leftHand: "J_Bip_L_Hand",
-                  rightHand: "J_Bip_R_Hand",
-                  leftToes: "J_Bip_L_ToeBase",
-                  rightToes: "J_Bip_R_ToeBase",
-                  leftEye: "J_Adj_L_FaceEye",
-                  rightEye: "J_Adj_R_FaceEye",
-                  leftThumbProximal: "J_Bip_L_Thumb1",
-                  leftThumbIntermediate: "J_Bip_L_Thumb2",
-                  leftThumbDistal: "J_Bip_L_Thumb3",
-                  leftIndexProximal: "J_Bip_L_Index1",
-                  leftIndexIntermediate: "J_Bip_L_Index2",
-                  leftIndexDistal: "J_Bip_L_Index3",
-                  leftMiddleProximal: "J_Bip_L_Middle1",
-                  leftMiddleIntermediate: "J_Bip_L_Middle2",
-                  leftMiddleDistal: "J_Bip_L_Middle3",
-                  leftRingProximal: "J_Bip_L_Ring1",
-                  leftRingIntermediate: "J_Bip_L_Ring2",
-                  leftRingDistal: "J_Bip_L_Ring3",
-                  leftLittleProximal: "J_Bip_L_Little1",
-                  leftLittleIntermediate: "J_Bip_L_Little2",
-                  leftLittleDistal: "J_Bip_L_Little3",
-                  rightThumbProximal: "J_Bip_R_Thumb1",
-                  rightThumbIntermediate: "J_Bip_R_Thumb2",
-                  rightThumbDistal: "J_Bip_R_Thumb3",
-                  rightIndexProximal: "J_Bip_R_Index1",
-                  rightIndexIntermediate: "J_Bip_R_Index2",
-                  rightIndexDistal: "J_Bip_R_Index3",
-                  rightMiddleProximal: "J_Bip_R_Middle3",
-                  rightMiddleIntermediate: "J_Bip_R_Middle2",
-                  rightMiddleDistal: "J_Bip_R_Middle1",
-                  rightRingProximal: "J_Bip_R_Ring1",
-                  rightRingIntermediate: "J_Bip_R_Ring2",
-                  rightRingDistal: "J_Bip_R_Ring3",
-                  rightLittleProximal: "J_Bip_R_Little1",
-                  rightLittleIntermediate: "J_Bip_R_Little2",
-                  rightLittleDistal: "J_Bip_R_Little3",
-                  upperChest: "J_Bip_C_UpperChest",
+                  hips: 'J_Bip_C_Hips',
+                  leftUpperLeg: 'J_Bip_L_UpperLeg',
+                  rightUpperLeg: 'J_Bip_R_UpperLeg',
+                  leftLowerLeg: 'J_Bip_L_LowerLeg',
+                  rightLowerLeg: 'J_Bip_R_LowerLeg',
+                  leftFoot: 'J_Bip_L_Foot',
+                  rightFoot: 'J_Bip_R_Foot',
+                  spine: 'J_Bip_C_Spine',
+                  chest: 'J_Bip_C_Chest',
+                  neck: 'J_Bip_C_Neck',
+                  head: 'J_Bip_C_Head',
+                  leftShoulder: 'J_Bip_L_Shoulder',
+                  rightShoulder: 'J_Bip_R_Shoulder',
+                  leftUpperArm: 'J_Bip_L_UpperArm',
+                  rightUpperArm: 'J_Bip_R_UpperArm',
+                  leftLowerArm: 'J_Bip_L_LowerArm',
+                  rightLowerArm: 'J_Bip_R_LowerArm',
+                  leftHand: 'J_Bip_L_Hand',
+                  rightHand: 'J_Bip_R_Hand',
+                  leftToes: 'J_Bip_L_ToeBase',
+                  rightToes: 'J_Bip_R_ToeBase',
+                  leftEye: 'J_Adj_L_FaceEye',
+                  rightEye: 'J_Adj_R_FaceEye',
+                  leftThumbProximal: 'J_Bip_L_Thumb1',
+                  leftThumbIntermediate: 'J_Bip_L_Thumb2',
+                  leftThumbDistal: 'J_Bip_L_Thumb3',
+                  leftIndexProximal: 'J_Bip_L_Index1',
+                  leftIndexIntermediate: 'J_Bip_L_Index2',
+                  leftIndexDistal: 'J_Bip_L_Index3',
+                  leftMiddleProximal: 'J_Bip_L_Middle1',
+                  leftMiddleIntermediate: 'J_Bip_L_Middle2',
+                  leftMiddleDistal: 'J_Bip_L_Middle3',
+                  leftRingProximal: 'J_Bip_L_Ring1',
+                  leftRingIntermediate: 'J_Bip_L_Ring2',
+                  leftRingDistal: 'J_Bip_L_Ring3',
+                  leftLittleProximal: 'J_Bip_L_Little1',
+                  leftLittleIntermediate: 'J_Bip_L_Little2',
+                  leftLittleDistal: 'J_Bip_L_Little3',
+                  rightThumbProximal: 'J_Bip_R_Thumb1',
+                  rightThumbIntermediate: 'J_Bip_R_Thumb2',
+                  rightThumbDistal: 'J_Bip_R_Thumb3',
+                  rightIndexProximal: 'J_Bip_R_Index1',
+                  rightIndexIntermediate: 'J_Bip_R_Index2',
+                  rightIndexDistal: 'J_Bip_R_Index3',
+                  rightMiddleProximal: 'J_Bip_R_Middle3',
+                  rightMiddleIntermediate: 'J_Bip_R_Middle2',
+                  rightMiddleDistal: 'J_Bip_R_Middle1',
+                  rightRingProximal: 'J_Bip_R_Ring1',
+                  rightRingIntermediate: 'J_Bip_R_Ring2',
+                  rightRingDistal: 'J_Bip_R_Ring3',
+                  rightLittleProximal: 'J_Bip_R_Little1',
+                  rightLittleIntermediate: 'J_Bip_R_Little2',
+                  rightLittleDistal: 'J_Bip_R_Little3',
+                  upperChest: 'J_Bip_C_UpperChest',
                 };
                 const humanBones = [];
                 for (const k in boneNodeMapping) {
                   const boneName = boneNodeMapping[k];
                   const boneNodeIndex = nodes.findIndex(
-                    (node) => node.name === boneName
+                    node => node.name === boneName,
                   );
                   if (boneNodeIndex !== -1) {
                     const boneSpec = {
@@ -144,11 +144,11 @@ export default (app, component) => {
                     humanBones.push(boneSpec);
                   } else {
                     console.log(
-                      "failed to find bone",
+                      'failed to find bone',
                       boneNodeMapping,
                       k,
                       nodes,
-                      boneNodeIndex
+                      boneNodeIndex,
                     );
                   }
                 }
@@ -183,8 +183,8 @@ export default (app, component) => {
       .concat(remotePlayers)
       .concat(npcs);
     for (const player of players) {
-      const wearActionIndex = player.findActionIndex((action) => {
-        return action.type === "wear" && action.instanceId === app.instanceId;
+      const wearActionIndex = player.findActionIndex(action => {
+        return action.type === 'wear' && action.instanceId === app.instanceId;
       });
       if (wearActionIndex !== -1) {
         player.removeActionIndex(wearActionIndex);
@@ -192,7 +192,7 @@ export default (app, component) => {
     }
   });
 
-  const _unwear = (e) => {
+  const _unwear = e => {
     if (wearSpec) {
       // const physicsObjects = app.getPhysicsObjects();
       // for (const physicsObject of physicsObjects) {
@@ -202,27 +202,25 @@ export default (app, component) => {
       modelBones = null;
     }
   };
-  
-  const resetweartransform = (e) => {
+
+  const resettransform = e => {
     if (e.player) {
       player = e.player;
       const avatarHeight = e.player.avatar ? e.player.avatar.height : 0;
       e.app.position
-      .copy(e.player.position)
-      .add(
-        localVector
-          .set(0, -avatarHeight + 0.5, -1.0)
-          .applyQuaternion(e.player.quaternion)
-      );
+        .copy(e.player.position)
+        .add(
+          localVector
+            .set(0, -avatarHeight + 0.5, -1.0)
+            .applyQuaternion(e.player.quaternion),
+        );
       e.app.quaternion.identity();
       e.app.scale.set(1, 1, 1);
       e.app.updateMatrixWorld();
     }
-  }
-  
-  app.addEventListener("resetweartransform", (e) => {
-    resetweartransform(e);
-  });
+  };
+
+  app.addEventListener('resettransform', resettransform);
 
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
@@ -270,7 +268,7 @@ export default (app, component) => {
         localVector2.copy(upVector).normalize(),
       ));
 
-      localMatrix.lookAt(eyeVector, targetVector, upVector)
+      localMatrix.lookAt(eyeVector, targetVector, upVector);
       app.quaternion.setFromRotationMatrix(localMatrix);
       app.quaternion.multiply(playerQuaternion);
     }
@@ -297,15 +295,15 @@ export default (app, component) => {
         const {animations} = app.glb;
 
         const appAnimation = appAimAction?.appAnimation
-          ? animations.find((a) => a.name === appAimAction.appAnimation)
+          ? animations.find(a => a.name === appAimAction.appAnimation)
           : null;
         if (appAnimation && !appAimAnimationMixers) {
           const clip = animations.find(
-            (a) => a.name === appAimAction.appAnimation
+            a => a.name === appAimAction.appAnimation,
           );
           if (clip) {
             appAimAnimationMixers = [];
-            app.glb.scene.traverse((o) => {
+            app.glb.scene.traverse(o => {
               if (o.isMesh) {
                 const mixer = new THREE.AnimationMixer(o);
 
@@ -355,7 +353,7 @@ export default (app, component) => {
       }
     }
 
-    const petComponent = app.getComponent("pet");
+    const petComponent = app.getComponent('pet');
     if (!petComponent) {
       if (appAimAnimationMixers) {
         const deltaSeconds = timeDiff / 1000;
@@ -374,8 +372,8 @@ export default (app, component) => {
   return {
     remove() {
       // console.log('wear component remove');
-      app.removeEventListener("wearupdate", wearupdate);
-      app.removeEventListener("resetweartransform", resetweartransform);
+      app.removeEventListener('wearupdate', wearupdate);
+      app.removeEventListener('resettransform', resettransform);
       metaversefile.clearFrame(frame);
 
       _unwear();

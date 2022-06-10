@@ -151,7 +151,7 @@ export const genPic = async ({
   };
   const _animate = (timestamp, timeDiff) => {
     // console.log('got position', player.position.y);
-    player.updateAvatar(timestamp, timeDiff);
+    player.update(timestamp, timeDiff);
   };
   /* const _lookAt = (camera, boundingBox) => {
     camera.position.copy(player.position)

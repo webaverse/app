@@ -8,8 +8,6 @@ import {
   getEyePosition,
 } from './avatars/util.mjs';
 
-const appSymbol = 'app'; // Symbol('app');
-const avatarSymbol = 'avatar'; // Symbol('avatar');
 const maxMirrorDistanace = 3;
 
 const localVector = new THREE.Vector3();
@@ -49,22 +47,20 @@ export function applyPlayerModesToAvatar(player, session, rig) {
   );
 }
 export function makeAvatar(app) {
-  if (app) {
-    const {skinnedVrm} = app;
-    if (skinnedVrm) {
-      const avatar = new Avatar(skinnedVrm, {
-        fingers: true,
-        hair: true,
-        visemes: true,
-        debug: false,
-      });
-      avatar[appSymbol] = app;
-      
-      unFrustumCull(app);
-      enableShadows(app);
-      
-      return avatar;
-    }
+  const {skinnedVrm} = app;
+  if (skinnedVrm) {
+    const avatar = new Avatar(skinnedVrm, {
+      fingers: true,
+      hair: true,
+      visemes: true,
+      debug: false,
+    });
+    avatar.app = app;
+
+    unFrustumCull(app);
+    enableShadows(app);
+
+    return avatar;
   }
   return null;
 }
@@ -101,7 +97,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
-  
+
   const _handleUse = () => {
     if (useAction?.animation) {
       rig.useAnimation = useAction.animation;
@@ -143,7 +139,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   };
   _handlePickUp();
 
-  rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
+  rig.manuallySetMouth = player.characterBehavior.manuallySetMouth;
   rig.vowels[1] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[1];
   rig.vowels[2] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[2];
   rig.vowels[3] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[3];
@@ -245,46 +241,30 @@ export function applyPlayerPoseToAvatar(player, rig) {
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
-  
+
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
-  
+
   applyFacePoseToAvatar(player, rig);
   applyPlayerPoseToAvatar(player, rig);
 }
 
-export function switchAvatar(oldAvatar, newApp) {
-  let result;
-
-  oldAvatar && oldAvatar[appSymbol].toggleBoneUpdates(true);
-
-  if (newApp) {
-    newApp.toggleBoneUpdates(true);
-    if (!newApp[avatarSymbol]) {
-      newApp[avatarSymbol] = makeAvatar(newApp);
-    }
-    result = newApp[avatarSymbol];
-  } else {
-    result = null;
-  }
-  return result;
-}
 /* export async function switchAvatar(oldAvatar, newApp) {
   let result;
   const promises = [];
   if (oldAvatar) {
     promises.push((async () => {
-      await oldAvatar[appSymbol].setSkinning(false);
+      await oldAvatar.app.setSkinning(false);
     })());
   }
   if (newApp) {
     // promises.push((async () => {
     newApp.toggleBoneUpdates(true);
-      if (!newApp[avatarSymbol]) {
-        newApp[avatarSymbol] = makeAvatar(newApp);
+      if (!newApp.avatar) {
+        newApp.avatar = makeAvatar(newApp);
       }
-      result = newApp[avatarSymbol];
+      result = newApp.avatar;
     // })());
   } else {
     result = null;
