@@ -28,13 +28,17 @@ class AnimNodeBlend2 extends AnimNode {
       }
       if (this.factor === this.crossFadeTargetFactor) this.isCrossFade = false;
     }
+    this.children[0].weight = 1 - this.factor;
+    this.children[1].weight = this.factor;
 
     // do blend
-    const value0 = this.mixer.doBlend(this.children[0], spec);
-    const value1 = this.mixer.doBlend(this.children[1], spec);
-    const result = [];
-    AnimMixer.copyArray(result, value0);
-    AnimMixer.interpolateFlat(result, result, value1, this.factor);
+    // const value0 = this.mixer.doBlend(this.children[0], spec);
+    // const value1 = this.mixer.doBlend(this.children[1], spec);
+    // const result = [];
+    // AnimMixer.copyArray(result, value0);
+    // AnimMixer.interpolateFlat(result, result, value1, this.factor);
+
+    const result = this.doBlendList(spec);
     return result;
   }
 

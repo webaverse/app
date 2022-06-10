@@ -146,15 +146,35 @@ export function applyPlayerActionsToAvatar(player, rig) {
         rig.useAnimationCombo = [];
       }
     }
+    rig.useState = useAction?.animation;
+    // start/end event
+    rig.useStart = false;
+    rig.useEnd = false;
+    if (rig.useState !== rig.lastUseState) {
+      if (rig.useState) rig.useStart = true;
+      else rig.useEnd = true;
+    }
+    rig.lastUseState = rig.useState;
+    //
     rig.useComboState = useAction?.animationCombo;
     // start/end event
     rig.useComboStart = false;
     rig.useComboEnd = false;
-    if (rig.useComboState !== rig.lastUseComboState) {
+    if (rig.useComboState !== rig.lastUseComboState) { // after index changed, will same array values but different array
       if (rig.useComboState) rig.useComboStart = true;
       else rig.useComboEnd = true;
     }
     rig.lastUseComboState = rig.useComboState;
+    //
+    rig.useEnvelopeState = useAction?.animationEnvelope;
+    // start/end event
+    rig.useEnvelopeStart = false;
+    rig.useEnvelopeEnd = false;
+    if (rig.useEnvelopeState !== rig.lastUseEnvelopeState) {
+      if (rig.useEnvelopeState) rig.useEnvelopeStart = true;
+      else rig.useEnvelopeEnd = true;
+    }
+    rig.lastUseEnvelopeState = rig.useEnvelopeState;
     //
     if (useAction?.animationEnvelope) {
       rig.useAnimationEnvelope = useAction.animationEnvelope;

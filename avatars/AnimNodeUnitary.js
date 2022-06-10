@@ -47,29 +47,7 @@ class AnimNodeUnitary extends AnimNode {
     }
 
     // do blend
-    const result = []; // todo: resultBuffer ( refer to threejs );
-    // let result;
-    let nodeIndex = 0;
-    let currentWeight = 0;
-    for (let i = 0; i < this.children.length; i++) {
-      const childNode = this.children[i];
-      if (childNode.weight > 0) {
-        const value = this.mixer.doBlend(childNode, spec);
-        if (nodeIndex === 0) {
-          // result = value; // todo: will change original data?
-          AnimMixer.copyArray(result, value);
-
-          nodeIndex++;
-          currentWeight = childNode.weight;
-        } else if (childNode.weight > 0) { // todo: handle weight < 0 ?
-          const t = childNode.weight / (currentWeight + childNode.weight);
-          AnimMixer.interpolateFlat(result, result, value, t);
-
-          nodeIndex++;
-          currentWeight += childNode.weight;
-        }
-      }
-    }
+    const result = this.doBlendList(spec);
     return result;
   }
 
@@ -78,6 +56,12 @@ class AnimNodeUnitary extends AnimNode {
     this.isCrossFade = true;
     this.crossFadeDuration = duration;
     this.crossFadeStartTime = AnimMixer.timeS;
+
+    // this.dispatchEvent({
+    //   type: 'switch',
+    //   from: this.activeNode,
+    //   to: this.targetNode,
+    // });
 
     // this.lastActiveNode = this.activeNode;
     this.activeNode = targetNode;

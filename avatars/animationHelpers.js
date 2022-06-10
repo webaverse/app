@@ -452,14 +452,16 @@ export const _createAnimation = avatar => {
       avatar.useMotiono[k] = avatar.mixer.createMotion(animation);
     }
   }
-  avatar.useMotiono.swordSideSlash.loop = LoopOnce;
-  avatar.useMotiono.swordSideSlash.stop();
-  avatar.useMotiono.swordSideSlashStep.loop = LoopOnce;
-  avatar.useMotiono.swordSideSlashStep.stop();
-  avatar.useMotiono.swordTopDownSlash.loop = LoopOnce;
-  avatar.useMotiono.swordTopDownSlash.stop();
-  avatar.useMotiono.swordTopDownSlashStep.loop = LoopOnce;
-  avatar.useMotiono.swordTopDownSlashStep.stop();
+  avatar.useMotiono.combo.loop = LoopOnce; avatar.useMotiono.combo.stop();
+  // combo
+  avatar.useMotiono.swordSideSlash.loop = LoopOnce; avatar.useMotiono.swordSideSlash.stop();
+  avatar.useMotiono.swordSideSlashStep.loop = LoopOnce; avatar.useMotiono.swordSideSlashStep.stop();
+  avatar.useMotiono.swordTopDownSlash.loop = LoopOnce; avatar.useMotiono.swordTopDownSlash.stop();
+  avatar.useMotiono.swordTopDownSlashStep.loop = LoopOnce; avatar.useMotiono.swordTopDownSlashStep.stop();
+  // envelope
+  avatar.useMotiono.bowDraw.loop = LoopOnce; avatar.useMotiono.bowDraw.stop();
+  // avatar.useMotiono.bowIdle.loop = LoopOnce; avatar.useMotiono.bowIdle.stop();
+  avatar.useMotiono.bowLoose.loop = LoopOnce; avatar.useMotiono.bowLoose.stop();
 
   // LoopOnce
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
@@ -523,11 +525,16 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.flyMotion);
   avatar.actionsNode.addChild(avatar.activateMotion);
   avatar.actionsNode.addChild(avatar.narutoRunMotion);
+  avatar.actionsNode.addChild(avatar.useMotiono.combo);
   // combo
   avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlash);
   avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlashStep);
   avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlash);
   avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlashStep);
+  // envolope
+  avatar.actionsNode.addChild(avatar.useMotiono.bowDraw);
+  avatar.actionsNode.addChild(avatar.useMotiono.bowIdle);
+  avatar.actionsNode.addChild(avatar.useMotiono.bowLoose);
 
   // avatar.jumpNode = new AnimNodeBlend2('jump', avatar.mixer);
   // avatar.jumpNode.addChild(avatar.defaultNode);
@@ -539,10 +546,56 @@ export const _createAnimation = avatar => {
 
   avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
 
+  // const handleAnimationEnd = event => {
+  //   if ([
+  //     avatar.useMotiono.combo,
+  //     avatar.useMotiono.swordSideSlash,
+  //     avatar.useMotiono.swordSideSlashStep,
+  //     avatar.useMotiono.swordTopDownSlash,
+  //     avatar.useMotiono.swordTopDownSlashStep,
+  //   ].includes(event.motion)) {
+  //     console.log('animationEnd', event.motion.name);
+  //     game.handleAnimationEnd();
+  //   }
+  // };
+
   avatar.mixer.addEventListener('finished', event => {
-    console.log('finished', event.motion.name);
-    game.handleAnimationFinished();
+    console.log('finished', event.motion.name, !!avatar.useEnvelopeState);
+    // // handleAnimationEnd(event);
+    // if ([
+    //   avatar.useMotiono.combo,
+    //   avatar.useMotiono.swordSideSlash,
+    //   avatar.useMotiono.swordSideSlashStep,
+    //   avatar.useMotiono.swordTopDownSlash,
+    //   avatar.useMotiono.swordTopDownSlashStep,
+    // ].includes(event.motion)) {
+    //   // console.log('animationEnd', event.motion.name);
+    //   game.handleAnimationEnd();
+    // }
+
+    if (avatar.useEnvelopeState && event.motion === avatar.useMotiono.bowDraw) {
+      avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowIdle);
+    }
+    if (event.motion === avatar.useMotiono.bowLoose) {
+      avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    }
   });
+  // avatar.mixer.addEventListener('stopped', event => { // handle situations such as sword attacks stopped by jump
+  //   // console.log('stopped', event.motion.name);
+  //   // handleAnimationEnd(event);
+  // });
+  // avatar.actionsNode.addEventListener('switch', event => { // handle situations such as sword attacks stopped by jump
+  //   // handleAnimationEnd(event);
+  //   if (![
+  //     avatar.useMotiono.combo,
+  //     avatar.useMotiono.swordSideSlash,
+  //     avatar.useMotiono.swordSideSlashStep,
+  //     avatar.useMotiono.swordTopDownSlash,
+  //     avatar.useMotiono.swordTopDownSlashStep,
+  //   ].includes(event.to)) {
+  //     game.handleAnimationEnd();
+  //   }
+  // });
 };
 
 export const _updateAnimation = avatar => {
@@ -612,7 +665,19 @@ export const _updateAnimation = avatar => {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
 
+  if (avatar.useStart) {
+    // console.log('useStart');
+    const useAnimationName = avatar.useAnimation;
+    avatar.useMotiono[useAnimationName].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+  }
+  if (avatar.useEnd) {
+    // console.log('useEnd');
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
+
   if (avatar.useComboStart) {
+    // console.log('useComboStart');
     const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
     avatar.useMotiono[useAnimationName].play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
@@ -620,6 +685,26 @@ export const _updateAnimation = avatar => {
   if (avatar.useComboEnd) {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
+
+  if (avatar.useEnvelopeStart) {
+    // console.log('useEnvelopeStart');
+    const useAnimationName = avatar.useAnimationEnvelope[0];
+    avatar.useMotiono[useAnimationName].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+  }
+  if (avatar.useEnvelopeEnd) {
+    // console.log('useEnvelopeEnd');
+    if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
+      avatar.useMotiono.bowLoose.play();
+      avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowLoose); // todo: useAnimationEnvelope[2]
+    } else {
+      avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    }
+  }
+
+  // window.domInfo.innerHTML += `<div style="display:;">useComboStart: --- ${window.logNum(avatar.useComboStart)}</div>`;
+
+  // console.log(avatar.useComboStart, avatar.useComboEnd);
 
   //
 
