@@ -87,7 +87,7 @@ export class FreeList {
       }
     }
   }
-  getGeometryGroups() {
+  /* getGeometryGroups() {
     const groups = [];
     for (const slot of this.slots) {
       if (slot.used) {
@@ -99,7 +99,7 @@ export class FreeList {
       }
     }
     return groups;
-  }
+  } */
 }
 
 export class GeometryPositionIndexBinding {
@@ -148,6 +148,18 @@ export class GeometryAllocator {
   free(geometryBinding) {
     this.positionFreeList.free(geometryBinding.positionFreeListEntry);
     this.indexFreeList.free(geometryBinding.indexFreeListEntry);
+  }
+  getDrawSpec(drawStarts, drawCounts) {
+    drawStarts.length = 0;
+    drawCounts.length = 0;
+
+    for (let i = 0; i < this.indexFreeList.slots.length; i++) {
+      const slot = this.indexFreeList.slots[i];
+      if (slot.used) {
+        drawStarts.push(slot.start * this.geometry.index.array.BYTES_PER_ELEMENT);
+        drawCounts.push(slot.count);
+      }
+    }
   }
 }
 
@@ -398,6 +410,18 @@ export class InstancedGeometryAllocator {
       multiDrawCounts[i] = this.drawCounts[i];
       multiDrawInstanceCounts[i] = this.drawInstanceCounts[i];
     }
+  }
+}
+
+export class BatchedMesh extends THREE.Mesh {
+  constructor(geometry, material, allocator) {
+    super(geometry, material);
+    
+    this.isBatchedMesh = true;
+    this.allocator = allocator;
+  }
+	getDrawSpec(drawStarts, drawCounts) {
+    this.allocator.getDrawSpec(drawStarts, drawCounts);
   }
 }
 
