@@ -149,7 +149,7 @@ class Player extends THREE.Object3D {
   constructor({
     name = defaultPlayerName,
     playerId = makeId(5),
-    playersArray = new Z.Doc().getArray(playersMapName),
+    playersArray = new Z.Doc().getArray(playersMapName)
   } = {}) {
     super();
     this.playerId = playerId;
@@ -188,21 +188,24 @@ class Player extends THREE.Object3D {
       this.rightHand,
     ];
 
-    this.appManager = new AppManager({
-      appsMap: null,
-    });
-    this.appManager.addEventListener('appadd', e => {
-      if (!this.detached) {
-        const app = e.data;
-        scene.add(app);
-      }
-    });
-    this.appManager.addEventListener('appremove', e => {
-      if (!this.detached) {
-        const app = e.data;
-        app.parent && app.parent.remove(app);
-      }
-    });
+    const _prepareAppManager = () => {
+      this.appManager = new AppManager({
+        appsMap: null,
+      });
+      this.appManager.addEventListener('appadd', e => {
+        if (!this.detached) {
+          const app = e.data;
+          scene.add(app);
+        }
+      });
+      this.appManager.addEventListener('appremove', e => {
+        if (!this.detached) {
+          const app = e.data;
+          app.parent && app.parent.remove(app);
+        }
+      });
+    }
+    _prepareAppManager();
 
     this.bindState(playersArray);
   }
@@ -450,6 +453,7 @@ class Player extends THREE.Object3D {
           this.unwear(app, {
             destroy: true,
           });
+          console.warn("Calling destroy with unwear because oldLoadoutAction is", oldLoadoutAction);
         }
       };
       _removeOldApp();
@@ -624,8 +628,27 @@ class Player extends THREE.Object3D {
   unbindState() {
     this.playersArray = null;
     this.playerMap = null;
+    if(!this.unbindFns) return;
+    for (const unbindFn of this.unbindFns) {
+      unbindFn();
+    }
+    this.unbindFns.length = 0;
   }
-  bindCommonObservers() {
+  bindState(nextPlayersArray) {
+    // latch old state
+    const oldState = this.detachState();
+
+    // unbind
+    this.unbindState();
+    this.appManager.unbindState();
+    
+    this.playersArray = nextPlayersArray;
+    if (!this.playersArray) return console.warn("this.playersArray is null")
+
+    // note: leave the old state as is
+    // it is the host's responsibility to garbage collect us when we disconnect.
+    this.attachState(oldState);
+
     const actions = this.getActionsState();
     let lastActions = actions.toJSON();
     const observeActionsFn = (e) => {
@@ -668,12 +691,10 @@ class Player extends THREE.Object3D {
     const observeAvatarFn = async () => {
       // we are in an observer and we want to perform a state transaction as a result
       // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
-      // await Promise.resolve();
-      
+      await Promise.resolve();
       const instanceId = this.getAvatarInstanceId();
       if (lastAvatarInstanceId !== instanceId) {
         lastAvatarInstanceId = instanceId;
-
         this.syncAvatar();
       }
     };
@@ -688,32 +709,8 @@ class Player extends THREE.Object3D {
     };
     this.unbindFns.push(_cancelSyncAvatar);
   }
-  unbindCommonObservers() {
-    for (const unbindFn of this.unbindFns) {
-      unbindFn();
-    }
-    this.unbindFns.length = 0;
-  }
-  bindState(nextPlayersArray) {
-    // latch old state
-    const oldState = this.detachState();
-
-    // unbind
-    this.unbindState();
-    this.appManager.unbindState();
-    this.unbindCommonObservers();
-    
-    // note: leave the old state as is. it is the host's responsibility to garbage collect us when we disconnect.
-
-    // blindly add to new state
-    this.playersArray = nextPlayersArray;
-    if (this.playersArray) {
-      this.attachState(oldState);
-      this.bindCommonObservers();
-    }
-  }
   getAvatarInstanceId() {
-    return this.getAvatarState().get("instanceId") ?? "";
+    return this.getAvatarState().get("instanceId");
   }
   localVector = [0, 0, 0];
   localQuaternion = [0, 0, 0, 1];
@@ -775,20 +772,15 @@ class Player extends THREE.Object3D {
       return console.warn("Can't change avatar, instance id is null")
     }
 
-    // add next app from player app manager
     let nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
-    // console.log('add next avatar local', nextAvatarApp);
     if (nextAvatarApp) {
       _setNextAvatarApp(nextAvatarApp);
     } else {
-      // add next app from world app manager
       nextAvatarApp = world.appManager.getAppByInstanceId(instanceId);
-      // console.log('add next avatar world', nextAvatarApp);
       if (nextAvatarApp) {
         world.appManager.transplantApp(nextAvatarApp, this.appManager);
         _setNextAvatarApp(nextAvatarApp);
       } else {
-        // add next app from currently loading apps
         const addPromise = this.appManager.pendingAddPromises.get(instanceId);
         if (addPromise) {
           const nextAvatarApp = await addPromise;
@@ -853,7 +845,6 @@ class Player extends THREE.Object3D {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
   }
   addAction(action) {
-    // console.log("Adding action", action, new Error().stack)
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);
@@ -896,6 +887,12 @@ class Player extends THREE.Object3D {
     actions.push([action]);
   }
   destroy() {
+    this.characterPhysics?.destroy();
+    this.characterHups?.destroy();
+    this.characterSfx?.destroy();
+    this.characterFx?.destroy();
+    this.characterBehavior?.destroy();
+
     if (this.isLocalPlayer) {
       const wearActions = Array.from(this.getActionsState()).filter(
         (action) => action.type === "wear"
@@ -1226,11 +1223,11 @@ class LocalPlayer extends Player {
     this.characterBehavior.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff, true);
-    this.appManager.tick(timestamp, timeDiff, frame);
     this.updateWearables();
 
     this.pushPlayerUpdates(timeDiff);
-    this.appManager.pushAppUpdates();
+    this.appManager.tick(timestamp, timeDiff, frame);
+    this.appManager.update();
   }
   /* teleportTo = (() => {
     const localVector = new THREE.Vector3();
@@ -1285,83 +1282,77 @@ class LocalPlayer extends Player {
       this.resetPhysics();
     };
   })() */
-  destroy() {
-    this.characterPhysics.destroy();
-    this.characterHups.destroy();
-    this.characterSfx.destroy();
-    this.characterFx.destroy();
-    this.characterBehavior.destroy();
-
-    super.destroy();
-  }
 }
 
 // Any player simulated on another machine that is not this client
 class RemotePlayer extends Player {
   constructor(opts) {
     super(opts);
-    this.isRemotePlayer = true;
+
     this.audioWorkletNode = null;
 
-    this.positionInterpolant = new PositionInterpolant(
-      () => this.getPosition(),
-      avatarInterpolationTimeDelay,
-      avatarInterpolationNumFrames
-    );
-    this.quaternionInterpolant = new QuaternionInterpolant(
-      () => this.getQuaternion(),
-      avatarInterpolationTimeDelay,
-      avatarInterpolationNumFrames
-    );
-
-    this.actionBinaryInterpolants = {
-      crouch: new BinaryInterpolant(() => this.hasAction('crouch'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      activate: new BinaryInterpolant(() => this.hasAction('activate'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      use: new BinaryInterpolant(() => this.hasAction('use'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      pickUp: new BinaryInterpolant(() => this.hasAction('pickUp'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      aim: new BinaryInterpolant(() => this.hasAction('aim'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      narutoRun: new BinaryInterpolant(() => this.hasAction('narutoRun'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      emote: new BinaryInterpolant(() => this.hasAction('emote'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // swordSideSlash: new BinaryInterpolant(() => this.hasAction('swordSideSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // swordTopDownSlash: new BinaryInterpolant(() => this.hasAction('swordTopDownSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      hurt: new BinaryInterpolant(
-        () => this.hasAction("hurt"),
+    const _setupInterpolation = () => {
+      this.positionInterpolant = new PositionInterpolant(
+        () => this.getPosition(),
         avatarInterpolationTimeDelay,
         avatarInterpolationNumFrames
-      ),
-    };
-    this.actionBinaryInterpolantsArray = Object.keys(this.actionBinaryInterpolants).map(k => this.actionBinaryInterpolants[k]);
-    this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, crouchMaxTime),
-      activate: new UniActionInterpolant(() => this.actionBinaryInterpolants.activate.get(), 0, activateMaxTime),
-      use: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.use.get(), 0),
-      pickUp: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.pickUp.get(), 0),
-      unuse: new InfiniteActionInterpolant(() => !this.actionBinaryInterpolants.use.get(), 0),
-      aim: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.aim.get(), 0),
-      aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
-      aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
-      narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
-      fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
-      jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
-      dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
-      emote: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.emote.get(), 0),
-      // throw: new UniActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0, throwMaxTime),
-      // chargeJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJump.get(), 0),
-      // standCharge: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.standCharge.get(), 0),
-      // fallLoop: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0),
-      // swordSideSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordSideSlash.get(), 0),
-      // swordTopDownSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordTopDownSlash.get(), 0),
-      hurt: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.hurt.get(), 0),
-    };
-    
-    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map((k) => this.actionInterpolants[k]);
+      );
+      this.quaternionInterpolant = new QuaternionInterpolant(
+        () => this.getQuaternion(),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames
+      );
+
+      this.actionBinaryInterpolants = {
+        crouch: new BinaryInterpolant(() => this.hasAction('crouch'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        activate: new BinaryInterpolant(() => this.hasAction('activate'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        use: new BinaryInterpolant(() => this.hasAction('use'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        pickUp: new BinaryInterpolant(() => this.hasAction('pickUp'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        aim: new BinaryInterpolant(() => this.hasAction('aim'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        narutoRun: new BinaryInterpolant(() => this.hasAction('narutoRun'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        emote: new BinaryInterpolant(() => this.hasAction('emote'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        // throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        // chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        // standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        // fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        // swordSideSlash: new BinaryInterpolant(() => this.hasAction('swordSideSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        // swordTopDownSlash: new BinaryInterpolant(() => this.hasAction('swordTopDownSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+        hurt: new BinaryInterpolant(
+          () => this.hasAction("hurt"),
+          avatarInterpolationTimeDelay,
+          avatarInterpolationNumFrames
+        ),
+      };
+      this.actionBinaryInterpolantsArray = Object.keys(this.actionBinaryInterpolants).map(k => this.actionBinaryInterpolants[k]);
+      this.actionInterpolants = {
+        crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, crouchMaxTime),
+        activate: new UniActionInterpolant(() => this.actionBinaryInterpolants.activate.get(), 0, activateMaxTime),
+        use: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.use.get(), 0),
+        pickUp: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.pickUp.get(), 0),
+        unuse: new InfiniteActionInterpolant(() => !this.actionBinaryInterpolants.use.get(), 0),
+        aim: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.aim.get(), 0),
+        aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
+        aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
+        narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
+        fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
+        jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
+        dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
+        emote: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.emote.get(), 0),
+        // throw: new UniActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0, throwMaxTime),
+        // chargeJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJump.get(), 0),
+        // standCharge: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.standCharge.get(), 0),
+        // fallLoop: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0),
+        // swordSideSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordSideSlash.get(), 0),
+        // swordTopDownSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordTopDownSlash.get(), 0),
+        hurt: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.hurt.get(), 0),
+      };
+      
+      this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map((k) => this.actionInterpolants[k]);
+    }
+    _setupInterpolation();
 
     this.avatarBinding = {
       position: this.positionInterpolant.get(),
@@ -1414,25 +1405,8 @@ class RemotePlayer extends Player {
       this.audioDecoder.decode(data.data);
     }
   }
-
-  detachState() {
-    const oldActions = this.playersArray
-      ? this.getActionsState()
-      : new Z.Array();
-    const oldAvatar = (
-      this.playersArray ? this.getAvatarState() : new Z.Map()
-    ).toJSON();
-    const oldApps = (
-      this.playersArray ? this.getAppsState() : new Z.Array()
-    ).toJSON();
-
-    return {
-      oldActions,
-      oldAvatar,
-      oldApps,
-    };
-  }
   update(timestamp, timeDiff) {
+    this.appManager.update()
     if (!this.avatar) return console.warn ("Can't update remote player, avatar is null");
     this.updateInterpolation(timeDiff);
     const mirrors = metaversefile.getMirrors();
@@ -1443,9 +1417,6 @@ class RemotePlayer extends Player {
     this.characterFx?.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff, false);
-  }
-  getSession() {
-    return null;
   }
   attachState(oldState) {
     console.log("oldState is", oldState);
@@ -1535,8 +1506,8 @@ class RemotePlayer extends Player {
     this.appManager.bindStateRemote(this.getAppsState());
     this.appManager.loadApps();
     this.appManager.callBackFn = (app, event, flag) => {
+      console.log("app callback", app, event, flag);
       if (event == "wear") {
-        console.log("********* WEAR -- ", app, event, flag);
         if (flag === "remove") {
           this.unwear(app);
         }
@@ -1546,17 +1517,6 @@ class RemotePlayer extends Player {
       }
     };
   }
-
-  destroy() {
-    this.characterPhysics.destroy();
-    this.characterHups.destroy();
-    this.characterSfx.destroy();
-    this.characterFx.destroy();
-    this.characterBehavior.destroy();
-
-    super.destroy();
-  }
-
   getSession() {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();

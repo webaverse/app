@@ -5,7 +5,7 @@ usually, code starts here and is migrated to an appropriate manager.
 */
 
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import physx from './physx.js';
 import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
@@ -126,7 +126,7 @@ function updateGrabbedObject(
 const _getCurrentGrabAnimation = () => {
   let currentAnimation = '';
   const localPlayer = getLocalPlayer();
-
+  console.log("grabUseMesh is", grabUseMesh, "grabUseMesh.targetApp", grabUseMesh.targetApp)
   const wearComponent = grabUseMesh.targetApp.getComponent('wear');
   if (wearComponent && wearComponent.grabAnimation === 'pick_up') {
     currentAnimation = wearComponent.grabAnimation;
@@ -1235,18 +1235,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateUse();
 };
-const _pushAppUpdates = () => {
-  world.appManager.pushAppUpdates();
-  
-  const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
-  for (const remotePlayer of remotePlayers) {
-    remotePlayer.appManager.pushAppUpdates();
-  }
-};
-const _pushPlayerUpdates = () => {
-  const localPlayer = getLocalPlayer();
-  localPlayer.pushPlayerUpdates();
-};
 
 const rotationSnap = Math.PI / 6;
 
@@ -1946,8 +1934,6 @@ class GameManager extends EventTarget {
     // console.log('got scene', scene);
   }
   update = _gameUpdate;
-  pushAppUpdates = _pushAppUpdates;
-  pushPlayerUpdates = _pushPlayerUpdates;
 }
 const gameManager = new GameManager();
 export default gameManager;

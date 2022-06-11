@@ -71,6 +71,7 @@ class World {
     this.appManager.clear();
     this.appManager.bindStateLocal(state.getArray(appsMapName));
 
+    playersManager.unbindState();
     playersManager.bindState(state.getArray(playersMapName));
 
     const localPlayer = getLocalPlayer();
@@ -80,16 +81,6 @@ class World {
   async connectRoom(u, state = new Z.Doc()) {
     const localPlayer = getLocalPlayer();
 
-    this.appManager.unbindState();
-    this.appManager.clear();
-
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') {
-        console.log(state.getArray('world'));
-        console.log(state.getArray('players'));
-      }
-    });
-
     state.setResolvePriority(1);
     this.wsrtc = new WSRTC(u, {
       localPlayer,
@@ -97,10 +88,13 @@ class World {
     });
 
     const open = e => {
-      playersManager.unbindState();
-      this.appManager.unbindState();
       this.wsrtc.removeEventListener('open', open);
+
+      this.appManager.unbindState();
+      this.appManager.clear();
       this.appManager.bindState(state.getArray(appsMapName));
+
+      playersManager.unbindState();
       playersManager.bindState(state.getArray(playersMapName));
 
       const init = e => {
@@ -116,26 +110,16 @@ class World {
     };
     this.wsrtc.addEventListener('open', open);
 
-    // this.wsrtc.addEventListener('close', e => {
-    //   console.log('Channel Close!');
-    // }, {once: true});
-    // this.wsrtc.close = (close => function() {
-    //   close.apply(this, arguments);
-    // })(this.wsrtc.close);
-
     return this.wsrtc;
   }
 
   disconnectRoom() {
-    if (this.wsrtc) {
-      this.wsrtc.close();
-      this.wsrtc = null;
-    }
+    this.wsrtc = null;
   }
 
   update(timestamp, timeDiffCapped, frame) {
     this.appManager.tick(timestamp, timeDiffCapped, frame);
-    this.appManager.pushAppUpdates();
+    this.appManager.update(timestamp, timeDiffCapped, frame);
   }
 }
 

@@ -4,7 +4,7 @@ player objects load their own avatar and apps using this binding */
 // import * as THREE from 'three';
 import * as Z from 'zjs';
 import {RemotePlayer} from './character-controller.js';
-import {getLocalPlayer} from './players.js'
+import {getLocalPlayer} from './players.js';
 import metaversefileApi from 'metaversefile';
 
 Error.stackTraceLimit = 300;
@@ -18,9 +18,11 @@ class PlayersManager {
 
     this.unbindStateFn = null;
   }
+
   getPlayersState() {
     return this.playersArray;
   }
+
   unbindState() {
     const lastPlayers = this.playersArray;
     if (lastPlayers) {
@@ -47,74 +49,74 @@ class PlayersManager {
       this.unbindStateFn = null;
     }
   }
+
   bindState(nextPlayersArray) {
     this.unbindState();
 
     this.playersArray = nextPlayersArray;
 
-    if (this.playersArray) {
-      const localPlayer = getLocalPlayer();
+    if (!this.playersArray) return console.warn('Skipping bindState because playersArray is null');
+    const localPlayer = getLocalPlayer();
 
-      const playersObserveFn = (e) => {
-        const { added, deleted, delta, keys } = e.changes;
-        
-        const values = Array.from(added.values());
-        for (const item of added.values()) {
-          let playerMap = item.content.type;
-          if (playerMap.constructor === Object) {
-            for (let i = 0; i < this.playersArray.length; i++) {
-              const localPlayerMap = this.playersArray.get(i, Z.Map); // force to be a map
-              if (localPlayerMap.binding === item.content.type) {
-                playerMap = localPlayerMap;
-                break;
-              }
+    const playersObserveFn = e => {
+      const {added, deleted, delta, keys} = e.changes;
+
+      const values = Array.from(added.values());
+      for (const item of added.values()) {
+        let playerMap = item.content.type;
+        if (playerMap.constructor === Object) {
+          for (let i = 0; i < this.playersArray.length; i++) {
+            const localPlayerMap = this.playersArray.get(i, Z.Map); // force to be a map
+            if (localPlayerMap.binding === item.content.type) {
+              playerMap = localPlayerMap;
+              break;
             }
           }
-
-          const playerId = playerMap.get('playerId');
-          const name = playerMap.get('name');
-
-          if (playerId !== localPlayer.playerId) {
-            // console.log('add player', playerId, this.playersArray.toJSON());
-
-            const remotePlayer = new RemotePlayer({
-              name,
-              playerId,
-              playersArray: this.playersArray,
-            });
-            this.remotePlayers.set(playerId, remotePlayer);
-            this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
-
-             // reset remote player's voicer
-             remotePlayer.dispatchEvent({type: "resetvoicer"});
-          }
         }
-        // console.log('players observe', added, deleted);
-        for (const item of deleted.values()) {
-          // console.log('player remove 1', item);
-          const playerId = item.content.type._map.get('playerId').content.arr[0]; // needed to get the old data
-          // console.log('player remove 2', playerId, localPlayer.playerId);
 
-          if (playerId !== localPlayer.playerId) {
-            // console.log('remove player 3', playerId);
+        const playerId = playerMap.get('playerId');
+        const name = playerMap.get('name');
 
-            const remotePlayer = this.remotePlayers.get(playerId);
-            this.remotePlayers.delete(playerId);
-            // console.log("deleting remote player", remotePlayer);
-            this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
-            
-            remotePlayer.destroy();
-          }
+        if (playerId !== localPlayer.playerId) {
+          // console.log('add player', playerId, this.playersArray.toJSON());
+
+          const remotePlayer = new RemotePlayer({
+            name,
+            playerId,
+            playersArray: this.playersArray,
+          });
+          this.remotePlayers.set(playerId, remotePlayer);
+          this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
+
+          // reset remote player's voicer
+          remotePlayer.dispatchEvent({type: 'resetvoicer'});
         }
-      };
-      this.playersArray.observe(playersObserveFn);
-      this.unbindStateFn = this.playersArray.unobserve.bind(
-        this.playersArray,
-        playersObserveFn
-      );
-    }
+      }
+      // console.log('players observe', added, deleted);
+      for (const item of deleted.values()) {
+        // console.log('player remove 1', item);
+        const playerId = item.content.type._map.get('playerId').content.arr[0]; // needed to get the old data
+        // console.log('player remove 2', playerId, localPlayer.playerId);
+
+        if (playerId !== localPlayer.playerId) {
+          // console.log('remove player 3', playerId);
+
+          const remotePlayer = this.remotePlayers.get(playerId);
+          this.remotePlayers.delete(playerId);
+          // console.log("deleting remote player", remotePlayer);
+          this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
+
+          remotePlayer.destroy();
+        }
+      }
+    };
+    this.playersArray.observe(playersObserveFn);
+    this.unbindStateFn = this.playersArray.unobserve.bind(
+      this.playersArray,
+      playersObserveFn,
+    );
   }
 }
 const playersManager = new PlayersManager();
 
-export { playersManager };
+export {playersManager};

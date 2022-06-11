@@ -41,7 +41,6 @@ import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-// import domRenderEngine from './dom-renderer.jsx';
 import musicManager from './music-manager.js';
 import dcWorkerManager from './dc-worker-manager.js';
 import physxWorkerManager from './physx-worker-manager.js';
@@ -276,8 +275,6 @@ export default class Webaverse extends EventTarget {
   } */
 
   render(timestamp, timeDiff) {
-    // console.log('frame 1');
-
     const renderer = getRenderer();
     frameEvent.data.timestamp = timestamp;
     frameEvent.data.timeDiff = timeDiff;
@@ -291,8 +288,6 @@ export default class Webaverse extends EventTarget {
         context: renderer.getContext(),
       },
     }));
-
-    // console.log('frame 2');
   }
 
   async start(canvas, universe = null) {
@@ -310,49 +305,48 @@ export default class Webaverse extends EventTarget {
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
         const timeDiff = timestamp - lastTimestamp;
+        lastTimestamp = timestamp;
         const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
 
         performanceTracker.setGpuPrefix('pre');
-        const _pre = () => {
-          ioManager.update(timeDiffCapped);
+        const localPlayer = metaversefileApi.useLocalPlayer();
 
-          const localPlayer = metaversefileApi.useLocalPlayer();
+        // Update user input
+        ioManager.update(timeDiffCapped);
 
-          if (physicsManager.getPhysicsEnabled()) {
-            physicsManager.simulatePhysics(timeDiffCapped);
-            localPlayer.updatePhysics(timestamp, timeDiff);
-          }
+        // Update physics
+        if (physicsManager.getPhysicsEnabled()) {
+          physicsManager.simulatePhysics(timeDiffCapped);
+          localPlayer.updatePhysics(timestamp, timeDiff);
+        }
+        raycastManager.update(timestamp, timeDiffCapped);
 
-          transformControls.update();
-          raycastManager.update(timestamp, timeDiffCapped);
+        // Update game
+        transformControls.update();
+        game.update(timestamp, timeDiffCapped, frame);
+        mobManager.update(timestamp, timeDiffCapped);
+        hpManager.update(timestamp, timeDiffCapped);
+        questManager.update(timestamp, timeDiffCapped);
+        particleSystemManager.update(timestamp, timeDiffCapped);
 
-          game.update(timestamp, timeDiffCapped);
-          mobManager.update(timestamp, timeDiffCapped);
-          hpManager.update(timestamp, timeDiffCapped);
-          questManager.update(timestamp, timeDiffCapped);
-          particleSystemManager.update(timestamp, timeDiffCapped);
+        // Update app owners
+        world.update(timestamp, timeDiffCapped, frame);
+        localPlayer.update(timestamp, timeDiffCapped, frame);
+        for (const remotePlayer in playersManager.remotePlayers) {
+          remotePlayer.update(timestamp, timeDiff);
+        }
 
-          world.update(timestamp, timeDiffCapped, frame);
+        // After game loop, update camera pose
+        cameraManager.updatePost(timestamp, timeDiffCapped);
+        const session = renderer.xr.getSession();
+        const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
+        localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /* localMatrix2.multiplyMatrices( */xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld) */);
+        localMatrix2.copy(xrCamera.matrix)
+          .premultiply(dolly.matrix)
+          .decompose(localVector, localQuaternion, localVector2);
 
-          localPlayer.update(timestamp, timeDiffCapped, frame);
-
-          for (const remotePlayer in playersManager.remotePlayers) {
-            remotePlayer.update(timestamp, timeDiff);
-          }
-
-          cameraManager.updatePost(timestamp, timeDiffCapped);
-          ioManager.updatePost();
-
-          const session = renderer.xr.getSession();
-          const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /* localMatrix2.multiplyMatrices( */xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld) */);
-          localMatrix2.copy(xrCamera.matrix)
-            .premultiply(dolly.matrix)
-            .decompose(localVector, localQuaternion, localVector2);
-
-          lastTimestamp = timestamp;
-        };
-        _pre();
+        // Clean up input
+        ioManager.updatePost();
 
         // render scenes
         performanceTracker.setGpuPrefix('diorama');
