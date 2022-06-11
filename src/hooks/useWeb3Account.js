@@ -17,7 +17,7 @@ const ACCOUNT_DATA = {
   AVATAR: 'avatar',
 };
 
-export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
+export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
   const [accounts, setAccounts] = useState([]);
   const [currentAddress, setCurrentAddress] = useState('');
   const [errorMessage, setErrorMessage] = useState([]);
@@ -33,7 +33,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
       }
     }
     checkForAccounts();
-  }, []);
+  }, [currentChain]);
 
   const getProvider = () => {
     const {ethereum} = window;
