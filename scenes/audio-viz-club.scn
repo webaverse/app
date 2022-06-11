@@ -40,12 +40,32 @@
     },
     {
       "position": [
+        94,
+        5,
+        43
+      ],
+      "physics": true,
+      "start_url": "https://webaverse.github.io/AV-Speaker/index.js",
+      "dynamic": false
+    },    
+    {
+      "position": [
+        45,
+        5,
+        43
+      ],
+      "physics": true,
+      "start_url": "https://gitwillg.github.io/react-speaker/index.js",
+      "dynamic": false
+    },
+    {
+      "position": [
         0,
         0,
         0
       ],
       "physics": true,
-      "start_url": "http://localhost/lib/webaverse_resource/neon-club-main/index.js",
+      "start_url": "https://gitwillg.github.io/neon-club/index.js",
       "dynamic": false
     }
   ]

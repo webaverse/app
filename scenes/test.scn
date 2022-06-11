@@ -47,7 +47,7 @@
       "position": [
         3,
         0,
-        0
+        10
       ],
       "physics": true,
       "start_url": "https://gitwillg.github.io/react-speaker/index.js",
