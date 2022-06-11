@@ -11,10 +11,16 @@ import {
   getConnectedAccounts,
   requestAccounts,
 } from './rpcHelpers';
+import {ethers} from 'ethers';
 
 const EVENTS = {
   CHAIN_CHANGED: 'chainChanged',
   ACCOUNTS_CHANGE: 'accountsChanged',
+};
+
+const ACCOUNT_DATA = {
+  EMAIL: 'email',
+  AVATAR: 'avatar',
 };
 
 export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
@@ -23,14 +29,23 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
   const [wrongChain, setWrongChain] = useState(false);
   const [errorMessage, setErrorMessage] = useState([]);
   const [currentChain, setCurrentChain] = useState(NETWORK);
+  const getProvider = () => {
+    const {ethereum} = window;
+    if (!ethereum) {
+      setErrorMessage(p => [...p, 'Make sure you have metamask!']);
+      return;
+    }
 
-  const checkChain = (chainId) => {
+    return new ethers.providers.Web3Provider(window.ethereum);
+  };
+
+  const checkChain = chainId => {
     if (chainId === currentChain.chainId) {
       setWrongChain(false);
     } else {
       setWrongChain(true);
     }
-  }
+  };
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -91,6 +106,30 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     }
   };
 
+  const getAccountDetails = async (address = currentAddress) => {
+    const provider = getProvider();
+    var check = ethers.utils.getAddress(address);
+    try {
+      const name = await provider.lookupAddress(check);
+      if (!name) return {};
+
+      const resolver = await provider.getResolver(name);
+
+      const accountDetails = {};
+
+      await Promise.all(
+        Object.keys(ACCOUNT_DATA).map(async key => {
+          const data = await resolver.getText(ACCOUNT_DATA[key]);
+          accountDetails[ACCOUNT_DATA[key]] = data;
+        }),
+      );
+
+      return {...accountDetails, name};
+    } catch (error) {
+      return {};
+    }
+  };
+
   useEffect(() => {
     checkIfWalletIsConnected();
   }, []);
@@ -143,5 +182,7 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     addRPCToWallet,
     chains: CHAINS,
     switchChain,
+    getAccountDetails,
+    getProvider,
   };
 }
