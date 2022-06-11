@@ -23,8 +23,19 @@ const CONTRACT_EVENTS = {
 };
 
 export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
-  const NFTcontractAddress = CONTRACTS[chain.contract_name].NFT;
-  const FTcontractAddress = CONTRACTS[chain.contract_name].FT;
+  const [NFTcontractAddress, setNFTcontractAddress] = useState(null);
+  const [FTcontractAddress, setFTcontractAddress] = useState(null);
+
+  useEffect(() => {
+    try {
+      const NFTcontractAddress = CONTRACTS[chain.contract_name].NFT;
+      const FTcontractAddress = CONTRACTS[chain.contract_name].FT;
+      setNFTcontractAddress(NFTcontractAddress);
+      setFTcontractAddress(FTcontractAddress);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [chain]);
 
   const [minting, setMinting] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
