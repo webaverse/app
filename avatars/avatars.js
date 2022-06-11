@@ -901,6 +901,7 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
+    this.swimTime = NaN;
 
     this.useTime = NaN;
     this.useAnimation = null;
@@ -1918,7 +1919,10 @@ class Avatar {
         <div style="display:;">jumpState: --- ${this.jumpState}</div>
         <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
         <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
+        <div style="display:;">swimState: --- ${this.swimState}</div>
+        <div style="display:;">swimTime: --- ${Math.floor(this.swimTime)}</div>
         <div style="display:;">flyState: --- ${this.flyState}</div>
+        <div style="display:;">flyTime: --- ${Math.floor(this.flyTime)}</div>
         <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
         <div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>
         <div style="display:;">landState: --- ${this.landState}</div>

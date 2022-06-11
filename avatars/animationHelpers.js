@@ -1241,6 +1241,35 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       }
     }
   };
+  const _blendSwim = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      isPosition,
+    } = spec;
+
+    if (avatar.swimState) {
+      const t2 = avatar.swimTime / 1000;
+      const src2 = floatAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2 % floatAnimation.duration);
+
+      const t3 = avatar.swimTime / 1000;
+      const src3 = animations.index['Swimming.fbx'].interpolants[k];
+      const v3 = src3.evaluate(t3 % animations.index['Swimming.fbx'].duration);
+
+      if (!isPosition) {
+        localQuaternion.fromArray(v2);
+        localQuaternion2.fromArray(v3);
+        localQuaternion.slerp(localQuaternion2, idleWalkFactor);
+        dst.copy(localQuaternion);
+      } else {
+        localVector.fromArray(v2);
+        localVector2.fromArray(v3);
+        localVector.lerp(localVector2, idleWalkFactor);
+        dst.copy(localVector);
+      }
+    }
+  };
 
   const _blendActivateAction = spec => {
     const {
@@ -1286,6 +1315,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     applyFn(spec);
     _blendFly(spec);
+    _blendSwim(spec);
     _blendActivateAction(spec);
 
     // ignore all animation position except y
