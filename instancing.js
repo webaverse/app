@@ -168,38 +168,11 @@ export class DrawCallBinding {
   getTexture(name) {
     return this.allocator.getTexture(name);
   }
-  /* getTextureIndex(name) {
-    return this.allocator.textureIndexes[name];
-  } */
   getTextureOffset(name) {
     const texture = this.getTexture(name);
     const {itemSize} = texture;
     return this.freeListEntry.start * this.allocator.maxInstancesPerDrawCall * itemSize;
   }
-  /* damageTexture(name, pixelIndex, pixelCount) {
-    const texture = this.getTexture(name);
-    const textureIndex = this.getTextureIndex(name);
-
-    const x1 = pixelIndex % texture.width;
-    const y1 = Math.floor(pixelIndex / texture.width);
-
-    const pixelIndex2 = pixelIndex + pixelCount;
-    const x2 = pixelIndex2 % texture.width;
-    const y2 = Math.floor(pixelIndex2 / texture.width);
-
-    // min
-    localVector2D
-      .fromArray(this.textureDamageBuffer[textureIndex * 4])
-      .min(localVector2D2.set(x1, y1))
-      .min(localVector2D2.set(x2, y2))
-      .toArray(this.textureDamageBuffer[textureIndex * 4]);
-    // max
-    localVector2D
-      .fromArray(this.textureDamageBuffer[textureIndex * 4 + 2])
-      .max(localVector2D2.set(x1, y1))
-      .max(localVector2D2.set(x2, y2))
-      .toArray(this.textureDamageBuffer[textureIndex * 4 + 2]);
-  } */
   getInstanceCount() {
     return this.allocator.getInstanceCount(this);
   }
