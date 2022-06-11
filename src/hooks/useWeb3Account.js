@@ -104,12 +104,12 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
     };
 
     if (window.ethereum) {
-      window.ethereum.on(EVENTS.ACCOUNTS_CHANGE, accountChanged);
+      window.ethereum.on(WEB3_EVENTS.ACCOUNTS_CHANGE, accountChanged);
     }
 
     return () => {
       if (window.ethereum) {
-        window.ethereum.removeListener(EVENTS.ACCOUNTS_CHANGE, accountChanged);
+        window.ethereum.removeListener(WEB3_EVENTS.ACCOUNTS_CHANGE, accountChanged);
       }
     };
   }, [currentAddress]);
