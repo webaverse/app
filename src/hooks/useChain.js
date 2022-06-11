@@ -10,13 +10,17 @@ export default function useChain(network = DEFAULT_CHAIN) {
   const [selectedChain, setSelectedChain] = useState(network);
 
 
-  function selectChain(chain) {
+  const selectChain = useCallback((chain) => {
     if (isChainSupported(chain)) {
       switchChain(selectedChain.chainId).then(() => {
-        setSelectedChain(chain);
+        console.log('chain ', selectedChain.chainId);
+        setSelectedChain(() => {
+          return {...chain};
+        });
       }).catch(console.warn);
     }
   }
+  , [selectedChain]);
 
   return {
     isChainSupported,
