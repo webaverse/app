@@ -6,15 +6,12 @@ import * as Z from 'zjs';
 import {RemotePlayer} from './character-controller.js';
 import {getLocalPlayer} from './players.js';
 import metaversefileApi from 'metaversefile';
-
-Error.stackTraceLimit = 300;
 class PlayersManager {
   constructor() {
     this.playersArray = null;
 
     this.remotePlayers = new Map();
     this.remotePlayersByInteger = new Map();
-    window.remotePlayers = this.remotePlayers;
 
     this.unbindStateFn = null;
   }

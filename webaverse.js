@@ -331,8 +331,11 @@ export default class Webaverse extends EventTarget {
 
         // Update app owners
         world.update(timestamp, timeDiffCapped, frame);
+
+        localPlayer.appManager.tick(timestamp, timeDiff, frame);
         localPlayer.update(timestamp, timeDiffCapped, frame);
-        for (const remotePlayer in playersManager.remotePlayers) {
+
+        for (const remotePlayer of playersManager.remotePlayers.values()) {
           remotePlayer.update(timestamp, timeDiff);
         }
 

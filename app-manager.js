@@ -121,39 +121,22 @@ class AppManager extends EventTarget {
         }
       }
       for (const item of deleted.values()) {
-        const appMap = item.content.type;
         const instanceId =
           item.content.type._map.get("instanceId").content.arr[0]; // needed to get the old data
 
         const app = this.getAppByInstanceId(instanceId);
-        let migrated = false;
         const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
 
-        if (peerOwnerAppManager) {
-          const e = new MessageEvent("trackedappremove", {
-            data: {
-              instanceId,
-              app,
-              sourceAppManager: this,
-              destinationAppManager: peerOwnerAppManager,
-            },
-          });
-          this.dispatchEvent(e);
-          peerOwnerAppManager.dispatchEvent(e);
-          migrated = true;
-          break;
-        }
-
-        if (!migrated) {
-          this.dispatchEvent(
-            new MessageEvent("trackedappremove", {
-              data: {
-                instanceId: instanceId,
-                app: app,
-              },
-            })
-          );
-        }
+        const e = new MessageEvent("trackedappremove", {
+          data: {
+            instanceId,
+            app,
+            sourceAppManager: this,
+            destinationAppManager: peerOwnerAppManager,
+          },
+        });
+        this.dispatchEvent(e);
+        peerOwnerAppManager?.dispatchEvent(e);
       }
     };
     nextAppsArray.observe(observe);
@@ -213,6 +196,7 @@ class AppManager extends EventTarget {
   }
   bindEvents() {
     this.addEventListener("trackedappadd", async (e) => {
+      console.log("e is", e)
       const { trackedApp } = e.data;
       const trackedAppBinding = trackedApp.toJSON();
       const {
@@ -224,6 +208,8 @@ class AppManager extends EventTarget {
         transform,
         components,
       } = trackedAppBinding;
+
+      console.log('trackedAppBinding', trackedAppBinding);
 
       const p = makePromise();
       p.instanceId = instanceId;
@@ -284,9 +270,10 @@ class AppManager extends EventTarget {
           // set components
           app.instanceId = instanceId;
           app.setComponent("physics", true);
-          for (const { key, value } of components) {
-            app.setComponent(key, value);
-          }
+          if(components)
+            for (const { key, value } of components) {
+              app.setComponent(key, value);
+            }
         }
 
         // initialize app
@@ -478,10 +465,7 @@ class AppManager extends EventTarget {
     if (removeIndex !== -1) {
       this.appsArray.delete(removeIndex, 1);
     } else {
-      console.warn("invalid remove instance id", {
-        removeInstanceId,
-        appsJson,
-      });
+      console.warn("invalid remove instance id", {instanceId});
     }
   }
   addApp(app) {
@@ -637,14 +621,14 @@ class AppManager extends EventTarget {
       pack4(app.quaternion, 3);
       pack3(app.scale, 7);
     }
-    this.appsArray.doc.transact(() => {
+    // this.appsArray.doc.transact(() => {
       dstTrackedApp = this.addTrackedAppInternal(
         instanceId,
         contentId,
         transform,
         components
       );
-    });
+    // });
 
     this.bindTrackedApp(dstTrackedApp, app);
   }
@@ -684,7 +668,6 @@ class AppManager extends EventTarget {
               pack4(localQuaternion, 3);
               pack3(localVector2, 7);
               trackedApp.set("transform", packed);
-              console.warn("push transform", packed)
             }
           };
           _updateTrackedApp();

@@ -28,11 +28,9 @@ const _getBindSceneForRenderPriority = renderPriority => {
   }
 };
 
-// Handles the world and objects in it
-// World has an app manager just like a player
+// Handles the world and objects in it, has an app manager just like a player
 class World {
-  constructor() {
-    const appManager = new AppManager();
+  constructor({appManager = new AppManager()} = {}) {
     this.appManager = appManager;
     this.winds = [];
     this.wsrtc = null;
@@ -85,6 +83,13 @@ class World {
     this.wsrtc = new WSRTC(u, {
       localPlayer,
       crdtState: state,
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        console.log(state.getArray('world'))
+        console.log(state.getArray('players'))
+      }
     });
 
     const open = e => {
