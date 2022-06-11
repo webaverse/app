@@ -341,7 +341,7 @@ export class InstancedGeometryAllocator {
             return THREE.FloatType;
           } else if (Type === Uint32Array) {
             return THREE.UnsignedIntType;
-          } else if (Type === Iint32Array) {
+          } else if (Type === Int32Array) {
             return THREE.IntType;
           } else if (Type === Uint16Array) {
             return THREE.UnsignedShortType;
