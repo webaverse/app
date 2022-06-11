@@ -45,37 +45,6 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     return new ethers.providers.Web3Provider(window.ethereum);
   };
 
-
-  const checkIfWalletIsConnected = async () => {
-    try {
-      const {ethereum} = window;
-
-      if (!ethereum) {
-        setErrorMessage(p => [...p, 'Make sure you have metamask!']);
-        return;
-      }
-
-      await connectToNetwork(currentChain);
-
-      const accounts = getConnectedAccounts();
-
-      if (accounts.length === 0) {
-        setErrorMessage(p => [...p, 'No authorized account found']);
-      }
-
-      setAccounts(accounts);
-      setCurrentAddress(accounts[0]);
-
-      const chainId = await getChainId();
-
-      checkChain(chainId); // checks the chain ID against the chain selected in metamask
-
-      setErrorMessage([]);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   const getAccounts = async () => {
     const accounts = await requestAccounts();
     setCurrentAddress(accounts[0]);
@@ -130,10 +99,6 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
   };
 
   useEffect(() => {
-    checkIfWalletIsConnected();
-  }, []);
-
-  useEffect(() => {
     const accountChanged = e => {
       setCurrentAddress(e[0]);
     };
@@ -155,7 +120,6 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     errorMessage,
     getAccounts,
     connectWallet,
-    checkIfWalletIsConnected,
     addRPCToWallet,
     chains: CHAINS,
     getAccountDetails,
