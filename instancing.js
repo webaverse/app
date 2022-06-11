@@ -166,11 +166,11 @@ export class DrawCallBinding {
     // this.textureDamageBuffers = new Int32Array(allocator.textures.length * 4);
   }
   getTexture(name) {
-    return this.allocator.textures[name];
+    return this.allocator.getTexture(name);
   }
-  getTextureIndex(name) {
+  /* getTextureIndex(name) {
     return this.allocator.textureIndexes[name];
-  }
+  } */
   getTextureOffset(name) {
     const texture = this.getTexture(name);
     const {itemSize} = texture;
@@ -208,6 +208,9 @@ export class DrawCallBinding {
   }
   incrementInstanceCount() {
     return this.allocator.incrementInstanceCount(this);
+  }
+  decrementInstanceCount() {
+    return this.allocator.decrementInstanceCount(this);
   }
   updateTexture(name, pixelIndex, pixelCount) { // XXX optimize this
     const texture = this.getTexture(name);
@@ -418,6 +421,12 @@ export class InstancedGeometryAllocator {
   }
   incrementInstanceCount(drawCall) {
     this.drawInstanceCounts[drawCall.freeListEntry.start]++;
+  }
+  decrementInstanceCount(drawCall) {
+    this.drawInstanceCounts[drawCall.freeListEntry.start]--;
+  }
+  getTexture(name) {
+    return this.textures[name];
   }
   getDrawSpec(multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
     multiDrawStarts.length = this.drawStarts.length;
