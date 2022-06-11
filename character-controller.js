@@ -715,7 +715,6 @@ class Player extends THREE.Object3D {
         }
     
         const _setNextAvatarApp = (app) => {
-          console.log("_setNextAvatarApp", app)
           if (!cancelFn.isLive()) return console.log("canceling the function");
 
           app.toggleBoneUpdates(true);
@@ -1060,7 +1059,6 @@ class LocalPlayer extends Player {
       self.playerMap.set('transform', packed); */
 
       const actions = self.getActionsState();
-      if (actions.length > 0) console.log(actions);
       for (const oldAction of oldActions) {
         actions.push([oldAction]);
       }
@@ -1357,7 +1355,6 @@ class RemotePlayer extends Player {
   audioWorkerLoaded = false;
   async prepareAudioWorker() {
     if (!this.audioWorkerLoaded) {
-      console.log("preparing audio worker");
       this.audioWorkerLoaded = true;
 
       await ensureAudioContext();
@@ -1403,7 +1400,6 @@ class RemotePlayer extends Player {
     this.avatar.update(timestamp, timeDiff, false);
   }
   attachState(oldState) {
-    console.log("oldState is", oldState);
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
       const player = this.playersArray.get(i, Z.Map);
@@ -1427,7 +1423,6 @@ class RemotePlayer extends Player {
     loadPhysxCharacterController.call(this);
 
     const observePlayerFn = (e) => {
-      console.log("observer called")
       if (e.changes.keys.get('playerId')) {
         this.playerId = e.changes.keys.get('playerId');
       }
@@ -1443,10 +1438,6 @@ class RemotePlayer extends Player {
 
       if (e.changes.keys.get('name')) {
         this.name = e.changes.keys.get('name');
-      }
-
-      if (e.changes.keys.get(avatarMapName)) {
-        console.log("**** avatar is ", e.changes.keys.get(avatarMapName));
       }
 
       if (e.changes.keys.get("transform")) {
@@ -1490,7 +1481,6 @@ class RemotePlayer extends Player {
     this.appManager.bindStateRemote(this.getAppsState());
     this.appManager.loadApps();
     this.appManager.callBackFn = (app, event, flag) => {
-      console.log("app callback", app, event, flag);
       if (event == "wear") {
         if (flag === "remove") {
           this.unwear(app);
