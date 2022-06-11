@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip} from 'three';
+import {Vector3, Quaternion, AnimationClip, MathUtils} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -1226,24 +1226,27 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     if (avatar.swimState) {
-      const t2 = avatar.swimTime / 1000;
-      const src2 = floatAnimation.interpolants[k];
-      const v2 = src2.evaluate(t2 % floatAnimation.duration);
+      const swimTimeS = avatar.swimTime / 1000;
 
-      const t3 = avatar.swimTime / 1000;
+      const src2 = floatAnimation.interpolants[k];
+      const v2 = src2.evaluate(swimTimeS % floatAnimation.duration);
+
       const src3 = animations.index['Swimming.fbx'].interpolants[k];
-      const v3 = src3.evaluate(t3 % animations.index['Swimming.fbx'].duration);
+      const v3 = src3.evaluate(swimTimeS % animations.index['Swimming.fbx'].duration);
+
+      const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
+      // if (isPosition) console.log(f);
 
       if (!isPosition) {
         localQuaternion.fromArray(v2);
         localQuaternion2.fromArray(v3);
         localQuaternion.slerp(localQuaternion2, idleWalkFactor);
-        dst.copy(localQuaternion);
+        dst.slerp(localQuaternion, f);
       } else {
         localVector.fromArray(v2);
         localVector2.fromArray(v3);
         localVector.lerp(localVector2, idleWalkFactor);
-        dst.copy(localVector);
+        dst.lerp(localVector, f);
       }
     }
   };
