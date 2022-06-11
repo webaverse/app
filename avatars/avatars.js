@@ -901,6 +901,7 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
+    this.swimTime = NaN;
 
     this.useTime = NaN;
     this.useAnimation = null;
