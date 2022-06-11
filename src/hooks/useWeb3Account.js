@@ -29,6 +29,20 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
   const [wrongChain, setWrongChain] = useState(false);
   const [errorMessage, setErrorMessage] = useState([]);
   const [currentChain, setCurrentChain] = useState(NETWORK);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    async function checkForAccounts() {
+      const accounts = await requestAccounts();
+      if (accounts.length > 0) {
+        setAccounts(accounts);
+        setCurrentAddress(accounts[0]);
+        setIsConnected(true);
+      }
+    }
+    checkForAccounts();
+  }, []);
+
   const getProvider = () => {
     const {ethereum} = window;
     if (!ethereum) {
@@ -184,5 +198,6 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     switchChain,
     getAccountDetails,
     getProvider,
+    isConnected,
   };
 }
