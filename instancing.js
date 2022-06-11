@@ -7,6 +7,8 @@ const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localDataTexture = new THREE.DataTexture();
 
+const maxNumDraws = 1024;
+
 export class FreeListSlot {
   constructor(start, count, used) {
     // array-relative indexing, not item-relative
@@ -17,7 +19,6 @@ export class FreeListSlot {
   }
   alloc(size) {
     if (size < this.count) {
-      // console.log('alloc sub', size, this.count);
       this.used = true;
       const newSlot = new FreeListSlot(this.start + size, this.count - size, false);
       this.count = size;
@@ -26,12 +27,10 @@ export class FreeListSlot {
         newSlot,
       ];
     } else if (size === this.count) {
-      // console.log('alloc full', size, this.count);
       this.used = true;
       return [this];
     } else {
       throw new Error('could not allocate from self: ' + size + ' : ' + this.count);
-      // return null;
     }
   }
   free() {
@@ -65,11 +64,9 @@ export class FreeList {
         return replacementArray[0];
       } else {
         throw new Error('out of memory');
-        // return null;
       }
     } else {
       throw new Error('alloc size must be > 0');
-      // return null;
     }
   }
   free(slot) {
@@ -91,19 +88,6 @@ export class FreeList {
         this.slots.splice(i + 1, 1);
       }
     }
-  }
-  getGeometryGroups() {
-    const groups = [];
-    for (const slot of this.slots) {
-      if (slot.used) {
-        groups.push({
-          start: slot.start,
-          count: slot.count,
-          materialIndex: 0,
-        });
-      }
-    }
-    return groups;
   }
 }
 
@@ -143,16 +127,66 @@ export class GeometryAllocator {
 
     this.positionFreeList = new FreeList(bufferSize * 3);
     this.indexFreeList = new FreeList(bufferSize);
+
+    this.drawStarts = new Int32Array(maxNumDraws);
+    this.drawCounts = new Int32Array(maxNumDraws);
+    this.boundingSpheres = new Int32Array(maxNumDraws * 4);
+    this.numDraws = 0;
   }
-  alloc(numPositions, numIndices) {
+  alloc(numPositions, numIndices, sphere) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
     const geometryBinding = new GeometryPositionIndexBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
+
+    const slot = indexFreeListEntry;
+    this.drawStarts[this.numDraws] = slot.start * this.geometry.index.array.BYTES_PER_ELEMENT;
+    this.drawCounts[this.numDraws] = slot.count;
+    if (sphere) {
+      this.boundingSpheres[this.numDraws * 4] = sphere.x;
+      this.boundingSpheres[this.numDraws * 4 + 1] = sphere.y;
+      this.boundingSpheres[this.numDraws * 4 + 2] = sphere.z;
+      this.boundingSpheres[this.numDraws * 4 + 3] = sphere.radius;
+    } else {
+      this.boundingSpheres[this.numDraws * 4] = 0;
+      this.boundingSpheres[this.numDraws * 4 + 1] = 0;
+      this.boundingSpheres[this.numDraws * 4 + 2] = 0;
+      this.boundingSpheres[this.numDraws * 4 + 3] = 0;
+    }
+
+    this.numDraws++;
+
     return geometryBinding;
   }
   free(geometryBinding) {
+    const slot = geometryBinding.indexFreeListEntry;
+    const expectedStartValue = slot.start * this.geometry.index.array.BYTES_PER_ELEMENT;
+    const freeIndex = this.drawStarts.indexOf(expectedStartValue);
+
+    if (this.numDraws >= 2) {
+      const lastIndex = this.numDraws - 1;
+
+      // copy the last index to the freed slot for drawStarts, drawCounts, and boundingSpheres
+      this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
+      this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
+      this.boundingSpheres[freeIndex * 4] = this.boundingSpheres[lastIndex * 4];
+      this.boundingSpheres[freeIndex * 4 + 1] = this.boundingSpheres[lastIndex * 4 + 1];
+      this.boundingSpheres[freeIndex * 4 + 2] = this.boundingSpheres[lastIndex * 4 + 2];
+      this.boundingSpheres[freeIndex * 4 + 3] = this.boundingSpheres[lastIndex * 4 + 3];
+    }
+
+    this.numDraws--;
+
     this.positionFreeList.free(geometryBinding.positionFreeListEntry);
     this.indexFreeList.free(geometryBinding.indexFreeListEntry);
+  }
+  getDrawSpec(drawStarts, drawCounts) {
+    drawStarts.length = 0;
+    drawCounts.length = 0;
+
+    for (let i = 0; i < this.numDraws; i++) {
+      drawStarts[i] = this.drawStarts[i];
+      drawCounts[i] = this.drawCounts[i];
+    }
   }
 }
 
@@ -161,45 +195,15 @@ export class DrawCallBinding {
     this.geometryIndex = geometryIndex;
     this.freeListEntry = freeListEntry;
     this.allocator = allocator;
-
-    // this.instanceCount = 0;
-    // this.textureDamageBuffers = new Int32Array(allocator.textures.length * 4);
   }
   getTexture(name) {
     return this.allocator.getTexture(name);
   }
-  /* getTextureIndex(name) {
-    return this.allocator.textureIndexes[name];
-  } */
   getTextureOffset(name) {
     const texture = this.getTexture(name);
     const {itemSize} = texture;
     return this.freeListEntry.start * this.allocator.maxInstancesPerDrawCall * itemSize;
   }
-  /* damageTexture(name, pixelIndex, pixelCount) {
-    const texture = this.getTexture(name);
-    const textureIndex = this.getTextureIndex(name);
-
-    const x1 = pixelIndex % texture.width;
-    const y1 = Math.floor(pixelIndex / texture.width);
-
-    const pixelIndex2 = pixelIndex + pixelCount;
-    const x2 = pixelIndex2 % texture.width;
-    const y2 = Math.floor(pixelIndex2 / texture.width);
-
-    // min
-    localVector2D
-      .fromArray(this.textureDamageBuffer[textureIndex * 4])
-      .min(localVector2D2.set(x1, y1))
-      .min(localVector2D2.set(x2, y2))
-      .toArray(this.textureDamageBuffer[textureIndex * 4]);
-    // max
-    localVector2D
-      .fromArray(this.textureDamageBuffer[textureIndex * 4 + 2])
-      .max(localVector2D2.set(x1, y1))
-      .max(localVector2D2.set(x2, y2))
-      .toArray(this.textureDamageBuffer[textureIndex * 4 + 2]);
-  } */
   getInstanceCount() {
     return this.allocator.getInstanceCount(this);
   }
@@ -380,20 +384,14 @@ export class InstancedGeometryAllocator {
       }
 
       this.freeList = new FreeList(numGeometries * maxDrawCallsPerGeometry);
-      // this.drawCalls = [];
     }
   }
   allocDrawCall(geometryIndex) {
     const freeListEntry = this.freeList.alloc(1);
     const drawCall = new DrawCallBinding(geometryIndex, freeListEntry, this);
-    // this.drawCalls.push(drawCall);
 
     const geometrySpec = this.geometryRegistry[geometryIndex];
     const {
-      /* position: {
-        start,
-        count,
-      }, */
       index: {
         start,
         count,
@@ -409,7 +407,6 @@ export class InstancedGeometryAllocator {
   freeDrawCall(drawCall) {
     const {freeListEntry} = drawCall;
     this.freeList.free(freeListEntry);
-    // this.drawCalls.splice(this.drawCalls.indexOf(drawCall), 1);
   
     this.drawStarts[freeListEntry.start] = 0;
     this.drawCounts[freeListEntry.start] = 0;
@@ -440,25 +437,22 @@ export class InstancedGeometryAllocator {
       multiDrawCounts[i] = this.drawCounts[i];
       multiDrawInstanceCounts[i] = this.drawInstanceCounts[i];
     }
-
-    /* for (const drawCall of this.drawCalls) {
-      const {geometryIndex, instanceCount} = drawCall;
-      const geometrySpec = this.geometryRegistry[geometryIndex];
-      const {
-        index: {
-          start,
-          count,
-        },
-      } = geometrySpec;
-      
-      multiDrawStarts.push(start);
-      multiDrawCounts.push(count);
-      multiDrawInstanceCounts.push(instanceCount);
-    } */
   }
 }
 
-export class BatchedMesh extends THREE.InstancedMesh {
+export class BatchedMesh extends THREE.Mesh {
+  constructor(geometry, material, allocator) {
+    super(geometry, material);
+    
+    this.isBatchedMesh = true;
+    this.allocator = allocator;
+  }
+	getDrawSpec(drawStarts, drawCounts) {
+    this.allocator.getDrawSpec(drawStarts, drawCounts);
+  }
+}
+
+export class InstancedBatchedMesh extends THREE.InstancedMesh {
   constructor(geometry, material, allocator) {
     super(geometry, material);
     

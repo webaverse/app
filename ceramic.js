@@ -1,12 +1,12 @@
-import {DID} from 'dids';
-import CeramicClient from '@ceramicnetwork/http-client';
-import {IDX} from '@ceramicstudio/idx';
-import {ThreeIdConnect, EthereumAuthProvider} from '@3id/connect';
-import KeyDidResolver from 'key-did-resolver';
-import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver';
-import {ModelManager} from '@glazed/devtools';
+// import {DID} from 'dids';
+// import CeramicClient from '@ceramicnetwork/http-client';
+// import {IDX} from '@ceramicstudio/idx';
+// import {ThreeIdConnect, EthereumAuthProvider} from '@3id/connect';
+// import KeyDidResolver from 'key-did-resolver';
+// import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver';
+// import {ModelManager} from '@glazed/devtools';
 import {getMainnetAddress} from './blockchain.js';
-import {ceramicNodeUrl, metaverseProfileDefinition} from './constants.js';
+// import {ceramicNodeUrl, metaverseProfileDefinition} from './constants.js';
 
 const login = async () => {
   const address = await getMainnetAddress();

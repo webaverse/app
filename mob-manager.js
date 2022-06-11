@@ -10,7 +10,7 @@ import {alea} from './procgen/procgen.js';
 import {createRelativeUrl} from './util.js';
 import dropManager from './drop-manager.js';
 import loaders from './loaders.js';
-import {BatchedMesh, InstancedGeometryAllocator, FreeList, GeometryAllocator} from './instancing.js';
+import {InstancedBatchedMesh, InstancedGeometryAllocator} from './instancing.js';
 import {createTextureAtlas} from './atlasing.js';
 import dcWorkerManager from './dc-worker-manager.js';
 
@@ -45,12 +45,9 @@ const _zeroY = v => {
 };
 const _findMesh = o => {
   let mesh = null;
-  // let rootBone = null;
   const _recurse = o => {
     if (o.isMesh) {
       mesh = o;
-    /* } else if (o.isBone) {
-      rootBone = o; */
     } else if (o.children) {
       for (const child of o.children) {
         _recurse(child);
@@ -65,12 +62,9 @@ const _findMesh = o => {
 };
 const _findBone = o => {
   let bone = null;
-  // let rootBone = null;
   const _recurse = o => {
     if (o.isBone) {
       bone = o;
-    /* } else if (o.isBone) {
-      rootBone = o; */
     } else if (o.children) {
       for (const child of o.children) {
         _recurse(child);
@@ -89,12 +83,10 @@ function makeCharacterController(app, {
   height,
   physicsOffset,
 }) {
-  // const radius = 0.2;
   const innerHeight = height - radius * 2;
   const contactOffset = 0.1 * height;
   const stepOffset = 0.1 * height;
 
-  // app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   const characterPosition = localVector.setFromMatrixPosition(app.matrixWorld)
     .add(
       localVector3.copy(physicsOffset)
@@ -473,21 +465,6 @@ class InstancedSkeleton extends THREE.Skeleton {
     this.parent = parent;
 
     // bone texture
-    /* {
-      let size = Math.sqrt( maxNumBones * 4 ); // 4 pixels needed for 1 matrix
-      size = THREE.MathUtils.ceilPowerOfTwo( size );
-      size = Math.max( size, 4 );
-
-      const boneMatrices = new Float32Array( size * size * 4 ); // 4 floats per RGBA pixel
-      boneMatrices.set( this.boneMatrices ); // copy current values
-
-      const boneTexture = new DataTexture( boneMatrices, size, size, RGBAFormat, FloatType );
-      boneTexture.needsUpdate = true;
-
-      this.boneMatrices = boneMatrices;
-      this.boneTexture = boneTexture;
-      this.boneTextureSize = size;
-    } */
     const boneTexture = this.parent.allocator.getTexture('boneTexture');
     this.boneMatrices = boneTexture.image.data;
     this.boneTexture = boneTexture;
@@ -510,9 +487,6 @@ class InstancedSkeleton extends THREE.Skeleton {
           // geometry -> instance (skeleton) -> bone -> matrix
           const dstOffset = drawCall.freeListEntry.start * maxDrawCallsPerGeometry * maxInstancesPerDrawCall * maxBonesPerInstance * 16 +
             instanceIndex * maxBonesPerInstance * 16;
-
-          /* gl_DrawID * ${maxInstancesPerDrawCall} * ${maxBonesPerInstance} +
-            gl_InstanceID * ${maxBonesPerInstance}; */
 
           const bones = skeleton.bones;
           const boneInverses = skeleton.boneInverses;
@@ -545,7 +519,7 @@ class InstancedSkeleton extends THREE.Skeleton {
 	}
 }
 
-class MobBatchedMesh extends BatchedMesh {
+class MobBatchedMesh extends InstancedBatchedMesh {
   constructor({
     glbs = [],
     meshes = [],
