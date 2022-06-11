@@ -882,11 +882,13 @@ class Avatar {
       this.setBottomEnabled(!!options.bottom);
     }
 
-    this.animationMappings = animationMappingConfig.map(animationMapping => {
+    this.animationMappings = animationMappingConfig.map((animationMapping, i) => {
       animationMapping = animationMapping.clone();
       const isPosition = /\.position$/.test(animationMapping.animationTrackName);
       animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
       animationMapping.lerpFn = _getLerpFn(isPosition);
+      animationMapping.isFirstBone = i === 0;
+      animationMapping.isLastBone = i === animationMappingConfig.length - 1;
       return animationMapping;
     });
 
@@ -902,6 +904,7 @@ class Avatar {
     this.flyState = false;
     this.flyTime = NaN;
     this.swimTime = NaN;
+    this.swimAnimTime = 0;
 
     this.useTime = NaN;
     this.useAnimation = null;
@@ -1903,7 +1906,7 @@ class Avatar {
     
 
     _updateHmdPosition();
-    _applyAnimation(this, now, moveFactors);
+    _applyAnimation(this, now, moveFactors, timeDiffS);
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);
