@@ -60,8 +60,8 @@
         0
       ],
       "physics": true,
-      "start_url": "https://webaverse.github.io/skybox/neon-club/index.js",
+      "start_url": "https://gitwillg.github.io/neon-curve-lines/index.js",
       "dynamic": false
-    } 
+    },
 ]
 }
