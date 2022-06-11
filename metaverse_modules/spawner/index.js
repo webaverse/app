@@ -22,7 +22,7 @@ export default e => {
   e.waitUntil(mobber.waitForLoad());
 
   const chunks = mobber.getChunks();
-  scene.add(chunks);
+  app.add(chunks);
   chunks.updateMatrixWorld();
   // console.log('spawner add app chunks', {app, chunks});
 

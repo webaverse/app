@@ -166,11 +166,11 @@ export class DrawCallBinding {
     // this.textureDamageBuffers = new Int32Array(allocator.textures.length * 4);
   }
   getTexture(name) {
-    return this.allocator.textures[name];
+    return this.allocator.getTexture(name);
   }
-  getTextureIndex(name) {
+  /* getTextureIndex(name) {
     return this.allocator.textureIndexes[name];
-  }
+  } */
   getTextureOffset(name) {
     const texture = this.getTexture(name);
     const {itemSize} = texture;
@@ -209,7 +209,10 @@ export class DrawCallBinding {
   incrementInstanceCount() {
     return this.allocator.incrementInstanceCount(this);
   }
-  updateTexture(name, pixelIndex, pixelCount) { // XXX optimize this
+  decrementInstanceCount() {
+    return this.allocator.decrementInstanceCount(this);
+  }
+  updateTexture(name, pixelIndex, itemCount) { // XXX optimize this
     const texture = this.getTexture(name);
     // const textureIndex = this.getTextureIndex(name);
     texture.needsUpdate = true;
@@ -316,8 +319,12 @@ export class InstancedGeometryAllocator {
         } = spec;
 
         // compute the minimum size of a texture that can hold the data
-        const neededItems = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
-        const textureSize = Math.max(Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems)))), 16);
+        let neededItems4 = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
+        if (itemSize > 4) {
+          neededItems4 *= itemSize / 4;
+        }
+        const textureSizePx = Math.max(Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems4)))), 16);
+        const itemSizeSnap = itemSize > 4 ? 4 : itemSize;
 
         const format = (() => {
           if (itemSize === 1) {
@@ -326,10 +333,8 @@ export class InstancedGeometryAllocator {
             return THREE.RGFormat;
           } else if (itemSize === 3) {
             return THREE.RGBFormat;
-          } else if (itemSize === 4) {
+          } else /*if (itemSize >= 4)*/ {
             return THREE.RGBAFormat;
-          } else {
-            throw new Error('unsupported itemSize: ' + itemSize);
           }
         })();
         const type = (() => {
@@ -337,7 +342,7 @@ export class InstancedGeometryAllocator {
             return THREE.FloatType;
           } else if (Type === Uint32Array) {
             return THREE.UnsignedIntType;
-          } else if (Type === Iint32Array) {
+          } else if (Type === Int32Array) {
             return THREE.IntType;
           } else if (Type === Uint16Array) {
             return THREE.UnsignedShortType;
@@ -352,8 +357,8 @@ export class InstancedGeometryAllocator {
           }
         })();
 
-        const data = new Type(textureSize * textureSize * itemSize);
-        const texture = new THREE.DataTexture(data, textureSize, textureSize, format, type);
+        const data = new Type(textureSizePx * textureSizePx * itemSizeSnap);
+        const texture = new THREE.DataTexture(data, textureSizePx, textureSizePx, format, type);
         texture.name = name;
         texture.minFilter = THREE.NearestFilter;
         texture.magFilter = THREE.NearestFilter;
@@ -418,6 +423,12 @@ export class InstancedGeometryAllocator {
   }
   incrementInstanceCount(drawCall) {
     this.drawInstanceCounts[drawCall.freeListEntry.start]++;
+  }
+  decrementInstanceCount(drawCall) {
+    this.drawInstanceCounts[drawCall.freeListEntry.start]--;
+  }
+  getTexture(name) {
+    return this.textures[name];
   }
   getDrawSpec(multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
     multiDrawStarts.length = this.drawStarts.length;

@@ -147,9 +147,9 @@ w.injectDamage = function(x, y, z, damageBuffer) {
   }
 };
 
-w.clearChunkRootDualContouring = (x, y, z) => {
+/* w.clearChunkRootDualContouring = (x, y, z) => {
   Module._clearChunkRootDualContouring(x, y, z)
-}
+}; */
 
 w.createChunkMeshDualContouring = (x, y, z, lods) => {
   const allocator = new Allocator(Module);
