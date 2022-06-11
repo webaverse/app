@@ -19,13 +19,14 @@ import Chains from './components/web3/chains';
 
 export const User = ({ setLoginFrom }) => {
 
-    const { state, setState, account } = useContext( AppContext );
+    const { state, setState, account, chain } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
     const { isConnected, currentAddress, connectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
+    const { selectedChain } = chain;
     const [address, setAddress] = useState();
     async function _setAddress(address) {
         await handleAddress(address);
@@ -66,7 +67,7 @@ export const User = ({ setLoginFrom }) => {
     useEffect(()=>{
         if(!currentAddress) return;
         handleAddress(currentAddress);
-    }, [currentAddress])
+    }, [currentAddress, selectedChain])
 
     const metaMaskLogin = async ( event ) => {
 
