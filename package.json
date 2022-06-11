@@ -18,6 +18,7 @@
     "@pixiv/three-vrm": "./packages/three-vrm",
     "@react-three/fiber": "^7.0.29",
     "@shaderfrog/glsl-parser": "^0.1.23",
+    "buffer": "^6.0.3",
     "classnames": "^2.3.1",
     "dids": "^2.4.0",
     "dotenv": "^8.1.0",
