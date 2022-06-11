@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import metaversefile from 'metaversefile';
 import {getLocalPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
@@ -41,6 +42,46 @@ const maxBonesPerInstance = 128;
 const _zeroY = v => {
   v.y = 0;
   return v;
+};
+const _findMesh = o => {
+  let mesh = null;
+  // let rootBone = null;
+  const _recurse = o => {
+    if (o.isMesh) {
+      mesh = o;
+    /* } else if (o.isBone) {
+      rootBone = o; */
+    } else if (o.children) {
+      for (const child of o.children) {
+        _recurse(child);
+        if (mesh) {
+          break;
+        }
+      }
+    }
+  };
+  _recurse(o);
+  return mesh;
+};
+const _findBone = o => {
+  let bone = null;
+  // let rootBone = null;
+  const _recurse = o => {
+    if (o.isBone) {
+      bone = o;
+    /* } else if (o.isBone) {
+      rootBone = o; */
+    } else if (o.children) {
+      for (const child of o.children) {
+        _recurse(child);
+        if (bone) {
+          break;
+        }
+      }
+    }
+  };
+  _recurse(o);
+  return bone;
 };
 
 function makeCharacterController(app, {
@@ -419,8 +460,9 @@ class Mob {
 }
 
 class MobInstance {
-  constructor(skeleton) {
+  constructor(skeleton, mixer) {
     this.skeleton = skeleton;
+    this.mixer = mixer;
   }
 }
 
@@ -450,8 +492,6 @@ class InstancedSkeleton extends THREE.Skeleton {
     this.boneMatrices = boneTexture.image.data;
     this.boneTexture = boneTexture;
     this.boneTextureSize = boneTexture.image.width;
-
-    window.skeleton = this;
   }
   update() {
     const boneMatrices = this.boneMatrices;
@@ -461,14 +501,14 @@ class InstancedSkeleton extends THREE.Skeleton {
       const drawCall = this.parent.drawCalls[drawCallIndex];
       
       if (drawCall) {
-        const {geometryIndex} = drawCall;
+        // const {geometryIndex} = drawCall;
 
         for (let instanceIndex = 0; instanceIndex < drawCall.instances.length; instanceIndex++) {
           const mobInstance = drawCall.instances[instanceIndex];
           const {skeleton} = mobInstance;
 
           // geometry -> instance (skeleton) -> bone -> matrix
-          const dstOffset = geometryIndex * maxDrawCallsPerGeometry * maxInstancesPerDrawCall * maxBonesPerInstance * 16 +
+          const dstOffset = drawCall.freeListEntry.start * maxDrawCallsPerGeometry * maxInstancesPerDrawCall * maxBonesPerInstance * 16 +
             instanceIndex * maxBonesPerInstance * 16;
 
           /* gl_DrawID * ${maxInstancesPerDrawCall} * ${maxBonesPerInstance} +
@@ -493,7 +533,12 @@ class InstancedSkeleton extends THREE.Skeleton {
       }
     }
 
+    // console.log('needs update');
     boneTexture.needsUpdate = true;
+    /* boneTexture.onUpdate = () => {
+      // console.log('update');
+      boneTexture.onUpdate = null;
+    }; */
 
     // window.boneTexture = this.boneTexture;
 
@@ -502,7 +547,9 @@ class InstancedSkeleton extends THREE.Skeleton {
 
 class MobBatchedMesh extends BatchedMesh {
   constructor({
+    glbs = [],
     meshes = [],
+    // rootBones = [],
   } = {}) {
     const {
       // atlas,
@@ -573,7 +620,13 @@ class MobBatchedMesh extends BatchedMesh {
         /* shader.uniforms.boneTexture = {
           value: attributeTextures.boneTexture,
           needsUpdate: true,
+        };
+        shader.uniforms.boneTextureSize = {
+          value: attributeTextures.boneTexture.image.width,
+          needsUpdate: true,
         }; */
+
+        // window.boneTexture = attributeTextures.boneTexture; // XXX
 
         // skin vertex
 
@@ -588,8 +641,8 @@ uniform mat4 bindMatrix;
 uniform mat4 bindMatrixInverse;
 uniform highp sampler2D boneTexture;
 uniform int boneTextureSize;
-mat4 getBoneMatrix( const in float i ) {
-  float j = i * 4.0;
+mat4 getBoneMatrix( const in float base, const in float i ) {
+  float j = base + i * 4.0;
   float x = mod( j, float( boneTextureSize ) );
   float y = floor( j / float( boneTextureSize ) );
   float dx = 1.0 / float( boneTextureSize );
@@ -607,18 +660,18 @@ mat4 getBoneMatrix( const in float i ) {
         shader.vertexShader = shader.vertexShader.replace(`#include <skinbase_vertex>`, `\
 int boneTextureInstanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} * ${maxBonesPerInstance} +
   gl_InstanceID * ${maxBonesPerInstance};
-float boneIndexOffset = float(boneTextureInstanceIndex);
+float boneIndexOffset = float(boneTextureInstanceIndex) * 4.;
 
 #ifdef USE_SKINNING
-  // mat4 boneMatX = getBoneMatrix( boneIndexOffset + skinIndex.x );
-  // mat4 boneMatY = getBoneMatrix( boneIndexOffset + skinIndex.y );
-  // mat4 boneMatZ = getBoneMatrix( boneIndexOffset + skinIndex.z );
-  // mat4 boneMatW = getBoneMatrix( boneIndexOffset + skinIndex.w );
+  mat4 boneMatX = getBoneMatrix( boneIndexOffset, skinIndex.x );
+  mat4 boneMatY = getBoneMatrix( boneIndexOffset, skinIndex.y );
+  mat4 boneMatZ = getBoneMatrix( boneIndexOffset, skinIndex.z );
+  mat4 boneMatW = getBoneMatrix( boneIndexOffset, skinIndex.w );
 
-  mat4 boneMatX = mat4(1.);
+  /* mat4 boneMatX = mat4(1.);
   mat4 boneMatY = mat4(1.);
   mat4 boneMatZ = mat4(1.);
-  mat4 boneMatW = mat4(1.);
+  mat4 boneMatW = mat4(1.); */
 #endif
         `);
         shader.vertexShader = shader.vertexShader.replace(`#include <skinnormal_vertex>`, `\
@@ -661,9 +714,7 @@ vec3 rotate_vertex_position(vec3 position, vec4 q) {
   return position + 2.0 * cross(q.xyz, cross(q.xyz, position) + q.w * position);
 }
         `);
-        shader.vertexShader = shader.vertexShader.replace(`#include <begin_vertex>`, `\
-#include <begin_vertex>
-
+        shader.vertexShader = shader.vertexShader.replace(`#include <project_vertex>`, `\
 int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
 const float width = ${attributeTextures.p.image.width.toFixed(8)};
 const float height = ${attributeTextures.p.image.height.toFixed(8)};
@@ -673,18 +724,20 @@ vec2 pUv = (vec2(x, y) + 0.5) / vec2(width, height);
 vec3 p = texture2D(pTexture, pUv).xyz;
 vec4 q = texture2D(qTexture, pUv).xyzw;
 
-// instance offset quaternion
+// instance offset position
 {
   transformed = rotate_vertex_position(transformed, q);
   transformed += p;
 }
-        `);
-        shader.vertexShader = shader.vertexShader.replace(`#include <worldpos_vertex>`, `\
-// instance offset position
-{
-  // transformed += p;
-}
 
+vec4 mvPosition = vec4( transformed, 1.0 );
+#ifdef USE_INSTANCING
+  mvPosition = instanceMatrix * mvPosition;
+#endif
+mvPosition = modelViewMatrix * mvPosition;
+gl_Position = projectionMatrix * mvPosition;
+        `);
+        /* shader.vertexShader = shader.vertexShader.replace(`#include <worldpos_vertex>`, `\
 #if defined( USE_ENVMAP ) || defined( DISTANCE ) || defined ( USE_SHADOWMAP )
 	vec4 worldPosition = vec4( transformed, 1.0 );
 	#ifdef USE_INSTANCING
@@ -692,7 +745,7 @@ vec4 q = texture2D(qTexture, pUv).xyzw;
 	#endif
 	worldPosition = modelMatrix * worldPosition;
 #endif
-        `);
+        `); */
 
         // fragment shader        
 
@@ -736,6 +789,8 @@ vec4 q = texture2D(qTexture, pUv).xyzw;
       // this.bindMatrixInverse = this.bindMatrix.clone().invert();
 
       this.skeleton = new InstancedSkeleton(this);
+    
+      // window.skeleton = this.skeleton; // XXX
     }
 
     // window.shader = shader;
@@ -743,8 +798,12 @@ vec4 q = texture2D(qTexture, pUv).xyzw;
     // window.fragmentShader = shader.fragmentShader;
     // window.geometry = geometry;
 
+    this.glbs = glbs;
     this.meshes = meshes;
+    // this.rootBones = rootBones;
     this.drawCalls = Array(meshes.length).fill(null);
+
+    this.animationMixers = [];
 
     /* this.meshes = lodMeshes;
     this.shapeAddresses = shapeAddresses;
@@ -829,11 +888,56 @@ vec4 q = texture2D(qTexture, pUv).xyzw;
         
         // drawCall.updateTexture('boneTextureOffset', boneTextureOffsetOffset + instanceIndex, 1);
         
+
+
+
         // mob instance
 
-        const mesh = this.meshes[drawCall.geometryIndex];
-        const skeleton = mesh.skeleton.clone();
-        const instance = new MobInstance(skeleton);
+        const glb = this.glbs[drawCall.geometryIndex];
+        const glb2Scene = SkeletonUtils.clone(glb.scene);
+        const mesh2 = _findMesh(glb2Scene);
+        const rootBone2 = _findBone(glb2Scene);
+        const skeleton2 = mesh2.skeleton;
+        if (skeleton2.bones.length > maxBonesPerInstance) {
+          throw new Error('too many bones in base mesh skeleton: ' + bones.length);
+        }
+        /* if (skeleton.bones.some(b => {
+          return mesh.skeleton.includes(b);
+        })) {
+          debugger;
+        } */
+        
+        // animations
+        let mixer = null;
+        /* for (const glb of glbs)*/ {
+          // const glb = this.glbs[drawCall.geometryIndex];
+          // const rootBone = this.rootBones[drawCall.geometryIndex];
+          // const rootBone = skeleton2.bones[0];
+          const {animations} = glb;
+          // console.log('got animations', animations);
+          // const idleAnimation = animations.find(a => a.name === 'idle');
+          const clip = animations[0];
+          if (clip) {
+            // console.log('new mixer', rootBone);
+            // try {
+              mixer = new THREE.AnimationMixer(rootBone2);
+              // console.log('new action', clip);
+              const action = mixer.clipAction(clip);
+              action.play();
+              mixer.updateMatrixWorld = () => {
+                glb2Scene.updateMatrixWorld();
+
+                // window.glb2Scene = glb2Scene; // XXX
+              };
+
+              this.animationMixers.push(mixer);
+            /* } catch (err) {
+              debugger;
+            } */
+          }
+        }
+
+        const instance = new MobInstance(skeleton2, mixer);
         drawCall.instances.push(instance);
 
         // physics
@@ -855,12 +959,14 @@ vec4 q = texture2D(qTexture, pUv).xyzw;
           // locals
           
           const lastInstanceIndex = drawCall.getInstanceCount() - 1;
-          // const oldInstance = drawCall.instances[instanceIndex];
+          const oldInstance = drawCall.instances[instanceIndex];
           
           const pTexture = drawCall.getTexture('p');
           const pOffset = drawCall.getTextureOffset('p');
           const qTexture = drawCall.getTexture('q');
           const qOffset = drawCall.getTextureOffset('q');
+          const boneTextureOffsetTexture = drawCall.getTexture('boneTexture');
+          const boneTextureOffsetOffset = drawCall.getTextureOffset('boneTexture');
 
           // delete by replacing current instance with last instance
 
@@ -873,10 +979,22 @@ vec4 q = texture2D(qTexture, pUv).xyzw;
           qTexture.image.data[qOffset + instanceIndex * 4 + 2] = qTexture.image.data[qOffset + lastInstanceIndex * 4 + 2];
           qTexture.image.data[qOffset + instanceIndex * 4 + 3] = qTexture.image.data[qOffset + lastInstanceIndex * 4 + 3];
 
+          // copy the last instance bone matrix (a block of maxBonesPerInstance bones) to the current location
+          boneTextureOffsetTexture.image.data.set(boneTextureOffsetTexture.image.data.subarray(
+            boneTextureOffsetOffset + lastInstanceIndex * maxBonesPerInstance * 16,
+            boneTextureOffsetOffset + (lastInstanceIndex + 1) * maxBonesPerInstance * 16
+          ), boneTextureOffsetOffset + instanceIndex * maxBonesPerInstance * 16);
+
           drawCall.updateTexture('p', pOffset / 3 + instanceIndex, 1);
           drawCall.updateTexture('q', qOffset / 4 + instanceIndex, 1);
+          drawCall.updateTexture('boneTexture', boneTextureOffsetOffset + instanceIndex, 1);
 
-          // bone texture
+          // animations
+
+          const mixerIndex = oldInstance.mixer !== null ? this.animationMixers.indexOf(oldInstance.mixer) : -1;
+          if (mixerIndex !== -1) {
+            this.animationMixers.splice(mixerIndex, 1);
+          }
 
           // this.skeleton.boneTextureFreeList.free(oldInstance.boneTextureEntry);
           // this.skeleton.removeSkeleton(oldInstance.skeleton);
@@ -909,8 +1027,16 @@ vec4 q = texture2D(qTexture, pUv).xyzw;
       }
     }
   }
-  update() {
-    // this.skeleton.update();
+  update(timestamp, timeDiff) {
+    // console.log('update', timestamp, timeDiff);
+    if (this.animationMixers.length > 0) {
+      const deltaSeconds = timeDiff / 1000;
+      for (const mixer of this.animationMixers) {
+        mixer.update(deltaSeconds);
+        mixer.updateMatrixWorld();
+      }
+    }
+    this.skeleton.update();
   }
 }
 
@@ -948,33 +1074,25 @@ class MobGenerator {
         })();
         return glb;
       }));
+      // window.glbs = glbs;
       const skinnedMeshSpecs = glbs.map(glb => {
-        let mesh = null;
-        let rootBone = null;
-        const _recurse = o => {
-          if (o.isMesh) {
-            mesh = o;
-          } else if (o.isBone) {
-            rootBone = o;
-          } else if (o.children) {
-            for (const child of o.children) {
-              _recurse(child);
-              if (mesh && rootBone) {
-                break;
-              }
-            }
-          }
-        };
-        _recurse(glb.scene);
+        const mesh = _findMesh(glb.scene);
+        
+        /* if (!rootBone) {
+          console.warn('no root bone', glb);
+          debugger;
+        } */
+
         return {
           glb,
           mesh,
-          rootBone,
+          // rootBone,
         };
       });
       const skinnedMeshes = skinnedMeshSpecs.map(spec => spec.mesh);
+      // const rootBones = skinnedMeshSpecs.map(spec => spec.rootBone);
 
-      window.skinnedMeshes = skinnedMeshes;
+      // window.skinnedMeshes = skinnedMeshes;
       
       // apply transform to geometry
       /* for (const {glb, mesh} of skinnedMeshSpecs) {
@@ -985,7 +1103,9 @@ class MobGenerator {
 
       // make batched mesh
       const mobBatchedMesh = new MobBatchedMesh({
+        glbs,
         meshes: skinnedMeshes,
+        // rootBones,
       });
       this.object.add(mobBatchedMesh);
       this.mobBatchedMesh = mobBatchedMesh;
@@ -1017,6 +1137,11 @@ class MobGenerator {
     const {abortController} = chunk.binding;
     abortController.abort();
     chunk.binding = null;
+  }
+  update(timestamp, timeDiff) {
+    if (this.mobBatchedMesh) {
+      this.mobBatchedMesh.update(timestamp, timeDiff);
+    }
   }
   destroy() {
     // nothing; the owning lod tracker disposes of our contents
@@ -1058,6 +1183,7 @@ class Mobber {
     if (this.compiled) {
       const localPlayer = getLocalPlayer();
       this.tracker.update(localPlayer.position);
+      this.generator.update(timestamp, timeDiff);
     }
   }
   destroy() {
