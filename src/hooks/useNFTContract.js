@@ -58,14 +58,22 @@ export default function useNFTContract(currentAccount) {
     setMinting(true);
     setError('');
     try {
-      const signer = await getSigner();
+      let imageURI;
+      let avatarURI = previewImage || '';
 
-      console.log('currentApp', currentApp);
-      const name = currentApp.name; // TODO: set this with file name. myphoto.png -> myphoto
-      const ext = currentApp.contentId.split('.').pop(); // myphoto.png -> png
-      const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/' + name + '.' + ext)[0];
+      const signer = await getSigner();
+      const name = currentApp.name;
+      const ext = currentApp.appType;
+      const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/')[0];
       const description = currentApp.description;
-      const avatarURI = previewImage || '';
+
+      if (previewImage) { // 3D object
+        imageURI = previewImage;
+        avatarURI = currentApp.contentId;
+      } else { // image object
+        imageURI = currentApp.contentId;
+        avatarURI = '';
+      }
 
       const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
@@ -77,24 +85,19 @@ export default function useNFTContract(currentAccount) {
         const FTapproveres = await FTapprovetx.wait();
         if (FTapproveres.transactionHash) {
           try {
-            const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, avatarURI, description, 1);
-            // after mint transaction, refresh the website
+            const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, imageURI, avatarURI, description, 1);
             callback(NFTmintres);
           } catch (err) {
             setError(err.message);
           }
           setMinting(false);
-        } else {
-          setError('transaction not approved');
-          setMinting(false);
         }
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
-          const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, avatarURI, description, 1);
+          const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, imageURI, avatarURI, description, 1);
           callback(NFTmintres);
-          // after mint transaction, refresh the website
         } catch (err) {
-          setError('Mint Failed');
+          setError(error.message);
           setMinting(false);
         }
       }

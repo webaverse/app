@@ -244,6 +244,7 @@ const DragAndDrop = () => {
     e.stopPropagation();
     if (currentApp) {
       const app = currentApp;
+      console.log("app uploaded", app)
       await mintNFT(app, previewImage, () => {
         setMintComplete(true);
       });
