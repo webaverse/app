@@ -17,7 +17,6 @@ export class FreeListSlot {
   }
   alloc(size) {
     if (size < this.count) {
-      // console.log('alloc sub', size, this.count);
       this.used = true;
       const newSlot = new FreeListSlot(this.start + size, this.count - size, false);
       this.count = size;
@@ -26,12 +25,10 @@ export class FreeListSlot {
         newSlot,
       ];
     } else if (size === this.count) {
-      // console.log('alloc full', size, this.count);
       this.used = true;
       return [this];
     } else {
       throw new Error('could not allocate from self: ' + size + ' : ' + this.count);
-      // return null;
     }
   }
   free() {
@@ -65,11 +62,9 @@ export class FreeList {
         return replacementArray[0];
       } else {
         throw new Error('out of memory');
-        // return null;
       }
     } else {
       throw new Error('alloc size must be > 0');
-      // return null;
     }
   }
   free(slot) {
@@ -350,20 +345,14 @@ export class InstancedGeometryAllocator {
       }
 
       this.freeList = new FreeList(numGeometries * maxDrawCallsPerGeometry);
-      // this.drawCalls = [];
     }
   }
   allocDrawCall(geometryIndex) {
     const freeListEntry = this.freeList.alloc(1);
     const drawCall = new DrawCallBinding(geometryIndex, freeListEntry, this);
-    // this.drawCalls.push(drawCall);
 
     const geometrySpec = this.geometryRegistry[geometryIndex];
     const {
-      /* position: {
-        start,
-        count,
-      }, */
       index: {
         start,
         count,
@@ -379,7 +368,6 @@ export class InstancedGeometryAllocator {
   freeDrawCall(drawCall) {
     const {freeListEntry} = drawCall;
     this.freeList.free(freeListEntry);
-    // this.drawCalls.splice(this.drawCalls.indexOf(drawCall), 1);
   
     this.drawStarts[freeListEntry.start] = 0;
     this.drawCounts[freeListEntry.start] = 0;
@@ -410,21 +398,6 @@ export class InstancedGeometryAllocator {
       multiDrawCounts[i] = this.drawCounts[i];
       multiDrawInstanceCounts[i] = this.drawInstanceCounts[i];
     }
-
-    /* for (const drawCall of this.drawCalls) {
-      const {geometryIndex, instanceCount} = drawCall;
-      const geometrySpec = this.geometryRegistry[geometryIndex];
-      const {
-        index: {
-          start,
-          count,
-        },
-      } = geometrySpec;
-      
-      multiDrawStarts.push(start);
-      multiDrawCounts.push(count);
-      multiDrawInstanceCounts.push(instanceCount);
-    } */
   }
 }
 
