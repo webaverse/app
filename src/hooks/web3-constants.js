@@ -3,6 +3,11 @@ import _CONTRACT_ABIS from 'https://contracts.webaverse.com/config/abi.js';
 
 export const isLocal = window.location.host.includes('localhost');
 
+export const WEB3_EVENTS = {
+  CHAIN_CHANGED: 'chainChanged',
+  ACCOUNTS_CHANGE: 'accountsChanged',
+};
+
 export const CONTRACTS = {
   testnetpolygon: {
     Account: '0xF0118e4e3d2074a0621C5C8e4A5Cf761ef1eFc7b',
@@ -27,6 +32,11 @@ export const CONTRACTS = {
 };
 
 export const CONTRACT_ABIS = _CONTRACT_ABIS;
+
+export const CHAIN_TYPE = {
+  TEST: 'testnet',
+  PRODUCTION: 'mainnet',
+}
 
 export const CHAINS = {
   LOCALHOST: {
@@ -103,6 +113,11 @@ export const CHAINS = {
     brandColor: 'rgb(123,63,228)',
   },
 };
+
+export const CHAIN_ID_MAP = Object.keys(CHAINS).reduce((acc, key) => {
+  acc[CHAINS[key].chainId] = key;
+  return acc;
+}, {});
 
 export const NETWORK_KEYS = Object.keys(CHAINS);
 export const DEFAULT_CHAIN = CHAINS.MUMBAI;
