@@ -4,10 +4,10 @@
   border-radius: 5px 0 0 5px;
   color: white;
   user-select: none;
-  width: 105px;
+  width: 135px;
   position: absolute;
   top:0;
-  left: -100px;
+  left: -130px;
   line-height: 1.4;
   pointer-events: all;
   border: 2px solid black;
@@ -15,8 +15,18 @@
 }
 
 .selectedChain {
-    padding: 6px 10px;
+    padding: 5px 6px 6px 8px;
     cursor: pointer;
+}
+
+.selectedChain {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 6px;
+}
+
+.selectedChain svg {
+    width: 100%;
 }
 
 .chainDropDown {
