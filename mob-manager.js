@@ -10,7 +10,7 @@ import {alea} from './procgen/procgen.js';
 import {createRelativeUrl} from './util.js';
 import dropManager from './drop-manager.js';
 import loaders from './loaders.js';
-import {BatchedMesh, InstancedGeometryAllocator, FreeList, GeometryAllocator} from './instancing.js';
+import {BatchedMesh, InstancedGeometryAllocator} from './instancing.js';
 import {createTextureAtlas} from './atlasing.js';
 import dcWorkerManager from './dc-worker-manager.js';
 
@@ -45,12 +45,9 @@ const _zeroY = v => {
 };
 const _findMesh = o => {
   let mesh = null;
-  // let rootBone = null;
   const _recurse = o => {
     if (o.isMesh) {
       mesh = o;
-    /* } else if (o.isBone) {
-      rootBone = o; */
     } else if (o.children) {
       for (const child of o.children) {
         _recurse(child);
@@ -65,12 +62,9 @@ const _findMesh = o => {
 };
 const _findBone = o => {
   let bone = null;
-  // let rootBone = null;
   const _recurse = o => {
     if (o.isBone) {
       bone = o;
-    /* } else if (o.isBone) {
-      rootBone = o; */
     } else if (o.children) {
       for (const child of o.children) {
         _recurse(child);
@@ -89,12 +83,10 @@ function makeCharacterController(app, {
   height,
   physicsOffset,
 }) {
-  // const radius = 0.2;
   const innerHeight = height - radius * 2;
   const contactOffset = 0.1 * height;
   const stepOffset = 0.1 * height;
 
-  // app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   const characterPosition = localVector.setFromMatrixPosition(app.matrixWorld)
     .add(
       localVector3.copy(physicsOffset)
