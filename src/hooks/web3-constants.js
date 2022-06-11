@@ -58,13 +58,14 @@ export const CHAINS = {
   },
   ETHEREUM_MAIN: {
     chainName: 'Ethereum Mainnet',
-    name: 'Ethereum Mainnet',
+    name: 'Ethereum',
     blockExplorerUrls: ['https://etherscan.io'],
     chainId: '0x1',
     symbol: 'ETH',
     rpcUrls: ['https://mainnet.infura.io/v3/'],
     contract_name: 'mainnet',
     previewLink: 'https://etherscan.io/address/',
+    brandColor: 'rgb(63,123,228)',
   },
   // AVALANCHE_MAIN: {
   //   chainName: 'Avalanche Network',
