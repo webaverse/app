@@ -1,8 +1,8 @@
 import {MathUtils} from 'three';
-import {AnimMixer} from './AnimMixer';
-import {AnimNode} from './AnimNode';
+import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
+import {WebaverseAnimationNode} from './WebaverseAnimationNode';
 
-class AnimNodeBlend2 extends AnimNode {
+class WebaverseAnimationNodeBlend2 extends WebaverseAnimationNode {
   constructor(name, mixer) {
     super(name, mixer);
     this.isAnimNodeBlend2 = true;
@@ -21,7 +21,7 @@ class AnimNodeBlend2 extends AnimNode {
   update(spec) {
     // do fade
     if (this.isCrossFade) {
-      this.factor = (AnimMixer.timeS - this.crossFadeStartTime) / this.crossFadeDuration;
+      this.factor = (WebaverseAnimationMixer.timeS - this.crossFadeStartTime) / this.crossFadeDuration;
       this.factor = MathUtils.clamp(this.factor, 0, 1);
       if (this.crossFadeTargetFactor === 0) {
         this.factor = 1 - this.factor;
@@ -35,8 +35,8 @@ class AnimNodeBlend2 extends AnimNode {
     // const value0 = this.mixer.doBlend(this.children[0], spec);
     // const value1 = this.mixer.doBlend(this.children[1], spec);
     // const result = [];
-    // AnimMixer.copyArray(result, value0);
-    // AnimMixer.interpolateFlat(result, result, value1, this.factor);
+    // WebaverseAnimationMixer.copyArray(result, value0);
+    // WebaverseAnimationMixer.interpolateFlat(result, result, value1, this.factor);
 
     const result = this.doBlendList(spec);
     return result;
@@ -46,8 +46,8 @@ class AnimNodeBlend2 extends AnimNode {
     this.isCrossFade = true;
     this.crossFadeDuration = duration;
     this.crossFadeTargetFactor = targetFactor;
-    this.crossFadeStartTime = AnimMixer.timeS;
+    this.crossFadeStartTime = WebaverseAnimationMixer.timeS;
   }
 }
 
-export {AnimNodeBlend2};
+export {WebaverseAnimationNodeBlend2};

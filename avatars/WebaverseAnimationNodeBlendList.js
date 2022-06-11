@@ -1,8 +1,8 @@
 import {MathUtils} from 'three';
-import {AnimMixer} from './AnimMixer';
-import {AnimNode} from './AnimNode';
+import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
+import {WebaverseAnimationNode} from './WebaverseAnimationNode';
 
-class AnimNodeBlendList extends AnimNode {
+class WebaverseAnimationNodeBlendList extends WebaverseAnimationNode {
   constructor(name, mixer) {
     super(name, mixer);
     this.isAnimNodeBlendList = true;
@@ -19,4 +19,4 @@ class AnimNodeBlendList extends AnimNode {
   }
 }
 
-export {AnimNodeBlendList};
+export {WebaverseAnimationNodeBlendList};
