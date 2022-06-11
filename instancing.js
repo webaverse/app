@@ -319,8 +319,11 @@ export class InstancedGeometryAllocator {
         } = spec;
 
         // compute the minimum size of a texture that can hold the data
-        const neededItems = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
-        const textureSize = Math.max(Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems)))), 16);
+        let neededItems4 = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
+        if (itemSize > 4) {
+          neededItems4 *= itemSize / 4;
+        }
+        const textureSizePx = Math.max(Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems4)))), 16);
 
         const format = (() => {
           if (itemSize === 1) {
@@ -329,10 +332,8 @@ export class InstancedGeometryAllocator {
             return THREE.RGFormat;
           } else if (itemSize === 3) {
             return THREE.RGBFormat;
-          } else if (itemSize === 4) {
+          } else /*if (itemSize >= 4)*/ {
             return THREE.RGBAFormat;
-          } else {
-            throw new Error('unsupported itemSize: ' + itemSize);
           }
         })();
         const type = (() => {
@@ -355,8 +356,8 @@ export class InstancedGeometryAllocator {
           }
         })();
 
-        const data = new Type(textureSize * textureSize * itemSize);
-        const texture = new THREE.DataTexture(data, textureSize, textureSize, format, type);
+        const data = new Type(textureSizePx * textureSizePx * (itemSize > 4 ? 4 : itemSize));
+        const texture = new THREE.DataTexture(data, textureSizePx, textureSizePx, format, type);
         texture.name = name;
         texture.minFilter = THREE.NearestFilter;
         texture.magFilter = THREE.NearestFilter;
