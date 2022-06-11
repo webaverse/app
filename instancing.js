@@ -324,6 +324,7 @@ export class InstancedGeometryAllocator {
           neededItems4 *= itemSize / 4;
         }
         const textureSizePx = Math.max(Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems4)))), 16);
+        const itemSizeSnap = itemSize > 4 ? 4 : itemSize;
 
         const format = (() => {
           if (itemSize === 1) {
@@ -356,7 +357,7 @@ export class InstancedGeometryAllocator {
           }
         })();
 
-        const data = new Type(textureSizePx * textureSizePx * (itemSize > 4 ? 4 : itemSize));
+        const data = new Type(textureSizePx * textureSizePx * itemSizeSnap);
         const texture = new THREE.DataTexture(data, textureSizePx, textureSizePx, format, type);
         texture.name = name;
         texture.minFilter = THREE.NearestFilter;
