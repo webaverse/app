@@ -161,9 +161,6 @@ export class DrawCallBinding {
     this.geometryIndex = geometryIndex;
     this.freeListEntry = freeListEntry;
     this.allocator = allocator;
-
-    // this.instanceCount = 0;
-    // this.textureDamageBuffers = new Int32Array(allocator.textures.length * 4);
   }
   getTexture(name) {
     return this.allocator.getTexture(name);
