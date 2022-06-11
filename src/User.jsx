@@ -25,7 +25,12 @@ export const User = ({ setLoginFrom }) => {
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-    const { currentAddress, connectWallet, errorMessage, wrongChain } = account;
+    const { isConnected, currentAddress, connectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
+    const [address, setAddress] = useState();
+    async function _setAddress(address) {
+        await handleAddress(address);
+        setAddress(address);
+    }
 
     /* const showModal = ( event ) => {
 
@@ -50,21 +55,17 @@ export const User = ({ setLoginFrom }) => {
 
     };
 
+    async function handleAddress(address) {
+        const {name, avatar} = await getAccountDetails();
+
+        if(name) setEnsName(name);
+        if(avatar) setAvatarUrl(avatar);
+
+    }
+
     useEffect(()=>{
-
         if(!currentAddress) return;
-
-        async function handleAddress() {
-            const ensName = await blockchainManager.getEnsName(currentAddress);
-            setEnsName(ensName);
-
-            if(!ensName) return;
-            const avatarUrl = await blockchainManager.getAvatarUrl(currentAddress);
-            setAvatarUrl(avatarUrl);
-        }
-
-        handleAddress();
-
+        handleAddress(currentAddress);
     }, [currentAddress])
 
     const metaMaskLogin = async ( event ) => {
