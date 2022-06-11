@@ -9,8 +9,9 @@ class WebaverseAnimationNode extends EventDispatcher {
     this.mixer = mixer;
     this.type = 'blend2'; // other types: blendList
     this.children = [];
+    this.childrenWeights = [];
     this.name = name;
-    this.weight = 1;
+    // this.weight = 1;
 
     // blend2
     this.fadeStartTime = 0;
