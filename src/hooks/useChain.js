@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {switchChain} from './rpcHelpers';
 import {DEFAULT_CHAIN, CHAINS, CONTRACTS} from './web3-constants';
 
