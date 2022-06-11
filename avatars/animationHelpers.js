@@ -412,7 +412,7 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
-export const _applyAnimation = (avatar, now, moveFactors) => {
+export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
@@ -1246,16 +1246,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       animationTrackName: k,
       dst,
       isPosition,
+      isFirstBone,
     } = spec;
 
     if (avatar.swimState) {
       const swimTimeS = avatar.swimTime / 1000;
+      if (isFirstBone) {
+        const swimSpeed = 1 + idleWalkFactor + walkRunFactor;
+        avatar.swimAnimTime += timeDiffS * swimSpeed;
+      }
 
       const src2 = floatAnimation.interpolants[k];
       const v2 = src2.evaluate(swimTimeS % floatAnimation.duration);
 
       const src3 = animations.index['Swimming.fbx'].interpolants[k];
-      const v3 = src3.evaluate(swimTimeS % animations.index['Swimming.fbx'].duration);
+      const v3 = src3.evaluate(avatar.swimAnimTime % animations.index['Swimming.fbx'].duration);
 
       const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
       // if (isPosition) console.log(f);
