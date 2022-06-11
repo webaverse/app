@@ -212,7 +212,7 @@ export class DrawCallBinding {
   decrementInstanceCount() {
     return this.allocator.decrementInstanceCount(this);
   }
-  updateTexture(name, pixelIndex, pixelCount) { // XXX optimize this
+  updateTexture(name, pixelIndex, itemCount) { // XXX optimize this
     const texture = this.getTexture(name);
     // const textureIndex = this.getTextureIndex(name);
     texture.needsUpdate = true;
