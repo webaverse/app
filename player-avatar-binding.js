@@ -227,6 +227,15 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.aimDirection.set(0, 0, -1);
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
+  // start/end event
+  rig.sitStart = false;
+  rig.sitEnd = false;
+  if (rig.sitState !== rig.lastSitState) {
+    if (rig.sitState) rig.sitStart = true;
+    else rig.sitEnd = true;
+  }
+  rig.lastSitState = rig.sitState;
+  //
   rig.sitAnimation = sitAnimation;
 
   // XXX this needs to be based on the current loadout index

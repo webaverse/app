@@ -201,6 +201,7 @@ class CharacterPhysics {
             )
             .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
         }
+        controlledApp.position.y = 0; // test
         controlledApp.updateMatrixWorld();
 
         localMatrix.copy(sitPos.matrixWorld)

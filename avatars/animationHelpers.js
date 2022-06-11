@@ -469,6 +469,15 @@ export const _createAnimation = avatar => {
   // avatar.useMotiono.bowIdle.loop = LoopOnce; avatar.useMotiono.bowIdle.stop();
   avatar.useMotiono.bowLoose.loop = LoopOnce; avatar.useMotiono.bowLoose.stop();
 
+  avatar.sitMotiono = {};
+  for (const k in sitAnimations) {
+    const animation = sitAnimations[k];
+    if (animation) {
+      avatar.sitMotiono[k] = avatar.mixer.createMotion(animation);
+      avatar.sitMotiono[k].loop = LoopOnce; avatar.sitMotiono[k].stop();
+    }
+  }
+
   // LoopOnce
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
   // avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
@@ -544,6 +553,11 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.useMotiono.bowDraw);
   avatar.actionsNode.addChild(avatar.useMotiono.bowIdle);
   avatar.actionsNode.addChild(avatar.useMotiono.bowLoose);
+  // sit
+  for (const k in avatar.sitMotiono) {
+    const motion = avatar.sitMotiono[k];
+    avatar.actionsNode.addChild(motion);
+  }
 
   // avatar.jumpNode = new WebaverseAnimationNodeBlend2('jump', avatar.mixer);
   // avatar.jumpNode.addChild(avatar.defaultNode);
@@ -732,6 +746,14 @@ export const _updateAnimation = avatar => {
     } else {
       avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
     }
+  }
+
+  if (avatar.sitStart) {
+    avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+  }
+  if (avatar.sitEnd) {
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
 
   // window.domInfo.innerHTML += `<div style="display:;">useComboStart: --- ${window.logNum(avatar.useComboStart)}</div>`;
