@@ -1,8 +1,5 @@
 import {useState, useEffect} from 'react';
-import {
-  CHAINS,
-  DEFAULT_CHAIN,
-} from './web3-constants';
+import {CHAINS, DEFAULT_CHAIN, WEB3_EVENTS} from './web3-constants';
 
 import {
   connectToNetwork,
@@ -13,10 +10,7 @@ import {
 } from './rpcHelpers';
 import {ethers} from 'ethers';
 
-const EVENTS = {
-  CHAIN_CHANGED: 'chainChanged',
-  ACCOUNTS_CHANGE: 'accountsChanged',
-};
+
 
 const ACCOUNT_DATA = {
   EMAIL: 'email',
@@ -26,9 +20,7 @@ const ACCOUNT_DATA = {
 export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
   const [accounts, setAccounts] = useState([]);
   const [currentAddress, setCurrentAddress] = useState('');
-  const [wrongChain, setWrongChain] = useState(false);
   const [errorMessage, setErrorMessage] = useState([]);
-  const [currentChain, setCurrentChain] = useState(NETWORK);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
@@ -53,13 +45,6 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     return new ethers.providers.Web3Provider(window.ethereum);
   };
 
-  const checkChain = chainId => {
-    if (chainId === currentChain.chainId) {
-      setWrongChain(false);
-    } else {
-      setWrongChain(true);
-    }
-  };
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -149,22 +134,6 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
   }, []);
 
   useEffect(() => {
-    const handleChainChanged = async chainId => {
-      checkChain(chainId);
-    };
-
-    if (window.ethereum) {
-      window.ethereum.on(EVENTS.CHAIN_CHANGED, handleChainChanged);
-    }
-
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeListener(EVENTS.CHAIN_CHANGED, handleChainChanged);
-      }
-    };
-  }, [currentAddress]);
-
-  useEffect(() => {
     const accountChanged = e => {
       setCurrentAddress(e[0]);
     };
@@ -180,11 +149,6 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     };
   }, [currentAddress]);
 
-  function switchChain(chain) {
-    setCurrentChain(chain);
-    setWrongChain(false);
-  }
-
   return {
     accounts,
     currentAddress,
@@ -192,10 +156,8 @@ export default function useWeb3Account(NETWORK = DEFAULT_CHAIN) {
     getAccounts,
     connectWallet,
     checkIfWalletIsConnected,
-    wrongChain,
     addRPCToWallet,
     chains: CHAINS,
-    switchChain,
     getAccountDetails,
     getProvider,
     isConnected,
