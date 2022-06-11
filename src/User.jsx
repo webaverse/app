@@ -138,9 +138,9 @@ export const User = ({ setLoginFrom }) => {
 
         const metamaskAutoLogin = async () => {
 
-            const address = await connectWallet();
+            const address = await getAccounts();
 
-            if ( currentAddress ) {
+            if ( address ) {
 
                 setLoginFrom( 'metamask' );
 
@@ -199,7 +199,7 @@ export const User = ({ setLoginFrom }) => {
     //
 
     const open = state.openedPanel === 'LoginPanel';
-    const loggedIn = !!currentAddress;
+    const loggedIn = isConnected;
 
     //
 
@@ -249,22 +249,20 @@ export const User = ({ setLoginFrom }) => {
 
             <div
                 className={styles.userWrap}
-            >
+            >   
                 {loggedIn && <Chains />}
                 <div
                     className={styles.userBar}
                     onClick={openUserPanel}
                 >
                     {avatarUrl ? (
-                        <div
-                            className={styles.avatarUrl}
-                        >
+                        <div className={styles.avatarUrl}>
                             <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
                         </div>
                     ) : null}
                     <div
-                        className={styles.address}
-                    >{ensName || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                        className={[styles.address, avatarUrl ? styles.avatarPadRight : undefined].join(' ')}
+                    >{ensName || address || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
                 </div>
                 <div className={styles.logoutBtn}
                     onClick={e => {
