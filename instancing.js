@@ -87,19 +87,6 @@ export class FreeList {
       }
     }
   }
-  /* getGeometryGroups() {
-    const groups = [];
-    for (const slot of this.slots) {
-      if (slot.used) {
-        groups.push({
-          start: slot.start,
-          count: slot.count,
-          materialIndex: 0,
-        });
-      }
-    }
-    return groups;
-  } */
 }
 
 export class GeometryPositionIndexBinding {
