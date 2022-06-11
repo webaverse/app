@@ -447,6 +447,13 @@ export const _createAnimation = avatar => {
   avatar.crouchLeftMirrorMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Right reverse.fbx']);
   avatar.crouchRightMirrorMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Left reverse.fbx']);
 
+  avatar.bowForwardMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Forward.fbx']);
+  avatar.bowBackwardMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx']);
+  avatar.bowLeftMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Left.fbx']);
+  avatar.bowRightMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Right.fbx']);
+  avatar.bowLeftMirrorMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Right reverse.fbx']);
+  avatar.bowRightMirrorMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Left reverse.fbx']);
+
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
   avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
   avatar.narutoRunMotion = avatar.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
@@ -497,6 +504,7 @@ export const _createAnimation = avatar => {
   // avatar.useComboMotion.stop();
 
   // AnimNodes ---
+  // todo: in order to reuse motions, need set children weights in node.
   avatar.walkNode = new WebaverseAnimationNodeBlendList('walk', avatar.mixer); // todo: mixer.createNode
   avatar.walkNode.addChild(avatar.walkForwardMotion);
   avatar.walkNode.addChild(avatar.walkBackwardMotion);
@@ -521,6 +529,14 @@ export const _createAnimation = avatar => {
   avatar.crouchNode.addChild(avatar.crouchLeftMirrorMotion);
   avatar.crouchNode.addChild(avatar.crouchRightMirrorMotion);
 
+  avatar.bowNode = new WebaverseAnimationNodeBlendList('bow', avatar.mixer);
+  avatar.bowNode.addChild(avatar.bowForwardMotion);
+  avatar.bowNode.addChild(avatar.bowBackwardMotion);
+  avatar.bowNode.addChild(avatar.bowLeftMotion);
+  avatar.bowNode.addChild(avatar.bowRightMotion);
+  avatar.bowNode.addChild(avatar.bowLeftMirrorMotion);
+  avatar.bowNode.addChild(avatar.bowRightMirrorMotion);
+
   avatar.walkRunNode = new WebaverseAnimationNodeBlend2('walkRun', avatar.mixer);
   avatar.walkRunNode.addChild(avatar.walkNode);
   avatar.walkRunNode.addChild(avatar.runNode);
@@ -533,8 +549,16 @@ export const _createAnimation = avatar => {
   avatar._7wayCrouchNode.addChild(avatar.crouchIdleMotion);
   avatar._7wayCrouchNode.addChild(avatar.crouchNode);
 
+  avatar._7wayBowNode = new WebaverseAnimationNodeBlend2('_7wayBowNode', avatar.mixer);
+  avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle);
+  avatar._7wayBowNode.addChild(avatar.bowNode);
+
+  avatar._7wayWalkRunBowNode = new WebaverseAnimationNodeBlend2('_7wayWalkRunBow', avatar.mixer);
+  avatar._7wayWalkRunBowNode.addChild(avatar._7wayWalkRunNode);
+  avatar._7wayWalkRunBowNode.addChild(avatar._7wayBowNode);
+
   avatar.defaultNode = new WebaverseAnimationNodeBlend2('defaultNode', avatar.mixer);
-  avatar.defaultNode.addChild(avatar._7wayWalkRunNode);
+  avatar.defaultNode.addChild(avatar._7wayWalkRunBowNode);
   avatar.defaultNode.addChild(avatar._7wayCrouchNode);
 
   avatar.actionsNode = new WebaverseAnimationNodeUnitary('actions', avatar.mixer);
@@ -551,7 +575,7 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlashStep);
   // envolope
   avatar.actionsNode.addChild(avatar.useMotiono.bowDraw);
-  avatar.actionsNode.addChild(avatar.useMotiono.bowIdle);
+  // avatar.actionsNode.addChild(avatar.useMotiono.bowIdle); // todo: bowIdle weight conflict with _7wayBowNode's bowIdle
   avatar.actionsNode.addChild(avatar.useMotiono.bowLoose);
   // sit
   for (const k in avatar.sitMotiono) {
@@ -568,6 +592,7 @@ export const _createAnimation = avatar => {
   // avatar.flyNode.addChild(avatar.flyMotion);
 
   avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
+  // avatar.animTree = avatar.bowNode;
 
   // const handleAnimationEnd = event => {
   //   if ([
@@ -662,9 +687,19 @@ export const _updateAnimation = avatar => {
   avatar.crouchRightMotion.weight = mirror ? 0 : rightFactor;
   avatar.crouchRightMirrorMotion.weight = mirror ? rightFactor : 0;
 
+  avatar.bowForwardMotion.weight = forwardFactor;
+  avatar.bowBackwardMotion.weight = backwardFactor;
+  avatar.bowLeftMotion.weight = mirror ? 0 : leftFactor;
+  avatar.bowLeftMirrorMotion.weight = mirror ? leftFactor : 0;
+  avatar.bowRightMotion.weight = mirror ? 0 : rightFactor;
+  avatar.bowRightMirrorMotion.weight = mirror ? rightFactor : 0;
+
+  avatar._7wayWalkRunBowNode.factor = avatar.useEnvelopeState ? 1 : 0;
+
   avatar.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
   avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
+  avatar._7wayBowNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
 
   if (avatar.flyStart) avatar.actionsNode.crossFadeTo(0.2, avatar.flyMotion);
@@ -732,21 +767,23 @@ export const _updateAnimation = avatar => {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
 
-  if (avatar.useEnvelopeStart) {
-    // console.log('useEnvelopeStart');
-    const useAnimationName = avatar.useAnimationEnvelope[0];
-    avatar.useMotiono[useAnimationName].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
-  }
-  if (avatar.useEnvelopeEnd) {
-    // console.log('useEnvelopeEnd');
-    if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
-      avatar.useMotiono.bowLoose.play();
-      avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowLoose); // todo: useAnimationEnvelope[2]
-    } else {
-      avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-    }
-  }
+  // avatar.useMotiono.bowIdle.weight = 0;
+
+  // if (avatar.useEnvelopeStart) {
+  //   // console.log('useEnvelopeStart');
+  //   const useAnimationName = avatar.useAnimationEnvelope[0];
+  //   avatar.useMotiono[useAnimationName].play();
+  //   avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+  // }
+  // if (avatar.useEnvelopeEnd) {
+  //   // console.log('useEnvelopeEnd');
+  //   if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
+  //     avatar.useMotiono.bowLoose.play();
+  //     avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowLoose); // todo: useAnimationEnvelope[2]
+  //   } else {
+  //     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  //   }
+  // }
 
   if (avatar.sitStart) {
     avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation].play();
