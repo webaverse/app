@@ -219,8 +219,13 @@
   pointer-events: all;
   cursor: pointer;
 }
+
+.userBar .address.avatarPadRight {
+  padding-left: 60px;
+}
+
 .userBar .avatarUrl {
-  position: relative;
+  position: absolute;
   z-index: 1;
 }
 .userBar .avatarUrl .img {
