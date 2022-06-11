@@ -401,7 +401,7 @@ export class InstancedGeometryAllocator {
   }
 }
 
-export class BatchedMesh extends THREE.InstancedMesh {
+export class InstancedBatchedMesh extends THREE.InstancedMesh {
   constructor(geometry, material, allocator) {
     super(geometry, material);
     
