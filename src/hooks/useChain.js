@@ -8,7 +8,15 @@ export function isChainSupported(chain) {
 
 export default function useChain(network = DEFAULT_CHAIN) {
   const [selectedChain, setSelectedChain] = useState(network);
+  const [supportedChain, setSupportedChain] = useState(false);
 
+  useEffect(() => {
+    if (isChainSupported(selectedChain)) {
+      setSupportedChain(true);
+    } else {
+      setSupportedChain(false);
+    }
+  }, [selectedChain]);
 
   const selectChain = useCallback((chain) => {
     if (isChainSupported(chain)) {
@@ -26,6 +34,7 @@ export default function useChain(network = DEFAULT_CHAIN) {
     isChainSupported,
     selectedChain,
     selectChain,
+    supportedChain,
     chains: CHAINS,
   };
 }
