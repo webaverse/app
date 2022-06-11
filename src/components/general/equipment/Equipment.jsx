@@ -110,11 +110,14 @@ export const Equipment = () => {
   const [inventoryObject, setInventoryObject] = useState([]);
   const [faceIndex, setFaceIndex] = useState(1);
   const selectedMenuIndex = mod(faceIndex, 4);
-  const { supportedChain } = useContext(ChainContext)
+  const { selectedChain, supportedChain } = useContext(ChainContext)
   const {getTokens} = useNFTContract(account.currentAddress);
 
   useEffect(async () => {
-    if(!supportedChain) return;
+    if (!supportedChain) {
+      setInventoryObject([]);
+      return;
+    }
     const tokens = await getTokens();
     const inventoryItems = tokens.map((token, i) => {
       return {
@@ -124,7 +127,7 @@ export const Equipment = () => {
       };
     });
     setInventoryObject(inventoryItems);
-  }, [state.openedPanel]);
+  }, [state.openedPanel, selectedChain]);
 
   const refsMap = (() => {
     const map = new Map();
