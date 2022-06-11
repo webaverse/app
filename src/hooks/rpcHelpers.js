@@ -79,7 +79,7 @@ export async function getConnectedAccounts() {
   return accounts;
 }
 
-export async function requestAccounts(address) {
+export async function requestAccounts() {
   const {ethereum} = window;
   const accounts = await ethereum.request({
     method: RPC_METHODS.REQUEST_ACCOUNTS,
