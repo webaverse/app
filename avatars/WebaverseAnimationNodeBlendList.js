@@ -1,8 +1,8 @@
 import {MathUtils} from 'three';
-import {AnimMixer} from './AnimMixer';
-import {AnimNode} from './AnimNode';
+import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
+import {WebaverseAnimationNode} from './WebaverseAnimationNode';
 
-class AnimNodeBlendList extends AnimNode {
+class WebaverseAnimationNodeBlendList extends WebaverseAnimationNode {
   constructor(name, mixer) {
     super(name, mixer);
     this.isAnimNodeBlendList = true;
@@ -27,10 +27,10 @@ class AnimNodeBlendList extends AnimNode {
   // crossFade(duration, targetFactor, targetNode) { // targetFactor only support 0 | 1 now
   //   this.isCrossFade = true;
   //   this.crossFadeDuration = duration;
-  //   this.crossFadeStartTime = AnimMixer.timeS;
+  //   this.crossFadeStartTime = WebaverseAnimationMixer.timeS;
   //   this.crossFadeTargetFactor = targetFactor;
   //   this.crossFadeTargetNode = targetNode;
   // }
 }
 
-export {AnimNodeBlendList};
+export {WebaverseAnimationNodeBlendList};

@@ -1,8 +1,8 @@
 
 import {EventDispatcher} from 'three';
-import {AnimMixer} from './AnimMixer';
+import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
 
-class AnimNode extends EventDispatcher {
+class WebaverseAnimationNode extends EventDispatcher {
   constructor(name, mixer) {
     super();
     this.isAnimNode = true;
@@ -20,7 +20,7 @@ class AnimNode extends EventDispatcher {
     // // do fade
     // if (this.isCrossFade) {
     //   debugger
-    //   let factor = (AnimMixer.timeS - this.crossFadeStartTime) / this.crossFadeDuration;
+    //   let factor = (WebaverseAnimationMixer.timeS - this.crossFadeStartTime) / this.crossFadeDuration;
     //   factor = MathUtils.clamp(factor, 0, 1);
     //   if (this.crossFadeTargetFactor === 0) {
     //     factor = 1 - factor;
@@ -49,13 +49,13 @@ class AnimNode extends EventDispatcher {
       if (childNode.weight > 0) {
         if (nodeIndex === 0) {
           // result = value; // todo: will change original data?
-          AnimMixer.copyArray(result, value);
+          WebaverseAnimationMixer.copyArray(result, value);
 
           nodeIndex++;
           currentWeight = childNode.weight;
         } else {
           const t = childNode.weight / (currentWeight + childNode.weight);
-          AnimMixer.interpolateFlat(result, result, value, t);
+          WebaverseAnimationMixer.interpolateFlat(result, result, value, t);
 
           nodeIndex++;
           currentWeight += childNode.weight;
@@ -64,7 +64,7 @@ class AnimNode extends EventDispatcher {
     }
     // if (nodeIndex === 0) { // use children[0]'s value, if all weights are zero
     //   const value = this.mixer.doBlend(this.children[0], spec);
-    //   AnimMixer.copyArray(result, value);
+    //   WebaverseAnimationMixer.copyArray(result, value);
     // }
     return result;
   }
@@ -79,4 +79,4 @@ class AnimNode extends EventDispatcher {
   }
 }
 
-export {AnimNode};
+export {WebaverseAnimationNode};

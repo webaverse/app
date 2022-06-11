@@ -1,9 +1,9 @@
 import {LoopOnce, LoopRepeat} from 'three';
-import {AnimMixer} from './AnimMixer';
+import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
 
-class AnimMotion {
+class WebaverseAnimationMotion {
   constructor(mixer, animation) {
-    this.isAnimMotion = true;
+    this.isWebaverseAnimationMotion = true;
 
     this.time = 0;
     this.startTime = 0;
@@ -11,7 +11,7 @@ class AnimMotion {
     this.mixer = mixer;
     this.animation = animation;
     this.name = this.animation.name;
-    this.weight = 1; // todo: move to AnimNode?
+    this.weight = 1; // todo: move to WebaverseAnimationNode?
     this.lastWeight = null;
     this.timeBias = 0;
     this.speed = 1;
@@ -33,7 +33,7 @@ class AnimMotion {
     } = spec;
 
     if (isFirstBone) {
-      this.time = AnimMixer.timeS - this.startTime;
+      this.time = WebaverseAnimationMixer.timeS - this.startTime;
       // if (this === window.avatar?.jumpMotion) console.log(this.time);
       // if (this === window.avatar?.jumpMotion) console.log(this.weight);
     }
@@ -54,7 +54,7 @@ class AnimMotion {
         this.isFinished = true;
       }
     } else {
-      value = src.evaluate((AnimMixer.timeS / this.speed + this.timeBias) % animation.duration);
+      value = src.evaluate((WebaverseAnimationMixer.timeS / this.speed + this.timeBias) % animation.duration);
     }
 
     if (this.lastWeight > 0 && this.weight <= 0) {
@@ -73,7 +73,7 @@ class AnimMotion {
     // this.mixer.motions.push(this);
     this.weight = Math.abs(this.weight);
 
-    this.startTime = AnimMixer.timeS;
+    this.startTime = WebaverseAnimationMixer.timeS;
 
     this.isFinished = false;
   }
@@ -84,4 +84,4 @@ class AnimMotion {
   }
 }
 
-export {AnimMotion};
+export {WebaverseAnimationMotion};

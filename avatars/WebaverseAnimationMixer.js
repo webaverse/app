@@ -1,5 +1,5 @@
 import {EventDispatcher, Vector3, Quaternion, LoopOnce} from 'three';
-import {AnimMotion} from './AnimMotion.js';
+import {WebaverseAnimationMotion} from './WebaverseAnimationMotion.js';
 
 const localVector = new Vector3();
 const localQuaternion = new Quaternion();
@@ -18,7 +18,7 @@ Vector3.lerpFlat = (dst, dstOffset, src0, srcOffset0, src1, srcOffset1, alpha) =
   dst[dstOffset + 1] = y0 + (y1 - y0) * alpha;
   dst[dstOffset + 2] = z0 + (z1 - z0) * alpha;
 };
-class AnimMixer extends EventDispatcher {
+class WebaverseAnimationMixer extends EventDispatcher {
   constructor(avatar) {
     super();
     this.avatar = avatar;
@@ -28,7 +28,7 @@ class AnimMixer extends EventDispatcher {
   }
 
   createMotion(animation) {
-    const motion = new AnimMotion(this, animation);
+    const motion = new WebaverseAnimationMotion(this, animation);
     return motion;
   }
 
@@ -58,7 +58,7 @@ class AnimMixer extends EventDispatcher {
 
     // if (window.isDebugger) debugger;
 
-    if (node.isAnimMotion) { // todo: do not evaluate weight <= 0
+    if (node.isWebaverseAnimationMotion) { // todo: do not evaluate weight <= 0
       const motion = node;
       // if (isPosition && motion === window.avatar?.jumpMotion) debugger;
       // if (isFirstBone) motion.update(spec);
@@ -74,7 +74,7 @@ class AnimMixer extends EventDispatcher {
   }
 
   update(timeS, animTree) {
-    AnimMixer.timeS = timeS;
+    WebaverseAnimationMixer.timeS = timeS;
     for (const spec of this.avatar.animationMappings) {
       const {
         animationTrackName: k,
@@ -109,6 +109,6 @@ class AnimMixer extends EventDispatcher {
     }
   }
 }
-AnimMixer.timeS = 0;
+WebaverseAnimationMixer.timeS = 0;
 
-export {AnimMixer};
+export {WebaverseAnimationMixer};

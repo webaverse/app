@@ -5,7 +5,7 @@ import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pi
 import {easing} from '../math-utils.js';
 import loaders from '../loaders.js';
 import {zbdecode} from 'zjs/encoding.mjs';
-import {AnimMixer} from './AnimMixer.js';
+import {WebaverseAnimationMixer} from './WebaverseAnimationMixer.js';
 
 import {
 //   getSkinnedMeshes,
@@ -42,10 +42,10 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
-import {AnimNode} from './AnimNode.js';
-import {AnimNodeBlend2} from './AnimNodeBlend2.js';
-import {AnimNodeBlendList} from './AnimNodeBlendList.js';
-import {AnimNodeUnitary} from './AnimNodeUnitary.js';
+import {WebaverseAnimationNode} from './WebaverseAnimationNode.js';
+import {WebaverseAnimationNodeBlend2} from './WebaverseAnimationNodeBlend2.js';
+import {WebaverseAnimationNodeBlendList} from './WebaverseAnimationNodeBlendList.js';
+import {WebaverseAnimationNodeUnitary} from './WebaverseAnimationNodeUnitary.js';
 import game from '../game.js';
 
 const localVector = new Vector3();
@@ -420,9 +420,9 @@ export const loadPromise = (async () => {
 });
 
 export const _createAnimation = avatar => {
-  avatar.mixer = new AnimMixer(avatar);
+  avatar.mixer = new WebaverseAnimationMixer(avatar);
 
-  // AnimMotions ---
+  // WebaverseAnimationMotions ---
   // LoopRepeat
   avatar.idleMotion = avatar.mixer.createMotion(animations.index['idle.fbx']);
 
@@ -488,7 +488,7 @@ export const _createAnimation = avatar => {
   // avatar.useComboMotion.stop();
 
   // AnimNodes ---
-  avatar.walkNode = new AnimNodeBlendList('walk', avatar.mixer); // todo: mixer.createNode
+  avatar.walkNode = new WebaverseAnimationNodeBlendList('walk', avatar.mixer); // todo: mixer.createNode
   avatar.walkNode.addChild(avatar.walkForwardMotion);
   avatar.walkNode.addChild(avatar.walkBackwardMotion);
   avatar.walkNode.addChild(avatar.walkLeftMotion);
@@ -496,7 +496,7 @@ export const _createAnimation = avatar => {
   avatar.walkNode.addChild(avatar.walkLeftMirrorMotion);
   avatar.walkNode.addChild(avatar.walkRightMirrorMotion);
 
-  avatar.runNode = new AnimNodeBlendList('run', avatar.mixer);
+  avatar.runNode = new WebaverseAnimationNodeBlendList('run', avatar.mixer);
   avatar.runNode.addChild(avatar.runForwardMotion);
   avatar.runNode.addChild(avatar.runBackwardMotion);
   avatar.runNode.addChild(avatar.runLeftMotion);
@@ -504,7 +504,7 @@ export const _createAnimation = avatar => {
   avatar.runNode.addChild(avatar.runLeftMirrorMotion);
   avatar.runNode.addChild(avatar.runRightMirrorMotion);
 
-  avatar.crouchNode = new AnimNodeBlendList('crouch', avatar.mixer);
+  avatar.crouchNode = new WebaverseAnimationNodeBlendList('crouch', avatar.mixer);
   avatar.crouchNode.addChild(avatar.crouchForwardMotion);
   avatar.crouchNode.addChild(avatar.crouchBackwardMotion);
   avatar.crouchNode.addChild(avatar.crouchLeftMotion);
@@ -512,23 +512,23 @@ export const _createAnimation = avatar => {
   avatar.crouchNode.addChild(avatar.crouchLeftMirrorMotion);
   avatar.crouchNode.addChild(avatar.crouchRightMirrorMotion);
 
-  avatar.walkRunNode = new AnimNodeBlend2('walkRun', avatar.mixer);
+  avatar.walkRunNode = new WebaverseAnimationNodeBlend2('walkRun', avatar.mixer);
   avatar.walkRunNode.addChild(avatar.walkNode);
   avatar.walkRunNode.addChild(avatar.runNode);
 
-  avatar._7wayWalkRunNode = new AnimNodeBlend2('_7wayWalkRunNode', avatar.mixer);
+  avatar._7wayWalkRunNode = new WebaverseAnimationNodeBlend2('_7wayWalkRunNode', avatar.mixer);
   avatar._7wayWalkRunNode.addChild(avatar.idleMotion);
   avatar._7wayWalkRunNode.addChild(avatar.walkRunNode);
 
-  avatar._7wayCrouchNode = new AnimNodeBlend2('_7wayCrouchNode', avatar.mixer);
+  avatar._7wayCrouchNode = new WebaverseAnimationNodeBlend2('_7wayCrouchNode', avatar.mixer);
   avatar._7wayCrouchNode.addChild(avatar.crouchIdleMotion);
   avatar._7wayCrouchNode.addChild(avatar.crouchNode);
 
-  avatar.defaultNode = new AnimNodeBlend2('defaultNode', avatar.mixer);
+  avatar.defaultNode = new WebaverseAnimationNodeBlend2('defaultNode', avatar.mixer);
   avatar.defaultNode.addChild(avatar._7wayWalkRunNode);
   avatar.defaultNode.addChild(avatar._7wayCrouchNode);
 
-  avatar.actionsNode = new AnimNodeUnitary('actions', avatar.mixer);
+  avatar.actionsNode = new WebaverseAnimationNodeUnitary('actions', avatar.mixer);
   avatar.actionsNode.addChild(avatar.defaultNode);
   avatar.actionsNode.addChild(avatar.jumpMotion);
   avatar.actionsNode.addChild(avatar.flyMotion);
@@ -545,11 +545,11 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.useMotiono.bowIdle);
   avatar.actionsNode.addChild(avatar.useMotiono.bowLoose);
 
-  // avatar.jumpNode = new AnimNodeBlend2('jump', avatar.mixer);
+  // avatar.jumpNode = new WebaverseAnimationNodeBlend2('jump', avatar.mixer);
   // avatar.jumpNode.addChild(avatar.defaultNode);
   // avatar.jumpNode.addChild(avatar.jumpMotion);
 
-  // avatar.flyNode = new AnimNodeBlend2('fly', avatar.mixer);
+  // avatar.flyNode = new WebaverseAnimationNodeBlend2('fly', avatar.mixer);
   // avatar.flyNode.addChild(avatar.jumpNode);
   // avatar.flyNode.addChild(avatar.flyMotion);
 

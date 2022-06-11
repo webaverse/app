@@ -1,8 +1,8 @@
 import {MathUtils} from 'three';
-import {AnimMixer} from './AnimMixer';
-import {AnimNode} from './AnimNode';
+import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
+import {WebaverseAnimationNode} from './WebaverseAnimationNode';
 
-class AnimNodeUnitary extends AnimNode {
+class WebaverseAnimationNodeUnitary extends WebaverseAnimationNode {
   constructor(name, mixer) {
     super(name, mixer);
     this.isAnimNodeBlend2 = true;
@@ -26,7 +26,7 @@ class AnimNodeUnitary extends AnimNode {
   update(spec) {
     // do fade
     if (this.isCrossFade) {
-      let factor = (AnimMixer.timeS - this.crossFadeStartTime) / this.crossFadeDuration;
+      let factor = (WebaverseAnimationMixer.timeS - this.crossFadeStartTime) / this.crossFadeDuration;
       factor = MathUtils.clamp(factor, 0, 1);
       const factorReverse = 1 - factor;
 
@@ -55,7 +55,7 @@ class AnimNodeUnitary extends AnimNode {
     if (targetNode === this.activeNode) return;
     this.isCrossFade = true;
     this.crossFadeDuration = duration;
-    this.crossFadeStartTime = AnimMixer.timeS;
+    this.crossFadeStartTime = WebaverseAnimationMixer.timeS;
 
     // this.dispatchEvent({
     //   type: 'switch',
@@ -68,4 +68,4 @@ class AnimNodeUnitary extends AnimNode {
   }
 }
 
-export {AnimNodeUnitary};
+export {WebaverseAnimationNodeUnitary};
