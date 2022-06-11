@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useContext} from 'react';
 import { Buffer } from 'buffer';
 import {ethers, BigNumber} from 'ethers';
 
@@ -8,6 +8,7 @@ import {
   CONTRACT_ABIS,
 } from './web3-constants.js';
 import {FTABI, NFTABI} from '../abis/contract.jsx';
+import {ChainContext} from './chainProvider.jsx';
 
 const FILE_ADDRESS = 'https://ipfs.webaverse.com/';
 
@@ -22,9 +23,21 @@ const CONTRACT_EVENTS = {
   SINGLE_COLLABORATOR_REMOVED: 'SingleCollaboratorRemoved',
 };
 
-export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
-  const NFTcontractAddress = CONTRACTS[chain.contract_name].NFT;
-  const FTcontractAddress = CONTRACTS[chain.contract_name].FT;
+export default function useNFTContract(currentAccount) {
+    const {selectedChain} = useContext(ChainContext);
+    const [NFTcontractAddress, setNFTcontractAddress] = useState(null);
+    const [FTcontractAddress, setFTcontractAddress] = useState(null);
+
+    useEffect(() => {
+        try {
+        const NFTcontractAddress = CONTRACTS[selectedChain.contract_name].NFT;
+        const FTcontractAddress = CONTRACTS[selectedChain.contract_name].FT;
+        setNFTcontractAddress(NFTcontractAddress);
+        setFTcontractAddress(FTcontractAddress);
+        } catch (error) {
+        console.log(error);
+        }
+    }, [selectedChain]);
 
   const [minting, setMinting] = useState(false);
   const [showWallet, setShowWallet] = useState(false);
@@ -36,7 +49,7 @@ export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
   }
 
   const getContract = async () => {
-    const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(chain.rpcUrls[0]);
+    const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(selectedChain.rpcUrls[0]);
     const contract = new ethers.Contract(NFTcontractAddress, NFTABI, simpleRpcProvider);
     return contract;
   };
@@ -73,7 +86,7 @@ export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
         if (FTapproveres.transactionHash) {
             try {
                 const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, imageURI, avatarURI, description, 1);
-                onMint(NFTmintres);
+                callback(NFTmintres);
             } catch (err) {
                 setError(err.message);
             }
@@ -84,7 +97,7 @@ export default function useNFTContract(currentAccount, chain = DEFAULT_CHAIN) {
                 const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, imageURI, avatarURI, description, 1);
                 onMint(NFTmintres);
             } catch (err) {
-                setError(error.message);
+                setError('Mint Failed');
                 setMinting(false);
             }
       }

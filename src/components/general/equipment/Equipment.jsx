@@ -9,6 +9,7 @@ import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
 import useNFTContract from '../../../hooks/useNFTContract';
+import { ChainContext } from '../../../hooks/chainProvider';
 
 const size = 2048;
 const numFrames = 128;
@@ -109,9 +110,14 @@ export const Equipment = () => {
   const [inventoryObject, setInventoryObject] = useState([]);
   const [faceIndex, setFaceIndex] = useState(1);
   const selectedMenuIndex = mod(faceIndex, 4);
+  const { selectedChain, supportedChain } = useContext(ChainContext)
   const {getTokens} = useNFTContract(account.currentAddress);
 
   useEffect(async () => {
+    if (!supportedChain) {
+        setInventoryObject([]);
+        return;
+    }
     const tokens = await getTokens();
     const inventoryItems = tokens.map((token, i) => {
       return {
@@ -121,7 +127,7 @@ export const Equipment = () => {
       };
     });
     setInventoryObject(inventoryItems);
-  }, [state.openedPanel]);
+  }, [state.openedPanel, selectedChain]);
 
   const refsMap = (() => {
     const map = new Map();
