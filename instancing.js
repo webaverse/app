@@ -5,6 +5,9 @@ import {getRenderer} from './renderer.js';
 
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
+const localMatrix = new THREE.Matrix4();
+const localSphere = new THREE.Sphere();
+const localFrustum = new THREE.Frustum();
 const localDataTexture = new THREE.DataTexture();
 
 const maxNumDraws = 1024;
@@ -130,7 +133,7 @@ export class GeometryAllocator {
 
     this.drawStarts = new Int32Array(maxNumDraws);
     this.drawCounts = new Int32Array(maxNumDraws);
-    this.boundingSpheres = new Int32Array(maxNumDraws * 4);
+    this.boundingSpheres = new Float32Array(maxNumDraws * 4);
     this.numDraws = 0;
   }
   alloc(numPositions, numIndices, sphere) {
@@ -142,9 +145,7 @@ export class GeometryAllocator {
     this.drawStarts[this.numDraws] = slot.start * this.geometry.index.array.BYTES_PER_ELEMENT;
     this.drawCounts[this.numDraws] = slot.count;
     if (sphere) {
-      this.boundingSpheres[this.numDraws * 4] = sphere.x;
-      this.boundingSpheres[this.numDraws * 4 + 1] = sphere.y;
-      this.boundingSpheres[this.numDraws * 4 + 2] = sphere.z;
+      sphere.center.toArray(this.boundingSpheres, this.numDraws * 4);
       this.boundingSpheres[this.numDraws * 4 + 3] = sphere.radius;
     } else {
       this.boundingSpheres[this.numDraws * 4] = 0;
@@ -179,13 +180,25 @@ export class GeometryAllocator {
     this.positionFreeList.free(geometryBinding.positionFreeListEntry);
     this.indexFreeList.free(geometryBinding.indexFreeListEntry);
   }
-  getDrawSpec(drawStarts, drawCounts) {
+  getDrawSpec(camera, drawStarts, drawCounts) {
     drawStarts.length = 0;
     drawCounts.length = 0;
 
+    const projScreenMatrix = localMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+		localFrustum.setFromProjectionMatrix(projScreenMatrix);
+
     for (let i = 0; i < this.numDraws; i++) {
-      drawStarts[i] = this.drawStarts[i];
-      drawCounts[i] = this.drawCounts[i];
+      const boundingSphereRadius = this.boundingSpheres[i * 4 + 3];
+      if (boundingSphereRadius > 0) {
+        localSphere.center.fromArray(this.boundingSpheres, i * 4);
+        localSphere.radius = boundingSphereRadius;
+
+        // frustum culling
+        if (localFrustum.intersectsSphere(localSphere)) {
+          drawStarts.push(this.drawStarts[i]);
+          drawCounts.push(this.drawCounts[i]);
+        }
+      }
     }
   }
 }
@@ -427,7 +440,7 @@ export class InstancedGeometryAllocator {
   getTexture(name) {
     return this.textures[name];
   }
-  getDrawSpec(multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
+  getDrawSpec(camera, multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
     multiDrawStarts.length = this.drawStarts.length;
     multiDrawCounts.length = this.drawCounts.length;
     multiDrawInstanceCounts.length = this.drawInstanceCounts.length;
@@ -447,8 +460,8 @@ export class BatchedMesh extends THREE.Mesh {
     this.isBatchedMesh = true;
     this.allocator = allocator;
   }
-	getDrawSpec(drawStarts, drawCounts) {
-    this.allocator.getDrawSpec(drawStarts, drawCounts);
+	getDrawSpec(camera, drawStarts, drawCounts) {
+    this.allocator.getDrawSpec(camera, drawStarts, drawCounts);
   }
 }
 
@@ -459,7 +472,7 @@ export class InstancedBatchedMesh extends THREE.InstancedMesh {
     this.isBatchedMesh = true;
     this.allocator = allocator;
   }
-	getDrawSpec(multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
-    this.allocator.getDrawSpec(multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts);
+	getDrawSpec(camera, multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
+    this.allocator.getDrawSpec(camera, multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts);
   }
 }
