@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {switchChain} from './rpcHelpers';
-import {DEFAULT_CHAIN, CHAINS, CONTRACTS} from './web3-constants';
+import {DEFAULT_CHAIN, CHAINS, CONTRACTS, WEB3_EVENTS, CHAIN_ID_MAP} from './web3-constants';
 
 export function isChainSupported(chain) {
   return CONTRACTS[chain.contract_name] !== undefined;
@@ -18,10 +18,32 @@ export default function useChain(network = DEFAULT_CHAIN) {
     }
   }, [selectedChain]);
 
-  const selectChain = useCallback((chain) => {
+  useEffect(() => {
+    const handleChainChanged = async chainId => {
+      if (!CHAIN_ID_MAP[chainId]) return;
+
+      const newChain = CHAINS[CHAIN_ID_MAP[chainId]];
+      setSelectedChain(newChain);
+    };
+
+    if (window.ethereum) {
+      window.ethereum.on(WEB3_EVENTS.CHAIN_CHANGED, handleChainChanged);
+    }
+
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener(
+          WEB3_EVENTS.CHAIN_CHANGED,
+          handleChainChanged,
+        );
+      }
+    };
+  }, []);
+
+  const selectChain = useCallback(chain => {
     if (isChainSupported(chain)) {
-      switchChain(selectedChain.chainId).then(() => {
-        console.log('chain ', selectedChain.chainId);
+      switchChain(chain.chainId).then(() => {
+        console.log('chain', chain.chainId);
         setSelectedChain(() => {
           return {...chain};
         });
