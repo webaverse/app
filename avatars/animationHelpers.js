@@ -551,7 +551,7 @@ export const _createAnimation = avatar => {
   avatar._7wayCrouchNode.addChild(avatar.crouchNode);
 
   avatar._7wayBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayBowNode');
-  avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle);
+  avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle2);
   avatar._7wayBowNode.addChild(avatar.bowNode);
 
   avatar._7wayWalkRunBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayWalkRunBow');
@@ -576,7 +576,7 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlashStep);
   // envolope
   avatar.actionsNode.addChild(avatar.useMotiono.bowDraw);
-  avatar.actionsNode.addChild(avatar.useMotiono.bowIdle2); // ~~todo: bowIdle weight conflict with _7wayBowNode's bowIdle~~
+  avatar.actionsNode.addChild(avatar.useMotiono.bowIdle); // ~~todo: bowIdle weight conflict with _7wayBowNode's bowIdle~~
   avatar.actionsNode.addChild(avatar.useMotiono.bowLoose);
   // sit
   for (const k in avatar.sitMotiono) {
@@ -623,7 +623,8 @@ export const _createAnimation = avatar => {
     // }
 
     if (avatar.useEnvelopeState && event.motion === avatar.useMotiono.bowDraw) {
-      avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowIdle);
+      // avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowIdle);
+      avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
     }
     if (event.motion === avatar.useMotiono.bowLoose) {
       avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
@@ -770,21 +771,21 @@ export const _updateAnimation = avatar => {
 
   // avatar.useMotiono.bowIdle.weight = 0;
 
-  // if (avatar.useEnvelopeStart) {
-  //   // console.log('useEnvelopeStart');
-  //   const useAnimationName = avatar.useAnimationEnvelope[0];
-  //   avatar.useMotiono[useAnimationName].play();
-  //   avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
-  // }
-  // if (avatar.useEnvelopeEnd) {
-  //   // console.log('useEnvelopeEnd');
-  //   if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
-  //     avatar.useMotiono.bowLoose.play();
-  //     avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowLoose); // todo: useAnimationEnvelope[2]
-  //   } else {
-  //     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-  //   }
-  // }
+  if (avatar.useEnvelopeStart) {
+    // console.log('useEnvelopeStart');
+    const useAnimationName = avatar.useAnimationEnvelope[0];
+    avatar.useMotiono[useAnimationName].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+  }
+  if (avatar.useEnvelopeEnd) {
+    // console.log('useEnvelopeEnd');
+    if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
+      avatar.useMotiono.bowLoose.play();
+      avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowLoose); // todo: useAnimationEnvelope[2]
+    } else {
+      avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    }
+  }
 
   if (avatar.sitStart) {
     avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation].play();
