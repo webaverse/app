@@ -7,10 +7,19 @@ const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
+const localBox = new THREE.Box3();
 const localFrustum = new THREE.Frustum();
 const localDataTexture = new THREE.DataTexture();
 
 const maxNumDraws = 1024;
+
+const _getBoundingSize = boundingType => {
+  switch (boundingType) {
+    case 'sphere': return 4;
+    case 'box': return 6;
+    default: return 0;
+  }
+};
 
 export class FreeListSlot {
   constructor(start, count, used) {
@@ -111,6 +120,7 @@ export class GeometryPositionIndexBinding {
 export class GeometryAllocator {
   constructor(attributeSpecs, {
     bufferSize,
+    boundingType = null,
   }) {
     {
       this.geometry = new THREE.BufferGeometry();
@@ -128,15 +138,18 @@ export class GeometryAllocator {
       this.geometry.setIndex(new ImmediateGLBufferAttribute(indices, 1, true));
     }
 
+    this.boundingType = boundingType;
+
     this.positionFreeList = new FreeList(bufferSize * 3);
     this.indexFreeList = new FreeList(bufferSize);
 
     this.drawStarts = new Int32Array(maxNumDraws);
     this.drawCounts = new Int32Array(maxNumDraws);
-    this.boundingSpheres = new Float32Array(maxNumDraws * 4);
+    const boundingSize = _getBoundingSize(boundingType);
+    this.boundingData = new Float32Array(maxNumDraws * boundingSize);
     this.numDraws = 0;
   }
-  alloc(numPositions, numIndices, sphere) {
+  alloc(numPositions, numIndices, boundingObject) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
     const geometryBinding = new GeometryPositionIndexBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
@@ -144,14 +157,12 @@ export class GeometryAllocator {
     const slot = indexFreeListEntry;
     this.drawStarts[this.numDraws] = slot.start * this.geometry.index.array.BYTES_PER_ELEMENT;
     this.drawCounts[this.numDraws] = slot.count;
-    if (sphere) {
-      sphere.center.toArray(this.boundingSpheres, this.numDraws * 4);
-      this.boundingSpheres[this.numDraws * 4 + 3] = sphere.radius;
-    } else {
-      this.boundingSpheres[this.numDraws * 4] = 0;
-      this.boundingSpheres[this.numDraws * 4 + 1] = 0;
-      this.boundingSpheres[this.numDraws * 4 + 2] = 0;
-      this.boundingSpheres[this.numDraws * 4 + 3] = 0;
+    if (this.boundingType === 'sphere') {
+      boundingObject.center.toArray(this.boundingData, this.numDraws * 4);
+      this.boundingData[this.numDraws * 4 + 3] = boundingObject.radius;
+    } else if (this.boundingType === 'box') {
+      boundingObject.min.toArray(this.boundingData, this.numDraws * 6);
+      boundingObject.max.toArray(this.boundingData, this.numDraws * 6 + 3);
     }
 
     this.numDraws++;
@@ -166,13 +177,24 @@ export class GeometryAllocator {
     if (this.numDraws >= 2) {
       const lastIndex = this.numDraws - 1;
 
-      // copy the last index to the freed slot for drawStarts, drawCounts, and boundingSpheres
-      this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
-      this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
-      this.boundingSpheres[freeIndex * 4] = this.boundingSpheres[lastIndex * 4];
-      this.boundingSpheres[freeIndex * 4 + 1] = this.boundingSpheres[lastIndex * 4 + 1];
-      this.boundingSpheres[freeIndex * 4 + 2] = this.boundingSpheres[lastIndex * 4 + 2];
-      this.boundingSpheres[freeIndex * 4 + 3] = this.boundingSpheres[lastIndex * 4 + 3];
+      // copy the last index to the freed slot
+      if (this.boundingType === 'sphere') {
+        this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
+        this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
+        this.boundingData[freeIndex * 4] = this.boundingData[lastIndex * 4];
+        this.boundingData[freeIndex * 4 + 1] = this.boundingData[lastIndex * 4 + 1];
+        this.boundingData[freeIndex * 4 + 2] = this.boundingData[lastIndex * 4 + 2];
+        this.boundingData[freeIndex * 4 + 3] = this.boundingData[lastIndex * 4 + 3];
+      } else if (this.boundingType === 'box') {
+        this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
+        this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
+        this.boundingData[freeIndex * 6] = this.boundingData[lastIndex * 6];
+        this.boundingData[freeIndex * 6 + 1] = this.boundingData[lastIndex * 6 + 1];
+        this.boundingData[freeIndex * 6 + 2] = this.boundingData[lastIndex * 6 + 2];
+        this.boundingData[freeIndex * 6 + 3] = this.boundingData[lastIndex * 6 + 3];
+        this.boundingData[freeIndex * 6 + 4] = this.boundingData[lastIndex * 6 + 4];
+        this.boundingData[freeIndex * 6 + 5] = this.boundingData[lastIndex * 6 + 5];
+      }
     }
 
     this.numDraws--;
@@ -184,20 +206,32 @@ export class GeometryAllocator {
     drawStarts.length = 0;
     drawCounts.length = 0;
 
-    const projScreenMatrix = localMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-		localFrustum.setFromProjectionMatrix(projScreenMatrix);
+    if (this.boundingType) {
+      const projScreenMatrix = localMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      localFrustum.setFromProjectionMatrix(projScreenMatrix);
+    }
 
+    const testBoundingFn = (() => {
+      if (this.boundingType === 'sphere') {
+        return (i) => {
+          localSphere.center.fromArray(this.boundingData, i * 4);
+          localSphere.radius = this.boundingData[i * 4 + 3];
+          return localFrustum.intersectsSphere(localSphere);
+        };
+      } else if (this.boundingType === 'box') {
+        return (i) => {
+          localBox.min.fromArray(this.boundingData, i * 6);
+          localBox.max.fromArray(this.boundingData, i * 6 + 3);
+          return localFrustum.intersectsBox(localBox);
+        };
+      } else {
+        return (i) => true;
+      }
+    })();
     for (let i = 0; i < this.numDraws; i++) {
-      const boundingSphereRadius = this.boundingSpheres[i * 4 + 3];
-      if (boundingSphereRadius > 0) {
-        localSphere.center.fromArray(this.boundingSpheres, i * 4);
-        localSphere.radius = boundingSphereRadius;
-
-        // frustum culling
-        if (localFrustum.intersectsSphere(localSphere)) {
-          drawStarts.push(this.drawStarts[i]);
-          drawCounts.push(this.drawCounts[i]);
-        }
+      if (testBoundingFn(i)) {
+        drawStarts.push(this.drawStarts[i]);
+        drawCounts.push(this.drawCounts[i]);
       }
     }
   }
@@ -292,12 +326,17 @@ export class InstancedGeometryAllocator {
   constructor(geometries, instanceTextureSpecs, {
     maxInstancesPerDrawCall,
     maxDrawCallsPerGeometry,
+    boundingType = null,
   }) {
     this.maxInstancesPerDrawCall = maxInstancesPerDrawCall;
     this.maxDrawCallsPerGeometry = maxDrawCallsPerGeometry;
     this.drawStarts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
     this.drawCounts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
     this.drawInstanceCounts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
+    const boundingSize = _getBoundingSize(boundingType);
+    this.boundingData = new Float32Array(geometries.length * maxDrawCallsPerGeometry * boundingSize);
+
+    this.boundingType = boundingType;
 
     {
       const numGeometries = geometries.length;
@@ -399,7 +438,7 @@ export class InstancedGeometryAllocator {
       this.freeList = new FreeList(numGeometries * maxDrawCallsPerGeometry);
     }
   }
-  allocDrawCall(geometryIndex) {
+  allocDrawCall(geometryIndex, boundingObject) {
     const freeListEntry = this.freeList.alloc(1);
     const drawCall = new DrawCallBinding(geometryIndex, freeListEntry, this);
 
@@ -414,16 +453,37 @@ export class InstancedGeometryAllocator {
     this.drawStarts[freeListEntry.start] = start * this.geometry.index.array.BYTES_PER_ELEMENT;
     this.drawCounts[freeListEntry.start] = count;
     this.drawInstanceCounts[freeListEntry.start] = 0;
+    if (this.boundingType === 'sphere') {
+      boundingObject.center.toArray(this.boundingData, freeListEntry.start * 4);
+      this.boundingData[freeListEntry.start * 4 + 3] = boundingObject.radius;
+    } else if (this.boundingType === 'box') {
+      boundingObject.min.toArray(this.boundingData, freeListEntry.start * 6);
+      boundingObject.max.toArray(this.boundingData, freeListEntry.start * 6 + 3);
+    }
     
     return drawCall;
   }
   freeDrawCall(drawCall) {
     const {freeListEntry} = drawCall;
-    this.freeList.free(freeListEntry);
-  
+
     this.drawStarts[freeListEntry.start] = 0;
     this.drawCounts[freeListEntry.start] = 0;
     this.drawInstanceCounts[freeListEntry.start] = 0;
+    if (this.boundingType === 'sphere') {
+      this.boundingData[freeListEntry.start * 4] = 0;
+      this.boundingData[freeListEntry.start * 4 + 1] = 0;
+      this.boundingData[freeListEntry.start * 4 + 2] = 0;
+      this.boundingData[freeListEntry.start * 4 + 3] = 0;
+    } else if (this.boundingType === 'box') {
+      this.boundingData[freeListEntry.start * 6] = 0;
+      this.boundingData[freeListEntry.start * 6 + 1] = 0;
+      this.boundingData[freeListEntry.start * 6 + 2] = 0;
+      this.boundingData[freeListEntry.start * 6 + 3] = 0;
+      this.boundingData[freeListEntry.start * 6 + 4] = 0;
+      this.boundingData[freeListEntry.start * 6 + 5] = 0;
+    }
+
+    this.freeList.free(freeListEntry);
   }
   getInstanceCount(drawCall) {
     return this.drawInstanceCounts[drawCall.freeListEntry.start];
@@ -445,10 +505,38 @@ export class InstancedGeometryAllocator {
     multiDrawCounts.length = this.drawCounts.length;
     multiDrawInstanceCounts.length = this.drawInstanceCounts.length;
 
+    if (this.boundingType) {
+      const projScreenMatrix = localMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      localFrustum.setFromProjectionMatrix(projScreenMatrix);
+    }
+    const testBoundingFn = (() => {
+      if (this.boundingType === 'sphere') {
+        return (i) => {
+          localSphere.center.fromArray(this.boundingData, i * 4);
+          localSphere.radius = this.boundingData[i * 4 + 3];
+          return localFrustum.intersectsSphere(localSphere);
+        };
+      } else if (this.boundingType === 'box') {
+        return (i) => {
+          localBox.min.fromArray(this.boundingData, i * 6);
+          localBox.max.fromArray(this.boundingData, i * 6 + 3);
+          return localFrustum.intersectsBox(localBox);
+        };
+      } else {
+        return (i) => true;
+      }
+    })();
+
     for (let i = 0; i < this.drawStarts.length; i++) {
-      multiDrawStarts[i] = this.drawStarts[i];
-      multiDrawCounts[i] = this.drawCounts[i];
-      multiDrawInstanceCounts[i] = this.drawInstanceCounts[i];
+      if (testBoundingFn(i)) {
+        multiDrawStarts[i] = this.drawStarts[i];
+        multiDrawCounts[i] = this.drawCounts[i];
+        multiDrawInstanceCounts[i] = this.drawInstanceCounts[i];
+      } else {
+        multiDrawStarts[i] = 0;
+        multiDrawCounts[i] = 0;
+        multiDrawInstanceCounts[i] = 0;
+      }
     }
   }
 }
