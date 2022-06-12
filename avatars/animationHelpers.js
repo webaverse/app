@@ -465,6 +465,7 @@ export const _createAnimation = avatar => {
       avatar.useMotiono[k] = avatar.mixer.createMotion(animation);
     }
   }
+  avatar.useMotiono.bowIdle2 = avatar.mixer.createMotion(avatar.useMotiono.bowIdle.animation); // duplicate bowIdle motion, used for different parents
   avatar.useMotiono.combo.loop = LoopOnce; avatar.useMotiono.combo.stop();
   // combo
   avatar.useMotiono.swordSideSlash.loop = LoopOnce; avatar.useMotiono.swordSideSlash.stop();
@@ -575,7 +576,7 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlashStep);
   // envolope
   avatar.actionsNode.addChild(avatar.useMotiono.bowDraw);
-  avatar.actionsNode.addChild(avatar.useMotiono.bowIdle); // todo: bowIdle weight conflict with _7wayBowNode's bowIdle
+  avatar.actionsNode.addChild(avatar.useMotiono.bowIdle2); // ~~todo: bowIdle weight conflict with _7wayBowNode's bowIdle~~
   avatar.actionsNode.addChild(avatar.useMotiono.bowLoose);
   // sit
   for (const k in avatar.sitMotiono) {
