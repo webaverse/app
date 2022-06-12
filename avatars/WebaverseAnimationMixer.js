@@ -90,7 +90,7 @@ class WebaverseAnimationMixer extends EventDispatcher {
       // if (isPosition && motion === window.avatar?.jumpMotion) console.log(motion.weight);
       // if (isPosition && motion === window.avatar?.activateMotion) console.log(motion.weight);
       return value;
-    } else if (node.isAnimNode) {
+    } else if (node.isWebaverseAnimationNode) {
       const result = node.update(spec);
       return result;
     }
@@ -105,6 +105,8 @@ class WebaverseAnimationMixer extends EventDispatcher {
         // isTop,
         isPosition,
       } = spec;
+
+      // debugger
 
       const result = this.doBlend(animTree, spec);
 

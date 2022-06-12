@@ -46,6 +46,7 @@ import {WebaverseAnimationNode} from './WebaverseAnimationNode.js';
 import {WebaverseAnimationNodeBlend2} from './WebaverseAnimationNodeBlend2.js';
 import {WebaverseAnimationNodeBlendList} from './WebaverseAnimationNodeBlendList.js';
 import {WebaverseAnimationNodeUnitary} from './WebaverseAnimationNodeUnitary.js';
+import {WebaverseAnimationNodeOverwrite} from './WebaverseAnimationNodeOverwrite.js';
 import game from '../game.js';
 
 const localVector = new Vector3();
@@ -594,10 +595,18 @@ export const _createAnimation = avatar => {
   // avatar.flyNode.addChild(avatar.flyMotion);
 
   avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
+  // test
   // avatar.animTree = avatar.bowNode;
   // avatar.animTree = avatar.useMotiono.bowLoose; avatar.useMotiono.bowLoose.loop = LoopRepeat; avatar.useMotiono.bowLoose.play();
   // avatar.animTree = avatar.useMotiono.bowIdle; avatar.useMotiono.bowIdle.loop = LoopRepeat; avatar.useMotiono.bowIdle.play();
   // avatar.animTree = avatar.useMotiono.bowDraw; avatar.useMotiono.bowDraw.loop = LoopRepeat; avatar.useMotiono.bowDraw.play();
+  avatar.overwriteNode = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'overwrite');
+  avatar.overwriteNode.addChild(avatar.crouchForwardMotion);
+  avatar.overwriteNode.addChild(avatar.runForwardMotion);
+  // avatar.animTree = avatar.crouchForwardMotion;
+  // avatar.animTree = avatar.runForwardMotion;
+  avatar.animTree = avatar.overwriteNode;
+  //
 
   // const handleAnimationEnd = event => {
   //   if ([
