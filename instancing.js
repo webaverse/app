@@ -322,21 +322,55 @@ export class DrawCallBinding {
   }
 }
 
+const _swapTextureAttributes = (texture, i, j, maxInstancesPerDrawCall) => {
+  const {itemSize} = texture;
+  const startOffset = i * maxInstancesPerDrawCall;
+  const dstStart = (startOffset + j) * itemSize;
+  const srcStart = (startOffset + maxInstancesPerDrawCall - 1) * itemSize;
+  const count = itemSize;
+  texture.image.data.copyWithin(
+    dstStart,
+    srcStart,
+    srcStart + count
+  );
+};
+const _swapBoundingDataSphere = (instanceBoundingData, i, j, maxInstancesPerDrawCall) => {
+  const dstStart = (startOffset + j) * 4;
+  const srcStart = (startOffset + maxInstancesPerDrawCall - 1) * 4;
+  instanceBoundingData.copyWithin(
+    dstStart,
+    srcStart,
+    srcStart + 4
+  );
+};
+const _swapBoundingDataBox = (instanceBoundingData, i, j, maxInstancesPerDrawCall) => {
+  const dstStart = (startOffset + j) * 6;
+  const srcStart = (startOffset + maxInstancesPerDrawCall - 1) * 6;
+  instanceBoundingData.copyWithin(
+    dstStart,
+    srcStart,
+    srcStart + 6
+  );
+};
 export class InstancedGeometryAllocator {
   constructor(geometries, instanceTextureSpecs, {
     maxInstancesPerDrawCall,
     maxDrawCallsPerGeometry,
     boundingType = null,
+    instanceBoundingType = null,
   }) {
     this.maxInstancesPerDrawCall = maxInstancesPerDrawCall;
     this.maxDrawCallsPerGeometry = maxDrawCallsPerGeometry;
+    this.boundingType = boundingType;
+    this.instanceBoundingType = instanceBoundingType;
+    
     this.drawStarts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
     this.drawCounts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
     this.drawInstanceCounts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
     const boundingSize = _getBoundingSize(boundingType);
     this.boundingData = new Float32Array(geometries.length * maxDrawCallsPerGeometry * boundingSize);
-
-    this.boundingType = boundingType;
+    const instanceBoundingSize = _getBoundingSize(instanceBoundingType);
+    this.instanceBoundingData = new Float32Array(geometries.length * maxDrawCallsPerGeometry * maxInstancesPerDrawCall * instanceBoundingSize);
 
     {
       const numGeometries = geometries.length;
@@ -526,12 +560,66 @@ export class InstancedGeometryAllocator {
         return (i) => true;
       }
     })();
+    const swapBoundingDataFn = () => {
+      if (this.boundingType === 'sphere') {
+        return _swapBoundingDataSphere;
+      } else if (this.boundingType === 'box') {
+        return _swapBoundingDataBox;
+      } else {
+        throw new Error('Invalid bounding type: ' + this.boundingType);
+      }
+    };
 
     for (let i = 0; i < this.drawStarts.length; i++) {
       if (testBoundingFn(i)) {
         multiDrawStarts[i] = this.drawStarts[i];
         multiDrawCounts[i] = this.drawCounts[i];
-        multiDrawInstanceCounts[i] = this.drawInstanceCounts[i];
+        
+        if (this.instanceBoundingType) {
+          const startOffset = i * this.maxInstancesPerDrawCall;
+          
+          const testInstanceBoundingFn = (() => {
+            if (this.boundingType === 'sphere') {
+              return (j) => {
+                const sphereIndex = startOffset + j;
+                localSphere.center.fromArray(this.instanceBoundingData, sphereIndex * 4);
+                localSphere.radius = this.instanceBoundingData[sphereIndex * 4 + 3];
+                return localFrustum.intersectsSphere(localSphere);
+              };
+            } else if (this.boundingType === 'box') {
+              return (j) => {
+                const boxIndex = startOffset + j;
+                localBox.min.fromArray(this.boundingData, boxIndex * 6);
+                localBox.max.fromArray(this.boundingData, boxIndex * 6 + 3);
+                return localFrustum.intersectsBox(localBox);
+              };
+            } else {
+              throw new Error('Invalid bounding type: ' + this.boundingType);
+            }
+          })();
+
+          // arrange the instanced draw list :
+          // - apply per-instanse frustum culling
+          // - swapping the bounding data into place
+          // - accumulate the real instance draw count
+          const maxDrawableInstances = this.drawInstanceCounts[i];
+          let instancesToDraw = 0;
+          for (let j = 0; j < maxDrawableInstances; j++) {
+            if (testInstanceBoundingFn(j)) {
+              instancesToDraw++;
+            } else {
+              // swap this instance with the last instance to remove it
+              for (const texture of this.texturesArray) {
+                _swapTextureAttributes(texture, i, j, this.maxInstancesPerDrawCall);
+              }
+              swapBoundingDataFn(this.instanceBoundingData, i, j, this.maxInstancesPerDrawCall);
+            }
+          }
+
+          multiDrawInstanceCounts[i] = instancesToDraw;
+        } else {
+          multiDrawInstanceCounts[i] = this.drawInstanceCounts[i];
+        }
       } else {
         multiDrawStarts[i] = 0;
         multiDrawCounts[i] = 0;
