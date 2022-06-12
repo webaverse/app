@@ -9,7 +9,8 @@ class WebaverseAnimationNode extends EventDispatcher {
     this.mixer = mixer;
     this.type = 'blend2'; // other types: blendList
     this.children = [];
-    this.childrenWeights = [];
+    // this.childrenWeights = [];
+    this.parents = [];
     this.name = name;
     // this.weight = 1;
 
@@ -72,6 +73,7 @@ class WebaverseAnimationNode extends EventDispatcher {
 
   addChild(node) {
     this.children.push(node);
+    node.parents.push(this);
   }
 
   crossFade(duration) {

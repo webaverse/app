@@ -14,10 +14,6 @@ class WebaverseAnimationNodeBlend2 extends WebaverseAnimationNode {
     this.crossFadeStartTime = 0;
   }
 
-  addChild(node) {
-    this.children.push(node);
-  }
-
   update(spec) {
     // if (spec.isPosition && this === window.avatar?.jumpNode) console.log(this.isCrossFade);
     // if (spec.isPosition && this === window.avatar?.jumpNode) console.log(timeS);

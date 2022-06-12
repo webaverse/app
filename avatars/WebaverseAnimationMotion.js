@@ -5,6 +5,8 @@ class WebaverseAnimationMotion {
   constructor(mixer, animation) {
     this.isWebaverseAnimationMotion = true;
 
+    this.parents = [];
+
     this.time = 0;
     this.startTime = 0;
 

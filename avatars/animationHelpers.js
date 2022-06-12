@@ -505,7 +505,7 @@ export const _createAnimation = avatar => {
 
   // AnimNodes ---
   // todo: in order to reuse motions, need set children weights in node.
-  avatar.walkNode = new WebaverseAnimationNodeBlendList('walk', avatar.mixer); // todo: mixer.createNode
+  avatar.walkNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk'); // todo: mixer.createNode
   avatar.walkNode.addChild(avatar.walkForwardMotion);
   avatar.walkNode.addChild(avatar.walkBackwardMotion);
   avatar.walkNode.addChild(avatar.walkLeftMotion);
@@ -513,7 +513,7 @@ export const _createAnimation = avatar => {
   avatar.walkNode.addChild(avatar.walkLeftMirrorMotion);
   avatar.walkNode.addChild(avatar.walkRightMirrorMotion);
 
-  avatar.runNode = new WebaverseAnimationNodeBlendList('run', avatar.mixer);
+  avatar.runNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'run');
   avatar.runNode.addChild(avatar.runForwardMotion);
   avatar.runNode.addChild(avatar.runBackwardMotion);
   avatar.runNode.addChild(avatar.runLeftMotion);
@@ -521,7 +521,7 @@ export const _createAnimation = avatar => {
   avatar.runNode.addChild(avatar.runLeftMirrorMotion);
   avatar.runNode.addChild(avatar.runRightMirrorMotion);
 
-  avatar.crouchNode = new WebaverseAnimationNodeBlendList('crouch', avatar.mixer);
+  avatar.crouchNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'crouch');
   avatar.crouchNode.addChild(avatar.crouchForwardMotion);
   avatar.crouchNode.addChild(avatar.crouchBackwardMotion);
   avatar.crouchNode.addChild(avatar.crouchLeftMotion);
@@ -529,7 +529,7 @@ export const _createAnimation = avatar => {
   avatar.crouchNode.addChild(avatar.crouchLeftMirrorMotion);
   avatar.crouchNode.addChild(avatar.crouchRightMirrorMotion);
 
-  avatar.bowNode = new WebaverseAnimationNodeBlendList('bow', avatar.mixer);
+  avatar.bowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'bow');
   avatar.bowNode.addChild(avatar.bowForwardMotion);
   avatar.bowNode.addChild(avatar.bowBackwardMotion);
   avatar.bowNode.addChild(avatar.bowLeftMotion);
@@ -537,31 +537,31 @@ export const _createAnimation = avatar => {
   avatar.bowNode.addChild(avatar.bowLeftMirrorMotion);
   avatar.bowNode.addChild(avatar.bowRightMirrorMotion);
 
-  avatar.walkRunNode = new WebaverseAnimationNodeBlend2('walkRun', avatar.mixer);
+  avatar.walkRunNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'walkRun');
   avatar.walkRunNode.addChild(avatar.walkNode);
   avatar.walkRunNode.addChild(avatar.runNode);
 
-  avatar._7wayWalkRunNode = new WebaverseAnimationNodeBlend2('_7wayWalkRunNode', avatar.mixer);
+  avatar._7wayWalkRunNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayWalkRunNode');
   avatar._7wayWalkRunNode.addChild(avatar.idleMotion);
   avatar._7wayWalkRunNode.addChild(avatar.walkRunNode);
 
-  avatar._7wayCrouchNode = new WebaverseAnimationNodeBlend2('_7wayCrouchNode', avatar.mixer);
+  avatar._7wayCrouchNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayCrouchNode');
   avatar._7wayCrouchNode.addChild(avatar.crouchIdleMotion);
   avatar._7wayCrouchNode.addChild(avatar.crouchNode);
 
-  avatar._7wayBowNode = new WebaverseAnimationNodeBlend2('_7wayBowNode', avatar.mixer);
+  avatar._7wayBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayBowNode');
   avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle);
   avatar._7wayBowNode.addChild(avatar.bowNode);
 
-  avatar._7wayWalkRunBowNode = new WebaverseAnimationNodeBlend2('_7wayWalkRunBow', avatar.mixer);
+  avatar._7wayWalkRunBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayWalkRunBow');
   avatar._7wayWalkRunBowNode.addChild(avatar._7wayWalkRunNode);
   avatar._7wayWalkRunBowNode.addChild(avatar._7wayBowNode);
 
-  avatar.defaultNode = new WebaverseAnimationNodeBlend2('defaultNode', avatar.mixer);
+  avatar.defaultNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'defaultNode');
   avatar.defaultNode.addChild(avatar._7wayWalkRunBowNode);
   avatar.defaultNode.addChild(avatar._7wayCrouchNode);
 
-  avatar.actionsNode = new WebaverseAnimationNodeUnitary('actions', avatar.mixer);
+  avatar.actionsNode = avatar.mixer.createNode(WebaverseAnimationNodeUnitary, 'actions');
   avatar.actionsNode.addChild(avatar.defaultNode);
   avatar.actionsNode.addChild(avatar.jumpMotion);
   avatar.actionsNode.addChild(avatar.flyMotion);
@@ -583,11 +583,11 @@ export const _createAnimation = avatar => {
     avatar.actionsNode.addChild(motion);
   }
 
-  // avatar.jumpNode = new WebaverseAnimationNodeBlend2('jump', avatar.mixer);
+  // avatar.jumpNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'jump');
   // avatar.jumpNode.addChild(avatar.defaultNode);
   // avatar.jumpNode.addChild(avatar.jumpMotion);
 
-  // avatar.flyNode = new WebaverseAnimationNodeBlend2('fly', avatar.mixer);
+  // avatar.flyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'fly');
   // avatar.flyNode.addChild(avatar.jumpNode);
   // avatar.flyNode.addChild(avatar.flyMotion);
 

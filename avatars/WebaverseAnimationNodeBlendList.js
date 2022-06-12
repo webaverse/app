@@ -14,10 +14,6 @@ class WebaverseAnimationNodeBlendList extends WebaverseAnimationNode {
     // this.crossFadeTargetNode = null;
   }
 
-  addChild(node) {
-    this.children.push(node);
-  }
-
   update(spec) {
     // do blend
     const result = this.doBlendList(spec);

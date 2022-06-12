@@ -14,7 +14,8 @@ class WebaverseAnimationNodeUnitary extends WebaverseAnimationNode {
   }
 
   addChild(node) {
-    this.children.push(node);
+    super.addChild(node);
+
     if (this.children.length === 1) {
       this.activeNode = node;
       node.weight = 1;
