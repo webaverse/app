@@ -24,12 +24,33 @@ class WebaverseAnimationMixer extends EventDispatcher {
     this.avatar = avatar;
     this.motion = null;
     this.motions = [];
+    this.nodes = [];
     this.yBias = 0;
   }
 
   createMotion(animation) {
     const motion = new WebaverseAnimationMotion(this, animation);
+    this.motions.push(motion);
     return motion;
+  }
+
+  createNode(NodeClass, name) {
+    const node = new NodeClass(name, this);
+    this.nodes.push(node);
+    return node;
+  }
+
+  checkParents() {
+    this.motions.forEach(motion => {
+      if (motion.parents.length > 1) {
+        console.log(motion.name);
+      }
+    });
+    this.nodes.forEach(node => {
+      if (node.parents.length > 1) {
+        console.log(node.name);
+      }
+    });
   }
 
   static copyArray(dst, src) {
