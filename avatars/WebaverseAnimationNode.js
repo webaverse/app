@@ -5,7 +5,7 @@ import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
 class WebaverseAnimationNode extends EventDispatcher {
   constructor(name, mixer) {
     super();
-    this.isAnimNode = true;
+    this.isWebaverseAnimationNode = true;
     this.mixer = mixer;
     this.type = 'blend2'; // other types: blendList
     this.children = [];

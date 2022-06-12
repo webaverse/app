@@ -21,6 +21,7 @@ Vector3.lerpFlat = (dst, dstOffset, src0, srcOffset0, src1, srcOffset1, alpha) =
 class WebaverseAnimationMixer extends EventDispatcher {
   constructor(avatar) {
     super();
+    this.isWebaverseAnimationMixer = true;
     this.avatar = avatar;
     this.motion = null;
     this.motions = [];
