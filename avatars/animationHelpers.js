@@ -465,7 +465,7 @@ export const _createAnimation = avatar => {
       avatar.useMotiono[k] = avatar.mixer.createMotion(animation);
     }
   }
-  avatar.useMotiono.bowIdle2 = avatar.mixer.createMotion(avatar.useMotiono.bowIdle.animation); // duplicate bowIdle motion, used for different parents
+  // avatar.useMotiono.bowIdle2 = avatar.mixer.createMotion(avatar.useMotiono.bowIdle.animation); // duplicate bowIdle motion, used for different parents
   avatar.useMotiono.combo.loop = LoopOnce; avatar.useMotiono.combo.stop();
   // combo
   avatar.useMotiono.swordSideSlash.loop = LoopOnce; avatar.useMotiono.swordSideSlash.stop();
@@ -551,7 +551,8 @@ export const _createAnimation = avatar => {
   avatar._7wayCrouchNode.addChild(avatar.crouchNode);
 
   avatar._7wayBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayBowNode');
-  avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle2);
+  // avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle2);
+  avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle);
   avatar._7wayBowNode.addChild(avatar.bowNode);
 
   avatar._7wayWalkRunBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayWalkRunBow');
@@ -576,7 +577,7 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlashStep);
   // envolope
   avatar.actionsNode.addChild(avatar.useMotiono.bowDraw);
-  avatar.actionsNode.addChild(avatar.useMotiono.bowIdle); // ~~todo: bowIdle weight conflict with _7wayBowNode's bowIdle~~
+  // avatar.actionsNode.addChild(avatar.useMotiono.bowIdle); // ~~todo: bowIdle weight conflict with _7wayBowNode's bowIdle~~
   avatar.actionsNode.addChild(avatar.useMotiono.bowLoose);
   // sit
   for (const k in avatar.sitMotiono) {
@@ -779,7 +780,8 @@ export const _updateAnimation = avatar => {
   }
   if (avatar.useEnvelopeEnd) {
     // console.log('useEnvelopeEnd');
-    if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
+    // if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
+    if (avatar.actionsNode.activeNode === avatar.defaultNode) {
       avatar.useMotiono.bowLoose.play();
       avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowLoose); // todo: useAnimationEnvelope[2]
     } else {
