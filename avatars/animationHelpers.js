@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip, LoopOnce, MathUtils} from 'three';
+import {Vector3, Quaternion, AnimationClip, LoopOnce, MathUtils, LoopRepeat} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -595,6 +595,9 @@ export const _createAnimation = avatar => {
 
   avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
   // avatar.animTree = avatar.bowNode;
+  // avatar.animTree = avatar.useMotiono.bowLoose; avatar.useMotiono.bowLoose.loop = LoopRepeat; avatar.useMotiono.bowLoose.play();
+  // avatar.animTree = avatar.useMotiono.bowIdle; avatar.useMotiono.bowIdle.loop = LoopRepeat; avatar.useMotiono.bowIdle.play();
+  // avatar.animTree = avatar.useMotiono.bowDraw; avatar.useMotiono.bowDraw.loop = LoopRepeat; avatar.useMotiono.bowDraw.play();
 
   // const handleAnimationEnd = event => {
   //   if ([
@@ -610,7 +613,7 @@ export const _createAnimation = avatar => {
   // };
 
   avatar.mixer.addEventListener('finished', event => {
-    console.log('finished', event.motion.name, !!avatar.useEnvelopeState);
+    // console.log('finished', event.motion.name, !!avatar.useEnvelopeState);
     // // handleAnimationEnd(event);
     // if ([
     //   avatar.useMotiono.combo,
@@ -697,7 +700,9 @@ export const _updateAnimation = avatar => {
   avatar.bowRightMotion.weight = mirror ? 0 : rightFactor;
   avatar.bowRightMirrorMotion.weight = mirror ? rightFactor : 0;
 
-  avatar._7wayWalkRunBowNode.factor = avatar.useEnvelopeState ? 1 : 0;
+  // avatar._7wayWalkRunBowNode.factor = avatar.useEnvelopeState ? 1 : 0;
+  avatar._7wayWalkRunBowNode.factor = avatar.useEnvelopeFactor;
+  // console.log(avatar._7wayWalkRunBowNode.factor);
 
   avatar.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
   avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
@@ -783,7 +788,7 @@ export const _updateAnimation = avatar => {
     // if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
     if (avatar.actionsNode.activeNode === avatar.defaultNode) {
       avatar.useMotiono.bowLoose.play();
-      avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowLoose); // todo: useAnimationEnvelope[2]
+      avatar.actionsNode.crossFadeTo(0, avatar.useMotiono.bowLoose); // todo: useAnimationEnvelope[2] // todo: 0.2 transition
     } else {
       avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
     }

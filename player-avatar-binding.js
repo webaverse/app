@@ -59,10 +59,10 @@ export function makeAvatar(app) {
         debug: false,
       });
       avatar[appSymbol] = app;
-      
+
       unFrustumCull(app);
       enableShadows(app);
-      
+
       return avatar;
     }
   }
@@ -130,7 +130,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.lastActivateState = rig.activateState;
   //
   rig.activateTime = player.actionInterpolants.activate.get();
-  
+
   const _handleUse = () => {
     if (useAction?.animation) {
       rig.useAnimation = useAction.animation;
@@ -176,6 +176,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
     }
     rig.lastUseEnvelopeState = rig.useEnvelopeState;
     //
+    rig.useEnvelopeFactor = player.actionInterpolants.useEnvelope.getNormalized();
     if (useAction?.animationEnvelope) {
       rig.useAnimationEnvelope = useAction.animationEnvelope;
     } else {
@@ -202,7 +203,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   };
   _handlePickUp();
 
-  rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
+  rig.manuallySetMouth = player.characterBehavior.manuallySetMouth;
   rig.vowels[1] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[1];
   rig.vowels[2] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[2];
   rig.vowels[3] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[3];
@@ -322,11 +323,11 @@ export function applyPlayerPoseToAvatar(player, rig) {
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
-  
+
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
-  
+
   applyFacePoseToAvatar(player, rig);
   applyPlayerPoseToAvatar(player, rig);
 }

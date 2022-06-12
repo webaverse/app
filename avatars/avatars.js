@@ -1926,6 +1926,7 @@ class Avatar {
         <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>
         <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
         <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>
+        <div style="display:;">useEnvelopeFactor: --- ${this.useEnvelopeFactor.toFixed(2)}</div>
         <div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
         <div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
         <div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>

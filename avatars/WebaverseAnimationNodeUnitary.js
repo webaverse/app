@@ -25,6 +25,12 @@ class WebaverseAnimationNodeUnitary extends WebaverseAnimationNode {
   }
 
   update(spec) {
+    // const {
+    //   isFirstBone,
+    // } = spec;
+
+    // if (isFirstBone) console.log(this.activeNode.name);
+
     // do fade
     if (this.isCrossFade) {
       let factor = (WebaverseAnimationMixer.timeS - this.crossFadeStartTime) / this.crossFadeDuration;
