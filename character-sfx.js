@@ -123,7 +123,7 @@ class CharacterSfx {
 
     // step
     const _handleStep = () => {
-      if (idleWalkFactor > 0.7 && !this.player.avatar.jumpState && !this.player.avatar.flyState) {
+      if (idleWalkFactor > 0.7 && !this.player.avatar.jumpState && !this.player.avatar.flyState && !this.player.avatar.swimState) {
         const isRunning = walkRunFactor > 0.5;
         const isCrouching = crouchFactor > 0.5;
         const isNarutoRun = this.player.avatar.narutoRunState;

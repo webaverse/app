@@ -23,6 +23,16 @@
         "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }
     },
+    {
+      "type": "application/wind",
+      "content": {
+        "windType": "directional",
+        "direction": [-1, 0, 0],
+        "windForce": 1,
+        "noiseScale": 1,
+        "windFrequency": 1
+      }
+    },
   
 {
        "position": [
@@ -103,46 +113,8 @@
         0
       ],
       "physics": true,
-      "start_url": "https://webaverse.github.io/dynamic-water/",
+      "start_url": "/practice/dynamic-water-main/",
       "dynamic": false
-    },
-    {
-      "position": [
-        23,
-        2,
-        55
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/pistol/"
-    },
-    {
-      "position": [
-        26,
-        2,
-        55
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/silsword/"
     },
     {
       "position": [
@@ -164,7 +136,53 @@
       "physics": false,
       "start_url": "https://webaverse.github.io/jatayu-birdsculpture/",
       "dynamic": true
+    },
+    {
+      "position": [
+        27,
+        2,
+        47
+      ],
+      "scale": [
+        3,
+        3,
+        3
+      ],
+      "start_url": "/practice/palm/"
+    },
+    {
+      "position": [
+        -50,0,500
+      ],
+      "start_url": "/practice/fireworks/"
+    },
+    {
+      "position": [
+        -30,0,500
+      ],
+      "start_url": "/practice/fireworks/"
+    },
+    {
+      "position": [
+        -70,0,500
+      ],
+      "start_url": "/practice/fireworks/"
+    },
+    {
+      "position": [
+        15,
+        1.5,
+        50
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "start_url": "/practice/campfire/"
     }
+
+
 
 ]
 }

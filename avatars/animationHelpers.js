@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip, MathUtils} from 'three';
+import {Vector3, Quaternion, AnimationClip} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -407,7 +407,7 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
-export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
+export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
@@ -1223,35 +1223,27 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       animationTrackName: k,
       dst,
       isPosition,
-      isFirstBone,
     } = spec;
 
     if (avatar.swimState) {
-      const swimTimeS = avatar.swimTime / 1000;
-      if (isFirstBone) {
-        const swimSpeed = 1 + idleWalkFactor + walkRunFactor;
-        avatar.swimAnimTime += timeDiffS * swimSpeed;
-      }
-
+      const t2 = avatar.swimTime / 1000;
       const src2 = floatAnimation.interpolants[k];
-      const v2 = src2.evaluate(swimTimeS % floatAnimation.duration);
+      const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
+      const t3 = avatar.swimTime / 1000;
       const src3 = animations.index['Swimming.fbx'].interpolants[k];
-      const v3 = src3.evaluate(avatar.swimAnimTime % animations.index['Swimming.fbx'].duration);
-
-      const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
-      // if (isPosition) console.log(f);
+      const v3 = src3.evaluate(t3 % animations.index['Swimming.fbx'].duration);
 
       if (!isPosition) {
         localQuaternion.fromArray(v2);
         localQuaternion2.fromArray(v3);
         localQuaternion.slerp(localQuaternion2, idleWalkFactor);
-        dst.slerp(localQuaternion, f);
+        dst.copy(localQuaternion);
       } else {
         localVector.fromArray(v2);
         localVector2.fromArray(v3);
         localVector.lerp(localVector2, idleWalkFactor);
-        dst.lerp(localVector, f);
+        dst.copy(localVector);
       }
     }
   };

@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
 import {getVelocityDampingFactor} from './util.js';
-import {groundFriction, flyFriction, airFriction} from './constants.js';
+import {groundFriction, flyFriction, airFriction, swimFriction} from './constants.js';
 import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
@@ -60,7 +60,7 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     // if (this.player) {
-      if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
+      if (this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
         localVector.copy(physicsManager.getGravity())
           .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
@@ -94,7 +94,7 @@ class CharacterPhysics {
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
 
-      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly')) { // prevent jump when go down slope
+      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly') && !this.player.getAction('swim')) { // prevent jump when go down slope
         const oldY = this.player.characterController.position.y;
         const flags = physicsManager.moveCharacterController(
           this.player.characterController,
@@ -245,7 +245,12 @@ class CharacterPhysics {
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       velocity.multiplyScalar(factor);
-    } else {
+    } 
+    else if(this.player.hasAction('swim')){
+      const factor = getVelocityDampingFactor(swimFriction, timeDiff);
+      velocity.multiplyScalar(factor);
+    }
+    else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       velocity.x *= factor;
       velocity.z *= factor;
