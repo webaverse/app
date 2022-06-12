@@ -36,7 +36,7 @@ import raycastManager from '../../../raycast-manager';
 
 import {AccountContext} from '../../hooks/web3AccountProvider';
 import {ChainContext} from '../../hooks/chainProvider';
-import {useWebaverse} from '../../hooks/useWebaverse';
+import {webaverse} from '../../../webaverse';
 
 //
 
@@ -91,7 +91,7 @@ const Canvas = ({
 export const App = () => {
   const [state, setState] = useState({openedPanel: null});
 
-  const app = useWebaverse();
+  const app = webaverse;
   const [selectedApp, setSelectedApp] = useState(null);
   const [selectedScene, setSelectedScene] = useState(_getCurrentSceneSrc());
   const [selectedRoom, setSelectedRoom] = useState(_getCurrentRoom());

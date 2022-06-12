@@ -128,7 +128,6 @@ function updateGrabbedObject(
 const _getCurrentGrabAnimation = () => {
   let currentAnimation = '';
   const localPlayer = getLocalPlayer();
-  console.log("grabUseMesh is", grabUseMesh, "grabUseMesh.targetApp", grabUseMesh.targetApp)
   const wearComponent = grabUseMesh.targetApp.getComponent('wear');
   if (wearComponent && wearComponent.grabAnimation === 'pick_up') {
     currentAnimation = wearComponent.grabAnimation;
@@ -724,6 +723,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (pickUpAction) {
       const {instanceId} = pickUpAction;
       const app = metaversefileApi.getAppByInstanceId(instanceId);
+      if(!app){ return console.error ("App not found when picking up`")}
 
       const _removeApp = () => {
         if (app.parent) {
@@ -881,7 +881,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         
         // update matrix
         {
-          console.log("_updateMouseSelect update matrix")
+          // console.log("_updateMouseSelect update matrix")
           localMatrix2
             .copy(physicsMesh.matrixWorld)
             // .premultiply(localMatrix3.copy(mouseSelectedObject.matrixWorld).invert())

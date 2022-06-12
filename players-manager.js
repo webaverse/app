@@ -23,8 +23,8 @@ class PlayersManager {
   unbindState() {
     const lastPlayers = this.playersArray;
     if (lastPlayers) {
-      console.log('unbind player observers', lastPlayers, new Error().stack);
-      console.log('got players array', this.playersArray);
+      // console.log('unbind player observers', lastPlayers, new Error().stack);
+      // console.log('got players array', this.playersArray);
       const playerSpecs = this.playersArray.toJSON();
       const nonLocalPlayerSpecs = playerSpecs.filter(p => {
         return p.playerId !== getLocalPlayer().playerId;
@@ -32,11 +32,10 @@ class PlayersManager {
       for (const nonLocalPlayer of nonLocalPlayerSpecs) {
         const remotePlayer = this.remotePlayers.get(nonLocalPlayer.playerId);
         if (remotePlayer) {
-          console.log('destroy remote player', remotePlayer);
+          // console.log('destroy remote player', remotePlayer);
           remotePlayer.destroy();
           this.remotePlayers.delete(nonLocalPlayer.playerId);
         } else {
-          console.log('no remote player to destroy', nonLocalPlayer.playerId);
           throw new Error('no remote player to destroy');
         }
       }
@@ -51,14 +50,13 @@ class PlayersManager {
     this.unbindState();
 
     this.playersArray = nextPlayersArray;
-
+    
     if (!this.playersArray) return console.warn('Skipping bindState because playersArray is null');
     const localPlayer = getLocalPlayer();
 
     const playersObserveFn = e => {
       const {added, deleted, delta, keys} = e.changes;
 
-      const values = Array.from(added.values());
       for (const item of added.values()) {
         let playerMap = item.content.type;
         if (playerMap.constructor === Object) {

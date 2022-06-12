@@ -1,12 +1,15 @@
 import * as Z from 'zjs/z.mjs';
 import WSRTC from 'wsrtc/wsrtc.js';
+import {getLocalPlayer, remotePlayers} from './players.js';
 
 import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
 import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority} from './renderer.js';
 import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
-import {getLocalPlayer} from './players.js';
+
+import physx from './physx.js';
+import physxWorkerManager from './physx-worker-manager.js';
 
 const _getBindSceneForRenderPriority = renderPriority => {
   switch (renderPriority) {
@@ -29,9 +32,9 @@ const _getBindSceneForRenderPriority = renderPriority => {
 };
 
 // Handles the world and objects in it, has an app manager just like a player
-class World {
-  constructor({appManager = new AppManager()} = {}) {
-    this.appManager = appManager;
+export class World {
+  constructor() {
+    this.appManager = new AppManager();
     this.winds = [];
     this.wsrtc = null;
     // This handles adding apps to the world scene
@@ -77,6 +80,8 @@ class World {
   }
 
   async connectRoom(u, state = new Z.Doc()) {
+    await physx.waitForLoad();
+    await physxWorkerManager.waitForLoad();
     const localPlayer = getLocalPlayer();
 
     state.setResolvePriority(1);
@@ -85,34 +90,38 @@ class World {
       crdtState: state,
     });
 
+    // Handy debug function to see the state
+    // Delete these before committing to main
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') {
-        console.log(state.getArray('world'))
-        console.log(state.getArray('players'))
+        console.log(state.getArray('world'));
+        console.log(state.getArray('players'));
       }
     });
 
     const open = e => {
       this.wsrtc.removeEventListener('open', open);
+        this.appManager.unbindState();
+        this.appManager.clear();
+        this.appManager.bindState(state.getArray(appsMapName));
 
-      this.appManager.unbindState();
-      this.appManager.clear();
-      this.appManager.bindState(state.getArray(appsMapName));
-
-      playersManager.unbindState();
-      playersManager.bindState(state.getArray(playersMapName));
-
+        playersManager.unbindState();
+        playersManager.bindState(state.getArray(playersMapName));
       const init = e => {
         this.wsrtc.removeEventListener('init', init);
         localPlayer.bindState(state.getArray(playersMapName));
-
+        // remotePlayers.forEach(remotePlayer => {
+        //   remotePlayer.bindState(state.getArray(playersMapName));
+        // })
         this.wsrtc.addEventListener('audio', e => {
           const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
           player.processAudioData(e.data);
         });
       };
+
       this.wsrtc.addEventListener('init', init);
     };
+
     this.wsrtc.addEventListener('open', open);
 
     return this.wsrtc;
