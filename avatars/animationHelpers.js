@@ -575,7 +575,7 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlashStep);
   // envolope
   avatar.actionsNode.addChild(avatar.useMotiono.bowDraw);
-  // avatar.actionsNode.addChild(avatar.useMotiono.bowIdle); // todo: bowIdle weight conflict with _7wayBowNode's bowIdle
+  avatar.actionsNode.addChild(avatar.useMotiono.bowIdle); // todo: bowIdle weight conflict with _7wayBowNode's bowIdle
   avatar.actionsNode.addChild(avatar.useMotiono.bowLoose);
   // sit
   for (const k in avatar.sitMotiono) {

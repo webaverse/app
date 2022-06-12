@@ -29,6 +29,7 @@ class WebaverseAnimationMixer extends EventDispatcher {
   }
 
   createMotion(animation) {
+    // if (animation.name === 'bow idle.fbx') debugger;
     const motion = new WebaverseAnimationMotion(this, animation);
     this.motions.push(motion);
     return motion;
@@ -41,14 +42,14 @@ class WebaverseAnimationMixer extends EventDispatcher {
   }
 
   checkParents() {
-    this.motions.forEach(motion => {
+    this.motions.forEach((motion, i) => {
       if (motion.parents.length > 1) {
-        console.log(motion.name);
+        console.log('multi-parents: motion:', motion.name, i);
       }
     });
-    this.nodes.forEach(node => {
+    this.nodes.forEach((node, i) => {
       if (node.parents.length > 1) {
-        console.log(node.name);
+        console.log('multi-parents: node:', node.name, i);
       }
     });
   }

@@ -23,8 +23,8 @@ class WebaverseAnimationMotion {
     this.loop = LoopRepeat;
     this.clampWhenFinished = false;
 
-    // always play
-    this.mixer.motions.push(this);
+    // // always play
+    // this.mixer.motions.push(this);
   }
 
   update(spec) {
