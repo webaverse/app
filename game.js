@@ -24,6 +24,8 @@ import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
+import metaversefile from 'metaversefile';
+const {useRemotePlayers} = metaversefile;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -779,7 +781,29 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const physicsId = collision.objectId;
         highlightedPhysicsObject =
           metaversefileApi.getAppByPhysicsId(physicsId);
-        highlightedPhysicsId = physicsId;
+        
+        if (!highlightedPhysicsObject) return
+
+        let isGrabbed = false
+        //TODO: check remote player's grab
+        const remotePlayers = useRemotePlayers();
+        for (const player of remotePlayers) {
+          const grabActions = Array.from(player.getActionsState()).filter(
+            (action) => action.type === "grab"
+          );
+          for (const grabAction of grabActions) {
+            const instanceId = grabAction.instanceId;
+            if (instanceId == highlightedPhysicsObject.instanceId) {
+              isGrabbed = true
+            }
+          }
+        }
+        if (isGrabbed) {
+          highlightedPhysicsObject = null
+          highlightedPhysicsId = 0;
+        } else {
+          highlightedPhysicsId = physicsId;
+        }
       }
     }
   };
