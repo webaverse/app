@@ -52,7 +52,7 @@ switch ( origin ) {
         break;
     }
     default: {
-        _inappPreviewHost = 'https://app.webaverse.online';
+        _inappPreviewHost = 'https://localhost:3000';
     }
 }
 
