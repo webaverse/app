@@ -12,6 +12,7 @@ import metaversefile from "metaversefile";
 import * as metaverseModules from "./metaverse-modules.js";
 import { jsonParse } from "./util.js";
 import { worldMapName } from "./constants.js";
+import {getLocalPlayer} from './players.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -480,16 +481,10 @@ class AppManager extends EventTarget {
       this.callBackFn(app, "wear", "add");
     }
 
-    const grabupdate = (e) => {
-      app.isGrab = e.grab
-    }
-
-    app.addEventListener('grabupdate', grabupdate);
-
     const trackedApp = this.getTrackedApp(app.instanceId);
     const _observe = (e) => {
       const transform = trackedApp.get("transform");
-      if (e.changes.keys.has("transform") && transform) {
+      if (e.changes.keys.has("transform") && transform && !this.isAppGrabbed(app.instanceId)) {
         app.position.fromArray(transform, 0);
         app.quaternion?.fromArray(transform, 3);
         app.scale?.fromArray(transform, 7);
@@ -637,6 +632,12 @@ class AppManager extends EventTarget {
   }
   packed = new Float32Array(11);
 
+  isAppGrabbed(instanceId) {
+    const localPlayer = getLocalPlayer();
+    const grabAction = localPlayer.findAction(action => action.type === 'grab');
+    return grabAction ? grabAction.instanceId == instanceId : false
+  }
+
   update() {
     if (!this.appsArray) return console.warn("Can't push app updates because appsArray is null")
     this.appsArray.doc.transact(() => {
@@ -670,7 +671,10 @@ class AppManager extends EventTarget {
               trackedApp.set("transform", packed);
             }
           };
-          _updateTrackedApp();
+
+          if (this.isAppGrabbed(app.instanceId)) {
+            _updateTrackedApp();
+          }
   
           const _updatePhysicsObjects = () => {
             // update attached physics objects with a relative transform
