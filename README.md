@@ -14,6 +14,8 @@ To clone and run App you'll need [Git](https://git-scm.com) and [Node.js](https:
 git clone --recurse-submodules https://github.com/TheNexusCity/webaverse-app
 # Go into the repository
 cd app/
+# Pull recursively
+git pull --recurse-submodules 
 # Install dependencies
 npm install
 # Run the app
