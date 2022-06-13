@@ -95,6 +95,7 @@ const DragAndDrop = () => {
   const {mintNFT, minting, error, setError} = useNFTContract(account.currentAddress, chain.selectedChain);
   const {mintComplete, setMintComplete} = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const {selectedChain} = useContext(ChainContext);
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -356,9 +357,9 @@ const DragAndDrop = () => {
               <span>Equip</span>
               <sub>to self</sub>
             </div>
-            <div className={style.button} disabled={!account.currentAddress} onClick={_mint}>
+            <div className={style.button} disabled={!isChainSupported(selectedChain) || !account.currentAddress} onClick={_mint}>
               <span>Mint</span>
-              <sub>on chain</sub>
+              <sub>on {selectedChain.name}</sub>
             </div>
           </div>
           <div className={style.buttons}>
