@@ -12,6 +12,7 @@ import {getLocalPlayer} from './players.js';
 import metaversefile from "metaversefile";
 import * as metaverseModules from "./metaverse-modules.js";
 import { jsonParse } from "./util.js";
+import logger from "./logger.js";
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -29,9 +30,13 @@ const localFrameOpts = {
 const frameEvent = new MessageEvent('frame', localFrameOpts);
 
 const appManagers = [];
+// Each app owner has an app manager, including players and the world(s)
+// New AppManagers are constructed when LocalPlayer, RemotePlayer or World is constructed
 class AppManager extends EventTarget {
   constructor() {
     super();
+    logger.log('New app manager');
+
 
     this.appsArray = null;
     this.apps = [];
@@ -43,6 +48,7 @@ class AppManager extends EventTarget {
 
     appManagers.push(this);
   }
+  // Called on local player and world app managers
   tick(timestamp, timeDiff, frame) {
     localData.timestamp = timestamp;
     localData.frame = frame;
@@ -66,30 +72,31 @@ class AppManager extends EventTarget {
   isBound() {
     return !!this.appsArray;
   }
-    // Remove all the apps from remote players before calling unbindState
-  // On local player we move between worlds and don't want to unbind unless destroyed, i.e. if NPC
+  // Remove all the apps from remote players before calling unbindState
   unbindState() {
-    if (this.unbindStateFn) this.unbindStateFn();
+    logger.log('appManager.unbindState');
+    if (!this.unbindStateFn) return console.warn("unbindStateRemote called but not bound");
+    this.unbindStateFn();
     this.appsArray = null;
     this.unbindStateFn = null;
   }
+  // On local player we move between worlds and don't want to unbind unless destroyed, i.e. if NPC
   unbindStateLocal() {
+    logger.log('appManager.unbindStateLocal');
     if (this.unbindStateFn) {
       this.unbindState();
     }
   }
+  // On remote players we remove the app
   unbindStateRemote() {
-    if (this.unbindStateFn) {
-      this.unbindState();
-    }
-    if (!this.unbindStateFn) return console.warn("unbindStateRemote called but not bound");
+    logger.log('appManager.unbindStateRemote');
       const appSpecs = this.appsArray.toJSON();
       for (const appSpec of appSpecs) {
         const app = this.getAppByInstanceId(appSpec.instanceId);
         if (app) {
           this.removeApp(app);
         } else {
-          console.warn("App was already destroyed. Harmless, but indicates unclear control flow.")
+          logger.warn("App was already destroyed.")
         }
       }
 
@@ -98,8 +105,11 @@ class AppManager extends EventTarget {
   // Sets up the listeners on the app for when it is added and deleted
   // Called in attachState in character controller on both remote and local player
   bindState(nextAppsArray) {
+    logger.log('appManager.bindState', nextAppsArray)
     const observe = (e) => {
       const { added, deleted } = e.changes;
+      
+      // Handle new apps added to the app manager
       for (const item of added.values()) {
         let appMap = item.content.type;
         if (appMap.constructor === Object) {
@@ -119,10 +129,11 @@ class AppManager extends EventTarget {
           this.importTrackedApp(trackedApp);
         }
       }
-      for (const item of deleted.values()) {
-        const instanceId =
-          item.content.type._map.get("instanceId").content.arr[0]; // needed to get the old data
 
+      // Handle apps removed
+      for (const item of deleted.values()) {
+        let appMap = item.content.type;
+        const instanceId = appMap.get("instanceId");
         const app = this.getAppByInstanceId(instanceId);
         const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
         const data = {
@@ -141,43 +152,54 @@ class AppManager extends EventTarget {
     this.unbindStateFn = nextAppsArray.unobserve.bind(nextAppsArray, observe);
     this.appsArray = nextAppsArray;
   }
+  // Called by the localPlayer.attachState
   bindStateLocal(nextAppsArray) {
+    logger.log('appManager.bindStateLocal', nextAppsArray)
     this.unbindStateLocal();
     this.bindState(nextAppsArray);
   }
+    // Called by the remote4Player.attachState
   bindStateRemote(nextAppsArray) {
+    logger.log('appManager.bindStateRemote', nextAppsArray)
     this.unbindStateRemote();
     this.bindState(nextAppsArray);
   }
+  // Called on the remote player on construction
   loadApps() {
+    logger.log('appManager.loadApps')
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
       this.importTrackedApp(trackedApp);
     }
   }
+  // Called by importApp
   bindTrackedApp(trackedApp, app) {
-    // const _observe = (e) => {
-    //   if (e.changes.keys.has("transform")) {
-    //     const transform = trackedApp.get("transform");
-    //     if (transform) {
-    //       app.position.fromArray(transform, 0);
-    //       app.quaternion?.fromArray(transform, 3);
-    //       app.scale?.fromArray(transform, 7);
-    //       app.transform = transform;
-    //     } else {
-    //       console.error("transform isn't set wtf", trackedApp.toJSON());
-    //     }
-    //   }
-    // };
-    // trackedApp.observe(_observe);
+    logger.log('appManager.bindTrackedApp', trackedApp, app)
+    const _observe = (e) => {
+      if (e.changes.keys.has("transform")) {
+        const transform = trackedApp.get("transform");
+        if (transform) {
+          app.position.fromArray(transform, 0);
+          app.quaternion?.fromArray(transform, 3);
+          app.scale?.fromArray(transform, 7);
+          app.transform = transform;
+        } else {
+          console.error("transform isn't set wtf", trackedApp.toJSON());
+        }
+      } else {
+        logger.warn("Unhandled trackedApp change", e.changes.keys);
+      }
+    };
+    trackedApp.observe(_observe);
 
-    // const instanceId = trackedApp.get("instanceId");
-    // this.trackedAppUnobserveMap.set(
-    //   instanceId,
-    //   trackedApp.unobserve.bind(trackedApp, _observe)
-    // );
+    const instanceId = trackedApp.get("instanceId");
+    this.trackedAppUnobserveMap.set(
+      instanceId,
+      trackedApp.unobserve.bind(trackedApp, _observe)
+    );
   }
   unbindTrackedApp(instanceId) {
+    logger.log('appManager.unbindTrackedApp', instanceId)
     const fn = this.trackedAppUnobserveMap.get(instanceId);
     if (fn) {
       this.trackedAppUnobserveMap.delete(instanceId);
@@ -188,7 +210,6 @@ class AppManager extends EventTarget {
   }
   bindEvents() {
 
-
     const resize = (e) => {
       this.resize(e);
     };
@@ -198,6 +219,7 @@ class AppManager extends EventTarget {
     };
   }
   async importTrackedApp(trackedApp) {
+    logger.log('appManager.importTrackedApp', trackedApp)
     const trackedAppBinding = trackedApp.toJSON();
     const {
       instanceId,
@@ -293,6 +315,7 @@ class AppManager extends EventTarget {
     }
   }
   async exportTrackedApp ({ instanceId, app, sourceAppManager, destinationAppManager }) {
+    logger.log('appManager.exportTrackedApp', instanceId, sourceAppManager, destinationAppManager)
     if (sourceAppManager === this) {
       const index = this.apps.indexOf(app);
       if (index !== -1) {
@@ -389,6 +412,7 @@ class AppManager extends EventTarget {
     }
   }
   addTrackedAppInternal(instanceId, contentId, transform, components) {
+    logger.log('appManager.addTrackedAppInternal', instanceId);
     const trackedApp = this.getOrCreateTrackedApp(instanceId);
     trackedApp.set("instanceId", instanceId);
     trackedApp.set("contentId", contentId);
@@ -404,6 +428,8 @@ class AppManager extends EventTarget {
     components = [],
     instanceId = getRandomString()
   ) {
+    logger.log('appManager.addTrackedApp', instanceId);
+
     const self = this;
     this.appsArray.doc.transact(function tx() {
       const transform = new Float32Array(11);
@@ -448,6 +474,8 @@ class AppManager extends EventTarget {
     return -1;
   }
   removeTrackedApp(instanceId) {
+    logger.log('appManager.removeTrackedApp', instanceId);
+
     const removeIndex = this.getTrackedAppIndex(instanceId);
     if (removeIndex !== -1) {
       this.appsArray.delete(removeIndex, 1);
@@ -456,6 +484,8 @@ class AppManager extends EventTarget {
     }
   }
   addApp(app) {
+    logger.log('appManager.addApp', app);
+
     if(this.apps.includes(app)) return console.warn("Already has app", app)
     this.apps.push(app);
 
@@ -484,6 +514,8 @@ class AppManager extends EventTarget {
   }
 
   removeApp(app) {
+    logger.log('appManager.removeApp', app);
+
     const index = this.apps.indexOf(app);
     if (app.getComponent("wear") && this.callBackFn) {
       this.callBackFn(app, "wear", "remove");
@@ -524,6 +556,8 @@ class AppManager extends EventTarget {
   // Called when moving an app from one place to another
   // Especially in wear and unwear and when setting unwear on the character
   transplantApp(app, dstAppManager) {
+    logger.log('appManager.transplantApp', app, dstAppManager);
+
     const { instanceId } = app;
     const srcAppManager = this;
 
@@ -587,6 +621,8 @@ class AppManager extends EventTarget {
   // Called in game.js when drop is handled
   // Also called when user drops a file onto the window by DragAndDrop.jsx
   importApp(app) {
+    logger.log('appManager.importApp', app);
+
     let dstTrackedApp = null;
     const contentId = app.contentId;
     const instanceId = app.instanceId;
@@ -614,14 +650,15 @@ class AppManager extends EventTarget {
       pack4(app.quaternion, 3);
       pack3(app.scale, 7);
     }
+    const self = this;
     this.appsArray.doc.transact(() => {
-      dstTrackedApp = this.addTrackedAppInternal(
+      dstTrackedApp = self.addTrackedAppInternal(
         instanceId,
         contentId,
         transform,
         components
       );
-      this.bindTrackedApp(dstTrackedApp, app);
+      self.bindTrackedApp(dstTrackedApp, app);
     });
   }
   hasApp(app) {

@@ -11,6 +11,8 @@ import {playersManager} from './players-manager.js';
 import physx from './physx.js';
 import physxWorkerManager from './physx-worker-manager.js';
 
+import logger from './logger.js';
+
 const _getBindSceneForRenderPriority = renderPriority => {
   switch (renderPriority) {
     case 'high': {
@@ -59,13 +61,18 @@ export class World {
       app.hitTracker.unbind();
       app.parent.remove(app);
     });
+
+    logger.log('World created');
   }
 
   isConnected() { return !!this.wsrtc; }
 
   getConnection() { return this.wsrtc; }
 
+  // called by enterWorld() in universe.js
+  // This is called in single player mode instead of connectRoom
   connectState(state) {
+    logger.log('world.connectState')
     state.setResolvePriority(1);
 
     this.appManager.unbindStateLocal();
@@ -82,19 +89,28 @@ export class World {
     localPlayer.bindState(state.getArray(playersMapName));
   }
 
+  // called by enterWorld() in universe.js
+  // This is called when a user joins a multiplayer room
+  // either from single player or directly from a link
   async connectRoom(u, state = new Z.Doc()) {
+    logger.log('world.connectRoom')
+    // Players cannot be initialized until the physx worker is loaded
+    // Otherwise you will receive allocation errors because the module instance is undefined
     await physx.waitForLoad();
     await physxWorkerManager.waitForLoad();
     const localPlayer = getLocalPlayer();
 
     state.setResolvePriority(1);
+
+    // Create a new instance of the websocket rtc client
+    // This comes from webaverse/wsrtc/wsrtc.js
     this.wsrtc = new WSRTC(u, {
       localPlayer,
       crdtState: state,
     });
 
     // Handy debug function to see the state
-    // Delete these before committing to main
+    // Delete this eventually. For now press escape to see world state
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') {
         console.log(state.getArray('world'));
@@ -102,23 +118,24 @@ export class World {
       }
     });
 
+    // This is called when the websocket connection opens, i.e. server is connectedw
     const open = e => {
+      logger.log('wsrtc.open');
       this.wsrtc.removeEventListener('open', open);
-        this.appManager.unbindState();
-        this.appManager.clear();
-        const worldMap = state.getMap(worldMapName)
-        const appsArray = worldMap.get(appsMapName, Z.Array);
+      // Clear the last world state
+      const worldMap = state.getMap(worldMapName);
+      const appsArray = worldMap.get(appsMapName, Z.Array);
+      // Bind the new state
+      this.appManager.bindState(appsArray);
+      // Clear the player state
+      playersManager.unbindState();
 
-        this.appManager.bindState(appsArray);
-
-        playersManager.unbindState();
-        playersManager.bindState(state.getArray(playersMapName));
       const init = e => {
+        logger.log('wsrtc.init');
         this.wsrtc.removeEventListener('init', init);
         localPlayer.bindState(state.getArray(playersMapName));
-        // remotePlayers.forEach(remotePlayer => {
-        //   remotePlayer.bindState(state.getArray(playersMapName));
-        // })
+        playersManager.bindState(state.getArray(playersMapName));
+
         this.wsrtc.addEventListener('audio', e => {
           const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
           player.processAudioData(e.data);
@@ -134,6 +151,10 @@ export class World {
   }
 
   disconnectRoom() {
+    logger.log('world.disconnectRoom')
+    this.wsrtc?.close();
+    this.appManager.unbindState();
+    this.appManager.clear();
     this.wsrtc = null;
   }
 

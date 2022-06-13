@@ -49,6 +49,7 @@ import { murmurhash3 } from './procgen/murmurhash3.js';
 import musicManager from './music-manager.js';
 import { makeId, clone } from './util.js';
 import overrides from './overrides.js';
+import logger from './logger.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -152,6 +153,7 @@ class Player extends THREE.Object3D {
     playersArray = new Z.Doc().getArray(playersMapName)
   } = {}) {
     super();
+    logger.log("Created player", playerId, "for localPlayer?", this.isLocalPlayer);
     this.playerId = playerId;
     this.playerIdInt = murmurhash3(playerId);
     this.name = name;
@@ -623,6 +625,8 @@ class Player extends THREE.Object3D {
     return !!this.playersArray;
   }
   unbindState() {
+    logger.log("unbindState called on", this.playerId);
+
     this.playersArray = null;
     this.playerMap = null;
     if (!this.unbindFns) return;
@@ -632,6 +636,7 @@ class Player extends THREE.Object3D {
     this.unbindFns.length = 0;
   }
   bindState(nextPlayersArray) {
+    logger.log("bindState called on", this.playerId);
     // latch old state
     const oldState = this.detachState();
 
@@ -640,7 +645,7 @@ class Player extends THREE.Object3D {
     this.appManager.unbindState();
 
     this.playersArray = nextPlayersArray;
-    if (!this.playersArray) return console.warn("this.playersArray is null")
+    if (!this.playersArray) return logger.warn("this.playersArray is null")
 
     // note: leave the old state as is
     // it is the host's responsibility to garbage collect us when we disconnect.
@@ -947,6 +952,7 @@ class Player extends THREE.Object3D {
 
 // Any player being simulated on the client is a local player
 // This includes the local player, as well as non-agent NPCs
+// Created in players.js and npc-manager.js respectively
 class LocalPlayer extends Player {
   constructor(opts) {
     super(opts);
@@ -1037,6 +1043,8 @@ class LocalPlayer extends Player {
     }
   }
   attachState(oldState) {
+    logger.log("attachState called on localPlayer", this.playerId);
+
     const { oldActions, oldAvatar, oldApps } = oldState;
 
     const self = this;
@@ -1281,6 +1289,7 @@ class LocalPlayer extends Player {
 }
 
 // Any player simulated on another machine that is not this client
+// Created by the players-manager class
 class RemotePlayer extends Player {
   constructor(opts) {
     super(opts);
@@ -1403,7 +1412,7 @@ class RemotePlayer extends Player {
     }
   }
   update(timestamp, timeDiff) {
-    if (!this.avatar) return console.warn("Can't update remote player, avatar is null");
+    if (!this.avatar) return logger.warn("Can't update remote player, avatar is null");
     this.updateInterpolation(timeDiff);
     const mirrors = metaversefile.getMirrors();
     applyPlayerToAvatar(this, null, this.avatar, mirrors);
@@ -1416,6 +1425,8 @@ class RemotePlayer extends Player {
     this.appManager.update()
   }
   attachState(oldState) {
+    logger.log("attachState called on remotePlayer", this.playerId);
+
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
       const player = this.playersArray.get(i, Z.Map);
