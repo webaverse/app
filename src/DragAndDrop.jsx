@@ -93,7 +93,7 @@ const DragAndDrop = () => {
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
   const {mintNFT, minting, error, setError} = useNFTContract(account.currentAddress, chain.selectedChain);
-  const {mintComplete, setMintComplete} = useState(false);
+  const [mintComplete, setMintComplete] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const canvasRef = useRef(null);
 
