@@ -675,9 +675,10 @@ class AppManager extends EventTarget {
   // called by local player, remote players and world update()
   update() {
     if (!this.appsArray) return console.warn("Can't push app updates because appsArray is null")
+    const self = this;
     this.appsArray.doc.transact(() => {
-      for (const app of this.apps) {
-        const trackedApp = this.getTrackedApp(app.instanceId);
+      for (const app of self.apps) {
+        const trackedApp = self.getTrackedApp(app.instanceId);
         if (!app.matrix.equals(app.lastMatrix)) {
           const _updateTrackedApp = () => {
             if (trackedApp) {
@@ -688,7 +689,7 @@ class AppManager extends EventTarget {
               );
   
               app.updateMatrixWorld();
-              const packed = this.packed;
+              const packed = self.packed;
               const pack3 = (v, i) => {
                 packed[i] = v.x;
                 packed[i + 1] = v.y;
