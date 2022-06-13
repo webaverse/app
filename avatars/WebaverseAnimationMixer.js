@@ -36,8 +36,8 @@ class WebaverseAnimationMixer extends EventDispatcher {
     return motion;
   }
 
-  createNode(NodeClass, name) {
-    const node = new NodeClass(name, this);
+  createNode(NodeClass, name, argo) {
+    const node = new NodeClass(name, this, argo);
     this.nodes.push(node);
     return node;
   }
