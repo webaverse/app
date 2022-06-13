@@ -551,7 +551,7 @@ export const _createAnimation = avatar => {
   avatar.bowDrawLooseNodoe.addChild(avatar.useMotiono.bowDraw);
   avatar.bowDrawLooseNodoe.addChild(avatar.useMotiono.bowLoose);
 
-  avatar.bowIdleDrawLooseNode = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose');
+  avatar.bowIdleDrawLooseNode = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']});
   avatar.bowIdleDrawLooseNode.addChild(avatar._7wayBowNode);
   avatar.bowIdleDrawLooseNode.addChild(avatar.bowDrawLooseNodoe);
 

@@ -3,11 +3,12 @@ import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
 import {WebaverseAnimationNode} from './WebaverseAnimationNode';
 
 class WebaverseAnimationNodeOverwrite extends WebaverseAnimationNode {
-  constructor(name, mixer) {
+  constructor(name, mixer, {filters = []}) {
     super(name, mixer);
     this.isWebaverseAnimationNodeOverwrite = true;
 
     this.factor = 0;
+    this.filters = filters; // strings array
 
     this.isCrossFade = false;
     this.crossFadeDuration = 0;
@@ -47,7 +48,15 @@ class WebaverseAnimationNodeOverwrite extends WebaverseAnimationNode {
     const value0 = this.mixer.doBlend(this.children[0], spec);
     const value1 = this.mixer.doBlend(this.children[1], spec);
     WebaverseAnimationMixer.copyArray(result, value0);
-    if (isTop) {
+    let isOverwrite = false;
+    for (let i = 0; i < this.filters.length; i++) {
+      const filter = this.filters[i];
+      if (spec[filter]) {
+        isOverwrite = true;
+        break;
+      }
+    }
+    if (isOverwrite) {
       WebaverseAnimationMixer.interpolateFlat(result, result, value1, this.factor);
     }
 
