@@ -5,11 +5,7 @@ import {WebaverseAnimationNode} from './WebaverseAnimationNode';
 class WebaverseAnimationNodeBlendList extends WebaverseAnimationNode {
   constructor(name, mixer) {
     super(name, mixer);
-    this.isAnimNodeBlendList = true;
-  }
-
-  addChild(node) {
-    this.children.push(node);
+    this.isWebaverseAnimationNodeBlendList = true;
   }
 
   update(spec) {

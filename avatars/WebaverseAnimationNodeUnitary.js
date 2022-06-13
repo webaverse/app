@@ -5,7 +5,7 @@ import {WebaverseAnimationNode} from './WebaverseAnimationNode';
 class WebaverseAnimationNodeUnitary extends WebaverseAnimationNode {
   constructor(name, mixer) {
     super(name, mixer);
-    this.isAnimNodeBlend2 = true;
+    this.isWebaverseAnimationNodeUnitary = true;
     this.activeNode = null;
 
     this.isCrossFade = false;
@@ -14,7 +14,8 @@ class WebaverseAnimationNodeUnitary extends WebaverseAnimationNode {
   }
 
   addChild(node) {
-    this.children.push(node);
+    super.addChild(node);
+
     if (this.children.length === 1) {
       this.activeNode = node;
       node.weight = 1;
@@ -24,6 +25,12 @@ class WebaverseAnimationNodeUnitary extends WebaverseAnimationNode {
   }
 
   update(spec) {
+    // const {
+    //   isFirstBone,
+    // } = spec;
+
+    // if (isFirstBone) console.log(this.activeNode.name);
+
     // do fade
     if (this.isCrossFade) {
       let factor = (WebaverseAnimationMixer.timeS - this.crossFadeStartTime) / this.crossFadeDuration;

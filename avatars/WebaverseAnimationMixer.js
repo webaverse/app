@@ -18,15 +18,38 @@ Vector3.lerpFlat = (dst, dstOffset, src0, srcOffset0, src1, srcOffset1, alpha) =
 class WebaverseAnimationMixer extends EventDispatcher {
   constructor(avatar) {
     super();
+    this.isWebaverseAnimationMixer = true;
     this.avatar = avatar;
     this.motion = null;
     this.motions = [];
+    this.nodes = [];
     this.yBias = 0;
   }
 
   createMotion(animation) {
+    // if (animation.name === 'bow idle.fbx') debugger;
     const motion = new WebaverseAnimationMotion(this, animation);
+    this.motions.push(motion);
     return motion;
+  }
+
+  createNode(NodeClass, name) {
+    const node = new NodeClass(name, this);
+    this.nodes.push(node);
+    return node;
+  }
+
+  checkParents() {
+    this.motions.forEach((motion, i) => {
+      if (motion.parents.length > 1) {
+        console.log('multi-parents: motion:', motion.name, i);
+      }
+    });
+    this.nodes.forEach((node, i) => {
+      if (node.parents.length > 1) {
+        console.log('multi-parents: node:', node.name, i);
+      }
+    });
   }
 
   static copyArray(dst, src) {
@@ -64,7 +87,7 @@ class WebaverseAnimationMixer extends EventDispatcher {
       // if (isPosition && motion === window.avatar?.jumpMotion) console.log(motion.weight);
       // if (isPosition && motion === window.avatar?.activateMotion) console.log(motion.weight);
       return value;
-    } else if (node.isAnimNode) {
+    } else if (node.isWebaverseAnimationNode) {
       const result = node.update(spec);
       return result;
     }
@@ -79,6 +102,8 @@ class WebaverseAnimationMixer extends EventDispatcher {
         // isTop,
         isPosition,
       } = spec;
+
+      // debugger
 
       const result = this.doBlend(animTree, spec);
 

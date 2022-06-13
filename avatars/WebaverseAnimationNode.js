@@ -5,18 +5,30 @@ import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
 class WebaverseAnimationNode extends EventDispatcher {
   constructor(name, mixer) {
     super();
-    this.isAnimNode = true;
+    this.isWebaverseAnimationNode = true;
     this.mixer = mixer;
-    this.type = 'blend2'; // other types: blendList
+    // this.type = 'blend2'; // other types: blendList
     this.children = [];
+    // this.childrenWeights = [];
+    this.parents = [];
     this.name = name;
-    this.weight = 1;
+    // this.weight = 1;
 
     // blend2
     this.fadeStartTime = 0;
   }
 
   doBlendList(spec) {
+    // const {
+    //   // animationTrackName: k,
+    //   // dst,
+    //   // lerpFn,
+    //   boneName,
+    //   isTop,
+    //   // isPosition,
+    //   // isArm,
+    // } = spec;
+
     // // do fade
     // if (this.isCrossFade) {
     //   debugger
@@ -46,7 +58,11 @@ class WebaverseAnimationNode extends EventDispatcher {
     for (let i = 0; i < this.children.length; i++) {
       const childNode = this.children[i];
       const value = this.mixer.doBlend(childNode, spec);
+      // if (childNode.weight > 0 && (isTop || boneName === 'Hips')) {
       if (childNode.weight > 0) {
+        // if (childNode === window.avatar?.useMotiono?.bowDraw) {
+        //   if (!isTop) continue;
+        // }
         if (nodeIndex === 0) {
           // result = value; // todo: will change original data?
           WebaverseAnimationMixer.copyArray(result, value);
@@ -71,6 +87,7 @@ class WebaverseAnimationNode extends EventDispatcher {
 
   addChild(node) {
     this.children.push(node);
+    node.parents.push(this);
   }
 
   crossFade(duration) {

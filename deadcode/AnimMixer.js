@@ -24,12 +24,20 @@ class AnimMixer extends EventDispatcher {
     this.avatar = avatar;
     this.motion = null;
     this.motions = [];
+    this.nodes = [];
     this.yBias = 0;
   }
 
   createMotion(clip) {
     const motion = new AnimMotion(this, clip);
+    this.motions.push(motion);
     return motion;
+  }
+
+  createNode(NodeClass, name) {
+    const node = new NodeClass(name, this);
+    this.nodes.push(node);
+    return node;
   }
 
   static copyArray(dst, src) {

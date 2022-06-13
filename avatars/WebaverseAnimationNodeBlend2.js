@@ -5,17 +5,13 @@ import {WebaverseAnimationNode} from './WebaverseAnimationNode';
 class WebaverseAnimationNodeBlend2 extends WebaverseAnimationNode {
   constructor(name, mixer) {
     super(name, mixer);
-    this.isAnimNodeBlend2 = true;
+    this.isWebaverseAnimationNodeBlend2 = true;
     this.factor = 0;
 
     this.isCrossFade = false;
     this.crossFadeDuration = 0;
     this.crossFadeTargetFactor = 0;
     this.crossFadeStartTime = 0;
-  }
-
-  addChild(node) {
-    this.children.push(node);
   }
 
   update(spec) {

@@ -423,6 +423,7 @@ class PlayerBase extends THREE.Object3D {
             app.quaternion.copy(physicsObject.quaternion);
             app.scale.copy(physicsObject.scale);
             app.matrix.copy(physicsObject.matrix);
+            app.position.y = 0; // test
             app.matrixWorld.copy(physicsObject.matrixWorld);
           } else {
             app.position.copy(dropStartPosition);
@@ -434,6 +435,7 @@ class PlayerBase extends THREE.Object3D {
               )
             );
             app.scale.set(1, 1, 1);
+            app.position.y = 0; // test
             app.updateMatrixWorld();
           }
           app.lastMatrix.copy(app.matrixWorld);
@@ -443,6 +445,7 @@ class PlayerBase extends THREE.Object3D {
             .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
           app.quaternion.identity();
           app.scale.set(1, 1, 1);
+          app.position.y = 0; // test
           app.updateMatrixWorld();
         }
       };
@@ -966,6 +969,7 @@ class UninterpolatedPlayer extends StatePlayer {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
+      useEnvelope: new BiActionInterpolant(() => this.getAction('use')?.animationEnvelope?.length > 0, 0, 200),
       pickUp: new InfiniteActionInterpolant(() => this.hasAction('pickUp'), 0),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
