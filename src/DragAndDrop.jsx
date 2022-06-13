@@ -14,6 +14,8 @@ import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
 import useNFTContract from './hooks/useNFTContract';
 import NFTDetailsForm from './components/web3/NFTDetailsForm';
+import { isChainSupported } from './hooks/useChain';
+import { ChainContext } from './hooks/chainProvider';
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 
