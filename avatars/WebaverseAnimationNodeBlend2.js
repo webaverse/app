@@ -6,7 +6,7 @@ class WebaverseAnimationNodeBlend2 extends WebaverseAnimationNode {
   constructor(name, mixer) {
     super(name, mixer);
     this.isWebaverseAnimationNodeBlend2 = true;
-    this.factor = 0;
+    this.factor = 0; // internal
 
     this.isCrossFade = false;
     this.crossFadeDuration = 0;
