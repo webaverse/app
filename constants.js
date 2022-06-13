@@ -144,7 +144,7 @@ export const defaultVoicePackName = `ShiShi voice pack`;
 export const defaultPlayerSpec = {
   name: 'Scillia',
   previewUrl: './images/characters/upstreet/small/scillia.png',
-  avatarUrl: './avatars/scilly_drophunter_v31.6_Guilty.vrm',
+  avatarUrl: './avatars/Scillia_Drophunter_V19.vrm',
   voice: defaultVoiceEndpoint,
   voicePack: defaultVoicePackName,
   class: 'Drop Hunter',
