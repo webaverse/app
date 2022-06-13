@@ -94,8 +94,8 @@ const DragAndDrop = () => {
   const {state, setState, account, chain} = useContext(AppContext);
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
-  const {mintNFT, minting, error, setError} = useNFTContract(account.currentAddress, chain.selectedChain);
   const {mintComplete, setMintComplete} = useState(false);
+  const {mintNFT, minting, error, setError} = useNFTContract(account.currentAddress);
   const [previewImage, setPreviewImage] = useState(null);
   const {selectedChain} = useContext(ChainContext);
   const canvasRef = useRef(null);
