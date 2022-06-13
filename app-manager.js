@@ -12,7 +12,6 @@ import {getLocalPlayer} from './players.js';
 import metaversefile from "metaversefile";
 import * as metaverseModules from "./metaverse-modules.js";
 import { jsonParse } from "./util.js";
-import { worldMapName } from "./constants.js";
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -67,6 +66,8 @@ class AppManager extends EventTarget {
   isBound() {
     return !!this.appsArray;
   }
+    // Remove all the apps from remote players before calling unbindState
+  // On local player we move between worlds and don't want to unbind unless destroyed, i.e. if NPC
   unbindState() {
     if (this.unbindStateFn) this.unbindStateFn();
     this.appsArray = null;
@@ -77,9 +78,10 @@ class AppManager extends EventTarget {
       this.unbindState();
     }
   }
-  // Remove all the apps from remote players before calling unbindState
-  // On local player we move between worlds and don't want to unbind unless destroyed, i.e. if NPC
   unbindStateRemote() {
+    if (this.unbindStateFn) {
+      this.unbindState();
+    }
     if (!this.unbindStateFn) return console.warn("unbindStateRemote called but not bound");
       const appSpecs = this.appsArray.toJSON();
       for (const appSpec of appSpecs) {
@@ -93,6 +95,8 @@ class AppManager extends EventTarget {
 
       this.unbindState();
   }
+  // Sets up the listeners on the app for when it is added and deleted
+  // Called in attachState in character controller on both remote and local player
   bindState(nextAppsArray) {
     const observe = (e) => {
       const { added, deleted } = e.changes;
@@ -129,9 +133,8 @@ class AppManager extends EventTarget {
         }
         if(peerOwnerAppManager !== this){
           peerOwnerAppManager.exportTrackedApp(data)
-        } else {
-          this.exportTrackedApp(data)
         }
+          this.exportTrackedApp(data)
       }
     };
     nextAppsArray.observe(observe);
@@ -153,26 +156,26 @@ class AppManager extends EventTarget {
     }
   }
   bindTrackedApp(trackedApp, app) {
-    const _observe = (e) => {
-      if (e.changes.keys.has("transform")) {
-        const transform = trackedApp.get("transform");
-        if (transform) {
-          app.position.fromArray(transform, 0);
-          app.quaternion?.fromArray(transform, 3);
-          app.scale?.fromArray(transform, 7);
-          app.transform = transform;
-        } else {
-          console.error("transform isn't set wtf", trackedApp.toJSON());
-        }
-      }
-    };
-    trackedApp.observe(_observe);
+    // const _observe = (e) => {
+    //   if (e.changes.keys.has("transform")) {
+    //     const transform = trackedApp.get("transform");
+    //     if (transform) {
+    //       app.position.fromArray(transform, 0);
+    //       app.quaternion?.fromArray(transform, 3);
+    //       app.scale?.fromArray(transform, 7);
+    //       app.transform = transform;
+    //     } else {
+    //       console.error("transform isn't set wtf", trackedApp.toJSON());
+    //     }
+    //   }
+    // };
+    // trackedApp.observe(_observe);
 
-    const instanceId = trackedApp.get("instanceId");
-    this.trackedAppUnobserveMap.set(
-      instanceId,
-      trackedApp.unobserve.bind(trackedApp, _observe)
-    );
+    // const instanceId = trackedApp.get("instanceId");
+    // this.trackedAppUnobserveMap.set(
+    //   instanceId,
+    //   trackedApp.unobserve.bind(trackedApp, _observe)
+    // );
   }
   unbindTrackedApp(instanceId) {
     const fn = this.trackedAppUnobserveMap.get(instanceId);
@@ -465,18 +468,19 @@ class AppManager extends EventTarget {
       this.callBackFn(app, "wear", "add");
     }
 
-    const trackedApp = this.getTrackedApp(app.instanceId);
-    const _observe = (e) => {
-      const transform = trackedApp.get("transform");
-      if (e.changes.keys.has("transform") && transform && !this.isAppGrabbed(app.instanceId)) {
-        app.position.fromArray(transform, 0);
-        app.quaternion?.fromArray(transform, 3);
-        app.scale?.fromArray(transform, 7);
-        app.transform = transform;
-        app.updateMatrixWorld();
-      }
-    };
-    trackedApp.observe(_observe);
+    // const trackedApp = this.getTrackedApp(app.instanceId);
+    // const _observe = (e) => {
+    //   console.log("e", e)
+    //   const transform = trackedApp.get("transform");
+    //   if (e.changes.keys.has("transform") && transform && !this.isAppGrabbed(app.instanceId)) {
+    //     app.position.fromArray(transform, 0);
+    //     app.quaternion?.fromArray(transform, 3);
+    //     app.scale?.fromArray(transform, 7);
+    //     app.transform = transform;
+    //     app.updateMatrixWorld();
+    //   }
+    // };
+    // trackedApp.observe(_observe);
   }
 
   removeApp(app) {
@@ -495,12 +499,14 @@ class AppManager extends EventTarget {
       app.destroy();
     }
   }
+
   resize(e) {
     const apps = this.apps.slice();
     for (const app of apps) {
       app.resize && app.resize(e);
     }
   }
+
   getErrorPlaceholder() {
     const app = metaversefile.createApp({
       name: "error-placeholder",
@@ -515,6 +521,8 @@ class AppManager extends EventTarget {
     return app;
   }
 
+  // Called when moving an app from one place to another
+  // Especially in wear and unwear and when setting unwear on the character
   transplantApp(app, dstAppManager) {
     const { instanceId } = app;
     const srcAppManager = this;
@@ -530,12 +538,14 @@ class AppManager extends EventTarget {
 
       let dstTrackedApp = null;
       srcAppManager.appsArray.doc.transact(() => {
-        const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
+        const srcTrackedApp = srcAppManager.getOrCreateTrackedApp(instanceId);
         const contentId = srcTrackedApp.get("contentId");
 
         let transform = srcTrackedApp.get("transform");
         const components = srcTrackedApp.get("components");
         srcAppManager.removeTrackedApp(instanceId);
+
+        console.log("removing src tracked app", instanceId);
 
         if (!transform) {
           transform = new Float32Array(11);
@@ -563,15 +573,19 @@ class AppManager extends EventTarget {
           transform,
           components
         );
+        console.log("dstTrackedApp add tracked app", dstTrackedApp);
+
+        dstAppManager.bindTrackedApp(dstTrackedApp, app);
       });
 
-      dstAppManager.bindTrackedApp(dstTrackedApp, app);
     } else {
       throw new Error(
         "cannot transplant apps between app manager with different state binding"
       );
     }
   }
+  // Called in game.js when drop is handled
+  // Also called when user drops a file onto the window by DragAndDrop.jsx
   importApp(app) {
     let dstTrackedApp = null;
     const contentId = app.contentId;
@@ -607,9 +621,8 @@ class AppManager extends EventTarget {
         transform,
         components
       );
+      this.bindTrackedApp(dstTrackedApp, app);
     });
-
-    this.bindTrackedApp(dstTrackedApp, app);
   }
   hasApp(app) {
     return this.apps.includes(app);
@@ -622,6 +635,7 @@ class AppManager extends EventTarget {
     return grabAction ? grabAction.instanceId == instanceId : false
   }
 
+  // called by local player, remote players and world update()
   update() {
     if (!this.appsArray) return console.warn("Can't push app updates because appsArray is null")
     this.appsArray.doc.transact(() => {

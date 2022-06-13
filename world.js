@@ -5,7 +5,7 @@ import {getLocalPlayer, remotePlayers} from './players.js';
 import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
 import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority} from './renderer.js';
-import {appsMapName, playersMapName} from './constants.js';
+import {appsMapName, worldMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
 
 import physx from './physx.js';
@@ -70,7 +70,10 @@ export class World {
 
     this.appManager.unbindStateLocal();
     this.appManager.clear();
-    this.appManager.bindStateLocal(state.getArray(appsMapName));
+    const worldMap = state.getMap(worldMapName);
+    const appsArray = worldMap.get(appsMapName, Z.Array);
+
+    this.appManager.bindState(appsArray);
 
     playersManager.unbindState();
     playersManager.bindState(state.getArray(playersMapName));
@@ -103,7 +106,10 @@ export class World {
       this.wsrtc.removeEventListener('open', open);
         this.appManager.unbindState();
         this.appManager.clear();
-        this.appManager.bindState(state.getArray(appsMapName));
+        const worldMap = state.getMap(worldMapName)
+        const appsArray = worldMap.get(appsMapName, Z.Array);
+
+        this.appManager.bindState(appsArray);
 
         playersManager.unbindState();
         playersManager.bindState(state.getArray(playersMapName));

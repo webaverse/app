@@ -155,8 +155,9 @@ function makeId(length) {
     const {objects} = j;
     
     const appsMapName = 'apps';
+
     const result = {
-      [appsMapName]: [],
+        [appsMapName]: [],
     };
     for (const object of objects) {
       let {start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = object;
