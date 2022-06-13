@@ -26,14 +26,15 @@ export default function Chains() {
   const {brandColor} = selectedChain;
 
   const [open, setOpen] = useState(false);
-  return (<div style={{background: brandColor || 'black'}} className={styles.chainSelector}>
-    <div className={styles.selectedChain} onClick={() => setOpen(!open)}>{open ? <UpArrow /> : <DownArrow />} <Supported chain={selectedChain} /> {selectedChain.name}</div>
+  return (<div className={styles.chainSelector}>
+    <div style={{background: brandColor || 'black'}} className={styles.selectedChain} onClick={() => setOpen(!open)}>{open ? <UpArrow /> : <DownArrow />} <Supported chain={selectedChain} /> {selectedChain.name}</div>
     <div className={[styles.chainDropDown, open ? styles.showChainSelector : styles.hideChainSelector].join(' ')}>
       <ul id="chains" className={styles.chains}>
         {Object.keys(chains)
           .map(key => chains[key])
+          // .filter(isChainSupported)
           .map(c => (
-            <li key={c.contract_name} className={selectedChain.chainId === c.chainId ? styles.selected : undefined}><button onClick={() => {
+            <li key={c.chainId} className={selectedChain.chainId === c.chainId ? styles.selected : undefined}><button onClick={() => {
               selectChain(c);
               setOpen(false);
             }}>
