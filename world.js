@@ -114,6 +114,7 @@ export class World {
       if (event.key === 'Escape') {
         console.log(state.getArray('world'));
         console.log(state.getArray('players'));
+        console.log(scene);
       }
     });
 

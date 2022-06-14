@@ -394,6 +394,7 @@ class Player extends THREE.Object3D {
   }
 
   wear(app, { loadoutIndex = -1 } = {}) {
+    logger.log("Wear called on", app)
     this.wornApps.push(app);
 
     if (this.isLocalPlayer) {
@@ -490,8 +491,7 @@ class Player extends THREE.Object3D {
       };
       _addAction();
 
-      this.handleWearUpdate(app, true, loadoutIndex, true)
-      this.handleWearUpdate(app, true, loadoutIndex, false)
+      this.handleWearUpdate(app, true, loadoutIndex, true, true)
     }
   }
   unwear(app, {
@@ -499,6 +499,8 @@ class Player extends THREE.Object3D {
     dropStartPosition = null,
     dropDirection = null,
   } = {}) {
+    logger.log("unwear called on", app)
+
     const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
       return type === 'wear' && instanceId === app.instanceId;
     });

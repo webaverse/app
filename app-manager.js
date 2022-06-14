@@ -495,9 +495,9 @@ class AppManager extends EventTarget {
         data: app,
       })
     );
-    if (app.getComponent("wear") && this.callBackFn) {
-      this.callBackFn(app, "wear", "add");
-    }
+    // if (app.getComponent("wear") && this.callBackFn) {
+    //   this.callBackFn(app, "wear", "add");
+    // }
 
     // const trackedApp = this.getTrackedApp(app.instanceId);
     // const _observe = (e) => {
@@ -518,9 +518,9 @@ class AppManager extends EventTarget {
     logger.log('appManager.removeApp', app);
 
     const index = this.apps.indexOf(app);
-    if (app.getComponent("wear") && this.callBackFn) {
-      this.callBackFn(app, "wear", "remove");
-    }
+    // if (app.getComponent("wear") && this.callBackFn) {
+    //   this.callBackFn(app, "wear", "remove");
+    // }
     if (index !== -1) {
       this.apps.splice(index, 1);
 
