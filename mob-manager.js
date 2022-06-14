@@ -1,6 +1,7 @@
 import * as THREE from 'three';
+// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import metaversefile from 'metaversefile';
-// import {scene} from './renderer.js';
 import {getLocalPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
 import hpManager from './hp-manager.js';
@@ -8,6 +9,10 @@ import {LodChunkTracker} from './lod.js';
 import {alea} from './procgen/procgen.js';
 import {createRelativeUrl} from './util.js';
 import dropManager from './drop-manager.js';
+import loaders from './loaders.js';
+import {InstancedBatchedMesh, InstancedGeometryAllocator} from './instancing.js';
+import {createTextureAtlas} from './atlasing.js';
+import dcWorkerManager from './dc-worker-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -22,13 +27,55 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const upVector = new THREE.Vector3(0, 1, 0);
-const chunkWorldSize = 30;
+const identityMatrix = new THREE.Matrix4();
+const chunkWorldSize = 16;
 const minDistance = 1;
 const hitDistance = 1.5;
+const maxAnisotropy = 16;
+
+const maxInstancesPerDrawCall = 128;
+const maxDrawCallsPerGeometry = 1;
+const maxBonesPerInstance = 128;
+
+// window.THREE = THREE;
 
 const _zeroY = v => {
   v.y = 0;
   return v;
+};
+const _findMesh = o => {
+  let mesh = null;
+  const _recurse = o => {
+    if (o.isMesh) {
+      mesh = o;
+    } else if (o.children) {
+      for (const child of o.children) {
+        _recurse(child);
+        if (mesh) {
+          break;
+        }
+      }
+    }
+  };
+  _recurse(o);
+  return mesh;
+};
+const _findBone = o => {
+  let bone = null;
+  const _recurse = o => {
+    if (o.isBone) {
+      bone = o;
+    } else if (o.children) {
+      for (const child of o.children) {
+        _recurse(child);
+        if (bone) {
+          break;
+        }
+      }
+    }
+  };
+  _recurse(o);
+  return bone;
 };
 
 function makeCharacterController(app, {
@@ -36,12 +83,10 @@ function makeCharacterController(app, {
   height,
   physicsOffset,
 }) {
-  // const radius = 0.2;
   const innerHeight = height - radius * 2;
   const contactOffset = 0.1 * height;
   const stepOffset = 0.1 * height;
 
-  // app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   const characterPosition = localVector.setFromMatrixPosition(app.matrixWorld)
     .add(
       localVector3.copy(physicsOffset)
@@ -55,14 +100,12 @@ function makeCharacterController(app, {
     stepOffset,
     characterPosition
   );
-  // this.characterControllerObject = new THREE.Object3D();
   return characterController;
 }
 
 class Mob {
   constructor(app = null, srcUrl = '') {
     this.app = app;
-    // this.srcUrl = srcUrl;
     this.subApp = null;
 
     this.name = this.app.name + '@' + this.app.position.toArray().join(',');
@@ -408,126 +451,705 @@ class Mob {
   }
 }
 
-class MobGenerator {
+class MobInstance {
+  constructor(skeleton, mixer) {
+    this.skeleton = skeleton;
+    this.mixer = mixer;
+  }
+}
+
+class InstancedSkeleton extends THREE.Skeleton {
   constructor(parent) {
+    super();
+
+    this.parent = parent;
+
+    // bone texture
+    const boneTexture = this.parent.allocator.getTexture('boneTexture');
+    this.boneMatrices = boneTexture.image.data;
+    this.boneTexture = boneTexture;
+    this.boneTextureSize = boneTexture.image.width;
+  }
+  update() {
+    const boneMatrices = this.boneMatrices;
+    const boneTexture = this.parent.allocator.getTexture('boneTexture');
+
+    for (let drawCallIndex = 0; drawCallIndex < this.parent.drawCalls.length; drawCallIndex++) {
+      const drawCall = this.parent.drawCalls[drawCallIndex];
+      
+      if (drawCall) {
+        // const {geometryIndex} = drawCall;
+
+        for (let instanceIndex = 0; instanceIndex < drawCall.instances.length; instanceIndex++) {
+          const mobInstance = drawCall.instances[instanceIndex];
+          const {skeleton} = mobInstance;
+
+          // geometry -> instance (skeleton) -> bone -> matrix
+          const dstOffset = drawCall.freeListEntry.start * maxDrawCallsPerGeometry * maxInstancesPerDrawCall * maxBonesPerInstance * 16 +
+            instanceIndex * maxBonesPerInstance * 16;
+
+          const bones = skeleton.bones;
+          const boneInverses = skeleton.boneInverses;
+
+          // flatten bone matrices to array
+
+          for ( let i = 0, il = bones.length; i < il; i ++ ) {
+
+            // compute the offset between the current and the original transform
+
+            const matrix = bones[ i ] ? bones[ i ].matrixWorld : identityMatrix;
+
+            localMatrix.multiplyMatrices( matrix, boneInverses[ i ] );
+            localMatrix.toArray( boneMatrices, dstOffset + i * 16 );
+
+          }
+        }
+      }
+    }
+
+    // console.log('needs update');
+    boneTexture.needsUpdate = true;
+    /* boneTexture.onUpdate = () => {
+      // console.log('update');
+      boneTexture.onUpdate = null;
+    }; */
+
+    // window.boneTexture = this.boneTexture;
+
+	}
+}
+
+class MobBatchedMesh extends InstancedBatchedMesh {
+  constructor({
+    glbs = [],
+    meshes = [],
+    // rootBones = [],
+  } = {}) {
+    const {
+      // atlas,
+      // atlasImages,
+      atlasTextures,
+      geometries,
+    } = createTextureAtlas(meshes, {
+      attributes: ['position', 'normal', 'uv', 'skinIndex', 'skinWeight'],
+      textures: ['map', 'normalMap', 'roughnessMap', 'metalnessMap'],
+    });
+
+    /* console.log('got atlas', {
+      atlas,
+      atlasImages,
+      atlasTextures,
+      geometries,
+    }); */
+
+    // allocator
+
+    const allocator = new InstancedGeometryAllocator(geometries, [
+      {
+        name: 'p',
+        Type: Float32Array,
+        itemSize: 3,
+      },
+      {
+        name: 'q',
+        Type: Float32Array,
+        itemSize: 4,
+      },
+      {
+        name: 'boneTexture',
+        Type: Float32Array,
+        itemSize: maxBonesPerInstance * 16,
+      },
+    ], {
+      maxInstancesPerDrawCall,
+      maxDrawCallsPerGeometry,
+    });
+    const {geometry, textures: attributeTextures} = allocator;
+    for (const k in attributeTextures) {
+      const texture = attributeTextures[k];
+      texture.anisotropy = maxAnisotropy;
+    }
+
+    // material
+
+    const material = new THREE.MeshStandardMaterial({
+      map: atlasTextures.map,
+      normalMap: atlasTextures.normalMap,
+      roughnessMap: atlasTextures.roughnessMap,
+      metalnessMap: atlasTextures.metalnessMap,
+      // side: THREE.DoubleSide,
+      // transparent: true,
+      // alphaTest: 0.5,
+      onBeforeCompile: (shader) => {
+        // console.log('on before compile', shader.fragmentShader);
+
+        shader.uniforms.pTexture = {
+          value: attributeTextures.p,
+          needsUpdate: true,
+        };
+        shader.uniforms.qTexture = {
+          value: attributeTextures.q,
+          needsUpdate: true,
+        };
+        /* shader.uniforms.boneTexture = {
+          value: attributeTextures.boneTexture,
+          needsUpdate: true,
+        };
+        shader.uniforms.boneTextureSize = {
+          value: attributeTextures.boneTexture.image.width,
+          needsUpdate: true,
+        }; */
+
+        // window.boneTexture = attributeTextures.boneTexture; // XXX
+
+        // skin vertex
+
+        window.shader = shader;
+        window.vertexShader = shader.vertexShader;
+
+        shader.vertexShader = shader.vertexShader.replace(`#include <skinning_pars_vertex>`, `\
+// #undef USE_SKINNING
+
+#ifdef USE_SKINNING
+uniform mat4 bindMatrix;
+uniform mat4 bindMatrixInverse;
+uniform highp sampler2D boneTexture;
+uniform int boneTextureSize;
+mat4 getBoneMatrix( const in float base, const in float i ) {
+  float j = base + i * 4.0;
+  float x = mod( j, float( boneTextureSize ) );
+  float y = floor( j / float( boneTextureSize ) );
+  float dx = 1.0 / float( boneTextureSize );
+  float dy = 1.0 / float( boneTextureSize );
+  y = dy * ( y + 0.5 );
+  vec4 v1 = texture2D( boneTexture, vec2( dx * ( x + 0.5 ), y ) );
+  vec4 v2 = texture2D( boneTexture, vec2( dx * ( x + 1.5 ), y ) );
+  vec4 v3 = texture2D( boneTexture, vec2( dx * ( x + 2.5 ), y ) );
+  vec4 v4 = texture2D( boneTexture, vec2( dx * ( x + 3.5 ), y ) );
+  mat4 bone = mat4( v1, v2, v3, v4 );
+  return bone;
+}
+#endif
+        `);
+        shader.vertexShader = shader.vertexShader.replace(`#include <skinbase_vertex>`, `\
+int boneTextureInstanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} * ${maxBonesPerInstance} +
+  gl_InstanceID * ${maxBonesPerInstance};
+float boneIndexOffset = float(boneTextureInstanceIndex) * 4.;
+
+#ifdef USE_SKINNING
+  mat4 boneMatX = getBoneMatrix( boneIndexOffset, skinIndex.x );
+  mat4 boneMatY = getBoneMatrix( boneIndexOffset, skinIndex.y );
+  mat4 boneMatZ = getBoneMatrix( boneIndexOffset, skinIndex.z );
+  mat4 boneMatW = getBoneMatrix( boneIndexOffset, skinIndex.w );
+
+  /* mat4 boneMatX = mat4(1.);
+  mat4 boneMatY = mat4(1.);
+  mat4 boneMatZ = mat4(1.);
+  mat4 boneMatW = mat4(1.); */
+#endif
+        `);
+        shader.vertexShader = shader.vertexShader.replace(`#include <skinnormal_vertex>`, `\
+#ifdef USE_SKINNING
+  mat4 skinMatrix = mat4( 0.0 );
+  skinMatrix += skinWeight.x * boneMatX;
+  skinMatrix += skinWeight.y * boneMatY;
+  skinMatrix += skinWeight.z * boneMatZ;
+  skinMatrix += skinWeight.w * boneMatW;
+  skinMatrix = bindMatrixInverse * skinMatrix * bindMatrix;
+  objectNormal = vec4( skinMatrix * vec4( objectNormal, 0.0 ) ).xyz;
+  #ifdef USE_TANGENT
+    objectTangent = vec4( skinMatrix * vec4( objectTangent, 0.0 ) ).xyz;
+  #endif
+#endif
+        `);
+        shader.vertexShader = shader.vertexShader.replace(`#include <skinning_vertex>`, `\
+#ifdef USE_SKINNING
+  vec4 skinVertex = bindMatrix * vec4( transformed, 1.0 );
+  vec4 skinned = vec4( 0.0 );
+  skinned += boneMatX * skinVertex * skinWeight.x;
+  skinned += boneMatY * skinVertex * skinWeight.y;
+  skinned += boneMatZ * skinVertex * skinWeight.z;
+  skinned += boneMatW * skinVertex * skinWeight.w;
+  transformed = ( bindMatrixInverse * skinned ).xyz;
+#endif
+        `);
+        
+        // vertex shader
+
+        shader.vertexShader = shader.vertexShader.replace(`#include <uv_pars_vertex>`, `\
+#undef USE_INSTANCING
+
+#include <uv_pars_vertex>
+
+uniform sampler2D pTexture;
+uniform sampler2D qTexture;
+
+vec3 rotate_vertex_position(vec3 position, vec4 q) { 
+  return position + 2.0 * cross(q.xyz, cross(q.xyz, position) + q.w * position);
+}
+        `);
+        shader.vertexShader = shader.vertexShader.replace(`#include <project_vertex>`, `\
+int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
+const float width = ${attributeTextures.p.image.width.toFixed(8)};
+const float height = ${attributeTextures.p.image.height.toFixed(8)};
+float x = mod(float(instanceIndex), width);
+float y = floor(float(instanceIndex) / width);
+vec2 pUv = (vec2(x, y) + 0.5) / vec2(width, height);
+vec3 p = texture2D(pTexture, pUv).xyz;
+vec4 q = texture2D(qTexture, pUv).xyzw;
+
+// instance offset position
+{
+  transformed = rotate_vertex_position(transformed, q);
+  transformed += p;
+}
+
+vec4 mvPosition = vec4( transformed, 1.0 );
+#ifdef USE_INSTANCING
+  mvPosition = instanceMatrix * mvPosition;
+#endif
+mvPosition = modelViewMatrix * mvPosition;
+gl_Position = projectionMatrix * mvPosition;
+        `);
+        /* shader.vertexShader = shader.vertexShader.replace(`#include <worldpos_vertex>`, `\
+#if defined( USE_ENVMAP ) || defined( DISTANCE ) || defined ( USE_SHADOWMAP )
+	vec4 worldPosition = vec4( transformed, 1.0 );
+	#ifdef USE_INSTANCING
+		worldPosition = instanceMatrix * worldPosition;
+	#endif
+	worldPosition = modelMatrix * worldPosition;
+#endif
+        `); */
+
+        // fragment shader        
+
+        shader.fragmentShader = shader.fragmentShader.replace(`#include <uv_pars_fragment>`, `\
+#undef USE_INSTANCING
+
+#if ( defined( USE_UV ) && ! defined( UVS_VERTEX_ONLY ) )
+	varying vec2 vUv;
+#endif
+        `);
+        
+        return shader;
+      },
+    });
+
+    // mesh
+
+    super(geometry, material, allocator);
+    this.frustumCulled = false;
+
+    {
+      this.isSkinnedMesh = true;
+
+      this.bindMode = 'attached';
+      this.bindMatrix = new THREE.Matrix4();
+      this.bindMatrixInverse = new THREE.Matrix4();
+
+      /* const bones = [];
+      const boneInverses = [];
+      for (let i = 0; i < meshes.length; i++) {
+        const mesh = meshes[i];
+        if (bones.length > maxBonesPerInstance) {
+          throw new Error('too many bones in base mesh skeleton: ' + bones.length);
+        }
+        bones.push.apply(bones, mesh.skeleton.bones);
+        boneInverses.push.apply(boneInverses, mesh.skeleton.boneInverses);
+      } */
+
+      // this.bindMode = 'attached';
+      // this.bindMatrix = this.matrixWorld;
+      // this.bindMatrixInverse = this.bindMatrix.clone().invert();
+
+      this.skeleton = new InstancedSkeleton(this);
+    
+      // window.skeleton = this.skeleton; // XXX
+    }
+
+    // window.shader = shader;
+    // window.vertexShader = shader.vertexShader;
+    // window.fragmentShader = shader.fragmentShader;
+    // window.geometry = geometry;
+
+    this.glbs = glbs;
+    this.meshes = meshes;
+    // this.rootBones = rootBones;
+    this.drawCalls = Array(meshes.length).fill(null);
+
+    this.animationMixers = [];
+
+    /* this.meshes = lodMeshes;
+    this.shapeAddresses = shapeAddresses;
+    this.physics = physics;
+    this.physicsObjects = []; */
+  }
+  async addChunk(chunk, {
+    signal,
+  } = {}) {
+    if (chunk.y === 0) {
+      let live = true;
+      signal.addEventListener('abort', e => {
+        live = false;
+      });
+
+      const _getMobData = async chunk => {
+        const lod = 1;
+        return await dcWorkerManager.createMobSplat(chunk.x * chunkWorldSize, chunk.z * chunkWorldSize, lod);
+      };
+      const mobData = await _getMobData(chunk);
+      // mobData.instances.length > 0 && console.log('got mob data', mobData, chunk); // XXX
+      if (!live) return;
+
+      const _getDrawCall = geometryIndex => {
+        // console.log('alloc geometry', geometryIndex);
+        let drawCall = this.drawCalls[geometryIndex];
+        if (!drawCall) {
+          drawCall = this.allocator.allocDrawCall(geometryIndex);
+          drawCall.instances = [];
+
+          this.drawCalls[geometryIndex] = drawCall;
+        }
+        return drawCall;
+      };
+      const _renderMobGeometry = (drawCall, ps, qs, index) => {
+        // locals
+
+        const instanceIndex = drawCall.getInstanceCount();
+        const pTexture = drawCall.getTexture('p');
+        const pOffset = drawCall.getTextureOffset('p');
+        const qTexture = drawCall.getTexture('q');
+        const qOffset = drawCall.getTextureOffset('q');
+        // const boneTextureOffsetTexture = drawCall.getTexture('boneTextureOffset');
+        // const boneTextureOffsetOffset = drawCall.getTextureOffset('boneTextureOffset');
+
+        // position
+
+        const px = ps[index * 3];
+        const py = ps[index * 3 + 1];
+        const pz = ps[index * 3 + 2];
+        pTexture.image.data[pOffset + instanceIndex * 3] = px;
+        pTexture.image.data[pOffset + instanceIndex * 3 + 1] = py;
+        pTexture.image.data[pOffset + instanceIndex * 3 + 2] = pz;
+
+        drawCall.updateTexture('p', pOffset / 3 + instanceIndex, 1);
+
+        // quaternion
+
+        const qx = qs[index * 4];
+        const qy = qs[index * 4 + 1];
+        const qz = qs[index * 4 + 2];
+        const qw = qs[index * 4 + 3];
+        qTexture.image.data[qOffset + instanceIndex * 4] = qx;
+        qTexture.image.data[qOffset + instanceIndex * 4 + 1] = qy;
+        qTexture.image.data[qOffset + instanceIndex * 4 + 2] = qz;
+        qTexture.image.data[qOffset + instanceIndex * 4 + 3] = qw;
+
+        drawCall.updateTexture('q', qOffset / 4 + instanceIndex, 1);
+
+        // bone texture offset
+
+        // XXX allocate space in the bone texture via instanced skeleton
+        // each bone requires a mat4, i.e 4 vec4 pixels per bone
+        // console.log('free list', this.skeleton.boneTextureFreeList);
+        /* console.log('alloc', {
+          boneTextureSize: this.skeleton.boneTextureSize,
+          boneTextureOffsetSize: this.skeleton.boneTextureSize * this.skeleton.boneTextureSize,
+          allocSize: mesh.skeleton.bones.length * 4,
+        }); */
+        // const boneTextureEntry = this.skeleton.boneTextureFreeList.alloc(mesh.skeleton.bones.length * 4);
+        // boneTextureOffsetTexture.image.data[boneTextureOffsetOffset] = boneTextureEntry.start;
+        
+        // drawCall.updateTexture('boneTextureOffset', boneTextureOffsetOffset + instanceIndex, 1);
+        
+
+
+
+        // mob instance
+
+        const glb = this.glbs[drawCall.geometryIndex];
+        const glb2Scene = SkeletonUtils.clone(glb.scene);
+        const mesh2 = _findMesh(glb2Scene);
+        const rootBone2 = _findBone(glb2Scene);
+        const skeleton2 = mesh2.skeleton;
+        if (skeleton2.bones.length > maxBonesPerInstance) {
+          throw new Error('too many bones in base mesh skeleton: ' + bones.length);
+        }
+        /* if (skeleton.bones.some(b => {
+          return mesh.skeleton.includes(b);
+        })) {
+          debugger;
+        } */
+        
+        // animations
+        let mixer = null;
+        /* for (const glb of glbs)*/ {
+          // const glb = this.glbs[drawCall.geometryIndex];
+          // const rootBone = this.rootBones[drawCall.geometryIndex];
+          // const rootBone = skeleton2.bones[0];
+          const {animations} = glb;
+          // console.log('got animations', animations);
+          // const idleAnimation = animations.find(a => a.name === 'idle');
+          const clip = animations[0];
+          if (clip) {
+            // console.log('new mixer', rootBone);
+            // try {
+              mixer = new THREE.AnimationMixer(rootBone2);
+              // console.log('new action', clip);
+              const action = mixer.clipAction(clip);
+              action.play();
+              mixer.updateMatrixWorld = () => {
+                glb2Scene.updateMatrixWorld();
+
+                // window.glb2Scene = glb2Scene; // XXX
+              };
+
+              this.animationMixers.push(mixer);
+            /* } catch (err) {
+              debugger;
+            } */
+          }
+        }
+
+        const instance = new MobInstance(skeleton2, mixer);
+        drawCall.instances.push(instance);
+
+        // physics
+        // const shapeAddress = this.#getShapeAddress(drawCall.geometryIndex);
+        // const physicsObject = this.#addPhysicsShape(shapeAddress, px, py, pz, qx, qy, qz, qw);
+        // this.physicsObjects.push(physicsObject);
+
+        // bookkeeping
+
+        drawCall.incrementInstanceCount();
+
+        // return
+
+        return instance;
+      };
+      const _unrenderMobGeometry = (drawCall, mobInstance) => {
+        const instanceIndex = drawCall.instances.indexOf(mobInstance);
+        if (drawCall.instances.length >= 2) {
+          // locals
+          
+          const lastInstanceIndex = drawCall.getInstanceCount() - 1;
+          const oldInstance = drawCall.instances[instanceIndex];
+          
+          const pTexture = drawCall.getTexture('p');
+          const pOffset = drawCall.getTextureOffset('p');
+          const qTexture = drawCall.getTexture('q');
+          const qOffset = drawCall.getTextureOffset('q');
+          const boneTextureOffsetTexture = drawCall.getTexture('boneTexture');
+          const boneTextureOffsetOffset = drawCall.getTextureOffset('boneTexture');
+
+          // delete by replacing current instance with last instance
+
+          pTexture.image.data[pOffset + instanceIndex * 3] = pTexture.image.data[pOffset + lastInstanceIndex * 3];
+          pTexture.image.data[pOffset + instanceIndex * 3 + 1] = pTexture.image.data[pOffset + lastInstanceIndex * 3 + 1];
+          pTexture.image.data[pOffset + instanceIndex * 3 + 2] = pTexture.image.data[pOffset + lastInstanceIndex * 3 + 2];
+
+          qTexture.image.data[qOffset + instanceIndex * 4] = qTexture.image.data[qOffset + lastInstanceIndex * 4];
+          qTexture.image.data[qOffset + instanceIndex * 4 + 1] = qTexture.image.data[qOffset + lastInstanceIndex * 4 + 1];
+          qTexture.image.data[qOffset + instanceIndex * 4 + 2] = qTexture.image.data[qOffset + lastInstanceIndex * 4 + 2];
+          qTexture.image.data[qOffset + instanceIndex * 4 + 3] = qTexture.image.data[qOffset + lastInstanceIndex * 4 + 3];
+
+          // copy the last instance bone matrix (a block of maxBonesPerInstance bones) to the current location
+          boneTextureOffsetTexture.image.data.set(boneTextureOffsetTexture.image.data.subarray(
+            boneTextureOffsetOffset + lastInstanceIndex * maxBonesPerInstance * 16,
+            boneTextureOffsetOffset + (lastInstanceIndex + 1) * maxBonesPerInstance * 16
+          ), boneTextureOffsetOffset + instanceIndex * maxBonesPerInstance * 16);
+
+          drawCall.updateTexture('p', pOffset / 3 + instanceIndex, 1);
+          drawCall.updateTexture('q', qOffset / 4 + instanceIndex, 1);
+          drawCall.updateTexture('boneTexture', boneTextureOffsetOffset + instanceIndex, 1);
+
+          // animations
+
+          const mixerIndex = oldInstance.mixer !== null ? this.animationMixers.indexOf(oldInstance.mixer) : -1;
+          if (mixerIndex !== -1) {
+            this.animationMixers.splice(mixerIndex, 1);
+          }
+
+          // this.skeleton.boneTextureFreeList.free(oldInstance.boneTextureEntry);
+          // this.skeleton.removeSkeleton(oldInstance.skeleton);
+
+          // mob instance
+
+          drawCall.instances[instanceIndex] = drawCall.instances[drawCall.instances.length - 1];
+          drawCall.instances.length--;
+        } else {
+          drawCall.instances.length = 0;
+        }
+
+        // bookkeeping
+
+        drawCall.decrementInstanceCount();
+      }
+
+      for (let i = 0; i < mobData.instances.length; i++) {
+        const geometryNoise = mobData.instances[i];
+        // console.log('got noise', geometryNoise);
+        const geometryIndex = Math.floor(geometryNoise * this.meshes.length);
+        
+        const drawCall = _getDrawCall(geometryIndex);
+        const mobInstance = _renderMobGeometry(drawCall, mobData.ps, mobData.qs, i);
+        // window.drawCall = drawCall;
+
+        signal.addEventListener('abort', e => {
+          _unrenderMobGeometry(drawCall, mobInstance);
+        });
+      }
+    }
+  }
+  update(timestamp, timeDiff) {
+    // console.log('update', timestamp, timeDiff);
+    if (this.animationMixers.length > 0) {
+      const deltaSeconds = timeDiff / 1000;
+      for (const mixer of this.animationMixers) {
+        mixer.update(deltaSeconds);
+        mixer.updateMatrixWorld();
+      }
+    }
+    this.skeleton.update();
+  }
+}
+
+class MobGenerator {
+  constructor({
+    appUrls = [],
+  } = {}, parent) {
+    this.parent = parent;
+
+    //
+
+    // this.mobModules = {};
+
     this.object = new THREE.Object3D();
     this.object.name = 'mob-chunks';
 
-    // parameters
-    this.parent = parent;
+    this.loadPromise = (async () => {
+      // lod mob modules
+      const glbs = await Promise.all(appUrls.map(async u => {
+        const m = await metaversefile.import(u);
+        // this.mobModules[u] = m; // XXX will not be needed when there is instancing support
 
-    // members
-    // this.physicsObjects = [];
+        // load glb
+        const glb = await (async () => {
+          const mobJsonUrl = m.srcUrl;
+          const res = await fetch(mobJsonUrl);
+          const j = await res.json();
+          // console.log('got j', j, j.start_url);
+
+          return await new Promise((accept, reject) => {
+            const mobUrl = createRelativeUrl(j.mobUrl, mobJsonUrl);
+            // console.log('mob url', mobUrl, j.mobUrl, mobJsonUrl);
+            loaders.gltfLoader.load(mobUrl, accept, function onProgress() {}, reject);
+          });
+        })();
+        return glb;
+      }));
+      // window.glbs = glbs;
+      const skinnedMeshSpecs = glbs.map(glb => {
+        const mesh = _findMesh(glb.scene);
+        
+        /* if (!rootBone) {
+          console.warn('no root bone', glb);
+          debugger;
+        } */
+
+        return {
+          glb,
+          mesh,
+          // rootBone,
+        };
+      });
+      const skinnedMeshes = skinnedMeshSpecs.map(spec => spec.mesh);
+      // const rootBones = skinnedMeshSpecs.map(spec => spec.rootBone);
+
+      // window.skinnedMeshes = skinnedMeshes;
+      
+      // apply transform to geometry
+      /* for (const {glb, mesh} of skinnedMeshSpecs) {
+        glb.scene.updateMatrixWorld();
+        const {geometry} = mesh;
+        geometry.applyMatrix(mesh.matrixWorld);
+      } */
+
+      // make batched mesh
+      const mobBatchedMesh = new MobBatchedMesh({
+        glbs,
+        meshes: skinnedMeshes,
+        // rootBones,
+      });
+      this.object.add(mobBatchedMesh);
+      this.mobBatchedMesh = mobBatchedMesh;
+
+      this.compiled = true;
+    })();
+  }
+  waitForLoad() {
+    return this.loadPromise;
+  }
+  getMobModuleNames() {
+    return Object.keys(this.mobModules).sort();
   }
   generateChunk(chunk) {
-    const rng = alea(chunk.name);
-
-    if (rng() < 0.2) {
-      const i = 0;
-      const mobModuleNames = this.parent.getMobModuleNames();
-      const mobModuleName = mobModuleNames[Math.floor(rng() * mobModuleNames.length)];
-      const mobModule = this.parent.mobModules[mobModuleName];
-
-      const r = n => -n + rng() * n * 2;
-      const app = metaversefile.createApp({
-        position: chunk.clone()
-          .multiplyScalar(chunkWorldSize)
-          .add(new THREE.Vector3(rng() * chunkWorldSize, 0, rng() * chunkWorldSize)),
-        quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), r(Math.PI)),
+    const abortController = new AbortController();
+    const {signal} = abortController;
+    
+    (async () => {
+      await this.mobBatchedMesh.addChunk(chunk, {
+        signal,
       });
-      app.name = chunk.name + '-' + i;
-      (async () => {
-        await app.addModule(mobModule);
-      })();
+    })();    
 
-      if (!chunk.binding) {
-        chunk.binding = {
-          apps: [],
-        };
-      }
-      chunk.binding.apps.push(app);
-      
-      this.object.add(app);
-      app.updateMatrixWorld();
-      
-      app.addEventListener('destroy', e => {
-        this.object.remove(app);
-        const index = chunk.binding.apps.indexOf(app);
-        chunk.binding.apps.splice(index, 1);
-      });
-
-      /* this.dispatchEvent(new MessageEvent('appadd', {
-        data: {
-          app,
-        },
-      })); */
-    }
+    chunk.binding = {
+      abortController,
+    };
   }
   disposeChunk(chunk) {
-    if (chunk.binding) {
-      for (const app of chunk.binding.apps) {
-        // this.object.remove(app);
-
-        /* this.dispatchEvent(new MessageEvent('appremove', {
-          data: {
-            app,
-          },
-        })); */
-
-        app.destroy();
-      }
-      chunk.binding = null;
-    }
-
-    /* for (const physicsObject of chunk.physicsObjects) {
-      physicsManager.removeGeometry(physicsObject);
-
-      const index = this.physicsObjects.findIndex(po => po.physicsId === physicsObject.physicsId);
-      this.physicsObjects.splice(index, 1);
-    }
-    chunk.physicsObjects.length = 0; */
+    const {abortController} = chunk.binding;
+    abortController.abort();
+    chunk.binding = null;
   }
-  /* update(timestamp, timeDiff) {
-    // nothing
-  } */
+  update(timestamp, timeDiff) {
+    if (this.mobBatchedMesh) {
+      this.mobBatchedMesh.update(timestamp, timeDiff);
+    }
+  }
   destroy() {
     // nothing; the owning lod tracker disposes of our contents
   }
 }
 
 class Mobber {
-  constructor() {
-    // scene.add(this.object);
-
-    this.mobModules = {};
-    // this.apps = [];
+  constructor({
+    appUrls = [],
+  } = {}) {
     this.compiled = false;
     
-    this.generator = new MobGenerator(this);
-    /* this.generator.addEventListener('appadd', e => {
-      const {app} = e.data;
-      console.log('got app add', {app});
-      this.apps.push(app);
-    });
-    this.generator.addEventListener('appremove', e => {
-      const {app} = e.data;
-      const index = this.apps.indexOf(app);
-      this.apps.splice(index, 1);
-    }); */
+    this.generator = new MobGenerator({
+      appUrls,
+    }, this);
     this.tracker = new LodChunkTracker(this.generator, {
       chunkWorldSize,
     });
+
+    this.compiled = false;
+    this.waitForLoad().then(() => {
+      this.compiled = true;
+    });
   }
-  getMobModuleNames() {
-    return Object.keys(this.mobModules).sort();
+  waitForLoad() {
+    return this.generator.waitForLoad();
   }
-  async addMobModule(srcUrl) {
+  /* async addMobModule(srcUrl) {
     const m = await metaversefile.import(srcUrl);
     this.mobModules[srcUrl] = m;
   }
   compile() {
     this.compiled = true;
-  }
+  } */
   getChunks() {
     return this.generator.object;
   }
@@ -535,6 +1157,7 @@ class Mobber {
     if (this.compiled) {
       const localPlayer = getLocalPlayer();
       this.tracker.update(localPlayer.position);
+      this.generator.update(timestamp, timeDiff);
     }
   }
   destroy() {
@@ -549,8 +1172,8 @@ class MobManager {
     this.mobbers = [];
     this.mobs = [];
   }
-  createMobber() {
-    const mobber = new Mobber();
+  createMobber(opts) {
+    const mobber = new Mobber(opts);
     this.mobbers.push(mobber);
     return mobber;
   }
