@@ -922,7 +922,6 @@ class Player extends THREE.Object3D {
       }
     }
 
-    this.unbindState();
     if (this.isLocalPlayer) {
       this.appManager.unbindStateLocal();
     } else {

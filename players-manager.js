@@ -25,31 +25,27 @@ class PlayersManager {
 
   unbindState() {
     logger.log('Unbind state called on playersManager');
-    const lastPlayers = this.playersArray;
-    if (lastPlayers) {
-      // console.log('unbind player observers', lastPlayers, new Error().stack);
-      logger.log('got players array', this.playersArray);
-      const playerSpecs = this.playersArray.toJSON();
-      const nonLocalPlayerSpecs = playerSpecs.filter(p => {
-        return p.playerId !== getLocalPlayer().playerId;
-      });
-      for (const nonLocalPlayer of nonLocalPlayerSpecs) {
-        const remotePlayer = this.remotePlayers.get(nonLocalPlayer.playerId);
-        if (remotePlayer) {
-          console.log('Destroying remote player', remotePlayer);
-          remotePlayer.destroy();
-          this.remotePlayers.delete(nonLocalPlayer.playerId);
-        } else {
-          throw new Error('No remote player to destroy');
-        }
+    if (!this.playersArray) return logger.warn('unbindState function called but playersArray was null');
+    // console.log('unbind player observers', lastPlayers, new Error().stack);
+    const playerSpecs = this.playersArray.toJSON();
+    const nonLocalPlayerSpecs = playerSpecs.filter(p => {
+      return p.playerId !== getLocalPlayer().playerId;
+    });
+    for (const nonLocalPlayer of nonLocalPlayerSpecs) {
+      const remotePlayer = this.remotePlayers.get(nonLocalPlayer.playerId);
+      if (remotePlayer) {
+        console.log('Destroying remote player', remotePlayer);
+        remotePlayer.destroy();
+        this.remotePlayers.delete(nonLocalPlayer.playerId);
+        this.remotePlayersByInteger.delete(nonLocalPlayer.playerIdInt);
+      } else {
+        throw new Error('No remote player to destroy');
       }
-
-      this.unbindStateFn();
-      this.playersArray = null;
-      this.unbindStateFn = null;
-    } else {
-      logger.warn('unbindState function called but playersArray was null');
     }
+
+    this.unbindStateFn();
+    this.playersArray = null;
+    this.unbindStateFn = null;
   }
 
   bindState(nextPlayersArray) {

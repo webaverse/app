@@ -72,8 +72,9 @@ export class World {
   // called by enterWorld() in universe.js
   // This is called in single player mode instead of connectRoom
   connectState(state) {
-    logger.log('world.connectState')
+    logger.log('world.connectState');
     state.setResolvePriority(1);
+    playersManager.bindState(state.getArray(playersMapName));
 
     this.appManager.unbindStateLocal();
     this.appManager.clear();
@@ -82,8 +83,6 @@ export class World {
 
     this.appManager.bindState(appsArray);
 
-    playersManager.unbindState();
-    playersManager.bindState(state.getArray(playersMapName));
 
     const localPlayer = getLocalPlayer();
     localPlayer.bindState(state.getArray(playersMapName));
@@ -125,20 +124,18 @@ export class World {
       // Clear the last world state
       const worldMap = state.getMap(worldMapName);
       const appsArray = worldMap.get(appsMapName, Z.Array);
+      playersManager.bindState(state.getArray(playersMapName));
 
       // Unbind the world state to clear existing apps
       this.appManager.unbindStateLocal();
       this.appManager.clear();
       // Bind the new state
       this.appManager.bindState(appsArray);
-      // Clear the player state
-      playersManager.unbindState();
 
       const init = e => {
         logger.log('wsrtc.init');
         this.wsrtc.removeEventListener('init', init);
         localPlayer.bindState(state.getArray(playersMapName));
-        playersManager.bindState(state.getArray(playersMapName));
 
         this.wsrtc.addEventListener('audio', e => {
           const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
