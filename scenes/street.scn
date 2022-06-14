@@ -223,11 +223,7 @@
       "start_url": "https://webaverse.github.io/helm/"
     },
     {
-      "position": [
-        -95,
-        0,
-        55
-      ],
+      "position": [0, -60, 0],
       "start_url": "../metaverse_modules/spawner/",
       "components": [
         {
