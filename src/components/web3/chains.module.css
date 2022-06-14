@@ -1,8 +1,8 @@
 
 .chainSelector {
-  background-color: #aeaeae;
+  background-color: black;
   border-radius: 5px 0 0 5px;
-  color: black;
+  color: rgb(255, 255, 255);
   user-select: none;
   width: 135px;
   position: absolute;
@@ -53,7 +53,7 @@
     text-align: left;
     cursor: pointer;
     padding: 8px;
-    color: black;
+    color: white;
 }
 
 .selected {

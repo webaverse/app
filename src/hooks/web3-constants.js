@@ -54,7 +54,7 @@ export const CHAINS = {
     rpcUrls: ['https://mainnetsidechain.exokit.org/'],
     contract_name: 'mainnetsidechain',
     previewLink: '',
-    brandColor: '#5BE2A7',
+    brandColor: 'black',
     type: CHAIN_TYPE.PRODUCTION,
   },
   RINKBY: {
