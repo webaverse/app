@@ -303,7 +303,7 @@ ioManager.keydown = e => {
       break;
     }
     case 50: { // 2
-      musicManager.playCurrentMusic('dungeon');
+      // musicManager.playCurrentMusic('dungeon');
       break;
     }
     case 51: { // 3

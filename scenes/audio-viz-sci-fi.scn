@@ -23,9 +23,7 @@
         "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }
     },
-    
-{
-      
+    {
       "position": [
         0,
         0,
@@ -62,6 +60,6 @@
       "physics": true,
       "start_url": "https://gitwillg.github.io/neon-curve-lines/index.js",
       "dynamic": false
-    },
+    }
 ]
 }

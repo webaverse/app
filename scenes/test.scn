@@ -43,15 +43,26 @@
         -1
       ],
       "start_url": "https://webaverse.github.io/skybox/index.js"
-    },{
-      "position": [
-        3,
+    },
+    {
+      "position":[
         0,
-        10
+        0,
+        0
       ],
       "physics": true,
       "start_url": "https://gitwillg.github.io/react-speaker/index.js",
       "dynamic": false
-    }   
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://gitwillg.github.io/torch/index.js",
+      "dynamic": false
+    }
   ]
 }
