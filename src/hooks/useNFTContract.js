@@ -100,6 +100,7 @@ export default function useNFTContract(currentAccount) {
                 setError('Mint Failed');
                 setMinting(false);
             }
+          callback(NFTmintres);
       }
     } catch (error) {
       setError(error.message);
