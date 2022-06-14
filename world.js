@@ -125,6 +125,10 @@ export class World {
       // Clear the last world state
       const worldMap = state.getMap(worldMapName);
       const appsArray = worldMap.get(appsMapName, Z.Array);
+
+      // Unbind the world state to clear existing apps
+      this.appManager.unbindStateLocal();
+      this.appManager.clear();
       // Bind the new state
       this.appManager.bindState(appsArray);
       // Clear the player state
