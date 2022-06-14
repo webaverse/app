@@ -151,10 +151,8 @@ export class World {
   }
 
   disconnectRoom() {
-    logger.log('world.disconnectRoom')
-    this.wsrtc?.close();
-    this.appManager.unbindState();
-    this.appManager.clear();
+    logger.log('world.disconnectRoom');
+    if (this.wsrtc && this.wsrtc.state === 'open') this.wsrtc.close();
     this.wsrtc = null;
   }
 

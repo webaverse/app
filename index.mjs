@@ -134,9 +134,9 @@ function makeId(length) {
   });
   app.use(viteServer.middlewares);
   
-  await new Promise((accept, reject) => {
+  await new Promise((resolve, reject) => {
     httpServer.listen(port, SERVER_ADDR, () => {
-      accept();
+      resolve();
     });
     httpServer.on('error', reject);
   });
@@ -178,15 +178,15 @@ function makeId(length) {
     return result;
   })();
   const initialRoomNames = [
-    'Erithor',
+    './scenes/makersdistrict.scn',
   ];
   wsrtc.bindServer(wsServer, {
     initialRoomState,
     initialRoomNames,
   });
-  await new Promise((accept, reject) => {
+  await new Promise((resolve, reject) => {
     wsServer.listen(wsPort, SERVER_ADDR, () => {
-      accept();
+      resolve();
     });
     wsServer.on('error', reject);
   });

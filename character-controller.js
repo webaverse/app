@@ -381,6 +381,8 @@ class Player extends THREE.Object3D {
       this.handleWearUpdate(app, true, -1, true, false)
     });
 
+    // TODO: This should be handled by event
+    // Remove removedWornApp entirely
     if (this.removedWornApp) {
       this.removedWornApp.dispatchEvent({
         type: "resettransform",
@@ -488,24 +490,8 @@ class Player extends THREE.Object3D {
       };
       _addAction();
 
-      const _emitEvents = () => {
-        app.dispatchEvent({
-          type: 'wearupdate',
-          player: this,
-          wear: true,
-          loadoutIndex,
-          holdAnimation,
-        });
-        this.dispatchEvent({
-          type: 'wearupdate',
-          app,
-          player: this,
-          wear: true,
-          loadoutIndex,
-          holdAnimation,
-        });
-      };
-      _emitEvents();
+      this.handleWearUpdate(app, true, loadoutIndex, true)
+      this.handleWearUpdate(app, true, loadoutIndex, false)
     }
   }
   unwear(app, {
@@ -738,6 +724,7 @@ class Player extends THREE.Object3D {
     return this.quaternion.toArray(this.localQuaternion);
   }
   async syncAvatar() {
+    logger.log("syncAvatar called on", this.isLocalPlayer, this.playerId)
     if (this.syncAvatarCancelFn) {
       this.syncAvatarCancelFn.cancel();
       this.syncAvatarCancelFn = null;
@@ -787,10 +774,6 @@ class Player extends THREE.Object3D {
           type: "avatarchange",
           app,
           avatar,
-        });
-        this.dispatchEvent({
-          type: "avatarupdate",
-          app,
         });
       })();
     };
@@ -1507,6 +1490,7 @@ class RemotePlayer extends Player {
 
     this.appManager.bindStateRemote(this.getAppsState());
     this.appManager.callBackFn = (app, event, flag) => {
+      // Called when app is added or removed by appManager.exportTrackedApp
       if (event == "wear") {
         if (flag === "remove") {
           this.unwear(app);

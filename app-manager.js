@@ -35,9 +35,6 @@ const appManagers = [];
 class AppManager extends EventTarget {
   constructor() {
     super();
-    logger.log('New app manager');
-
-
     this.appsArray = null;
     this.apps = [];
 
@@ -47,6 +44,7 @@ class AppManager extends EventTarget {
     this.bindEvents();
 
     appManagers.push(this);
+    logger.log('New app manager', new Error().stack);
   }
   // Called on local player and world app managers
   tick(timestamp, timeDiff, frame) {
@@ -106,7 +104,7 @@ class AppManager extends EventTarget {
   // Called in attachState in character controller on both remote and local player
   bindState(nextAppsArray) {
     logger.log('appManager.bindState', nextAppsArray)
-    const observe = (e) => {
+    const observeAppsFn = (e) => {
       const { added, deleted } = e.changes;
       
       // Handle new apps added to the app manager
@@ -148,8 +146,8 @@ class AppManager extends EventTarget {
           this.exportTrackedApp(data)
       }
     };
-    nextAppsArray.observe(observe);
-    this.unbindStateFn = nextAppsArray.unobserve.bind(nextAppsArray, observe);
+    nextAppsArray.observe(observeAppsFn);
+    this.unbindStateFn = nextAppsArray.unobserve.bind(nextAppsArray, observeAppsFn);
     this.appsArray = nextAppsArray;
   }
   // Called by the localPlayer.attachState
@@ -175,7 +173,7 @@ class AppManager extends EventTarget {
   // Called by importApp
   bindTrackedApp(trackedApp, app) {
     logger.log('appManager.bindTrackedApp', trackedApp, app)
-    const _observe = (e) => {
+    const observeTrackedAppFn = (e) => {
       if (e.changes.keys.has("transform")) {
         const transform = trackedApp.get("transform");
         if (transform) {
@@ -190,12 +188,12 @@ class AppManager extends EventTarget {
         logger.warn("Unhandled trackedApp change", e.changes.keys);
       }
     };
-    trackedApp.observe(_observe);
+    trackedApp.observe(observeTrackedAppFn);
 
     const instanceId = trackedApp.get("instanceId");
     this.trackedAppUnobserveMap.set(
       instanceId,
-      trackedApp.unobserve.bind(trackedApp, _observe)
+      trackedApp.unobserve.bind(trackedApp, observeTrackedAppFn)
     );
   }
   unbindTrackedApp(instanceId) {
@@ -218,6 +216,8 @@ class AppManager extends EventTarget {
       window.removeEventListener("resize", resize);
     };
   }
+  // Called when a new app is added to the app manager in observeAppsFn
+  // Also called explicitly by loadApps on remote player at init
   async importTrackedApp(trackedApp) {
     logger.log('appManager.importTrackedApp', trackedApp)
     const trackedAppBinding = trackedApp.toJSON();
