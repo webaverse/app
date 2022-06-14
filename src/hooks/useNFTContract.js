@@ -3,9 +3,7 @@ import { Buffer } from 'buffer';
 import {ethers, BigNumber} from 'ethers';
 
 import {
-  DEFAULT_CHAIN,
   CONTRACTS,
-  CONTRACT_ABIS,
 } from './web3-constants.js';
 import {FTABI, NFTABI} from '../abis/contract.jsx';
 import {ChainContext} from './chainProvider.jsx';
