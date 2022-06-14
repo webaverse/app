@@ -461,6 +461,7 @@ export const _createAnimation = avatar => {
     }
   }
   // avatar.useMotiono.bowIdle2 = avatar.mixer.createMotion(avatar.useMotiono.bowIdle.animation); // duplicate bowIdle motion, used for different parents
+  avatar.useMotiono.drink.loop = LoopOnce; avatar.useMotiono.drink.stop();
   avatar.useMotiono.combo.loop = LoopOnce; avatar.useMotiono.combo.stop();
   // combo
   avatar.useMotiono.swordSideSlash.loop = LoopOnce; avatar.useMotiono.swordSideSlash.stop();
@@ -588,8 +589,11 @@ export const _createAnimation = avatar => {
   avatar.actionsNode.addChild(avatar.flyMotion);
   avatar.actionsNode.addChild(avatar.activateMotion);
   avatar.actionsNode.addChild(avatar.narutoRunMotion);
+  // useMotiono
+  avatar.actionsNode.addChild(avatar.useMotiono.drink);
+  // sword
   avatar.actionsNode.addChild(avatar.useMotiono.combo);
-  // combo
+  // silsword combo
   avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlash);
   avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlashStep);
   avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlash);
@@ -636,22 +640,23 @@ export const _createAnimation = avatar => {
   // avatar.animTree = avatar.overwriteNode;
   //
 
-  // const handleAnimationEnd = event => {
-  //   if ([
-  //     avatar.useMotiono.combo,
-  //     avatar.useMotiono.swordSideSlash,
-  //     avatar.useMotiono.swordSideSlashStep,
-  //     avatar.useMotiono.swordTopDownSlash,
-  //     avatar.useMotiono.swordTopDownSlashStep,
-  //   ].includes(event.motion)) {
-  //     console.log('animationEnd', event.motion.name);
-  //     game.handleAnimationEnd();
-  //   }
-  // };
+  const handleAnimationEnd = event => {
+    if ([
+      avatar.useMotiono.drink,
+      avatar.useMotiono.combo,
+      avatar.useMotiono.swordSideSlash,
+      avatar.useMotiono.swordSideSlashStep,
+      avatar.useMotiono.swordTopDownSlash,
+      avatar.useMotiono.swordTopDownSlashStep,
+    ].includes(event.motion)) {
+      // console.log('animationEnd', event.motion.name);
+      game.handleAnimationEnd();
+    }
+  };
 
   avatar.mixer.addEventListener('finished', event => {
     // console.log('finished', event.motion.name, !!avatar.useEnvelopeState); // todo: why `bow draw.fbx` trigger `finished` event at app init.
-    // // handleAnimationEnd(event);
+    handleAnimationEnd(event);
     // if ([
     //   avatar.useMotiono.combo,
     //   avatar.useMotiono.swordSideSlash,

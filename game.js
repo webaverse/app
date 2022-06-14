@@ -433,15 +433,22 @@ const _endUse = () => {
   }
 };
 const _mousedown = () => {
-  // const localPlayer = metaversefileApi.useLocalPlayer();
-  // const useAction = localPlayer.getAction('use');
-  // if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
-  //   needContinueCombo = true;
-  // }
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  const useAction = localPlayer.getAction('use');
+  if (useAction?.animationCombo?.length > 0 && useAction.index < useAction.animationCombo.length - 1) {
+    needContinueCombo = true;
+  }
   _startUse();
 };
 const _mouseup = () => {
-  _endUse();
+  const localPlayer = metaversefileApi.useLocalPlayer();
+  const useAction = localPlayer.getAction('use');
+  if (!(
+    useAction?.animation ||
+    useAction?.animationCombo?.length > 0
+  )) {
+    _endUse();
+  }
   // isMouseUp = true;
 };
 
