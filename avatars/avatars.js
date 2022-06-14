@@ -1914,7 +1914,7 @@ class Avatar {
       window.mixer = this.mixer;
       // window.motiono = this.motiono;
     }
-    if (false && this === window.localPlayer.avatar) {
+    if (true && this === window.localPlayer.avatar) {
       // console.log(window.logNum(this.getAngle()));
 
       /*
