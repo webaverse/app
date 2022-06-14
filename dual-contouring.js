@@ -147,9 +147,9 @@ w.injectDamage = function(x, y, z, damageBuffer) {
   }
 };
 
-w.clearChunkRootDualContouring = (x, y, z) => {
+/* w.clearChunkRootDualContouring = (x, y, z) => {
   Module._clearChunkRootDualContouring(x, y, z)
-}
+}; */
 
 w.createChunkMeshDualContouring = (x, y, z, lods) => {
   const allocator = new Allocator(Module);
@@ -234,6 +234,27 @@ w.getHeightfieldRange = (x, z, w, h, lod) => {
       heights.byteOffset
     );
     return heights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.getAoFieldRange = (x, y, z, w, h, d, lod) => {
+  const allocator = new Allocator(Module);
+
+  const aos = allocator.alloc(Uint8Array, w * h * d);
+
+  try {
+    Module._getAoFieldRange(
+      x,
+      y,
+      z,
+      w,
+      h,
+      d,
+      lod,
+      aos.byteOffset
+    );
+    return aos.slice();
   } finally {
     allocator.freeAll();
   }

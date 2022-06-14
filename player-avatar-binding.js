@@ -247,6 +247,16 @@ export function applyPlayerActionsToAvatar(player, rig) {
   if (danceAction) {
     rig.danceAnimation = danceAnimation;
   }
+  rig.emoteState = !!emoteAction;
+  // start/end event
+  rig.emoteStart = false;
+  rig.emoteEnd = false;
+  if (rig.emoteState !== rig.lastEmoteState) {
+    if (rig.emoteState) rig.emoteStart = true;
+    else rig.emoteEnd = true;
+  }
+  rig.lastEmoteState = rig.emoteState;
+  //
   rig.emoteFactor = player.actionInterpolants.emote.get();
   rig.emoteAnimation = emoteAnimation;
   // rig.throwState = !!throwAction;

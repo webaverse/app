@@ -111,7 +111,7 @@ const _handleMethod = ({
       const meshData2 = _cloneMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
       // console.log('got mesh data', meshData2);
-      dc.clearChunkRootDualContouring(localVector.x, localVector.y, localVector.z)
+      // dc.clearChunkRootDualContouring(localVector.x, localVector.y, localVector.z)
 
       if (meshData2) {
         const spec = {
@@ -129,6 +129,16 @@ const _handleMethod = ({
 
       const spec = {
         result: heights,
+        transfers: [heights.buffer],
+      };
+      return spec;
+    }
+    case 'getAoFieldRange': {
+      const {x, z, w, h, lod} = args;
+      const aos = dc.getAoFieldRange(x, z, w, h, lod);
+
+      const spec = {
+        result: aos,
         transfers: [heights.buffer],
       };
       return spec;
