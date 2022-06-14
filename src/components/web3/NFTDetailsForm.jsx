@@ -16,7 +16,7 @@ export default function NFTDetailsForm({initialName = '', initialDetails = '', p
     <input type="text" name="name" placeholder={initialName} value={name} onChange={e => setName(e.target.value)} />
     <br/>
     <label htmlFor="details"><span>Details:</span></label>
-    <textarea type="text" name="details" placeholder={initialDetails} value={details} onChange={e => setDetails(e.target.value)} />
+    <input type="text" name="details" placeholder={initialDetails} value={details} onChange={e => setDetails(e.target.value)} />
     <br/>
   </div>;
 }
