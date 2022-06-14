@@ -70,6 +70,23 @@ const _handleMethod = ({
   args,
 }) => {
   // console.log('worker handle method', method, args);
+
+  const _injectDamages = chunks => {
+    // inject the damage to peer workers
+    const method = 'injectDamages';
+    const args = {
+      chunks,
+    };
+    for (const port of ports) {
+      // console.log('got port', port);
+      port.postMessage({
+        method,
+        args,
+      });
+    }
+  };
+  const _chunksToResult = chunks => chunks.map(({position}) => ({position}));
+
   switch (method) {
     case 'initialize': {
       const {chunkSize, seed} = args;
@@ -87,14 +104,14 @@ const _handleMethod = ({
       return;
     }
     case 'generateChunk': {
-      const {chunkPosition, lod} = args;
-      const chunk = new THREE.Vector3().fromArray(chunkPosition);
-      localVector.copy(chunk).multiplyScalar(chunkWorldSize);
-      const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z, 1);
+      const {chunkPosition, lodArray} = args;
+      localVector.fromArray(chunkPosition)
+        .multiplyScalar(chunkWorldSize);
+      const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z, lodArray);
       const meshData2 = _cloneMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
       // console.log('got mesh data', meshData2);
-      dc.clearChunkRootDualContouring(localVector.x, localVector.y, localVector.z)
+      // dc.clearChunkRootDualContouring(localVector.x, localVector.y, localVector.z)
 
       if (meshData2) {
         const spec = {
@@ -106,31 +123,146 @@ const _handleMethod = ({
         return null;
       }
     }
+    case 'getHeightfieldRange': {
+      const {x, z, w, h, lod} = args;
+      const heights = dc.getHeightfieldRange(x, z, w, h, lod);
+
+      const spec = {
+        result: heights,
+        transfers: [heights.buffer],
+      };
+      return spec;
+    }
+    case 'getAoFieldRange': {
+      const {x, z, w, h, lod} = args;
+      const aos = dc.getAoFieldRange(x, z, w, h, lod);
+
+      const spec = {
+        result: aos,
+        transfers: [heights.buffer],
+      };
+      return spec;
+    }
+    case 'createGrassSplat': {
+      const {x, z, lod} = args;
+      const {
+        ps,
+        qs,
+        instances,
+      } = dc.createGrassSplat(x, z, lod);
+
+      const spec = {
+        result: {
+          ps,
+          qs,
+          instances,
+        },
+        transfers: [ps.buffer, qs.buffer, instances.buffer],
+      };
+      return spec;
+    }
+    case 'createVegetationSplat': {
+      const {x, z, lod} = args;
+      const {
+        ps,
+        qs,
+        instances,
+      } = dc.createVegetationSplat(x, z, lod);
+
+      const spec = {
+        result: {
+          ps,
+          qs,
+          instances,
+        },
+        transfers: [ps.buffer, qs.buffer, instances.buffer],
+      };
+      return spec;
+    }
+    case 'createMobSplat': {
+      const {x, z, lod} = args;
+      const {
+        ps,
+        qs,
+        instances,
+      } = dc.createMobSplat(x, z, lod);
+
+      const spec = {
+        result: {
+          ps,
+          qs,
+          instances,
+        },
+        transfers: [ps.buffer, qs.buffer, instances.buffer],
+      };
+      return spec;
+    }
     case 'drawCubeDamage': {
       const {position, quaternion, scale} = args;
-      console.log('dc worker draw cube damage', {position, quaternion, scale});
+      // console.log('dc worker draw cube damage', {position, quaternion, scale});
       const chunks = dc.drawCubeDamage(
         position[0], position[1], position[2],
         quaternion[0], quaternion[1], quaternion[2], quaternion[3],
         scale[0], scale[1], scale[2],
       );
-      console.log('draw cube damage chunks', chunks);
+      // console.log('draw cube damage chunks', chunks);
 
       if (chunks) {
-        // inject the damage to peer workers
-        const method = 'injectDamages';
-        const args = {
-          chunks,
-        };
-        for (const port of ports) {
-          // console.log('got port', port);
-          port.postMessage({
-            method,
-            args,
-          });
-        }
+        _injectDamages(chunks);
         return {
-          result: chunks.map(({position}) => ({position})),
+          result: _chunksToResult(chunks),
+          transfers: [],
+        };
+      } else {
+        return null;
+      }
+    }
+    case 'eraseCubeDamage': {
+      const {position, quaternion, scale} = args;
+      const chunks = dc.drawCubeDamage(
+        position[0], position[1], position[2],
+        quaternion[0], quaternion[1], quaternion[2], quaternion[3],
+        scale[0], scale[1], scale[2],
+      );
+
+      if (chunks) {
+        _injectDamages(chunks);
+        return {
+          result: _chunksToResult(chunks),
+          transfers: [],
+        };
+      } else {
+        return null;
+      }
+    }
+    case 'drawSphereDamage': {
+      const {position, radius} = args;
+      const chunks = dc.drawSphereDamage(
+        position[0], position[1], position[2],
+        radius,
+      );
+
+      if (chunks) {
+        _injectDamages(chunks);
+        return {
+          result: _chunksToResult(chunks),
+          transfers: [],
+        };
+      } else {
+        return null;
+      }
+    }
+    case 'eraseSphereDamage': {
+      const {position, radius} = args;
+      const chunks = dc.eraseSphereDamage(
+        position[0], position[1], position[2],
+        radius,
+      );
+
+      if (chunks) {
+        _injectDamages(chunks);
+        return {
+          result: _chunksToResult(chunks),
           transfers: [],
         };
       } else {
@@ -141,9 +273,9 @@ const _handleMethod = ({
       const {chunks} = args;
       for (const chunk of chunks) {
         const {position, damageBuffer} = chunk;
-        console.log('worker inject damage 1', {position, damageBuffer});
+        // console.log('worker inject damage 1', {position, damageBuffer});
         dc.injectDamage(position[0], position[1], position[2], damageBuffer);
-        console.log('worker inject damage 2', {position, damageBuffer});
+        // console.log('worker inject damage 2', {position, damageBuffer});
       }
       return null;
     }

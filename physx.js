@@ -1449,7 +1449,7 @@ const physxWorker = (() => {
       buffer2.byteOffset,
       buffer2.byteLength,
       0,
-    )
+    );
 
     const materialAddress = w.getDefaultMaterial(physics)
 

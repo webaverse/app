@@ -147,13 +147,22 @@ w.injectDamage = function(x, y, z, damageBuffer) {
   }
 };
 
-w.clearChunkRootDualContouring = (x, y, z) => {
+/* w.clearChunkRootDualContouring = (x, y, z) => {
   Module._clearChunkRootDualContouring(x, y, z)
-}
+}; */
 
-w.createChunkMeshDualContouring = (x, y, z, lod) => {
-  const outputBufferOffset = Module._createChunkMeshDualContouring(x, y, z, lod);
-  // console.log('create xyz', x, y, z, outputBufferOffset);
+w.createChunkMeshDualContouring = (x, y, z, lods) => {
+  const allocator = new Allocator(Module);
+
+  const lodArray = allocator.alloc(Int32Array, 8);
+  lodArray.set(lods);
+
+  const outputBufferOffset = Module._createChunkMeshDualContouring(
+    x, y, z,
+    lodArray.byteOffset,
+  );
+
+  allocator.freeAll();
 
   if (outputBufferOffset) {
     const _parseVertexBuffer = (arrayBuffer, bufferAddress) => {
@@ -210,33 +219,133 @@ w.createChunkMeshDualContouring = (x, y, z, lod) => {
   }
 };
 
-/* w.drawDamage = (position, radius) => {
-  const allocator = new Allocator(Module)
+w.getHeightfieldRange = (x, z, w, h, lod) => {
+  const allocator = new Allocator(Module);
 
-  const numPositions = 256;
-  const positionsTypedArray = allocator.alloc(Float32Array, numPositions);
-  const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
-  numPositionsTypedArray[0] = numPositions;
+  const heights = allocator.alloc(Float32Array, w * h);
 
-  const drew = moduleInstance._drawDamage(
-    position.x,
-    position.y,
-    position.z,
-    radius,
-    value,
-    positionsTypedArray.byteOffset,
-    numPositionsTypedArray.byteOffset,
-  );
-
-  const outNumPositions = numPositionsTypedArray[0];
-  const result = Array(outNumPositions / 3);
-  for (let i = 0; i < outNumPositions / 3; i++) {
-    result[i] = new THREE.Vector3().fromArray(positionsTypedArray, i * 3);
+  try {
+    Module._getHeightfieldRange(
+      x,
+      z,
+      w,
+      h,
+      lod,
+      heights.byteOffset
+    );
+    return heights.slice();
+  } finally {
+    allocator.freeAll();
   }
+};
+w.getAoFieldRange = (x, y, z, w, h, d, lod) => {
+  const allocator = new Allocator(Module);
 
-  allocator.freeAll();
+  const aos = allocator.alloc(Uint8Array, w * h * d);
 
-  return result;
-}; */
+  try {
+    Module._getAoFieldRange(
+      x,
+      y,
+      z,
+      w,
+      h,
+      d,
+      lod,
+      aos.byteOffset
+    );
+    return aos.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+
+w.createGrassSplat = (x, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const allocSize = 64 * 1024;
+  const ps = allocator.alloc(Float32Array, allocSize * 3);
+  const qs = allocator.alloc(Float32Array, allocSize * 4);
+  const instances = allocator.alloc(Float32Array, allocSize);
+  const count = allocator.alloc(Uint32Array, 1);
+
+  try {
+    Module._createGrassSplat(
+      x,
+      z,
+      lod,
+      ps.byteOffset,
+      qs.byteOffset,
+      instances.byteOffset,
+      count.byteOffset
+    );
+    const numElements = count[0];
+    return {
+      ps: ps.slice(0, numElements * 3),
+      qs: qs.slice(0, numElements * 4),
+      instances: instances.slice(0, numElements),
+    };
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.createVegetationSplat = (x, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const allocSize = 64 * 1024;
+  const ps = allocator.alloc(Float32Array, allocSize * 3);
+  const qs = allocator.alloc(Float32Array, allocSize * 4);
+  const instances = allocator.alloc(Float32Array, allocSize);
+  const count = allocator.alloc(Uint32Array, 1);
+
+  try {
+    Module._createVegetationSplat(
+      x,
+      z,
+      lod,
+      ps.byteOffset,
+      qs.byteOffset,
+      instances.byteOffset,
+      count.byteOffset
+    );
+    const numElements = count[0];
+    return {
+      ps: ps.slice(0, numElements * 3),
+      qs: qs.slice(0, numElements * 4),
+      instances: instances.slice(0, numElements),
+    };
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.createMobSplat = (x, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const allocSize = 64 * 1024;
+  const ps = allocator.alloc(Float32Array, allocSize * 3);
+  const qs = allocator.alloc(Float32Array, allocSize * 4);
+  const instances = allocator.alloc(Float32Array, allocSize);
+  const count = allocator.alloc(Uint32Array, 1);
+
+  try {
+    Module._createMobSplat(
+      x,
+      z,
+      lod,
+      ps.byteOffset,
+      qs.byteOffset,
+      instances.byteOffset,
+      count.byteOffset
+    );
+    const numElements = count[0];
+    return {
+      ps: ps.slice(0, numElements * 3),
+      qs: qs.slice(0, numElements * 4),
+      instances: instances.slice(0, numElements),
+    };
+  } finally {
+    allocator.freeAll();
+  }
+};
 
 export default w;

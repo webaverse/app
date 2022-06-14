@@ -1,7 +1,7 @@
 import _CONTRACTS from 'https://contracts.webaverse.com/config/addresses.js';
 import _CONTRACT_ABIS from 'https://contracts.webaverse.com/config/abi.js';
 
-export const isLocal = window.location.host.includes('localhost');
+export const isLocal = window.location.host.includes('local.webaverse.com');
 
 export const WEB3_EVENTS = {
   CHAIN_CHANGED: 'chainChanged',
@@ -54,7 +54,7 @@ export const CHAINS = {
     rpcUrls: ['https://mainnetsidechain.exokit.org/'],
     contract_name: 'mainnetsidechain',
     previewLink: '',
-    brandColor: '#5BE2A7',
+    brandColor: 'black',
     type: CHAIN_TYPE.PRODUCTION,
   },
   RINKBY: {

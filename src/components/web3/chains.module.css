@@ -1,8 +1,8 @@
 
 .chainSelector {
-  background-color: #aeaeae;
+  background-color: black;
   border-radius: 5px 0 0 5px;
-  color: black;
+  color: rgb(255, 255, 255);
   user-select: none;
   width: 135px;
   position: absolute;
@@ -53,11 +53,11 @@
     text-align: left;
     cursor: pointer;
     padding: 8px;
-    color: black;
+    color: white;
 }
 
 .selected {
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
 .showChainSelector {
