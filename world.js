@@ -76,7 +76,7 @@ export class World {
     state.setResolvePriority(1);
     playersManager.bindState(state.getArray(playersMapName));
 
-    this.appManager.unbindStateLocal();
+    this.appManager.unbindState();
     this.appManager.clear();
     const worldMap = state.getMap(worldMapName);
     const appsArray = worldMap.get(appsMapName, Z.Array);
@@ -128,7 +128,7 @@ export class World {
       playersManager.bindState(state.getArray(playersMapName));
 
       // Unbind the world state to clear existing apps
-      this.appManager.unbindStateLocal();
+      this.appManager.unbindState();
       this.appManager.clear();
       // Bind the new state
       this.appManager.bindState(appsArray);

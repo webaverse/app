@@ -78,33 +78,11 @@ class AppManager extends EventTarget {
     this.appsArray = null;
     this.unbindStateFn = null;
   }
-  // On local player we move between worlds and don't want to unbind unless destroyed, i.e. if NPC
-  unbindStateLocal() {
-    logger.log('appManager.unbindStateLocal');
-    if (this.unbindStateFn) {
-      this.unbindState();
-    }
-  }
-  // On remote players we remove the app
-  unbindStateRemote() {
-    logger.log('appManager.unbindStateRemote');
-    if (!this.unbindStateFn) return logger.warn("unbindStateRemote called but not bound");
-      // const appSpecs = this.appsArray.toJSON();
-      // for (const appSpec of appSpecs) {
-      //   const app = this.getAppByInstanceId(appSpec.instanceId);
-      //   if (app) {
-      //     this.removeApp(app);
-      //   } else {
-      //     logger.warn("App was already destroyed.")
-      //   }
-      // }
-
-      this.unbindState();
-  }
   // Sets up the listeners on the app for when it is added and deleted
   // Called in attachState in character controller on both remote and local player
   bindState(nextAppsArray) {
     logger.log('appManager.bindState', nextAppsArray)
+    this.unbindState();
     const observeAppsFn = (e) => {
       const { added, deleted } = e.changes;
       
@@ -136,7 +114,7 @@ class AppManager extends EventTarget {
         const app = this.getAppByInstanceId(instanceId);
         const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
 
-        if(peerOwnerAppManager !== this){
+        if(peerOwnerAppManager && peerOwnerAppManager !== this){
               if (!peerOwnerAppManager.apps.includes(app)) {
                 peerOwnerAppManager.apps.push(app);
               }
@@ -156,18 +134,6 @@ class AppManager extends EventTarget {
     nextAppsArray.observe(observeAppsFn);
     this.unbindStateFn = nextAppsArray.unobserve.bind(nextAppsArray, observeAppsFn);
     this.appsArray = nextAppsArray;
-  }
-  // Called by the localPlayer.attachState
-  bindStateLocal(nextAppsArray) {
-    logger.log('appManager.bindStateLocal', nextAppsArray)
-    this.unbindStateLocal();
-    this.bindState(nextAppsArray);
-  }
-    // Called by the remote4Player.attachState
-  bindStateRemote(nextAppsArray) {
-    logger.log('appManager.bindStateRemote', nextAppsArray)
-    this.unbindStateRemote();
-    this.bindState(nextAppsArray);
   }
   // Called on the remote player on construction
   loadApps() {
@@ -503,7 +469,7 @@ class AppManager extends EventTarget {
     trackedApp.observe(_observe);
   }
 
-  removeApp(app) {
+removeApp(app) {
     logger.log('appManager.removeApp', app, new Error().stack);
 
     const index = this.apps.indexOf(app);
@@ -552,13 +518,13 @@ class AppManager extends EventTarget {
     const srcAppManager = this;
 
     if (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) {
-      if (this.isBound()) {
+      if (!this.isBound()) {
         console.warn(
           "Calling unbind tracked app, but the app is already unbound:",
           instanceId
         );
-        this.unbindTrackedApp(instanceId);
       }
+        this.unbindTrackedApp(instanceId);
 
       let dstTrackedApp = null;
       srcAppManager.appsArray.doc.transact(() => {

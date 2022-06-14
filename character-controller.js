@@ -728,23 +728,9 @@ class Player extends THREE.Object3D {
 
     const instanceId = this.getAvatarState().get("instanceId") ?? "";
 
-    // remove last app
-    if (this.avatar) {
-      const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(
-        this.avatar.app.instanceId
-      );
-      if (oldPeerOwnerAppManager) {
-        // console.log('transplant last app');
-        this.appManager.transplantApp(this.avatar.app, oldPeerOwnerAppManager);
-      }
-    }
-
     const _setNextAvatarApp = (app) => {
       (() => {
         let avatar;
-
-        this.avatar && this.avatar.app.toggleBoneUpdates(true);
-
         if (app) {
           app.toggleBoneUpdates(true);
           if (!app.avatar) {
@@ -916,12 +902,7 @@ class Player extends THREE.Object3D {
       // }
     }
 
-    if (this.isLocalPlayer) {
-      this.appManager.unbindStateLocal();
-    } else {
-      this.appManager.unbindStateRemote();
-    }
-
+    this.appManager.unbindState();
     this.appManager.destroy();
   }
 }
@@ -996,7 +977,19 @@ class LocalPlayer extends Player {
   setAvatarApp(app) {
     if (!app) return console.error("app is ", app)
     const self = this;
+
+    const oldInstanceId = this.getAvatarState().get("instanceId");
+    
+    const removeIndex = this.appManager.getTrackedAppIndex(oldInstanceId);
+    if (removeIndex !== -1) {
+      this.appsArray.delete(removeIndex, 1);
+    } else {
+      console.warn("invalid remove instance id", {oldInstanceId});
+    }
+
+    // remove last app
     this.playerMap.doc.transact(function tx() {
+
       const avatar = self.getAvatarState();
       avatar.set("instanceId", app.instanceId);
     });
@@ -1075,7 +1068,7 @@ class LocalPlayer extends Player {
       self.playersArray.push([self.playerMap]);
     });
 
-    this.appManager.bindStateLocal(this.getAppsState());
+    this.appManager.bindState(this.getAppsState());
   }
   grab(app, hand = 'left') {
     const { position, quaternion } = _getSession() ?
@@ -1481,7 +1474,7 @@ class RemotePlayer extends Player {
       this.playerMap.unobserve.bind(this.playerMap, observePlayerFn)
     );
 
-    this.appManager.bindStateRemote(this.getAppsState());
+    this.appManager.bindState(this.getAppsState());
     this.appManager.callBackFn = (app, event, flag) => {
       // Called when app is added or removed by appManager.exportTrackedApp
       if (event == "wear") {
