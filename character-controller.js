@@ -380,17 +380,6 @@ class Player extends THREE.Object3D {
     this.wornApps.forEach((app) => {
       this.handleWearUpdate(app, true, -1, true, false)
     });
-
-    // TODO: This should be handled by event
-    // Remove removedWornApp entirely
-    if (this.removedWornApp) {
-      this.removedWornApp.dispatchEvent({
-        type: "resettransform",
-        app: this.removedWornApp,
-        player: this,
-      });
-      this.removedWornApp = null
-    }
   }
 
   wear(app, { loadoutIndex = -1 } = {}) {
@@ -607,7 +596,11 @@ class Player extends THREE.Object3D {
     }
 
     this.wornApps.splice(this.wornApps.indexOf(app));
-    this.removedWornApp = app
+    app.dispatchEvent({
+      type: "resettransform",
+      app: app,
+      player: this,
+    });
   }
   isBound() {
     return !!this.playersArray;

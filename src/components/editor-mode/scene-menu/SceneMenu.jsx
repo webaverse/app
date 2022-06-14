@@ -88,7 +88,7 @@ export const SceneMenu = ({
     // Show textfield with already setup room name
     // Get the values to these here
 
-    const sceneName = selectedScene;
+    const sceneName = selectedScene.trim();
     const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
 
     const res = await fetch(universe.getWorldsHost() + roomName, {

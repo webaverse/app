@@ -89,15 +89,15 @@ class AppManager extends EventTarget {
   unbindStateRemote() {
     logger.log('appManager.unbindStateRemote');
     if (!this.unbindStateFn) return logger.warn("unbindStateRemote called but not bound");
-      const appSpecs = this.appsArray.toJSON();
-      for (const appSpec of appSpecs) {
-        const app = this.getAppByInstanceId(appSpec.instanceId);
-        if (app) {
-          this.removeApp(app);
-        } else {
-          logger.warn("App was already destroyed.")
-        }
-      }
+      // const appSpecs = this.appsArray.toJSON();
+      // for (const appSpec of appSpecs) {
+      //   const app = this.getAppByInstanceId(appSpec.instanceId);
+      //   if (app) {
+      //     this.removeApp(app);
+      //   } else {
+      //     logger.warn("App was already destroyed.")
+      //   }
+      // }
 
       this.unbindState();
   }
@@ -135,16 +135,22 @@ class AppManager extends EventTarget {
         const instanceId = appMap.get("instanceId");
         const app = this.getAppByInstanceId(instanceId);
         const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
-        const data = {
-          instanceId,
-          app,
-          sourceAppManager: this,
-          destinationAppManager: peerOwnerAppManager,
-        }
+
         if(peerOwnerAppManager !== this){
-          peerOwnerAppManager.exportTrackedApp(data)
-        }
-          this.exportTrackedApp(data)
+              if (!peerOwnerAppManager.apps.includes(app)) {
+                peerOwnerAppManager.apps.push(app);
+              }
+              if (app.getComponent("wear") && peerOwnerAppManager.callBackFn) {
+                peerOwnerAppManager.callBackFn(app, "wear", "add");
+              }
+          }
+            const index = this.apps.indexOf(app);
+            if (index !== -1) {
+              this.apps.splice(index, 1);
+            }
+            if (app.getComponent("wear") && this.callBackFn) {
+              this.callBackFn(app, "wear", "remove");
+            }
       }
     };
     nextAppsArray.observe(observeAppsFn);
@@ -249,6 +255,7 @@ class AppManager extends EventTarget {
     };
     this.addEventListener("clear", clear);
     const _bailout = (app) => {
+      console.error("Bailout");
       // Add Error placeholder
       const errorPH = this.getErrorPlaceholder();
       if (app) {
@@ -315,25 +322,7 @@ class AppManager extends EventTarget {
       cleanup();
     }
   }
-  async exportTrackedApp ({ instanceId, app, sourceAppManager, destinationAppManager }) {
-    logger.log('appManager.exportTrackedApp', instanceId, sourceAppManager, destinationAppManager)
-    if (sourceAppManager === this) {
-      const index = this.apps.indexOf(app);
-      if (index !== -1) {
-        this.apps.splice(index, 1);
-      }
-      if (app.getComponent("wear") && this.callBackFn) {
-        this.callBackFn(app, "wear", "remove");
-      }
-    } else if (destinationAppManager === this) {
-      if (!this.apps.includes(app)) {
-        this.apps.push(app);
-      }
-      if (app.getComponent("wear") && this.callBackFn) {
-        this.callBackFn(app, "wear", "add");
-      }
-    }
-  }
+
   getApps() {
     return this.apps;
   }
@@ -499,23 +488,23 @@ class AppManager extends EventTarget {
     //   this.callBackFn(app, "wear", "add");
     // }
 
-    // const trackedApp = this.getTrackedApp(app.instanceId);
-    // const _observe = (e) => {
-    //   console.log("e", e)
-    //   const transform = trackedApp.get("transform");
-    //   if (e.changes.keys.has("transform") && transform && !this.isAppGrabbed(app.instanceId)) {
-    //     app.position.fromArray(transform, 0);
-    //     app.quaternion?.fromArray(transform, 3);
-    //     app.scale?.fromArray(transform, 7);
-    //     app.transform = transform;
-    //     app.updateMatrixWorld();
-    //   }
-    // };
-    // trackedApp.observe(_observe);
+    const trackedApp = this.getTrackedApp(app.instanceId);
+    const _observe = (e) => {
+      console.log("e", e)
+      const transform = trackedApp.get("transform");
+      if (e.changes.keys.has("transform") && transform && !this.isAppGrabbed(app.instanceId)) {
+        app.position.fromArray(transform, 0);
+        app.quaternion?.fromArray(transform, 3);
+        app.scale?.fromArray(transform, 7);
+        app.transform = transform;
+        app.updateMatrixWorld();
+      }
+    };
+    trackedApp.observe(_observe);
   }
 
   removeApp(app) {
-    logger.log('appManager.removeApp', app);
+    logger.log('appManager.removeApp', app, new Error().stack);
 
     const index = this.apps.indexOf(app);
     // if (app.getComponent("wear") && this.callBackFn) {
