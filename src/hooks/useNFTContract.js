@@ -133,18 +133,15 @@ export default function useNFTContract(currentAccount) {
       const token = await getToken(tokenId);
       const Base64str = token.split("data:application/json;base64,")[1]
       const Jsonstr = Buffer.from(Base64str, 'base64').toString();
-      const tokenData = JSON.parse(Jsonstr)
-      if(tokenData.hasOwnProperty("animation_url")) {
-        return {
-            url: tokenData.animation_url,
-            name: tokenData.name
-        }
-      } else {
-        return {
-            url: tokenData.image,
-            name: tokenData.name
-        }
-      }
+      const tokenData = JSON.parse(Jsonstr);
+      const {name, image, animation_url} = tokenData;
+
+      const url = animation_url || image;
+
+      return {
+        url,
+        name,
+      };
     }));
   }
 
