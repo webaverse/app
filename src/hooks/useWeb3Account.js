@@ -4,8 +4,6 @@ import {CHAINS, DEFAULT_CHAIN, WEB3_EVENTS} from './web3-constants';
 import {
   connectToNetwork,
   addRPCToWallet,
-  getChainId,
-  getConnectedAccounts,
   requestAccounts,
 } from './rpcHelpers';
 import {ethers} from 'ethers';
