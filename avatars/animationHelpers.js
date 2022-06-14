@@ -471,7 +471,7 @@ export const _createAnimation = avatar => {
   avatar.useMotiono.bowDraw.loop = LoopOnce; avatar.useMotiono.bowDraw.stop();
   // avatar.useMotiono.bowIdle.loop = LoopOnce; avatar.useMotiono.bowIdle.stop();
   avatar.useMotiono.bowLoose.loop = LoopOnce; avatar.useMotiono.bowLoose.stop();
-
+  // sit
   avatar.sitMotiono = {};
   for (const k in sitAnimations) {
     const animation = sitAnimations[k];
@@ -480,13 +480,22 @@ export const _createAnimation = avatar => {
       avatar.sitMotiono[k].loop = LoopOnce; avatar.sitMotiono[k].stop();
     }
   }
-
+  // emote
   avatar.emoteMotiono = {};
   for (const k in emoteAnimations) {
     const animation = emoteAnimations[k];
     if (animation) {
       avatar.emoteMotiono[k] = avatar.mixer.createMotion(animation);
       avatar.emoteMotiono[k].loop = LoopOnce; avatar.emoteMotiono[k].stop();
+    }
+  }
+  // dance
+  avatar.danceMotiono = {};
+  for (const k in danceAnimations) {
+    const animation = danceAnimations[k];
+    if (animation) {
+      avatar.danceMotiono[k] = avatar.mixer.createMotion(animation);
+      // avatar.danceMotiono[k].loop = LoopOnce; avatar.danceMotiono[k].stop();
     }
   }
 
@@ -597,6 +606,11 @@ export const _createAnimation = avatar => {
   // emote
   for (const k in avatar.emoteMotiono) {
     const motion = avatar.emoteMotiono[k];
+    avatar.actionsNode.addChild(motion);
+  }
+  // dance
+  for (const k in avatar.danceMotiono) {
+    const motion = avatar.danceMotiono[k];
     avatar.actionsNode.addChild(motion);
   }
 
@@ -821,7 +835,7 @@ export const _updateAnimation = avatar => {
     //   avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
     // }
   }
-
+  // sit
   if (avatar.sitStart) {
     avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation].play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
@@ -829,12 +843,20 @@ export const _updateAnimation = avatar => {
   if (avatar.sitEnd) {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
-
+  // emote
   if (avatar.emoteStart) {
     avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation].play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
   }
   if (avatar.emoteEnd) {
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
+  // dance
+  if (avatar.danceStart) {
+    // avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
+  }
+  if (avatar.danceEnd) {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
 
