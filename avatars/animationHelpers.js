@@ -645,22 +645,22 @@ export const _createAnimation = avatar => {
   // avatar.animTree = avatar.overwriteNode;
   //
 
-  // const handleAnimationEnd = event => {
-  //   if ([
-  //     avatar.useMotiono.combo,
-  //     avatar.useMotiono.swordSideSlash,
-  //     avatar.useMotiono.swordSideSlashStep,
-  //     avatar.useMotiono.swordTopDownSlash,
-  //     avatar.useMotiono.swordTopDownSlashStep,
-  //   ].includes(event.motion)) {
-  //     console.log('animationEnd', event.motion.name);
-  //     game.handleAnimationEnd();
-  //   }
-  // };
+  const handleAnimationEnd = event => {
+    if ([
+      avatar.useMotiono.combo,
+      avatar.useMotiono.swordSideSlash,
+      avatar.useMotiono.swordSideSlashStep,
+      avatar.useMotiono.swordTopDownSlash,
+      avatar.useMotiono.swordTopDownSlashStep,
+    ].includes(event.motion)) {
+      // console.log('animationEnd', event.motion.name);
+      game.handleAnimationEnd();
+    }
+  };
 
   avatar.mixer.addEventListener('finished', event => {
     // console.log('finished', event.motion.name, !!avatar.useEnvelopeState); // todo: why `bow draw.fbx` trigger `finished` event at app init.
-    // // handleAnimationEnd(event);
+    handleAnimationEnd(event);
     // if ([
     //   avatar.useMotiono.combo,
     //   avatar.useMotiono.swordSideSlash,
