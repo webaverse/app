@@ -487,6 +487,15 @@ export const _createAnimation = avatar => {
     }
   }
 
+  avatar.emoteMotiono = {};
+  for (const k in emoteAnimations) {
+    const animation = emoteAnimations[k];
+    if (animation) {
+      avatar.emoteMotiono[k] = avatar.mixer.createMotion(animation);
+      avatar.emoteMotiono[k].loop = LoopOnce; avatar.emoteMotiono[k].stop();
+    }
+  }
+
   // LoopOnce
   avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
   // avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
@@ -592,6 +601,11 @@ export const _createAnimation = avatar => {
   // sit
   for (const k in avatar.sitMotiono) {
     const motion = avatar.sitMotiono[k];
+    avatar.actionsNode.addChild(motion);
+  }
+  // emote
+  for (const k in avatar.emoteMotiono) {
+    const motion = avatar.emoteMotiono[k];
     avatar.actionsNode.addChild(motion);
   }
 
@@ -845,6 +859,14 @@ export const _updateAnimation = avatar => {
     avatar.actionsNode.crossFadeTo(0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
   }
   if (avatar.sitEnd) {
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
+
+  if (avatar.emoteStart) {
+    avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
+  }
+  if (avatar.emoteEnd) {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
 
