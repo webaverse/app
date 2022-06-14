@@ -518,7 +518,7 @@ class AppManager extends EventTarget {
           data: app,
         })
       );
-      app.destroy();
+      // app.destroy();
     }
   }
 

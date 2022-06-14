@@ -575,7 +575,6 @@ class Player extends THREE.Object3D {
         if (this.appManager.hasTrackedApp(app.instanceId)) {
           if (destroy) {
             this.appManager.removeApp(app);
-            app.destroy();
           } else {
             this.appManager.transplantApp(app, world.appManager);
           }
@@ -901,20 +900,20 @@ class Player extends THREE.Object3D {
     this.characterFx?.destroy();
 
     if (this.isLocalPlayer) {
-      const wearActions = Array.from(this.getActionsState()).filter(
-        (action) => action.type === "wear"
-      );
-      for (const wearAction of wearActions) {
-        const instanceId = wearAction.instanceId;
-        const app = metaversefileApi.getAppByInstanceId(instanceId);
-        if (
-          app.getComponent("wear") ||
-          app.getComponent("sit") ||
-          app.getComponent("pet")
-        ) {
-          app.unwear();
-        }
-      }
+      // const wearActions = Array.from(this.getActionsState()).filter(
+      //   (action) => action.type === "wear"
+      // );
+      // for (const wearAction of wearActions) {
+      //   const instanceId = wearAction.instanceId;
+      //   const app = metaversefileApi.getAppByInstanceId(instanceId);
+      //   if (
+      //     app.getComponent("wear") ||
+      //     app.getComponent("sit") ||
+      //     app.getComponent("pet")
+      //   ) {
+      //     app.unwear();
+      //   }
+      // }
     }
 
     if (this.isLocalPlayer) {
