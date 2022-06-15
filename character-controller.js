@@ -508,9 +508,7 @@ class Player extends THREE.Object3D {
         );
       }
     };
-    _deinitPhysics();
-    if(this.isLocalPlayer){
-    
+    _deinitPhysics();    
     if (wearActionIndex !== -1) {
       const wearAction = this.getActionsState().get(wearActionIndex);
       const loadoutIndex = wearAction.loadoutIndex;
@@ -603,7 +601,6 @@ class Player extends THREE.Object3D {
       app: app,
       player: this,
     });
-  }
 
   }
   isBound() {
