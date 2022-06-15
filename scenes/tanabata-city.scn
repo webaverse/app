@@ -65,6 +65,15 @@
       "physics": false,
       "start_url": "https://webaverse.github.io/tanabata_city/",
       "dynamic": true
+    },
+    {
+      
+      "position": [
+        0,
+        -5,
+        0
+      ],
+      "start_url": "/practice/rain/"
     }
 
 ]
