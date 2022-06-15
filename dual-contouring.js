@@ -111,8 +111,8 @@ const sphereDamage = damageFn => (
       numPositions = numPositionsTypedArray[0];
       const chunks = Array(numPositions);
       for (let i = 0; i < numPositions; i++) {
-        const position = positionsTypedArray.slice(i * 3, i * 3 + 3);
-        const damageBuffer = damageBuffersTypedArray.slice(i * damageBufferSize, i * damageBufferSize + damageBufferSize);
+        const position = positionsTypedArray.slice(i * 3, (i + 1) * 3);
+        const damageBuffer = damageBuffersTypedArray.slice(i * damageBufferSize, (i + 1) * damageBufferSize);
         chunks[i] = {
           position,
           damageBuffer,
