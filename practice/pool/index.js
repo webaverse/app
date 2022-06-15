@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Water } from './Water.js';
+import { Water2 } from './Water2.js';
 import metaversefile from 'metaversefile';
 
 
@@ -19,6 +20,8 @@ export default () => {
     const {renderer, camera} = useInternals();
     let pool = null;
     let water = null;
+    let poolWater = null;
+    let caustic = null;
 
     const waterSurfacePos = new THREE.Vector3(0, 0, 0);
     let contactWater = false;
@@ -102,112 +105,154 @@ export default () => {
             let physicsId;
             physicsId = physics.addGeometry(pool.scene);
             physicsIds.push(physicsId)
+
+            createPoolWater();
             app.updateMatrixWorld();
+
     
     
         })();
-        // (async () => {
-        //     const u = `${baseUrl}/water.glb`;
-        //     const waterApp = await new Promise((accept, reject) => {
-        //         const {gltfLoader} = useLoaders();
-        //         gltfLoader.load(u, accept, function onprogress() {}, reject);
+        
+        const geometry = new THREE.PlaneGeometry( 13, 10);
+        const causticMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: {
+                    value: 0,
+                },
+            },
+            vertexShader: `\
                 
-        //     });
-        //     waterApp.scene.traverse(o => { 
-        //         if (o.isMesh) {
-        //             o.castShadow = true;
-        //             o.receiveShadow = true;
-        //             // water = o;
+                ${THREE.ShaderChunk.common}
+                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+        
+                uniform float uTime;
+                
+                varying vec2 vUv;
+                varying vec3 vPos;
+                
+                void main() {
+                    vUv = uv;
+                    vPos = position;
                     
-        //             o.frustumCulled = false;
-        //             o.material = new THREE.ShaderMaterial({
-        //                 uniforms: {
-        //                     uTime: {
-        //                         value: 0,
-        //                     },
-        //                 },
-        //                 vertexShader: `\
-                            
-        //                     ${THREE.ShaderChunk.common}
-        //                     ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-                        
-                            
-        //                     uniform float uTime;
-                            
-        //                     varying vec2 vUv;
-        //                     varying vec3 vPos;
-                        
-        //                     void main() {
-        //                         vUv = uv;
-        //                         vPos = position;
-                            
-        //                         vec3 pos = position;
-        //                         vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
-        //                         vec4 viewPosition = viewMatrix * modelPosition;
-        //                         vec4 projectionPosition = projectionMatrix * viewPosition;
-                        
-        //                         gl_Position = projectionPosition;
-        //                         ${THREE.ShaderChunk.logdepthbuf_vertex}
-        //                     }
-        //                 `,
-        //                 fragmentShader: `\
-        //                     ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-        //                     uniform float uTime;
-        //                     varying vec2 vUv;
-        //                     varying vec3 vPos;
+                    vec3 pos = position;
+                    vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+                    vec4 viewPosition = viewMatrix * modelPosition;
+                    vec4 projectionPosition = projectionMatrix * viewPosition;
             
-        //                     void main() {
-        //                         gl_FragColor = vec4(1.0, 0., 0., 1.0);
-        //                     ${THREE.ShaderChunk.logdepthbuf_fragment}
-        //                     }
-        //                 `,
-        //                 side: THREE.DoubleSide,
-        //                 transparent: true,
-        //                 blending: THREE.AdditiveBlending,
-        //                 depthWrite: false,
-            
-        //             });
-        //         }
-        //     });
-            
+                    gl_Position = projectionPosition;
+                    ${THREE.ShaderChunk.logdepthbuf_vertex}
+                }
+            `,
+            fragmentShader: `\
+                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+                uniform float uTime;
+                varying vec2 vUv;
+                varying vec3 vPos;
+               
+                float h12(vec2 p)
+                {
+                    return fract(sin(dot(p,vec2(32.52554,45.5634)))*12432.2355);
+                }
+                
+                float n12(vec2 p)
+                {
+                    vec2 i = floor(p);
+                    vec2 f = fract(p);
+                    f *= f * (3.-2.*f);
+                    return mix(
+                        mix(h12(i+vec2(0.,0.)),h12(i+vec2(1.,0.)),f.x),
+                        mix(h12(i+vec2(0.,1.)),h12(i+vec2(1.,1.)),f.x),
+                        f.y
+                    );
+                }
+                
+                float caustics(vec2 p, float t)
+                {
+                    vec3 k = vec3(p,t);
+                    float l;
+                    mat3 m = mat3(-2,-1,2,3,-2,1,1,2,2);
+                    float n = n12(p);
+                    k = k*m*.5;
+                    l = length(.5 - fract(k+n));
+                    k = k*m*.4;
+                    l = min(l, length(.5-fract(k+n)));
+                    k = k*m*.3;
+                    l = min(l, length(.5-fract(k+n)));
+                    return pow(l,7.)*25.;
+                }
+                
+                void main() {
+                    vec2 p = vUv * 2.;
+                    vec3 col = vec3(0.);
+                    col = vec3(caustics(4.*p,uTime*.5));
+                    gl_FragColor = vec4(col / 3.,1.0);
+                ${THREE.ShaderChunk.logdepthbuf_fragment}
+                }
+            `,
+            //side: THREE.DoubleSide,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            //blending: 1,
 
+        });
+        const createPoolWater = () =>{
+            
+            caustic = new THREE.Mesh(geometry, causticMaterial);
+            caustic.position.y = -2.7;
+            caustic.rotation.x = -Math.PI / 2;
+            app.add( caustic );
 
-        //     water = waterApp.scene;
-        //     water.scale.set(0.02,0.02,0.02);
-        //     water.position.y = 5.1;
-        //     app.add(water);
-        //     app.updateMatrixWorld();
+            poolWater = new Water(
+                geometry,
+                {
+                    textureWidth: 512,
+                    textureHeight: 512,
+                    waterNormals: waterNormalTexture1,
+                    sunDirection: new THREE.Vector3(),
+                    sunColor: 0xffffff,
+                    waterColor: 0x001e0f,
+                    distortionScale: 0.3,
+                }
+            );
+            poolWater.position.y = -1;
+            poolWater.rotation.x = - Math.PI / 2;
+            app.add( poolWater );
     
-        // })();
-        const geometry = new THREE.PlaneGeometry( 13, 8);
-        const poolWater = new Water(
-            geometry,
-            {
-                textureWidth: 512,
-                textureHeight: 512,
-                waterNormals: waterNormalTexture1,
-                sunDirection: new THREE.Vector3(),
-                sunColor: 0xffffff,
-                waterColor: 0x001e0f,
-                distortionScale: 0.3,
-            }
-        );
-        poolWater.position.y = -1;
-        poolWater.rotation.x = - Math.PI / 2;
-        app.add( poolWater );
+            water = new Water(
+                geometry,
+                {
+                    textureWidth: 512,
+                    textureHeight: 512,
+                    waterNormals: waterNormalTexture1,
+                    sunDirection: new THREE.Vector3(),
+                    sunColor: 0xffffff,
+                    waterColor: 0x001e0f,
+                    distortionScale: 0.3,
+                    invisibleObject:caustic
+                }
+            );
+            water.position.y = -1.001;
+            water.rotation.x = Math.PI / 2;
+            app.add( water );
+    
+        }
+        
+        
 
-        const geometry2 = new THREE.PlaneGeometry( 13, 8);
-        const material2 = new THREE.MeshBasicMaterial( {color: 0x95BAF9, transparent: true, opacity:0.2, depthWrite:false} );
-        water = new THREE.Mesh( geometry2, material2 );
-        water.position.y = -1.001;
-        water.rotation.x = Math.PI / 2;
-        app.add( water );
+        
         
         
         
     
         useFrame(({timestamp}) => {
-            poolWater.material.uniforms.time.value = timestamp / 3000;
+            if(water && poolWater && caustic){
+                poolWater.material.uniforms.time.value = timestamp / 3000;
+                water.material.uniforms.time.value = timestamp / 3000; 
+                caustic.material.uniforms.uTime.value = timestamp / 3000;
+            }
+            
+            
             app.updateMatrixWorld();
         });
     

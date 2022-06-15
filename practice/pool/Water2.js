@@ -21,7 +21,7 @@ import {
  * http://29a.ch/ && http://29a.ch/slides/2012/webglwater/ : Water shader explanations in WebGL
  */
 
-class Water extends Mesh {
+class Water2 extends Mesh {
 
 	constructor( geometry, options = {} ) {
 
@@ -45,8 +45,6 @@ class Water extends Mesh {
 		const distortionScale = options.distortionScale !== undefined ? options.distortionScale : 20.0;
 		const side = options.side !== undefined ? options.side : FrontSide;
 		const fog = options.fog !== undefined ? options.fog : false;
-
-		const invisibleObject = options.invisibleObject;
 
 		//
 
@@ -280,8 +278,6 @@ class Water extends Mesh {
 			const currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
 
 			scope.visible = false;
-			if(invisibleObject !== undefined)
-				invisibleObject.visible = false;
 
 			renderer.xr.enabled = false; // Avoid camera modification and recursion
 			renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
@@ -294,8 +290,6 @@ class Water extends Mesh {
 			renderer.render( scene, mirrorCamera );
 
 			scope.visible = true;
-			if(invisibleObject !== undefined)
-				invisibleObject.visible = true;
 
 			renderer.xr.enabled = currentXrEnabled;
 			renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
@@ -318,4 +312,4 @@ class Water extends Mesh {
 
 }
 
-export { Water };
+export { Water2 };

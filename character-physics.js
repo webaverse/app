@@ -83,7 +83,7 @@ class CharacterPhysics {
       const minDist = 0;
       localVector3.copy(this.velocity)
         .multiplyScalar(timeDiffS);
-      if(this.player.hasAction('swim') && this.player.getAction('swim').onSurface){
+      if(this.player.hasAction('swim') && this.player.getAction('swim').onSurface && !this.player.hasAction('fly')){
         if(this.player.characterPhysics.velocity.y > 0){
           localVector3.y = 0;
         }
