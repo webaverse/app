@@ -142,6 +142,8 @@ class CharacterPhysics {
 
         const jumpAction = this.player.getAction('jump');
         const flyAction = this.player.getAction('fly');
+        // todo: add air state/action ?
+
         // const _ensureJumpAction = () => {
         //   if (!jumpAction) {
         //     const newJumpAction = {
