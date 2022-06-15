@@ -8,7 +8,7 @@ import * as Z from "zjs";
 
 import { makePromise, getRandomString } from "./util.js";
 import physicsManager from "./physics-manager.js";
-import {getLocalPlayer} from './players.js';
+import { getLocalPlayer } from './players.js';
 import metaversefile from "metaversefile";
 import * as metaverseModules from "./metaverse-modules.js";
 import { jsonParse } from "./util.js";
@@ -85,7 +85,7 @@ class AppManager extends EventTarget {
     this.unbindState();
     const observeAppsFn = (e) => {
       const { added, deleted } = e.changes;
-      
+
       // Handle new apps added to the app manager
       for (const item of added.values()) {
         let appMap = item.content.type;
@@ -114,21 +114,21 @@ class AppManager extends EventTarget {
         const app = this.getAppByInstanceId(instanceId);
         const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
 
-        if(peerOwnerAppManager && peerOwnerAppManager !== this){
-              if (!peerOwnerAppManager.apps.includes(app)) {
-                peerOwnerAppManager.apps.push(app);
-              }
-              if (app.getComponent("wear") && peerOwnerAppManager.callBackFn) {
-                peerOwnerAppManager.callBackFn(app, "wear", "add");
-              }
+        if (peerOwnerAppManager && peerOwnerAppManager !== this) {
+          if (!peerOwnerAppManager.apps.includes(app)) {
+            peerOwnerAppManager.apps.push(app);
           }
-            const index = this.apps.indexOf(app);
-            if (index !== -1) {
-              this.apps.splice(index, 1);
-            }
-            if (app.getComponent("wear") && this.callBackFn) {
-              this.callBackFn(app, "wear", "remove");
-            }
+          if (app.getComponent("wear") && peerOwnerAppManager.callBackFn) {
+            peerOwnerAppManager.callBackFn(app, "wear", "add");
+          }
+        }
+        const index = this.apps.indexOf(app);
+        if (index !== -1) {
+          this.apps.splice(index, 1);
+        }
+        if (app.getComponent("wear") && this.callBackFn) {
+          this.callBackFn(app, "wear", "remove");
+        }
       }
     };
     nextAppsArray.observe(observeAppsFn);
@@ -264,7 +264,7 @@ class AppManager extends EventTarget {
         // set components
         app.instanceId = instanceId;
         app.setComponent("physics", true);
-        if(components)
+        if (components)
           for (const { key, value } of components) {
             app.setComponent(key, value);
           }
@@ -435,8 +435,7 @@ class AppManager extends EventTarget {
       this.appsArray.delete(removeIndex, 1);
     } else {
       console.warn("invalid remove instance id", {
-        removeInstanceId,
-        appsJson,
+        instanceId
       });
     }
   }
@@ -449,7 +448,7 @@ class AppManager extends EventTarget {
   addApp(app) {
     logger.log('appManager.addApp', app);
 
-    if(this.apps.includes(app)) return console.warn("Already has app", app)
+    if (this.apps.includes(app)) return console.warn("Already has app", app)
     this.apps.push(app);
 
     this.dispatchEvent(
@@ -464,8 +463,8 @@ class AppManager extends EventTarget {
     const trackedApp = this.getTrackedApp(app.instanceId);
     const _observe = (e) => {
       console.log("e", e)
-      const transform = trackedApp.get("transform");
-      if (e.changes.keys.has("transform") && transform && !this.isAppGrabbed(app.instanceId)) {
+      if (e.changes.keys.has("transform") && !this.isAppGrabbed(app.instanceId)) {
+        const transform = e.changes.get("transform");
         app.position.fromArray(transform, 0);
         app.quaternion?.fromArray(transform, 3);
         app.scale?.fromArray(transform, 7);
@@ -476,7 +475,7 @@ class AppManager extends EventTarget {
     trackedApp.observe(_observe);
   }
 
-removeApp(app) {
+  removeApp(app) {
     logger.log('appManager.removeApp', app, new Error().stack);
 
     const index = this.apps.indexOf(app);
@@ -520,49 +519,51 @@ removeApp(app) {
   // Especially in wear and unwear and when setting unwear on the character
   transplantApp(app, dstAppManager) {
     logger.log('appManager.transplantApp', app, dstAppManager);
-
+    if(this === dstAppManager){
+      return logger.warn("Can't transplant app to itself");
+    }
     const { instanceId } = app;
-    const srcAppManager = this;
 
-    if (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) {
+    if (this.appsArray.doc === dstAppManager.appsArray.doc) {
       if (!this.isBound()) {
         console.warn(
           "Calling unbind tracked app, but the app is already unbound:",
           instanceId
         );
       }
-        this.unbindTrackedApp(instanceId);
+      this.unbindTrackedApp(instanceId);
 
       let dstTrackedApp = null;
-      srcAppManager.appsArray.doc.transact(() => {
-        const srcTrackedApp = srcAppManager.getOrCreateTrackedApp(instanceId);
-        const contentId = srcTrackedApp.get("contentId");
+      const srcTrackedApp = this.getOrCreateTrackedApp(instanceId);
+      const contentId = srcTrackedApp.get("contentId");
 
-        let transform = srcTrackedApp.get("transform");
-        const components = srcTrackedApp.get("components");
-        srcAppManager.removeTrackedAppInternal(instanceId);
+      let transform = srcTrackedApp.get("transform");
+      const components = srcTrackedApp.get("components");
 
-        console.log("removing src tracked app", instanceId);
+      console.log("removing src tracked app", instanceId);
 
-        if (!transform) {
-          transform = new Float32Array(11);
+      if (!transform) {
+        transform = new Float32Array(11);
 
-          const pack3 = (v, i) => {
-            transform[i] = v.x;
-            transform[i + 1] = v.y;
-            transform[i + 2] = v.z;
-          };
-          const pack4 = (v, i) => {
-            transform[i] = v.x;
-            transform[i + 1] = v.y;
-            transform[i + 2] = v.z;
-            transform[i + 3] = v.w;
-          };
+        const pack3 = (v, i) => {
+          transform[i] = v.x;
+          transform[i + 1] = v.y;
+          transform[i + 2] = v.z;
+        };
+        const pack4 = (v, i) => {
+          transform[i] = v.x;
+          transform[i + 1] = v.y;
+          transform[i + 2] = v.z;
+          transform[i + 3] = v.w;
+        };
 
-          pack3(app.position, 0);
-          pack4(app.quaternion, 3);
-          pack3(app.scale, 7);
-        }
+        pack3(app.position, 0);
+        pack4(app.quaternion, 3);
+        pack3(app.scale, 7);
+      }
+      const self = this;
+      this.appsArray.doc.transact(() => {
+        self.removeTrackedAppInternal(instanceId);
 
         dstTrackedApp = dstAppManager.addTrackedAppInternal(
           instanceId,
@@ -571,9 +572,8 @@ removeApp(app) {
           components
         );
         console.log("dstTrackedApp add tracked app", dstTrackedApp);
-
-        dstAppManager.bindTrackedApp(dstTrackedApp, app);
       });
+      dstAppManager.bindTrackedApp(dstTrackedApp, app);
 
     } else {
       throw new Error(
@@ -621,8 +621,9 @@ removeApp(app) {
         transform,
         components
       );
-      self.bindTrackedApp(dstTrackedApp, app);
     });
+
+    this.bindTrackedApp(dstTrackedApp, app);
   }
   hasApp(app) {
     return this.apps.includes(app);
@@ -650,7 +651,7 @@ removeApp(app) {
                 localQuaternion,
                 localVector2
               );
-  
+
               app.updateMatrixWorld();
               const packed = self.packed;
               const pack3 = (v, i) => {
@@ -671,16 +672,16 @@ removeApp(app) {
             }
           };
 
-          if (this.isAppGrabbed(app.instanceId)) {
+          // if (this.isAppGrabbed(app.instanceId)) {
             _updateTrackedApp();
-          }
-  
+          // }
+
           const _updatePhysicsObjects = () => {
             // update attached physics objects with a relative transform
             const physicsObjects = app.getPhysicsObjects();
             if (physicsObjects.length > 0) {
               const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
-  
+
               for (const physicsObject of physicsObjects) {
                 if (!physicsObject.detached) {
                   physicsObject.matrix
@@ -695,7 +696,7 @@ removeApp(app) {
                   for (const child of physicsObject.children) {
                     child.updateMatrixWorld();
                   }
-  
+
                   physicsManager.setTransform(physicsObject);
                   physicsManager.getBoundingBoxForPhysicsId(
                     physicsObject.physicsId,
