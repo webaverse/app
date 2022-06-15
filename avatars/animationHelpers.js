@@ -457,7 +457,11 @@ export const _createAnimation = avatar => {
 
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
   // avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
-  avatar.flyMotion = avatar.mixer.createMotion(animations.index['fly_idle.fbx']);
+  avatar.flyIdleMotion = avatar.mixer.createMotion(animations.index['fly_idle.fbx']);
+  avatar.flyDodgeForwardMotion = avatar.mixer.createMotion(animations.index['fly_dodge_forward.fbx']);
+  avatar.flyDodgeBackwardMotion = avatar.mixer.createMotion(animations.index['fly_dodge_backward.fbx']);
+  avatar.flyDodgeLeftMotion = avatar.mixer.createMotion(animations.index['fly_dodge_left.fbx']);
+  avatar.flyDodgeRightMotion = avatar.mixer.createMotion(animations.index['fly_dodge_right.fbx']);
   avatar.flyDashMotion = avatar.mixer.createMotion(animations.index['fly_dash_forward.fbx']);
   avatar.narutoRunMotion = avatar.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
 
@@ -594,14 +598,24 @@ export const _createAnimation = avatar => {
   avatar.defaultNode.addChild(avatar._7wayWalkRunBowNode);
   avatar.defaultNode.addChild(avatar._7wayCrouchNode);
 
-  avatar.flyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'flyNode');
-  avatar.flyNode.addChild(avatar.flyMotion);
-  avatar.flyNode.addChild(avatar.flyDashMotion);
+  avatar.flyForwardNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'flyForwardNode');
+  avatar.flyForwardNode.addChild(avatar.flyDodgeForwardMotion);
+  avatar.flyForwardNode.addChild(avatar.flyDashMotion);
+
+  avatar.flyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'flyNode');
+  avatar.flyNode.addChild(avatar.flyForwardNode);
+  avatar.flyNode.addChild(avatar.flyDodgeBackwardMotion);
+  avatar.flyNode.addChild(avatar.flyDodgeLeftMotion);
+  avatar.flyNode.addChild(avatar.flyDodgeRightMotion);
+
+  avatar._7wayFlyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayFlyNode');
+  avatar._7wayFlyNode.addChild(avatar.flyIdleMotion);
+  avatar._7wayFlyNode.addChild(avatar.flyNode);
 
   avatar.actionsNode = avatar.mixer.createNode(WebaverseAnimationNodeUnitary, 'actions');
   avatar.actionsNode.addChild(avatar.defaultNode);
   avatar.actionsNode.addChild(avatar.jumpMotion);
-  avatar.actionsNode.addChild(avatar.flyNode);
+  avatar.actionsNode.addChild(avatar._7wayFlyNode);
   avatar.actionsNode.addChild(avatar.activateMotion);
   avatar.actionsNode.addChild(avatar.narutoRunMotion);
   // useMotiono
@@ -763,6 +777,11 @@ export const _updateAnimation = avatar => {
   avatar.bowRightMotion.weight = mirror ? 0 : rightFactor;
   avatar.bowRightMirrorMotion.weight = mirror ? rightFactor : 0;
 
+  avatar.flyForwardNode.weight = forwardFactor;
+  avatar.flyDodgeBackwardMotion.weight = backwardFactor;
+  avatar.flyDodgeLeftMotion.weight = leftFactor;
+  avatar.flyDodgeRightMotion.weight = rightFactor;
+
   // avatar._7wayWalkRunBowNode.factor = avatar.useEnvelopeState ? 1 : 0;
   // avatar._7wayWalkRunBowNode.factor = avatar.useEnvelopeFactor;
   // console.log(avatar._7wayWalkRunBowNode.factor);
@@ -771,8 +790,9 @@ export const _updateAnimation = avatar => {
   avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar._7wayBowNode.factor = avatar.moveFactors.idleWalkFactor;
+  avatar._7wayFlyNode.factor = avatar.moveFactors.walkRunFactor;
   avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
-  avatar.flyNode.factor = avatar.flyDashFactor;
+  avatar.flyForwardNode.factor = avatar.flyDashFactor;
 
   if (avatar.narutoRunStart) avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
   if (avatar.narutoRunEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
@@ -809,7 +829,7 @@ export const _updateAnimation = avatar => {
 
   if (avatar.flyStart) { // need after jumpEnd
     // debugger
-    avatar.actionsNode.crossFadeTo(0.2, avatar.flyNode);
+    avatar.actionsNode.crossFadeTo(0.2, avatar._7wayFlyNode);
   }
   if (avatar.flyEnd) {
     // debugger
