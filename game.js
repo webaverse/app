@@ -1417,10 +1417,14 @@ class GameManager extends EventTarget {
     return localPlayer.hasAction('fly');
   }
   toggleFly() {
+    // debugger
     const localPlayer = getLocalPlayer();
     const flyAction = localPlayer.getAction('fly');
     if (flyAction) {
       localPlayer.removeAction('fly');
+      if (!localPlayer.characterPhysics.lastGrounded) {
+        localPlayer.addAction({type: 'jump'});
+      }
     } else {
       const flyAction = {
         type: 'fly',
@@ -1504,7 +1508,8 @@ class GameManager extends EventTarget {
     }
 
     const jumpAction = localPlayer.getAction('jump');
-    if (!jumpAction) {
+    const flyAction = localPlayer.getAction('fly');
+    if (!jumpAction && !flyAction) {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger

@@ -932,6 +932,7 @@ class Avatar {
     this.aimLeftTransitionTime = 0;
     this.aimLeftFactor = 0;
     this.aimLeftFactorReverse = 1;
+    this.flyDashFactor = 0;
     // this.throwState = null;
     // this.throwTime = 0;
     this.crouchTime = crouchMaxTime;

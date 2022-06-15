@@ -116,7 +116,7 @@ class WebaverseAnimationMixer extends EventDispatcher {
 
       // ignore all animation position except y
       if (isPosition) {
-        if (!this.avatar.jumpState) {
+        if (!this.avatar.jumpState && !this.avatar.flyState) {
           // animations position is height-relative
           dst.y *= this.avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
         } else {

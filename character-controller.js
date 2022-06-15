@@ -977,6 +977,10 @@ class UninterpolatedPlayer extends StatePlayer {
       aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
       narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
+      flyDash: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return this.hasAction('fly') && ioManager.keys.shift;
+      }, 0, 200),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
       dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),

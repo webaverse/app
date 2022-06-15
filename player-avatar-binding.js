@@ -119,6 +119,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.lastFlyState = rig.flyState;
   //
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
+  rig.flyDashFactor = player.actionInterpolants.flyDash.getNormalized();
   rig.activateState = !!activateAction;
   // start/end event
   rig.activateStart = false;

@@ -450,7 +450,8 @@ export const _createAnimation = avatar => {
   avatar.bowRightMirrorMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Left reverse.fbx']);
 
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
-  avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
+  // avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
+  avatar.flyMotion = avatar.mixer.createMotion(animations.index['fly_idle.fbx']);
   avatar.narutoRunMotion = avatar.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
 
   avatar.useMotiono = {};
@@ -751,24 +752,32 @@ export const _updateAnimation = avatar => {
   avatar._7wayBowNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
 
-  if (avatar.flyStart) avatar.actionsNode.crossFadeTo(0.2, avatar.flyMotion);
-  if (avatar.flyEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-
   if (avatar.narutoRunStart) avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
   if (avatar.narutoRunEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
 
   // LoopOnce ---
   if (avatar.jumpStart) {
+    // debugger
     avatar.jumpMotion.play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
   }
   if (avatar.jumpEnd) {
+    // debugger
     // avatar.jumpMotion.stop(); // don't need
     if (avatar.narutoRunState) {
       avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
     } else {
       avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
     }
+  }
+
+  if (avatar.flyStart) { // need after jumpEnd
+    // debugger
+    avatar.actionsNode.crossFadeTo(0.2, avatar.flyMotion);
+  }
+  if (avatar.flyEnd) {
+    // debugger
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
 
   if (avatar.activateStart) {

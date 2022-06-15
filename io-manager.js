@@ -402,6 +402,7 @@ ioManager.keydown = e => {
       break;
     }
     case 70: { // F
+      // debugger
       e.preventDefault();
       e.stopPropagation();
       if (game.canPush()) {
