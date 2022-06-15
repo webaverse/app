@@ -932,6 +932,7 @@ class Avatar {
     this.aimLeftTransitionTime = 0;
     this.aimLeftFactor = 0;
     this.aimLeftFactorReverse = 1;
+    this.flyDashFactor = 0;
     // this.throwState = null;
     // this.throwTime = 0;
     this.crouchTime = crouchMaxTime;
@@ -1937,6 +1938,7 @@ class Avatar {
         <div style="display:;">flyTime: --- ${Math.floor(this.flyTime)}</div>
         <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
         <div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>
+        <div style="display:;">flyDashFactor: --- ${this.flyDashFactor?.toFixed(2)}</div>
         <div style="display:;">landState: --- ${this.landState}</div>
         <div style="display:;">landFactor: --- ${moveFactors.landFactor?.toFixed(2)}</div>
         <div style="display:none;">landTime: --- ${Math.floor(this.landTime)}</div>

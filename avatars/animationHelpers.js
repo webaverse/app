@@ -456,7 +456,8 @@ export const _createAnimation = avatar => {
   avatar.bowRightMirrorMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Left reverse.fbx']);
 
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
-  avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
+  // avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
+  avatar.flyMotion = avatar.mixer.createMotion(animations.index['fly_idle.fbx']);
   avatar.narutoRunMotion = avatar.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
 
   avatar.useMotiono = {};
