@@ -791,14 +791,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           // isTop,
           isPosition,
           isArm,
+          lerpFn,
         } = spec;
 
         if (avatar.aimState && avatar.jumpDirection === 'backward') {
           const t2 = avatar.jumpTime / 1000 * backflipSpeed + backflipStartTimeS;
           const src2 = animations.index['Backflip.fbx'].interpolants[k];
           const v2 = src2.evaluate(t2);
+          const f = Math.min(Math.max(avatar.jumpTime / 200, 0), 1);
 
-          dst.fromArray(v2);
+          lerpFn
+            .call(
+              dst,
+              localQuaternion.fromArray(v2),
+              f,
+            );
 
           _clearXZ(dst, isPosition);
         } else {
