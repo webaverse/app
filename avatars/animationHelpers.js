@@ -733,8 +733,6 @@ export const _updateAnimation = avatar => {
   // test
   // console.log(avatar.actionsNode.activeNode.name);
 
-  // LoopRepeat ---
-
   const angle = avatar.getAngle();
   const forwardFactor = 1 - MathUtils.clamp(Math.abs(angle) / (Math.PI / 2), 0, 1);
   const backwardFactor = 1 - MathUtils.clamp((Math.PI - Math.abs(angle)) / (Math.PI / 2), 0, 1);
@@ -794,28 +792,11 @@ export const _updateAnimation = avatar => {
   avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
   avatar.flyForwardNode.factor = avatar.flyDashFactor;
 
-  if (avatar.narutoRunStart) avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
+  // action end event ---
+
   if (avatar.narutoRunEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-
-  // LoopOnce ---
-
-  // jump
-  // avatar.jumpMotion.time = avatar.jumpTime / 1000;
-  // const jumpFactor = MathUtils.clamp(avatar.jumpMotion.time / 0.2, 0, 1);
-  // avatar.defaultNode.weight = 1 - jumpFactor;
-  // avatar.jumpMotion.weight = jumpFactor;
-
-  // if (avatar.jumpStart) avatar.jumpMotion.play();
   // if (avatar.jumpEnd) avatar.jumpMotion.stop();
-
-  // if (avatar.jumpStart) avatar.jumpNode.factor = 1;
   // if (avatar.jumpEnd) avatar.jumpNode.factor = 0;
-
-  if (avatar.jumpStart) {
-    // debugger
-    avatar.jumpMotion.play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
-  }
   if (avatar.jumpEnd) {
     // debugger
     // avatar.jumpMotion.stop(); // don't need
@@ -825,56 +806,21 @@ export const _updateAnimation = avatar => {
       avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
     }
   }
-  // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
-
-  if (avatar.flyStart) { // need after jumpEnd
-    // debugger
-    avatar.actionsNode.crossFadeTo(0.2, avatar._7wayFlyNode);
-  }
   if (avatar.flyEnd) {
     // debugger
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-  }
-
-  if (avatar.activateStart) {
-    // console.log('activateStart');
-    avatar.activateMotion.play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.activateMotion);
   }
   if (avatar.activateEnd) {
     // avatar.activateMotion.stop(); // don't need
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
-
-  if (avatar.useStart) {
-    // console.log('useStart');
-    const useAnimationName = avatar.useAnimation;
-    avatar.useMotiono[useAnimationName].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
-  }
   if (avatar.useEnd) {
     // console.log('useEnd');
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
-
-  if (avatar.useComboStart) {
-    // console.log('useComboStart');
-    const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-    avatar.useMotiono[useAnimationName].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
-  }
   if (avatar.useComboEnd) {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
-
-  // avatar.useMotiono.bowIdle.weight = 0;
-
-  // if (avatar.useEnvelopeStart) {
-  //   // console.log('useEnvelopeStart');
-  //   const useAnimationName = avatar.useAnimationEnvelope[0];
-  //   avatar.useMotiono[useAnimationName].play();
-  //   avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
-  // }
   // if (avatar.useEnvelopeEnd) {
   //   // console.log('useEnvelopeEnd');
   //   // if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
@@ -885,15 +831,6 @@ export const _updateAnimation = avatar => {
   //     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   //   }
   // }
-
-  if (avatar.useEnvelopeStart) {
-    // console.log('useEnvelopeStart');
-    // const useAnimationName = avatar.useAnimationEnvelope[0];
-    avatar.useMotiono.bowDraw.play();
-    avatar.bowDrawLooseNodoe.factor = 0;
-    avatar.bowIdleDrawLooseNode.factor = 1;
-    avatar._7wayWalkRunBowNode.crossFade(0.2, 1);
-  }
   if (avatar.useEnvelopeEnd) {
     // console.log('useEnvelopeEnd');
     // if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
@@ -907,34 +844,97 @@ export const _updateAnimation = avatar => {
     //   avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
     // }
   }
+  if (avatar.sitEnd) {
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
+  if (avatar.emoteEnd) {
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
+  if (avatar.danceEnd) {
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
+  // console.log(avatar.useComboStart, avatar.useComboEnd);
+
+  // action start event ---
+
+  if (avatar.narutoRunStart) avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
+
+  // jump
+  // avatar.jumpMotion.time = avatar.jumpTime / 1000;
+  // const jumpFactor = MathUtils.clamp(avatar.jumpMotion.time / 0.2, 0, 1);
+  // avatar.defaultNode.weight = 1 - jumpFactor;
+  // avatar.jumpMotion.weight = jumpFactor;
+
+  // if (avatar.jumpStart) avatar.jumpMotion.play();
+
+  // if (avatar.jumpStart) avatar.jumpNode.factor = 1;
+
+  if (avatar.jumpStart) {
+    // debugger
+    avatar.jumpMotion.play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
+  }
+  // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
+
+  if (avatar.flyStart) {
+    // debugger
+    avatar.actionsNode.crossFadeTo(0.2, avatar._7wayFlyNode);
+  }
+
+  if (avatar.activateStart) {
+    // console.log('activateStart');
+    avatar.activateMotion.play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.activateMotion);
+  }
+
+  if (avatar.useStart) {
+    // console.log('useStart');
+    const useAnimationName = avatar.useAnimation;
+    avatar.useMotiono[useAnimationName].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+  }
+
+  if (avatar.useComboStart) {
+    // console.log('useComboStart');
+    const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+    avatar.useMotiono[useAnimationName].play();
+    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+  }
+
+  // avatar.useMotiono.bowIdle.weight = 0;
+
+  // if (avatar.useEnvelopeStart) {
+  //   // console.log('useEnvelopeStart');
+  //   const useAnimationName = avatar.useAnimationEnvelope[0];
+  //   avatar.useMotiono[useAnimationName].play();
+  //   avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+  // }
+
+  if (avatar.useEnvelopeStart) {
+    // console.log('useEnvelopeStart');
+    // const useAnimationName = avatar.useAnimationEnvelope[0];
+    avatar.useMotiono.bowDraw.play();
+    avatar.bowDrawLooseNodoe.factor = 0;
+    avatar.bowIdleDrawLooseNode.factor = 1;
+    avatar._7wayWalkRunBowNode.crossFade(0.2, 1);
+  }
   // sit
   if (avatar.sitStart) {
     avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation].play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
-  }
-  if (avatar.sitEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
   // emote
   if (avatar.emoteStart) {
     avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation].play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
   }
-  if (avatar.emoteEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-  }
   // dance
   if (avatar.danceStart) {
     // avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation].play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
   }
-  if (avatar.danceEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-  }
 
   // window.domInfo.innerHTML += `<div style="display:;">useComboStart: --- ${window.logNum(avatar.useComboStart)}</div>`;
-
-  // console.log(avatar.useComboStart, avatar.useComboEnd);
 
   //
 
