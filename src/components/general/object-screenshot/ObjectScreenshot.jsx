@@ -8,23 +8,23 @@ import styles from './object-screenshot.module.css';
 
 //
 
-export const ObjectScreenshot = ({ app, startUrl, width, height, className = '' }) => {
+export const ObjectScreenshot = ({ app, width, height, className = '' }) => {
 
     const canvasRef = useRef( null );
 
     useEffect( async () => {
 
         if ( ! canvasRef.current ) return;
-
-        await screenshotObjectApp({ app, clearAlpha: 0, canvas: canvasRef.current, start_url: startUrl });
-
-    }, [ startUrl, canvasRef.current ] );
+        const canvas = await screenshotObjectApp({ app, clearAlpha: 0, width, height });
+        canvasRef.current.innerHTML = "";
+        canvasRef.current.appendChild( canvas );
+    }, [ app ] );
 
     //
 
     return (
         <div className={ classnames( className, styles.imgWrapper ) } >
-            <canvas ref={ canvasRef } width={ width } height={ height } />
+            <div ref={ canvasRef } width={ width } height={ height }></div>
             <div className={ styles.background } />
         </div>
     );

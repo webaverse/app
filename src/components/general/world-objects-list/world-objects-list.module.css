@@ -8,14 +8,13 @@
     transform: translateX( 350px );
     transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
     background-color: #000;
-    border-left: 3px solid #aaa;
     z-index: 9;
     overflow: hidden;
 }
 
-/* .worldObjectListWrapper.opened {
+.worldObjectListWrapper.opened {
     transform: translateX( 0px );
-} */
+}
 
 .panel {
     position: absolute;
@@ -23,29 +22,25 @@
     right: 0px;
     width: 100%;
     height: 100%;
-    /* transform: translate( 100%, 0px );
-    transition: transform 1s cubic-bezier(0, 1, 0, 1); */
+    transform: translateX( 100% );
+    transition: transform 1s cubic-bezier(0, 1, 0, 1);
+    background-image: linear-gradient(to bottom, #222, #000);
 }
 
 .panel.opened {
     transform: translateX( 0px );
 }
 
-.opened {
-    transform: translate( 0px, 0px ) !important;
-}
-
 .header {
     color: #fff;
     text-align: left;
-    padding: 0px 10px;
-    font-size: 12px;
-    height: 40px;
-    margin-top: 70px;
+    font-family: 'GeoSans';
+    font-size: 30px;
+    padding: 28px 15px 15px 15px;
 }
 
 .objects {
-    height: calc( 100% - 110px );
+    height: calc( 100% - 65px );
     overflow-y: scroll;
 }
 
@@ -60,10 +55,26 @@
 
 .objects .object .img {
     position: relative;
-    min-width: 80px;
+    width: 80px;
     height: 80px;
     margin: 0 10px;
     object-fit: cover;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.objects .object:hover .img div, .objects .object:hover .defaultPlaceHolder {
+    background-image: radial-gradient(#0ab213, #014a13);
+}
+
+.objects .object .defaultPlaceHolder {
+    position: relative;
+    min-width: 80px;
+    height: 80px;
+    margin: 0 10px;
+    background-image: radial-gradient(#444, #222);
+    padding: 20px;
+    border-radius: 10px;
 }
 
 .objects .object .wrap {
@@ -73,11 +84,19 @@
 
 .objects .object .wrap .name {
     position: relative;
-    font-size: 16px;
+    font-size: 20px;
+    font-family: 'GeoSans';
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
     color: #fff;
+    padding-top: 5px;
+    z-index: 10;
+}
+
+.objects .object .wrap .type {
+    color: #fff;
+    z-index: 10;
 }
 
 .objects .object .backgroundInner.lime {
@@ -112,18 +131,14 @@
     width: 350px;
     height: 100%;
     background-color: #000;
-    border-left: 3px solid #aaa;
     transform: translateX( -100% );
     transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 
-.objectProperties.opened {
-    transform: translateX( 0px );
-}
-
-.objectProperties .header h1 {
+.objectProperties .header .title {
     float: left;
-    line-height: 12px;
+    padding: 3px 0px;
+    font-size: 30px;
 }
 
 .objectProperties .subheader {
@@ -144,21 +159,57 @@
     height: 50px;
     filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
     transition: filter 0.3s cubic-bezier(0, 1, 0, 1);
+    margin-left: -10px;
 }
 
 .objectProperties .button:hover .img {
     filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
 }
 
-.objectProperties .inputs {
-    display: flex;
-    padding-left: 20px;
+.objectProperties .settingsBlock {
+    width: 100%;
+    height: calc( 100% - 441px );
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 
-.objectProperties .inputs .input {
-    width: 50px;
+.objectProperties .selectWrapper {
+    position: relative;
+    padding: 5px;
+    width: calc( 100% - 40px );
+    margin-left: 20px;
+    border: 1px;
+    height: 29px;
+    margin-bottom: 10px;
+    border-radius: 0px;
 }
 
-.objectProperties .inputs .input + .input {
-    margin-left: 10px;
+.objectProperties .selectWrapper select {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    z-index: 0;
+    height: 33px;
+    text-align: center;
+    padding-left: 50px;
+    font-weight: 12px;
+}
+
+.objectProperties .selectWrapperTitle {
+    position: absolute;
+    left: 10px;
+    top: 0px;
+    z-index: 10;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 32px;
+    font-family: 'GeoSans';
+}
+
+.objectProperties .objectPreview {
+    position: absolute;
+    bottom: 0px;
+    width: 350px;
+    height: 350px;
 }
