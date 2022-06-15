@@ -305,6 +305,10 @@ export default class Webaverse extends EventTarget {
       window.domInfo.innerHTML = '';
       // console.log(window.localPlayer?.getAction('use')?.animationCombo);
 
+      if (window.localPlayer) {
+        console.log(window.localPlayer.getActionsArray().map(n => n.type).join(','));
+      }
+
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
         const timeDiff = timestamp - lastTimestamp;

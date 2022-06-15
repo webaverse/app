@@ -41,7 +41,8 @@ class CharacterPhysics {
     this.player = player;
 
     this.velocity = new THREE.Vector3();
-    this.lastGroundedTime = 0;
+    // this.lastGroundedTime = 0;
+    this.lastGrounded = null;
     this.sitOffset = new THREE.Vector3();
    
     this.lastPistolUse = false;
@@ -140,41 +141,48 @@ class CharacterPhysics {
         }
 
         const jumpAction = this.player.getAction('jump');
-        const _ensureJumpAction = () => {
-          if (!jumpAction) {
-            const newJumpAction = {
-              type: 'jump',
-              time: 0,
-            };
-            this.player.addAction(newJumpAction);
-          } else {
-            jumpAction.set('time', 0);
-          }
-        };
-        const _ensureNoJumpAction = () => {
-          this.player.removeAction('jump');
-        };
+        const flyAction = this.player.getAction('fly');
+        // const _ensureJumpAction = () => {
+        //   if (!jumpAction) {
+        //     const newJumpAction = {
+        //       type: 'jump',
+        //       time: 0,
+        //     };
+        //     this.player.addAction(newJumpAction);
+        //   } else {
+        //     jumpAction.set('time', 0);
+        //   }
+        // };
+        // const _ensureNoJumpAction = () => {
+        //   this.player.removeAction('jump');
+        // };
 
         if (grounded) {
-          this.lastGroundedTime = now;
+          // this.player.removeAction('fly');
+          this.player.removeAction('jump');
+          // this.lastGroundedTime = now;
 
           this.velocity.y = -1;
+        } else {
+          if (this.lastGrounded === true && !jumpAction && !flyAction) {
+            this.player.addAction({type: 'jump'});
+          }
         }
 
-        if (!jumpAction) {
-          const lastGroundedTimeDiff = now - this.lastGroundedTime;
-          if (lastGroundedTimeDiff <= 100) {
-            _ensureNoJumpAction();
-          } else {
-            _ensureJumpAction();
+        // if (!jumpAction) {
+        //   const lastGroundedTimeDiff = now - this.lastGroundedTime;
+        //   if (lastGroundedTimeDiff <= 100) {
+        //     _ensureNoJumpAction();
+        //   } else {
+        //     _ensureJumpAction();
           
-            this.velocity.y = 0;
-          }
-        } else {
-          if (grounded) {
-            _ensureNoJumpAction();
-          }
-        }
+        //     this.velocity.y = 0;
+        //   }
+        // } else {
+        //   if (grounded) {
+        //     _ensureNoJumpAction();
+        //   }
+        // }
       } else {
         //Outdated vehicle code
         this.velocity.y = 0;
@@ -239,6 +247,8 @@ class CharacterPhysics {
         }
         this.avatar.updateMatrixWorld();
       } */
+
+      this.lastGrounded = grounded;
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */

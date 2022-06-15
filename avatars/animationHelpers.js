@@ -767,9 +767,6 @@ export const _updateAnimation = avatar => {
   avatar._7wayBowNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
 
-  if (avatar.flyStart) avatar.actionsNode.crossFadeTo(0.2, avatar.flyMotion);
-  if (avatar.flyEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-
   if (avatar.narutoRunStart) avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
   if (avatar.narutoRunEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
 
@@ -788,10 +785,12 @@ export const _updateAnimation = avatar => {
   // if (avatar.jumpEnd) avatar.jumpNode.factor = 0;
 
   if (avatar.jumpStart) {
+    // debugger
     avatar.jumpMotion.play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
   }
   if (avatar.jumpEnd) {
+    // debugger
     // avatar.jumpMotion.stop(); // don't need
     if (avatar.narutoRunState) {
       avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
@@ -800,6 +799,15 @@ export const _updateAnimation = avatar => {
     }
   }
   // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
+
+  if (avatar.flyStart) { // need after jumpEnd
+    // debugger
+    avatar.actionsNode.crossFadeTo(0.2, avatar.flyMotion);
+  }
+  if (avatar.flyEnd) {
+    // debugger
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  }
 
   if (avatar.activateStart) {
     // console.log('activateStart');
