@@ -14,6 +14,9 @@ let emoteTimeout = null;
 export const triggerEmote = (emoteName, player = null) => {
     const emoteHardName = emoteName.replace(/Soft$/, '');
     const emote = emotes.find(emote => emote.name === emoteHardName);
+    if (emote === undefined){
+        return;
+    }
     const { emotion } = emote;
     player = !player ? metaversefile.useLocalPlayer() : player;
 
