@@ -702,21 +702,6 @@ physicsManager.marchingCubes = (dims, potential, shift, scale) =>
 physicsManager.setChunkSize = (x, y, z) =>
   physx.physxWorker.setChunkSize(x, y, z)
 
-/* physicsManager.generateChunkDataDualContouring = (x, y, z) =>
-  physx.physxWorker.generateChunkDataDualContouring(x, y, z)
-
-physicsManager.setChunkLodDualContouring = (x, y, z, lod) =>
-  physx.physxWorker.setChunkLodDualContouring(x, y, z, lod) */
-
-physicsManager.clearTemporaryChunkDataDualContouring = () =>
-  physx.physxWorker.clearTemporaryChunkDataDualContouring()
-
-physicsManager.clearChunkRootDualContouring = (x, y, z) =>
-  physx.physxWorker.clearChunkRootDualContouring(x, y, z)
-
-physicsManager.createChunkMeshDualContouring = (x, y, z, lod) =>
-  physx.physxWorker.createChunkMeshDualContouring(x, y, z, lod)
-
 physicsManager.drawDamage = (position, radius, value) =>
   physx.physxWorker.drawDamage(position, radius, value);
 

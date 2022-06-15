@@ -23,8 +23,8 @@ import postProcessing from './post-processing.js';
 import {getRandomString, memoize} from './util.js';
 import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
-import * as materials from './materials.js';
 import * as geometries from './geometries.js';
+import * as materials from './materials.js';
 import meshLodManager from './mesh-lodder.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
@@ -53,8 +53,10 @@ import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
-import terrainManager from './terrain-manager.js';
+import dcWorkerManager from './dc-worker-manager.js';
 import cardsManager from './cards-manager.js';
+import * as instancing from './instancing.js';
+import * as atlasing from './atlasing.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -1178,6 +1180,12 @@ export default () => {
   useGeometries() {
     return geometries;
   },
+  useInstancing() {
+    return instancing;
+  },
+  useAtlasing() {
+    return atlasing;
+  },
   useMaterials() {
     return materials;
   },
@@ -1202,8 +1210,8 @@ export default () => {
   useHitManager() {
     return hitManager;
   },
-  useTerrainManager() {
-    return terrainManager;
+  useDcWorkerManager() {
+    return dcWorkerManager;
   },
   useCardsManager() {
     return cardsManager;

@@ -141,10 +141,14 @@ export const shakeAnimationSpeed = 30;
 export const hotbarSize = 60;
 export const infoboxSize = 100;
 
+export const startTextureAtlasSize = 512;
+export const maxTextureAtlasSize = 4096;
+
 export const numLoadoutSlots = 8;
 
 export const defaultDioramaSize = 512;
 export const defaultChunkSize = 16;
+export const defaultWorldSeed = 100;
 
 export const defaultVoiceEndpoint = `Sweetie Belle`;
 export const defaultVoicePackName = `ShiShi voice pack`;
