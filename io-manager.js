@@ -27,14 +27,13 @@ import storyManager from './story.js';
 import raycastManager from './raycast-manager.js';
 
 const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
+// const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
-const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
@@ -56,7 +55,6 @@ ioManager.currentWeaponGrabs = [false, false];
 ioManager.lastWeaponGrabs = [false, false];
 ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
-ioManager.currentLoadout = 0;
 
 ioManager.keys = {
   up: false,
@@ -143,27 +141,35 @@ const _updateIo = timeDiff => {
           buttonsSrc[2] ? buttonsSrc[2].value : 0,
           buttonsSrc[3] ? buttonsSrc[3].value : 0,
           buttonsSrc[4] ? buttonsSrc[4].value : 0,
-          buttonsSrc[5] ? buttonsSrc[5].value : 0,
+          buttonsSrc[5] ? buttonsSrc[4].value : 0,
         ];
         if (handedness === 'left') {
           const dx = axes[0] + axes[2];
           const dy = axes[1] + axes[3];
           if (Math.abs(dx) >= 0.01 || Math.abs(dy) >= 0.01) {
-            keysDirection.set(dx, 0, dy);
+            localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
+            localEuler.x = 0;
+            localEuler.z = 0;
+            localVector3.set(dx, 0, dy)
+              .applyEuler(localEuler)
+              .multiplyScalar(0.05);
+
+            dolly.matrix
+              // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
+              .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
+              // .premultiply(localMatrix2.copy(localMatrix2).invert())
+              .decompose(dolly.position, dolly.quaternion, dolly.scale);
             ioManager.currentWalked = true;
           }
-          if (buttonsSrc[4].pressed && !ioManager.lastButtons[4]) {
-            _handleLoadout()
-          }
+          
           ioManager.currentWeaponGrabs[1] = buttons[1] > 0.5;
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-             dolly.matrix
-               .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
-               .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
-               .premultiply(localMatrix2.copy(localMatrix2).invert())
-               .decompose(localVector, dolly.quaternion, localVector2);
-            dolly.updateMatrixWorld();
+            dolly.matrix
+              .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
+              .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
+              .premultiply(localMatrix2.copy(localMatrix2).invert())
+              .decompose(dolly.position, dolly.quaternion, dolly.scale);
           };
           if (
             (axes[0] < -0.75 && !(ioManager.lastAxes[index][0] < -0.75)) ||
@@ -189,43 +195,10 @@ const _updateIo = timeDiff => {
             !game.isJumping() &&
             !game.isSitting()
           ) {
-            game.jump('jump');
+            game.jump();
           }
-
-          if (buttons[0] >= 0.5) {
-            game.menuMouseDown();
-          } else {
-            game.menuMouseUp();
-          }
-
-          if (buttons[1] >= 0.5) {
-            game.menuActivateDown();
-          }
-
-          if (buttonsSrc[5].pressed && !ioManager.lastButtons[5]) {
-            game.dropSelectedApp();
-          }
-
-          if (buttonsSrc[4].pressed && !ioManager.lastButtons[4]) {
-            _handleLoadout()
-          }
-
         }
 
-        const _handleLoadout = () => {
-          if(handedness === "left") {
-            if(ioManager.currentLoadout > 0) {
-              ioManager.currentLoadout--;
-            }
-          }
-          else if(handedness === "right") {
-            if(ioManager.currentLoadout < 8) {
-              ioManager.currentLoadout++;
-            }
-          }
-          game.selectLoadout(ioManager.currentLoadout);
-        };
-  
         ioManager.lastAxes[index][0] = axes[0];
         ioManager.lastAxes[index][1] = axes[1];
         ioManager.lastAxes[index][2] = axes[2];
@@ -236,31 +209,7 @@ const _updateIo = timeDiff => {
         ioManager.lastButtons[index][2] = buttons[2];
         ioManager.lastButtons[index][3] = buttons[3];
         ioManager.lastButtons[index][4] = buttons[4];
-        ioManager.lastButtons[index][5] = buttons[5];
       }
-      if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled()) {
-        const localPlayer = metaversefile.useLocalPlayer();
-        keysDirection.applyQuaternion(camera.quaternion);
-        keysDirection.y = 0;
-        localPlayer.characterPhysics.applyWasd(
-          keysDirection.normalize()
-            .multiplyScalar(game.getSpeed() * timeDiff)
-        );
-        keysDirection.set(0, 0, 0);
-      }
-      const localPlayer = metaversefile.useLocalPlayer();
-      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-      const originalPosition = localPlayer.position.clone();
-
-      localMatrix.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix)
-        .decompose(localVector, localQuaternion, localVector2);
-        
-      dolly.matrix
-        .premultiply(localMatrix.makeTranslation(originalPosition.x - localVector.x, originalPosition.y - localVector.y, originalPosition.z - localVector.z))
-        .premultiply(localMatrix.makeTranslation(0, 0.1, 0))
-        .decompose(dolly.position, dolly.quaternion, dolly.scale);    
-      dolly.updateMatrixWorld();  
     }
   } else {
     keysDirection.set(0, 0, 0);
