@@ -35,6 +35,7 @@ const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
 const groundStickOffset = 0.03;
+let lastcharacterControllerY = null;
 
 class CharacterPhysics {
   constructor(player) {
@@ -92,7 +93,12 @@ class CharacterPhysics {
       if (window.isJumping) {
         const jumpTime = performance.now() - window.jumpStartTime;
         // console.log(jumpTime);
-        localVector3.y = jumpTime < 333 ? window.jumpStepValue : -window.jumpStepValue;
+        // localVector3.y = jumpTime < 333 ? window.jumpStepValue : -window.jumpStepValue;
+        localVector3.y = Math.sin(jumpTime * (Math.PI / 666)) * 3/*jump height*/ + jumpStartY - lastcharacterControllerY;
+        // localVector3.y += this.player.avatar.height * 0.5;
+        // console.log(localVector3.y);
+        // console.log(jumpStartY);
+        // console.log(Math.sin(jumpTime * (Math.PI / 666)) * 2);
         if (jumpTime >= 666) {
           window.isJumping = false;
         }
@@ -161,6 +167,7 @@ class CharacterPhysics {
               type: 'jump',
               time: 0,
             };
+            debugger
             this.player.addAction(newJumpAction);
             // console.log(this.player.getAction('jump'));
           } else {
@@ -254,6 +261,8 @@ class CharacterPhysics {
         }
         this.avatar.updateMatrixWorld();
       } */
+
+      lastcharacterControllerY = this.player.characterController.position.y;
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */

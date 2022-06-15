@@ -1490,14 +1490,19 @@ class GameManager extends EventTarget {
     }
 
     const jumpAction = localPlayer.getAction('jump');
-    if (!jumpAction) {
+    const flyAction = localPlayer.getAction('fly');
+    if (!jumpAction && !flyAction) {
+    // if (!jumpAction) {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger
         // time: 0,
       };
+      debugger
       localPlayer.addAction(newJumpAction);
       // console.log(localPlayer.getAction('jump'));
+      window.isJumping = true;
+      window.jumpStartY = localPlayer.characterController.position.y;
     }
   }
   jump(trigger) {
