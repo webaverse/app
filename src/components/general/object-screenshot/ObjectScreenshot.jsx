@@ -2,13 +2,13 @@
 import React, {useEffect, useState, useRef} from 'react';
 import classnames from 'classnames';
 
-import {screenshotObjectApp} from '../../../../object-screenshotter';
+import { screenshotObjectApp } from '../../../../object-screenshotter';
 
 import styles from './object-screenshot.module.css';
 
 //
 
-export default function useOnScreen(ref) {
+function useOnScreen(ref) {
   const [isIntersecting, setIntersecting] = useState(false);
 
   const observer = new IntersectionObserver(
@@ -17,7 +17,6 @@ export default function useOnScreen(ref) {
 
   useEffect(() => {
     observer.observe(ref.current);
-    // Remove the observer as soon as the component is unmounted
     return () => { observer.disconnect(); };
   }, []);
 
