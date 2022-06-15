@@ -514,49 +514,50 @@ class Player extends THREE.Object3D {
       const loadoutIndex = wearAction.loadoutIndex;
       console.log('unwear called wearActionIndex !== -1', wearActionIndex !== -1)
 
-      const _setAppTransform = () => {
-        if (dropStartPosition && dropDirection) {
-          const physicsObjects = app.getPhysicsObjects();
-          if (physicsObjects.length > 0) {
-            const physicsObject = physicsObjects[0];
+      if(app.getComponent("wear") && !app.getComponent("sit") && !app.getComponent("pet")) {
+        const _setAppTransform = () => {
+          if (dropStartPosition && dropDirection) {
+            const physicsObjects = app.getPhysicsObjects();
+            if (physicsObjects.length > 0) {
+              const physicsObject = physicsObjects[0];
 
-            physicsObject.position.copy(dropStartPosition);
-            physicsObject.quaternion.copy(this.quaternion);
-            physicsObject.updateMatrixWorld();
+              physicsObject.position.copy(dropStartPosition);
+              physicsObject.quaternion.copy(this.quaternion);
+              physicsObject.updateMatrixWorld();
 
-            physicsManager.setTransform(physicsObject, true);
-            physicsManager.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5).add(this.characterPhysics.velocity), true);
-            physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
+              physicsManager.setTransform(physicsObject, true);
+              physicsManager.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5).add(this.characterPhysics.velocity), true);
+              physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
 
-            app.position.copy(physicsObject.position);
-            app.quaternion.copy(physicsObject.quaternion);
-            app.scale.copy(physicsObject.scale);
-            app.matrix.copy(physicsObject.matrix);
-            app.matrixWorld.copy(physicsObject.matrixWorld);
+              app.position.copy(physicsObject.position);
+              app.quaternion.copy(physicsObject.quaternion);
+              app.scale.copy(physicsObject.scale);
+              app.matrix.copy(physicsObject.matrix);
+              app.matrixWorld.copy(physicsObject.matrixWorld);
+            } else {
+              app.position.copy(dropStartPosition);
+              app.quaternion.setFromRotationMatrix(
+                localMatrix.lookAt(
+                  localVector.set(0, 0, 0),
+                  localVector2.set(dropDirection.x, 0, dropDirection.z).normalize(),
+                  upVector
+                )
+              );
+              app.scale.set(1, 1, 1);
+              app.updateMatrixWorld();
+            }
+            app.lastMatrix.copy(app.matrixWorld);
           } else {
-            app.position.copy(dropStartPosition);
-            app.quaternion.setFromRotationMatrix(
-              localMatrix.lookAt(
-                localVector.set(0, 0, 0),
-                localVector2.set(dropDirection.x, 0, dropDirection.z).normalize(),
-                upVector
-              )
-            );
+            const avatarHeight = this.avatar ? this.avatar.height : 0;
+            app.position.copy(this.position)
+              .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
+            app.quaternion.identity();
             app.scale.set(1, 1, 1);
             app.updateMatrixWorld();
           }
-          app.lastMatrix.copy(app.matrixWorld);
-        } else {
-          const avatarHeight = this.avatar ? this.avatar.height : 0;
-          app.position.copy(this.position)
-            .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
-          app.quaternion.identity();
-          app.scale.set(1, 1, 1);
-          app.updateMatrixWorld();
-        }
-      };
-      _setAppTransform();
-
+        };
+        _setAppTransform();
+      }
       const _deinitPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
