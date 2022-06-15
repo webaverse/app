@@ -458,6 +458,7 @@ export const _createAnimation = avatar => {
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
   // avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
   avatar.flyMotion = avatar.mixer.createMotion(animations.index['fly_idle.fbx']);
+  avatar.flyDashMotion = avatar.mixer.createMotion(animations.index['fly_dash_forward.fbx']);
   avatar.narutoRunMotion = avatar.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
 
   avatar.useMotiono = {};
@@ -593,10 +594,14 @@ export const _createAnimation = avatar => {
   avatar.defaultNode.addChild(avatar._7wayWalkRunBowNode);
   avatar.defaultNode.addChild(avatar._7wayCrouchNode);
 
+  avatar.flyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'flyNode');
+  avatar.flyNode.addChild(avatar.flyMotion);
+  avatar.flyNode.addChild(avatar.flyDashMotion);
+
   avatar.actionsNode = avatar.mixer.createNode(WebaverseAnimationNodeUnitary, 'actions');
   avatar.actionsNode.addChild(avatar.defaultNode);
   avatar.actionsNode.addChild(avatar.jumpMotion);
-  avatar.actionsNode.addChild(avatar.flyMotion);
+  avatar.actionsNode.addChild(avatar.flyNode);
   avatar.actionsNode.addChild(avatar.activateMotion);
   avatar.actionsNode.addChild(avatar.narutoRunMotion);
   // useMotiono
@@ -767,6 +772,7 @@ export const _updateAnimation = avatar => {
   avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar._7wayBowNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
+  avatar.flyNode.factor = avatar.flyDashFactor;
 
   if (avatar.narutoRunStart) avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
   if (avatar.narutoRunEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
@@ -803,7 +809,7 @@ export const _updateAnimation = avatar => {
 
   if (avatar.flyStart) { // need after jumpEnd
     // debugger
-    avatar.actionsNode.crossFadeTo(0.2, avatar.flyMotion);
+    avatar.actionsNode.crossFadeTo(0.2, avatar.flyNode);
   }
   if (avatar.flyEnd) {
     // debugger
