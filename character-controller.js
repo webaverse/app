@@ -726,7 +726,15 @@ class Player extends THREE.Object3D {
     const cancelFn = makeCancelFn();
     this.syncAvatarCancelFn = cancelFn;
 
+
     const instanceId = this.getAvatarState().get("instanceId") ?? "";
+
+    if(this.avatar){
+      logger.log("Destroying last avatar", this.avatar)
+      this.appManager.removeApp(this.avatar.app);
+      const oldAvatar = this.avatar.app
+      oldAvatar.parent.remove(oldAvatar);
+    }
 
     const _setNextAvatarApp = (app) => {
       (() => {
@@ -977,21 +985,14 @@ class LocalPlayer extends Player {
   setAvatarApp(app) {
     if (!app) return console.error("app is ", app)
     const self = this;
-
-    const oldInstanceId = this.getAvatarState().get("instanceId");
-    
-    const removeIndex = this.appManager.getTrackedAppIndex(oldInstanceId);
-    if (removeIndex !== -1) {
-      this.appsArray.delete(removeIndex, 1);
-    } else {
-      console.warn("invalid remove instance id", {oldInstanceId});
-    }
-
-    // remove last app
-    this.playerMap.doc.transact(function tx() {
-
+    this.playersArray.doc.transact(function tx() {
       const avatar = self.getAvatarState();
-      avatar.set("instanceId", app.instanceId);
+      const oldInstanceId = avatar.get("instanceId");
+      if (oldInstanceId) {
+        self.appManager.removeTrackedAppInternal(oldInstanceId);
+      }
+          avatar.set("instanceId", app.instanceId);
+
     });
   }
   setMicMediaStream(mediaStream) {

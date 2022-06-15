@@ -429,15 +429,22 @@ class AppManager extends EventTarget {
     }
     return -1;
   }
-  removeTrackedApp(instanceId) {
-    logger.log('appManager.removeTrackedApp', instanceId);
-
+  removeTrackedAppInternal(instanceId) {
     const removeIndex = this.getTrackedAppIndex(instanceId);
     if (removeIndex !== -1) {
       this.appsArray.delete(removeIndex, 1);
     } else {
-      console.warn("invalid remove instance id", {instanceId});
+      console.warn("invalid remove instance id", {
+        removeInstanceId,
+        appsJson,
+      });
     }
+  }
+  removeTrackedApp(removeInstanceId) {
+    const self = this;
+    this.appsArray.doc.transact(function tx() {
+      self.removeTrackedAppInternal(removeInstanceId);
+    });
   }
   addApp(app) {
     logger.log('appManager.addApp', app);
@@ -533,7 +540,7 @@ removeApp(app) {
 
         let transform = srcTrackedApp.get("transform");
         const components = srcTrackedApp.get("components");
-        srcAppManager.removeTrackedApp(instanceId);
+        srcAppManager.removeTrackedAppInternal(instanceId);
 
         console.log("removing src tracked app", instanceId);
 
