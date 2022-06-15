@@ -2,10 +2,11 @@
 physx wasm integration.
 */
 
-import * as THREE from 'three'
+import * as THREE from 'three';
 // import {makePromise} from './util.js';
 // import { getRenderer } from './renderer.js'
-import Module from './public/bin/geometry.js'
+import Module from './public/bin/geometry.js';
+import {Allocator, ScratchStack} from './geometry-util.js';
 
 const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
@@ -18,54 +19,40 @@ const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(
 // const textEncoder = new TextEncoder();
 // const textDecoder = new TextDecoder();
 
-const scratchStackSize = 1024 * 1024
-const maxNumUpdates = 256
+const physx = {};
 
-const physx = {}
+let loadPromise = null;
+let moduleInstance = null;
+let scratchStack = null;
+physx.waitForLoad =  () => {
+  if (!loadPromise) {
+    loadPromise = (async () => {
+      await Module.waitForLoad();
+      moduleInstance = Module;
+      const scratchStackSize = 1024 * 1024;
+      scratchStack = new ScratchStack(moduleInstance, scratchStackSize);
+      physx.physics = physxWorker.makePhysics();
 
-physx.waitForLoad = Module.waitForLoad
+      // console.log('module called run', Module.calledRun);
+      /* if (Module.calledRun) {
+        // Module.onRuntimeInitialized()
+        Module.postRun()
+      } */
+    })();
+  }
+  return loadPromise;
+};
 
 const physxWorker = (() => {
-  class Allocator {
-    constructor() {
-      this.offsets = []
-    }
-
-    alloc(constructor, size) {
-      if (size > 0) {
-        const offset = moduleInstance._malloc(
-          size * constructor.BYTES_PER_ELEMENT
-        )
-        const b = new constructor(
-          moduleInstance.HEAP8.buffer,
-          moduleInstance.HEAP8.byteOffset + offset,
-          size
-        )
-        b.offset = offset
-        this.offsets.push(offset)
-        return b
-      } else {
-        return new constructor(moduleInstance.HEAP8.buffer, 0, 0)
-      }
-    }
-
-    freeAll() {
-      for (let i = 0; i < this.offsets.length; i++) {
-        moduleInstance._doFree(this.offsets[i])
-      }
-      this.offsets.length = 0
-    }
-  }
-
-  const maxNumMessageArgs = 32
+  /* const maxNumMessageArgs = 32
   const messageSize =
     Int32Array.BYTES_PER_ELEMENT + // id
     Int32Array.BYTES_PER_ELEMENT + // method
     Int32Array.BYTES_PER_ELEMENT + // priority
     maxNumMessageArgs * Uint32Array.BYTES_PER_ELEMENT // args
   const maxNumMessages = 1024
-  const callStackSize = maxNumMessages * messageSize
-  class CallStackMessage {
+  const callStackSize = maxNumMessages * messageSize */
+  /* class CallStackMessage {
     constructor(ptr) {
       this.dataView = new DataView(
         moduleInstance.HEAP8.buffer,
@@ -152,7 +139,7 @@ const physxWorker = (() => {
     pushF32(v) {
       this.dataView.setFloat32(this.offset, v, true)
       this.offset += Float32Array.BYTES_PER_ELEMENT
-    }
+    } */
     /* pullU8Array(length) {
       if (this.offset + length <= messageSize) {
         const result = new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, length);
@@ -238,8 +225,8 @@ const physxWorker = (() => {
         throw new Error('message overflow');
       }
     } */
-  }
-  class CallStack {
+  // }
+  /* class CallStack {
     constructor() {
       this.ptr = moduleInstance._malloc(
         callStackSize * 2 + Uint32Array.BYTES_PER_ELEMENT
@@ -285,33 +272,7 @@ const physxWorker = (() => {
     reset() {
       this.numEntries = 0
     }
-  }
-  class ScratchStack {
-    constructor() {
-      this.ptr = moduleInstance._malloc(scratchStackSize)
-
-      this.u8 = new Uint8Array(
-        moduleInstance.HEAP8.buffer,
-        this.ptr,
-        scratchStackSize
-      )
-      this.u32 = new Uint32Array(
-        moduleInstance.HEAP8.buffer,
-        this.ptr,
-        scratchStackSize / 4
-      )
-      this.i32 = new Int32Array(
-        moduleInstance.HEAP8.buffer,
-        this.ptr,
-        scratchStackSize / 4
-      )
-      this.f32 = new Float32Array(
-        moduleInstance.HEAP8.buffer,
-        this.ptr,
-        scratchStackSize / 4
-      )
-    }
-  }
+  } */
 
   // const modulePromise = makePromise();
   /* const INITIAL_INITIAL_MEMORY = 52428800;
@@ -321,18 +282,9 @@ const physxWorker = (() => {
     "maximum": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
     "shared": true,
   }); */
-  let moduleInstance = null
-  let scratchStack
-  ;(async () => {
-    await Module.waitForLoad()
-
-    moduleInstance = Module
-    scratchStack = new ScratchStack()
-    physx.physics = physxWorker.makePhysics()
-  })()
 
   // let methodIndex = 0
-  const cbIndex = new Map()
+  // const cbIndex = new Map()
   const w = {}
   w.alloc = (constructor, count) => {
     if (count > 0) {
@@ -342,10 +294,10 @@ const physxWorker = (() => {
     } else {
       return new constructor(moduleInstance.HEAP8.buffer, 0, 0)
     }
-  }
+  };
   w.free = (ptr) => {
     moduleInstance._doFree(ptr)
-  }
+  };
   /* w.makeArenaAllocator = size => {
     const ptr = moduleInstance._makeArenaAllocator(size);
     const offset = moduleInstance.HEAP32[ptr / Uint32Array.BYTES_PER_ELEMENT];
@@ -557,6 +509,7 @@ const physxWorker = (() => {
   }; */
   w.makePhysics = () => moduleInstance._makePhysics()
   w.simulatePhysics = (physics, updates, elapsedTime) => {
+    const maxNumUpdates = 256;
     /* if (updates.length > maxNumUpdates) {
       throw new Error('too many updates to simulate step: ' + updates.length + ' (max: ' + maxNumUpdates + ')');
     } */
@@ -845,7 +798,7 @@ const physxWorker = (() => {
     planeNormal, // normalized vector3 array
     planeDistance, // number
   ) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
 
     const positionsTypedArray = allocator.alloc(Float32Array, numPositions)
     positionsTypedArray.set(positions)
@@ -927,7 +880,7 @@ const physxWorker = (() => {
     sweepDistance,
     maxHits,
   ) => {
-    const allocator = new Allocator();
+    const allocator = new Allocator(moduleInstance);
     
     // inputs
     const originBuf = allocator.alloc(
@@ -1019,7 +972,7 @@ const physxWorker = (() => {
     sweepDistance,
     maxHits,
   ) => {
-    const allocator = new Allocator();
+    const allocator = new Allocator(moduleInstance);
     
     // inputs
     const originBuf = allocator.alloc(
@@ -1380,7 +1333,7 @@ const physxWorker = (() => {
   w.addGeometryPhysics = (physics, mesh, id) => {
     const { geometry } = mesh
 
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const positions = allocator.alloc(
       Float32Array,
       geometry.attributes.position.count * 3
@@ -1443,7 +1396,7 @@ const physxWorker = (() => {
     mesh.updateMatrixWorld()
     const { geometry } = mesh
 
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const positions = allocator.alloc(
       Float32Array,
       geometry.attributes.position.count * 3
@@ -1480,7 +1433,7 @@ const physxWorker = (() => {
     scale,
     id
   ) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const buffer2 = allocator.alloc(Uint8Array, buffer.length)
     buffer2.set(buffer)
 
@@ -1496,7 +1449,7 @@ const physxWorker = (() => {
       buffer2.byteOffset,
       buffer2.byteLength,
       0,
-    )
+    );
 
     const materialAddress = w.getDefaultMaterial(physics)
 
@@ -1519,7 +1472,7 @@ const physxWorker = (() => {
     mesh.updateMatrixWorld()
     const { geometry } = mesh
 
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const positions = allocator.alloc(
       Float32Array,
       geometry.attributes.position.count * 3
@@ -1582,7 +1535,7 @@ const physxWorker = (() => {
     mesh.updateMatrixWorld()
     const { geometry } = mesh
 
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const positions = allocator.alloc(
       Float32Array,
       geometry.attributes.position.count * 3
@@ -1621,7 +1574,7 @@ const physxWorker = (() => {
     external,
     id
   ) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const buffer2 = allocator.alloc(Uint8Array, buffer.length)
     buffer2.set(buffer)
 
@@ -1681,7 +1634,7 @@ const physxWorker = (() => {
   }
 
   w.createShapePhysics = (physics, buffer) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const buffer2 = allocator.alloc(Uint8Array, buffer.length)
     buffer2.set(buffer)
 
@@ -1695,7 +1648,7 @@ const physxWorker = (() => {
     return shapeAddress;
   };
   w.createConvexShapePhysics = (physics, buffer) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const buffer2 = allocator.alloc(Uint8Array, buffer.length)
     buffer2.set(buffer)
 
@@ -1710,7 +1663,7 @@ const physxWorker = (() => {
   };
 
   w.getGeometryPhysics = (physics, id) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const positionsBuffer = allocator.alloc(Float32Array, 1024 * 1024 * 2)
     const numPositions = allocator.alloc(Uint32Array, 1)
     const indicesBuffer = allocator.alloc(Uint32Array, 1024 * 1024 * 2)
@@ -1745,7 +1698,7 @@ const physxWorker = (() => {
     }
   }
   w.getBoundsPhysics = (physics, id, box) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const boundsBuffer = allocator.alloc(Float32Array, 6)
 
     const ok = moduleInstance._getBoundsPhysics(
@@ -1786,7 +1739,7 @@ const physxWorker = (() => {
     moduleInstance._enableGeometryQueriesPhysics(physics, id)
   }
   w.setMassAndInertiaPhysics = (physics, id, mass, inertia) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const inrt = allocator.alloc(Float32Array, 3)
     inertia.toArray(inrt)
 
@@ -1800,7 +1753,7 @@ const physxWorker = (() => {
     moduleInstance._removeGeometryPhysics(physics, id)
   }
   w.getGlobalPositionPhysics = (physics, id, position) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const p = allocator.alloc(Float32Array, 3)
 
     moduleInstance._getGlobalPositionPhysics(physics, id, p.byteOffset)
@@ -1810,7 +1763,7 @@ const physxWorker = (() => {
     allocator.freeAll()
   }
   w.getLinearVelocityPhysics = (physics, id, velocity) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const v = allocator.alloc(Float32Array, 3)
 
     moduleInstance._getLinearVelocityPhysics(physics, id, v.byteOffset)
@@ -1820,7 +1773,7 @@ const physxWorker = (() => {
     allocator.freeAll()
   }
   w.getAngularVelocityPhysics = (physics, id, velocity) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const v = allocator.alloc(Float32Array, 3)
 
     moduleInstance._getAngularVelocityPhysics(physics, id, v.byteOffset)
@@ -1830,7 +1783,7 @@ const physxWorker = (() => {
     allocator.freeAll()
   }
   w.addForceAtPosPhysics = (physics, id, velocity, position, autoWake) => {
-    const allocator = new Allocator();
+    const allocator = new Allocator(moduleInstance);
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
     const pos = allocator.alloc(Float32Array, 3);
@@ -1842,7 +1795,7 @@ const physxWorker = (() => {
     allocator.freeAll();
   }
   w.addLocalForceAtPosPhysics = (physics, id, velocity, position, autoWake) => {
-    const allocator = new Allocator();
+    const allocator = new Allocator(moduleInstance);
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
     const pos = allocator.alloc(Float32Array, 3);
@@ -1854,7 +1807,7 @@ const physxWorker = (() => {
     allocator.freeAll();
   }
   w.addLocalForceAtLocalPosPhysics = (physics, id, velocity, position, autoWake) => {
-    const allocator = new Allocator();
+    const allocator = new Allocator(moduleInstance);
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
     const pos = allocator.alloc(Float32Array, 3);
@@ -1866,7 +1819,7 @@ const physxWorker = (() => {
     allocator.freeAll();
   }
   w.addForceAtLocalPosPhysics = (physics, id, velocity, position, autoWake) => {
-    const allocator = new Allocator();
+    const allocator = new Allocator(moduleInstance);
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
     const pos = allocator.alloc(Float32Array, 3);
@@ -1878,7 +1831,7 @@ const physxWorker = (() => {
     allocator.freeAll();
   }
   w.addForcePhysics = (physics, id, velocity, autoWake) => {
-    const allocator = new Allocator();
+    const allocator = new Allocator(moduleInstance);
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
 
@@ -1888,7 +1841,7 @@ const physxWorker = (() => {
     allocator.freeAll();
   }
   w.addTorquePhysics = (physics, id, velocity, autoWake) => {
-    const allocator = new Allocator();
+    const allocator = new Allocator(moduleInstance);
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
 
@@ -1898,7 +1851,7 @@ const physxWorker = (() => {
     allocator.freeAll();
   }
   w.setVelocityPhysics = (physics, id, velocity, autoWake) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const vel = allocator.alloc(Float32Array, 3)
     velocity.toArray(vel)
 
@@ -1908,7 +1861,7 @@ const physxWorker = (() => {
     allocator.freeAll()
   }
   w.setAngularVelocityPhysics = (physics, id, velocity, autoWake) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const vel = allocator.alloc(Float32Array, 3)
     velocity.toArray(vel)
 
@@ -1927,7 +1880,7 @@ const physxWorker = (() => {
     id,
     scale,
   ) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const s = allocator.alloc(Float32Array, 3)
     scale.toArray(s)
     moduleInstance._setGeometryScalePhysics(
@@ -1945,7 +1898,7 @@ const physxWorker = (() => {
     scale,
     autoWake
   ) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const p = allocator.alloc(Float32Array, 3)
     const q = allocator.alloc(Float32Array, 4)
     const s = allocator.alloc(Float32Array, 3)
@@ -2042,7 +1995,7 @@ const physxWorker = (() => {
       debugger;
     } */
 
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const p = allocator.alloc(Float32Array, 3)
     const q = allocator.alloc(Float32Array, 4)
 
@@ -2071,7 +2024,7 @@ const physxWorker = (() => {
     id,
     dynamic
   ) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const p = allocator.alloc(Float32Array, 3)
     const q = allocator.alloc(Float32Array, 4)
     const s = allocator.alloc(Float32Array, 3)
@@ -2102,7 +2055,7 @@ const physxWorker = (() => {
     position,
     id
   ) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const p = allocator.alloc(Float32Array, 3)
 
     position.toArray(p)
@@ -2138,7 +2091,7 @@ const physxWorker = (() => {
     elapsedTime,
     outPosition
   ) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const disp = allocator.alloc(Float32Array, 3)
     const outPositions = allocator.alloc(Float32Array, 3)
 
@@ -2165,7 +2118,7 @@ const physxWorker = (() => {
     characterController,
     position
   ) => {
-    const allocator = new Allocator()
+    const allocator = new Allocator(moduleInstance)
     const p = allocator.alloc(Float32Array, 3)
 
     position.toArray(p)
@@ -2181,7 +2134,7 @@ const physxWorker = (() => {
   //
 
   w.marchingCubes = (dims, potential, shift, scale) => {
-    let allocator = new Allocator()
+    let allocator = new Allocator(moduleInstance)
 
     const dimsTypedArray = allocator.alloc(Int32Array, 3)
     dimsTypedArray.set(dims)
@@ -2227,126 +2180,6 @@ const physxWorker = (() => {
     }
   }
 
-  //
-
-  w.setChunkSize = (chunkSize) => {
-    moduleInstance._setChunkSize(chunkSize)
-  };
-
-  w.generateChunkDataDualContouring = (x, y, z) => {
-    moduleInstance._generateChunkDataDualContouring(x, y, z)
-  }
-
-  w.setChunkLodDualContouring = (x, y, z, lod) => {
-    moduleInstance._setChunkLodDualContouring(x, y, z, lod)
-  }
-
-  w.clearTemporaryChunkDataDualContouring = () => {
-    moduleInstance._clearTemporaryChunkDataDualContouring()
-  }
-
-  w.clearChunkRootDualContouring = (x, y, z) => {
-    moduleInstance._clearChunkRootDualContouring(x, y, z)
-  }
-
-  w.createChunkMeshDualContouring = (x, y, z) => {
-    const outputBufferOffset = moduleInstance._createChunkMeshDualContouring(x, y, z);
-    // console.log('create xyz', x, y, z, outputBufferOffset);
-
-    if (outputBufferOffset) {
-      const _parseVertexBuffer = (arrayBuffer, bufferAddress) => {
-        const dataView = new DataView(arrayBuffer, bufferAddress);
-
-        let index = 0;
-
-        // positions
-        const numPositions = dataView.getUint32(index, true);
-        index += Uint32Array.BYTES_PER_ELEMENT;
-        const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
-        index += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
-
-        // normals
-        const numNormals = dataView.getUint32(index, true);
-        index += Uint32Array.BYTES_PER_ELEMENT;
-        const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
-        index += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
-
-        // biomes
-        const numBiomes = dataView.getUint32(index, true);
-        index += Uint32Array.BYTES_PER_ELEMENT;
-        const biomes = new Int32Array(arrayBuffer, bufferAddress + index, numBiomes * 4);
-        index += Int32Array.BYTES_PER_ELEMENT * numBiomes * 4;
-
-        // biome weights
-        const numBiomesWeights = dataView.getUint32(index, true);
-        index += Uint32Array.BYTES_PER_ELEMENT;
-        const biomesWeights = new Float32Array(arrayBuffer, bufferAddress + index, numBiomesWeights * 4);
-        index += Float32Array.BYTES_PER_ELEMENT * numBiomesWeights * 4;
-
-        // indices
-        const numIndices = dataView.getUint32(index, true);
-        index += Uint32Array.BYTES_PER_ELEMENT;
-        const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
-        index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
-
-        return {
-          bufferAddress,
-          positions,
-          normals,
-          biomes,
-          biomesWeights,
-          indices,
-        };
-      };
-      const result = _parseVertexBuffer(
-        moduleInstance.HEAP8.buffer,
-        moduleInstance.HEAP8.byteOffset + outputBufferOffset
-      );
-      return result;
-    } else {
-      return null;
-    }
-  };
-  
-  w.drawDamage = (position, radius, value) => {
-    const allocator = new Allocator()
-
-    const numPositions = 256;
-    const positionsTypedArray = allocator.alloc(Float32Array, numPositions);
-    const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
-    numPositionsTypedArray[0] = numPositions;
-
-    /* console.log('draw damage', {
-      x: position.x,
-      y: position.y,
-      z: position.z,
-      radius,
-      value,
-      positionsTypedArrayOffset: positionsTypedArray.byteOffset,
-      numPositionsTypedArrayOffset: numPositionsTypedArray.byteOffset,
-    }); */
-
-    const drew = moduleInstance._drawDamage(
-      position.x,
-      position.y,
-      position.z,
-      radius,
-      value,
-      positionsTypedArray.byteOffset,
-      numPositionsTypedArray.byteOffset,
-    );
-
-    const outNumPositions = numPositionsTypedArray[0];
-    const result = Array(outNumPositions / 3);
-    for (let i = 0; i < outNumPositions / 3; i++) {
-      result[i] = new THREE.Vector3().fromArray(positionsTypedArray, i * 3);
-    }
-
-    allocator.freeAll();
-
-    return result;
-  };
-
   return w;
 })()
 
@@ -2358,13 +2191,5 @@ const _updateGeometry = () => {
   physxWorker.update()
 }
 physx.update = _updateGeometry
-
-const _initModule = () => {
-  if (Module.calledRun) {
-    Module.onRuntimeInitialized()
-    Module.postRun()
-  }
-}
-_initModule()
 
 export default physx
