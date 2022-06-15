@@ -43,7 +43,8 @@ const cubeDamage = damageFn => (
     const positionsTypedArray = allocator.alloc(Float32Array, numPositions * 3);
     const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
     numPositionsTypedArray[0] = numPositions;
-    const gridPoints = chunkSize + 3;
+    const lod = 1;
+    const gridPoints = chunkSize + 3 + lod;
     const damageBufferSize = gridPoints * gridPoints * gridPoints;
     const damageBuffersTypedArray = allocator.alloc(Float32Array, numPositions * gridPoints * gridPoints * gridPoints);
 
@@ -93,7 +94,8 @@ const sphereDamage = damageFn => (
     const positionsTypedArray = allocator.alloc(Float32Array, numPositions * 3);
     const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
     numPositionsTypedArray[0] = numPositions;
-    const gridPoints = chunkSize + 3;
+    const lod = 1;
+    const gridPoints = chunkSize + 3 + lod;
     const damageBufferSize = gridPoints * gridPoints * gridPoints;
     const damageBuffersTypedArray = allocator.alloc(Float32Array, numPositions * gridPoints * gridPoints * gridPoints);
 
