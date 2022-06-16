@@ -1498,13 +1498,12 @@ class GameManager extends EventTarget {
     // if (!jumpAction) {
       const newJumpAction = {
         type: 'jump',
-        trigger:trigger
-        // time: 0,
+        trigger:trigger,
+        time: performance.now(),
       };
       localPlayer.setControlAction(newJumpAction);
       // console.log(localPlayer.getAction('jump'));
       // window.isJumping = true;
-      localPlayer.jumpStartTime = performance.now();
       localPlayer.jumpStartY = localPlayer.characterController.position.y;
     }
   }
