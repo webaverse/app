@@ -1904,7 +1904,7 @@ class Avatar {
     
 
     _updateHmdPosition();
-    if (false && this === window.localPlayer.avatar) {
+    if (true && this === window.localPlayer.avatar) {
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
         <div style="display:;">landFactor: --- ${window.logNum(this.landFactor)}</div>
