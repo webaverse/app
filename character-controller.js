@@ -179,6 +179,7 @@ class PlayerBase extends THREE.Object3D {
     this.eyeballTargetEnabled = false;
     this.voicePack = null;
     this.voiceEndpoint = null;
+    this.lastLandTime = 0;
   }
   findAction(fn) {
     const actions = this.getActionsState();

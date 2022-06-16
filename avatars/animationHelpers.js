@@ -423,7 +423,7 @@ export const loadPromise = (async () => {
 export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
-  const timeSeconds = now / 1000;
+  const timeSeconds = (now - avatar.lastLandTime) / 1000 + 0.8;
   const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
@@ -1279,51 +1279,58 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    const landTimeS = avatar.landTime / 1000;
-    const landingAnimation = animations.index['landing.fbx'];
-    const landingAnimationDuration = landingAnimation.duration - 1 / 30;
-    const landFactor = landTimeS / landingAnimationDuration;
+    if (walkRunFactor === 0) {
+      const landTimeS = avatar.landTime / 1000;
+      const landingAnimation = animations.index['landing.fbx'];
+      const landingAnimationDuration = landingAnimation.duration - 1 / 30;
+      const landFactor = landTimeS / landingAnimationDuration;
 
-    if (landFactor > 0 && landFactor <= 1) {
-      const t2 = landTimeS + 1 / 30; // cut first frame.
-      const src2 = landingAnimation.interpolants[k];
-      const v2 = src2.evaluate(t2);
-      // if (isPosition) console.log('land');
+      if (landFactor > 0 && landFactor <= 1) {
+        const t2 = landTimeS + 1 / 30; // cut first frame.
+        const src2 = landingAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
 
-      // dst.fromArray(v2); return;
+        let lerpFactor = (landingAnimationDuration - landTimeS) / 0.05; // 0.05 = 3 frames
+        lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
 
-      // // const lerpTimeS = lerpFrameCountFallToLand / 30;
-      // // const lerpFactor = MathUtils.clamp(t2 / lerpTimeS, 0, 1);
+        if (isPosition) console.log(lerpFactor);
 
-      // const lerpTimeS = lerpFrameCountLandToOther / 30;
-      // const lerpFactor = 1 - MathUtils.clamp(t2 / lerpTimeS, 0, 1);
+        if (!isPosition) {
+          localQuaternion.fromArray(v2);
+          dst.slerp(localQuaternion, lerpFactor);
+        } else {
+          localVector.fromArray(v2);
+          _clearXZ(localVector, isPosition);
+          dst.lerp(localVector, lerpFactor);
+        }
+      }
+    } else {
+      const landTimeS = avatar.landTime / 1000;
+      const landingAnimation = animations.index['landing 2.fbx'];
+      const landingAnimationDuration = landingAnimation.duration;
+      const landFactor = landTimeS / landingAnimationDuration;
 
-      // let lerpFactor = landFactor;
-      // lerpFactor = MathUtils.smoothstep(lerpFactor, 0.5, 1);
-      // // if (isPosition) debugger
-      // // lerpFactor = lerpFactor * 10 - 9;
-      // lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
-      // lerpFactor *= idleWalkFactor * 0.5 + walkRunFactor * 0.5;
-      // lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
-      // // if (isPosition) console.log(lerpFactor);
-      // lerpFactor = 1 - lerpFactor;
+      if (landFactor > 0 && landFactor <= 1) {
+        const t2 = landTimeS;
+        const src2 = landingAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
 
-      let lerpFactor = (landingAnimationDuration - landTimeS) / 0.05; // 0.05 = 3 frames
-      lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
+        let lerpFactor = landTimeS / 0.15;
+        lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
 
-      // let lerpFactor = landTimeS / 0.2;
-      // lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
-      // lerpFactor = 1 - lerpFactor;
+        let lerpFactor2 = (landingAnimationDuration - landTimeS) / 0.15;
+        lerpFactor2 = MathUtils.clamp(lerpFactor2, 0, 1);
 
-      if (isPosition) console.log(lerpFactor);
+        lerpFactor = Math.min(lerpFactor, lerpFactor2);
 
-      if (!isPosition) {
-        localQuaternion.fromArray(v2);
-        dst.slerp(localQuaternion, lerpFactor);
-      } else {
-        localVector.fromArray(v2);
-        _clearXZ(localVector, isPosition);
-        dst.lerp(localVector, lerpFactor);
+        if (!isPosition) {
+          localQuaternion.fromArray(v2);
+          dst.slerp(localQuaternion, lerpFactor);
+        } else {
+          localVector.fromArray(v2);
+          _clearXZ(localVector, isPosition);
+          dst.lerp(localVector, lerpFactor);
+        }
       }
     }
   };
