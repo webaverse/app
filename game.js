@@ -1501,11 +1501,11 @@ class GameManager extends EventTarget {
         trigger:trigger
         // time: 0,
       };
-      debugger
       localPlayer.setControlAction(newJumpAction);
       // console.log(localPlayer.getAction('jump'));
       // window.isJumping = true;
-      window.jumpStartY = localPlayer.characterController.position.y;
+      localPlayer.jumpStartTime = performance.now();
+      localPlayer.jumpStartY = localPlayer.characterController.position.y;
     }
   }
   jump(trigger) {
@@ -1513,8 +1513,8 @@ class GameManager extends EventTarget {
     this.ensureJump(trigger);
 
     // update velocity
-    const localPlayer = getLocalPlayer();
-    // localPlayer.characterPhysics.velocity.y += 6;
+    // const localPlayer = getLocalPlayer();
+    // localPlayer.characterPhysics.velocity.y += 6; // currently using aesthetic jump movement
     // localPlayer.characterPhysics.velocity.y += 15;
     // localPlayer.characterPhysics.velocity.y += window.jumpVelocityY;
     // setTimeout(() => {

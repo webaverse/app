@@ -798,13 +798,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isArm,
         } = spec;
 
-        const jumpTimeS = avatar.jumpTime / 1000;
-        const jumpAnimation = animations.index['jump.fbx'];
+        const t2 = avatar.jumpTime / 1000;
         // const jumpAnimationDuration = jumpAnimation.duration - 1 / 30; // cut last frame.
-
-        const t2 = jumpTimeS;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
+
         dst.fromArray(v2);
 
         _clearXZ(dst, isPosition);

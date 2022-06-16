@@ -117,7 +117,8 @@ export const aimTransitionMaxTime = 150;
 // export const landSpeed = jumpSpeed * 2;
 // export const landMaxTime = (57 - 39) / 30 / landSpeed * 1000;
 
-export const flatGroundJumpAirTime = 682;
+export const jumpHeight = 3;
+export const flatGroundJumpAirTime = 666;
 
 export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
