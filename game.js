@@ -1502,7 +1502,8 @@ class GameManager extends EventTarget {
         // time: 0,
       };
       localPlayer.setControlAction(newJumpAction);
-      window.jumpStartY = localPlayer.characterController.position.y;
+      localPlayer.jumpStartTime = performance.now();
+      localPlayer.jumpStartY = localPlayer.characterController.position.y;
     }
   }
   jump(trigger) {
@@ -1510,8 +1511,8 @@ class GameManager extends EventTarget {
     this.ensureJump(trigger);
 
     // update velocity
-    const localPlayer = getLocalPlayer();
-    // localPlayer.characterPhysics.velocity.y += 6;
+    // const localPlayer = getLocalPlayer();
+    // localPlayer.characterPhysics.velocity.y += 6; // currently using aesthetic jump movement
     
     // play sound
     // soundManager.play('jump');

@@ -102,7 +102,8 @@ export const airFriction = groundFriction;
 export const flyFriction = 0.5;
 export const aimTransitionMaxTime = 150;
 
-export const flatGroundJumpAirTime = 682;
+export const jumpHeight = 3;
+export const flatGroundJumpAirTime = 666;
 
 export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);

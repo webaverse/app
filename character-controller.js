@@ -180,6 +180,8 @@ class PlayerBase extends THREE.Object3D {
     this.voicePack = null;
     this.voiceEndpoint = null;
     this.lastLandTime = 0;
+    this.jumpStartTime = null;
+    this.jumpStartY = null;
   }
   findAction(fn) {
     const actions = this.getActionsState();

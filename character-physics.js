@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
 import {getVelocityDampingFactor} from './util.js';
-import {groundFriction, flyFriction, airFriction, flatGroundJumpAirTime} from './constants.js';
+import {groundFriction, flyFriction, airFriction, flatGroundJumpAirTime, jumpHeight} from './constants.js';
 import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
@@ -35,7 +35,6 @@ const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
 const groundStickOffset = 0.03;
-let lastcharacterControllerY = null;
 
 class CharacterPhysics {
   constructor(player) {
@@ -43,6 +42,7 @@ class CharacterPhysics {
 
     this.velocity = new THREE.Vector3();
     this.lastGrounded = null;
+    this.lastcharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
    
     this.lastPistolUse = false;
@@ -85,16 +85,16 @@ class CharacterPhysics {
       localVector3.copy(this.velocity)
         .multiplyScalar(timeDiffS);
 
-      if (this.player.hasAction('jump')) {
-        const jumpTime = performance.now() - window.jumpStartTime;
+      if (this.player.getAction('jump')?.trigger === 'jump') {
+        const jumpTime = now - this.player.jumpStartTime;
         // console.log(jumpTime);
         // localVector3.y = jumpTime < 333 ? window.jumpStepValue : -window.jumpStepValue;
-        localVector3.y = Math.sin(jumpTime * (Math.PI / 666)) * 3/*jump height*/ + jumpStartY - lastcharacterControllerY;
+        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + this.player.jumpStartY - this.lastcharacterControllerY;
         // localVector3.y += this.player.avatar.height * 0.5;
         // console.log(localVector3.y);
-        // console.log(jumpStartY);
-        // console.log(Math.sin(jumpTime * (Math.PI / 666)) * 2);
-        if (jumpTime >= 666 && !this.player.characterPhysics.lastGrounded) {
+        // console.log(this.player.jumpStartY);
+        // console.log(Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * 2);
+        if (jumpTime >= flatGroundJumpAirTime) {
           localPlayer.setControlAction({type: 'fallLoop'});
         }
       }
@@ -168,8 +168,8 @@ class CharacterPhysics {
 
           this.velocity.y = -1;
         } else {
-          if (this.lastGrounded === true && !jumpAction && !flyAction) {
-            this.player.setControlAction({type: 'jump'});
+          if (this.lastGrounded && !jumpAction && !flyAction) {
+            this.player.setControlAction({type: 'fallLoop'});
           }
         }
       } else {
@@ -237,7 +237,7 @@ class CharacterPhysics {
       } */
 
       this.lastGrounded = grounded;
-      lastcharacterControllerY = this.player.characterController.position.y;
+      this.lastcharacterControllerY = this.player.characterController.position.y;
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */
