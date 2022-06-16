@@ -1407,6 +1407,9 @@ class GameManager extends EventTarget {
     const flyAction = localPlayer.getAction('fly');
     if (flyAction) {
       localPlayer.removeAction('fly');
+      if (!localPlayer.characterPhysics.lastGrounded) {
+        localPlayer.setControlAction({type: 'fallLoop'});
+      }
     } else {
       const flyAction = {
         type: 'fly',
@@ -1490,13 +1493,16 @@ class GameManager extends EventTarget {
     }
 
     const jumpAction = localPlayer.getAction('jump');
-    if (!jumpAction) {
+    const flyAction = localPlayer.getAction('fly');
+    if (!jumpAction && !flyAction) {
+    // if (!jumpAction) {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger
         // time: 0,
       };
-      localPlayer.addAction(newJumpAction);
+      localPlayer.setControlAction(newJumpAction);
+      window.jumpStartY = localPlayer.characterController.position.y;
     }
   }
   jump(trigger) {
@@ -1506,7 +1512,6 @@ class GameManager extends EventTarget {
     // update velocity
     const localPlayer = getLocalPlayer();
     // localPlayer.characterPhysics.velocity.y += 6;
-    localPlayer.characterPhysics.velocity.y += 15;
     
     // play sound
     // soundManager.play('jump');

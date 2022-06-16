@@ -35,13 +35,14 @@ const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
 const groundStickOffset = 0.03;
+let lastcharacterControllerY = null;
 
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
 
     this.velocity = new THREE.Vector3();
-    this.lastGroundedTime = 0;
+    this.lastGrounded = null;
     this.sitOffset = new THREE.Vector3();
    
     this.lastPistolUse = false;
@@ -60,12 +61,9 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     // if (this.player) {
-      if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
-        const jumpAction = this.player.getAction('jump');
-        const jumpTime = this.player.actionInterpolants.jump.get()
-        const gravityMutiplier = jumpAction?.trigger === 'jump' ? (jumpTime <= flatGroundJumpAirTime ? 4 : 1) : 1;
+      if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly')) {
         localVector.copy(physicsManager.getGravity())
-          .multiplyScalar(timeDiffS * gravityMutiplier);
+          .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
       }
     // }
@@ -86,6 +84,21 @@ class CharacterPhysics {
       const minDist = 0;
       localVector3.copy(this.velocity)
         .multiplyScalar(timeDiffS);
+
+      if (this.player.hasAction('jump')) {
+        const jumpTime = performance.now() - window.jumpStartTime;
+        // console.log(jumpTime);
+        // localVector3.y = jumpTime < 333 ? window.jumpStepValue : -window.jumpStepValue;
+        localVector3.y = Math.sin(jumpTime * (Math.PI / 666)) * 3/*jump height*/ + jumpStartY - lastcharacterControllerY;
+        // localVector3.y += this.player.avatar.height * 0.5;
+        // console.log(localVector3.y);
+        // console.log(jumpStartY);
+        // console.log(Math.sin(jumpTime * (Math.PI / 666)) * 2);
+        if (jumpTime >= 666 && !this.player.characterPhysics.lastGrounded) {
+          localPlayer.setControlAction({type: 'fallLoop'});
+        }
+      }
+        
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
       const flags = physicsManager.moveCharacterController(
         this.player.characterController,
@@ -143,39 +156,20 @@ class CharacterPhysics {
         }
 
         const jumpAction = this.player.getAction('jump');
-        const _ensureJumpAction = () => {
-          if (!jumpAction) {
-            const newJumpAction = {
-              type: 'jump',
-              time: 0,
-            };
-            this.player.addAction(newJumpAction);
-          } else {
-            jumpAction.set('time', 0);
-          }
-        };
-        const _ensureNoJumpAction = () => {
-          this.player.removeAction('jump');
-        };
+        const flyAction = this.player.getAction('fly');
 
         if (grounded) {
-          this.lastGroundedTime = now;
+          if (!this.lastGrounded) {
+            if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
+              this.player.setControlAction({type: 'land'});
+              this.player.lastLandTime = now;
+            }
+          };
 
           this.velocity.y = -1;
-        }
-
-        if (!jumpAction) {
-          const lastGroundedTimeDiff = now - this.lastGroundedTime;
-          if (lastGroundedTimeDiff <= 100) {
-            _ensureNoJumpAction();
-          } else {
-            _ensureJumpAction();
-          
-            this.velocity.y = 0;
-          }
         } else {
-          if (grounded) {
-            _ensureNoJumpAction();
+          if (this.lastGrounded === true && !jumpAction && !flyAction) {
+            this.player.setControlAction({type: 'jump'});
           }
         }
       } else {
@@ -241,6 +235,9 @@ class CharacterPhysics {
         }
         this.avatar.updateMatrixWorld();
       } */
+
+      this.lastGrounded = grounded;
+      lastcharacterControllerY = this.player.characterController.position.y;
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */
