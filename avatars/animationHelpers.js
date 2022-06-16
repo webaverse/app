@@ -1332,9 +1332,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _blendFly(spec);
     _blendActivateAction(spec);
 
-    // if (isPosition) console.log(dst.y);
-    // if (isPosition) dst.y *= 0.5;
-
     // ignore all animation position except y
     if (isPosition) {
       if (!avatar.jumpState && !avatar.fallLoopState) {

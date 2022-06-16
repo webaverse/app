@@ -100,7 +100,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
   rig.landTime = player.actionInterpolants.land.get();
-  rig.lastLandStartTime = landAction ? landAction.time : 0;
+  rig.lastLandStartTime = landAction ? landAction.time : 0; // todo: declare in avatars.js
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
