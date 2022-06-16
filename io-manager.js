@@ -25,6 +25,7 @@ import transformControls from './transform-controls.js';
 import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
+import loadoutManager from './loadout-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -213,8 +214,9 @@ const _updateIo = timeDiff => {
         }
 
         const _handleLoadout = () => {
+          const selectedApp = loadoutManager.getSelectedApp();
           if(handedness === "left") {
-            if(ioManager.currentLoadout > 0) {
+            if(ioManager.currentLoadout > 1) {
               ioManager.currentLoadout--;
             }
           }
