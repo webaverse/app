@@ -1492,7 +1492,6 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
-    // this.landFactor = this.landTime / landMaxTime;
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -1905,7 +1904,7 @@ class Avatar {
     
 
     _updateHmdPosition();
-    if (this === window.localPlayer.avatar) {
+    if (false && this === window.localPlayer.avatar) {
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
         <div style="display:;">landFactor: --- ${window.logNum(this.landFactor)}</div>
@@ -1922,6 +1921,7 @@ class Avatar {
         <div style="display:;">jumpState: --- ${this.jumpState}</div>
         <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
         <div style="display:;">landTime: --- ${Math.floor(this.landTime)}</div>
+        <div style="display:;">landFactor: --- ${this.landFactor?.toFixed(2)}</div>
         <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
         <div style="display:;">flyState: --- ${this.flyState}</div>
         <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
