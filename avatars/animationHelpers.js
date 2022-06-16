@@ -423,7 +423,7 @@ export const loadPromise = (async () => {
 export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
-  const timeSeconds = (now - avatar.lastLandTime) / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
+  const timeSeconds = (now - avatar.lastLandStartTime) / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
   const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
