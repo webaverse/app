@@ -32,15 +32,21 @@ export default () => {
     const cameraWaterSurfacePos = new THREE.Vector3(0, 0, 0);
     let contactWater = false;
     let floatOnWater = false;
-    let cameraDir=new THREE.Vector3();
+    let cameraDir = new THREE.Vector3();
+    let playerDir = new THREE.Vector3();
     
     //############################################################# trace camera direction ########################################################################
     {
         const localVector = new THREE.Vector3();
+        const localVector2 = new THREE.Vector3();
         useFrame(() => {
             localVector.set(0, 0, -1);
             cameraDir = localVector.applyQuaternion( camera.quaternion );
             cameraDir.normalize();
+
+            localVector2.set(0, 0, -1);
+            playerDir = localVector.applyQuaternion( localPlayer.quaternion );
+            playerDir.normalize();
             
         });
     }
@@ -142,7 +148,7 @@ export default () => {
                 },
                 uSpeed: {
                     type: "f",
-                    value: 1
+                    value: 0.8
                 },
                 uFlowStrength: {
                     type: "f",
@@ -150,7 +156,16 @@ export default () => {
                 },
                 uFlowOffset: {
                     type: "f",
-                    value: 1
+                    value: -1.5
+                },
+                sunPosition: {
+                    value: new THREE.Vector3(200.0, 1.0, -600.)
+                },
+                playerPosition: {
+                    value: new THREE.Vector3()
+                },
+                playerDirection: {
+                    value: new THREE.Vector3()
                 },
                 waterDerivativeHeightTexture: {
                     value: waterDerivativeHeightTexture
@@ -194,6 +209,10 @@ export default () => {
                 uniform float uSpeed;
                 uniform float uFlowStrength;
                 uniform float uFlowOffset;
+                uniform vec3 sunPosition;
+                uniform vec3 playerPosition;
+                uniform vec3 playerDirection;
+                
                 
                 uniform sampler2D waterDerivativeHeightTexture;
                 uniform sampler2D waterNoiseTexture;
@@ -220,14 +239,16 @@ export default () => {
                     return dh;
                 }
         
-                float shineDamper = 20.;
-                float reflectivity = 0.1;
+                float shineDamper = 50.;
+                float reflectivity = 0.45;
                 void main() {
                    
                     vec4 worldPosition = modelMatrix * vec4( vPos, 1.0 );
-                    vec3 worldToEye = cameraPosition-worldPosition.xyz;
+                    vec3 sunToPlayer = normalize(sunPosition - playerPosition); 
+                    vec3 worldToEye = vec3(playerPosition.x + sunToPlayer.x * 10., playerPosition.y, playerPosition.z + sunToPlayer.z * 10.)-worldPosition.xyz;
+                    
                     vec3 eyeDirection = normalize( worldToEye );
-                    vec2 uv = worldPosition.xz * 0.1;
+                    vec2 uv = worldPosition.xz * 0.05;
 
                     vec2 flowmap = texture2D(flowmapTexture, uv / 5.).rg * 2. - 1.;
                     flowmap *= uFlowStrength;
@@ -237,22 +258,22 @@ export default () => {
                     vec3 uvwA = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, false);
                     vec3 uvwB = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, true);
 
-                    vec3 dhA = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwA.xy)) * uvwA.z;
-                    vec3 dhB = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwB.xy)) * uvwB.z;
+                    vec3 dhA = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwA.xy)) * uvwA.z * 1.5;
+                    vec3 dhB = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwB.xy)) * uvwB.z * 1.5;
                     vec3 surfaceNormal = normalize(vec3(-(dhA.xy + dhB.xy), 1.));
 
-                    vec3 fromSunVector = worldPosition.xyz - vec3(0., 1., 600.);
+                    vec3 fromSunVector = worldPosition.xyz - (sunPosition + playerPosition);
                     vec3 reflectedLight = reflect(normalize(fromSunVector), surfaceNormal);
                     float specular = max(dot(reflectedLight, eyeDirection), 0.0);
                     specular = pow(specular, shineDamper);
-                    vec3 specularHighlight = vec3(1.0,1.0,1.0) * specular * reflectivity;
+                    vec3 specularHighlight = vec3(0.6,0.6,0.6) * specular * reflectivity;
                        
                     vec4 texA = texture2D(waterNoiseTexture, uvwA.xy) * uvwA.z;
                     vec4 texB = texture2D(waterNoiseTexture, uvwB.xy) * uvwB.z;
 
                     
 
-                    gl_FragColor = (texA + texB) * vec4(0., 0.3, 0.5, 0.5);
+                    gl_FragColor = (texA + texB + vec4(0., 0.7, 0.9, 0.)) * vec4(0., 0.3, 0.6, 0.8);
                     gl_FragColor += vec4( specularHighlight, 0.0 );
                     ${THREE.ShaderChunk.logdepthbuf_fragment}
                 }
@@ -286,6 +307,8 @@ export default () => {
                 
             }
             waterMaterial.uniforms.uTime.value = timestamp / 1000;
+            waterMaterial.uniforms.playerPosition.value.copy(localPlayer.position);
+            waterMaterial.uniforms.playerDirection.value.copy(playerDir);
             
             app.updateMatrixWorld();
         });
@@ -353,7 +376,7 @@ export default () => {
                 
 
                 void main() {
-                    gl_FragColor = vec4(0.0, 0.3, 0.5, 0.3);
+                    gl_FragColor = vec4(0.0, 0.3, 0.6, 0.3);
                     if(!contactWater || vPos.y > cameraWaterSurfacePos.y)
                         gl_FragColor.a = 0.;
                 ${THREE.ShaderChunk.logdepthbuf_fragment}
