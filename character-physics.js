@@ -87,7 +87,7 @@ class CharacterPhysics {
 
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
-        const jumpTime = now - jumpAction.time;
+        const jumpTime = this.player.actionInterpolants.jump.get();
         // console.log(jumpTime);
         // localVector3.y = jumpTime < 333 ? window.jumpStepValue : -window.jumpStepValue;
         localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + this.player.jumpStartY - this.lastcharacterControllerY;
