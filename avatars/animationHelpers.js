@@ -423,7 +423,7 @@ export const loadPromise = (async () => {
 export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
-  const timeSeconds = (now - avatar.lastLandTime) / 1000 + 0.8;
+  const timeSeconds = (now - avatar.lastLandTime) / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
   const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
@@ -802,20 +802,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const jumpAnimation = animations.index['jump.fbx'];
         // const jumpAnimationDuration = jumpAnimation.duration - 1 / 30; // cut last frame.
 
-        /* if (jumpTimeS < jumpAnimationDuration) */ { // jump up stage
-          const t2 = jumpTimeS;
-          const src2 = jumpAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-          dst.fromArray(v2);
-          // if (isPosition) console.log('jump');
-        } /* else { // fall loop stage
-          const fallingAnimation = animations.index['falling.fbx'];
-          const t3 = jumpTimeS - jumpAnimationDuration;
-          const src3 = fallingAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3 % fallingAnimation.duration);
-          dst.fromArray(v3);
-          // if (isPosition) console.log('fall');
-        } */
+        const t2 = jumpTimeS;
+        const src2 = jumpAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+        dst.fromArray(v2);
 
         _clearXZ(dst, isPosition);
 
@@ -1290,10 +1280,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const src2 = landingAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
-        let lerpFactor = (landingAnimationDuration - landTimeS) / 0.05; // 0.05 = 3 frames
+        let lerpFactor = (landingAnimation.duration - landTimeS) / 0.05; // 0.05 = 3 frames
         lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
-
-        if (isPosition) console.log(lerpFactor);
 
         if (!isPosition) {
           localQuaternion.fromArray(v2);
@@ -1307,8 +1295,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } else {
       const landTimeS = avatar.landTime / 1000;
       const landingAnimation = animations.index['landing 2.fbx'];
-      const landingAnimationDuration = landingAnimation.duration;
-      const landFactor = landTimeS / landingAnimationDuration;
+      const landFactor = landTimeS / landingAnimation.duration;
 
       if (landFactor > 0 && landFactor <= 1) {
         const t2 = landTimeS;
@@ -1318,7 +1305,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         let lerpFactor = landTimeS / 0.15;
         lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
 
-        let lerpFactor2 = (landingAnimationDuration - landTimeS) / 0.15;
+        let lerpFactor2 = (landingAnimation.duration - landTimeS) / 0.15;
         lerpFactor2 = MathUtils.clamp(lerpFactor2, 0, 1);
 
         lerpFactor = Math.min(lerpFactor, lerpFactor2);
