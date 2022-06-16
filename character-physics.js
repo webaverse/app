@@ -162,8 +162,7 @@ class CharacterPhysics {
         if (grounded) {
           if (!this.lastGrounded) {
             if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
-              this.player.setControlAction({type: 'land'});
-              this.player.lastLandTime = now;
+              this.player.setControlAction({type: 'land', time: now});
             }
           };
 
