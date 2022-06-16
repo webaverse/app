@@ -11,7 +11,22 @@ export default () => {
     const cameraManager = useCameraManager();
     const {renderer, camera, scene, rootScene} = useInternals();
     const renderSettings = useRenderSettings();
-    const textureLoader = new THREE.TextureLoader()
+    const textureLoader = new THREE.TextureLoader();
+    const waterNormalTexture1 = textureLoader.load(`${baseUrl}/textures/waterNormal2.png`);
+    waterNormalTexture1.wrapS = waterNormalTexture1.wrapT = THREE.RepeatWrapping;
+    const waterNormalTexture2 = textureLoader.load(`${baseUrl}/textures/waterNormal3.png`);
+    waterNormalTexture2.wrapS = waterNormalTexture2.wrapT = THREE.RepeatWrapping;
+
+    
+    const waterDerivativeHeightTexture = textureLoader.load(`${baseUrl}/textures/water-derivative-height.png`);
+    waterDerivativeHeightTexture.wrapS = waterDerivativeHeightTexture.wrapT = THREE.RepeatWrapping;
+    const waterNormalTexture = textureLoader.load(`${baseUrl}/textures/water-normal.png`);
+    waterNormalTexture.wrapS = waterNormalTexture.wrapT = THREE.RepeatWrapping;
+    const waterNoiseTexture = textureLoader.load(`${baseUrl}/textures/water.png`);
+    waterNoiseTexture.wrapS = waterNoiseTexture.wrapT = THREE.RepeatWrapping;
+    const flowmapTexture = textureLoader.load(`${baseUrl}/textures/flowmap.png`);
+    flowmapTexture.wrapS = flowmapTexture.wrapT = THREE.RepeatWrapping;
+
     let water = null;
     const waterSurfacePos = new THREE.Vector3(0, 0, 0);
     const cameraWaterSurfacePos = new THREE.Vector3(0, 0, 0);
@@ -29,8 +44,6 @@ export default () => {
             
         });
     }
-
-    
 
     //############################################################ trace water surface ########################################################################
     {
@@ -75,6 +88,13 @@ export default () => {
                         if(localPlayer.hasAction('swim'))
                             localPlayer.getAction('swim').onSurface = true;
                     }
+                    if(intersect[0].distance < localPlayer.avatar.height * 0.6){
+                        if(localPlayer.hasAction('swim')){
+                            console.log('remove');
+                            localPlayer.removeAction('swim');
+                        }
+                        floatOnWater = false;
+                    }
                     
                 }
                 else{
@@ -84,6 +104,7 @@ export default () => {
                     }
                     floatOnWater = false;
                 }
+                
 
                 //############################### camera raycast ###################################
                 localVector.set(camera.position.x + cameraDir.x * 0.2, camera.position.y, localPlayer.position.z + cameraDir.z * 0.2);
@@ -100,13 +121,47 @@ export default () => {
     }
     //######################################################################## water ########################################################################
     {
-        const waterGeometry = new THREE.PlaneGeometry( 500, 500 );
+        const waterGeometry = new THREE.PlaneGeometry( 1500, 1500 );
         const waterMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 uTime: {
                     type: "f",
                     value: 0.0
                 },
+                uUJump: {
+                    type: "f",
+                    value: 0.24
+                },
+                uVJump: {
+                    type: "f",
+                    value: 0.208
+                },
+                uTiling: {
+                    type: "f",
+                    value: 2
+                },
+                uSpeed: {
+                    type: "f",
+                    value: 1
+                },
+                uFlowStrength: {
+                    type: "f",
+                    value: 0.25
+                },
+                uFlowOffset: {
+                    type: "f",
+                    value: 1
+                },
+                waterDerivativeHeightTexture: {
+                    value: waterDerivativeHeightTexture
+                },
+                waterNoiseTexture: {
+                    value: waterNoiseTexture
+                },
+                flowmapTexture: {
+                    value: flowmapTexture
+                },
+
             },
             vertexShader: `\
                 
@@ -114,9 +169,11 @@ export default () => {
                 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
                 
             
+                varying vec3 vPos;
                 varying vec2 vUv;
 
                 void main() {
+                    vPos = position;
                     vUv = uv;
                     vec3 pos = position;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 ); 
@@ -126,12 +183,77 @@ export default () => {
                 
                 
                 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+                varying vec3 vPos;
                 varying vec2 vUv;
+
+                uniform mat4 modelMatrix;
                 uniform float uTime;
-            
+                uniform float uUJump;
+                uniform float uVJump;
+                uniform float uTiling;
+                uniform float uSpeed;
+                uniform float uFlowStrength;
+                uniform float uFlowOffset;
+                
+                uniform sampler2D waterDerivativeHeightTexture;
+                uniform sampler2D waterNoiseTexture;
+                uniform sampler2D flowmapTexture;
+                
+                float frac(float v)
+                {
+                  return v - floor(v);
+                }
+                vec3 FlowUVW (vec2 uv, vec2 flowVector, vec2 jump, float flowOffset, float tiling, float time,  bool flowB) {
+                    float phaseOffset = flowB ? 0.5 : 0.;
+                    float progress = frac(time + phaseOffset);
+	                vec3 uvw;
+                    uvw.xy = uv - flowVector * (progress + flowOffset);
+                    uvw.xy *= tiling;
+                    uvw.xy += phaseOffset;
+                    uvw.xy += (time - progress) * jump;
+                    uvw.z = 1. - abs(1. - 2. * progress);
+                    return uvw;
+                }
+                vec3 UnpackDerivativeHeight (vec4 textureData) {
+                    vec3 dh = textureData.agb;
+                    dh.xy = dh.xy * 2. - 1.;
+                    return dh;
+                }
+        
+                float shineDamper = 20.;
+                float reflectivity = 0.1;
                 void main() {
+                   
+                    vec4 worldPosition = modelMatrix * vec4( vPos, 1.0 );
+                    vec3 worldToEye = cameraPosition-worldPosition.xyz;
+                    vec3 eyeDirection = normalize( worldToEye );
+                    vec2 uv = worldPosition.xz * 0.1;
+
+                    vec2 flowmap = texture2D(flowmapTexture, uv / 5.).rg * 2. - 1.;
+                    flowmap *= uFlowStrength;
+                    float noise = texture2D(flowmapTexture, uv).a;
+			        float time = uTime * uSpeed + noise;
+                    vec2 jump = vec2(uUJump, uVJump);
+                    vec3 uvwA = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, false);
+                    vec3 uvwB = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, true);
+
+                    vec3 dhA = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwA.xy)) * uvwA.z;
+                    vec3 dhB = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwB.xy)) * uvwB.z;
+                    vec3 surfaceNormal = normalize(vec3(-(dhA.xy + dhB.xy), 1.));
+
+                    vec3 fromSunVector = worldPosition.xyz - vec3(0., 1., 600.);
+                    vec3 reflectedLight = reflect(normalize(fromSunVector), surfaceNormal);
+                    float specular = max(dot(reflectedLight, eyeDirection), 0.0);
+                    specular = pow(specular, shineDamper);
+                    vec3 specularHighlight = vec3(1.0,1.0,1.0) * specular * reflectivity;
+                       
+                    vec4 texA = texture2D(waterNoiseTexture, uvwA.xy) * uvwA.z;
+                    vec4 texB = texture2D(waterNoiseTexture, uvwB.xy) * uvwB.z;
+
                     
-                    gl_FragColor = vec4(0., 0.3, 0.5, 0.8);
+
+                    gl_FragColor = (texA + texB) * vec4(0., 0.3, 0.5, 0.5);
+                    gl_FragColor += vec4( specularHighlight, 0.0 );
                     ${THREE.ShaderChunk.logdepthbuf_fragment}
                 }
             `,
@@ -163,6 +285,7 @@ export default () => {
                 }
                 
             }
+            waterMaterial.uniforms.uTime.value = timestamp / 1000;
             
             app.updateMatrixWorld();
         });
