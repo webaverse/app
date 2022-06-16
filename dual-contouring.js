@@ -240,6 +240,27 @@ w.getHeightfieldRange = (x, z, w, h, lod) => {
     allocator.freeAll();
   }
 };
+w.getSkylightFieldRange = (x, y, z, w, h, d, lod) => {
+  const allocator = new Allocator(Module);
+
+  const skylights = allocator.alloc(Uint8Array, w * h * d);
+
+  try {
+    Module._getSkylightFieldRange(
+      x,
+      y,
+      z,
+      w,
+      h,
+      d,
+      lod,
+      skylights.byteOffset
+    );
+    return skylights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
 w.getAoFieldRange = (x, y, z, w, h, d, lod) => {
   const allocator = new Allocator(Module);
 

@@ -143,6 +143,19 @@ class DcWorkerManager {
     });
     return result;
   }
+  async getSkylightFieldRange(x, y, z, w, h, d, lod) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('getSkylightFieldRange', {
+      x,
+      y,
+      z,
+      w,
+      h,
+      d,
+      lod
+    });
+    return result;
+  }
   async getAoFieldRange(x, y, z, w, h, d, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('getAoFieldRange', {
