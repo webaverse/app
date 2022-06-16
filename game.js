@@ -1495,7 +1495,6 @@ class GameManager extends EventTarget {
     const jumpAction = localPlayer.getAction('jump');
     const flyAction = localPlayer.getAction('fly');
     if (!jumpAction && !flyAction) {
-    // if (!jumpAction) {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger,

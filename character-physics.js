@@ -156,9 +156,6 @@ class CharacterPhysics {
           localQuaternion.copy(camera.quaternion);
         }
 
-        const jumpAction = this.player.getAction('jump');
-        const flyAction = this.player.getAction('fly');
-
         if (grounded) {
           if (!this.lastGrounded) {
             if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
@@ -168,7 +165,7 @@ class CharacterPhysics {
 
           this.velocity.y = -1;
         } else {
-          if (this.lastGrounded && !jumpAction && !flyAction) {
+          if (this.lastGrounded && !this.player.hasAction('jump') && !this.player.hasAction('fly')) {
             this.player.setControlAction({type: 'fallLoop'});
           }
         }
