@@ -190,9 +190,7 @@ class Player extends THREE.Object3D {
     ];
 
     const _prepareAppManager = () => {
-      this.appManager = new AppManager({
-        appsMap: null,
-      });
+      this.appManager = new AppManager(this.isLocalPlayer);
       this.appManager.addEventListener('appadd', e => {
         if (!this.detached) {
           const app = e.data;
@@ -374,12 +372,6 @@ class Player extends THREE.Object3D {
     if (isAppUpdate) {
       app.dispatchEvent(param);
     }
-  }
-
-  updateWearables() {
-    this.wornApps.forEach((app) => {
-      this.handleWearUpdate(app, true, -1, true, false)
-    });
   }
 
   wear(app, { loadoutIndex = -1 } = {}) {
@@ -591,9 +583,9 @@ class Player extends THREE.Object3D {
         }
       };
       _removeApp();
-      this.handleWearUpdate(app, false, loadoutIndex, true)
+      this.handleWearUpdate(app, false, loadoutIndex, true, true)
     } else {
-      this.handleWearUpdate(app, false, -1, true)
+      this.handleWearUpdate(app, false, -1, true, true)
     }
 
     this.wornApps.splice(this.wornApps.indexOf(app));
@@ -1164,7 +1156,7 @@ class LocalPlayer extends Player {
     if (this.lastMatrix.equals(this.matrixWorld)) return;
     this.lastMatrix.copy(this.matrixWorld);
 
-    this.packed = new Float32Array(11);
+    this.packed = new Float32Array(8);
     const pack3 = (v, i) => {
       this.packed[i] = v.x;
       this.packed[i + 1] = v.y;
@@ -1178,8 +1170,7 @@ class LocalPlayer extends Player {
     };
     pack3(this.position, 0);
     pack4(this.quaternion, 3);
-    pack3(this.scale, 7);
-    this.packed[10] = timeDiff;
+    this.packed[7] = timeDiff;
 
     const self = this;
     this.playersArray.doc.transact(function tx() {
@@ -1194,7 +1185,7 @@ class LocalPlayer extends Player {
   }
   update(timestamp, timeDiff, frame) {
     if (!this.avatar) {
-      return console.warn("Not updating local player, no avatar")
+      return logger.warn("Not updating local player, no avatar")
     }
 
     const session = _getSession();
@@ -1211,7 +1202,6 @@ class LocalPlayer extends Player {
     this.characterBehavior.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff, true);
-    this.updateWearables();
 
     this.pushPlayerUpdates(timeDiff);
     this.appManager.update();
@@ -1461,7 +1451,7 @@ class RemotePlayer extends Player {
         const transform = this.playerMap.get("transform");
         if (transform) {
           this.hasReceivedData = true;
-          const remoteTimeDiff = transform[10];
+          const remoteTimeDiff = transform[7];
           lastPosition.copy(this.position);
           this.position.fromArray(transform, 0);
 
@@ -1487,8 +1477,6 @@ class RemotePlayer extends Player {
           }
         }
       }
-
-      this.updateWearables();
     };
 
     this.playerMap.observe(observePlayerFn);
@@ -1497,7 +1485,6 @@ class RemotePlayer extends Player {
     );
 
     this.appManager.callBackFn = (app, event, flag) => {
-      // Called when app is added or removed by appManager.exportTrackedApp
       if (event == "wear") {
         if (flag === "remove") {
           this.unwear(app);
