@@ -41,7 +41,7 @@ import {
   // jumpStartTimeS,
   // jumpFallLoopStartTimeS,
   // jumpFallLoopFrameTimes,
-  // unjumpSpeed,
+  // landSpeed,
   // lerpFrameCountFallToLand,
   // lerpFrameCountJumpToFall,
   // lerpFrameCountLandToOther,
@@ -800,22 +800,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const jumpTimeS = avatar.jumpTime / 1000;
         const jumpAnimation = animations.index['jump.fbx'];
-        const jumpAnimationDuration = jumpAnimation.duration - 1 / 30; // cut last frame.
+        // const jumpAnimationDuration = jumpAnimation.duration - 1 / 30; // cut last frame.
 
-        if (jumpTimeS < jumpAnimationDuration) { // jump up stage
+        /* if (jumpTimeS < jumpAnimationDuration) */ { // jump up stage
           const t2 = jumpTimeS;
           const src2 = jumpAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
           dst.fromArray(v2);
           // if (isPosition) console.log('jump');
-        } else { // fall loop stage
+        } /* else { // fall loop stage
           const fallingAnimation = animations.index['falling.fbx'];
           const t3 = jumpTimeS - jumpAnimationDuration;
           const src3 = fallingAnimation.interpolants[k];
           const v3 = src3.evaluate(t3 % fallingAnimation.duration);
           dst.fromArray(v3);
           // if (isPosition) console.log('fall');
-        }
+        } */
 
         _clearXZ(dst, isPosition);
 
@@ -924,7 +924,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
     }
 
-    /* if (avatar.fallLoopState) {
+    if (avatar.fallLoopState) {
       return spec => {
         const {
           animationTrackName: k,
@@ -932,13 +932,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           // isTop,
         } = spec;
 
-        const t2 = (avatar.fallLoopTime/1000) ;
-        const src2 = fallLoop.interpolants[k];
+        const fallLoopAnimation = animations.index['falling.fbx'];
+        const t2 = (avatar.fallLoopTime / 1000) ;
+        const src2 = fallLoopAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
       };
-    } */
+    }
     if (
       avatar.useAnimation ||
       avatar.useAnimationCombo.length > 0 ||
@@ -1266,7 +1267,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       }
     }
   };
-  const _blendUnjump = spec => {
+  const _blendLand = spec => {
     // return;
     const {
       animationTrackName: k,
@@ -1275,15 +1276,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    const unjumpTimeS = avatar.unjumpTime / 1000;
+    const landTimeS = avatar.landTime / 1000;
     const landingAnimation = animations.index['landing.fbx'];
-    const unjumpFactor = unjumpTimeS / (landingAnimation.duration - 1 / 30);
+    const landFactor = landTimeS / (landingAnimation.duration - 1 / 30);
 
-    if (unjumpFactor > 0 && unjumpFactor <= 1) {
-      const t2 = unjumpTimeS + 1 / 30; // cut first frame.
+    if (landFactor > 0 && landFactor <= 1) {
+      const t2 = landTimeS + 1 / 30; // cut first frame.
       const src2 = landingAnimation.interpolants[k];
       const v2 = src2.evaluate(t2);
-      // if (isPosition) console.log('unjump');
+      // if (isPosition) console.log('land');
 
       // dst.fromArray(v2); return;
 
@@ -1293,7 +1294,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       // const lerpTimeS = lerpFrameCountLandToOther / 30;
       // const lerpFactor = 1 - MathUtils.clamp(t2 / lerpTimeS, 0, 1);
 
-      let lerpFactor = unjumpFactor;
+      let lerpFactor = landFactor;
       lerpFactor = MathUtils.smoothstep(lerpFactor, 0.5, 1);
       // if (isPosition) debugger
       // lerpFactor = lerpFactor * 10 - 9;
@@ -1357,7 +1358,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     applyFn(spec);
-    _blendUnjump(spec);
+    _blendLand(spec);
     _blendFly(spec);
     _blendActivateAction(spec);
 
@@ -1366,7 +1367,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     // ignore all animation position except y
     if (isPosition) {
-      if (!avatar.jumpState) {
+      if (!avatar.jumpState && !avatar.fallLoopState) {
         // animations position is height-relative
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       } else {

@@ -88,7 +88,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   // const standCharge = player.getAction('standCharge');
   // const standChargeAnimation = standCharge ? standCharge.animation : '';
-  // const fallLoop = player.getAction('fallLoop');
+  const fallLoop = player.getAction('fallLoop');
   // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
   const hurtAction = player.getAction('hurt');
   // const swordSideSlash = player.getAction('swordSideSlash');
@@ -98,7 +98,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
-  rig.unjumpTime = player.actionInterpolants.unjump.get();
+  rig.landTime = player.actionInterpolants.land.get();
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
@@ -181,9 +181,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.standChargeTime = player.actionInterpolants.standCharge.get();
   // rig.standChargeAnimation = standChargeAnimation;
   // rig.standChargeState = !!standCharge;
-  // rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
+  rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
   // rig.fallLoopAnimation = fallLoopAnimation;
-  // rig.fallLoopState = !!fallLoop;
+  rig.fallLoopState = !!fallLoop;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
   // rig.swordSideSlashAnimation = swordSideSlashAnimation;
   // rig.swordSideSlashState = !!swordSideSlash;

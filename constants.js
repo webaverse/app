@@ -114,8 +114,8 @@ export const aimTransitionMaxTime = 150;
 // export const jumpFallLoopStartTimeS = jumpStartTimeS + 0.29; // solve flat ground 4 same loop frame problem.
 // export const jumpFallLoopFrameTimes = 38 / 30;
 
-// export const unjumpSpeed = jumpSpeed * 2;
-// export const unjumpMaxTime = (57 - 39) / 30 / unjumpSpeed * 1000;
+// export const landSpeed = jumpSpeed * 2;
+// export const landMaxTime = (57 - 39) / 30 / landSpeed * 1000;
 
 export const flatGroundJumpAirTime = 682;
 

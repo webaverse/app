@@ -1407,6 +1407,9 @@ class GameManager extends EventTarget {
     const flyAction = localPlayer.getAction('fly');
     if (flyAction) {
       localPlayer.removeAction('fly');
+      if (!localPlayer.characterPhysics.lastGrounded) {
+        localPlayer.setControlAction({type: 'fallLoop'});
+      }
     } else {
       const flyAction = {
         type: 'fly',
@@ -1499,9 +1502,9 @@ class GameManager extends EventTarget {
         // time: 0,
       };
       debugger
-      localPlayer.addAction(newJumpAction);
+      localPlayer.setControlAction(newJumpAction);
       // console.log(localPlayer.getAction('jump'));
-      window.isJumping = true;
+      // window.isJumping = true;
       window.jumpStartY = localPlayer.characterController.position.y;
     }
   }
