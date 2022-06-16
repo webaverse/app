@@ -90,10 +90,10 @@ class CharacterPhysics {
         const jumpTime = this.player.actionInterpolants.jump.get();
         // console.log(jumpTime);
         // localVector3.y = jumpTime < 333 ? window.jumpStepValue : -window.jumpStepValue;
-        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + this.player.jumpStartY - this.lastcharacterControllerY;
+        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastcharacterControllerY;
         // localVector3.y += this.player.avatar.height * 0.5;
         // console.log(localVector3.y);
-        // console.log(this.player.jumpStartY);
+        // console.log(jumpAction.startPositionY);
         // console.log(Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * 2);
         if (jumpTime >= flatGroundJumpAirTime) {
           localPlayer.setControlAction({type: 'fallLoop'});
