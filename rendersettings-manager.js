@@ -39,7 +39,7 @@ class RenderSettings {
 
 class RenderSettingsManager {
   constructor() {
-    this.fog = new THREE.FogExp2(0x000000, 0);
+    this.fog = new THREE.FogExp2(0x000000, 0.5);
   }
   makeRenderSettings(json) {
     return new RenderSettings(json);

@@ -22,16 +22,25 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+      "start_url": "https://webaverse.github.io/aurora-sky/"
+    },
+    {
+      "type": "application/rendersettings",
+      "content": {
+        "fog": {
+          "fogType": "exp",
+          "args": [[0, 5, 10], 0]
+        }
+      }
     },
     {
       "position": [
         0,
-        -2,
+        4,
         0
       ],
       "physics": true,
-      "start_url": "https://webaverse.github.io/block/grid.glb",
+      "start_url": "/practice/valley.glb",
       "dynamic": false
     },
     {
