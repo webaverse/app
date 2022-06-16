@@ -85,14 +85,15 @@ class CharacterPhysics {
       localVector3.copy(this.velocity)
         .multiplyScalar(timeDiffS);
 
-      if (this.player.getAction('jump')?.trigger === 'jump') {
-        const jumpTime = now - this.player.jumpStartTime;
+      const jumpAction = this.player.getAction('jump');
+      if (jumpAction?.trigger === 'jump') {
+        const jumpTime = this.player.actionInterpolants.jump.get();
         // console.log(jumpTime);
         // localVector3.y = jumpTime < 333 ? window.jumpStepValue : -window.jumpStepValue;
-        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + this.player.jumpStartY - this.lastcharacterControllerY;
+        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastcharacterControllerY;
         // localVector3.y += this.player.avatar.height * 0.5;
         // console.log(localVector3.y);
-        // console.log(this.player.jumpStartY);
+        // console.log(jumpAction.startPositionY);
         // console.log(Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * 2);
         if (jumpTime >= flatGroundJumpAirTime) {
           localPlayer.setControlAction({type: 'fallLoop'});
@@ -161,8 +162,7 @@ class CharacterPhysics {
         if (grounded) {
           if (!this.lastGrounded) {
             if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
-              this.player.setControlAction({type: 'land'});
-              this.player.lastLandTime = now;
+              this.player.setControlAction({type: 'land', time: now});
             }
           };
 

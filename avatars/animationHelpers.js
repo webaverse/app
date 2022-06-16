@@ -410,7 +410,7 @@ export const loadPromise = (async () => {
 export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
-  const timeSeconds = (now - avatar.lastLandTime) / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
+  const timeSeconds = (now - avatar.lastLandStartTime) / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
   const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
@@ -767,7 +767,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } = spec;
 
         const t2 = avatar.jumpTime / 1000;
-        // const jumpAnimationDuration = jumpAnimation.duration - 1 / 30; // cut last frame.
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
@@ -1237,11 +1236,10 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     if (walkRunFactor === 0) {
       const landTimeS = avatar.landTime / 1000;
       const landingAnimation = animations.index['landing.fbx'];
-      const landingAnimationDuration = landingAnimation.duration - 1 / 30;
-      const landFactor = landTimeS / landingAnimationDuration;
+      const landFactor = landTimeS / landingAnimation.duration;
 
       if (landFactor > 0 && landFactor <= 1) {
-        const t2 = landTimeS + 1 / 30; // cut first frame.
+        const t2 = landTimeS;
         const src2 = landingAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
