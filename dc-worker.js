@@ -110,8 +110,6 @@ const _handleMethod = ({
       const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z, lodArray);
       const meshData2 = _cloneMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
-      // console.log('got mesh data', meshData2);
-      // dc.clearChunkRootDualContouring(localVector.x, localVector.y, localVector.z)
 
       if (meshData2) {
         const spec = {
