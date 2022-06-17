@@ -289,6 +289,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
   rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
+
+  rig.mirrorFactor = player.actionInterpolants.mirror.getNormalized();
 }
 // returns whether eyes were applied
 export function applyPlayerEyesToAvatar(player, rig) {

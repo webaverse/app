@@ -738,14 +738,15 @@ export const _updateAnimation = avatar => {
   const backwardFactor = 1 - MathUtils.clamp((Math.PI - Math.abs(angle)) / (Math.PI / 2), 0, 1);
   const leftFactor = 1 - MathUtils.clamp(Math.abs(angle - Math.PI / 2) / (Math.PI / 2), 0, 1);
   const rightFactor = 1 - MathUtils.clamp(Math.abs(angle - -Math.PI / 2) / (Math.PI / 2), 0, 1);
-  const mirror = Math.abs(angle) > (Math.PI / 2 + 0.01); // todo: smooth mirror changing
+  // const mirror = Math.abs(angle) > (Math.PI / 2 + 0.01); // todo: smooth mirror changing
+  const mirrorFactorReverse = 1 - avatar.mirrorFactor;
 
   avatar.walkForwardMotion.weight = forwardFactor;
   avatar.walkBackwardMotion.weight = backwardFactor;
-  avatar.walkLeftMotion.weight = mirror ? 0 : leftFactor;
-  avatar.walkLeftMirrorMotion.weight = mirror ? leftFactor : 0;
-  avatar.walkRightMotion.weight = mirror ? 0 : rightFactor;
-  avatar.walkRightMirrorMotion.weight = mirror ? rightFactor : 0;
+  avatar.walkLeftMotion.weight = mirrorFactorReverse * leftFactor;
+  avatar.walkLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
+  avatar.walkRightMotion.weight = mirrorFactorReverse * rightFactor;
+  avatar.walkRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
 
   window.domInfo.innerHTML += `<div style="display:;">forward: --- ${window.logNum(avatar.walkForwardMotion.weight)}</div>`;
   window.domInfo.innerHTML += `<div style="display:;">backward: --- ${window.logNum(avatar.walkBackwardMotion.weight)}</div>`;
@@ -756,24 +757,24 @@ export const _updateAnimation = avatar => {
 
   avatar.runForwardMotion.weight = forwardFactor;
   avatar.runBackwardMotion.weight = backwardFactor;
-  avatar.runLeftMotion.weight = mirror ? 0 : leftFactor;
-  avatar.runLeftMirrorMotion.weight = mirror ? leftFactor : 0;
-  avatar.runRightMotion.weight = mirror ? 0 : rightFactor;
-  avatar.runRightMirrorMotion.weight = mirror ? rightFactor : 0;
+  avatar.runLeftMotion.weight = mirrorFactorReverse * leftFactor;
+  avatar.runLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
+  avatar.runRightMotion.weight = mirrorFactorReverse * rightFactor;
+  avatar.runRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
 
   avatar.crouchForwardMotion.weight = forwardFactor;
   avatar.crouchBackwardMotion.weight = backwardFactor;
-  avatar.crouchLeftMotion.weight = mirror ? 0 : leftFactor;
-  avatar.crouchLeftMirrorMotion.weight = mirror ? leftFactor : 0;
-  avatar.crouchRightMotion.weight = mirror ? 0 : rightFactor;
-  avatar.crouchRightMirrorMotion.weight = mirror ? rightFactor : 0;
+  avatar.crouchLeftMotion.weight = mirrorFactorReverse * leftFactor;
+  avatar.crouchLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
+  avatar.crouchRightMotion.weight = mirrorFactorReverse * rightFactor;
+  avatar.crouchRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
 
   avatar.bowForwardMotion.weight = forwardFactor;
   avatar.bowBackwardMotion.weight = backwardFactor;
-  avatar.bowLeftMotion.weight = mirror ? 0 : leftFactor;
-  avatar.bowLeftMirrorMotion.weight = mirror ? leftFactor : 0;
-  avatar.bowRightMotion.weight = mirror ? 0 : rightFactor;
-  avatar.bowRightMirrorMotion.weight = mirror ? rightFactor : 0;
+  avatar.bowLeftMotion.weight = mirrorFactorReverse * leftFactor;
+  avatar.bowLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
+  avatar.bowRightMotion.weight = mirrorFactorReverse * rightFactor;
+  avatar.bowRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
 
   avatar.flyForwardNode.weight = forwardFactor;
   avatar.flyDodgeBackwardMotion.weight = backwardFactor;

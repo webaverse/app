@@ -1921,65 +1921,64 @@ class Avatar {
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
       */
-      window.domInfo.innerHTML += `
-        <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
-        <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
-        <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>
-        <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
-        <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>
-        <div style="display:;">useEnvelopeFactor: --- ${this.useEnvelopeFactor.toFixed(2)}</div>
-        <div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>
-        <div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>
-        <div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>
-        <div style="display:;">jumpState: --- ${this.jumpState}</div>
-        <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
-        <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
-        <div style="display:;">flyState: --- ${this.flyState}</div>
-        <div style="display:;">flyTime: --- ${Math.floor(this.flyTime)}</div>
-        <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
-        <div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>
-        <div style="display:;">flyDashFactor: --- ${this.flyDashFactor?.toFixed(2)}</div>
-        <div style="display:;">landState: --- ${this.landState}</div>
-        <div style="display:;">landFactor: --- ${moveFactors.landFactor?.toFixed(2)}</div>
-        <div style="display:none;">landTime: --- ${Math.floor(this.landTime)}</div>
-        <div style="display:none;">landTransitionTime: --- ${Math.floor(this.landTransitionTime)}</div>
-        <div style="display:;">sitState: --- ${this.sitState}</div>
-        <div style="display:;">sitFactor: --- ${moveFactors.sitFactor?.toFixed(2)}</div>
-        <div style="display:none;">sitTime: --- ${Math.floor(this.sitTime)}</div>
-        <div style="display:;">chargeJumpState: --- ${this.chargeJumpState}</div>
-        <div style="display:;">danceState: --- ${this.danceState}</div>
-        <div style="display:;">fallLoopState: --- ${this.fallLoopState}</div>
-        <div style="display:;">narutoRunState: --- ${this.narutoRunState}</div>
-        <div style="display:;">sitState: --- ${this.sitState}</div>
-        <div style="display:;">aimAnimation: --- ${this.aimAnimation}</div>
-        <div style="display:;">danceAnimation: --- ${this.danceAnimation}</div>
-        <div style="display:;">hurtAnimation: --- ${this.hurtAnimation}</div>
-        <div style="display:;">poseAnimation: --- ${this.poseAnimation}</div>
-        <div style="display:;">sitAnimation: --- ${this.sitAnimation}</div>
-        <div style="display:;">useFactor: --- ${moveFactors.useFactor?.toFixed(2)}</div>
-        <div style="display:;">useTransitionTime: --- ${Math.floor(this.useTransitionTime)}</div>
-        <div style="display:;">useTime: --- ${Math.floor(this.useTime)}</div>
-        <div style="display:;">useAnimation: --- ${this.useAnimation}</div>
-        <div style="display:;">useAnimationCombo: --- </div>  
-        <div style="display:;">${this.useAnimationCombo}&nbsp;</div>
-        <div style="display:;">useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>
-        <div style="display:;">useAnimationIndex: --- ${this.useAnimationIndex}</div>
-        <div style="display:;">unuseFactor: --- ${this.unuseFactor?.toFixed(2)}</div>
-        <div style="display:;">unuseAnimation: --- ${this.unuseAnimation}</div>
-        <div style="display:;">activateTime: --- ${Math.floor(this.activateTime)}</div>
-        <div style="display:;">aimTime: --- ${Math.floor(this.aimTime)}</div>
-        <div style="display:none;">chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>
-        <div style="display:none;">crouchTime: --- ${Math.floor(this.crouchTime)}</div>
-        <div style="display:;">danceTime: --- ${Math.floor(this.danceTime)}</div>
-        <div style="display:none;">fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>
-        <div style="display:;">hurtTime: --- ${Math.floor(this.hurtTime)}</div>
-        <div style="display:;">unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>
-        <div style="display:;">lastEyeTargetTime: --- ${Math.floor(this.lastEyeTargetTime)}</div>
-        <div style="display:;">lastMoveTime: --- ${Math.floor(this.lastMoveTime)}</div>
-        <div style="display:;">narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>
-        <div style="display:;">blendList.length: --- ${this.blendList?.length}</div>
-        <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
-      `
+      window.domInfo.innerHTML += `<div style="display:;">mirrorFactor: --- ${this.mirrorFactor.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">useEnvelopeFactor: --- ${this.useEnvelopeFactor.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">jumpState: --- ${this.jumpState}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">flyState: --- ${this.flyState}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">flyTime: --- ${Math.floor(this.flyTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">flyDashFactor: --- ${this.flyDashFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">landState: --- ${this.landState}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">landFactor: --- ${moveFactors.landFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:none;">landTime: --- ${Math.floor(this.landTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:none;">landTransitionTime: --- ${Math.floor(this.landTransitionTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">sitState: --- ${this.sitState}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">sitFactor: --- ${moveFactors.sitFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:none;">sitTime: --- ${Math.floor(this.sitTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">chargeJumpState: --- ${this.chargeJumpState}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">danceState: --- ${this.danceState}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">fallLoopState: --- ${this.fallLoopState}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">narutoRunState: --- ${this.narutoRunState}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">sitState: --- ${this.sitState}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">aimAnimation: --- ${this.aimAnimation}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">danceAnimation: --- ${this.danceAnimation}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">hurtAnimation: --- ${this.hurtAnimation}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">poseAnimation: --- ${this.poseAnimation}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">sitAnimation: --- ${this.sitAnimation}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">useFactor: --- ${moveFactors.useFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">useTransitionTime: --- ${Math.floor(this.useTransitionTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">useTime: --- ${Math.floor(this.useTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">useAnimation: --- ${this.useAnimation}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">useAnimationCombo: --- </div>  `;
+      // window.domInfo.innerHTML += `<div style="display:;">${this.useAnimationCombo}&nbsp;</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">useAnimationEnvelope: --- ${this.useAnimationEnvelope}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">useAnimationIndex: --- ${this.useAnimationIndex}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">unuseFactor: --- ${this.unuseFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">unuseAnimation: --- ${this.unuseAnimation}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">activateTime: --- ${Math.floor(this.activateTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">aimTime: --- ${Math.floor(this.aimTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:none;">chargeJumpTime: --- ${Math.floor(this.chargeJumpTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:none;">crouchTime: --- ${Math.floor(this.crouchTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">danceTime: --- ${Math.floor(this.danceTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:none;">fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">hurtTime: --- ${Math.floor(this.hurtTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">unjumpTime: --- ${Math.floor(this.unjumpTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">lastEyeTargetTime: --- ${Math.floor(this.lastEyeTargetTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">lastMoveTime: --- ${Math.floor(this.lastMoveTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">blendList.length: --- ${this.blendList?.length}</div>`;
+      // window.domInfo.innerHTML += `<div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>`;
     }
     _updateAnimation(this);
     // _applyAnimation(this, now, moveFactors);

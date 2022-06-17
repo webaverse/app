@@ -305,6 +305,10 @@ export default class Webaverse extends EventTarget {
       window.domInfo.innerHTML = '';
       // console.log(window.localPlayer?.getAction('use')?.animationCombo);
 
+      if (window.ioManager) {
+        // console.log(Object.values(window.ioManager.keys).join());
+      }
+
       if (window.localPlayer) {
         // console.log(window.localPlayer.getActionsArray().map(n => n.type).join(','));
       }
@@ -399,6 +403,7 @@ const _startHacks = webaverse => {
   window.loadoutManager = loadoutManager;
   window.game = game;
   window.cameraManager = cameraManager;
+  window.ioManager = ioManager;
 
   window.isDebugger = false;
 
